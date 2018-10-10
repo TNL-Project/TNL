@@ -50,7 +50,7 @@ public PDEProblem< Mesh,
       using typename BaseType::MeshPointer;
       using typename BaseType::DofVectorType;
       using typename BaseType::DofVectorPointer;
-      
+
       static String getType();
 
       String getPrologHeader() const;

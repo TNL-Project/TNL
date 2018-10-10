@@ -12,7 +12,6 @@
 
 #include <TNL/Problems/PDEProblem.h>
 #include <TNL/Functions/MeshFunction.h>
-#include <TNL/Exceptions/NotImplementedError.h>
 #include "CompressibleConservativeVariables.h"
 
 
@@ -38,9 +37,9 @@ class eulerProblem:
       typedef typename Mesh::DeviceType DeviceType;
       typedef typename InviscidOperators::IndexType IndexType;
       typedef PDEProblem< Mesh, Communicator, RealType, DeviceType, IndexType > BaseType;
-      
-      typedef Communicator CommunicatorType;
 
+      typedef Communicator CommunicatorType;
+      
       using typename BaseType::MeshType;
       using typename BaseType::MeshPointer;
       using typename BaseType::DofVectorType;
@@ -50,13 +49,12 @@ class eulerProblem:
       typedef Functions::MeshFunction< Mesh > MeshFunctionType;
       typedef CompressibleConservativeVariables< MeshType > ConservativeVariablesType;
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
-      typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
-      typedef Pointers::SharedPointer< ConservativeVariablesType > ConservativeVariablesPointer;
-      typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
-      typedef Pointers::SharedPointer< InviscidOperators > InviscidOperatorsPointer;
-      typedef Pointers::SharedPointer< BoundaryCondition > BoundaryConditionPointer;
-      typedef Pointers::SharedPointer< RightHandSide, DeviceType > RightHandSidePointer;
-      using CommunicatorType = Communicator;
+      typedef SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
+      typedef SharedPointer< ConservativeVariablesType > ConservativeVariablesPointer;
+      typedef SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef SharedPointer< InviscidOperators > InviscidOperatorsPointer;
+      typedef SharedPointer< BoundaryCondition > BoundaryConditionPointer;
+      typedef SharedPointer< RightHandSide, DeviceType > RightHandSidePointer;
 
       static String getType();
 
@@ -86,12 +84,6 @@ class eulerProblem:
                               const RealType& tau,
                               DofVectorPointer& _u,
                               DofVectorPointer& _fu );
-      
-      void applyBoundaryConditions( const RealType& time,
-                                    DofVectorPointer& dofs )
-      {
-         throw Exceptions::NotImplementedError( "TODO: implement BC ... see HeatEquationProblem" );
-      }
 
       template< typename Matrix >
       void assemblyLinearSystem( const RealType& time,
