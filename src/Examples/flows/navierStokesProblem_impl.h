@@ -1,5 +1,5 @@
 /***************************************************************************
-                          eulerProblem_impl.h  -  description
+                          navierStokesProblem_impl.h  -  description
                              -------------------
     begin                : Feb 13, 2017
     copyright            : (C) 2017 by Tomas Oberhuber
@@ -20,13 +20,7 @@
 #include "RiemannProblemInitialCondition.h"
 #include "CompressibleConservativeVariables.h"
 #include "PhysicalVariablesGetter.h"
-#include "eulerProblem.h"
-
-#include "UpwindContinuity.h"
-#include "UpwindEnergy.h"
-#include "UpwindMomentumX.h"
-#include "UpwindMomentumY.h"
-#include "UpwindMomentumZ.h"
+#include "navierStokesProblem.h"
 
 namespace TNL {
 
@@ -36,10 +30,10 @@ template< typename Mesh,
           typename Communicator,
           typename InviscidOperators >
 String
-eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 getType()
 {
-   return String( "eulerProblem< " ) + Mesh :: getTypeStatic() + " >";
+   return String( "navierStokesProblem< " ) + Mesh :: getType() + " >";
 }
 
 template< typename Mesh,
@@ -48,15 +42,19 @@ template< typename Mesh,
           typename Communicator,
           typename InviscidOperators >
 String
-eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 getPrologHeader() const
 {
-   return String( "Inviscid flow solver" );
+   return String( "flow solver" );
 }
 
 template< typename Mesh,
           typename BoundaryCondition,
           typename RightHandSide,
+          typename Communicator,
+          typename InviscidOperators >
+void
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 writeProlog( Logger& logger, const Config::ParameterContainer& parameters ) const
 {
    /****
@@ -70,8 +68,8 @@ template< typename Mesh,
           typename RightHandSide,
           typename Communicator,
           typename InviscidOperators >
-void
-eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
+bool
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 setup( const Config::ParameterContainer& parameters,
        const String& prefix )
 {
@@ -90,8 +88,9 @@ template< typename Mesh,
           typename RightHandSide,
           typename Communicator,
           typename InviscidOperators >
-bool
-eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
+typename navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::IndexType
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
+getDofs() const
 {
    /****
     * Return number of  DOFs (degrees of freedom) i.e. number
@@ -105,9 +104,8 @@ template< typename Mesh,
           typename RightHandSide,
           typename Communicator,
           typename InviscidOperators >
-typename eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::IndexType
-eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
-getDofs( ) const
+void
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 bindDofs( DofVectorPointer& dofVector )
 {
    this->conservativeVariables->bind( this->getMesh(), dofVector );
@@ -116,12 +114,19 @@ bindDofs( DofVectorPointer& dofVector )
 template< typename Mesh,
           typename BoundaryCondition,
           typename RightHandSide,
+          typename Communicator,
+          typename InviscidOperators >
+bool
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 setInitialCondition( const Config::ParameterContainer& parameters,
                      DofVectorPointer& dofs )
 {
    CompressibleConservativeVariables< MeshType > conservativeVariables;
    conservativeVariables.bind( this->getMesh(), dofs );
    const String& initialConditionType = parameters.getParameter< String >( "initial-condition" );
+   this->speedIncrementUntil = parameters.getParameter< RealType >( "speed-increment-until" );
+   this->speedIncrement = parameters.getParameter< RealType >( "speed-increment" );
+   this->cavitySpeed = parameters.getParameter< RealType >( "cavity-speed" );
    if( initialConditionType == "riemann-problem" )
    {
       RiemannProblemInitialCondition< MeshType > initialCondition;
@@ -139,8 +144,9 @@ template< typename Mesh,
           typename RightHandSide,
           typename Communicator,
           typename InviscidOperators >
-void
-eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
+   template< typename Matrix >
+bool
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 setupLinearSystem( Matrix& matrix )
 {
 /*   const IndexType dofs = this->getDofs();
@@ -165,7 +171,7 @@ template< typename Mesh,
           typename Communicator,
           typename InviscidOperators >
 bool
-eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 makeSnapshot( const RealType& time,
               const IndexType& step,
               DofVectorPointer& dofs )
@@ -181,19 +187,20 @@ makeSnapshot( const RealType& time,
    fileName.setExtension( "tnl" );
    fileName.setIndex( step );
    fileName.setFileNameBase( "density-" );
-   this->conservativeVariables->getDensity()->save( fileName.getFileName() );
+   if( ! this->conservativeVariables->getDensity()->save( fileName.getFileName() ) )
+      return false;
    
    fileName.setFileNameBase( "velocity-" );
-   this->velocity->save( fileName.getFileName() );
+   if( ! this->velocity->save( fileName.getFileName() ) )
+      return false;
 
    fileName.setFileNameBase( "pressure-" );
-   this->pressure->save( fileName.getFileName() );
+   if( ! this->pressure->save( fileName.getFileName() ) )
+      return false;
 
    fileName.setFileNameBase( "energy-" );
-   this->conservativeVariables->getEnergy()->save( fileName.getFileName() );
-
-   fileName.setFileNameBase( "momentum-" );
-   this->conservativeVariables->getMomentum()->save( fileName.getFileName() );
+   if( ! this->conservativeVariables->getEnergy()->save( fileName.getFileName() ) )
+      return false;
    
    return true;
 }
@@ -203,16 +210,14 @@ template< typename Mesh,
           typename RightHandSide,
           typename Communicator,
           typename InviscidOperators >
-   template< typename Matrix >
-bool
-eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
+void
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 getExplicitUpdate( const RealType& time,
                    const RealType& tau,
                    DofVectorPointer& _u,
                    DofVectorPointer& _fu )
 {
     typedef typename MeshType::Cell Cell;
-    const MeshPointer& mesh = this->getMesh();
     
     /****
      * Bind DOFs
@@ -221,7 +226,7 @@ getExplicitUpdate( const RealType& time,
     this->conservativeVariablesRHS->bind( this->getMesh(), _fu );
     this->velocity->setMesh( this->getMesh() );
     this->pressure->setMesh( this->getMesh() );
-
+    
     /****
      * Resolve the physical variables
      */
@@ -244,62 +249,89 @@ getExplicitUpdate( const RealType& time,
     this->inviscidOperatorsPointer->setDensity( this->conservativeVariables->getDensity() );
     this->inviscidOperatorsPointer->setGamma( this->gamma );
 
-//   this->pressure->write( "pressure2", "gnuplot" );
-//   getchar();
+   /****
+    * Set Up Boundary Conditions
+    */
+
+   typedef typename BoundaryCondition::DensityBoundaryConditionsType DensityBoundaryConditionsType;
+   typedef typename BoundaryCondition::MomentumXBoundaryConditionsType MomentumXBoundaryConditionsType;
+   typedef typename BoundaryCondition::MomentumYBoundaryConditionsType MomentumYBoundaryConditionsType;
+   typedef typename BoundaryCondition::MomentumZBoundaryConditionsType MomentumZBoundaryConditionsType;
+   typedef typename BoundaryCondition::EnergyBoundaryConditionsType EnergyBoundaryConditionsType;
+
+   /****
+    * Update Boundary Conditions
+    */
+   if(this->speedIncrementUntil > time )
+   {
+      this->boundaryConditionPointer->setTimestep(this->speedIncrement);
+   }
+   else
+   {
+      this->boundaryConditionPointer->setTimestep(0);
+   }
+   this->boundaryConditionPointer->setSpeed(this->cavitySpeed);
+   this->boundaryConditionPointer->setCompressibleConservativeVariables(this->conservativeVariables);
+   this->boundaryConditionPointer->setGamma(this->gamma);
+   this->boundaryConditionPointer->setPressure(this->pressure);
+
    /****
     * Continuity equation
     */ 
-   Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, ContinuityOperatorType, BoundaryCondition, RightHandSide > explicitUpdaterContinuity; 
+   Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, ContinuityOperatorType, DensityBoundaryConditionsType, RightHandSide > explicitUpdaterContinuity; 
    explicitUpdaterContinuity.setDifferentialOperator( this->inviscidOperatorsPointer->getContinuityOperator() );
-   explicitUpdaterContinuity.setBoundaryConditions( this->boundaryConditionPointer );
+   explicitUpdaterContinuity.setBoundaryConditions( this->boundaryConditionPointer->getDensityBoundaryCondition() );
    explicitUpdaterContinuity.setRightHandSide( this->rightHandSidePointer );
-          typename Communicator,
-          typename InviscidOperators >
-bool
-eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
+   explicitUpdaterContinuity.template update< typename Mesh::Cell, Communicator >( time, tau, this->getMesh(), 
+                                                                     this->conservativeVariables->getDensity(),
+                                                                     this->conservativeVariablesRHS->getDensity() );
 
    /****
     * Momentum equations
     */
-   Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, MomentumXOperatorType, BoundaryCondition, RightHandSide > explicitUpdaterMomentumX; 
+   Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, MomentumXOperatorType, MomentumXBoundaryConditionsType, RightHandSide > explicitUpdaterMomentumX; 
    explicitUpdaterMomentumX.setDifferentialOperator( this->inviscidOperatorsPointer->getMomentumXOperator() );
-   explicitUpdaterMomentumX.setBoundaryConditions( this->boundaryConditionPointer );
+   explicitUpdaterMomentumX.setBoundaryConditions( this->boundaryConditionPointer->getMomentumXBoundaryCondition() );
    explicitUpdaterMomentumX.setRightHandSide( this->rightHandSidePointer );   
-          typename Communicator,
-          typename InviscidOperators >
-void
-eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
+   explicitUpdaterMomentumX.template update< typename Mesh::Cell, Communicator >( time, tau, this->getMesh(),
+                                                           ( *this->conservativeVariables->getMomentum() )[ 0 ], // uRhoVelocityX,
+                                                           ( *this->conservativeVariablesRHS->getMomentum() )[ 0 ] ); //, fuRhoVelocityX );
 
    if( Dimensions > 1 )
    {
-      Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, MomentumYOperatorType, BoundaryCondition, RightHandSide > explicitUpdaterMomentumY;
+      Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, MomentumYOperatorType, MomentumYBoundaryConditionsType, RightHandSide > explicitUpdaterMomentumY;
       explicitUpdaterMomentumY.setDifferentialOperator( this->inviscidOperatorsPointer->getMomentumYOperator() );
-      explicitUpdaterMomentumY.setBoundaryConditions( this->boundaryConditionPointer );
+      explicitUpdaterMomentumY.setBoundaryConditions( this->boundaryConditionPointer->getMomentumYBoundaryCondition() );
       explicitUpdaterMomentumY.setRightHandSide( this->rightHandSidePointer );         
+      explicitUpdaterMomentumY.template update< typename Mesh::Cell, Communicator >( time, tau, this->getMesh(),
+                                                              ( *this->conservativeVariables->getMomentum() )[ 1 ], // uRhoVelocityX,
+                                                              ( *this->conservativeVariablesRHS->getMomentum() )[ 1 ] ); //, fuRhoVelocityX );
    }
    
-   if( Dimensions > 2 )   {
-      Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, MomentumZOperatorType, BoundaryCondition, RightHandSide > explicitUpdaterMomentumZ;
+   if( Dimensions > 2 )
+   {
+      Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, MomentumZOperatorType, MomentumZBoundaryConditionsType, RightHandSide > explicitUpdaterMomentumZ;
       explicitUpdaterMomentumZ.setDifferentialOperator( this->inviscidOperatorsPointer->getMomentumZOperator() );
-      explicitUpdaterMomentumZ.setBoundaryConditions( this->boundaryConditionPointer );
+      explicitUpdaterMomentumZ.setBoundaryConditions( this->boundaryConditionPointer->getMomentumZBoundaryCondition() );
       explicitUpdaterMomentumZ.setRightHandSide( this->rightHandSidePointer );               
+      explicitUpdaterMomentumZ.template update< typename Mesh::Cell, Communicator >( time, tau, this->getMesh(),
+                                                              ( *this->conservativeVariables->getMomentum() )[ 2 ], // uRhoVelocityX,
+                                                              ( *this->conservativeVariablesRHS->getMomentum() )[ 2 ] ); //, fuRhoVelocityX );
    }
    
   
    /****
     * Energy equation
     */
-   Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, EnergyOperatorType, BoundaryCondition, RightHandSide > explicitUpdaterEnergy;
+   Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, EnergyOperatorType, EnergyBoundaryConditionsType, RightHandSide > explicitUpdaterEnergy;
    explicitUpdaterEnergy.setDifferentialOperator( this->inviscidOperatorsPointer->getEnergyOperator() );
-   explicitUpdaterEnergy.setBoundaryConditions( this->boundaryConditionPointer );
+   explicitUpdaterEnergy.setBoundaryConditions( this->boundaryConditionPointer->getEnergyBoundaryCondition() );
    explicitUpdaterEnergy.setRightHandSide( this->rightHandSidePointer );                  
-   explicitUpdaterContinuity.template update< typename Mesh::Cell, Communicator >( time, tau, this->getMesh(), 
-                                                                     this->conservativeVariables->getDensity(),
-                                                                     this->conservativeVariablesRHS->getDensity() );
-
-/*   this->pressure->write( "pressure3", "gnuplot" );
-   getchar();   
-   this->conservativeVariablesRHS->getDensity()->write( "density", "gnuplot" );
+   explicitUpdaterEnergy.template update< typename Mesh::Cell, Communicator >( time, tau, this->getMesh(),
+                                                           this->conservativeVariables->getEnergy(), // uRhoVelocityX,
+                                                           this->conservativeVariablesRHS->getEnergy() ); //, fuRhoVelocityX );
+   
+   /*this->conservativeVariablesRHS->getDensity()->write( "density", "gnuplot" );
    this->conservativeVariablesRHS->getEnergy()->write( "energy", "gnuplot" );
    this->conservativeVariablesRHS->getMomentum()->write( "momentum", "gnuplot", 0.05 );
    getchar();*/
@@ -309,9 +341,11 @@ eulerProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOper
 template< typename Mesh,
           typename BoundaryCondition,
           typename RightHandSide,
-   explicitUpdaterMomentumX.template update< typename Mesh::Cell, Communicator >( time, tau, this->getMesh(),
-                                                           ( *this->conservativeVariables->getMomentum() )[ 0 ], // uRhoVelocityX,
-                                                           ( *this->conservativeVariablesRHS->getMomentum() )[ 0 ] ); //, fuRhoVelocityX );
+          typename Communicator,
+          typename InviscidOperators >
+   template< typename Matrix >
+void
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 assemblyLinearSystem( const RealType& time,
                       const RealType& tau,
                       DofVectorPointer& _u,
@@ -330,7 +364,6 @@ assemblyLinearSystem( const RealType& time,
    MeshFunction< Mesh > u( mesh, _u );
    systemAssembler.template assembly< typename Mesh::Cell >( time,
                                                              tau,
-                                                             mesh,
                                                              this->differentialOperator,
                                                              this->boundaryCondition,
                                                              this->rightHandSide,
@@ -342,9 +375,10 @@ assemblyLinearSystem( const RealType& time,
 template< typename Mesh,
           typename BoundaryCondition,
           typename RightHandSide,
-      explicitUpdaterMomentumY.template update< typename Mesh::Cell, Communicator >( time, tau, this->getMesh(),
-                                                              ( *this->conservativeVariables->getMomentum() )[ 1 ], // uRhoVelocityX,
-                                                              ( *this->conservativeVariablesRHS->getMomentum() )[ 1 ] ); //, fuRhoVelocityX );
+          typename Communicator,
+          typename InviscidOperators >
+bool
+navierStokesProblem< Mesh, BoundaryCondition, RightHandSide, Communicator, InviscidOperators >::
 postIterate( const RealType& time,
              const RealType& tau,
              DofVectorPointer& dofs )
@@ -403,6 +437,3 @@ postIterate( const RealType& time,
 
 } // namespace TNL
 
-      explicitUpdaterMomentumZ.template update< typename Mesh::Cell, Communicator >( time, tau, this->getMesh(),
-                                                              ( *this->conservativeVariables->getMomentum() )[ 2 ], // uRhoVelocityX,
-                                                              ( *this->conservativeVariablesRHS->getMomentum() )[ 2 ] ); //, fuRhoVelocityX );

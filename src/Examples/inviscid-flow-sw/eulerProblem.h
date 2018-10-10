@@ -22,8 +22,8 @@ namespace TNL {
 template< typename Mesh,
           typename BoundaryCondition,
           typename RightHandSide,
-          typename InviscidOperators,
-          typename Communicator >
+          typename Communicator,
+          typename InviscidOperators >
 class eulerProblem:
    public PDEProblem< Mesh,
                       Communicator,
@@ -38,11 +38,12 @@ class eulerProblem:
       typedef typename InviscidOperators::IndexType IndexType;
       typedef PDEProblem< Mesh, Communicator, RealType, DeviceType, IndexType > BaseType;
       
+      typedef Communicator CommunicatorType;
+
       using typename BaseType::MeshType;
       using typename BaseType::MeshPointer;
       using typename BaseType::DofVectorType;
       using typename BaseType::DofVectorPointer;
-
       static const int Dimensions = Mesh::getMeshDimension();      
 
       typedef Functions::MeshFunction< Mesh > MeshFunctionType;
@@ -56,7 +57,7 @@ class eulerProblem:
       typedef Pointers::SharedPointer< RightHandSide, DeviceType > RightHandSidePointer;
       using CommunicatorType = Communicator;
 
-      static String getTypeStatic();
+      static String getType();
 
       String getPrologHeader() const;
 

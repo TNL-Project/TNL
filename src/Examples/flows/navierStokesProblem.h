@@ -1,7 +1,7 @@
 /***************************************************************************
-                          transportEquationProblem.h  -  description
+                          navierStokesProblem.h  -  description
                              -------------------
-    begin                : Feb 10, 2017
+    begin                : Feb 13, 2017
     copyright            : (C) 2017 by Tomas Oberhuber
     email                : tomas.oberhuber@fjfi.cvut.cz
  ***************************************************************************/
@@ -12,7 +12,8 @@
 
 #include <TNL/Problems/PDEProblem.h>
 #include <TNL/Functions/MeshFunction.h>
-#include <TNL/Pointers/SharedPointer.h>
+#include "CompressibleConservativeVariables.h"
+
 
 using namespace TNL::Problems;
 
@@ -22,34 +23,38 @@ template< typename Mesh,
           typename BoundaryCondition,
           typename RightHandSide,
           typename Communicator,
-          typename DifferentialOperator >
-class transportEquationProblem:
-public PDEProblem< Mesh,
-                   Communicator,
-                   typename DifferentialOperator::RealType,
-                   typename Mesh::DeviceType,
-                   typename DifferentialOperator::IndexType >
+          typename InviscidOperators >
+class navierStokesProblem:
+   public PDEProblem< Mesh,
+                      Communicator,
+                      typename InviscidOperators::RealType,
+                      typename Mesh::DeviceType,
+                      typename InviscidOperators::IndexType >
 {
    public:
-
-      typedef typename DifferentialOperator::RealType RealType;
+      
+      typedef typename InviscidOperators::RealType RealType;
       typedef typename Mesh::DeviceType DeviceType;
-      typedef typename DifferentialOperator::IndexType IndexType;
-      typedef Functions::MeshFunction< Mesh > MeshFunctionType;
+      typedef typename InviscidOperators::IndexType IndexType;
       typedef PDEProblem< Mesh, Communicator, RealType, DeviceType, IndexType > BaseType;
-      typedef Pointers::SharedPointer<  MeshFunctionType, DeviceType > MeshFunctionPointer;
-      typedef Pointers::SharedPointer<  DifferentialOperator > DifferentialOperatorPointer;
-      typedef Pointers::SharedPointer<  BoundaryCondition > BoundaryConditionPointer;
-      typedef Pointers::SharedPointer<  RightHandSide, DeviceType > RightHandSidePointer;
-      typedef typename DifferentialOperator::VelocityFieldType VelocityFieldType;
-      typedef Pointers::SharedPointer<  VelocityFieldType, DeviceType > VelocityFieldPointer;
 
       typedef Communicator CommunicatorType;
-
+      
       using typename BaseType::MeshType;
       using typename BaseType::MeshPointer;
       using typename BaseType::DofVectorType;
       using typename BaseType::DofVectorPointer;
+      static const int Dimensions = Mesh::getMeshDimension();      
+
+      typedef Functions::MeshFunction< Mesh > MeshFunctionType;
+      typedef CompressibleConservativeVariables< MeshType > ConservativeVariablesType;
+      typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
+      typedef SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
+      typedef SharedPointer< ConservativeVariablesType > ConservativeVariablesPointer;
+      typedef SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef SharedPointer< InviscidOperators > InviscidOperatorsPointer;
+      typedef SharedPointer< BoundaryCondition > BoundaryConditionPointer;
+      typedef SharedPointer< RightHandSide, DeviceType > RightHandSidePointer;
 
       static String getType();
 
@@ -79,9 +84,6 @@ public PDEProblem< Mesh,
                               const RealType& tau,
                               DofVectorPointer& _u,
                               DofVectorPointer& _fu );
-      
-      void applyBoundaryConditions( const RealType& time,
-                                       DofVectorPointer& dofs );      
 
       template< typename Matrix >
       void assemblyLinearSystem( const RealType& time,
@@ -90,29 +92,30 @@ public PDEProblem< Mesh,
                                  Matrix& matrix,
                                  DofVectorPointer& rightHandSide );
 
+      bool postIterate( const RealType& time,
+                        const RealType& tau,
+                        DofVectorPointer& dofs );
+
    protected:
 
-      MeshFunctionPointer uPointer, velocityX, velocityY, velocityZ;
-
-      DifferentialOperatorPointer differentialOperatorPointer;
-
+      InviscidOperatorsPointer inviscidOperatorsPointer;
+         
       BoundaryConditionPointer boundaryConditionPointer;
-
       RightHandSidePointer rightHandSidePointer;
       
-      VelocityFieldPointer velocityField;
+      ConservativeVariablesPointer conservativeVariables,
+                                   conservativeVariablesRHS;
       
-      int dimension;
-      String choice;
-      RealType size;
-      long step = 0;
-      MeshFunctionType analyt;
-      RealType speedX;
-      RealType speedY;
-      RealType speedZ;
-      RealType schemeSize;      
+      VelocityFieldPointer velocity;
+      MeshFunctionPointer pressure;
+      
+      RealType gamma;
+      RealType speedIncrement;
+      RealType cavitySpeed;
+      RealType speedIncrementUntil;          
 };
 
 } // namespace TNL
 
-#include "transportEquationProblem_impl.h"
+#include "navierStokesProblem_impl.h"
+
