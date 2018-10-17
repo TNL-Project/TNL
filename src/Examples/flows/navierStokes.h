@@ -75,12 +75,12 @@ class navierStokesSetter
       static bool run( const Config::ParameterContainer & parameters )
       {
           enum { Dimension = MeshType::getMeshDimension() };
-          typedef LaxFridrichs< MeshType, Real, Index > ApproximateOperator;
+          typedef LaxFridrichs< MeshType, 0, Real, Index > ApproximateOperator;
           typedef flowsRhs< MeshType, Real > RightHandSide;
           typedef Containers::StaticVector < MeshType::getMeshDimension(), Real > Point;
 	  String differentialOperatorType = parameters.getParameter< String >( "differential-operator");
 	  if( differentialOperatorType == "Lax-Friedrichs" )
-	     typedef LaxFridrichs< MeshType, Real, Index > ApproximateOperator;
+	     typedef LaxFridrichs< MeshType, 0, Real, Index > ApproximateOperator;
           else if( differentialOperatorType == "Steger-Warming" )
 	     typedef StegerWarming< MeshType, Real, Index > ApproximateOperator;
           else if( differentialOperatorType == "VanLeer" )
