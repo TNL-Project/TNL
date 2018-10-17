@@ -24,6 +24,7 @@
 namespace TNL {
 
 template< typename Mesh,
+	  int OperatorRightHandSide = 0,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class LaxFridrichs
@@ -37,7 +38,7 @@ class LaxFridrichs
       static const int Dimensions = Mesh::getMeshDimension();
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VectorFieldType;
  
-      typedef LaxFridrichsContinuity< Mesh, Real, Index > ContinuityOperatorType;
+      typedef LaxFridrichsContinuity< Mesh, OperatorRightHandSide, Real, Index > ContinuityOperatorType;
       typedef LaxFridrichsMomentumX< Mesh, Real, Index > MomentumXOperatorType;
       typedef LaxFridrichsMomentumY< Mesh, Real, Index > MomentumYOperatorType;
       typedef LaxFridrichsMomentumZ< Mesh, Real, Index > MomentumZOperatorType;
