@@ -74,6 +74,7 @@ class LaxFridrichsContinuityBase
 
    
 template< typename Mesh,
+	  int OperatorRightHandSide = 0,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class LaxFridrichsContinuity
@@ -85,9 +86,10 @@ class LaxFridrichsContinuity
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  int OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
+class LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
    : public LaxFridrichsContinuityBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
 {
    public:
@@ -103,6 +105,12 @@ class LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Re
       using typename BaseType::VelocityFieldPointer;
       using BaseType::Dimensions;
 
+/*      template < int OperatorRHS >
+      __cuda_callable__
+      Real rightHandSide()
+      {
+      }*/
+
       template< typename MeshFunction, typename MeshEntity >
       __cuda_callable__
       Real operator()( const MeshFunction& u,
@@ -114,15 +122,19 @@ class LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Re
          const typename MeshEntity::template NeighborEntities< 1 >& neighborEntities = entity.getNeighborEntities(); 
 
          const RealType& hxInverse = entity.getMesh().template getSpaceStepsProducts< -1 >(); 
+
          const IndexType& center = entity.getIndex(); 
-         const IndexType& east = neighborEntities.template getEntityIndex< 1 >(); 
-         const IndexType& west = neighborEntities.template getEntityIndex< -1 >();
-         const RealType& velocity_x_west = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ west ];
-         const RealType& velocity_x_east = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ east ];
+         const IndexType& east   = neighborEntities.template getEntityIndex<  1 >(); 
+         const IndexType& west   = neighborEntities.template getEntityIndex< -1 >();
+
+         const RealType& velocity_x_west = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
+         const RealType& velocity_x_east = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
+
 //         return 1.0 / ( 2.0 * this->tau ) * this->artificialViscosity * ( u[ west ] - 2.0 * u[ center ]  + u[ east ] ) 
 //               - 0.5 * ( u[ west ] * velocity_x_west - u[ east ] * velocity_x_east ) * hxInverse;
          return 1.0 / ( 2.0 * this->tau ) * this->artificialViscosity * ( u[ west ] - 2.0 * u[ center ]  + u[ east ] ) 
                - 0.5 * ( u[ east ] * velocity_x_east - u[ west ] * velocity_x_west ) * hxInverse;
+               //+ rightHandSide<OperatorRightHandSide>();
       }
 
       /*template< typename MeshEntity >
@@ -142,13 +154,38 @@ class LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Re
                                Vector& b,
                                MatrixRow& matrixRow ) const;*/
 };
+/*
+template< typename MeshReal,
+          typename Device,
+          typename MeshIndex,
+	  int OperatorRightHandSide,
+          typename Real,
+          typename Index >
+      template<> //Euler
+__cuda_callable__
+Real
+LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >::
+rightHandSide<1>()
+      {
+         return 0;
+      }
+/*
+      template<> //Navier-Stokes
+      __cuda_callable__
+      RealType rightHandSide<1>()
+      {
+         return 0;
+      }
+*/
+
 
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  int OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
+class LaxFridrichsContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
    : public LaxFridrichsContinuityBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
 {
    public:
@@ -177,15 +214,17 @@ class LaxFridrichsContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Re
          //rho
          const RealType& hxInverse = entity.getMesh().template getSpaceStepsProducts< -1, 0 >(); 
          const RealType& hyInverse = entity.getMesh().template getSpaceStepsProducts< 0, -1 >(); 
+
          const IndexType& center = entity.getIndex(); 
-         const IndexType& east  = neighborEntities.template getEntityIndex<  1,  0 >(); 
-         const IndexType& west  = neighborEntities.template getEntityIndex< -1,  0 >(); 
-         const IndexType& north = neighborEntities.template getEntityIndex<  0,  1 >(); 
-         const IndexType& south = neighborEntities.template getEntityIndex<  0, -1 >();
-         const RealType& velocity_x_west = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ west ];
-         const RealType& velocity_x_east = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ east ];
-         const RealType& velocity_y_north = this->velocity.template getData< DeviceType >()[ 1 ].template getData< DeviceType >()[ north ];
-         const RealType& velocity_y_south = this->velocity.template getData< DeviceType >()[ 1 ].template getData< DeviceType >()[ south ];
+         const IndexType& east   = neighborEntities.template getEntityIndex<  1,  0 >(); 
+         const IndexType& west   = neighborEntities.template getEntityIndex< -1,  0 >(); 
+         const IndexType& north  = neighborEntities.template getEntityIndex<  0,  1 >(); 
+         const IndexType& south  = neighborEntities.template getEntityIndex<  0, -1 >();
+
+         const RealType& velocity_x_west  = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
+         const RealType& velocity_x_east  = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
+         const RealType& velocity_y_north = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ north ];
+         const RealType& velocity_y_south = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ south ];
          
          return 1.0 / ( 4.0 * this->tau ) * this->artificialViscosity * ( u[ west ] + u[ east ] + u[ south ] + u[ north ] - 4.0 * u[ center ] ) 
                        - 0.5 * ( ( u[ east ] * velocity_x_east - u[ west ] * velocity_x_west ) * hxInverse
@@ -213,9 +252,10 @@ class LaxFridrichsContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Re
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  int OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
+class LaxFridrichsContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
    : public LaxFridrichsContinuityBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
 {
    public:
@@ -244,21 +284,22 @@ class LaxFridrichsContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Re
          //rho
          const RealType& hxInverse = entity.getMesh().template getSpaceStepsProducts< -1,  0,  0 >(); 
          const RealType& hyInverse = entity.getMesh().template getSpaceStepsProducts<  0, -1,  0 >(); 
-         const RealType& hzInverse = entity.getMesh().template getSpaceStepsProducts<  0,  0, -1 >(); 
+         const RealType& hzInverse = entity.getMesh().template getSpaceStepsProducts<  0,  0, -1 >();
+ 
          const IndexType& center = entity.getIndex(); 
-         const IndexType& east  = neighborEntities.template getEntityIndex<  1,  0,  0 >(); 
-         const IndexType& west  = neighborEntities.template getEntityIndex< -1,  0,  0 >(); 
-         const IndexType& north = neighborEntities.template getEntityIndex<  0,  1,  0 >(); 
-         const IndexType& south = neighborEntities.template getEntityIndex<  0, -1,  0 >();
-         const IndexType& up    = neighborEntities.template getEntityIndex<  0,  0,  1 >(); 
-         const IndexType& down  = neighborEntities.template getEntityIndex<  0,  0, -1 >();
+         const IndexType& east   = neighborEntities.template getEntityIndex<  1,  0,  0 >(); 
+         const IndexType& west   = neighborEntities.template getEntityIndex< -1,  0,  0 >(); 
+         const IndexType& north  = neighborEntities.template getEntityIndex<  0,  1,  0 >(); 
+         const IndexType& south  = neighborEntities.template getEntityIndex<  0, -1,  0 >();
+         const IndexType& up     = neighborEntities.template getEntityIndex<  0,  0,  1 >(); 
+         const IndexType& down   = neighborEntities.template getEntityIndex<  0,  0, -1 >();
          
-         const RealType& velocity_x_west  = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ west ];
-         const RealType& velocity_x_east  = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ east ];
-         const RealType& velocity_y_north = this->velocity.template getData< DeviceType >()[ 1 ].template getData< DeviceType >()[ north ];
-         const RealType& velocity_y_south = this->velocity.template getData< DeviceType >()[ 1 ].template getData< DeviceType >()[ south ];
-         const RealType& velocity_z_up    = this->velocity.template getData< DeviceType >()[ 2 ].template getData< DeviceType >()[ up ];
-         const RealType& velocity_z_down  = this->velocity.template getData< DeviceType >()[ 2 ].template getData< DeviceType >()[ down ];
+         const RealType& velocity_x_west  = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
+         const RealType& velocity_x_east  = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
+         const RealType& velocity_y_north = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ north ];
+         const RealType& velocity_y_south = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ south ];
+         const RealType& velocity_z_up    = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ up ];
+         const RealType& velocity_z_down  = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ down ];
          
          return 1.0 / ( 6.0 * this->tau ) * this->artificialViscosity *
                 ( u[ west ] + u[ east ] + u[ south ] + u[ north ] + u[ up ] + u[ down ]- 6.0 * u[ center ] ) 

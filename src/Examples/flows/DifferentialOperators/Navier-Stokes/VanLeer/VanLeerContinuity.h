@@ -151,16 +151,16 @@ class VanLeerContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, I
          const RealType& hxInverse = entity.getMesh().template getSpaceStepsProducts< -1 >();
  
          const IndexType& center = entity.getIndex(); 
-         const IndexType& east   = neighborEntities.template getEntityIndex< 1 >(); 
+         const IndexType& east   = neighborEntities.template getEntityIndex<  1 >(); 
          const IndexType& west   = neighborEntities.template getEntityIndex< -1 >();
 
          const RealType& pressure_center = this->pressure.template getData< DeviceType >()[ center ];
          const RealType& pressure_west   = this->pressure.template getData< DeviceType >()[ west ];
          const RealType& pressure_east   = this->pressure.template getData< DeviceType >()[ east ];
 
-         const RealType& velocity_x_center = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ center ];
-         const RealType& velocity_x_west   = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ west ];
-         const RealType& velocity_x_east   = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ east ];
+         const RealType& velocity_x_center = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ center ];
+         const RealType& velocity_x_west   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
+         const RealType& velocity_x_east   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
 
          return -hxInverse * (
                                    this->positiveDensityFlux( u[ center ], velocity_x_center, pressure_center )
@@ -235,13 +235,13 @@ class VanLeerContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, I
          const RealType& pressure_north  = this->pressure.template getData< DeviceType >()[ north ];
          const RealType& pressure_south  = this->pressure.template getData< DeviceType >()[ south ];
 
-         const RealType& velocity_x_center = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ center ];
-         const RealType& velocity_x_west   = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ west ];
-         const RealType& velocity_x_east   = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ east ];
+         const RealType& velocity_x_center = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ center ];
+         const RealType& velocity_x_west   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
+         const RealType& velocity_x_east   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
 
-         const RealType& velocity_y_center = this->velocity.template getData< DeviceType >()[ 1 ].template getData< DeviceType >()[ center ];
-         const RealType& velocity_y_north  = this->velocity.template getData< DeviceType >()[ 1 ].template getData< DeviceType >()[ north ];
-         const RealType& velocity_y_south  = this->velocity.template getData< DeviceType >()[ 1 ].template getData< DeviceType >()[ south ];
+         const RealType& velocity_y_center = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ center ];
+         const RealType& velocity_y_north  = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ north ];
+         const RealType& velocity_y_south  = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ south ];
          
          return -hxInverse * (
                                    this->positiveDensityFlux( u[ center ], velocity_x_center, pressure_center )
@@ -327,17 +327,17 @@ class VanLeerContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, I
          const RealType& pressure_up     = this->pressure.template getData< DeviceType >()[ up ];
          const RealType& pressure_down   = this->pressure.template getData< DeviceType >()[ down ];
          
-         const RealType& velocity_x_center = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ center ];
-         const RealType& velocity_x_west   = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ west ];
-         const RealType& velocity_x_east   = this->velocity.template getData< DeviceType >()[ 0 ].template getData< DeviceType >()[ east ];
+         const RealType& velocity_x_center = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ center ];
+         const RealType& velocity_x_west   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
+         const RealType& velocity_x_east   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
 
-         const RealType& velocity_y_center = this->velocity.template getData< DeviceType >()[ 1 ].template getData< DeviceType >()[ center ];
-         const RealType& velocity_y_north  = this->velocity.template getData< DeviceType >()[ 1 ].template getData< DeviceType >()[ north ];
-         const RealType& velocity_y_south  = this->velocity.template getData< DeviceType >()[ 1 ].template getData< DeviceType >()[ south ];
+         const RealType& velocity_y_center = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ center ];
+         const RealType& velocity_y_north  = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ north ];
+         const RealType& velocity_y_south  = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ south ];
 
-         const RealType& velocity_z_center = this->velocity.template getData< DeviceType >()[ 2 ].template getData< DeviceType >()[ center ];
-         const RealType& velocity_z_up     = this->velocity.template getData< DeviceType >()[ 2 ].template getData< DeviceType >()[ up ];
-         const RealType& velocity_z_down   = this->velocity.template getData< DeviceType >()[ 2 ].template getData< DeviceType >()[ down ];
+         const RealType& velocity_z_center = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ center ];
+         const RealType& velocity_z_up     = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ up ];
+         const RealType& velocity_z_down   = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ down ];
          
          return -hxInverse * (
                                    this->positiveDensityFlux( u[ center ], velocity_x_center, pressure_center )
