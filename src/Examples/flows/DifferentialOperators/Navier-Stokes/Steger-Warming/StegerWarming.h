@@ -21,9 +21,12 @@
 #include "StegerWarmingMomentumY.h"
 #include "StegerWarmingMomentumZ.h"
 
+#include "Examples/flows/DifferentialOperatorsRightHandSide/nullRightHandSide/nullOperatorRightHandSide.h"
+
 namespace TNL {
 
 template< typename Mesh,
+	  typename OperatorRightHandSide = NullOperatorRightHandSide < Mesh, typename Mesh::RealType, typename Mesh::IndexType >,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class StegerWarming
@@ -36,22 +39,28 @@ class StegerWarming
       typedef Functions::MeshFunction< Mesh > MeshFunctionType;
       static const int Dimensions = Mesh::getMeshDimension();
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VectorFieldType;
- 
-      typedef StegerWarmingContinuity< Mesh, Real, Index > ContinuityOperatorType;
-      typedef StegerWarmingMomentumX< Mesh, Real, Index > MomentumXOperatorType;
-      typedef StegerWarmingMomentumY< Mesh, Real, Index > MomentumYOperatorType;
-      typedef StegerWarmingMomentumZ< Mesh, Real, Index > MomentumZOperatorType;
-      typedef StegerWarmingEnergy< Mesh, Real, Index > EnergyOperatorType;
 
-      typedef SharedPointer< MeshFunctionType > MeshFunctionPointer;
-      typedef SharedPointer< VectorFieldType > VectorFieldPointer;
-      typedef SharedPointer< MeshType > MeshPointer;
+      typedef typename OperatorRightHandSide::ContinuityOperatorRightHandSideType ContinuityOperatorRightHandSideType;
+      typedef typename OperatorRightHandSide::MomentumXOperatorRightHandSideType MomentumXOperatorRightHandSideType;
+      typedef typename OperatorRightHandSide::MomentumYOperatorRightHandSideType MomentumYOperatorRightHandSideType;
+      typedef typename OperatorRightHandSide::MomentumZOperatorRightHandSideType MomentumZOperatorRightHandSideType;
+      typedef typename OperatorRightHandSide::EnergyOperatorRightHandSideType EnergyOperatorRightHandSideType;
+ 
+      typedef StegerWarmingContinuity< Mesh, ContinuityOperatorRightHandSideType, Real, Index > ContinuityOperatorType;
+      typedef StegerWarmingMomentumX< Mesh, MomentumXOperatorRightHandSideType, Real, Index > MomentumXOperatorType;
+      typedef StegerWarmingMomentumY< Mesh, MomentumYOperatorRightHandSideType, Real, Index > MomentumYOperatorType;
+      typedef StegerWarmingMomentumZ< Mesh, MomentumZOperatorRightHandSideType, Real, Index > MomentumZOperatorType;
+      typedef StegerWarmingEnergy< Mesh, EnergyOperatorRightHandSideType, Real, Index > EnergyOperatorType;
+
+      typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< VectorFieldType > VectorFieldPointer;
+      typedef Pointers::SharedPointer< MeshType > MeshPointer;
       
-      typedef SharedPointer< ContinuityOperatorType > ContinuityOperatorPointer;
-      typedef SharedPointer< MomentumXOperatorType > MomentumXOperatorPointer;
-      typedef SharedPointer< MomentumYOperatorType > MomentumYOperatorPointer;      
-      typedef SharedPointer< MomentumZOperatorType > MomentumZOperatorPointer;      
-      typedef SharedPointer< EnergyOperatorType > EnergyOperatorPointer;
+      typedef Pointers::SharedPointer< ContinuityOperatorType > ContinuityOperatorPointer;
+      typedef Pointers::SharedPointer< MomentumXOperatorType > MomentumXOperatorPointer;
+      typedef Pointers::SharedPointer< MomentumYOperatorType > MomentumYOperatorPointer;      
+      typedef Pointers::SharedPointer< MomentumZOperatorType > MomentumZOperatorPointer;      
+      typedef Pointers::SharedPointer< EnergyOperatorType > EnergyOperatorPointer;
 
       static void configSetup( Config::ConfigDescription& config,
                                const String& prefix = "" )

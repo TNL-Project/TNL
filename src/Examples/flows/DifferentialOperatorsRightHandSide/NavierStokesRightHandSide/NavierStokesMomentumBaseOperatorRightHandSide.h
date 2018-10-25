@@ -1,5 +1,5 @@
 /***************************************************************************
-                          LaxFridrichsMomentumBase.h  -  description
+                          NavierStokesMomentumRightHandSideBase.h  -  description
                              -------------------
     begin                : Feb 17, 2017
     copyright            : (C) 2017 by Tomas Oberhuber
@@ -14,10 +14,9 @@
 namespace TNL {
 
 template< typename Mesh,
-	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
-class LaxFridrichsMomentumBase
+class NavierStokesMomentumRightHandSideBase
 {
    public:
       
@@ -31,49 +30,25 @@ class LaxFridrichsMomentumBase
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
       typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
-      typedef OperatorRightHandSide OperatorRightHandSideType;
       
-      LaxFridrichsMomentumBase()
-       : artificialViscosity( 1.0 ){};
+      NavierStokesMomentumRightHandSideBase()
+       : dynamicalViscosity( 1.0 ){};
 
-      void setTau(const Real& tau)
-      {
-          this->tau = tau;
-      };
-      
       void setVelocity( const VelocityFieldPointer& velocity )
       {
           this->velocity = velocity;
-	  this->rightHandSide.setVelocity(velocity);
       };
       
-      void setPressure( const MeshFunctionPointer& pressure )
-      {
-          this->pressure = pressure;
-      };
-
-      void setArtificialViscosity( const RealType& artificialViscosity )
-      {
-         this->artificialViscosity = artificialViscosity;
-      }
-
       void setDynamicalViscosity( const RealType& dynamicalViscosity )
       {
          this->dynamicalViscosity = dynamicalViscosity;
-	 this->rightHandSide.setDynamicalViscosity(dynamicalViscosity);
       }
 
       protected:
          
-         RealType tau;
-         
          VelocityFieldPointer velocity;
-
-	 OperatorRightHandSideType rightHandSide;
          
-         MeshFunctionPointer pressure;
-         
-         RealType artificialViscosity, dynamicalViscosity;
+         RealType dynamicalViscosity;
 };
 
 } //namespace TNL

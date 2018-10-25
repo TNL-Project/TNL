@@ -43,15 +43,15 @@ class VanLeer
       typedef VanLeerMomentumZ< Mesh, Real, Index > MomentumZOperatorType;
       typedef VanLeerEnergy< Mesh, Real, Index > EnergyOperatorType;
 
-      typedef SharedPointer< MeshFunctionType > MeshFunctionPointer;
-      typedef SharedPointer< VectorFieldType > VectorFieldPointer;
-      typedef SharedPointer< MeshType > MeshPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< VectorFieldType > VectorFieldPointer;
+      typedef Pointers::SharedPointer< MeshType > MeshPointer;
       
-      typedef SharedPointer< ContinuityOperatorType > ContinuityOperatorPointer;
-      typedef SharedPointer< MomentumXOperatorType > MomentumXOperatorPointer;
-      typedef SharedPointer< MomentumYOperatorType > MomentumYOperatorPointer;      
-      typedef SharedPointer< MomentumZOperatorType > MomentumZOperatorPointer;      
-      typedef SharedPointer< EnergyOperatorType > EnergyOperatorPointer;
+      typedef Pointers::SharedPointer< ContinuityOperatorType > ContinuityOperatorPointer;
+      typedef Pointers::SharedPointer< MomentumXOperatorType > MomentumXOperatorPointer;
+      typedef Pointers::SharedPointer< MomentumYOperatorType > MomentumYOperatorPointer;      
+      typedef Pointers::SharedPointer< MomentumZOperatorType > MomentumZOperatorPointer;      
+      typedef Pointers::SharedPointer< EnergyOperatorType > EnergyOperatorPointer;
 
       static void configSetup( Config::ConfigDescription& config,
                                const String& prefix = "" )

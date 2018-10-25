@@ -49,12 +49,13 @@ class eulerProblem:
       typedef Functions::MeshFunction< Mesh > MeshFunctionType;
       typedef CompressibleConservativeVariables< MeshType > ConservativeVariablesType;
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
-      typedef SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
-      typedef SharedPointer< ConservativeVariablesType > ConservativeVariablesPointer;
-      typedef SharedPointer< VelocityFieldType > VelocityFieldPointer;
-      typedef SharedPointer< InviscidOperators > InviscidOperatorsPointer;
-      typedef SharedPointer< BoundaryCondition > BoundaryConditionPointer;
-      typedef SharedPointer< RightHandSide, DeviceType > RightHandSidePointer;
+      typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< ConservativeVariablesType > ConservativeVariablesPointer;
+      typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef Pointers::SharedPointer< InviscidOperators > InviscidOperatorsPointer;
+      typedef Pointers::SharedPointer< BoundaryCondition > BoundaryConditionPointer;
+      typedef Pointers::SharedPointer< RightHandSide, DeviceType > RightHandSidePointer;
+
 
       static String getType();
 
