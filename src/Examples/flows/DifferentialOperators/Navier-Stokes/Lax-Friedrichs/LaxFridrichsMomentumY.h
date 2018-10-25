@@ -18,6 +18,7 @@
 namespace TNL {
 
 template< typename Mesh,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class LaxFridrichsMomentumY
@@ -27,15 +28,16 @@ class LaxFridrichsMomentumY
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsMomentumY< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
-   : public LaxFridrichsMomentumBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
+class LaxFridrichsMomentumY< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public LaxFridrichsMomentumBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
 
       typedef Meshes::Grid< 1, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsMomentumBase< MeshType, Real, Index > BaseType;
+      typedef LaxFridrichsMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -90,14 +92,15 @@ class LaxFridrichsMomentumY< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Rea
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsMomentumY< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
-   : public LaxFridrichsMomentumBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
+class LaxFridrichsMomentumY< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public LaxFridrichsMomentumBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 2, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsMomentumBase< MeshType, Real, Index > BaseType;
+      typedef LaxFridrichsMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -171,18 +174,8 @@ class LaxFridrichsMomentumY< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Rea
                            - ( rho_v[ west ] * velocity_x_west ) )* hxInverse
                         + ( ( rho_v[ north ] * velocity_y_north + pressure_north )
                           - ( rho_v[ south ] * velocity_y_south + pressure_south ) )* hyInverse )
-// 2D T_22_y
-                + ( 4.0 / 3.0 * ( velocity_y_north - 2 * velocity_y_center + velocity_y_south
-                                ) * hySquareInverse
-                  - 2.0 / 3.0 * ( velocity_x_northEast - velocity_x_southEast - velocity_x_northWest + velocity_x_southWest
-                                ) * hxInverse * hyInverse / 4
-                  ) * this->dynamicalViscosity
-// T_12_x
-                + ( ( velocity_x_northEast - velocity_x_southEast - velocity_x_northWest + velocity_x_southWest
-                    ) * hxInverse * hyInverse / 4
-                  + ( velocity_y_west - 2 * velocity_y_center + velocity_y_east
-                    ) * hxSquareInverse
-                  ) * this->dynamicalViscosity;
+               +
+                 this->rightHandSide(rho_v, entity, time);
       }
 
       /*template< typename MeshEntity >
@@ -206,14 +199,15 @@ class LaxFridrichsMomentumY< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Rea
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsMomentumY< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Real, Index >
-   : public LaxFridrichsMomentumBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
+class LaxFridrichsMomentumY< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public LaxFridrichsMomentumBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 3, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsMomentumBase< MeshType, Real, Index > BaseType;
+      typedef LaxFridrichsMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -321,26 +315,8 @@ class LaxFridrichsMomentumY< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Real
                           - ( rho_v[ south ] * velocity_y_south + pressure_south ) ) * hyInverse
                         + ( ( rho_v[ up ] * velocity_z_up )
                           - ( rho_v[ down ] * velocity_z_down ) ) * hzInverse )
-// T_12_y
-                + ( ( velocity_x_northEast - velocity_x_southEast - velocity_x_northWest + velocity_x_southWest
-                    ) * hxInverse * hyInverse / 4
-                  + (  velocity_y_north - 2 * velocity_y_center + velocity_y_south
-                    ) * hySquareInverse
-                  ) * this->dynamicalViscosity
-// 3D T_22_y
-                + ( 4.0 / 3.0 * ( velocity_y_north - 2 * velocity_y_center + velocity_y_south
-                                ) * hySquareInverse
-                  - 2.0 / 3.0 * ( velocity_x_northEast - velocity_x_southEast - velocity_x_northWest + velocity_x_southWest
-                                ) * hxInverse * hyInverse / 4
-                  - 2.0 / 3.0 * ( velocity_z_upNorth - velocity_z_downNorth - velocity_z_upSouth + velocity_z_downSouth
-                                ) * hyInverse * hzInverse / 4
-                  ) * this->dynamicalViscosity
-// T_32_y
-                + ( ( velocity_z_upNorth - velocity_z_downNorth - velocity_z_upSouth + velocity_z_downSouth
-                     ) * hyInverse * hzInverse / 4
-                  + ( velocity_y_north - 2 * velocity_y_center + velocity_y_south
-                    ) * hySquareInverse
-                  ) * this->dynamicalViscosity;
+               +
+                 this->rightHandSide(rho_v, entity, time);
       }
 
       /*template< typename MeshEntity >

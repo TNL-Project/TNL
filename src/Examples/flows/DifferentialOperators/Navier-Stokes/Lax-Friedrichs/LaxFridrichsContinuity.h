@@ -14,12 +14,13 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Functions/VectorField.h>
-#include <TNL/SharedPointer.h>
+#include <TNL/Pointers/SharedPointer.h>
 
 namespace TNL {
 
    
 template< typename Mesh,
+          typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class LaxFridrichsContinuityBase
@@ -34,7 +35,8 @@ class LaxFridrichsContinuityBase
       typedef Functions::MeshFunction< MeshType > MeshFunctionType;
       static const int Dimensions = MeshType::getMeshDimension();
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
-      typedef SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef OperatorRightHandSide OperatorRightHandSideType;
 
       LaxFridrichsContinuityBase()
        : artificialViscosity( 1.0 ){};
@@ -68,13 +70,15 @@ class LaxFridrichsContinuityBase
          RealType tau;
          
          VelocityFieldPointer velocity;
+
+	 OperatorRightHandSideType rightHandSide;
          
          RealType artificialViscosity;
 };
 
    
 template< typename Mesh,
-	  int OperatorRightHandSide = 0,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class LaxFridrichsContinuity
@@ -86,15 +90,15 @@ class LaxFridrichsContinuity
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
-	  int OperatorRightHandSide,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
 class LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
-   : public LaxFridrichsContinuityBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
+   : public LaxFridrichsContinuityBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 1, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsContinuityBase< MeshType, Real, Index > BaseType;
+      typedef LaxFridrichsContinuityBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -104,12 +108,6 @@ class LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Op
       using typename BaseType::VelocityFieldType;
       using typename BaseType::VelocityFieldPointer;
       using BaseType::Dimensions;
-
-/*      template < int OperatorRHS >
-      __cuda_callable__
-      Real rightHandSide()
-      {
-      }*/
 
       template< typename MeshFunction, typename MeshEntity >
       __cuda_callable__
@@ -133,8 +131,9 @@ class LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Op
 //         return 1.0 / ( 2.0 * this->tau ) * this->artificialViscosity * ( u[ west ] - 2.0 * u[ center ]  + u[ east ] ) 
 //               - 0.5 * ( u[ west ] * velocity_x_west - u[ east ] * velocity_x_east ) * hxInverse;
          return 1.0 / ( 2.0 * this->tau ) * this->artificialViscosity * ( u[ west ] - 2.0 * u[ center ]  + u[ east ] ) 
-               - 0.5 * ( u[ east ] * velocity_x_east - u[ west ] * velocity_x_west ) * hxInverse;
-               //+ rightHandSide<OperatorRightHandSide>();
+               - 0.5 * ( u[ east ] * velocity_x_east - u[ west ] * velocity_x_west ) * hxInverse
+               +
+                 this->rightHandSide(u, entity, time);
       }
 
       /*template< typename MeshEntity >
@@ -154,43 +153,19 @@ class LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Op
                                Vector& b,
                                MatrixRow& matrixRow ) const;*/
 };
-/*
-template< typename MeshReal,
-          typename Device,
-          typename MeshIndex,
-	  int OperatorRightHandSide,
-          typename Real,
-          typename Index >
-      template<> //Euler
-__cuda_callable__
-Real
-LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >::
-rightHandSide<1>()
-      {
-         return 0;
-      }
-/*
-      template<> //Navier-Stokes
-      __cuda_callable__
-      RealType rightHandSide<1>()
-      {
-         return 0;
-      }
-*/
-
 
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
-	  int OperatorRightHandSide,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
 class LaxFridrichsContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
-   : public LaxFridrichsContinuityBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
+   : public LaxFridrichsContinuityBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 2, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsContinuityBase< MeshType, Real, Index > BaseType;
+      typedef LaxFridrichsContinuityBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -228,7 +203,9 @@ class LaxFridrichsContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Op
          
          return 1.0 / ( 4.0 * this->tau ) * this->artificialViscosity * ( u[ west ] + u[ east ] + u[ south ] + u[ north ] - 4.0 * u[ center ] ) 
                        - 0.5 * ( ( u[ east ] * velocity_x_east - u[ west ] * velocity_x_west ) * hxInverse
-                               + ( u[ north ] * velocity_y_north - u[ south ] * velocity_y_south ) * hyInverse );
+                               + ( u[ north ] * velocity_y_north - u[ south ] * velocity_y_south ) * hyInverse )
+               +
+                 this->rightHandSide(u, entity, time);
       }
 
       /*template< typename MeshEntity >
@@ -252,15 +229,15 @@ class LaxFridrichsContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Op
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
-	  int OperatorRightHandSide,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
 class LaxFridrichsContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
-   : public LaxFridrichsContinuityBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
+   : public LaxFridrichsContinuityBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 3, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsContinuityBase< MeshType, Real, Index > BaseType;
+      typedef LaxFridrichsContinuityBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -305,7 +282,9 @@ class LaxFridrichsContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Op
                 ( u[ west ] + u[ east ] + u[ south ] + u[ north ] + u[ up ] + u[ down ]- 6.0 * u[ center ] ) 
                 - 0.5 * ( ( u[ east ] * velocity_x_east - u[ west ] * velocity_x_west ) * hxInverse
                         + ( u[ north ] * velocity_y_north - u[ south ] * velocity_y_south ) * hyInverse
-                        + ( u[ up ] * velocity_z_up - u[ down ] * velocity_z_down ) * hzInverse );
+                        + ( u[ up ] * velocity_z_up - u[ down ] * velocity_z_down ) * hzInverse )
+               +
+                 this->rightHandSide(u, entity, time);
          
       }
 

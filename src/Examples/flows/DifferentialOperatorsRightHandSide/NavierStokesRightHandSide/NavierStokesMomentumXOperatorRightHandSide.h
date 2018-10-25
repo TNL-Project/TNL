@@ -1,5 +1,5 @@
 /***************************************************************************
-                          LaxFridrichsMomentumX.h  -  description
+                          NavierStokesMomentumXRightHandSide.h  -  description
                              -------------------
     begin                : Feb 18, 2017
     copyright            : (C) 2017 by Tomas Oberhuber
@@ -13,31 +13,29 @@
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Meshes/Grid.h>
-#include "LaxFridrichsMomentumBase.h"
+#include "NavierStokesMomentumBaseOperatorRightHandSide.h"
 
 namespace TNL {
 
 template< typename Mesh,
-	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
-class LaxFridrichsMomentumX
+class NavierStokesMomentumXRightHandSide
 {
 };
 
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
-	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsMomentumX< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
-   : public LaxFridrichsMomentumBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+class NavierStokesMomentumXRightHandSide< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
+   : public NavierStokesMomentumRightHandSideBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
 {
    public:
 
       typedef Meshes::Grid< 1, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
+      typedef NavierStokesMomentumRightHandSideBase< MeshType, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -68,26 +66,21 @@ class LaxFridrichsMomentumX< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Ope
          static_assert( MeshFunction::getEntitiesDimension() == 1, "Wrong preimage function" ); 
          const typename MeshEntity::template NeighborEntities< 1 >& neighborEntities = entity.getNeighborEntities(); 
 
-         const RealType& hxInverse = entity.getMesh().template getSpaceStepsProducts< -1 >(); 
-
          const RealType& hxSquareInverse = entity.getMesh().template getSpaceStepsProducts< -2 >();
  
          const IndexType& center = entity.getIndex(); 
-         const IndexType& east   = neighborEntities.template getEntityIndex< 1 >(); 
+         const IndexType& east   = neighborEntities.template getEntityIndex<  1 >(); 
          const IndexType& west   = neighborEntities.template getEntityIndex< -1 >();
-
-         const RealType& pressure_west = this->pressure.template getData< DeviceType >()[ west ];
-         const RealType& pressure_east = this->pressure.template getData< DeviceType >()[ east ];
 
          const RealType& velocity_x_east   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
          const RealType& velocity_x_west   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
          const RealType& velocity_x_center = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ center ];
          
-         return 1.0 / ( 2.0 * this->tau ) * this->artificialViscosity * ( rho_u[ west ]  + rho_u[ east ]  - 2.0 * rho_u[ center ] ) 
-                - 0.5 * ( ( rho_u[ east ] * velocity_x_east + pressure_east ) 
-                         -( rho_u[ west ] * velocity_x_west + pressure_west ) ) * hxInverse
-               +
-                 this->rightHandSide(rho_u, entity, time);
+         return 
+// 1D T_11_x
+                4.0 / 3.0 *( velocity_x_east - 2 * velocity_x_center + velocity_x_west
+                             ) * hxSquareInverse
+                * this->dynamicalViscosity;
       }
 
       /*template< typename MeshEntity >
@@ -111,15 +104,14 @@ class LaxFridrichsMomentumX< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Ope
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
-	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsMomentumX< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
-   : public LaxFridrichsMomentumBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+class NavierStokesMomentumXRightHandSide< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
+   : public NavierStokesMomentumRightHandSideBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
 {
    public:
       typedef Meshes::Grid< 2, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
+      typedef NavierStokesMomentumRightHandSideBase< MeshType, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -165,9 +157,6 @@ class LaxFridrichsMomentumX< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Ope
          const IndexType& southWest = neighborEntities.template getEntityIndex< -1, -1 >();
          const IndexType& northEast = neighborEntities.template getEntityIndex<  1,  1 >();
          const IndexType& northWest = neighborEntities.template getEntityIndex< -1,  1 >();
-         
-         const RealType& pressure_west = this->pressure.template getData< DeviceType >()[ west ];
-         const RealType& pressure_east = this->pressure.template getData< DeviceType >()[ east ];
 
          const RealType& velocity_x_east      = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
          const RealType& velocity_x_west      = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
@@ -187,13 +176,19 @@ class LaxFridrichsMomentumX< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Ope
          const RealType& velocity_y_northEast = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northEast ];
          const RealType& velocity_y_northWest = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northWest ];         
          
-         return 1.0 / ( 4.0 * this->tau ) * this->artificialViscosity * ( rho_u[ west ] + rho_u[ east ] + rho_u[ south ] + rho_u[ north ] - 4.0 * rho_u[ center ] ) 
-                - 0.5 * ( ( ( rho_u[ east ] * velocity_x_east + pressure_east )
-                          - ( rho_u[ west ] * velocity_x_west + pressure_west ) ) * hxInverse
-                        + ( ( rho_u[ north ] * velocity_y_north )
-                          - ( rho_u[ south ] * velocity_y_south ) ) * hyInverse )
-               +
-                 this->rightHandSide(rho_u, entity, time);
+         return 
+// 2D T_11_x
+                  ( 4.0 / 3.0 * ( velocity_x_east - 2 * velocity_x_center + velocity_x_west 
+                                ) * hxSquareInverse
+                  - 2.0 / 3.0 * ( velocity_y_northEast - velocity_y_southEast - velocity_y_northWest + velocity_y_southWest 
+                                ) * hxInverse * hyInverse / 4
+                  ) * this->dynamicalViscosity 
+// T_21_y
+                + ( ( velocity_y_northEast - velocity_y_southEast - velocity_y_northWest + velocity_y_southWest
+                    ) * hxInverse * hyInverse / 4
+                  + ( velocity_x_north - 2 * velocity_x_center + velocity_x_south
+                    ) * hxInverse * hyInverse
+                  ) * this->dynamicalViscosity;
       }
 
       /*template< typename MeshEntity >
@@ -217,15 +212,14 @@ class LaxFridrichsMomentumX< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Ope
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
-	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsMomentumX< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
-   : public LaxFridrichsMomentumBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+class NavierStokesMomentumXRightHandSide< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Real, Index >
+   : public NavierStokesMomentumRightHandSideBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
 {
    public:
       typedef Meshes::Grid< 3, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
+      typedef NavierStokesMomentumRightHandSideBase< MeshType, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -283,13 +277,6 @@ class LaxFridrichsMomentumX< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Oper
          const IndexType& downSouth = neighborEntities.template getEntityIndex<  0, -1, -1 >();
          const IndexType& downNorth = neighborEntities.template getEntityIndex<  0,  1, -1 >();
          
-         const RealType& pressure_west  = this->pressure.template getData< DeviceType >()[ west ];
-         const RealType& pressure_east  = this->pressure.template getData< DeviceType >()[ east ];
-         const RealType& pressure_north = this->pressure.template getData< DeviceType >()[ north ];
-         const RealType& pressure_south = this->pressure.template getData< DeviceType >()[ south ];
-         const RealType& pressure_up    = this->pressure.template getData< DeviceType >()[ up ];
-         const RealType& pressure_down  = this->pressure.template getData< DeviceType >()[ down ];
-         
          const RealType& velocity_x_east      = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
          const RealType& velocity_x_west      = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
          const RealType& velocity_x_center    = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ center ];
@@ -325,16 +312,27 @@ class LaxFridrichsMomentumX< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Oper
          const RealType& velocity_z_downNorth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downNorth ]; 
          const RealType& velocity_z_downSouth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downSouth ];         
          
-         return 1.0 / ( 6.0 * this->tau ) * this->artificialViscosity *
-                   ( rho_u[ west ] + rho_u[ east ] + rho_u[ south ] + rho_u[ north ] + rho_u[ up ] + rho_u[ down ] - 6.0 * rho_u[ center ] ) 
-                - 0.5 * ( ( ( rho_u[ east ] * velocity_x_east + pressure_east )
-                          - ( rho_u[ west ] * velocity_x_west + pressure_west ) )* hxInverse
-                        + ( ( rho_u[ north ] * velocity_y_north )
-                          - ( rho_u[ south ] * velocity_y_south ) )* hyInverse
-                        + ( ( rho_u[ up ] * velocity_z_up )
-                          - ( rho_u[ down ] * velocity_z_down ) )* hzInverse )
-               +
-                 this->rightHandSide(rho_u, entity, time);
+         return 
+// 3D T_11_x
+                  ( 4.0 / 3.0 * ( velocity_x_east - 2 * velocity_x_center + velocity_x_west
+                                ) * hxSquareInverse
+                  - 2.0 / 3.0 * ( velocity_y_northEast - velocity_y_southEast - velocity_y_northWest + velocity_y_southWest
+                                ) * hxInverse * hyInverse / 4
+                  - 2.0 / 3.0 * ( velocity_z_upEast - velocity_z_downEast - velocity_z_upWest + velocity_z_downWest
+                                ) * hxInverse * hzInverse / 4
+                  ) * this->dynamicalViscosity
+// T_21_x
+                + ( ( velocity_y_northEast - velocity_y_southEast - velocity_y_northWest + velocity_y_southWest
+                    ) * hxInverse * hyInverse / 4
+                  + ( velocity_x_east - 2 * velocity_x_center + velocity_x_west
+                    ) * hxSquareInverse
+                  ) * this->dynamicalViscosity
+// T_31_x
+                + ( ( velocity_z_upEast - velocity_z_downEast - velocity_z_upWest + velocity_z_downWest
+                    ) * hxInverse * hzInverse / 4
+                  + ( velocity_x_east - 2 * velocity_x_center + velocity_x_west
+                    ) * hxSquareInverse
+                  ) * this->dynamicalViscosity;
       }
 
       /*template< typename MeshEntity >
