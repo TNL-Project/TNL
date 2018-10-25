@@ -29,14 +29,14 @@ class BoundaryConditionsCavity
       typedef TNL::Operators::EnergyBoundaryConditionsCavity< MeshType, FunctionType, RealType, IndexType > EnergyBoundaryConditionsType;
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
 
-      typedef SharedPointer< DensityBoundaryConditionsType > DensityBoundaryConditionsTypePointer;
-      typedef SharedPointer< MomentumXBoundaryConditionsType > MomentumXBoundaryConditionsTypePointer;
-      typedef SharedPointer< MomentumYBoundaryConditionsType > MomentumYBoundaryConditionsTypePointer;
-      typedef SharedPointer< MomentumZBoundaryConditionsType > MomentumZBoundaryConditionsTypePointer;
-      typedef SharedPointer< EnergyBoundaryConditionsType > EnergyBoundaryConditionsTypePointer;
-      typedef SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
-      typedef SharedPointer< MeshType > MeshPointer;
-      typedef SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< DensityBoundaryConditionsType > DensityBoundaryConditionsTypePointer;
+      typedef Pointers::SharedPointer< MomentumXBoundaryConditionsType > MomentumXBoundaryConditionsTypePointer;
+      typedef Pointers::SharedPointer< MomentumYBoundaryConditionsType > MomentumYBoundaryConditionsTypePointer;
+      typedef Pointers::SharedPointer< MomentumZBoundaryConditionsType > MomentumZBoundaryConditionsTypePointer;
+      typedef Pointers::SharedPointer< EnergyBoundaryConditionsType > EnergyBoundaryConditionsTypePointer;
+      typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
+      typedef Pointers::SharedPointer< MeshType > MeshPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
 
       static void configSetup( Config::ConfigDescription& config,
                                const String& prefix = "" )

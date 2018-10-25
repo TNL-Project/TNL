@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <TNL/SharedPointer.h>
+#include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Functions/MeshFunction.h>
 #include <TNL/Functions/VectorField.h>
 #include <TNL/Functions/MeshFunctionEvaluator.h>
@@ -30,11 +30,11 @@ class PhysicalVariablesGetter
       static const int Dimensions = MeshType::getMeshDimension();
       
       typedef Functions::MeshFunction< MeshType > MeshFunctionType;
-      typedef SharedPointer< MeshFunctionType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef CompressibleConservativeVariables< MeshType > ConservativeVariablesType;
-      typedef SharedPointer< ConservativeVariablesType > ConservativeVariablesPointer;
+      typedef Pointers::SharedPointer< ConservativeVariablesType > ConservativeVariablesPointer;
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
-      typedef SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
       
       class VelocityGetter : public Functions::Domain< Dimensions, Functions::MeshDomain >
       {
@@ -99,7 +99,7 @@ class PhysicalVariablesGetter
          Functions::MeshFunctionEvaluator< MeshFunctionType, VelocityGetter > evaluator;
          for( int i = 0; i < Dimensions; i++ )
          {
-            SharedPointer< VelocityGetter, DeviceType > velocityGetter( conservativeVariables->getDensity(),
+            Pointers::SharedPointer< VelocityGetter, DeviceType > velocityGetter( conservativeVariables->getDensity(),
                                                                         ( *conservativeVariables->getMomentum() )[ i ] );
             evaluator.evaluate( ( *velocity )[ i ], velocityGetter );
          }
@@ -110,7 +110,7 @@ class PhysicalVariablesGetter
                         MeshFunctionPointer& pressure )
       {
          Functions::MeshFunctionEvaluator< MeshFunctionType, PressureGetter > evaluator;
-         SharedPointer< PressureGetter, DeviceType > pressureGetter( conservativeVariables->getDensity(),
+         Pointers::SharedPointer< PressureGetter, DeviceType > pressureGetter( conservativeVariables->getDensity(),
                                                                      conservativeVariables->getEnergy(),
                                                                      conservativeVariables->getMomentum(),
                                                                      gamma );

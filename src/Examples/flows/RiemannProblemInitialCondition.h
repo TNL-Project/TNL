@@ -38,7 +38,7 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 1,MeshReal, Device, Me
       static const int Dimensions = MeshType::getMeshDimension();
       typedef Containers::StaticVector< Dimensions, RealType > PointType;
       typedef Functions::MeshFunction< MeshType > MeshFunctionType;
-      typedef SharedPointer< MeshFunctionType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Functions::VectorField< Dimensions, MeshType > VectorFieldType;
 //       for cyklus i = 0 to mesh.getDimensions().x() j pro .y() a k pro .z()
 //       typedef typename MeshType::Cell CellType
@@ -195,7 +195,7 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 2, MeshReal, Device, M
       static const int Dimensions = MeshType::getMeshDimension();
       typedef Containers::StaticVector< Dimensions, RealType > PointType;
       typedef Functions::MeshFunction< MeshType > MeshFunctionType;
-      typedef SharedPointer< MeshFunctionType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Functions::VectorField< Dimensions, MeshType > VectorFieldType;
 //       for cyklus i = 0 to mesh.getDimensions().x() j pro .y() a k pro .z()
 //       typedef typename MeshType::Cell CellType
@@ -415,7 +415,7 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
       static const int Dimensions = MeshType::getMeshDimension();
       typedef Containers::StaticVector< Dimensions, RealType > PointType;
       typedef Functions::MeshFunction< MeshType > MeshFunctionType;
-      typedef SharedPointer< MeshFunctionType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Functions::VectorField< Dimensions, MeshType > VectorFieldType;
 //       for cyklus i = 0 to mesh.getDimensions().x() j pro .y() a k pro .z()
 //       typedef typename MeshType::Cell CellType
@@ -768,7 +768,7 @@ class RiemannProblemInitialCondition
       static const int Dimensions = MeshType::getMeshDimension();
       typedef Containers::StaticVector< Dimensions, RealType > PointType;
       typedef Functions::MeshFunction< MeshType > MeshFunctionType;
-      typedef SharedPointer< MeshFunctionType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Functions::VectorField< Dimensions, MeshType > VectorFieldType;
       
       RiemannProblemInitialCondition()
