@@ -18,6 +18,7 @@
 namespace TNL {
 
 template< typename Mesh,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class StegerWarmingMomentumX
@@ -27,15 +28,16 @@ class StegerWarmingMomentumX
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class StegerWarmingMomentumX< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
-   : public StegerWarmingMomentumBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
+class StegerWarmingMomentumX< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public StegerWarmingMomentumBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
 
       typedef Meshes::Grid< 1, MeshReal, Device, MeshIndex > MeshType;
-      typedef StegerWarmingMomentumBase< MeshType, Real, Index > BaseType;
+      typedef StegerWarmingMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -92,10 +94,8 @@ class StegerWarmingMomentumX< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Re
                                - this->negativeMainMomentumFlux( density_center, velocity_x_center, pressure_center )
                                + this->negativeMainMomentumFlux( density_east,   velocity_x_east  , pressure_east   )
                              )
-// 1D T_11_x
-                - 4.0 / 3.0 *( velocity_x_east - 2 * velocity_x_center + velocity_x_west
-                             ) * hxSquareInverse
-                * this->dynamicalViscosity;
+               +
+                 this->rightHandSide(u, entity, time);
       }
 
       /*template< typename MeshEntity >
@@ -119,14 +119,15 @@ class StegerWarmingMomentumX< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Re
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class StegerWarmingMomentumX< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
-   : public StegerWarmingMomentumBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
+class StegerWarmingMomentumX< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public StegerWarmingMomentumBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 2, MeshReal, Device, MeshIndex > MeshType;
-      typedef StegerWarmingMomentumBase< MeshType, Real, Index > BaseType;
+      typedef StegerWarmingMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -215,18 +216,8 @@ class StegerWarmingMomentumX< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Re
                                - this->negativeOtherMomentumFlux( density_center, velocity_x_center, velocity_y_center, pressure_center )
                                + this->negativeOtherMomentumFlux( density_north , velocity_x_north , velocity_y_north , pressure_north  )
                              )
-// 2D T_11_x
-                + ( 4.0 / 3.0 * ( velocity_x_east - 2 * velocity_x_center + velocity_x_west 
-                                ) * hxSquareInverse
-                  - 2.0 / 3.0 * ( velocity_y_northEast - velocity_y_southEast - velocity_y_northWest + velocity_y_southWest 
-                                ) * hxInverse * hyInverse / 4
-                  ) * this->dynamicalViscosity 
-// T_21_y
-                + ( ( velocity_y_northEast - velocity_y_southEast - velocity_y_northWest + velocity_y_southWest
-                    ) * hxInverse * hyInverse / 4
-                  + ( velocity_x_north - 2 * velocity_x_center + velocity_x_south
-                    ) * hxInverse * hyInverse
-                  ) * this->dynamicalViscosity;
+               +
+                 this->rightHandSide(u, entity, time);
 
                                       
       }
@@ -252,14 +243,15 @@ class StegerWarmingMomentumX< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Re
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class StegerWarmingMomentumX< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Real, Index >
-   : public StegerWarmingMomentumBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
+class StegerWarmingMomentumX< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public StegerWarmingMomentumBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 3, MeshReal, Device, MeshIndex > MeshType;
-      typedef StegerWarmingMomentumBase< MeshType, Real, Index > BaseType;
+      typedef StegerWarmingMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -391,26 +383,8 @@ class StegerWarmingMomentumX< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Rea
                                - this->negativeOtherMomentumFlux( density_center, velocity_x_center, velocity_z_center, pressure_center )
                                + this->negativeOtherMomentumFlux( density_up    , velocity_x_up    , velocity_z_up    , pressure_up     )
                              )
-// 3D T_11_x
-                + ( 4.0 / 3.0 * ( velocity_x_east - 2 * velocity_x_center + velocity_x_west
-                                ) * hxSquareInverse
-                  - 2.0 / 3.0 * ( velocity_y_northEast - velocity_y_southEast - velocity_y_northWest + velocity_y_southWest
-                                ) * hxInverse * hyInverse / 4
-                  - 2.0 / 3.0 * ( velocity_z_upEast - velocity_z_downEast - velocity_z_upWest + velocity_z_downWest
-                                ) * hxInverse * hzInverse / 4
-                  ) * this->dynamicalViscosity
-// T_21_x
-                + ( ( velocity_y_northEast - velocity_y_southEast - velocity_y_northWest + velocity_y_southWest
-                    ) * hxInverse * hyInverse / 4
-                  + ( velocity_x_east - 2 * velocity_x_center + velocity_x_west
-                    ) * hxSquareInverse
-                  ) * this->dynamicalViscosity
-// T_31_x
-                + ( ( velocity_z_upEast - velocity_z_downEast - velocity_z_upWest + velocity_z_downWest
-                    ) * hxInverse * hzInverse / 4
-                  + ( velocity_x_east - 2 * velocity_x_center + velocity_x_west
-                    ) * hxSquareInverse
-                  ) * this->dynamicalViscosity;
+               +
+                 this->rightHandSide(u, entity, time);
       }
 
       /*template< typename MeshEntity >

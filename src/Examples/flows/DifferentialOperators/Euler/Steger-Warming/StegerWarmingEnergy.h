@@ -30,8 +30,8 @@ class StegerWarmingEnergyBase
       typedef Functions::MeshFunction< MeshType > MeshFunctionType;
       static const int Dimensions = MeshType::getMeshDimension();
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
-      typedef SharedPointer< MeshFunctionType > MeshFunctionPointer;
-      typedef SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
       
       StegerWarmingEnergyBase()
        : artificialViscosity( 1.0 ){};

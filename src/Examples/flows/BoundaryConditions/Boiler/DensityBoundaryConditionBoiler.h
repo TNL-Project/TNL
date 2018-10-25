@@ -114,8 +114,8 @@ class DensityBoundaryConditionsBoiler< Meshes::Grid< 1, MeshReal, Device, MeshIn
    typedef DensityBoundaryConditionsBoiler< MeshType, Function, Real, Index > ThisType;
    typedef DensityBoundaryConditionsBoilerBase< Function > BaseType;
    typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
-   typedef SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
-   typedef SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
+   typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
+   typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
 
 
    template< typename EntityType,
@@ -237,8 +237,8 @@ class DensityBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, MeshIn
       typedef DensityBoundaryConditionsBoiler< MeshType, Function, Real, Index > ThisType;
       typedef DensityBoundaryConditionsBoilerBase< Function > BaseType;
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
-      typedef SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
-      typedef SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
 
 
       template< typename EntityType,
@@ -387,8 +387,8 @@ class DensityBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, MeshIn
       typedef DensityBoundaryConditionsBoiler< MeshType, Function, Real, Index > ThisType;
       typedef DensityBoundaryConditionsBoilerBase< Function > BaseType;   
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
-      typedef SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
-      typedef SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
 
       template< typename EntityType,
                 typename MeshFunction >

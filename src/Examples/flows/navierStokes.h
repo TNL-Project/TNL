@@ -14,6 +14,8 @@
 #include "RiemannProblemInitialCondition.h"
 #include "BoundaryConditions/Cavity/BoundaryConditionsCavity.h"
 #include "BoundaryConditions/Boiler/BoundaryConditionsBoiler.h"
+#include "DifferentialOperatorsRightHandSide/NavierStokesRightHandSide/NavierStokesOperatorRightHandSide.h"
+#include "DifferentialOperatorsRightHandSide/nullRightHandSide/nullOperatorRightHandSide.h"
 
 using namespace TNL;
 
@@ -42,6 +44,9 @@ template< typename ConfigTag >class navierStokesConfig
             config.addEntryEnum< String >( "Lax-Friedrichs" );
             config.addEntryEnum< String >( "Steger-Warming" );
             config.addEntryEnum< String >( "VanLeer" );
+         config.addEntry< String >( "oprator-right-hand-side", "Choose equation type.", "Euler");
+            config.addEntryEnum< String >( "Euler" );
+            config.addEntryEnum< String >( "Navier-Stokes" );
          config.addEntry< double >( "boundary-conditions-constant", "This sets a value in case of the constant boundary conditions." );
          config.addEntry< double >( "speed-increment", "This sets increment of input speed.", 0.0 );
          config.addEntry< double >( "speed-increment-until", "This sets time until input speed will rose", -0.1 );
@@ -75,14 +80,20 @@ class navierStokesSetter
       static bool run( const Config::ParameterContainer & parameters )
       {
           enum { Dimension = MeshType::getMeshDimension() };
-          typedef LaxFridrichs< MeshType, 0, Real, Index > ApproximateOperator;
+	  typedef NullOperatorRightHandSide< MeshType, Real, Index > OperatorRightHandSide;
+          typedef LaxFridrichs< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
           typedef flowsRhs< MeshType, Real > RightHandSide;
           typedef Containers::StaticVector < MeshType::getMeshDimension(), Real > Point;
+	  String operatorRightHandSideType = parameters.getParameter< String >( "operator-right-hand-side");
+	  if( operatorRightHandSideType == "Euler" )
+	     typedef NullOperatorRightHandSide< MeshType, Real, Index > OperatorRightHandSide;
+ 	  else if( operatorRightHandSideType == "Navier-Stokes" )
+	     typedef NavierStokesOperatorRightHandSide< MeshType, Real, Index > OperatorRightHandSide;
 	  String differentialOperatorType = parameters.getParameter< String >( "differential-operator");
 	  if( differentialOperatorType == "Lax-Friedrichs" )
-	     typedef LaxFridrichs< MeshType, 0, Real, Index > ApproximateOperator;
+	     typedef LaxFridrichs< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
           else if( differentialOperatorType == "Steger-Warming" )
-	     typedef StegerWarming< MeshType, Real, Index > ApproximateOperator;
+	     typedef StegerWarming< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
           else if( differentialOperatorType == "VanLeer" )
 	     typedef VanLeer< MeshType, Real, Index > ApproximateOperator;
 
