@@ -14,6 +14,7 @@
 namespace TNL {
 
 template< typename Mesh,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class StegerWarmingMomentumBase
@@ -28,8 +29,9 @@ class StegerWarmingMomentumBase
       typedef Functions::MeshFunction< MeshType > MeshFunctionType;
       static const int Dimensions = MeshType::getMeshDimension();
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
-      typedef SharedPointer< MeshFunctionType > MeshFunctionPointer;
-      typedef SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef OperatorRightHandSide OperatorRightHandSideType;
       
 
       void setTau(const Real& tau)
@@ -45,6 +47,7 @@ class StegerWarmingMomentumBase
       void setVelocity( const VelocityFieldPointer& velocity )
       {
           this->velocity = velocity;
+	  this->rightHandSide.setVelocity(velocity);
       };
 
       void setDensity( const MeshFunctionPointer& density )
@@ -60,6 +63,7 @@ class StegerWarmingMomentumBase
       void setDynamicalViscosity( const RealType& dynamicalViscosity )
       {
          this->dynamicalViscosity = dynamicalViscosity;
+	 this->rightHandSide.setDynamicalViscosity(dynamicalViscosity);
       }
 
       RealType positiveMainMomentumFlux( const RealType& density, const RealType& velocity, const RealType& pressure ) const
@@ -125,6 +129,8 @@ class StegerWarmingMomentumBase
          RealType gamma;
          
          VelocityFieldPointer velocity;
+
+	 OperatorRightHandSideType rightHandSide;
          
          MeshFunctionPointer pressure;
 

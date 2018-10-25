@@ -114,8 +114,8 @@ class MomentumZBoundaryConditionsBoiler< Meshes::Grid< 1, MeshReal, Device, Mesh
    typedef MomentumZBoundaryConditionsBoiler< MeshType, Function, Real, Index > ThisType;
    typedef MomentumZBoundaryConditionsBoilerBase< Function > BaseType;
    typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
-   typedef SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
-   typedef SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
+   typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
+   typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
 
    template< typename EntityType,
              typename MeshFunction >
@@ -245,8 +245,8 @@ class MomentumZBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, Mesh
       typedef MomentumZBoundaryConditionsBoiler< MeshType, Function, Real, Index > ThisType;
       typedef MomentumZBoundaryConditionsBoilerBase< Function > BaseType;
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
-      typedef SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
-      typedef SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
 
 
       template< typename EntityType,
@@ -397,8 +397,8 @@ class MomentumZBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, Mesh
       typedef MomentumZBoundaryConditionsBoiler< MeshType, Function, Real, Index > ThisType;
       typedef MomentumZBoundaryConditionsBoilerBase< Function > BaseType;  
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
-      typedef SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer; 
-      typedef SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer; 
+      typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
 
       template< typename EntityType,
                 typename MeshFunction >

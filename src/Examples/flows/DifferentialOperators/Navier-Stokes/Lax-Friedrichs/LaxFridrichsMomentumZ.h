@@ -18,6 +18,7 @@
 namespace TNL {
 
 template< typename Mesh,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class LaxFridrichsMomentumZ
@@ -27,15 +28,16 @@ class LaxFridrichsMomentumZ
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsMomentumZ< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
-   : public LaxFridrichsMomentumBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
+class LaxFridrichsMomentumZ< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public LaxFridrichsMomentumBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
 
       typedef Meshes::Grid< 1, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsMomentumBase< MeshType, Real, Index > BaseType;
+      typedef LaxFridrichsMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -90,14 +92,15 @@ class LaxFridrichsMomentumZ< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Rea
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsMomentumZ< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
-   : public LaxFridrichsMomentumBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
+class LaxFridrichsMomentumZ< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public LaxFridrichsMomentumBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 2, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsMomentumBase< MeshType, Real, Index > BaseType;
+      typedef LaxFridrichsMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -151,14 +154,15 @@ class LaxFridrichsMomentumZ< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Rea
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class LaxFridrichsMomentumZ< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Real, Index >
-   : public LaxFridrichsMomentumBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
+class LaxFridrichsMomentumZ< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public LaxFridrichsMomentumBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 3, MeshReal, Device, MeshIndex > MeshType;
-      typedef LaxFridrichsMomentumBase< MeshType, Real, Index > BaseType;
+      typedef LaxFridrichsMomentumBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -267,29 +271,8 @@ class LaxFridrichsMomentumZ< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Real
                          - ( rho_w[ south ] * velocity_y_south ) )* hyInverse
                        + ( ( rho_w[ up ] * velocity_z_up + pressure_up )
                          - ( rho_w[ down ] * velocity_z_down + pressure_down ) )* hzInverse )
-// T_13_z
-                + ( ( velocity_z_up - 2 * velocity_z_center + velocity_z_down ) 
-                    * hzSquareInverse
-                  + ( velocity_x_upEast - velocity_x_downEast - velocity_x_upWest + velocity_x_downWest )
-                    * hxInverse * hzInverse / 4
-                  )
-                * this->dynamicalViscosity
-// T_23_z
-                + ( ( velocity_y_upNorth - velocity_y_downNorth - velocity_y_upSouth + velocity_y_downSouth )
-                    * hyInverse * hzInverse / 4
-                  + ( velocity_z_up - 2 * velocity_z_center + velocity_z_down )
-                    * hzSquareInverse
-                  )
-                * this->dynamicalViscosity
-// 3D T_33_z
-                + ( 4.0 / 3.0 * ( velocity_z_up - 2 * velocity_z_center + velocity_z_down ) 
-                              * hzSquareInverse
-                  - 2.0 / 3.0 * ( velocity_y_upNorth - velocity_y_downNorth - velocity_y_upSouth + velocity_y_downSouth )
-                              * hyInverse * hzInverse / 4
-                  - 2.0 / 3.0 * ( velocity_x_upEast - velocity_x_downEast - velocity_x_upWest + velocity_x_downWest )
-                              * hxInverse * hzInverse / 4
-                  )
-                * this->dynamicalViscosity;
+               +
+                 this->rightHandSide(rho_w, entity, time);
       }
 
       /*template< typename MeshEntity >

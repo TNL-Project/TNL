@@ -14,12 +14,13 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Functions/VectorField.h>
-#include <TNL/SharedPointer.h>
+#include <TNL/Pointers/SharedPointer.h>
 
 namespace TNL {
 
    
 template< typename Mesh,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class StegerWarmingContinuityBase
@@ -34,8 +35,9 @@ class StegerWarmingContinuityBase
       typedef Functions::MeshFunction< MeshType > MeshFunctionType;
       static const int Dimensions = MeshType::getMeshDimension();
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
-      typedef SharedPointer< MeshFunctionType > MeshFunctionPointer;
-      typedef SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
+      typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef OperatorRightHandSide OperatorRightHandSideType;
 
       static String getType()
       {
@@ -107,12 +109,15 @@ class StegerWarmingContinuityBase
          
          VelocityFieldPointer velocity;
 
+	 OperatorRightHandSideType rightHandSide;
+
          MeshFunctionPointer pressure;
          
 };
 
    
 template< typename Mesh,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class StegerWarmingContinuity
@@ -124,14 +129,15 @@ class StegerWarmingContinuity
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class StegerWarmingContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
-   : public StegerWarmingContinuityBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
+class StegerWarmingContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public StegerWarmingContinuityBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 1, MeshReal, Device, MeshIndex > MeshType;
-      typedef StegerWarmingContinuityBase< MeshType, Real, Index > BaseType;
+      typedef StegerWarmingContinuityBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -171,7 +177,9 @@ class StegerWarmingContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, R
                                 -  this->positiveDensityFlux( u[ west   ], velocity_x_west  , pressure_west   )
                                 -  this->negativeDensityFlux( u[ center ], velocity_x_center, pressure_center )
                                 +  this->negativeDensityFlux( u[ east   ], velocity_x_east  , pressure_east   )
-                             );
+                             )
+               +
+                 this->rightHandSide(u, entity, time);
       }
 
       /*template< typename MeshEntity >
@@ -195,14 +203,15 @@ class StegerWarmingContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, R
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class StegerWarmingContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
-   : public StegerWarmingContinuityBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
+class StegerWarmingContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public StegerWarmingContinuityBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 2, MeshReal, Device, MeshIndex > MeshType;
-      typedef StegerWarmingContinuityBase< MeshType, Real, Index > BaseType;
+      typedef StegerWarmingContinuityBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -258,7 +267,9 @@ class StegerWarmingContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, R
                                 -  this->positiveDensityFlux( u[ south  ], velocity_y_south , pressure_south  )
                                 -  this->negativeDensityFlux( u[ center ], velocity_y_center, pressure_center )
                                 +  this->negativeDensityFlux( u[ north  ], velocity_y_north , pressure_north  )
-                             ); 
+                             )
+               +
+                 this->rightHandSide(u, entity, time); 
       }
 
       /*template< typename MeshEntity >
@@ -282,14 +293,15 @@ class StegerWarmingContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, R
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class StegerWarmingContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
-   : public StegerWarmingContinuityBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
+class StegerWarmingContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public StegerWarmingContinuityBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 3, MeshReal, Device, MeshIndex > MeshType;
-      typedef StegerWarmingContinuityBase< MeshType, Real, Index > BaseType;
+      typedef StegerWarmingContinuityBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -360,7 +372,9 @@ class StegerWarmingContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, R
                                 -  this->positiveDensityFlux( u[ down   ], velocity_z_down  , pressure_down   )
                                 -  this->negativeDensityFlux( u[ center ], velocity_z_center, pressure_center )
                                 +  this->negativeDensityFlux( u[ up     ], velocity_z_up    , pressure_up     )
-                             );
+                             )
+               +
+                 this->rightHandSide(u, entity, time);
          
       }
 
