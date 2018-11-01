@@ -84,6 +84,10 @@ class navierStokesProblem:
                               const RealType& tau,
                               DofVectorPointer& _u,
                               DofVectorPointer& _fu );
+      
+      void applyBoundaryConditions( const RealType& time,
+                                    DofVectorPointer& dofs ) { cout << "PBC" << endl;
+cin.ignore();/*TNL_ASSERT( false, "TODO:Implement")*/}; 
 
       template< typename Matrix >
       void assemblyLinearSystem( const RealType& time,
