@@ -14,6 +14,7 @@
 namespace TNL {
 
 template< typename Mesh,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class VanLeerMomentumBase
@@ -30,6 +31,7 @@ class VanLeerMomentumBase
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
       typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef OperatorRightHandSide OperatorRightHandSideType;
       
 
       void setTau(const Real& tau)
@@ -45,6 +47,7 @@ class VanLeerMomentumBase
       void setVelocity( const VelocityFieldPointer& velocity )
       {
           this->velocity = velocity;
+	  this->rightHandSide.setVelocity(velocity);
       };
 
       void setDensity( const MeshFunctionPointer& density )
@@ -60,6 +63,7 @@ class VanLeerMomentumBase
       void setDynamicalViscosity( const RealType& dynamicalViscosity )
       {
          this->dynamicalViscosity = dynamicalViscosity;
+	 this->rightHandSide.setDynamicalViscosity(dynamicalViscosity);
       }
 
       RealType positiveMainMomentumFlux( const RealType& density, const RealType& velocity, const RealType& pressure ) const
@@ -117,6 +121,8 @@ class VanLeerMomentumBase
          RealType gamma;
          
          VelocityFieldPointer velocity;
+
+	 OperatorRightHandSideType rightHandSide;
          
          MeshFunctionPointer pressure;
 

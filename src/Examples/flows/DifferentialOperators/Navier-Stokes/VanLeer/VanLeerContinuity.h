@@ -20,6 +20,7 @@ namespace TNL {
 
    
 template< typename Mesh,
+          typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class VanLeerContinuityBase
@@ -36,6 +37,7 @@ class VanLeerContinuityBase
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
       typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef OperatorRightHandSide OperatorRightHandSideType;
 
       static String getType()
       {
@@ -103,12 +105,15 @@ class VanLeerContinuityBase
          
          VelocityFieldPointer velocity;
 
+	 OperatorRightHandSideType rightHandSide;
+
          MeshFunctionPointer pressure;
          
 };
 
    
 template< typename Mesh,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class VanLeerContinuity
@@ -120,14 +125,15 @@ class VanLeerContinuity
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class VanLeerContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
-   : public VanLeerContinuityBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
+class VanLeerContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public VanLeerContinuityBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 1, MeshReal, Device, MeshIndex > MeshType;
-      typedef VanLeerContinuityBase< MeshType, Real, Index > BaseType;
+      typedef VanLeerContinuityBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -167,7 +173,9 @@ class VanLeerContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, I
                                 -  this->positiveDensityFlux( u[ west   ], velocity_x_west  , pressure_west   )
                                 -  this->negativeDensityFlux( u[ center ], velocity_x_center, pressure_center )
                                 +  this->negativeDensityFlux( u[ east   ], velocity_x_east  , pressure_east   )
-                             );
+                             )
+               +
+                 this->rightHandSide(u, entity, time);
       }
 
       /*template< typename MeshEntity >
@@ -191,14 +199,15 @@ class VanLeerContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, I
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class VanLeerContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
-   : public VanLeerContinuityBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
+class VanLeerContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public VanLeerContinuityBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 2, MeshReal, Device, MeshIndex > MeshType;
-      typedef VanLeerContinuityBase< MeshType, Real, Index > BaseType;
+      typedef VanLeerContinuityBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -254,7 +263,9 @@ class VanLeerContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, I
                                 -  this->positiveDensityFlux( u[ south  ], velocity_y_south , pressure_south  )
                                 -  this->negativeDensityFlux( u[ center ], velocity_y_center, pressure_center )
                                 +  this->negativeDensityFlux( u[ north  ], velocity_y_north , pressure_north  )
-                             ); 
+                             )
+               +
+                 this->rightHandSide(u, entity, time); 
       }
 
       /*template< typename MeshEntity >
@@ -278,14 +289,15 @@ class VanLeerContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, I
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class VanLeerContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
-   : public VanLeerContinuityBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
+class VanLeerContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public VanLeerContinuityBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 3, MeshReal, Device, MeshIndex > MeshType;
-      typedef VanLeerContinuityBase< MeshType, Real, Index > BaseType;
+      typedef VanLeerContinuityBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -356,7 +368,9 @@ class VanLeerContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, I
                                 -  this->positiveDensityFlux( u[ down   ], velocity_z_down  , pressure_down   )
                                 -  this->negativeDensityFlux( u[ center ], velocity_z_center, pressure_center )
                                 +  this->negativeDensityFlux( u[ up     ], velocity_z_up    , pressure_up     )
-                             );
+                             )
+               +
+                 this->rightHandSide(u, entity, time);
          
       }
 

@@ -16,6 +16,7 @@
 namespace TNL {
    
 template< typename Mesh,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class VanLeerEnergyBase
@@ -32,6 +33,7 @@ class VanLeerEnergyBase
       typedef Functions::VectorField< Dimensions, MeshFunctionType > VelocityFieldType;
       typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Pointers::SharedPointer< VelocityFieldType > VelocityFieldPointer;
+      typedef OperatorRightHandSide OperatorRightHandSideType;
       
       VanLeerEnergyBase()
        : artificialViscosity( 1.0 ){};
@@ -57,6 +59,7 @@ class VanLeerEnergyBase
       void setVelocity( const VelocityFieldPointer& velocity )
       {
           this->velocity = velocity;
+	  this->rightHandSide.setVelocity(velocity);
       };
       
       void setPressure( const MeshFunctionPointer& pressure )
@@ -77,6 +80,7 @@ class VanLeerEnergyBase
       void setDynamicalViscosity( const RealType& dynamicalViscosity )
       {
          this->dynamicalViscosity = dynamicalViscosity;
+	 this->rightHandSide.setDynamicalViscosity(dynamicalViscosity);
       }  
 
       protected:
@@ -86,6 +90,8 @@ class VanLeerEnergyBase
          RealType gamma;
          
          VelocityFieldPointer velocity;
+
+	 OperatorRightHandSideType rightHandSide;
          
          MeshFunctionPointer pressure;
          
@@ -95,6 +101,7 @@ class VanLeerEnergyBase
 };
    
 template< typename Mesh,
+	  typename OperatorRightHandSide,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::IndexType >
 class VanLeerEnergy
@@ -104,15 +111,16 @@ class VanLeerEnergy
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class VanLeerEnergy< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
-   : public VanLeerEnergyBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index >
+class VanLeerEnergy< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public VanLeerEnergyBase< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
 
       typedef Meshes::Grid< 1, MeshReal, Device, MeshIndex > MeshType;
-      typedef VanLeerEnergyBase< MeshType, Real, Index > BaseType;
+      typedef VanLeerEnergyBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -194,11 +202,8 @@ class VanLeerEnergy< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index
                                  - this->negativeEnergyFlux( density_center, velocity_x_center, pressure_center)
                                  + this->negativeEnergyFlux( density_east  , velocity_x_east  , pressure_east  ) 
                              )
-// 1D uT_11_x
-                - 4.0 / 3.0 * ( velocity_x_east * velocity_x_center - velocity_x_center * velocity_x_west
-                              - velocity_x_center * velocity_x_center + velocity_x_west * velocity_x_west
-                              ) * hxSquareInverse / 4
-                * this->dynamicalViscosity;  
+               +
+                 this->rightHandSide(u, entity, time);
   
       }
 
@@ -223,14 +228,15 @@ class VanLeerEnergy< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Real, Index
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class VanLeerEnergy< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
-   : public VanLeerEnergyBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index >
+class VanLeerEnergy< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public VanLeerEnergyBase< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 2, MeshReal, Device, MeshIndex > MeshType;
-      typedef VanLeerEnergyBase< MeshType, Real, Index > BaseType;
+      typedef VanLeerEnergyBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -348,38 +354,8 @@ class VanLeerEnergy< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index
                                  - this->negativeEnergyFlux( density_center, velocity_y_center, velocity_x_center, pressure_center)
                                  + this->negativeEnergyFlux( density_north , velocity_y_north , velocity_x_north , pressure_north ) 
                              )
-// 2D uT_11_x
-                + ( 4.0 / 3.0 * ( velocity_x_east * velocity_x_center - velocity_x_center * velocity_x_west
-                                - velocity_x_center * velocity_x_center + velocity_x_west * velocity_x_west
-                                ) * hxSquareInverse
-                  - 2.0 / 3.0 * ( velocity_y_northEast * velocity_x_east - velocity_y_southEast * velocity_x_east
-                                - velocity_y_northWest * velocity_x_west + velocity_y_southWest * velocity_x_west
-                                ) * hxInverse * hyInverse  / 4
-                  ) * this->dynamicalViscosity 
-// vT_21_x
-                + ( ( velocity_y_northEast * velocity_y_east - velocity_y_southEast * velocity_y_east
-                    - velocity_y_northWest * velocity_y_west + velocity_y_southWest * velocity_y_west
-                    ) * hxInverse * hyInverse / 4
-                  + ( velocity_x_east * velocity_y_center - velocity_x_center * velocity_y_west
-                    - velocity_x_center * velocity_y_center + velocity_x_west * velocity_y_west
-                    ) * hxSquareInverse
-                  ) * this->dynamicalViscosity
-// uT_12_y
-                + ( ( velocity_x_northEast * velocity_x_north - velocity_x_southEast * velocity_x_south 
-                    - velocity_x_northWest * velocity_x_north + velocity_x_southWest * velocity_x_south 
-                    ) * hxInverse * hyInverse  / 4
-                  + ( velocity_y_north * velocity_x_center - velocity_y_center * velocity_x_south
-                    - velocity_y_center * velocity_x_center + velocity_y_south * velocity_x_south
-                    ) * hySquareInverse
-                ) * this->dynamicalViscosity
-// 2D vT_22_y
-                + ( 4.0 / 3.0 * ( velocity_y_north * velocity_y_center - velocity_y_center * velocity_y_south
-                                - velocity_y_center * velocity_y_center + velocity_y_south * velocity_y_south
-                                ) * hySquareInverse
-                  - 2.0 / 3.0 * ( velocity_x_northEast * velocity_y_north - velocity_x_southEast * velocity_y_east 
-                                - velocity_x_northWest * velocity_y_north + velocity_x_southWest * velocity_y_west
-                                ) * hxInverse * hyInverse / 4
-                ) * this->dynamicalViscosity;     
+               +
+                 this->rightHandSide(u, entity, time);  
       }
 
       /*template< typename MeshEntity >
@@ -403,14 +379,15 @@ class VanLeerEnergy< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Real, Index
 template< typename MeshReal,
           typename Device,
           typename MeshIndex,
+	  typename OperatorRightHandSide,
           typename Real,
           typename Index >
-class VanLeerEnergy< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
-   : public VanLeerEnergyBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index >
+class VanLeerEnergy< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
+   : public VanLeerEnergyBase< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRightHandSide, Real, Index >
 {
    public:
       typedef Meshes::Grid< 3, MeshReal, Device, MeshIndex > MeshType;
-      typedef VanLeerEnergyBase< MeshType, Real, Index > BaseType;
+      typedef VanLeerEnergyBase< MeshType, OperatorRightHandSide, Real, Index > BaseType;
       
       using typename BaseType::RealType;
       using typename BaseType::IndexType;
@@ -580,87 +557,8 @@ class VanLeerEnergy< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Real, Index
                                  - this->negativeEnergyFlux( density_center, velocity_y_center, velocity_x_center, velocity_z_center, pressure_center)
                                  + this->negativeEnergyFlux( density_up    , velocity_y_up    , velocity_x_up    , velocity_z_up    , pressure_up    ) 
                              )
-// 3D uT_11_x
-                + ( 4.0 / 3.0 * ( velocity_x_east * velocity_x_center - velocity_x_center * velocity_x_west
-                                - velocity_x_center * velocity_x_center + velocity_x_west * velocity_x_west 
-                                ) * hxSquareInverse
-                  - 2.0 / 3.0 * ( velocity_y_northEast * velocity_x_east - velocity_y_southEast * velocity_x_east
-                                - velocity_y_northWest * velocity_x_west + velocity_y_southWest * velocity_x_west
-                                ) * hxInverse * hyInverse / 4
-                  - 2.0 / 3.0 * ( velocity_z_upEast * velocity_x_east - velocity_z_downEast * velocity_x_east
-                                - velocity_z_upWest * velocity_x_west + velocity_z_downWest * velocity_x_west
-                                ) * hxInverse * hzInverse / 4
-                  ) * this->dynamicalViscosity
-// vT_21_x
-                + ( ( velocity_y_northEast * velocity_y_east - velocity_y_southEast * velocity_y_east
-                    - velocity_y_northWest * velocity_y_west + velocity_y_southWest * velocity_y_west
-                    ) * hxInverse * hyInverse / 4
-                  + ( velocity_x_east * velocity_y_center - velocity_x_center * velocity_y_west
-                    - velocity_x_center * velocity_y_center + velocity_x_west * velocity_y_west
-                    ) * hxSquareInverse
-                  ) * this->dynamicalViscosity
-// wT_31_x
-                + ( ( velocity_z_upEast * velocity_z_east - velocity_z_downEast * velocity_z_east
-                    - velocity_z_upWest * velocity_z_west + velocity_z_downWest * velocity_z_west
-                    ) * hxInverse * hzInverse / 4
-                  + ( velocity_x_east * velocity_z_center - velocity_x_center * velocity_z_west 
-                    - velocity_x_center * velocity_z_center + velocity_x_west * velocity_z_west
-                    ) * hxSquareInverse
-                  ) * this->dynamicalViscosity
-// uT_12_y
-                + ( ( velocity_x_northEast * velocity_x_north - velocity_x_southEast * velocity_x_south
-                    - velocity_x_northWest * velocity_x_north + velocity_x_southWest * velocity_x_south
-                    ) * hxInverse * hyInverse / 4
-                  + ( velocity_y_north * velocity_x_center - velocity_y_center * velocity_x_south
-                    + velocity_y_center * velocity_x_center + velocity_y_south * velocity_x_south
-                    ) * hySquareInverse
-                  ) * this->dynamicalViscosity
-// 3D vT_22_y
-                + ( 4.0 / 3.0 * ( velocity_y_north * velocity_y_center - velocity_y_center * velocity_y_south
-                                - velocity_y_center * velocity_y_center + velocity_y_south * velocity_y_south
-                                ) * hySquareInverse
-                  - 2.0 / 3.0 * ( velocity_x_northEast * velocity_y_north - velocity_x_southEast * velocity_y_south
-                                - velocity_x_northWest * velocity_y_north + velocity_x_southWest * velocity_y_south
-                                ) * hxInverse * hyInverse / 4
-                  - 2.0 / 3.0 * ( velocity_z_upNorth * velocity_y_north - velocity_z_downNorth * velocity_y_north
-                                - velocity_z_upSouth * velocity_y_south + velocity_z_downSouth * velocity_y_south
-                                ) * hyInverse * hzInverse / 4
-                  ) * this->dynamicalViscosity
-// wT_32_y
-                + ( ( velocity_z_upNorth * velocity_z_north - velocity_z_downNorth * velocity_y_north
-                    - velocity_z_upSouth * velocity_z_south + velocity_z_downSouth * velocity_z_south
-                    ) * hyInverse * hzInverse / 4
-                  + ( velocity_y_north * velocity_z_center - velocity_y_center * velocity_z_south
-                    - velocity_y_center * velocity_z_center + velocity_y_south * velocity_z_south
-                    ) * hySquareInverse
-                  ) * this->dynamicalViscosity
-// uT_13_z
-                + ( ( velocity_z_up * velocity_x_center - velocity_z_center * velocity_x_center 
-                    - velocity_z_center * velocity_x_down + velocity_z_down * velocity_x_down
-                    ) * hzSquareInverse
-                  + ( velocity_x_upEast * velocity_x_up - velocity_x_downEast * velocity_x_down
-                    - velocity_x_upWest * velocity_x_up + velocity_x_downWest * velocity_x_down
-                    ) * hxInverse * hzInverse / 4
-                  ) * this->dynamicalViscosity
-// T_23_z
-                + ( ( velocity_y_upNorth * velocity_y_up - velocity_y_downNorth * velocity_y_down
-                    - velocity_y_upSouth * velocity_y_up + velocity_y_downSouth * velocity_y_down
-                    ) * hyInverse * hzInverse / 4
-                  + ( velocity_z_up * velocity_y_center - velocity_z_center * velocity_y_down
-                    - velocity_z_center * velocity_y_center + velocity_z_down * velocity_y_down
-                    ) * hzSquareInverse
-                  ) * this->dynamicalViscosity
-// 3D T_33_z
-                + ( 4.0 / 3.0 * ( velocity_z_up * velocity_z_center - velocity_z_center * velocity_z_down
-                                - velocity_z_center * velocity_z_center + velocity_z_down * velocity_z_down
-                                ) * hzSquareInverse
-                  - 2.0 / 3.0 * ( velocity_y_upNorth * velocity_z_up - velocity_y_downNorth * velocity_z_down
-                                - velocity_y_upSouth * velocity_z_up + velocity_y_downSouth * velocity_z_down
-                                ) * hyInverse * hzInverse / 4
-                  - 2.0 / 3.0 * ( velocity_x_upEast * velocity_z_up - velocity_x_downEast * velocity_z_down
-                                - velocity_x_upWest * velocity_z_up + velocity_x_downWest * velocity_z_down
-                                ) * hxInverse * hzInverse / 4
-                  ) * this->dynamicalViscosity; 
+               +
+                 this->rightHandSide(u, entity, time);
       }
 
       /*template< typename MeshEntity >

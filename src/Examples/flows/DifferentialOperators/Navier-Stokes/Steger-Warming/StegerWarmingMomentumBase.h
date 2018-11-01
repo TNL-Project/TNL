@@ -62,7 +62,6 @@ class StegerWarmingMomentumBase
 
       void setDynamicalViscosity( const RealType& dynamicalViscosity )
       {
-         this->dynamicalViscosity = dynamicalViscosity;
 	 this->rightHandSide.setDynamicalViscosity(dynamicalViscosity);
       }
 
@@ -133,8 +132,6 @@ class StegerWarmingMomentumBase
 	 OperatorRightHandSideType rightHandSide;
          
          MeshFunctionPointer pressure;
-
-         RealType dynamicalViscosity;
 
          MeshFunctionPointer density;
 
