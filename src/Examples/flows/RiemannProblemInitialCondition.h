@@ -887,7 +887,7 @@ class RiemannProblemInitialCondition
                this->NWDDensity = parameters.getParameter< RealType >( prefix + "NWD-density" );
                this->NWDVelocity.setup( parameters, prefix + "NWD-velocity-" );
                this->NWDPressure = parameters.getParameter< RealType >( prefix + "NWD-pressure" );
-               this->SWUEnergy = Energy( NWDDensity, NWDPressure, gamma, NWDVelocity);
+               this->NWDEnergy = Energy( NWDDensity, NWDPressure, gamma, NWDVelocity);
                this->NWDMomentum = NWDVelocity * NWDDensity;
 
                this->SWDDensity = parameters.getParameter< RealType >( prefix + "SWD-density" );

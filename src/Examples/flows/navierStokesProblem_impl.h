@@ -275,6 +275,7 @@ getExplicitUpdate( const RealType& time,
    this->boundaryConditionPointer->setGamma(this->gamma);
    this->boundaryConditionPointer->setPressure(this->pressure);
 
+
    /****
     * Continuity equation
     */ 
@@ -296,7 +297,6 @@ getExplicitUpdate( const RealType& time,
    explicitUpdaterMomentumX.template update< typename Mesh::Cell, Communicator >( time, tau, this->getMesh(),
                                                            ( *this->conservativeVariables->getMomentum() )[ 0 ], // uRhoVelocityX,
                                                            ( *this->conservativeVariablesRHS->getMomentum() )[ 0 ] ); //, fuRhoVelocityX );
-
    if( Dimensions > 1 )
    {
       Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, MomentumYOperatorType, MomentumYBoundaryConditionsType, RightHandSide > explicitUpdaterMomentumY;
@@ -307,7 +307,7 @@ getExplicitUpdate( const RealType& time,
                                                               ( *this->conservativeVariables->getMomentum() )[ 1 ], // uRhoVelocityX,
                                                               ( *this->conservativeVariablesRHS->getMomentum() )[ 1 ] ); //, fuRhoVelocityX );
    }
-   
+
    if( Dimensions > 2 )
    {
       Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, MomentumZOperatorType, MomentumZBoundaryConditionsType, RightHandSide > explicitUpdaterMomentumZ;

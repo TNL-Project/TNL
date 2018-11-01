@@ -95,10 +95,6 @@ class StegerWarmingContinuityBase
             return 0.0;
       };
       
-      RealType multiply (const RealType& a, const RealType& b ) const
-      {
-         return a * b;
-      };
       
 
       protected:
