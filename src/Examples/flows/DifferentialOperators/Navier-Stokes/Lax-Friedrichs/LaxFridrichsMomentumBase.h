@@ -59,7 +59,6 @@ class LaxFridrichsMomentumBase
 
       void setDynamicalViscosity( const RealType& dynamicalViscosity )
       {
-         this->dynamicalViscosity = dynamicalViscosity;
 	 this->rightHandSide.setDynamicalViscosity(dynamicalViscosity);
       }
 
@@ -73,7 +72,7 @@ class LaxFridrichsMomentumBase
          
          MeshFunctionPointer pressure;
          
-         RealType artificialViscosity, dynamicalViscosity;
+         RealType artificialViscosity;
 };
 
 } //namespace TNL
