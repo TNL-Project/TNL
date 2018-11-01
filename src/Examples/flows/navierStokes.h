@@ -14,6 +14,8 @@
 #include "RiemannProblemInitialCondition.h"
 #include "BoundaryConditions/Cavity/BoundaryConditionsCavity.h"
 #include "BoundaryConditions/Boiler/BoundaryConditionsBoiler.h"
+#include "BoundaryConditions/Dirichlet/BoundaryConditionsDirichlet.h"
+#include "BoundaryConditions/Neumann/BoundaryConditionsNeumann.h"
 #include "DifferentialOperatorsRightHandSide/NavierStokesRightHandSide/NavierStokesOperatorRightHandSide.h"
 #include "DifferentialOperatorsRightHandSide/nullRightHandSide/nullOperatorRightHandSide.h"
 
@@ -40,11 +42,13 @@ template< typename ConfigTag >class navierStokesConfig
          config.addEntry< String >( "boundary-conditions-type", "Choose the boundary conditions type.", "cavity");
             config.addEntryEnum< String >( "boiler" );
             config.addEntryEnum< String >( "cavity" );
+            config.addEntryEnum< String >( "dirichlet" );
+            config.addEntryEnum< String >( "neumann" );
          config.addEntry< String >( "differential-operator", "Choose the differential operator.", "Lax-Friedrichs");
             config.addEntryEnum< String >( "Lax-Friedrichs" );
             config.addEntryEnum< String >( "Steger-Warming" );
             config.addEntryEnum< String >( "VanLeer" );
-         config.addEntry< String >( "oprator-right-hand-side", "Choose equation type.", "Euler");
+         config.addEntry< String >( "operator-right-hand-side", "Choose equation type.", "Euler");
             config.addEntryEnum< String >( "Euler" );
             config.addEntryEnum< String >( "Navier-Stokes" );
          config.addEntry< double >( "boundary-conditions-constant", "This sets a value in case of the constant boundary conditions." );
@@ -95,7 +99,7 @@ class navierStokesSetter
           else if( differentialOperatorType == "Steger-Warming" )
 	     typedef StegerWarming< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
           else if( differentialOperatorType == "VanLeer" )
-	     typedef VanLeer< MeshType, Real, Index > ApproximateOperator;
+	     typedef VanLeer< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
 
          /****
           * Resolve the template arguments of your solver here.
@@ -107,6 +111,7 @@ class navierStokesSetter
           String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
           if( boundaryConditionsType == "cavity" )
              {
+                cout<<"cavity" << endl;
                 typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
                 typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
                 SolverStarter solverStarter;
@@ -118,7 +123,22 @@ class navierStokesSetter
                 typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
                 SolverStarter solverStarter;
                 return solverStarter.template run< Problem >( parameters );
-             }       
+             } 
+          typedef Functions::MeshFunction< MeshType > MeshFunction;
+          if( boundaryConditionsType == "dirichlet" )
+          {
+             typedef BoundaryConditionsDirichlet< MeshType, MeshFunction, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
+             typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
+             SolverStarter solverStarter;
+             return solverStarter.template run< Problem >( parameters );
+          }
+          if( boundaryConditionsType == "neumann" )
+          {
+             typedef BoundaryConditionsNeumann< MeshType, MeshFunction, Real, Index > BoundaryConditions;
+             typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+             SolverStarter solverStarter;
+             return solverStarter.template run< Problem >( parameters );
+          }      
 
       return true;}
 

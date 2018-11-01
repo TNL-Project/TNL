@@ -196,10 +196,6 @@ class LaxFridrichsMomentumZ< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Oper
          const RealType& hyInverse = entity.getMesh().template getSpaceStepsProducts<  0, -1,  0 >(); 
          const RealType& hzInverse = entity.getMesh().template getSpaceStepsProducts<  0,  0, -1 >(); 
 
-         const RealType& hxSquareInverse = entity.getMesh().template getSpaceStepsProducts< -2,  0,  0 >(); 
-         const RealType& hySquareInverse = entity.getMesh().template getSpaceStepsProducts<  0, -2,  0 >(); 
-         const RealType& hzSquareInverse = entity.getMesh().template getSpaceStepsProducts<  0,  0, -2 >(); 
-
          const IndexType& center    = entity.getIndex(); 
          const IndexType& east      = neighborEntities.template getEntityIndex<  1,  0,  0 >(); 
          const IndexType& west      = neighborEntities.template getEntityIndex< -1,  0,  0 >(); 
@@ -207,61 +203,18 @@ class LaxFridrichsMomentumZ< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Oper
          const IndexType& south     = neighborEntities.template getEntityIndex<  0, -1,  0 >();
          const IndexType& up        = neighborEntities.template getEntityIndex<  0,  0,  1 >(); 
          const IndexType& down      = neighborEntities.template getEntityIndex<  0,  0, -1 >();
-         const IndexType& northWest = neighborEntities.template getEntityIndex< -1,  1,  0 >(); 
-         const IndexType& northEast = neighborEntities.template getEntityIndex<  1,  1,  0 >(); 
-         const IndexType& southWest = neighborEntities.template getEntityIndex< -1, -1,  0 >();
-         const IndexType& southEast = neighborEntities.template getEntityIndex<  1, -1,  0 >();
-         const IndexType& upWest    = neighborEntities.template getEntityIndex< -1,  0,  1 >();
-         const IndexType& upEast    = neighborEntities.template getEntityIndex<  1,  0,  1 >();
-         const IndexType& upSouth   = neighborEntities.template getEntityIndex<  0, -1,  1 >();
-         const IndexType& upNorth   = neighborEntities.template getEntityIndex<  0,  1,  1 >();
-         const IndexType& downWest  = neighborEntities.template getEntityIndex< -1,  0, -1 >();
-         const IndexType& downEast  = neighborEntities.template getEntityIndex<  1,  0, -1 >();
-         const IndexType& downSouth = neighborEntities.template getEntityIndex<  0, -1, -1 >();
-         const IndexType& downNorth = neighborEntities.template getEntityIndex<  0,  1, -1 >();
-         
-         const RealType& pressure_west  = this->pressure.template getData< DeviceType >()[ west ];
-         const RealType& pressure_east  = this->pressure.template getData< DeviceType >()[ east ];
-         const RealType& pressure_north = this->pressure.template getData< DeviceType >()[ north ];
-         const RealType& pressure_south = this->pressure.template getData< DeviceType >()[ south ];
+
          const RealType& pressure_up    = this->pressure.template getData< DeviceType >()[ up ];
          const RealType& pressure_down  = this->pressure.template getData< DeviceType >()[ down ];
          
          const RealType& velocity_x_east      = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
          const RealType& velocity_x_west      = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
-         const RealType& velocity_x_center    = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ center ];
-         const RealType& velocity_x_northWest = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ northWest ];
-         const RealType& velocity_x_northEast = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ northEast ];
-         const RealType& velocity_x_southWest = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ southWest ];
-         const RealType& velocity_x_southEast = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ southEast ];
-         const RealType& velocity_x_upWest    = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ upWest ];
-         const RealType& velocity_x_downWest  = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ downWest ];
-         const RealType& velocity_x_upEast    = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ upEast ];
-         const RealType& velocity_x_downEast  = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ downEast ];
 
          const RealType& velocity_y_north     = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ north ];
          const RealType& velocity_y_south     = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ south ];
-         const RealType& velocity_y_center    = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ center ];
-         const RealType& velocity_y_northWest = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northWest ];
-         const RealType& velocity_y_northEast = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northEast ];
-         const RealType& velocity_y_southWest = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ southWest ];
-         const RealType& velocity_y_southEast = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ southEast ];
-         const RealType& velocity_y_upNorth   = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ upNorth ];
-         const RealType& velocity_y_upSouth   = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ upSouth ];
-         const RealType& velocity_y_downNorth = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ downNorth ];
-         const RealType& velocity_y_downSouth = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ downSouth ];
 
          const RealType& velocity_z_up        = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ up ];
-         const RealType& velocity_z_down      = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ down ]; 
-         const RealType& velocity_z_center    = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ center ]; 
-         const RealType& velocity_z_upWest    = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ upWest ]; 
-         const RealType& velocity_z_upEast    = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ upEast ]; 
-         const RealType& velocity_z_upNorth   = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ upNorth ]; 
-         const RealType& velocity_z_upSouth   = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ upSouth ]; 
-         const RealType& velocity_z_downWest  = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downWest ]; 
-         const RealType& velocity_z_downEast  = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downEast ]; 
-         const RealType& velocity_z_downNorth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downNorth ]; 
-         const RealType& velocity_z_downSouth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downSouth ];         
+         const RealType& velocity_z_down      = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ down ];         
 
          return 1.0 / ( 6.0 * this->tau ) * this->artificialViscosity *
                     ( rho_w[ west ] + rho_w[ east ] + rho_w[ south ] + rho_w[ north ] + rho_w[ up ] + rho_w[ down ] - 6.0 * rho_w[ center ] ) 

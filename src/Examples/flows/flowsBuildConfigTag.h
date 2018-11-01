@@ -51,7 +51,7 @@ template<> struct ConfigTagExplicitSolver< flowsBuildConfigTag, ExplicitEulerSol
 namespace Meshes {
 namespace BuildConfigTags {
 
-template< int Dimensions > struct GridDimensionTag< flowsBuildConfigTag, Dimensions >{ enum { enabled = ( Dimensions == 1 ) }; };
+template< int Dimensions > struct GridDimensionTag< flowsBuildConfigTag, Dimensions >{ enum { enabled = true }; };
 
 /****
  * Turn off support for float and long double.
