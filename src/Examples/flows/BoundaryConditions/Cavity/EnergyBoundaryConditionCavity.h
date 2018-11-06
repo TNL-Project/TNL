@@ -268,7 +268,6 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
          const MeshType& mesh = entity.getMesh();
          const auto& neighborEntities = entity.getNeighborEntities();
          const IndexType& index = entity.getIndex();
-         cout << "energy" << endl;
          if( entity.getCoordinates().x() == 0 )
          {
             return //u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
