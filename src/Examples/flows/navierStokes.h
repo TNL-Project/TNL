@@ -111,7 +111,6 @@ class navierStokesSetter
           String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
           if( boundaryConditionsType == "cavity" )
              {
-                cout<<"cavity" << endl;
                 typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
                 typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
                 SolverStarter solverStarter;
@@ -127,14 +126,14 @@ class navierStokesSetter
           typedef Functions::MeshFunction< MeshType > MeshFunction;
           if( boundaryConditionsType == "dirichlet" )
           {
-             typedef BoundaryConditionsDirichlet< MeshType, MeshFunction, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
+             typedef BoundaryConditionsDirichlet< MeshType, Constant, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
              typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
              SolverStarter solverStarter;
              return solverStarter.template run< Problem >( parameters );
           }
           if( boundaryConditionsType == "neumann" )
           {
-             typedef BoundaryConditionsNeumann< MeshType, MeshFunction, Real, Index > BoundaryConditions;
+             typedef BoundaryConditionsNeumann< MeshType, Constant, Real, Index > BoundaryConditions;
              typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
              SolverStarter solverStarter;
              return solverStarter.template run< Problem >( parameters );
