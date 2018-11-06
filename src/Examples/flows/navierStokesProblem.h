@@ -12,6 +12,7 @@
 
 #include <TNL/Problems/PDEProblem.h>
 #include <TNL/Functions/MeshFunction.h>
+#include <TNL/Solvers/PDE/ExplicitUpdater.h>
 #include "CompressibleConservativeVariables.h"
 
 
@@ -86,8 +87,7 @@ class navierStokesProblem:
                               DofVectorPointer& _fu );
       
       void applyBoundaryConditions( const RealType& time,
-                                    DofVectorPointer& dofs ) { cout << "PBC" << endl;
-cin.ignore();/*TNL_ASSERT( false, "TODO:Implement")*/}; 
+                                    DofVectorPointer& dofs );
 
       template< typename Matrix >
       void assemblyLinearSystem( const RealType& time,
@@ -109,6 +109,13 @@ cin.ignore();/*TNL_ASSERT( false, "TODO:Implement")*/};
       
       ConservativeVariablesPointer conservativeVariables,
                                    conservativeVariablesRHS;
+
+      Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, typename InviscidOperators::ContinuityOperatorType, typename BoundaryCondition::DensityBoundaryConditionsType,   RightHandSide > explicitUpdaterContinuity;
+      Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, typename InviscidOperators::MomentumXOperatorType,  typename BoundaryCondition::MomentumXBoundaryConditionsType, RightHandSide > explicitUpdaterMomentumX;
+      Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, typename InviscidOperators::MomentumYOperatorType,  typename BoundaryCondition::MomentumYBoundaryConditionsType, RightHandSide > explicitUpdaterMomentumY;
+      Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, typename InviscidOperators::MomentumZOperatorType,  typename BoundaryCondition::MomentumZBoundaryConditionsType, RightHandSide > explicitUpdaterMomentumZ;
+      Solvers::PDE::ExplicitUpdater< Mesh, MeshFunctionType, typename InviscidOperators::EnergyOperatorType,     typename BoundaryCondition::EnergyBoundaryConditionsType,    RightHandSide > explicitUpdaterEnergy;
+
       
       VelocityFieldPointer velocity;
       MeshFunctionPointer pressure;
