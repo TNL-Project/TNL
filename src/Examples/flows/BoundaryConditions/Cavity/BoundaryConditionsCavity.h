@@ -93,7 +93,6 @@ class BoundaryConditionsCavity
 
       void setSpeed(const RealType cavitySpeed)
       {
-	 cout <<"setSpeed" << endl;
          this->momentumXBoundaryConditionsPointer->setCavitySpeed(cavitySpeed);
          this->momentumYBoundaryConditionsPointer->setCavitySpeed(cavitySpeed);
          this->momentumZBoundaryConditionsPointer->setCavitySpeed(cavitySpeed);
