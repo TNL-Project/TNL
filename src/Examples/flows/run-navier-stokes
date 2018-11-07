@@ -8,18 +8,33 @@ tnl-grid-setup --dimensions 2 \
                --size-x 100 \
                --size-y 100
 
-tnl-init --test-function sin-wave \
-         --output-file init.tnl
-tnl-euler-2d --initial-condition riemann-problem \
-             --discontinuity-placement-0 0.3 \
-             --discontinuity-placement-1 0.3 \
-             --discontinuity-placement-2 0.3 \
-             --time-discretisation explicit \
-             --boundary-conditions-type neumann \
-             --boundary-conditions-constant 0 \
-             --discrete-solver euler \
-             --time-step 0.0001 \
-             --snapshot-period 0.01 \
-             --final-time 1.0
+tnl-euler-navier-stokes
+              --initial-condition riemann-problem \
+              --time-discretisation explicit \
+              --boundary-conditions-type cavity \
+              --boundary-conditions-constant 0 \
+              --operator-right-hand-side Navier-Stokes \
+              --differential-operator Steger-Warming \
+              --discrete-solver euler \
+              --time-step 2e-6 \
+              --snapshot-period 2e-4 \
+              --convergence-residue 0.0 \
+              --final-time 2e-2 \
+              --initial none \
+              --speed-increment 0.05 \
+              --inviscid-operators-dynamical-viscosity 1.0 \
+              --SED-pressure 10000 \
+              --SWD-pressure 10000 \
+              --NED-pressure 10000 \
+              --NWD-pressure 10000 \
+              --SED-velocity-0 0 \
+              --SWD-velocity-0 0 \
+              --NED-velocity-0 0 \
+              --NWD-velocity-0 0 \
+              --SED-velocity-1 0 \
+              --SWD-velocity-1 0 \
+              --NED-velocity-1 0 \
+              --NWD-velocity-1 0 \
+              --cavity-speed 2.0
 
 tnl-view --mesh mesh.tnl --input-files *tnl     
