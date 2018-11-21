@@ -8,6 +8,7 @@
 #include "DifferentialOperators/Navier-Stokes/Lax-Friedrichs/LaxFridrichs.h"
 #include "DifferentialOperators/Navier-Stokes/Steger-Warming/StegerWarming.h"
 #include "DifferentialOperators/Navier-Stokes/VanLeer/VanLeer.h"
+#include "DifferentialOperators/Navier-Stokes/AUSM+/AUSMPlus.h"
 #include "flowsRhs.h"
 #include "flowsBuildConfigTag.h"
 
@@ -48,6 +49,7 @@ template< typename ConfigTag >class navierStokesConfig
             config.addEntryEnum< String >( "Lax-Friedrichs" );
             config.addEntryEnum< String >( "Steger-Warming" );
             config.addEntryEnum< String >( "VanLeer" );
+            config.addEntryEnum< String >( "AUSMPlus" );
          config.addEntry< String >( "operator-right-hand-side", "Choose equation type.", "Euler");
             config.addEntryEnum< String >( "Euler" );
             config.addEntryEnum< String >( "Navier-Stokes" );
@@ -100,6 +102,8 @@ class navierStokesSetter
 	     typedef StegerWarming< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
           else if( differentialOperatorType == "VanLeer" )
 	     typedef VanLeer< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
+          else if( differentialOperatorType == "AUSMPlus" )
+	     typedef AUSMPlus< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
 
          /****
           * Resolve the template arguments of your solver here.
