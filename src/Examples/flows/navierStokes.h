@@ -15,6 +15,7 @@
 #include "RiemannProblemInitialCondition.h"
 #include "BoundaryConditions/Cavity/BoundaryConditionsCavity.h"
 #include "BoundaryConditions/Boiler/BoundaryConditionsBoiler.h"
+#include "BoundaryConditions/BoilerModel/BoundaryConditionsBoilerModel.h"
 #include "BoundaryConditions/Dirichlet/BoundaryConditionsDirichlet.h"
 #include "BoundaryConditions/Neumann/BoundaryConditionsNeumann.h"
 #include "DifferentialOperatorsRightHandSide/NavierStokesRightHandSide/NavierStokesOperatorRightHandSide.h"
@@ -42,6 +43,7 @@ template< typename ConfigTag >class navierStokesConfig
          config.addDelimiter( "Inviscid flow settings:" );
          config.addEntry< String >( "boundary-conditions-type", "Choose the boundary conditions type.", "cavity");
             config.addEntryEnum< String >( "boiler" );
+            config.addEntryEnum< String >( "boiler-model" );
             config.addEntryEnum< String >( "cavity" );
             config.addEntryEnum< String >( "dirichlet" );
             config.addEntryEnum< String >( "neumann" );
@@ -123,6 +125,13 @@ class navierStokesSetter
            if( boundaryConditionsType == "boiler" )
              {
                 typedef BoundaryConditionsBoiler< MeshType, Constant, Real, Index > BoundaryConditions;
+                typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                SolverStarter solverStarter;
+                return solverStarter.template run< Problem >( parameters );
+             } 
+           if( boundaryConditionsType == "boiler-model" )
+             {
+                typedef BoundaryConditionsBoilerModel< MeshType, Constant, Real, Index > BoundaryConditions;
                 typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
                 SolverStarter solverStarter;
                 return solverStarter.template run< Problem >( parameters );

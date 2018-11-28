@@ -85,6 +85,7 @@ class navierStokesProblem:
                               const RealType& tau,
                               DofVectorPointer& _u,
                               DofVectorPointer& _fu );
+
       
       void applyBoundaryConditions( const RealType& time,
                                     DofVectorPointer& dofs );

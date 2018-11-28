@@ -20,7 +20,7 @@ template< typename Mesh,
           typename Function,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::GlobalIndexType >
-class EnergyBoundaryConditionsCavity
+class MomentumZBoundaryConditionsBoilerModel
 {
 
 };
@@ -28,8 +28,8 @@ class EnergyBoundaryConditionsCavity
 /****
  * Base
  */
-template< typename Function>
-class EnergyBoundaryConditionsCavityBase
+template< typename Function >
+class MomentumZBoundaryConditionsBoilerModelBase
 {
    public:
       
@@ -80,7 +80,6 @@ class EnergyBoundaryConditionsCavityBase
 
       FunctionType function;
 
-
 };
 
 /****
@@ -92,8 +91,8 @@ template< typename MeshReal,
           typename Function,
           typename Real,
           typename Index >
-class EnergyBoundaryConditionsCavity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Function, Real, Index >
-   : public EnergyBoundaryConditionsCavityBase< Function >,
+class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Function, Real, Index >
+   : public MomentumZBoundaryConditionsBoilerModelBase< Function >,
      public Operator< Meshes::Grid< 1, MeshReal, Device, MeshIndex >,
                          Functions::MeshBoundaryDomain,
                          1, 1,
@@ -112,8 +111,8 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 1, MeshReal, Device, MeshInd
    typedef Containers::Vector< RealType, DeviceType, IndexType> DofVectorType;
    typedef Containers::StaticVector< 1, RealType > PointType;
    typedef typename MeshType::CoordinatesType CoordinatesType;
-   typedef EnergyBoundaryConditionsCavity< MeshType, Function, Real, Index > ThisType;
-   typedef EnergyBoundaryConditionsCavityBase< Function > BaseType;
+   typedef MomentumZBoundaryConditionsBoilerModel< MeshType, Function, Real, Index > ThisType;
+   typedef MomentumZBoundaryConditionsBoilerModelBase< Function > BaseType;
    typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
    typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
    typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
@@ -129,19 +128,11 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 1, MeshReal, Device, MeshInd
       const auto& neighborEntities = entity.getNeighborEntities();
       const IndexType& index = entity.getIndex();
       if( entity.getCoordinates().x() == 0 )
-         return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0 >() ]
-                / ( this->gamma - 1 )
-                )
-                + 0.5
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0 >()]
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0 >()]
-                  + this->timestep
-                  )
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0 >()]
-                  + this->timestep
-                  );
+         return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0 >()] 
+              * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0 >()]
+                / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0 >()] 
+                + this->timestep
+                );
       else
          return u[ neighborEntities.template getEntityIndex< -1 >() ];   
 
@@ -213,12 +204,24 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 1, MeshReal, Device, MeshInd
          this->cavitySpeed = cavitySpeed;
       }
 
+      void setZAngle(const RealType zAngle)
+      {
+         this->zAngle = zAngle;
+      }
+
+      void setXYAngle(const RealType xYAngle)
+      {
+         this->xYAngle = xYAngle;
+      }
+
    private:
       CompressibleConservativeVariablesPointer compressibleConservativeVariables;
       RealType timestep;
       RealType cavitySpeed;
       RealType gamma;
       MeshFunctionPointer pressure;
+      RealType zAngle;
+      RealType xYAngle;
 };
 
 /****
@@ -230,8 +233,8 @@ template< typename MeshReal,
           typename Function,
           typename Real,
           typename Index >
-class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Function, Real, Index >
-   : public EnergyBoundaryConditionsCavityBase< Function >,
+class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Function, Real, Index >
+   : public MomentumZBoundaryConditionsBoilerModelBase< Function >,
      public Operator< Meshes::Grid< 2, MeshReal, Device, MeshIndex >,
                          Functions::MeshBoundaryDomain,
                          2, 2,
@@ -251,8 +254,8 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
       typedef Containers::Vector< RealType, DeviceType, IndexType> DofVectorType;
       typedef Containers::StaticVector< 2, RealType > PointType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
-      typedef EnergyBoundaryConditionsCavity< MeshType, Function, Real, Index > ThisType;
-      typedef EnergyBoundaryConditionsCavityBase< Function > BaseType;
+      typedef MomentumZBoundaryConditionsBoilerModel< MeshType, Function, Real, Index > ThisType;
+      typedef MomentumZBoundaryConditionsBoilerModelBase< Function > BaseType;
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
       typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
       typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
@@ -270,92 +273,20 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
          const IndexType& index = entity.getIndex();
          if( entity.getCoordinates().x() == 0 )
          {
-            return //u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-                ( (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0 >() ]
-                / ( this->gamma - 1 )
-                )
-                + 0
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 1, 0 >()]
-                * (
-                    ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 1, 0 >()]
-                      /  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 1, 0 >()]
-                      + 0
-                    )
-                    * 
-                    ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 1, 0 >()]
-                      /  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 1, 0 >()]
-                      + 0
-                    )
-                );
+            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
-            return //u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-                ( (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0 >() ]
-                / ( this->gamma - 1 )
-                )
-                + 0
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                * (
-                    ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< -1, 0 >()]
-                    / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< -1, 0 >()]
-                    + 0
-                  )
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< -1, 0 >()]
-                    / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< -1, 0 >()]
-                    + 0
-                  )
-                );
+            return u[ neighborEntities.template getEntityIndex< -0, 0 >() ];
          }
          if( entity.getCoordinates().y() == 0 )
          {
-            return //u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-                ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1 >() ]
-                / ( this->gamma - 1 )
-                )
-                + 0
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                * (
-                    ( (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0, 1 >()]
-                    / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 1 >()]
-                    + 0
-                  )
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0, 1 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 1 >()]
-                  + 0
-                  )
-                );
+            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
          // The following line is commented to avoid compiler warning
          //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
-            return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1 >() ]
-                / ( this->gamma - 1 )
-                )
-                + 0.5
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, -1 >()]
-                * (
-                  this->cavitySpeed/*
-                    * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
-                      ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )*/
-                * 
-                  this->cavitySpeed/*
-                    * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
-                      ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )*/
-                +
-                  ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  + 0
-                  )
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  + 0
-                  )
-                );
+            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }         
       }
 
@@ -438,12 +369,25 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
          this->cavitySpeed = cavitySpeed;
       }
 
+      void setZAngle(const RealType zAngle)
+      {
+         this->zAngle = zAngle;
+      }
+
+      void setXYAngle(const RealType xYAngle)
+      {
+         this->xYAngle = xYAngle;
+      }
+
+
    private:
       CompressibleConservativeVariablesPointer compressibleConservativeVariables;
       RealType timestep;
       RealType cavitySpeed;
       RealType gamma;
       MeshFunctionPointer pressure;
+      RealType zAngle;
+      RealType xYAngle;
 };
 
 /****
@@ -455,8 +399,8 @@ template< typename MeshReal,
           typename Function,
           typename Real,
           typename Index >
-class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Function, Real, Index >
-   : public EnergyBoundaryConditionsCavityBase< Function >,
+class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Function, Real, Index >
+   : public MomentumZBoundaryConditionsBoilerModelBase< Function >,
      public Operator< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
                          Functions::MeshBoundaryDomain,
                          3, 3,
@@ -475,8 +419,8 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
       typedef Containers::Vector< RealType, DeviceType, IndexType> DofVectorType;
       typedef Containers::StaticVector< 3, RealType > PointType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
-      typedef EnergyBoundaryConditionsCavity< MeshType, Function, Real, Index > ThisType;
-      typedef EnergyBoundaryConditionsCavityBase< Function > BaseType;  
+      typedef MomentumZBoundaryConditionsBoilerModel< MeshType, Function, Real, Index > ThisType;
+      typedef MomentumZBoundaryConditionsBoilerModelBase< Function > BaseType;  
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
       typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer; 
       typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
@@ -493,65 +437,256 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
          const IndexType& index = entity.getIndex();
          if( entity.getCoordinates().x() == 0 )
          {
+// if for z axis
+              if( 
+                ( 
+                  ( entity.getCoordinates().z() < 0.45 * ( entity.getMesh().getDimensions().z() - 1 ) ) 
+                  && 
+                  ( entity.getCoordinates().z() > 0.44 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.43 * ( entity.getMesh().getDimensions().z() - 1 ) ) 
+                  &&
+                  ( entity.getCoordinates().z() > 0.42 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                || 
+                (
+                  ( entity.getCoordinates().z() < 0.41 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.40 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.38 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.37 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.36 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.35 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.34 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+              )
+// if for y axis
+              {
+               if( entity.getCoordinates().y() < 0.08 * std::cos( this->xYAngle ) * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
+                         * ( 
+                              this->cavitySpeed	
+                              * std::sin( this->zAngle )
+                            );
+               if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
+                         * ( 
+                              this->cavitySpeed * ( -1.0 )
+                              * std::sin( this->zAngle )
+                            );
+               return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+              }
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
+// if for z axis
+              if( 
+                ( 
+                  ( entity.getCoordinates().z() < 0.45 * ( entity.getMesh().getDimensions().z() - 1 ) ) 
+                  && 
+                  ( entity.getCoordinates().z() > 0.44 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.43 * ( entity.getMesh().getDimensions().z() - 1 ) ) 
+                  &&
+                  ( entity.getCoordinates().z() > 0.42 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                || 
+                (
+                  ( entity.getCoordinates().z() < 0.41 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.40 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.38 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.37 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.36 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.35 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.34 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+              )
+// if for y axis
+              {
+               if( entity.getCoordinates().y() < 0.08 * std::sin( this->xYAngle ) * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
+                         * ( 
+                              this->cavitySpeed
+                              * std::sin( this->zAngle )
+                            );
+               if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
+                         * ( 
+                              this->cavitySpeed * ( -1.0 )
+                              * std::sin( this->zAngle )
+                            );
+               return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+              }
+// if for chimney exit
+            if( entity.getCoordinates().z() > 0.835 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                 return u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ];
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          if( entity.getCoordinates().y() == 0 )
          {
+// if for z axis
+              if( 
+                ( 
+                  ( entity.getCoordinates().z() < 0.45 * ( entity.getMesh().getDimensions().z() - 1 ) ) 
+                  && 
+                  ( entity.getCoordinates().z() > 0.44 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.43 * ( entity.getMesh().getDimensions().z() - 1 ) ) 
+                  &&
+                  ( entity.getCoordinates().z() > 0.42 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                || 
+                (
+                  ( entity.getCoordinates().z() < 0.41 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.40 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.38 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.37 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.36 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.35 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.34 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+              )
+// if for x axis
+              {   
+               if( entity.getCoordinates().x() < 0.08 * std::sin( this->xYAngle ) * ( entity.getMesh().getDimensions().x() - 1 ) )
+                  return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
+                         * ( 
+                              this->cavitySpeed
+                              * std::sin( this->zAngle )
+                            );
+               if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
+                  return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
+                         * ( 
+                              this->cavitySpeed
+                              * std::sin( this->zAngle )
+                            );
+               return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+              }
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
+// if for z axis
+              if( 
+                ( 
+                  ( entity.getCoordinates().z() < 0.45 * ( entity.getMesh().getDimensions().z() - 1 ) ) 
+                  && 
+                  ( entity.getCoordinates().z() > 0.44 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.43 * ( entity.getMesh().getDimensions().z() - 1 ) ) 
+                  &&
+                  ( entity.getCoordinates().z() > 0.42 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                || 
+                (
+                  ( entity.getCoordinates().z() < 0.41 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.40 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.38 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.37 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.36 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().z() < 0.35 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().z() > 0.34 * ( entity.getMesh().getDimensions().z() - 1 ) )
+                )
+              )
+// if for x axis
+              {
+               if( entity.getCoordinates().x() < 0.08 * std::cos( this->xYAngle ) * ( entity.getMesh().getDimensions().x() - 1 ) )
+                  return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
+                         * ( 
+                              this->cavitySpeed * ( -1.0 )
+                              * std::sin( this->zAngle )
+                            );
+               if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
+                  return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
+                         * ( 
+                              this->cavitySpeed * ( -1.0 )
+                              * std::sin( this->zAngle )
+                            );
+               return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+              }
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          if( entity.getCoordinates().z() == 0 )
          {
+            if(
+                ( entity.getCoordinates().x() < 0.592 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                &&
+                ( entity.getCoordinates().y() > 0.408 * ( entity.getMesh().getDimensions().y() - 1 ) )
+              )
+               return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
+                      * ( 
+                        this->cavitySpeed
+                        );
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          // The following line is commented to avoid compiler warning
          //if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
          {
-            return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
-                / ( this->gamma - 1 )
-                )
-                + 0.5
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
-                * (
-                  ( this->cavitySpeed/* 
-                    * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
-                      ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )*/
-                 )
-                * 
-                 ( this->cavitySpeed/* 
-                    * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
-                      ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )*/
-                 )
-                +
-                  ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
-                  + 0
-                  )
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
-                  + 0
-                  )
-                +
-                  ( (* (* this->compressibleConservativeVariables->getMomentum())[ 2 ])[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
-                  + 0
-                  )
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 2 ])[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
-                  + 0
-                  )
-                );
+            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }   
       }
 
@@ -649,21 +784,34 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
          this->cavitySpeed = cavitySpeed;
       }
 
+      void setZAngle(const RealType zAngle)
+      {
+         this->zAngle = zAngle;
+      }
+
+      void setXYAngle(const RealType xYAngle)
+      {
+         this->xYAngle = xYAngle;
+      }
+
+
    private:
       CompressibleConservativeVariablesPointer compressibleConservativeVariables;
       RealType timestep;
       RealType cavitySpeed;
       RealType gamma;
       MeshFunctionPointer pressure;
+      RealType zAngle;
+      RealType xYAngle;
 };
 
 template< typename Mesh,
           typename Function,
           typename Real,
           typename Index >
-std::ostream& operator << ( std::ostream& str, const EnergyBoundaryConditionsCavity< Mesh, Function, Real, Index >& bc )
+std::ostream& operator << ( std::ostream& str, const MomentumZBoundaryConditionsBoilerModel< Mesh, Function, Real, Index >& bc )
 {
-   str << "Neumann boundary ConditionsCavity: function = " << bc.getFunction();
+   str << "Neumann boundary Conditions: function = " << bc.getFunction();
    return str;
 }
 
