@@ -71,11 +71,13 @@ class CompressibleConservativeVariables
             this->energy->getDofs( meshPointer );
       }
       
+      __cuda_callable__
       MeshFunctionPointer& getDensity()
       {
          return this->density;
       }
 
+      __cuda_callable__
       const MeshFunctionPointer& getDensity() const
       {
          return this->density;
@@ -86,11 +88,13 @@ class CompressibleConservativeVariables
          this->density = density;
       }
       
+      __cuda_callable__
       MomentumFieldPointer& getMomentum()
       {
          return this->momentum;
       }
       
+      __cuda_callable__
       const MomentumFieldPointer& getMomentum() const
       {
          return this->momentum;
@@ -101,11 +105,14 @@ class CompressibleConservativeVariables
          this->momentum = momentum;
       }
       
-      /*MeshFunctionPointer& getPressure()
+      /*
+      __cuda_callable__
+      MeshFunctionPointer& getPressure()
       {
          return this->pressure;
       }
       
+      __cuda_callable__
       const MeshFunctionPointer& getPressure() const
       {
          return this->pressure;
@@ -116,11 +123,13 @@ class CompressibleConservativeVariables
          this->pressure = pressure;
       }*/
       
+      __cuda_callable__
       MeshFunctionPointer& getEnergy()
       {
          return this->energy;
       }
       
+      __cuda_callable__
       const MeshFunctionPointer& getEnergy() const
       {
          return this->energy;
@@ -144,4 +153,4 @@ class CompressibleConservativeVariables
       
 };
 
-} // namespace TN
+} // namespace TNL
