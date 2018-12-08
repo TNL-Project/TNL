@@ -673,7 +673,7 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
          if( entity.getCoordinates().z() == 0 )
          {
             if(
-                ( entity.getCoordinates().x() < 0.592 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                ( entity.getCoordinates().y() < 0.592 * ( entity.getMesh().getDimensions().y() - 1 ) )
                 &&
                 ( entity.getCoordinates().y() > 0.408 * ( entity.getMesh().getDimensions().y() - 1 ) )
               )

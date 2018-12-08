@@ -66,6 +66,7 @@ class NullOperatorRightHandSide
                   const Config::ParameterContainer& parameters,
                   const String& prefix = "" )
       {
+         std::cout << "null" << std::endl;
          this->dynamicalViscosity = parameters.getParameter< double >( prefix + "dynamical-viscosity" );
          this->momentumXOperatorRightHandSidePointer->setDynamicalViscosity( dynamicalViscosity );
          this->momentumYOperatorRightHandSidePointer->setDynamicalViscosity( dynamicalViscosity );
@@ -76,6 +77,7 @@ class NullOperatorRightHandSide
       
       void setVelocity( const VectorFieldPointer& velocity )
       {
+         std::cout << "null" << std::endl;
          this->continuityOperatorRightHandSidePointer->setVelocity( velocity );
          this->momentumXOperatorRightHandSidePointer->setVelocity( velocity );
          this->momentumYOperatorRightHandSidePointer->setVelocity( velocity );
