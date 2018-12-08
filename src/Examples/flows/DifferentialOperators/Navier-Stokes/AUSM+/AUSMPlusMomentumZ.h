@@ -276,15 +276,15 @@ class AUSMPlusMomentumZ< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Operator
          const RealType& velocity_z_downNorth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downNorth ]; 
          const RealType& velocity_z_downSouth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downSouth ];         
 
-         return -hxInverse * ( 
+         return  hxInverse * ( 
                                  this->OtherMomentumFlux( density_west  , density_center, velocity_z_west  , velocity_z_center, velocity_x_west  , velocity_x_center, pressure_west  , pressure_center )
                                - this->OtherMomentumFlux( density_center, density_east  , velocity_z_center, velocity_z_east  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east   )
                              )
-                -hyInverse * ( 
+               + hyInverse * ( 
                                  this->OtherMomentumFlux( density_south , density_center, velocity_z_south , velocity_z_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center )
                                - this->OtherMomentumFlux( density_center, density_north , velocity_z_center, velocity_z_north , velocity_y_center, velocity_y_south , pressure_center, pressure_north  )
                              )
-                -hzInverse * ( 
+               + hzInverse * ( 
                                  this->MainMomentumFlux( density_down  , density_center, velocity_z_down  , velocity_z_center, pressure_down  , pressure_center )
                                - this->MainMomentumFlux( density_center, density_up    , velocity_z_center, velocity_z_up    , pressure_center, pressure_up     )
                              )
