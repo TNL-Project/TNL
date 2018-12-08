@@ -76,6 +76,7 @@ class LaxFridrichs
                   const Config::ParameterContainer& parameters,
                   const String& prefix = "" )
       {
+         std::cout << "Lax-Friedrich" << std::endl;
          this->dynamicalViscosity = parameters.getParameter< double >( prefix + "dynamical-viscosity" );
          this->momentumXOperatorPointer->setDynamicalViscosity( dynamicalViscosity );
          this->momentumYOperatorPointer->setDynamicalViscosity( dynamicalViscosity );
