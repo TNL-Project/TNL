@@ -97,17 +97,17 @@ class AUSMPlusEnergyBase
          const RealType& BorderSpeedOfSound = 0.5 * ( LeftSpeedOfSound + RightSpeedOfSound );
          const RealType& LeftMachNumber = LeftVelocity / BorderSpeedOfSound;
          const RealType& RightMachNumber = RightVelocity / BorderSpeedOfSound;
-         const RealType& MachSplitingPlus = 0;
-         const RealType& MachSplitingMinus = 0;
-         const RealType& MachBorderPlus = 0;
-         const RealType& MachBorderMinus = 0;
+         RealType MachSplitingPlus = 0;
+         RealType MachSplitingMinus = 0;
+         RealType MachBorderPlus = 0;
+         RealType MachBorderMinus = 0;
          if ( LeftMachNumber <= -1.0 )
          {
             MachSplitingPlus = 0;
          }
          else if ( LeftMachNumber <= 1.0 )
          {
-            MachSplitingPlus = 1.0 / 4.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
+            MachSplitingPlus = 1.0 / 2.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
                              + 1.0 / 8.0 * ( LeftMachNumber * LeftMachNumber - 1.0 ) * ( LeftMachNumber * LeftMachNumber - 1.0 );
          }
          else
@@ -120,7 +120,7 @@ class AUSMPlusEnergyBase
          }
          else if ( RightMachNumber <= 1.0 )
          {
-            MachSplitingMinus = - 1.0 / 4.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
+            MachSplitingMinus = - 1.0 / 2.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
                                 - 1.0 / 8.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
          }
          else
@@ -211,9 +211,9 @@ class AUSMPlusEnergy< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, OperatorRi
          const RealType& velocity_x_east   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
          const RealType& velocity_x_west   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
 
-         return -hxInverse * (
-                                   this->DensityFlux( density_west  , density_center, velocity_x_west  , velocity_x_center, pressure_west  , pressure_center, u[ west   ], u[ center ] )
-                                -  this->DensityFlux( density_center, density_east  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east  , u[ center ], u[ east ]   )
+         return  hxInverse * (
+                                   this->EnergyFlux( density_west  , density_center, velocity_x_west  , velocity_x_center, pressure_west  , pressure_center, u[ west   ], u[ center ] )
+                                -  this->EnergyFlux( density_center, density_east  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east  , u[ center ], u[ east ]   )
                              )
                +
                  this->rightHandSide(u, entity, time);
@@ -319,13 +319,13 @@ class AUSMPlusEnergy< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, OperatorRi
          const RealType& velocity_y_northEast = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northEast ];
          const RealType& velocity_y_northWest = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northWest ];         
          
-         return -hxInverse * (
-                                   this->DensityFlux( density_west  , density_center, velocity_x_west  , velocity_x_center, pressure_west  , pressure_center, u[ west   ], u[ center ] )
-                                -  this->DensityFlux( density_center, density_east  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east  , u[ center ], u[ east ]   )
+         return  hxInverse * (
+                                   this->EnergyFlux( density_west  , density_center, velocity_x_west  , velocity_x_center, pressure_west  , pressure_center, u[ west   ], u[ center ] )
+                                -  this->EnergyFlux( density_center, density_east  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east  , u[ center ], u[ east ]   )
                              ) 
-                -hyInverse * (
-                                   this->DensityFlux( density_south , density_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center, u[ south  ], u[ center ] )
-                                -  this->DensityFlux( density_center, density_north , velocity_y_center, velocity_y_north , pressure_center, pressure_north , u[ center ], u[ north  ] )
+               + hyInverse * (
+                                   this->EnergyFlux( density_south , density_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center, u[ south  ], u[ center ] )
+                                -  this->EnergyFlux( density_center, density_north , velocity_y_center, velocity_y_north , pressure_center, pressure_north , u[ center ], u[ north  ] )
                              )
                +
                  this->rightHandSide(u, entity, time);  
@@ -474,17 +474,17 @@ class AUSMPlusEnergy< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRi
          const RealType& velocity_z_downNorth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downNorth ]; 
          const RealType& velocity_z_downSouth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downSouth ];         
          
-         return -hxInverse * (
-                                   this->DensityFlux( density_west  , density_center, velocity_x_west  , velocity_x_center, pressure_west  , pressure_center, u[ west   ], u[ center ] )
-                                -  this->DensityFlux( density_center, density_east  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east  , u[ center ], u[ east ]   )
+         return  hxInverse * (
+                                   this->EnergyFlux( density_west  , density_center, velocity_x_west  , velocity_x_center, pressure_west  , pressure_center, u[ west   ], u[ center ] )
+                                -  this->EnergyFlux( density_center, density_east  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east  , u[ center ], u[ east ]   )
                              ) 
-                -hyInverse * (
-                                   this->DensityFlux( density_south , density_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center, u[ south  ], u[ center ] )
-                                -  this->DensityFlux( density_center, density_north , velocity_y_center, velocity_y_north , pressure_center, pressure_north , u[ center ], u[ north  ] )
+               + hyInverse * (
+                                   this->EnergyFlux( density_south , density_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center, u[ south  ], u[ center ] )
+                                -  this->EnergyFlux( density_center, density_north , velocity_y_center, velocity_y_north , pressure_center, pressure_north , u[ center ], u[ north  ] )
                              ) 
-                -hyInverse * (
-                                   this->DensityFlux( density_down  , density_center, velocity_z_down  , velocity_z_center, pressure_down  , pressure_center, u[ down   ], u[ center ] )
-                                -  this->DensityFlux( density_center, density_up    , velocity_z_center, velocity_z_up    , pressure_center, pressure_up    , u[ center ], u[ up     ] )
+               + hyInverse * (
+                                   this->EnergyFlux( density_down  , density_center, velocity_z_down  , velocity_z_center, pressure_down  , pressure_center, u[ down   ], u[ center ] )
+                                -  this->EnergyFlux( density_center, density_up    , velocity_z_center, velocity_z_up    , pressure_center, pressure_up    , u[ center ], u[ up     ] )
                              )
                +
                  this->rightHandSide(u, entity, time);

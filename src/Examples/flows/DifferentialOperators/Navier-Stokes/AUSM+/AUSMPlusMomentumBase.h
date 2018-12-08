@@ -78,13 +78,13 @@ class AUSMPlusMomentumBase
          const RealType& BorderSpeedOfSound = 0.5 * ( LeftSpeedOfSound + RightSpeedOfSound );
          const RealType& LeftMachNumber = LeftVelocity / BorderSpeedOfSound;
          const RealType& RightMachNumber = RightVelocity / BorderSpeedOfSound;
-         const RealType& MachSplitingPlus = 0;
-         const RealType& MachSplitingMinus = 0;
-         const RealType& MachBorderPlus = 0;
-         const RealType& MachBorderMinus = 0;
-         const RealType& PressureSplitingPlus = 0;
-         const RealType& PressureSplitingMinus = 0;
-         const RealType& PressureBorder = 0;
+         RealType MachSplitingPlus = 0;
+         RealType MachSplitingMinus = 0;
+         RealType MachBorderPlus = 0;
+         RealType MachBorderMinus = 0;
+         RealType PressureSplitingPlus = 0;
+         RealType PressureSplitingMinus = 0;
+         RealType PressureBorder = 0;
          if ( LeftMachNumber <= -1.0 )
          {
             MachSplitingPlus = 0;
@@ -92,7 +92,7 @@ class AUSMPlusMomentumBase
          }
          else if ( LeftMachNumber <= 1.0 )
          {
-            MachSplitingPlus = 1.0 / 4.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
+            MachSplitingPlus = 1.0 / 2.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
                              + 1.0 / 8.0 * ( LeftMachNumber * LeftMachNumber - 1.0 ) * ( LeftMachNumber * LeftMachNumber - 1.0 );
             PressureSplitingPlus = 1.0 / 4.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 ) * (2.0 - LeftMachNumber )
                                  + 3.0 / 16.0 * ( LeftMachNumber * LeftMachNumber - 1.0 ) * ( LeftMachNumber * LeftMachNumber - 1.0 );
@@ -109,10 +109,10 @@ class AUSMPlusMomentumBase
          }
          else if ( RightMachNumber <= 1.0 )
          {
-            MachSplitingMinus = - 1.0 / 4.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
+            MachSplitingMinus = - 1.0 / 2.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
                                 - 1.0 / 8.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
-            PressureSplitingMinus = 1.0 / 4.0 * ( RightMachNumber + 1.0 ) * ( RightMachNumber + 1.0 ) * (2.0 - RightMachNumber )
-                                  + 3.0 / 16.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
+            PressureSplitingMinus = 1.0 / 4.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 ) * (2.0 + RightMachNumber )
+                                  - 3.0 / 16.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
          }
          else
          { 
@@ -139,17 +139,17 @@ class AUSMPlusMomentumBase
          const RealType& BorderSpeedOfSound = 0.5 * ( LeftSpeedOfSound + RightSpeedOfSound );
          const RealType& LeftMachNumber = LeftVelocity / BorderSpeedOfSound;
          const RealType& RightMachNumber = RightVelocity / BorderSpeedOfSound;
-         const RealType& MachSplitingPlus = 0;
-         const RealType& MachSplitingMinus = 0;
-         const RealType& MachBorderPlus = 0;
-         const RealType& MachBorderMinus = 0;
+         RealType MachSplitingPlus = 0;
+         RealType MachSplitingMinus = 0;
+         RealType MachBorderPlus = 0;
+         RealType MachBorderMinus = 0;
          if ( LeftMachNumber <= -1.0 )
          {
             MachSplitingPlus = 0;
          }
          else if ( LeftMachNumber <= 1.0 )
          {
-            MachSplitingPlus = 1.0 / 4.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
+            MachSplitingPlus = 1.0 / 2.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
                              + 1.0 / 8.0 * ( LeftMachNumber * LeftMachNumber - 1.0 ) * ( LeftMachNumber * LeftMachNumber - 1.0 );
          }
          else
@@ -162,7 +162,7 @@ class AUSMPlusMomentumBase
          }
          else if ( RightMachNumber <= 1.0 )
          {
-            MachSplitingMinus = - 1.0 / 4.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
+            MachSplitingMinus = - 1.0 / 2.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
                                 - 1.0 / 8.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
          }
          else
