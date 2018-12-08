@@ -209,7 +209,7 @@ class MomentumXBoundaryConditionsBoilerModel< Meshes::Grid< 1, MeshReal, Device,
          this->zAngle = zAngle;
       }
 
-      void setXYAngle(const RealType zAngle)
+      void setXYAngle(const RealType xYAngle)
       {
          this->xYAngle = xYAngle;
       }
@@ -398,7 +398,7 @@ class MomentumXBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device,
          this->zAngle = zAngle;
       }
 
-      void setXYAngle(const RealType zAngle)
+      void setXYAngle(const RealType xYAngle)
       {
          this->xYAngle = xYAngle;
       }
@@ -811,7 +811,7 @@ class MomentumXBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
          this->zAngle = zAngle;
       }
 
-      void setXYAngle(const RealType zAngle)
+      void setXYAngle(const RealType xYAngle)
       {
          this->xYAngle = xYAngle;
       }

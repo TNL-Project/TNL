@@ -79,17 +79,17 @@ class AUSMPlusContinuityBase
          const RealType& BorderSpeedOfSound = 0.5 * ( LeftSpeedOfSound + RightSpeedOfSound );
          const RealType& LeftMachNumber = LeftVelocity / BorderSpeedOfSound;
          const RealType& RightMachNumber = RightVelocity / BorderSpeedOfSound;
-         const RealType& MachSplitingPlus = 0;
-         const RealType& MachSplitingMinus = 0;
-         const RealType& MachBorderPlus = 0;
-         const RealType& MachBorderMinus = 0;
+         RealType MachSplitingPlus = 0;
+         RealType MachSplitingMinus = 0;
+         RealType MachBorderPlus = 0;
+         RealType MachBorderMinus = 0;
          if ( LeftMachNumber <= -1.0 )
          {
             MachSplitingPlus = 0;
          }
          else if ( LeftMachNumber <= 1.0 )
          {
-            MachSplitingPlus = 1.0 / 4.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
+            MachSplitingPlus = 1.0 / 2.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
                              + 1.0 / 8.0 * ( LeftMachNumber * LeftMachNumber - 1.0 ) * ( LeftMachNumber * LeftMachNumber - 1.0 );
          }
          else
@@ -102,7 +102,7 @@ class AUSMPlusContinuityBase
          }
          else if ( RightMachNumber <= 1.0 )
          {
-            MachSplitingMinus = - 1.0 / 4.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
+            MachSplitingMinus = - 1.0 / 2.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
                                 - 1.0 / 8.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
          }
          else
@@ -185,7 +185,7 @@ class AUSMPlusContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Operat
          const RealType& velocity_x_west   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
          const RealType& velocity_x_east   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ east ];
 
-         return -hxInverse * (
+         return  hxInverse * (
                                    this->DensityFlux( u[ west   ], u[ center ], velocity_x_west  , velocity_x_center, pressure_west  , pressure_center )
                                 -  this->DensityFlux( u[ center ], u[ east ]  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east   )
                              )
@@ -267,11 +267,11 @@ class AUSMPlusContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Operat
          const RealType& velocity_y_north  = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ north ];
          const RealType& velocity_y_south  = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ south ];
          
-         return -hxInverse * (
+         return  hxInverse * (
                                    this->DensityFlux( u[ west   ], u[ center ], velocity_x_west  , velocity_x_center, pressure_west  , pressure_center )
                                 -  this->DensityFlux( u[ center ], u[ east ]  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east   )
                              )
-                -hyInverse * (
+               + hyInverse * (
                                    this->DensityFlux( u[ north  ], u[ center ], velocity_y_north , velocity_y_center, pressure_north , pressure_center )
                                 -  this->DensityFlux( u[ center ], u[ south ] , velocity_y_center, velocity_y_south , pressure_center, pressure_south  )
                              )
@@ -362,15 +362,15 @@ class AUSMPlusContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Operat
          const RealType& velocity_z_up     = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ up ];
          const RealType& velocity_z_down   = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ down ];
          
-         return -hxInverse * (
+         return  hxInverse * (
                                    this->DensityFlux( u[ west ]  , u[ center ], velocity_x_west  , velocity_x_center, pressure_west  , pressure_center )
                                 -  this->DensityFlux( u[ center ], u[ east ]  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east   )
                              )
-                -hyInverse * (
+               + hyInverse * (
                                    this->DensityFlux( u[ north ] , u[ center ], velocity_y_north , velocity_y_center, pressure_north , pressure_center )
                                 -  this->DensityFlux( u[ center ], u[ south ] , velocity_y_center, velocity_y_south , pressure_center, pressure_south  )
                              )
-                -hzInverse * (
+               + hzInverse * (
                                    this->DensityFlux( u[ up ]    , u[ center ], velocity_z_up    , velocity_z_center, pressure_up    , pressure_center )
                                 -  this->DensityFlux( u[ center ], u[ down ]  , velocity_z_center, velocity_z_down  , pressure_center, pressure_down   )
                              )

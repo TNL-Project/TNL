@@ -62,7 +62,8 @@ template< typename ConfigTag >class navierStokesConfig
          typedef Meshes::Grid< 3 > Mesh;
          LaxFridrichs< Mesh >::configSetup( config, "inviscid-operators-" );
          RiemannProblemInitialCondition< Mesh >::configSetup( config );
-
+         typedef Functions::Analytic::Constant< 3, double > Constant;
+         BoundaryConditionsBoilerModel< Mesh, Constant >::configSetup( config, "boundary-conditions-" );
          /****
           * Add definition of your solver command line arguments.
           */
@@ -88,69 +89,355 @@ class navierStokesSetter
       static bool run( const Config::ParameterContainer & parameters )
       {
           enum { Dimension = MeshType::getMeshDimension() };
-	  typedef NullOperatorRightHandSide< MeshType, Real, Index > OperatorRightHandSide;
-          typedef LaxFridrichs< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
           typedef flowsRhs< MeshType, Real > RightHandSide;
           typedef Containers::StaticVector < MeshType::getMeshDimension(), Real > Point;
 	  String operatorRightHandSideType = parameters.getParameter< String >( "operator-right-hand-side");
 	  if( operatorRightHandSideType == "Euler" )
+          {
 	     typedef NullOperatorRightHandSide< MeshType, Real, Index > OperatorRightHandSide;
- 	  else if( operatorRightHandSideType == "Navier-Stokes" )
-	     typedef NavierStokesOperatorRightHandSide< MeshType, Real, Index > OperatorRightHandSide;
-	  String differentialOperatorType = parameters.getParameter< String >( "differential-operator");
-	  if( differentialOperatorType == "Lax-Friedrichs" )
-	     typedef LaxFridrichs< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
-          else if( differentialOperatorType == "Steger-Warming" )
-	     typedef StegerWarming< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
-          else if( differentialOperatorType == "VanLeer" )
-	     typedef VanLeer< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
-          else if( differentialOperatorType == "AUSMPlus" )
-	     typedef AUSMPlus< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
-
-         /****
-          * Resolve the template arguments of your solver here.
-          * The following code is for the Dirichlet and the Neumann boundary conditions.
-          * Both can be constant or defined as descrete values of Vector.
-          */
-
-          typedef Functions::Analytic::Constant< Dimension, Real > Constant;
-          String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
-          if( boundaryConditionsType == "cavity" )
+             String differentialOperatorType = parameters.getParameter< String >( "differential-operator");
+	     if( differentialOperatorType == "Lax-Friedrichs" )
              {
-                typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
-                typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
-                SolverStarter solverStarter;
-                return solverStarter.template run< Problem >( parameters );
+	        typedef LaxFridrichs< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
+                typedef Functions::Analytic::Constant< Dimension, Real > Constant;
+           	String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
+                if( boundaryConditionsType == "cavity" )
+                {
+                   typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "boiler" )
+                {
+                   typedef BoundaryConditionsBoiler< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                if( boundaryConditionsType == "boiler-model" )
+                {
+                   typedef BoundaryConditionsBoilerModel< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                typedef Functions::MeshFunction< MeshType > MeshFunction;
+                if( boundaryConditionsType == "dirichlet" )
+                {
+                   typedef BoundaryConditionsDirichlet< MeshType, Constant, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "neumann" )
+                {
+                   typedef BoundaryConditionsNeumann< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }   
              }
-           if( boundaryConditionsType == "boiler" )
+             if( differentialOperatorType == "Steger-Warming" )
              {
-                typedef BoundaryConditionsBoiler< MeshType, Constant, Real, Index > BoundaryConditions;
-                typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
-                SolverStarter solverStarter;
-                return solverStarter.template run< Problem >( parameters );
-             } 
-           if( boundaryConditionsType == "boiler-model" )
+	        typedef StegerWarming< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
+                typedef Functions::Analytic::Constant< Dimension, Real > Constant;
+           	String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
+                if( boundaryConditionsType == "cavity" )
+                {
+                   typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "boiler" )
+                {
+                   typedef BoundaryConditionsBoiler< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                if( boundaryConditionsType == "boiler-model" )
+                {
+                   typedef BoundaryConditionsBoilerModel< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                typedef Functions::MeshFunction< MeshType > MeshFunction;
+                if( boundaryConditionsType == "dirichlet" )
+                {
+                   typedef BoundaryConditionsDirichlet< MeshType, Constant, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "neumann" )
+                {
+                   typedef BoundaryConditionsNeumann< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }   
+             }
+             if( differentialOperatorType == "VanLeer" )
+	     {
+                typedef VanLeer< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
+                typedef Functions::Analytic::Constant< Dimension, Real > Constant;
+           	String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
+                if( boundaryConditionsType == "cavity" )
+                {
+                   typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "boiler" )
+                {
+                   typedef BoundaryConditionsBoiler< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                if( boundaryConditionsType == "boiler-model" )
+                {
+                   typedef BoundaryConditionsBoilerModel< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                typedef Functions::MeshFunction< MeshType > MeshFunction;
+                if( boundaryConditionsType == "dirichlet" )
+                {
+                   typedef BoundaryConditionsDirichlet< MeshType, Constant, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "neumann" )
+                {
+                   typedef BoundaryConditionsNeumann< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }   
+             }
+             if( differentialOperatorType == "AUSMPlus" )
+	     {
+                typedef AUSMPlus< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
+                typedef Functions::Analytic::Constant< Dimension, Real > Constant;
+           	String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
+                if( boundaryConditionsType == "cavity" )
+                {
+                   typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "boiler" )
+                {
+                   typedef BoundaryConditionsBoiler< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                if( boundaryConditionsType == "boiler-model" )
+                {
+                   typedef BoundaryConditionsBoilerModel< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                typedef Functions::MeshFunction< MeshType > MeshFunction;
+                if( boundaryConditionsType == "dirichlet" )
+                {
+                   typedef BoundaryConditionsDirichlet< MeshType, Constant, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "neumann" )
+                {
+                   typedef BoundaryConditionsNeumann< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }   
+             }
+ 	  }
+          if( operatorRightHandSideType == "Navier-Stokes" )
+          {
+	     typedef NavierStokesOperatorRightHandSide< MeshType, Real, Index > OperatorRightHandSide;
+             String differentialOperatorType = parameters.getParameter< String >( "differential-operator");
+	     if( differentialOperatorType == "Lax-Friedrichs" )
              {
-                typedef BoundaryConditionsBoilerModel< MeshType, Constant, Real, Index > BoundaryConditions;
-                typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
-                SolverStarter solverStarter;
-                return solverStarter.template run< Problem >( parameters );
-             } 
-          typedef Functions::MeshFunction< MeshType > MeshFunction;
-          if( boundaryConditionsType == "dirichlet" )
-          {
-             typedef BoundaryConditionsDirichlet< MeshType, Constant, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
-             typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
-             SolverStarter solverStarter;
-             return solverStarter.template run< Problem >( parameters );
-          }
-          if( boundaryConditionsType == "neumann" )
-          {
-             typedef BoundaryConditionsNeumann< MeshType, Constant, Real, Index > BoundaryConditions;
-             typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
-             SolverStarter solverStarter;
-             return solverStarter.template run< Problem >( parameters );
-          }      
+	        typedef LaxFridrichs< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
+                typedef Functions::Analytic::Constant< Dimension, Real > Constant;
+           	String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
+                if( boundaryConditionsType == "cavity" )
+                {
+                   typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "boiler" )
+                {
+                   typedef BoundaryConditionsBoiler< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                if( boundaryConditionsType == "boiler-model" )
+                {
+                   typedef BoundaryConditionsBoilerModel< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                typedef Functions::MeshFunction< MeshType > MeshFunction;
+                if( boundaryConditionsType == "dirichlet" )
+                {
+                   typedef BoundaryConditionsDirichlet< MeshType, Constant, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "neumann" )
+                {
+                   typedef BoundaryConditionsNeumann< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }   
+             }
+             if( differentialOperatorType == "Steger-Warming" )
+             {
+	        typedef StegerWarming< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
+                typedef Functions::Analytic::Constant< Dimension, Real > Constant;
+           	String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
+                if( boundaryConditionsType == "cavity" )
+                {
+                   typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "boiler" )
+                {
+                   typedef BoundaryConditionsBoiler< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                if( boundaryConditionsType == "boiler-model" )
+                {
+                   typedef BoundaryConditionsBoilerModel< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                typedef Functions::MeshFunction< MeshType > MeshFunction;
+                if( boundaryConditionsType == "dirichlet" )
+                {
+                   typedef BoundaryConditionsDirichlet< MeshType, Constant, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "neumann" )
+                {
+                   typedef BoundaryConditionsNeumann< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }   
+             }
+             if( differentialOperatorType == "VanLeer" )
+	     {
+                typedef VanLeer< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
+                typedef Functions::Analytic::Constant< Dimension, Real > Constant;
+           	String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
+                if( boundaryConditionsType == "cavity" )
+                {
+                   typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "boiler" )
+                {
+                   typedef BoundaryConditionsBoiler< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                if( boundaryConditionsType == "boiler-model" )
+                {
+                   typedef BoundaryConditionsBoilerModel< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                typedef Functions::MeshFunction< MeshType > MeshFunction;
+                if( boundaryConditionsType == "dirichlet" )
+                {
+                   typedef BoundaryConditionsDirichlet< MeshType, Constant, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "neumann" )
+                {
+                   typedef BoundaryConditionsNeumann< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }   
+             }
+             if( differentialOperatorType == "AUSMPlus" )
+	     {
+                typedef AUSMPlus< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
+                typedef Functions::Analytic::Constant< Dimension, Real > Constant;
+           	String boundaryConditionsType = parameters.getParameter< String >( "boundary-conditions-type" );
+                if( boundaryConditionsType == "cavity" )
+                {
+                   typedef BoundaryConditionsCavity< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "boiler" )
+                {
+                   typedef BoundaryConditionsBoiler< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                if( boundaryConditionsType == "boiler-model" )
+                {
+                   typedef BoundaryConditionsBoilerModel< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                } 
+                typedef Functions::MeshFunction< MeshType > MeshFunction;
+                if( boundaryConditionsType == "dirichlet" )
+                {
+                   typedef BoundaryConditionsDirichlet< MeshType, Constant, MeshType::getMeshDimension(), Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator> Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }
+                if( boundaryConditionsType == "neumann" )
+                {
+                   typedef BoundaryConditionsNeumann< MeshType, Constant, Real, Index > BoundaryConditions;
+                   typedef navierStokesProblem< MeshType, BoundaryConditions, RightHandSide, CommunicatorType, ApproximateOperator > Problem;
+                   SolverStarter solverStarter;
+                   return solverStarter.template run< Problem >( parameters );
+                }   
+             }
+	  }      
 
       return true;}
 

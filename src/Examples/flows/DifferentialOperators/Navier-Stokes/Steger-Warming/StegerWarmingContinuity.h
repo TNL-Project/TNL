@@ -229,8 +229,8 @@ class StegerWarmingContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, O
          const typename MeshEntity::template NeighborEntities< 2 >& neighborEntities = entity.getNeighborEntities(); 
 
          //rho
-         const RealType& hxInverse = entity.getMesh().template getSpaceStepsProducts< -1, 0 >(); 
-         const RealType& hyInverse = entity.getMesh().template getSpaceStepsProducts< 0, -1 >(); 
+         const RealType& hxInverse = entity.getMesh().template getSpaceStepsProducts< -1,  0 >(); 
+         const RealType& hyInverse = entity.getMesh().template getSpaceStepsProducts<  0, -1 >(); 
 
          const IndexType& center = entity.getIndex(); 
          const IndexType& east   = neighborEntities.template getEntityIndex<  1,  0 >(); 
