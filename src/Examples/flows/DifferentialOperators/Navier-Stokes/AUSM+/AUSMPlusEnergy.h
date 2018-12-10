@@ -482,7 +482,7 @@ class AUSMPlusEnergy< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRi
                                    this->EnergyFlux( density_south , density_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center, u[ south  ], u[ center ] )
                                 -  this->EnergyFlux( density_center, density_north , velocity_y_center, velocity_y_north , pressure_center, pressure_north , u[ center ], u[ north  ] )
                              ) 
-               + hyInverse * (
+               + hzInverse * (
                                    this->EnergyFlux( density_down  , density_center, velocity_z_down  , velocity_z_center, pressure_down  , pressure_center, u[ down   ], u[ center ] )
                                 -  this->EnergyFlux( density_center, density_up    , velocity_z_center, velocity_z_up    , pressure_center, pressure_up    , u[ center ], u[ up     ] )
                              )
