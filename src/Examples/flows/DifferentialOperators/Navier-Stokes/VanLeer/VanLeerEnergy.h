@@ -551,11 +551,11 @@ class VanLeerEnergy< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorRig
                                  - this->negativeEnergyFlux( density_center, velocity_y_center, velocity_x_center, velocity_z_center, pressure_center)
                                  + this->negativeEnergyFlux( density_north , velocity_y_north , velocity_x_north , velocity_z_north , pressure_north ) 
                              ) 
-                -hyInverse * ( 
-                                   this->positiveEnergyFlux( density_center, velocity_y_center, velocity_x_center, velocity_z_center, pressure_center)
-                                 - this->positiveEnergyFlux( density_down  , velocity_y_down  , velocity_x_down  , velocity_z_down  , pressure_down  )
-                                 - this->negativeEnergyFlux( density_center, velocity_y_center, velocity_x_center, velocity_z_center, pressure_center)
-                                 + this->negativeEnergyFlux( density_up    , velocity_y_up    , velocity_x_up    , velocity_z_up    , pressure_up    ) 
+                -hzInverse * ( 
+                                   this->positiveEnergyFlux( density_center, velocity_z_center, velocity_x_center, velocity_y_center, pressure_center)
+                                 - this->positiveEnergyFlux( density_down  , velocity_z_down  , velocity_x_down  , velocity_y_down  , pressure_down  )
+                                 - this->negativeEnergyFlux( density_center, velocity_z_center, velocity_x_center, velocity_y_center, pressure_center)
+                                 + this->negativeEnergyFlux( density_up    , velocity_z_up    , velocity_x_up    , velocity_y_up    , pressure_up    ) 
                              )
                +
                  this->rightHandSide(u, entity, time);

@@ -919,7 +919,6 @@ class RiemannProblemInitialCondition
                this->SEDPressure = parameters.getParameter< RealType >( prefix + "SED-pressure" );
                this->SEDEnergy = Energy( SEDDensity, SEDPressure, gamma, SEDVelocity);
                this->SEDMomentum = SEDVelocity * SEDDensity;
- 
            }
          if(initial == prefix + "1D_2")
            predefinedInitialCondition( 1.4, 0.5, 0.0, 0.0, // double preGamma,       double preDiscX,       double preDiscY,       double preDiscZ,
@@ -1258,9 +1257,6 @@ class RiemannProblemInitialCondition
          this->SEDPressure = preSEDPressure;
          this->SEDEnergy = Energy( SEDDensity, SEDPressure, gamma, SEDVelocity); 
          this->SEDMomentum = SEDVelocity * SEDDensity;
-
-         std::cout << this->SEDEnergy;
-         std::cout << this->SWDEnergy;
  
       }
 
@@ -1291,7 +1287,7 @@ class RiemannProblemInitialCondition
                     break;
             case 2: energy = (Pressure / (gamma -1.0) + 0.5 * Density * (std::pow(Velocity[ 0 ], 2 ) + std::pow(Velocity[ 1 ], 2 )));
                     break;
-            case 3: energy = (Pressure / (gamma -1.0) + 0.5 * Density * (std::pow(Velocity[ 0 ], 2 ) + std::pow(Velocity[ 1 ], 2 ) + std::pow(Velocity[ 3 ], 2 )));
+            case 3: energy = (Pressure / (gamma -1.0) + 0.5 * Density * (std::pow(Velocity[ 0 ], 2 ) + std::pow(Velocity[ 1 ], 2 ) + std::pow(Velocity[ 2 ], 2 )));
                     break; // druhou mocninu ps8t jako sou4in
          }
          return energy;
