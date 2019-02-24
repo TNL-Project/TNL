@@ -1,4 +1,3 @@
-#include <TNL/tnlConfig.h>
 #include <TNL/Solvers/Solver.h>
 #include <TNL/Solvers/BuildConfigTags.h>
 #include <TNL/Operators/DirichletBoundaryConditions.h>
