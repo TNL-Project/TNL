@@ -9,10 +9,9 @@ set( tnl_flow_SOURCES
                
 IF( BUILD_CUDA )
    CUDA_ADD_EXECUTABLE(tnl-navier-stokes navierStokes.cu)
-   target_link_libraries (tnl-navier-stokes tnl  ${CUSPARSE_LIBRARY} )
+   target_link_libraries (tnl-navier-stokes ${CUSPARSE_LIBRARY} )
 ELSE(  BUILD_CUDA )               
    ADD_EXECUTABLE(tnl-navier-stokes navierStokes.cpp)     
-   target_link_libraries (tnl-navier-stokes tnl )
 ENDIF( BUILD_CUDA )
 
 
