@@ -24,8 +24,8 @@ template< typename Mesh, typename Real >class flowsRhs
       Real operator()( const MeshEntity& entity,
                        const Real& time = 0.0 ) const
       {
-         typedef typename MeshEntity::MeshType::PointType PointType;
-         PointType v = entity.getCenter();
+//         typedef typename MeshEntity::MeshType::PointType PointType;
+//         PointType v = entity.getCenter();
          return 0.0;
       }
 };

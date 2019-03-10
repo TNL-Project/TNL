@@ -236,7 +236,7 @@ class StegerWarmingMomentumZ< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Ope
          const RealType& velocity_z_up        = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ up ];
          const RealType& velocity_z_down      = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ down ];        
 
-         return -hxInverse * ( 
+         return 0-hxInverse * ( 
                                  this->positiveOtherMomentumFlux( density_center, velocity_z_center, velocity_x_center, pressure_center )
                                - this->positiveOtherMomentumFlux( density_west  , velocity_z_west  , velocity_x_west  , pressure_west   )
                                - this->negativeOtherMomentumFlux( density_center, velocity_z_center, velocity_x_center, pressure_center )

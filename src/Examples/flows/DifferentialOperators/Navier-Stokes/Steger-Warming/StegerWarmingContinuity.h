@@ -357,12 +357,12 @@ class StegerWarmingContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, O
                                 -  this->negativeDensityFlux( u[ center ], velocity_x_center, pressure_center )
                                 +  this->negativeDensityFlux( u[ east   ], velocity_x_east  , pressure_east   )
                              )
-                -hyInverse * (
+/*                -hyInverse * (
                                    this->positiveDensityFlux( u[ center ], velocity_y_center, pressure_center )
                                 -  this->positiveDensityFlux( u[ south  ], velocity_y_south , pressure_south  )
                                 -  this->negativeDensityFlux( u[ center ], velocity_y_center, pressure_center )
                                 +  this->negativeDensityFlux( u[ north  ], velocity_y_north , pressure_north  )
-                             )
+                             )*/
                 -hzInverse * (
                                    this->positiveDensityFlux( u[ center ], velocity_z_center, pressure_center )
                                 -  this->positiveDensityFlux( u[ down   ], velocity_z_down  , pressure_down   )
