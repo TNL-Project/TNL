@@ -242,6 +242,10 @@ class NavierStokesMomentumZRightHandSide< Meshes::Grid< 3,MeshReal, Device, Mesh
 
          const RealType& velocity_z_up        = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ up ];
          const RealType& velocity_z_down      = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ down ]; 
+         const RealType& velocity_z_east      = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ east ];
+         const RealType& velocity_z_west      = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ west ];
+         const RealType& velocity_z_south     = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ south ];
+         const RealType& velocity_z_north     = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ north ];
          const RealType& velocity_z_center    = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ center ]; 
          const RealType& velocity_z_upWest    = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ upWest ]; 
          const RealType& velocity_z_upEast    = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ upEast ]; 
@@ -253,18 +257,18 @@ class NavierStokesMomentumZRightHandSide< Meshes::Grid< 3,MeshReal, Device, Mesh
          const RealType& velocity_z_downSouth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downSouth ];         
 
          return 
-// T_13_z
-                  ( ( velocity_z_up - 2 * velocity_z_center + velocity_z_down ) 
-                    * hzSquareInverse
+// T_13_x
+                  ( ( velocity_z_east - 2 * velocity_z_center + velocity_z_west ) 
+                    * hxSquareInverse
                   + ( velocity_x_upEast - velocity_x_downEast - velocity_x_upWest + velocity_x_downWest )
                     * hxInverse * hzInverse / 4
                   )
                 * this->dynamicalViscosity
-// T_23_z
+// T_23_y
                 + ( ( velocity_y_upNorth - velocity_y_downNorth - velocity_y_upSouth + velocity_y_downSouth )
                     * hyInverse * hzInverse / 4
-                  + ( velocity_z_up - 2 * velocity_z_center + velocity_z_down )
-                    * hzSquareInverse
+                  + ( velocity_z_north - 2 * velocity_z_center + velocity_z_south )
+                    * hySquareInverse
                   )
                 * this->dynamicalViscosity
 // 3D T_33_z
