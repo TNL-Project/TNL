@@ -518,7 +518,7 @@ class StegerWarmingEnergy< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Opera
                                  - this->positiveEnergyFlux( density_south , velocity_y_south , velocity_x_south , velocity_z_south , pressure_south )
                                  - this->negativeEnergyFlux( density_center, velocity_y_center, velocity_x_center, velocity_z_center, pressure_center)
                                  + this->negativeEnergyFlux( density_north , velocity_y_north , velocity_x_north , velocity_z_north , pressure_north ) 
-                             ) 
+                             )
                 -hzInverse * ( 
                                    this->positiveEnergyFlux( density_center, velocity_z_center, velocity_x_center, velocity_y_center, pressure_center)
                                  - this->positiveEnergyFlux( density_down  , velocity_z_down  , velocity_x_down  , velocity_y_down  , pressure_down  )

@@ -277,6 +277,10 @@ class NavierStokesMomentumYRightHandSide< Meshes::Grid< 3,MeshReal, Device, Mesh
 
          const RealType& velocity_y_north     = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ north ];
          const RealType& velocity_y_south     = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ south ];
+         const RealType& velocity_y_east      = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ east ];
+         const RealType& velocity_y_west      = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ west ];
+         const RealType& velocity_y_up        = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ up ];
+         const RealType& velocity_y_down      = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ down ];
          const RealType& velocity_y_center    = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ center ];
          const RealType& velocity_y_northWest = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northWest ];
          const RealType& velocity_y_northEast = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northEast ];
@@ -303,8 +307,8 @@ class NavierStokesMomentumYRightHandSide< Meshes::Grid< 3,MeshReal, Device, Mesh
 // T_12_y
                   ( ( velocity_x_northEast - velocity_x_southEast - velocity_x_northWest + velocity_x_southWest
                     ) * hxInverse * hyInverse / 4
-                  + (  velocity_y_north - 2 * velocity_y_center + velocity_y_south
-                    ) * hySquareInverse
+                  + (  velocity_y_east - 2 * velocity_y_center + velocity_y_west
+                    ) * hxSquareInverse
                   ) * this->dynamicalViscosity
 // 3D T_22_y
                 + ( 4.0 / 3.0 * ( velocity_y_north - 2 * velocity_y_center + velocity_y_south
@@ -317,8 +321,8 @@ class NavierStokesMomentumYRightHandSide< Meshes::Grid< 3,MeshReal, Device, Mesh
 // T_32_y
                 + ( ( velocity_z_upNorth - velocity_z_downNorth - velocity_z_upSouth + velocity_z_downSouth
                      ) * hyInverse * hzInverse / 4
-                  + ( velocity_y_north - 2 * velocity_y_center + velocity_y_south
-                    ) * hySquareInverse
+                  + ( velocity_y_up - 2 * velocity_y_center + velocity_y_down
+                    ) * hzSquareInverse
                   ) * this->dynamicalViscosity;
       }
 
