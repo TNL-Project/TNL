@@ -273,25 +273,106 @@ class MomentumXBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device,
          const IndexType& index = entity.getIndex();
          if( entity.getCoordinates().x() == 0 )
          {
-            if( ( entity.getCoordinates().y() < 0.20 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.19 * ( entity.getMesh().getDimensions().y() - 1 ) ) )
-            return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] 
-              * ( 
-                   this->cavitySpeed
-                );
-            else
-               return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
+// if for y axis
+              if( 
+                ( 
+                  ( entity.getCoordinates().y() < 0.45 * ( entity.getMesh().getDimensions().y() - 1 ) ) 
+                  && 
+                  ( entity.getCoordinates().y() > 0.44 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.43 * ( entity.getMesh().getDimensions().y() - 1 ) ) 
+                  &&
+                  ( entity.getCoordinates().y() > 0.42 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                || 
+                (
+                  ( entity.getCoordinates().y() < 0.41 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.40 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.39 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.38 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.37 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.36 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.35 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.34 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+              )
+//throttle speed
+              {
+               return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] 
+                         * ( 
+                              this->cavitySpeed
+                              * std::cos( this->zAngle )
+                            );
+              }
+            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
-            if( ( entity.getCoordinates().y() < 0.20 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.19 * ( entity.getMesh().getDimensions().y() - 1 ) ) )
-            return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] 
-              * ( 
-                   this->cavitySpeed * ( -1 )
-                );
-            else if( entity.getCoordinates().y() > 0.8 * ( entity.getMesh().getDimensions().y() - 1 ) && false )
-               return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-            else
-               return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
+// if for y axis
+              if( 
+                ( 
+                  ( entity.getCoordinates().y() < 0.45 * ( entity.getMesh().getDimensions().y() - 1 ) ) 
+                  && 
+                  ( entity.getCoordinates().y() > 0.44 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.43 * ( entity.getMesh().getDimensions().y() - 1 ) ) 
+                  &&
+                  ( entity.getCoordinates().y() > 0.42 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                || 
+                (
+                  ( entity.getCoordinates().y() < 0.41 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.40 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.39 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.38 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.37 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.36 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.35 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.34 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+              )
+// throttle speed
+              {
+               return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] 
+                         * ( 
+                              this->cavitySpeed * ( -1.0 )
+                              * std::cos( this->zAngle )
+                            );
+              }
+// if for chimney exit
+            if( entity.getCoordinates().y() > 0.835 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                 return u[ neighborEntities.template getEntityIndex< -1, 0 >() ];
+            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
          if( entity.getCoordinates().y() == 0 )
          {
