@@ -282,148 +282,138 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
          const IndexType& index = entity.getIndex();
          if( entity.getCoordinates().x() == 0 )
          {
-            if( ( entity.getCoordinates().y() < 0.20 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.19 * ( entity.getMesh().getDimensions().y() - 1 ) ) )
-               return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
-                / ( this->gamma - 1 )
+// if for y axis
+            if( 
+                ( 
+                  ( entity.getCoordinates().y() < 0.45 * ( entity.getMesh().getDimensions().y() - 1 ) ) 
+                  && 
+                  ( entity.getCoordinates().y() > 0.44 * ( entity.getMesh().getDimensions().y() - 1 ) )
                 )
-                + 0.5
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                * (
-                  this->cavitySpeed
-                * 
-                  this->cavitySpeed
-                +
-                  ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  + 0
-                  )
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  + 0
-                  )
-                );
-            else 
-               return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-                    /*( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
-                      / ( this->gamma - 1 )
-                      )
-                     + 0.5
-                     * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                     * (
-                         ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 1, 0 >()]
-                         / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 1, 0 >()]
-                         + 0
-                       )
-                       * 
-                       ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 1, 0 >()]
-                         /  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 1, 0 >()]
-                         + 0
-                       )
-                     );*/
-         }
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.43 * ( entity.getMesh().getDimensions().y() - 1 ) ) 
+                  &&
+                  ( entity.getCoordinates().y() > 0.42 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                || 
+                (
+                  ( entity.getCoordinates().y() < 0.41 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.40 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.39 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.38 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.37 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.36 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.35 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.34 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+              )
+// throttle energy
+               {
+                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
+                            / ( this->gamma - 1 )
+                         )
+                         +  0.5
+                         *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
+                         *  (
+                            this->cavitySpeed
+                            * 
+                            this->cavitySpeed
+                            );
+               }
+            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
+         };
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
-            if( ( entity.getCoordinates().y() < 0.20 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.19 * ( entity.getMesh().getDimensions().y() - 1 ) ) ) 
-               return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
-                / ( this->gamma - 1 )
+// if for y axis
+              if( 
+                ( 
+                  ( entity.getCoordinates().y() < 0.45 * ( entity.getMesh().getDimensions().y() - 1 ) ) 
+                  && 
+                  ( entity.getCoordinates().y() > 0.44 * ( entity.getMesh().getDimensions().y() - 1 ) )
                 )
-                + 0.5
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                * (
-                  this->cavitySpeed * ( -1 )
-                * 
-                  this->cavitySpeed * ( -1 )
-                +
-                  ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  + 0
-                  )
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  + 0
-                  )
-                );
-            else if( entity.getCoordinates().y() > 0.8 * ( entity.getMesh().getDimensions().y() - 1 ) && false )
-               return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-            else
-               return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-                    /*( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
-                    / ( this->gamma - 1 )
-                    )
-                    + 0.5
-                    * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                    * (
-                        ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< -1, 0 >()]
-                        / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< -1, 0 >()]
-                        + 0
-                      )
-                      * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< -1, 0 >()]
-                        / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< -1, 0 >()]
-                        + 0
-                        )
-                );*/
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.43 * ( entity.getMesh().getDimensions().y() - 1 ) ) 
+                  &&
+                  ( entity.getCoordinates().y() > 0.42 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                || 
+                (
+                  ( entity.getCoordinates().y() < 0.41 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.40 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.39 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.38 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.37 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.36 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+                ||
+                (
+                  ( entity.getCoordinates().y() < 0.35 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                  &&
+                  ( entity.getCoordinates().y() > 0.34 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                )
+              )
+// throttle energy
+               {
+               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
+                            / ( this->gamma - 1 )
+                         )
+                         +  0.5
+                         *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
+                         *  (
+                            this->cavitySpeed
+                            * 
+                            this->cavitySpeed
+                            );
+               }
+// if for chimney exit
+             if( entity.getCoordinates().y() > 0.835 * ( entity.getMesh().getDimensions().y() - 1 ) )
+                return u[ neighborEntities.template getEntityIndex< -1, 0 >() ];
+             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
          if( entity.getCoordinates().y() == 0 )
          {
-            if( ( entity.getCoordinates().x() < 0.6 * ( entity.getMesh().getDimensions().x() - 1 ) ) && ( entity.getCoordinates().x() > 0.4 * ( entity.getMesh().getDimensions().x() - 1 ) ) ) 
-               return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
-                / ( this->gamma - 1 )
-                )
-                + 0.5
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                * (
-                  ( 
-                  (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  + 0
-                  )
-                * ( 
-                  (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  + 0
-                  )
-                +
-                  this->cavitySpeed
-                * 
-                  this->cavitySpeed
-                );
-            else 
-               return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-                    /*( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
-                    / ( this->gamma - 1 )
-                    )
-                   + 0.5
-                   * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                   * (
-                       ( (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0, 1 >()]
-                       / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 1 >()]
-                       + 0
+            if( ( entity.getCoordinates().x() < 0.592 * ( entity.getMesh().getDimensions().x() - 1 ) )
+              &&
+                ( entity.getCoordinates().x() > 0.408 * ( entity.getMesh().getDimensions().x() - 1 ) ) ) 
+               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
+                      /  ( this->gamma - 1 )
                      )
-                   * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0, 1 >()]
-                     / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 1 >()]
-                     + 0
-                     )
-                );*/
+                     +  0.5
+                     *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
+                     *  (
+                        this->cavitySpeed
+                        * 
+                        this->cavitySpeed
+                        );
+            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
          // The following line is commented to avoid compiler warning
          //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
-            return u[ neighborEntities.template getEntityIndex< 0, -1 >() ];
-            /*return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
-                / ( this->gamma - 1 )
-                )
-                + 0.5
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                * (
-                    ( (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0, -1 >()]
-                    / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, -1 >()]
-                    + 0
-                  )
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0, -1 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, -1 >()]
-                  + 0
-                  )
-                );*/
+            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }         
       }
 
@@ -850,7 +840,7 @@ const RealType operator()( const MeshFunction& u,
          }
          if( entity.getCoordinates().z() == 0 )
          {
-            if( ( entity.getCoordinates().x() < 0.592 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.408 * ( entity.getMesh().getDimensions().y() - 1 ) ) )
+            if( ( entity.getCoordinates().y() < 0.592 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.408 * ( entity.getMesh().getDimensions().y() - 1 ) ) )
 //              &&( entity.getCoordinates().y() < 0.6 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.4 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
                return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
                       /  ( this->gamma - 1 )
