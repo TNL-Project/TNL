@@ -270,10 +270,10 @@ class DensityBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, M
          }
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
-            if (entity.getCoordinates().y() < 0.8 * ( entity.getMesh().getDimensions().y() - 1 ) && false)
+            if (entity.getCoordinates().y() < 0.835 * ( entity.getMesh().getDimensions().y() - 1 ))
                return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
             else
-               return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
+               return u[ neighborEntities.template getEntityIndex< -1, 0 >() ];
          }
          if( entity.getCoordinates().y() == 0 )
          {
