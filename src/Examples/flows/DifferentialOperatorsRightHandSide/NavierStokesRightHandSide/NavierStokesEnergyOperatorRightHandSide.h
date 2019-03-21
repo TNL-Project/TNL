@@ -217,20 +217,20 @@ class NavierStokesEnergyRightHandSide< Meshes::Grid< 2, MeshReal, Device, MeshIn
                                 - velocity_y_northWest * velocity_x_west + velocity_y_southWest * velocity_x_west
                                 ) * hxInverse * hyInverse  / 4
                   ) * this->dynamicalViscosity 
-// vT_21_x
-                + ( ( velocity_y_northEast * velocity_y_east - velocity_y_southEast * velocity_y_east
-                    - velocity_y_northWest * velocity_y_west + velocity_y_southWest * velocity_y_west
+// vT_12_x
+                + ( ( velocity_x_northEast * velocity_y_east - velocity_x_southEast * velocity_y_east
+                    - velocity_x_northWest * velocity_y_west + velocity_x_southWest * velocity_y_west
                     ) * hxInverse * hyInverse / 4
-                  + ( velocity_x_east * velocity_y_center - velocity_x_center * velocity_y_west
-                    - velocity_x_center * velocity_y_center + velocity_x_west * velocity_y_west
+                  + ( velocity_y_east * velocity_y_center - velocity_y_center * velocity_y_west
+                    - velocity_y_center * velocity_y_center + velocity_y_west * velocity_y_west
                     ) * hxSquareInverse
                   ) * this->dynamicalViscosity
-// uT_12_y
-                + ( ( velocity_x_northEast * velocity_x_north - velocity_x_southEast * velocity_x_south 
-                    - velocity_x_northWest * velocity_x_north + velocity_x_southWest * velocity_x_south 
+// uT_21_y
+                + ( ( velocity_y_northEast * velocity_x_north - velocity_y_southEast * velocity_x_south 
+                    - velocity_y_northWest * velocity_x_north + velocity_y_southWest * velocity_x_south 
                     ) * hxInverse * hyInverse  / 4
-                  + ( velocity_y_north * velocity_x_center - velocity_y_center * velocity_x_south
-                    - velocity_y_center * velocity_x_center + velocity_y_south * velocity_x_south
+                  + ( velocity_x_north * velocity_x_center - velocity_x_center * velocity_x_south
+                    - velocity_x_center * velocity_x_center + velocity_x_south * velocity_x_south
                     ) * hySquareInverse
                 ) * this->dynamicalViscosity
 // 2D vT_22_y
@@ -381,28 +381,28 @@ class NavierStokesEnergyRightHandSide< Meshes::Grid< 3, MeshReal, Device, MeshIn
                                 - velocity_z_upWest * velocity_x_west + velocity_z_downWest * velocity_x_west
                                 ) * hxInverse * hzInverse / 4
                   ) * this->dynamicalViscosity
-// vT_21_x
-                + ( ( velocity_y_northEast * velocity_y_east - velocity_y_southEast * velocity_y_east
-                    - velocity_y_northWest * velocity_y_west + velocity_y_southWest * velocity_y_west
+// vT_12_x
+                + ( ( velocity_x_northEast * velocity_y_east - velocity_x_southEast * velocity_y_east
+                    - velocity_x_northWest * velocity_y_west + velocity_x_southWest * velocity_y_west
                     ) * hxInverse * hyInverse / 4
-                  + ( velocity_x_east * velocity_y_center - velocity_x_center * velocity_y_west
-                    - velocity_x_center * velocity_y_center + velocity_x_west * velocity_y_west
+                  + ( velocity_y_east * velocity_y_center - velocity_y_center * velocity_y_west
+                    - velocity_y_center * velocity_y_center + velocity_y_west * velocity_y_west
                     ) * hxSquareInverse
                   ) * this->dynamicalViscosity
-// wT_31_x
-                + ( ( velocity_z_upEast * velocity_z_east - velocity_z_downEast * velocity_z_east
-                    - velocity_z_upWest * velocity_z_west + velocity_z_downWest * velocity_z_west
+// wT_13_x
+                + ( ( velocity_x_upEast * velocity_z_east - velocity_x_downEast * velocity_z_east
+                    - velocity_x_upWest * velocity_z_west + velocity_x_downWest * velocity_z_west
                     ) * hxInverse * hzInverse / 4
-                  + ( velocity_x_east * velocity_z_center - velocity_x_center * velocity_z_west 
-                    - velocity_x_center * velocity_z_center + velocity_x_west * velocity_z_west
+                  + ( velocity_z_east * velocity_z_center - velocity_z_center * velocity_z_west 
+                    - velocity_z_center * velocity_z_center + velocity_z_west * velocity_z_west
                     ) * hxSquareInverse
                   ) * this->dynamicalViscosity
-// uT_12_y
-                + ( ( velocity_x_northEast * velocity_x_north - velocity_x_southEast * velocity_x_south
-                    - velocity_x_northWest * velocity_x_north + velocity_x_southWest * velocity_x_south
+// uT_21_y
+                + ( ( velocity_y_northEast * velocity_x_north - velocity_y_southEast * velocity_x_south
+                    - velocity_y_northWest * velocity_x_north + velocity_y_southWest * velocity_x_south
                     ) * hxInverse * hyInverse / 4
-                  + ( velocity_y_north * velocity_x_center - velocity_y_center * velocity_x_south
-                    + velocity_y_center * velocity_x_center + velocity_y_south * velocity_x_south
+                  + ( velocity_x_north * velocity_x_center - velocity_x_center * velocity_x_south
+                    + velocity_x_center * velocity_x_center + velocity_x_south * velocity_x_south
                     ) * hySquareInverse
                   ) * this->dynamicalViscosity
 // 3D vT_22_y
@@ -416,28 +416,28 @@ class NavierStokesEnergyRightHandSide< Meshes::Grid< 3, MeshReal, Device, MeshIn
                                 - velocity_z_upSouth * velocity_y_south + velocity_z_downSouth * velocity_y_south
                                 ) * hyInverse * hzInverse / 4
                   ) * this->dynamicalViscosity
-// wT_32_y
-                + ( ( velocity_z_upNorth * velocity_z_north - velocity_z_downNorth * velocity_y_north
-                    - velocity_z_upSouth * velocity_z_south + velocity_z_downSouth * velocity_z_south
+// wT_23_y
+                + ( ( velocity_y_upNorth * velocity_z_north - velocity_y_downNorth * velocity_y_north
+                    - velocity_y_upSouth * velocity_z_south + velocity_y_downSouth * velocity_z_south
                     ) * hyInverse * hzInverse / 4
-                  + ( velocity_y_north * velocity_z_center - velocity_y_center * velocity_z_south
-                    - velocity_y_center * velocity_z_center + velocity_y_south * velocity_z_south
+                  + ( velocity_z_north * velocity_z_center - velocity_z_center * velocity_z_south
+                    - velocity_z_center * velocity_z_center + velocity_z_south * velocity_z_south
                     ) * hySquareInverse
                   ) * this->dynamicalViscosity
-// uT_13_z
-                + ( ( velocity_z_up * velocity_x_center - velocity_z_center * velocity_x_center 
-                    - velocity_z_center * velocity_x_down + velocity_z_down * velocity_x_down
+// uT_31_z
+                + ( ( velocity_x_up * velocity_x_center - velocity_x_center * velocity_x_center 
+                    - velocity_x_center * velocity_x_down + velocity_x_down * velocity_x_down
                     ) * hzSquareInverse
-                  + ( velocity_x_upEast * velocity_x_up - velocity_x_downEast * velocity_x_down
-                    - velocity_x_upWest * velocity_x_up + velocity_x_downWest * velocity_x_down
+                  + ( velocity_z_upEast * velocity_x_up - velocity_z_downEast * velocity_x_down
+                    - velocity_z_upWest * velocity_x_up + velocity_z_downWest * velocity_x_down
                     ) * hxInverse * hzInverse / 4
                   ) * this->dynamicalViscosity
-// T_23_z
-                + ( ( velocity_y_upNorth * velocity_y_up - velocity_y_downNorth * velocity_y_down
-                    - velocity_y_upSouth * velocity_y_up + velocity_y_downSouth * velocity_y_down
+// T_32_z
+                + ( ( velocity_z_upNorth * velocity_y_up - velocity_z_downNorth * velocity_y_down
+                    - velocity_z_upSouth * velocity_y_up + velocity_z_downSouth * velocity_y_down
                     ) * hyInverse * hzInverse / 4
-                  + ( velocity_z_up * velocity_y_center - velocity_z_center * velocity_y_down
-                    - velocity_z_center * velocity_y_center + velocity_z_down * velocity_y_down
+                  + ( velocity_x_up * velocity_y_center - velocity_x_center * velocity_y_down
+                    - velocity_x_center * velocity_y_center + velocity_x_down * velocity_y_down
                     ) * hzSquareInverse
                   ) * this->dynamicalViscosity
 // 3D T_33_z
