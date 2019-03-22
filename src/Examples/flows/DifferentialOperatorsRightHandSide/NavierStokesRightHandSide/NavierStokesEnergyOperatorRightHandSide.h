@@ -237,8 +237,8 @@ class NavierStokesEnergyRightHandSide< Meshes::Grid< 2, MeshReal, Device, MeshIn
                 + ( 4.0 / 3.0 * ( velocity_y_north * velocity_y_center - velocity_y_center * velocity_y_south
                                 - velocity_y_center * velocity_y_center + velocity_y_south * velocity_y_south
                                 ) * hySquareInverse
-                  - 2.0 / 3.0 * ( velocity_x_northEast * velocity_y_north - velocity_x_southEast * velocity_y_east 
-                                - velocity_x_northWest * velocity_y_north + velocity_x_southWest * velocity_y_west
+                  - 2.0 / 3.0 * ( velocity_x_northEast * velocity_y_north - velocity_x_southEast * velocity_y_south 
+                                - velocity_x_northWest * velocity_y_north + velocity_x_southWest * velocity_y_south
                                 ) * hxInverse * hyInverse / 4
                 ) * this->dynamicalViscosity;
       }
