@@ -208,9 +208,14 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 1, MeshReal, Device, Me
          this->pressure = pressure;
       }
 
-      void setCavitySpeed(const RealType cavitySpeed)
+      void setHorizontalThrottleSpeed(const RealType horizontalThrottleSpeed)
       {
-         this->cavitySpeed = cavitySpeed;
+         this->horizontalThrottleSpeed = horizontalThrottleSpeed;
+      }
+
+      void setVerticalThrottleSpeed(const RealType verticalThrottleSpeed)
+      {
+         this->verticalThrottleSpeed = verticalThrottleSpeed;
       }
 
       void setZAngle(const RealType zAngle)
@@ -226,7 +231,8 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 1, MeshReal, Device, Me
    private:
       CompressibleConservativeVariablesPointer compressibleConservativeVariables;
       RealType timestep;
-      RealType cavitySpeed;
+      RealType horizontalThrottleSpeed;
+      RealType verticalThrottleSpeed;
       RealType gamma;
       MeshFunctionPointer pressure;
       RealType zAngle;
@@ -328,9 +334,9 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
                          +  0.5
                          *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
                          *  (
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             * 
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             );
                }
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
@@ -383,14 +389,26 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
                          +  0.5
                          *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
                          *  (
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             * 
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             );
                }
 // if for chimney exit
              if( entity.getCoordinates().y() > 0.835 * ( entity.getMesh().getDimensions().y() - 1 ) )
-                return u[ neighborEntities.template getEntityIndex< -1, 0 >() ];
+                if( (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] != 0 )
+                   return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
+                          /  ( this->gamma - 1 )
+                          )
+                          +  0.5
+                          *  (  (  (* ( *this->compressibleConservativeVariables->getMomentum() )[ 0 ] )[neighborEntities.template getEntityIndex< 0, 0 >()]
+                                   *  (* ( *this->compressibleConservativeVariables->getMomentum() )[ 0 ] )[neighborEntities.template getEntityIndex< 0, 0 >()]
+                                   +  (* ( *this->compressibleConservativeVariables->getMomentum() )[ 1 ] )[neighborEntities.template getEntityIndex< 0, 0 >()]
+                                   *  (* ( *this->compressibleConservativeVariables->getMomentum() )[ 1 ] )[neighborEntities.template getEntityIndex< 0, 0 >()]
+                                )
+                                /  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
+                             );
+                else return u[ neighborEntities.template getEntityIndex< -1, 0 >() ];         
              return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
          if( entity.getCoordinates().y() == 0 )
@@ -404,9 +422,9 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
                      +  0.5
                      *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
                      *  (
-                        this->cavitySpeed
+                        this->verticalThrottleSpeed
                         * 
-                        this->cavitySpeed
+                        this->verticalThrottleSpeed
                         );
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
@@ -491,9 +509,14 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
          this->pressure = pressure;
       }
 
-      void setCavitySpeed(const RealType cavitySpeed)
+      void setHorizontalThrottleSpeed(const RealType horizontalThrottleSpeed)
       {
-         this->cavitySpeed = cavitySpeed;
+         this->horizontalThrottleSpeed = horizontalThrottleSpeed;
+      }
+
+      void setVerticalThrottleSpeed(const RealType verticalThrottleSpeed)
+      {
+         this->verticalThrottleSpeed = verticalThrottleSpeed;
       }
 
       void setZAngle(const RealType zAngle)
@@ -509,7 +532,8 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
    private:
       CompressibleConservativeVariablesPointer compressibleConservativeVariables;
       RealType timestep;
-      RealType cavitySpeed;
+      RealType horizontalThrottleSpeed;
+      RealType verticalThrottleSpeed;
       RealType gamma;
       MeshFunctionPointer pressure;
       RealType zAngle;
@@ -610,9 +634,9 @@ const RealType operator()( const MeshFunction& u,
                          +  0.5
                          *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                          *  (
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             * 
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             );
                if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
                   return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
@@ -621,9 +645,9 @@ const RealType operator()( const MeshFunction& u,
                          +  0.5
                          *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                          *  (
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                          * 
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                          );
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
                }
@@ -678,9 +702,9 @@ const RealType operator()( const MeshFunction& u,
                          +  0.5
                          *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                          *  (
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             * 
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             );
                if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
                   return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
@@ -689,16 +713,30 @@ const RealType operator()( const MeshFunction& u,
                          +  0.5
                          *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                          *  (
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             * 
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             );
                
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
 // if for chimney exit
              }
              if( entity.getCoordinates().z() > 0.835 * ( entity.getMesh().getDimensions().z() - 1 ) )
-                return u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ];
+                if( (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] != 0 )
+                   return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+                          /  ( this->gamma - 1 )
+                          )
+                          +  0.5
+                          *  (  (  (* ( *this->compressibleConservativeVariables->getMomentum() )[ 0 ] )[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
+                                   *  (* ( *this->compressibleConservativeVariables->getMomentum() )[ 0 ] )[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
+                                   +  (* ( *this->compressibleConservativeVariables->getMomentum() )[ 1 ] )[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
+                                   *  (* ( *this->compressibleConservativeVariables->getMomentum() )[ 1 ] )[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
+                                   +  (* ( *this->compressibleConservativeVariables->getMomentum() )[ 2 ] )[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
+                                   *  (* ( *this->compressibleConservativeVariables->getMomentum() )[ 2 ] )[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
+                                )
+                                /  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
+                             );
+                else return u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]; 
              return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          if( entity.getCoordinates().y() == 0 )
@@ -750,9 +788,9 @@ const RealType operator()( const MeshFunction& u,
                          +  0.5
                          *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                          *  (
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             * 
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             );
                if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
                   return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
@@ -761,9 +799,9 @@ const RealType operator()( const MeshFunction& u,
                          +  0.5
                          *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                          *  (
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             * 
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             );
                
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
@@ -819,9 +857,9 @@ const RealType operator()( const MeshFunction& u,
                          +  0.5
                          *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                          *  (
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             * 
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             );
                if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
                   return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
@@ -830,9 +868,9 @@ const RealType operator()( const MeshFunction& u,
                          +  0.5
                          *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                          *  (
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             * 
-                            this->cavitySpeed
+                            this->horizontalThrottleSpeed
                             );
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
               }
@@ -848,9 +886,9 @@ const RealType operator()( const MeshFunction& u,
                      +  0.5
                      *  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                      *  (
-                        this->cavitySpeed
+                        this->verticalThrottleSpeed
                         * 
-                        this->cavitySpeed
+                        this->verticalThrottleSpeed
                         );
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
@@ -878,9 +916,14 @@ const RealType operator()( const MeshFunction& u,
          this->pressure = pressure;
       }
 
-      void setCavitySpeed(const RealType cavitySpeed)
+      void setHorizontalThrottleSpeed(const RealType horizontalThrottleSpeed)
       {
-         this->cavitySpeed = cavitySpeed;
+         this->horizontalThrottleSpeed = horizontalThrottleSpeed;
+      }
+
+      void setVerticalThrottleSpeed(const RealType verticalThrottleSpeed)
+      {
+         this->verticalThrottleSpeed = verticalThrottleSpeed;
       }
 
       void setZAngle(const RealType zAngle)
@@ -896,7 +939,8 @@ const RealType operator()( const MeshFunction& u,
    private:
       CompressibleConservativeVariablesPointer compressibleConservativeVariables;
       RealType timestep;
-      RealType cavitySpeed;
+      RealType horizontalThrottleSpeed;
+      RealType verticalThrottleSpeed;
       RealType gamma;
       MeshFunctionPointer pressure;
       RealType zAngle;
