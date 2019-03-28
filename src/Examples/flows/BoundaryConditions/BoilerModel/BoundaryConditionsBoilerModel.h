@@ -115,10 +115,45 @@ class BoundaryConditionsBoilerModel
 
       void setSpeed(const RealType cavitySpeed)
       {
-         this->momentumXBoundaryConditionsPointer->setCavitySpeed(cavitySpeed);
-         this->momentumYBoundaryConditionsPointer->setCavitySpeed(cavitySpeed);
-         this->momentumZBoundaryConditionsPointer->setCavitySpeed(cavitySpeed);
-         this->energyBoundaryConditionsPointer->setCavitySpeed(cavitySpeed);
+
+      }
+
+      void setHorizontalThrottleSpeed(const RealType startSpeed,
+                                      const RealType finalSpeed,
+                                      const RealType time,
+                                      const RealType finalTime )
+      {
+         RealType horizontalThrottleSpeed = 0;
+         if(time <= finalTime)
+            if( time != 0 || finalTime != 0 )
+               horizontalThrottleSpeed = startSpeed + ( finalSpeed - startSpeed ) / ( time / finalTime );
+            else
+               horizontalThrottleSpeed = 0;
+         else
+            horizontalThrottleSpeed = finalSpeed;
+         this->momentumXBoundaryConditionsPointer->setHorizontalThrottleSpeed(horizontalThrottleSpeed);
+         this->momentumYBoundaryConditionsPointer->setHorizontalThrottleSpeed(horizontalThrottleSpeed);
+         this->momentumZBoundaryConditionsPointer->setHorizontalThrottleSpeed(horizontalThrottleSpeed);
+         this->energyBoundaryConditionsPointer->setHorizontalThrottleSpeed(horizontalThrottleSpeed);
+      }
+
+      void setVerticalThrottleSpeed(const RealType startSpeed,
+                                    const RealType finalSpeed,
+                                    const RealType time,
+                                    const RealType finalTime )
+      {
+         RealType verticalThrottleSpeed = 0;
+         if(time <= finalTime)
+            if( time != 0 || finalTime != 0 )
+               verticalThrottleSpeed = startSpeed + ( finalSpeed - startSpeed ) / ( time / finalTime );
+            else
+               verticalThrottleSpeed = 0;
+         else
+            verticalThrottleSpeed = finalSpeed;
+         this->momentumXBoundaryConditionsPointer->setVerticalThrottleSpeed(verticalThrottleSpeed);
+         this->momentumYBoundaryConditionsPointer->setVerticalThrottleSpeed(verticalThrottleSpeed);
+         this->momentumZBoundaryConditionsPointer->setVerticalThrottleSpeed(verticalThrottleSpeed);
+         this->energyBoundaryConditionsPointer->setVerticalThrottleSpeed(verticalThrottleSpeed);
       }
 
       DensityBoundaryConditionsTypePointer& getDensityBoundaryCondition()
