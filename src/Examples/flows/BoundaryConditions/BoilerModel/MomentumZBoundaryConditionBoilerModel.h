@@ -199,9 +199,14 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 1, MeshReal, Device,
          this->pressure = pressure;
       }
 
-      void setCavitySpeed(const RealType cavitySpeed)
+      void setHorizontalThrottleSpeed(const RealType horizontalThrottleSpeed)
       {
-         this->cavitySpeed = cavitySpeed;
+         this->horizontalThrottleSpeed = horizontalThrottleSpeed;
+      }
+
+      void setVerticalThrottleSpeed(const RealType verticalThrottleSpeed)
+      {
+         this->verticalThrottleSpeed = verticalThrottleSpeed;
       }
 
       void setZAngle(const RealType zAngle)
@@ -217,7 +222,8 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 1, MeshReal, Device,
    private:
       CompressibleConservativeVariablesPointer compressibleConservativeVariables;
       RealType timestep;
-      RealType cavitySpeed;
+      RealType horizontalThrottleSpeed;
+      RealType verticalThrottleSpeed;
       RealType gamma;
       MeshFunctionPointer pressure;
       RealType zAngle;
@@ -364,9 +370,14 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device,
          this->pressure = pressure;
       }
 
-      void setCavitySpeed(const RealType cavitySpeed)
+      void setHorizontalThrottleSpeed(const RealType horizontalThrottleSpeed)
       {
-         this->cavitySpeed = cavitySpeed;
+         this->horizontalThrottleSpeed = horizontalThrottleSpeed;
+      }
+
+      void setVerticalThrottleSpeed(const RealType verticalThrottleSpeed)
+      {
+         this->verticalThrottleSpeed = verticalThrottleSpeed;
       }
 
       void setZAngle(const RealType zAngle)
@@ -383,7 +394,8 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device,
    private:
       CompressibleConservativeVariablesPointer compressibleConservativeVariables;
       RealType timestep;
-      RealType cavitySpeed;
+      RealType horizontalThrottleSpeed;
+      RealType verticalThrottleSpeed;
       RealType gamma;
       MeshFunctionPointer pressure;
       RealType zAngle;
@@ -480,13 +492,13 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
                if( entity.getCoordinates().y() < 0.08 * std::cos( this->xYAngle ) * ( entity.getMesh().getDimensions().y() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->cavitySpeed	
+                              this->horizontalThrottleSpeed
                               * std::sin( this->zAngle )
                             );
                if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->cavitySpeed * ( -1.0 )
+                              this->horizontalThrottleSpeed * ( -1.0 )
                               * std::sin( this->zAngle )
                             );
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
@@ -538,13 +550,13 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
                if( entity.getCoordinates().y() < 0.08 * std::sin( this->xYAngle ) * ( entity.getMesh().getDimensions().y() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->cavitySpeed
+                              this->horizontalThrottleSpeed
                               * std::sin( this->zAngle )
                             );
                if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->cavitySpeed * ( -1.0 )
+                              this->horizontalThrottleSpeed * ( -1.0 )
                               * std::sin( this->zAngle )
                             );
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
@@ -599,13 +611,13 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
                if( entity.getCoordinates().x() < 0.08 * std::sin( this->xYAngle ) * ( entity.getMesh().getDimensions().x() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->cavitySpeed
+                              this->horizontalThrottleSpeed
                               * std::sin( this->zAngle )
                             );
                if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->cavitySpeed
+                              this->horizontalThrottleSpeed
                               * std::sin( this->zAngle )
                             );
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
@@ -657,13 +669,13 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
                if( entity.getCoordinates().x() < 0.08 * std::cos( this->xYAngle ) * ( entity.getMesh().getDimensions().x() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->cavitySpeed * ( -1.0 )
+                              this->horizontalThrottleSpeed * ( -1.0 )
                               * std::sin( this->zAngle )
                             );
                if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->cavitySpeed * ( -1.0 )
+                              this->horizontalThrottleSpeed * ( -1.0 )
                               * std::sin( this->zAngle )
                             );
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
@@ -679,7 +691,7 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
               )
                return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                       * ( 
-                        this->cavitySpeed
+                        this->verticalThrottleSpeed
                         );
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
@@ -779,9 +791,14 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
          this->pressure = pressure;
       }
 
-      void setCavitySpeed(const RealType cavitySpeed)
+      void setHorizontalThrottleSpeed(const RealType horizontalThrottleSpeed)
       {
-         this->cavitySpeed = cavitySpeed;
+         this->horizontalThrottleSpeed = horizontalThrottleSpeed;
+      }
+
+      void setVerticalThrottleSpeed(const RealType verticalThrottleSpeed)
+      {
+         this->verticalThrottleSpeed = verticalThrottleSpeed;
       }
 
       void setZAngle(const RealType zAngle)
@@ -798,7 +815,8 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
    private:
       CompressibleConservativeVariablesPointer compressibleConservativeVariables;
       RealType timestep;
-      RealType cavitySpeed;
+      RealType horizontalThrottleSpeed;
+      RealType verticalThrottleSpeed;
       RealType gamma;
       MeshFunctionPointer pressure;
       RealType zAngle;

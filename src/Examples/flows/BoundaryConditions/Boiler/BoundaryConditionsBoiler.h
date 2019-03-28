@@ -99,6 +99,22 @@ class BoundaryConditionsBoiler
          this->energyBoundaryConditionsPointer->setCavitySpeed(cavitySpeed);
       }
 
+      void setHorizontalThrottleSpeed(const RealType startSpeed,
+                                      const RealType finalSpeed,
+                                      const RealType time,
+                                      const RealType finalTime )
+      {
+
+      }
+
+      void setVerticalThrottleSpeed(const RealType startSpeed,
+                                    const RealType finalSpeed,
+                                    const RealType time,
+                                    const RealType finalTime )
+      {
+
+      }
+
       DensityBoundaryConditionsTypePointer& getDensityBoundaryCondition()
       {
          return this->densityBoundaryConditionsPointer;
