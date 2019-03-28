@@ -125,8 +125,8 @@ class BoundaryConditionsBoilerModel
       {
          RealType horizontalThrottleSpeed = 0;
          if(time <= finalTime)
-            if( time != 0 || finalTime != 0 )
-               horizontalThrottleSpeed = startSpeed + ( finalSpeed - startSpeed ) / ( time / finalTime );
+            if( time != 0 && finalTime != 0 )
+               horizontalThrottleSpeed = startSpeed + ( finalSpeed - startSpeed ) * ( time / finalTime );
             else
                horizontalThrottleSpeed = 0;
          else
@@ -144,8 +144,8 @@ class BoundaryConditionsBoilerModel
       {
          RealType verticalThrottleSpeed = 0;
          if(time <= finalTime)
-            if( time != 0 || finalTime != 0 )
-               verticalThrottleSpeed = startSpeed + ( finalSpeed - startSpeed ) / ( time / finalTime );
+            if( time != 0 && finalTime != 0 )
+               verticalThrottleSpeed = startSpeed + ( finalSpeed - startSpeed ) * ( time / finalTime );
             else
                verticalThrottleSpeed = 0;
          else
