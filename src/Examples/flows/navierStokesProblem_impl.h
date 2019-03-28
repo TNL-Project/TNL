@@ -78,6 +78,8 @@ setup( const Config::ParameterContainer& parameters,
        ! this->rightHandSidePointer->setup( parameters, prefix + "right-hand-side-" ) )
       return false;
    this->gamma = parameters.getParameter< double >( "gamma" );
+   this->startSpeed = parameters.getParameter< double >( "start-speed" );
+   this->finalSpeed = parameters.getParameter< double >( "final-speed" );
    velocity->setMesh( this->getMesh() );
    pressure->setMesh( this->getMesh() );
 
@@ -351,6 +353,8 @@ applyBoundaryConditions( const RealType& time,
     this->boundaryConditionPointer->setCompressibleConservativeVariables(this->conservativeVariables);
     this->boundaryConditionPointer->setGamma(this->gamma);
     this->boundaryConditionPointer->setPressure(this->pressure);
+    this->boundaryConditionPointer->setVerticalThrottleSpeed( startSpeed, finalSpeed, time, speedIncrementUntil );
+    this->boundaryConditionPointer->setHorizontalThrottleSpeed( startSpeed, finalSpeed, time, speedIncrementUntil );
     /****
      * Bind DOFs
      */
