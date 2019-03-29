@@ -80,6 +80,10 @@ setup( const Config::ParameterContainer& parameters,
    this->gamma = parameters.getParameter< double >( "gamma" );
    this->startSpeed = parameters.getParameter< double >( "start-speed" );
    this->finalSpeed = parameters.getParameter< double >( "final-speed" );
+   this->speedIncrementUntil = parameters.getParameter< RealType >( "speed-increment-until" );
+   this->startSpeedHThrottle = parameters.getParameter< double >( "start-speed-h-throttle" );
+   this->finalSpeedHThrottle = parameters.getParameter< double >( "final-speed-h-throttle" );
+   this->speedIncrementUntilHThrottle = parameters.getParameter< RealType >( "speed-increment-until-h-throttle" );
    velocity->setMesh( this->getMesh() );
    pressure->setMesh( this->getMesh() );
 
@@ -354,7 +358,7 @@ applyBoundaryConditions( const RealType& time,
     this->boundaryConditionPointer->setGamma(this->gamma);
     this->boundaryConditionPointer->setPressure(this->pressure);
     this->boundaryConditionPointer->setVerticalThrottleSpeed( startSpeed, finalSpeed, time, speedIncrementUntil );
-    this->boundaryConditionPointer->setHorizontalThrottleSpeed( startSpeed, finalSpeed, time, speedIncrementUntil );
+    this->boundaryConditionPointer->setHorizontalThrottleSpeed( startSpeedHThrottle, finalSpeedHThrottle, time, speedIncrementUntilHThrottle );
     /****
      * Bind DOFs
      */
