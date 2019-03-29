@@ -126,7 +126,10 @@ class navierStokesProblem:
       RealType cavitySpeed;
       RealType speedIncrementUntil;
       RealType finalSpeed;
-      RealType startSpeed;         
+      RealType startSpeed;
+      RealType speedIncrementUntilHThrottle;
+      RealType finalSpeedHThrottle;
+      RealType startSpeedHThrottle;           
 };
 
 } // namespace TNL

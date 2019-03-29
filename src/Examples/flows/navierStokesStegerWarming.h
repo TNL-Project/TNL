@@ -52,6 +52,9 @@ template< typename ConfigTag >class navierStokesConfig
          config.addEntry< double >( "speed-increment-until", "This sets time until input speed will rose", -0.1 );
          config.addEntry< double >( "start-speed", "This sets throttle speed at begining", 0.0 );
          config.addEntry< double >( "final-speed", "This sets speed at destined time", 0.0 );
+         config.addEntry< double >( "speed-increment-until-h-throttle", "This sets time until input speed will rose for horizontal throttle", -0.1 );
+         config.addEntry< double >( "start-speed-h-throttle", "This sets throttle speed at begining for horizontal throttle", 0.0 );
+         config.addEntry< double >( "final-speed-h-throttle", "This sets speed at destined time for horizontal throttle", 0.0 );
          config.addEntry< double >( "cavity-speed", "This sets speed parameter of cavity", 0.0 );
          typedef Meshes::Grid< 3 > Mesh;
          StegerWarming< Mesh >::configSetup( config, "inviscid-operators-" );
