@@ -238,20 +238,24 @@ makeSnapshot( const RealType& time,
    fileName.setExtension( "tnl" );
    fileName.setIndex( step );
    fileName.setFileNameBase( "density-" );
-   if( ! this->conservativeVariables->getDensity()->save( fileName.getFileName() ) )
-      return false;
+//   if( ! this->conservativeVariables->getDensity()->save( fileName.getFileName() ) )
+   this->conservativeVariables->getDensity()->save( fileName.getFileName() );
+//      return false;
    
    fileName.setFileNameBase( "velocity-" );
-   if( ! this->velocity->save( fileName.getFileName() ) )
-      return false;
+//   if( ! this->velocity->save( fileName.getFileName() ) )
+   this->velocity->save( fileName.getFileName() );
+//      return false;
 
    fileName.setFileNameBase( "pressure-" );
-   if( ! this->pressure->save( fileName.getFileName() ) )
-      return false;
+//   if( ! this->pressure->save( fileName.getFileName() ) )
+   this->pressure->save( fileName.getFileName() );
+//      return false;
 
    fileName.setFileNameBase( "energy-" );
-   if( ! this->conservativeVariables->getEnergy()->save( fileName.getFileName() ) )
-      return false;
+//   if( ! this->conservativeVariables->getEnergy()->save( fileName.getFileName() ) )
+   this->conservativeVariables->getEnergy()->save( fileName.getFileName() );
+//      return false;
    return true;
 }
 
