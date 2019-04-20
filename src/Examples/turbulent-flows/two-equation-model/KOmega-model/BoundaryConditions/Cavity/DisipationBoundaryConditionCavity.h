@@ -128,8 +128,7 @@ class DisipationBoundaryConditionsCavity< Meshes::Grid< 1, MeshReal, Device, Mes
       const auto& neighborEntities = entity.getNeighborEntities();
       const IndexType& index = entity.getIndex();
       if( entity.getCoordinates().x() == 0 )
-         return this->turbulenceConstant 
-                * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+         return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                 / this->lengthScale;
       else
          return u[ neighborEntities.template getEntityIndex< -1 >() ];   
@@ -290,9 +289,8 @@ class DisipationBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, Mes
          // The following line is commented to avoid compiler warning
          //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
-            return this->turbulenceConstant 
-                   * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
-                   / this->lengthScale;
+            return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
+                      / this->lengthScale;
          }         
       }
 
@@ -469,8 +467,7 @@ class DisipationBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, Mes
          // The following line is commented to avoid compiler warning
          //if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
          {
-            return this->turbulenceConstant 
-                   * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+            return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                    / this->lengthScale;
          }   
       }
