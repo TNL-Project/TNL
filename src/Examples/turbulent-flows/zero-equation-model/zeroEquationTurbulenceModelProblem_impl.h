@@ -21,6 +21,7 @@
 #include "CompressibleConservativeVariables.h"
 #include "PhysicalVariablesGetter.h"
 #include "zeroEquationTurbulenceModelProblem.h"
+#include "Getter.h"
 
 namespace TNL {
 
@@ -287,7 +288,8 @@ getExplicitUpdate( const RealType& time,
     PhysicalVariablesGetter< typename MeshPointer::ObjectType > physicalVariables;
     physicalVariables.getVelocity( this->conservativeVariables, this->velocity );
     physicalVariables.getPressure( this->conservativeVariables, this->gamma, this->pressure );
-    physicalVariables.getTurbulentViscocsity( this->conservativeVariables, this->velocity, this->mixingLength, this->turbulentViscosity );
+    TurbulentViscosityGetter< typename MeshPointer::ObjectType > turbViscosity;
+    turbViscosity.getTurbulentViscocsity( this->conservativeVariables, this->velocity, this->mixingLength, this->turbulentViscosity );
 
    /****
     * Set-up operators

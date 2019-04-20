@@ -15,7 +15,6 @@
 #include <TNL/Functions/VectorField.h>
 #include <TNL/Functions/MeshFunctionEvaluator.h>
 #include "CompressibleConservativeVariables.h"
-#include "turbulentViscosityGetter.h"
 
 namespace TNL {
    
@@ -116,19 +115,7 @@ class PhysicalVariablesGetter
                                                                      conservativeVariables->getMomentum(),
                                                                      gamma );
          evaluator.evaluate( pressure, pressureGetter );
-      }
-
-      void getTurbulentViscocsity( const ConservativeVariablesPointer& conservativeVariables,
-                                   VelocityFieldPointer& velocity,
-                                   const RealType& mixingLength,
-                                   MeshFunctionPointer& turbulentViscosity )
-      {
-         Functions::MeshFunctionEvaluator< MeshFunctionType, TurbulentViscosityGetter < MeshType > > evaluator;
-         Pointers::SharedPointer< TurbulentViscosityGetter < MeshType >, DeviceType > turbulentViscosityGetter( conservativeVariables->getDensity(),
-                                                                                                                velocity,
-                                                                                                                mixingLength );
-         evaluator.evaluate( turbulentViscosity, turbulentViscosityGetter );
-      }      
+      }    
 };
    
 } //namespace TNL
