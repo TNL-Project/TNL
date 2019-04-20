@@ -1287,7 +1287,7 @@ class RiemannProblemInitialCondition
                this->NWUEnergy = Energy( NWUDensity, NWUPressure, gamma, NWUVelocity); 
                this->NWUMomentum = NWUVelocity * NWUDensity;
                this->NWUTurbulentEnergy = this->NWUDensity * TurbulentEnergy( NWUVelocity, this->intensity);
-               this->NWUDisipation = this->turbulenceConstant * std::pow( NWUTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+               this->NWUDisipation = std::sqrt(NWUTurbulentEnergy) / this->lengthScale;
 
                this->SWUDensity = parameters.getParameter< RealType >( prefix + "SWU-density" );
                this->SWUVelocity.setup( parameters, prefix + "SWU-velocity-" );
@@ -1295,7 +1295,7 @@ class RiemannProblemInitialCondition
                this->SWUEnergy = Energy( SWUDensity, SWUPressure, gamma, SWUVelocity);
                this->SWUMomentum = SWUVelocity * SWUDensity;
                this->SWUTurbulentEnergy = SWUDensity * TurbulentEnergy( SWUVelocity, this->intensity);
-               this->SWUDisipation = this->turbulenceConstant * std::pow( SWUTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+               this->SWUDisipation = std::sqrt(SWDTurbulentEnergy) / this->lengthScale;
 
                this->NWDDensity = parameters.getParameter< RealType >( prefix + "NWD-density" );
                this->NWDVelocity.setup( parameters, prefix + "NWD-velocity-" );
@@ -1303,7 +1303,7 @@ class RiemannProblemInitialCondition
                this->NWDEnergy = Energy( NWDDensity, NWDPressure, gamma, NWDVelocity);
                this->NWDMomentum = NWDVelocity * NWDDensity;
                this->NWDTurbulentEnergy = NWDDensity * TurbulentEnergy( NWDVelocity, this->intensity);
-               this->NWDDisipation = this->turbulenceConstant * std::pow( NWDTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+               this->NWDDisipation = std::sqrt(NWDTurbulentEnergy) / this->lengthScale;
 
                this->SWDDensity = parameters.getParameter< RealType >( prefix + "SWD-density" );
                this->SWDVelocity.setup( parameters, prefix + "SWD-velocity-" );
@@ -1311,7 +1311,7 @@ class RiemannProblemInitialCondition
                this->SWDEnergy = Energy( SWDDensity, SWDPressure, gamma, SWDVelocity);
                this->SWDMomentum = SWDVelocity * SWDDensity;
                this->SWDTurbulentEnergy = SWDDensity * TurbulentEnergy( SWDVelocity, this->intensity);
-               this->SWDDisipation = this->turbulenceConstant * std::pow( SWDTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+               this->SWDDisipation = std::sqrt(SWDTurbulentEnergy) / this->lengthScale;
 
                this->NEUDensity = parameters.getParameter< RealType >( prefix + "NEU-density" );
                this->NEUVelocity.setup( parameters, prefix + "NEU-velocity-" );
@@ -1319,7 +1319,7 @@ class RiemannProblemInitialCondition
                this->NEUEnergy = Energy( NEUDensity, NEUPressure, gamma, NEUVelocity);
                this->NEUMomentum = NEUVelocity * NEUDensity;
                this->NEUTurbulentEnergy = NEUDensity * TurbulentEnergy( NEUVelocity, this->intensity);
-               this->NEUDisipation = this->turbulenceConstant * std::pow( NEUTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+               this->NEUDisipation = std::sqrt(NEUTurbulentEnergy) / this->lengthScale;
 
                this->SEUDensity = parameters.getParameter< RealType >( prefix + "SEU-density" );
                this->SEUVelocity.setup( parameters, prefix + "SEU-velocity-" );
@@ -1327,7 +1327,7 @@ class RiemannProblemInitialCondition
                this->SEUEnergy = Energy( SEUDensity, SEUPressure, gamma, SEUVelocity);
                this->SEUMomentum = SEUVelocity * SEUDensity;
                this->SEUTurbulentEnergy = SEUDensity * TurbulentEnergy( SEUVelocity, this->intensity);
-               this->SEUDisipation = this->turbulenceConstant * std::pow( SEUTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+               this->SEUDisipation = std::sqrt(SEUTurbulentEnergy) / this->lengthScale;
 
                this->NEDDensity = parameters.getParameter< RealType >( prefix + "NED-density" );
                this->NEDVelocity.setup(parameters, prefix + "NED-velocity-" );
@@ -1335,7 +1335,7 @@ class RiemannProblemInitialCondition
                this->NEDEnergy = Energy( NEDDensity, NEDPressure, gamma, NEDVelocity);
                this->NEDMomentum = NEDVelocity * NEDDensity;
                this->NEDTurbulentEnergy = NEDDensity * TurbulentEnergy( NEDVelocity, this->intensity);
-               this->NEDDisipation = this->turbulenceConstant * std::pow( NEDTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+               this->NEDDisipation = std::sqrt(NEDTurbulentEnergy) / this->lengthScale;
 
                this->SEDDensity = parameters.getParameter< RealType >( prefix + "SED-density" );
                this->SEDVelocity.setup( parameters, prefix + "SED-velocity-" );
@@ -1343,7 +1343,7 @@ class RiemannProblemInitialCondition
                this->SEDEnergy = Energy( SEDDensity, SEDPressure, gamma, SEDVelocity);
                this->SEDMomentum = SEDVelocity * SEDDensity;
                this->SEDTurbulentEnergy = SEDDensity * TurbulentEnergy( SEDVelocity, this->intensity);
-               this->SEDDisipation = this->turbulenceConstant * std::pow( SEDTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+               this->SEDDisipation = std::sqrt(SEDTurbulentEnergy) / this->lengthScale;
            }
          if(initial == prefix + "1D_2")
            predefinedInitialCondition( 1.4, 0.5, 0.0, 0.0, // double preGamma,       double preDiscX,       double preDiscY,       double preDiscZ,
@@ -1644,7 +1644,7 @@ class RiemannProblemInitialCondition
          this->NWUEnergy = Energy( NWUDensity, NWUPressure, gamma, NWUVelocity); 
          this->NWUMomentum = NWUVelocity * NWUDensity;
          this->NWUTurbulentEnergy = NWUDensity * TurbulentEnergy( NWUVelocity, this->intensity);
-         this->NWUDisipation = this->turbulenceConstant * std::pow( NWUTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+         this->NWUDisipation = std::sqrt(NWUTurbulentEnergy) / this->lengthScale;
 
          this->SWUDensity = preNWUDensity;
          this->SWUVelocity = PointLoad(preSWUVelocityX, preSWUVelocityY, preSWUVelocityZ);
@@ -1652,7 +1652,7 @@ class RiemannProblemInitialCondition
          this->SWUEnergy = Energy( SWUDensity, SWUPressure, gamma, SWUVelocity);
          this->SWUMomentum = SWUVelocity * SWUDensity;
          this->SWUTurbulentEnergy = SWUDensity * TurbulentEnergy( SWUVelocity, this->intensity);
-         this->SWUDisipation = this->turbulenceConstant * std::pow( SWUTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+         this->SWUDisipation = std::sqrt(SWUTurbulentEnergy) / this->lengthScale;
 
          this->NWDDensity = preNWDDensity;
          this->NWDVelocity = PointLoad(preNWDVelocityX, preNWDVelocityY, preNWDVelocityZ);
@@ -1660,7 +1660,7 @@ class RiemannProblemInitialCondition
          this->NWDEnergy = Energy( NWDDensity, NWDPressure, gamma, NWDVelocity); 
          this->NWDMomentum = NWDVelocity * NWDDensity;
          this->NWDTurbulentEnergy = NWDDensity * TurbulentEnergy( NWDVelocity, this->intensity);
-         this->NWDDisipation = this->turbulenceConstant * std::pow( NWDTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+         this->NWDDisipation = std::sqrt(NWDTurbulentEnergy) / this->lengthScale;
 
          this->SWDDensity = preSWDDensity;
          this->SWDVelocity = PointLoad(preSWDVelocityX, preSWDVelocityY, preSWDVelocityZ);
@@ -1668,7 +1668,7 @@ class RiemannProblemInitialCondition
          this->SWDEnergy = Energy( SWDDensity, SWDPressure, gamma, SWDVelocity); 
          this->SWDMomentum = SWDVelocity * SWDDensity;
          this->SWDTurbulentEnergy = SWDDensity * TurbulentEnergy( SWDVelocity, this->intensity);
-         this->SWDDisipation = this->turbulenceConstant * std::pow( SWDTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+         this->SWDDisipation = std::sqrt(SWDTurbulentEnergy) / this->lengthScale;
 
          this->NEUDensity = preNEUDensity;
          this->NEUVelocity = PointLoad(preNEUVelocityX, preNEUVelocityY, preNEUVelocityZ);
@@ -1676,7 +1676,7 @@ class RiemannProblemInitialCondition
          this->NEUEnergy = Energy( NEUDensity, NEUPressure, gamma, NEUVelocity); 
          this->NEUMomentum = NEUVelocity * NEUDensity;
          this->NEUTurbulentEnergy = NEUDensity * TurbulentEnergy( NEUVelocity, this->intensity);
-         this->NEUDisipation = this->turbulenceConstant * std::pow( NEUTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+         this->NEUDisipation = std::sqrt(NEUTurbulentEnergy) / this->lengthScale;
 
          this->SEUDensity = preSEUDensity;
          this->SEUVelocity = PointLoad(preSEUVelocityX, preSEUVelocityY, preSEUVelocityZ);
@@ -1684,7 +1684,7 @@ class RiemannProblemInitialCondition
          this->SEUEnergy = Energy( SEUDensity, SEUPressure, gamma, SEUVelocity); 
          this->SEUMomentum = SEUVelocity * SEUDensity;
          this->SEUTurbulentEnergy = TurbulentEnergy( SEUVelocity, this->intensity);
-         this->SEUDisipation = this->turbulenceConstant * std::pow( SEUTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+         this->SEUDisipation = std::sqrt(SEUTurbulentEnergy) / this->lengthScale;
 
          this->NEDDensity = preNEDDensity;
          this->NEDVelocity = PointLoad(preNEDVelocityX, preNEDVelocityY, preNEDVelocityZ);
@@ -1692,7 +1692,7 @@ class RiemannProblemInitialCondition
          this->NEDEnergy = Energy( NEDDensity, NEDPressure, gamma, NEDVelocity); 
          this->NEDMomentum = NEDVelocity * NEDDensity;
          this->NEDTurbulentEnergy = NEDDensity * TurbulentEnergy( NEDVelocity, this->intensity);
-         this->NEDDisipation = this->turbulenceConstant * std::pow( NEDTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+         this->NEDDisipation = std::sqrt(NEDTurbulentEnergy) / this->lengthScale;
 
          this->SEDDensity = preSEDDensity;
          this->SEDVelocity = PointLoad(preSEDVelocityX, preSEDVelocityY, preSEDVelocityZ);
@@ -1700,7 +1700,7 @@ class RiemannProblemInitialCondition
          this->SEDEnergy = Energy( SEDDensity, SEDPressure, gamma, SEDVelocity); 
          this->SEDMomentum = SEDVelocity * SEDDensity;
          this->SEDTurbulentEnergy = SEDDensity * TurbulentEnergy( SEDVelocity, this->intensity);
-         this->SEDDisipation = this->turbulenceConstant * std::pow( SEDTurbulentEnergy, (3.0 / 2.0 ) ) / this->lengthScale;
+         this->SEDDisipation = std::sqrt(SEDTurbulentEnergy) / this->lengthScale;
  
       }
 
