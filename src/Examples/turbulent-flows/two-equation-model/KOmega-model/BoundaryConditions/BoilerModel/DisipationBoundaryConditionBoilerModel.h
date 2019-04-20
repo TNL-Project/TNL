@@ -129,8 +129,7 @@ class DisipationBoundaryConditionsBoilerModel< Meshes::Grid< 1, MeshReal, Device
       const auto& neighborEntities = entity.getNeighborEntities();
       const IndexType& index = entity.getIndex();
       if( entity.getCoordinates().x() == 0 )
-         return this->turbulenceConstant 
-                * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+         return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                 / this->lengthScale;
       else
          return u[ neighborEntities.template getEntityIndex< -1 >() ];   
@@ -337,8 +336,7 @@ class DisipationBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device
               )
 // throttle Disipation
                {
-                  return this->turbulenceConstant 
-                         * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+                  return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                          / this->lengthScale;
                }
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
@@ -385,8 +383,7 @@ class DisipationBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device
               )
 // throttle Disipation
                {
-               return this->turbulenceConstant 
-                      * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                       / this->lengthScale;
                }
 // if for chimney exit     
@@ -397,7 +394,8 @@ class DisipationBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device
             if( ( entity.getCoordinates().x() < 0.592 * ( entity.getMesh().getDimensions().x() - 1 ) )
               &&
                 ( entity.getCoordinates().x() > 0.408 * ( entity.getMesh().getDimensions().x() - 1 ) ) ) 
-               return 2.0/3.0 * this->intensity * this->intensity * this->verticalThrottleSpeed * this->verticalThrottleSpeed;
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->verticalThrottleSpeed * this->verticalThrottleSpeed ) )
+                      / this->lengthScale;
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
          // The following line is commented to avoid compiler warning
@@ -619,12 +617,10 @@ const RealType operator()( const MeshFunction& u,
 // if for y axis
                {
                if( entity.getCoordinates().y() < 0.08 * std::cos( this->xYAngle ) * ( entity.getMesh().getDimensions().y() - 1 ) )
-                  return this->turbulenceConstant 
-                         * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+                  return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                          / this->lengthScale;
                if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
-                  return this->turbulenceConstant 
-                         * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+                  return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                          / this->lengthScale;
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
                }
@@ -673,12 +669,10 @@ const RealType operator()( const MeshFunction& u,
 // if for y axis
                {
                if( entity.getCoordinates().y() < 0.08 * std::sin( this->xYAngle ) * ( entity.getMesh().getDimensions().y() - 1 ) )
-                  return this->turbulenceConstant 
-                         * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+                  return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                          / this->lengthScale;
                if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
-                  return this->turbulenceConstant 
-                         * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+                  return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                          / this->lengthScale;
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
 // if for chimney exit
@@ -728,12 +722,10 @@ const RealType operator()( const MeshFunction& u,
 // if for x axis
                {
                if( entity.getCoordinates().x() < 0.08 * std::sin( this->xYAngle ) * ( entity.getMesh().getDimensions().x() - 1 ) )
-                  return this->turbulenceConstant 
-                         * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+                  return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                          / this->lengthScale;
                if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
-                  return this->turbulenceConstant 
-                         * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+                  return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                          / this->lengthScale;
                
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
@@ -783,12 +775,10 @@ const RealType operator()( const MeshFunction& u,
 // if for x axis
               {
                if( entity.getCoordinates().x() < 0.08 * std::cos( this->xYAngle ) * ( entity.getMesh().getDimensions().x() - 1 ) )
-                  return this->turbulenceConstant 
-                         * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+                  return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                          / this->lengthScale;
                if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
-                  return this->turbulenceConstant 
-                         * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
+                  return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ) )
                          / this->lengthScale;
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
               }
@@ -798,9 +788,8 @@ const RealType operator()( const MeshFunction& u,
          {
             if( ( entity.getCoordinates().y() < 0.592 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.408 * ( entity.getMesh().getDimensions().y() - 1 ) ) )
 //              &&( entity.getCoordinates().y() < 0.6 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.4 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
-               return this->turbulenceConstant 
-                         * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->horizontalThrottleSpeed * this->horizontalThrottleSpeed ), ( 3.0 / 2.0 ) )
-                         / this->lengthScale;
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->verticalThrottleSpeed * this->verticalThrottleSpeed ) )
+                      / this->lengthScale;
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];

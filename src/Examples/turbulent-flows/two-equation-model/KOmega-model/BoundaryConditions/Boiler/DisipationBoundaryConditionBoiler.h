@@ -129,8 +129,7 @@ class DisipationBoundaryConditionsBoiler< Meshes::Grid< 1, MeshReal, Device, Mes
       const auto& neighborEntities = entity.getNeighborEntities();
       const IndexType& index = entity.getIndex();
       if( entity.getCoordinates().x() == 0 )
-         return this->turbulenceConstant 
-                * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+         return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                 / this->lengthScale;
       else
          return u[ neighborEntities.template getEntityIndex< -1 >() ];   
@@ -279,8 +278,7 @@ class DisipationBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, Mes
          if( entity.getCoordinates().x() == 0 )
          {
             if( ( entity.getCoordinates().y() < 0.20 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.19 * ( entity.getMesh().getDimensions().y() - 1 ) ) )
-               return this->turbulenceConstant 
-                      * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                       / this->lengthScale;
             else 
                return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
@@ -304,8 +302,7 @@ class DisipationBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, Mes
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
             if( ( entity.getCoordinates().y() < 0.20 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.19 * ( entity.getMesh().getDimensions().y() - 1 ) ) ) 
-               return this->turbulenceConstant 
-                      * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                       / this->lengthScale;
             else if( entity.getCoordinates().y() > 0.8 * ( entity.getMesh().getDimensions().y() - 1 ) && false )
                return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
@@ -330,8 +327,7 @@ class DisipationBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, Mes
          if( entity.getCoordinates().y() == 0 )
          {
             if( ( entity.getCoordinates().x() < 0.6 * ( entity.getMesh().getDimensions().x() - 1 ) ) && ( entity.getCoordinates().x() > 0.4 * ( entity.getMesh().getDimensions().x() - 1 ) ) ) 
-               return this->turbulenceConstant 
-                      * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                       / this->lengthScale;
             else 
                return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
@@ -527,8 +523,7 @@ class DisipationBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, Mes
          {
             if( ( entity.getCoordinates().y() < 0.59 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.39 * ( entity.getMesh().getDimensions().y() - 1 ) )
               &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
-               return this->turbulenceConstant 
-                      * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                       / this->lengthScale;
             else 
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
@@ -537,8 +532,7 @@ class DisipationBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, Mes
          {
             if( ( entity.getCoordinates().y() < 0.59 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.39 * ( entity.getMesh().getDimensions().y() - 1 ) )
               &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
-               return this->turbulenceConstant 
-                      * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                       / this->lengthScale;
             else if( entity.getCoordinates().y() >0.8 * ( entity.getMesh().getDimensions().y() - 1 ) )
                return u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ];
@@ -549,8 +543,7 @@ class DisipationBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, Mes
          {
             if( ( entity.getCoordinates().x() < 0.59 * ( entity.getMesh().getDimensions().x() - 1 ) ) && ( entity.getCoordinates().x() > 0.39 * ( entity.getMesh().getDimensions().x() - 1 ) )
               &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
-               return this->turbulenceConstant 
-                      * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                       / this->lengthScale;
             else 
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
@@ -559,8 +552,7 @@ class DisipationBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, Mes
          {
             if( ( entity.getCoordinates().x() < 0.59 * ( entity.getMesh().getDimensions().x() - 1 ) ) && ( entity.getCoordinates().x() > 0.39 * ( entity.getMesh().getDimensions().x() - 1 ) )
               &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
-               return this->turbulenceConstant 
-                      * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                       / this->lengthScale;
             else 
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
@@ -569,8 +561,7 @@ class DisipationBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, Mes
          {
             if( ( entity.getCoordinates().x() < 0.6 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.4 * ( entity.getMesh().getDimensions().y() - 1 ) )
               &&( entity.getCoordinates().y() < 0.6 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.4 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
-               return this->turbulenceConstant 
-                      * std::pow( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ), ( 3.0 / 2.0 ) )
+               return std::sqrt( ( 2.0/3.0 * this->intensity * this->intensity * this->cavitySpeed * this->cavitySpeed ) )
                       / this->lengthScale;
                
             else 

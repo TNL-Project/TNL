@@ -98,7 +98,7 @@ class PhysicalVariablesGetter
             typedef typename MeshType::RealType RealType;
             
             TurbulentEnergyGetter( MeshFunctionPointer density,
-                            MeshFunctionPointer turbulentEnergyXDensity )
+                                   MeshFunctionPointer turbulentEnergyXDensity )
             : density( density ), turbulentEnergyXDensity( turbulentEnergyXDensity ) {}
             
             template< typename EntityType >
@@ -147,11 +147,9 @@ class PhysicalVariablesGetter
          public:
             typedef typename MeshType::RealType RealType;
             
-            TurbulentViscosityGetter( MeshFunctionPointer density,
-                                      MeshFunctionPointer turbulentEnergy,
-                                      RealType turbulenceConstant,
+            TurbulentViscosityGetter( MeshFunctionPointer turbulentEnergy,
                                       MeshFunctionPointer disipation )
-            : density( density ), turbulentEnergy( turbulentEnergy ), turbulenceConstant( turbulenceConstant ), disipation( disipation ) {}
+            :turbulentEnergy( turbulentEnergy ), disipation( disipation ) {}
             
             template< typename EntityType >
             __cuda_callable__
@@ -161,15 +159,12 @@ class PhysicalVariablesGetter
                if( disipation.template getData< DeviceType >()( meshEntity ) == 0.0 )
                   return 0;
                else
-                  return density.template getData< DeviceType >()( meshEntity ) * turbulenceConstant 
-                       * turbulentEnergy.template getData< DeviceType >()( meshEntity )
-                       * turbulentEnergy.template getData< DeviceType >()( meshEntity )
+                  return turbulentEnergy.template getData< DeviceType >()( meshEntity )
                        / disipation.template getData< DeviceType >()( meshEntity );
             }
             
          protected:
-            const MeshFunctionPointer density, turbulentEnergy, disipation;
-            const RealType turbulenceConstant;
+            const MeshFunctionPointer disipation, turbulentEnergy;
       };      
 
       
@@ -221,18 +216,14 @@ class PhysicalVariablesGetter
          }
       }
 
-      void getTurbulentViscosity( const ConservativeVariablesPointer& conservativeVariables,
-                                        MeshFunctionPointer& turbulentEnergy_no_rho,
+      void getTurbulentViscosity(       MeshFunctionPointer& turbulentEnergy_no_rho,
                                         MeshFunctionPointer& disipation_no_rho,
-                                  const RealType& turbulenceConstant,
                                         MeshFunctionPointer& turbulentViscosity )
       {
          Functions::MeshFunctionEvaluator< MeshFunctionType, TurbulentViscosityGetter > evaluator;
          for( int i = 0; i < Dimensions; i++ )
          {
-            Pointers::SharedPointer< TurbulentViscosityGetter, DeviceType > turbulentViscosityGetter( conservativeVariables->getDensity(),
-                                                                                                      turbulentEnergy_no_rho,
-                                                                                                      turbulenceConstant,
+            Pointers::SharedPointer< TurbulentViscosityGetter, DeviceType > turbulentViscosityGetter( turbulentEnergy_no_rho,
                                                                                                       disipation_no_rho);
             evaluator.evaluate( turbulentViscosity, turbulentViscosityGetter );
          }

@@ -315,7 +315,7 @@ getExplicitUpdate( const RealType& time,
     physicalVariables.getPressure( this->conservativeVariables, this->gamma, this->pressure );
     physicalVariables.getTurbulentEnergy( this->conservativeVariables, this->turbulentEnergy );
     physicalVariables.getDisipation( this->conservativeVariables, this->disipation );
-//    physicalVariables.getTurbulentViscosity( this->conservativeVariables, this->turbulentEnergy, this->disipation, this->turbulenceConstant, this->turbulentViscosity );
+    physicalVariables.getTurbulentViscosity( this->turbulentEnergy, this->disipation, this->turbulentViscosity );
 
    /****
     * Set-up operators
