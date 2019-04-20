@@ -9,6 +9,7 @@ add_subdirectory( transport-equation )
 #add_subdirectory( inviscid-flow-vl )
 #add_subdirectory( mean-curvature-flow )
 add_subdirectory( flows )
+add_subdirectory( turbulent-flows )
 
 
 ADD_EXECUTABLE( ConfigDescriptionExample ConfigDescriptionExample.cpp )
