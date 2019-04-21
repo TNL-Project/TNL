@@ -65,7 +65,12 @@ class LaxFridrichsEnergyBase
       void setArtificialViscosity( const RealType& artificialViscosity )
       {
          this->artificialViscosity = artificialViscosity;
-      }      
+      }
+
+      void setDensity( const MeshFunctionPointer& density )
+      {
+          this->rightHandSide.setDensity( density );
+      };      
       
       void setDynamicalViscosity( const RealType& dynamicalViscosity )
       {
