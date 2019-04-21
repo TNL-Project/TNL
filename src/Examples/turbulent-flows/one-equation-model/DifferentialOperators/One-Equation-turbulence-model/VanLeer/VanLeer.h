@@ -165,6 +165,10 @@ class VanLeer
 
       void setTurbulentEnergy( const MeshFunctionPointer& turbulentEnergy )
       {
+         this->momentumXOperatorPointer->setTurbulentEnergy( turbulentEnergy );
+         this->momentumYOperatorPointer->setTurbulentEnergy( turbulentEnergy );
+         this->momentumZOperatorPointer->setTurbulentEnergy( turbulentEnergy );
+         this->energyOperatorPointer->setTurbulentEnergy( turbulentEnergy );
          this->turbulentEnergyOperatorPointer->setTurbulentEnergy( turbulentEnergy );
       }
       

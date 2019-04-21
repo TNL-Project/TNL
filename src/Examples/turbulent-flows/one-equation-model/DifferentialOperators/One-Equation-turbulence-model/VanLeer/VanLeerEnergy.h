@@ -70,6 +70,7 @@ class VanLeerEnergyBase
       void setDensity( const MeshFunctionPointer& density )
       {
           this->density = density;
+	  this->rightHandSide.setDensity(density);
       };
       
       void setArtificialViscosity( const RealType& artificialViscosity )

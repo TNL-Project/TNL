@@ -52,6 +52,7 @@ template< typename ConfigTag >class zeroEquationTurbulenceModelConfig
          config.addEntry< double >( "start-speed-h-throttle", "This sets throttle speed at begining for horizontal throttle", 0.0 );
          config.addEntry< double >( "final-speed-h-throttle", "This sets speed at destined time for horizontal throttle", 0.0 );
          config.addEntry< double >( "cavity-speed", "This sets speed parameter of cavity", 0.0 );
+         config.addEntry< double >( "mixing-length", "Value of characteristic mixing length", 1.0 );
          typedef Meshes::Grid< 3 > Mesh;
          LaxFridrichs< Mesh >::configSetup( config, "inviscid-operators-" );
          RiemannProblemInitialCondition< Mesh >::configSetup( config );
@@ -85,7 +86,6 @@ class zeroEquationTurbulenceModelSetter
 
           typedef flowsRhs< MeshType, Real > RightHandSide;
           typedef Containers::StaticVector < MeshType::getMeshDimension(), Real > Point;
-	  String operatorRightHandSideType = parameters.getParameter< String >( "operator-right-hand-side");
           typedef PrandtlOperatorRightHandSide< MeshType, Real, Index > OperatorRightHandSide;
           typedef LaxFridrichs< MeshType, OperatorRightHandSide, Real, Index > ApproximateOperator;
           typedef Functions::Analytic::Constant< Dimension, Real > Constant;

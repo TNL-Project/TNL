@@ -53,10 +53,11 @@ template< typename ConfigTag >class twoEquationTurbulenceModelConfig
          config.addEntry< double >( "final-speed-h-throttle", "This sets speed at destined time for horizontal throttle", 0.0 );
          config.addEntry< double >( "cavity-speed", "This sets speed parameter of cavity", 0.0 );
          config.addEntry< double >( "turbulence-constant", "Value of turbulence constant", 1.0 );
-         config.addEntry< double >( "viscosity-constant-1", "Value of viscosity constant C_epsilon_1", 1.0 );
-         config.addEntry< double >( "viscosity-constant-2", "Value of viscosity constant C_epsilon_2", 1.0 );
+         config.addEntry< double >( "beta", "Value of viscosity constant beta", 1.0 );
+         config.addEntry< double >( "beta-star", "Value of viscosity constant beta_star", 1.0 );
          config.addEntry< double >( "sigma-k", "Value of sigma constant", 1.0 );
          config.addEntry< double >( "sigma-epsilon", "Value of sigma constant", 1.0 );
+         config.addEntry< double >( "alpha", "Value of alpha constant", 1.0 );
          config.addEntry< double >( "turbulence-intensity", "meassure of turbulence intensity", 1.0 );
          config.addEntry< double >( "turbulence-length-scale", "meassure of turbulence intensity", 1.0 );
          typedef Meshes::Grid< 3 > Mesh;

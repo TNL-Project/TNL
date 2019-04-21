@@ -65,11 +65,13 @@ class VanLeerTurbulentEnergyBase
       void setVelocity( const VelocityFieldPointer& velocity )
       {
           this->velocity = velocity;
+	  this->rightHandSide.setVelocity(velocity);
       };
 
       void setDensity( const MeshFunctionPointer& density )
       {
           this->density = density;
+	  this->rightHandSide.setDensity(density);
       };
 
       void setDynamicalViscosity( const RealType& dynamicalViscosity )
