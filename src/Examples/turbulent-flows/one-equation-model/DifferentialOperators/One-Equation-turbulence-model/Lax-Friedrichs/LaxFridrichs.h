@@ -132,7 +132,11 @@ class LaxFridrichs
       
       void setDensity( const MeshFunctionPointer& density )
       {
-
+         this->momentumXOperatorPointer->setDensity( density );
+         this->momentumYOperatorPointer->setDensity( density );
+         this->momentumZOperatorPointer->setDensity( density );
+         this->energyOperatorPointer->setDensity( density );
+         this->turbulentEnergyOperatorPointer->setDensity( density );
       }
 
       void setTurbulentViscosity( const MeshFunctionPointer& turbulentViscosity )

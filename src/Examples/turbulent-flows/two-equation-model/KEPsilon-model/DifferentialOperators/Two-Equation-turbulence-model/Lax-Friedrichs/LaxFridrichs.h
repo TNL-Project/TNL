@@ -136,9 +136,13 @@ class LaxFridrichs
          this->turbulentEnergyOperatorPointer->setVelocity( velocity );
          this->disipationOperatorPointer->setVelocity( velocity );
       }
-      
+
       void setDensity( const MeshFunctionPointer& density )
       {
+         this->momentumXOperatorPointer->setDensity( density );
+         this->momentumYOperatorPointer->setDensity( density );
+         this->momentumZOperatorPointer->setDensity( density );
+         this->energyOperatorPointer->setDensity( density );
          this->disipationOperatorPointer->setDensity( density );
       }
 

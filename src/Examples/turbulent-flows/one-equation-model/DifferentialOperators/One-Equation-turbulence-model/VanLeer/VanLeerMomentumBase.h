@@ -53,6 +53,7 @@ class VanLeerMomentumBase
       void setDensity( const MeshFunctionPointer& density )
       {
           this->density = density;
+	  this->rightHandSide.setDensity(density);
       };
       
       void setPressure( const MeshFunctionPointer& pressure )
