@@ -90,6 +90,8 @@ setup( const Config::ParameterContainer& parameters,
    this->intensity = parameters.getParameter< double >( "turbulence-intensity" );
    velocity->setMesh( this->getMesh() );
    pressure->setMesh( this->getMesh() );
+   turbulentViscosity->setMesh( this->getMesh() );
+   turbulentEnergy->setMesh( this->getMesh() );
 
    /****
     * Set-up operators
@@ -272,6 +274,11 @@ makeSnapshot( const RealType& time,
 //   if( ! this->conservativeVariables->getEnergy()->save( fileName.getFileName() ) )
    this->conservativeVariables->getEnergy()->save( fileName.getFileName() );
 //      return false;
+
+   fileName.setFileNameBase( "turbulentEnergy-" );
+//   if( ! this->conservativeVariables->getEnergy()->save( fileName.getFileName() ) )
+   this->conservativeVariables->getTurbulentEnergy()->save( fileName.getFileName() );
+//      return false;
    return true;
 }
 
@@ -428,12 +435,13 @@ applyBoundaryConditions( const RealType& time,
     */               
    this->explicitUpdaterEnergy.template applyBoundaryConditions< typename Mesh::Cell >( this->getMesh(), time,
                                                            this->conservativeVariables->getEnergy() ); // uRhoVelocityX,
-   
+  
    /****
     * Turbulent energy equation
     */               
    this->explicitUpdaterTurbulentEnergy.template applyBoundaryConditions< typename Mesh::Cell >( this->getMesh(), time,
                                                            this->conservativeVariables->getTurbulentEnergy() ); // uRhoVelocityX,
+
 
 } 
 

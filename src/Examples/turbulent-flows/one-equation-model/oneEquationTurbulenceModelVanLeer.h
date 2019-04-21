@@ -52,6 +52,10 @@ template< typename ConfigTag >class oneEquationTurbulenceModelConfig
          config.addEntry< double >( "start-speed-h-throttle", "This sets throttle speed at begining for horizontal throttle", 0.0 );
          config.addEntry< double >( "final-speed-h-throttle", "This sets speed at destined time for horizontal throttle", 0.0 );
          config.addEntry< double >( "cavity-speed", "This sets speed parameter of cavity", 0.0 );
+         config.addEntry< double >( "characteristic-length", "Value of characteristic mixing length", 1.0 );
+         config.addEntry< double >( "viscosity-constant", "Value of viscosity constant", 1.0 );
+         config.addEntry< double >( "sigma-k", "Value of sigma constant", 1.0 );
+         config.addEntry< double >( "turbulence-intensity", "meassure of turbulence intensity", 1.0 );
          typedef Meshes::Grid< 3 > Mesh;
          VanLeer< Mesh >::configSetup( config, "inviscid-operators-" );
          RiemannProblemInitialCondition< Mesh >::configSetup( config );

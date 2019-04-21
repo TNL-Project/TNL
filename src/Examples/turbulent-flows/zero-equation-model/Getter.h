@@ -126,13 +126,16 @@ class TurbulentViscosityGetter< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, 
             const RealType rho = this->density.template getData< DeviceType >()( meshEntity );
             const RealType& hxInverse = meshEntity.getMesh().template getSpaceStepsProducts< -1,  0 >();
             const RealType& hyInverse = meshEntity.getMesh().template getSpaceStepsProducts<  0, -1 >();
+           if( ! ( ( ( meshEntity.getCoordinates().x() == 0 ) || ( meshEntity.getCoordinates().x() == meshEntity.getMesh().getDimensions().x() - 1 ) ) 
+                 ||( ( meshEntity.getCoordinates().y() == 0 ) || ( meshEntity.getCoordinates().y() == meshEntity.getMesh().getDimensions().y() - 1 ) ) ) )
+           {
 
             const IndexType& center    = meshEntity.getIndex(); 
             const IndexType& east      = neighborEntities.template getEntityIndex<  1,  0 >(); 
             const IndexType& west      = neighborEntities.template getEntityIndex< -1,  0 >(); 
             const IndexType& north     = neighborEntities.template getEntityIndex<  0,  1 >(); 
             const IndexType& south     = neighborEntities.template getEntityIndex<  0, -1 >();
- 
+
            const RealType& velocity_x_north     = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ north ];
            const RealType& velocity_x_south     = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ south ];
            const RealType& velocity_x_center    = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ center ];
@@ -150,6 +153,8 @@ class TurbulentViscosityGetter< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, 
                   (  ( velocity_x_north - velocity_x_south ) * hyInverse * 0.5
                   -  ( velocity_y_east  - velocity_y_west  ) * hxInverse * 0.5
                    );
+           }
+           else return 0;
                }
                
          protected:
@@ -217,6 +222,10 @@ class TurbulentViscosityGetter< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, 
            const RealType& hyInverse = meshEntity.getMesh().template getSpaceStepsProducts<  0, -1,  0 >();
            const RealType& hzInverse = meshEntity.getMesh().template getSpaceStepsProducts<  0,  0, -1 >();
 
+           if( ! ( ( ( meshEntity.getCoordinates().x() == 0 ) || ( meshEntity.getCoordinates().x() == meshEntity.getMesh().getDimensions().x() - 1 ) ) 
+                 ||( ( meshEntity.getCoordinates().y() == 0 ) || ( meshEntity.getCoordinates().y() == meshEntity.getMesh().getDimensions().y() - 1 ) ) 
+                 ||( ( meshEntity.getCoordinates().z() == 0 ) || ( meshEntity.getCoordinates().z() == meshEntity.getMesh().getDimensions().z() - 1 ) ) ) )
+           {
            const IndexType& center    = meshEntity.getIndex(); 
            const IndexType& east      = neighborEntities.template getEntityIndex<  1,  0,  0 >(); 
            const IndexType& west      = neighborEntities.template getEntityIndex< -1,  0,  0 >(); 
@@ -243,6 +252,9 @@ class TurbulentViscosityGetter< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, 
            const RealType& velocity_z_west      = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ west ]; 
            const RealType& velocity_z_center    = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ center ]; 
 
+           if( ! ( ( ( meshEntity.getCoordinates().x() == 0 ) || ( meshEntity.getCoordinates().x() == meshEntity.getMesh().getDimensions().x() - 1 ) ) 
+                 ||( ( meshEntity.getCoordinates().y() == 0 ) || ( meshEntity.getCoordinates().x() == meshEntity.getMesh().getDimensions().y() - 1 ) ) 
+                 ||( ( meshEntity.getCoordinates().z() == 0 ) || ( meshEntity.getCoordinates().x() == meshEntity.getMesh().getDimensions().z() - 1 ) ) ) )
            return rho * this->mixingLength * this->mixingLength *
                   (  ( velocity_y_east - velocity_y_west ) * hxInverse * 0.5
                   -  ( velocity_x_north - velocity_x_south ) * hyInverse * 0.5
@@ -267,6 +279,8 @@ class TurbulentViscosityGetter< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, 
                   (  ( velocity_y_up - velocity_y_down ) * hzInverse * 0.5
                   -  ( velocity_z_north - velocity_z_south ) *hyInverse * 0.5
                   );
+           }
+           else return 0;
            }
             
          protected:

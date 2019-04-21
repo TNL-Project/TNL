@@ -188,7 +188,7 @@ class PrandtlKolmogorovTurbulentEnergyRightHandSide< Meshes::Grid< 1, MeshReal, 
                 * this->dynamicalViscosity
                 * ( velocity_x_east - velocity_x_west ) * hxInverse / 2
 
-                - density_center / this->characteristicLength * std::pow( turbulentEnergy_center, 2.0 / 3.0 )
+                - density_center / this->characteristicLength * std::pow( std::abs( turbulentEnergy_center ), 2.0 / 3.0 )
 
                 + this->dynamicalViscosity
                 * ( turbulentEnergy_east - 2 * turbulentEnergy_center + turbulentEnergy_west )
@@ -318,7 +318,7 @@ class PrandtlKolmogorovTurbulentEnergyRightHandSide< Meshes::Grid< 2, MeshReal, 
                   ) * this->dynamicalViscosity
                 * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
 
-                - density_center / this->characteristicLength * std::pow( turbulentEnergy_center, 2.0 / 3.0 )
+                - density_center / this->characteristicLength * std::pow( std::abs( turbulentEnergy_center ), 2.0 / 3.0 )
 
                 + this->dynamicalViscosity
                 * ( turbulentEnergy_east - 2 * turbulentEnergy_center + turbulentEnergy_west )
@@ -528,7 +528,7 @@ class PrandtlKolmogorovTurbulentEnergyRightHandSide< Meshes::Grid< 3, MeshReal, 
                   ) * this->dynamicalViscosity
                   * ( velocity_z_up    - velocity_z_down  ) * hzInverse / 2
 
-                - density_center / this->characteristicLength * std::pow( turbulentEnergy_center, 2.0 / 3.0 )
+                - density_center / this->characteristicLength * std::pow( std::abs( turbulentEnergy_center ), 2.0 / 3.0 )
 
                 + this->dynamicalViscosity
                 * ( turbulentEnergy_east - 2 * turbulentEnergy_center + turbulentEnergy_west )
