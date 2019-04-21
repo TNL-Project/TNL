@@ -57,6 +57,11 @@ class LaxFridrichsMomentumBase
          this->artificialViscosity = artificialViscosity;
       }
 
+      void setDensity( const MeshFunctionPointer& density )
+      {
+          this->rightHandSide.setDensity( density );
+      };
+
       void setDynamicalViscosity( const RealType& dynamicalViscosity )
       {
 	 this->rightHandSide.setDynamicalViscosity(dynamicalViscosity);

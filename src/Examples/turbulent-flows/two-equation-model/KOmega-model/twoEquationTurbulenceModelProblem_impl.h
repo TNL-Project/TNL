@@ -87,13 +87,16 @@ setup( const Config::ParameterContainer& parameters,
    this->turbulenceConstant = parameters.getParameter< double >( "turbulence-constant" );
    this->beta = parameters.getParameter< double >( "beta" );
    this->betaStar = parameters.getParameter< double >( "beta-star" );
-   this->alpha = parameters.getParameter< double >( "aplha" );
+   this->alpha = parameters.getParameter< double >( "alpha" );
    this->sigmaK = parameters.getParameter< double >( "sigma-k" );
    this->sigmaEpsilon = parameters.getParameter< double >( "sigma-epsilon" );
    this->intensity = parameters.getParameter< double >( "turbulence-intensity" );
-   this->lengthScale = parameters.getParameter< double >( "length-scale" );
+   this->lengthScale = parameters.getParameter< double >( "turbulence-length-scale" );
    velocity->setMesh( this->getMesh() );
    pressure->setMesh( this->getMesh() );
+   turbulentViscosity->setMesh( this->getMesh() );
+   turbulentEnergy->setMesh( this->getMesh() );
+   disipation->setMesh( this->getMesh() );
 
    /****
     * Set-up operators

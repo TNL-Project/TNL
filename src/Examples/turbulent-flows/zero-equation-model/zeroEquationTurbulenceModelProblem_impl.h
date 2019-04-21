@@ -88,6 +88,7 @@ setup( const Config::ParameterContainer& parameters,
    this->mixingLength = parameters.getParameter< RealType >( "mixing-length" );
    velocity->setMesh( this->getMesh() );
    pressure->setMesh( this->getMesh() );
+   turbulentViscosity->setMesh( this->getMesh() );
 
    /****
     * Set-up operators
@@ -258,6 +259,11 @@ makeSnapshot( const RealType& time,
    fileName.setFileNameBase( "energy-" );
 //   if( ! this->conservativeVariables->getEnergy()->save( fileName.getFileName() ) )
    this->conservativeVariables->getEnergy()->save( fileName.getFileName() );
+//      return false;
+
+   fileName.setFileNameBase( "turbulentViscosity-" );
+//   if( ! this->pressure->save( fileName.getFileName() ) )
+   this->turbulentViscosity->save( fileName.getFileName() );
 //      return false;
    return true;
 }

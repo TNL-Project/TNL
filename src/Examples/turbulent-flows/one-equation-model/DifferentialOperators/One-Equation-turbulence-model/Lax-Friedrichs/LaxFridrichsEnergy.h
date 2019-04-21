@@ -80,7 +80,12 @@ class LaxFridrichsEnergyBase
       void setTurbulentEnergy( const MeshFunctionPointer& turbulentEnergy )
       {
 	 this->rightHandSide.setTurbulentEnergy(turbulentEnergy);
-      };   
+      };
+
+      void setDensity( const MeshFunctionPointer& density )
+      {
+	 this->rightHandSide.setDensity(density);
+      }   
 
       protected:
          
