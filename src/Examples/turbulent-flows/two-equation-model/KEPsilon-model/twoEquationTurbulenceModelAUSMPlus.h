@@ -5,7 +5,7 @@
 #include <TNL/Operators/NeumannBoundaryConditions.h>
 #include <TNL/Functions/Analytic/Constant.h>
 #include "twoEquationTurbulenceModelProblem.h"
-#include "DifferentialOperators/Two-Equation-Turbulence-Model/AUSM+/AUSMPlus.h"
+#include "DifferentialOperators/Two-Equation-turbulence-model/AUSM+/AUSMPlus.h"
 #include "flowsRhs.h"
 #include "flowsBuildConfigTag.h"
 
