@@ -15,7 +15,7 @@
 #include "BoundaryConditions/BoilerModel/BoundaryConditionsBoilerModel.h"
 #include "BoundaryConditions/Dirichlet/BoundaryConditionsDirichlet.h"
 #include "BoundaryConditions/Neumann/BoundaryConditionsNeumann.h"
-#include "DifferentialOperatorsRightHandSide/KEpsilonRightHandSide/KEpsilonOperatorRightHandSide.h"
+#include "DifferentialOperatorsRightHandSide/KEpsilonRightHandSide/KEPsilonOperatorRightHandSide.h"
 
 using namespace TNL;
 
