@@ -23,7 +23,7 @@
 #include "AUSMPlusTurbulentEnergy.h"
 #include "AUSMPlusDisipation.h"
 
-#include "Examples/turbulent-flows/two-equation-model/KEpsilon-model/DifferentialOperatorsRightHandSide/KEPsilonRightHandSide/KEpsilonOperatorRightHandSide.h"
+#include "Examples/turbulent-flows/two-equation-model/KEPsilon-model/DifferentialOperatorsRightHandSide/KEPsilonRightHandSide/KEpsilonOperatorRightHandSide.h"
 
 namespace TNL {
 
