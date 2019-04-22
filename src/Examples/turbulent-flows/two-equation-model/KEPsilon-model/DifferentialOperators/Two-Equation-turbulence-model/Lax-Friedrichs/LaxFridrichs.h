@@ -23,7 +23,7 @@
 #include "LaxFridrichsTurbulentEnergy.h"
 #include "LaxFridrichsDisipation.h"
 
-#include "Examples/turbulent-flows/two-equation-model/KEpsilon-model/DifferentialOperatorsRightHandSide/KEpsilonRightHandSide/KEpsilonOperatorRightHandSide.h"
+#include "Examples/turbulent-flows/two-equation-model/KEPsilon-model/DifferentialOperatorsRightHandSide/KEPsilonRightHandSide/KEpsilonOperatorRightHandSide.h"
 
 namespace TNL {
 
