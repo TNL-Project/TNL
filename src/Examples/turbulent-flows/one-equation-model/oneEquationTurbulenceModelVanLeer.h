@@ -5,7 +5,7 @@
 #include <TNL/Operators/NeumannBoundaryConditions.h>
 #include <TNL/Functions/Analytic/Constant.h>
 #include "oneEquationTurbulenceModelProblem.h"
-#include "DifferentialOperators/One-Equation-Turbulence-Model/VanLeer/VanLeer.h"
+#include "DifferentialOperators/One-Equation-turbulence-model/VanLeer/VanLeer.h"
 #include "flowsRhs.h"
 #include "flowsBuildConfigTag.h"
 
