@@ -23,7 +23,7 @@
 #include "VanLeerTurbulentEnergy.h"
 #include "VanLeerDisipation.h"
 
-#include "Examples/turbulent-flows/two-equation-model/KEpsilon-model/DifferentialOperatorsRightHandSide/KEpsilonRightHandSide/KEpsilonOperatorRightHandSide.h"
+#include "Examples/turbulent-flows/two-equation-model/KEpsilon-model/DifferentialOperatorsRightHandSide/KEPsilonRightHandSide/KEpsilonOperatorRightHandSide.h"
 
 namespace TNL {
 
