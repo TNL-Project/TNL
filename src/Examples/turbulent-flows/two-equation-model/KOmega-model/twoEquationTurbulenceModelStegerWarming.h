@@ -5,7 +5,7 @@
 #include <TNL/Operators/NeumannBoundaryConditions.h>
 #include <TNL/Functions/Analytic/Constant.h>
 #include "twoEquationTurbulenceModelProblem.h"
-#include "DifferentialOperators/Two-Equation-Turbulence-Model/Steger-Warming/StegerWarming.h"
+#include "DifferentialOperators/Two-Equation-turbulence-model/Steger-Warming/StegerWarming.h"
 #include "flowsRhs.h"
 #include "flowsBuildConfigTag.h"
 
