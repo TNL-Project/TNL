@@ -71,6 +71,7 @@ class AUSMPlusTurbulentEnergyBase
       void setDensity( const MeshFunctionPointer& density )
       {
           this->density = density;
+	  this->rightHandSide.setDensity(density);
       };
 
       void setDynamicalViscosity( const RealType& dynamicalViscosity )

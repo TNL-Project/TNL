@@ -70,12 +70,19 @@ class KEpsilonTurbulentEnergyRightHandSideBase
       {
           this->turbulentEnergy = turbulentEnergy;
       }
+    
+      void setDensity( const MeshFunctionPointer& density )
+      {
+          this->density = density;
+      }
 
       protected:
 
          MeshFunctionPointer turbulentViscosity;
 
          MeshFunctionPointer turbulentEnergy;
+
+         MeshFunctionPointer density;
          
          VelocityFieldPointer velocity;
          
@@ -137,6 +144,8 @@ class KEpsilonTurbulentEnergyRightHandSide< Meshes::Grid< 1, MeshReal, Device, M
          const RealType& turbulentViscosity_west      = this->turbulentViscosity.template getData< DeviceType >()[ west ];
          const RealType& turbulentViscosity_east      = this->turbulentViscosity.template getData< DeviceType >()[ east ];
 
+         const RealType& density_center    = this->density.template getData< DeviceType >()[ center ];
+
          const RealType& turbulentEnergy_center    = this->turbulentEnergy.template getData< DeviceType >()[ center ];
          const RealType& turbulentEnergy_west      = this->turbulentEnergy.template getData< DeviceType >()[ west ];
          const RealType& turbulentEnergy_east      = this->turbulentEnergy.template getData< DeviceType >()[ east ];
@@ -149,12 +158,14 @@ class KEpsilonTurbulentEnergyRightHandSide< Meshes::Grid< 1, MeshReal, Device, M
                   this->dynamicalViscosity
                 * ( turbulentEnergy_east - 2 * turbulentEnergy_center + turbulentEnergy_west )
                 * hxSquareInverse
-                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_west
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_west * turbulentViscosity_west
+                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_east + turbulentEnergy_west * turbulentViscosity_center
                   ) * hxSquareInverse / this->sigmaK
-                -
-                  4.0 / 3.0 * ( velocity_x_east - velocity_x_west ) * hxInverse / 2
+                +
+                ( 4.0 / 3.0 * ( velocity_x_east - velocity_x_west ) * hxInverse / 2
                 * turbulentViscosity_center
+                - 2.0 / 3.0 * density_center * turbulentEnergy_center
+                )
                 * ( velocity_x_east - velocity_x_west ) * hxInverse / 2;
         }
 
@@ -228,6 +239,8 @@ class KEpsilonTurbulentEnergyRightHandSide< Meshes::Grid< 2, MeshReal, Device, M
          const RealType& turbulentViscosity_east      = this->turbulentViscosity.template getData< DeviceType >()[ east ];
          const RealType& turbulentViscosity_north     = this->turbulentViscosity.template getData< DeviceType >()[ north ];
          const RealType& turbulentViscosity_south     = this->turbulentViscosity.template getData< DeviceType >()[ south ];
+
+         const RealType& density_center    = this->density.template getData< DeviceType >()[ center ];
          
          const RealType& turbulentEnergy_center    = this->turbulentEnergy.template getData< DeviceType >()[ center ];
          const RealType& turbulentEnergy_west      = this->turbulentEnergy.template getData< DeviceType >()[ west ];
@@ -259,20 +272,22 @@ class KEpsilonTurbulentEnergyRightHandSide< Meshes::Grid< 2, MeshReal, Device, M
                  this->dynamicalViscosity
                 * ( turbulentEnergy_east - 2 * turbulentEnergy_center + turbulentEnergy_west )
                 * hxSquareInverse
-                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_west
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_west * turbulentViscosity_west
+                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_east + turbulentEnergy_west * turbulentViscosity_center
                   ) * hxSquareInverse / this->sigmaK
 
                 + this->dynamicalViscosity
                 * ( turbulentEnergy_north - 2 * turbulentEnergy_center + turbulentEnergy_south )
                 * hySquareInverse
-                + ( turbulentEnergy_north * turbulentViscosity_north - turbulentEnergy_center * turbulentViscosity_south
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_south * turbulentViscosity_south
+                + ( turbulentEnergy_north * turbulentViscosity_north - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_north + turbulentEnergy_south * turbulentViscosity_center
                   ) * hySquareInverse / this->sigmaK
                 
-             - ( ( 4.0 / 3.0 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
+             + ( ( 4.0 / 3.0 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
                  - 2.0 / 3.0 * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
                  ) * turbulentViscosity_center 
+                 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
+                   - 2.0 / 3.0 * density_center * turbulentEnergy_center
                  * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
 
                 + ( ( velocity_x_north - velocity_x_south ) * hyInverse / 2
@@ -287,7 +302,9 @@ class KEpsilonTurbulentEnergyRightHandSide< Meshes::Grid< 2, MeshReal, Device, M
 
                 + ( 4.0 / 3.0 * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
                   - 2.0 / 3.0 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
-                  ) * turbulentViscosity_center
+                  ) * turbulentViscosity_center 
+                * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
+                  - 2.0 / 3.0 * density_center * turbulentEnergy_center
                 * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
 
                 );
@@ -378,6 +395,8 @@ class KEpsilonTurbulentEnergyRightHandSide< Meshes::Grid< 3, MeshReal, Device, M
          const RealType& turbulentViscosity_up        = this->turbulentViscosity.template getData< DeviceType >()[ up ];
          const RealType& turbulentViscosity_down      = this->turbulentViscosity.template getData< DeviceType >()[ down ];
 
+         const RealType& density_center    = this->density.template getData< DeviceType >()[ center ];
+
          const RealType& turbulentEnergy_center    = this->turbulentEnergy.template getData< DeviceType >()[ center ];
          const RealType& turbulentEnergy_west      = this->turbulentEnergy.template getData< DeviceType >()[ west ];
          const RealType& turbulentEnergy_east      = this->turbulentEnergy.template getData< DeviceType >()[ east ];
@@ -438,28 +457,30 @@ class KEpsilonTurbulentEnergyRightHandSide< Meshes::Grid< 3, MeshReal, Device, M
                 this->dynamicalViscosity
                 * ( turbulentEnergy_east - 2 * turbulentEnergy_center + turbulentEnergy_west )
                 * hxSquareInverse
-                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_west
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_west * turbulentViscosity_west
+                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_east + turbulentEnergy_west * turbulentViscosity_center
                   ) * hxSquareInverse / this->sigmaK
 
                 + this->dynamicalViscosity
                 * ( turbulentEnergy_north - 2 * turbulentEnergy_center + turbulentEnergy_south )
                 * hySquareInverse
-                + ( turbulentEnergy_north * turbulentViscosity_north - turbulentEnergy_center * turbulentViscosity_south
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_south * turbulentViscosity_south
+                + ( turbulentEnergy_north * turbulentViscosity_north - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_north + turbulentEnergy_south * turbulentViscosity_center
                   ) * hySquareInverse / this->sigmaK
 
                 + this->dynamicalViscosity
                 * ( turbulentEnergy_up - 2 * turbulentEnergy_center + turbulentEnergy_down )
                 * hySquareInverse
-                + ( turbulentEnergy_up * turbulentViscosity_up - turbulentEnergy_center * turbulentViscosity_down
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_down * turbulentViscosity_down
+                + ( turbulentEnergy_up * turbulentViscosity_up - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_up + turbulentEnergy_down * turbulentViscosity_center
                   ) * hySquareInverse / this->sigmaK
 
-              - ( ( 4.0 / 3.0 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
+              + ( ( 4.0 / 3.0 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
                   - 2.0 / 3.0 * ( velocity_y_north - velocity_x_south ) * hyInverse / 2
                   - 2.0 / 3.0 * ( velocity_z_up    - velocity_z_down  ) * hzInverse / 2
                   ) * turbulentViscosity_center
+                  * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
+                  - 2.0 / 3.0 * density_center * turbulentEnergy_center
                   * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
 
                 + ( ( velocity_x_north - velocity_x_south ) * hyInverse / 2
@@ -482,6 +503,8 @@ class KEpsilonTurbulentEnergyRightHandSide< Meshes::Grid< 3, MeshReal, Device, M
                   - 2.0 / 3.0 * ( velocity_z_up    - velocity_z_down  ) * hzInverse / 2
                   ) * turbulentViscosity_center
                   * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
+                  - 2.0 / 3.0 * density_center * turbulentEnergy_center
+                  * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
 
                 + ( ( velocity_y_up    - velocity_y_down  ) * hzInverse / 2
                   + ( velocity_z_north - velocity_z_south ) * hyInverse / 2
@@ -502,6 +525,8 @@ class KEpsilonTurbulentEnergyRightHandSide< Meshes::Grid< 3, MeshReal, Device, M
                   - 2.0 / 3.0 * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
                   - 2.0 / 3.0 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
                   ) * turbulentViscosity_center
+                  * ( velocity_z_up    - velocity_z_down  ) * hzInverse / 2
+                  - 2.0 / 3.0 * density_center * turbulentEnergy_center
                   * ( velocity_z_up    - velocity_z_down  ) * hzInverse / 2
                 );                  
       }

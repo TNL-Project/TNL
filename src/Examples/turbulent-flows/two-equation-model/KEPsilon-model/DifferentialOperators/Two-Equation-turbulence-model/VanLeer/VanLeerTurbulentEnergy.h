@@ -70,6 +70,7 @@ class VanLeerTurbulentEnergyBase
 
       void setDensity( const MeshFunctionPointer& density )
       {
+	  this->rightHandSide.setDensity(density);
           this->density = density;
       };
 
