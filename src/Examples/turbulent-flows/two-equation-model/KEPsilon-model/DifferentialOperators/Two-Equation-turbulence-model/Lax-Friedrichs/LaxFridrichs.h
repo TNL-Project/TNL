@@ -143,6 +143,7 @@ class LaxFridrichs
          this->momentumYOperatorPointer->setDensity( density );
          this->momentumZOperatorPointer->setDensity( density );
          this->energyOperatorPointer->setDensity( density );
+         this->turbulentEnergyOperatorPointer->setDensity( density );
          this->disipationOperatorPointer->setDensity( density );
       }
 

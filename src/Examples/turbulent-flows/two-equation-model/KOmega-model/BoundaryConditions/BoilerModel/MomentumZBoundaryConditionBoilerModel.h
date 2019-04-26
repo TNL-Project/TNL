@@ -492,7 +492,7 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
                if( entity.getCoordinates().y() < 0.08 * std::cos( this->xYAngle ) * ( entity.getMesh().getDimensions().y() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->horizontalThrottleSpeed
+                              this->horizontalThrottleSpeed * ( -1.0 )
                               * std::sin( this->zAngle )
                             );
                if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
@@ -550,7 +550,7 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
                if( entity.getCoordinates().y() < 0.08 * std::sin( this->xYAngle ) * ( entity.getMesh().getDimensions().y() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->horizontalThrottleSpeed
+                              this->horizontalThrottleSpeed * ( -1.0 )
                               * std::sin( this->zAngle )
                             );
                if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
@@ -611,13 +611,13 @@ class MomentumZBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device,
                if( entity.getCoordinates().x() < 0.08 * std::sin( this->xYAngle ) * ( entity.getMesh().getDimensions().x() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->horizontalThrottleSpeed
+                              this->horizontalThrottleSpeed * ( -1.0 )
                               * std::sin( this->zAngle )
                             );
                if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
                   return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] 
                          * ( 
-                              this->horizontalThrottleSpeed
+                              this->horizontalThrottleSpeed * ( -1.0 )
                               * std::sin( this->zAngle )
                             );
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
