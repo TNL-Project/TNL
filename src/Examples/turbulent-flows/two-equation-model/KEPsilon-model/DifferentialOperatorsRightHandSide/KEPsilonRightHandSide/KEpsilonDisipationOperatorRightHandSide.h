@@ -177,20 +177,31 @@ class KEpsilonDisipationRightHandSide< Meshes::Grid< 1, MeshReal, Device, MeshIn
          const RealType& velocity_x_west   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
          const RealType& velocity_x_center = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ center ];
 
+         if( ! turbulentEnergy_center == 0.0 )
          return
                 this->dynamicalViscosity
                 * ( disipation_east - 2 * disipation_center + disipation_west )
                 * hxSquareInverse
-                + ( disipation_east * turbulentViscosity_east - disipation_center * turbulentViscosity_west
-                  - disipation_center * turbulentViscosity_center + disipation_west * turbulentViscosity_west
+                + ( disipation_east * turbulentViscosity_east - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_east + disipation_west * turbulentViscosity_center
                   ) * hxSquareInverse / this->sigmaEpsilon
 
-                - this->viscosityConstant1 * disipation_center / turbulentEnergy_center
-                * 4.0 / 3.0 * ( velocity_x_east - velocity_x_west ) * hxInverse / 2
-                * turbulentViscosity_center
+                + this->viscosityConstant1 * disipation_center / turbulentEnergy_center
+                * ( 4.0 / 3.0 * ( velocity_x_east - velocity_x_west ) * hxInverse / 2
+                  * turbulentViscosity_center
+                  - 2.0 / 3.0 * density_center * turbulentEnergy_center
+                  )
                 * ( velocity_x_east - velocity_x_west ) * hxInverse / 2
 
                 - this->viscosityConstant2 * density_center * disipation_center * disipation_center / turbulentEnergy_center;
+         else
+         return
+                this->dynamicalViscosity
+                * ( disipation_east - 2 * disipation_center + disipation_west )
+                * hxSquareInverse
+                + ( disipation_east * turbulentViscosity_east - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_east + disipation_west * turbulentViscosity_center
+                  ) * hxSquareInverse / this->sigmaEpsilon;
         }
 
       /*template< typename MeshEntity >
@@ -298,30 +309,33 @@ class KEpsilonDisipationRightHandSide< Meshes::Grid< 2, MeshReal, Device, MeshIn
          const RealType& velocity_y_northEast = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northEast ];
          const RealType& velocity_y_northWest = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northWest ];         
          
+         if( ! turbulentEnergy_center == 0.0 )
          return
                  this->dynamicalViscosity
                 * ( disipation_east - 2 * disipation_center + disipation_west )
                 * hxSquareInverse
-                + ( disipation_east * turbulentViscosity_east - disipation_center * turbulentViscosity_west
-                  - disipation_center * turbulentViscosity_center + disipation_west * turbulentViscosity_west
+                + ( disipation_east * turbulentViscosity_east - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_east + disipation_west * turbulentViscosity_center
                   ) * hxSquareInverse / this->sigmaEpsilon
 
                 + this->dynamicalViscosity
                 * ( disipation_north - 2 * disipation_center + disipation_south )
                 * hySquareInverse
-                + ( disipation_north * turbulentViscosity_north - disipation_center * turbulentViscosity_south
-                  - disipation_center * turbulentViscosity_center + disipation_south * turbulentViscosity_south
-                  ) * hySquareInverse / this->sigmaEpsioln
+                + ( disipation_north * turbulentViscosity_north - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_north + disipation_south * turbulentViscosity_center
+                  ) * hySquareInverse / this->sigmaEpsilon
 
-               - this->viscosityConstant1 * disipation_center / turbulentEnergy_center   
+               + this->viscosityConstant1 * disipation_center / turbulentEnergy_center   
              * ( ( 4.0 / 3.0 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
                  - 2.0 / 3.0 * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
                  ) * turbulentViscosity_center 
                  * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
+                   - 2.0 / 3.0 * density_center * turbulentEnergy_center
+                 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
 
                 + ( ( velocity_x_north - velocity_x_south ) * hyInverse / 2
                   + ( velocity_y_east  - velocity_y_west  ) * hxInverse / 2
-                  ) * turbulentViscosity_center 
+                  ) * turbulentViscosity_center
                 * ( velocity_y_east  - velocity_y_west  ) * hxInverse / 2
 
                 + ( ( velocity_y_east  - velocity_y_west  ) * hxInverse / 2
@@ -331,11 +345,29 @@ class KEpsilonDisipationRightHandSide< Meshes::Grid< 2, MeshReal, Device, MeshIn
 
                 + ( 4.0 / 3.0 * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
                   - 2.0 / 3.0 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
-                  ) * turbulentViscosity_center
+                  ) * turbulentViscosity_center 
                 * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
+                  - 2.0 / 3.0 * density_center * turbulentEnergy_center
+                * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
+
                 )
 
                 - this->viscosityConstant2 * density_center * disipation_center * disipation_center / turbulentEnergy_center;
+         else
+         return
+                 this->dynamicalViscosity
+                * ( disipation_east - 2 * disipation_center + disipation_west )
+                * hxSquareInverse
+                + ( disipation_east * turbulentViscosity_east - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_east + disipation_west * turbulentViscosity_center
+                  ) * hxSquareInverse / this->sigmaEpsilon
+
+                + this->dynamicalViscosity
+                * ( disipation_north - 2 * disipation_center + disipation_south )
+                * hySquareInverse
+                + ( disipation_north * turbulentViscosity_north - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_north + disipation_south * turbulentViscosity_center
+                  ) * hySquareInverse / this->sigmaEpsilon;
       }
 
       /*template< typename MeshEntity >
@@ -495,33 +527,36 @@ class KEpsilonDisipationRightHandSide< Meshes::Grid< 3, MeshReal, Device, MeshIn
          const RealType& velocity_z_downNorth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downNorth ]; 
          const RealType& velocity_z_downSouth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downSouth ];         
          
+         if( ! turbulentEnergy_center == 0.0 )
          return 
                   this->dynamicalViscosity
                 * ( disipation_east - 2 * disipation_center + disipation_west )
                 * hxSquareInverse
-                + ( disipation_east * turbulentViscosity_east - disipation_center * turbulentViscosity_west
-                  - disipation_center * turbulentViscosity_center + disipation_west * turbulentViscosity_west
+                + ( disipation_east * turbulentViscosity_east - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_east + disipation_west * turbulentViscosity_center
                   ) * hxSquareInverse / this->sigmaEpsilon
 
                 + this->dynamicalViscosity
                 * ( disipation_north - 2 * disipation_center + disipation_south )
                 * hySquareInverse
-                + ( disipation_north * turbulentViscosity_north - disipation_center * turbulentViscosity_south
-                  - disipation_center * turbulentViscosity_center + disipation_south * turbulentViscosity_south
+                + ( disipation_north * turbulentViscosity_north - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_north + disipation_south * turbulentViscosity_center
                   ) * hySquareInverse / this->sigmaEpsilon
 
                 + this->dynamicalViscosity
                 * ( disipation_up - 2 * disipation_center + disipation_down )
                 * hySquareInverse
-                + ( disipation_up * turbulentViscosity_up - disipation_center * turbulentViscosity_down
-                  - disipation_center * turbulentViscosity_center + disipation_down * turbulentViscosity_down
+                + ( disipation_up * turbulentViscosity_up - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_up + disipation_down * turbulentViscosity_center
                   ) * hySquareInverse / this->sigmaEpsilon
 
-                - this->viscosityConstant1 * disipation_center / turbulentEnergy_center      
+                + this->viscosityConstant1 * disipation_center / turbulentEnergy_center      
               * ( ( 4.0 / 3.0 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
                   - 2.0 / 3.0 * ( velocity_y_north - velocity_x_south ) * hyInverse / 2
                   - 2.0 / 3.0 * ( velocity_z_up    - velocity_z_down  ) * hzInverse / 2
                   ) * turbulentViscosity_center
+                  * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
+                  - 2.0 / 3.0 * density_center * turbulentEnergy_center
                   * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
 
                 + ( ( velocity_x_north - velocity_x_south ) * hyInverse / 2
@@ -544,6 +579,8 @@ class KEpsilonDisipationRightHandSide< Meshes::Grid< 3, MeshReal, Device, MeshIn
                   - 2.0 / 3.0 * ( velocity_z_up    - velocity_z_down  ) * hzInverse / 2
                   ) * turbulentViscosity_center
                   * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
+                  - 2.0 / 3.0 * density_center * turbulentEnergy_center
+                  * ( velocity_y_north - velocity_y_south ) * hyInverse / 2
 
                 + ( ( velocity_y_up    - velocity_y_down  ) * hzInverse / 2
                   + ( velocity_z_north - velocity_z_south ) * hyInverse / 2
@@ -565,9 +602,33 @@ class KEpsilonDisipationRightHandSide< Meshes::Grid< 3, MeshReal, Device, MeshIn
                   - 2.0 / 3.0 * ( velocity_x_east  - velocity_x_west  ) * hxInverse / 2
                   ) * turbulentViscosity_center
                   * ( velocity_z_up    - velocity_z_down  ) * hzInverse / 2
+                  - 2.0 / 3.0 * density_center * turbulentEnergy_center
+                  * ( velocity_z_up    - velocity_z_down  ) * hzInverse / 2
                 )
 
-                - this->viscosityConstant2 * density_center * disipation_center * disipation_center / turbulentEnergy_center;                
+                - this->viscosityConstant2 * density_center * disipation_center * disipation_center / turbulentEnergy_center;
+         else
+         return 
+                  this->dynamicalViscosity
+                * ( disipation_east - 2 * disipation_center + disipation_west )
+                * hxSquareInverse
+                + ( disipation_east * turbulentViscosity_east - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_east + disipation_west * turbulentViscosity_center
+                  ) * hxSquareInverse / this->sigmaEpsilon
+
+                + this->dynamicalViscosity
+                * ( disipation_north - 2 * disipation_center + disipation_south )
+                * hySquareInverse
+                + ( disipation_north * turbulentViscosity_north - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_north + disipation_south * turbulentViscosity_center
+                  ) * hySquareInverse / this->sigmaEpsilon
+
+                + this->dynamicalViscosity
+                * ( disipation_up - 2 * disipation_center + disipation_down )
+                * hySquareInverse
+                + ( disipation_up * turbulentViscosity_up - disipation_center * turbulentViscosity_center
+                  - disipation_center * turbulentViscosity_up + disipation_down * turbulentViscosity_center
+                  ) * hySquareInverse / this->sigmaEpsilon;                
       }
 
       /*template< typename MeshEntity >

@@ -206,11 +206,11 @@ class PrandtlMomentumXRightHandSide< Meshes::Grid< 2, MeshReal, Device, MeshInde
 // t_11_x
                 + ( 4.0 / 3.0 * ( turbulentViscosity_east * velocity_x_east - ( turbulentViscosity_east + turbulentViscosity_center) * velocity_x_center + turbulentViscosity_center * velocity_x_west 
                                 ) * hxSquareInverse
-                  - 2.0 / 3.0 * ( turbulentViscosity_east * ( velocity_y_northEast - velocity_y_southEast ) - turbulentViscosity_west * ( velocity_y_northWest + velocity_y_southWest ) 
+                  - 2.0 / 3.0 * ( turbulentViscosity_east * ( velocity_y_northEast - velocity_y_southEast ) - turbulentViscosity_west * ( velocity_y_northWest - velocity_y_southWest ) 
                                 ) * hxInverse * hyInverse / 4
                   )
 // t_21_y
-                + ( ( turbulentViscosity_north * ( velocity_y_northEast - velocity_y_northWest ) - turbulentViscosity_south * ( velocity_y_southEast + velocity_y_southWest )
+                + ( ( turbulentViscosity_north * ( velocity_y_northEast - velocity_y_northWest ) - turbulentViscosity_south * ( velocity_y_southEast - velocity_y_southWest )
                     ) * hxInverse * hyInverse / 4
                   + ( turbulentViscosity_north * velocity_x_north - ( turbulentViscosity_north + turbulentViscosity_center ) * velocity_x_center + turbulentViscosity_center * velocity_x_south
                     ) * hySquareInverse
@@ -376,15 +376,15 @@ class PrandtlMomentumXRightHandSide< Meshes::Grid< 3,MeshReal, Device, MeshIndex
                 +
                   ( 4.0 / 3.0 * ( turbulentViscosity_east * velocity_x_east - ( turbulentViscosity_east + turbulentViscosity_center ) * velocity_x_center + turbulentViscosity_center * velocity_x_west
                                 ) * hxSquareInverse
-                  - 2.0 / 3.0 * ( turbulentViscosity_east * ( velocity_y_northEast - velocity_y_southEast ) - turbulentViscosity_west * ( velocity_y_northWest + velocity_y_southWest )
+                  - 2.0 / 3.0 * ( turbulentViscosity_east * ( velocity_y_northEast - velocity_y_southEast ) - turbulentViscosity_west * ( velocity_y_northWest - velocity_y_southWest )
                                 ) * hxInverse * hyInverse / 4
-                  - 2.0 / 3.0 * ( turbulentViscosity_east * (velocity_z_upEast - velocity_z_downEast ) - turbulentViscosity_west * ( velocity_z_upWest + velocity_z_downWest )
+                  - 2.0 / 3.0 * ( turbulentViscosity_east * (velocity_z_upEast - velocity_z_downEast ) - turbulentViscosity_west * ( velocity_z_upWest - velocity_z_downWest )
                                 ) * hxInverse * hzInverse / 4
                   )
 // t_21_y
                 + ( ( turbulentViscosity_north * ( velocity_y_northEast - velocity_y_northWest ) - turbulentViscosity_south * ( velocity_y_southEast - velocity_y_southWest )
                     ) * hxInverse * hyInverse / 4
-                  + ( turbulentViscosity_north * velocity_x_north - ( turbulentViscosity_north - turbulentViscosity_center ) * velocity_x_center + turbulentViscosity_center * velocity_x_south
+                  + ( turbulentViscosity_north * velocity_x_north - ( turbulentViscosity_north + turbulentViscosity_center ) * velocity_x_center + turbulentViscosity_center * velocity_x_south
                     ) * hySquareInverse
                   )
 // t_31_z

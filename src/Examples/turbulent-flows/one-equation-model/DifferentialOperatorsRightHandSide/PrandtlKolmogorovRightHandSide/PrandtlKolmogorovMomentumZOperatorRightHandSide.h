@@ -297,21 +297,21 @@ class PrandtlKolmogorovMomentumZRightHandSide< Meshes::Grid< 3,MeshReal, Device,
 // t_13_x
                 + ( ( turbulentViscosity_east * velocity_z_east - ( turbulentViscosity_east + turbulentViscosity_center ) * velocity_z_center + turbulentViscosity_center * velocity_z_west ) 
                     * hxSquareInverse
-                  + ( turbulentViscosity_east * ( velocity_x_upEast - velocity_x_downEast ) - turbulentViscosity_west * ( velocity_x_upWest + velocity_x_downWest ) )
+                  + ( turbulentViscosity_east * ( velocity_x_upEast - velocity_x_downEast ) - turbulentViscosity_west * ( velocity_x_upWest - velocity_x_downWest ) )
                     * hxInverse * hzInverse / 4
                   )
 // t_23_y
-                + ( ( velocity_y_upNorth - velocity_y_downNorth - velocity_y_upSouth + velocity_y_downSouth )
+                + ( ( turbulentViscosity_north * ( velocity_y_upNorth - velocity_y_downNorth ) - turbulentViscosity_south * ( velocity_y_upSouth - velocity_y_downSouth ) )
                     * hyInverse * hzInverse / 4
-                  + ( velocity_z_north - 2 * velocity_z_center + velocity_z_south )
+                  + ( turbulentViscosity_north * velocity_z_north - (turbulentViscosity_north + turbulentViscosity_center ) * velocity_z_center + turbulentViscosity_center * velocity_z_south )
                     * hySquareInverse
                   )
 // t_33_z
-                + ( 4.0 / 3.0 * ( velocity_z_up - 2 * velocity_z_center + velocity_z_down ) 
+                + ( 4.0 / 3.0 * ( turbulentViscosity_up * velocity_z_up - ( turbulentViscosity_up + turbulentViscosity_center ) * velocity_z_center + turbulentViscosity_center * velocity_z_down ) 
                               * hzSquareInverse
-                  - 2.0 / 3.0 * ( velocity_y_upNorth - velocity_y_downNorth - velocity_y_upSouth + velocity_y_downSouth )
+                  - 2.0 / 3.0 * ( turbulentViscosity_up * velocity_y_upNorth - turbulentViscosity_down * velocity_y_downNorth - turbulentViscosity_up * velocity_y_upSouth + turbulentViscosity_down * velocity_y_downSouth )
                               * hyInverse * hzInverse / 4
-                  - 2.0 / 3.0 * ( velocity_x_upEast - velocity_x_downEast - velocity_x_upWest + velocity_x_downWest )
+                  - 2.0 / 3.0 * ( turbulentViscosity_up * velocity_x_upEast - turbulentViscosity_down * velocity_x_downEast - turbulentViscosity_up * velocity_x_upWest + turbulentViscosity_down * velocity_x_downWest )
                               * hxInverse * hzInverse / 4
                   +
                     2.0 / 3.0 * ( density_up   * turbulentEnergy_up
