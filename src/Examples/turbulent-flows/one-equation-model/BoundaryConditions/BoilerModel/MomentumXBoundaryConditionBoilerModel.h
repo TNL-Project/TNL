@@ -392,7 +392,7 @@ class MomentumXBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device,
          // The following line is commented to avoid compiler warning
          //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
-            return u[ neighborEntities.template getEntityIndex< 0, -1 >() ];
+            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
             /*return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] 
               * ( 
                   (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0, -1 >()]

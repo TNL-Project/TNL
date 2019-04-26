@@ -60,6 +60,11 @@ class LaxFridrichsTurbulentEnergyBase
           this->velocity = velocity;
 	  this->rightHandSide.setVelocity(velocity);
       };
+
+      void setDensity( const MeshFunctionPointer& density )
+      {
+	  this->rightHandSide.setDensity(density);
+      };
       
       void setArtificialViscosity( const RealType& artificialViscosity )
       {

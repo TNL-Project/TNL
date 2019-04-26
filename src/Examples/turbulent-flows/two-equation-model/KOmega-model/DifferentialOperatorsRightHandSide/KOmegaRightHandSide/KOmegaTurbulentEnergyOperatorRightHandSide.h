@@ -172,8 +172,8 @@ class KOmegaTurbulentEnergyRightHandSide< Meshes::Grid< 1, MeshReal, Device, Mes
                   this->dynamicalViscosity
                 * ( turbulentEnergy_east - 2 * turbulentEnergy_center + turbulentEnergy_west )
                 * hxSquareInverse
-                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_west
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_west * turbulentViscosity_west
+                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_east + turbulentEnergy_west * turbulentViscosity_center
                   ) * hxSquareInverse * this->sigmaK;
         }
 
@@ -302,15 +302,15 @@ class KOmegaTurbulentEnergyRightHandSide< Meshes::Grid< 2, MeshReal, Device, Mes
                   this->dynamicalViscosity
                 * ( turbulentEnergy_north - 2 * turbulentEnergy_center + turbulentEnergy_south )
                 * hySquareInverse
-                + ( turbulentEnergy_north * turbulentViscosity_north - turbulentEnergy_center * turbulentViscosity_south
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_south * turbulentViscosity_south
+                + ( turbulentEnergy_north * turbulentViscosity_north - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_north + turbulentEnergy_south * turbulentViscosity_center
                   ) * hySquareInverse * this->sigmaK
                 +
                   this->dynamicalViscosity
                 * ( turbulentEnergy_east - 2 * turbulentEnergy_center + turbulentEnergy_west )
                 * hxSquareInverse
-                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_west
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_west * turbulentViscosity_west
+                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_east + turbulentEnergy_west * turbulentViscosity_center
                   ) * hxSquareInverse * this->sigmaK;
       }
 
@@ -512,22 +512,22 @@ class KOmegaTurbulentEnergyRightHandSide< Meshes::Grid< 3, MeshReal, Device, Mes
                 this->dynamicalViscosity
                 * ( turbulentEnergy_east - 2 * turbulentEnergy_center + turbulentEnergy_west )
                 * hxSquareInverse
-                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_west
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_west * turbulentViscosity_west
+                + ( turbulentEnergy_east * turbulentViscosity_east - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_east + turbulentEnergy_west * turbulentViscosity_center
                   ) * hxSquareInverse * this->sigmaK
 
                 + this->dynamicalViscosity
                 * ( turbulentEnergy_north - 2 * turbulentEnergy_center + turbulentEnergy_south )
                 * hySquareInverse
-                + ( turbulentEnergy_north * turbulentViscosity_north - turbulentEnergy_center * turbulentViscosity_south
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_south * turbulentViscosity_south
+                + ( turbulentEnergy_north * turbulentViscosity_north - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_north + turbulentEnergy_south * turbulentViscosity_center
                   ) * hySquareInverse * this->sigmaK
 
                 + this->dynamicalViscosity
                 * ( turbulentEnergy_up - 2 * turbulentEnergy_center + turbulentEnergy_down )
                 * hySquareInverse
-                + ( turbulentEnergy_up * turbulentViscosity_up - turbulentEnergy_center * turbulentViscosity_down
-                  - turbulentEnergy_center * turbulentViscosity_center + turbulentEnergy_down * turbulentViscosity_down
+                + ( turbulentEnergy_up * turbulentViscosity_up - turbulentEnergy_center * turbulentViscosity_center
+                  - turbulentEnergy_center * turbulentViscosity_up + turbulentEnergy_down * turbulentViscosity_center
                   ) * hySquareInverse * this->sigmaK;                  
       }
 
