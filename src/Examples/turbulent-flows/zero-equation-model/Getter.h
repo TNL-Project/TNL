@@ -253,28 +253,30 @@ class TurbulentViscosityGetter< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, 
            const RealType& velocity_z_center    = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ center ]; 
 
            return rho * this->mixingLength * this->mixingLength *
-                  (  ( velocity_y_east - velocity_y_west ) * hxInverse * 0.5
-                  -  ( velocity_x_north - velocity_x_south ) * hyInverse * 0.5
-                  )
-                  *
-                  (  ( velocity_z_north - velocity_z_south ) * hyInverse * 0.5
-                  -  ( velocity_y_up - velocity_y_down ) * hzInverse * 0.5
-                  )
-                  *
-                  (  ( velocity_x_up - velocity_x_down ) * hzInverse * 0.5
-                  -  ( velocity_z_east - velocity_z_west ) * hxInverse * 0.5
-                  )
-                  +
-                  (  ( velocity_z_east - velocity_z_west ) * hxInverse * 0.5
-                  -  ( velocity_x_up - velocity_x_down ) * hzInverse * 0.5
-                  )   
-                  *
-                  (  ( velocity_x_north - velocity_x_south ) * hyInverse * 0.5
-                  -  ( velocity_y_east - velocity_y_west ) * hxInverse * 0.5
-                  )
-                  *
-                  (  ( velocity_y_up - velocity_y_down ) * hzInverse * 0.5
-                  -  ( velocity_z_north - velocity_z_south ) *hyInverse * 0.5
+                  ( 
+                     (  ( velocity_y_east - velocity_y_west ) * hxInverse * 0.5
+                     -  ( velocity_x_north - velocity_x_south ) * hyInverse * 0.5
+                     )
+                     *
+                     (  ( velocity_z_north - velocity_z_south ) * hyInverse * 0.5
+                     -  ( velocity_y_up - velocity_y_down ) * hzInverse * 0.5
+                     )
+                     *
+                     (  ( velocity_x_up - velocity_x_down ) * hzInverse * 0.5
+                     -  ( velocity_z_east - velocity_z_west ) * hxInverse * 0.5
+                     )
+                     +
+                     (  ( velocity_z_east - velocity_z_west ) * hxInverse * 0.5
+                     -  ( velocity_x_up - velocity_x_down ) * hzInverse * 0.5
+                     )   
+                     *
+                     (  ( velocity_x_north - velocity_x_south ) * hyInverse * 0.5
+                     -  ( velocity_y_east - velocity_y_west ) * hxInverse * 0.5
+                     )
+                     *
+                     (  ( velocity_y_up - velocity_y_down ) * hzInverse * 0.5
+                     -  ( velocity_z_north - velocity_z_south ) *hyInverse * 0.5
+                     )
                   );
            }
            else return 0;
