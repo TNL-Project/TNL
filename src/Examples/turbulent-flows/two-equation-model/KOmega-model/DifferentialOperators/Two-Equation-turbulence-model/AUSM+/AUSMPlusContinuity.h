@@ -74,8 +74,8 @@ class AUSMPlusContinuityBase
                             const RealType& LeftPressure,
                             const RealType& RightPressure ) const
       {
-         const RealType& LeftSpeedOfSound = std::sqrt( this->gamma * LeftPressure / LeftDensity );
-         const RealType& RightSpeedOfSound = std::sqrt( this->gamma * RightPressure / RightDensity );
+         const RealType& LeftSpeedOfSound = std::sqrt( std::abs( this->gamma * LeftPressure / LeftDensity ) );
+         const RealType& RightSpeedOfSound = std::sqrt( std::abs( this->gamma * RightPressure / RightDensity ) );
          const RealType& BorderSpeedOfSound = 0.5 * ( LeftSpeedOfSound + RightSpeedOfSound );
          const RealType& LeftMachNumber = LeftVelocity / BorderSpeedOfSound;
          const RealType& RightMachNumber = RightVelocity / BorderSpeedOfSound;
@@ -89,7 +89,7 @@ class AUSMPlusContinuityBase
          }
          else if ( LeftMachNumber <= 1.0 )
          {
-            MachSplitingPlus = 1.0 / 2.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
+            MachSplitingPlus = 1.0 / 4.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
                              + 1.0 / 8.0 * ( LeftMachNumber * LeftMachNumber - 1.0 ) * ( LeftMachNumber * LeftMachNumber - 1.0 );
          }
          else
@@ -102,7 +102,7 @@ class AUSMPlusContinuityBase
          }
          else if ( RightMachNumber <= 1.0 )
          {
-            MachSplitingMinus = - 1.0 / 2.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
+            MachSplitingMinus = - 1.0 / 4.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
                                 - 1.0 / 8.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
          }
          else
@@ -272,8 +272,8 @@ class AUSMPlusContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Operat
                                 -  this->DensityFlux( u[ center ], u[ east ]  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east   )
                              )
                + hyInverse * (
-                                   this->DensityFlux( u[ north  ], u[ center ], velocity_y_north , velocity_y_center, pressure_north , pressure_center )
-                                -  this->DensityFlux( u[ center ], u[ south ] , velocity_y_center, velocity_y_south , pressure_center, pressure_south  )
+                                   this->DensityFlux( u[ south  ], u[ center ], velocity_y_south , velocity_y_center, pressure_south , pressure_center )
+                                -  this->DensityFlux( u[ center ], u[ north ] , velocity_y_center, velocity_y_north , pressure_center, pressure_north  )
                              )
                +
                  this->rightHandSide(u, entity, time); 
@@ -367,12 +367,12 @@ class AUSMPlusContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Operat
                                 -  this->DensityFlux( u[ center ], u[ east ]  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east   )
                              )
                + hyInverse * (
-                                   this->DensityFlux( u[ north ] , u[ center ], velocity_y_north , velocity_y_center, pressure_north , pressure_center )
-                                -  this->DensityFlux( u[ center ], u[ south ] , velocity_y_center, velocity_y_south , pressure_center, pressure_south  )
+                                   this->DensityFlux( u[ south ] , u[ center ], velocity_y_south , velocity_y_center, pressure_south , pressure_center )
+                                -  this->DensityFlux( u[ center ], u[ north ] , velocity_y_center, velocity_y_north , pressure_center, pressure_north  )
                              )
                + hzInverse * (
-                                   this->DensityFlux( u[ up ]    , u[ center ], velocity_z_up    , velocity_z_center, pressure_up    , pressure_center )
-                                -  this->DensityFlux( u[ center ], u[ down ]  , velocity_z_center, velocity_z_down  , pressure_center, pressure_down   )
+                                   this->DensityFlux( u[ down ]  , u[ center ], velocity_z_down  , velocity_z_center, pressure_down  , pressure_center )
+                                -  this->DensityFlux( u[ center ], u[ up ]    , velocity_z_center, velocity_z_up    , pressure_center, pressure_up   )
                              )
                +
                  this->rightHandSide(u, entity, time);
