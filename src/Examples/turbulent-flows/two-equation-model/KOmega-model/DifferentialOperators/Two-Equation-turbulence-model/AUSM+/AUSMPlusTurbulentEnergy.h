@@ -112,8 +112,8 @@ class AUSMPlusTurbulentEnergyBase
                                     const RealType& LeftTurbulentEnergy,
                                     const RealType& RightTurbulentEnergy ) const
       {
-         const RealType& LeftSpeedOfSound = std::sqrt( this->gamma * LeftPressure / LeftDensity );
-         const RealType& RightSpeedOfSound = std::sqrt( this->gamma * RightPressure / RightDensity );
+         const RealType& LeftSpeedOfSound = std::sqrt( std::abs( this->gamma * LeftPressure / LeftDensity ) );
+         const RealType& RightSpeedOfSound = std::sqrt( std::abs( this->gamma * RightPressure / RightDensity ) );
          const RealType& BorderSpeedOfSound = 0.5 * ( LeftSpeedOfSound + RightSpeedOfSound );
          const RealType& LeftMachNumber = LeftVelocity / BorderSpeedOfSound;
          const RealType& RightMachNumber = RightVelocity / BorderSpeedOfSound;
@@ -127,7 +127,7 @@ class AUSMPlusTurbulentEnergyBase
          }
          else if ( LeftMachNumber <= 1.0 )
          {
-            MachSplitingPlus = 1.0 / 2.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
+            MachSplitingPlus = 1.0 / 4.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
                              + 1.0 / 8.0 * ( LeftMachNumber * LeftMachNumber - 1.0 ) * ( LeftMachNumber * LeftMachNumber - 1.0 );
          }
          else
@@ -140,7 +140,7 @@ class AUSMPlusTurbulentEnergyBase
          }
          else if ( RightMachNumber <= 1.0 )
          {
-            MachSplitingMinus = - 1.0 / 2.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
+            MachSplitingMinus = - 1.0 / 4.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
                                 - 1.0 / 8.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
          }
          else
@@ -322,8 +322,8 @@ class AUSMPlusTurbulentEnergy< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, O
                                 -  this->TurbulentEnergyFlux( density_center , density_east   , velocity_x_center, velocity_x_east  , pressure_center, pressure_east  , u[ center ], u[ east ]   )
                              )
                + hyInverse * (
-                                   this->TurbulentEnergyFlux( density_north , density_center, velocity_y_north , velocity_y_center, pressure_north , pressure_center, u[ north  ], u[ center ] )
-                                -  this->TurbulentEnergyFlux( density_center, density_south , velocity_y_center, velocity_y_south , pressure_center, pressure_south , u[ center ], u[ south ]  )
+                                   this->TurbulentEnergyFlux( density_south , density_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center, u[ south  ], u[ center ] )
+                                -  this->TurbulentEnergyFlux( density_center, density_north , velocity_y_center, velocity_y_north , pressure_center, pressure_north , u[ center ], u[ north ]  )
                              )
                +
                  this->rightHandSide(u, entity, time); 
@@ -425,12 +425,12 @@ class AUSMPlusTurbulentEnergy< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, O
                                 -  this->TurbulentEnergyFlux( density_center, density_east  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east  , u[ center ], u[ east ]   )
                              )
                + hyInverse * (
-                                   this->TurbulentEnergyFlux( density_north , density_center, velocity_y_north , velocity_y_center, pressure_north , pressure_center, u[ north ] , u[ center ] )
-                                -  this->TurbulentEnergyFlux( density_center, density_south , velocity_y_center, velocity_y_south , pressure_center, pressure_south , u[ center ], u[ south ]  )
+                                   this->TurbulentEnergyFlux( density_south , density_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center, u[ south ] , u[ center ] )
+                                -  this->TurbulentEnergyFlux( density_center, density_north , velocity_y_center, velocity_y_north , pressure_center, pressure_north , u[ center ], u[ north ]  )
                              )
                + hzInverse * (
-                                   this->TurbulentEnergyFlux( density_up    , density_center, velocity_z_up    , velocity_z_center, pressure_up    , pressure_center, u[ up ]    , u[ center ])
-                                -  this->TurbulentEnergyFlux( density_center, density_down  , velocity_z_center, velocity_z_down  , pressure_center, pressure_down  , u[ center ], u[ down ]  )
+                                   this->TurbulentEnergyFlux( density_down  , density_center, velocity_z_down  , velocity_z_center, pressure_down  , pressure_center, u[ down ]  , u[ center ])
+                                -  this->TurbulentEnergyFlux( density_center, density_up    , velocity_z_center, velocity_z_up    , pressure_center, pressure_up    , u[ center ], u[ up ]    )
                              )
                +
                  this->rightHandSide(u, entity, time);
