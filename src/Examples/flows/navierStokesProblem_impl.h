@@ -321,7 +321,7 @@ getExplicitUpdate( const RealType& time,
                                                               ( *this->conservativeVariables->getMomentum() )[ 2 ], // uRhoVelocityX,
                                                               ( *this->conservativeVariablesRHS->getMomentum() )[ 2 ] ); //, fuRhoVelocityX );
    }
-   
+
    /****
     * Energy equation
     */               

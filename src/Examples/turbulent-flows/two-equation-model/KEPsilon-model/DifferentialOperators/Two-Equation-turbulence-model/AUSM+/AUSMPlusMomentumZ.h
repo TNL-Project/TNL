@@ -282,7 +282,7 @@ class AUSMPlusMomentumZ< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Operator
                              )
                + hyInverse * ( 
                                  this->OtherMomentumFlux( density_south , density_center, velocity_z_south , velocity_z_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center )
-                               - this->OtherMomentumFlux( density_center, density_north , velocity_z_center, velocity_z_north , velocity_y_center, velocity_y_south , pressure_center, pressure_north  )
+                               - this->OtherMomentumFlux( density_center, density_north , velocity_z_center, velocity_z_north , velocity_y_center, velocity_y_north , pressure_center, pressure_north  )
                              )
                + hzInverse * ( 
                                  this->MainMomentumFlux( density_down  , density_center, velocity_z_down  , velocity_z_center, pressure_down  , pressure_center )
