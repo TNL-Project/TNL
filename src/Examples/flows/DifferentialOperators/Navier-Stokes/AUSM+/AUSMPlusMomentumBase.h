@@ -73,8 +73,8 @@ class AUSMPlusMomentumBase
                                  const RealType& LeftPressure,
                                  const RealType& RightPressure ) const
       {
-         const RealType& LeftSpeedOfSound = std::sqrt( this->gamma * LeftPressure / LeftDensity );
-         const RealType& RightSpeedOfSound = std::sqrt( this->gamma * RightPressure / RightDensity );
+         const RealType& LeftSpeedOfSound = std::sqrt( std::abs( this->gamma * LeftPressure / LeftDensity ) );
+         const RealType& RightSpeedOfSound = std::sqrt( std::abs( this->gamma * RightPressure / RightDensity ) );
          const RealType& BorderSpeedOfSound = 0.5 * ( LeftSpeedOfSound + RightSpeedOfSound );
          const RealType& LeftMachNumber = LeftVelocity / BorderSpeedOfSound;
          const RealType& RightMachNumber = RightVelocity / BorderSpeedOfSound;
@@ -92,7 +92,7 @@ class AUSMPlusMomentumBase
          }
          else if ( LeftMachNumber <= 1.0 )
          {
-            MachSplitingPlus = 1.0 / 2.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
+            MachSplitingPlus = 1.0 / 4.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
                              + 1.0 / 8.0 * ( LeftMachNumber * LeftMachNumber - 1.0 ) * ( LeftMachNumber * LeftMachNumber - 1.0 );
             PressureSplitingPlus = 1.0 / 4.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 ) * (2.0 - LeftMachNumber )
                                  + 3.0 / 16.0 * ( LeftMachNumber * LeftMachNumber - 1.0 ) * ( LeftMachNumber * LeftMachNumber - 1.0 );
@@ -109,7 +109,7 @@ class AUSMPlusMomentumBase
          }
          else if ( RightMachNumber <= 1.0 )
          {
-            MachSplitingMinus = - 1.0 / 2.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
+            MachSplitingMinus = - 1.0 / 4.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
                                 - 1.0 / 8.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
             PressureSplitingMinus = 1.0 / 4.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 ) * (2.0 + RightMachNumber )
                                   - 3.0 / 16.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
@@ -134,8 +134,8 @@ class AUSMPlusMomentumBase
                                   const RealType& LeftPressure,
                                   const RealType& RightPressure ) const
       {
-         const RealType& LeftSpeedOfSound = std::sqrt( this->gamma * LeftPressure / LeftDensity );
-         const RealType& RightSpeedOfSound = std::sqrt( this->gamma * RightPressure / RightDensity );
+         const RealType& LeftSpeedOfSound = std::sqrt( std::abs( this->gamma * LeftPressure / LeftDensity ) );
+         const RealType& RightSpeedOfSound = std::sqrt( std::abs( this->gamma * RightPressure / RightDensity ) );
          const RealType& BorderSpeedOfSound = 0.5 * ( LeftSpeedOfSound + RightSpeedOfSound );
          const RealType& LeftMachNumber = LeftVelocity / BorderSpeedOfSound;
          const RealType& RightMachNumber = RightVelocity / BorderSpeedOfSound;
@@ -149,7 +149,7 @@ class AUSMPlusMomentumBase
          }
          else if ( LeftMachNumber <= 1.0 )
          {
-            MachSplitingPlus = 1.0 / 2.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
+            MachSplitingPlus = 1.0 / 4.0 * ( LeftMachNumber + 1.0 ) * ( LeftMachNumber + 1.0 )
                              + 1.0 / 8.0 * ( LeftMachNumber * LeftMachNumber - 1.0 ) * ( LeftMachNumber * LeftMachNumber - 1.0 );
          }
          else
@@ -162,7 +162,7 @@ class AUSMPlusMomentumBase
          }
          else if ( RightMachNumber <= 1.0 )
          {
-            MachSplitingMinus = - 1.0 / 2.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
+            MachSplitingMinus = - 1.0 / 4.0 * ( RightMachNumber - 1.0 ) * ( RightMachNumber - 1.0 )
                                 - 1.0 / 8.0 * ( RightMachNumber * RightMachNumber - 1.0 ) * ( RightMachNumber * RightMachNumber - 1.0 );
          }
          else

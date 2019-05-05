@@ -177,7 +177,7 @@ class KEpsilonDisipationRightHandSide< Meshes::Grid< 1, MeshReal, Device, MeshIn
          const RealType& velocity_x_west   = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ west ];
          const RealType& velocity_x_center = this->velocity.template getData< TNL::Devices::Host >()[ 0 ].template getData< DeviceType >()[ center ];
 
-         if( ! turbulentEnergy_center == 0.0 )
+         if( ! ( turbulentEnergy_center == 0.0 ) )
          return
                 this->dynamicalViscosity
                 * ( disipation_east - 2 * disipation_center + disipation_west )
@@ -309,7 +309,7 @@ class KEpsilonDisipationRightHandSide< Meshes::Grid< 2, MeshReal, Device, MeshIn
          const RealType& velocity_y_northEast = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northEast ];
          const RealType& velocity_y_northWest = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northWest ];         
          
-         if( ! turbulentEnergy_center == 0.0 )
+         if( ! ( turbulentEnergy_center == 0.0 ) )
          return
                  this->dynamicalViscosity
                 * ( disipation_east - 2 * disipation_center + disipation_west )
@@ -527,7 +527,7 @@ class KEpsilonDisipationRightHandSide< Meshes::Grid< 3, MeshReal, Device, MeshIn
          const RealType& velocity_z_downNorth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downNorth ]; 
          const RealType& velocity_z_downSouth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downSouth ];         
          
-         if( ! turbulentEnergy_center == 0.0 )
+         if( ! ( turbulentEnergy_center == 0.0 ) )
          return 
                   this->dynamicalViscosity
                 * ( disipation_east - 2 * disipation_center + disipation_west )
