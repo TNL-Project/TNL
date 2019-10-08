@@ -178,10 +178,10 @@ class VanLeerMomentumY< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Operator
          const RealType& velocity_y_northWest = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northWest ];         
          
          return -hxInverse * ( 
-                                 this->positiveOtherMomentumFlux( density_center, velocity_y_center, velocity_x_center, pressure_center )
-                               - this->positiveOtherMomentumFlux( density_west  , velocity_y_west  , velocity_x_west  , pressure_west   )
-                               - this->negativeOtherMomentumFlux( density_center, velocity_y_center, velocity_x_center, pressure_center )
-                               + this->negativeOtherMomentumFlux( density_east  , velocity_y_east  , velocity_x_east  , pressure_east   )
+                                 this->positiveOtherMomentumFlux( density_center, velocity_x_center, velocity_y_center, pressure_center )
+                               - this->positiveOtherMomentumFlux( density_west  , velocity_x_west  , velocity_y_west  , pressure_west   )
+                               - this->negativeOtherMomentumFlux( density_center, velocity_x_center, velocity_y_center, pressure_center )
+                               + this->negativeOtherMomentumFlux( density_east  , velocity_x_east  , velocity_y_east  , pressure_east   )
                              )
                 -hyInverse * ( 
                                  this->positiveMainMomentumFlux( density_center, velocity_y_center, pressure_center )
@@ -337,10 +337,10 @@ class VanLeerMomentumY< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, OperatorR
          const RealType& velocity_z_downSouth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downSouth ];         
 
          return -hxInverse * ( 
-                                 this->positiveOtherMomentumFlux( density_center, velocity_y_center, velocity_x_center, pressure_center )
-                               - this->positiveOtherMomentumFlux( density_west  , velocity_y_west  , velocity_x_west  , pressure_west   )
-                               - this->negativeOtherMomentumFlux( density_center, velocity_y_center, velocity_x_center, pressure_center )
-                               + this->negativeOtherMomentumFlux( density_east  , velocity_y_east  , velocity_x_east  , pressure_east   )
+                                 this->positiveOtherMomentumFlux( density_center, velocity_x_center, velocity_y_center, pressure_center )
+                               - this->positiveOtherMomentumFlux( density_west  , velocity_x_west  , velocity_y_west  , pressure_west   )
+                               - this->negativeOtherMomentumFlux( density_center, velocity_x_center, velocity_y_center, pressure_center )
+                               + this->negativeOtherMomentumFlux( density_east  , velocity_x_east  , velocity_y_east  , pressure_east   )
                              )
                 -hyInverse * ( 
                                  this->positiveMainMomentumFlux( density_center, velocity_y_center, pressure_center )
@@ -349,10 +349,10 @@ class VanLeerMomentumY< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, OperatorR
                                + this->negativeMainMomentumFlux( density_north , velocity_y_north , pressure_north  )
                              )
                 -hzInverse * ( 
-                                 this->positiveOtherMomentumFlux( density_center, velocity_y_center, velocity_z_center, pressure_center )
-                               - this->positiveOtherMomentumFlux( density_down  , velocity_y_down  , velocity_z_down  , pressure_down   )
-                               - this->negativeOtherMomentumFlux( density_center, velocity_y_center, velocity_z_center, pressure_center )
-                               + this->negativeOtherMomentumFlux( density_up    , velocity_y_up    , velocity_z_up    , pressure_up     )
+                                 this->positiveOtherMomentumFlux( density_center, velocity_z_center, velocity_y_center, pressure_center )
+                               - this->positiveOtherMomentumFlux( density_down  , velocity_z_down  , velocity_y_down  , pressure_down   )
+                               - this->negativeOtherMomentumFlux( density_center, velocity_z_center, velocity_y_center, pressure_center )
+                               + this->negativeOtherMomentumFlux( density_up    , velocity_z_up    , velocity_y_up    , pressure_up     )
                              )
                +
                  this->rightHandSide(u, entity, time);

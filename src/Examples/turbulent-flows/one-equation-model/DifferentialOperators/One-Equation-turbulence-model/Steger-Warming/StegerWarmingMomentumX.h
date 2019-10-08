@@ -197,10 +197,10 @@ class StegerWarmingMomentumX< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Op
                                + this->negativeMainMomentumFlux( density_east  , velocity_x_east  , pressure_east   )
                              )
                 -hyInverse * ( 
-                                 this->positiveOtherMomentumFlux( density_center, velocity_x_center, velocity_y_center, pressure_center )
-                               - this->positiveOtherMomentumFlux( density_south , velocity_x_south , velocity_y_south , pressure_south  )
-                               - this->negativeOtherMomentumFlux( density_center, velocity_x_center, velocity_y_center, pressure_center )
-                               + this->negativeOtherMomentumFlux( density_north , velocity_x_north , velocity_y_north , pressure_north  )
+                                 this->positiveOtherMomentumFlux( density_center, velocity_y_center, velocity_x_center, pressure_center )
+                               - this->positiveOtherMomentumFlux( density_south , velocity_y_south , velocity_x_south , pressure_south  )
+                               - this->negativeOtherMomentumFlux( density_center, velocity_y_center, velocity_x_center, pressure_center )
+                               + this->negativeOtherMomentumFlux( density_north , velocity_y_north , velocity_x_north , pressure_north  )
                              )
                +
                  this->rightHandSide(u, entity, time);
