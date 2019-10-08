@@ -178,8 +178,8 @@ class AUSMPlusMomentumY< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Operato
          const RealType& velocity_y_northWest = this->velocity.template getData< TNL::Devices::Host >()[ 1 ].template getData< DeviceType >()[ northWest ];         
          
          return  hxInverse * ( 
-                                 this->OtherMomentumFlux( density_west  , density_center, velocity_y_west  , velocity_y_center, velocity_x_west  , velocity_x_center, pressure_west  , pressure_center )
-                               - this->OtherMomentumFlux( density_center, density_east  , velocity_y_center, velocity_y_east  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east   )
+                                 this->OtherMomentumFlux( density_west  , density_center, velocity_x_west  , velocity_x_center, velocity_y_west  , velocity_y_center, pressure_west  , pressure_center )
+                               - this->OtherMomentumFlux( density_center, density_east  , velocity_x_center, velocity_x_east  , velocity_y_center, velocity_y_east  , pressure_center, pressure_east   )
                              )
                + hyInverse * ( 
                                  this->MainMomentumFlux( density_south , density_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center )
@@ -333,16 +333,16 @@ class AUSMPlusMomentumY< Meshes::Grid< 3,MeshReal, Device, MeshIndex >, Operator
          const RealType& velocity_z_downSouth = this->velocity.template getData< TNL::Devices::Host >()[ 2 ].template getData< DeviceType >()[ downSouth ];         
 
          return  hxInverse * ( 
-                                 this->OtherMomentumFlux( density_west  , density_center, velocity_y_west  , velocity_y_center, velocity_x_west  , velocity_x_center, pressure_west  , pressure_center )
-                               - this->OtherMomentumFlux( density_center, density_east  , velocity_y_center, velocity_y_east  , velocity_x_center, velocity_x_east  , pressure_center, pressure_east   )
+                                 this->OtherMomentumFlux( density_west  , density_center, velocity_x_west  , velocity_x_center, velocity_y_west  , velocity_y_center, pressure_west  , pressure_center )
+                               - this->OtherMomentumFlux( density_center, density_east  , velocity_x_center, velocity_x_east  , velocity_y_center, velocity_y_east  , pressure_center, pressure_east   )
                              )
                + hyInverse * ( 
                                  this->MainMomentumFlux( density_south , density_center, velocity_y_south , velocity_y_center, pressure_south , pressure_center )
                                - this->MainMomentumFlux( density_center, density_north , velocity_y_center, velocity_y_north , pressure_center, pressure_north  )
                              )
                + hzInverse * ( 
-                                 this->OtherMomentumFlux( density_down  , density_center, velocity_y_down  , velocity_y_center, velocity_z_down  , velocity_z_center, pressure_down  , pressure_center )
-                               - this->OtherMomentumFlux( density_center, density_up    , velocity_y_center, velocity_y_up    , velocity_z_center, velocity_z_up    , pressure_center, pressure_up     )
+                                 this->OtherMomentumFlux( density_down  , density_center, velocity_z_down  , velocity_z_center, velocity_y_down  , velocity_y_center, pressure_down  , pressure_center )
+                               - this->OtherMomentumFlux( density_center, density_up    , velocity_z_center, velocity_z_up    , velocity_y_center, velocity_y_up    , pressure_center, pressure_up     )
                              )
                +
                  this->rightHandSide(u, entity, time);
