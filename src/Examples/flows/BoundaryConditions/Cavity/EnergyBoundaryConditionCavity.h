@@ -268,6 +268,36 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
          const MeshType& mesh = entity.getMesh();
          const auto& neighborEntities = entity.getNeighborEntities();
          const IndexType& index = entity.getIndex();
+         if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         {
+            return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1 >() ]
+                / ( this->gamma - 1 )
+                )
+                + 0.5
+                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, -1 >()]
+                * (
+                  this->cavitySpeed/*
+                    * (
+                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
+                      ) 
+                   / ( entity.getMesh().getDimensions().x() / 2 )*/
+                * 
+                  this->cavitySpeed/*
+                    * (
+                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
+                      ) 
+                   / ( entity.getMesh().getDimensions().x() / 2 )*/
+                +
+                  ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
+                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
+                  + 0
+                  )
+                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
+                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
+                  + 0
+                  )
+                );
+         }
          if( entity.getCoordinates().x() == 0 )
          {
             return //u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
@@ -307,7 +337,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
                   )
                 );
          }
-         if( entity.getCoordinates().y() == 0 )
+         //if( entity.getCoordinates().y() == 0 )
          {
             return //u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
                 ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1 >() ]
@@ -326,37 +356,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
                   )
                 );
          }
-         // The following line is commented to avoid compiler warning
-         //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
-         {
-            return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1 >() ]
-                / ( this->gamma - 1 )
-                )
-                + 0.5
-                * (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, -1 >()]
-                * (
-                  this->cavitySpeed/*
-                    * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
-                      ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )*/
-                * 
-                  this->cavitySpeed/*
-                    * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
-                      ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )*/
-                +
-                  ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  + 0
-                  )
-                * ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
-                  + 0
-                  )
-                );
-         }         
+         // The following line is commented to avoid compiler warning         
       }
 
       template< typename EntityType >
