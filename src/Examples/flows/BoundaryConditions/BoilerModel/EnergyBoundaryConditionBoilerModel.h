@@ -744,7 +744,7 @@ const RealType operator()( const MeshFunction& u,
                                 /  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                              );
                 else return u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]; 
-             return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
+             return (  (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]
                             / ( this->gamma - 1 ) );
          }
          if( entity.getCoordinates().y() == 0 )
