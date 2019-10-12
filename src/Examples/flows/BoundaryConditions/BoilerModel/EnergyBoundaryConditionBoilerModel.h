@@ -328,7 +328,7 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
               )
 // throttle energy
                {
-                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
+                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0 >() ]
                             / ( this->gamma - 1 )
                          )
                          +  0.5
@@ -339,7 +339,8 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
                             this->horizontalThrottleSpeed
                             );
                }
-            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
+            return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0 >() ]
+                            / ( this->gamma - 1 ) );
          };
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
@@ -383,7 +384,7 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
               )
 // throttle energy
                {
-               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
+               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0 >() ]
                             / ( this->gamma - 1 )
                          )
                          +  0.5
@@ -397,7 +398,7 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
 // if for chimney exit
              if( entity.getCoordinates().y() > 0.835 * ( entity.getMesh().getDimensions().y() - 1 ) )
                 if( (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] != 0 )
-                   return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
+                   return (  (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0 >() ]
                           /  ( this->gamma - 1 )
                           )
                           +  0.5
@@ -409,14 +410,15 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
                                 /  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
                              );
                 else return u[ neighborEntities.template getEntityIndex< -1, 0 >() ];         
-             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
+             return (  (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0 >() ]
+                            / ( this->gamma - 1 ) );
          }
          if( entity.getCoordinates().y() == 0 )
          {
             if( ( entity.getCoordinates().x() < 0.592 * ( entity.getMesh().getDimensions().x() - 1 ) )
               &&
                 ( entity.getCoordinates().x() > 0.408 * ( entity.getMesh().getDimensions().x() - 1 ) ) ) 
-               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
+               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1 >() ]
                       /  ( this->gamma - 1 )
                      )
                      +  0.5
@@ -426,12 +428,14 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
                         * 
                         this->verticalThrottleSpeed
                         );
-            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
+            return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1 >() ]
+                            / ( this->gamma - 1 ) );
          }
          // The following line is commented to avoid compiler warning
          //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
-            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
+            return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1 >() ]
+                            / ( this->gamma - 1 ) );
          }         
       }
 
@@ -628,7 +632,7 @@ const RealType operator()( const MeshFunction& u,
 // if for y axis
                {
                if( entity.getCoordinates().y() < 0.08 * std::cos( this->xYAngle ) * ( entity.getMesh().getDimensions().y() - 1 ) )
-                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
                             / ( this->gamma - 1 )
                          )
                          +  0.5
@@ -639,7 +643,7 @@ const RealType operator()( const MeshFunction& u,
                             this->horizontalThrottleSpeed
                             );
                if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
-                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
                             /  ( this->gamma - 1 )
                          )
                          +  0.5
@@ -649,9 +653,11 @@ const RealType operator()( const MeshFunction& u,
                          * 
                             this->horizontalThrottleSpeed
                          );
-               return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
+                            / ( this->gamma - 1 ) );
                }
-            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+            return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
+                            / ( this->gamma - 1 ) );
          }
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
@@ -696,7 +702,7 @@ const RealType operator()( const MeshFunction& u,
 // if for y axis
                {
                if( entity.getCoordinates().y() < 0.08 * std::sin( this->xYAngle ) * ( entity.getMesh().getDimensions().y() - 1 ) )
-                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]
                             / ( this->gamma - 1 )
                          )
                          +  0.5
@@ -707,7 +713,7 @@ const RealType operator()( const MeshFunction& u,
                             this->horizontalThrottleSpeed
                             );
                if ( entity.getCoordinates().y() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().y() - 1 ) )
-                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]
                             / ( this->gamma - 1 )
                          )
                          +  0.5
@@ -718,12 +724,13 @@ const RealType operator()( const MeshFunction& u,
                             this->horizontalThrottleSpeed
                             );
                
-               return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]
+                            / ( this->gamma - 1 ) );
 // if for chimney exit
              }
              if( entity.getCoordinates().z() > 0.835 * ( entity.getMesh().getDimensions().z() - 1 ) )
                 if( (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()] != 0 )
-                   return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+                   return (  (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]
                           /  ( this->gamma - 1 )
                           )
                           +  0.5
@@ -737,7 +744,8 @@ const RealType operator()( const MeshFunction& u,
                                 /  (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
                              );
                 else return u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]; 
-             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+             return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
+                            / ( this->gamma - 1 ) );
          }
          if( entity.getCoordinates().y() == 0 )
          {
@@ -782,7 +790,7 @@ const RealType operator()( const MeshFunction& u,
 // if for x axis
                {
                if( entity.getCoordinates().x() < 0.08 * std::sin( this->xYAngle ) * ( entity.getMesh().getDimensions().x() - 1 ) )
-                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ]
                             / ( this->gamma - 1 )
                          )
                          +  0.5
@@ -793,7 +801,7 @@ const RealType operator()( const MeshFunction& u,
                             this->horizontalThrottleSpeed
                             );
                if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::cos( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
-                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ]
                             / ( this->gamma - 1 )
                          )
                          +  0.5
@@ -804,9 +812,11 @@ const RealType operator()( const MeshFunction& u,
                             this->horizontalThrottleSpeed
                             );
                
-               return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ]
+                            / ( this->gamma - 1 ) );
                }
-            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+            return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ]
+                            / ( this->gamma - 1 ) );
          }
          if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
@@ -851,7 +861,7 @@ const RealType operator()( const MeshFunction& u,
 // if for x axis
               {
                if( entity.getCoordinates().x() < 0.08 * std::cos( this->xYAngle ) * ( entity.getMesh().getDimensions().x() - 1 ) )
-                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1, 0 >() ]
                             / ( this->gamma - 1 )
                          )
                          +  0.5
@@ -862,7 +872,7 @@ const RealType operator()( const MeshFunction& u,
                             this->horizontalThrottleSpeed
                             );
                if ( entity.getCoordinates().x() > ( 1 - 0.08 * std::sin( this->xYAngle ) ) * ( entity.getMesh().getDimensions().x() - 1 ) )
-                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+                  return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1, 0 >() ]
                             / ( this->gamma - 1 )
                          )
                          +  0.5
@@ -872,15 +882,17 @@ const RealType operator()( const MeshFunction& u,
                             * 
                             this->horizontalThrottleSpeed
                             );
-               return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1, 0 >() ]
+                            / ( this->gamma - 1 ) );
               }
-            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+            return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1, 0 >() ]
+                            / ( this->gamma - 1 ) );
          }
          if( entity.getCoordinates().z() == 0 )
          {
             if( ( entity.getCoordinates().y() < 0.592 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.408 * ( entity.getMesh().getDimensions().y() - 1 ) ) )
 //              &&( entity.getCoordinates().y() < 0.6 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.4 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
-               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
+               return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 1 >() ]
                       /  ( this->gamma - 1 )
                      )
                      +  0.5
@@ -890,9 +902,11 @@ const RealType operator()( const MeshFunction& u,
                         * 
                         this->verticalThrottleSpeed
                         );
-            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+            return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 1 >() ]
+                            / ( this->gamma - 1 ) );
          }
-         return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+         return (  (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, -1 >() ]
+                            / ( this->gamma - 1 ) );
                
       }
 
