@@ -428,33 +428,33 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
          const IndexType& index = entity.getIndex();
          if( entity.getCoordinates().x() == 0 )
          {
-            ( (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
-                / ( this->gamma - 1 ) );
+            return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
+                   / ( this->gamma - 1 ) );
          }
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
-            ( (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]
-                / ( this->gamma - 1 ) );
+            return ( (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]
+                   / ( this->gamma - 1 ) );
          }
          if( entity.getCoordinates().y() == 0 )
          {
             
-            ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ]
-                / ( this->gamma - 1 ) );
+            return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ]
+                   / ( this->gamma - 1 ) );
          }
          if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
             
-            ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1, 0 >() ]
-                / ( this->gamma - 1 ) );
+            return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1, 0 >() ]
+                   / ( this->gamma - 1 ) );
          }
          if( entity.getCoordinates().z() == 0 )
          {     
-            ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 1 >() ]
-                / ( this->gamma - 1 ) );
+            return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 1 >() ]
+                   / ( this->gamma - 1 ) );
          }
          // The following line is commented to avoid compiler warning
-         //if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
+         if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
          {
             return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, -1 >() ]
                 / ( this->gamma - 1 )
@@ -467,7 +467,8 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
                 * 
                  ( this->cavitySpeed
                  );
-         }   
+         }
+            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
       }
 
 
