@@ -466,8 +466,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
                  )
                 * 
                  ( this->cavitySpeed
-                 )
-                );
+                 );
          }   
       }
 
