@@ -270,23 +270,13 @@ class MomentumXBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, Mesh
          if( entity.getCoordinates().y() == 0 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-                 /*(* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] 
-              * ( 
-                  (* (* this->compressibleConservativeVariables->getMomentum())[ 0 ])[neighborEntities.template getEntityIndex< 0, 1 >()]
-                / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 1 >()]
-                );*/
          }
          // The following line is commented to avoid compiler warning
          //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
-            return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, -1 >()] 
+            return (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] 
               * ( 
-                   ( this->cavitySpeed/* 
-                    * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
-                      ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )*/
-                 )
+                   ( this->cavitySpeed )
                 );
          }         
       }

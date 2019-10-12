@@ -262,20 +262,10 @@ class MomentumYBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, Mesh
          if( entity.getCoordinates().x() == 0 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-                  /*(* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] 
-              * ( 
-                  (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 1, 0 >()]
-                / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 1, 0 >()]
-                );*/
          }
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-                  /*(* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()] 
-              * ( 
-                  (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< -1, 0 >()]
-                / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< -1, 0 >()]
-                );*/
          }
          if( entity.getCoordinates().y() == 0 )
          {
