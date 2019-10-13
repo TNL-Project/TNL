@@ -272,7 +272,7 @@ class AUSMPlusEnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device,
          {
             return (
                    (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0 >() ]
-                   +
+                   -
                    (* ( *this->compressibleConservativeVariables->getMomentum() )[ 0 ] )[neighborEntities.template getEntityIndex< 1, 0 >()]
                    *
                    std::sqrt( std::abs( this->gamma * (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0 >() ]
@@ -296,7 +296,7 @@ class AUSMPlusEnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device,
          {
             return (  (
                       (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1 >() ]
-                      +
+                      -
                       (* ( *this->compressibleConservativeVariables->getMomentum() )[ 1 ] )[neighborEntities.template getEntityIndex< 0, 1 >()]
                       *
                       std::sqrt( std::abs( this->gamma * (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1 >() ]
@@ -462,7 +462,7 @@ class AUSMPlusEnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device,
          {
             return (  (
                       (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
-                      +
+                      -
                       (* ( *this->compressibleConservativeVariables->getMomentum() )[ 0 ] )[neighborEntities.template getEntityIndex< 1, 0, 0 >()]
                       *
                       std::sqrt( std::abs( this->gamma * (* this->pressure)[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
@@ -487,7 +487,7 @@ class AUSMPlusEnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device,
             
             return (  (
                    (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ]
-                   +
+                   -
                    (* ( *this->compressibleConservativeVariables->getMomentum() )[ 1 ] )[neighborEntities.template getEntityIndex< 0, 1, 0 >()]
                    *
                    std::sqrt( std::abs( this->gamma * (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ]
@@ -512,7 +512,7 @@ class AUSMPlusEnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device,
          {     
             return (  (
                    (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 1 >() ]
-                   +
+                   -
                    (* ( *this->compressibleConservativeVariables->getMomentum() )[ 2 ] )[neighborEntities.template getEntityIndex< 0, 0, 1 >()]
                    *
                    std::sqrt( std::abs( this->gamma * (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 1 >() ]
