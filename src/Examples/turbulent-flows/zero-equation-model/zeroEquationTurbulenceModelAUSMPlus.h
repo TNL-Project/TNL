@@ -10,9 +10,9 @@
 #include "flowsBuildConfigTag.h"
 
 #include "RiemannProblemInitialCondition.h"
-#include "BoundaryConditions/Cavity/BoundaryConditionsCavity.h"
+#include "BoundaryConditions/Cavity/AUSMPlusBoundaryConditionsCavity.h"
 #include "BoundaryConditions/Boiler/BoundaryConditionsBoiler.h"
-#include "BoundaryConditions/BoilerModel/BoundaryConditionsBoilerModel.h"
+#include "BoundaryConditions/BoilerModel/AUSMPlusBoundaryConditionsBoilerModel.h"
 #include "BoundaryConditions/Dirichlet/BoundaryConditionsDirichlet.h"
 #include "BoundaryConditions/Neumann/BoundaryConditionsNeumann.h"
 #include "DifferentialOperatorsRightHandSide/PrandtlRightHandSide/PrandtlOperatorRightHandSide.h"

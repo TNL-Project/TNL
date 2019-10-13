@@ -20,7 +20,7 @@ template< typename Mesh,
           typename Function,
           typename Real = typename Mesh::RealType,
           typename Index = typename Mesh::GlobalIndexType >
-class EnergyBoundaryConditionsBoilerModel
+class AUSMPlusEnergyBoundaryConditionsBoilerModel
 {
 
 };
@@ -29,7 +29,7 @@ class EnergyBoundaryConditionsBoilerModel
  * Base
  */
 template< typename Function>
-class EnergyBoundaryConditionsBoilerModelBase
+class AUSMPlusEnergyBoundaryConditionsBoilerModelBase
 {
    public:
       
@@ -92,8 +92,8 @@ template< typename MeshReal,
           typename Function,
           typename Real,
           typename Index >
-class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Function, Real, Index >
-   : public EnergyBoundaryConditionsBoilerModelBase< Function >,
+class AUSMPlusEnergyBoundaryConditionsBoilerModel< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Function, Real, Index >
+   : public AUSMPlusEnergyBoundaryConditionsBoilerModelBase< Function >,
      public Operator< Meshes::Grid< 1, MeshReal, Device, MeshIndex >,
                          Functions::MeshBoundaryDomain,
                          1, 1,
@@ -112,8 +112,8 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 1, MeshReal, Device, Me
    typedef Containers::Vector< RealType, DeviceType, IndexType> DofVectorType;
    typedef Containers::StaticVector< 1, RealType > PointType;
    typedef typename MeshType::CoordinatesType CoordinatesType;
-   typedef EnergyBoundaryConditionsBoilerModel< MeshType, Function, Real, Index > ThisType;
-   typedef EnergyBoundaryConditionsBoilerModelBase< Function > BaseType;
+   typedef AUSMPlusEnergyBoundaryConditionsBoilerModel< MeshType, Function, Real, Index > ThisType;
+   typedef AUSMPlusEnergyBoundaryConditionsBoilerModelBase< Function > BaseType;
    typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
    typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
    typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
@@ -248,8 +248,8 @@ template< typename MeshReal,
           typename Function,
           typename Real,
           typename Index >
-class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Function, Real, Index >
-   : public EnergyBoundaryConditionsBoilerModelBase< Function >,
+class AUSMPlusEnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Function, Real, Index >
+   : public AUSMPlusEnergyBoundaryConditionsBoilerModelBase< Function >,
      public Operator< Meshes::Grid< 2, MeshReal, Device, MeshIndex >,
                          Functions::MeshBoundaryDomain,
                          2, 2,
@@ -269,8 +269,8 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, Me
       typedef Containers::Vector< RealType, DeviceType, IndexType> DofVectorType;
       typedef Containers::StaticVector< 2, RealType > PointType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
-      typedef EnergyBoundaryConditionsBoilerModel< MeshType, Function, Real, Index > ThisType;
-      typedef EnergyBoundaryConditionsBoilerModelBase< Function > BaseType;
+      typedef AUSMPlusEnergyBoundaryConditionsBoilerModel< MeshType, Function, Real, Index > ThisType;
+      typedef AUSMPlusEnergyBoundaryConditionsBoilerModelBase< Function > BaseType;
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
       typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
       typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
@@ -586,8 +586,8 @@ template< typename MeshReal,
           typename Function,
           typename Real,
           typename Index >
-class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Function, Real, Index >
-   : public EnergyBoundaryConditionsBoilerModelBase< Function >,
+class AUSMPlusEnergyBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Function, Real, Index >
+   : public AUSMPlusEnergyBoundaryConditionsBoilerModelBase< Function >,
      public Operator< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
                          Functions::MeshBoundaryDomain,
                          3, 3,
@@ -606,8 +606,8 @@ class EnergyBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device, Me
       typedef Containers::Vector< RealType, DeviceType, IndexType> DofVectorType;
       typedef Containers::StaticVector< 3, RealType > PointType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
-      typedef EnergyBoundaryConditionsBoilerModel< MeshType, Function, Real, Index > ThisType;
-      typedef EnergyBoundaryConditionsBoilerModelBase< Function > BaseType;  
+      typedef AUSMPlusEnergyBoundaryConditionsBoilerModel< MeshType, Function, Real, Index > ThisType;
+      typedef AUSMPlusEnergyBoundaryConditionsBoilerModelBase< Function > BaseType;  
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
       typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer; 
       typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
@@ -1061,7 +1061,7 @@ template< typename Mesh,
           typename Function,
           typename Real,
           typename Index >
-std::ostream& operator << ( std::ostream& str, const EnergyBoundaryConditionsBoilerModel< Mesh, Function, Real, Index >& bc )
+std::ostream& operator << ( std::ostream& str, const AUSMPlusEnergyBoundaryConditionsBoilerModel< Mesh, Function, Real, Index >& bc )
 {
    str << "Neumann boundary Conditions: function = " << bc.getFunction();
    return str;
