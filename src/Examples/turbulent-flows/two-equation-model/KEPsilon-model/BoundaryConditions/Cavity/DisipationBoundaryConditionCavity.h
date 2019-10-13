@@ -111,8 +111,8 @@ class DisipationBoundaryConditionsCavity< Meshes::Grid< 1, MeshReal, Device, Mes
    typedef Containers::Vector< RealType, DeviceType, IndexType> DofVectorType;
    typedef Containers::StaticVector< 1, RealType > PointType;
    typedef typename MeshType::CoordinatesType CoordinatesType;
-   typedef EnergyBoundaryConditionsCavity< MeshType, Function, Real, Index > ThisType;
-   typedef EnergyBoundaryConditionsCavityBase< Function > BaseType;
+   typedef DisipationBoundaryConditionsCavity< MeshType, Function, Real, Index > ThisType;
+   typedef DisipationBoundaryConditionsCavityBase< Function > BaseType;
    typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
    typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
    typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
@@ -258,8 +258,8 @@ class DisipationBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, Mes
       typedef Containers::Vector< RealType, DeviceType, IndexType> DofVectorType;
       typedef Containers::StaticVector< 2, RealType > PointType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
-      typedef EnergyBoundaryConditionsCavity< MeshType, Function, Real, Index > ThisType;
-      typedef EnergyBoundaryConditionsCavityBase< Function > BaseType;
+      typedef DisipationBoundaryConditionsCavity< MeshType, Function, Real, Index > ThisType;
+      typedef DisipationBoundaryConditionsCavityBase< Function > BaseType;
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
       typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer;
       typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;
@@ -430,8 +430,8 @@ class DisipationBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, Mes
       typedef Containers::Vector< RealType, DeviceType, IndexType> DofVectorType;
       typedef Containers::StaticVector< 3, RealType > PointType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
-      typedef EnergyBoundaryConditionsCavity< MeshType, Function, Real, Index > ThisType;
-      typedef EnergyBoundaryConditionsCavityBase< Function > BaseType;  
+      typedef DisipationBoundaryConditionsCavity< MeshType, Function, Real, Index > ThisType;
+      typedef DisipationBoundaryConditionsCavityBase< Function > BaseType;  
       typedef CompressibleConservativeVariables< MeshType > CompressibleConservativeVariablesType;
       typedef Pointers::SharedPointer< CompressibleConservativeVariablesType > CompressibleConservativeVariablesPointer; 
       typedef Pointers::SharedPointer< MeshFunctionType, DeviceType > MeshFunctionPointer;

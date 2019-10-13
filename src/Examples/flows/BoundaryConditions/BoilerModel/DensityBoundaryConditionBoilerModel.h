@@ -265,25 +265,16 @@ class DensityBoundaryConditionsBoilerModel< Meshes::Grid< 2, MeshReal, Device, M
          const auto& neighborEntities = entity.getNeighborEntities();
          const IndexType& index = entity.getIndex();
          if( entity.getCoordinates().x() == 0 )
-         {
-            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-         }
+            return u[ neighborEntities.template getEntityIndex< 1, 0 >() ];
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
-         {
-            if (entity.getCoordinates().y() < 0.835 * ( entity.getMesh().getDimensions().y() - 1 ))
-               return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-            else
-               return u[ neighborEntities.template getEntityIndex< -1, 0 >() ];
-         }
+            return u[ neighborEntities.template getEntityIndex< -1, 0 >() ];
          if( entity.getCoordinates().y() == 0 )
-         {
-            return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
-         }
+            return u[ neighborEntities.template getEntityIndex< 0, 1 >() ];
          // The following line is commented to avoid compiler warning
          //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, -1 >() ];
-         }         
+         }       
       }
 
       template< typename EntityType >
@@ -427,7 +418,7 @@ class DensityBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device, M
          const IndexType& index = entity.getIndex();
          if( entity.getCoordinates().x() == 0 )
          {
-            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+            return u[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ];
          }
          if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
          {
@@ -435,24 +426,24 @@ class DensityBoundaryConditionsBoilerModel< Meshes::Grid< 3, MeshReal, Device, M
             if( entity.getCoordinates().z() > 0.835 * ( entity.getMesh().getDimensions().z() - 1 ) )
                  return u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ];
             else
-               return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+               return u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ];
          }
          if( entity.getCoordinates().y() == 0 )
          {
-            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+            return u[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ];
          }
          if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
          {
-            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+            return u[ neighborEntities.template getEntityIndex< 0, -1, 0 >() ];
          }
          if( entity.getCoordinates().z() == 0 )
          {
-            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+            return u[ neighborEntities.template getEntityIndex< 0, 0, 1 >() ];
          }
          // The following line is commented to avoid compiler warning
          //if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
          {
-            return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
+            return u[ neighborEntities.template getEntityIndex< 0, 0, -1 >() ];
          }   
       }
 
