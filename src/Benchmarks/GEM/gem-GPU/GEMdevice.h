@@ -12,9 +12,13 @@ void GEMdevice( Matrix< Real, TNL::Devices::Cuda, Index >& matrixDev,
   int blockSize = 3;
   int numOfBlocks = TNL::roundUpDivision( matrixDev.getNumRows(), blockSize );
   printf( "%d number of threads, %d number of blocks\n", blockSize, numOfBlocks);
-  for( int rowPointer = 0; rowPointer < matrixDev.getNumRows()-1; rowPointer++ )
+  
+  for( int mainBlockId = 0; mainBlockId < numOfBlocks; mainBlockId++ )
   {
-    GEMForwardPass<<< numOfBlocks, blockSize >>>( devMat, device_vector.getView(), rowPointer );
+    GEMBlocks<<< numOfBlocks, blockSize >>>( devMat, device_vector.getView(), mainBlockId );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;
+    GEMZeroing<<< numOfBlocks, blockSize >>>( devMat, device_vector.getView(), mainBlockId );
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;
   }
@@ -27,31 +31,5 @@ void GEMdevice( Matrix< Real, TNL::Devices::Cuda, Index >& matrixDev,
   std::cout << device_vector << "\n" << std::endl;
 #endif
   
-  GEMNormRows<<< numOfBlocks, blockSize >>>( devMat, device_vector.getView() );
-  cudaDeviceSynchronize();
-  TNL_CHECK_CUDA_DEVICE;
-  
-#if DEBUG
-  showMatrix<<< 1, 1 >>>( matrixDev );
-  cudaDeviceSynchronize();
-  TNL_CHECK_CUDA_DEVICE;
-
-  std::cout << device_vector << "\n" << std::endl;
-#endif
-  
-  for( int rowPointer = matrixDev.getNumRows()-1; rowPointer > -1; rowPointer-- )
-  {
-    GEMBackwardPass<<< numOfBlocks, blockSize >>>( devMat, device_vector.getView(), rowPointer );
-    cudaDeviceSynchronize();
-    TNL_CHECK_CUDA_DEVICE;
-  }
-  
-#if DEBUG
-  showMatrix<<< 1, 1 >>>( matrixDev );
-  cudaDeviceSynchronize();
-  TNL_CHECK_CUDA_DEVICE;
-
-  std::cout << device_vector << "\n" << std::endl;
-#endif
 }
 #endif

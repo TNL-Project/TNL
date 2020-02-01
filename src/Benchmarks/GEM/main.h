@@ -41,13 +41,13 @@ int main( int argc, char* argv[] )
   typedef Matrix< double, Devices::Host, int> MatrixHost;
   typedef Vector< double, Devices::Host, int > VectorHost;
   
-  const int size = 5;
+  const int size = 9;
   VectorHost dataVec(size*size),host_vector(size), result_vector(size);
   
   MatrixHost matrix( size,size);
   // set matrix for tryal run
   Matrices::MatrixReader<MatrixHost> m;
-  m.readMtxFile( "./test-matrices/matice2.mtx", matrix );
+  m.readMtxFile( "./test-matrices/cage4.mtx", matrix );
   //matrix.showMatrix();
   
   /*matrix.setElement( 0, 0, 8.0 );
@@ -74,7 +74,7 @@ int main( int argc, char* argv[] )
   printf("Host result:\n");
   std::cout << result_vector << std::endl;
   
-/*#ifdef HAVE_CUDA
+#ifdef HAVE_CUDA
   typedef Matrix< double, Devices::Cuda, int> MatrixDevice;
   typedef Vector< double, Devices::Cuda, int > VectorDevice;
   VectorDevice device_vector(size), result_vector_dev(size);
@@ -98,7 +98,7 @@ int main( int argc, char* argv[] )
   matrix.showMatrix();
   cout << device_vector << endl;
   
-#endif*/
+#endif
   
   
   return EXIT_SUCCESS;
