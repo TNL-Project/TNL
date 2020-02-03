@@ -41,13 +41,13 @@ int main( int argc, char* argv[] )
   typedef Matrix< double, Devices::Host, int> MatrixHost;
   typedef Vector< double, Devices::Host, int > VectorHost;
   
-  const int size = 9;
+  const int size = 6;
   VectorHost dataVec(size*size),host_vector(size), result_vector(size);
   
   MatrixHost matrix( size,size);
   // set matrix for tryal run
   Matrices::MatrixReader<MatrixHost> m;
-  m.readMtxFile( "./test-matrices/cage4.mtx", matrix );
+  m.readMtxFile( "./test-matrices/matice6.mtx", matrix );
   //matrix.showMatrix();
   
   /*matrix.setElement( 0, 0, 8.0 );
@@ -60,14 +60,34 @@ int main( int argc, char* argv[] )
   
   matrix.setElement( 2, 0, -2.0 );
   matrix.setElement( 2, 1, -1.0 );
-  matrix.setElement( 2, 2, 9.0 );*/
-  
-  
+  matrix.setElement( 2, 2, 9.0 );
   // set vector and output vector
-  result_vector.setValue( 0.0 );
-  host_vector.setElement(0, 0.0); 
+  host_vector.setElement(0, 0.0);
   host_vector.setElement(1, 10.0);
-  host_vector.setElement(2, 23.0);
+  host_vector.setElement(2, 23.0);*/
+  
+  
+  // set vector and output vector MATICE6
+  host_vector.setElement(0, 49.0);
+  host_vector.setElement(1, 45.0);
+  host_vector.setElement(2, 34.0);
+  host_vector.setElement(3, 45.0);
+  host_vector.setElement(4, 46.0);
+  host_vector.setElement(5, 51.0);
+  
+  
+  // set vector and output vector MATICE9
+  /*
+  result_vector.setValue( 0.0 );
+  host_vector.setElement(0, 105.0);
+  host_vector.setElement(1, 105.0);
+  host_vector.setElement(2, 93.0);
+  host_vector.setElement(3, 98.0);
+  host_vector.setElement(4, 96.0);
+  host_vector.setElement(5, 121.0);
+  host_vector.setElement(6, 80.0);
+  host_vector.setElement(7, 107.0);
+  host_vector.setElement(8, 113.0);*/
     
   GEM< double, Devices::Host, int > gem( matrix, host_vector );
   gem.solve( result_vector, 0 );
@@ -82,7 +102,6 @@ int main( int argc, char* argv[] )
   
   // copy matrix to device
   matrixDev = matrix;
-  MatrixDevice* devMat = Cuda::passToDevice( matrixDev);
   
   // copy vectors to device
   result_vector_dev = result_vector;
@@ -96,7 +115,7 @@ int main( int argc, char* argv[] )
   matrix = matrixDev;
   printf("Device result:\n");
   matrix.showMatrix();
-  cout << device_vector << endl;
+  cout << result_vector_dev << endl;
   
 #endif
   

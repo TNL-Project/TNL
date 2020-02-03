@@ -152,18 +152,21 @@ __global__
 void GEMZeroing(  Matrix< double, TNL::Devices::Cuda, int >* A,
         TNL::Containers::VectorView< double, TNL::Devices::Cuda, int > b, int mainBlockPointer )
 {
+  if( threadIdx.x == 0 && blockIdx.x == 1 )
+    A->showMatrix();
   int mainRowForThisRow = mainBlockPointer*blockDim.x + threadIdx.x;
   int row = threadIdx.x + blockIdx.x*blockDim.x;
-  
-  if( row > mainRowForThisRow && row < A->getNumRows() && mainRowForThisRow < A->getNumColumns() )
+  if( row > mainRowForThisRow && row < A->getNumRows() && mainRowForThisRow < A->getNumColumns() && mainBlockPointer < blockIdx.x )
   {
     const double pivot = A->getElement( mainRowForThisRow, mainRowForThisRow );
     const double firstElement = A->getElement( row, mainRowForThisRow );
     A->setElement( row, mainRowForThisRow, 0. );
+    b[row] = pivot * b[ row ] / firstElement - b[ mainRowForThisRow ];
+    
     for( int i = mainRowForThisRow+1; i < A->getNumColumns(); i++ )
     {
       A->setElement( row, i, 
-              A->getElement(row, i)/ firstElement - A->getElement(mainRowForThisRow, i ) );
+              pivot * A->getElement(row, i)/ firstElement - A->getElement(mainRowForThisRow, i ) );
     }
     
   }
