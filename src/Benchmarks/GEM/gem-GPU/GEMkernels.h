@@ -2,6 +2,37 @@
 //TODO: Real
 
 
+__global__ 
+void GEMColumnUnderDiag( Matrix< double, TNL::Devices::Cuda, int >* A,
+        TNL::Containers::VectorView< double, TNL::Devices::Cuda, int > b, 
+        int colPointerMain, int numBlocksOnRow )
+{
+  int rowPointer = blockIdx.x / numBlocksOnRow;
+  int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
+  if( colPointer < A->getNumColumns() && rowPointer > colPointerMain )
+  {
+    if( A->getElement( colPointerMain, colPointerMain ) != 0 )
+    { 
+      const double pivot = A->getElement( colPointerMain, colPointerMain );
+      const double firstElementInRow = A->getElement( rowPointer, colPointerMain );
+      if( firstElementInRow != 0 )
+      {
+        A->setElement( rowPointer, colPointer,
+                  A->getElement( colPointerMain, colPointer ) - pivot * A->getElement( rowPointer, colPointer ) / firstElementInRow );   
+        
+        if( colPointer == colPointerMain )
+        {
+          b[ rowPointer ] = b[ colPointerMain ] - pivot*b[ rowPointer ] / firstElementInRow;
+          A->setElement( rowPointer, colPointerMain, 0.0 );
+        }
+      }
+    } else printf( "Error, pivot is zero!\n");
+  }
+}
+
+
+/*********************FIRST TRY WITH COLUMNS************************************/
+
 
 __global__ 
 void GEMForwardPass( Matrix< double, TNL::Devices::Cuda, int >* A,
@@ -78,6 +109,9 @@ void GEMBackwardPass( Matrix< double, TNL::Devices::Cuda, int >* A,
   }
 }
 
+/**********************END FIRST TRY WITH COLUMNS ******************************/
+/*******************************************************************************/
+
 
 
 __global__ 
@@ -87,6 +121,8 @@ void showMatrix( Matrix< double, TNL::Devices::Cuda, int > A)
 }
 
 
+
+/****************************FIRST TRY WITH BLOCKS******************************/
 __global__
 void GEMBlocks( Matrix< double, TNL::Devices::Cuda, int >* A,
         TNL::Containers::VectorView< double, TNL::Devices::Cuda, int > b, int mainBlockPointer )
@@ -171,6 +207,10 @@ void GEMZeroing(  Matrix< double, TNL::Devices::Cuda, int >* A,
     
   }
 }
+
+
+/************************END FIRST TRY WITH BLOCKS******************************/
+/*******************************************************************************/
 
 
 #endif //HAVE_CUDA

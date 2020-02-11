@@ -43,41 +43,26 @@ void GEMdevice( Matrix< Real, TNL::Devices::Cuda, Index >& matrixDev,
                 TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index >& result_vector_dev )
 {
   Matrix< Real, TNL::Devices::Cuda, Index >* devMat = TNL::Cuda::passToDevice( matrixDev);
-  int blockSize = 3;
-  int numOfBlocks = TNL::roundUpDivision( matrixDev.getNumRows(), blockSize );
-  printf( "%d number of threads, %d number of blocks\n", blockSize, numOfBlocks);
+    
   
-  for( int mainBlockId = 0; mainBlockId < numOfBlocks; mainBlockId++ )
+  for( int colPointer = 0; colPointer < matrixDev.getNumColumns(); colPointer++ )
   {
-    GEMBlocks<<< numOfBlocks, blockSize >>>( devMat, device_vector.getView(), mainBlockId );
+    int blockSize = (matrixDev.getNumColumns()-colPointer) > 1024 ? 1024 : matrixDev.getNumColumns();
+    int numBlocksOnRow = TNL::roundUpDivision( (matrixDev.getNumColumns()-colPointer), 1024 );
+    int numOfBlocks =  matrixDev.getNumRows() * numBlocksOnRow;
+    printf( "%d number of threads, %d number of blocks\n", blockSize, numOfBlocks);
+    GEMColumnUnderDiag<<< numOfBlocks, blockSize >>>( devMat, 
+                                                      device_vector.getView(), 
+                                                      colPointer, 
+                                                      numBlocksOnRow );
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;
-#if DEBUG
+    printf("\n");
     showMatrix<<< 1, 1 >>>( matrixDev );
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;
-
-    std::cout << device_vector << "\n" << std::endl;
-#endif
-    GEMZeroing<<< numOfBlocks, blockSize >>>( devMat, device_vector.getView(), mainBlockId );
-    cudaDeviceSynchronize();
-    TNL_CHECK_CUDA_DEVICE;
-#if DEBUG
-    showMatrix<<< 1, 1 >>>( matrixDev );
-    cudaDeviceSynchronize();
-    TNL_CHECK_CUDA_DEVICE;
-
-    std::cout << device_vector << "\n" << std::endl;
-#endif
+    printf("\n");
   }
-  
-#if DEBUG
-  showMatrix<<< 1, 1 >>>( matrixDev );
-  cudaDeviceSynchronize();
-  TNL_CHECK_CUDA_DEVICE;
-
-  std::cout << device_vector << "\n" << std::endl;
-#endif
   
   calculateResultSeqCPU( matrixDev, device_vector, result_vector_dev );
   
