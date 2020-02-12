@@ -9,7 +9,7 @@ void GEMColumnUnderDiag( Matrix< double, TNL::Devices::Cuda, int >* A,
 {
   int rowPointer = blockIdx.x / numBlocksOnRow;
   int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
-  if( colPointer < A->getNumColumns() && rowPointer > colPointerMain )
+  if( colPointer < A->getNumColumns() && rowPointer != colPointerMain )
   {
     if( A->getElement( colPointerMain, colPointerMain ) != 0 )
     { 
@@ -18,11 +18,11 @@ void GEMColumnUnderDiag( Matrix< double, TNL::Devices::Cuda, int >* A,
       if( firstElementInRow != 0 )
       {
         A->setElement( rowPointer, colPointer,
-                  A->getElement( colPointerMain, colPointer ) - pivot * A->getElement( rowPointer, colPointer ) / firstElementInRow );   
+                  A->getElement( rowPointer, colPointer ) - firstElementInRow * A->getElement( colPointerMain, colPointer ) / pivot );   
         
         if( colPointer == colPointerMain )
         {
-          b[ rowPointer ] = b[ colPointerMain ] - pivot*b[ rowPointer ] / firstElementInRow;
+          b[ rowPointer ] = b[ rowPointer ] - firstElementInRow * b[ colPointerMain ] / pivot;
           A->setElement( rowPointer, colPointerMain, 0.0 );
         }
       }
