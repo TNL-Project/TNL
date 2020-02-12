@@ -63,6 +63,7 @@ void GEMdevice( Matrix< Real, TNL::Devices::Cuda, Index >& matrixDev,
     TNL_CHECK_CUDA_DEVICE;
     printf("\n");
   }
+  std::cout << device_vector << std::endl;
   
   calculateResultSeqCPU( matrixDev, device_vector, result_vector_dev );
   
