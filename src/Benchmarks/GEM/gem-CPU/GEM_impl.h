@@ -32,7 +32,7 @@ bool GEM< Real, Device, Index >::solve( Array& x, int verbose )
    
    const int n = this->A.getNumRows();
 
-   if( verbose )
+   if( verbose > 1 )
       this->print();
 
    for( int k = 0; k < n; k++ )
@@ -100,7 +100,7 @@ bool GEM< Real, Device, Index >::solveWithPivoting( Array& x, int verbose )
    
    const int n = this->A.getNumRows();
 
-   if( verbose )
+   if( verbose > 1 )
       this->print();
 
    for( int k = 0; k < n; k++ )
@@ -129,7 +129,7 @@ bool GEM< Real, Device, Index >::solveWithPivoting( Array& x, int verbose )
          b[ pivotPosition ] = pom;
       }
       
-      if( verbose > 1 )
+      if( verbose > 0 )
       {
          std::cout << std::endl;
          std::cout << "Choosing element at " << pivotPosition << "-th row as pivot..." << std::endl;
@@ -193,7 +193,7 @@ bool GEM< Real, Device, Index >::computeLUDecomposition( int verbose )
 {  
    const Index n = this->A.getNumRows();
 
-   if( verbose )
+   if( verbose > 1 )
       this->print();
 
    for( int k = 0; k < n; k++ )

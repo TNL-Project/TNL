@@ -1,5 +1,55 @@
 #ifdef HAVE_CUDA
+#include <cuda_runtime.h>
 //TODO: Real
+
+
+__global__ 
+void findPivot( Matrix< double, TNL::Devices::Cuda, int >* A, 
+        int colPointerMain, int numBlocksOnRow, int* Maximum )
+{
+  int rowPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
+  if( rowPointer < A->getNumRows() && rowPointer >= colPointerMain )
+  {
+    int pom = __float_as_int( (float)TNL::abs( A->getElement( rowPointer, colPointerMain ) ) );
+    /*if( TNL::abs( A->getElement(rowPointer, colPointerMain ) ) > 1 )
+      printf("%d: %d, %.4f\n", rowPointer, pom, TNL::abs( A->getElement(rowPointer, colPointerMain ) ) );*/
+    atomicMax( Maximum, pom );
+  }
+}
+
+
+__global__ 
+void findRowPivot( Matrix< double, TNL::Devices::Cuda, int >* A, 
+        int colPointerMain, int numBlocksOnRow, int* Maximum, int* positionPivot )
+{
+  int rowPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
+  if( rowPointer >= colPointerMain && rowPointer < A->getNumRows() &&
+          __float_as_int( (float)TNL::abs( A->getElement( rowPointer, colPointerMain ) ) ) == *Maximum )
+  {
+    atomicExch( positionPivot, rowPointer);
+  }
+}
+__global__ 
+void swapRows( Matrix< double, TNL::Devices::Cuda, int >* A, 
+        TNL::Containers::VectorView< double, TNL::Devices::Cuda, int > b,
+        int colPointerMain, int numBlocksOnRow, int* positionPivot )
+{
+  int rowPointer1 = colPointerMain;
+  int rowPointer2 = *positionPivot;
+  int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
+  if( colPointer < A->getNumColumns() && rowPointer1 < A->getNumRows() )
+  {
+    double pom = A->getElement( rowPointer1, colPointer );
+    A->setElement( rowPointer1, colPointer, A->getElement( rowPointer2, colPointer ) );
+    A->setElement( rowPointer2, colPointer, pom );
+    if( colPointer == colPointerMain )
+    {
+      pom = b[rowPointer1];
+      b[rowPointer1] = b[rowPointer2];
+      b[rowPointer2] = pom;
+    }
+  }
+}
 
 
 __global__ 
@@ -26,7 +76,7 @@ void GEMColumnUnderDiag( Matrix< double, TNL::Devices::Cuda, int >* A,
           A->setElement( rowPointer, colPointerMain, 0.0 );
         }
       }
-    } else printf( "Error, pivot is zero!\n");
+    } else if( colPointer == colPointerMain && rowPointer == colPointerMain ) printf( "Error, pivot is zero!\n");
   }
 }
 
