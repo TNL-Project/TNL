@@ -44,26 +44,67 @@ void GEMdevice( Matrix< Real, TNL::Devices::Cuda, Index >& matrixDev,
 {
   Matrix< Real, TNL::Devices::Cuda, Index >* devMat = TNL::Cuda::passToDevice( matrixDev);
     
+  // FOR PIVOTING SET VARIABLES ON DEVICE
+  size_t size = sizeof(int);
+  int* d_max; cudaMalloc(&d_max, size);
+  int* pivot; cudaMalloc(&pivot, size);
+  
   
   for( int colPointer = 0; colPointer < matrixDev.getNumColumns(); colPointer++ )
   {
     int blockSize = (matrixDev.getNumColumns()-colPointer) > 1024 ? 1024 : matrixDev.getNumColumns();
     int numBlocksOnRow = TNL::roundUpDivision( (matrixDev.getNumColumns()-colPointer), 1024 );
     int numOfBlocks =  matrixDev.getNumRows() * numBlocksOnRow;
-    printf( "%d number of threads, %d number of blocks\n", blockSize, numOfBlocks);
+    //printf( "%d number of threads, %d number of blocks\n", blockSize, numOfBlocks);
+    
+    
+    /*showMatrix<<< 1, 1 >>>( matrixDev );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;*/
+    
+    int* pom = (int*)malloc(size); *pom = 0;
+    cudaMemcpy(d_max, pom, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(pivot, pom, size, cudaMemcpyHostToDevice);
+    findPivot<<< numBlocksOnRow, blockSize >>>( devMat, colPointer, numBlocksOnRow, d_max );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;
+    
+    findRowPivot<<< numBlocksOnRow, blockSize >>>( devMat, colPointer, numBlocksOnRow, d_max, pivot );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;
+    
+    
+    int* pom1 = (int*)malloc(size); *pom1 = 0;
+    cudaMemcpy( pom1, d_max, size, cudaMemcpyDeviceToHost);    
+    cudaMemcpy( pom, pivot, size, cudaMemcpyDeviceToHost);
+    //printf("%d: position of pivot: %d, max %d\n", colPointer, *pom, *pom1);
+    if( *pom != -1 && *pom != colPointer )
+    {
+      swapRows<<< numBlocksOnRow, blockSize >>>( devMat, device_vector.getView(), colPointer, numBlocksOnRow, pivot );
+    }
+    
+    
+    /*cudaMemcpy( pom, d_max, size, cudaMemcpyDeviceToHost);
+    printf("%d\n", *pom );*/
+    
+    
+    
     GEMColumnUnderDiag<<< numOfBlocks, blockSize >>>( devMat, 
                                                       device_vector.getView(), 
                                                       colPointer, 
                                                       numBlocksOnRow );
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;
-    printf("\n");
+    /*printf("\n");
     showMatrix<<< 1, 1 >>>( matrixDev );
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;
-    printf("\n");
+    printf("\n");*/
   }
-  std::cout << device_vector << std::endl;
+  
+  cudaFree(d_max);
+  cudaFree(pivot);
+  //std::cout << device_vector << std::endl;
   
   calculateResultSeqCPU( matrixDev, device_vector, result_vector_dev );
   

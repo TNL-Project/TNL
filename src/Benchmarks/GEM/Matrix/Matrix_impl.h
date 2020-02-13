@@ -4,7 +4,6 @@ template < typename Real,
         typename Device,
         typename Index >
 Matrix< Real, Device, Index >::Matrix()
-:rows(0), columns(0)
 {}
 
 
