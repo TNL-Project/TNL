@@ -105,7 +105,8 @@ bool GEM< Real, Device, Index >::solveWithPivoting( Array& x, int verbose )
 
    for( int k = 0; k < n; k++ )
    {
-      std::cout << "Step " << k << "/" << n << ".... \r";
+      if( verbose > 1 )
+        std::cout << "Step " << k << "/" << n << ".... \r";
       /****
        * Find the pivot - the largest in k-th row
        */

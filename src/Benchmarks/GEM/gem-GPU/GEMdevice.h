@@ -12,21 +12,16 @@ void calculateResultSeqCPU( Matrix< Real, TNL::Devices::Cuda, Index >& matrixDev
                 TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index >& device_vector, 
                 TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index >& result_vector_dev )
 { 
-  Matrix< double, TNL::Devices::Host, int> matrix( matrixDev.getNumRows(), matrixDev.getNumColumns() );
-  matrix = matrixDev;
-  TNL::Containers::Vector< double, TNL::Devices::Host, int > host_vec( matrixDev.getNumRows() ) ,result( matrixDev.getNumRows() );
-  host_vec = device_vector;
+  Matrix< Real, TNL::Devices::Cuda, Index >* devMat = TNL::Cuda::passToDevice( matrixDev);
   
-  int n = matrix.getNumRows();
-  for( int k = n - 1; k >= 0; k-- )
-   {
-      //if( k % 10 == 0 )
-      //   std::cout << "Substitution: " << k << "/" << n << std::endl;
-      result[ k ] = host_vec[ k ] / matrix.getElement(k,k);
-      for( int j = k + 1; j < n; j++ )
-         result[ k ] -= result[ j ] * matrix.getElement( k, j )/matrix.getElement(k,k);
-   }
-  result_vector_dev = result;
+  int blockSize = matrixDev.getNumRows() > 1024 ? 1024 : matrixDev.getNumColumns();
+  int numBlocksOnColumn = TNL::roundUpDivision( matrixDev.getNumRows(), 1024 );
+  int numOfBlocks =  matrixDev.getNumRows() * numBlocksOnColumn;
+    
+  
+  GEMDiagToResult<<< numOfBlocks, blockSize >>>( devMat,device_vector.getView(),result_vector_dev.getView() );
+  cudaDeviceSynchronize();
+  TNL_CHECK_CUDA_DEVICE;
 } 
 
 
@@ -46,26 +41,50 @@ void GEMdevice( Matrix< Real, TNL::Devices::Cuda, Index >& matrixDev,
     
   // FOR PIVOTING SET VARIABLES ON DEVICE
   size_t size = sizeof(int);
-  int* d_max; cudaMalloc(&d_max, size);
   int* pivot; cudaMalloc(&pivot, size);
   
   
   for( int colPointer = 0; colPointer < matrixDev.getNumColumns(); colPointer++ )
   {
+    int reduceBlockSize = (matrixDev.getNumColumns()-colPointer) > 512 ? 512 : 
+      TNL::roundToMultiple( matrixDev.getNumColumns()-colPointer, 32 );  
+    int reduceGridSize = TNL::roundUpDivision( matrixDev.getNumColumns()-colPointer, reduceBlockSize );
+    int reduceGridSizeRound = TNL::roundToMultiple( reduceGridSize, 32 );
+    
+    TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > outMax(reduceGridSizeRound);
+    TNL::Containers::Vector< Index, TNL::Devices::Cuda, Index > outPos(reduceGridSizeRound);
+    outMax.setValue(0); outPos.setValue(0);
+        
+    findPivot<<< reduceGridSize, reduceBlockSize >>>( devMat, colPointer, outMax.getView(), outPos.getView() );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;
+    
+    findRowPivot<<< 1, reduceGridSizeRound >>>( outMax.getView(), outPos.getView(), pivot );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;
+    
+    int* pom = (int*)malloc(size); *pom = 0;
+    cudaMemcpy( pom, pivot, size, cudaMemcpyDeviceToHost);
+    //printf("%d: position of pivot: %d\n", colPointer, *pom);
+    
+    
     int blockSize = (matrixDev.getNumColumns()-colPointer) > 1024 ? 1024 : matrixDev.getNumColumns();
     int numBlocksOnRow = TNL::roundUpDivision( (matrixDev.getNumColumns()-colPointer), 1024 );
     int numOfBlocks =  matrixDev.getNumRows() * numBlocksOnRow;
     //printf( "%d number of threads, %d number of blocks\n", blockSize, numOfBlocks);
     
+    if( *pom != -1 && *pom != colPointer )
+    {
+      swapRows<<< numBlocksOnRow, blockSize >>>( devMat, device_vector.getView(), colPointer, numBlocksOnRow, pivot );
+    }
     
     /*showMatrix<<< 1, 1 >>>( matrixDev );
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;*/
     
-    int* pom = (int*)malloc(size); *pom = 0;
-    cudaMemcpy(d_max, pom, size, cudaMemcpyHostToDevice);
+    /*int* pom = (int*)malloc(size); *pom = 0;
     cudaMemcpy(pivot, pom, size, cudaMemcpyHostToDevice);
-    findPivot<<< numBlocksOnRow, blockSize >>>( devMat, colPointer, numBlocksOnRow, d_max );
+    findPivot<<< numBlocksOnRow, 1024 >>>( devMat, colPointer, numBlocksOnRow  );
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;
     
@@ -74,14 +93,12 @@ void GEMdevice( Matrix< Real, TNL::Devices::Cuda, Index >& matrixDev,
     TNL_CHECK_CUDA_DEVICE;
     
     
-    int* pom1 = (int*)malloc(size); *pom1 = 0;
-    cudaMemcpy( pom1, d_max, size, cudaMemcpyDeviceToHost);    
     cudaMemcpy( pom, pivot, size, cudaMemcpyDeviceToHost);
-    //printf("%d: position of pivot: %d, max %d\n", colPointer, *pom, *pom1);
+    //printf("%d: position of pivot: %d\n", colPointer, *pom);
     if( *pom != -1 && *pom != colPointer )
     {
       swapRows<<< numBlocksOnRow, blockSize >>>( devMat, device_vector.getView(), colPointer, numBlocksOnRow, pivot );
-    }
+    }*/
     
     
     /*cudaMemcpy( pom, d_max, size, cudaMemcpyDeviceToHost);
@@ -102,7 +119,6 @@ void GEMdevice( Matrix< Real, TNL::Devices::Cuda, Index >& matrixDev,
     printf("\n");*/
   }
   
-  cudaFree(d_max);
   cudaFree(pivot);
   //std::cout << device_vector << std::endl;
   
