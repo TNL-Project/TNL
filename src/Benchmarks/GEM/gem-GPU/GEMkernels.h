@@ -2,32 +2,120 @@
 #include <cuda_runtime.h>
 //TODO: Real
 
+/************************REDUCTION MAX******************************************/
+
+__inline__ __device__ void warpReduceArgMax(float& val, int& index) {
+  //printf( "index = %d\n", index );
+  __syncthreads();
+  for (int offset = 32/2; offset > 0; offset /= 2) 
+  { 
+    float val1 = __shfl_down_sync( 0xffffffff, val, offset, 32);
+    int index1 = __shfl_down_sync( 0xffffffff, index, offset, 32);
+    __syncthreads();
+    //printf("%d: firstElementInRow = %.4f, %d: val1 = %.4f\n", index, val, index1, val1 );
+    if( TNL::abs( val1 )  - TNL::abs( val ) > 0 )
+    {
+      val = val1;
+      index = index1;
+      //printf("%d: %.4f\n", index, firstElementInRow  );
+    }
+    __syncthreads();
+    //printf("%d: firstElementInRow = %.4f\n", index, val );
+  } 
+}
+
+__inline__ __device__ void blockReduceArgMax(float& val, int& index) 
+{
+  static __shared__ float shared[32]; // Shared mem for 32 partial sums
+  int lane = threadIdx.x % 32;
+  int wid = threadIdx.x / 32;
+
+  warpReduceArgMax( val, index);     // Each warp performs partial reduction
+
+  if (lane==0) shared[wid]=val; // Write reduced value to shared memory
+
+  __syncthreads();              // Wait for all partial reductions
+
+  //read from shared memory only if that warp existed
+  val = (threadIdx.x < blockDim.x / warpSize) ? shared[lane] : 0;
+
+  if (wid==0)
+  {
+    warpReduceArgMax( val, index ); //Final reduce within first warp
+  }
+
+}
+
+
+
+/*************************END REDUCTION MAX*************************************/
+/*******************************************************************************/
+
 
 __global__ 
 void findPivot( Matrix< double, TNL::Devices::Cuda, int >* A, 
-        int colPointerMain, int numBlocksOnRow, int* Maximum )
+        int colPointerMain, TNL::Containers::VectorView< double, TNL::Devices::Cuda, int > outMaximum,
+        TNL::Containers::VectorView< int, TNL::Devices::Cuda, int > outPosition)
 {
-  int rowPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
-  if( rowPointer < A->getNumRows() && rowPointer >= colPointerMain )
+  int rowPointer = threadIdx.x + blockDim.x * blockIdx.x + colPointerMain;
+  float firstElementInRow = rowPointer >= A->getNumRows() ? 0 : TNL::abs( A->getElement(rowPointer, colPointerMain) );
+  int index = rowPointer;
+  blockReduceArgMax( firstElementInRow, index );
+  if( threadIdx.x == 0 )
   {
-    int pom = __float_as_int( (float)TNL::abs( A->getElement( rowPointer, colPointerMain ) ) );
+    //printf("%d: %.2f\n", index, firstElementInRow );
+    outMaximum[blockIdx.x] = firstElementInRow;
+    outPosition[blockIdx.x] = index;
+  }
+    
+  
+  //if( rowPointer < A->getNumRows() && rowPointer >= colPointerMain )
+  {
+    //int pom = __float_as_int( (float)TNL::abs( A->getElement( rowPointer, colPointerMain ) ) );
     /*if( TNL::abs( A->getElement(rowPointer, colPointerMain ) ) > 1 )
       printf("%d: %d, %.4f\n", rowPointer, pom, TNL::abs( A->getElement(rowPointer, colPointerMain ) ) );*/
-    atomicMax( Maximum, pom );
-  }
+    //atomicMax( Maximum, pom );
+  } 
+  
+  
+  //if( threadIdx.x == 0 && blockIdx.x == 0 )
+  //    printf("%.4f %d\n", firstElementInRow, index );
 }
 
 
 __global__ 
-void findRowPivot( Matrix< double, TNL::Devices::Cuda, int >* A, 
-        int colPointerMain, int numBlocksOnRow, int* Maximum, int* positionPivot )
+void findRowPivot( TNL::Containers::VectorView< double, TNL::Devices::Cuda, int > outMaximum,
+        TNL::Containers::VectorView< int, TNL::Devices::Cuda, int > outPosition, int* positionPivot )
 {
-  int rowPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
+  /*if( threadIdx.x == 0 )
+  {
+    printf("outMax = [ ");
+    for( int i = 0; i < blockDim.x; i++ )
+      printf("%.2f, ", outMaximum[i] );
+    printf("]\n");
+    
+    printf("outPos = [ ");
+    for( int i = 0; i < blockDim.x; i++ )
+      printf("%d, ", outPosition[i] );
+    printf("]\n");
+  }*/
+  
+  int rowPointer = threadIdx.x;
+  float firstElementInRow = rowPointer >= blockDim.x ? 0 : outMaximum[ rowPointer ];
+  int index = outPosition[ rowPointer ];
+  blockReduceArgMax( firstElementInRow, index );
+  //printf("%d: %.2f\n", index, firstElementInRow );
+  if( threadIdx.x == 0 )
+  {
+    *positionPivot = index;
+  }
+  
+  /*int rowPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
   if( rowPointer >= colPointerMain && rowPointer < A->getNumRows() &&
           __float_as_int( (float)TNL::abs( A->getElement( rowPointer, colPointerMain ) ) ) == *Maximum )
   {
     atomicExch( positionPivot, rowPointer);
-  }
+  }*/
 }
 __global__ 
 void swapRows( Matrix< double, TNL::Devices::Cuda, int >* A, 
@@ -78,6 +166,17 @@ void GEMColumnUnderDiag( Matrix< double, TNL::Devices::Cuda, int >* A,
       }
     } else if( colPointer == colPointerMain && rowPointer == colPointerMain ) printf( "Error, pivot is zero!\n");
   }
+}
+
+
+__global__ 
+void GEMDiagToResult( Matrix< double, TNL::Devices::Cuda, int >* A,
+        TNL::Containers::VectorView< double, TNL::Devices::Cuda, int > v,
+        TNL::Containers::VectorView< double, TNL::Devices::Cuda, int > out )
+{
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if( i < A->getNumRows() )
+    out[i] = v[i] / A->getElement(i,i);
 }
 
 

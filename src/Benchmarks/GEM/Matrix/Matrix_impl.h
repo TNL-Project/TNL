@@ -37,7 +37,7 @@ void Matrix< Real, Device, Index >::setDimensions( const Index rows, const Index
 #if DEBUG
     printf("We are making cuda array!\n");
 #endif
-    data.setSize( TNL::roundToMultiple( rows, TNL::Cuda::getWarpSize() )*columns );
+    data.setSize( rows*TNL::roundToMultiple( columns, TNL::Cuda::getWarpSize() ) );
     data.setValue( 0 );
 #if DEBUG
     printf("Cuda array initialized!\n");
@@ -62,7 +62,7 @@ void Matrix< Real, Device, Index >::setElement( Index row, Index col, Real value
 #ifdef HAVE_CUDA
   if( std::is_same< Device, TNL::Devices::Cuda >::value )
   {
-    data[ TNL::roundToMultiple( rows, TNL::Cuda::getWarpSize() )*col + row] =  value;
+    data[ row*TNL::roundToMultiple( columns, TNL::Cuda::getWarpSize() ) + col] =  value;
   }
 #endif
 }
@@ -86,7 +86,7 @@ Real Matrix< Real, Device, Index >::getElement( Index row, Index col ) const
 #ifdef HAVE_CUDA
   if( std::is_same< Device, TNL::Devices::Cuda >::value )
   {
-    return this->data[ TNL::roundToMultiple( this->rows, TNL::Cuda::getWarpSize() )*col + row ];
+    return this->data[ row*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + col ];
   }
 #endif
   return 1;
@@ -172,7 +172,7 @@ Matrix< Real, Device, Index >::operator=( Matrix< Real, Device2, Index>& matrix 
 #endif
     for( int i = 0; i < this->rows; i++ )
       for( int j = 0; j < this->columns; j++ )
-        this->setElement(i,j, pom[ TNL::roundToMultiple( this->rows, TNL::Cuda::getWarpSize() ) * j + i ] );
+        this->setElement(i,j, pom[ i*TNL::roundToMultiple( this->rows, TNL::Cuda::getWarpSize() ) + j ] );
   } 
   else if( std::is_same< Device, TNL::Devices::Cuda >::value )
   {
@@ -186,7 +186,7 @@ Matrix< Real, Device, Index >::operator=( Matrix< Real, Device2, Index>& matrix 
 #if DEBUG
         printf("copying element i,j = %d, %d with value %.4f\n", i, j, pom.getElement( i * this->columns + j ) );
 #endif
-        this->data.setElement( TNL::roundToMultiple( this->rows, TNL::Cuda::getWarpSize() ) * j + i,
+        this->data.setElement( i*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + j,
                 pom.getElement( i * this->columns + j ) );
       }
   }
