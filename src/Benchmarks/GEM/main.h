@@ -15,6 +15,7 @@
 #include "TNL/tnl-dev/src/TNL/Cuda/MemoryHelpers.h"
 
 #define COMPARE_RESULTS true;
+typedef float real;
 
 using namespace TNL;
 using namespace TNL::Containers;
@@ -32,8 +33,8 @@ int main( int argc, char* argv[] )
   setInput( argc, argv, matrixName, vectorName, loops );
   
   
-  typedef Matrix< double, Devices::Host, int> MatrixHost;
-  typedef Vector< double, Devices::Host, int > VectorHost;
+  typedef Matrix< real, Devices::Host, int> MatrixHost;
+  typedef Vector< real, Devices::Host, int > VectorHost;
   
   
   MatrixHost matrix;
@@ -91,7 +92,7 @@ int main( int argc, char* argv[] )
   {
     MatrixHost matrixComp = matrix;
     VectorHost host_vecComp( host_vector );
-    GEM< double, Devices::Host, int > gem( matrixComp, host_vecComp );
+    GEM< real, Devices::Host, int > gem( matrixComp, host_vecComp );
     
     std::clock_t start;
     double duration;
@@ -108,8 +109,8 @@ int main( int argc, char* argv[] )
   std::cout << result_vector << std::endl;*/
   
 #ifdef HAVE_CUDA
-  typedef Matrix< double, Devices::Cuda, int> MatrixDevice;
-  typedef Vector< double, Devices::Cuda, int > VectorDevice;
+  typedef Matrix< real, Devices::Cuda, int> MatrixDevice;
+  typedef Vector< real, Devices::Cuda, int > VectorDevice;
   VectorDevice result_vector_dev(matrix.getNumRows());
   
   cudaDeviceSynchronize();
@@ -129,7 +130,7 @@ int main( int argc, char* argv[] )
     double duration;
 
     start = std::clock();
-    GEMdevice(matrixComp, device_vecComp, result_vector_dev );
+    GEMdevice< real >(matrixComp, device_vecComp, result_vector_dev );
 
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
     timeGPU[i] = duration;
@@ -191,7 +192,7 @@ void setInput( int argc, char* argv[], string& matrixName, string& vectorName, i
 {  
   if( argc == 1 )
   {
-    string pom("matice6.mtx");
+    string pom("matice2.mtx");
     matrixName = pom; 
     string pom1("vec1.txt");
     vectorName = pom1;
@@ -233,4 +234,5 @@ void printHelp()
   cout << "--input-matrix" << setw(60) << ".mtx file placed in test-matrices foulder." << endl;
   cout << "--input-vector" << setw(60) << ".txt file placed in test-matrices foulder." << endl;
   cout << "--loops" << setw(92) << "int number of loops of calculation for computation time mesurement." << endl;
+  cout << "--real" << setw(60) << "float/double default float." << endl;
 }
