@@ -161,7 +161,7 @@ Matrix< Real, Device, Index >::operator=( Matrix< Real, Device2, Index>& matrix 
   matrix.getData( pom );
   if( std::is_same< Device, Device2 >::value )
   {
-    printf("copy host to host or device to device\n");
+    //printf("copy host to host or device to device\n");
     this->data = pom; 
   }
 #ifdef HAVE_CUDA

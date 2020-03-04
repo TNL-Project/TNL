@@ -115,6 +115,7 @@ void findRowPivot( TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > 
     *positionPivot = index;
   }
   
+  
   /*int rowPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
   if( rowPointer >= colPointerMain && rowPointer < A->getNumRows() &&
           __float_as_int( (float)TNL::abs( A->getElement( rowPointer, colPointerMain ) ) ) == *Maximum )
@@ -130,6 +131,8 @@ void swapRows( Matrix< Real, TNL::Devices::Cuda, int >* A,
         TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b,
         int colPointerMain, int numBlocksOnRow, int* positionPivot )
 {
+  //if( threadIdx.x == 0 && blockIdx.x == 0 )
+  //  printf("\nChoosing element at %d-th row as pivot...\nSwapping %d-th and %d-th rows...\n",*positionPivot,colPointerMain,*positionPivot );
   int rowPointer1 = colPointerMain;
   int rowPointer2 = *positionPivot;
   int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
@@ -138,7 +141,7 @@ void swapRows( Matrix< Real, TNL::Devices::Cuda, int >* A,
     Real pom = A->getElement( rowPointer1, colPointer );
     A->setElement( rowPointer1, colPointer, A->getElement( rowPointer2, colPointer ) );
     A->setElement( rowPointer2, colPointer, pom );
-    if( colPointer == colPointerMain )
+    if( colPointer == colPointerMain && blockIdx.x == 0 )
     {
       pom = b[rowPointer1];
       b[rowPointer1] = b[rowPointer2];
@@ -146,6 +149,21 @@ void swapRows( Matrix< Real, TNL::Devices::Cuda, int >* A,
     }
   }
 }
+
+/*template <typename Real >
+__global__ 
+void GEMZeroingMainColumn( Matrix< Real, TNL::Devices::Cuda, int >* A,
+        TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b, 
+        int colPointerMain )
+{
+  //int rowPointer = threadIdx.x + blockDim.x * blockIdx.x;
+  //if( rowPointer < A->getNumRows() && rowPointer != colPointerMain )
+  //  A->setElement( rowPointer, colPointerMain, 0.0 );
+    A->setElement( colPointerMain, colPointer, A->getElement( colPointerMain, colPointer ) / A->getElement( colPointerMain, colPointerMain ) );
+  if( colPointer == colPointerMain+1 )
+    b[ colPointerMain ] /=  A->getElement( colPointerMain, colPointerMain );
+}*/
+
 
 
 template <typename Real >
@@ -156,7 +174,9 @@ void GEMColumnUnderDiag( Matrix< Real, TNL::Devices::Cuda, int >* A,
 {
   int rowPointer = blockIdx.x / numBlocksOnRow;
   int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
-  if( colPointer < A->getNumColumns() && rowPointer != colPointerMain )
+  /*if( rowPointer == colPointerMain && colPointer == colPointerMain )
+    A->setElement( colPointerMain, colPointerMain, 1 );*/
+  if( colPointer > colPointerMain && colPointer < A->getNumColumns() && rowPointer != colPointerMain && rowPointer < A->getNumRows() )
   {
     if( A->getElement( colPointerMain, colPointerMain ) != 0 )
     { 
@@ -166,14 +186,13 @@ void GEMColumnUnderDiag( Matrix< Real, TNL::Devices::Cuda, int >* A,
       {
         A->setElement( rowPointer, colPointer,
                   A->getElement( rowPointer, colPointer ) - firstElementInRow * A->getElement( colPointerMain, colPointer ) / pivot );   
-        
-        if( colPointer == colPointerMain )
-        {
-          b[ rowPointer ] = b[ rowPointer ] - firstElementInRow * b[ colPointerMain ] / pivot;
-          A->setElement( rowPointer, colPointerMain, 0.0 );
-        }
       }
     } else if( colPointer == colPointerMain && rowPointer == colPointerMain ) printf( "Error, pivot is zero!\n");
+  }
+  if( rowPointer != colPointerMain && threadIdx.x == 0 && blockIdx.x % numBlocksOnRow == 0 && A->getElement( colPointerMain, colPointerMain ) != 0 && A->getElement( rowPointer, colPointerMain ) != 0  )
+  {
+    b[ rowPointer ] = b[ rowPointer ] - A->getElement( rowPointer, colPointerMain ) * b[ colPointerMain ] / A->getElement( colPointerMain, colPointerMain );
+    //A->setElement( rowPointer, colPointerMain, 0.0 );
   }
 }
 
