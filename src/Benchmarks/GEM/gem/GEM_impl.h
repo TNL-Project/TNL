@@ -13,6 +13,8 @@
 #pragma once
 
 #include <TNL/Assert.h>
+#include "GEMdevice.h"
+#include "GEM.h"
 #include <fstream>
   
 template< typename Real,
@@ -22,11 +24,20 @@ GEM< Real, Device, Index >::GEM( MatrixGEM& A, Array& b )
 : A(A), b(b)
 {}
 
+template< typename Real,
+          typename Device,
+          typename Index >
+bool GEM< Real, Device, Index >::solve( Array& x, const TNL::String& pivoting, int verbose )
+{
+  printf("in solve\n");
+  return DeviceDependentCode::SolveGEM( *this, x, pivoting, verbose  );
+}
+
 
 template< typename Real,
           typename Device,
           typename Index >
-bool GEM< Real, Device, Index >::solve( Array& x, int verbose )
+bool GEM< Real, Device, Index >::solveWithoutPivoting( Array& x, int verbose )
 {
    assert( b.getSize() == x.getSize() );
    
@@ -40,8 +51,9 @@ bool GEM< Real, Device, Index >::solve( Array& x, int verbose )
       /****
        * Divide the k-th row by pivot
        */
-      if( k % 10 == 0 )
-         std::cout << "Elimination: " << k << "/" << n << std::endl;
+      if( verbose > 1 )
+        if( k % 10 == 0 )
+          std::cout << "Elimination: " << k << "/" << n << std::endl;
       const Real& pivot = this->A.getElement( k, k );
       if( pivot == 0.0 )
       {
@@ -106,7 +118,7 @@ bool GEM< Real, Device, Index >::solveWithPivoting( Array& x, int verbose )
    for( int k = 0; k < n; k++ )
    {
       if( verbose > 1 )
-        std::cout << "Step " << k << "/" << n << ".... \r";
+        std::cout << "Step " << k << "/" << n << "....\n"; //"\r";
       /****
        * Find the pivot - the largest in k-th row
        */
@@ -255,35 +267,38 @@ void GEM< Real, Device, Index >::print( std::ostream& str ) const
       str << " | " << std::setprecision( precision ) << std::setw( precision + 6 ) << b[ row ] << " |" << std::endl;
    }
 }
-#ifdef HAVE_CUDA
-/*template < typename Real, 
-           typename Index >*/
-__global__ void GEMKernel( /*Matrix< Real, Devices::Cuda, Index >& matrix,
-                      Containers::Array< Real, Devices::Cuda, Index >& b, 
-                      Containers::Array< Real, Devices::Cuda, Index >& x, 
-                      int verbose*/ )
+
+template <>
+class GEMDeviceDependentCode< TNL::Devices::Host >
 {
-  unsigned int i = threadIdx.x;// + blockDim.x * blockIdx.x;
-  printf( "%d\n" , i );
+  public:
+    typedef TNL::Devices::Host DeviceType;
+    
+    template < typename Real, typename Index>
+    static bool SolveGEM( GEM< Real, DeviceType, Index>& gem,
+                   TNL::Containers::Vector< Real, DeviceType, Index >& x, const TNL::String& pivoting, int verbose )
+    {
+      printf("starting computation on CPU\n");
+      return pivoting == "yes" ? gem.solveWithPivoting( x, verbose ) : gem.solveWithoutPivoting(x, verbose );
+    }
 };
 
-#endif
 
-  
-/*template< typename Real,
-          typename Device,
-          typename Index >
-bool Matrix< Real, Device, Index >::solveCuda( Array& b, Array& x, int verbose )
+template <>
+class GEMDeviceDependentCode< TNL::Devices::Cuda >
 {
+  public:
+    typedef TNL::Devices::Cuda DeviceType;
+    
+    template < typename Real, typename Index>
+    static bool SolveGEM( GEM< Real, DeviceType, Index>& gem,
+                   TNL::Containers::Vector< Real, DeviceType, Index >& x, const TNL::String& pivoting, int verbose )
+    {
 #ifdef HAVE_CUDA
-  Index numRows = this->A.getNumRows();
-  Index numColumns = this->A.getNumColumns();
-  Index numThreads = 32;
-  Index numBlocks = roundUpDivision( numRows, numThreads );
-  // TODO: num of blocks needed higher than num of blocks able to calculate
-  Devices::Cuda::synchronizeDevice();
-  GEMKernel<<< 1, 1 >>>( this, b, x, verbose );
-  cudaDeviceSynchronize();
-  TNL_CHECK_CUDA_DEVICE;
+      printf("starting computation on GPU\n");
+      gem.GEMdevice( x, pivoting, verbose );
 #endif
-}*/
+      return true;
+    }
+};
+
