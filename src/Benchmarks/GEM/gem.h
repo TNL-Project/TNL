@@ -2,7 +2,7 @@
 #include "Matrix/Matrix.h"
 #include "gem/GEM.h"
 #include "TNL/tnl-dev/src/TNL/Math.h"
-//#include "gem/GEMdevice.h"
+#include <typeinfo> // type printf
 #include <TNL/Matrices/MatrixReader.h>
 
 #include "TNL/tnl-dev/src/TNL/Cuda/CheckDevice.h"
@@ -31,7 +31,7 @@ void readVector( Vector< Real, Devices::Host, Index >& vector_host, const String
 template < typename Real, typename Index, typename Device >
 void readMatrixVector( Matrix< Real, Device, Index>& matrix, 
         Vector< Real, Device, Index >& vector,
-        const String& matrixName,  const String& vectorName );
+        const String& matrixName,  const String& vectorName, const int verbose );
 
 
 template < typename Real,
@@ -46,19 +46,20 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
   MatrixType matrix;
   VectorType vector;
   
-  readMatrixVector( matrix, vector, matrixName, vectorName );
+  readMatrixVector( matrix, vector, matrixName, vectorName, verbose );
   VectorType vectorResult( matrix.getNumRows() );
   
   // Computation
   double* time;
   time = new double[ loops ];
+  double error = -1;
   
-  std::cout << "Starting computation on " << device << endl;
+  if( verbose > 1 )
+    cout << "Starting computation on " << device << endl;
   for( int i = 0; i < loops; i++ )
   {
     MatrixType matrixComp = matrix;
     VectorType vectorComp( vector );
-    vectorComp.setValue( 0 );
     vectorResult.setValue( 0 );
     
     GEM< Real, Device, Index > gem( matrixComp, vectorComp );
@@ -68,85 +69,56 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
 
     start = std::clock();
     
-    cout << "starting computation number " << i+1 << endl;
-    gem.solve( vectorResult, pivoting, 0 );
+    if( verbose > 1 )
+      cout << "starting computation number " << i+1 << endl;
+    gem.solve( vectorResult, pivoting, verbose );
 
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
     time[i] = duration;
       
-    double l2norm = 0;
-    for( int j = 0; j < matrix.getNumRows(); j++ )
-      l2norm += (vectorResult.getElement( i ) - 1)*(vectorResult.getElement( i ) - 1);
-    l2norm = std::sqrt(l2norm);
-    printf( " %.4f ", l2norm);
+    if( vectorName == "none" )
+    {
+      double l2norm = 0;
+      for( int j = 0; j < vectorResult.getSize(); j++ )
+        l2norm += (vectorResult.getElement( j ) - 1)*(vectorResult.getElement( j ) - 1);
+      l2norm = std::sqrt(l2norm);
+      error = l2norm;
+
+      if( verbose > 1 )
+        printf( "Norm in %d calculation is %.4f \n", i+1, l2norm);
+    }
   }
-  printf("\n ... done!\n");
+  if( verbose > 1 )
+    printf("\n ... done!\n");
+  
+  double timeMean = 0;
+  for( int i = 0; i < loops; i++ )
+    timeMean += time[i];
+  timeMean /= loops;
+    
+   printf("%20s %15d %15d %20s %15s %15s %10d %15.5f %15.5f\n", matrixName.c_str(),
+          matrix.getNumRows(), matrix.getNumNonzeros(), vectorName == "none" ? "-":vectorName.c_str(),
+          device.c_str(), typeid(Real).name() == (string)"f" ? "float":"double", loops, timeMean, error);
   
   delete []time;
   
   return vectorResult;
-  
- /*
-//#ifdef HAVE_CUDA
-  
-  
-  
-  
-#ifdef COMPARE_RESULTS
-  double error = 0.0;
-  //std::cout << "Results:\nrow:"<< setw(20) <<  "Host" << setw(20) <<  "Device" << setw(20) << "Error" << std::endl;
-  for( int i = 0; i < matrix.getNumRows(); i++ )
-  {
-    double errorPom = ( result_vector.getElement(i) - result_vector_dev.getElement(i) ) *
-            ( result_vector.getElement(i) - result_vector_dev.getElement(i) );
-    //std::cout << i << ": " << setw(20) << result_vector.getElement(i) << setw(20) << result_vector_dev.getElement(i) << setw(20) << errorPom << std::endl;
-    error += errorPom;
-  }
-  
-  error = std::sqrt(error);
-  printf("Difference in L2 norm from Device and Host is %.8f\n", error );
-  
-  double CPUmean(0), GPUmean(0);
-  cout << "Timers: " << endl << "CPU: [ ";
-  for( int i = 0; i < loops; i++ )
-  {
-    CPUmean += timeCPU[i];
-    GPUmean += timeGPU[i];
-    cout << timeCPU[i] << " ";
-  }
-  CPUmean = CPUmean/loops;
-  GPUmean = GPUmean/loops;
-  
-  cout << "]" << endl;
-  cout << "GPU: [ ";
-  for( int i = 0; i < loops; i++ )
-    cout << timeGPU[i] << " ";
-  cout << "]" << endl;
-  cout << "CPU mean time: " <<  CPUmean << endl;
-  cout << "GPU mean time: " <<  GPUmean << endl;
-#endif
-  
-#endif
-  
-  delete []timeCPU;
-#ifdef HAVE_CUDA
-  delete []timeGPU;
-#endif
-  return;*/
 }
 
 template < typename Real, typename Index, typename Device >
 void readMatrixVector( Matrix< Real, Device, Index>& matrix, 
         Vector< Real, Device, Index >& vector,
-        const String& matrixName,  const String& vectorName )
+        const String& matrixName,  const String& vectorName, const int verbose )
 {
   typedef Matrix< Real, Devices::Host, Index> MatrixHost;
   MatrixHost matrixHost;
   // Get matrix
   Matrices::MatrixReader< MatrixHost > m;
   m.readMtxFile( "./test-matrices/" + matrixName, matrixHost );
-  cout << "reading matrix " << matrixName << endl;
-  //matrixHost.showMatrix();
+  if( verbose > 1 )
+    cout << "reading matrix " << matrixName << endl;
+  if( verbose > 2 )
+    matrixHost.showMatrix();
   matrix = matrixHost;
   
   // Get vector
@@ -155,8 +127,13 @@ void readMatrixVector( Matrix< Real, Device, Index>& matrix,
   if( vectorName == "none" )
     calculHostVecOne( matrixHost, vectorHost, vectorName );
   else
+  {
     readVector( vectorHost, vectorName );
-  cout << "reading vector " << vectorName << endl;
+    if( verbose > 1 )
+      cout << "reading vector " << vectorName << endl;
+  }
+  if( verbose > 2 )
+    cout << vectorHost << endl;
   vector = vectorHost;
   
 }
@@ -174,9 +151,8 @@ void calculHostVecOne( Matrix< Real, Devices::Host, Index >& matrix,
     }
     vector[i] = pom;
   }
-  cout << endl;
   
-  ofstream outdata; // outdata is like cin
+  /*ofstream outdata; // outdata is like cin
   
   outdata.open("./test-matrices/" + vectorName ); // opens the file
   if( !outdata ) { // file couldn't be opened
@@ -189,7 +165,7 @@ void calculHostVecOne( Matrix< Real, Devices::Host, Index >& matrix,
     outdata << vector[i] << endl;
   }
   outdata.close();
-  cout << endl;
+  cout << endl;*/
 }
 
 template < typename Real, typename Index >

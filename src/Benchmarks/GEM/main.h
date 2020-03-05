@@ -13,16 +13,6 @@
 
 using namespace TNL;
 
-/*void printHelp(); 
-
-void setInput( int argc, char* argv[], string& matrixName, string& vectorName, int& loops  );
-
-template <typename real>
-void calculHostVecOne(Matrix< real, Devices::Host, int>& matrix, Vector< real, Devices::Host, int >& vector, string vectorName );
-
-template <typename real>
-void readVector( Vector< real, Devices::Host, int >& host_vector, string vectorName );*/
-
 void setupConfig( TNL::Config::ConfigDescription & config )
 {
    config.addDelimiter( "Gaussian Elimination Method setting:" );
@@ -41,7 +31,7 @@ void setupConfig( TNL::Config::ConfigDescription & config )
    config.addEntryEnum( "yes" );
    config.addEntryEnum( "no" );
    config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+   config.addEntry< int >( "verbose", "Verbose mode.", 0 );
 }
 
 int main( int argc, char* argv[] )
@@ -64,7 +54,7 @@ int main( int argc, char* argv[] )
   int loops = parameters.getParameter< int >( "loops" );
   int verbose = parameters.getParameter< int >( "verbose" );
   
-  
+  printf("%20s %15s %15s %20s %15s %15s %10s %15s %15s\n", "matrix", "#rows", "#non-zeros", "vector", "device", "precision", "loops", "time", "error");
   
   if( ( precision == "all" || precision == "float" ) )
   {

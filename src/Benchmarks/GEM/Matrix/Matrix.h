@@ -37,6 +37,7 @@ class Matrix
     void setDimensions( const Index rows, const Index columns );
     
     void setCompressedRowLengths( CompressedRowLengthsVector& rowLengths ){ rowLengths.setValue(this->getNumberOfMatrixElements());}
+    
     IndexType getNumberOfMatrixElements(){return this->getNumRows() * this->getNumColumns();}
     /**
     * Classic setElement method.
@@ -84,6 +85,17 @@ class Matrix
     
     __cuda_callable__
     Index getNumColumns() const{return this->columns;}
+   
+    Index getNumNonzeros() { 
+      Index nonzeros = 0;
+      Matrix< Real, TNL::Devices::Host, Index> m;
+      m = *this;
+      for( int i = 0; i < m.getNumRows(); i++ )
+        for( int j = 0; j < m.getNumColumns(); j++ ) 
+          if( m.getElement(i,j) != 0 )
+            nonzeros++;
+      return nonzeros;
+    }
     
     /**
     * Function for switching 2 rows in matrix from column further. E.g. in matrix 5 x 5

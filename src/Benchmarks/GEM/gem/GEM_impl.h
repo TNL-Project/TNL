@@ -29,7 +29,6 @@ template< typename Real,
           typename Index >
 bool GEM< Real, Device, Index >::solve( Array& x, const TNL::String& pivoting, int verbose )
 {
-  printf("in solve\n");
   return DeviceDependentCode::SolveGEM( *this, x, pivoting, verbose  );
 }
 
@@ -43,7 +42,7 @@ bool GEM< Real, Device, Index >::solveWithoutPivoting( Array& x, int verbose )
    
    const int n = this->A.getNumRows();
 
-   if( verbose > 1 )
+   if( verbose > 2 )
       this->print();
 
    for( int k = 0; k < n; k++ )
@@ -65,7 +64,7 @@ bool GEM< Real, Device, Index >::solveWithoutPivoting( Array& x, int verbose )
          this->A.setElement( k, j, this->A.getElement( k, j )/pivot );
       this->A.setElement( k, k, 1.0 );
       
-      if( verbose > 1 )
+      if( verbose > 2 )
       {
          std::cout << "Dividing by the pivot ... " << std::endl;
          this->print();
@@ -82,7 +81,7 @@ bool GEM< Real, Device, Index >::solveWithoutPivoting( Array& x, int verbose )
          this->A.setElement( i, k, 0.0 );
       }
 
-      if( verbose > 1 )
+      if( verbose > 2 )
       {
          std::cout << "Subtracting the " << k << "-th row from the rows bellow ... " << std::endl;
          this->print();
@@ -112,13 +111,13 @@ bool GEM< Real, Device, Index >::solveWithPivoting( Array& x, int verbose )
    
    const int n = this->A.getNumRows();
 
-   if( verbose > 1 )
+   if( verbose > 2 )
       this->print();
 
    for( int k = 0; k < n; k++ )
    {
       if( verbose > 1 )
-        std::cout << "Step " << k << "/" << n << "....\n"; //"\r";
+        std::cout << "Step " << k << "/" << n << "....\n"; 
       /****
        * Find the pivot - the largest in k-th row
        */
@@ -142,11 +141,11 @@ bool GEM< Real, Device, Index >::solveWithPivoting( Array& x, int verbose )
          b[ pivotPosition ] = pom;
       }
       
-      if( verbose > 0 )
+      if( verbose > 1 )
       {
          std::cout << std::endl;
          std::cout << "Choosing element at " << pivotPosition << "-th row as pivot..." << std::endl;
-         std::cout << "Swaping " << k << "-th and " << pivotPosition <<  "-th rows ... " << std::endl;
+         std::cout << "Swapping " << k << "-th and " << pivotPosition <<  "-th rows ... " << std::endl;
       }
             
       /****
@@ -163,7 +162,7 @@ bool GEM< Real, Device, Index >::solveWithPivoting( Array& x, int verbose )
          this->A.setElement( k, j, this->A.getElement( k, j)/pivot );
       this->A.setElement( k, k, 1.0 );
       
-      if( verbose > 1 )
+      if( verbose > 2 )
       {
          std::cout << "Dividing by the pivot ... " << std::endl;
          this->print();
@@ -180,7 +179,7 @@ bool GEM< Real, Device, Index >::solveWithPivoting( Array& x, int verbose )
          this->A.setElement( i, k , 0.0 );
       }
 
-      if( verbose > 1 )
+      if( verbose > 2 )
       {
          std::cout << "Subtracting the " << k << "-th row from the rows bellow ... " << std::endl;
          this->print();
@@ -278,7 +277,8 @@ class GEMDeviceDependentCode< TNL::Devices::Host >
     static bool SolveGEM( GEM< Real, DeviceType, Index>& gem,
                    TNL::Containers::Vector< Real, DeviceType, Index >& x, const TNL::String& pivoting, int verbose )
     {
-      printf("starting computation on CPU\n");
+      if( verbose > 1 )
+        printf("Starting the computation SolveGEM.\n");
       return pivoting == "yes" ? gem.solveWithPivoting( x, verbose ) : gem.solveWithoutPivoting(x, verbose );
     }
 };
@@ -295,7 +295,8 @@ class GEMDeviceDependentCode< TNL::Devices::Cuda >
                    TNL::Containers::Vector< Real, DeviceType, Index >& x, const TNL::String& pivoting, int verbose )
     {
 #ifdef HAVE_CUDA
-      printf("starting computation on GPU\n");
+      if( verbose > 1 )
+        printf("Starting the computation SolveGEM.\n");
       gem.GEMdevice( x, pivoting, verbose );
 #endif
       return true;
