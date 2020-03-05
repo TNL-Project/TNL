@@ -6,22 +6,18 @@
 
 template <typename Real >
 __inline__ __device__ void warpReduceArgMax(Real& val, int& index) {
-  //printf( "index = %d\n", index );
   __syncthreads();
   for (int offset = 32/2; offset > 0; offset /= 2) 
   { 
     Real val1 = __shfl_down_sync( 0xffffffff, val, offset, 32);
     int index1 = __shfl_down_sync( 0xffffffff, index, offset, 32);
     __syncthreads();
-    //printf("%d: firstElementInRow = %.4f, %d: val1 = %.4f\n", index, val, index1, val1 );
     if( TNL::abs( val1 )  - TNL::abs( val ) > 0 )
     {
       val = val1;
       index = index1;
-      //printf("%d: %.4f\n", index, firstElementInRow  );
     }
     __syncthreads();
-    //printf("%d: firstElementInRow = %.4f\n", index, val );
   } 
 }
 
@@ -150,32 +146,15 @@ void swapRows( Matrix< Real, TNL::Devices::Cuda, int >* A,
   }
 }
 
-/*template <typename Real >
-__global__ 
-void GEMZeroingMainColumn( Matrix< Real, TNL::Devices::Cuda, int >* A,
-        TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b, 
-        int colPointerMain )
-{
-  //int rowPointer = threadIdx.x + blockDim.x * blockIdx.x;
-  //if( rowPointer < A->getNumRows() && rowPointer != colPointerMain )
-  //  A->setElement( rowPointer, colPointerMain, 0.0 );
-    A->setElement( colPointerMain, colPointer, A->getElement( colPointerMain, colPointer ) / A->getElement( colPointerMain, colPointerMain ) );
-  if( colPointer == colPointerMain+1 )
-    b[ colPointerMain ] /=  A->getElement( colPointerMain, colPointerMain );
-}*/
-
-
 
 template <typename Real >
 __global__ 
-void GEMColumnUnderDiag( Matrix< Real, TNL::Devices::Cuda, int >* A,
+void GEMmainKernel( Matrix< Real, TNL::Devices::Cuda, int >* A,
         TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b, 
         int colPointerMain, int numBlocksOnRow )
 {
   int rowPointer = blockIdx.x / numBlocksOnRow;
   int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
-  /*if( rowPointer == colPointerMain && colPointer == colPointerMain )
-    A->setElement( colPointerMain, colPointerMain, 1 );*/
   if( colPointer > colPointerMain && colPointer < A->getNumColumns() && rowPointer != colPointerMain && rowPointer < A->getNumRows() )
   {
     if( A->getElement( colPointerMain, colPointerMain ) != 0 )
@@ -192,7 +171,6 @@ void GEMColumnUnderDiag( Matrix< Real, TNL::Devices::Cuda, int >* A,
   if( rowPointer != colPointerMain && threadIdx.x == 0 && blockIdx.x % numBlocksOnRow == 0 && A->getElement( colPointerMain, colPointerMain ) != 0 && A->getElement( rowPointer, colPointerMain ) != 0  )
   {
     b[ rowPointer ] = b[ rowPointer ] - A->getElement( rowPointer, colPointerMain ) * b[ colPointerMain ] / A->getElement( colPointerMain, colPointerMain );
-    //A->setElement( rowPointer, colPointerMain, 0.0 );
   }
 }
 
