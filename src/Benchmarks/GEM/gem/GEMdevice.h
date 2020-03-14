@@ -57,14 +57,15 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
     if( pivoting == "yes" )
     {
       // PIVOTING
-      int reduceBlockSize = (this->A.getNumColumns()-colPointer) > 512 ? 512 : 
+      int reduceBlockSize = (this->A.getNumColumns()-colPointer) > 1024 ? 1024 : 
         TNL::roundToMultiple( this->A.getNumColumns()-colPointer, 32 );  
       int reduceGridSize = TNL::roundUpDivision( this->A.getNumColumns()-colPointer, reduceBlockSize );
       int reduceGridSizeRound = TNL::roundToMultiple( reduceGridSize, 32 );
+      //printf("%d, %d, %d\n", reduceBlockSize, reduceGridSize, reduceGridSizeRound );
 
-      TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > outMax(reduceGridSizeRound);
-      TNL::Containers::Vector< Index, TNL::Devices::Cuda, Index > outPos(reduceGridSizeRound);
-      outMax.setValue(0); outPos.setValue(0);
+      TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > outMax(reduceGridSize);
+      TNL::Containers::Vector< Index, TNL::Devices::Cuda, Index > outPos(reduceGridSize);
+      //outMax.setValue(0); outPos.setValue(0);
 
       findPivot<<< reduceGridSize, reduceBlockSize >>>( devMat, colPointer, outMax.getView(), outPos.getView() );
       cudaDeviceSynchronize();
@@ -83,12 +84,12 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
     int numOfBlocks =  this->A.getNumRows() * numBlocksOnRow;
     
     
-    if( pivoting == "yes" && *pom != -1 && *pom != colPointer )
+    if( pivoting == "yes" )// && *pom != -1 && *pom != colPointer )
     {
       if( verbose > 1 )
       {
          std::cout << std::endl;
-         std::cout << "Choosing element at " << *pom << "-th row as pivot..." << std::endl;
+         std::cout << "Choosing element at " << *pom << "-th row as pivot with value..."  << std::endl;
          std::cout << "Swapping " << colPointer << "-th and " << *pom <<  "-th rows ... " << std::endl;
       }
       swapRows<<< numBlocksOnRow, blockSize >>>( devMat, device_vector.getView(), colPointer, numBlocksOnRow, pivot );

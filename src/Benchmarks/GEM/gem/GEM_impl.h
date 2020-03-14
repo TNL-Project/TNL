@@ -144,7 +144,7 @@ bool GEM< Real, Device, Index >::solveWithPivoting( Array& x, int verbose )
       if( verbose > 1 )
       {
          std::cout << std::endl;
-         std::cout << "Choosing element at " << pivotPosition << "-th row as pivot..." << std::endl;
+         std::cout << "Choosing element at " << pivotPosition << "-th row as pivot with value " << this->A.getElement(k,k)<<"..."  << std::endl;
          std::cout << "Swapping " << k << "-th and " << pivotPosition <<  "-th rows ... " << std::endl;
       }
             

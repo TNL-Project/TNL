@@ -25,18 +25,24 @@ __inline__ __device__ void warpReduceArgMax(Real& val, int& index) {
 template <typename Real >
 __inline__ __device__ void blockReduceArgMax(Real& val, int& index) 
 {
-  static __shared__ Real shared[32]; // Shared mem for 32 partial sums
+  static __shared__ Real sharedVal[32]; // Shared mem for 32 partial reduction
+  static __shared__ Real sharedIndex[32]; // Shared mem for 32 partial reduction
   int lane = threadIdx.x % 32;
   int wid = threadIdx.x / 32;
 
   warpReduceArgMax( val, index);     // Each warp performs partial reduction
 
-  if (lane==0) shared[wid]=val; // Write reduced value to shared memory
+  if (lane==0) 
+  {
+    sharedVal[wid]=val; // Write reduced value to shared memory
+    sharedIndex[wid]=index; // Write reduced value to shared memory
+  }
 
   __syncthreads();              // Wait for all partial reductions
 
   //read from shared memory only if that warp existed
-  val = (threadIdx.x < blockDim.x / warpSize) ? shared[lane] : 0;
+  val = (threadIdx.x < blockDim.x / 32) ? sharedVal[lane] : 0;
+  index = (threadIdx.x < blockDim.x / 32) ? sharedIndex[lane] : 0;
 
   if (wid==0)
   {
@@ -63,23 +69,9 @@ void findPivot( Matrix< Real, TNL::Devices::Cuda, int >* A,
   blockReduceArgMax( firstElementInRow, index );
   if( threadIdx.x == 0 )
   {
-    //printf("%d: %.2f\n", index, firstElementInRow );
     outMaximum[blockIdx.x] = firstElementInRow;
     outPosition[blockIdx.x] = index;
   }
-    
-  
-  //if( rowPointer < A->getNumRows() && rowPointer >= colPointerMain )
-  {
-    //int pom = __float_as_int( (float)TNL::abs( A->getElement( rowPointer, colPointerMain ) ) );
-    /*if( TNL::abs( A->getElement(rowPointer, colPointerMain ) ) > 1 )
-      printf("%d: %d, %.4f\n", rowPointer, pom, TNL::abs( A->getElement(rowPointer, colPointerMain ) ) );*/
-    //atomicMax( Maximum, pom );
-  } 
-  
-  
-  //if( threadIdx.x == 0 && blockIdx.x == 0 )
-  //    printf("%.4f %d\n", firstElementInRow, index );
 }
 
 
@@ -88,36 +80,14 @@ __global__
 void findRowPivot( TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > outMaximum,
         TNL::Containers::VectorView< int, TNL::Devices::Cuda, int > outPosition, int* positionPivot )
 {
-  /*if( threadIdx.x == 0 )
-  {
-    printf("outMax = [ ");
-    for( int i = 0; i < blockDim.x; i++ )
-      printf("%.2f, ", outMaximum[i] );
-    printf("]\n");
-    
-    printf("outPos = [ ");
-    for( int i = 0; i < blockDim.x; i++ )
-      printf("%d, ", outPosition[i] );
-    printf("]\n");
-  }*/
-  
   int rowPointer = threadIdx.x;
-  Real firstElementInRow = rowPointer >= blockDim.x ? 0 : outMaximum[ rowPointer ];
-  int index = outPosition[ rowPointer ];
+  Real firstElementInRow = rowPointer >= outMaximum.getSize() ? 0 : outMaximum[ rowPointer ];
+  int index = rowPointer >= outPosition.getSize() ? 0 : outPosition[ rowPointer ];
   blockReduceArgMax( firstElementInRow, index );
-  //printf("%d: %.2f\n", index, firstElementInRow );
   if( threadIdx.x == 0 )
   {
     *positionPivot = index;
   }
-  
-  
-  /*int rowPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
-  if( rowPointer >= colPointerMain && rowPointer < A->getNumRows() &&
-          __float_as_int( (float)TNL::abs( A->getElement( rowPointer, colPointerMain ) ) ) == *Maximum )
-  {
-    atomicExch( positionPivot, rowPointer);
-  }*/
 }
 
 
@@ -127,21 +97,22 @@ void swapRows( Matrix< Real, TNL::Devices::Cuda, int >* A,
         TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b,
         int colPointerMain, int numBlocksOnRow, int* positionPivot )
 {
-  //if( threadIdx.x == 0 && blockIdx.x == 0 )
-  //  printf("\nChoosing element at %d-th row as pivot...\nSwapping %d-th and %d-th rows...\n",*positionPivot,colPointerMain,*positionPivot );
-  int rowPointer1 = colPointerMain;
-  int rowPointer2 = *positionPivot;
-  int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
-  if( colPointer < A->getNumColumns() && rowPointer1 < A->getNumRows() )
+  if( *positionPivot > colPointerMain )
   {
-    Real pom = A->getElement( rowPointer1, colPointer );
-    A->setElement( rowPointer1, colPointer, A->getElement( rowPointer2, colPointer ) );
-    A->setElement( rowPointer2, colPointer, pom );
-    if( colPointer == colPointerMain && blockIdx.x == 0 )
+    int rowPointer1 = colPointerMain;
+    int rowPointer2 = *positionPivot;
+    int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
+    if( colPointer < A->getNumColumns() && rowPointer1 < A->getNumRows() )
     {
-      pom = b[rowPointer1];
-      b[rowPointer1] = b[rowPointer2];
-      b[rowPointer2] = pom;
+      Real pom = A->getElement( rowPointer1, colPointer );
+      A->setElement( rowPointer1, colPointer, A->getElement( rowPointer2, colPointer ) );
+      A->setElement( rowPointer2, colPointer, pom );
+      if( colPointer == colPointerMain && blockIdx.x == 0 )
+      {
+        pom = b[rowPointer1];
+        b[rowPointer1] = b[rowPointer2];
+        b[rowPointer2] = pom;
+      }
     }
   }
 }

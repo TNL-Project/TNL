@@ -112,11 +112,11 @@ void readMatrixVector( Matrix< Real, Device, Index>& matrix,
 {
   typedef Matrix< Real, Devices::Host, Index> MatrixHost;
   MatrixHost matrixHost;
-  // Get matrix
-  Matrices::MatrixReader< MatrixHost > m;
-  m.readMtxFile( "./test-matrices/" + matrixName, matrixHost );
   if( verbose > 1 )
     cout << "reading matrix " << matrixName << endl;
+  // Get matrix
+  Matrices::MatrixReader< MatrixHost > m;
+  m.readMtxFile( "./test-matrices/" + matrixName, matrixHost, verbose );
   if( verbose > 2 )
     matrixHost.showMatrix();
   matrix = matrixHost;
