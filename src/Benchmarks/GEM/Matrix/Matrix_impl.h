@@ -19,7 +19,7 @@ template < typename Real,
         typename Index >
 void Matrix< Real, Device, Index >::setDimensions( const Index rows, const Index columns )
 { 
-  TNL_ASSERT( rows > 0 && columns > 0, std::cerr << "Matrix cannot have zero rows nor columns!");
+  TNL_ASSERT( rows > 0 && columns > 0, std::cerr << "Matrix cannot have zero rows nor columns!\n");
   this->rows = rows; 
   this->columns = columns;
   
