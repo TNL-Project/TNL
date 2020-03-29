@@ -4,24 +4,64 @@
 
 
 #ifdef HAVE_CUDA
-#include "GEMkernels.h"
+//#include "GEMkernels.h"
+#ifdef HAVE_MPI
+#include "TNL/Communicators/MpiCommunicator.h"
+#include <mpi.h>
+#endif
 
 template < typename Real,
         typename Index >
 void calculResultVector( Matrix< Real, TNL::Devices::Cuda, Index >& matrix,
-                TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index >& device_vector, 
-                TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index >& x )
+        TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index >& device_vector, 
+        TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index >& x, 
+        int processID, int numOfProcesses )
 { 
   Matrix< Real, TNL::Devices::Cuda, Index >* devMat = TNL::Cuda::passToDevice( matrix);
   
   int blockSize = matrix.getNumRows() > 1024 ? 1024 : matrix.getNumColumns();
   int numBlocksOnColumn = TNL::roundUpDivision( matrix.getNumRows(), 1024 );
   int numOfBlocks =  matrix.getNumRows() * numBlocksOnColumn;
-    
   
-  GEMDiagToResult<<< numOfBlocks, blockSize >>>( devMat,device_vector.getView(), x.getView() );
+  
+  GEMDiagToResult<<< numOfBlocks, blockSize >>>( devMat,device_vector.getView(), processID );
   cudaDeviceSynchronize();
   TNL_CHECK_CUDA_DEVICE;
+#ifdef HAVE_MPI
+  if( processID != 0 )
+  {
+    TNL::Containers::Vector< Real, TNL::Devices::Host, Index > host_vector;
+    host_vector = device_vector;
+    Real* data = host_vector.getData();
+    
+    printf("%d:size = %d:\n", processID, device_vector.getSize() );
+      for( int k = 0; k < device_vector.getSize(); k++ )
+        printf("%.2f ", data[ k ] );
+      printf("\n");
+      
+    TNL::Communicators::MpiCommunicator::ISend( data, device_vector.getSize(), 0, 0 );
+    delete []data;
+  }else{
+    for( int j = 0; j < device_vector.getSize(); j++ )
+      x.setElement( j, device_vector.getElement( j ) );
+    for( int i = 1; i < numOfProcesses && i*device_vector.getSize() < x.getSize(); i++ )
+    {
+      Real* data;
+      data = new Real[ device_vector.getSize() ];
+      TNL::Communicators::MpiCommunicator::Request request[1];
+      request[ 0 ] = TNL::Communicators::MpiCommunicator::IRecv( data, device_vector.getSize(), i, 0 );
+      TNL::Communicators::MpiCommunicator::WaitAll( request, 1 );
+      printf("%d:size = %d:\n", i, device_vector.getSize() );
+      for( int k = 0; k < device_vector.getSize(); k++ )
+        printf("%.2f ", data[ k ] );
+      printf("\n");
+      for( int j = 0; j < device_vector.getSize() && i * device_vector.getSize() + j < x.getSize(); j++ )
+        x.setElement( i * device_vector.getSize() + j, data[ j ] );
+      delete []data;
+    }
+  }
+  std::cout << processID << ": " << x << std::endl;
+#endif
 } 
 
 
@@ -36,9 +76,8 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
   TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index >& device_vector( this->b );
   
   // FOR PIVOTING SET VARIABLES ON DEVICE
-  size_t size = sizeof(int);
-  int* pivot; cudaMalloc(&pivot, size);
-  int* pom = (int*)malloc(size); *pom = -1;
+  int* pivot; cudaMalloc(&pivot, sizeof(int));
+  int* pom = (int*)malloc(sizeof(int)); *pom = -1;
   
   if( verbose > 2 )
   {
@@ -47,14 +86,72 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
     TNL_CHECK_CUDA_DEVICE;
     printf("\n");
   }
+  int processID=0;
+  int numOfProcesses=1;
   
+#ifdef HAVE_MPI
+  MPI_Comm_rank( MPI_COMM_WORLD, &processID );
+  MPI_Comm_size( MPI_COMM_WORLD, &numOfProcesses );
+  Index colPointerMain = 0;
+#endif
   
-  for( int colPointer = 0; colPointer < this->A.getNumColumns(); colPointer++ )
-  {
+  while( colPointerMain < x.getSize() ){
+#ifdef HAVE_MPI
+    TNL::Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
+    Index colPointer = colPointerMain-colPointerMain/this->A.getNumRows() * this->A.getNumRows();
+    Real* mainRow;
+    int size = this->A.getNumColumns() - colPointerMain + 1;
+    mainRow = new Real[size];
+    
+    if( colPointerMain/this->A.getNumRows() == processID ){
+      printf("Main block is now %d\n", processID );
+      this->A.getRow( colPointer, colPointerMain, mainRow, size );
+      mainRow[ size-1 ] = this->b.getElement( colPointer );
+      
+      printf("%d:size = %d:\n", processID, size );
+      for( int j = 0; j < size; j++ )
+        printf("%.2f ", mainRow[ j ] );
+      printf("\n");
+      
+      for( int i = 0; i < numOfProcesses; i++ )
+        if( i != processID )
+          TNL::Communicators::MpiCommunicator::ISend( mainRow, size, i, 0 );
+    } else {
+      printf("Offblock is now %d\n", processID );
+      TNL::Communicators::MpiCommunicator::Request request[1];
+      request[ 0 ] = TNL::Communicators::MpiCommunicator::IRecv( mainRow, size, colPointerMain/this->A.getNumRows(), 0 );
+      TNL::Communicators::MpiCommunicator::WaitAll( request, 1 );
+      
+      printf("%d:size = %d:\n", processID, size);
+      for( int j = 0; j < size; j++ )
+        printf("%.2f ", mainRow[ j ] );
+      printf("\n");
+      
+      
+      /*int blockSize = (size-1) > 1024 ? 1024 : size-1;
+       int numBlocksOnRow = TNL::roundUpDivision( (size-1), 1024 );
+       int numOfBlocks =  this->A.getNumRows() * numBlocksOnRow;
+       
+       GEMmainKernel<<< numOfBlocks, blockSize >>>( devMat, 
+       device_vector.getView(), 
+       this->A.getNumColumns() - size - 1, 
+       numBlocksOnRow );*/
+    }
+    TNL::Containers::Vector< Real, TNL::Devices::Host, Index > mainRowVecHost( mainRow, size );
+    TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > mainRowVec;
+    mainRowVec = mainRowVecHost;
+    delete []mainRow;
+#else
+    TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > mainRowVec;
+    this->A.getRow(colPointer, colPointerMain, mainRowVec );
+#endif
+    /*std::cout << processID << ": " << std::endl;
+    std::cout << mainRowVec << std::endl;*/
+    
     if( verbose > 1 )
       printf( "Elimination: %d/%d\n", colPointer, this->A.getNumColumns() );
     
-    if( pivoting == "yes" )
+    /*if( pivoting == "yes" )
     {
       // PIVOTING
       int reduceBlockSize = (this->A.getNumColumns()-colPointer) > 1024 ? 1024 : 
@@ -62,22 +159,21 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
       int reduceGridSize = TNL::roundUpDivision( this->A.getNumColumns()-colPointer, reduceBlockSize );
       int reduceGridSizeRound = TNL::roundToMultiple( reduceGridSize, 32 );
       //printf("%d, %d, %d\n", reduceBlockSize, reduceGridSize, reduceGridSizeRound );
-
+      
       TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > outMax(reduceGridSize);
       TNL::Containers::Vector< Index, TNL::Devices::Cuda, Index > outPos(reduceGridSize);
       //outMax.setValue(0); outPos.setValue(0);
-
+      
       findPivot<<< reduceGridSize, reduceBlockSize >>>( devMat, colPointer, outMax.getView(), outPos.getView() );
       cudaDeviceSynchronize();
       TNL_CHECK_CUDA_DEVICE;
-
+      
       findRowPivot<<< 1, reduceGridSizeRound >>>( outMax.getView(), outPos.getView(), pivot );
       cudaDeviceSynchronize();
       TNL_CHECK_CUDA_DEVICE;
       *pom = 0;
-      cudaMemcpy( pom, pivot, size, cudaMemcpyDeviceToHost);
-    }
-    
+      cudaMemcpy( pom, pivot, sizeof(int), cudaMemcpyDeviceToHost);
+    }*/
     
     int blockSize = (this->A.getNumColumns()-colPointer) > 1024 ? 1024 : this->A.getNumColumns()-colPointer;
     int numBlocksOnRow = TNL::roundUpDivision( (this->A.getNumColumns()-colPointer), 1024 );
@@ -88,9 +184,9 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
     {
       if( verbose > 1 )
       {
-         std::cout << std::endl;
-         std::cout << "Choosing element at " << *pom << "-th row as pivot with value..."  << std::endl;
-         std::cout << "Swapping " << colPointer << "-th and " << *pom <<  "-th rows ... " << std::endl;
+        std::cout << std::endl;
+        std::cout << "Choosing element at " << *pom << "-th row as pivot with value..."  << std::endl;
+        std::cout << "Swapping " << colPointer << "-th and " << *pom <<  "-th rows ... " << std::endl;
       }
       swapRows<<< numBlocksOnRow, blockSize >>>( devMat, device_vector.getView(), colPointer, numBlocksOnRow, pivot );
       cudaDeviceSynchronize();
@@ -98,17 +194,31 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
     } 
     
     GEMmainKernel<<< numOfBlocks, blockSize >>>( devMat, 
-                                                  device_vector.getView(), 
-                                                  colPointer, 
-                                                  numBlocksOnRow );
+            device_vector.getView(),
+            mainRowVec.getView(),
+            colPointer, 
+            colPointerMain,
+            numBlocksOnRow,
+            processID,
+            numOfProcesses );
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;
+    if( verbose > 2 )
+    {
+      showMatrix<<< 1, 1 >>>( this->A );
+      cudaDeviceSynchronize();
+      TNL_CHECK_CUDA_DEVICE;
+      std::cout << this->b << std::endl;
+      printf("\n");
+    }
+    TNL::Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
+    colPointerMain++;
   }
   
   cudaFree(pivot);
   free(pom);
   
-  calculResultVector( this->A, device_vector, x );
+  calculResultVector( this->A, device_vector, x, processID, numOfProcesses );
   
   return true;
 }

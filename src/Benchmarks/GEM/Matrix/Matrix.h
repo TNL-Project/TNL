@@ -51,7 +51,7 @@ class Matrix
     void setElement( Index row, Index col, Real value );
     
     /**
-    * Returns element on row and column but on device that it's saved! Cannot be
+    * Returns element on row and column. Cannot be
     * called from host if the matrix is on device and also cannot be called from
     * device if the matrix is on host.
     *
@@ -61,14 +61,34 @@ class Matrix
     __cuda_callable__ Real getElement( Index row, Index col ) const;
     
     /**
+    * Returns ROW on row and starting column. Cannot be
+    * called from host if the matrix is on device and also cannot be called from
+    * device if the matrix is on host.
+    *
+    * @param row and column, mainRow is array with size to be filled with values.
+    * @return void.
+    */
+    void getRow( Index row, Index col, Real* mainRow, Index size );
+    
+    /**
+    * Returns ROW on row and starting column. Can be
+    * called from host if the matrix is on device and also can be called from
+    * device if the matrix is on host. Values are saved in vector mainRow
+    *
+    * @param row and column, mainRow is output vector.
+    * @return void
+    */
+    void getRow( Index row, Index col, Vector& mainRow );
+    
+    /**
     * Saves data array into array parameter even in cross device function matrix.
     * Data array is huge on device for coalesced memory access condition! 
     *
-    * @param VectorView eather on host or device, depends where we want to store the data.
+    * @param Vector eather on host or device, depends where we want to store the data.
     * @return void
     */
     template < typename Device1 >
-    void getData( TNL::Containers::Vector< Real, Device1, Index >& data);
+    void getData( TNL::Containers::Vector< Real, Device1, Index >& data );
     
     /**
     * Shows matrix elements fully. Can be called from host for host matrices or 

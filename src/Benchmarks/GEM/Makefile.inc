@@ -17,6 +17,7 @@ CUDA_ARCH = auto
 # Set-up compilers
 CXX = g++
 CUDA_CXX =/usr/local/cuda-10.1/bin/nvcc
+#CUDA_CXX =/home/maty/.openmpi/bin/mpicc
 
 # Set-up CXX_FLAGS
 CXXFLAGS = -pthread -Wall -Wno-unused-local-typedefs -Wno-unused-variable -Wno-unknown-pragmas -std=c++14 -I$(TNL_HEADERS)
@@ -27,10 +28,10 @@ else
 endif
 
 # Set-up CUDA_CXXFLAGS
-CUDA_CXXFLAGS =-Wno-deprecated-gpu-targets --expt-relaxed-constexpr --expt-extended-lambda -DHAVE_CUDA --std c++14 -I$(TNL_HEADERS)
+CUDA_CXXFLAGS =-Wno-deprecated-gpu-targets --expt-relaxed-constexpr --expt-extended-lambda -DHAVE_CUDA -DHAVE_MPI --std c++14 -I$(TNL_HEADERS)
 
 ifeq ( $(WITH_CUDA), yes )
-   CUDA_CXXFLAGS += -DHAVE_CUDA
+   CUDA_CXXFLAGS += -DHAVE_CUDA -DHAVE_MPI
    ifeq ( $(CUDA_ARCH), auto )
       CUDA_CXXFLAGS += `tnl-cuda-arch`
    else
