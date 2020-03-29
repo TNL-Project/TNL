@@ -1,0 +1,26 @@
+#!/bin/bash
+device="both"
+precision="float"
+matice="matice6 662_bus"
+loops=2
+
+runTest()
+{
+   if test ! -d "./results";
+   then
+	mkdir -p "results"
+   fi
+   for matrix in ${matice};
+   do
+
+	echo ${matrix}.mtx
+	./tnl-gem-cuda --input-matrix ${matrix}".mtx" \
+			--device ${device} \
+		        --loops ${loops} \
+			--precision ${precision} \
+			>> ./results/${matrix}.txt
+   done
+}
+
+
+runTest

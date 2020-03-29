@@ -11,6 +11,11 @@
 
 #include "gem.h"
 
+#ifdef HAVE_MPI
+#include <mpi.h>
+#include <stdio.h>
+#endif
+
 using namespace TNL;
 
 void setupConfig( TNL::Config::ConfigDescription & config )
@@ -36,6 +41,16 @@ void setupConfig( TNL::Config::ConfigDescription & config )
 
 int main( int argc, char* argv[] )
 {     
+#ifdef HAVE_MPI
+  // Initialize the MPI environment
+  MPI_Init(NULL, NULL);
+
+  // Get the number of processes
+  int processID;
+  MPI_Comm_rank(MPI_COMM_WORLD, &processID);
+#endif
+  
+  
   Config::ParameterContainer parameters;
   Config::ConfigDescription conf_desc;
 
@@ -54,17 +69,27 @@ int main( int argc, char* argv[] )
   int loops = parameters.getParameter< int >( "loops" );
   int verbose = parameters.getParameter< int >( "verbose" );
   
-  printf("%20s %15s %15s %20s %15s %15s %10s %15s %15s\n", "matrix", "#rows", "#non-zeros", "vector", "device", "precision", "loops", "time", "error");
-  
+#ifdef HAVE_MPI
+  if( processID == 0 )
+#endif
+    printf("%20s %15s %15s %20s %15s %15s %10s %15s %15s\n", "matrix", "#rows", "#non-zeros", "vector", "device", "precision", "loops", "time", "error");
+
+ 
   if( ( precision == "all" || precision == "float" ) )
   {
     if( ( device == "CPU" || device == "both" ) )
       Vector< float, TNL::Devices::Host, int > result = 
         runGEM< float, int, TNL::Devices::Host >( matrixName, vectorName, loops, verbose, (String)"CPU", pivoting );
+#ifdef HAVE_MPI
+  Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
+#endif 
     if( ( device == "GPU" || device == "both" ) )
       Vector< float, TNL::Devices::Cuda, int > result = 
         runGEM< float, int, TNL::Devices::Cuda >( matrixName, vectorName, loops, verbose, (String)"GPU", pivoting );
   }
+#ifdef HAVE_MPI
+  Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
+#endif 
   
   if( ( precision == "all" || precision == "double" ) )
   {
@@ -75,55 +100,12 @@ int main( int argc, char* argv[] )
       Vector< double, TNL::Devices::Cuda, int > result = 
         runGEM< double, int, TNL::Devices::Cuda >( matrixName, vectorName, loops, verbose, (String)"GPU", pivoting );
   }
+#ifdef HAVE_MPI
+  Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
+#endif 
   
-  return EXIT_SUCCESS;
+#ifdef HAVE_MPI
+  MPI_Finalize();
+#endif
+  return EXIT_SUCCESS; 
 }
-
-/*void setInput( int argc, char* argv[], string& matrixName, string& vectorName, int& loops )
-{  
-  if( argc == 1 )
-  {
-    string pom("comsol.mtx");
-    matrixName = pom; 
-    string pom1("comsol.txt");
-    vectorName = pom1;
-    loops = 1;
-  }
-  
-  //for(int i = 0; i < argc; i++)
-  //{
-  //  cout<< argc << " " << argv[i] <<endl;
-  //}  
-  
-  if( argc != 7 )
-  {
-    printf( "You need to put all arguments in function call\n");
-    printHelp();
-  } else {
-    
-    //if( argv[1] != (char*)"--input-matrix" || argv[3] != (char*)"--input-vector" || argv[5] != (char*)"--loops" )
-    // {
-    // cout << "You need to set all parameters in the same order like help." << endl;
-    // printHelp();
-    // }
-    string pom(argv[2]);
-    matrixName = pom;
-    string pom1(argv[4]);
-    vectorName = pom1;
-    loops = stoi(argv[6]);
-  }
-    
-  
-  cout << "Setting values: \nMatrix ... " << matrixName << endl
-          << "Vector ... " << vectorName << endl
-          << "Loops ... " << loops << endl;
-}*/
-
-/*void printHelp()
-{
-  cout << "Parameter:" << setw(30) << "description:" << endl;
-  cout << "--input-matrix" << setw(60) << ".mtx file placed in test-matrices foulder." << endl;
-  cout << "--input-vector" << setw(60) << ".txt file placed in test-matrices foulder." << endl;
-  cout << "--loops" << setw(92) << "int number of loops of calculation for computation time mesurement." << endl;
-  //cout << "--real" << setw(60) << "float/double default float." << endl;
-}*/

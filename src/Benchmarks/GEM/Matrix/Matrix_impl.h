@@ -1,3 +1,6 @@
+
+//#include "Matrix.h"
+
 #define DEBUG 0
 
 template < typename Real,
@@ -95,9 +98,62 @@ Real Matrix< Real, Device, Index >::getElement( Index row, Index col ) const
 template < typename Real,
         typename Device,
         typename Index >
+void Matrix< Real, Device, Index >::getRow( Index row, Index col, Real* mainRow, Index size )
+{
+  TNL_ASSERT( row > -1 && col > -1, std::cerr << "Matrix cannot have egative row nor negative column!");
+  TNL_ASSERT( row < rows && col < columns, std::cerr << "Matrix dosn't have that much rows or columns!");
+  if( std::is_same< Device, TNL::Devices::Host >::value )
+  {
+#if DEBUG
+    printf("On CPU\n");
+#endif
+    for( int i = 0; i < size-1; i++ )
+      mainRow[ i ] = this->getElement( row, col + i ); 
+  }
+#ifdef HAVE_CUDA
+  if( std::is_same< Device, TNL::Devices::Cuda >::value )
+  {
+    for( int i = 0; i < size-1; i++ )
+      mainRow[ i ] = this->data.getElement( row*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + col + i );
+  }
+#endif
+}
+
+template < typename Real,
+        typename Device,
+        typename Index >
+void Matrix< Real, Device, Index >::getRow( Index row, Index col, Vector& mainRow )
+{
+  TNL_ASSERT( row > -1 && col > -1, std::cerr << "Matrix cannot have egative row nor negative column!");
+  TNL_ASSERT( row < rows && col < columns, std::cerr << "Matrix dosn't have that much rows or columns!");
+  if( std::is_same< Device, TNL::Devices::Host >::value )
+  {
+#if DEBUG
+    printf("On CPU\n");
+#endif
+    for( int i = 0; i < mainRow.getSize()-1; i++ )
+      mainRow[ i ] = this->getElement( row, col + i ); 
+  }
+#ifdef HAVE_CUDA
+  if( std::is_same< Device, TNL::Devices::Cuda >::value )
+  {
+    TNL::Containers::Vector< Real, TNL::Devices::Host, Index > tempVec( mainRow.getSize() );
+    for( int i = 0; i < mainRow.getSize()-1; i++ )
+      tempVec[ i ] = this->data.getElement( row*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + col + i );
+    mainRow = tempVec;
+  }
+#endif
+}
+
+template < typename Real,
+        typename Device,
+        typename Index >
 template < typename Device1 >
 void Matrix< Real, Device, Index >::getData( TNL::Containers::Vector< Real, Device1, Index >& dataOut )
 {
+  /*dataOut.setSize( this->data.getSize() );
+  for( int i = 0; i < this->data.getSize(); i++ )
+    dataOut.setElement( i , this->data.getElement( i ));*/
   dataOut = this->data;
 }
 
@@ -161,31 +217,24 @@ Matrix< Real, Device, Index >::operator=( Matrix< Real, Device2, Index>& matrix 
   matrix.getData( pom );
   if( std::is_same< Device, Device2 >::value )
   {
-    //printf("copy host to host or device to device\n");
+    printf("copy host to host or device to device\n");
     this->data = pom; 
   }
 #ifdef HAVE_CUDA
   else if( std::is_same< Device, TNL::Devices::Host >::value )
   {
-#if DEBUG
     printf("copy device to host\n");
-#endif
     for( int i = 0; i < this->rows; i++ )
       for( int j = 0; j < this->columns; j++ )
         this->setElement(i,j, pom[ i*TNL::roundToMultiple( this->rows, TNL::Cuda::getWarpSize() ) + j ] );
   } 
   else if( std::is_same< Device, TNL::Devices::Cuda >::value )
   {
-#if DEBUG
     printf("copy host to device\n");
     printf("data size alocated: %d\n", this->data.getSize() );
-#endif
     for( int i = 0; i < this->getNumRows(); i++ )
       for( int j = 0; j < this->getNumColumns(); j++ )
       {
-#if DEBUG
-        printf("copying element i,j = %d, %d with value %.4f\n", i, j, pom.getElement( i * this->columns + j ) );
-#endif
         this->data.setElement( i*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + j,
                 pom.getElement( i * this->columns + j ) );
       }

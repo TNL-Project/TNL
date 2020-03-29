@@ -121,27 +121,30 @@ void swapRows( Matrix< Real, TNL::Devices::Cuda, int >* A,
 template <typename Real >
 __global__ 
 void GEMmainKernel( Matrix< Real, TNL::Devices::Cuda, int >* A,
-        TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b, 
-        int colPointerMain, int numBlocksOnRow )
+        TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b,
+        TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > mainRow,
+        int rowPointerMain, int colPointerMain, int numBlocksOnRow, int processID, int numOfProcesses )
 {
   int rowPointer = blockIdx.x / numBlocksOnRow;
   int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
-  if( colPointer > colPointerMain && colPointer < A->getNumColumns() && rowPointer != colPointerMain && rowPointer < A->getNumRows() )
+  if( colPointer > colPointerMain && colPointer < A->getNumColumns() && 
+          rowPointer + processID * A->getNumRows() != colPointerMain && rowPointer < A->getNumRows() )
   {
-    if( A->getElement( colPointerMain, colPointerMain ) != 0 )
+    if( mainRow[ 0 ] != 0 )
     { 
-      const Real pivot = A->getElement( colPointerMain, colPointerMain );
+      const Real pivot = mainRow[ 0 ];
       const Real firstElementInRow = A->getElement( rowPointer, colPointerMain );
       if( firstElementInRow != 0 )
       {
         A->setElement( rowPointer, colPointer,
-                  A->getElement( rowPointer, colPointer ) - firstElementInRow * A->getElement( colPointerMain, colPointer ) / pivot );   
+                  A->getElement( rowPointer, colPointer ) - firstElementInRow * mainRow[ colPointer - colPointerMain ] / pivot );   
       }
     } else if( colPointer == colPointerMain && rowPointer == colPointerMain ) printf( "Error, pivot is zero!\n");
   }
-  if( rowPointer != colPointerMain && threadIdx.x == 0 && blockIdx.x % numBlocksOnRow == 0 && A->getElement( colPointerMain, colPointerMain ) != 0 && A->getElement( rowPointer, colPointerMain ) != 0  )
+  if( rowPointer + processID * A->getNumRows() != colPointerMain && threadIdx.x == 0 &&
+          blockIdx.x % numBlocksOnRow == 0 && mainRow[ 0 ] != 0 && A->getElement( rowPointer, colPointerMain ) != 0  )
   {
-    b[ rowPointer ] = b[ rowPointer ] - A->getElement( rowPointer, colPointerMain ) * b[ colPointerMain ] / A->getElement( colPointerMain, colPointerMain );
+    b[ rowPointer ] = b[ rowPointer ] - A->getElement( rowPointer, colPointerMain ) * mainRow[ mainRow.getSize()-1 ] / mainRow[ 0 ];
   }
 }
 
@@ -150,11 +153,11 @@ template <typename Real >
 __global__ 
 void GEMDiagToResult( Matrix< Real, TNL::Devices::Cuda, int >* A,
         TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > v,
-        TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > out )
+        int processID )
 {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if( i < A->getNumRows() )
-    out[i] = v[i] / A->getElement(i,i);
+    v[i] = v[i] / A->getElement( i, i + processID * A->getNumRows() );
 }
 
 
@@ -242,9 +245,9 @@ void GEMBackwardPass( Matrix< Real, TNL::Devices::Cuda, int >* A,
 
 
 
-template <typename Real>
+template <typename Real, typename Device>
 __global__ 
-void showMatrix( Matrix< Real, TNL::Devices::Cuda, int > A)
+void showMatrix( Matrix< Real, Device, int > A)
 {
   A.showMatrix();
 }
