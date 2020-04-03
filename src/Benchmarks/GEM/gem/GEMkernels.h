@@ -156,7 +156,7 @@ void GEMDiagToResult( Matrix< Real, TNL::Devices::Cuda, int >* A,
         int processID )
 {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if( i < A->getNumRows() )
+  if( i < A->getNumColumns() - processID*A->getNumRows() && i < A->getNumRows() )
     v[i] = v[i] / A->getElement( i, i + processID * A->getNumRows() );
 }
 

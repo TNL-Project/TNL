@@ -80,16 +80,15 @@ int main( int argc, char* argv[] )
     if( ( device == "CPU" || device == "both" ) )
       Vector< float, TNL::Devices::Host, int > result = 
         runGEM< float, int, TNL::Devices::Host >( matrixName, vectorName, loops, verbose, (String)"CPU", pivoting );
-#ifdef HAVE_MPI
-  Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif 
+
     if( ( device == "GPU" || device == "both" ) )
-      Vector< float, TNL::Devices::Cuda, int > result = 
+      auto result =
         runGEM< float, int, TNL::Devices::Cuda >( matrixName, vectorName, loops, verbose, (String)"GPU", pivoting );
   }
 #ifdef HAVE_MPI
-  Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif 
+  //printf("%d: about to finalize.\n", processID );
+  MPI_Finalize();
+#endif
   
   if( ( precision == "all" || precision == "double" ) )
   {
@@ -100,12 +99,7 @@ int main( int argc, char* argv[] )
       Vector< double, TNL::Devices::Cuda, int > result = 
         runGEM< double, int, TNL::Devices::Cuda >( matrixName, vectorName, loops, verbose, (String)"GPU", pivoting );
   }
-#ifdef HAVE_MPI
-  Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif 
   
-#ifdef HAVE_MPI
-  MPI_Finalize();
-#endif
+
   return EXIT_SUCCESS; 
 }

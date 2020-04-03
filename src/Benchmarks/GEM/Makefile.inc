@@ -5,8 +5,11 @@ PROJECT_NAME = tnl-gem
 TNL_HEADERS = ${HOME}/.local/include
 INSTALL_DIR = ${HOME}/.local
 WITH_CUDA = yes
+WITH_MPI = yes
 WITH_OPENMP = yes
 WITH_DEBUG = yes
+MPI_FLAGT =-L/home/maty/.openmpi/lib -lmpi
+MPI_FLAGS =-I/home/maty/.openmpi/include
 
 # If TNL is installed on your system, CUDA arch can be detected automatically using
 # a tool 'tnl-cuda-arch'. This is done by default if CUDA_ARCH is set to 'auto'. 
@@ -37,6 +40,13 @@ ifeq ( $(WITH_CUDA), yes )
    else
       CUDA_CXXFLAGS += -gencode arch=compute_$(CUDA_ARCH),code=sm_$(CUDA_ARCH)
    endif
+endif
+
+
+# Set-up MPI_FLAG
+ifeq ( $(WITH_MPI), yes )
+	MPI_FLAGT =-L/home/maty/.openmpi/lib -lmpi
+	MPI_FLAGS =-I/home/maty/.openmpi/include
 endif
 
 # Set-up CPPFLAGS
