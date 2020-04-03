@@ -26,6 +26,7 @@ class Matrix
     
     Matrix();
     Matrix( const Index rows, const Index columns );
+    Matrix( Matrix< Real, Device, Index>& matrix );
     
     /**
     * Sets dimension for matrix of rows x columns elements and allocates memory

@@ -1,6 +1,4 @@
 
-//#include "Matrix.h"
-
 #define DEBUG 0
 
 template < typename Real,
@@ -17,6 +15,17 @@ Matrix< Real, Device, Index >::Matrix( Index rows, Index columns )
 { 
   this->setDimensions( rows, columns );  
 }
+
+template < typename Real,
+        typename Device,
+        typename Index >
+Matrix< Real, Device, Index >::Matrix( Matrix< Real, Device, Index>& matrix )
+: rows( matrix.getNumRows() ), columns( matrix.getNumColumns() )
+{
+  matrix.getData( this->data );
+}
+
+
 template < typename Real,
         typename Device,
         typename Index >
@@ -164,9 +173,9 @@ template < typename Real,
 __cuda_callable__
 void Matrix< Real, Device, Index >::showMatrix()
 {
-  for( int i = 0; i < rows; i++ )
+  for( int i = 0; i < this->rows; i++ )
   {
-    for( int j = 0; j < columns; j++ )
+    for( int j = 0; j < this->columns; j++ )
       printf("%.4f ", this->getElement(i,j));
     printf("\n");
   }
@@ -217,21 +226,17 @@ Matrix< Real, Device, Index >::operator=( Matrix< Real, Device2, Index>& matrix 
   matrix.getData( pom );
   if( std::is_same< Device, Device2 >::value )
   {
-    printf("copy host to host or device to device\n");
     this->data = pom; 
   }
 #ifdef HAVE_CUDA
   else if( std::is_same< Device, TNL::Devices::Host >::value )
   {
-    printf("copy device to host\n");
     for( int i = 0; i < this->rows; i++ )
       for( int j = 0; j < this->columns; j++ )
         this->setElement(i,j, pom[ i*TNL::roundToMultiple( this->rows, TNL::Cuda::getWarpSize() ) + j ] );
   } 
   else if( std::is_same< Device, TNL::Devices::Cuda >::value )
   {
-    printf("copy host to device\n");
-    printf("data size alocated: %d\n", this->data.getSize() );
     for( int i = 0; i < this->getNumRows(); i++ )
       for( int j = 0; j < this->getNumColumns(); j++ )
       {

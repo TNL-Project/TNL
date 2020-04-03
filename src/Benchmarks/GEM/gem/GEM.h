@@ -36,14 +36,17 @@ class GEM
     
     bool GEMdevice( Array& x, const TNL::String& pivoting, int verbose );
     
-  protected:
+    bool setMatrixVector( MatrixGEM& A, Array& b ){
+      this->A = A; this->b = b;
+      return true;
+    }
 
+  protected: 
     void print( std::ostream& str = std::cout ) const;
 
     MatrixGEM A;
 
-    Array b;
-    
+    Array b;   
     typedef GEMDeviceDependentCode< DeviceType > DeviceDependentCode;
     friend class GEMDeviceDependentCode< DeviceType >;
 };

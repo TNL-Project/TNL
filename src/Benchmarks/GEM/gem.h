@@ -1,3 +1,5 @@
+#include <chrono> 
+#include <thread> 
 
 #include "Matrix/Matrix.h"
 #include "gem/GEM.h"
@@ -66,9 +68,6 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
   Index rows, nonzeros;
   readMatrixVector( matrix, vector, matrixName, vectorName, rows, nonzeros, verbose );
   VectorType vectorResult( rows );
-  vectorResult.setValue(0);
-  MatrixType matrixComp;
-  VectorType vectorComp( vector );
   
   // Computation
   double* time;
@@ -77,51 +76,18 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
   
   if( verbose > 1 )
     cout << "Starting computation on " << device << endl;
+  /*char hostname[256];
+  gethostname(hostname, sizeof(hostname));
+  printf("PID %d on %s ready for attach\n", getpid(), hostname);*/
+  
   for( int i = 0; i < loops; i++ )
   {
-    printf("process %d is waiting in barrier with i = %d, loops = %d\n", processID, i, loops );
-#ifdef HAVE_MPI
-    MPI_Barrier( MPI_COMM_WORLD );
-#endif 
-    printf("process %d is behind barrier with i = %d, loops = %d and going to calculate next loop!\n", processID, i, loops );
-    printf("process %d is in loop %d from all loops %d\n", processID, i, loops );
-#ifdef HAVE_CUDA
-    printf( "%d process:\n", processID );
-    showMatrix<<< 1, 1 >>>( matrix );
-    cudaDeviceSynchronize();
-    TNL_CHECK_CUDA_DEVICE;
-    std::cout << vector << endl;
-    cout << vectorResult << endl;
-#endif
-    
-    matrixComp = matrix;
-    
-    printf("%d: matrix coppied\n", processID );
-#ifdef HAVE_MPI
-    MPI_Barrier( MPI_COMM_WORLD );
-#endif 
-#ifdef HAVE_CUDA
-    printf( "%d process:\n", processID );
-    showMatrix<<< 1, 1 >>>( matrixComp );
-    cudaDeviceSynchronize();
-    TNL_CHECK_CUDA_DEVICE;
-#endif
-    cout << processID << ":" << vector << endl;
-    cout << processID << ":" << vectorComp << endl;
 #ifdef HAVE_MPI
     Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
 #endif 
-    printf("%d:copiing Vector \n", processID);
-    //vectorComp = vector;
-    
-#ifdef HAVE_MPI
-    Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif 
-    //vectorResult.setValue( 0 );
-    
-#ifdef HAVE_MPI
-    Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif 
+    MatrixType matrixComp = matrix;
+    VectorType vectorComp( vector );
+    vectorResult.setValue( 0 );
     GEM< Real, Device, Index > gem( matrixComp, vectorComp );
     
 #ifdef HAVE_MPI
@@ -135,9 +101,8 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
     
     gem.solve( vectorResult, (String)"no", verbose );
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-#ifdef HAVE_MPI
-    Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif 
+    
+    
     if( processID == 0 )
     {
       time[i] = duration;
@@ -154,9 +119,6 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
           printf( "Norm in %d calculation is %.4f\n", i+1, l2norm);
       }
     }
-#ifdef HAVE_MPI
-    Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif 
   }
   if( verbose > 1 && processID == 0 )
     printf("\n ... done!\n");
@@ -176,14 +138,13 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
 #ifdef HAVE_MPI
   Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
 #endif 
-  
   if( processID == 0 ){
-    printf("%d: returning\n", processID );
+    //printf("%d: returning\n", processID );
     return vectorResult;
     
   }
   else{
-    printf("%d: returning\n", processID );
+    //("%d: returning\n", processID );
     vectorResult.setValue( 0 );
     return vectorResult;
   }
@@ -230,7 +191,6 @@ void readMatrixVector( Matrix< Real, Device, Index>& matrix,
   // Copy from CPU into matrix dependent on template Device
   vector = vectorHost;
   matrix = matrixHost;
-  
 }
 
 template < typename Real, typename Index >
@@ -297,13 +257,13 @@ void cutMatrixVectorMPI( Matrix< Real, Devices::Host, Index >& matrix,
   MPI_Comm_rank( MPI_COMM_WORLD, &processID );
   MPI_Comm_size( MPI_COMM_WORLD, &numOfProcesses );
   
-  if( processID == 0 )
+  /*if( processID == 0 )
   {
     printf( "%d: %d\n", numOfProcesses, processID );
     matrix.showMatrix();
     cout << vector << endl;
   }
-  
+  */
   
   Index numRowsCUT = TNL::roundUpDivision( matrix.getNumRows(), numOfProcesses );
   matrixTemp.setDimensions( numRowsCUT, matrix.getNumRows() );
