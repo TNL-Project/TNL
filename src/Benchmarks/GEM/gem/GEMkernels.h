@@ -60,10 +60,10 @@ __inline__ __device__ void blockReduceArgMax(Real& val, int& index)
 template <typename Real >
 __global__ 
 void findPivot( Matrix< Real, TNL::Devices::Cuda, int >* A, 
-        int colPointerMain, TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > outMaximum,
+        int fromRow, int colPointerMain, TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > outMaximum,
         TNL::Containers::VectorView< int, TNL::Devices::Cuda, int > outPosition)
 {
-  int rowPointer = threadIdx.x + blockDim.x * blockIdx.x + colPointerMain;
+  int rowPointer = threadIdx.x + blockDim.x * blockIdx.x + fromRow;
   Real firstElementInRow = rowPointer >= A->getNumRows() ? 0 : TNL::abs( A->getElement(rowPointer, colPointerMain) );
   int index = rowPointer;
   blockReduceArgMax( firstElementInRow, index );
@@ -95,12 +95,12 @@ template <typename Real >
 __global__ 
 void swapRows( Matrix< Real, TNL::Devices::Cuda, int >* A, 
         TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b,
-        int colPointerMain, int numBlocksOnRow, int* positionPivot )
+        int colPointerMain, int numBlocksOnRow, int positionPivot )
 {
-  if( *positionPivot > colPointerMain )
+  if( positionPivot > colPointerMain )
   {
     int rowPointer1 = colPointerMain;
-    int rowPointer2 = *positionPivot;
+    int rowPointer2 = positionPivot;
     int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
     if( colPointer < A->getNumColumns() && rowPointer1 < A->getNumRows() )
     {
