@@ -18,8 +18,6 @@
 #include <mpi.h>
 #endif
 
-#include "gem/GEMkernels.h"
-#include "TNL/Cuda/MemoryHelpers.h"
 #define COMPARE_RESULTS true;
 
 
@@ -99,7 +97,7 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
     if( verbose > 1 && processID == 0 )
       cout << "starting computation number " << i+1 << endl;
     
-    gem.solve( vectorResult, (String)"no", verbose );
+    gem.solve( vectorResult, pivoting, verbose );
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
     
     
