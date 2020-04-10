@@ -58,6 +58,8 @@ void calculResultVector( Matrix< Real, TNL::Devices::Cuda, Index >& matrix,
     }
   }
   //std::cout << processID << ": " << x << std::endl;
+#else
+  x = device_vector;
 #endif
   cudaFree( ( void* ) devMat );
   TNL_CHECK_CUDA_DEVICE;
@@ -71,7 +73,8 @@ template < typename Real,
         typename Index >
 bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting, int verbose )
 {
-  Matrix< Real, TNL::Devices::Cuda, Index >* devMat;// = TNL::Cuda::passToDevice( this->A );
+  // Copy matrix A and vector b to GPU 
+  Matrix< Real, TNL::Devices::Cuda, Index >* devMat;
   cudaMalloc( ( void** ) &devMat, ( size_t ) sizeof( Matrix< Real, TNL::Devices::Cuda, Index > ) );
   cudaMemcpy( ( void* ) devMat,( void* ) &this->A, sizeof( Matrix< Real, TNL::Devices::Cuda, Index > ), cudaMemcpyHostToDevice );
   TNL_CHECK_CUDA_DEVICE;
@@ -79,15 +82,8 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
   
   // FOR PIVOTING SET VARIABLES ON DEVICE
   int* pivot; cudaMalloc(&pivot, sizeof(int));
-  int* pom = (int*)malloc(sizeof(int));// *pom = -1;
-  
-  if( verbose > 2 )
-  {
-    showMatrix<<< 1, 1 >>>( this->A );
-    cudaDeviceSynchronize();
-    TNL_CHECK_CUDA_DEVICE;
-    printf("\n");
-  }
+    
+  // Initialise MPI variables even without MPI
   int processID=0;
   int numOfProcesses=1;
   
@@ -95,84 +91,100 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
   MPI_Comm_rank( MPI_COMM_WORLD, &processID );
   MPI_Comm_size( MPI_COMM_WORLD, &numOfProcesses );
 #endif
+  
+  if( verbose > 2 )
+  {
+#ifdef HAVE_MPI
+    for( int i = 0; i < numOfProcesses; i++ )
+    {
+      if( processID == i )
+      {
+        showMatrix<<< 1, 1 >>>( this->A );
+        cudaDeviceSynchronize();
+        TNL_CHECK_CUDA_DEVICE;
+      }
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+    for( int i = 0; i < numOfProcesses; i++ )
+    {
+      if( i == processID )
+        std::cout << device_vector;
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+    std::cout << std::endl;
+#else
+    showMatrix<<< 1, 1 >>>( this->A );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;
+    printf("\n");
+#endif
+  }
+  
+  // Main pointer to row, over all parts of matrices, colPointerMain in (0 - number of rows)
   Index colPointerMain = 0;
   
+  // Main cycle for all rows across all MPI parts, vector x is the only one with full size on MPI, or use A.getNumColumns() for rectangular matrices.
   while( colPointerMain < x.getSize() ){
 #ifdef HAVE_MPI
     TNL::Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
 #endif
-    Index colPointer = colPointerMain-(Index)(colPointerMain/this->A.getNumRows()) * this->A.getNumRows();
-#ifdef HAVE_MPI
-    if( processID == 0 )
-    {
-      showMatrix<<< 1, 1 >>>( this->A );
-      cudaDeviceSynchronize();
-      TNL_CHECK_CUDA_DEVICE;
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if( processID == 1 )
-    {
-      showMatrix<<< 1, 1 >>>( this->A );
-      cudaDeviceSynchronize();
-      TNL_CHECK_CUDA_DEVICE;
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if( processID == 2 )
-    {
-      showMatrix<<< 1, 1 >>>( this->A );
-      cudaDeviceSynchronize();
-      TNL_CHECK_CUDA_DEVICE;
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
+    // Pointer to rows in main process that has colPointerMain.
+    Index colPointer = colPointerMain-TNL::floor(colPointerMain/this->A.getNumRows()) * this->A.getNumRows();
+
     
     // main row vector for computation (pivoting, non-pivoting)
     TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > mainRowVec;
     
-    
+    // Setting number of threads and blocks for main kernel and for pivoting swapping kernel
     int blockSize = (this->A.getNumColumns()-colPointer) > 1024 ? 1024 : this->A.getNumColumns()-colPointer;
     int numBlocksOnRow = TNL::roundUpDivision( (this->A.getNumColumns()-colPointer), 1024 );
     int numOfBlocks =  this->A.getNumRows() * numBlocksOnRow;
     
+    
     if( pivoting == "yes" )
     {
       // PIVOTING
+      // fromRow saves info for each process saying from which row to start looking for pivot
       Index fromRow = 0;
-      if( processID < (Index)(colPointerMain/this->A.getNumRows()) )
+      if( processID < TNL::floor(colPointerMain/this->A.getNumRows()) )
         fromRow = this->A.getNumRows();
-      else if( processID == (Index)(colPointerMain/this->A.getNumRows()) )
+      else if( processID == TNL::floor(colPointerMain/this->A.getNumRows()) )
         fromRow = colPointer;
       
+      // Inicialising vectors for maximum and position (vectors important for multiple blocks, otherwise its vector with length 1)
       TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > outMax(1);
       TNL::Containers::Vector< Index, TNL::Devices::Cuda, Index > outPos(1);
       outMax.setValue(0); outPos.setValue(-1);
       
+      
+      // those blocks that have rows to look for pivot in should start looking
       if( fromRow != this->A.getNumRows() )
       {
+        // setting size for kernel of pivoting
         int reduceBlockSize = (this->A.getNumRows()-fromRow) > 1024 ? 1024 : 
           TNL::roundToMultiple( this->A.getNumRows()-fromRow, 32 );  
         int reduceGridSize = TNL::roundUpDivision( this->A.getNumRows()-fromRow, reduceBlockSize );
         int reduceGridSizeRound = TNL::roundToMultiple( reduceGridSize, 32 );
         
-        printf("%d,%d: reduceBlockSize = %d, reduceGridSize = %d, reduceGridSizeRound = %d %d\n",
-                colPointerMain, processID, reduceBlockSize, reduceGridSize, reduceGridSizeRound, fromRow );
-        
+        // resizing outMax and outPos for the kernel of pivoting
         outMax.setSize( reduceGridSize );
         outPos.setSize( reduceGridSize );
-        //outMax.setValue(0); outPos.setValue(0);
         
+        // two main pivoting kernels executes and saves max and position into 0-th element of vectors outMax and outPos
         findPivot<<< reduceGridSize, reduceBlockSize >>>( devMat, fromRow, colPointerMain, outMax.getView(), outPos.getView() );
         cudaDeviceSynchronize();
         TNL_CHECK_CUDA_DEVICE;
         
         findRowPivot<<< 1, reduceGridSizeRound >>>( outMax.getView(), outPos.getView(), pivot );
         cudaDeviceSynchronize();
-        TNL_CHECK_CUDA_DEVICE; 
-        //*pom = 0;
-        //cudaMemcpy( pom, pivot, sizeof(int), cudaMemcpyDeviceToHost);
+        TNL_CHECK_CUDA_DEVICE;
       }
-      //std::cout << processID << ": " << outMax << outPos << std::endl;
+      // Now each process has info about maximum in the "active" part of matrix that they calculate with
       
+      // Preparing dynamic arrays for MPI send and recv resp. AllGather.
+      // data stores information to send from each process
+      // recvData stores information that is received
+#ifdef HAVE_MPI
       Real *data, *recvData;
       data = new Real[2];
       recvData = new Real[2*numOfProcesses];
@@ -181,80 +193,48 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
       
       MPI_Allgather( data, 2, TNL::Communicators::MPITypeResolver< Real >::getType(),
               recvData, 2, TNL::Communicators::MPITypeResolver< Real >::getType(), MPI_COMM_WORLD);
-      
-      /*MPI_Barrier( MPI_COMM_WORLD );
-      if( processID == 0 )
-      {
-        printf( "%d:", processID );
-        for( int i = 0; i < 2*numOfProcesses; i++ )
-          printf( "%.2f ", recvData[i] );
-        printf("\n"); 
-      }
-      MPI_Barrier( MPI_COMM_WORLD );
-      if( processID == 1 )
-      {
-        printf( "%d:", processID );
-        for( int i = 0; i < 2*numOfProcesses; i++ )
-          printf( "%.2f ", recvData[i] );
-        printf("\n"); 
-      }*/
-      
-      TNL::Containers::Vector< Real, TNL::Devices::Host, Index > outMaxHost( numOfProcesses );
-      TNL::Containers::Vector< Index, TNL::Devices::Host, Index > outPosHost( numOfProcesses );
+#endif      
            
-      for( int i = 0; i < numOfProcesses; i++ )
-      {
-        outMaxHost[ i ] = (Real)recvData[ 2*i ];
-        outPosHost[ i ] = (Index)recvData[ 2*i+1 ];
-      }
-      delete []data;
-      delete []recvData;
+      // Initialising maximum and possition and process that has the overall maximum ( ?: for non-MPI program)
+      Index ProcessMax = numOfProcesses != 1 ? -1 : 0;
+      Index Possition = numOfProcesses != 1 ? 0 : outPos.getElement(0);
+      Real Maximum = numOfProcesses != 1 ? 0 : outMax.getElement(0);
       
-      
-      /*if( processID == 0 )
+#ifdef HAVE_MPI
+      // clasic maximum finding + storing processMax and possition
+      for( int i = 0; i < 2*numOfProcesses; i = i+2 )
       {
-        printf( "%d:", processID );
-        std::cout << outMaxHost << std::endl;
-        std::cout << outPosHost << std::endl;
-      }
-      MPI_Barrier( MPI_COMM_WORLD );
-      if( processID == 1 )
-      {
-        printf( "%d: ", processID );
-        std::cout << outMaxHost << std::endl;
-        std::cout << outPosHost << std::endl;
-      }*/
-      
-      Index ProcessMax = -1;
-      Index Possition = -1;
-      Real Maximum = 0;
-      
-      for( int i = 0; i < numOfProcesses; i++ )
-      {
-        if( outPosHost[ i ] != -1 )
-          if( Maximum < outMaxHost[ i ] )
+        if( recvData[ i+1 ] != -1 )
+          if( Maximum < recvData[ i ] )
           {
-            Maximum = outMaxHost[ i ];
-            ProcessMax = i;
-            Possition = outPosHost[ i ];
+            Maximum = recvData[ i ];
+            ProcessMax = TNL::floor( i/2 );
+            Possition = recvData[ i+1 ];
           }
       }
-      
-      /*if( processID == 0 )
+      if( verbose > 1 && processID == 0 )
+        printf("%d: max = %.2f, possition = %d, process = %d\n", colPointerMain, Maximum, Possition, ProcessMax );
+      // All processes has the info in Maximum, ProcesMax and Possition. So deleting arrays.
+      delete []data;
+      delete []recvData;
+#endif
+      // Clasic Maximum == 0 then we occured zero pivot so ending this calculation
+      if( Maximum == 0 )
       {
-        printf( "%d: ", processID );
-        std::cout << ProcessMax << " " << Maximum << " " << Possition << std::endl; 
+        std::cout << "Ooops zero pivot occured in " << colPointerMain << "-th step." << std::endl;
+        return false;
       }
-      MPI_Barrier( MPI_COMM_WORLD );
-      if( processID == 1 )
-      {
-        printf( "%d: ", processID );
-        std::cout << ProcessMax << " " << Maximum << " " << Possition << std::endl; 
-      }*/
+      
+      // Now when every process has the ProcessMax of pivoting row across all processes
+      // we can send pivoting row to all processes from ProcessMax
+      // mainRow stores pivoting row
       Real* mainRow;
       int size = this->A.getNumColumns() - colPointerMain + 1;
       mainRow = new Real[size];
       
+      // If ProcessMax isn't the main process that contains colPointerMain then ProcessMax sets mainRow itself.
+      // else means that ProcessMax is in the main process that contains colPointerMain, in this case we need to do normal pivoting
+      // so it swaps rows and fills mainRow normally.
       if( ProcessMax != colPointerMain/this->A.getNumRows() )
       {
         if( processID == ProcessMax )
@@ -280,24 +260,22 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
           mainRow[ size-1 ] = this->b.getElement( colPointer );
         } 
       }
-      TNL::Communicators::MpiCommunicator::Bcast( mainRow, size, colPointerMain/this->A.getNumRows(), MPI_COMM_WORLD);
       
-      TNL::Containers::Vector< Real, TNL::Devices::Host, Index > mainRowVecHost( mainRow, size );
-      mainRowVec = mainRowVecHost;
-      delete []mainRow;
+      // Broad casting the pivoting row to all processes
+#ifdef HAVE_MPI
+      TNL::Communicators::MpiCommunicator::Bcast( mainRow, size, ProcessMax, MPI_COMM_WORLD);
       
+      // Onec more if the ProcessMax filled the mainRow, then the ProcessMax needs to switch this pivoting row with main process.
+      // mainRowSwap is the colPointer of process colPointerMain/this->A.getNumRows()
       if( ProcessMax != colPointerMain/this->A.getNumRows() )
       {
         Real *mainRowSwap;
         mainRowSwap = new Real[size];
         
+        
         if( processID == ProcessMax )
         {
           TNL::Communicators::MpiCommunicator::Recv( mainRowSwap, size, colPointerMain/this->A.getNumRows(), 0 );
-          printf( "%d: ", processID );
-          for( int i = 0; i < size; i++ )
-            printf( "%.2f ", mainRowSwap[ i ] );
-          printf( "\n" );
           this->A.setRow( Possition, colPointerMain, mainRowSwap, size );
           this->b.setElement( Possition, mainRowSwap[ size-1 ] );
         }
@@ -307,48 +285,18 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
           mainRowSwap[ size-1 ] = this->b.getElement( colPointer );
           
           TNL::Communicators::MpiCommunicator::ISend( mainRowSwap, size, ProcessMax, 0 );
-          printf( "%d: ", processID );
-          for( int i = 0; i < size; i++ )
-            printf( "%.2f ", mainRow[ i ] );
-          printf( "\n" );
           this->A.setRow( colPointer, colPointerMain, mainRow, size );
           this->b.setElement( colPointer, mainRow[ size-1 ] );
-        }        
+        }    
         delete []mainRowSwap;
       }
-      #ifdef HAVE_MPI
-       if( processID == 0 )
-       {
-       showMatrix<<< 1, 1 >>>( this->A );
-       cudaDeviceSynchronize();
-       TNL_CHECK_CUDA_DEVICE;
-       }
-       MPI_Barrier(MPI_COMM_WORLD);
-       if( processID == 1 )
-       {
-       showMatrix<<< 1, 1 >>>( this->A );
-       cudaDeviceSynchronize();
-       TNL_CHECK_CUDA_DEVICE;
-       }
-       MPI_Barrier(MPI_COMM_WORLD);
-       if( processID == 2 )
-       {
-       showMatrix<<< 1, 1 >>>( this->A );
-       cudaDeviceSynchronize();
-       TNL_CHECK_CUDA_DEVICE;
-       }
-       MPI_Barrier(MPI_COMM_WORLD);
-       if( processID == 0 )
-       std::cout << this->b << std::endl;
-       MPI_Barrier(MPI_COMM_WORLD);
-       if( processID == 1 )
-       std::cout << this->b << std::endl;
-       MPI_Barrier(MPI_COMM_WORLD);
-       if( processID == 2 )
-       std::cout << this->b << std::endl;
-       #endif
+#endif
+      // Main kernel works with vector as a main row, so all processes has to set mainRowVec.
+      TNL::Containers::Vector< Real, TNL::Devices::Host, Index > mainRowVecHost( mainRow, size );
+      mainRowVec = mainRowVecHost;
+      delete []mainRow; 
     }
-    else 
+    else // without pivoting
     {
 #ifdef HAVE_MPI
       Real* mainRow;
@@ -358,14 +306,10 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
       if( colPointerMain/this->A.getNumRows() == processID ){
         this->A.getRow( colPointer, colPointerMain, mainRow, size );
         mainRow[ size-1 ] = this->b.getElement( colPointer );
-        
-        /*for( int i = 0; i < numOfProcesses; i++ )
-         if( i != processID ){
-         TNL::Communicators::MpiCommunicator::ISend( mainRow, size, i, 0 );
-         }*/
-      } //else {
-      //TNL::Communicators::MpiCommunicator::Recv( mainRow, size, colPointerMain/this->A.getNumRows(), 0 );
+      } 
+      
       TNL::Communicators::MpiCommunicator::Bcast( mainRow, size, colPointerMain/this->A.getNumRows(), MPI_COMM_WORLD);
+      
       if( verbose > 2 )
       {
         printf( "%d: [", processID);
@@ -374,23 +318,18 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
         printf("]\n");
       }
       
-      //}
       TNL::Containers::Vector< Real, TNL::Devices::Host, Index > mainRowVecHost( mainRow, size );
       mainRowVec = mainRowVecHost;
       delete []mainRow;
 #else
-      //printf("%d: colPointer = %d, colPointerMain = %d\n", processID, colPointer, colPointerMain );
       this->A.getRow(colPointer, colPointerMain, mainRowVec );
 #endif
-      
     }
-    /*std::cout << processID << ": " << std::endl;
-     std::cout << mainRowVec << std::endl;*/
     
     if( verbose > 1 )
       printf( "Elimination: %d/%d\n", colPointer, this->A.getNumColumns() );
     
-    
+    // Finally main kernel calculates the GEM for colPointerMain from mainRowVec
     GEMmainKernel<<< numOfBlocks, blockSize >>>( devMat, 
             device_vector.getView(),
             mainRowVec.getView(),
@@ -401,23 +340,47 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
             numOfProcesses );
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;
+    
+    
     if( verbose > 2 )
     {
-      showMatrix<<< 1, 1 >>>( this->A );
-      cudaDeviceSynchronize();
-      TNL_CHECK_CUDA_DEVICE;
-      std::cout << this->b << std::endl;
-      printf("\n");
+      #ifdef HAVE_MPI
+    for( int i = 0; i < numOfProcesses; i++ )
+    {
+      if( processID == i )
+      {
+        showMatrix<<< 1, 1 >>>( this->A );
+        cudaDeviceSynchronize();
+        TNL_CHECK_CUDA_DEVICE;
+      }
+      MPI_Barrier(MPI_COMM_WORLD);
     }
-    //TNL::Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
+    for( int i = 0; i < numOfProcesses; i++ )
+    {
+      if( i == processID )
+        std::cout << device_vector;
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+    std::cout << std::endl;
+#else
+    showMatrix<<< 1, 1 >>>( this->A );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;
+    std::cout << this->b << std::endl;
+    printf("\n");
+#endif
+    }
+    // increment colPointerMain for next while passage
     colPointerMain++;
   }
   
+  // delete all used variables
   cudaFree(pivot);
-  free(pom);
   cudaFree( devMat );
   TNL_CHECK_CUDA_DEVICE;
   
+  // Calculate real result 
+  // (With MPI needs to send info into process 0 as main process with real result, rest processes has result as vector of zeros)
   calculResultVector( this->A, device_vector, x, processID, numOfProcesses );
   
   return true;

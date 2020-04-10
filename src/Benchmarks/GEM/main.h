@@ -46,8 +46,16 @@ int main( int argc, char* argv[] )
   MPI_Init(NULL, NULL);
 
   // Get the number of processes
-  int processID;
+  int processID = -1;
   MPI_Comm_rank(MPI_COMM_WORLD, &processID);
+  int numOfProcesses = 0;
+  MPI_Comm_size( MPI_COMM_WORLD, &numOfProcesses );
+  int numOfDevices = 0;
+  cudaGetDeviceCount(&numOfDevices);
+  if( numOfProcesses > numOfDevices && processID == 0 )
+    printf("Warning: There is too many processes for computation,"
+            " some processes will compute on same device!. (Processes %d, Devices %d)\n", numOfProcesses, numOfDevices);
+  cudaSetDevice(processID%numOfDevices);
 #endif
   
   
@@ -85,10 +93,6 @@ int main( int argc, char* argv[] )
       auto result =
         runGEM< float, int, TNL::Devices::Cuda >( matrixName, vectorName, loops, verbose, (String)"GPU", pivoting );
   }
-#ifdef HAVE_MPI
-  //printf("%d: about to finalize.\n", processID );
-  MPI_Finalize();
-#endif
   
   if( ( precision == "all" || precision == "double" ) )
   {
@@ -100,6 +104,9 @@ int main( int argc, char* argv[] )
         runGEM< double, int, TNL::Devices::Cuda >( matrixName, vectorName, loops, verbose, (String)"GPU", pivoting );
   }
   
+#ifdef HAVE_MPI
+  MPI_Finalize();
+#endif
 
   return EXIT_SUCCESS; 
 }
