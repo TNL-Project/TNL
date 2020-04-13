@@ -133,7 +133,7 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
 
     
     // main row vector for computation (pivoting, non-pivoting)
-    TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > mainRowVec;
+    TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > mainRowVec( this->A.getNumColumns() - colPointerMain + 1 );
     
     // Setting number of threads and blocks for main kernel and for pivoting swapping kernel
     int blockSize = (this->A.getNumColumns()-colPointer) > 1024 ? 1024 : this->A.getNumColumns()-colPointer;
@@ -232,6 +232,7 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
       int size = this->A.getNumColumns() - colPointerMain + 1;
       mainRow = new Real[size];
       
+      
       // If ProcessMax isn't the main process that contains colPointerMain then ProcessMax sets mainRow itself.
       // else means that ProcessMax is in the main process that contains colPointerMain, in this case we need to do normal pivoting
       // so it swaps rows and fills mainRow normally.
@@ -263,7 +264,17 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
       
       // Broad casting the pivoting row to all processes
 #ifdef HAVE_MPI
+      MPI_Barrier(MPI_COMM_WORLD);
       TNL::Communicators::MpiCommunicator::Bcast( mainRow, size, ProcessMax, MPI_COMM_WORLD);
+      
+      if( verbose > 1 )
+      {
+        printf( "%d: [", processID);
+        for( int i = 0; i < size; i++ )
+          printf( "%.2f ", mainRow[ i ] );
+        printf("]\n");
+      }
+      
       
       // Onec more if the ProcessMax filled the mainRow, then the ProcessMax needs to switch this pivoting row with main process.
       // mainRowSwap is the colPointer of process colPointerMain/this->A.getNumRows()
@@ -323,12 +334,27 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
       delete []mainRow;
 #else
       this->A.getRow(colPointer, colPointerMain, mainRowVec );
+      mainRowVec.setElement( mainRowVec.getSize() - 1, this->b.getElement( colPointer ) );
 #endif
     }
-    
     if( verbose > 1 )
-      printf( "Elimination: %d/%d\n", colPointer, this->A.getNumColumns() );
-    
+    {
+#ifdef HAVE_MPI
+      for( int i = 0; i < numOfProcesses; i++ )
+      {
+        if( processID == i )
+        {
+          std::cout << mainRowVec << std::endl;
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+      }
+#else
+      std::cout << mainRowVec << std::endl;
+#endif
+    }
+    if( verbose > 1 )
+      printf( "Elimination: %d/%d\n", colPointerMain, this->A.getNumColumns() );
+    //std::cout << mainRowVec << std::endl;
     // Finally main kernel calculates the GEM for colPointerMain from mainRowVec
     GEMmainKernel<<< numOfBlocks, blockSize >>>( devMat, 
             device_vector.getView(),
@@ -382,7 +408,8 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
   // Calculate real result 
   // (With MPI needs to send info into process 0 as main process with real result, rest processes has result as vector of zeros)
   calculResultVector( this->A, device_vector, x, processID, numOfProcesses );
-  
+  //if( processID == 0 )
+  //  std::cout << x << std::endl;
   return true;
 }
 

@@ -141,8 +141,8 @@ void GEMmainKernel( Matrix< Real, TNL::Devices::Cuda, int >* A,
       }
     } else if( colPointer == colPointerMain && rowPointer == colPointerMain ) printf( "Error, pivot is zero!\n");
   }
-  if( rowPointer + processID * A->getNumRows() != colPointerMain && threadIdx.x == 0 &&
-          blockIdx.x % numBlocksOnRow == 0 && mainRow[ 0 ] != 0 && A->getElement( rowPointer, colPointerMain ) != 0  )
+  if( threadIdx.x == 0 && blockIdx.x % numBlocksOnRow == 0 && rowPointer + processID * A->getNumRows() != colPointerMain && rowPointer < A->getNumRows() &&
+           mainRow[ 0 ] != 0 && A->getElement( rowPointer, colPointerMain ) != 0  )
   {
     b[ rowPointer ] = b[ rowPointer ] - A->getElement( rowPointer, colPointerMain ) * mainRow[ mainRow.getSize()-1 ] / mainRow[ 0 ];
   }
