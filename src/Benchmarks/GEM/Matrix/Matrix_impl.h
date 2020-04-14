@@ -170,10 +170,8 @@ void Matrix< Real, Device, Index >::getRow( Index row, Index col, Vector& mainRo
 #ifdef HAVE_CUDA
   if( std::is_same< Device, TNL::Devices::Cuda >::value )
   {
-    TNL::Containers::Vector< Real, TNL::Devices::Host, Index > tempVec( mainRow.getSize() );
     for( int i = 0; i < mainRow.getSize()-1; i++ )
-      tempVec[ i ] = this->data.getElement( row*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + col + i );
-    mainRow = tempVec;
+      mainRow.setElement(i, this->data.getElement( row*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + col + i ) );
   }
 #endif
 }

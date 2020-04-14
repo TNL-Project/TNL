@@ -1,6 +1,25 @@
 #define DEBUG 0
+#include <fstream> // saving and loading vector.txt
+#include <string> // input from cmd
 
-
+template < typename Real, typename Index >
+void saveVec( Real* mainRow, Index size, int processID, Index colPointerMain )
+{
+  std::ofstream outdata; // outdata is like cin
+  std::string s( "./test-matrices/mainRow" );
+  s = s + std::to_string(processID) + "_" + std::to_string(colPointerMain);
+  outdata.open(s); // opens the file
+  if( !outdata ) { // file couldn't be opened
+    std::cerr << "Error: file could not be opened" << std::endl;
+    exit(1);
+  }
+  
+  for( int i = 0; i < size; i++ )
+  {
+    outdata << mainRow[ i ] << std::endl;
+  }
+  outdata.close();
+}
 
 #ifdef HAVE_CUDA
 #include "GEMkernels.h"
@@ -257,6 +276,7 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
             cudaDeviceSynchronize();
             TNL_CHECK_CUDA_DEVICE;
           }
+          
           this->A.getRow( colPointer, colPointerMain, mainRow, size );
           mainRow[ size-1 ] = this->b.getElement( colPointer );
         } 
@@ -266,7 +286,8 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
 #ifdef HAVE_MPI
       MPI_Barrier(MPI_COMM_WORLD);
       TNL::Communicators::MpiCommunicator::Bcast( mainRow, size, ProcessMax, MPI_COMM_WORLD);
-      
+      //if( colPointerMain%100 == 0 )
+      //  saveVec( mainRow, size, processID, colPointerMain );
       if( verbose > 1 )
       {
         printf( "%d: [", processID);
@@ -295,7 +316,7 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
           this->A.getRow( colPointer, colPointerMain, mainRowSwap, size );
           mainRowSwap[ size-1 ] = this->b.getElement( colPointer );
           
-          TNL::Communicators::MpiCommunicator::ISend( mainRowSwap, size, ProcessMax, 0 );
+          TNL::Communicators::MpiCommunicator::Send( mainRowSwap, size, ProcessMax, 0 );
           this->A.setRow( colPointer, colPointerMain, mainRow, size );
           this->b.setElement( colPointer, mainRow[ size-1 ] );
         }    
