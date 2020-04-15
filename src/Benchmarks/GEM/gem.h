@@ -74,9 +74,6 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
   
   if( verbose > 1 )
     cout << "Starting computation on " << device << endl;
-  /*char hostname[256];
-  gethostname(hostname, sizeof(hostname));
-  printf("PID %d on %s ready for attach\n", getpid(), hostname);*/
   
   for( int i = 0; i < loops; i++ )
   {
@@ -98,6 +95,7 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
       cout << "starting computation number " << i+1 << endl;
     
     gem.solve( vectorResult, pivoting, verbose );
+    
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
     
     

@@ -34,6 +34,10 @@ class GEM
     
     bool computeLUDecomposition( int verbose = 0 );
     
+#ifdef HAVE_MPI
+    bool GEMdeviceMPI( Array& x, const TNL::String& pivoting, int verbose );
+#endif
+    
     bool GEMdevice( Array& x, const TNL::String& pivoting, int verbose );
     
     bool setMatrixVector( MatrixGEM& A, Array& b ){
