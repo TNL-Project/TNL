@@ -13,7 +13,11 @@
 #pragma once
 
 #include <TNL/Assert.h>
+#ifdef HAVE_MPI
+#include "GEMdeviceMPI.h"
+#else
 #include "GEMdevice.h"
+#endif
 #include "GEM.h"
 #include <fstream>
   
@@ -295,9 +299,15 @@ class GEMDeviceDependentCode< TNL::Devices::Cuda >
                    TNL::Containers::Vector< Real, DeviceType, Index >& x, const TNL::String& pivoting, int verbose )
     {
 #ifdef HAVE_CUDA
+#ifdef HAVE_MPI
       if( verbose > 1 )
-        printf("Starting the computation SolveGEM.\n");
+        printf("Starting the computation SolveGEM MPI.\n");
+      gem.GEMdeviceMPI( x, pivoting, verbose );
+#else
+      if( verbose > 1 )
+        printf("Starting the computation SolveGEM MPI.\n");
       gem.GEMdevice( x, pivoting, verbose );
+#endif
 #endif
       return true;
     }
