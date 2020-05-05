@@ -1463,38 +1463,13 @@ TYPED_TEST( MatrixTest, saveAndLoadTest )
 //}
 //#endif
 
-/*TEST( DenseMatrixTest, Dense_getMatrixProductTest_Host )
+TYPED_TEST( MatrixTest, getMatrixProductTest )
 {
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on CPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h(609): error: no instance of function template \"TNL::Matrices::DenseMatrixProductKernel\" matches the argument list\n";
-    std::cout << "              argument types are: (TNL::Matrices::Dense<int, TNL::Devices::Host, int> *, Dense_host_int *, Dense_host_int *, const int, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Dense<Real, Device, Index>::getMatrixProduct(const Matrix1 &, const Matrix2 &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host, Index=int, Matrix1=Dense_host_int, Matrix2=Dense_host_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(901): here\n";
-    std::cout << "                  instantiation of \"void test_GetMatrixProduct<Matrix>() [with Matrix=Dense_host_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(1315): here\n\n";
+   using MatrixType = typename TestFixture::MatrixType;
+   test_GetMatrixProduct< MatrixType >();
 }
 
-#ifdef HAVE_CUDA
-TEST( DenseMatrixTest, Dense_getMatrixProductTest_Cuda )
-{
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on GPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h(510): error: identifier \"tnlCudaMin\" is undefined\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::DenseMatrixProductKernel<Real,Index,Matrix1,Matrix2,tileDim,tileRowBlockSize>(TNL::Matrices::Dense<Real, TNL::Devices::Cuda, Index> *, const Matrix1 *, const Matrix2 *, Real, Real, Index, Index) [with Real=int, Index=int, Matrix1=Dense_cuda_int, Matrix2=Dense_cuda_int, tileDim=32, tileRowBlockSize=8]\"\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Dense<Real, Device, Index>::getMatrixProduct(const Matrix1 &, const Matrix2 &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Cuda, Index=int, Matrix1=Dense_cuda_int, Matrix2=Dense_cuda_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(901): here\n";
-    std::cout << "                  instantiation of \"void test_GetMatrixProduct<Matrix>() [with Matrix=Dense_cuda_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(1332): here\n\n";
-}
-#endif
-
+/*
 TEST( DenseMatrixTest, Dense_getTranspositionTest_Host )
 {
 //    test_GetTransposition< Dense_host_int >();

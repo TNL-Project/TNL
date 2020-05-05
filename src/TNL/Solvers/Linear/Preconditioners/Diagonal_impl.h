@@ -32,13 +32,12 @@ update( const MatrixPointer& matrixPointer )
    diagonal.setSize( matrixPointer->getRows() );
 
    VectorViewType diag_view( diagonal );
-
    const auto kernel_matrix = matrixPointer->getView();
 
    // TODO: Rewrite this with SparseMatrix::forAllRows
    auto kernel = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      diag_view[ i ] = kernel_matrix.getElement( i, i );
+      //diag_view[ i ] = kernel_matrix.getElement( i, i );
    };
 
    Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, diagonal.getSize(), kernel );

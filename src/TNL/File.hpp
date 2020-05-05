@@ -83,7 +83,7 @@ template< typename Type,
           typename Allocator >
 void File::load( Type* buffer, std::streamsize elements )
 {
-   static_assert( std::is_same< Type, typename Allocator::value_type >::value,
+   static_assert( std::is_same< std::remove_cv_t< Type >, std::remove_cv_t< typename Allocator::value_type > >::value,
                   "Allocator::value_type must be the same as Type." );
    TNL_ASSERT_GE( elements, 0, "Number of elements to load must be non-negative." );
 

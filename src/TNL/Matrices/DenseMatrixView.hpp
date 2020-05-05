@@ -19,6 +19,24 @@
 namespace TNL {
 namespace Matrices {
 
+#ifdef HAVE_CUDA
+template< int tileDim,
+          int tileRowBlockSize,
+          typename ResultMatrix,
+          typename Matrix1,
+          typename Matrix2,
+          typename Real,
+          typename Index >
+__global__ void
+DenseMatrixProductKernel( ResultMatrix resultMatrix,
+                          const Matrix1 matrixA,
+                          const Matrix2 matrixB,
+                          const Real matrixAMultiplicator,
+                          const Real matrixBMultiplicator,
+                          const Index gridIdx_x,
+                          const Index gridIdx_y );
+#endif
+
 template< typename Real,
           typename Device,
           typename Index,
@@ -432,15 +450,9 @@ void DenseMatrixView< Real, Device, Index, Organization >::getMatrixProduct( con
                                                               const RealType& matrix1Multiplicator,
                                                               const RealType& matrix2Multiplicator )
 {
-   TNL_ASSERT( matrix1.getColumns() == matrix2.getRows() &&
-              this->getRows() == matrix1.getRows() &&
-              this->getColumns() == matrix2.getColumns(),
-            std::cerr << "This matrix columns: " << this->getColumns() << std::endl
-                 << "This matrix rows: " << this->getRows() << std::endl
-                 << "Matrix1 columns: " << matrix1.getColumns() << std::endl
-                 << "Matrix1 rows: " << matrix1.getRows() << std::endl
-                 << "Matrix2 columns: " << matrix2.getColumns() << std::endl
-                 << "Matrix2 rows: " << matrix2.getRows() << std::endl );
+   TNL_ASSERT_EQ( matrix1.getColumns(), matrix2.getRows(), "" );
+   TNL_ASSERT_EQ( this->getRows(), matrix1.getRows(), "" );
+   TNL_ASSERT_EQ( this->getColumns(), matrix2.getColumns(), "" );
 
    if( std::is_same< Device, Devices::Host >::value )
       for( IndexType i = 0; i < this->getRows(); i += tileDim )
@@ -450,7 +462,7 @@ void DenseMatrixView< Real, Device, Index, Organization >::getMatrixProduct( con
             const IndexType tileColumns = min( tileDim, this->getColumns() - j );
             for( IndexType i1 = i; i1 < i + tileRows; i1++ )
                for( IndexType j1 = j; j1 < j + tileColumns; j1++ )
-                  this->setElementFast( i1, j1, 0.0 );
+                  ( *this )( i1, j1 ) = 0.0;
 
             for( IndexType k = 0; k < matrix1.getColumns(); k += tileDim )
             {
@@ -458,14 +470,14 @@ void DenseMatrixView< Real, Device, Index, Organization >::getMatrixProduct( con
                for( IndexType i1 = 0; i1 < tileRows; i1++ )
                   for( IndexType j1 = 0; j1 < tileColumns; j1++ )
                      for( IndexType k1 = k; k1 < lastK; k1++ )
-                        this->addElementFast( i + i1, j + j1,
-                            matrix1.getElementFast( i + i1, k1 ) * matrix2.getElementFast( k1, j + j1 ) );
+                        ( *this )( i + i1, j + j1 ) +=
+                            matrix1( i + i1, k1 ) * matrix2( k1, j + j1 );
             }
          }
    if( std::is_same< Device, Devices::Cuda >::value )
    {
 #ifdef HAVE_CUDA
-      /*dim3 cudaBlockSize( 0 ), cudaGridSize( 0 );
+      dim3 cudaBlockSize( 0 ), cudaGridSize( 0 );
       const IndexType matrixProductCudaBlockSize( 256 );
       const IndexType rowTiles = roundUpDivision( this->getRows(), tileDim );
       const IndexType columnTiles = roundUpDivision( this->getColumns(), tileDim );
@@ -484,29 +496,11 @@ void DenseMatrixView< Real, Device, Index, Organization >::getMatrixProduct( con
                cudaGridSize.x = columnTiles % Cuda::getMaxGridSize();
             if( gridIdx_y == rowGrids - 1 )
                cudaGridSize.y = rowTiles % Cuda::getMaxGridSize();
-            Dense* this_kernel = Cuda::passToDevice( *this );
-            Matrix1* matrix1_kernel = Cuda::passToDevice( matrix1 );
-            Matrix2* matrix2_kernel = Cuda::passToDevice( matrix2 );
-            DenseMatrixProductKernel< Real,
-                                               Index,
-                                               Matrix1,
-                                               Matrix2,
-                                               tileDim,
-                                               cudaBlockRows >
-                                           <<< cudaGridSize,
-                                               cudaBlockSize,
-                                               3*tileDim*tileDim >>>
-                                             ( this_kernel,
-                                               matrix1_kernel,
-                                               matrix2_kernel,
-                                               matrix1Multiplicator,
-                                               matrix2Multiplicator,
-                                               gridIdx_x,
-                                               gridIdx_y );
-            Cuda::freeFromDevice( this_kernel );
-            Cuda::freeFromDevice( matrix1_kernel );
-            Cuda::freeFromDevice( matrix2_kernel );
-         }*/
+            DenseMatrixProductKernel< tileDim, cudaBlockRows, DenseMatrixView< RealType, DeviceType, IndexType >,
+                                      MatrixView1, MatrixView2, RealType, IndexType >
+               <<< cudaGridSize, cudaBlockSize, 3 * tileDim*tileDim >>>
+               ( *this, matrix1, matrix2, matrix1Multiplicator, matrix2Multiplicator, gridIdx_x, gridIdx_y );
+         }
 #endif
    }
 }
@@ -687,6 +681,106 @@ Index DenseMatrixView< Real, Device, Index, Organization >::getElementIndex( con
 {
    return this->segments.getGlobalIndex( row, column );
 }
+
+
+#ifdef HAVE_CUDA
+template< int tileDim,
+          int tileRowBlockSize,
+          typename ResultMatrix,
+          typename Matrix1,
+          typename Matrix2,
+          typename Real,
+          typename Index >
+__global__ void
+DenseMatrixProductKernel( ResultMatrix resultMatrix,
+                          const Matrix1 matrixA,
+                          const Matrix2 matrixB,
+                          const Real matrixAMultiplicator,
+                          const Real matrixBMultiplicator,
+                          const Index gridIdx_x,
+                          const Index gridIdx_y )
+{
+   /****
+    * Here we compute product C = A * B. To profit from the fast
+    * shared memory we do it by tiles.
+    */
+
+   typedef Index IndexType;
+   typedef Real RealType;
+   __shared__ Real tileA[ tileDim*tileDim ];
+   __shared__ Real tileB[ tileDim*tileDim ];
+   __shared__ Real tileC[ tileDim*tileDim ];
+
+   const IndexType& matrixARows = matrixA.getRows();
+   const IndexType& matrixAColumns = matrixA.getColumns();
+   const IndexType& matrixBRows = matrixB.getRows();
+   const IndexType& matrixBColumns = matrixB.getColumns();
+
+   /****
+    * Reset the tile C
+    */
+   for( IndexType row = 0; row < tileDim; row += tileRowBlockSize )
+      tileC[ ( row + threadIdx.y )*tileDim + threadIdx.x ] = 0.0;
+
+   /****
+    * Compute the result tile coordinates
+    */
+   const IndexType resultTileRow = ( gridIdx_y*gridDim.y + blockIdx.y )*tileDim;
+   const IndexType resultTileColumn = ( gridIdx_x*gridDim.x + blockIdx.x )*tileDim;
+
+   /****
+    * Sum over the matrix tiles
+    */
+   for( IndexType i = 0; i < matrixAColumns; i += tileDim )
+   {
+      for( IndexType row = 0; row < tileDim; row += tileRowBlockSize )
+      {
+         const IndexType matrixARow = resultTileRow + threadIdx.y + row;
+         const IndexType matrixAColumn = i + threadIdx.x;
+         if( matrixARow < matrixARows && matrixAColumn < matrixAColumns )
+            tileA[ (threadIdx.y + row)*tileDim + threadIdx.x ] =
+               matrixAMultiplicator * matrixA( matrixARow,  matrixAColumn );
+
+         const IndexType matrixBRow = i + threadIdx.y + row;
+         const IndexType matrixBColumn = resultTileColumn + threadIdx.x;
+         if( matrixBRow < matrixBRows && matrixBColumn < matrixBColumns )
+            tileB[ (threadIdx.y + row)*tileDim + threadIdx.x ] =
+               matrixBMultiplicator * matrixB( matrixBRow, matrixBColumn );
+      }
+      __syncthreads();
+
+      const IndexType tileALastRow    = TNL::min( tileDim, matrixARows - resultTileRow );
+      const IndexType tileALastColumn = TNL::min( tileDim, matrixAColumns - i );
+      const IndexType tileBLastRow    = TNL::min( tileDim, matrixBRows - i );
+      const IndexType tileBLastColumn = TNL::min( tileDim, matrixBColumns - resultTileColumn );
+
+      for( IndexType row = 0; row < tileALastRow; row += tileRowBlockSize )
+      {
+         RealType sum( 0.0 );
+         for( IndexType j = 0; j < tileALastColumn; j++ )
+            sum += tileA[ ( threadIdx.y + row )*tileDim + j ]*
+                      tileB[ j*tileDim + threadIdx.x ];
+         tileC[ ( row + threadIdx.y )*tileDim + threadIdx.x ] += sum;
+      }
+      __syncthreads();
+   }
+
+   /****
+    * Write the result tile to the result matrix
+    */
+   const IndexType& matrixCRows = resultMatrix.getRows();
+   const IndexType& matrixCColumns = resultMatrix.getColumns();
+   for( IndexType row = 0; row < tileDim; row += tileRowBlockSize )
+   {
+      const IndexType matrixCRow = resultTileRow + row + threadIdx.y;
+      const IndexType matrixCColumn = resultTileColumn + threadIdx.x;
+      if( matrixCRow < matrixCRows && matrixCColumn < matrixCColumns )
+         resultMatrix( matrixCRow, matrixCColumn ) = tileC[ ( row + threadIdx.y )*tileDim + threadIdx.x ];
+   }
+
+}
+#endif
+
 
 } // namespace Matrices
 } // namespace TNL
