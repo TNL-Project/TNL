@@ -949,8 +949,8 @@ void test_GetMatrixProduct()
  *    | 13 14 15 16 |
  *    \ 17 18 19 20 /
  */
-    const IndexType leftRows = 5;
-    const IndexType leftCols = 4;
+    IndexType leftRows = 5;
+    IndexType leftCols = 4;
 
     Matrix leftMatrix;
     leftMatrix.reset();
@@ -969,8 +969,8 @@ void test_GetMatrixProduct()
  *    | 11 12 13 14 15 |
  *    \ 16 17 18 19 20 /
  */
-    const IndexType rightRows = 4;
-    const IndexType rightCols = 5;
+    IndexType rightRows = 4;
+    IndexType rightCols = 5;
 
     Matrix rightMatrix;
     rightMatrix.reset();
@@ -1037,6 +1037,56 @@ void test_GetMatrixProduct()
     EXPECT_EQ( mResult.getElement( 4, 2 ), 1604 );
     EXPECT_EQ( mResult.getElement( 4, 3 ), 1752 );
     EXPECT_EQ( mResult.getElement( 4, 4 ), 1900 );
+
+
+    TNL::Matrices::DenseMatrix<RealType, TNL::Devices::Host, IndexType> leftHostMatrix;
+
+    leftRows = 400;
+    leftCols = 38;
+
+    leftMatrix.reset();
+    leftMatrix.setDimensions( leftRows, leftCols );
+    leftHostMatrix.reset();
+    leftHostMatrix.setDimensions( leftRows, leftCols );
+
+    for( IndexType i = 0; i < leftRows; i++ )
+        for( IndexType j = 0; j < leftCols; j++) {
+            leftMatrix.setElement( i, j, i + j );
+            leftHostMatrix.setElement( i, j, i + j );
+        }
+
+    TNL::Matrices::DenseMatrix<RealType, TNL::Devices::Host, IndexType> rightHostMatrix;
+
+    rightRows = 38;
+    rightCols = 36;
+
+    rightMatrix.reset();
+    rightMatrix.setDimensions( rightRows, rightCols );
+    rightHostMatrix.reset();
+    rightHostMatrix.setDimensions( rightRows, rightCols );
+
+    for( IndexType i = 0; i < rightRows; i++ )
+        for( IndexType j = 0; j < rightCols; j++) {
+            rightMatrix.setElement( i, j, i + j );
+            rightHostMatrix.setElement( i, j, i + j );
+        }
+
+    TNL::Matrices::DenseMatrix<RealType, TNL::Devices::Host, IndexType> mResultHost;
+    mResultHost.reset();
+    mResultHost.setDimensions( leftRows, rightCols );
+    mResultHost.setValue( 0 );
+
+    mResult.reset();
+    mResult.setDimensions( leftRows, rightCols );
+    mResult.setValue( 0 );
+
+    mResultHost.getMatrixProduct( leftHostMatrix, rightHostMatrix, leftMatrixMultiplicator, rightMatrixMultiplicator );
+    mResult.getMatrixProduct( leftMatrix, rightMatrix, leftMatrixMultiplicator, rightMatrixMultiplicator );
+
+    for (IndexType row = 0; row < leftRows; row++)
+        for (IndexType col = 0; col < rightCols; col++)
+            EXPECT_EQ( mResult.getElement( row, col ), mResultHost.getElement( row, col ) );
+
 }
 
 template< typename Matrix >
