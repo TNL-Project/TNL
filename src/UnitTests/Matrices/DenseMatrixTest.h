@@ -1102,8 +1102,8 @@ void test_GetTransposition()
  *    |  3  4 |
  *    \  5  6 /
  */
-    const IndexType rows = 3;
-    const IndexType cols = 2;
+    IndexType rows = 3;
+    IndexType cols = 2;
 
     Matrix m;
     m.reset();
@@ -1148,6 +1148,40 @@ void test_GetTransposition()
     EXPECT_EQ( mTransposed.getElement( 1, 0 ), 2 );
     EXPECT_EQ( mTransposed.getElement( 1, 1 ), 4 );
     EXPECT_EQ( mTransposed.getElement( 1, 2 ), 6 );
+
+    TNL::Matrices::DenseMatrix<RealType, TNL::Devices::Host, IndexType> mHost;
+    TNL::Matrices::DenseMatrix<RealType, TNL::Devices::Host, IndexType> mTransposedHost;
+
+    rows = 63;
+    cols = 32;
+
+    m.reset();
+    m.setDimensions( rows, cols );
+
+    mHost.reset();
+    mHost.setDimensions( rows, cols );
+
+    value = 1;
+    for( IndexType i = 0; i < rows; i++ )
+        for( IndexType j = 0; j < cols; j++ ) {
+            m.setElement( i, j, value );
+            mHost.setElement( i, j, value );
+            value++;
+        }
+
+    mTransposed.reset();
+    mTransposed.setDimensions( cols, rows );
+
+    mTransposedHost.reset();
+    mTransposedHost.setDimensions( cols, rows );
+
+    mTransposed.getTransposition( m );
+    mTransposedHost.getTransposition( mHost );
+
+    for( IndexType i = 0; i < rows; i++ )
+        for( IndexType j = 0; j < cols; j++ )
+            EXPECT_EQ( mTransposed.getElement(j, i), mTransposedHost.getElement(j, i) );
+
 }
 
 
@@ -1519,62 +1553,20 @@ TYPED_TEST( MatrixTest, getMatrixProductTest )
    test_GetMatrixProduct< MatrixType >();
 }
 
-/*
 TEST( DenseMatrixTest, Dense_getTranspositionTest_Host )
 {
-//    test_GetTransposition< Dense_host_int >();
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on CPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h(836): error: no instance of function template \"TNL::Matrices::DenseTranspositionAlignedKernel\" matches the argument list\n";
-    std::cout << "              argument types are: (TNL::Matrices::Dense<int, TNL::Devices::Host, int> *, Dense_host_int *, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Dense<Real, Device, Index>::getTransposition(const Matrix &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host, Index=int, Matrix=Dense_host_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(977): here\n";
-    std::cout << "                  instantiation of \"void test_GetTransposition<Matrix>() [with Matrix=Dense_host_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(1420): here\n\n";
-    std::cout << "AND this message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h(852): error: no instance of function template \"TNL::Matrices::DenseTranspositionNonAlignedKernel\" matches the argument list\n";
-    std::cout << "              argument types are: (TNL::Matrices::Dense<int, TNL::Devices::Host, int> *, Dense_host_int *, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Dense<Real, Device, Index>::getTransposition(const Matrix &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host, Index=int, Matrix=Dense_host_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(977): here\n";
-    std::cout << "                  instantiation of \"void test_GetTransposition<Matrix>() [with Matrix=Dense_host_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(1420): here\n\n";
+    test_GetTransposition< Dense_host_int >();
 }
 
 #ifdef HAVE_CUDA
 TEST( DenseMatrixTest, Dense_getTranspositionTest_Cuda )
 {
-//    test_GetTransposition< Dense_cuda_int >();
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on GPU, this test throws the following message: \n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!!\n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  terminate called after throwing an instance of 'TNL::Exceptions::CudaRuntimeError'\n";
-    std::cout << "          what():  CUDA ERROR 4 (cudaErrorLaunchFailure): unspecified launch failure.\n";
-    std::cout << "  Source: line 57 in /home/lukas/tnl-dev/src/TNL/Containers/Algorithms/ArrayOperationsCuda_impl.h: unspecified launch failure\n";
-    std::cout << "  [1]    4003 abort (core dumped)  ./DenseMatrixTest-dbg\n";
+    test_GetTransposition< Dense_cuda_int >();
 }
 #endif
 
+
+/*
 TEST( DenseMatrixTest, Dense_performSORIterationTest_Host )
 {
     test_PerformSORIteration< Dense_host_float >();

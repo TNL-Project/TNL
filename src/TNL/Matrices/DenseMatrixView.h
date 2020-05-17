@@ -234,8 +234,8 @@ class DenseMatrixView : public MatrixView< Real, Device, Index >
                              const RealType& matrix1Multiplicator = 1.0,
                              const RealType& matrix2Multiplicator = 1.0 );
 
-      template< typename Matrix, int tileDim = 32 >
-      void getTransposition( const Matrix& matrix,
+      template< typename MatrixView, int tileDim = 32 >
+      void getTransposition( const MatrixView& matrix,
                              const RealType& matrixMultiplicator = 1.0 );
 
       template< typename Vector1, typename Vector2 >

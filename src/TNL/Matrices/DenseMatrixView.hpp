@@ -35,6 +35,35 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
                           const Real matrixBMultiplicator,
                           const Index gridIdx_x,
                           const Index gridIdx_y );
+
+template< typename Real,
+          typename Index,
+          typename Matrix,
+          ElementsOrganization Organization,
+          int tileDim,
+          int tileRowBlockSize,
+          typename Device >
+__global__ void
+DenseTranspositionAlignedKernel( DenseMatrixView< Real, Device, Index >* resultMatrix,
+                                 const Matrix* inputMatrix,
+                                 const Real matrixMultiplicator,
+                                 const Index gridIdx_x,
+                                 const Index gridIdx_y );
+
+template< typename Real,
+          typename Index,
+          ElementsOrganization Organization,
+          typename Matrix,
+          int tileDim,
+          int tileRowBlockSize,
+          typename Device >
+__global__ void
+DenseTranspositionNonAlignedKernel( DenseMatrixView< Real, Device, Index >* resultMatrix,
+                                    const Matrix* inputMatrix,
+                                    const Real matrixMultiplicator,
+                                    const Index gridIdx_x,
+                                    const Index gridIdx_y );
+
 #endif
 
 template< typename Real,
@@ -87,8 +116,8 @@ getConstView() const -> ConstViewType
 {
    return ConstViewType( this->getRows(),
                          this->getColumns(),
-                         this->getValues().getConstView(),
-                         this->getColumnsIndexes().getConstView() );
+                         this->getValues().getConstView() );
+
 }
 
 template< typename Real,
@@ -506,39 +535,38 @@ void DenseMatrixView< Real, Device, Index, Organization >::getMatrixProduct( con
    }
 }
 
-
 template< typename Real,
           typename Device,
           typename Index,
           ElementsOrganization Organization >
-   template< typename Matrix, int tileDim >
-void DenseMatrixView< Real, Device, Index, Organization >::getTransposition( const Matrix& matrix,
+   template< typename MatrixView, int tileDim >
+void DenseMatrixView< Real, Device, Index, Organization >::getTransposition( const MatrixView& matrixView,
                                                               const RealType& matrixMultiplicator )
 {
-   TNL_ASSERT( this->getColumns() == matrix.getRows() &&
-              this->getRows() == matrix.getColumns(),
-               std::cerr << "This matrix columns: " << this->getColumns() << std::endl
-                    << "This matrix rows: " << this->getRows() << std::endl
-                    << "That matrix columns: " << matrix.getColumns() << std::endl
-                    << "That matrix rows: " << matrix.getRows() << std::endl );
+    TNL_ASSERT( this->getColumns() == matrixView.getRows() &&
+                this->getRows() == matrixView.getColumns(),
+                std::cerr << "This matrix columns: " << this->getColumns() << std::endl
+                          << "This matrix rows: " << this->getRows() << std::endl
+                          << "That matrix columns: " << matrixView.getColumns() << std::endl
+                          << "That matrix rows: " << matrixView.getRows() << std::endl );
 
-   if( std::is_same< Device, Devices::Host >::value )
-   {
-      const IndexType& rows = matrix.getRows();
-      const IndexType& columns = matrix.getColumns();
-      for( IndexType i = 0; i < rows; i += tileDim )
-         for( IndexType j = 0; j < columns; j += tileDim )
-            for( IndexType k = i; k < i + tileDim && k < rows; k++ )
-               for( IndexType l = j; l < j + tileDim && l < columns; l++ )
-                  this->setElement( l, k, matrixMultiplicator * matrix. getElement( k, l ) );
-   }
-   if( std::is_same< Device, Devices::Cuda >::value )
-   {
+    if( std::is_same< Device, Devices::Host >::value )
+    {
+        const IndexType& rows = matrixView.getRows();
+        const IndexType& columns = matrixView.getColumns();
+        for( IndexType i = 0; i < rows; i += tileDim )
+            for( IndexType j = 0; j < columns; j += tileDim )
+                for( IndexType k = i; k < i + tileDim && k < rows; k++ )
+                    for( IndexType l = j; l < j + tileDim && l < columns; l++ )
+                        this->setElement( l, k, matrixMultiplicator * matrixView.getElement( k, l ) );
+    }
+    if( std::is_same< Device, Devices::Cuda >::value )
+    {
 #ifdef HAVE_CUDA
-      /*dim3 cudaBlockSize( 0 ), cudaGridSize( 0 );
+      dim3 cudaBlockSize( 0 ), cudaGridSize( 0 );
       const IndexType matrixProductCudaBlockSize( 256 );
-      const IndexType rowTiles = roundUpDivision( this->getRows(), tileDim );
-      const IndexType columnTiles = roundUpDivision( this->getColumns(), tileDim );
+      const IndexType rowTiles = roundUpDivision( matrixView.getRows(), tileDim );
+      const IndexType columnTiles = roundUpDivision( matrixView.getColumns(), tileDim );
       const IndexType cudaBlockColumns( tileDim );
       const IndexType cudaBlockRows( matrixProductCudaBlockSize / tileDim );
       cudaBlockSize.x = cudaBlockColumns;
@@ -547,8 +575,8 @@ void DenseMatrixView< Real, Device, Index, Organization >::getTransposition( con
       const IndexType columnGrids = roundUpDivision( columnTiles, Cuda::getMaxGridSize() );
       const IndexType sharedMemorySize = tileDim*tileDim + tileDim*tileDim/Cuda::getNumberOfSharedMemoryBanks();
 
-      Dense* this_device = Cuda::passToDevice( *this );
-      Matrix* matrix_device = Cuda::passToDevice( matrix );
+      DenseMatrixView* this_device = Cuda::passToDevice( *this );
+      MatrixView* matrix_device = Cuda::passToDevice( matrixView );
 
       for( IndexType gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( IndexType gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ )
@@ -558,12 +586,13 @@ void DenseMatrixView< Real, Device, Index, Organization >::getTransposition( con
                cudaGridSize.x = columnTiles % Cuda::getMaxGridSize();
             if( gridIdx_y == rowGrids - 1 )
                cudaGridSize.y = rowTiles % Cuda::getMaxGridSize();
-            if( ( gridIdx_x < columnGrids - 1 || matrix.getColumns() % tileDim == 0 ) &&
-                ( gridIdx_y < rowGrids - 1 || matrix.getRows() % tileDim == 0 ) )
+            if( ( gridIdx_x < columnGrids - 1 || matrixView.getColumns() % tileDim == 0 ) &&
+                ( gridIdx_y < rowGrids - 1 || matrixView.getRows() % tileDim == 0 ) )
             {
                DenseTranspositionAlignedKernel< Real,
                                                          Index,
-                                                         Matrix,
+                                                         MatrixView,
+                                                         Organization,
                                                          tileDim,
                                                          cudaBlockRows >
                                                      <<< cudaGridSize,
@@ -579,7 +608,8 @@ void DenseMatrixView< Real, Device, Index, Organization >::getTransposition( con
             {
                DenseTranspositionNonAlignedKernel< Real,
                                                          Index,
-                                                         Matrix,
+                                                         Organization,
+                                                         MatrixView,
                                                          tileDim,
                                                          cudaBlockRows >
                                                      <<< cudaGridSize,
@@ -594,9 +624,9 @@ void DenseMatrixView< Real, Device, Index, Organization >::getTransposition( con
             TNL_CHECK_CUDA_DEVICE;
          }
       Cuda::freeFromDevice( this_device );
-      Cuda::freeFromDevice( matrix_device );*/
+      Cuda::freeFromDevice( matrix_device );
 #endif
-   }
+    }
 }
 
 template< typename Real,
@@ -731,8 +761,153 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
         resultMatrix(row, resultTileColumn + threadIdx.x) = sum;
     }
 }
-#endif
 
+template< typename Real,
+          typename Index,
+          typename Matrix,
+          ElementsOrganization Organization,
+          int tileDim,
+          int tileRowBlockSize,
+          typename Device >
+__global__ void
+DenseTranspositionAlignedKernel( DenseMatrixView< Real, Device, Index >* resultMatrix,
+                                 const Matrix* inputMatrix,
+                                 const Real matrixMultiplicator,
+                                 const Index gridIdx_x,
+                                 const Index gridIdx_y )
+{
+   __shared__ Real tile[ tileDim*tileDim + tileDim*tileDim/Cuda::getNumberOfSharedMemoryBanks() ];
+
+   const Index columns = inputMatrix->getColumns();
+   const Index rows = inputMatrix->getRows();
+
+
+   /****
+    * Diagonal mapping of the CUDA blocks
+    */
+   Index blockIdx_x, blockIdx_y;
+   if( columns == rows )
+   {
+      blockIdx_y = blockIdx.x;
+      blockIdx_x = (blockIdx.x+blockIdx.y)%gridDim.x;
+   }
+   else
+   {
+      Index bID = blockIdx.x + gridDim.x*blockIdx.y;
+      blockIdx_y = bID % gridDim.y;
+      blockIdx_x = ( ( bID / gridDim.y ) + blockIdx_y ) % gridDim.x;
+   }
+
+   /****
+    * Read the tile to the shared memory
+    */
+   const Index readRowPosition =
+      ( gridIdx_y*gridDim.y + blockIdx_y )*tileDim + threadIdx.y;
+   const Index readColumnPosition =
+      ( gridIdx_x*gridDim.x + blockIdx_x )*tileDim + threadIdx.x;
+   for( Index rowBlock = 0;
+        rowBlock < tileDim;
+        rowBlock += tileRowBlockSize )
+   {
+      tile[ Cuda::getInterleaving( threadIdx.x*tileDim + threadIdx.y + rowBlock ) ] =
+               inputMatrix->getElement( readRowPosition + rowBlock, readColumnPosition );
+   }
+   __syncthreads();
+
+   /****
+    * Write the tile to the global memory
+    */
+   const Index writeRowPosition =
+      ( gridIdx_x*gridDim.x + blockIdx_x )*tileDim + threadIdx.y;
+   const Index writeColumnPosition =
+      ( gridIdx_y*gridDim.y + blockIdx_y )*tileDim + threadIdx.x;
+   for( Index rowBlock = 0;
+        rowBlock < tileDim;
+        rowBlock += tileRowBlockSize )
+   {
+      resultMatrix->setElement( writeRowPosition + rowBlock,
+                                    writeColumnPosition,
+                                    matrixMultiplicator * tile[ Cuda::getInterleaving( ( threadIdx.y + rowBlock ) * tileDim + threadIdx.x ) ] );
+
+   }
+
+}
+
+template< typename Real,
+          typename Index,
+          ElementsOrganization Organization,
+          typename Matrix,
+          int tileDim,
+          int tileRowBlockSize,
+          typename Device >
+__global__ void
+DenseTranspositionNonAlignedKernel( DenseMatrixView< Real, Device, Index >* resultMatrix,
+                                    const Matrix* inputMatrix,
+                                    const Real matrixMultiplicator,
+                                    const Index gridIdx_x,
+                                    const Index gridIdx_y )
+{
+   __shared__ Real tile[ tileDim*tileDim + tileDim*tileDim/Cuda::getNumberOfSharedMemoryBanks() ];
+
+   const Index columns = inputMatrix->getColumns();
+   const Index rows = inputMatrix->getRows();
+
+   /****
+    * Diagonal mapping of the CUDA blocks
+    */
+   Index blockIdx_x, blockIdx_y;
+   if( columns == rows )
+   {
+      blockIdx_y = blockIdx.x;
+      blockIdx_x = (blockIdx.x+blockIdx.y)%gridDim.x;
+   }
+   else
+   {
+      Index bID = blockIdx.x + gridDim.x*blockIdx.y;
+      blockIdx_y = bID % gridDim.y;
+      blockIdx_x = ( ( bID / gridDim.y ) + blockIdx_y ) % gridDim.x;
+   }
+
+   /****
+    * Read the tile to the shared memory
+    */
+   const Index readRowPosition =
+      ( gridIdx_y*gridDim.y + blockIdx_y )*tileDim + threadIdx.y;
+   const Index readColumnPosition =
+      ( gridIdx_x*gridDim.x + blockIdx_x )*tileDim + threadIdx.x;
+   if( readColumnPosition < columns )
+   {
+      for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize )
+      {
+         if( readRowPosition + rowBlock < rows )
+            tile[ Cuda::getInterleaving( threadIdx.x*tileDim + threadIdx.y + rowBlock ) ] =
+               inputMatrix->getElement( readRowPosition + rowBlock, readColumnPosition );
+      }
+   }
+   __syncthreads();
+
+   /****
+    * Write the tile to the global memory
+    */
+   const Index writeColumnPosition =
+      ( gridIdx_y*gridDim.y + blockIdx_y )*tileDim + threadIdx.x;
+   const Index writeRowPosition =
+      ( gridIdx_x*gridDim.x + blockIdx_x )*tileDim + threadIdx.y;
+   if( writeColumnPosition < rows )
+   {
+      for( Index rowBlock = 0;
+           rowBlock < tileDim;
+           rowBlock += tileRowBlockSize )
+      {
+         if( writeRowPosition + rowBlock < columns )
+            resultMatrix->setElement( writeRowPosition + rowBlock,
+                                          writeColumnPosition,
+                                          matrixMultiplicator * tile[ Cuda::getInterleaving( (threadIdx.y + rowBlock)*tileDim + threadIdx.x ) ] );
+      }
+   }
+
+}
+#endif
 
 } // namespace Matrices
 } // namespace TNL
