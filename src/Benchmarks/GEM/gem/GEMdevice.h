@@ -14,8 +14,8 @@ void calculResultVector( Matrix< Real, TNL::Devices::Cuda, Index >& matrix,
 { 
   Matrix< Real, TNL::Devices::Cuda, Index >* devMat = TNL::Cuda::passToDevice( matrix);
   
-  int blockSize = matrix.getNumRows() > 1024 ? 1024 : matrix.getNumColumns();
-  int numBlocksOnColumn = TNL::roundUpDivision( matrix.getNumRows(), 1024 );
+  int blockSize = matrix.getNumRows() > 256 ? 256 : matrix.getNumColumns();
+  int numBlocksOnColumn = TNL::roundUpDivision( matrix.getNumRows(), 256 );
   int numOfBlocks =  matrix.getNumRows() * numBlocksOnColumn;
     
   
@@ -50,14 +50,20 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
   
   
   for( int colPointer = 0; colPointer < this->A.getNumColumns(); colPointer++ )
-  {
+  {        
     if( verbose > 1 )
       printf( "Elimination: %d/%d\n", colPointer, this->A.getNumColumns() );
+     
+    if( verbose > 2 ){
+      showMatrix<<< 1, 1 >>>( this->A );
+      cudaDeviceSynchronize();
+      TNL_CHECK_CUDA_DEVICE;
+    }
     
     if( pivoting == "yes" )
     {
       // PIVOTING
-      int reduceBlockSize = (this->A.getNumColumns()-colPointer) > 1024 ? 1024 : 
+      int reduceBlockSize = (this->A.getNumColumns()-colPointer) > 256 ? 256 : 
         TNL::roundToMultiple( this->A.getNumColumns()-colPointer, 32 );  
       int reduceGridSize = TNL::roundUpDivision( this->A.getNumColumns()-colPointer, reduceBlockSize );
       int reduceGridSizeRound = TNL::roundToMultiple( reduceGridSize, 32 );
@@ -79,9 +85,10 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
     }
     
     
-    int blockSize = (this->A.getNumColumns()-colPointer) > 1024 ? 1024 : this->A.getNumColumns()-colPointer;
-    int numBlocksOnRow = TNL::roundUpDivision( (this->A.getNumColumns()-colPointer), 1024 );
-    int numOfBlocks =  this->A.getNumRows() * numBlocksOnRow;
+    int blockSize = this->A.getNumRows() * (this->A.getNumColumns()-colPointer) > 256 ?
+      256 : this->A.getNumRows() * ( this->A.getNumColumns() - colPointer );
+    int gridSize =  TNL::roundUpDivision( this->A.getNumRows() * (this->A.getNumColumns()-colPointer), blockSize );
+    //printf( "%d: %d, %d\n", colPointer, blockSize, numOfBlocks );
     
     
     if( pivoting == "yes" )// && *pom != -1 && *pom != colPointer )
@@ -92,15 +99,17 @@ bool GEM<Real, Device, Index >::GEMdevice( Array& x, const TNL::String& pivoting
          std::cout << "Choosing element at " << *pom << "-th row as pivot with value..."  << std::endl;
          std::cout << "Swapping " << colPointer << "-th and " << *pom <<  "-th rows ... " << std::endl;
       }
-      swapRows<<< numBlocksOnRow, blockSize >>>( devMat, device_vector.getView(), colPointer, numBlocksOnRow, pivot );
+      int blockSizeSwap = this->A.getNumColumns()-colPointer > 256 ?256 :  this->A.getNumColumns() - colPointer;
+      int gridSizeSwap =  TNL::roundUpDivision( this->A.getNumColumns()-colPointer, blockSize );
+      
+      swapRows<<< gridSizeSwap, blockSizeSwap >>>( devMat, device_vector.getView(), colPointer, pivot );
       cudaDeviceSynchronize();
       TNL_CHECK_CUDA_DEVICE;
     } 
     
-    GEMmainKernel<<< numOfBlocks, blockSize >>>( devMat, 
+    GEMmainKernel<<< gridSize, blockSize >>>( devMat, 
                                                   device_vector.getView(), 
-                                                  colPointer, 
-                                                  numBlocksOnRow );
+                                                  colPointer );
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;
   }

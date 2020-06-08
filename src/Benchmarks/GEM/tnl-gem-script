@@ -1,7 +1,6 @@
 #!/bin/bash
-device="both"
 precision="float"
-matice="matice6 662_bus"
+matice="662_bus comsol losmoc msc01050"
 loops=2
 
 runTest()
@@ -15,10 +14,27 @@ runTest()
 
 	echo ${matrix}.mtx
 	./tnl-gem-cuda --input-matrix ${matrix}".mtx" \
-			--device ${device} \
+			--device GPU \
 		        --loops ${loops} \
 			--precision ${precision} \
-			>> ./results/${matrix}.txt
+			>> ./results/${matrix}GPU.txt
+	./tnl-gem-cuda --input-matrix ${matrix}".mtx" \
+			--device GPU \
+		        --loops ${loops} \
+			--precision ${precision} \
+			--pivoting no \
+			>> ./results/${matrix}GPU.txt
+	./tnl-gem --input-matrix ${matrix}".mtx" \
+			--device CPU \
+		        --loops ${loops} \
+			--precision ${precision} \
+			>> ./results/${matrix}CPU.txt
+	./tnl-gem --input-matrix ${matrix}".mtx" \
+			--device CPU \
+		        --loops ${loops} \
+			--precision ${precision} \
+			--pivoting no \
+			>> ./results/${matrix}CPU.txt
    done
 }
 

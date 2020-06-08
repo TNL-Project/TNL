@@ -95,19 +95,19 @@ template <typename Real >
 __global__ 
 void swapRows( Matrix< Real, TNL::Devices::Cuda, int >* A, 
         TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b,
-        int colPointerMain, int numBlocksOnRow, int* positionPivot )
+        int colPointerMain, int* positionPivot )
 {
   if( *positionPivot > colPointerMain )
   {
     int rowPointer1 = colPointerMain;
     int rowPointer2 = *positionPivot;
-    int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
+    int colPointer = threadIdx.x + blockDim.x *blockIdx.x  + colPointerMain;
     if( colPointer < A->getNumColumns() && rowPointer1 < A->getNumRows() )
     {
       Real pom = A->getElement( rowPointer1, colPointer );
       A->setElement( rowPointer1, colPointer, A->getElement( rowPointer2, colPointer ) );
       A->setElement( rowPointer2, colPointer, pom );
-      if( colPointer == colPointerMain && blockIdx.x == 0 )
+      if( colPointer == colPointerMain )
       {
         pom = b[rowPointer1];
         b[rowPointer1] = b[rowPointer2];
@@ -122,10 +122,12 @@ template <typename Real >
 __global__ 
 void GEMmainKernel( Matrix< Real, TNL::Devices::Cuda, int >* A,
         TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b, 
-        int colPointerMain, int numBlocksOnRow )
+        int colPointerMain )
 {
-  int rowPointer = blockIdx.x / numBlocksOnRow;
-  int colPointer = threadIdx.x + blockDim.x * (blockIdx.x % numBlocksOnRow) + colPointerMain;
+  int thread = threadIdx.x + blockIdx.x * blockDim.x;
+  int rowPointer = thread / ( A->getNumRows() - colPointerMain );
+  int colPointer = thread % ( A->getNumRows() - colPointerMain ) + colPointerMain;
+  //printf("%d, %d\n",rowPointer, colPointer );
   if( colPointer > colPointerMain && colPointer < A->getNumColumns() && rowPointer != colPointerMain && rowPointer < A->getNumRows() )
   {
     if( A->getElement( colPointerMain, colPointerMain ) != 0 )
@@ -139,7 +141,7 @@ void GEMmainKernel( Matrix< Real, TNL::Devices::Cuda, int >* A,
       }
     } else if( colPointer == colPointerMain && rowPointer == colPointerMain ) printf( "Error, pivot is zero!\n");
   }
-  if( rowPointer != colPointerMain && threadIdx.x == 0 && blockIdx.x % numBlocksOnRow == 0 && A->getElement( colPointerMain, colPointerMain ) != 0 && A->getElement( rowPointer, colPointerMain ) != 0  )
+  if( rowPointer < A->getNumRows() && colPointer < A->getNumColumns() && rowPointer != colPointerMain && colPointer == colPointerMain && A->getElement( colPointerMain, colPointerMain ) != 0 && A->getElement( rowPointer, colPointerMain ) != 0  )
   {
     b[ rowPointer ] = b[ rowPointer ] - A->getElement( rowPointer, colPointerMain ) * b[ colPointerMain ] / A->getElement( colPointerMain, colPointerMain );
   }

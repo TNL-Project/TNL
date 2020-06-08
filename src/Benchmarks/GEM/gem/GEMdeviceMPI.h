@@ -43,8 +43,8 @@ void calculResultVector( Matrix< Real, TNL::Devices::Cuda, Index >& matrix,
   cudaMemcpy( ( void* ) devMat,( void* ) &matrix, sizeof( Matrix< Real, TNL::Devices::Cuda, Index > ), cudaMemcpyHostToDevice );
   TNL_CHECK_CUDA_DEVICE;
   
-  int blockSize = matrix.getNumRows() > 1024 ? 1024 : matrix.getNumRows();
-  int numBlocksOnColumn = TNL::roundUpDivision( matrix.getNumRows(), 1024 );
+  int blockSize = matrix.getNumRows() > 256 ? 256 : matrix.getNumRows();
+  int numBlocksOnColumn = TNL::roundUpDivision( matrix.getNumRows(), 256 );
   int numOfBlocks =  matrix.getNumRows() * numBlocksOnColumn;
   
   
@@ -155,10 +155,7 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
     TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > mainRowVec( this->A.getNumColumns() - colPointerMain + 1 );
     
     // Setting number of threads and blocks for main kernel and for pivoting swapping kernel
-    int blockSize = (this->A.getNumColumns()-colPointer) > 1024 ? 1024 : this->A.getNumColumns()-colPointer;
-    int numBlocksOnRow = TNL::roundUpDivision( (this->A.getNumColumns()-colPointer), 1024 );
-    int numOfBlocks =  this->A.getNumRows() * numBlocksOnRow;
-    
+        
     
     if( pivoting == "yes" )
     {
@@ -176,11 +173,11 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
       outMax.setValue(0); outPos.setValue(-1);
       
       
-      // those blocks that have rows to look for pivot in should start looking
+      // those blocks that have rows to look for pivot in, should start looking
       if( fromRow != this->A.getNumRows() )
       {
         // setting size for kernel of pivoting
-        int reduceBlockSize = (this->A.getNumRows()-fromRow) > 1024 ? 1024 : 
+        int reduceBlockSize = (this->A.getNumRows()-fromRow) > 256 ? 256 : 
           TNL::roundToMultiple( this->A.getNumRows()-fromRow, 32 );  
         int reduceGridSize = TNL::roundUpDivision( this->A.getNumRows()-fromRow, reduceBlockSize );
         int reduceGridSizeRound = TNL::roundToMultiple( reduceGridSize, 32 );
@@ -272,7 +269,10 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
               std::cout << "Choosing element at " << Possition << "-th row as pivot with value..."  << std::endl;
               std::cout << "Swapping " << colPointer << "-th and " << Possition <<  "-th rows ... " << std::endl;
             }
-            swapRows<<< numBlocksOnRow, blockSize >>>( devMat, device_vector.getView(), colPointer, numBlocksOnRow, Possition );
+            int blockSize = this->A.getNumColumns()-colPointerMain > 256 ? 256 : ( this->A.getNumColumns()-colPointerMain );
+            int gridSize = TNL::roundUpDivision( this->A.getNumColumns()-colPointerMain, blockSize );
+            
+            swapRows<<< gridSize, blockSize >>>( devMat, device_vector.getView(), colPointerMain, colPointer, Possition );
             cudaDeviceSynchronize();
             TNL_CHECK_CUDA_DEVICE;
           }
@@ -375,6 +375,13 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
     }
     if( verbose > 1 )
       printf( "Elimination: %d/%d\n", colPointerMain, this->A.getNumColumns() );
+    
+    // Setting number of threads and blocks for main kernel
+    int blockSize = this->A.getNumRows() * (this->A.getNumColumns()-colPointerMain) > 256 ?
+      256 : this->A.getNumRows() * ( this->A.getNumColumns()-colPointerMain );
+    int numOfBlocks =  TNL::roundUpDivision( this->A.getNumRows() * (this->A.getNumColumns()-colPointerMain), blockSize );
+    
+   
     //std::cout << mainRowVec << std::endl;
     // Finally main kernel calculates the GEM for colPointerMain from mainRowVec
     GEMmainKernel<<< numOfBlocks, blockSize >>>( devMat, 
@@ -382,7 +389,6 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
             mainRowVec.getView(),
             colPointer, 
             colPointerMain,
-            numBlocksOnRow,
             processID,
             numOfProcesses );
     cudaDeviceSynchronize();
