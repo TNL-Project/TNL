@@ -153,7 +153,7 @@ void GEMmainKernel( Matrix< Real, TNL::Devices::Cuda, int >* A,
   if( colPointer == colPointerMain && rowPointer + processID * A->getNumRows() != colPointerMain && rowPointer < A->getNumRows() 
           && colPointer < A->getNumColumns() && mainRow[ 0 ] != 0 && A->getElement( rowPointer, colPointerMain ) != 0  )
   {
-    b[ rowPointer ] = b[ rowPointer ] - A->getElement( rowPointer, colPointerMain ) * mainRow[ mainRow.getSize()-1 ] / mainRow[ 0 ];
+    b[ rowPointer ] = b[ rowPointer ] - A->getElement( rowPointer, colPointerMain ) * mainRow[ A->getNumColumns() - colPointerMain ] / mainRow[ 0 ];
   }
 }
 

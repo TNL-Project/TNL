@@ -129,6 +129,32 @@ void Matrix< Real, Device, Index >::getRow( Index row, Index col, Real* mainRow,
 }
 
 template < typename Real,
+           typename Device,
+           typename Index >
+void Matrix< Real, Device, Index >::getRowGPU( Index row, Index col, Real* mainRow, Index size )
+{
+  TNL_ASSERT( row > -1 && col > -1, std::cerr << "Matrix cannot have egative row nor negative column!");
+  TNL_ASSERT( row < rows && col < columns, std::cerr << "Matrix dosn't have that much rows or columns!");
+#ifdef HAVE_CUDA
+  if( std::is_same< Device, TNL::Devices::Cuda >::value )
+  {
+    Matrix< Real, TNL::Devices::Cuda, Index >* devMat;
+    cudaMalloc( ( void** ) &devMat, ( size_t ) sizeof( Matrix< Real, TNL::Devices::Cuda, Index > ) );
+    cudaMemcpy( ( void* ) devMat,( void* ) this, sizeof( Matrix< Real, TNL::Devices::Cuda, Index > ), cudaMemcpyHostToDevice );
+    TNL_CHECK_CUDA_DEVICE;
+
+    int blockSize = size-1 > 256 ? 256: size-1;
+    int gridSize = TNL::roundToMultiple( size-1, blockSize );
+    fillArray<<< gridSize, blockSize >>>( devMat, mainRow, size-1, row, col );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;
+    cudaFree( devMat );
+    TNL_CHECK_CUDA_DEVICE;
+  }
+#endif
+}
+
+template < typename Real,
         typename Device,
         typename Index >
 void Matrix< Real, Device, Index >::setRow( Index row, Index col, Real* mainRow, Index size )
@@ -188,13 +214,13 @@ void Matrix< Real, Device, Index >::getRow( Index row, Index col, Vector& mainRo
 #if DEBUG
     printf("On CPU\n");
 #endif
-    for( int i = 0; i < mainRow.getSize()-1; i++ )
+    for( int i = 0; i < this->getNumColumns()-col; i++ )
       mainRow[ i ] = this->getElement( row, col + i ); 
   }
 #ifdef HAVE_CUDA
   if( std::is_same< Device, TNL::Devices::Cuda >::value )
   {
-    for( int i = 0; i < mainRow.getSize()-1; i++ )
+    for( int i = 0; i < this->getNumColumns()-col; i++ )
       mainRow.setElement(i, this->data.getElement( row*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + col + i ) );
   }
 #endif
@@ -293,3 +319,16 @@ Matrix< Real, Device, Index >::operator=( Matrix< Real, Device2, Index>& matrix 
 #endif // HAVE_CUDA
   return *this;
 }
+
+#ifdef HAVE_CUDA
+template < typename Real, typename Index >
+__global__ void 
+fillArray( Matrix< Real, TNL::Devices::Cuda, int >* A, Real* data, Index size, Index row, Index col )
+{
+  int thread = threadIdx.x + blockIdx.x * blockDim.x;
+  if( thread < size )
+  {
+    data[ thread ] = A->getElement( row, col + thread );
+  }
+}
+#endif
