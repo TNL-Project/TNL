@@ -143,7 +143,10 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
   // Main pointer to row, over all parts of matrices, colPointerMain in (0 - number of rows)
   Index colPointerMain = 0;
   
-  double duration[ this->A.getNumColumns() ];
+  // Bcast and main row vector and clasic array
+  Real* data;
+  TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > mainRowVec( this->A.getNumColumns() + 1 );
+  data = mainRowVec.getData();
   // Main cycle for all rows across all MPI parts, vector x is the only one with full size on MPI, or use A.getNumColumns() for rectangular matrices.
   while( colPointerMain < x.getSize() ){
 #ifdef HAVE_MPI
@@ -154,7 +157,6 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
 
     
     // main row vector for computation (pivoting, non-pivoting)
-    TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > mainRowVec( this->A.getNumColumns() - colPointerMain + 1 );
     
     // Setting number of threads and blocks for main kernel and for pivoting swapping kernel
         
@@ -330,45 +332,43 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
     }
     else // without pivoting
     {
-    std::clock_t start;
-    start = std::clock();
 #ifdef HAVE_MPI
       //if( processID == 0 )
       //printf( "Initializing mainRow!\n");
       
-      Real* data;
       
       if( colPointerMain/this->A.getNumRows() == processID ){
-        this->A.getRow( colPointer, colPointerMain, mainRowVec );
-        mainRowVec.setElement( mainRowVec.getSize()-1, this->b.getElement( colPointer ) );
+        this->A.getRowGPU( colPointer, colPointerMain, data, this->A.getNumColumns() - colPointerMain+1 );
         
-        data = mainRowVec.getData();
+        mainRowVec.setElement( this->A.getNumColumns() - colPointerMain, this->b.getElement( colPointer ) );
+      } 
+      
+      if( verbose > 3 ){
+        showData<<<1,1>>>(data,mainRowVec.getSize(),processID );
+        cudaDeviceSynchronize();
+        TNL_CHECK_CUDA_DEVICE;
       }
-      else
-      {
-        cudaMalloc( &data, mainRowVec.getSize() * sizeof(Real) );
-      }     
       
       //printf( "brodcasting mainRow!\n");
-      TNL::Communicators::MpiCommunicator::Bcast( data, mainRowVec.getSize(), colPointerMain/this->A.getNumRows(), MPI_COMM_WORLD);
+      TNL::Communicators::MpiCommunicator::Bcast( data, this->A.getNumColumns() + 1, colPointerMain/this->A.getNumRows(), MPI_COMM_WORLD);
       
-      mainRowVec.bind( data, this->A.getNumColumns() - colPointerMain + 1 );
+      //mainRowVec.bind( data, this->A.getNumColumns() + 1 );
       
-      /*if( verbose > 2 )
+      if( verbose > 2 )
       {
         for( int i = 0; i < numOfProcesses; i++ )
           if( i == processID ){
             std::cout << mainRowVec << std::endl;
           }
         MPI_Barrier(MPI_COMM_WORLD);
-      }*/
+      }
       
 #else
       this->A.getRow(colPointer, colPointerMain, mainRowVec );
       mainRowVec.setElement( mainRowVec.getSize() - 1, this->b.getElement( colPointer ) );
 #endif
-      duration[ colPointerMain ] = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
     }
+      //printf("computing \n");
     if( verbose > 1 )
     {
 #ifdef HAVE_MPI
@@ -437,11 +437,6 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
     // increment colPointerMain for next while passage
     colPointerMain++;
   }
-  double time;
-  for( int i = 0; i < this->A.getNumColumns(); i++ )
-    time += duration[ i ];
-  time = time/this->A.getNumColumns();
-  printf("%d: copy MPI part: %.8f\n", processID, time );
   // delete all used variables
   cudaFree(pivot);
   cudaFree( devMat );

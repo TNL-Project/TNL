@@ -71,8 +71,17 @@ class Matrix
     void getRow( Index row, Index col, Real* mainRow, Index size );
     
     /**
+    * Returns ROW on row and starting column. Can be
+    * called from host only for mainRow alocated on CPU.
+    *
+    * @param row and column, mainRow is array with size to be filled with values.
+    * @return void.
+    */
+    void getRowGPU( Index row, Index col, Real* mainRow, Index size );
+    
+    /**
     * Sets ROW on row and starting column into matrix A. Can be
-    * called from host only.
+    * called from host only for mainRow alocated on GPU.
     *
     * @param row and column, mainRow is array with size to be filled with values.
     * @return void.
