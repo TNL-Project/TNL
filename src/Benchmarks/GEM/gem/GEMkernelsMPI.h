@@ -3,6 +3,13 @@
 //TODO: Real
 
 /************************REDUCTION MAX******************************************/
+template <typename Real>
+__global__ void showData( Real* data, int size, int processID ){
+  printf("%d: [ ", processID );
+  for( int i = 0; i < size; i++ )
+    printf("%.2f ", data[i] );
+  printf(" ]\n");
+}
 
 template <typename Real >
 __inline__ __device__ void warpReduceArgMax(Real& val, int& index) {

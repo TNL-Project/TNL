@@ -155,6 +155,30 @@ void Matrix< Real, Device, Index >::setRow( Index row, Index col, Real* mainRow,
 template < typename Real,
         typename Device,
         typename Index >
+void Matrix< Real, Device, Index >::setRow( Index row, Index col, Vector& mainRow )
+{
+  TNL_ASSERT( row > -1 && col > -1, std::cerr << "Matrix cannot have egative row nor negative column!");
+  TNL_ASSERT( row < rows && col < columns, std::cerr << "Matrix dosn't have that much rows or columns!");
+  if( std::is_same< Device, TNL::Devices::Host >::value )
+  {
+#if DEBUG
+    printf("On CPU\n");
+#endif
+    for( int i = 0; i < mainRow.getSize()-1; i++ )
+      this->setElement( row, col + i, mainRow[ i ] ); 
+  }
+#ifdef HAVE_CUDA
+  if( std::is_same< Device, TNL::Devices::Cuda >::value )
+  {
+    for( int i = 0; i < mainRow.getSize()-1; i++ )
+      this->data.setElement( row*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + col + i, mainRow.getElement( i ) );
+  }
+#endif
+}
+
+template < typename Real,
+        typename Device,
+        typename Index >
 void Matrix< Real, Device, Index >::getRow( Index row, Index col, Vector& mainRow )
 {
   TNL_ASSERT( row > -1 && col > -1, std::cerr << "Matrix cannot have egative row nor negative column!");
