@@ -80,6 +80,14 @@ class Matrix
     void setRow( Index row, Index col, Real* mainRow, Index size );
     
     /**
+    * Sets ROW on row and starting column into matrix A. Can be
+    * called from host for host and device vector.
+    *
+    * @param row and column, mainRow is vector with size to be filled with values.
+    * @return void.
+    */
+    void setRow( Index row, Index col, Vector& mainRow );
+    /**
     * Returns ROW on row and starting column. Can be
     * called from host if the matrix is on device and also can be called from
     * device if the matrix is on host. Values are saved in vector mainRow
