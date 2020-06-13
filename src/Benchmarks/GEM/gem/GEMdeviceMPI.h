@@ -101,7 +101,7 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
   TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index >& device_vector( this->b );
   
   // FOR PIVOTING SET VARIABLES ON DEVICE
-  int* pivot; cudaMalloc(&pivot, sizeof(int));
+  //int* pivot; cudaMalloc(&pivot, sizeof(int));
     
   // Initialise MPI variables even without MPI
   int processID=0;
@@ -144,9 +144,8 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
   Index colPointerMain = 0;
   
   // Bcast and main row vector and clasic array
-  Real* data;
   TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index > mainRowVec( this->A.getNumColumns() + 1 );
-  data = mainRowVec.getData();
+  Real* data = mainRowVec.getData();
   // Main cycle for all rows across all MPI parts, vector x is the only one with full size on MPI, or use A.getNumColumns() for rectangular matrices.
   while( colPointerMain < x.getSize() ){
 #ifdef HAVE_MPI
@@ -195,7 +194,7 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
         cudaDeviceSynchronize();
         TNL_CHECK_CUDA_DEVICE;
         
-        findRowPivot<<< 1, reduceGridSizeRound >>>( outMax.getView(), outPos.getView(), pivot );
+        findRowPivot<<< 1, reduceGridSizeRound >>>( outMax.getView(), outPos.getView() );
         cudaDeviceSynchronize();
         TNL_CHECK_CUDA_DEVICE;
       }
@@ -205,13 +204,13 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
       // data stores information to send from each process
       // recvData stores information that is received
 #ifdef HAVE_MPI
-      Real *data, *recvData;
-      data = new Real[2];
+      Real *sendData, *recvData;
+      sendData = new Real[2];
       recvData = new Real[2*numOfProcesses];
-      data[0] = outMax.getElement(0); data[1] = outPos.getElement(0);
+      sendData[0] = outMax.getElement(0); sendData[1] = outPos.getElement(0);
       MPI_Barrier( MPI_COMM_WORLD );
       
-      MPI_Allgather( data, 2, TNL::Communicators::MPITypeResolver< Real >::getType(),
+      MPI_Allgather( sendData, 2, TNL::Communicators::MPITypeResolver< Real >::getType(),
               recvData, 2, TNL::Communicators::MPITypeResolver< Real >::getType(), MPI_COMM_WORLD);
 #endif      
            
@@ -235,7 +234,7 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
       if( verbose > 1 && processID == 0 )
         printf("%d: max = %.2f, possition = %d, process = %d\n", colPointerMain, Maximum, Possition, ProcessMax );
       // All processes has the info in Maximum, ProcesMax and Possition. So deleting arrays.
-      delete []data;
+      delete []sendData;
       delete []recvData;
 #endif
       // Clasic Maximum == 0 then we occured zero pivot so ending this calculation
@@ -248,7 +247,7 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
       // Now when every process has the ProcessMax of pivoting row across all processes
       // we can send pivoting row to all processes from ProcessMax
       // mainRow stores pivoting row
-      Array mainRow( this->A.getNumColumns() - colPointerMain + 1 );
+      //Array mainRow( this->A.getNumColumns() - colPointerMain + 1 );
       
       
       // If ProcessMax isn't the main process that contains colPointerMain then ProcessMax sets mainRow itself.
@@ -258,8 +257,8 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
       {
         if( processID == ProcessMax )
         {
-          this->A.getRow( Possition, colPointerMain, mainRow );
-          mainRow.setElement( mainRow.getSize()-1, this->b.getElement( Possition ) );
+          this->A.getRowGPU( Possition, colPointerMain, data, this->A.getNumColumns() - colPointerMain+1  );
+          mainRowVec.setElement( this->A.getNumColumns() - colPointerMain, this->b.getElement( Possition ) );
         }
       } else {
         if( colPointerMain/this->A.getNumRows() == processID ){
@@ -279,55 +278,46 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
             TNL_CHECK_CUDA_DEVICE;
           }
           
-          this->A.getRow( colPointer, colPointerMain, mainRow );
-          mainRow.setElement( mainRow.getSize()-1, this->b.getElement( colPointer ) );
+          this->A.getRowGPU( colPointer, colPointerMain, data, this->A.getNumColumns() - colPointerMain+1 );
+          mainRowVec.setElement( this->A.getNumColumns() - colPointerMain, this->b.getElement( colPointer ) );
         } 
       }
       
       // Broad casting the pivoting row to all processes
 #ifdef HAVE_MPI
       MPI_Barrier(MPI_COMM_WORLD);
-      TNL::Communicators::MpiCommunicator::Bcast( mainRow.getData(), mainRow.getSize()-1, ProcessMax, MPI_COMM_WORLD);
-      //if( colPointerMain%100 == 0 )
-      //  saveVec( mainRow, mainRow.getSize(), processID, colPointerMain );
-      if( verbose > 1 )
-      {
-        printf( "%d: [", processID);
-        for( int i = 0; i < mainRow.getSize(); i++ )
-          printf( "%.2f ", mainRow.getElement( i ) );
-        printf("]\n");
-      }
+      TNL::Communicators::MpiCommunicator::Bcast( data, this->A.getNumColumns()+1, ProcessMax, MPI_COMM_WORLD);
       
       
       // Onec more if the ProcessMax filled the mainRow, then the ProcessMax needs to switch this pivoting row with main process.
       // mainRowSwap is the colPointer of process colPointerMain/this->A.getNumRows()
       if( ProcessMax != colPointerMain/this->A.getNumRows() )
       {
-        Real *mainRowSwap;
-        mainRowSwap = new Real[mainRow.getSize()];
-        
+        Array mainRowSwapVec( this->A.getNumColumns() - colPointerMain+1 );
+        Real* mainRowSwap = mainRowSwapVec.getData();
         
         if( processID == ProcessMax )
         {
-          TNL::Communicators::MpiCommunicator::Recv( mainRowSwap, mainRow.getSize(), colPointerMain/this->A.getNumRows(), 0 );
-          this->A.setRow( Possition, colPointerMain, mainRowSwap, mainRow.getSize() );
-          this->b.setElement( Possition, mainRowSwap[ mainRow.getSize()-1 ] );
+          TNL::Communicators::MpiCommunicator::Recv( mainRowSwap, this->A.getNumColumns() - colPointerMain+1, colPointerMain/this->A.getNumRows(), 0 );
+          this->A.setRowGPU( Possition, colPointerMain, mainRowSwap, this->A.getNumColumns() - colPointerMain+1 );
+          this->b.setElement( Possition, mainRowSwapVec.getElement( mainRowSwapVec.getSize()-1 ) );
         }
         else if( processID == colPointerMain/this->A.getNumRows() )
         {
-          this->A.getRow( colPointer, colPointerMain, mainRowSwap, mainRow.getSize() );
-          mainRowSwap[ mainRow.getSize()-1 ] = this->b.getElement( colPointer );
+          this->A.getRowGPU( colPointer, colPointerMain, mainRowSwap, this->A.getNumColumns() - colPointerMain+1 );
+          mainRowSwapVec.setElement( mainRowSwapVec.getSize() - 1, this->b.getElement( colPointer ));
           
-          TNL::Communicators::MpiCommunicator::Send( mainRowSwap, mainRow.getSize(), ProcessMax, 0 );
-          this->A.setRow( colPointer, colPointerMain, mainRow );
-          this->b.setElement( colPointer, mainRow[ mainRow.getSize()-1 ] );
+          TNL::Communicators::MpiCommunicator::Send( mainRowSwap, mainRowSwapVec.getSize(), ProcessMax, 0 );
+          this->A.setRowGPU( colPointer, colPointerMain, data, this->A.getNumColumns() - colPointerMain+1 );
+          this->b.setElement( colPointer, mainRowVec.getElement( mainRowSwapVec.getSize()-1 ) );
         }    
-        delete []mainRowSwap;
+        //delete []mainRowSwap;
       }
 #endif
+     
       // Main kernel works with vector as a main row, so all processes has to set mainRowVec.
       //TNL::Containers::Vector< Real, TNL::Devices::Host, Index > mainRowVecHost( mainRow, size );
-      mainRowVec = mainRow;
+      //mainRowVec = mainRow;
       //delete []mainRow; 
     }
     else // without pivoting
@@ -339,8 +329,9 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
       
       if( colPointerMain/this->A.getNumRows() == processID ){
         this->A.getRowGPU( colPointer, colPointerMain, data, this->A.getNumColumns() - colPointerMain+1 );
-        
         mainRowVec.setElement( this->A.getNumColumns() - colPointerMain, this->b.getElement( colPointer ) );
+        cudaDeviceSynchronize();
+        TNL_CHECK_CUDA_DEVICE;
       } 
       
       if( verbose > 3 ){
@@ -438,9 +429,9 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
     colPointerMain++;
   }
   // delete all used variables
-  cudaFree(pivot);
   cudaFree( devMat );
   TNL_CHECK_CUDA_DEVICE;
+  //delete &data;
   
   // Calculate real result 
   // (With MPI needs to send info into process 0 as main process with real result, rest processes has result as vector of zeros)

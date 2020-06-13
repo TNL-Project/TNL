@@ -141,7 +141,7 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
   }
   else{
     //("%d: returning\n", processID );
-    vectorResult.setValue( 0 );
+    //vectorResult.setValue( 0 );
     return vectorResult;
   }
 }
