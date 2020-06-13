@@ -90,7 +90,7 @@ int main( int argc, char* argv[] )
         runGEM< float, int, TNL::Devices::Host >( matrixName, vectorName, loops, verbose, (String)"CPU", pivoting );
 
     if( ( device == "GPU" || device == "both" ) )
-      auto result =
+      Vector< float, TNL::Devices::Cuda, int > result =
         runGEM< float, int, TNL::Devices::Cuda >( matrixName, vectorName, loops, verbose, (String)"GPU", pivoting );
   }
   

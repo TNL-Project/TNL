@@ -85,16 +85,12 @@ void findPivot( Matrix< Real, TNL::Devices::Cuda, int >* A,
 template <typename Real >
 __global__ 
 void findRowPivot( TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > outMaximum,
-        TNL::Containers::VectorView< int, TNL::Devices::Cuda, int > outPosition, int* positionPivot )
+        TNL::Containers::VectorView< int, TNL::Devices::Cuda, int > outPosition )
 {
   int rowPointer = threadIdx.x;
   Real firstElementInRow = rowPointer >= outMaximum.getSize() ? 0 : outMaximum[ rowPointer ];
   int index = rowPointer >= outPosition.getSize() ? 0 : outPosition[ rowPointer ];
   blockReduceArgMax( firstElementInRow, index );
-  if( threadIdx.x == 0 )
-  {
-    *positionPivot = index;
-  }
 }
 
 

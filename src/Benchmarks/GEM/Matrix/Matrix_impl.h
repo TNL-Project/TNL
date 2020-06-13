@@ -149,6 +149,33 @@ void Matrix< Real, Device, Index >::getRowGPU( Index row, Index col, Real* mainR
     cudaDeviceSynchronize();
     TNL_CHECK_CUDA_DEVICE;
     cudaFree( devMat );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;
+  }
+#endif
+}
+
+template < typename Real,
+           typename Device,
+           typename Index >
+void Matrix< Real, Device, Index >::setRowGPU( Index row, Index col, Real* mainRow, Index size )
+{
+  TNL_ASSERT( row > -1 && col > -1, std::cerr << "Matrix cannot have egative row nor negative column!");
+  TNL_ASSERT( row < rows && col < columns, std::cerr << "Matrix dosn't have that much rows or columns!");
+#ifdef HAVE_CUDA
+  if( std::is_same< Device, TNL::Devices::Cuda >::value )
+  {
+    Matrix< Real, TNL::Devices::Cuda, Index >* devMat;
+    cudaMalloc( ( void** ) &devMat, ( size_t ) sizeof( Matrix< Real, TNL::Devices::Cuda, Index > ) );
+    cudaMemcpy( ( void* ) devMat,( void* ) this, sizeof( Matrix< Real, TNL::Devices::Cuda, Index > ), cudaMemcpyHostToDevice );
+    TNL_CHECK_CUDA_DEVICE;
+
+    int blockSize = size-1 > 256 ? 256: size-1;
+    int gridSize = TNL::roundToMultiple( size-1, blockSize );
+    fillRowMatrix<<< gridSize, blockSize >>>( devMat, mainRow, size-1, row, col );
+    cudaDeviceSynchronize();
+    TNL_CHECK_CUDA_DEVICE;
+    cudaFree( devMat );
     TNL_CHECK_CUDA_DEVICE;
   }
 #endif
@@ -329,6 +356,17 @@ fillArray( Matrix< Real, TNL::Devices::Cuda, int >* A, Real* data, Index size, I
   if( thread < size )
   {
     data[ thread ] = A->getElement( row, col + thread );
+  }
+}
+
+template < typename Real, typename Index >
+__global__ void 
+fillRowMatrix( Matrix< Real, TNL::Devices::Cuda, int >* A, Real* data, Index size, Index row, Index col )
+{
+  int thread = threadIdx.x + blockIdx.x * blockDim.x;
+  if( thread < size )
+  {
+    A->setElement( row, col + thread, data[ thread ] );
   }
 }
 #endif
