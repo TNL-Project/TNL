@@ -1,7 +1,9 @@
 #!/bin/bash
 precision="float"
-matice="662_bus comsol losmoc msc01050"
+#matice="matice6 662_bus"
+matice="matice6 662_bus comsol losmoc msc01050 fp heart1 mycielskian13"
 loops=2
+MPI="1 2 3 4"
 
 runTest()
 {
@@ -9,33 +11,58 @@ runTest()
    then
 	mkdir -p "results"
    fi
-   for matrix in ${matice};
+   for matrix1 in ${matice}
    do
 
-	echo ${matrix}.mtx
-	./tnl-gem-cuda --input-matrix ${matrix}".mtx" \
+	echo ${matrix1}.mtx
+	./tnl-gem-cuda --input-matrix ${matrix1}".mtx" \
 			--device GPU \
-		        --loops ${loops} \
-			--precision ${precision} \
-			>> ./results/${matrix}GPU.txt
-	./tnl-gem-cuda --input-matrix ${matrix}".mtx" \
+			>> ./results/${matrix1}GPUpiv.txt
+	./tnl-gem-cuda --input-matrix ${matrix1}".mtx" \
 			--device GPU \
-		        --loops ${loops} \
-			--precision ${precision} \
 			--pivoting no \
-			>> ./results/${matrix}GPU.txt
-	./tnl-gem --input-matrix ${matrix}".mtx" \
+			>> ./results/${matrix1}GPU.txt
+	./tnl-gem --input-matrix ${matrix1}".mtx" \
 			--device CPU \
-		        --loops ${loops} \
-			--precision ${precision} \
-			>> ./results/${matrix}CPU.txt
-	./tnl-gem --input-matrix ${matrix}".mtx" \
+			>> ./results/${matrix1}CPUpiv.txt
+	./tnl-gem --input-matrix ${matrix1}".mtx" \
 			--device CPU \
-		        --loops ${loops} \
-			--precision ${precision} \
 			--pivoting no \
-			>> ./results/${matrix}CPU.txt
+			>> ./results/${matrix1}CPU.txt
+	for MPI1 in 1 2
+	do
+		echo ${matrix1}"-"${MPI1}
+		mpirun -n ${MPI1} -oversubscribe tnl-gem-cuda-mpi \
+				--input-matrix ${matrix1}".mtx" \
+				--device GPU \
+				--pivoting yes \
+				>> ./results/${matrix1}GPUpivMPI${MPI1}.txt
+		mpirun -n ${MPI1} -oversubscribe tnl-gem-cuda-mpi \
+				--input-matrix ${matrix1}".mtx" \
+				--device GPU \
+				--pivoting no \
+				>> ./results/${matrix1}GPUMPI${MPI1}.txt
+	done
    done
+   for matrix1 in ${matrix}
+   do
+   	for mpi1 in 3 4
+	do
+		echo ${matrix1}"-"${mpi1}	
+		mpirun -n ${mpi1} -oversubscribe tnl-gem-cuda-mpi \
+				--input-matrix ${matrix1}".mtx" \
+				--device GPU \
+				--pivoting yes \
+				>> ./results/${matrix1}GPUpivMPI${mpi1}.txt
+		mpirun -n ${mpi1} -oversubscribe tnl-gem-cuda-mpi \
+				--input-matrix ${matrix1}".mtx" \
+				--device GPU \
+				--pivoting no \
+				>> ./results/${matrix1}GPUpivMPI${mpi1}.txt
+				
+	done
+   done
+
 }
 
 

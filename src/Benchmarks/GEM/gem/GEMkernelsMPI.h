@@ -126,9 +126,9 @@ __global__
 void GEMmainKernel( Matrix< Real, TNL::Devices::Cuda, int >* A,
         TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b,
         TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > mainRow,
-        int rowPointerMain, int colPointerMain, int processID, int numOfProcesses )
+        int rowPointerMain, int colPointerMain, int processID, int numOfProcesses, int gridID )
 {
-  int thread = threadIdx.x + blockDim.x * blockIdx.x;
+  int thread = threadIdx.x + blockDim.x * ( gridID * TNL::Cuda::getMaxGridSize() + blockIdx.x );
   int rowPointer = thread / ( A->getNumColumns() - colPointerMain );
   int colPointer = thread % ( A->getNumColumns() - colPointerMain ) + colPointerMain;
   
