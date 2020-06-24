@@ -4,10 +4,10 @@
 #include <ctime> // time of computation mesurement
 #include <fstream> // saving and loading vector.txt
 
-#include "TNL/tnl-dev/src/TNL/Devices/Host.h"
-#include "TNL/tnl-dev/src/TNL/Devices/Cuda.h"
-#include "TNL/tnl-dev/src/TNL/Config/ConfigDescription.h"
-#include "TNL/tnl-dev/src/TNL/Config/ParameterContainer.h"
+#include <TNL/Devices/Host.h>
+#include <TNL/Devices/Cuda.h>
+#include <TNL/Config/ConfigDescription.h>
+#include <TNL/Config/ParameterContainer.h>
 
 #include "gem.h"
 
@@ -80,7 +80,7 @@ int main( int argc, char* argv[] )
 #ifdef HAVE_MPI
   if( processID == 0 )
 #endif
-    printf("%20s %15s %15s %20s %15s %15s %10s %15s %15s\n", "matrix", "#rows", "#non-zeros", "vector", "device", "precision", "loops", "time", "error");
+    printf("%20s %15s %15s %10s %20s %17s %17s %17s\n",  "vector", "device", "precision", "loops","matrix", "#rows", "time", "error");
 
  
   if( ( precision == "all" || precision == "float" ) )

@@ -24,7 +24,7 @@ void saveVec( Real* mainRow, Index size, int processID, Index colPointerMain )
 
 #ifdef HAVE_CUDA
 #include "GEMkernelsMPI.h"
-
+#include "TNL/Cuda/LaunchHelpers.h"
 
 #ifdef HAVE_MPI
 #include "TNL/Communicators/MpiCommunicator.h"
@@ -379,22 +379,35 @@ bool GEM<Real, Device, Index >::GEMdeviceMPI( Array& x, const TNL::String& pivot
       printf( "Elimination: %d/%d\n", colPointerMain, this->A.getNumColumns() );
     
     // Setting number of threads and blocks for main kernel
+    //int numOfGrids = TNL::roundUpDivision( this->A.getNumRows() * (this->A.getNumColumns()-colPointerMain), TNL::Cuda::getMaxGridSize() * 256 );
+    
+    int cudaGridSize( TNL::Cuda::getMaxGridSize() );
     int blockSize = this->A.getNumRows() * (this->A.getNumColumns()-colPointerMain) > 256 ?
       256 : this->A.getNumRows() * ( this->A.getNumColumns()-colPointerMain );
     int numOfBlocks =  TNL::roundUpDivision( this->A.getNumRows() * (this->A.getNumColumns()-colPointerMain), blockSize );
+    int numOfGrids = TNL::roundUpDivision( numOfBlocks, TNL::Cuda::getMaxGridSize() );
     
+         
    
     //std::cout << mainRowVec << std::endl;
     // Finally main kernel calculates the GEM for colPointerMain from mainRowVec
-    GEMmainKernel<<< numOfBlocks, blockSize >>>( devMat, 
-            device_vector.getView(),
-            mainRowVec.getView(),
-            colPointer, 
-            colPointerMain,
-            processID,
-            numOfProcesses );
-    cudaDeviceSynchronize();
-    TNL_CHECK_CUDA_DEVICE;
+    for( int gridID = 0; gridID < numOfGrids; gridID++ )
+    {
+      if( gridID == numOfGrids - 1 )
+        cudaGridSize = numOfBlocks % TNL::Cuda::getMaxGridSize();
+      //printf( "%d, %d: %d, %d, %d %d\n", processID, gridID, blockSize, numOfBlocks, cudaGridSize, numOfGrids );
+      cudaDeviceSynchronize();
+      GEMmainKernel<<< cudaGridSize, blockSize >>>( devMat, 
+              device_vector.getView(),
+              mainRowVec.getView(),
+              colPointer, 
+              colPointerMain,
+              processID,
+              numOfProcesses, 
+              gridID );
+      cudaDeviceSynchronize();
+      TNL_CHECK_CUDA_DEVICE;
+    }
     
     
     if( verbose > 2 )

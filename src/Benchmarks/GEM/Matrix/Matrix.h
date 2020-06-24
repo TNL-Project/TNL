@@ -20,6 +20,7 @@ class Matrix
     typedef Real RealType;
     typedef TNL::Containers::Vector< Index, Device, Index > CompressedRowLengthsVector;
     typedef TNL::Containers::Vector< Real, Device, Index > Vector;
+    typedef TNL::Containers::Vector< Real, TNL::Devices::Host, Index > VectorHost;
     typedef TNL::Containers::VectorView< Real, Device, Index > VectorView;
     typedef TNL::Containers::VectorView< Real, TNL::Devices::Host, Index > HostVectorView;
     typedef TNL::Containers::VectorView< Real, TNL::Devices::Cuda, Index > DeviceVectorView;
@@ -27,6 +28,13 @@ class Matrix
     Matrix();
     Matrix( const Index rows, const Index columns );
     Matrix( Matrix< Real, Device, Index>& matrix );
+    
+    /**
+    * Reset of matrix to 0 rows, 0 columns and 0 data memory.
+    *
+    * @return void
+    */
+    void reset();
     
     /**
     * Sets dimension for matrix of rows x columns elements and allocates memory

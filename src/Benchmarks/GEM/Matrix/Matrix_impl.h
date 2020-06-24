@@ -25,6 +25,18 @@ Matrix< Real, Device, Index >::Matrix( Matrix< Real, Device, Index>& matrix )
   matrix.getData( this->data );
 }
 
+template < typename Real,
+        typename Device,
+        typename Index >
+void Matrix< Real, Device, Index >::reset( )
+{
+  this->rows = 1;
+  this->columns	= 1;
+  this->data.reset();
+  this->data.setSize( 1	);
+}
+
+
 
 template < typename Real,
         typename Device,
@@ -40,8 +52,8 @@ void Matrix< Real, Device, Index >::setDimensions( const Index rows, const Index
 #if DEBUG
     printf("We are making host array!\n");
 #endif
-    data.setSize( rows*columns );
-    data.setValue( 0 );
+    this->data.setSize( rows*columns );
+    this->data.setValue( 0 );
   }
 #ifdef HAVE_CUDA
   if( std::is_same< Device, TNL::Devices::Cuda >::value )
@@ -321,27 +333,45 @@ Matrix<Real, Device, Index >&
 Matrix< Real, Device, Index >::operator=( Matrix< Real, Device2, Index>& matrix )
 {
   this->setDimensions( matrix.getNumRows(), matrix.getNumColumns() );
-  Vector pom;
-  matrix.getData( pom );
   if( std::is_same< Device, Device2 >::value )
   {
+    Vector pom;
+    matrix.getData( pom );
     this->data = pom; 
   }
 #ifdef HAVE_CUDA
   else if( std::is_same< Device, TNL::Devices::Host >::value )
   {
+    VectorHost pom;
+    matrix.getData( pom );
+    
+    VectorHost pom1;
+    pom1.setSize( this->data.getSize() );
+
+#ifdef HAVE_OPENMP
+#pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+#endif
     for( int i = 0; i < this->rows; i++ )
       for( int j = 0; j < this->columns; j++ )
-        this->setElement(i,j, pom[ i*TNL::roundToMultiple( this->rows, TNL::Cuda::getWarpSize() ) + j ] );
+        pom1[  i * this->columns + j ] =  pom[ i*TNL::roundToMultiple( this->rows, TNL::Cuda::getWarpSize() ) + j ];
+    this->data = pom1;
   } 
   else if( std::is_same< Device, TNL::Devices::Cuda >::value )
   {
+    VectorHost pom;
+    matrix.getData( pom );
+    
+    VectorHost pom1;
+    pom1.setSize( this->data.getSize() );
+#ifdef HAVE_OPENMP
+#pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+#endif
     for( int i = 0; i < this->getNumRows(); i++ )
       for( int j = 0; j < this->getNumColumns(); j++ )
       {
-        this->data.setElement( i*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + j,
-                pom.getElement( i * this->columns + j ) );
+        pom1[ i*TNL::roundToMultiple( this->columns, TNL::Cuda::getWarpSize() ) + j ] =  pom[ i * this->columns + j];
       }
+    this->data = pom1;
   }
 #endif // HAVE_CUDA
   return *this;
