@@ -1,1 +1,5 @@
-add_executable( benchmark_heat_parallel_for main.h main.cpp )
+if (BUILD_CUDA)
+  CUDA_ADD_EXECUTABLE( benchmark_heat_parallel_for main.h main.cu )
+ELSE()
+  add_executable( benchmark_heat_parallel_for main.h main.cpp )
+ENDIF()

@@ -51,10 +51,10 @@ TNL::Config::ConfigDescription HeatmapSolver<Real>::Parameters::makeInputConfig(
   config.addEntry<Real>("domain-x-size", "Domain size along x-axis.", 2.0);
   config.addEntry<Real>("domain-y-size", "Domain size along y-axis.", 2.0);
 
-  config.addEntry<Real>("sigma", "Sigma in exponential initial condition.", 2.0);
+  config.addEntry<Real>("sigma", "Sigma in exponential initial condition.", 1.0);
 
   config.addEntry<Real>("time-step", "Time step. By default it is proportional to one over space step square.", 0.0);
-  config.addEntry<Real>("final-time", "Final time of the simulation.", 1.0);
+  config.addEntry<Real>("final-time", "Final time of the simulation.", 0.012);
   config.addEntry<bool>("verbose", "Verbose mode.", true);
 
   return config;
@@ -71,6 +71,7 @@ HeatmapSolver<Real>::Parameters::Parameters(const TNL::Config::ParameterContaine
                                                                                                  verbose(parameters.getParameter<bool>("verbose")) {}
 
 /***
+ * Grid parameters:
  *
  * ySize|j                                          (ySize - 1) * xSize + xSize - 1
  *  |------------------------------------------------------
@@ -108,32 +109,21 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
 
   auto timestep = params.timeStep ? params.timeStep : std::min(hx * hx, hy * hy);
 
-  auto uxView = ux.getView(),
-       auxView = aux.getView();
+  auto uxView = ux.getView(), auxView = aux.getView();
 
   auto init = [=] __cuda_callable__(int i, int j) mutable {
     auto index = j * params.xSize + i;
 
-    uxView[index] = exp(-params.sigma * (i * i + j * j));
+    auto x = i * hx - params.xDomainSize / 2;
+    auto y = j * hy - params.yDomainSize / 2;
+
+    uxView[index] = exp(params.sigma * (x * x + y * y));
   };
 
   TNL::Algorithms::ParallelFor2D<Device>::exec(1, 1, params.xSize - 1, params.ySize - 1, init);
 
   if (!writeGNUPlot("data.txt", params, ux))
     return false;
-
-  // auto horizontalBoundaryCondition = [=] __cuda_callable__ (int i) mutable {
-  //   auxView[i] = 0;
-  //   auxView[(params.ySize - 1) * params.xSize + i] = 0;
-  // };
-
-  // auto verticalBoundaryCondition = [=] __cuda_callable__(int j) mutable {
-  //   auxView[j * params.xSize] = 0;
-  //   auxView[j * params.xSize + params.xSize - 1] = 0;
-  // };
-
-  // TNL::Algorithms::ParallelFor<Device>::exec(0, params.xSize, horizontalBoundaryCondition);
-  // TNL::Algorithms::ParallelFor<Device>::exec(0, params.ySize, verticalBoundaryCondition);
 
   auto next = [=] __cuda_callable__(int i, int j) mutable {
     auto index = j * params.ySize + i;
@@ -153,7 +143,6 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
     TNL::Algorithms::ParallelFor2D<Device>::exec(1, 1, params.xSize - 1, params.ySize - 1, next);
     TNL::Algorithms::ParallelFor<Device>::exec(0, params.xSize * params.ySize, update);
 
-    std::cout << "Iteration: " << start << std::endl;
     start += timestep;
   }
 
