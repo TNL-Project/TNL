@@ -1010,7 +1010,7 @@ def processDf( df, formats, head_size = 10 ):
    aux_df = df
    aux_df.sort_values(by=[('SlicedEllpack','GPU','bandwidth')],inplace=True,ascending=True)
    write_performance_circle( aux_df, formats, ['Ellpack', 'ChunkedEllpack', 'SlicedEllpack' ], 'performance-graph-ellpacks-1', scale, with_color_map = False )
-   write_performance_circle( aux_df, formats, ['BiEllpack', 'ChunkedEllpack', 'SlicedEllpack',  ], 'performance-graph-ellpacks-2', scale, with_color_map = True )
+   write_performance_circle( aux_df, formats, ['BiEllpack', 'ChunkedEllpack', 'SlicedEllpack',  ], 'performance-graph-ellpacks-2', scale, with_color_map = False )
    #write_performance_circle( df, formats, ['CSR< Scalar >', 'CSR< Adaptive >', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-csr-1' )
    aux_df.sort_values(by=[('CSR< Light > Automatic Light','GPU','bandwidth')],inplace=True,ascending=True)
    write_performance_circle( aux_df, formats, ['CSR< Scalar >', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-csr-1', scale, with_color_map = False )
@@ -1018,9 +1018,11 @@ def processDf( df, formats, head_size = 10 ):
    aux_df.sort_values(by=[('cusparse','GPU','bandwidth')],inplace=True,ascending=True)
    write_performance_circle( aux_df, formats, ['cusparse', 'SlicedEllpack', 'ChunkedEllpack' ], 'performance-graph-cusparse-ellpacks', scale, with_color_map = False )
    write_performance_circle( aux_df, formats, ['cusparse', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-1', scale, with_color_map = False )
-   write_performance_circle( aux_df, formats, ['cusparse', 'CSR< Adaptive >', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-2', scale, with_color_map = True )
+   write_performance_circle( aux_df, formats, ['cusparse', 'CSR< Adaptive >', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-2', scale, with_color_map = False )
    write_performance_circle( aux_df, formats, ['cusparse', 'CSR< Scalar >', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-3', scale, with_color_map = False )
-   write_performance_circle( aux_df, formats, ['cusparse', 'SlicedEllpack', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-ellpack', scale, with_color_map = True )
+   write_performance_circle( aux_df, formats, ['cusparse', 'SlicedEllpack', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-ellpack', scale, with_color_map = False )
+   with open('color-map.tex', 'w' ) as file:
+      write_colormap( file, 1200, 5, 13*scale, 1.5*scale, standalone=True )
 
 head_size = 25
 if not os.path.exists( 'general' ):
