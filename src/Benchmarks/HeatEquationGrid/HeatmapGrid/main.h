@@ -3,15 +3,13 @@
 #include <fstream>
 #include <numeric>
 #include <type_traits>
+#include <array>
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Devices/Host.h>
 
 
 // Utils
-
-// Thanks for implementation idea https://www.fluentcpp.com/2021/04/30/how-to-implement-stdconjunction-and-stddisjunction-in-c11/
-// TODO: Implicit bool looks strange because, then I need to write ::value everywhere...
 
 template<bool ...> struct bool_pack {};
 
@@ -24,7 +22,8 @@ using conjunction = std::is_same<bool_pack<true, Bs...>, bool_pack<Bs..., true>>
 
 template<int Dimension,
          typename Index,
-         typename Device = TNL::Devices::Host>
+         typename Device = TNL::Devices::Host,
+         typename = std::enable_if_t<(Dimension > 0)>>
 class Grid {
    public:
       Grid() {}
@@ -40,8 +39,11 @@ class Grid {
             this -> dimensions[i] = x;
             i++;
          }
+
+         refreshDimensionMaps();
       }
 
+      // TODO: - Add __cuda_callable__
       template <typename... DimensionIndex,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>>
       std::vector<Index> getDimensions(DimensionIndex... indicies) const noexcept {
@@ -54,25 +56,76 @@ class Grid {
          return result;
       }
 
+      // TODO: - Implement typechecking for function
+      template <typename Function,
+                typename... FunctionArgs>
+      void traverse(const Index dimension, Function function, FunctionArgs... args) const noexcept {
+
+      }
    private:
-      Index dimensions[Dimension];
+      std::array<Index, Dimension> dimensions;
+      /**
+       * @brief - A dimension map is a store for dimension limits over all combinations of basis.
+       *          First, (n choose 0) elements will contain the count of 0 dimension elements
+       *          Second, (n choose 1) elements will contain the count of 1-dimension elements
+       *          ....
+       *
+       *          For example, let's have a 3-d grid, then the map indexing will be the next:
+       *            0 - 0 - count of vertices
+       *            1, 2, 3 - count of edges in x, y, z plane
+       *            4, 5, 6 - count of faces in xy, xz, yz plane
+       *            7 - count of cells in xyz plane
+       *
+       * @warning - The ordering of is lexigraphical.
+       */
+      std::array<Index, 1 << Dimension> dimensionMap;
+      /**
+       * @brief - A cumulative map over dimensions.
+       */
+      std::array<Index, Dimension + 1> cumulativeDimensionMap;
+
+      /**
+       * @brief - Fills dimensions map for N-dimensional Grid.
+       *
+       * @complexity - O(2 ^ Dimension)
+       */
+      void refreshDimensionMaps() noexcept {
+         std::array<bool, Dimension> combinationBuffer = {};
+         std::size_t j = 0;
+
+         std::fill(cumulativeDimensionMap.begin(), cumulativeDimensionMap.end(), 0);
+
+         for (std::size_t i = 0; i <= Dimension; i++) {
+            std::fill(combinationBuffer.begin(), combinationBuffer.end(), false);
+            std::fill(combinationBuffer.end() - i, combinationBuffer.end(), true);
+
+            do {
+               int result = 1;
+
+               for (std::size_t i = 0; i < combinationBuffer.size(); i++)
+                  result *= combinationBuffer[i] ? dimensions[i] : dimensions[i] + 1;
+
+               dimensionMap[j] = result;
+               cumulativeDimensionMap[i] += result;
+
+               j++;
+            } while (std::next_permutation(combinationBuffer.begin(), combinationBuffer.end()));
+         }
+
+         for (int i = 0; i < 1 << Dimension; i++) {
+            std::cout << dimensionMap[i] << " ";
+         }
+
+         std::cout << std::endl;
+      }
 };
 
 int main(int argc, char *argv[]) {
-   Grid<4, int> grid;
+   Grid<3, int> grid;
 
-   grid.setDimensions(1, 2, 3, 4);
+   grid.setDimensions(1, 2, 3);
 
-   auto dimensions = grid.getDimensions(0, 1, 2);
-
-   std::cout << dimensions[0] << dimensions[2] << dimensions[1] << std::endl;
-
-
-   // const int dimensions = 4;
-
-   // int sizes[dimensions] = { 3, 3, 3, 3 };
-   // int limits[dimensions] = { 0 };
-
+  // auto dimensions = grid.getDimensions(0, 1, 2);
 
    return 0;
 }
