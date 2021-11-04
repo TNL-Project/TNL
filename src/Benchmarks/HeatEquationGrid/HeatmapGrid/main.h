@@ -5,20 +5,19 @@
 #include <type_traits>
 #include <array>
 
+#include "../Base/HeatmapSolver.h"
+
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Devices/Host.h>
+#include <TNL/Containers/Array.h>
+#include <TNL/Algorithms/ParallelFor.h>
 
-
-// Utils
+#pragma once
 
 template<bool ...> struct bool_pack {};
 
 template <bool... Bs>
 using conjunction = std::is_same<bool_pack<true, Bs...>, bool_pack<Bs..., true>>;
-
-// Any N dimensional grid:
-//   1. Should provide local|remote step
-//   2. Should know its own limits. Count of the elements at each dimension
 
 template<int Dimension,
          typename Index,
@@ -29,6 +28,10 @@ class Grid {
       Grid() {}
       ~Grid() {}
 
+      /**
+       *  @brief - Specifies dimensions of the grid
+       *  @param[in] dimensions - A parameter pack, which specifies edges count in the specific dimension
+       */
       template <typename... Dimensions,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, Dimensions>::value...>::value>,
                 typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
@@ -42,24 +45,54 @@ class Grid {
 
          refreshDimensionMaps();
       }
-
-      // TODO: - Add __cuda_callable__
+      /**
+       * @param[in] indicies - A dimension index pack
+       *
+       * - TODO: - Add __cuda_callable__
+       */
       template <typename... DimensionIndex,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>>
       std::vector<Index> getDimensions(DimensionIndex... indicies) const noexcept {
-         std::vector<Index> index{ indicies... }, result;
+         std::vector<Index> dimensionIndicies{ indicies... }, result;
 
-         std::transform(index.begin(), index.end(), std::back_inserter(result), [this](const Index& index) {
+         std::transform(dimensionIndicies.begin(),
+                        dimensionIndicies.end(),
+                        std::back_inserter(result), [this](const Index& index) {
+            TNL_ASSERT_GT(index, 0, "Index must be greater than zero");
+            TNL_ASSERT_LT(index, Dimension, "Index must be less than Dimension");
+
             return this -> dimensions[index];
          });
 
          return result;
       }
+      /**
+       * @brief - Returns the number of entities of specific dimension
+       */
+      template <typename... DimensionIndex,
+                typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>>
+      std::vector<Index> getEntitiesCount(const Index dimension...) const noexcept
+      {
+         std::vector<Index> dimensionIndicies{indicies...}, result;
 
-      // TODO: - Implement typechecking for function
-      template <typename Function,
-                typename... FunctionArgs>
-      void traverse(const Index dimension, Function function, FunctionArgs... args) const noexcept {
+         std::transform(dimensionIndicies.begin(),
+                        dimensionIndicies.end(),
+                        std::back_inserter(result), [this](const Index &index) {
+            TNL_ASSERT_GT(index, 0, "Index must be greater than zero");
+            TNL_ASSERT_LE(index, Dimension, "Index must be less than or equal to Dimension");
+
+            return this->cumulativeDimensionMap[index];
+         });
+
+         return result;
+      }
+      /**
+       * @brief - Traversers a specified dimension in parallel.
+       */
+      template <typename Function>
+      void traverse(const Index dimension, Function function) const noexcept {
+         auto entitiesCount = getEntitiesCount(dimension)[0];
+
 
       }
    private:
@@ -83,7 +116,6 @@ class Grid {
        * @brief - A cumulative map over dimensions.
        */
       std::array<Index, Dimension + 1> cumulativeDimensionMap;
-
       /**
        * @brief - Fills dimensions map for N-dimensional Grid.
        *
@@ -111,13 +143,26 @@ class Grid {
                j++;
             } while (std::next_permutation(combinationBuffer.begin(), combinationBuffer.end()));
          }
-
-         for (int i = 0; i < 1 << Dimension; i++) {
-            std::cout << dimensionMap[i] << " ";
-         }
-
-         std::cout << std::endl;
       }
+};
+
+template <typename Real>
+template <typename Device>
+bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) const {
+   Grid<2, int, Device> grid;
+
+   grid.setDimensions(params.xSize, params.ySize);
+
+   auto entitiesCount = grid.getEntitiesCount(2)[0];
+
+   TNL::Containers::Array<Real, Device> ux(entitiesCount), // data at step u
+                                        aux(entitiesCount);// data at step u + 1
+
+   // Invalidate ux/aux
+   ux = 0;
+   aux = 0;
+
+
 };
 
 int main(int argc, char *argv[]) {
@@ -125,7 +170,7 @@ int main(int argc, char *argv[]) {
 
    grid.setDimensions(1, 2, 3);
 
-  // auto dimensions = grid.getDimensions(0, 1, 2);
+
 
    return 0;
 }
