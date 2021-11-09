@@ -66,7 +66,7 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
 
    auto next = [=] __cuda_callable__(int i, int j) mutable
    {
-      auto index = j * params.ySize + i;
+      auto index = j * params.xSize + i;
 
       auxView[index] = (uxView[index - 1] - 2 * uxView[index] + uxView[index + 1]) * hx_inv +
                        (uxView[index - params.xSize] - 2 * uxView[index] + uxView[index + params.xSize]) * hy_inv;

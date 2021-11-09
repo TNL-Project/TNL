@@ -46,42 +46,56 @@ class Grid {
          refreshDimensionMaps();
       }
       /**
+       * @param[in] index - index of dimension
+       */
+      inline __cuda_callable__ Index getDimension(Index index) const noexcept {
+         TNL_ASSERT_GT(index, 0, "Index must be greater than zero");
+         TNL_ASSERT_LT(index, Dimension, "Index must be less than Dimension");
+
+         return dimensions[index];
+      }
+      /**
        * @param[in] indicies - A dimension index pack
        *
        * - TODO: - Add __cuda_callable__
        */
       template <typename... DimensionIndex,
-                typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>>
+                typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
+                typename = std::enable_if_t<sizeof...(DimensionIndex) > 0>>
       std::vector<Index> getDimensions(DimensionIndex... indicies) const noexcept {
          std::vector<Index> dimensionIndicies{ indicies... }, result;
 
          std::transform(dimensionIndicies.begin(),
                         dimensionIndicies.end(),
                         std::back_inserter(result), [this](const Index& index) {
-            TNL_ASSERT_GT(index, 0, "Index must be greater than zero");
-            TNL_ASSERT_LT(index, Dimension, "Index must be less than Dimension");
-
-            return this -> dimensions[index];
+            return this -> getDimension(index);
          });
 
          return result;
       }
       /**
+       * @param[in] index - index of dimension
+       */
+      inline __cuda_callable__ Index getEntitiesCount(Index index) const noexcept {
+         TNL_ASSERT_GT(index, 0, "Index must be greater than zero");
+         TNL_ASSERT_LE(index, Dimension, "Index must be less than or equal to Dimension");
+
+         return cumulativeDimensionMap(index);
+      }
+      /**
        * @brief - Returns the number of entities of specific dimension
        */
       template <typename... DimensionIndex,
-                typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>>
-      std::vector<Index> getEntitiesCount(const Index dimension...) const noexcept
+                typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
+                typename = std::enable_if_t<sizeof...(DimensionIndex) > 0>>
+      std::vector<Index> getEntitiesCounts(DimensionIndex... indicies) const noexcept
       {
          std::vector<Index> dimensionIndicies{indicies...}, result;
 
          std::transform(dimensionIndicies.begin(),
                         dimensionIndicies.end(),
                         std::back_inserter(result), [this](const Index &index) {
-            TNL_ASSERT_GT(index, 0, "Index must be greater than zero");
-            TNL_ASSERT_LE(index, Dimension, "Index must be less than or equal to Dimension");
-
-            return this->cumulativeDimensionMap[index];
+            return getEntitiesCount(index);
          });
 
          return result;
@@ -89,11 +103,33 @@ class Grid {
       /**
        * @brief - Traversers a specified dimension in parallel.
        */
-      template <typename Function>
-      void traverse(const Index dimension, Function function) const noexcept {
+      template <typename Function, typename... FunctionArgs>
+      void traverse(const Index dimension, Function function, FunctionArgs... args) const noexcept {
          auto entitiesCount = getEntitiesCount(dimension)[0];
+         auto identity = [] __cuda_callable__ (const Index&& index) mutable { return index };
 
+         traverse(0, entitiesCount, identity, function, args...);
+      }
+      /**
+       * TODO: - A possibility of improvement, as it should be possible to specify more precise functions
+       *         to remove user knowledge of functionality
+       */
+      template <typename Function, typename IndexTransform, typename... FunctionArgs>
+      void traverse(const Index start,
+                    const Index end,
+                    IndexTransform transform,
+                    Function function,
+                    FunctionArgs... args) const noexcept {
+         TNL_ASSERT_LT(startIndex, endIndex, "Start index must be less than endIndex")
 
+         auto lambda = [=] __cuda_callable__(const Index index, FunctionArgs... args) mutable
+         {
+            auto transformedIndex = transform(index);
+
+            function(transformedIndex, args...);
+         };
+
+         TNL::Algorithms::ParallelFor<Device>::exec(startIndex, endIndex, lambda, args...);
       }
    private:
       std::array<Index, Dimension> dimensions;
@@ -153,7 +189,15 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
 
    grid.setDimensions(params.xSize, params.ySize);
 
-   auto entitiesCount = grid.getEntitiesCount(2)[0];
+   const Real hx = params.xDomainSize / (Real)grid.getDimension(0);
+   const Real hy = params.yDomainSize / (Real)grid.getDimension(1);
+   const Real hx_inv = 1 / (hx * hx);
+   const Real hy_inv = 1 / (hy * hy);
+
+   auto entitiesCount = grid.getEntitiesCount(0);
+   auto timestep = params.timeStep ? params.timeStep : std::min(hx * hx, hy * hy);
+
+   auto uxView = ux.getView(), auxView = aux.getView();
 
    TNL::Containers::Array<Real, Device> ux(entitiesCount), // data at step u
                                         aux(entitiesCount);// data at step u + 1
@@ -163,6 +207,8 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
    aux = 0;
 
 
+
+   return false;
 };
 
 int main(int argc, char *argv[]) {
