@@ -10,6 +10,7 @@
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Containers/Array.h>
+#include <TNL/Containers/StaticArray.h>
 #include <TNL/Algorithms/ParallelFor.h>
 
 #pragma once
@@ -61,15 +62,12 @@ class Grid {
        */
       template <typename... DimensionIndex,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
-                typename = std::enable_if_t<sizeof...(DimensionIndex) > 0>>
-      std::vector<Index> getDimensions(DimensionIndex... indicies) const noexcept {
-         std::vector<Index> dimensionIndicies{ indicies... }, result;
+                typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)>>
+      TNL::Containers::StaticArray<sizeof...(DimensionIndex), Index> getDimensions(DimensionIndex... indicies) const noexcept {
+         TNL::Containers::StaticArray<sizeof...(DimensionIndex), Index> result{indicies...};
 
-         std::transform(dimensionIndicies.begin(),
-                        dimensionIndicies.end(),
-                        std::back_inserter(result), [this](const Index& index) {
-            return this -> getDimension(index);
-         });
+         for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++)
+            result[i] = this -> getDimension(result[i]);
 
          return result;
       }
@@ -87,16 +85,13 @@ class Grid {
        */
       template <typename... DimensionIndex,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
-                typename = std::enable_if_t<sizeof...(DimensionIndex) > 0>>
-      std::vector<Index> getEntitiesCounts(DimensionIndex... indicies) const noexcept
+                typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)>>
+      TNL::Containers::StaticArray<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indicies) const noexcept
       {
-         std::vector<Index> dimensionIndicies{indicies...}, result;
+         TNL::Containers::StaticArray<sizeof...(DimensionIndex), Index> result{indicies...};
 
-         std::transform(dimensionIndicies.begin(),
-                        dimensionIndicies.end(),
-                        std::back_inserter(result), [this](const Index &index) {
-            return getEntitiesCount(index);
-         });
+         for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++)
+            result[i] = this -> getEntitiesCount(result[i]);
 
          return result;
       }
@@ -106,7 +101,7 @@ class Grid {
       template <typename Function, typename... FunctionArgs>
       void traverse(const Index dimension, Function function, FunctionArgs... args) const noexcept {
          auto entitiesCount = getEntitiesCount(dimension)[0];
-         auto identity = [] __cuda_callable__ (const Index&& index) mutable { return index };
+         auto identity = [] __cuda_callable__ (const Index&& index) mutable { return index; };
 
          traverse(0, entitiesCount, identity, function, args...);
       }
@@ -120,7 +115,7 @@ class Grid {
                     IndexTransform transform,
                     Function function,
                     FunctionArgs... args) const noexcept {
-         TNL_ASSERT_LT(startIndex, endIndex, "Start index must be less than endIndex")
+         TNL_ASSERT_LT(start, end, "Start index must be less than endIndex")
 
          auto lambda = [=] __cuda_callable__(const Index index, FunctionArgs... args) mutable
          {
@@ -129,10 +124,10 @@ class Grid {
             function(transformedIndex, args...);
          };
 
-         TNL::Algorithms::ParallelFor<Device>::exec(startIndex, endIndex, lambda, args...);
+         TNL::Algorithms::ParallelFor<Device>::exec(start, end, lambda, args...);
       }
    private:
-      std::array<Index, Dimension> dimensions;
+      TNL::Containers::StaticArray<Dimension, Index> dimensions;
       /**
        * @brief - A dimension map is a store for dimension limits over all combinations of basis.
        *          First, (n choose 0) elements will contain the count of 0 dimension elements
@@ -147,11 +142,11 @@ class Grid {
        *
        * @warning - The ordering of is lexigraphical.
        */
-      std::array<Index, 1 << Dimension> dimensionMap;
+      TNL::Containers::StaticArray<1 << Dimension, Index> dimensionMap;
       /**
        * @brief - A cumulative map over dimensions.
        */
-      std::array<Index, Dimension + 1> cumulativeDimensionMap;
+      TNL::Containers::StaticArray<Dimension + 1, Index> cumulativeDimensionMap;
       /**
        * @brief - Fills dimensions map for N-dimensional Grid.
        *
@@ -161,7 +156,8 @@ class Grid {
          std::array<bool, Dimension> combinationBuffer = {};
          std::size_t j = 0;
 
-         std::fill(cumulativeDimensionMap.begin(), cumulativeDimensionMap.end(), 0);
+         for (std::size_t i = 0; i < Dimension + 1; i++)
+            cumulativeDimensionMap[i] = 0;
 
          for (std::size_t i = 0; i <= Dimension; i++) {
             std::fill(combinationBuffer.begin(), combinationBuffer.end(), false);
@@ -170,8 +166,15 @@ class Grid {
             do {
                int result = 1;
 
-               for (std::size_t i = 0; i < combinationBuffer.size(); i++)
-                  result *= combinationBuffer[i] ? dimensions[i] : dimensions[i] + 1;
+               for (std::size_t i = 0; i < combinationBuffer.size(); i++) {
+                  // Dimensions are stored in the least significant order.
+                  // For example, the list of dimensions [1, 2, 3] is the size along [x, y, z] dimensions
+                  // Combination generator follow lexical order, so the first element of the sequence is [0, 0, ..., 0, 1].
+                  // That's why we need to reverse index to obtain valid dimension.
+                  auto reversedIndex = combinationBuffer.size() - 1 - i;
+
+                  result *= combinationBuffer[reversedIndex] ? dimensions[i] : dimensions[i] + 1;
+               }
 
                dimensionMap[j] = result;
                cumulativeDimensionMap[i] += result;
@@ -197,10 +200,10 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
    auto entitiesCount = grid.getEntitiesCount(0);
    auto timestep = params.timeStep ? params.timeStep : std::min(hx * hx, hy * hy);
 
-   auto uxView = ux.getView(), auxView = aux.getView();
-
    TNL::Containers::Array<Real, Device> ux(entitiesCount), // data at step u
                                         aux(entitiesCount);// data at step u + 1
+
+   auto uxView = ux.getView(), auxView = aux.getView();
 
    // Invalidate ux/aux
    ux = 0;
