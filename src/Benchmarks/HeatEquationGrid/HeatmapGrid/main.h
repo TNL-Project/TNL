@@ -12,7 +12,6 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/StaticArray.h>
-#include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/ParallelFor.h>
 
 #pragma once
@@ -34,15 +33,59 @@ template<int Dimension,
          typename = std::enable_if_t<std::is_integral<Index>::value>>
 class GridEntity {
    public:
-      GridEntity(const Container<Dimension, Index>& origin,
-                 const Container<Dimension, Index>& dimensions,
-                 const std::bitset<Dimension>& direction): origin(origin),
-                                                           dimensions(dimensions),
-                                                           direction(direction) {};
+      __cuda_callable__ inline
+      GridEntity(const Container<Dimension, Index>& startPosition,
+                 const Index& startOffset,
+                 const Index& offset,
+                 const Container<Dimension, Index>& dimensions):
+             //    const std::bitset<Dimension> direction) :
+                 startPosition(startPosition),
+                 startOffset(startOffset),
+                 position({}),
+                 offset(offset),
+                 dimensions(dimensions) {}//,
+                 //direction(direction) {};
+      __cuda_callable__
+      ~GridEntity() {};
+
+      __cuda_callable__ inline
+      Container<Dimension, Index> getPosition() noexcept {
+         if (position.getSize() == 0) {
+            auto position = startPosition;
+            Index tmpOffset = offset;
+
+            Index dim = Dimension - 1;
+
+            while (offset != 0) {
+               Index newIndex = position[dim] + tmpOffset, dimension = dimensions[dim];
+               Index quotient = newIndex / dimension;
+               Index reminder = newIndex - (dimension * quotient);
+
+               position[dim] = reminder;
+               tmpOffset = quotient;
+
+               dim -= 1;
+            }
+
+            this -> position = position;
+         }
+
+         return position;
+      }
+
+      __cuda_callable__ inline
+      Index getIndex() const noexcept {
+         return startOffset + offset;
+      }
    private:
-      Container<Dimension, Index> origin;
-      Container<Dimension, Index> dimensions;
-      std::bitset<Dimension> direction;
+      const Container<Dimension, Index> startPosition;
+      const Index startOffset;
+
+      Container<Dimension, Index> position;
+      const Index offset;
+
+      const Container<Dimension, Index> dimensions;
+    //  const std::bitset<Dimension> direction;
 };
 
 template<int Dimension,
@@ -84,8 +127,6 @@ class Grid {
       }
       /**
        * @param[in] indicies - A dimension index pack
-       *
-       * - TODO: - Add __cuda_callable__
        */
       template <typename... DimensionIndex,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
@@ -148,7 +189,7 @@ class Grid {
       template<typename Function, typename... FunctionArgs>
       void traverse(const Container<Dimension, Index>& start,
                     const Container<Dimension, Index>& end,
-                    const TNL::Containers::Vector<std::bitset<Dimension>>& directions,
+                    //const TNL::Containers::Array<std::bitset<Dimension>, Device>& directions,
                     Function function,
                     FunctionArgs... args) const noexcept {
          // TODO: - This will overflow for higher dimensions
@@ -167,30 +208,22 @@ class Grid {
          }
 
          // TODO: - Improve message formatting
-         TNL_ASSERT_LT(startCollapsedIndex, endCollapsedIndex, "Traverse range must be in [start..<end]")
+         TNL_ASSERT_LT(startCollapsedIndex, endCollapsedIndex, "Traverse range must be in [start..<end]");
          TNL_ASSERT_LE(endCollapsedIndex, this -> cumulativeDimensionMap[0], "End must be less, than amount of points in grid");
 
          auto dimensions = this -> dimensions;
+        // auto directionsView = directions.getConstView();
 
-         auto outerFunction = [=] __cuda_callable__ (const Index i, FunctionArgs... args) mutable {
-            Index dim = Dimension - 1;
+         auto outerFunction = [=] __cuda_callable__ (Index offset, FunctionArgs... args) mutable {
+            GridEntity<Dimension, Index> entity{ start, startCollapsedIndex, offset, dimensions };
 
-            while (i != 0) {
-               Index newIndex = start[dim] + i, dimension = dimensions[dim];
-               Index quotient = newIndex / dimension;
-               Index reminder = newIndex - (dimension * quotient);
+            function(entity, args...);
 
-               start[dim] = reminder;
-               i = quotient;
+           // for (Index j = 0; j < directionsView.getSize(); j++) {
+            //   GridEntity<Dimension, Index> entity{ start, startCollapsedIndex, j, dimensions, directionsView[i] };
 
-               dim -= 1;
-            }
 
-            for (const auto& direction: directions) {
-               GridEntity<Dimension, Index> entity = { start, dimensions, direction };
-
-               function(entity, args...);
-            }
+            //}
          };
 
          TNL::Algorithms::ParallelFor<Device>::exec(0, endCollapsedIndex - startCollapsedIndex + 1, outerFunction, args...);
@@ -271,15 +304,46 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
    ux = 0;
    aux = 0;
 
+  /* auto init = [=] __cuda_callable__(const auto& entity) mutable {
+      // auto index = j * params.xSize + i;
 
+      //auto x = i * hx - params.xDomainSize / 2;
+      //auto y = j * hy - params.yDomainSize / 2;
+
+      //uxView[index] = exp(params.sigma * (x * x + y * y));
+   };*/
+
+  /* grid.traverse({ 1, 1 },
+                 { grid.getDimension(0) - 1, grid.getDimension(1) - 1 },
+                 { { 0b00 } },
+                 init);*/
 
    return false;
 };
 
 int main(int argc, char *argv[]) {
-   Grid<3, int> grid;
+   Grid<3, int, TNL::Devices::Cuda> grid;
 
-   grid.setDimensions(3, 2, 1);
+   grid.setDimensions(3, 3, 3);
+
+   auto fn = [=] __cuda_callable__ (int index) {
+      //printf("%d\n", index);
+   };
+
+   grid.traverseAll(fn);
+
+   auto fn_entity = [=] __cuda_callable__ (GridEntity<3, int> entity) {
+     // entity.doSomething();
+      //printf("%d\n", entity.getPosition());
+      //printf("%d \n", entity.getIndex());
+   };
+
+   //TNL::Containers::Array<std::bitset<3>> directions;
+
+   //directions.resize(1);
+   //directions[0] = { 0b000 };
+
+   grid.traverse({ 0, 0, 0 }, {3, 3, 3}, fn_entity);
 
    return 0;
 }
