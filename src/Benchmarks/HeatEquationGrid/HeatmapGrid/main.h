@@ -4,6 +4,7 @@
 #include <numeric>
 #include <type_traits>
 #include <array>
+#include <bitset>
 
 #include "../Base/HeatmapSolver.h"
 
@@ -11,6 +12,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/StaticArray.h>
+#include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/ParallelFor.h>
 
 #pragma once
@@ -19,6 +21,29 @@ template<bool ...> struct bool_pack {};
 
 template <bool... Bs>
 using conjunction = std::is_same<bool_pack<true, Bs...>, bool_pack<Bs..., true>>;
+
+template<int Dimension,
+         typename Index,
+         typename = std::enable_if_t<(Dimension > 0)>,
+         typename = std::enable_if_t<std::is_integral<Index>::value>>
+using Container = TNL::Containers::StaticArray<Dimension, Index>;
+
+template<int Dimension,
+         typename Index,
+         typename = std::enable_if_t<(Dimension > 0)>,
+         typename = std::enable_if_t<std::is_integral<Index>::value>>
+class GridEntity {
+   public:
+      GridEntity(const Container<Dimension, Index>& origin,
+                 const Container<Dimension, Index>& dimensions,
+                 const std::bitset<Dimension>& direction): origin(origin),
+                                                           dimensions(dimensions),
+                                                           direction(direction) {};
+   private:
+      Container<Dimension, Index> origin;
+      Container<Dimension, Index> dimensions;
+      std::bitset<Dimension> direction;
+};
 
 template<int Dimension,
          typename Index,
@@ -31,7 +56,9 @@ class Grid {
 
       /**
        *  @brief - Specifies dimensions of the grid
-       *  @param[in] dimensions - A parameter pack, which specifies edges count in the specific dimension
+       *  @param[in] dimensions - A parameter pack, which specifies edges count in the specific dimension.
+       *                          Most significant dimension is in the beginning of the list.
+       *                          Least significant dimension is in the end of the list
        */
       template <typename... Dimensions,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, Dimensions>::value...>::value>,
@@ -63,7 +90,7 @@ class Grid {
       template <typename... DimensionIndex,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
                 typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)>>
-      TNL::Containers::StaticArray<sizeof...(DimensionIndex), Index> getDimensions(DimensionIndex... indicies) const noexcept {
+      Container<sizeof...(DimensionIndex), Index> getDimensions(DimensionIndex... indicies) const noexcept {
          TNL::Containers::StaticArray<sizeof...(DimensionIndex), Index> result{indicies...};
 
          for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++)
@@ -86,9 +113,8 @@ class Grid {
       template <typename... DimensionIndex,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
                 typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)>>
-      TNL::Containers::StaticArray<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indicies) const noexcept
-      {
-         TNL::Containers::StaticArray<sizeof...(DimensionIndex), Index> result{indicies...};
+      Container<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indicies) const noexcept {
+         Container<sizeof...(DimensionIndex), Index> result{indicies...};
 
          for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++)
             result[i] = this -> getEntitiesCount(result[i]);
@@ -96,38 +122,81 @@ class Grid {
          return result;
       }
       /**
-       * @brief - Traversers a specified dimension in parallel.
+       * @brief - Traversers all elements in the grid
        */
       template <typename Function, typename... FunctionArgs>
-      void traverse(const Index dimension, Function function, FunctionArgs... args) const noexcept {
-         auto entitiesCount = getEntitiesCount(dimension)[0];
-         auto identity = [] __cuda_callable__ (const Index&& index) mutable { return index; };
-
-         traverse(0, entitiesCount, identity, function, args...);
-      }
-      /**
-       * TODO: - A possibility of improvement, as it should be possible to specify more precise functions
-       *         to remove user knowledge of functionality
-       */
-      template <typename Function, typename IndexTransform, typename... FunctionArgs>
-      void traverse(const Index start,
-                    const Index end,
-                    IndexTransform transform,
-                    Function function,
-                    FunctionArgs... args) const noexcept {
-         TNL_ASSERT_LT(start, end, "Start index must be less than endIndex")
-
-         auto lambda = [=] __cuda_callable__(const Index index, FunctionArgs... args) mutable
-         {
-            auto transformedIndex = transform(index);
-
-            function(transformedIndex, args...);
+      void traverseAll(Function function, FunctionArgs... args) const noexcept {
+         auto lambda = [=] __cuda_callable__(const Index index, FunctionArgs... args) mutable {
+            function(index, args...);
          };
 
-         TNL::Algorithms::ParallelFor<Device>::exec(start, end, lambda, args...);
+         TNL::Algorithms::ParallelFor<Device>::exec(0, cumulativeDimensionMap[0], lambda, args...);
+      }
+      /**
+       * @brief - Traverses a grid from start index to end index.
+       *
+       * @param[in] start - a start index of point
+       * @param[in] end - an end index of point
+       * @param[in] directions - A pack of boolean vector flags with the size of the dimension.
+       *   For example, let's have the 3-dimensional grid.
+       *     A pack {false, false, false} will call function for all points
+       *     A pack {true, false, false} will call function for edges directed over dimension at index of true
+       *     A pack {true, true, false} will call function for faces directed over dimension at index of true
+       *     A pack {true, true, true} will call function for cells directed over
+       *
+       */
+      template<typename Function, typename... FunctionArgs>
+      void traverse(const Container<Dimension, Index>& start,
+                    const Container<Dimension, Index>& end,
+                    const TNL::Containers::Vector<std::bitset<Dimension>>& directions,
+                    Function function,
+                    FunctionArgs... args) const noexcept {
+         // TODO: - This will overflow for higher dimensions
+         Index startCollapsedIndex = 0;
+         Index endCollapsedIndex = 0;
+
+         // TODO: - For higher dimensions, this will overflow.
+         Container<Dimension, Index> multipliers = 1;
+
+         for (Index i = 0; i < Dimension; i++) {
+            for (Index j = i + 1; j < Dimension; j++)
+               multipliers[i] *= dimensions[j];
+
+            startCollapsedIndex += start[i] * multipliers[i];
+            endCollapsedIndex += end[i] * multipliers[i];
+         }
+
+         // TODO: - Improve message formatting
+         TNL_ASSERT_LT(startCollapsedIndex, endCollapsedIndex, "Traverse range must be in [start..<end]")
+         TNL_ASSERT_LE(endCollapsedIndex, this -> cumulativeDimensionMap[0], "End must be less, than amount of points in grid");
+
+         auto dimensions = this -> dimensions;
+
+         auto outerFunction = [=] __cuda_callable__ (const Index i, FunctionArgs... args) mutable {
+            Index dim = Dimension - 1;
+
+            while (i != 0) {
+               Index newIndex = start[dim] + i, dimension = dimensions[dim];
+               Index quotient = newIndex / dimension;
+               Index reminder = newIndex - (dimension * quotient);
+
+               start[dim] = reminder;
+               i = quotient;
+
+               dim -= 1;
+            }
+
+            for (const auto& direction: directions) {
+               GridEntity<Dimension, Index> entity = { start, dimensions, direction };
+
+               function(entity, args...);
+            }
+         };
+
+         TNL::Algorithms::ParallelFor<Device>::exec(0, endCollapsedIndex - startCollapsedIndex + 1, outerFunction, args...);
       }
    private:
-      TNL::Containers::StaticArray<Dimension, Index> dimensions;
+      Container<Dimension, Index> dimensions;
       /**
        * @brief - A dimension map is a store for dimension limits over all combinations of basis.
        *          First, (n choose 0) elements will contain the count of 0 dimension elements
@@ -136,17 +205,17 @@ class Grid {
        *
        *          For example, let's have a 3-d grid, then the map indexing will be the next:
        *            0 - 0 - count of vertices
-       *            1, 2, 3 - count of edges in x, y, z plane
-       *            4, 5, 6 - count of faces in xy, xz, yz plane
-       *            7 - count of cells in xyz plane
+       *            1, 2, 3 - count of edges in z, y, x plane
+       *            4, 5, 6 - count of faces in yz, xz, xy plane
+       *            7 - count of cells in z y x plane
        *
        * @warning - The ordering of is lexigraphical.
        */
-      TNL::Containers::StaticArray<1 << Dimension, Index> dimensionMap;
+      Container<1 << Dimension, Index> dimensionMap;
       /**
        * @brief - A cumulative map over dimensions.
        */
-      TNL::Containers::StaticArray<Dimension + 1, Index> cumulativeDimensionMap;
+      Container<Dimension + 1, Index> cumulativeDimensionMap;
       /**
        * @brief - Fills dimensions map for N-dimensional Grid.
        *
@@ -166,15 +235,8 @@ class Grid {
             do {
                int result = 1;
 
-               for (std::size_t i = 0; i < combinationBuffer.size(); i++) {
-                  // Dimensions are stored in the least significant order.
-                  // For example, the list of dimensions [1, 2, 3] is the size along [x, y, z] dimensions
-                  // Combination generator follow lexical order, so the first element of the sequence is [0, 0, ..., 0, 1].
-                  // That's why we need to reverse index to obtain valid dimension.
-                  auto reversedIndex = combinationBuffer.size() - 1 - i;
-
-                  result *= combinationBuffer[reversedIndex] ? dimensions[i] : dimensions[i] + 1;
-               }
+               for (std::size_t k = 0; k < combinationBuffer.size(); k++)
+                  result *= combinationBuffer[k] ? dimensions[k] : dimensions[k] + 1;
 
                dimensionMap[j] = result;
                cumulativeDimensionMap[i] += result;
@@ -217,9 +279,7 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
 int main(int argc, char *argv[]) {
    Grid<3, int> grid;
 
-   grid.setDimensions(1, 2, 3);
-
-
+   grid.setDimensions(3, 2, 1);
 
    return 0;
 }
