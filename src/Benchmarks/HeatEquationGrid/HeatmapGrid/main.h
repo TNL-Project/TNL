@@ -33,30 +33,32 @@ template<int Dimension,
          typename = std::enable_if_t<std::is_integral<Index>::value>>
 class GridEntity {
    public:
-      __cuda_callable__ inline
+      __cuda_callable__ inline explicit
       GridEntity(const Container<Dimension, Index>& startPosition,
                  const Index& startOffset,
                  const Index& offset,
-                 const Container<Dimension, Index>& dimensions):
-             //    const std::bitset<Dimension> direction) :
+                 const Container<Dimension, Index>& dimensions,
+                 const Container<Dimension, bool> direction) :
                  startPosition(startPosition),
                  startOffset(startOffset),
-                 position({}),
                  offset(offset),
-                 dimensions(dimensions) {}//,
-                 //direction(direction) {};
+                 dimensions(dimensions),
+                 direction(direction) {
+        this -> position = -1;
+      };
+
       __cuda_callable__
       ~GridEntity() {};
 
       __cuda_callable__ inline
       Container<Dimension, Index> getPosition() noexcept {
-         if (position.getSize() == 0) {
+         if (position[0] == -1) {
             auto position = startPosition;
             Index tmpOffset = offset;
 
             Index dim = Dimension - 1;
 
-            while (offset != 0) {
+            while (tmpOffset) {
                Index newIndex = position[dim] + tmpOffset, dimension = dimensions[dim];
                Index quotient = newIndex / dimension;
                Index reminder = newIndex - (dimension * quotient);
@@ -85,7 +87,7 @@ class GridEntity {
       const Index offset;
 
       const Container<Dimension, Index> dimensions;
-    //  const std::bitset<Dimension> direction;
+      const Container<Dimension, bool> direction;
 };
 
 template<int Dimension,
@@ -99,7 +101,7 @@ class Grid {
 
       /**
        *  @brief - Specifies dimensions of the grid
-       *  @param[in] dimensions - A parameter pack, which specifies edges count in the specific dimension.
+       *  @param[in] dimensions - A parameter pack, which specifies points count in the specific dimension.
        *                          Most significant dimension is in the beginning of the list.
        *                          Least significant dimension is in the end of the list
        */
@@ -110,6 +112,7 @@ class Grid {
          Index i = 0;
 
          for (auto x: { dimensions... }) {
+            TNL_ASSERT_GT(x, 0, "Dimension must be positive");
             this -> dimensions[i] = x;
             i++;
          }
@@ -189,7 +192,7 @@ class Grid {
       template<typename Function, typename... FunctionArgs>
       void traverse(const Container<Dimension, Index>& start,
                     const Container<Dimension, Index>& end,
-                    //const TNL::Containers::Array<std::bitset<Dimension>, Device>& directions,
+                    const TNL::Containers::Array<Container<Dimension, bool>, Device>& directions,
                     Function function,
                     FunctionArgs... args) const noexcept {
          // TODO: - This will overflow for higher dimensions
@@ -212,18 +215,14 @@ class Grid {
          TNL_ASSERT_LE(endCollapsedIndex, this -> cumulativeDimensionMap[0], "End must be less, than amount of points in grid");
 
          auto dimensions = this -> dimensions;
-        // auto directionsView = directions.getConstView();
+         auto directionsView = directions.getConstView();
 
          auto outerFunction = [=] __cuda_callable__ (Index offset, FunctionArgs... args) mutable {
-            GridEntity<Dimension, Index> entity{ start, startCollapsedIndex, offset, dimensions };
+            for (Index j = 0; j < directionsView.getSize(); j++) {
+               GridEntity<Dimension, Index> entity{ start, startCollapsedIndex, offset, dimensions, directionsView[j] };
 
-            function(entity, args...);
-
-           // for (Index j = 0; j < directionsView.getSize(); j++) {
-            //   GridEntity<Dimension, Index> entity{ start, startCollapsedIndex, j, dimensions, directionsView[i] };
-
-
-            //}
+               function(entity, args...);
+            }
          };
 
          TNL::Algorithms::ParallelFor<Device>::exec(0, endCollapsedIndex - startCollapsedIndex + 1, outerFunction, args...);
@@ -269,7 +268,7 @@ class Grid {
                int result = 1;
 
                for (std::size_t k = 0; k < combinationBuffer.size(); k++)
-                  result *= combinationBuffer[k] ? dimensions[k] : dimensions[k] + 1;
+                  result *= combinationBuffer[k] ? dimensions[k] - 1 : dimensions[k];
 
                dimensionMap[j] = result;
                cumulativeDimensionMap[i] += result;
@@ -322,7 +321,7 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
 };
 
 int main(int argc, char *argv[]) {
-   Grid<3, int, TNL::Devices::Cuda> grid;
+   Grid<3, int, TNL::Devices::Host> grid;
 
    grid.setDimensions(3, 3, 3);
 
@@ -333,17 +332,12 @@ int main(int argc, char *argv[]) {
    grid.traverseAll(fn);
 
    auto fn_entity = [=] __cuda_callable__ (GridEntity<3, int> entity) {
-     // entity.doSomething();
-      //printf("%d\n", entity.getPosition());
-      //printf("%d \n", entity.getIndex());
+      printf("%d \n", entity.getIndex());
    };
 
-   //TNL::Containers::Array<std::bitset<3>> directions;
+   Container<3, int> direction { 0, 0, 0};
 
-   //directions.resize(1);
-   //directions[0] = { 0b000 };
-
-   grid.traverse({ 0, 0, 0 }, {3, 3, 3}, fn_entity);
+   grid.traverse({ 1, 1, 1 }, { 2, 2, 2 }, { direction }, fn_entity);
 
    return 0;
 }
