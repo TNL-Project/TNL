@@ -347,7 +347,7 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
    const Container<2, bool> direction{ false, false };
 
    grid.traverse({ 1, 1 },
-                 { grid.getEndIndex(0), grid.getEndIndex(1) },
+                 { grid.getEndIndex(0) - 1, grid.getEndIndex(1) - 1 },
                  { direction },
                  init);
 
