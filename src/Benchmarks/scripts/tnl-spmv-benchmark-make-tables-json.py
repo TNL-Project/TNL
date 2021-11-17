@@ -86,14 +86,17 @@ def latexFormatName( name ):
       return name.replace( 'CSR Adaptive', 'Adaptive CSR' )
    return name
 
+#                                                                        brown
+matplotlib_fixed_colors = [ 'blue', 'green', 'red', 'cyan', 'magenta', '#663300' ]
+
 ####
 # Create multiindex for columns
 def get_multiindex( input_df, formats ):
-   level1 = [ 'Matrix name', 'rows', 'columns' ]
-   level2 = [ '',            '',     ''        ]
-   level3 = [ '',            '',     ''        ]
-   level4 = [ '',            '',     ''        ]
-   df_data = [[ ' ',' ',' ']]
+   level1 = [ 'Matrix name', 'rows', 'columns', 'nonzeros per row' ]
+   level2 = [ '',            '',     '',        '' ]
+   level3 = [ '',            '',     '',        '' ]
+   level4 = [ '',            '',     '',        '' ]
+   df_data = [[ ' ',' ',' ',' ']]
    for format in formats:
       for device in ['CPU','GPU']:
          for data in ['bandwidth', 'time', 'diff.max' ]: #,'time','speed-up','non-zeros','stddev','stddev/time','diff.max','diff.l2']:
@@ -133,6 +136,12 @@ def get_multiindex( input_df, formats ):
          level3.append( 'format')
          level4.append( '' )
          df_data[ 0 ].append( ' ' )
+      if format == 'CSR Light Best':
+         level1.append( format )
+         level2.append( 'GPU' )
+         level3.append( 'format')
+         level4.append( '' )
+         df_data[ 0 ].append( ' ' )
 
    multiColumns = pd.MultiIndex.from_arrays([ level1, level2, level3, level4 ] )
    return multiColumns, df_data
@@ -156,10 +165,13 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
          print( f'{out_idx} : {in_idx} / {len(input_df.index)} : {matrixName} - SKIP' )
       aux_df = pd.DataFrame( df_data, columns = multicolumns, index = [out_idx] )
       best_bw = 0
+      best_csr_light_bw = 0
+      best_csr_light_format = ''
       for index,row in df_matrix.iterrows():
-         aux_df.iloc[0]['Matrix name'] = row['matrix name']
-         aux_df.iloc[0]['rows']        = row['rows']
-         aux_df.iloc[0]['columns']     = row['columns']
+         aux_df.iloc[0]['Matrix name']      = row['matrix name']
+         aux_df.iloc[0]['rows']             = row['rows']
+         aux_df.iloc[0]['columns']          = row['columns']
+         aux_df.iloc[0]['nonzeros per row'] = row['nonzeros per row']
          current_format = row['format']
          current_device = row['device']
          #print( current_format + " / " + current_device )
@@ -180,6 +192,18 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
              bw > best_bw ):
             best_bw = bw
             best_format = current_format
+         if( current_device == 'GPU' and
+             ( current_format == 'CSR< Light > 1' or
+               current_format == 'CSR< Light > 2' or
+               current_format == 'CSR< Light > 4' or
+               current_format == 'CSR< Light > 8' or
+               current_format == 'CSR< Light > 16' or
+               current_format == 'CSR< Light > 32' or
+               current_format == 'CSR< Light > 64' or
+               current_format == 'CSR< Light > 128' ) and
+               bw > best_csr_light_bw ):
+            best_csr_light_bw = bw
+            best_csr_light_format = current_format
          if current_format == 'cusparse':
             cusparse_bw = bw
          #aux_df.iloc[0][(current_format,current_device,'time')]        = row['time']
@@ -195,6 +219,8 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
       else:
          aux_df.iloc[0][('TNL Best','GPU','format','')] = 'cusparse'
       best_count += 1
+      aux_df.iloc[0][('CSR Light Best','GPU','bandwidth','')] = best_csr_light_bw
+      aux_df.iloc[0][('CSR Light Best','GPU','format','')] = best_csr_light_format
       if out_idx >= begin_idx:
          frames.append( aux_df )
       out_idx = out_idx + 1
@@ -254,12 +280,12 @@ def compute_binary_speedup( df, formats ):
       if 'Binary' in format:
          non_binary_format = format.replace( 'Binary ', '' )
          print( f'Adding speed-up of {format} vs {non_binary_format}' )
-         format_bdw_list = df[(format,'GPU','bandwidth')]
-         non_binary_bdw_list = df[(non_binary_format,'GPU','bandwidth')]
+         format_time_list = df[(format,'GPU','time')]
+         non_binary_time_list = df[(non_binary_format,'GPU','time')]
          binary_speedup_list = []
-         for ( format_bdw, non_binary_bdw ) in zip( format_bdw_list, non_binary_bdw_list ):
+         for ( format_time, non_binary_time ) in zip( format_time_list, non_binary_time_list ):
             try:
-               binary_speedup_list.append( format_bdw / non_binary_bdw )
+               binary_speedup_list.append( format_time / non_binary_time )
             except:
                binary_speedup_list.append( float('nan'))
          df[(format,'GPU','speed-up','non-binary')] = binary_speedup_list
@@ -294,9 +320,14 @@ def draw_profiles( formats, profiles, xlabel, ylabel, filename, legend_loc='uppe
    fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
    latexNames = []
    size = 1
+   color_idx = 0
    for format in formats:
       t = np.arange(profiles[format].size )
-      axs.plot( t, profiles[format], '-o', ms=1, lw=1 )
+      if color_idx < len( matplotlib_fixed_colors ):
+         axs.plot( t, profiles[format], '-o', ms=1, lw=1, color=matplotlib_fixed_colors[ color_idx ] )
+         color_idx = color_idx + 1
+      else:
+         axs.plot( t, profiles[format], '-o', ms=1, lw=1 )
       size = len( profiles[format] )
       latexNames.append( latexFormatName( format ) )
    if bar != 'none':
@@ -324,6 +355,7 @@ def effective_bw_profile( df, formats, head_size=10 ):
    if not os.path.exists("BW-profile"):
       os.mkdir("BW-profile")
    profiles = {}
+   color_idx = 0
    for format in formats:
       print( f"Writing BW profile of {format}" )
       fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
@@ -346,7 +378,11 @@ def effective_bw_profile( df, formats, head_size=10 ):
       plt.close(fig)
       fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
       axs.set_yscale( 'log' )
-      axs.plot( t, result[(format,'GPU','bandwidth')], '-o', ms=1, lw=1 )
+      if color_idx < len( matplotlib_fixed_colors ):
+         axs.plot( t, result[(format,'GPU','bandwidth')], '-o', ms=1, lw=1, color=matplotlib_fixed_colors[ color_idx ] )
+         color_idx = color_idx + 1
+      else:
+         axs.plot( t, result[(format,'GPU','bandwidth')], '-o', ms=1, lw=1 )
       axs.legend( [ latexFormatName(format), 'CSR on CPU' ], loc='lower left' )
       axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} performance" )
       axs.set_ylabel( 'Effective bandwidth in GB/sec' )
@@ -687,7 +723,7 @@ def binary_matrices_comparison( df, formats, head_size = 10 ):
          plt.close(fig)
          #head_df = filtered_df.head( head_size )
          #bottom_df = ascend_df.head( head_size )
-         copy_df = df.copy()
+         copy_df = filtered_df.copy()
          for f in formats:
             if not f in ['cusparse','CSR',format,non_binary_format]:
                #print( f"Droping {f}..." )
@@ -949,27 +985,29 @@ def write_performance_circle( df, formats, circle_formats, file_name, scale=1, w
    os.system( f'pdflatex {file_name}-base.tex' )
    print( f'Eliminated formats: {elim}')
 
-####
-# Parse input file
-print( "Parsing input file...." )
-with open('sparse-matrix-benchmark.log') as f:
-    d = json.load(f)
-input_df = json_normalize( d, record_path=['results'] )
-#input_df.to_html( "orig-pandas.html" )
+def write_performance_circles( df, formats ):
 
-formats = list(set( input_df['format'].values.tolist() )) # list of all formats in the benchmark results
-formats.remove('CSR< Light > Automatic')
-formats.remove('Binary CSR< Light > Automatic')
-formats.remove('Symmetric CSR< Light > Automatic')
-formats.remove('Symmetric Binary CSR< Light > Automatic')
-formats.append('TNL Best')
-multicolumns, df_data = get_multiindex( input_df, formats )
+   write_performance_circle( df, formats,
+         ['cusparse', 'Ellpack', 'SlicedEllpack', 'ChunkedEllpack', 'BiEllpack', 'CSR< Scalar >', 'CSR< Adaptive >', 'CSR< Vector >', 'CSR< Light > Automatic Light'],
+         'performance-graph' )
 
-print( "Converting data..." )
-result = convert_data_frame( input_df, multicolumns, df_data, 0, 20000 )
-compute_speedup( result, formats )
-
-result.replace( to_replace=' ',value=np.nan,inplace=True)
+   scale = 0.6
+   aux_df = df
+   aux_df.sort_values(by=[('SlicedEllpack','GPU','bandwidth')],inplace=True,ascending=True)
+   write_performance_circle( aux_df, formats, ['Ellpack', 'ChunkedEllpack', 'SlicedEllpack' ], 'performance-graph-ellpacks-1', scale, with_color_map = False )
+   write_performance_circle( aux_df, formats, ['BiEllpack', 'ChunkedEllpack', 'SlicedEllpack',  ], 'performance-graph-ellpacks-2', scale, with_color_map = False )
+   #write_performance_circle( df, formats, ['CSR< Scalar >', 'CSR< Adaptive >', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-csr-1' )
+   aux_df.sort_values(by=[('CSR< Light > Automatic Light','GPU','bandwidth')],inplace=True,ascending=True)
+   write_performance_circle( aux_df, formats, ['CSR< Scalar >', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-csr-1', scale, with_color_map = False )
+   write_performance_circle( aux_df, formats, ['CSR< Adaptive >', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-csr-2', scale, with_color_map = False )
+   aux_df.sort_values(by=[('cusparse','GPU','bandwidth')],inplace=True,ascending=True)
+   write_performance_circle( aux_df, formats, ['cusparse', 'SlicedEllpack', 'ChunkedEllpack' ], 'performance-graph-cusparse-ellpacks', scale, with_color_map = False )
+   write_performance_circle( aux_df, formats, ['cusparse', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-1', scale, with_color_map = False )
+   write_performance_circle( aux_df, formats, ['cusparse', 'CSR< Adaptive >', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-2', scale, with_color_map = False )
+   write_performance_circle( aux_df, formats, ['cusparse', 'CSR< Scalar >', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-3', scale, with_color_map = False )
+   write_performance_circle( aux_df, formats, ['cusparse', 'SlicedEllpack', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-ellpack', scale, with_color_map = False )
+   with open('color-map.tex', 'w' ) as file:
+      write_colormap( file, 1200, 5, 13*scale, 1.5*scale, standalone=True )
 
 ####
 # Make data analysis
@@ -1002,27 +1040,32 @@ def processDf( df, formats, head_size = 10 ):
          sum += cases
    print( f'Total is {sum}.' )
    print( f'Best formats {best_formats}.')
-   write_performance_circle( df, formats,
-         ['cusparse', 'Ellpack', 'SlicedEllpack', 'ChunkedEllpack', 'BiEllpack', 'CSR< Scalar >', 'CSR< Adaptive >', 'CSR< Vector >', 'CSR< Light > Automatic Light'],
-         'performance-graph' )
 
-   scale = 0.6
-   aux_df = df
-   aux_df.sort_values(by=[('SlicedEllpack','GPU','bandwidth')],inplace=True,ascending=True)
-   write_performance_circle( aux_df, formats, ['Ellpack', 'ChunkedEllpack', 'SlicedEllpack' ], 'performance-graph-ellpacks-1', scale, with_color_map = False )
-   write_performance_circle( aux_df, formats, ['BiEllpack', 'ChunkedEllpack', 'SlicedEllpack',  ], 'performance-graph-ellpacks-2', scale, with_color_map = False )
-   #write_performance_circle( df, formats, ['CSR< Scalar >', 'CSR< Adaptive >', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-csr-1' )
-   aux_df.sort_values(by=[('CSR< Light > Automatic Light','GPU','bandwidth')],inplace=True,ascending=True)
-   write_performance_circle( aux_df, formats, ['CSR< Scalar >', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-csr-1', scale, with_color_map = False )
-   write_performance_circle( aux_df, formats, ['CSR< Adaptive >', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-csr-2', scale, with_color_map = False )
-   aux_df.sort_values(by=[('cusparse','GPU','bandwidth')],inplace=True,ascending=True)
-   write_performance_circle( aux_df, formats, ['cusparse', 'SlicedEllpack', 'ChunkedEllpack' ], 'performance-graph-cusparse-ellpacks', scale, with_color_map = False )
-   write_performance_circle( aux_df, formats, ['cusparse', 'CSR< Vector >', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-1', scale, with_color_map = False )
-   write_performance_circle( aux_df, formats, ['cusparse', 'CSR< Adaptive >', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-2', scale, with_color_map = False )
-   write_performance_circle( aux_df, formats, ['cusparse', 'CSR< Scalar >', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-3', scale, with_color_map = False )
-   write_performance_circle( aux_df, formats, ['cusparse', 'SlicedEllpack', 'CSR< Light > Automatic Light'], 'performance-graph-cusparse-csr-ellpack', scale, with_color_map = False )
-   with open('color-map.tex', 'w' ) as file:
-      write_colormap( file, 1200, 5, 13*scale, 1.5*scale, standalone=True )
+   #write_performance_circles( df, formats )
+
+
+####
+# Parse input file
+print( "Parsing input file...." )
+with open('sparse-matrix-benchmark.log') as f:
+    d = json.load(f)
+input_df = json_normalize( d, record_path=['results'] )
+#input_df.to_html( "orig-pandas.html" )
+
+formats = list(set( input_df['format'].values.tolist() )) # list of all formats in the benchmark results
+formats.remove('CSR< Light > Automatic')
+formats.remove('Binary CSR< Light > Automatic')
+formats.remove('Symmetric CSR< Light > Automatic')
+formats.remove('Symmetric Binary CSR< Light > Automatic')
+formats.append('TNL Best')
+formats.append('CSR Light Best')
+multicolumns, df_data = get_multiindex( input_df, formats )
+
+print( "Converting data..." )
+result = convert_data_frame( input_df, multicolumns, df_data, 0, 200 )
+compute_speedup( result, formats )
+
+result.replace( to_replace=' ',value=np.nan,inplace=True)
 
 head_size = 25
 if not os.path.exists( 'general' ):
