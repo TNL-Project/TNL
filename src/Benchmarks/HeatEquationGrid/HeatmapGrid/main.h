@@ -138,13 +138,13 @@ class Grid {
          return dimensions[index];
       }
       /**
-       * @param[in] indicies - A dimension index pack
+       * @param[in] indices - A dimension index pack
        */
       template <typename... DimensionIndex,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
                 typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)>>
-      Container<sizeof...(DimensionIndex), Index> getDimensions(DimensionIndex... indicies) const noexcept {
-         Container<sizeof...(DimensionIndex), Index> result{indicies...};
+      Container<sizeof...(DimensionIndex), Index> getDimensions(DimensionIndex... indices) const noexcept {
+         Container<sizeof...(DimensionIndex), Index> result{indices...};
 
          for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++)
             result[i] = this -> getDimension(result[i]);
@@ -166,8 +166,8 @@ class Grid {
       template <typename... DimensionIndex,
                 typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
                 typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)>>
-      Container<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indicies) const noexcept {
-         Container<sizeof...(DimensionIndex), Index> result{indicies...};
+      Container<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indices) const noexcept {
+         Container<sizeof...(DimensionIndex), Index> result{indices...};
 
          for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++)
             result[i] = this -> getEntitiesCount(result[i]);
@@ -189,8 +189,8 @@ class Grid {
       template <typename... DimensionIndex,
          typename = std::enable_if_t<conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
          typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)>>
-         Container<sizeof...(DimensionIndex), Index> getEndIndicies(DimensionIndex... indicies) const noexcept {
-         Container<sizeof...(DimensionIndex), Index> result{ indicies... };
+         Container<sizeof...(DimensionIndex), Index> getEndindices(DimensionIndex... indices) const noexcept {
+         Container<sizeof...(DimensionIndex), Index> result{ indices... };
 
          for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++)
             result[i] = this->getEndIndex(result[i]);
