@@ -1,0 +1,5 @@
+if (BUILD_CUDA)
+   CUDA_ADD_EXECUTABLE( benchmark_heat_n_dim_grid ../Base/HeatmapSolver.h main.h main.cu )
+ELSE()
+   add_executable( benchmark_heat_n_dim_grid ../Base/HeatmapSolver.h main.h main.cpp )
+ENDIF()

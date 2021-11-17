@@ -1,2 +1,3 @@
 ADD_SUBDIRECTORY( HeatmapParallelFor )
-ADD_SUBDIRECTORY( HeatmapGrid )
+ADD_SUBDIRECTORY( HeatmapNDimGrid )
+ADD_SUBDIRECTORY( HeatmapTNLGrid )

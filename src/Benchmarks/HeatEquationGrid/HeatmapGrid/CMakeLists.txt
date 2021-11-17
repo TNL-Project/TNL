@@ -1,5 +1,0 @@
-if (BUILD_CUDA)
-   CUDA_ADD_EXECUTABLE( benchmark_heat_grid main.h main.cu )
-ELSE()
-   add_executable( benchmark_heat_grid main.h main.cpp )
-ENDIF()

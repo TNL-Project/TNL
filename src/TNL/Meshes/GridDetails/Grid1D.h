@@ -13,6 +13,7 @@
 #include <TNL/Meshes/GridDetails/NeighborGridEntityGetter.h>
 #include <TNL/Meshes/GridEntity.h>
 #include <TNL/Meshes/GridEntityConfig.h>
+#include <TNL/Algorithms/ParallelFor.h>
 
 namespace TNL {
 namespace Meshes {
@@ -194,12 +195,29 @@ public:
    getSpaceStepsProducts() const;
 
    /**
-    * \breif Returns the measure (length) of a cell in this grid.
+    * \brief Returns the measure (length) of a cell in this grid.
     */
    __cuda_callable__
    inline const RealType&
    getCellMeasure() const;
 
+   /**
+    * \brief Traverses all elements
+    */
+   template<int EntityDimension, typename Func, typename... FuncArgs>
+   void forAll(Func func, FuncArgs... args) const;
+
+   /**
+    * \brief Traversers boundary elements
+    */
+   template<int EntityDimension, typename Func, typename... FuncArgs>
+   void forBoundary(Func func, FuncArgs... args) const;
+
+   /**
+    * \brief Traversers interior elements
+    */
+   template<int EntityDimension, typename Func, typename... FuncArgs>
+   void forInterior(Func func, FuncArgs... args) const;
    /**
     * \brief Returns the smallest length of step out of all coordinates (axes).
     */
