@@ -326,7 +326,226 @@ Grid< 2, Real, Device, Index >::getSmallestSpaceStep() const
    return min( this->spaceSteps.x(), this->spaceSteps.y() );
 }
 
-template< typename Real, typename Device, typename Index >
+template< typename Real,
+          typename Device,
+          typename Index >
+template<int EntityDimension, typename Func, typename... FuncArgs>
+void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
+   static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0..<2]");
+
+   auto outer = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>&grid, FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid);
+
+      entity.setCoordinates({ i, j });
+      entity.refresh();
+
+      func(entity, args...);
+   };
+
+   switch (EntityDimension) {
+   case 0:
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0, dimensions.x() + 1, dimensions.y() + 1, outer, *this, args...);
+      break;
+   case 1: {
+      auto outerOriented = [=] __cuda_callable__(Index i, Index j,
+                                                 const Grid<2, Real, Device, Index>&grid,
+                                                 const CoordinatesType & orientation,
+                                                 const CoordinatesType & basis,
+                                                 FuncArgs... args) mutable {
+         EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation, basis);
+
+         entity.refresh();
+
+         func(entity, args...);
+      };
+
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0,
+                                                   dimensions.x() + 1, dimensions.y(),
+                                                   outerOriented,
+                                                   *this,
+                                                   CoordinatesType(1, 0),
+                                                   CoordinatesType(0, 1),
+                                                   args...);
+
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0,
+                                                   dimensions.x(), dimensions.y() + 1,
+                                                   outerOriented,
+                                                   *this,
+                                                   CoordinatesType(0, 1),
+                                                   CoordinatesType(1, 0),
+                                                   args...);
+      break;
+   }
+   case 2:
+      TNL::Algorithms::ParallelFor2D<Device>::exec(localBegin.x(), localBegin.y(), localEnd.x(), localEnd.y(), outer, * this, args...);
+      break;
+   default: break;
+   }
+}
+
+template< typename Real,
+          typename Device,
+          typename Index >
+template<int EntityDimension, typename Func, typename... FuncArgs>
+void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) const {
+   static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0..<2]");
+
+   auto outer = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>&grid, FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid);
+
+      entity.setCoordinates({ i, j });
+      entity.refresh();
+
+      func(entity, args...);
+   };
+
+   switch (EntityDimension) {
+   case 0:
+      TNL::Algorithms::ParallelFor2D<Device>::exec(1, 1, dimensions.x(), dimensions.y(), outer, *this, args...);
+      break;
+   case 1: {
+      auto outerOriented = [=] __cuda_callable__(Index i, Index j,
+                                                 const Grid<2, Real, Device, Index>&grid,
+                                                 const CoordinatesType& orientation,
+                                                 const CoordinatesType& basis,
+                                                 FuncArgs... args) mutable {
+         EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation, basis);
+
+         entity.refresh();
+
+         func(entity, args...);
+      };
+
+      TNL::Algorithms::ParallelFor2D<Device>::exec(1, 0,
+                                                   dimensions.x(), dimensions.y(),
+                                                   outerOriented,
+                                                   *this,
+                                                   CoordinatesType(1, 0),
+                                                   CoordinatesType(0, 1),
+                                                   args...);
+
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 1,
+                                                   dimensions.x(), dimensions.y(),
+                                                   outerOriented,
+                                                   *this,
+                                                   CoordinatesType(0, 1),
+                                                   CoordinatesType(1, 0),
+                                                   args...);
+      break;
+   }
+   case 2:
+      TNL::Algorithms::ParallelFor2D<Device>::exec(interiorBegin.x(), interiorBegin.y(), interiorEnd.x(), interiorEnd.y(), outer, *this, args...);
+      break;
+   default:
+      break;
+   }
+}
+
+template< typename Real,
+          typename Device,
+          typename Index >
+template<int EntityDimension, typename Func, typename... FuncArgs>
+void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) const {
+   static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0..<2]");
+
+   auto outer = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>&grid, FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid);
+
+      entity.setCoordinates({ i, j });
+      entity.refresh();
+
+      func(entity, args...);
+   };
+
+   switch (EntityDimension) {
+   case 0:
+      // Lower horizontal
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0, dimensions.x() + 1, 1, outer, *this, args...);
+      // Upper horizontal
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, dimensions.y(), dimensions.x() + 1, dimensions.y() + 1, outer, *this, args...);
+      // Left vertical
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0, 1, dimensions.y() + 1, outer, *this, args...);
+      // Right vertical
+      TNL::Algorithms::ParallelFor2D<Device>::exec(dimensions.x(), 0, dimensions.x() + 1, dimensions.y() + 1, outer, *this, args...);
+      break;
+   case 1: {
+      auto outerOriented = [=] __cuda_callable__(Index i, Index j,
+                                                 const Grid<2, Real, Device, Index>&grid,
+                                                 const CoordinatesType & orientation,
+                                                 const CoordinatesType & basis,
+                                                 FuncArgs... args) mutable {
+         EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation, basis);
+
+         entity.refresh();
+
+         func(entity, args...);
+      };
+
+      // Lower horizontal
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0,
+                                                   dimensions.x() + 1, 1,
+                                                   outerOriented,
+                                                   *this,
+                                                   CoordinatesType(1, 0),
+                                                   CoordinatesType(0, 1),
+                                                   args...);
+      // Upper horizontal
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, dimensions.y() - 1,
+                                                   dimensions.x() + 1, dimensions.y(),
+                                                   outerOriented,
+                                                   *this,
+                                                   CoordinatesType(1, 0),
+                                                   CoordinatesType(0, 1),
+                                                   args...);
+      // Left vertical
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0,
+                                                   1, dimensions.y(),
+                                                   outerOriented,
+                                                   *this,
+                                                   CoordinatesType(0, 1),
+                                                   CoordinatesType(1, 0),
+                                                   args...);
+      // Right vertical
+      TNL::Algorithms::ParallelFor2D<Device>::exec(dimensions.x() - 1, 0,
+                                                   dimensions.x(), dimensions.y(),
+                                                   outerOriented,
+                                                   *this,
+                                                   CoordinatesType(0, 1),
+                                                   CoordinatesType(1, 0),
+                                                   args...);
+      break;
+   }
+   case 2:
+      if (localBegin < interiorBegin && interiorEnd < localEnd) {
+         // Lower horizontal
+         TNL::Algorithms::ParallelFor2D<Device>::exec(interiorBegin.x() - 1, interiorBegin.y() - 1, interiorEnd.x() + 1, interiorBegin.y() + 1, outer, *this, args...);
+         // Upper horizontal
+         TNL::Algorithms::ParallelFor2D<Device>::exec(interiorBegin.x() - 1, interiorEnd.y() - 1, interiorEnd.x() + 1, interiorEnd.y() + 1, outer, *this, args...);
+         // Left vertical
+         TNL::Algorithms::ParallelFor2D<Device>::exec(interiorBegin.x() -1, interiorBegin.y() - 1, interiorBegin.x() + 1, interiorEnd.y() + 1, outer, *this, args...);
+         // Right vertical
+         TNL::Algorithms::ParallelFor2D<Device>::exec(interiorEnd.x() - 1, interiorBegin.y() - 1, interiorEnd.x() + 1, interiorEnd.y() + 1, outer, *this, args...);
+         return;
+      }
+
+      // Lower horizontal
+      TNL::Algorithms::ParallelFor2D<Device>::exec(localBegin.x(), localBegin.y(), localEnd.x(), interiorBegin.y(), outer, *this, args...);
+      // Upper horizontal
+      TNL::Algorithms::ParallelFor2D<Device>::exec(localBegin.x(), interiorEnd.y(), localEnd.x(), localEnd.y(), outer, *this, args...);
+      // Left vertical
+      TNL::Algorithms::ParallelFor2D<Device>::exec(localBegin.x(), interiorBegin.y(), interiorBegin.x(), interiorEnd.y(), outer, *this, args...);
+      // Right vertical
+      TNL::Algorithms::ParallelFor2D<Device>::exec(interiorEnd.x(), interiorBegin.y(), localEnd.x(), interiorEnd.y(), outer, *this, args...);
+
+      break;
+   default:
+      break;
+   }
+}
+
+template< typename Real,
+          typename Device,
+          typename Index >
 void
 Grid< 2, Real, Device, Index >::writeProlog( Logger& logger ) const
 {
