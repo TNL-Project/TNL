@@ -280,7 +280,10 @@ void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
       TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.x() + 1, outer, *this, args...);
       break;
    case 1:
-      TNL::Algorithms::ParallelFor<Device>::exec(localBegin.x(), localEnd.x(), outer, *this, args...);
+      //TODO: - Update for distributed grid
+      //TNL::Algorithms::ParallelFor<Device>::exec(localBegin.x(), localEnd.x(), outer, *this, args...);
+
+      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.x(), outer, *this, args...);
       break;
    default: break;
    }
@@ -304,11 +307,16 @@ void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
 
    switch (EntityDimension) {
    case 0:
-      outer(0, *this, args...);
-      outer(getDimensions().x(), *this, args...);
+      // TODO: - Implement call within a single kernel
+      TNL::Algorithms::ParallelFor<Device>::exec(0, 1, outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(getDimensions().x(), getDimensions().x() + 1, outer, *this, args...);
       break;
    case 1:
-      if (localBegin < interiorBegin && interiorEnd < localEnd) {
+      TNL::Algorithms::ParallelFor<Device>::exec(0, 1, outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(getDimensions().x() - 1, getDimensions().x(), outer, *this, args...);
+
+      // TODO: - Verify for distributed grid
+      /*if (localBegin < interiorBegin && interiorEnd < localEnd) {
          outer(interiorBegin.x() - 1, *this, args...);
          outer(interiorEnd.x(), *this, args...);
          break;
@@ -320,7 +328,7 @@ void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
       }
 
       if (interiorEnd < localEnd)
-         outer(interiorEnd.x(), *this, args...);
+         outer(interiorEnd.x(), *this, args...);*/
       break;
    default: break;
    }
@@ -347,7 +355,10 @@ void Grid<1, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
       TNL::Algorithms::ParallelFor<Device>::exec(1, dimensions.x(), outer, *this, args...);
       break;
    case 1:
-      TNL::Algorithms::ParallelFor<Device>::exec(interiorBegin.x(), interiorEnd.x(), outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(1, dimensions.x() - 1, outer, *this, args...);
+
+      // TODO: - Verify for distributed grids
+      //TNL::Algorithms::ParallelFor<Device>::exec(interiorBegin.x(), interiorEnd.x(), outer, *this, args...);
       break;
    default: break;
    }
