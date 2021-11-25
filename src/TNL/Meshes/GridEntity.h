@@ -28,31 +28,30 @@ class GridEntity
 template< int Dimension, typename Real, typename Device, typename Index, int EntityDimension, typename Config >
 class GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >
 {
-public:
-   using GridType = Meshes::Grid< Dimension, Real, Device, Index >;
-   using MeshType = GridType;
-   using RealType = typename GridType::RealType;
-   using IndexType = typename GridType::IndexType;
-   using CoordinatesType = typename GridType::CoordinatesType;
-   using ConfigType = Config;
+   public:
 
-   constexpr static int
-   getMeshDimension()
-   {
-      return GridType::getMeshDimension();
-   };
+      typedef Meshes::Grid< Dimension, Real, Device, Index > GridType;
+      typedef GridType MeshType;
+      typedef typename GridType::RealType RealType;
+      typedef typename GridType::IndexType IndexType;
+      typedef typename GridType::CoordinatesType CoordinatesType;
+      typedef Config ConfigType;
 
-   constexpr static int
-   getEntityDimension()
-   {
-      return EntityDimension;
-   };
+      constexpr static int getMeshDimension() { return GridType::getMeshDimension(); };
 
-   using EntityOrientationType = Containers::StaticVector< getMeshDimension(), IndexType >;
-   using EntityBasisType = Containers::StaticVector< getMeshDimension(), IndexType >;
-   using PointType = typename GridType::PointType;
+      constexpr static int getEntityDimension() { return EntityDimension; };
 
-   using NeighborGridEntitiesStorageType = NeighborGridEntitiesStorage< GridEntity, Config >;
+      typedef Containers::StaticVector< getMeshDimension(), IndexType > EntityOrientationType;
+      typedef Containers::StaticVector< getMeshDimension(), IndexType > EntityBasisType;
+      typedef typename GridType::PointType PointType;
+
+      template< int NeighborEntityDimension = getEntityDimension() >
+      using NeighborEntities =
+         NeighborGridEntityGetter<
+            GridEntity< Meshes::Grid< Dimension, Real, Device, Index >,
+                           EntityDimension,
+                           Config >,
+            NeighborEntityDimension >;
 
    template< int NeighborEntityDimension = getEntityDimension() >
    using NeighborEntities =
@@ -107,14 +106,8 @@ public:
    inline const EntityBasisType&
    getBasis() const;
 
-   __cuda_callable__
-   inline void
-   setBasis( const EntityBasisType& basis );
-
-   template< int NeighborEntityDimension = getEntityDimension() >
-   __cuda_callable__
-   inline const NeighborEntities< NeighborEntityDimension >&
-   getNeighborEntities() const;
+      __cuda_callable__ inline
+      bool isBoundaryEntity() const;
 
    __cuda_callable__
    inline bool
@@ -143,10 +136,8 @@ protected:
 
    EntityBasisType basis;
 
-   NeighborGridEntitiesStorageType neighborEntitiesStorage;
-
-   //__cuda_callable__ inline
-   // GridEntity();
+      //__cuda_callable__ inline
+      //GridEntity();
 
    friend class BoundaryGridEntityChecker< GridEntity >;
 
@@ -159,117 +150,88 @@ protected:
 template< int Dimension, typename Real, typename Device, typename Index, typename Config >
 class GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >
 {
-public:
-   using GridType = Meshes::Grid< Dimension, Real, Device, Index >;
-   using MeshType = GridType;
-   using RealType = typename GridType::RealType;
-   using IndexType = typename GridType::IndexType;
-   using CoordinatesType = typename GridType::CoordinatesType;
-   using PointType = typename GridType::PointType;
-   using ConfigType = Config;
+   public:
 
-   constexpr static int
-   getMeshDimension()
-   {
-      return GridType::getMeshDimension();
-   };
+      typedef Meshes::Grid< Dimension, Real, Device, Index > GridType;
+      typedef GridType MeshType;
+      typedef typename GridType::RealType RealType;
+      typedef typename GridType::IndexType IndexType;
+      typedef typename GridType::CoordinatesType CoordinatesType;
+      typedef typename GridType::PointType PointType;
+      typedef Config ConfigType;
 
-   constexpr static int
-   getEntityDimension()
-   {
-      return getMeshDimension();
-   };
+      constexpr static int getMeshDimension() { return GridType::getMeshDimension(); };
 
-   using EntityOrientationType = Containers::StaticVector< getMeshDimension(), IndexType >;
-   using EntityBasisType = Containers::StaticVector< getMeshDimension(), IndexType >;
-   using NeighborGridEntitiesStorageType = NeighborGridEntitiesStorage< GridEntity, Config >;
+      constexpr static int getEntityDimension() { return getMeshDimension(); };
 
-   template< int NeighborEntityDimension = getEntityDimension() >
-   using NeighborEntities =
-      NeighborGridEntityGetter< GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >,
-                                NeighborEntityDimension >;
+      typedef Containers::StaticVector< getMeshDimension(), IndexType > EntityOrientationType;
+      typedef Containers::StaticVector< getMeshDimension(), IndexType > EntityBasisType;
 
-   __cuda_callable__
-   inline GridEntity( const GridType& grid );
+      template< int NeighborEntityDimension = getEntityDimension() >
+      using NeighborEntities =
+         NeighborGridEntityGetter<
+            GridEntity< Meshes::Grid< Dimension, Real, Device, Index >,
+                           Dimension,
+                           Config >,
+            NeighborEntityDimension >;
 
-   __cuda_callable__
-   inline GridEntity( const GridType& grid,
-                      const CoordinatesType& coordinates,
-                      const EntityOrientationType& orientation = EntityOrientationType( (Index) 0 ),
-                      const EntityBasisType& basis = EntityBasisType( (Index) 1 ) );
 
-   __cuda_callable__
-   inline const CoordinatesType&
-   getCoordinates() const;
+      __cuda_callable__ inline
+      GridEntity( const GridType& grid );
 
-   __cuda_callable__
-   inline CoordinatesType&
-   getCoordinates();
+      __cuda_callable__ inline
+      GridEntity( const GridType& grid,
+                  const CoordinatesType& coordinates,
+                  const EntityOrientationType& orientation = EntityOrientationType( ( Index ) 0 ),
+                  const EntityBasisType& basis = EntityBasisType( ( Index ) 1 ) );
 
-   __cuda_callable__
-   inline void
-   setCoordinates( const CoordinatesType& coordinates );
+      __cuda_callable__ inline
+      const CoordinatesType& getCoordinates() const;
 
-   /***
-    * Call this method every time the coordinates are changed
-    * to recompute the mesh entity index. The reason for this strange
-    * mechanism is a performance.
-    */
-   __cuda_callable__
-   inline
-      // void setIndex( IndexType entityIndex );
-      void
-      refresh();
+      __cuda_callable__ inline
+      CoordinatesType& getCoordinates();
 
-   __cuda_callable__
-   inline Index
-   getIndex() const;
+      __cuda_callable__ inline
+      void setCoordinates( const CoordinatesType& coordinates );
 
-   __cuda_callable__
-   inline EntityOrientationType
-   getOrientation() const;
+      /***
+       * Call this method every time the coordinates are changed
+       * to recompute the mesh entity index. The reason for this strange
+       * mechanism is a performance.
+       */
+      __cuda_callable__ inline
+      //void setIndex( IndexType entityIndex );
+      void refresh();
 
-   __cuda_callable__
-   inline void
-   setOrientation( const EntityOrientationType& orientation ){};
+      __cuda_callable__ inline
+      Index getIndex() const;
 
-   __cuda_callable__
-   inline EntityBasisType
-   getBasis() const;
+      __cuda_callable__ inline
+      const EntityOrientationType getOrientation() const;
 
-   __cuda_callable__
-   inline void
-   setBasis( const EntityBasisType& basis ){};
+      __cuda_callable__ inline
+      void setOrientation( const EntityOrientationType& orientation ){};
 
-   template< int NeighborEntityDimension = Dimension >
-   __cuda_callable__
-   inline const NeighborEntities< NeighborEntityDimension >&
-   getNeighborEntities() const;
+      __cuda_callable__ inline
+      const EntityBasisType getBasis() const;
 
-   __cuda_callable__
-   inline bool
-   isBoundaryEntity() const;
+      __cuda_callable__ inline
+      void setBasis( const EntityBasisType& basis ){};
 
-   __cuda_callable__
-   inline PointType
-   getCenter() const;
+      __cuda_callable__ inline
+      bool isBoundaryEntity() const;
 
-   __cuda_callable__
-   inline const RealType&
-   getMeasure() const;
+      __cuda_callable__ inline
+      PointType getCenter() const;
 
-   __cuda_callable__
-   inline const PointType&
-   getEntityProportions() const;
+      __cuda_callable__ inline
+      const RealType& getMeasure() const;
 
-   __cuda_callable__
-   inline const GridType&
-   getMesh() const;
+      __cuda_callable__ inline
+      const PointType& getEntityProportions() const;
 
-protected:
-   const GridType& grid;
-
-   IndexType entityIndex;
+      __cuda_callable__ inline
+      const GridType& getMesh() const;
 
    CoordinatesType coordinates;
 
@@ -280,7 +242,12 @@ protected:
 
    friend class BoundaryGridEntityChecker< GridEntity >;
 
-   friend class GridEntityCenterGetter< GridEntity >;
+      //__cuda_callable__ inline
+      //GridEntity();
+
+      friend class BoundaryGridEntityChecker< GridEntity >;
+
+      friend class GridEntityCenterGetter< GridEntity >;
 };
 
 /****
@@ -289,119 +256,61 @@ protected:
 template< int Dimension, typename Real, typename Device, typename Index, typename Config >
 class GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >
 {
-public:
-   using GridType = Meshes::Grid< Dimension, Real, Device, Index >;
-   using MeshType = GridType;
-   using RealType = typename GridType::RealType;
-   using IndexType = typename GridType::IndexType;
-   using CoordinatesType = typename GridType::CoordinatesType;
-   using PointType = typename GridType::PointType;
-   using ConfigType = Config;
+   public:
 
-   constexpr static int
-   getMeshDimension()
-   {
-      return GridType::getMeshDimension();
-   };
+      typedef Meshes::Grid< Dimension, Real, Device, Index > GridType;
+      typedef GridType MeshType;
+      typedef typename GridType::RealType RealType;
+      typedef typename GridType::IndexType IndexType;
+      typedef typename GridType::CoordinatesType CoordinatesType;
+      typedef typename GridType::PointType PointType;
+      typedef Config ConfigType;
 
-   constexpr static int
-   getEntityDimension()
-   {
-      return 0;
-   };
+      constexpr static int getMeshDimension() { return GridType::getMeshDimension(); };
 
-   using EntityOrientationType = Containers::StaticVector< getMeshDimension(), IndexType >;
-   using EntityBasisType = Containers::StaticVector< getMeshDimension(), IndexType >;
-   using NeighborGridEntitiesStorageType = NeighborGridEntitiesStorage< GridEntity, Config >;
+      constexpr static int getEntityDimension() { return 0; };
 
-   template< int NeighborEntityDimension = getEntityDimension() >
-   using NeighborEntities = NeighborGridEntityGetter< GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >,
-                                                      NeighborEntityDimension >;
+      typedef Containers::StaticVector< getMeshDimension(), IndexType > EntityOrientationType;
+      typedef Containers::StaticVector< getMeshDimension(), IndexType > EntityBasisType;
 
-   __cuda_callable__
-   inline GridEntity( const GridType& grid );
+      template< int NeighborEntityDimension = getEntityDimension() >
+      using NeighborEntities =
+         NeighborGridEntityGetter<
+            GridEntity< Meshes::Grid< Dimension, Real, Device, Index >,
+                           0,
+                           Config >,
+            NeighborEntityDimension >;
 
-   __cuda_callable__
-   inline GridEntity( const GridType& grid,
-                      const CoordinatesType& coordinates,
-                      const EntityOrientationType& orientation = EntityOrientationType( (Index) 0 ),
-                      const EntityBasisType& basis = EntityOrientationType( (Index) 0 ) );
 
-   __cuda_callable__
-   inline const CoordinatesType&
-   getCoordinates() const;
+      __cuda_callable__ inline
+      GridEntity( const GridType& grid );
 
-   __cuda_callable__
-   inline CoordinatesType&
-   getCoordinates();
+      __cuda_callable__ inline
+      GridEntity( const GridType& grid,
+                     const CoordinatesType& coordinates,
+                     const EntityOrientationType& orientation = EntityOrientationType( ( Index ) 0 ),
+                     const EntityBasisType& basis = EntityOrientationType( ( Index ) 0 ) );
 
-   __cuda_callable__
-   inline void
-   setCoordinates( const CoordinatesType& coordinates );
+      __cuda_callable__ inline
+      const CoordinatesType& getCoordinates() const;
 
-   /***
-    * Call this method every time the coordinates are changed
-    * to recompute the mesh entity index. The reason for this strange
-    * mechanism is a performance.
-    */
-   __cuda_callable__
-   inline
-      // void setIndex( IndexType entityIndex );
-      void
-      refresh();
+      __cuda_callable__ inline
+      CoordinatesType& getCoordinates();
 
-   __cuda_callable__
-   inline Index
-   getIndex() const;
+      __cuda_callable__ inline
+      void setCoordinates( const CoordinatesType& coordinates );
 
-   __cuda_callable__
-   inline EntityOrientationType
-   getOrientation() const;
+      /***
+       * Call this method every time the coordinates are changed
+       * to recompute the mesh entity index. The reason for this strange
+       * mechanism is a performance.
+       */
+      __cuda_callable__ inline
+      //void setIndex( IndexType entityIndex );
+      void refresh();
 
-   __cuda_callable__
-   inline void
-   setOrientation( const EntityOrientationType& orientation ){};
-
-   __cuda_callable__
-   inline EntityBasisType
-   getBasis() const;
-
-   __cuda_callable__
-   inline void
-   setBasis( const EntityBasisType& basis ){};
-
-   template< int NeighborEntityDimension = getEntityDimension() >
-   __cuda_callable__
-   inline const NeighborEntities< NeighborEntityDimension >&
-   getNeighborEntities() const;
-
-   __cuda_callable__
-   inline bool
-   isBoundaryEntity() const;
-
-   __cuda_callable__
-   inline PointType
-   getCenter() const;
-
-   // compatibility with meshes, equivalent to getCenter
-   __cuda_callable__
-   inline PointType
-   getPoint() const;
-
-   __cuda_callable__
-   inline const RealType
-   getMeasure() const;
-
-   __cuda_callable__
-   inline PointType
-   getEntityProportions() const;
-
-   __cuda_callable__
-   inline const GridType&
-   getMesh() const;
-
-protected:
-   const GridType& grid;
+      __cuda_callable__ inline
+      Index getIndex() const;
 
    IndexType entityIndex;
 
@@ -411,7 +320,39 @@ protected:
 
    friend class BoundaryGridEntityChecker< GridEntity >;
 
-   friend class GridEntityCenterGetter< GridEntity >;
+      __cuda_callable__ inline
+      void setBasis( const EntityBasisType& basis ){};
+
+      __cuda_callable__ inline
+      bool isBoundaryEntity() const;
+
+      __cuda_callable__ inline
+      PointType getCenter() const;
+
+      // compatibility with meshes, equivalent to getCenter
+      __cuda_callable__ inline
+      PointType getPoint() const;
+
+      __cuda_callable__ inline
+      const RealType getMeasure() const;
+
+      __cuda_callable__ inline
+      PointType getEntityProportions() const;
+
+      __cuda_callable__ inline
+      const GridType& getMesh() const;
+
+   protected:
+
+      const GridType& grid;
+
+      IndexType entityIndex;
+
+      CoordinatesType coordinates;
+
+      friend class BoundaryGridEntityChecker< GridEntity >;
+
+      friend class GridEntityCenterGetter< GridEntity >;
 };
 
 }  // namespace Meshes

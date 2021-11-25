@@ -14,39 +14,53 @@
 namespace TNL {
 namespace Meshes {
 
-/*template< int Dimension,
+template< int Dimension,
           typename Real,
           typename Device,
-          typename Index,          typename Config,
-          int EntityDimension >
+          typename Index,
+          int EntityDimension,
+          typename Config >
 __cuda_callable__ inline
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension >::
-GridEntity()
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::
+GridEntity( const Meshes::Grid< Dimension, Real, Device, Index >& grid )
+: grid( grid ),
+  entityIndex( -1 ),
+  coordinates( 0 ),
+  orientation( 0 ),
+  basis( 0 )
 {
-}*/
+}
 
-template< int Dimension, typename Real, typename Device, typename Index, int EntityDimension, typename Config >
-__cuda_callable__
-inline GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::GridEntity(
-   const Meshes::Grid< Dimension, Real, Device, Index >& grid )
-: grid( grid ), entityIndex( -1 ), coordinates( 0 ), orientation( 0 ), basis( 0 ), neighborEntitiesStorage( *this )
-{}
+template< int Dimension,
+          typename Real,
+          typename Device,
+          typename Index,
+          int EntityDimension,
+          typename Config >
+__cuda_callable__ inline
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::
+GridEntity( const Meshes::Grid< Dimension, Real, Device, Index >& grid,
+               const CoordinatesType& coordinates,
+               const EntityOrientationType& orientation,
+               const EntityBasisType& basis )
+: grid( grid ),
+  entityIndex( -1 ),
+  coordinates( coordinates ),
+  orientation( orientation ),
+  basis( basis )
+{
+}
 
-template< int Dimension, typename Real, typename Device, typename Index, int EntityDimension, typename Config >
-__cuda_callable__
-inline GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::GridEntity(
-   const Meshes::Grid< Dimension, Real, Device, Index >& grid,
-   const CoordinatesType& coordinates,
-   const EntityOrientationType& orientation,
-   const EntityBasisType& basis )
-: grid( grid ), entityIndex( -1 ), coordinates( coordinates ), orientation( orientation ), basis( basis ),
-  neighborEntitiesStorage( *this )
-{}
-
-template< int Dimension, typename Real, typename Device, typename Index, int EntityDimension, typename Config >
-__cuda_callable__
-inline const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::CoordinatesType&
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::getCoordinates() const
+template< int Dimension,
+          typename Real,
+          typename Device,
+          typename Index,
+          int EntityDimension,
+          typename Config >
+__cuda_callable__ inline
+const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::CoordinatesType&
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::
+getCoordinates() const
 {
    return this->coordinates;
 }
@@ -74,7 +88,6 @@ inline void
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::refresh()
 {
    this->entityIndex = this->grid.getEntityIndex( *this );
-   this->neighborEntitiesStorage.refresh( this->grid, this->entityIndex );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index, int EntityDimension, typename Config >
@@ -126,20 +139,16 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Con
    this->orientation = EntityOrientationType( 1 ) - abs( basis );
 }
 
-template< int Dimension, typename Real, typename Device, typename Index, int EntityDimension, typename Config >
-template< int NeighborEntityDimension >
-__cuda_callable__
-inline const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::
-   template NeighborEntities< NeighborEntityDimension >&
-   GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::getNeighborEntities() const
-{
-   return neighborEntitiesStorage.template getNeighborEntities< NeighborEntityDimension >();
-}
-
-template< int Dimension, typename Real, typename Device, typename Index, int EntityDimension, typename Config >
-__cuda_callable__
-inline bool
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::isBoundaryEntity() const
+template< int Dimension,
+          typename Real,
+          typename Device,
+          typename Index,
+          int EntityDimension,
+          typename Config >
+__cuda_callable__ inline
+bool
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::
+isBoundaryEntity() const
 {
    return BoundaryGridEntityChecker< GridEntity >::isBoundaryEntity( *this );
 }
@@ -168,36 +177,36 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Con
    return this->grid;
 }
 
-/****
- * Specialization for cells
- */
-/*template< int Dimension,
+template< int Dimension,
           typename Real,
           typename Device,
-          typename Index >
+          typename Index,
+          typename Config >
 __cuda_callable__ inline
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension >::
-GridEntity()
-{
-}*/
-
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-__cuda_callable__
-inline GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::GridEntity( const GridType& grid )
-: grid( grid ), entityIndex( -1 ), neighborEntitiesStorage( *this )
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::
+GridEntity( const GridType& grid )
+: grid( grid ),
+  entityIndex( -1 )
 {
    this->coordinates = CoordinatesType( (Index) 0 );
 }
 
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-__cuda_callable__
-inline GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::GridEntity(
-   const GridType& grid,
-   const CoordinatesType& coordinates,
-   const EntityOrientationType& orientation,
-   const EntityBasisType& basis )
-: grid( grid ), entityIndex( -1 ), coordinates( coordinates ), neighborEntitiesStorage( *this )
-{}
+template< int Dimension,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename Config >
+__cuda_callable__ inline
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::
+GridEntity( const GridType& grid,
+               const CoordinatesType& coordinates,
+               const EntityOrientationType& orientation,
+               const EntityBasisType& basis )
+: grid( grid ),
+  entityIndex( -1 ),
+  coordinates( coordinates )
+{
+}
 
 template< int Dimension, typename Real, typename Device, typename Index, typename Config >
 __cuda_callable__
@@ -230,7 +239,6 @@ inline void
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::refresh()
 {
    this->entityIndex = this->grid.getEntityIndex( *this );
-   this->neighborEntitiesStorage.refresh( this->grid, this->entityIndex );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index, typename Config >
@@ -260,20 +268,15 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >:
    return EntityBasisType( (IndexType) 1 );
 }
 
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-template< int NeighborEntityDimension >
-__cuda_callable__
-inline const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::
-   template NeighborEntities< NeighborEntityDimension >&
-   GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::getNeighborEntities() const
-{
-   return neighborEntitiesStorage.template getNeighborEntities< NeighborEntityDimension >();
-}
-
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-__cuda_callable__
-inline bool
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::isBoundaryEntity() const
+template< int Dimension,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename Config >
+__cuda_callable__ inline
+bool
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::
+isBoundaryEntity() const
 {
    return BoundaryGridEntityChecker< GridEntity >::isBoundaryEntity( *this );
 }
@@ -313,26 +316,47 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >:
 /****
  * Specialization for vertices
  */
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-__cuda_callable__
-inline GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::GridEntity( const GridType& grid )
-: grid( grid ), entityIndex( -1 ), coordinates( 0 ), neighborEntitiesStorage( *this )
-{}
+template< int Dimension,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename Config >
+__cuda_callable__ inline
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::
+GridEntity( const GridType& grid )
+ : grid( grid ),
+   entityIndex( -1 ),
+   coordinates( 0 ),
+   neighborEntitiesStorage( *this )
+{
+}
 
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-__cuda_callable__
-inline GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::GridEntity(
-   const GridType& grid,
-   const CoordinatesType& coordinates,
-   const EntityOrientationType& orientation,
-   const EntityBasisType& basis )
-: grid( grid ), entityIndex( -1 ), coordinates( coordinates ), neighborEntitiesStorage( *this )
-{}
+template< int Dimension,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename Config >
+__cuda_callable__ inline
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::
+GridEntity( const GridType& grid,
+               const CoordinatesType& coordinates,
+               const EntityOrientationType& orientation,
+               const EntityBasisType& basis )
+: grid( grid ),
+  entityIndex( -1 ),
+  coordinates( coordinates )
+{
+}
 
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-__cuda_callable__
-inline const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::CoordinatesType&
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::getCoordinates() const
+template< int Dimension,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename Config >
+__cuda_callable__ inline
+const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::CoordinatesType&
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::
+getCoordinates() const
 {
    return this->coordinates;
 }
@@ -359,7 +383,6 @@ inline void
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::refresh()
 {
    this->entityIndex = this->grid.getEntityIndex( *this );
-   this->neighborEntitiesStorage.refresh( this->grid, this->entityIndex );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index, typename Config >
@@ -391,20 +414,15 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::getBasi
    return EntityBasisType( (IndexType) 0 );
 }
 
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-template< int NeighborEntityDimension >
-__cuda_callable__
-inline const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::template NeighborEntities<
-   NeighborEntityDimension >&
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::getNeighborEntities() const
-{
-   return neighborEntitiesStorage.template getNeighborEntities< NeighborEntityDimension >();
-}
-
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-__cuda_callable__
-inline bool
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::isBoundaryEntity() const
+template< int Dimension,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename Config >
+__cuda_callable__ inline
+bool
+GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::
+isBoundaryEntity() const
 {
    return BoundaryGridEntityChecker< GridEntity >::isBoundaryEntity( *this );
 }
