@@ -377,7 +377,10 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
       break;
    }
    case 2:
-      TNL::Algorithms::ParallelFor2D<Device>::exec(localBegin.x(), localBegin.y(), localEnd.x(), localEnd.y(), outer, * this, args...);
+      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0, dimensions.x(), dimensions.y(), outer, *this, args...);
+
+      // TODO: - Verify for distributed grids
+      //TNL::Algorithms::ParallelFor2D<Device>::exec(localBegin.x(), localBegin.y(), localEnd.x(), localEnd.y(), outer, * this, args...);
       break;
    default: break;
    }
@@ -405,7 +408,7 @@ void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
       break;
    case 1: {
       auto outerOriented = [=] __cuda_callable__(Index i, Index j,
-                                                 const Grid<2, Real, Device, Index>&grid,
+                                                 Grid<2, Real, Device, Index>& grid,
                                                  const CoordinatesType& orientation,
                                                  const CoordinatesType& basis,
                                                  FuncArgs... args) mutable {
@@ -434,7 +437,10 @@ void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
       break;
    }
    case 2:
-      TNL::Algorithms::ParallelFor2D<Device>::exec(interiorBegin.x(), interiorBegin.y(), interiorEnd.x(), interiorEnd.y(), outer, *this, args...);
+      TNL::Algorithms::ParallelFor2D<Device>::exec(1, 1, dimensions.x() - 1, dimensions.y() - 1, outer, *this, args...);
+
+      // TODO: - Verify for distributed grids
+      //TNL::Algorithms::ParallelFor2D<Device>::exec(interiorBegin.x(), interiorBegin.y(), interiorEnd.x(), interiorEnd.y(), outer, *this, args...);
       break;
    default:
       break;
@@ -448,10 +454,19 @@ template<int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) const {
    static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0..<2]");
 
-   auto outer = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>&grid, FuncArgs... args) mutable {
+   auto outer = [=] __cuda_callable__(Index i, Index axis, Index axisIndex, const Grid<2, Real, Device, Index>&grid, FuncArgs... args) mutable {
       EntityType<EntityDimension> entity(grid);
 
-      entity.setCoordinates({ i, j });
+      switch (axis) {
+      case 0:
+         entity.setCoordinates({ axisIndex, i });
+         break;
+      case 1:
+         entity.setCoordinates({ i, axisIndex });
+         break;
+      default: TNL_ASSERT_TRUE(false, "Received axis index. Expect in range [0..<1]");
+      }
+
       entity.refresh();
 
       func(entity, args...);
@@ -460,21 +475,37 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
    switch (EntityDimension) {
    case 0:
       // Lower horizontal
-      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0, dimensions.x() + 1, 1, outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.x() + 1, outer, 0, 0, *this, args...);
       // Upper horizontal
-      TNL::Algorithms::ParallelFor2D<Device>::exec(0, dimensions.y(), dimensions.x() + 1, dimensions.y() + 1, outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.x() + 1, outer, 0, dimensions.y(), *this, args...);
       // Left vertical
-      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0, 1, dimensions.y() + 1, outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.y() + 1, outer, 1, 0, *this, args...);
       // Right vertical
-      TNL::Algorithms::ParallelFor2D<Device>::exec(dimensions.x(), 0, dimensions.x() + 1, dimensions.y() + 1, outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.y() + 1, outer, 1, dimensions.x(), *this, args...);
       break;
    case 1: {
-      auto outerOriented = [=] __cuda_callable__(Index i, Index j,
-                                                 const Grid<2, Real, Device, Index>&grid,
+      auto outerOriented = [=] __cuda_callable__(Index i,
+                                                 Index axis,
+                                                 Index axisIndex,
+                                                 const Grid<2, Real, Device, Index>& grid,
                                                  const CoordinatesType & orientation,
                                                  const CoordinatesType & basis,
                                                  FuncArgs... args) mutable {
-         EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation, basis);
+         CoordinatesType coordinates;
+
+         switch (axis) {
+         case 0:
+            coordinates[0] = axisIndex;
+            coordinates[1] = i;
+            break;
+         case 1:
+            coordinates[0] = i;
+            coordinates[1] = axisIndex;
+            break;
+         default: TNL_ASSERT_TRUE(false, "Received axis index. Expect in range [0..<1]");
+         }
+
+         EntityType<EntityDimension> entity(grid, coordinates, orientation, basis);
 
          entity.refresh();
 
@@ -482,41 +513,54 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
       };
 
       // Lower horizontal
-      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0,
-                                                   dimensions.x() + 1, 1,
-                                                   outerOriented,
-                                                   *this,
-                                                   CoordinatesType(1, 0),
-                                                   CoordinatesType(0, 1),
-                                                   args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(0,
+                                                 dimensions.x(),
+                                                 outerOriented,
+                                                 0, 0,
+                                                 *this,
+                                                 CoordinatesType(1, 0),
+                                                 CoordinatesType(0, 1),
+                                                 args...);
       // Upper horizontal
-      TNL::Algorithms::ParallelFor2D<Device>::exec(0, dimensions.y() - 1,
-                                                   dimensions.x() + 1, dimensions.y(),
-                                                   outerOriented,
-                                                   *this,
-                                                   CoordinatesType(1, 0),
-                                                   CoordinatesType(0, 1),
-                                                   args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(0,
+                                                 dimensions.x(),
+                                                 outerOriented,
+                                                 0, dimensions.y(),
+                                                 *this,
+                                                 CoordinatesType(1, 0),
+                                                 CoordinatesType(0, 1),
+                                                 args...);
       // Left vertical
-      TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0,
-                                                   1, dimensions.y(),
-                                                   outerOriented,
-                                                   *this,
-                                                   CoordinatesType(0, 1),
-                                                   CoordinatesType(1, 0),
-                                                   args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(0,
+                                                 dimensions.y(),
+                                                 outerOriented,
+                                                 1, 0,
+                                                 *this,
+                                                 CoordinatesType(0, 1),
+                                                 CoordinatesType(1, 0),
+                                                 args...);
       // Right vertical
-      TNL::Algorithms::ParallelFor2D<Device>::exec(dimensions.x() - 1, 0,
-                                                   dimensions.x(), dimensions.y(),
-                                                   outerOriented,
-                                                   *this,
-                                                   CoordinatesType(0, 1),
-                                                   CoordinatesType(1, 0),
-                                                   args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(0,
+                                                 dimensions.y(),
+                                                 outerOriented,
+                                                 1, dimensions.x(),
+                                                 *this,
+                                                 CoordinatesType(0, 1),
+                                                 CoordinatesType(1, 0),
+                                                 args...);
       break;
    }
    case 2:
-      if (localBegin < interiorBegin && interiorEnd < localEnd) {
+      // Lower horizontal
+      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.x(), outer, 0, 0, *this, args...);
+      // Upper horizontal
+      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.x(), outer, 0, dimensions.y() - 1, *this, args...);
+      // Left vertical
+      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.y(), outer, 1, 0, *this, args...);
+      // Right vertical
+      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.y(), outer, 1, dimensions.x() - 1, *this, args...);
+      // TODO: - Verify with the distributed grid
+      /*if (localBegin < interiorBegin && interiorEnd < localEnd) {
          // Lower horizontal
          TNL::Algorithms::ParallelFor2D<Device>::exec(interiorBegin.x() - 1, interiorBegin.y() - 1, interiorEnd.x() + 1, interiorBegin.y() + 1, outer, *this, args...);
          // Upper horizontal
@@ -535,8 +579,7 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
       // Left vertical
       TNL::Algorithms::ParallelFor2D<Device>::exec(localBegin.x(), interiorBegin.y(), interiorBegin.x(), interiorEnd.y(), outer, *this, args...);
       // Right vertical
-      TNL::Algorithms::ParallelFor2D<Device>::exec(interiorEnd.x(), interiorBegin.y(), localEnd.x(), interiorEnd.y(), outer, *this, args...);
-
+      TNL::Algorithms::ParallelFor2D<Device>::exec(interiorEnd.x(), interiorBegin.y(), localEnd.x(), interiorEnd.y(), outer, *this, args...);*/
       break;
    default:
       break;

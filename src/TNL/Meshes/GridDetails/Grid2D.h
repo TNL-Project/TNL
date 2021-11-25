@@ -134,8 +134,7 @@ public:
     */
    template< int EntityDimension >
    __cuda_callable__
-   IndexType
-   getEntitiesCount() const;
+   Index getEntitiesCount() const;
 
    /**
     * \brief Gets number of entities in this grid.
@@ -143,8 +142,7 @@ public:
     */
    template< typename Entity >
    __cuda_callable__
-   inline IndexType
-   getEntitiesCount() const;
+   inline Index getEntitiesCount() const;
 
    /**
     * \brief See Grid1D::getEntity().

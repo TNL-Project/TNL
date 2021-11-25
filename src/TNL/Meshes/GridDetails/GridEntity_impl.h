@@ -326,11 +326,11 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::
 GridEntity( const GridType& grid )
  : grid( grid ),
    entityIndex( -1 ),
-   coordinates( 0 ),
-   neighborEntitiesStorage( *this )
+   coordinates( 0 )
 {
 }
 
+// Basis is Discarded
 template< int Dimension,
           typename Real,
           typename Device,
