@@ -19,32 +19,24 @@ namespace Sorting {
 
 #ifdef HAVE_CUDA
 
-__device__
-void
-writeNewTask( int begin,
-              int end,
-              int iteration,
-              int maxElemFor2ndPhase,
-              Containers::ArrayView< TASK, Devices::Cuda > newTasks,
-              int* newTasksCnt,
-              Containers::ArrayView< TASK, Devices::Cuda > secondPhaseTasks,
-              int* secondPhaseTasksCnt );
+template< typename Index = int >
+__device__ void writeNewTask(Index begin, Index end, Index iteration, Index maxElemFor2ndPhase,
+                             Containers::ArrayView<TASK, Devices::Cuda> newTasks, int *newTasksCnt,
+                             Containers::ArrayView<TASK, Devices::Cuda> secondPhaseTasks, int *secondPhaseTasksCnt);
 
 //-----------------------------------------------------------
 
-__global__
-void
-cudaCalcBlocksNeeded( Containers::ArrayView< TASK, Devices::Cuda > cuda_tasks,
-                      int elemPerBlock,
-                      Containers::ArrayView< int, Devices::Cuda > blocksNeeded )
+template< typename Index = int >
+__global__ void cudaCalcBlocksNeeded(Containers::ArrayView<TASK, Devices::Cuda> cuda_tasks, Index elemPerBlock,
+                                     Containers::ArrayView< Index, Devices::Cuda> blocksNeeded)
 {
-   int i = blockIdx.x * blockDim.x + threadIdx.x;
-   if( i >= cuda_tasks.getSize() )
+   Index i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i >= cuda_tasks.getSize())
       return;
 
-   TASK& task = cuda_tasks[ i ];
-   int size = task.partitionEnd - task.partitionBegin;
-   blocksNeeded[ i ] = size / elemPerBlock + ( size % elemPerBlock != 0 );
+   TASK &task = cuda_tasks[i];
+   Index size = task.partitionEnd - task.partitionBegin;
+   blocksNeeded[i] = size / elemPerBlock + (size % elemPerBlock != 0);
 }
 
 //-----------------------------------------------------------
@@ -171,16 +163,10 @@ cudaWritePivot( Containers::ArrayView< Value, Devices::Cuda > arr,
 
 //-----------------------------------------------------------
 
-__device__
-void
-writeNewTask( int begin,
-              int end,
-              int iteration,
-              int maxElemFor2ndPhase,
-              Containers::ArrayView< TASK, Devices::Cuda > newTasks,
-              int* newTasksCnt,
-              Containers::ArrayView< TASK, Devices::Cuda > secondPhaseTasks,
-              int* secondPhaseTasksCnt )
+template< typename Index >
+__device__ void writeNewTask(Index begin, Index end, Index iteration, Index maxElemFor2ndPhase,
+                             Containers::ArrayView<TASK, Devices::Cuda> newTasks, int *newTasksCnt,
+                             Containers::ArrayView<TASK, Devices::Cuda> secondPhaseTasks, int *secondPhaseTasksCnt)
 {
    int size = end - begin;
    if( size < 0 ) {
