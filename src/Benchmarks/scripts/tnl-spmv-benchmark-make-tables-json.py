@@ -139,7 +139,7 @@ def get_multiindex( input_df, formats ):
       if format == 'CSR Light Best':
          level1.append( format )
          level2.append( 'GPU' )
-         level3.append( 'format')
+         level3.append( 'threads per row')
          level4.append( '' )
          df_data[ 0 ].append( ' ' )
 
@@ -219,8 +219,9 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
       else:
          aux_df.iloc[0][('TNL Best','GPU','format','')] = 'cusparse'
       best_count += 1
+      best_threads_per_row = best_csr_light_format.replace('CSR< Light > ', '' )
       aux_df.iloc[0][('CSR Light Best','GPU','bandwidth','')] = best_csr_light_bw
-      aux_df.iloc[0][('CSR Light Best','GPU','format','')] = best_csr_light_format
+      aux_df.iloc[0][('CSR Light Best','GPU','threads per row','')] = int(best_threads_per_row)
       if out_idx >= begin_idx:
          frames.append( aux_df )
       out_idx = out_idx + 1
@@ -870,6 +871,29 @@ def csr_light_speedup_comparison( df, head_size=10 ):
    #head_df.to_html( f"LightSpMV-speed-up-head.html" )
    copy_df.to_html( f"LightSpMV-speed-up-bottom.html" )
 
+####
+# Analyze mapping of CUDA thredads in Light CSR
+#
+def analyze_light_csr( df, formats ):
+   sort_df = df.sort_values(by=[('CSR Light Best','GPU','threads per row','')],inplace=False,ascending=True)
+   for f in formats:
+      if not f in ['CSR Light Best']:
+         sort_df.drop( labels=f, axis='columns', level=0, inplace=True )
+   sort_df.to_html( f"LightSpMV-Threads-per-row.html" )
+   size = len(sort_df[('nonzeros per row', '','','')].index)
+   t = np.arange( size )
+   fig, axs = plt.subplots( 1, 1 )
+   axs[0].plot( t, sort_df[('nonzeros per row', '','','')], '-o', ms=1, lw=1 )
+   axs[0].plot( t, sort_df[('CSR Light Best','GPU','threads per row')], '-o', ms=1, lw=1 )
+   axs[0].legend( [ 'Nonzeros per row', 'Threads per row' ], loc='upper right' )
+   axs[0].set_ylabel( 'CSR Light analysis' )
+   plt.rcParams.update({
+      "text.usetex": True,
+      "font.family": "sans-serif",
+      "font.sans-serif": ["Helvetica"]})
+   plt.savefig( f"LightSpMV-threads-mapping.pdf" )
+   plt.close(fig)
+
 def write_colormap( file, max_bw, size, x_position, y_position, standalone = False ):
    if standalone:
       file.write( '\\documentclass{standalone}\n' )
@@ -1016,15 +1040,15 @@ def processDf( df, formats, head_size = 10 ):
    df.to_html( f'output.html' )
 
    # Generate tables and figures
-   effective_bw_profile( df, formats, head_size )
-   cusparse_comparison( df, formats, head_size )
-   csr_comparison( df, formats, head_size )
-   legacy_formats_comparison( df, formats, head_size )
-   csr_speedup_comparison( df, formats, head_size )
-   cusparse_speedup_comparison( df, formats, head_size )
-   binary_matrices_comparison( df, formats, head_size )
-   symmetric_matrices_comparison( df, formats, head_size )
-   csr_light_speedup_comparison( df, head_size )
+   #effective_bw_profile( df, formats, head_size )
+   #cusparse_comparison( df, formats, head_size )
+   #csr_comparison( df, formats, head_size )
+   #legacy_formats_comparison( df, formats, head_size )
+   #csr_speedup_comparison( df, formats, head_size )
+   #cusparse_speedup_comparison( df, formats, head_size )
+   #binary_matrices_comparison( df, formats, head_size )
+   #symmetric_matrices_comparison( df, formats, head_size )
+   #csr_light_speedup_comparison( df, head_size )
 
    best = df[('TNL Best','GPU','format')].tolist()
    best_formats = list(set(best))
@@ -1042,6 +1066,7 @@ def processDf( df, formats, head_size = 10 ):
    print( f'Best formats {best_formats}.')
 
    #write_performance_circles( df, formats )
+   analyze_light_csr( df, formats )
 
 
 ####
