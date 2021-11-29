@@ -166,12 +166,12 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
       aux_df = pd.DataFrame( df_data, columns = multicolumns, index = [out_idx] )
       best_bw = 0
       best_csr_light_bw = 0
-      best_csr_light_format = ''
+      best_csr_light_format = '0'
       for index,row in df_matrix.iterrows():
          aux_df.iloc[0]['Matrix name']      = row['matrix name']
          aux_df.iloc[0]['rows']             = row['rows']
          aux_df.iloc[0]['columns']          = row['columns']
-         aux_df.iloc[0]['nonzeros per row'] = row['nonzeros per row']
+         aux_df.iloc[0]['nonzeros per row'] = float(row['nonzeros per row'])
          current_format = row['format']
          current_device = row['device']
          #print( current_format + " / " + current_device )
@@ -220,6 +220,7 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
          aux_df.iloc[0][('TNL Best','GPU','format','')] = 'cusparse'
       best_count += 1
       best_threads_per_row = best_csr_light_format.replace('CSR< Light > ', '' )
+      #print( f'best_csr_light_format = {best_csr_light_format} best_threads_per_row = {best_threads_per_row} \n')
       aux_df.iloc[0][('CSR Light Best','GPU','bandwidth','')] = best_csr_light_bw
       aux_df.iloc[0][('CSR Light Best','GPU','threads per row','')] = int(best_threads_per_row)
       if out_idx >= begin_idx:
@@ -875,7 +876,7 @@ def csr_light_speedup_comparison( df, head_size=10 ):
 # Analyze mapping of CUDA thredads in Light CSR
 #
 def analyze_light_csr( df, formats ):
-   sort_df = df.sort_values(by=[('CSR Light Best','GPU','threads per row','')],inplace=False,ascending=True)
+   sort_df = df.sort_values(by=[('CSR Light Best','GPU','threads per row',''),('nonzeros per row','','','')],inplace=False,ascending=True)
    for f in formats:
       if not f in ['CSR Light Best']:
          sort_df.drop( labels=f, axis='columns', level=0, inplace=True )
@@ -883,10 +884,12 @@ def analyze_light_csr( df, formats ):
    size = len(sort_df[('nonzeros per row', '','','')].index)
    t = np.arange( size )
    fig, axs = plt.subplots( 1, 1 )
-   axs[0].plot( t, sort_df[('nonzeros per row', '','','')], '-o', ms=1, lw=1 )
-   axs[0].plot( t, sort_df[('CSR Light Best','GPU','threads per row')], '-o', ms=1, lw=1 )
-   axs[0].legend( [ 'Nonzeros per row', 'Threads per row' ], loc='upper right' )
-   axs[0].set_ylabel( 'CSR Light analysis' )
+   axs.set_yticks(np.arange(0, 100, step=10))
+   axs.plot( t, sort_df[('nonzeros per row', '','','')], '-o', ms=1, lw=1 )
+   axs.plot( t, sort_df[('CSR Light Best','GPU','threads per row')], '-o', ms=1, lw=1 )
+   axs.legend( [ 'Nonzeros per row', 'Threads per row' ], loc='upper right' )
+   axs.set_ylabel( 'CSR Light analysis' )
+   axs.set_ylim([0, 200])
    plt.rcParams.update({
       "text.usetex": True,
       "font.family": "sans-serif",
@@ -1087,7 +1090,7 @@ formats.append('CSR Light Best')
 multicolumns, df_data = get_multiindex( input_df, formats )
 
 print( "Converting data..." )
-result = convert_data_frame( input_df, multicolumns, df_data, 0, 200 )
+result = convert_data_frame( input_df, multicolumns, df_data, 0, 20000 )
 compute_speedup( result, formats )
 
 result.replace( to_replace=' ',value=np.nan,inplace=True)
