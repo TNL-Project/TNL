@@ -21,16 +21,27 @@ public:
       const Real xDomainSize, yDomainSize;
       const Real sigma;
       const Real timeStep, finalTime;
+      const bool outputData;
       const bool verbose;
 
       Parameters(const TNL::Config::ParameterContainer &parameters);
+      Parameters(const int xSize, const int ySize,
+                 const Real xDomainSize, const Real yDomainSize,
+                 const Real sigma,
+                 const Real timeStep, const Real finalTime,
+                 const bool outputData,
+                 const bool verbose):
+                 xSize(xSize), ySize(ySize),
+                 xDomainSize(xDomainSize), yDomainSize(yDomainSize),
+                 sigma(sigma),
+                 timeStep(timeStep), finalTime(finalTime),
+                 outputData(outputData), verbose(verbose) {}
 
       static TNL::Config::ConfigDescription makeInputConfig();
    };
 
    template <typename Device>
    bool solve(const Parameters &parameters) const;
-
 private:
    template <typename Device>
    bool writeGNUPlot(const std::string &filename,
@@ -49,7 +60,6 @@ TNL::Config::ConfigDescription HeatmapSolver<Real>::Parameters::makeInputConfig(
 #ifdef HAVE_CUDA
    config.addEntryEnum<TNL::String>("cuda");
 #endif
-
    config.addEntry<int>("grid-x-size", "Grid size along x-axis.", 100);
    config.addEntry<int>("grid-y-size", "Grid size along y-axis.", 100);
 
@@ -73,14 +83,17 @@ HeatmapSolver<Real>::Parameters::Parameters(const TNL::Config::ParameterContaine
                                                                                                  sigma(parameters.getParameter<Real>("sigma")),
                                                                                                  timeStep(parameters.getParameter<Real>("time-step")),
                                                                                                  finalTime(parameters.getParameter<Real>("final-time")),
+                                                                                                 outputData(parameters.getParameter<bool>("outputData"))
                                                                                                  verbose(parameters.getParameter<bool>("verbose")) {}
 
 template <typename Real>
 template <typename Device>
 bool HeatmapSolver<Real>::writeGNUPlot(const std::string &filename,
                                        const HeatmapSolver<Real>::Parameters &params,
-                                       const TNL::Containers::Array<Real, Device> &map) const
-{
+                                       const TNL::Containers::Array<Real, Device> &map) const {
+   if (!params.outputData)
+      return true;
+
    std::ofstream out(filename, std::ios::out);
 
    if (!out.is_open())
