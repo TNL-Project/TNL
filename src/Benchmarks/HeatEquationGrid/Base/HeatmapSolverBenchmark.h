@@ -8,20 +8,21 @@
 
 #include "HeatmapSolver.h"
 
+#pragma once
+
 class HeatmapSolverBenchmark {
    public:
       template<typename Real, typename Device>
-      void exec(const HeatmapSolver::Parameters& params) const;
+      void exec(const typename HeatmapSolver<Real>::Parameters& params) const;
 
-      template< typename Real >
-      void runBenchmark(const Benchmark& benchmark,
-                        const Benchmark::MetadataMap,
-                        const int minXDimension,
-                        const int maxXDimension,
-                        const int xStepSizeFactor,
-                        const int minYDimension,
-                        const int maxYDimension,
-                        const int yStepSizeFactor,
+      template<typename Real, typename Device>
+      void runBenchmark(TNL::Benchmarks::Benchmark<> & benchmark,
+                        const std::size_t minXDimension,
+                        const std::size_t maxXDimension,
+                        const std::size_t xStepSizeFactor,
+                        const std::size_t minYDimension,
+                        const std::size_t maxYDimension,
+                        const std::size_t yStepSizeFactor,
                         const TNL::Config::ParameterContainer& parameters) const;
 
       static TNL::Config::ConfigDescription makeInputConfig();
@@ -42,11 +43,11 @@ TNL::Config::ConfigDescription HeatmapSolverBenchmark::makeInputConfig() {
    config.addEntryEnum("all");
 
    config.addEntry<int>("min-x-dimension", "Minimum dimension over x axis used in the benchmark.", 100);
-   config.addEntry<int>("max-x-dimension", "Maximum dimension over x axis used in the benchmark.", 10000);
+   config.addEntry<int>("max-x-dimension", "Maximum dimension over x axis used in the benchmark.", 200);
    config.addEntry<int>("x-size-step-factor", "Factor determining the dimension grows over x axis. First size is min-x-dimension and each following size is stepFactor*previousSize, up to max-x-dimension.", 2);
 
    config.addEntry<int>("min-y-dimension", "Minimum dimension over x axis used in the benchmark.", 100);
-   config.addEntry<int>("max-y-dimension", "Maximum dimension over x axis used in the benchmark.", 10000);
+   config.addEntry<int>("max-y-dimension", "Maximum dimension over x axis used in the benchmark.", 200);
    config.addEntry<int>("y-size-step-factor", "Factor determining the dimension grows over y axis. First size is min-y-dimension and each following size is stepFactor*previousSize, up to max-y-dimension.", 2);
 
    config.addEntry<int>("loops", "Number of iterations for every computation.", 10);
@@ -65,48 +66,54 @@ TNL::Config::ConfigDescription HeatmapSolverBenchmark::makeInputConfig() {
    config.addDelimiter("Device settings:");
    TNL::Devices::Host::configSetup( config );
    TNL::Devices::Cuda::configSetup( config );
+
+   return config;
 }
 
-template<typename Real,
-         template Device>
-void HeatmapSolverBenchmark::runBenchmark(Benchmark& benchmark,
-                                          Benchmark::MetadataMap metadata,
-                                          const int minXDimension,
-                                          const int maxXDimension,
-                                          const int xStepSizeFactor,
-                                          const int minYDimension,
-                                          const int maxYDimension,
-                                          const int yStepSizeFactor,
+template<typename Real, typename Device>
+void HeatmapSolverBenchmark::exec(const typename HeatmapSolver<Real>::Parameters& params) const {
+   HeatmapSolver<Real> solver;
+
+   auto result = solver.template solve<Device>(params);
+
+   if (!result)
+      std::cout << "Fail to solve for grid size (" << params.xSize << ", " << params.ySize << ")" << std::endl;
+}
+
+template<typename Real, typename Device>
+void HeatmapSolverBenchmark::runBenchmark(TNL::Benchmarks::Benchmark<>& benchmark,
+                                          const std::size_t minXDimension,
+                                          const std::size_t maxXDimension,
+                                          const std::size_t xStepSizeFactor,
+                                          const std::size_t minYDimension,
+                                          const std::size_t maxYDimension,
+                                          const std::size_t yStepSizeFactor,
                                           const TNL::Config::ParameterContainer& parameters) const {
-   const TNL::String precision = getType< Real >();
-   metadata["precision"] = precision;
+   Real xDomainSize = parameters.getParameter<Real>("domain-x-size");
+   Real yDomainSize = parameters.getParameter<Real>("domain-y-size");
+   Real sigma = parameters.getParameter<Real>("sigma");
+   Real timeStep = parameters.getParameter<Real>("time-step");
+   Real finalTime = parameters.getParameter<Real>("final-time");
 
-   benchmark.newBenchmark(String("Heatmap grid with (") + precision + ", host allocator" + Device + ")");
+   auto precision = TNL::getType<Real>(), device = TNL::getType<Device>();
 
-   auto xDomainSize = parameters.getParameter<Real>("domain-x-size");
-   auto yDomainSize = parameters.getParameter<Real>("domain-y-size");
+   std::cout << "Heatmap grid with (" + precision + ", host allocator " + device + ")" << std::endl;
 
-   auto sigma = parameters.getParameter<Real>("sigma");
-
-   auto timeStep = parameters.getParameter<Real>("time-step");
-
-   auto finalTime = parameters.getParameter<Real>("final-time");
-
-
-   for(std::size_t xSize = minXDimension; xSize <= maxXDimension; size *= xStepSizeFactor) {
-      for(std::size_t ySize = minXDimension; ySize <= maxXDimension; size *= yStepSizeFactor) {
-         benchmark.setMetadataColumns( Benchmark::MetadataColumns({
-            { "xSize", convertToString(xSize) },
-            { "ySize", convertToString(ySize) }
+   for(std::size_t xSize = minXDimension; xSize <= maxXDimension; xSize *= xStepSizeFactor) {
+      for(std::size_t ySize = minXDimension; ySize <= maxXDimension; ySize *= yStepSizeFactor) {
+         benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns({
+            { "precision", precision },
+            { "xSize", TNL::convertToString(xSize) },
+            { "ySize", TNL::convertToString(ySize) }
          }));
 
          auto lambda = [=]() {
-            HeatmapSolver::Parameters params(xSize, ySize, xDomainSize, yDomainSize, sigma, timeStep, finalTime, false, false);
+            typename HeatmapSolver<Real>::Parameters params(xSize, ySize, xDomainSize, yDomainSize, sigma, timeStep, finalTime, false, false);
 
-            exec(params);
+            exec<Real, Device>(params);
          };
 
-         benchmark.time<Device>()
+         benchmark.time<Device>("_", lambda);
       }
    }
 }
@@ -156,17 +163,23 @@ int main(int argc, char* argv[]) {
 
    std::ofstream logFile( logFileName.getString(), mode );
 
-   TNL::Benchmarks::Benchmark benchmark(loops, verbose);
+   TNL::Benchmarks::Benchmark<> benchmark(logFile, loops, verbose);
+
+   // write global metadata into a separate file
+   std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
+   TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
 
    if( precision == "all" || precision == "float" )
-      solver.runBenchmark<float>(benchmark, metadata, minXDimension, maxXDimension, xSizeStepFactor, minXDimension, maxYDimension, ySizeStepFactor, parameters);
+      solver.runBenchmark<float, TNL::Devices::Host>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
    if( precision == "all" || precision == "double" )
-      solver.runBenchmark<double>(benchmark, metadata, minXDimension, maxXDimension, xSizeStepFactor, minXDimension, maxYDimension, ySizeStepFactor, parameters);
+      solver.runBenchmark<double, TNL::Devices::Host>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
 
-   if(!benchmark.save(logFile)) {
-      std::cerr << "Failed to write the benchmark results to file '" << logFileName << "'." << std::endl;
-      return EXIT_FAILURE;
-   }
+#ifdef HAVE_CUDA
+   if( precision == "all" || precision == "float" )
+      solver.runBenchmark<float, TNL::Devices::Cuda>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
+   if( precision == "all" || precision == "double" )
+      solver.runBenchmark<double, TNL::Devices::Cuda>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
+#endif
 
    return EXIT_SUCCESS;
 }

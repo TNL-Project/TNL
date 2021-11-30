@@ -83,7 +83,7 @@ HeatmapSolver<Real>::Parameters::Parameters(const TNL::Config::ParameterContaine
                                                                                                  sigma(parameters.getParameter<Real>("sigma")),
                                                                                                  timeStep(parameters.getParameter<Real>("time-step")),
                                                                                                  finalTime(parameters.getParameter<Real>("final-time")),
-                                                                                                 outputData(parameters.getParameter<bool>("outputData"))
+                                                                                                 outputData(parameters.getParameter<bool>("outputData")),
                                                                                                  verbose(parameters.getParameter<bool>("verbose")) {}
 
 template <typename Real>
