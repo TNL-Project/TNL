@@ -37,6 +37,13 @@ TNL::Config::ConfigDescription HeatmapSolverBenchmark::makeInputConfig() {
    config.addEntryEnum("append");
    config.addEntryEnum("overwrite");
 
+   config.addEntry<TNL::String>("device", "Device the computation will run on.", "cuda");
+   config.addEntryEnum<TNL::String>("host");
+
+#ifdef HAVE_CUDA
+   config.addEntryEnum<TNL::String>("cuda");
+#endif
+
    config.addEntry<TNL::String>("precision", "Precision of the arithmetics.", "double");
    config.addEntryEnum("float");
    config.addEntryEnum("double");
@@ -77,7 +84,7 @@ void HeatmapSolverBenchmark::exec(const typename HeatmapSolver<Real>::Parameters
    auto result = solver.template solve<Device>(params);
 
    if (!result)
-      std::cout << "Fail to solve for grid size (" << params.xSize << ", " << params.ySize << ")" << std::endl;
+      printf("Fail to solve for grid size (%d,%d)", params.xSize, params.ySize);
 }
 
 template<typename Real, typename Device>
@@ -169,16 +176,22 @@ int main(int argc, char* argv[]) {
    std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
    TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
 
-   if( precision == "all" || precision == "float" )
-      solver.runBenchmark<float, TNL::Devices::Host>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
-   if( precision == "all" || precision == "double" )
-      solver.runBenchmark<double, TNL::Devices::Host>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
+   auto device = parameters.getParameter<TNL::String>("device");
+
+   if (device == "host") {
+      if(precision == "all" || precision == "float")
+         solver.runBenchmark<float, TNL::Devices::Host>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
+      if(precision == "all" || precision == "double")
+         solver.runBenchmark<double, TNL::Devices::Host>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
+   }
 
 #ifdef HAVE_CUDA
-   if( precision == "all" || precision == "float" )
-      solver.runBenchmark<float, TNL::Devices::Cuda>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
-   if( precision == "all" || precision == "double" )
-      solver.runBenchmark<double, TNL::Devices::Cuda>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
+   if (device == "cuda") {
+      if( precision == "all" || precision == "float" )
+         solver.runBenchmark<float, TNL::Devices::Cuda>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
+      if( precision == "all" || precision == "double" )
+         solver.runBenchmark<double, TNL::Devices::Cuda>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
+   }
 #endif
 
    return EXIT_SUCCESS;

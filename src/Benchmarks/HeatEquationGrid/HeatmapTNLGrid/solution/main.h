@@ -25,11 +25,11 @@ int main(int argc, char *argv[]) {
 
    HeatmapSolver<Real> solver;
 
-   if (device == "host" && !solver.template solve<TNL::Devices::Host>(params))
+   if (device == "host" && !solver.solve<TNL::Devices::Host>(params))
       return EXIT_FAILURE;
 
 #ifdef HAVE_CUDA
-   if (device == "cuda" && !solver.template solve<TNL::Devices::Cuda>(params))
+   if (device == "cuda" && !solver.solve<TNL::Devices::Cuda>(params))
       return EXIT_FAILURE;
 #endif
 

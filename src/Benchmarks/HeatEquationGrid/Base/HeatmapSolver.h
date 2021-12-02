@@ -54,7 +54,7 @@ TNL::Config::ConfigDescription HeatmapSolver<Real>::Parameters::makeInputConfig(
 {
    TNL::Config::ConfigDescription config;
 
-   config.addEntry<TNL::String>("device", "Device the computation will run on.", "host");
+   config.addEntry<TNL::String>("device", "Device the computation will run on.", "cuda");
    config.addEntryEnum<TNL::String>("host");
 
 #ifdef HAVE_CUDA

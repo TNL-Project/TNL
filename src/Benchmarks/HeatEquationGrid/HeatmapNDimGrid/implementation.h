@@ -204,10 +204,10 @@ class Grid {
          traverseRectDimensionsProducts = getDimensionProducts(traverseRectDimensions);
 
          auto outerFunction = [=] __cuda_callable__(Index offset,
-                                                    const Container<Dimension, Index>& traverseRectOrigin,
-                                                    const Container<Dimension, Index>& traverseRectDimensions,
-                                                    const Container<Dimension, Index>& traverseRectDimensionsProducts,
-                                                    const Container<Dimension, Index>& dimensionsProducts,
+                                                    const Container<Dimension, Index> traverseRectOrigin,
+                                                    const Container<Dimension, Index> traverseRectDimensions,
+                                                    const Container<Dimension, Index> traverseRectDimensionsProducts,
+                                                    const Container<Dimension, Index> dimensionsProducts,
                                                     FunctionArgs... args) mutable {
             auto entity = this -> makeEntitity(offset,
                                                traverseRectOrigin, traverseRectDimensions,
@@ -237,8 +237,8 @@ class Grid {
        *
        *          For example, let's have a 3-d grid, then the map indexing will be the next:
        *            0 - 0 - count of vertices
-       *            1, 2, 3 - count of edges in z, y, x plane
-       *            4, 5, 6 - count of faces in yz, xz, xy plane
+       *            1, 2, 3 - count of edges in x, y, z plane
+       *            4, 5, 6 - count of faces in xy, yz, zy plane
        *            7 - count of cells in z y x plane
        *
        * @warning - The ordering of is lexigraphical.
@@ -268,7 +268,7 @@ class Grid {
                int result = 1;
 
                for (std::size_t k = 0; k < combinationBuffer.size(); k++)
-                  result *= combinationBuffer[k] ? dimensions[k] - 1 : dimensions[k];
+                  result *= combinationBuffer[k] ? dimensions[Dimension - k - 1] - 1 : dimensions[Dimension - k - 1];
 
                dimensionMap[j] = result;
                cumulativeDimensionMap[i] += result;
@@ -279,12 +279,13 @@ class Grid {
       }
 
       __cuda_callable__ inline
-      GridEntity<Dimension, Index> makeEntitity(const Index index,
+      GridEntity<Dimension, Index> makeEntitity(const Index& index,
                                                 const Container<Dimension, Index>& traverseRectOrigin,
                                                 const Container<Dimension, Index>& traverseRectDimensions,
                                                 const Container<Dimension, Index>& traverseRectDimensionsProducts,
                                                 const Container<Dimension, Index>& dimensionsProducts) const {
-         const auto traverseCoordinates = getCoordinates(index, traverseRectDimensions);
+         //Container<Dimension, Index> traverseCoordinates = 0;
+         Container<Dimension, Index> traverseCoordinates = getCoordinates(index, traverseRectDimensions);
          Container<Dimension, Index> globalCoordinates = 0;
 
          for (Index i = 0; i < Dimension; i++)
@@ -298,22 +299,23 @@ class Grid {
        * Calculates position in the specific boundaries
        */
       __cuda_callable__ inline
-      Container<Dimension, Index> getCoordinates(const Index index, const Container<Dimension, Index> &dimensions) const {
+      Container<Dimension, Index> getCoordinates(const Index& index,
+                                                 const Container<Dimension, Index> &dimensions) const {
          Container<Dimension, Index> coordinates = 0;
          Index tmpIndex = index;
 
-         Index dim = Dimension - 1;
+         Index dimensionIndex = 0;
 
          // TODO: -  Implement overflow check.
-         while (tmpIndex) {
-            Index dimension = dimensions[dim],
+         while (tmpIndex && dimensionIndex < Dimension) {
+            Index dimension = dimensions[dimensionIndex],
                   quotient = tmpIndex / dimension,
                   reminder = tmpIndex - (dimension * quotient);
 
-            coordinates[dim] = reminder;
+            coordinates[dimensionIndex] = reminder;
             tmpIndex = quotient;
 
-            dim -= 1;
+            dimensionIndex += 1;
          }
 
          return coordinates;
@@ -325,8 +327,10 @@ class Grid {
       Container<Dimension, Index> getDimensionProducts(const Container<Dimension, Index>& dimensions) const noexcept {
          Container<Dimension, Index> products = 0;
 
-         for (Index i = Dimension; i > 0; i--)
-            products[i - 1] = i == Dimension ? 1 : products[i] * dimensions[i];
+         products[0] = 1;
+
+         for (Index i = 1; i < Dimension; i++)
+            products[i] = dimensions[i - 1] * products[i - 1];
 
          return products;
       }
@@ -370,7 +374,7 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
    ux = 0;
    aux = 0;
 
-   auto init = [=] __cuda_callable__(GridEntity<2, int> entity) mutable {
+   auto init = [=] __cuda_callable__(const GridEntity<2, int>& entity) mutable {
       auto position = entity.getCoordinates();
       auto index = entity.getIndex();
 
