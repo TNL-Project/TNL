@@ -1071,14 +1071,41 @@ def processDf( df, formats, head_size = 10 ):
    #write_performance_circles( df, formats )
    analyze_light_csr( df, formats )
 
+####
+# Parse legacy input file
+def parse_legacy( file_name ):
+   with open(file_name) as f:
+      d = json.load(f)
+   input_df = json_normalize( d, record_path=['results'] )
+   #input_df.to_html( "orig-pandas.html" )
+   return d
 
 ####
 # Parse input file
+def parse( file_name ):
+   logFile = open( file_name, 'r')
+
+   # read file by lines
+   lines = logFile.readlines()
+
+   # drop comments and blank lines
+   lines = [line for line in lines if line.strip() and not line.startswith("#")]
+
+   # drop anything before the first metadata block
+   #while len(lines) > 0 and not lines[0].startswith(":"):
+   #   lines.pop(0)
+
+   df = pd.DataFrame
+   #print( lines )
+   while len(lines) > 0:
+      line = lines.pop(0)
+      print( line )
+      df.join( pd.read_json( line ) )
+   df.to_html( "orig-pandas.html" )
+
 print( "Parsing input file...." )
-with open('sparse-matrix-benchmark.log') as f:
-    d = json.load(f)
-input_df = json_normalize( d, record_path=['results'] )
-#input_df.to_html( "orig-pandas.html" )
+#d = parse_legacy('sparse-matrix-benchmark.log')
+d = parse('sparse-matrix-benchmark.log')
 
 formats = list(set( input_df['format'].values.tolist() )) # list of all formats in the benchmark results
 formats.remove('CSR< Light > Automatic')
