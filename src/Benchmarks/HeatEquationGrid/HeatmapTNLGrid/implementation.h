@@ -26,21 +26,25 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
 
    const Real hx = params.xDomainSize / (Real)params.xSize;
    const Real hy = params.yDomainSize / (Real)params.ySize;
-   const Real hx_inv = 1 / (hx * hx);
-   const Real hy_inv = 1 / (hy * hy);
+   const Real hx_inv = 1. / (hx * hx);
+   const Real hy_inv = 1. / (hy * hy);
 
    auto timestep = params.timeStep ? params.timeStep : std::min(hx * hx, hy * hy);
 
    auto uxView = ux.getView(),
         auxView = aux.getView();
 
+   auto xDomainSize = params.xDomainSize;
+   auto yDomainSize = params.yDomainSize;
+   auto sigma = params.sigma;
+
    auto init = [=] __cuda_callable__(const typename Grid2D::EntityType<0> &entity) mutable {
       auto index = entity.getIndex();
 
-      auto x = entity.getCoordinates().x() * hx - params.xDomainSize / 2;
-      auto y = entity.getCoordinates().y() * hy - params.yDomainSize / 2;
+      auto x = entity.getCoordinates().x() * hx - xDomainSize / 2.;
+      auto y = entity.getCoordinates().y() * hy - yDomainSize / 2.;
 
-      uxView[index] = exp(params.sigma * (x * x + y * y));
+      uxView[index] = exp(sigma * (x * x + y * y));
    };
 
    grid.template forInterior<0>(init);
@@ -48,12 +52,13 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
    if (!writeGNUPlot("data.txt", params, ux))
       return false;
 
+   auto width = grid.getDimensions().x() + 1;
    auto next = [=] __cuda_callable__(const typename Grid2D::EntityType<0>&entity) mutable {
       auto index = entity.getIndex();
-      auto width = grid.getDimensions().x() + 1;
+      auto center = 2 * uxView[index];
 
-      auxView[index] = (uxView[index - 1] - 2 * uxView[index] + uxView[index + 1]) * hx_inv +
-                        (uxView[index - width] - 2 * uxView[index] + uxView[index + width]) * hy_inv;
+      auxView[index] = (uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
+                        (uxView[index - width] - center + uxView[index + width]) * hy_inv;
    };
 
    auto update = [=] __cuda_callable__(const typename Grid2D::EntityType<0>&entity) mutable {

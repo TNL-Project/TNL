@@ -39,21 +39,26 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
 
    const Real hx = params.xDomainSize / (Real)params.xSize;
    const Real hy = params.yDomainSize / (Real)params.ySize;
-   const Real hx_inv = 1 / (hx * hx);
-   const Real hy_inv = 1 / (hy * hy);
+   const Real hx_inv = 1. / (hx * hx);
+   const Real hy_inv = 1. / (hy * hy);
 
    auto timestep = params.timeStep ? params.timeStep : std::min(hx * hx, hy * hy);
 
    auto uxView = ux.getView(), auxView = aux.getView();
 
+   auto xSize = params.xSize;
+   auto xDomainSize = params.xDomainSize;
+   auto yDomainSize = params.yDomainSize;
+   auto sigma = params.sigma;
+
    auto init = [=] __cuda_callable__(int i, int j) mutable
    {
-      auto index = j * params.xSize + i;
+      auto index = j * xSize + i;
 
-      auto x = i * hx - params.xDomainSize / 2;
-      auto y = j * hy - params.yDomainSize / 2;
+      auto x = i * hx - xDomainSize / 2.;
+      auto y = j * hy - yDomainSize / 2.;
 
-      uxView[index] = exp(params.sigma * (x * x + y * y));
+      uxView[index] = exp(sigma * (x * x + y * y));
    };
 
    TNL::Algorithms::ParallelFor2D<Device>::exec(1, 1, params.xSize - 1, params.ySize - 1, init);
@@ -63,10 +68,11 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
 
    auto next = [=] __cuda_callable__(int i, int j) mutable
    {
-      auto index = j * params.xSize + i;
+      auto index = j * xSize + i;
+      auto center = 2 * uxView[index];
 
-      auxView[index] = (uxView[index - 1] - 2 * uxView[index] + uxView[index + 1]) * hx_inv +
-                       (uxView[index - params.xSize] - 2 * uxView[index] + uxView[index + params.xSize]) * hy_inv;
+      auxView[index] = (uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
+                       (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv;
    };
 
    auto update = [=] __cuda_callable__(int i) mutable

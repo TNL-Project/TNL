@@ -359,11 +359,14 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
 
    const Real hx = params.xDomainSize / (Real)grid.getDimension(0);
    const Real hy = params.yDomainSize / (Real)grid.getDimension(1);
-   const Real hx_inv = 1 / (hx * hx);
-   const Real hy_inv = 1 / (hy * hy);
+   const Real hx_inv = 1. / (hx * hx);
+   const Real hy_inv = 1. / (hy * hy);
 
    auto entitiesCount = grid.getEntitiesCount(0);
    auto timestep = params.timeStep ? params.timeStep : std::min(hx * hx, hy * hy);
+   auto xDomainSize = params.xDomainSize;
+   auto yDomainSize = params.yDomainSize;
+   auto sigma = params.sigma;
 
    TNL::Containers::Array<Real, Device> ux(entitiesCount), // data at step u
                                         aux(entitiesCount);// data at step u + 1
@@ -378,10 +381,10 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
       auto position = entity.getCoordinates();
       auto index = entity.getIndex();
 
-      auto x = position[0] * hx - params.xDomainSize / 2;
-      auto y = position[1] * hx - params.yDomainSize / 2;
+      auto x = position[0] * hx - xDomainSize / 2;
+      auto y = position[1] * hx - yDomainSize / 2;
 
-      uxView[index] = exp(params.sigma * (x * x + y * y));
+      uxView[index] = exp(sigma * (x * x + y * y));
    };
 
    const Container<2, bool> direction{ false, false };
@@ -398,9 +401,10 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
 
    auto next = [=] __cuda_callable__(const GridEntity<2, int>& entity) mutable {
       auto index = entity.getIndex();
+      auto center = 2 * uxView[index];
 
-      auxView[index] = (uxView[index - 1] - 2 * uxView[index] + uxView[index + 1]) * hx_inv +
-                       (uxView[index - xDimension] - 2 * uxView[index] + uxView[index + xDimension]) * hy_inv;
+      auxView[index] = (uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
+                       (uxView[index - xDimension] - center + uxView[index + xDimension]) * hy_inv;
    };
 
    auto update = [=] __cuda_callable__(int i) mutable {
