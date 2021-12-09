@@ -350,9 +350,8 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
       auto outerOriented = [=] __cuda_callable__(Index i, Index j,
                                                  const Grid<2, Real, Device, Index>&grid,
                                                  const CoordinatesType & orientation,
-                                                 const CoordinatesType & basis,
                                                  FuncArgs... args) mutable {
-         EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation, basis);
+         EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation);
 
          entity.refresh();
 
@@ -364,7 +363,6 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
                                                    outerOriented,
                                                    *this,
                                                    CoordinatesType(1, 0),
-                                                   CoordinatesType(0, 1),
                                                    args...);
 
       TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0,
@@ -372,7 +370,6 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
                                                    outerOriented,
                                                    *this,
                                                    CoordinatesType(0, 1),
-                                                   CoordinatesType(1, 0),
                                                    args...);
       break;
    }
@@ -410,9 +407,8 @@ void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
       auto outerOriented = [=] __cuda_callable__(Index i, Index j,
                                                  Grid<2, Real, Device, Index>& grid,
                                                  const CoordinatesType& orientation,
-                                                 const CoordinatesType& basis,
                                                  FuncArgs... args) mutable {
-         EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation, basis);
+         EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation);
 
          entity.refresh();
 
@@ -424,7 +420,6 @@ void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
                                                    outerOriented,
                                                    *this,
                                                    CoordinatesType(1, 0),
-                                                   CoordinatesType(0, 1),
                                                    args...);
 
       TNL::Algorithms::ParallelFor2D<Device>::exec(0, 1,
@@ -432,7 +427,6 @@ void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
                                                    outerOriented,
                                                    *this,
                                                    CoordinatesType(0, 1),
-                                                   CoordinatesType(1, 0),
                                                    args...);
       break;
    }
@@ -488,8 +482,7 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
                                                  Index axis,
                                                  Index axisIndex,
                                                  const Grid<2, Real, Device, Index>& grid,
-                                                 const CoordinatesType & orientation,
-                                                 const CoordinatesType & basis,
+                                                 const CoordinatesType& orientation,
                                                  FuncArgs... args) mutable {
          CoordinatesType coordinates;
 
@@ -505,7 +498,7 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
          default: TNL_ASSERT_TRUE(false, "Received axis index. Expect in range [0..<1]");
          }
 
-         EntityType<EntityDimension> entity(grid, coordinates, orientation, basis);
+         EntityType<EntityDimension> entity(grid, coordinates, orientation);
 
          entity.refresh();
 
@@ -519,7 +512,6 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
                                                  0, 0,
                                                  *this,
                                                  CoordinatesType(1, 0),
-                                                 CoordinatesType(0, 1),
                                                  args...);
       // Upper horizontal
       TNL::Algorithms::ParallelFor<Device>::exec(0,
@@ -528,7 +520,6 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
                                                  0, dimensions.y(),
                                                  *this,
                                                  CoordinatesType(1, 0),
-                                                 CoordinatesType(0, 1),
                                                  args...);
       // Left vertical
       TNL::Algorithms::ParallelFor<Device>::exec(0,
@@ -537,7 +528,6 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
                                                  1, 0,
                                                  *this,
                                                  CoordinatesType(0, 1),
-                                                 CoordinatesType(1, 0),
                                                  args...);
       // Right vertical
       TNL::Algorithms::ParallelFor<Device>::exec(0,
@@ -546,7 +536,6 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
                                                  1, dimensions.x(),
                                                  *this,
                                                  CoordinatesType(0, 1),
-                                                 CoordinatesType(1, 0),
                                                  args...);
       break;
    }

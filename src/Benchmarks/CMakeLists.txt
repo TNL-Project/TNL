@@ -1,4 +1,4 @@
-add_subdirectory( HeatEquation )
+#add_subdirectory( HeatEquation )
 add_subdirectory( HeatEquationGrid )
 add_subdirectory( BLAS )
 add_subdirectory( NDArray )

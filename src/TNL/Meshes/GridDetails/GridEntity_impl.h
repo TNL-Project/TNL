@@ -26,9 +26,7 @@ GridEntity( const Meshes::Grid< Dimension, Real, Device, Index >& grid )
 : grid( grid ),
   entityIndex( -1 ),
   coordinates( 0 ),
-  orientation( 0 ),
-  basis( 0 )
-{
+  orientation( 0 ){
 }
 
 template< int Dimension,
@@ -41,14 +39,11 @@ __cuda_callable__ inline
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::
 GridEntity( const Meshes::Grid< Dimension, Real, Device, Index >& grid,
                const CoordinatesType& coordinates,
-               const EntityOrientationType& orientation,
-               const EntityBasisType& basis )
+               const EntityOrientationType& orientation )
 : grid( grid ),
   entityIndex( -1 ),
   coordinates( coordinates ),
-  orientation( orientation ),
-  basis( basis )
-{
+  orientation( orientation ){
 }
 
 template< int Dimension,
@@ -119,25 +114,8 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Con
    const EntityOrientationType& orientation )
 {
    this->orientation = orientation;
-   this->basis = EntityBasisType( 1 ) - abs( orientation );
 }
 
-template< int Dimension, typename Real, typename Device, typename Index, int EntityDimension, typename Config >
-__cuda_callable__
-inline const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::EntityBasisType&
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::getBasis() const
-{
-   return this->basis;
-}
-
-template< int Dimension, typename Real, typename Device, typename Index, int EntityDimension, typename Config >
-__cuda_callable__
-inline void
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >::setBasis( const EntityBasisType& basis )
-{
-   this->basis = basis;
-   this->orientation = EntityOrientationType( 1 ) - abs( basis );
-}
 
 template< int Dimension,
           typename Real,
@@ -200,8 +178,7 @@ __cuda_callable__ inline
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::
 GridEntity( const GridType& grid,
                const CoordinatesType& coordinates,
-               const EntityOrientationType& orientation,
-               const EntityBasisType& basis )
+               const EntityOrientationType& orientation)
 : grid( grid ),
   entityIndex( -1 ),
   coordinates( coordinates )
@@ -258,14 +235,6 @@ inline typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dime
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::getOrientation() const
 {
    return EntityOrientationType( (IndexType) 0 );
-}
-
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-__cuda_callable__
-inline typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::EntityBasisType
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::getBasis() const
-{
-   return EntityBasisType( (IndexType) 1 );
 }
 
 template< int Dimension,
@@ -330,7 +299,6 @@ GridEntity( const GridType& grid )
 {
 }
 
-// Basis is Discarded
 template< int Dimension,
           typename Real,
           typename Device,
@@ -340,8 +308,7 @@ __cuda_callable__ inline
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::
 GridEntity( const GridType& grid,
                const CoordinatesType& coordinates,
-               const EntityOrientationType& orientation,
-               const EntityBasisType& basis )
+               const EntityOrientationType& orientation)
 : grid( grid ),
   entityIndex( -1 ),
   coordinates( coordinates )
@@ -404,14 +371,6 @@ inline typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, C
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::getOrientation() const
 {
    return EntityOrientationType( (IndexType) 0 );
-}
-
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-__cuda_callable__
-inline typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::EntityBasisType
-GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::getBasis() const
-{
-   return EntityBasisType( (IndexType) 0 );
 }
 
 template< int Dimension,
