@@ -7,6 +7,7 @@ from pandas.io.json import json_normalize
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+from TNL.BenchmarkLogs import *
 
 #Latex fonst set-up
 
@@ -171,9 +172,9 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
          aux_df.iloc[0]['Matrix name']      = row['matrix name']
          aux_df.iloc[0]['rows']             = row['rows']
          aux_df.iloc[0]['columns']          = row['columns']
-         aux_df.iloc[0]['nonzeros per row'] = float(row['nonzeros per row'])
+         aux_df.iloc[0]['nonzeros per row'] = float(row['nonzeros'])/float(row['rows'])
          current_format = row['format']
-         current_device = row['device']
+         current_device = row['performer']
          #print( current_format + " / " + current_device )
          bw = pd.to_numeric(row['bandwidth'], errors='coerce')
          time = pd.to_numeric(row['time'], errors='coerce')
@@ -1043,15 +1044,15 @@ def processDf( df, formats, head_size = 10 ):
    df.to_html( f'output.html' )
 
    # Generate tables and figures
-   #effective_bw_profile( df, formats, head_size )
-   #cusparse_comparison( df, formats, head_size )
-   #csr_comparison( df, formats, head_size )
-   #legacy_formats_comparison( df, formats, head_size )
-   #csr_speedup_comparison( df, formats, head_size )
-   #cusparse_speedup_comparison( df, formats, head_size )
-   #binary_matrices_comparison( df, formats, head_size )
-   #symmetric_matrices_comparison( df, formats, head_size )
-   #csr_light_speedup_comparison( df, head_size )
+   effective_bw_profile( df, formats, head_size )
+   cusparse_comparison( df, formats, head_size )
+   csr_comparison( df, formats, head_size )
+   legacy_formats_comparison( df, formats, head_size )
+   csr_speedup_comparison( df, formats, head_size )
+   cusparse_speedup_comparison( df, formats, head_size )
+   binary_matrices_comparison( df, formats, head_size )
+   symmetric_matrices_comparison( df, formats, head_size )
+   csr_light_speedup_comparison( df, head_size )
 
    best = df[('TNL Best','GPU','format')].tolist()
    best_formats = list(set(best))
@@ -1105,7 +1106,9 @@ def parse( file_name ):
 
 print( "Parsing input file...." )
 #d = parse_legacy('sparse-matrix-benchmark.log')
-d = parse('sparse-matrix-benchmark.log')
+input_df = get_benchmark_dataframe('sparse-matrix-benchmark.log')
+input_df.to_html( "sparse-matrix-benchmark-test.html")
+
 
 formats = list(set( input_df['format'].values.tolist() )) # list of all formats in the benchmark results
 formats.remove('CSR< Light > Automatic')
