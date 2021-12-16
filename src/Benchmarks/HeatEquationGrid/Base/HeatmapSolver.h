@@ -68,7 +68,7 @@ TNL::Config::ConfigDescription HeatmapSolver<Real>::Parameters::makeInputConfig(
 
    config.addEntry<Real>("sigma", "Sigma in exponential initial condition.", 1.0);
 
-   config.addEntry<Real>("time-step", "Time step. By default it is proportional to one over space step square.", 0.0);
+   config.addEntry<Real>("time-step", "Time step. By default it is proportional to one over space step square.", 0.00001);
    config.addEntry<Real>("final-time", "Final time of the simulation.", 0.012);
    config.addEntry<bool>("verbose", "Verbose mode.", true);
 

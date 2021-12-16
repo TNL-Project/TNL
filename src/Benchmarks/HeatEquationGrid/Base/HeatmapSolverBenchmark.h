@@ -38,6 +38,7 @@ TNL::Config::ConfigDescription HeatmapSolverBenchmark::makeInputConfig() {
    config.addEntryEnum("overwrite");
 
    config.addEntry<TNL::String>("device", "Device the computation will run on.", "cuda");
+   config.addEntryEnum<TNL::String>("all");
    config.addEntryEnum<TNL::String>("host");
 
 #ifdef HAVE_CUDA
@@ -67,8 +68,8 @@ TNL::Config::ConfigDescription HeatmapSolverBenchmark::makeInputConfig() {
 
    config.addEntry<double>("sigma", "Sigma in exponential initial condition.", 1.0);
 
-   config.addEntry<double>("time-step", "Time step. By default it is proportional to one over space step square.", 0.0);
-   config.addEntry<double>("final-time", "Final time of the simulation.", 0.012);
+   config.addEntry<double>("time-step", "Time step. By default it is proportional to one over space step square.", 0.00001);
+   config.addEntry<double>("final-time", "Final time of the simulation.", 0.01);
 
    config.addDelimiter("Device settings:");
    TNL::Devices::Host::configSetup( config );
@@ -114,13 +115,15 @@ void HeatmapSolverBenchmark::runBenchmark(TNL::Benchmarks::Benchmark<>& benchmar
             { "ySize", TNL::convertToString(ySize) }
          }));
 
+         benchmark.setDatasetSize(xSize * ySize);
+
          auto lambda = [=]() {
             typename HeatmapSolver<Real>::Parameters params(xSize, ySize, xDomainSize, yDomainSize, sigma, timeStep, finalTime, false, false);
 
             exec<Real, Device>(params);
          };
 
-         benchmark.time<Device>("_", lambda);
+         benchmark.time<Device>(device, lambda);
       }
    }
 }
@@ -178,7 +181,7 @@ int main(int argc, char* argv[]) {
 
    auto device = parameters.getParameter<TNL::String>("device");
 
-   if (device == "host") {
+   if (device == "host" || device == "all") {
       if(precision == "all" || precision == "float")
          solver.runBenchmark<float, TNL::Devices::Host>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
       if(precision == "all" || precision == "double")
@@ -186,7 +189,7 @@ int main(int argc, char* argv[]) {
    }
 
 #ifdef HAVE_CUDA
-   if (device == "cuda") {
+   if (device == "cuda" || device == "all") {
       if( precision == "all" || precision == "float" )
          solver.runBenchmark<float, TNL::Devices::Cuda>(benchmark, minXDimension, maxXDimension, xSizeStepFactor, minYDimension, maxYDimension, ySizeStepFactor, parameters);
       if( precision == "all" || precision == "double" )

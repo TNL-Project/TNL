@@ -204,10 +204,10 @@ class Grid {
          traverseRectDimensionsProducts = getDimensionProducts(traverseRectDimensions);
 
          auto outerFunction = [=] __cuda_callable__(Index offset,
-                                                    const Container<Dimension, Index> traverseRectOrigin,
-                                                    const Container<Dimension, Index> traverseRectDimensions,
-                                                    const Container<Dimension, Index> traverseRectDimensionsProducts,
-                                                    const Container<Dimension, Index> dimensionsProducts,
+                                                    const Container<Dimension, Index>& traverseRectOrigin,
+                                                    const Container<Dimension, Index>& traverseRectDimensions,
+                                                    const Container<Dimension, Index>& traverseRectDimensionsProducts,
+                                                    const Container<Dimension, Index>& dimensionsProducts,
                                                     FunctionArgs... args) mutable {
             auto entity = this -> makeEntitity(offset,
                                                traverseRectOrigin, traverseRectDimensions,
@@ -306,7 +306,6 @@ class Grid {
 
          Index dimensionIndex = 0;
 
-         // TODO: -  Implement overflow check.
          while (tmpIndex && dimensionIndex < Dimension) {
             Index dimension = dimensions[dimensionIndex],
                   quotient = tmpIndex / dimension,
