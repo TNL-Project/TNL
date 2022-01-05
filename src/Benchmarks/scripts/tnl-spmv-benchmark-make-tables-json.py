@@ -632,25 +632,29 @@ def cusparse_speedup_comparison( df, formats, head_size=10 ):
    for format in formats:
       if( 'Ellpack' in format and not 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format ):
          current_formats.append( format )
-   draw_profiles( current_formats, profiles, xlabel, ylabel, "ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   if current_formats:
+      draw_profiles( current_formats, profiles, xlabel, ylabel, "ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
 
    current_formats.clear()
    for format in formats:
       if( 'Ellpack' in format and 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format ):
          current_formats.append( format )
-   draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   if current_formats:
+      draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
 
    current_formats.clear()
    for format in formats:
       if( 'Ellpack' in format and not 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format ):
          current_formats.append( format )
-   draw_profiles( current_formats, profiles, xlabel, ylabel, "binary-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   if current_formats:
+      draw_profiles( current_formats, profiles, xlabel, ylabel, "binary-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
 
    current_formats.clear()
    for format in formats:
       if( 'Ellpack' in format and 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format ):
          current_formats.append( format )
-   draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-binary-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   if current_formats:
+      draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-binary-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
 
 
    # Draw CSR formats profiles
@@ -658,24 +662,28 @@ def cusparse_speedup_comparison( df, formats, head_size=10 ):
    for format in formats:
       if( 'CSR' in format and not 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
          current_formats.append( format )
-   draw_profiles( current_formats, profiles, xlabel, ylabel, "csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   if current_formats:
+      draw_profiles( current_formats, profiles, xlabel, ylabel, "csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
    current_formats.clear()
    for format in formats:
       if( 'CSR' in format and 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
          current_formats.append( format )
-   draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   if current_formats:
+      draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
    current_formats.clear()
 
    for format in formats:
       if( 'CSR' in format and not 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
          current_formats.append( format )
-   draw_profiles( current_formats, profiles, xlabel, ylabel, "binary-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   if current_formats:
+      draw_profiles( current_formats, profiles, xlabel, ylabel, "binary-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
    current_formats.clear()
 
    for format in formats:
       if( 'CSR' in format and 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
          current_formats.append( format )
-   draw_profiles( current_formats, profiles, xlabel, ylabel, "-symmetric-binary-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   if current_formats:
+      draw_profiles( current_formats, profiles, xlabel, ylabel, "-symmetric-binary-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
    current_formats.clear()
 
 ####
@@ -1111,10 +1119,14 @@ input_df.to_html( "sparse-matrix-benchmark-test.html")
 
 
 formats = list(set( input_df['format'].values.tolist() )) # list of all formats in the benchmark results
-formats.remove('CSR< Light > Automatic')
-formats.remove('Binary CSR< Light > Automatic')
-formats.remove('Symmetric CSR< Light > Automatic')
-formats.remove('Symmetric Binary CSR< Light > Automatic')
+if 'CSR< Light > Automatic' in formats:
+   formats.remove('CSR< Light > Automatic')
+if 'Binary CSR< Light > Automatic' in formats:
+   formats.remove('Binary CSR< Light > Automatic')
+if 'Symmetric CSR< Light > Automatic' in formats:
+   formats.remove('Symmetric CSR< Light > Automatic')
+if 'Symmetric Binary CSR< Light > Automatic' in formats:
+   formats.remove('Symmetric Binary CSR< Light > Automatic')
 formats.append('TNL Best')
 formats.append('CSR Light Best')
 multicolumns, df_data = get_multiindex( input_df, formats )
