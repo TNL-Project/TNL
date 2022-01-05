@@ -21,7 +21,7 @@ sizes = [ 100000 ]
 
 for size in sizes:
    nnz_per_row = 1
-   while nnz_per_row < 50 and nnz_per_row <= size:
+   while nnz_per_row < 256 and nnz_per_row <= size:
       print( f"Creating matrix with {nnz_per_row} non-zeros per row")
       rows = []
       columns = []
