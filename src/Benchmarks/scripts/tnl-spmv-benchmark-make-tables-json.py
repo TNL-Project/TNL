@@ -889,7 +889,7 @@ def analyze_light_csr( df, formats ):
    for f in formats:
       if not f in ['CSR Light Best']:
          sort_df.drop( labels=f, axis='columns', level=0, inplace=True )
-   sort_df.to_html( f"LightSpMV-Threads-per-row.html" )
+   sort_df.to_html( f"LightSpMV-Threads-per-row-best.html" )
    size = len(sort_df[('nonzeros per row', '','','')].index)
    t = np.arange( size )
    fig, axs = plt.subplots( 1, 1 )
@@ -905,6 +905,17 @@ def analyze_light_csr( df, formats ):
       "font.sans-serif": ["Helvetica"]})
    plt.savefig( f"LightSpMV-threads-mapping.pdf" )
    plt.close(fig)
+
+   profiles = {}
+   sort_df = df.sort_values(by=[('nonzeros per row','','','')],inplace=False,ascending=True)
+   formats_list = ['CSR< Light > 1', 'CSR< Light > 2', 'CSR< Light > 4', 'CSR< Light > 8', 'CSR< Light > 16', 'CSR< Light > 32']
+   for format in formats_list:
+      sort_df.drop( labels=format, axis='columns', level=0, inplace=True )
+      print( f'{format}')
+      profiles[format] = df[(format,'GPU','bandwidth','')].copy()
+   sort_df.to_html( f"LightSpMV-Threads-per-row.html" )
+   draw_profiles( formats_list, profiles, 'non-zeros per row', 'BW', "nonzeros-bw.pdf", 'lower right', "none" )
+
 
 def write_colormap( file, max_bw, size, x_position, y_position, standalone = False ):
    if standalone:
@@ -1052,15 +1063,15 @@ def processDf( df, formats, head_size = 10 ):
    df.to_html( f'output.html' )
 
    # Generate tables and figures
-   effective_bw_profile( df, formats, head_size )
-   cusparse_comparison( df, formats, head_size )
-   csr_comparison( df, formats, head_size )
-   legacy_formats_comparison( df, formats, head_size )
-   csr_speedup_comparison( df, formats, head_size )
-   cusparse_speedup_comparison( df, formats, head_size )
-   binary_matrices_comparison( df, formats, head_size )
-   symmetric_matrices_comparison( df, formats, head_size )
-   csr_light_speedup_comparison( df, head_size )
+   #effective_bw_profile( df, formats, head_size )
+   #cusparse_comparison( df, formats, head_size )
+   #csr_comparison( df, formats, head_size )
+   #legacy_formats_comparison( df, formats, head_size )
+   #csr_speedup_comparison( df, formats, head_size )
+   #cusparse_speedup_comparison( df, formats, head_size )
+   #binary_matrices_comparison( df, formats, head_size )
+   #symmetric_matrices_comparison( df, formats, head_size )
+   #csr_light_speedup_comparison( df, head_size )
 
    best = df[('TNL Best','GPU','format')].tolist()
    best_formats = list(set(best))
@@ -1132,7 +1143,7 @@ formats.append('CSR Light Best')
 multicolumns, df_data = get_multiindex( input_df, formats )
 
 print( "Converting data..." )
-result = convert_data_frame( input_df, multicolumns, df_data, 0, 20000 )
+result = convert_data_frame( input_df, multicolumns, df_data, 0, 2000 )
 compute_speedup( result, formats )
 
 result.replace( to_replace=' ',value=np.nan,inplace=True)
