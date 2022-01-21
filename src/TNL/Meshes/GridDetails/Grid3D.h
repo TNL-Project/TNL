@@ -213,45 +213,48 @@ public:
     * \brief See Grid1D::getSmallestSpaceStep().
     */
    __cuda_callable__
-   RealType
-   getSmallestSpaceStep() const;
+   RealType getSmallestSpaceStep() const;
 
-   void
-   writeProlog( Logger& logger ) const;
+   /**
+    * \brief Traverses all elements
+    */
+   template<int EntityDimension, typename Func, typename... FuncArgs>
+   void forAll(Func func, FuncArgs... args) const;
 
-protected:
-   void
-   computeProportions();
+   /**
+    * \brief Traversers interior elements
+    */
+   template<int EntityDimension, typename Func, typename... FuncArgs>
+   void forInterior(Func func, FuncArgs... args) const;
 
-   void
-   computeSpaceStepPowers();
+   /**
+    * \brief Traversers boundary elements
+    */
+   template<int EntityDimension, typename Func, typename... FuncArgs>
+   void forBoundary(Func func, FuncArgs... args) const;
 
-   void
-   computeSpaceSteps();
+   void writeProlog( Logger& logger ) const;
 
-   CoordinatesType dimensions = { 0, 0, 0 };
-   CoordinatesType localBegin = { 0, 0, 0 };
-   CoordinatesType localEnd = { 0, 0, 0 };
-   CoordinatesType interiorBegin = { 0, 0, 0 };
-   CoordinatesType interiorEnd = { 0, 0, 0 };
+   protected:
 
-   IndexType numberOfCells = 0;
-   IndexType numberOfNxFaces = 0;
-   IndexType numberOfNyFaces = 0;
-   IndexType numberOfNzFaces = 0;
-   IndexType numberOfNxAndNyFaces = 0;
-   IndexType numberOfFaces = 0;
-   IndexType numberOfDxEdges = 0;
-   IndexType numberOfDyEdges = 0;
-   IndexType numberOfDzEdges = 0;
-   IndexType numberOfDxAndDyEdges = 0;
-   IndexType numberOfEdges = 0;
-   IndexType numberOfVertices = 0;
-   IndexType cellZNeighborsStep = 0;
+   void computeProportions();
 
-   PointType origin = { 0, 0, 0 };
-   PointType proportions = { 0, 0, 0 };
-   PointType spaceSteps = { 0, 0, 0 };
+   void computeSpaceStepPowers();
+
+   void computeSpaceSteps();
+
+   CoordinatesType dimensions, localBegin, localEnd, interiorBegin, interiorEnd;
+
+   IndexType numberOfCells,
+          numberOfNxFaces, numberOfNyFaces, numberOfNzFaces, numberOfNxAndNyFaces, numberOfFaces,
+          numberOfDxEdges, numberOfDyEdges, numberOfDzEdges, numberOfDxAndDyEdges, numberOfEdges,
+          numberOfVertices;
+
+   PointType origin, proportions;
+
+   IndexType cellZNeighborsStep;
+
+   PointType spaceSteps;
 
    RealType spaceStepsProducts[ 5 ][ 5 ][ 5 ];
 
