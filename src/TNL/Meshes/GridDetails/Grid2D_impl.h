@@ -334,9 +334,7 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
    static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0..<2]");
 
    auto outer = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>&grid, FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid);
-
-      entity.setCoordinates({ i, j });
+      EntityType<EntityDimension> entity(grid, CoordinatesType(i, j));
       entity.refresh();
 
       func(entity, args...);
