@@ -444,7 +444,7 @@ template< typename Real,
           typename Index >
 template<int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) const {
-   static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0..<2]");
+   static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0...2]");
 
    auto outer = [=] __cuda_callable__(Index i, Index axis, Index axisIndex, const Grid<2, Real, Device, Index>&grid, FuncArgs... args) mutable {
       EntityType<EntityDimension> entity(grid);
@@ -493,7 +493,7 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
             coordinates[0] = i;
             coordinates[1] = axisIndex;
             break;
-         default: TNL_ASSERT_TRUE(false, "Received axis index. Expect in range [0..<1]");
+         default: TNL_ASSERT_TRUE(false, "Received axis index. Expect in range [0...1]");
          }
 
          EntityType<EntityDimension> entity(grid, coordinates, orientation);
