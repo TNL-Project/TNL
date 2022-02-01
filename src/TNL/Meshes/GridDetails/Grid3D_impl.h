@@ -434,8 +434,8 @@ void Grid<3, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
    case 3:
       // TODO: Verify for distributed grids
       TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 0,
-                                                   dimensions.x(), dimensions.y(), dimension.z(),
-                                                   outer, *this, args...)
+                                                   dimensions.x(), dimensions.y(), dimensions.z(),
+                                                   outer, *this, args...);
       break;
    }
 }
@@ -503,8 +503,8 @@ void Grid<3, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
    case 3:
       // TODO: Verify for distributed grids
       TNL::Algorithms::ParallelFor3D<Device>::exec(1, 1, 1,
-                                                   dimensions.x() - 1, dimensions.y() - 1, dimension.z() - 1,
-                                                   outer, *this, args...)
+                                                   dimensions.x() - 1, dimensions.y() - 1, dimensions.z() - 1,
+                                                   outer, *this, args...);
       break;
    }
 }
@@ -516,15 +516,15 @@ template<int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<3, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) const {
    static_assert(EntityDimension >= 0 && EntityDimension <= 3, "Entity dimension must be in range [0...3]");
 
-   switch (EntityDimension) {
-   case 0:
+   // switch (EntityDimension) {
+   // case 0:
 
-   case 1:
+   // case 1:
 
-   case 2:
+   // case 2:
 
-   case 3:
-   }
+   // case 3:
+   // }
 }
 
 template< typename Real,

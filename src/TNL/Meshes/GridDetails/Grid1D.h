@@ -58,52 +58,6 @@ public:
    ~Grid() = default;
 
    /**
-    * \brief Sets the size of dimensions.
-    * \param xSize Size of dimesion x.
-    */
-   void
-   setDimensions( Index xSize );
-
-   /**
-    * \brief Sets the number of dimensions.
-    * \param dimensions Number of dimensions.
-    */
-   void
-   setDimensions( const CoordinatesType& dimensions );
-
-   __cuda_callable__
-   const CoordinatesType&
-   getDimensions() const;
-
-   void
-   setLocalBegin( const CoordinatesType& begin );
-
-   __cuda_callable__
-   const CoordinatesType&
-   getLocalBegin() const;
-
-   void
-   setLocalEnd( const CoordinatesType& end );
-
-   __cuda_callable__
-   const CoordinatesType&
-   getLocalEnd() const;
-
-   void
-   setInteriorBegin( const CoordinatesType& begin );
-
-   __cuda_callable__
-   const CoordinatesType&
-   getInteriorBegin() const;
-
-   void
-   setInteriorEnd( const CoordinatesType& end );
-
-   __cuda_callable__
-   const CoordinatesType&
-   getInteriorEnd() const;
-
-   /**
     * \brief Sets the origin.
     * \param origin Starting point of this grid.
     */
@@ -225,9 +179,7 @@ public:
    inline RealType
    getSmallestSpaceStep() const;
 
-   void
-   writeProlog( Logger& logger ) const;
-
+   void writeProlog( Logger& logger ) const;
 protected:
    void
    computeProportions();
@@ -235,17 +187,7 @@ protected:
    void
    computeSpaceStepPowers();
 
-   void
-   computeSpaceSteps();
-
-   CoordinatesType dimensions = { 0 };
-   CoordinatesType localBegin = { 0 };
-   CoordinatesType localEnd = { 0 };
-   CoordinatesType interiorBegin = { 0 };
-   CoordinatesType interiorEnd = { 0 };
-
-   IndexType numberOfCells = 0;
-   IndexType numberOfVertices = 0;
+   PointType origin;
 
    PointType origin = { 0 };
    PointType proportions = { 0 };

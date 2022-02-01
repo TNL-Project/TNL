@@ -17,10 +17,20 @@
 namespace TNL {
 namespace Meshes {
 
-template< typename Real, typename Device, typename Index >
-Grid< 1, Real, Device, Index >::Grid( Index xSize )
-{
-   this->setDimensions( xSize );
+// DONE
+template< typename Real,
+          typename Device,
+          typename Index >
+Grid< 1, Real, Device, Index >::Grid() {
+   this->setDimensions(0);
+}
+
+// DONE
+template< typename Real,
+          typename Device,
+          typename Index >
+Grid< 1, Real, Device, Index >::Grid( const Index xSize ) {
+   this->setDimensions(xSize);
 }
 
 template< typename Real, typename Device, typename Index >
@@ -59,97 +69,21 @@ Grid< 1, Real, Device, Index >::setOrigin( const PointType& origin )
    this->origin = origin;
 }
 
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::setDimensions( Index xSize )
-{
-   TNL_ASSERT_GE( xSize, 0, "Grid size must be non-negative." );
-   this->dimensions.x() = xSize;
-   this->numberOfCells = xSize;
-   this->numberOfVertices = xSize + 1;
-   computeSpaceSteps();
+// template< typename Real,
+//           typename Device,
+//           typename Index  >
+// void Grid< 1, Real, Device, Index >::setDimensions( const Index xSize )
+// {
+//    this->setDimensions(xSize);
 
-   // only default behaviour, DistributedGrid must use the setters explicitly after setDimensions
-   localBegin = 0;
-   interiorBegin = 1;
-   localEnd = dimensions;
-   interiorEnd = dimensions - 1;
-}
+//    computeSpaceSteps();
 
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::setDimensions( const CoordinatesType& dimensions )
-{
-   this->setDimensions( dimensions.x() );
-}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-inline const typename Grid< 1, Real, Device, Index >::CoordinatesType&
-Grid< 1, Real, Device, Index >::getDimensions() const
-{
-   return this->dimensions;
-}
-
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::setLocalBegin( const CoordinatesType& begin )
-{
-   localBegin = begin;
-}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-const typename Grid< 1, Real, Device, Index >::CoordinatesType&
-Grid< 1, Real, Device, Index >::getLocalBegin() const
-{
-   return localBegin;
-}
-
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::setLocalEnd( const CoordinatesType& end )
-{
-   localEnd = end;
-}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-const typename Grid< 1, Real, Device, Index >::CoordinatesType&
-Grid< 1, Real, Device, Index >::getLocalEnd() const
-{
-   return localEnd;
-}
-
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::setInteriorBegin( const CoordinatesType& begin )
-{
-   interiorBegin = begin;
-}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-const typename Grid< 1, Real, Device, Index >::CoordinatesType&
-Grid< 1, Real, Device, Index >::getInteriorBegin() const
-{
-   return interiorBegin;
-}
-
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::setInteriorEnd( const CoordinatesType& end )
-{
-   interiorEnd = end;
-}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-const typename Grid< 1, Real, Device, Index >::CoordinatesType&
-Grid< 1, Real, Device, Index >::getInteriorEnd() const
-{
-   return interiorEnd;
-}
+//    // only default behaviour, DistributedGrid must use the setters explicitly after setDimensions
+//    localBegin = 0;
+//    interiorBegin = 1;
+//    localEnd = this -> dimensions;
+//    interiorEnd = this -> dimensions - 1;
+// }
 
 template< typename Real, typename Device, typename Index >
 void
@@ -184,13 +118,7 @@ Grid< 1, Real, Device, Index >::getEntitiesCount() const
 {
    static_assert( EntityDimension <= 1 && EntityDimension >= 0, "Wrong grid entity dimensions." );
 
-   switch( EntityDimension ) {
-      case 1:
-         return this->numberOfCells;
-      case 0:
-         return this->numberOfVertices;
-   }
-   return -1;
+   return this -> getEntitiesCount(EntityDimension);
 }
 
 template< typename Real, typename Device, typename Index >
@@ -277,13 +205,13 @@ void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
 
    switch (EntityDimension) {
    case 0:
-      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.x() + 1, outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(0, this->dimensions.x() + 1, outer, *this, args...);
       break;
    case 1:
       //TODO: - Update for distributed grid
       //TNL::Algorithms::ParallelFor<Device>::exec(localBegin.x(), localEnd.x(), outer, *this, args...);
 
-      TNL::Algorithms::ParallelFor<Device>::exec(0, dimensions.x(), outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(0, this->dimensions.x(), outer, *this, args...);
       break;
    default: break;
    }
@@ -352,10 +280,10 @@ void Grid<1, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
 
    switch (EntityDimension) {
    case 0:
-      TNL::Algorithms::ParallelFor<Device>::exec(1, dimensions.x(), outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(1, this->dimensions.x(), outer, *this, args...);
       break;
    case 1:
-      TNL::Algorithms::ParallelFor<Device>::exec(1, dimensions.x() - 1, outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(1, this->dimensions.x() - 1, outer, *this, args...);
 
       // TODO: - Verify for distributed grids
       //TNL::Algorithms::ParallelFor<Device>::exec(interiorBegin.x(), interiorEnd.x(), outer, *this, args...);
