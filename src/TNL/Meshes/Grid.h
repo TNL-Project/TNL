@@ -99,6 +99,15 @@ namespace TNL
              Index
              getEntitiesCount(Index index) const noexcept;
          /**
+          * @param[in] index - index of dimension
+          */
+         template <int EntityDimension,
+                   typename = std::enable_if_t<(EntityDimension >= 0)>,
+                   typename = std::enable_if_t<(EntityDimension <= Dimension)>>
+         __cuda_callable__
+             Index
+             getEntitiesCount() const noexcept;
+         /**
           * @brief - Returns the number of entities of specific dimension
           */
          template <typename... DimensionIndex,

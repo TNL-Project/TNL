@@ -50,13 +50,6 @@ public:
    ~Grid() = default;
 
    /**
-    * \brief Sets the origin.
-    * \param origin Starting point of this grid.
-    */
-   void
-   setOrigin( const PointType& origin );
-
-   /**
     * \brief Sets the origin and proportions of this grid.
     * \param origin Point where this grid starts.
     * \param proportions Total length of this grid.
@@ -65,28 +58,11 @@ public:
    setDomain( const PointType& origin, const PointType& proportions );
 
    /**
-    * \brief Returns the origin.
-    * \param origin Starting point of this grid.
-    */
-   __cuda_callable__
-   inline const PointType&
-   getOrigin() const;
-
-   /**
     * \brief Gets length of one entity of this grid.
     */
    __cuda_callable__
    inline const PointType&
    getProportions() const;
-
-   /**
-    * \brief Gets number of entities in this grid.
-    * \tparam EntityDimension Integer specifying dimension of the entity.
-    */
-   template< int EntityDimension >
-   __cuda_callable__
-   IndexType
-   getEntitiesCount() const;
 
    /**
     * \brief Gets number of entities in this grid.

@@ -8,7 +8,7 @@ namespace TNL
    namespace Meshes
    {
 
-      template <typename Dimension,
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
@@ -29,7 +29,7 @@ namespace TNL
          fillEntitiesCount();
       }
 
-      template <typename Dimension,
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
@@ -47,7 +47,7 @@ namespace TNL
          fillEntitiesCount();
       }
 
-      template <typename Dimension,
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
@@ -61,7 +61,7 @@ namespace TNL
          return dimensions[index];
       }
 
-      template <typename Dimension,
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
@@ -79,7 +79,7 @@ namespace TNL
          return result;
       }
 
-      template <typename Dimension,
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
@@ -102,7 +102,21 @@ namespace TNL
          return cumulativeDimensionMap(index);
       }
 
-      template <typename Dimension,
+      template <int Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
+      template <int EntityDimension,
+                typename = std::enable_if_t<(EntityDimension >= 0)>,
+                typename = std::enable_if_t<(EntityDimension <= Dimension)>>
+      __cuda_callable__
+          Index
+          getEntitiesCount() const noexcept
+      {
+         return this->cumulativeDimensionMap(EntityDimension);
+      }
+
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
@@ -111,7 +125,7 @@ namespace TNL
          this->origin = origin;
       }
 
-      template <typename Dimension,
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
@@ -129,7 +143,7 @@ namespace TNL
          }
       }
 
-      template <typename Dimension,
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
@@ -182,7 +196,7 @@ namespace TNL
       //     }
 
       // TODO: - Implement
-      template <typename Dimension,
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
@@ -190,7 +204,7 @@ namespace TNL
       {
       }
 
-      template <typename Dimension,
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
