@@ -53,9 +53,10 @@ Grid< 1, Real, Device, Index >::computeSpaceStepPowers()
    this->spaceStepsProducts[ 4 ] = hx * hx;
 }
 
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::computeProportions()
+template< typename Real,
+          typename Device,
+          typename Index >
+void Grid< 1, Real, Device, Index > ::computeProportions()
 {
    this->proportions.x() = this->dimensions.x() * this->spaceSteps.x();
 }
@@ -96,22 +97,14 @@ const typename Grid< 1, Real, Device, Index >::PointType&
    return this->proportions;
 }
 
-template< typename Real, typename Device, typename Index >
-template< int EntityDimension >
-__cuda_callable__
-inline Index
-Grid< 1, Real, Device, Index >::getEntitiesCount() const
-{
-   static_assert( EntityDimension <= 1 && EntityDimension >= 0, "Wrong grid entity dimensions." );
-
-   return this -> getEntitiesCount(EntityDimension);
-}
-
-template< typename Real, typename Device, typename Index >
-template< typename Entity >
-__cuda_callable__
-inline Index
-Grid< 1, Real, Device, Index >::getEntitiesCount() const
+template< typename Real,
+          typename Device,
+          typename Index >
+   template< typename Entity >
+__cuda_callable__  inline
+Index
+Grid< 1, Real, Device, Index >::
+getEntitiesCount() const
 {
    return getEntitiesCount< Entity::getEntityDimension() >();
 }

@@ -26,15 +26,19 @@ namespace TNL
          template <bool... Bs>
          using conjunction = std::is_same<bool_pack<true, Bs...>, bool_pack<Bs..., true>>;
 
-         // template<size_t N, int Size, template <int, typename> typename Container, typename Element>
-         // struct sized_nested_container {
-         //    using type_value = typename Container<Size, sized_nested_container<N-1, Size, Container, Element>::type_value>;
-         // };
+         template<template <int, typename, typename...> typename Container, int ContainerSize, typename Value, int Size>
+         struct NestedFixedSizeContainer {
+            public:
+               using nested = typename NestedFixedSizeContainer<Container, ContainerSize, Value, Size - 1>::type;
 
-         // template<int Size, template <int, typename> typename Container, typename Element>
-         // struct sized_nested_container<1, Size, Container, Element> {
-         //    using type_value = Element;
-         // };
+               using type = Container<ContainerSize, nested>;
+         };
+
+         template<template <int, typename, typename...> typename Container, int ContainerSize, typename Value>
+         struct NestedFixedSizeContainer<Container, ContainerSize, Value, 0> {
+            public:
+               using type = Container<ContainerSize, Value>;
+         };
       }
 
       template <int Dimension,
@@ -45,10 +49,10 @@ namespace TNL
       {
       public:
          template <int ContainerDimension,
-                   typename ContainerIndex,
+                   typename ContainerValue,
                    typename = std::enable_if_t<(Dimension > 0)>,
                    typename = std::enable_if_t<std::is_integral<Index>::value>>
-         using Container = TNL::Containers::StaticArray<ContainerDimension, ContainerIndex>;
+         using Container = TNL::Containers::StaticArray<ContainerDimension, ContainerValue>;
 
          /**
           * \brief Returns number of this mesh grid dimensions.
@@ -77,8 +81,7 @@ namespace TNL
           * @param[in] index - index of dimension
           */
          __cuda_callable__
-             Index
-             getDimension(Index index) const noexcept;
+         Index getDimension(Index index) const noexcept;
          /**
           * @param[in] indices - A dimension index pack
           */
@@ -162,12 +165,25 @@ namespace TNL
           * @brief - A cumulative map over dimensions.
           */
          Container<Dimension + 1, Index> cumulativeEntitiesCountAlongBases;
-
+         /**
+          * @brief - Origin and proportions of the grid domain
+          */
          Container<Dimension, Index> origin, proportions;
+         /**
+          * @brief A space products for each dimension.
+          *
+          * The coefficients are calculated for each dimension
+          * and then all combinations of space steps are calculated.
+          *
+          * For each dimension the next space steps powers are calculated:
+          *   Power:  -2, -1, 0, 1, 2
+          *   Index:   0,  1, 2, 3, 4
+          */
+         typename Templates::NestedFixedSizeContainer<Container, 5, Real, Dimension>::type spaceProducts;
 
-         // typename Templates::sized_nested_container<Dimension, 5, Container, Real> spaceProducts;
+         void fillEntitiesCount();
+         void fillSpaceStepsPowers();
 
-         void fillEntitiesCount() noexcept;
       };
 
       // template< int Dimension, typename Real, typename Device, typename Index >

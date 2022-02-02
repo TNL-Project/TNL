@@ -148,6 +148,7 @@ public:
    getSmallestSpaceStep() const;
 
    void writeProlog( Logger& logger ) const;
+
 protected:
    void
    computeProportions();
@@ -155,11 +156,7 @@ protected:
    void
    computeSpaceStepPowers();
 
-   PointType origin;
-
-   PointType origin = { 0 };
-   PointType proportions = { 0 };
-   PointType spaceSteps = { 0 };
+   PointType spaceSteps;
 
    RealType spaceStepsProducts[ 5 ];
 };

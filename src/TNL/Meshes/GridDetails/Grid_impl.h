@@ -27,6 +27,7 @@ namespace TNL
          }
 
          fillEntitiesCount();
+         fillSpaceStepsPowers();
       }
 
       template <int Dimension,
@@ -45,6 +46,7 @@ namespace TNL
          }
 
          fillEntitiesCount();
+         fillSpaceStepsPowers();
       }
 
       template <int Dimension,
@@ -88,7 +90,7 @@ namespace TNL
          return this->dimensions;
       }
 
-      template <typename Dimension,
+      template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
@@ -202,14 +204,16 @@ namespace TNL
                 typename Index>
       void Grid<Dimension, Real, Device, Index>::fillProportions() noexcept
       {
+
       }
 
       template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
-      void Grid<Dimension, Real, Device, Index>::fillSpaceSteps() noexcept
+      void Grid<Dimension, Real, Device, Index>::fillSpaceStepsPowers() noexcept
       {
+
       }
    }
 }
