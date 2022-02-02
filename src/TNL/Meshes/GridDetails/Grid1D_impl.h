@@ -17,7 +17,6 @@
 namespace TNL {
 namespace Meshes {
 
-// DONE
 template< typename Real,
           typename Device,
           typename Index >
@@ -25,7 +24,6 @@ Grid< 1, Real, Device, Index >::Grid() {
    this->setDimensions(0);
 }
 
-// DONE
 template< typename Real,
           typename Device,
           typename Index >
@@ -62,12 +60,6 @@ Grid< 1, Real, Device, Index >::computeProportions()
    this->proportions.x() = this->dimensions.x() * this->spaceSteps.x();
 }
 
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::setOrigin( const PointType& origin )
-{
-   this->origin = origin;
-}
 
 // template< typename Real,
 //           typename Device,
@@ -94,18 +86,12 @@ Grid< 1, Real, Device, Index >::setDomain( const PointType& origin, const PointT
    computeSpaceSteps();
 }
 
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-inline const typename Grid< 1, Real, Device, Index >::PointType&
-Grid< 1, Real, Device, Index >::getOrigin() const
-{
-   return this->origin;
-}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-inline const typename Grid< 1, Real, Device, Index >::PointType&
-Grid< 1, Real, Device, Index >::getProportions() const
+template< typename Real,
+          typename Device,
+          typename Index >
+__cuda_callable__ inline
+const typename Grid< 1, Real, Device, Index >::PointType&
+   Grid< 1, Real, Device, Index >::getProportions() const
 {
    return this->proportions;
 }
@@ -237,11 +223,11 @@ void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
    case 0:
       // TODO: - Implement call within a single kernel
       TNL::Algorithms::ParallelFor<Device>::exec(0, 1, outer, *this, args...);
-      TNL::Algorithms::ParallelFor<Device>::exec(getDimensions().x(), getDimensions().x() + 1, outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(this->getDimensions().x(), this->getDimensions().x() + 1, outer, *this, args...);
       break;
    case 1:
       TNL::Algorithms::ParallelFor<Device>::exec(0, 1, outer, *this, args...);
-      TNL::Algorithms::ParallelFor<Device>::exec(getDimensions().x() - 1, getDimensions().x(), outer, *this, args...);
+      TNL::Algorithms::ParallelFor<Device>::exec(this->getDimensions().x() - 1, this->getDimensions().x(), outer, *this, args...);
 
       // TODO: - Verify for distributed grid
       /*if (localBegin < interiorBegin && interiorEnd < localEnd) {
@@ -306,7 +292,7 @@ template< typename Real, typename Device, typename Index >
 void
 Grid< 1, Real, Device, Index >::writeProlog( Logger& logger ) const
 {
-   logger.writeParameter( "Dimension:", getMeshDimension() );
+   logger.writeParameter( "Dimension:", this->getMeshDimension() );
    logger.writeParameter( "Domain origin:", this->origin );
    logger.writeParameter( "Domain proportions:", this->proportions );
    logger.writeParameter( "Domain dimensions:", this->dimensions );

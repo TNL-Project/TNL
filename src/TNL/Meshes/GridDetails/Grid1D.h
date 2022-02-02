@@ -31,21 +31,13 @@ public:
    // TODO: deprecated and to be removed (GlobalIndexType shall be used instead)
    using IndexType = Index;
 
-   /**
-    * \brief Returns number of this mesh grid dimensions.
-    */
-   static constexpr int
-   getMeshDimension()
-   {
-      return 1;
-   };
-
-   template< int EntityDimension, typename Config = GridEntityCrossStencilStorage< 1 > >
+   template< int EntityDimension,
+             typename Config = GridEntityCrossStencilStorage< 1 > >
    using EntityType = GridEntity< Grid, EntityDimension, Config >;
 
-   using Cell = EntityType< getMeshDimension(), GridEntityCrossStencilStorage< 1 > >;
-   using Face = EntityType< 0 >;
-   using Vertex = EntityType< 0 >;
+   typedef EntityType< 1, GridEntityCrossStencilStorage< 1 > > Cell;
+   typedef EntityType< 0 > Face;
+   typedef EntityType< 0 > Vertex;
 
    /**
     * \brief Basic constructor.

@@ -11,10 +11,10 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      template <typename... Dimensions,
-                typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
-                typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
-      void DistributedGrid<Dimension, Real, Device, Index>::setLocalBegin(Dimensions... point) noexcept
+      template <typename... Coordinates,
+                typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Coordinates>::value...>::value>,
+                typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+      void DistributedGrid<Dimension, Real, Device, Index>::setLocalBegin(Coordinates... coordinates) noexcept
       {
          Index i = 0;
 
@@ -29,9 +29,9 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      void DistributedGrid<Dimension, Real, Device, Index>::setLocalBegin(const Container<Dimension, Index> &point) noexcept
+      void DistributedGrid<Dimension, Real, Device, Index>::setLocalBegin(const Container<Dimension, Index> &coordinates) noexcept
       {
-         this->localBegin = point;
+         this->localBegin = coordinates;
       }
 
       template <typename Dimension,
@@ -49,10 +49,10 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      template <typename... Dimensions,
-                typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
-                typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
-      void DistributedGrid<Dimension, Real, Device, Index>::setLocalEnd(Dimensions... point) noexcept
+      template <typename... Coordinates,
+                typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Coordinates>::value...>::value>,
+                typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+      void DistributedGrid<Dimension, Real, Device, Index>::setLocalEnd(Coordinates... coordinates) noexcept
       {
          Index i = 0;
 
@@ -67,9 +67,9 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      void DistributedGrid<Dimension, Real, Device, Index>::setLocalEnd(const Container<Dimension, Index> &point) noexcept
+      void DistributedGrid<Dimension, Real, Device, Index>::setLocalEnd(const Container<Dimension, Index> &coordinates) noexcept
       {
-         this->localEnd = point;
+         this->localEnd = coordinates;
       }
 
       template <typename Dimension,
@@ -87,10 +87,10 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      template <typename... Dimensions,
-                typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
-                typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
-      void DistributedGrid<Dimension, Real, Device, Index>::setInteriorBegin(Dimensions... point) noexcept
+      template <typename... Coordinates,
+                typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Coordinates>::value...>::value>,
+                typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+      void DistributedGrid<Dimension, Real, Device, Index>::setInteriorBegin(Coordinates... coordinates) noexcept
       {
          Index i = 0;
 
@@ -105,9 +105,9 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      void DistributedGrid<Dimension, Real, Device, Index>::setInteriorBegin(const Container<Dimension, Index> &point) noexcept
+      void DistributedGrid<Dimension, Real, Device, Index>::setInteriorBegin(const Container<Dimension, Index> &coordinates) noexcept
       {
-         this->interiorBegin = point;
+         this->interiorBegin = coordinates;
       }
 
       template <typename Dimension,
@@ -125,10 +125,10 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      template <typename... Dimensions,
-                typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
-                typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
-      void DistributedGrid<Dimension, Real, Device, Index>::setInteriorEnd(Dimensions... point) noexcept
+      template <typename... Coordinates,
+                typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Coordinates>::value...>::value>,
+                typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+      void DistributedGrid<Dimension, Real, Device, Index>::setInteriorEnd(Coordinates... coordinates) noexcept
       {
          Index i = 0;
 
@@ -143,9 +143,9 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      void DistributedGrid<Dimension, Real, Device, Index>::setInteriorEnd(const Container<Dimension, Index> &point) noexcept
+      void DistributedGrid<Dimension, Real, Device, Index>::setInteriorEnd(const Container<Dimension, Index> &coordinates) noexcept
       {
-         this->interiorEnd = point;
+         this->interiorEnd = coordinates;
       }
 
       template <typename Dimension,

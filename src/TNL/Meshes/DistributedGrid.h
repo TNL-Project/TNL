@@ -18,19 +18,19 @@ namespace TNL
             using Container = typename Grid<Dimension, Real, Device, Index>::Container<ContainerDimension, ContainerIndex>;
             /**
              *  @brief - Specifies coordinates of the local grid
-             *  @param[in] dimensions - A parameter pack, which specifies points count in the specific dimension.
+             *  @param[in] dimensions - A parameter pack, which specifies coordinates count in the specific dimension.
              *                          Most significant dimension is in the beginning of the list.
              *                          Least significant dimension is in the end of the list
              */
-            template <typename... Dimensions,
-                      typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
-                      typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
-            void setLocalBegin(Dimensions... point) noexcept;
+            template <typename... Coordinates,
+                      typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Coordinates>::value...>::value>,
+                      typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+            void setLocalBegin(Coordinates... coordinates) noexcept;
             /**
              *  @brief - Specifies coordinates of the local grid
              *  @param[in] dimensions - A container with the point coordinates
              */
-            void setLocalBegin(const Container<Dimension, Index> &point) noexcept;
+            void setLocalBegin(const Container<Dimension, Index> &coordinates) noexcept;
             /**
              * @brief Get the Local Begin object
              */
@@ -42,15 +42,15 @@ namespace TNL
              *                          Most significant dimension is in the beginning of the list.
              *                          Least significant dimension is in the end of the list
              */
-            template <typename... Dimensions,
-                      typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
-                      typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
-            void setLocalEnd(Dimensions... point) noexcept;
+            template <typename... Coordinates,
+                      typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Coordinates>::value...>::value>,
+                      typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+            void setLocalEnd(Coordinates... coordinates) noexcept;
             /**
              *  @brief - Specifies dimensions of the grid
              *  @param[in] dimensions - A container with the dimension items
              */
-            void setLocalEnd(const Container<Dimension, Index> &point) noexcept;
+            void setLocalEnd(const Container<Dimension, Index> &coordinates) noexcept;
             /**
              * @brief Get the Local end object
              */
@@ -62,10 +62,10 @@ namespace TNL
              *                          Most significant dimension is in the beginning of the list.
              *                          Least significant dimension is in the end of the list
              */
-            template <typename... Dimensions,
-                      typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
-                      typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
-            void setInteriorBegin(Dimensions... point) noexcept;
+            template <typename... Coordinates,
+                      typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Coordinates>::value...>::value>,
+                      typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+            void setInteriorBegin(Coordinates... point) noexcept;
             /**
              *  @brief - Specifies dimensions of the grid
              *  @param[in] dimensions - A container with the dimension items
@@ -82,15 +82,15 @@ namespace TNL
              *                          Most significant dimension is in the beginning of the list.
              *                          Least significant dimension is in the end of the list
              */
-            template <typename... Dimensions,
-                      typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
-                      typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
-            void setInteriorEnd(Dimensions... point) noexcept;
+            template <typename... Coordinates,
+                      typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Coordinates>::value...>::value>,
+                      typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+            void setInteriorEnd(Coordinates... coordinates) noexcept;
             /**
              *  @brief - Specifies dimensions of the grid
              *  @param[in] dimensions - A container with the dimension items
              */
-            void setInteriorEnd(const Container<Dimension, Index> &point) noexcept;
+            void setInteriorEnd(const Container<Dimension, Index> &coordinates) noexcept;
             /**
              * @brief Get the Interior End object
              */

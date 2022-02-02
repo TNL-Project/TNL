@@ -33,7 +33,8 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      void Grid<Dimension, Real, Device, Index>::setDimensions(const Grid<Dimension, Real, Device, Index>::Container<Dimension, Index>& dimensions) noexcept {
+      void Grid<Dimension, Real, Device, Index>::setDimensions(const Grid<Dimension, Real, Device, Index>::Container<Dimension, Index> &dimensions) noexcept
+      {
          Index i = 0;
 
          for (auto x : {dimensions...})
@@ -82,9 +83,9 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      typename Grid<Dimension, Real, Device, Index>::Container<sizeof...(DimensionIndex), Index>
-      Grid<Dimension, Real, Device, Index>::getDimensions() const noexcept {
-         return this -> dimensions;
+      Grid<Dimension, Real, Device, Index>::getDimensions() const noexcept
+      {
+         return this->dimensions;
       }
 
       template <typename Dimension,
@@ -99,6 +100,44 @@ namespace TNL
          TNL_ASSERT_LE(index, Dimension, "Index must be less than or equal to Dimension");
 
          return cumulativeDimensionMap(index);
+      }
+
+      template <typename Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
+      void Grid<Dimension, Real, Device, Index>::setOrigin(const Container<Dimension, Index> &origin) noexcept
+      {
+         this->origin = origin;
+      }
+
+      template <typename Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
+      template <typename... Coordinates,
+                typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Coordinates>::value...>::value>,
+                typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+      void Grid<Dimension, Real, Device, Index>::setOrigin(Coordinates... coordinates) noexcept
+      {
+         Index i = 0;
+
+         for (auto x : {dimensions...})
+         {
+            this->origin[i] = x;
+            i++
+         }
+      }
+
+      template <typename Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
+      __cuda_callable__
+          Index
+          Grid<Dimension, Real, Device, Index>::getOrigin() const noexcept
+      {
+         return this->origin;
       }
 
       template <int Dimension,
@@ -149,7 +188,6 @@ namespace TNL
                 typename Index>
       void Grid<Dimension, Real, Device, Index>::fillProportions() noexcept
       {
-
       }
 
       template <typename Dimension,
@@ -158,7 +196,6 @@ namespace TNL
                 typename Index>
       void Grid<Dimension, Real, Device, Index>::fillSpaceSteps() noexcept
       {
-
       }
    }
 }

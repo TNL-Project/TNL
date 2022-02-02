@@ -105,6 +105,30 @@ namespace TNL
                    typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
                    typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)>>
          Container<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indices) const noexcept;
+         /**
+          * @brief Set the Origin of the grid
+          */
+         void setOrigin(const Container<Dimension, Index> &origin) noexcept;
+         /**
+          *  @brief - Specifies dimensions of the grid
+          *  @param[in] coordinates - A parameter pack, which specifies points count in the specific coordinates.
+          *                           Most significant dimension is in the beginning of the list.
+          *                           Least significant dimension is in the end of the list
+          */
+         template <typename... Coordinates,
+                   typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Coordinates>::value...>::value>,
+                   typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+         void setOrigin(Coordinates... coordinates) noexcept;
+         /**
+          * @brief - Returns the origin of the grid
+          */
+         Container<Dimension, Index> getOrigin() const noexcept;
+
+         /*
+          * @brief Traverses all elements
+          */
+         template <int EntityDimension, typename Func, typename... FuncArgs>
+         void forAll(Func func, FuncArgs... args) const;
       protected:
          /**
           * @brief - Dimensions of the grid in the amount of edges for each axia.
@@ -129,6 +153,8 @@ namespace TNL
           * @brief - A cumulative map over dimensions.
           */
          Container<Dimension + 1, Index> cumulativeEntitiesCountAlongBases;
+
+         Container<Dimension, Index> origin, proportions;
 
          // typename Templates::sized_nested_container<Dimension, 5, Container, Real> spaceProducts;
 
