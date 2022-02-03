@@ -204,22 +204,16 @@ public:
    inline RealType
    getSmallestSpaceStep() const;
 
-   /**
-    * \brief Traverses all elements
+   /*
+    * @brief Traverses all elements
     */
-   template<int EntityDimension, typename Func, typename... FuncArgs>
+   template <int EntityDimension, typename Func, typename... FuncArgs>
    void forAll(Func func, FuncArgs... args) const;
 
-   /**
-    * \brief Traversers interior elements
-    */
-   template<int EntityDimension, typename Func, typename... FuncArgs>
+   template <int EntityDimension, typename Func, typename... FuncArgs>
    void forInterior(Func func, FuncArgs... args) const;
 
-   /**
-    * \brief Traversers boundary elements
-    */
-   template<int EntityDimension, typename Func, typename... FuncArgs>
+   template <int EntityDimension, typename Func, typename... FuncArgs>
    void forBoundary(Func func, FuncArgs... args) const;
 
    void writeProlog( Logger& logger ) const;

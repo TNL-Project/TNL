@@ -11,6 +11,7 @@
 #include <TNL/Assert.h>
 #include <TNL/Meshes/GridDetails/GridEntityGetter_impl.h>
 #include <TNL/Meshes/GridDetails/NeighborGridEntityGetter1D_impl.h>
+#include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/GridDetails/Grid1D.h>
 #include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.h>
 
@@ -56,45 +57,12 @@ Grid< 1, Real, Device, Index >::computeSpaceStepPowers()
 template< typename Real,
           typename Device,
           typename Index >
-void Grid< 1, Real, Device, Index > ::computeProportions()
-{
-   this->proportions.x() = this->dimensions.x() * this->spaceSteps.x();
-}
-
-
-// template< typename Real,
-//           typename Device,
-//           typename Index  >
-// void Grid< 1, Real, Device, Index >::setDimensions( const Index xSize )
-// {
-//    this->setDimensions(xSize);
-
-//    computeSpaceSteps();
-
-//    // only default behaviour, DistributedGrid must use the setters explicitly after setDimensions
-//    localBegin = 0;
-//    interiorBegin = 1;
-//    localEnd = this -> dimensions;
-//    interiorEnd = this -> dimensions - 1;
-// }
-
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::setDomain( const PointType& origin, const PointType& proportions )
+void Grid< 1, Real, Device, Index >::setDomain( const PointType& origin,
+                                                const PointType& proportions )
 {
    this->origin = origin;
    this->proportions = proportions;
    computeSpaceSteps();
-}
-
-template< typename Real,
-          typename Device,
-          typename Index >
-__cuda_callable__ inline
-const typename Grid< 1, Real, Device, Index >::PointType&
-   Grid< 1, Real, Device, Index >::getProportions() const
-{
-   return this->proportions;
 }
 
 template< typename Real,
@@ -131,28 +99,14 @@ Grid< 1, Real, Device, Index >::getEntityIndex( const Entity& entity ) const
    return GridEntityGetter< Grid, Entity >::getEntityIndex( *this, entity );
 }
 
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-inline const typename Grid< 1, Real, Device, Index >::PointType&
-Grid< 1, Real, Device, Index >::getSpaceSteps() const
-{
-   return this->spaceSteps;
-}
-
-template< typename Real, typename Device, typename Index >
-inline void
-Grid< 1, Real, Device, Index >::setSpaceSteps( const typename Grid< 1, Real, Device, Index >::PointType& steps )
-{
-   this->spaceSteps = steps;
-   computeSpaceStepPowers();
-   computeProportions();
-}
-
-template< typename Real, typename Device, typename Index >
-template< int xPow >
-__cuda_callable__
-inline const Real&
-Grid< 1, Real, Device, Index >::getSpaceStepsProducts() const
+template< typename Real,
+          typename Device,
+          typename Index >
+   template< int xPow >
+__cuda_callable__ inline
+const Real&
+Grid< 1, Real, Device, Index >::
+getSpaceStepsProducts() const
 {
    static_assert( xPow >= -2 && xPow <= 2, "unsupported value of xPow" );
    return this->spaceStepsProducts[ xPow + 2 ];
@@ -199,7 +153,7 @@ void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
 template< typename Real,
           typename Device,
           typename Index >
-template<int EntityDimension, typename Func, typename... FuncArgs>
+template <int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) const {
    static_assert(EntityDimension >= 0 && EntityDimension <= 1, "Entity dimension must be either 0 or 1");
 
@@ -274,14 +228,6 @@ void Grid<1, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
 template< typename Real,
           typename Device,
           typename Index >
-__cuda_callable__ inline
-Real Grid< 1, Real, Device, Index >::
-getSmallestSpaceStep() const
-{
-   return this->spaceSteps.x();
-}
-
-template< typename Real, typename Device, typename Index >
 void
 Grid< 1, Real, Device, Index >::writeProlog( Logger& logger ) const
 {

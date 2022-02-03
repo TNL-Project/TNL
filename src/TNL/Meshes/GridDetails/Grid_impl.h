@@ -15,7 +15,7 @@ namespace TNL
       template <typename... Dimensions,
                 typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
                 typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
-      void Grid<Dimension, Real, Device, Index>::setDimensions(Dimensions... dimensions) noexcept
+      void Grid<Dimension, Real, Device, Index>::setDimensions(Dimensions... dimensions)
       {
          Index i = 0;
 
@@ -27,7 +27,7 @@ namespace TNL
          }
 
          fillEntitiesCount();
-         fillSpaceStepsPowers();
+         fillSpaceSteps();
       }
 
       template <int Dimension,
@@ -46,7 +46,7 @@ namespace TNL
          }
 
          fillEntitiesCount();
-         fillSpaceStepsPowers();
+         fillSpaceSteps();
       }
 
       template <int Dimension,
@@ -70,7 +70,7 @@ namespace TNL
       template <typename... DimensionIndex,
                 typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
                 typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)>>
-      typename Grid<Dimension, Real, Device, Index>::Container<sizeof...(DimensionIndex), Index>
+      Grid<Dimension, Real, Device, Index>::Container<sizeof...(DimensionIndex), Index>
       Grid<Dimension, Real, Device, Index>::getDimensions(DimensionIndex... indices) const noexcept
       {
          Container<sizeof...(DimensionIndex), Index> result{indices...};
@@ -141,7 +141,7 @@ namespace TNL
          for (auto x : {dimensions...})
          {
             this->origin[i] = x;
-            i++
+            i++;
          }
       }
 
@@ -160,7 +160,76 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
-      void Grid<Dimension, Real, Device, Index>::fillEntitiesCount() noexcept
+      void Grid<Dimension, Real, Device, Index>::setSpaceSteps(const Container<Dimension, Real> &spaceSteps) noexcept
+      {
+         this->spaceSteps = spaceSteps;
+
+         fillSpaceStepsPowers();
+         fillProportions();
+      }
+
+      template <int Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
+      template <typename... Coordinates,
+                typename = std::enable_if_t<Templates::conjunction<std::is_same<Real, Coordinates>::value...>::value>,
+                typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+      void Grid<Dimension, Real, Device, Index>::setSpaceSteps(Coordinates... coordinates) noexcept
+      {
+         Index i = 0;
+
+         for (auto x : {dimensions...})
+         {
+            this->spaceSteps[i] = x;
+            i++;
+         }
+
+         fillSpaceStepsPowers();
+         fillProportions();
+      }
+
+      template <int Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
+      __cuda_callable__
+          Index
+          Grid<Dimension, Real, Device, Index>::getSpaceSteps() const noexcept
+      {
+         return this->spaceSteps;
+      }
+
+      template <int Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
+      __cuda_callable__
+      Grid<Dimension, Real, Device, Index>::Container<Dimension, Real>
+      Grid<Dimension, Real, Device, Index>::getProportions() const noexcept {
+         return this -> proportions;
+      }
+
+      template <int Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
+      __cuda_callable__ inline Real Grid<Dimension, Real, Device, Index>::getSmallestSpaceSteps() const noexcept
+      {
+         Real minStep = this->spaceSteps[0];
+         Index i = 1;
+
+         while (i != Dimension)
+            minStep = min(minStep, this->spaceSteps[i++]);
+
+         return minStep;
+      }
+
+      template <int Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
+      void Grid<Dimension, Real, Device, Index>::fillEntitiesCount()
       {
          std::array<bool, Dimension> combinationBuffer = {};
          std::size_t j = 0;
@@ -188,32 +257,34 @@ namespace TNL
          }
       }
 
-      //     // TODO: - Implement
-      //     template <typename Dimension,
-      //               typename Real,
-      //               typename Device,
-      //               typename Index>
-      //     void Grid<Dimension, Real, Device, Index>::fillSpaceProducts() noexcept
-      //     {
-      //     }
-
-      // TODO: - Implement
       template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
-      void Grid<Dimension, Real, Device, Index>::fillProportions() noexcept
+      void Grid<Dimension, Real, Device, Index>::fillProportions()
       {
+         Index i = 0;
 
+         while (i != Dimension) {
+            this->proportions[i] = this->spaceSteps[i] * this->dimensions[i];
+            i++;
+         }
       }
 
       template <int Dimension,
                 typename Real,
                 typename Device,
                 typename Index>
-      void Grid<Dimension, Real, Device, Index>::fillSpaceStepsPowers() noexcept
+      void Grid<Dimension, Real, Device, Index>::fillSpaceSteps()
       {
+      }
 
+      template <int Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
+      void Grid<Dimension, Real, Device, Index>::fillSpaceStepsPowers()
+      {
       }
    }
 }

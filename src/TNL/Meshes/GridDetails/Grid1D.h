@@ -18,7 +18,9 @@
 namespace TNL {
 namespace Meshes {
 
-template< typename Real, typename Device, typename Index >
+template< typename Real,
+          typename Device,
+          typename Index>
 class Grid< 1, Real, Device, Index >
 {
 public:
@@ -58,13 +60,6 @@ public:
    setDomain( const PointType& origin, const PointType& proportions );
 
    /**
-    * \brief Gets length of one entity of this grid.
-    */
-   __cuda_callable__
-   inline const PointType&
-   getProportions() const;
-
-   /**
     * \brief Gets number of entities in this grid.
     * \tparam Entity Type of the entity.
     */
@@ -94,20 +89,6 @@ public:
    getEntityIndex( const Entity& entity ) const;
 
    /**
-    * \brief Returns the length of one step.
-    */
-   __cuda_callable__
-   inline const PointType&
-   getSpaceSteps() const;
-
-   /**
-    * \brief Sets the length of steps.
-    * \param steps Length of one step.
-    */
-   inline void
-   setSpaceSteps( const PointType& steps );
-
-   /**
     * \brief Returns product of space steps to the xPow.
     * \tparam xPow Exponent.
     */
@@ -123,29 +104,17 @@ public:
    inline const RealType&
    getCellMeasure() const;
 
-   /**
-    * \brief Traverses all elements
+    /*
+    * @brief Traverses all elements
     */
-   template<int EntityDimension, typename Func, typename... FuncArgs>
+   template <int EntityDimension, typename Func, typename... FuncArgs>
    void forAll(Func func, FuncArgs... args) const;
 
-   /**
-    * \brief Traversers boundary elements
-    */
-   template<int EntityDimension, typename Func, typename... FuncArgs>
-   void forBoundary(Func func, FuncArgs... args) const;
-
-   /**
-    * \brief Traversers interior elements
-    */
-   template<int EntityDimension, typename Func, typename... FuncArgs>
+   template <int EntityDimension, typename Func, typename... FuncArgs>
    void forInterior(Func func, FuncArgs... args) const;
-   /**
-    * \brief Returns the smallest length of step out of all coordinates (axes).
-    */
-   __cuda_callable__
-   inline RealType
-   getSmallestSpaceStep() const;
+
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   void forBoundary(Func func, FuncArgs... args) const;
 
    void writeProlog( Logger& logger ) const;
 
@@ -153,8 +122,9 @@ protected:
    void
    computeProportions();
 
-   void
-   computeSpaceStepPowers();
+   void computeSpaceStepPowers();
+
+   void computeSpaceSteps();
 
    PointType spaceSteps;
 

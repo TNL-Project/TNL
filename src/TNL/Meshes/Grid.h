@@ -71,7 +71,7 @@ namespace TNL
          template <typename... Dimensions,
                    typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
                    typename = std::enable_if_t<sizeof...(Dimensions) == Dimension>>
-         void setDimensions(Dimensions... dimensions) noexcept;
+         void setDimensions(Dimensions... dimensions);
          /**
           *  @brief - Specifies dimensions of the grid
           *  @param[in] dimensions - A container with the dimension items
@@ -135,12 +135,49 @@ namespace TNL
           * @brief - Returns the origin of the grid
           */
          Container<Dimension, Index> getOrigin() const noexcept;
-
+         /**
+          * @brief Set the Space Steps along each dimension of the grid
+          */
+         void setSpaceSteps(const Container<Dimension, Real> &steps) noexcept;
+         /**
+          *  @brief - Specifies space steps of the grid
+          *  @param[in] coordinates - A parameter pack, which specifies space steps in the specific coordinates.
+          *                           Most significant dimension is in the beginning of the list.
+          *                           Least significant dimension is in the end of the list
+          */
+         template <typename... Coordinates,
+                   typename = std::enable_if_t<Templates::conjunction<std::is_same<Real, Coordinates>::value...>::value>,
+                   typename = std::enable_if_t<sizeof...(Coordinates) == Dimension>>
+         void setSpaceSteps(Coordinates... coordinates) noexcept;
+         /**
+          * @brief - Returns the origin of the grid
+          */
+         Container<Dimension, Real> getSpaceSteps() const noexcept;
+         /**
+          * @brief Get the Smalles Space Steps object
+          */
+         __cuda_callable__
+         inline Real getSmallesSpaceSteps() const noexcept;
+         /**
+          * @brief Get the proportions of the Grid
+          */
+         __cuda_callable__
+         Container<Dimension, Real> getProportions() const noexcept;
          /*
           * @brief Traverses all elements
           */
          template <int EntityDimension, typename Func, typename... FuncArgs>
          void forAll(Func func, FuncArgs... args) const;
+         /*
+          * @brief Traverses interior elements
+          */
+         template <int EntityDimension, typename Func, typename... FuncArgs>
+         void forInterior(Func func, FuncArgs... args) const;
+          /*
+          * @brief Traverses boundary elements
+          */
+         template <int EntityDimension, typename Func, typename... FuncArgs>
+         void forBoundary(Func func, FuncArgs... args) const;
       protected:
          /**
           * @brief - Dimensions of the grid in the amount of edges for each axia.
@@ -170,6 +207,10 @@ namespace TNL
           */
          Container<Dimension, Index> origin, proportions;
          /**
+          * @brief - Space steps along dimensions
+          */
+         Container<Dimension, Real> spaceSteps;
+         /**
           * @brief A space products for each dimension.
           *
           * The coefficients are calculated for each dimension
@@ -182,8 +223,9 @@ namespace TNL
          typename Templates::NestedFixedSizeContainer<Container, 5, Real, Dimension>::type spaceProducts;
 
          void fillEntitiesCount();
+         void fillSpaceSteps();
          void fillSpaceStepsPowers();
-
+         void fillProportions();
       };
 
       // template< int Dimension, typename Real, typename Device, typename Index >
