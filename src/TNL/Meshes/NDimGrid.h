@@ -60,6 +60,18 @@ meta_reduce (ResultType &&initial, Func &&function, Elements... elements)
 
    return result;
 }
+
+template <size_t Value, size_t Power>
+constexpr size_t pow() {
+   size_t result = 1;
+
+   for (size_t i = 0; i < Power; i++) {
+      result *= Value;
+   }
+
+   return result;
+}
+
 } // namespace Templates
 
 // A base class for common methods for each grid.
@@ -252,11 +264,8 @@ class NDimGrid
     * @brief - Origin and proportions of the grid domain
     */
    Point origin, proportions, spaceSteps;
-   // TODO: - Make constexpr pow
-   // std::integral_constant<Index, 100//pow(spaceStepsPowersSize,
-   // Dimension)>::value
 
-   Container<1000, Real> spaceProducts;
+   Container<std::integral_constant<Index, Templates::pow<spaceStepsPowersSize, Dimension>()>::value, Real> spaceProducts;
 
    void fillEntitiesCount ();
    void fillSpaceSteps ();

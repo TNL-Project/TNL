@@ -178,22 +178,20 @@ template <typename... Powers, typename, typename>
 __cuda_callable__ Real
 __NDIM_PREFIX__::getSpaceStepsProducts (Powers... powers) const noexcept
 {
-   return 0;
-   // constexpr halfSize = this -> spaceStepsPowersSize >> 1;
+   constexpr Index halfSize = this->spaceStepsPowersSize >> 1;
 
-   // Index i = 0;
-   // Index base = 1;
+   Index i = 0;
+   Index base = 1;
 
-   // for (auto x: {powers...}) {
-   //    // static_assert(x >= -halfSize && x <= halfSize; "Unsupported size of
-   //    the powers");
+   for (auto x : { powers... })
+      {
+         static_assert(x >= -halfSize && x <= halfSize, "Unsupported power");
 
-   //    i += x * base;
+         i += x * base;
+         base *= this->spaceStepsPowersSize;
+      }
 
-   //    base *= this -> spaceStepsPowersSize;
-   // }
-
-   // return this -> spaceStepsProducts(i);
+   return this->spaceStepsProducts (i);
 }
 
 __NDIMGRID_TEMPLATE__
@@ -300,27 +298,31 @@ __NDIMGRID_TEMPLATE__
 void
 __NDIM_PREFIX__::fillSpaceStepsPowers ()
 {
-   // Container<spaceStepsPowersSize * EntityDimension, Real> powers;
+   Container<spaceStepsPowersSize * Dimension, Real> powers;
 
-   // for (Index i = 0; i < EntityDimension; i++)
-   //    for (Index j = 0, int power = -2; j < spaceStepsPowersSize; j++,
-   //    power++)
-   //       powers[i * 5 + j] = pow(this->spaceSteps[i], power);
+   for (Index i = 0; i < Dimension; i++) {
+      Index power = -2;
 
-   // for (Index i = 0; i < this -> spaceStepsPowers.getSize(); i++) {
-   //    Real product = 1;
-   //    Index index = i;
+      for (Index j = 0; j < spaceStepsPowersSize; j++) {
+         powers[i * spaceStepsPowersSize + j] = pow(this->spaceSteps[i], power);
+         power++;
+      }
+   }
 
-   //    for (Index j = 0; j < Dimension; j++) {
-   //       Index residual = index % divider;
+   for (Index i = 0; i < this -> spaceStepsPowers.getSize(); i++) {
+      Real product = 1;
+      Index index = i;
 
-   //       index /= this -> spaceStepsPowersSize;
+      for (Index j = 0; j < Dimension; j++) {
+         Index residual = index % this -> spaceStepsPowersSize;
 
-   //       product *= powers[residual];
-   //    }
+         index /= this -> spaceStepsPowersSize;
 
-   //    powers[i] = product;
-   // }
+         product *= powers[j * spaceStepsPowersSize + residual];
+      }
+
+      powers[i] = product;
+   }
 }
 }
 }
