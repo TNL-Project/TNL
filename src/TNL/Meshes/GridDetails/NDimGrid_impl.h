@@ -9,7 +9,7 @@ namespace TNL
 namespace Meshes
 {
 
-#define __NDIMGRID_TEMPLATE__                                                 \
+#define __NDIMGRID_TEMPLATE__                                                                      \
    template <int Dimension, typename Real, typename Device, typename Index>
 #define __NDIM_PREFIX__ NDimGrid<Dimension, Real, Device, Index>
 
@@ -33,8 +33,7 @@ __NDIM_PREFIX__::setDimensions (Dimensions... dimensions)
 
 __NDIMGRID_TEMPLATE__
 void
-__NDIM_PREFIX__::setDimensions (
-    const typename __NDIM_PREFIX__::Coordinate &dimensions) noexcept
+__NDIM_PREFIX__::setDimensions (const typename __NDIM_PREFIX__::Coordinate &dimensions) noexcept
 {
    for (Index i = 0; i < Dimension; i++)
       {
@@ -81,8 +80,7 @@ __cuda_callable__ Index
 __NDIM_PREFIX__::getEntitiesCount (Index index) const noexcept
 {
    TNL_ASSERT_GE (index, 0, "Index must be greater than zero");
-   TNL_ASSERT_LE (index, Dimension,
-                  "Index must be less than or equal to Dimension");
+   TNL_ASSERT_LE (index, Dimension, "Index must be less than or equal to Dimension");
 
    return cumulativeDimensionMap (index);
 }
@@ -108,8 +106,7 @@ __NDIM_PREFIX__::setDomain (const typename __NDIM_PREFIX__::Point &origin,
 
 __NDIMGRID_TEMPLATE__
 void
-__NDIM_PREFIX__::setOrigin (
-    const typename __NDIM_PREFIX__::Point &origin) noexcept
+__NDIM_PREFIX__::setOrigin (const typename __NDIM_PREFIX__::Point &origin) noexcept
 {
    this->origin = origin;
 }
@@ -137,8 +134,7 @@ __NDIM_PREFIX__::getOrigin () const noexcept
 
 __NDIMGRID_TEMPLATE__
 void
-__NDIM_PREFIX__::setSpaceSteps (
-    const typename __NDIM_PREFIX__::Point &spaceSteps) noexcept
+__NDIM_PREFIX__::setSpaceSteps (const typename __NDIM_PREFIX__::Point &spaceSteps) noexcept
 {
    this->spaceSteps = spaceSteps;
 
@@ -225,11 +221,9 @@ __NDIM_PREFIX__::writeProlog (Logger &&logger) const noexcept
 
    for (Index i = 0; i <= Dimension; i++)
       {
-         String tmp
-             = String ("Entities count along dimension ") + String (i) + ":";
+         String tmp = String ("Entities count along dimension ") + String (i) + ":";
 
-         logger.writeParameter (tmp,
-                                this->cumulativeEntitiesCountAlongBases[i]);
+         logger.writeParameter (tmp, this->cumulativeEntitiesCountAlongBases[i]);
       }
 }
 
@@ -245,27 +239,23 @@ __NDIM_PREFIX__::fillEntitiesCount ()
 
    for (std::size_t i = 0; i <= Dimension; i++)
       {
-         std::fill (combinationBuffer.begin (), combinationBuffer.end (),
-                    false);
-         std::fill (combinationBuffer.end () - i, combinationBuffer.end (),
-                    true);
+         std::fill (combinationBuffer.begin (), combinationBuffer.end (), false);
+         std::fill (combinationBuffer.end () - i, combinationBuffer.end (), true);
 
          do
             {
                int result = 1;
 
                for (std::size_t k = 0; k < combinationBuffer.size (); k++)
-                  result *= combinationBuffer[k]
-                                ? dimensions[Dimension - k - 1]
-                                : dimensions[Dimension - k - 1] + 1;
+                  result *= combinationBuffer[k] ? dimensions[Dimension - k - 1]
+                                                 : dimensions[Dimension - k - 1] + 1;
 
                entitiesCountAlongBases[j] = result;
                cumulativeEntitiesCountAlongBases[i] += result;
 
                j++;
             }
-         while (std::next_permutation (combinationBuffer.begin (),
-                                       combinationBuffer.end ()));
+         while (std::next_permutation (combinationBuffer.begin (), combinationBuffer.end ()));
       }
 }
 

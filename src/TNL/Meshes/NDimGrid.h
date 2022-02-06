@@ -19,11 +19,9 @@ template <bool...> struct bool_pack
 };
 
 template <bool... Bs>
-using conjunction
-    = std::is_same<bool_pack<true, Bs...>, bool_pack<Bs..., true> >;
+using conjunction = std::is_same<bool_pack<true, Bs...>, bool_pack<Bs..., true> >;
 
-template <size_t Dimension, size_t Begin, size_t End, typename Func>
-struct MetaFor
+template <size_t Dimension, size_t Begin, size_t End, typename Func> struct MetaFor
 {
  public:
    static constexpr void
@@ -33,17 +31,14 @@ struct MetaFor
 
       for (size_t i = Begin; i != End; ++i)
          {
-            auto bind_an_argument
-                = [i, &function] (auto... args) { function (i, args...); };
+            auto bind_an_argument = [i, &function] (auto... args) { function (i, args...); };
 
-            MetaFor<Dimension - 1, Begin, End, Func> (
-                std::forward (bind_an_argument));
+            MetaFor<Dimension - 1, Begin, End, Func> (std::forward (bind_an_argument));
          }
    }
 };
 
-template <size_t Begin, size_t End, typename Func>
-struct MetaFor<1, Begin, End, Func>
+template <size_t Begin, size_t End, typename Func> struct MetaFor<1, Begin, End, Func>
 {
  public:
    static constexpr void
@@ -68,16 +63,15 @@ meta_reduce (ResultType &&initial, Func &&function, Elements... elements)
 } // namespace Templates
 
 // A base class for common methods for each grid.
-template <int Dimension, typename Real = double,
-          typename Device = Devices::Host, typename Index = int>
+template <int Dimension, typename Real = double, typename Device = Devices::Host,
+          typename Index = int>
 class NDimGrid
 {
  public:
    template <int ContainerDimension, typename ContainerValue,
              typename = std::enable_if_t<(Dimension > 0)>,
              typename = std::enable_if_t<std::is_integral<Index>::value> >
-   using Container
-       = TNL::Containers::StaticArray<ContainerDimension, ContainerValue>;
+   using Container = TNL::Containers::StaticArray<ContainerDimension, ContainerValue>;
 
    using Coordinate = Container<Dimension, Index>;
    using Point = Container<Dimension, Index>
@@ -100,8 +94,8 @@ class NDimGrid
     * of the list. Least significant dimension is in the end of the list
     */
    template <typename... Dimensions,
-             typename = std::enable_if_t<Templates::conjunction<
-                 std::is_same<Index, Dimensions>::value...>::value>,
+             typename = std::enable_if_t<
+                 Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
              typename = std::enable_if_t<sizeof...(Dimensions) == Dimension> >
    void setDimensions (Dimensions... dimensions);
    /**
@@ -117,8 +111,8 @@ class NDimGrid
     * @param[in] indices - A dimension index pack
     */
    template <typename... DimensionIndex,
-             typename = std::enable_if_t<Templates::conjunction<
-                 std::is_same<Index, DimensionIndex>::value...>::value>,
+             typename = std::enable_if_t<
+                 Templates::conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
              typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)> >
    Coordinate getDimensions (DimensionIndex... indices) const noexcept;
    /**
@@ -134,16 +128,15 @@ class NDimGrid
    /**
     * @param[in] index - index of dimension
     */
-   template <int EntityDimension,
-             typename = std::enable_if_t<(EntityDimension >= 0)>,
+   template <int EntityDimension, typename = std::enable_if_t<(EntityDimension >= 0)>,
              typename = std::enable_if_t<(EntityDimension <= Dimension)> >
    __cuda_callable__ Index getEntitiesCount () const noexcept;
    /**
     * @brief - Returns the number of entities of specific dimension
     */
    template <typename... DimensionIndex,
-             typename = std::enable_if_t<Templates::conjunction<
-                 std::is_same<Index, DimensionIndex>::value...>::value>,
+             typename = std::enable_if_t<
+                 Templates::conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
              typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)> >
    Container<sizeof...(DimensionIndex), Index>
    getEntitiesCounts (DimensionIndex... indices) const noexcept;
@@ -165,8 +158,8 @@ class NDimGrid
     * list
     */
    template <typename... Coordinates,
-             typename = std::enable_if_t<Templates::conjunction<
-                 std::is_same<Real, Coordinates>::value...>::value>,
+             typename = std::enable_if_t<
+                 Templates::conjunction<std::is_same<Real, Coordinates>::value...>::value>,
              typename = std::enable_if_t<sizeof...(Coordinates) == Dimension> >
    void setOrigin (Coordinates... coordinates) noexcept;
    /**
@@ -185,8 +178,8 @@ class NDimGrid
     * list
     */
    template <typename... Coordinates,
-             typename = std::enable_if_t<Templates::conjunction<
-                 std::is_same<Real, Coordinates>::value...>::value>,
+             typename = std::enable_if_t<
+                 Templates::conjunction<std::is_same<Real, Coordinates>::value...>::value>,
              typename = std::enable_if_t<sizeof...(Coordinates) == Dimension> >
    void setSpaceSteps (Coordinates... coordinates) noexcept;
    /**
@@ -197,11 +190,10 @@ class NDimGrid
     * @brief Returns product of space steps to the xPow.
     */
    template <typename... Powers,
-             typename = std::enable_if_t<Templates::conjunction<
-                 std::is_same<Real, Powers>::value...>::value>,
+             typename = std::enable_if_t<
+                 Templates::conjunction<std::is_same<Real, Powers>::value...>::value>,
              typename = std::enable_if_t<sizeof...(Powers) == Dimension> >
-   __cuda_callable__ Real
-   getSpaceStepsProducts (Powers... powers) const noexcept;
+   __cuda_callable__ Real getSpaceStepsProducts (Powers... powers) const noexcept;
    /**
     * @brief Get the Smalles Space Steps object
     */
