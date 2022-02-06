@@ -344,6 +344,8 @@ namespace TNL
             for (Index j = 0, int power = -2; j < spaceStepsPowersSize; j++, power++)
                powers[i * 5 + j] = pow(this->spaceSteps[i], power);
 
+         Templates::meta_for_loop<Dimension, 0, this -> spaceStepsPowersSize>(function);
+
          for (Index i = 0; i < this -> spaceStepsPowers.getSize(); i++) {
             Real product = 1;
             Index index = i;

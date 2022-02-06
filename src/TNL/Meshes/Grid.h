@@ -22,7 +22,51 @@ namespace TNL
          struct bool_pack
          {
          };
-         
+
+         template <bool... Bs>
+         using conjunction = std::is_same<bool_pack<true, Bs...>, bool_pack<Bs..., true>>;
+
+         template <size_t Dimension, size_t Begin, size_t End, typename Func>
+         struct MetaFor
+         {
+            public:
+               static constexpr void exec(Func && function)
+               {
+                  static_assert(Dimension > 0);
+
+                  for (size_t i = Begin; i != End; ++i)
+                  {
+                     auto bind_an_argument = [i, &function](auto... args)
+                     {
+                        function(i, args...);
+                     };
+
+                     MetaFor<Dimension - 1, Begin, End, Func>(std::forward(bind_an_argument));
+                  }
+               }
+         };
+
+         template <size_t Begin, size_t End, typename Func>
+         struct MetaFor<1, Begin, End, Func>
+         {
+            public:
+               static constexpr void exec(Func && function)
+               {
+                  for (size_t i = Begin; i != End; ++i)
+                     function(i);
+               }
+         };
+
+         template <typename... Elements, typename ResultType, typename Func>
+         constexpr ResultType meta_reduce(ResultType &&initial, Func &&function, Elements... elements)
+         {
+            ResultType result = initial;
+
+            for (const auto &element : {elements...})
+               result = function(result, element);
+
+            return result;
+         }
       }
 
       template <int Dimension,
@@ -151,7 +195,8 @@ namespace TNL
                    typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Powers>::value...>::value>,
                    typename = std::enable_if_t<sizeof...(Powers) == Dimension>>
          __cuda_callable__
-         Real getSpaceStepsProducts(Powers... powers) const noexcept;
+             Real
+             getSpaceStepsProducts(Powers... powers) const noexcept;
          /**
           * @brief Get the Smalles Space Steps object
           */
@@ -175,9 +220,10 @@ namespace TNL
           */
          template <int EntityDimension, typename Func, typename... FuncArgs>
          void forBoundary(Func func, FuncArgs... args) const;
-
-
-         void writeProlog()
+         /**
+          * @brief Writes info about the grid
+          */
+         void writeProlog();
       protected:
          static constexpr int spaceStepsPowersSize = 5;
          /**

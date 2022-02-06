@@ -66,18 +66,6 @@ Grid< 1, Real, Device, Index >::getEntityIndex( const Entity& entity ) const
    return GridEntityGetter< Grid, Entity >::getEntityIndex( *this, entity );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index >
-   template< int xPow >
-__cuda_callable__ inline
-const Real&
-Grid< 1, Real, Device, Index >::
-getSpaceStepsProducts() const
-{
-   static_assert( xPow >= -2 && xPow <= 2, "unsupported value of xPow" );
-   return this->spaceStepsProducts[ xPow + 2 ];
-}
 
 template< typename Real, typename Device, typename Index >
 __cuda_callable__
