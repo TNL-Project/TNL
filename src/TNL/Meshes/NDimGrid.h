@@ -74,7 +74,7 @@ class NDimGrid
    using Container = TNL::Containers::StaticArray<ContainerDimension, ContainerValue>;
 
    using Coordinate = Container<Dimension, Index>;
-   using Point = Container<Dimension, Index>
+   using Point = Container<Dimension, Index>;
 
        /**
         * \brief Returns number of this mesh grid dimensions.
@@ -114,7 +114,7 @@ class NDimGrid
              typename = std::enable_if_t<
                  Templates::conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
              typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)> >
-   Coordinate getDimensions (DimensionIndex... indices) const noexcept;
+   Container<sizeof...(DimensionIndex), Index> getDimensions (DimensionIndex... indices) const noexcept;
    /**
     * @brief Get all dimensions of the objects
     *
