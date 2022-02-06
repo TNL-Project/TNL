@@ -90,9 +90,6 @@ class GridEntityGetter< Meshes::Grid< 2, Real, Device, Index >, GridEntity, 2 >
          TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0 ), "wrong coordinates" );
          TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions(), "wrong coordinates" );
 
-         //const CoordinatesType coordinates = entity.getCoordinates();
-         //const CoordinatesType dimensions = grid.getDimensions();
-
          return entity.getCoordinates().y() * grid.getDimensions().x() + entity.getCoordinates().x();
       }
 

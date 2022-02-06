@@ -1,9 +1,8 @@
 #pragma once
 
+#include "TNL/Meshes/NDimGrid.h"
 #include "TNL/Meshes/GridDetails/Grid2D.h"
 #include "../Base/HeatmapSolver.h"
-
-#include "TNL/Meshes/DistributedGrid.h"
 
 template <typename Real>
 template <typename Device>
@@ -17,7 +16,7 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
    grid.setDimensions(params.xSize - 1, params.ySize - 1);
 
    // TODO: - Improve style of access. It is counterintuitive for person, who doesn't know C++ well
-   int verticesCount = grid.template getEntitiesCount<0>();
+   auto verticesCount = grid.template getEntitiesCount<0>();
 
    TNL::Containers::Array<Real, Device> ux(verticesCount), // data at step u
                                         aux(verticesCount);// data at step u + 1

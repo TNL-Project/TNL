@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <TNL/Containers/StaticArray.h>
+#include <TNL/Containers/StaticVector.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Logger.h>
 
@@ -65,18 +65,20 @@ constexpr size_t pow() {
 template <int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int>
 class NDimGrid {
   public:
-   template <int ContainerDimension, typename ContainerValue, typename = std::enable_if_t<(Dimension > 0)>,
-             typename = std::enable_if_t<std::is_integral<Index>::value> >
-   using Container = TNL::Containers::StaticArray<ContainerDimension, ContainerValue>;
+   template <int ContainerDimension, typename ContainerValue,
+             std::enable_if_t<(Dimension > 0), bool> = true,
+             std::enable_if_t<std::is_integral<Index>::value, bool> = true>
+   using Container = TNL::Containers::StaticVector<ContainerDimension, ContainerValue>;
 
    using Coordinate = Container<Dimension, Index>;
-   using Point = Container<Dimension, Index>;
+   using Point = Container<Dimension, Real>;
 
    /**
     * \brief Returns number of this mesh grid dimensions.
     */
    static constexpr int getMeshDimension() { return Dimension; };
 
+   NDimGrid() {}
    // empty destructor is needed only to avoid crappy nvcc warnings
    ~NDimGrid() {}
    /**
@@ -85,45 +87,50 @@ class NDimGrid {
     * in the specific dimension. Most significant dimension is in the beginning
     * of the list. Least significant dimension is in the end of the list
     */
-   template <typename... Dimensions, typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Dimensions>::value...>::value>,
-             typename = std::enable_if_t<sizeof...(Dimensions) == Dimension> >
+   template <typename... Dimensions,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Dimensions>::value...>::value, bool> = true,
+             std::enable_if_t<sizeof...(Dimensions) == Dimension, bool> = true>
    void setDimensions(Dimensions... dimensions);
    /**
     *  @brief - Specifies dimensions of the grid
     *  @param[in] dimensions - A container with the dimension items
     */
-   void setDimensions(const Container<Dimension, Index> &dimensions) noexcept;
+   void setDimensions(const Container<Dimension, Index> &dimensions);
    /**
     * @param[in] index - index of dimension
     */
-   __cuda_callable__ Index getDimension(Index index) const noexcept;
+   __cuda_callable__ Index getDimension(Index index) const;
    /**
     * @param[in] indices - A dimension index pack
     */
-   template <typename... DimensionIndex, typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
-             typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)> >
+   template <typename... DimensionIndex,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool> = true,
+             std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool> = true >
    Container<sizeof...(DimensionIndex), Index> getDimensions(DimensionIndex... indices) const noexcept;
    /**
     * @brief Get all dimensions of the objects
     *
     * @return Container<Dimension, Index>
     */
-   Coordinate getDimensions() const noexcept;
+   __cuda_callable__ inline const Coordinate& getDimensions() const noexcept;
    /**
     * @param[in] index - index of dimension
     */
-   __cuda_callable__ Index getEntitiesCount(Index index) const noexcept;
+   __cuda_callable__ inline Index getEntitiesCount(Index index) const;
    /**
     * @param[in] index - index of dimension
     */
-   template <int EntityDimension, typename = std::enable_if_t<(EntityDimension >= 0)>, typename = std::enable_if_t<(EntityDimension <= Dimension)> >
-   __cuda_callable__ Index getEntitiesCount() const noexcept;
+   template <int EntityDimension,
+             std::enable_if_t<(EntityDimension >= 0), bool> = true,
+             std::enable_if_t<(EntityDimension <= Dimension), bool> = true>
+   __cuda_callable__ inline Index getEntitiesCount() const noexcept;
    /**
     * @brief - Returns the number of entities of specific dimension
     */
-   template <typename... DimensionIndex, typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
-             typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)> >
-   Container<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indices) const noexcept;
+   template <typename... DimensionIndex,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool> = true,
+             std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool> = true>
+   Container<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indices) const;
    /**
     * \brief Sets the origin and proportions of this grid.
     * \param origin Point where this grid starts.
@@ -141,13 +148,14 @@ class NDimGrid {
     * beginning of the list. Least significant dimension is in the end of the
     * list
     */
-   template <typename... Coordinates, typename = std::enable_if_t<Templates::conjunction<std::is_same<Real, Coordinates>::value...>::value>,
-             typename = std::enable_if_t<sizeof...(Coordinates) == Dimension> >
+   template <typename... Coordinates,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Coordinates>::value...>::value, bool> = true,
+             std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setOrigin(Coordinates... coordinates) noexcept;
    /**
     * @brief - Returns the origin of the grid
     */
-   Point getOrigin() const noexcept;
+   __cuda_callable__ inline const Point& getOrigin() const noexcept;
    /**
     * @brief Set the Space Steps along each dimension of the grid
     */
@@ -159,19 +167,21 @@ class NDimGrid {
     * beginning of the list. Least significant dimension is in the end of the
     * list
     */
-   template <typename... Coordinates, typename = std::enable_if_t<Templates::conjunction<std::is_same<Real, Coordinates>::value...>::value>,
-             typename = std::enable_if_t<sizeof...(Coordinates) == Dimension> >
+   template <typename... Coordinates,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Coordinates>::value...>::value, bool> = true,
+             std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setSpaceSteps(Coordinates... coordinates) noexcept;
    /**
     * @brief - Returns the origin of the grid
     */
-   Point getSpaceSteps() const noexcept;
+   __cuda_callable__ inline const Point& getSpaceSteps() const noexcept;
    /**
     * @brief Returns product of space steps to the xPow.
     */
-   template <typename... Powers, typename = std::enable_if_t<Templates::conjunction<std::is_same<Real, Powers>::value...>::value>,
-             typename = std::enable_if_t<sizeof...(Powers) == Dimension> >
-   __cuda_callable__ Real getSpaceStepsProducts(Powers... powers) const noexcept;
+   template <typename... Powers,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Powers>::value...>::value, bool> = true,
+             std::enable_if_t<sizeof...(Powers) == Dimension, bool> = true>
+   __cuda_callable__ inline Real getSpaceStepsProducts(Powers... powers) const noexcept;
    /**
     * @brief Get the Smalles Space Steps object
     */
@@ -179,7 +189,7 @@ class NDimGrid {
    /**
     * @brief Get the proportions of the Grid
     */
-   __cuda_callable__ Point getProportions() const noexcept;
+   __cuda_callable__ inline const Point& getProportions() const noexcept;
    /*
     * @brief Traverses all elements
     */
@@ -199,7 +209,6 @@ class NDimGrid {
     * @brief Writes info about the grid
     */
    void writeProlog(Logger &&logger) const noexcept;
-
   protected:
    static constexpr int spaceStepsPowersSize = 5;
    /**

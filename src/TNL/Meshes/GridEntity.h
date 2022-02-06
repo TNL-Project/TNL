@@ -41,7 +41,7 @@ class GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimensio
 
       constexpr static int getEntityDimension() { return EntityDimension; };
 
-      typedef Containers::StaticVector< getMeshDimension(), IndexType > EntityOrientationType;
+      typedef Containers::StaticArray< getMeshDimension(), IndexType > EntityOrientationType;
       typedef typename GridType::PointType PointType;
 
       template< int NeighborEntityDimension = getEntityDimension() >
