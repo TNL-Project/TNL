@@ -4,300 +4,224 @@
 #include <TNL/Logger.h>
 #include <TNL/Meshes/NDimGrid.h>
 
-namespace TNL
-{
-namespace Meshes
-{
+namespace TNL {
+namespace Meshes {
 
-#define __NDIMGRID_TEMPLATE__                                                                      \
-   template <int Dimension, typename Real, typename Device, typename Index>
+#define __NDIMGRID_TEMPLATE__ template <int Dimension, typename Real, typename Device, typename Index>
 #define __NDIM_PREFIX__ NDimGrid<Dimension, Real, Device, Index>
 
 __NDIMGRID_TEMPLATE__
 template <typename... Dimensions, typename, typename>
-void
-__NDIM_PREFIX__::setDimensions (Dimensions... dimensions)
-{
+void __NDIM_PREFIX__::setDimensions(Dimensions... dimensions) {
    Index i = 0;
 
-   for (auto x : { dimensions... })
-      {
-         TNL_ASSERT_GT (x, 0, "Dimension must be positive");
-         this->dimensions[i] = x;
-         i++;
-      }
+   for (auto x : {dimensions...}) {
+      TNL_ASSERT_GT(x, 0, "Dimension must be positive");
+      this->dimensions[i] = x;
+      i++;
+   }
 
-   fillEntitiesCount ();
-   fillSpaceSteps ();
+   fillEntitiesCount();
+   fillSpaceSteps();
 }
 
 __NDIMGRID_TEMPLATE__
-void
-__NDIM_PREFIX__::setDimensions (const typename __NDIM_PREFIX__::Coordinate &dimensions) noexcept
-{
-   for (Index i = 0; i < Dimension; i++)
-      {
-         TNL_ASSERT_GT (dimensions[i], 0, "Dimension must be positive");
-         this->dimensions[i] = dimensions[i];
-      }
+void __NDIM_PREFIX__::setDimensions(const typename __NDIM_PREFIX__::Coordinate &dimensions) noexcept {
+   for (Index i = 0; i < Dimension; i++) {
+      TNL_ASSERT_GT(dimensions[i], 0, "Dimension must be positive");
+      this->dimensions[i] = dimensions[i];
+   }
 
-   fillEntitiesCount ();
-   fillSpaceSteps ();
+   fillEntitiesCount();
+   fillSpaceSteps();
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ Index
-__NDIM_PREFIX__::getDimension (Index index) const noexcept
-{
-   TNL_ASSERT_GE (index, 0, "Index must be greater than zero");
-   TNL_ASSERT_LT (index, Dimension, "Index must be less than Dimension");
+__cuda_callable__ Index __NDIM_PREFIX__::getDimension(Index index) const noexcept {
+   TNL_ASSERT_GE(index, 0, "Index must be greater than zero");
+   TNL_ASSERT_LT(index, Dimension, "Index must be less than Dimension");
 
    return dimensions[index];
 }
 
 __NDIMGRID_TEMPLATE__
 template <typename... DimensionIndex, typename, typename>
-__NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index>
-__NDIM_PREFIX__::getDimensions (DimensionIndex... indices) const noexcept
-{
-   Container<sizeof...(DimensionIndex), Index> result{ indices... };
+__NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index> __NDIM_PREFIX__::getDimensions(DimensionIndex... indices) const noexcept {
+   Container<sizeof...(DimensionIndex), Index> result{indices...};
 
-   for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++)
-      result[i] = this->getDimension (result[i]);
+   for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++) result[i] = this->getDimension(result[i]);
 
    return result;
 }
 
 __NDIMGRID_TEMPLATE__
-__NDIM_PREFIX__::Container<Dimension, Index>
-__NDIM_PREFIX__::getDimensions () const noexcept
-{
-   return this->dimensions;
-}
+__NDIM_PREFIX__::Container<Dimension, Index> __NDIM_PREFIX__::getDimensions() const noexcept { return this->dimensions; }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ Index
-__NDIM_PREFIX__::getEntitiesCount (Index index) const noexcept
-{
-   TNL_ASSERT_GE (index, 0, "Index must be greater than zero");
-   TNL_ASSERT_LE (index, Dimension, "Index must be less than or equal to Dimension");
+__cuda_callable__ Index __NDIM_PREFIX__::getEntitiesCount(Index index) const noexcept {
+   TNL_ASSERT_GE(index, 0, "Index must be greater than zero");
+   TNL_ASSERT_LE(index, Dimension, "Index must be less than or equal to Dimension");
 
-   return cumulativeDimensionMap (index);
+   return cumulativeDimensionMap(index);
 }
 
 __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename, typename>
-__cuda_callable__ Index
-__NDIM_PREFIX__::getEntitiesCount () const noexcept
-{
-   return this->cumulativeDimensionMap (EntityDimension);
+__cuda_callable__ Index __NDIM_PREFIX__::getEntitiesCount() const noexcept {
+   return this->cumulativeDimensionMap(EntityDimension);
 }
 
 __NDIMGRID_TEMPLATE__
-void
-__NDIM_PREFIX__::setDomain (const typename __NDIM_PREFIX__::Point &origin,
-                            const typename __NDIM_PREFIX__::Point &proportions)
-{
+void __NDIM_PREFIX__::setDomain(const typename __NDIM_PREFIX__::Point &origin, const typename __NDIM_PREFIX__::Point &proportions) {
    this->origin = origin;
    this->proportions = proportions;
 
-   this->fillSpaceSteps ();
+   this->fillSpaceSteps();
 }
 
 __NDIMGRID_TEMPLATE__
-void
-__NDIM_PREFIX__::setOrigin (const typename __NDIM_PREFIX__::Point &origin) noexcept
-{
-   this->origin = origin;
-}
+void __NDIM_PREFIX__::setOrigin(const typename __NDIM_PREFIX__::Point &origin) noexcept { this->origin = origin; }
 
 __NDIMGRID_TEMPLATE__
 template <typename... Coordinates, typename, typename>
-void
-__NDIM_PREFIX__::setOrigin (Coordinates... coordinates) noexcept
-{
+void __NDIM_PREFIX__::setOrigin(Coordinates... coordinates) noexcept {
    Index i = 0;
 
-   for (auto x : { coordinates... })
-      {
-         this->origin[i] = x;
-         i++;
-      }
+   for (auto x : {coordinates...}) {
+      this->origin[i] = x;
+      i++;
+   }
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ typename __NDIM_PREFIX__::Point
-__NDIM_PREFIX__::getOrigin () const noexcept
-{
-   return this->origin;
-}
+__cuda_callable__ typename __NDIM_PREFIX__::Point __NDIM_PREFIX__::getOrigin() const noexcept { return this->origin; }
 
 __NDIMGRID_TEMPLATE__
-void
-__NDIM_PREFIX__::setSpaceSteps (const typename __NDIM_PREFIX__::Point &spaceSteps) noexcept
-{
+void __NDIM_PREFIX__::setSpaceSteps(const typename __NDIM_PREFIX__::Point &spaceSteps) noexcept {
    this->spaceSteps = spaceSteps;
 
-   fillSpaceStepsPowers ();
-   fillProportions ();
+   fillSpaceStepsPowers();
+   fillProportions();
 }
 
 __NDIMGRID_TEMPLATE__
 template <typename... Coordinates, typename, typename>
-void
-__NDIM_PREFIX__::setSpaceSteps (Coordinates... coordinates) noexcept
-{
+void __NDIM_PREFIX__::setSpaceSteps(Coordinates... coordinates) noexcept {
    Index i = 0;
 
-   for (auto x : { coordinates... })
-      {
-         this->spaceSteps[i] = x;
-         i++;
-      }
+   for (auto x : {coordinates...}) {
+      this->spaceSteps[i] = x;
+      i++;
+   }
 
-   fillSpaceStepsPowers ();
-   fillProportions ();
+   fillSpaceStepsPowers();
+   fillProportions();
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ typename __NDIM_PREFIX__::Point
-__NDIM_PREFIX__::getSpaceSteps () const noexcept
-{
-   return this->spaceSteps;
-}
+__cuda_callable__ typename __NDIM_PREFIX__::Point __NDIM_PREFIX__::getSpaceSteps() const noexcept { return this->spaceSteps; }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ typename __NDIM_PREFIX__::Point
-__NDIM_PREFIX__::getProportions () const noexcept
-{
-   return this->proportions;
-}
+__cuda_callable__ typename __NDIM_PREFIX__::Point __NDIM_PREFIX__::getProportions() const noexcept { return this->proportions; }
 
 __NDIMGRID_TEMPLATE__
 template <typename... Powers, typename, typename>
-__cuda_callable__ Real
-__NDIM_PREFIX__::getSpaceStepsProducts (Powers... powers) const noexcept
-{
+__cuda_callable__ Real __NDIM_PREFIX__::getSpaceStepsProducts(Powers... powers) const noexcept {
    constexpr Index halfSize = this->spaceStepsPowersSize >> 1;
 
    Index i = 0;
    Index base = 1;
 
-   for (auto x : { powers... })
-      {
-         static_assert(x >= -halfSize && x <= halfSize, "Unsupported power");
+   for (auto x : {powers...}) {
+      static_assert(x >= -halfSize && x <= halfSize, "Unsupported power");
 
-         i += x * base;
-         base *= this->spaceStepsPowersSize;
-      }
+      i += x * base;
+      base *= this->spaceStepsPowersSize;
+   }
 
-   return this->spaceStepsProducts (i);
+   return this->spaceStepsProducts(i);
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ inline Real
-__NDIM_PREFIX__::getSmallestSpaceSteps () const noexcept
-{
+__cuda_callable__ inline Real __NDIM_PREFIX__::getSmallestSpaceSteps() const noexcept {
    Real minStep = this->spaceSteps[0];
    Index i = 1;
 
-   while (i != Dimension)
-      minStep = min (minStep, this->spaceSteps[i++]);
+   while (i != Dimension) minStep = min(minStep, this->spaceSteps[i++]);
 
    return minStep;
 }
 
 __NDIMGRID_TEMPLATE__
-void
-__NDIM_PREFIX__::writeProlog (Logger &&logger) const noexcept
-{
-   logger.writeParameter ("Dimensions:", this->dimensions);
+void __NDIM_PREFIX__::writeProlog(Logger &&logger) const noexcept {
+   logger.writeParameter("Dimensions:", this->dimensions);
 
-   logger.writeParameter ("Origin:", this->origin);
-   logger.writeParameter ("Proportions:", this->proportions);
-   logger.writeParameter ("Space steps:", this->spaceSteps);
+   logger.writeParameter("Origin:", this->origin);
+   logger.writeParameter("Proportions:", this->proportions);
+   logger.writeParameter("Space steps:", this->spaceSteps);
 
-   for (Index i = 0; i <= Dimension; i++)
-      {
-         String tmp = String ("Entities count along dimension ") + String (i) + ":";
+   for (Index i = 0; i <= Dimension; i++) {
+      String tmp = String("Entities count along dimension ") + String(i) + ":";
 
-         logger.writeParameter (tmp, this->cumulativeEntitiesCountAlongBases[i]);
-      }
+      logger.writeParameter(tmp, this->cumulativeEntitiesCountAlongBases[i]);
+   }
 }
 
 __NDIMGRID_TEMPLATE__
-void
-__NDIM_PREFIX__::fillEntitiesCount ()
-{
+void __NDIM_PREFIX__::fillEntitiesCount() {
    std::array<bool, Dimension> combinationBuffer = {};
    std::size_t j = 0;
 
-   for (std::size_t i = 0; i < Dimension + 1; i++)
-      cumulativeEntitiesCountAlongBases[i] = 0;
+   for (std::size_t i = 0; i < Dimension + 1; i++) cumulativeEntitiesCountAlongBases[i] = 0;
 
-   for (std::size_t i = 0; i <= Dimension; i++)
-      {
-         std::fill (combinationBuffer.begin (), combinationBuffer.end (), false);
-         std::fill (combinationBuffer.end () - i, combinationBuffer.end (), true);
+   for (std::size_t i = 0; i <= Dimension; i++) {
+      std::fill(combinationBuffer.begin(), combinationBuffer.end(), false);
+      std::fill(combinationBuffer.end() - i, combinationBuffer.end(), true);
 
-         do
-            {
-               int result = 1;
+      do {
+         int result = 1;
 
-               for (std::size_t k = 0; k < combinationBuffer.size (); k++)
-                  result *= combinationBuffer[k] ? dimensions[Dimension - k - 1]
-                                                 : dimensions[Dimension - k - 1] + 1;
+         for (std::size_t k = 0; k < combinationBuffer.size(); k++)
+            result *= combinationBuffer[k] ? dimensions[Dimension - k - 1] : dimensions[Dimension - k - 1] + 1;
 
-               entitiesCountAlongBases[j] = result;
-               cumulativeEntitiesCountAlongBases[i] += result;
+         entitiesCountAlongBases[j] = result;
+         cumulativeEntitiesCountAlongBases[i] += result;
 
-               j++;
-            }
-         while (std::next_permutation (combinationBuffer.begin (), combinationBuffer.end ()));
-      }
+         j++;
+      } while (std::next_permutation(combinationBuffer.begin(), combinationBuffer.end()));
+   }
 }
 
 __NDIMGRID_TEMPLATE__
-void
-__NDIM_PREFIX__::fillProportions ()
-{
+void __NDIM_PREFIX__::fillProportions() {
    Index i = 0;
 
-   while (i != Dimension)
-      {
-         this->proportions[i] = this->spaceSteps[i] * this->dimensions[i];
-         i++;
-      }
+   while (i != Dimension) {
+      this->proportions[i] = this->spaceSteps[i] * this->dimensions[i];
+      i++;
+   }
 }
 
 __NDIMGRID_TEMPLATE__
-void
-__NDIM_PREFIX__::fillSpaceSteps ()
-{
+void __NDIM_PREFIX__::fillSpaceSteps() {
    bool hasAnyInvalidDimension = false;
 
-   for (Index i = 0; i < Dimension; i++)
-      {
-         if (this->dimensions[i] <= 0)
-            {
-               hasAnyInvalidDimension = true;
-               break;
-            }
+   for (Index i = 0; i < Dimension; i++) {
+      if (this->dimensions[i] <= 0) {
+         hasAnyInvalidDimension = true;
+         break;
       }
+   }
 
-   if (!hasAnyInvalidDimension)
-      {
-         for (Index i = 0; i < Dimension; i++)
-            this->spaceSteps[i] = this->proportions[i] / this->dimensions[i];
+   if (!hasAnyInvalidDimension) {
+      for (Index i = 0; i < Dimension; i++) this->spaceSteps[i] = this->proportions[i] / this->dimensions[i];
 
-         fillSpaceStepsPowers ();
-      }
+      fillSpaceStepsPowers();
+   }
 }
 
 __NDIMGRID_TEMPLATE__
-void
-__NDIM_PREFIX__::fillSpaceStepsPowers ()
-{
+void __NDIM_PREFIX__::fillSpaceStepsPowers() {
    Container<spaceStepsPowersSize * Dimension, Real> powers;
 
    for (Index i = 0; i < Dimension; i++) {
@@ -309,14 +233,14 @@ __NDIM_PREFIX__::fillSpaceStepsPowers ()
       }
    }
 
-   for (Index i = 0; i < this -> spaceStepsPowers.getSize(); i++) {
+   for (Index i = 0; i < this->spaceStepsPowers.getSize(); i++) {
       Real product = 1;
       Index index = i;
 
       for (Index j = 0; j < Dimension; j++) {
-         Index residual = index % this -> spaceStepsPowersSize;
+         Index residual = index % this->spaceStepsPowersSize;
 
-         index /= this -> spaceStepsPowersSize;
+         index /= this->spaceStepsPowersSize;
 
          product *= powers[j * spaceStepsPowersSize + residual];
       }
@@ -324,5 +248,5 @@ __NDIM_PREFIX__::fillSpaceStepsPowers ()
       powers[i] = product;
    }
 }
-}
-}
+}  // namespace Meshes
+}  // namespace TNL

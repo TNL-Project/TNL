@@ -15,33 +15,31 @@
 #include <TNL/Meshes/GridEntity.h>
 #include <TNL/Meshes/GridEntityConfig.h>
 
-namespace TNL
-{
-namespace Meshes
-{
+namespace TNL {
+namespace Meshes {
 
 template <typename Real, typename Device, typename Index>
-class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index>
-{
- public:
+class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
+  public:
    template <int EntityDimension, typename Config = GridEntityCrossStencilStorage<1> >
    using EntityType = GridEntity<Grid, EntityDimension, Config>;
 
    /**
     * \brief Basic constructor.
     */
-   Grid ();
+   Grid();
 
-   Grid (const Index xSize);
+   Grid(const Index xSize);
 
    // empty destructor is needed only to avoid crappy nvcc warnings
-   ~Grid () {}
+   ~Grid() {}
 
    /**
     * \brief Gets number of entities in this grid.
     * \tparam Entity Type of the entity.
     */
-   template <typename Entity> __cuda_callable__ Index getEntitiesCount () const;
+   template <typename Entity>
+   __cuda_callable__ Index getEntitiesCount() const;
 
    /**
     * \brief Gets entity type using entity index.
@@ -49,7 +47,7 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index>
     * \tparam Entity Type of the entity.
     */
    template <typename Entity>
-   __cuda_callable__ inline Entity getEntity (const Index &entityIndex) const;
+   __cuda_callable__ inline Entity getEntity(const Index &entityIndex) const;
 
    /**
     * \brief Gets entity index using entity type.
@@ -57,24 +55,24 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index>
     * \tparam Entity Type of the entity.
     */
    template <typename Entity>
-   __cuda_callable__ inline Index getEntityIndex (const Entity &entity) const;
+   __cuda_callable__ inline Index getEntityIndex(const Entity &entity) const;
 
    /**
     * \brief Returns the measure (length) of a cell in this grid.
     */
-   __cuda_callable__ inline const Real &getCellMeasure () const;
+   __cuda_callable__ inline const Real &getCellMeasure() const;
 
    /*
     * @brief Traverses all elements
     */
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   void forAll (Func func, FuncArgs... args) const;
+   void forAll(Func func, FuncArgs... args) const;
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   void forInterior (Func func, FuncArgs... args) const;
+   void forInterior(Func func, FuncArgs... args) const;
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   void forBoundary (Func func, FuncArgs... args) const;
+   void forBoundary(Func func, FuncArgs... args) const;
 };
 
 }  // namespace Meshes
