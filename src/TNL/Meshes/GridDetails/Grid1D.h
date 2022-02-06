@@ -21,25 +21,12 @@ namespace Meshes {
 template< typename Real,
           typename Device,
           typename Index>
-class Grid< 1, Real, Device, Index >
+class Grid<1, Real, Device, Index>: public NDimGrid<1, Real, Device, Index>
 {
 public:
-   using RealType = Real;
-   using DeviceType = Device;
-   using GlobalIndexType = Index;
-   using PointType = Containers::StaticVector< 1, Real >;
-   using CoordinatesType = Containers::StaticVector< 1, Index >;
-
-   // TODO: deprecated and to be removed (GlobalIndexType shall be used instead)
-   using IndexType = Index;
-
    template< int EntityDimension,
              typename Config = GridEntityCrossStencilStorage< 1 > >
    using EntityType = GridEntity< Grid, EntityDimension, Config >;
-
-   typedef EntityType< 1, GridEntityCrossStencilStorage< 1 > > Cell;
-   typedef EntityType< 0 > Face;
-   typedef EntityType< 0 > Vertex;
 
    /**
     * \brief Basic constructor.
@@ -57,8 +44,7 @@ public:
     */
    template< typename Entity >
    __cuda_callable__
-   IndexType
-   getEntitiesCount() const;
+   Index getEntitiesCount() const;
 
    /**
     * \brief Gets entity type using entity index.
@@ -67,8 +53,7 @@ public:
     */
    template< typename Entity >
    __cuda_callable__
-   inline Entity
-   getEntity( const IndexType& entityIndex ) const;
+   inline Entity getEntity( const Index& entityIndex ) const;
 
    /**
     * \brief Gets entity index using entity type.
@@ -84,8 +69,7 @@ public:
     * \brief Returns the measure (length) of a cell in this grid.
     */
    __cuda_callable__
-   inline const RealType&
-   getCellMeasure() const;
+   inline const Real& getCellMeasure() const;
 
    /*
     * @brief Traverses all elements
@@ -98,8 +82,6 @@ public:
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
    void forBoundary(Func func, FuncArgs... args) const;
-
-   void writeProlog( Logger& logger ) const;
 };
 
 }  // namespace Meshes

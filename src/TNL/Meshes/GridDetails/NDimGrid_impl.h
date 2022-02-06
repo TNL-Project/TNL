@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <TNL/Meshes/Grid.h>
+#include <TNL/Meshes/NDimGrid.h>
 
 namespace TNL
 {
@@ -262,6 +262,20 @@ namespace TNL
          return minStep;
       }
 
+      void Grid<Dimension, Real, Device, Index>::writeProlog(Logger && logger) const noexcept {
+         logger.writeParameter("Dimensions:", this -> dimensions);
+
+         logger.writeParameter("Origin:", this -> origin);
+         logger.writeParameter("Proportions:", this -> proportions);
+         logger.writeParameter("Space steps:", this -> spaceSteps);
+
+         for (Index i = 0; i <= Dimension; i++) {
+            String tmp = String("Entities count along dimension ") + String(i) + ":";
+
+            logger.writeParameter(tmp, this -> cumulativeEntitiesCountAlongBases[i];)
+         }
+      }
+
       template <int Dimension,
                 typename Real,
                 typename Device,
@@ -343,8 +357,6 @@ namespace TNL
          for (Index i = 0; i < EntityDimension; i++)
             for (Index j = 0, int power = -2; j < spaceStepsPowersSize; j++, power++)
                powers[i * 5 + j] = pow(this->spaceSteps[i], power);
-
-         Templates::meta_for_loop<Dimension, 0, this -> spaceStepsPowersSize>(function);
 
          for (Index i = 0; i < this -> spaceStepsPowers.getSize(); i++) {
             Real product = 1;

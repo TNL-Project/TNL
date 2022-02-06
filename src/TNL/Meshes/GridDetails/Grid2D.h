@@ -17,8 +17,10 @@
 namespace TNL {
 namespace Meshes {
 
-template< typename Real, typename Device, typename Index >
-class Grid< 2, Real, Device, Index >
+template< typename Real,
+          typename Device,
+          typename Index >
+class Grid<2, Real, Device, Index>: public NDimGrid<2, Real, Device, Index>
 {
 public:
    using RealType = Real;

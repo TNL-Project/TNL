@@ -11,7 +11,7 @@ namespace TNL
                 typename Real = double,
                 typename Device = Devices::Host,
                 typename Index = int>
-      class DistributedGrid: public Grid<Dimension, Real, Device, Index> {
+      class DistributedGrid: public NDimGrid<Dimension, Real, Device, Index> {
          public:
             template <int ContainerDimension,
                       typename ContainerIndex>

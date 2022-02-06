@@ -44,11 +44,14 @@ getEntitiesCount() const
    return getEntitiesCount< Entity::getEntityDimension() >();
 }
 
-template< typename Real, typename Device, typename Index >
-template< typename Entity >
-__cuda_callable__
-inline Entity
-Grid< 1, Real, Device, Index >::getEntity( const IndexType& entityIndex ) const
+template< typename Real,
+          typename Device,
+          typename Index >
+   template< typename Entity >
+ __cuda_callable__ inline
+Entity
+Grid< 1, Real, Device, Index >::
+getEntity( const Index& entityIndex ) const
 {
    static_assert( Entity::getEntityDimension() <= 1 && Entity::getEntityDimension() >= 0, "Wrong grid entity dimensions." );
 
@@ -157,7 +160,7 @@ template<int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<1, Real, Device, Index>::forInterior(Func func, FuncArgs... args) const {
    static_assert(EntityDimension >= 0 && EntityDimension <= 1, "Entity dimension must be either 0 or 1");
 
-   auto outer = [=] __cuda_callable__(Index i, const Grid<1, Real, Device, Index>&grid, FuncArgs... args) mutable {
+   auto outer = [=] __cuda_callable__(Index i, const Grid<1, Real, Device, Index>& grid, FuncArgs... args) mutable {
       EntityType<EntityDimension> entity(grid);
 
       entity.setCoordinates(i);
@@ -180,20 +183,5 @@ void Grid<1, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
    }
 }
 
-template< typename Real,
-          typename Device,
-          typename Index >
-void
-Grid< 1, Real, Device, Index >::writeProlog( Logger& logger ) const
-{
-   logger.writeParameter( "Dimension:", this->getMeshDimension() );
-   logger.writeParameter( "Domain origin:", this->origin );
-   logger.writeParameter( "Domain proportions:", this->proportions );
-   logger.writeParameter( "Domain dimensions:", this->dimensions );
-   logger.writeParameter( "Space steps:", this->getSpaceSteps() );
-   logger.writeParameter( "Number of cells:", getEntitiesCount< Cell >() );
-   logger.writeParameter( "Number of vertices:", getEntitiesCount< Vertex >() );
-}
-
-}  // namespace Meshes
-}  // namespace TNL
+} // namespace Meshes
+} // namespace TNL
