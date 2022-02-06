@@ -52,14 +52,6 @@ public:
    ~Grid() = default;
 
    /**
-    * \brief Sets the origin and proportions of this grid.
-    * \param origin Point where this grid starts.
-    * \param proportions Total length of this grid.
-    */
-   void
-   setDomain( const PointType& origin, const PointType& proportions );
-
-   /**
     * \brief Gets number of entities in this grid.
     * \tparam Entity Type of the entity.
     */
@@ -89,22 +81,13 @@ public:
    getEntityIndex( const Entity& entity ) const;
 
    /**
-    * \brief Returns product of space steps to the xPow.
-    * \tparam xPow Exponent.
-    */
-   template< int xPow >
-   __cuda_callable__
-   const RealType&
-   getSpaceStepsProducts() const;
-
-   /**
     * \brief Returns the measure (length) of a cell in this grid.
     */
    __cuda_callable__
    inline const RealType&
    getCellMeasure() const;
 
-    /*
+   /*
     * @brief Traverses all elements
     */
    template <int EntityDimension, typename Func, typename... FuncArgs>
@@ -117,18 +100,6 @@ public:
    void forBoundary(Func func, FuncArgs... args) const;
 
    void writeProlog( Logger& logger ) const;
-
-protected:
-   void
-   computeProportions();
-
-   void computeSpaceStepPowers();
-
-   void computeSpaceSteps();
-
-   PointType spaceSteps;
-
-   RealType spaceStepsProducts[ 5 ];
 };
 
 }  // namespace Meshes

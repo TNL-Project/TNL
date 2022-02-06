@@ -32,39 +32,6 @@ Grid< 1, Real, Device, Index >::Grid( const Index xSize ) {
    this->setDimensions(xSize);
 }
 
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::computeSpaceSteps()
-{
-   if( this->getDimensions().x() != 0 ) {
-      this->spaceSteps.x() = this->proportions.x() / (Real) this->getDimensions().x();
-      this->computeSpaceStepPowers();
-   }
-}
-
-template< typename Real, typename Device, typename Index >
-void
-Grid< 1, Real, Device, Index >::computeSpaceStepPowers()
-{
-   const RealType& hx = this->spaceSteps.x();
-   this->spaceStepsProducts[ 0 ] = 1.0 / ( hx * hx );
-   this->spaceStepsProducts[ 1 ] = 1.0 / hx;
-   this->spaceStepsProducts[ 2 ] = 1.0;
-   this->spaceStepsProducts[ 3 ] = hx;
-   this->spaceStepsProducts[ 4 ] = hx * hx;
-}
-
-template< typename Real,
-          typename Device,
-          typename Index >
-void Grid< 1, Real, Device, Index >::setDomain( const PointType& origin,
-                                                const PointType& proportions )
-{
-   this->origin = origin;
-   this->proportions = proportions;
-   computeSpaceSteps();
-}
-
 template< typename Real,
           typename Device,
           typename Index >

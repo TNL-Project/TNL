@@ -22,23 +22,7 @@ namespace TNL
          struct bool_pack
          {
          };
-
-         template <bool... Bs>
-         using conjunction = std::is_same<bool_pack<true, Bs...>, bool_pack<Bs..., true>>;
-
-         template<template <int, typename, typename...> typename Container, int ContainerSize, typename Value, int Size>
-         struct NestedFixedSizeContainer {
-            public:
-               using nested = typename NestedFixedSizeContainer<Container, ContainerSize, Value, Size - 1>::type;
-
-               using type = Container<ContainerSize, nested>;
-         };
-
-         template<template <int, typename, typename...> typename Container, int ContainerSize, typename Value>
-         struct NestedFixedSizeContainer<Container, ContainerSize, Value, 0> {
-            public:
-               using type = Container<ContainerSize, Value>;
-         };
+         
       }
 
       template <int Dimension,
@@ -61,7 +45,6 @@ namespace TNL
 
          // empty destructor is needed only to avoid crappy nvcc warnings
          ~Grid() {}
-
          /**
           *  @brief - Specifies dimensions of the grid
           *  @param[in] dimensions - A parameter pack, which specifies points count in the specific dimension.
@@ -81,7 +64,8 @@ namespace TNL
           * @param[in] index - index of dimension
           */
          __cuda_callable__
-         Index getDimension(Index index) const noexcept;
+             Index
+             getDimension(Index index) const noexcept;
          /**
           * @param[in] indices - A dimension index pack
           */
@@ -117,6 +101,13 @@ namespace TNL
                    typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, DimensionIndex>::value...>::value>,
                    typename = std::enable_if_t<(sizeof...(DimensionIndex) > 0)>>
          Container<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indices) const noexcept;
+         /**
+          * \brief Sets the origin and proportions of this grid.
+          * \param origin Point where this grid starts.
+          * \param proportions Total length of this grid.
+          */
+         void setDomain(const Container<Dimension, Index> &origin,
+                        const Container<Dimension, Index> &proportions);
          /**
           * @brief Set the Origin of the grid
           */
@@ -154,15 +145,21 @@ namespace TNL
           */
          Container<Dimension, Real> getSpaceSteps() const noexcept;
          /**
+          * @brief Returns product of space steps to the xPow.
+          */
+         template <typename... Powers,
+                   typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Powers>::value...>::value>,
+                   typename = std::enable_if_t<sizeof...(Powers) == Dimension>>
+         __cuda_callable__
+         Real getSpaceStepsProducts(Powers... powers) const noexcept;
+         /**
           * @brief Get the Smalles Space Steps object
           */
-         __cuda_callable__
-         inline Real getSmallesSpaceSteps() const noexcept;
+         __cuda_callable__ inline Real getSmallesSpaceSteps() const noexcept;
          /**
           * @brief Get the proportions of the Grid
           */
-         __cuda_callable__
-         Container<Dimension, Real> getProportions() const noexcept;
+         __cuda_callable__ Container<Dimension, Real> getProportions() const noexcept;
          /*
           * @brief Traverses all elements
           */
@@ -173,12 +170,16 @@ namespace TNL
           */
          template <int EntityDimension, typename Func, typename... FuncArgs>
          void forInterior(Func func, FuncArgs... args) const;
-          /*
+         /*
           * @brief Traverses boundary elements
           */
          template <int EntityDimension, typename Func, typename... FuncArgs>
          void forBoundary(Func func, FuncArgs... args) const;
+
+
+         void writeProlog()
       protected:
+         static constexpr int spaceStepsPowersSize = 5;
          /**
           * @brief - Dimensions of the grid in the amount of edges for each axia.
           */
@@ -210,17 +211,8 @@ namespace TNL
           * @brief - Space steps along dimensions
           */
          Container<Dimension, Real> spaceSteps;
-         /**
-          * @brief A space products for each dimension.
-          *
-          * The coefficients are calculated for each dimension
-          * and then all combinations of space steps are calculated.
-          *
-          * For each dimension the next space steps powers are calculated:
-          *   Power:  -2, -1, 0, 1, 2
-          *   Index:   0,  1, 2, 3, 4
-          */
-         typename Templates::NestedFixedSizeContainer<Container, 5, Real, Dimension>::type spaceProducts;
+
+         Container<std::integral_constant<Index, pow(spaceStepsPowersSize, Dimension)>::value, Real> spaceProducts;
 
          void fillEntitiesCount();
          void fillSpaceSteps();

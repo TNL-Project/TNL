@@ -118,6 +118,18 @@ namespace TNL
          return this->cumulativeDimensionMap(EntityDimension);
       }
 
+      template <typename Real,
+                typename Device,
+                typename Index>
+      void Grid<Dimension, Real, Device, Index>::setDomain(const Container<Dimension, Index> &origin,
+                                                           const Container<Dimension, Index> &proportions)
+      {
+         this->origin = origin;
+         this->proportions = proportions;
+
+         this -> fillSpaceSteps();
+      }
+
       template <int Dimension,
                 typename Real,
                 typename Device,
@@ -214,6 +226,31 @@ namespace TNL
                 typename Real,
                 typename Device,
                 typename Index>
+      template <typename... Powers,
+                typename = std::enable_if_t<Templates::conjunction<std::is_same<Index, Powers>::value...>::value>,
+                typename = std::enable_if_t<sizeof...(Powers) == Dimension>>
+      __cuda_callable__
+      Real Grid<Dimension, Real, Device, Index>::getSpaceStepsProducts(Powers... powers) const noexcept {
+         constexpr halfSize = this -> spaceStepsPowersSize >> 1;
+
+         Index i = 0;
+         Index base = 1;
+
+         for (auto x: {powers...}) {
+            static_assert(x >= -halfSize && x <= halfSize; "Unsupported size of the powers");
+
+            i += x * base;
+
+            base *= this -> spaceStepsPowersSize;
+         }
+
+         return this -> spaceStepsProducts(i);
+      }
+
+      template <int Dimension,
+                typename Real,
+                typename Device,
+                typename Index>
       __cuda_callable__ inline Real Grid<Dimension, Real, Device, Index>::getSmallestSpaceSteps() const noexcept
       {
          Real minStep = this->spaceSteps[0];
@@ -277,6 +314,22 @@ namespace TNL
                 typename Index>
       void Grid<Dimension, Real, Device, Index>::fillSpaceSteps()
       {
+         bool hasAnyInvalidDimension = false;
+
+         for (Index i = 0; i < Dimension; i++) {
+            if (this -> dimensions[i] <= 0) {
+               hasAnyInvalidDimension = true;
+               break;
+            }
+         }
+
+         if (!hasAnyInvalidDimension) {
+            for (Index i = 0; i < Dimension; i++)
+               this -> spaceSteps[i] = this -> proportions[i] / this -> dimensions[i];
+
+            fillSpaceStepsPowers();
+         }
+
       }
 
       template <int Dimension,
@@ -285,6 +338,26 @@ namespace TNL
                 typename Index>
       void Grid<Dimension, Real, Device, Index>::fillSpaceStepsPowers()
       {
+         Container<spaceStepsPowersSize * EntityDimension, Real> powers;
+
+         for (Index i = 0; i < EntityDimension; i++)
+            for (Index j = 0, int power = -2; j < spaceStepsPowersSize; j++, power++)
+               powers[i * 5 + j] = pow(this->spaceSteps[i], power);
+
+         for (Index i = 0; i < this -> spaceStepsPowers.getSize(); i++) {
+            Real product = 1;
+            Index index = i;
+
+            for (Index j = 0; j < Dimension; j++) {
+               Index residual = index % divider;
+
+               index /= this -> spaceStepsPowersSize;
+
+               product *= powers[residual];
+            }
+
+            powers[i] = product;
+         }
       }
    }
 }
