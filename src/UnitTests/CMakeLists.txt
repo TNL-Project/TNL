@@ -1,7 +1,7 @@
 ADD_SUBDIRECTORY( Algorithms )
 ADD_SUBDIRECTORY( Arithmetics )
 ADD_SUBDIRECTORY( Containers )
-ADD_SUBDIRECTORY( Functions )
+#ADD_SUBDIRECTORY( Functions )
 # Matrices are included from src/CMakeLists.txt
 ADD_SUBDIRECTORY( Meshes )
 ADD_SUBDIRECTORY( MPI )

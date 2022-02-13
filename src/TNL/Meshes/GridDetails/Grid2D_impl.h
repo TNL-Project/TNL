@@ -30,13 +30,6 @@ Grid<2, Real, Device, Index>::Grid(const Index xSize, const Index ySize): NDimGr
    this->setDimensions(xSize, ySize);
 }
 
-// template <typename Real, typename Device, typename Index>
-// template <typename Entity,
-//           std::enable_if_t<(std::is_integral<Entity>::value), bool>>
-// __cuda_callable__ inline Index Grid<2, Real, Device, Index>::getEntitiesCountA() const {
-//    return this -> getEntitiesCount<(Entity::getEntityDimension())>();
-// }
-
 template <typename Real, typename Device, typename Index>
 template <typename Entity>
 __cuda_callable__ inline Entity Grid<2, Real, Device, Index>::getEntity(const IndexType& entityIndex) const {
