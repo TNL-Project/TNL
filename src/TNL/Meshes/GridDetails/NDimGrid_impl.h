@@ -39,7 +39,7 @@ void __NDIM_PREFIX__::setDimensions(const typename __NDIM_PREFIX__::Coordinate &
 
 __NDIMGRID_TEMPLATE__
 __cuda_callable__ inline Index __NDIM_PREFIX__::getDimension(Index index) const {
-   TNL_ASSERT_GE(index, 0, "Index must be greater than zero");
+   TNL_ASSERT_GE(index, 0, "Index must be greater or equal to zero");
    TNL_ASSERT_LT(index, Dimension, "Index must be less than Dimension");
 
    return dimensions[index];

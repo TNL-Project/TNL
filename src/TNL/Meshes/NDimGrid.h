@@ -70,6 +70,10 @@ class NDimGrid {
              std::enable_if_t<std::is_integral<Index>::value, bool> = true>
    using Container = TNL::Containers::StaticVector<ContainerDimension, ContainerValue>;
 
+   using IndexType = Index;
+   using DeviceType = Device;
+   using RealType = Real;
+
    using Coordinate = Container<Dimension, Index>;
    using Point = Container<Dimension, Real>;
 

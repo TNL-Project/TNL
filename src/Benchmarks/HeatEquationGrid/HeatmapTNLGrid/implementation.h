@@ -59,7 +59,7 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
       auto center = 2 * uxView[index];
 
       auxView[index] = (uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
-                        (uxView[index - width] - center + uxView[index + width]) * hy_inv;
+                       (uxView[index - width] - center + uxView[index + width]) * hy_inv;
    };
 
    auto update = [=] __cuda_callable__(const typename Grid2D::EntityType<0>&entity) mutable {
