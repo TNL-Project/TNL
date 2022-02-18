@@ -91,6 +91,12 @@ template <typename Device>
 bool HeatmapSolver<Real>::writeGNUPlot(const std::string &filename,
                                        const HeatmapSolver<Real>::Parameters &params,
                                        const TNL::Containers::Array<Real, Device> &map) const {
+   if (std::is_same<Device, TNL::Devices::Cuda>::value) {
+      TNL::Containers::Array<Real, TNL::Devices::Host> host(map);
+
+      return writeGNUPlot(filename, params, host);
+   }
+
    if (!params.outputData)
       return true;
 

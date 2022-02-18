@@ -2,6 +2,8 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/ParallelFor.h>
 
+#include <type_traits>
+
 #include "../Base/HeatmapSolver.h"
 
 #pragma once
@@ -30,8 +32,8 @@ template <typename Real>
 template <typename Device>
 bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) const
 {
-   TNL::Containers::Array<Real, Device> ux(params.xSize * params.ySize), // data at step u
-                                        aux(params.xSize * params.ySize);// data at step u + 1
+   TNL::Containers::Array<Real, Device> ux(params.xSize * params.ySize); // data at step u
+   TNL::Containers::Array<Real, Device> aux(params.xSize * params.ySize);// data at step u + 1
 
    // Invalidate ux/aux
    ux = 0;
