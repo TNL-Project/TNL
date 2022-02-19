@@ -32,6 +32,7 @@ TNL::Config::ConfigDescription HeatmapSolverBenchmark::makeInputConfig() {
    TNL::Config::ConfigDescription config;
 
    config.addDelimiter("Benchmark settings:");
+   config.addEntry<TNL::String>("id", "Identifier of the run", "unknown");
    config.addEntry<TNL::String>("log-file", "Log file name.", "tnl-benchmark-heatmap.log");
    config.addEntry<TNL::String>("output-mode", "Mode for opening the log file.", "overwrite");
    config.addEntryEnum("append");
@@ -68,7 +69,7 @@ TNL::Config::ConfigDescription HeatmapSolverBenchmark::makeInputConfig() {
 
    config.addEntry<double>("sigma", "Sigma in exponential initial condition.", 1.0);
 
-   config.addEntry<double>("time-step", "Time step. By default it is proportional to one over space step square.", 0.00001);
+   config.addEntry<double>("time-step", "Time step. By default it is proportional to one over space step square.", 0.000001);
    config.addEntry<double>("final-time", "Final time of the simulation.", 0.01);
 
    config.addDelimiter("Device settings:");
@@ -112,7 +113,8 @@ void HeatmapSolverBenchmark::runBenchmark(TNL::Benchmarks::Benchmark<>& benchmar
          benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns({
             { "precision", precision },
             { "xSize", TNL::convertToString(xSize) },
-            { "ySize", TNL::convertToString(ySize) }
+            { "ySize", TNL::convertToString(ySize) },
+            { "id", parameters.getParameter<TNL::String>("id") }
          }));
 
          benchmark.setDatasetSize(xSize * ySize);

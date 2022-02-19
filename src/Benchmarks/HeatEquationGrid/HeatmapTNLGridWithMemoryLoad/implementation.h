@@ -27,7 +27,7 @@ template<int Size, typename Index, typename Real>
 class Grid {
    public:
       __cuda_callable__ inline
-      Entity<Size, Index, Real> getEntity(Index i, Index j) {
+      Entity<Size, Index, Real> getEntity(Index i, Index j) const {
          Entity<Size, Index, Real> entity;
 
          entity.i = i;
@@ -36,13 +36,13 @@ class Grid {
          return entity;
       }
 
-      // TNL::Containers::StaticVector<Size, Index> dimensions;
-      // TNL::Containers::StaticVector<1 << Size, Index> entitiesCountAlongBases;
-      // TNL::Containers::StaticVector<Size + 1, Index> cumulativeEntitiesCountAlongBases;
+      TNL::Containers::StaticVector<Size, Index> dimensions;
+      TNL::Containers::StaticVector<1 << Size, Index> entitiesCountAlongBases;
+      TNL::Containers::StaticVector<Size + 1, Index> cumulativeEntitiesCountAlongBases;
 
-      // TNL::Containers::StaticVector<Size, Real> origin, proportions, spaceSteps;
+      TNL::Containers::StaticVector<Size, Real> origin, proportions, spaceSteps;
 
-      // TNL::Containers::StaticVector<std::integral_constant<Index, pow<spaceStepsPowers, Size>()>::value, Real> spaceProducts;
+      TNL::Containers::StaticVector<std::integral_constant<Index, pow<spaceStepsPowers, Size>()>::value, Real> spaceProducts;
 };
 
 template<int Size, typename Index, typename Real>
@@ -54,8 +54,8 @@ class Entity {
       // const Grid<Size, Index, Real>& grid;
 
       Index i, j;
-      // Index index;
-      // TNL::Containers::StaticVector<Size, Index> coordinates; //, orientation, basis;
+      Index index;
+      TNL::Containers::StaticVector<Size, Index> coordinates; //, orientation, basis;
 };
 
 /***
