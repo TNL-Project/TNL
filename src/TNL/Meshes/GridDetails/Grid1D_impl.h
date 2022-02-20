@@ -30,11 +30,11 @@ Grid<1, Real, Device, Index>::Grid(const Index xSize) {
    this->setDimensions(xSize);
 }
 
-template <typename Real, typename Device, typename Index>
-template <typename Entity>
-__cuda_callable__ inline Index Grid<1, Real, Device, Index>::getEntitiesCount() const {
-   return getEntitiesCount<Entity::getEntityDimension()>();
-}
+// template <typename Real, typename Device, typename Index>
+// template <typename Entity>
+// __cuda_callable__ inline Index Grid<1, Real, Device, Index>::getEntitiesCount() const {
+//    return getEntitiesCount<Entity::getEntityDimension()>();
+// }
 
 template <typename Real, typename Device, typename Index>
 template <typename Entity>

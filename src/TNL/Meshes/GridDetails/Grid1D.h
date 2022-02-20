@@ -38,8 +38,8 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
     * \brief Gets number of entities in this grid.
     * \tparam Entity Type of the entity.
     */
-   template <typename Entity>
-   __cuda_callable__ Index getEntitiesCount() const;
+   // template <typename Entity>
+   // __cuda_callable__ Index getEntitiesCount() const;
 
    /**
     * \brief Gets entity type using entity index.

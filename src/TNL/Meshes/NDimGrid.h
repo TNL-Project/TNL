@@ -84,12 +84,9 @@ class NDimGrid {
 
    NDimGrid() {}
    // empty destructor is needed only to avoid crappy nvcc warnings
-   ~NDimGrid() {}
+   virtual ~NDimGrid() {}
    /**
-    *  @brief - Specifies dimensions of the grid
-    *  @param[in] dimensions - A parameter pack, which specifies points count
-    * in the specific dimension. Most significant dimension is in the beginning
-    * of the list. Least significant dimension is in the end of the list
+    *  @brief - Specifies dimensions of the grid as the number of edges at each dimenison
     */
    template <typename... Dimensions,
              std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Dimensions>::value...>::value, bool> = true,
@@ -97,44 +94,52 @@ class NDimGrid {
    void setDimensions(Dimensions... dimensions);
    /**
     *  @brief - Specifies dimensions of the grid
-    *  @param[in] dimensions - A container with the dimension items
     */
    void setDimensions(const Container<Dimension, Index> &dimensions);
    /**
-    * @param[in] index - index of dimension
+    * @param[in] index - Index of dimension
     */
-   __cuda_callable__ Index getDimension(Index index) const;
+   __cuda_callable__ inline
+   Index getDimension(Index index) const;
    /**
-    * @param[in] indices - A dimension index pack
+    * @param[in] indices - A dimension indicies pack
     */
    template <typename... DimensionIndex,
              std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool> = true,
              std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool> = true >
+   __cuda_callable__ inline
    Container<sizeof...(DimensionIndex), Index> getDimensions(DimensionIndex... indices) const noexcept;
    /**
     * @brief Get all dimensions of the objects
-    *
-    * @return Container<Dimension, Index>
     */
-   __cuda_callable__ inline const Coordinate& getDimensions() const noexcept;
+   __cuda_callable__ inline
+   const Coordinate& getDimensions() const noexcept;
    /**
     * @param[in] index - index of dimension
     */
-   __cuda_callable__ inline Index getEntitiesCount(Index index) const;
+   __cuda_callable__ inline
+   Index getEntitiesCount(Index index) const;
    /**
     * @param[in] index - index of dimension
     */
    template <int EntityDimension,
              std::enable_if_t<(EntityDimension >= 0), bool> = true,
              std::enable_if_t<(EntityDimension <= Dimension), bool> = true>
-   __cuda_callable__ inline Index getEntitiesCount() const noexcept;
+   __cuda_callable__ inline
+   Index getEntitiesCount() const noexcept;
    /**
     * @brief - Returns the number of entities of specific dimension
     */
    template <typename... DimensionIndex,
              std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool> = true,
              std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool> = true>
+   __cuda_callable__ inline
    Container<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indices) const;
+   /**
+    * @brief - Returns entities counts along every dimension
+    */
+   __cuda_callable__ inline
+   const Container<Dimension + 1, Index>& getEntitiesCounts() const noexcept;
    /**
     * \brief Sets the origin and proportions of this grid.
     * \param origin Point where this grid starts.
@@ -178,22 +183,26 @@ class NDimGrid {
    /**
     * @brief - Returns the origin of the grid
     */
-   __cuda_callable__ inline const Point& getSpaceSteps() const noexcept;
+   __cuda_callable__ inline
+   const Point& getSpaceSteps() const noexcept;
    /**
     * @brief Returns product of space steps to the xPow.
     */
    template <typename... Powers,
              std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Powers>::value...>::value, bool> = true,
              std::enable_if_t<sizeof...(Powers) == Dimension, bool> = true>
-   __cuda_callable__ inline Real getSpaceStepsProducts(Powers... powers) const noexcept;
+   __cuda_callable__ inline
+   Real getSpaceStepsProducts(Powers... powers) const noexcept;
    /**
     * @brief Get the Smalles Space Steps object
     */
-   __cuda_callable__ inline Real getSmallestSpaceSteps() const noexcept;
+   __cuda_callable__ inline
+   Real getSmallestSpaceSteps() const noexcept;
    /**
     * @brief Get the proportions of the Grid
     */
-   __cuda_callable__ inline const Point& getProportions() const noexcept;
+   __cuda_callable__ inline
+    const Point& getProportions() const noexcept;
    /*
     * @brief Traverses all elements
     */
