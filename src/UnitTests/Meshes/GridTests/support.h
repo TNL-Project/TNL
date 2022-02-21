@@ -15,6 +15,11 @@ class GridTestCaseSupportInterface {
 
       template<typename Grid, int ...entitiesCount>
       void verifyEntitiesCountGetters(const Grid& grid) const { FAIL() << "Expect to be specialized"; }
+
+      template<typename Grid,
+               typename... T,
+               std::enable_if_t<TNL::Meshes::Templates::conjunction<std::is_convertible<typename Grid::RealType, T>::value...>::value, bool> = true>
+      void verifyOriginGetters(const Grid& grid, T... coordinates) const { FAIL() << "Expect to be specialized"; }
    protected:
       template<typename Grid, int... dimensions>
       void verifyDimensionSetByCoordinateGetter(const Grid& grid) const { FAIL() << "Expect to be specialized"; }
@@ -54,6 +59,17 @@ class GridTestCaseSupport<TNL::Devices::Host>: public GridTestCaseSupportInterfa
          this->verifyEntitiesCountByContainerGetter<Grid, entitiesCount...>(grid);
          this->verifyEntitiesCountByIndexGetter<Grid, entitiesCount...>(grid);
          this->verifyEntitiesCountByIndiciesGetter<Grid, entitiesCount...>(grid);
+      }
+
+      template<typename Grid,
+               typename... T,
+               std::enable_if_t<TNL::Meshes::Templates::conjunction<std::is_convertible<typename Grid::RealType, T>::value...>::value, bool> = true>
+      void verifyOriginGetter(const Grid& grid, T... coordinates) const {
+         typename Grid::Point point(coordinates...);
+
+         auto result = grid.getOrigin();
+
+         EXPECT_EQ(point, result) << "Verify, that the origin was correctly set";
       }
    protected:
       template<typename Grid, int... dimensions>
@@ -134,11 +150,29 @@ class GridTestCaseSupport<TNL::Devices::Cuda>: public GridTestCaseSupportInterfa
          this->verifyDimensionSetByIndiciesGetter<Grid, dimensions...>(grid);
       }
 
-      template<typename Grid, int ...entitiesCount>
+      template<typename Grid, int... entitiesCount>
       void verifyEntitiesCountGetters(const Grid& grid) const {
          this->verifyEntitiesCountByContainerGetter<Grid, entitiesCount...>(grid);
          this->verifyEntitiesCountByIndexGetter<Grid, entitiesCount...>(grid);
          this->verifyEntitiesCountByIndiciesGetter<Grid, entitiesCount...>(grid);
+      }
+
+      template<typename Grid,
+               typename... T,
+               std::enable_if_t<TNL::Meshes::Templates::conjunction<std::is_convertible<typename Grid::RealType, T>::value...>::value, bool> = true>
+      void verifyOriginGetter(const Grid& grid, T... coordinates) const {
+         auto gridDimension = grid.getMeshDimension();
+         typename Grid::Point point(coordinates...);
+
+         auto update = [=](const auto index, auto& reference) mutable {
+            reference = grid.getOrigin()[index % gridDimension];
+         };
+
+         auto verify = [=](const auto index, const auto& reference) mutable {
+            EXPECT_EQ(reference, point[index % gridDimension]);
+         };
+
+         this->executeFromDevice<typename Grid::IndexType>(update, verify);
       }
    protected:
       template<typename ContainerElementType, typename Updater, typename Verifier>
@@ -249,8 +283,8 @@ class GridTestCaseSupport<TNL::Devices::Cuda>: public GridTestCaseSupportInterfa
       }
 };
 
-template<int... parameters>
-std::string makeString() {
+template<typename... Parameters>
+std::string makeString(Parameters... parameters) {
    std::ostringstream s;
 
    for (const auto& x: { parameters... })
@@ -259,9 +293,10 @@ std::string makeString() {
    return s.str();
 }
 
+
 template<typename Grid, bool isValid, int... dimensions>
 void testDimensionSetByIndex(Grid& grid) {
-   auto paramString = makeString<dimensions...>();
+   auto paramString = makeString(dimensions...);
 
    if (isValid) {
       EXPECT_NO_THROW(grid.setDimensions(dimensions...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
@@ -277,7 +312,7 @@ void testDimensionSetByIndex(Grid& grid) {
 
 template<typename Grid, bool isValid, int... dimensions>
 void testDimensionSetByCoordinate(Grid& grid) {
-   auto paramString = makeString<dimensions...>();
+   auto paramString = makeString(dimensions...);
    typename Grid::Coordinate coordinate(dimensions...);
 
    if (isValid) {
@@ -299,7 +334,7 @@ template<typename Grid, int... dimensions, int... entitiesCounts>
 struct TestEntitiesCount<Grid, IntPack<dimensions...>, IntPack<entitiesCounts...>> {
 public:
    static void exec(Grid& grid) {
-      auto paramString = makeString<dimensions...>();
+      auto paramString = makeString(dimensions...);
 
       EXPECT_NO_THROW(grid.setDimensions(dimensions...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
 
@@ -308,5 +343,33 @@ public:
       support.template verifyEntitiesCountGetters<Grid, entitiesCounts...>(grid);
    }
 };
+
+
+template<typename Grid,
+         typename... T,
+         std::enable_if_t<TNL::Meshes::Templates::conjunction<std::is_convertible<typename Grid::RealType, T>::value...>::value, bool> = true>
+void testOriginSetByIndex(Grid& grid, T... coordinates) {
+   auto paramString = makeString(coordinates...);
+
+   EXPECT_NO_THROW(grid.setOrigin(coordinates...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
+
+   GridTestCaseSupport<typename Grid::DeviceType> support;
+
+   support.template verifyOriginGetter<Grid>(grid, coordinates...);
+}
+
+template<typename Grid,
+         typename... T,
+         std::enable_if_t<TNL::Meshes::Templates::conjunction<std::is_convertible<typename Grid::RealType, T>::value...>::value, bool> = true>
+void testOriginSetByCoordinate(Grid& grid, T... coordinates) {
+   auto paramString = makeString(coordinates...);
+   typename Grid::Point point(coordinates...);
+
+   EXPECT_NO_THROW(grid.setOrigin(point)) << "Verify, that the set of" << paramString << " doesn't cause assert";
+
+   GridTestCaseSupport<typename Grid::DeviceType> support;
+
+   support.template verifyOriginGetter<Grid>(grid, coordinates...);
+}
 
 #endif

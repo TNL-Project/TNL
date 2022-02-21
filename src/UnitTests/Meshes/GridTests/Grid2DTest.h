@@ -102,4 +102,18 @@ TYPED_TEST(GridTestSuite, TestEntitiesCount) {
    TestEntitiesCount<TypeParam, IntPack<50, 100>, IntPack<51 * 101, 51 * 100 + 50 * 101, 50 * 100>>::exec(this -> grid);
 }
 
+TYPED_TEST(GridTestSuite, TestOriginSet) {
+   testOriginSetByCoordinate<TypeParam>(this -> grid, 0.6, 1.2);
+   testOriginSetByCoordinate<TypeParam>(this -> grid, -1, 23232);
+   testOriginSetByCoordinate<TypeParam>(this -> grid, 100, -12132);
+   testOriginSetByCoordinate<TypeParam>(this -> grid, -100000, 32112);
+   testOriginSetByCoordinate<TypeParam>(this -> grid, 323121, -100312);
+
+   testOriginSetByIndex<TypeParam>(this -> grid, 0.6, 1.2);
+   testOriginSetByIndex<TypeParam>(this -> grid, -1, 23232);
+   testOriginSetByIndex<TypeParam>(this -> grid, 100, -12132);
+   testOriginSetByIndex<TypeParam>(this -> grid, -100000, 32112);
+   testOriginSetByIndex<TypeParam>(this -> grid, 323121, -100312);
+}
+
 #endif
