@@ -99,14 +99,6 @@ const typename __NDIM_PREFIX__::Container<Dimension + 1, Index> &__NDIM_PREFIX__
 }
 
 __NDIMGRID_TEMPLATE__
-void __NDIM_PREFIX__::setDomain(const typename __NDIM_PREFIX__::Point &origin, const typename __NDIM_PREFIX__::Point &proportions) {
-   this->origin = origin;
-   this->proportions = proportions;
-
-   this->fillSpaceSteps();
-}
-
-__NDIMGRID_TEMPLATE__
 void __NDIM_PREFIX__::setOrigin(const typename __NDIM_PREFIX__::Point &origin) noexcept { this->origin = origin; }
 
 __NDIMGRID_TEMPLATE__
@@ -123,6 +115,14 @@ void __NDIM_PREFIX__::setOrigin(Coordinates... coordinates) noexcept {
 
 __NDIMGRID_TEMPLATE__
 __cuda_callable__ inline const typename __NDIM_PREFIX__::Point &__NDIM_PREFIX__::getOrigin() const noexcept { return this->origin; }
+
+__NDIMGRID_TEMPLATE__
+void __NDIM_PREFIX__::setDomain(const typename __NDIM_PREFIX__::Point &origin, const typename __NDIM_PREFIX__::Point &proportions) {
+   this->origin = origin;
+   this->proportions = proportions;
+
+   this->fillSpaceSteps();
+}
 
 __NDIMGRID_TEMPLATE__
 void __NDIM_PREFIX__::setSpaceSteps(const typename __NDIM_PREFIX__::Point &spaceSteps) noexcept {

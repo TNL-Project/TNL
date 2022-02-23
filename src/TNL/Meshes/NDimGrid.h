@@ -66,8 +66,7 @@ template <int Dimension, typename Real = double, typename Device = Devices::Host
 class NDimGrid {
   public:
    template <int ContainerDimension, typename ContainerValue,
-             std::enable_if_t<(Dimension > 0), bool> = true,
-             std::enable_if_t<std::is_integral<Index>::value, bool> = true>
+             std::enable_if_t<(ContainerDimension > 0), bool> = true>
    using Container = TNL::Containers::StaticVector<ContainerDimension, ContainerValue>;
 
    using IndexType = Index;

@@ -88,16 +88,16 @@ TYPED_TEST(GridTestSuite, TestEntitiesCount) {
 
 TYPED_TEST(GridTestSuite, TestOriginSet) {
    testOriginSetByCoordinate<TypeParam>(this -> grid, 0.6);
-   testOriginSetByCoordinate<TypeParam>(this -> grid, -1);
-   testOriginSetByCoordinate<TypeParam>(this -> grid, 100);
-   testOriginSetByCoordinate<TypeParam>(this -> grid, -100000);
-   testOriginSetByCoordinate<TypeParam>(this -> grid, 323121);
+   testOriginSetByCoordinate<TypeParam>(this -> grid, -1.);
+   testOriginSetByCoordinate<TypeParam>(this -> grid, 100.);
+   testOriginSetByCoordinate<TypeParam>(this -> grid, -100000.);
+   testOriginSetByCoordinate<TypeParam>(this -> grid, 323121.);
 
    testOriginSetByIndex<TypeParam>(this -> grid, 0.6);
-   testOriginSetByIndex<TypeParam>(this -> grid, -1);
-   testOriginSetByIndex<TypeParam>(this -> grid, 100);
-   testOriginSetByIndex<TypeParam>(this -> grid, -100000);
-   testOriginSetByIndex<TypeParam>(this -> grid, 323121);
+   testOriginSetByIndex<TypeParam>(this -> grid, -1.);
+   testOriginSetByIndex<TypeParam>(this -> grid, 100.);
+   testOriginSetByIndex<TypeParam>(this -> grid, -100000.);
+   testOriginSetByIndex<TypeParam>(this -> grid, 323121.);
 }
 
 #endif
