@@ -31,20 +31,15 @@ struct MatrixInfo
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 struct MatrixInfo< DenseMatrixView< Real, Device, Index, Organization > >
 {
-   static String
-   getDensity()
-   {
-      return "dense";
-   };
+   static String getDensity() { return String( "dense" ); };
+
+   static String getFormat() { return "Dense"; };
 };
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 struct MatrixInfo< DenseMatrix< Real, Device, Index, Organization, RealAllocator > >
 : public MatrixInfo< typename DenseMatrix< Real, Device, Index, Organization, RealAllocator >::ViewType >
 {
-   static String getDensity() { return String( "dense" ); };
-
-   static String getFormat() { return "Dense"; };
 };
 
 template< typename Real,
