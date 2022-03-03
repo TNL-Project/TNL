@@ -55,12 +55,12 @@ TYPED_TEST(GridTestSuite, TestSetWithParameterPack) {
 }
 
 TYPED_TEST(GridTestSuite, TestSetWithCoordinates) {
-   testDimensionSetByCoordinate<TypeParam>(this -> grid, 0);
-   testDimensionSetByCoordinate<TypeParam>(this -> grid, 1);
-   testDimensionSetByCoordinate<TypeParam>(this -> grid, 2);
-   testDimensionSetByCoordinate<TypeParam>(this -> grid, 10232);
-   testDimensionSetByCoordinate<TypeParam>(this -> grid, 45235423);
-   testDimensionSetByCoordinate<TypeParam>(this -> grid, 3231312);
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, { 0 });
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, { 1 });
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, { 2 });
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, { 10232 });
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, { 45235423 });
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, { 3231312 });
 }
 
 TYPED_TEST(GridTestSuite, TestEntitiesCount) {
@@ -73,11 +73,11 @@ TYPED_TEST(GridTestSuite, TestEntitiesCount) {
 }
 
 TYPED_TEST(GridTestSuite, TestOriginSet) {
-   testOriginSetByCoordinate<TypeParam>(this -> grid, 0.6);
-   testOriginSetByCoordinate<TypeParam>(this -> grid, -1.);
-   testOriginSetByCoordinate<TypeParam>(this -> grid, 100.);
-   testOriginSetByCoordinate<TypeParam>(this -> grid, -100000.);
-   testOriginSetByCoordinate<TypeParam>(this -> grid, 323121.);
+   testOriginSetByCoordinate<TypeParam>(this -> grid, { 0.6 });
+   testOriginSetByCoordinate<TypeParam>(this -> grid, { -1. });
+   testOriginSetByCoordinate<TypeParam>(this -> grid, { 100. });
+   testOriginSetByCoordinate<TypeParam>(this -> grid, { -100000. });
+   testOriginSetByCoordinate<TypeParam>(this -> grid, { 323121. });
 
    testOriginSetByIndex<TypeParam>(this -> grid, 0.6);
    testOriginSetByIndex<TypeParam>(this -> grid, -1.);
