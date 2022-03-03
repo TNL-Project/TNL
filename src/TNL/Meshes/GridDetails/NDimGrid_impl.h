@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <TNL/Logger.h>
 #include <TNL/Meshes/NDimGrid.h>
 
 namespace TNL {
@@ -38,8 +37,7 @@ void __NDIM_PREFIX__::setDimensions(const typename __NDIM_PREFIX__::Coordinate &
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ inline
-Index __NDIM_PREFIX__::getDimension(Index index) const {
+__cuda_callable__ inline Index __NDIM_PREFIX__::getDimension(Index index) const {
    TNL_ASSERT_GE(index, 0, "Index must be greater or equal to zero");
    TNL_ASSERT_LT(index, Dimension, "Index must be less than Dimension");
 
@@ -49,8 +47,8 @@ Index __NDIM_PREFIX__::getDimension(Index index) const {
 __NDIMGRID_TEMPLATE__
 template <typename... DimensionIndex, std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool>,
           std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool>>
-__cuda_callable__ inline
-__NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index> __NDIM_PREFIX__::getDimensions(DimensionIndex... indices) const noexcept {
+__cuda_callable__ inline __NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index> __NDIM_PREFIX__::getDimensions(
+    DimensionIndex... indices) const noexcept {
    Container<sizeof...(DimensionIndex), Index> result{indices...};
 
    for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++) result[i] = this->getDimension(result[i]);
@@ -59,14 +57,12 @@ __NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index> __NDIM_PREFIX__::ge
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ inline
-const typename __NDIM_PREFIX__::Container<Dimension, Index> &__NDIM_PREFIX__::getDimensions() const noexcept {
+__cuda_callable__ inline const typename __NDIM_PREFIX__::Container<Dimension, Index> &__NDIM_PREFIX__::getDimensions() const noexcept {
    return this->dimensions;
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ inline
-Index __NDIM_PREFIX__::getEntitiesCount(Index index) const {
+__cuda_callable__ inline Index __NDIM_PREFIX__::getEntitiesCount(Index index) const {
    TNL_ASSERT_GE(index, 0, "Index must be greater than zero");
    TNL_ASSERT_LE(index, Dimension, "Index must be less than or equal to Dimension");
 
@@ -75,16 +71,15 @@ Index __NDIM_PREFIX__::getEntitiesCount(Index index) const {
 
 __NDIMGRID_TEMPLATE__
 template <int EntityDimension, std::enable_if_t<(EntityDimension >= 0), bool>, std::enable_if_t<(EntityDimension <= Dimension), bool>>
-__cuda_callable__ inline
-Index __NDIM_PREFIX__::getEntitiesCount() const noexcept {
+__cuda_callable__ inline Index __NDIM_PREFIX__::getEntitiesCount() const noexcept {
    return this->cumulativeEntitiesCountAlongBases(EntityDimension);
 }
 
 __NDIMGRID_TEMPLATE__
 template <typename... DimensionIndex, std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool>,
           std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool>>
-__cuda_callable__ inline
-__NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index> __NDIM_PREFIX__::getEntitiesCounts(DimensionIndex... indices) const {
+__cuda_callable__ inline __NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index> __NDIM_PREFIX__::getEntitiesCounts(
+    DimensionIndex... indices) const {
    Container<sizeof...(DimensionIndex), Index> result{indices...};
 
    for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++) result[i] = this->cumulativeEntitiesCountAlongBases(result[i]);
@@ -93,8 +88,7 @@ __NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index> __NDIM_PREFIX__::ge
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ inline
-const typename __NDIM_PREFIX__::Container<Dimension + 1, Index> &__NDIM_PREFIX__::getEntitiesCounts() const noexcept {
+__cuda_callable__ inline const typename __NDIM_PREFIX__::Container<Dimension + 1, Index> &__NDIM_PREFIX__::getEntitiesCounts() const noexcept {
    return this->cumulativeEntitiesCountAlongBases;
 }
 
@@ -206,12 +200,11 @@ void __NDIM_PREFIX__::fillEntitiesCount() {
 
    // In case, if some dimension is zero. Clear all counts
    for (std::size_t i = 0; i < Dimension; i++) {
-     if (dimensions[i] == 0) {
-        for (std::size_t k = 0; (int)k < entitiesCountAlongBases.getSize(); k++)
-           this -> entitiesCountAlongBases[k] = 0;
+      if (dimensions[i] == 0) {
+         for (std::size_t k = 0; (int)k < entitiesCountAlongBases.getSize(); k++) this->entitiesCountAlongBases[k] = 0;
 
-        return;
-     }
+         return;
+      }
    }
 
    for (std::size_t i = 0; i <= Dimension; i++) {
@@ -288,5 +281,27 @@ void __NDIM_PREFIX__::fillSpaceStepsPowers() {
       spaceProducts[i] = product;
    }
 }
+
+__NDIMGRID_TEMPLATE__
+template <typename Func, typename... FuncArgs>
+void __NDIM_PREFIX__::forEach(const Container<Dimension, Index> from, const Container<Dimension, Index> to, Func func, FuncArgs... args) {
+   for (Index i = 0; i < Dimension; i++)
+      TNL_ASSERT_LE(from[i], to[i], "Traverse rect must be specified from bottom-leading angle (from) to upper-trailing angle (to)");
+
+   switch (Dimension) {
+      case 1:
+         TNL::Algorithms::ParallelFor<Device>::exec(from.x(), to.x(), func, args...);
+         break;
+      case 2:
+         TNL::Algorithms::ParallelFor2D<Device>::exec(from.x(), from.y(), to.x(), to.y(), func, args...);
+         break;
+      case 3:
+         TNL::Algorithms::ParallelFor3D<Device>::exec(from.x(), from.y(), from.z(), to.x(), to.y(), to.z(), func, args...);
+         break;
+      default:
+         static_assert("Unexpected dimension was passed");
+   }
+}
+
 }  // namespace Meshes
 }  // namespace TNL

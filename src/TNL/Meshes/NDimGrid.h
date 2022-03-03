@@ -4,6 +4,7 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Logger.h>
+#include <TNL/Algorithms/ParallelFor.h>
 
 #include <type_traits>
 
@@ -65,7 +66,8 @@ constexpr size_t pow() {
 template <int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int>
 class NDimGrid {
   public:
-   template <int ContainerDimension, typename ContainerValue,
+   template <int ContainerDimension,
+             typename ContainerValue,
              std::enable_if_t<(ContainerDimension > 0), bool> = true>
    using Container = TNL::Containers::StaticVector<ContainerDimension, ContainerValue>;
 
@@ -223,10 +225,7 @@ class NDimGrid {
    void writeProlog(Logger &&logger) const noexcept;
   protected:
    static constexpr int spaceStepsPowersSize = 5;
-   /**
-    * @brief
-    *
-    */
+
    Coordinate dimensions;
    /**
     * @brief - A list of elements count along specific directions.
@@ -258,6 +257,9 @@ class NDimGrid {
    void fillSpaceSteps();
    void fillSpaceStepsPowers();
    void fillProportions();
+
+   template<typename Func, typename... FuncArgs>
+   void forEach(const Container<Dimension, Index> from, const Container<Dimension, Index> to, Func func, FuncArgs... args);
 };
 }  // namespace Meshes
 }  // namespace TNL
