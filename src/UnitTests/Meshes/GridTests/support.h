@@ -10,11 +10,11 @@ struct IntPack {};
 template<typename Device>
 class GridTestCaseSupportInterface {
    public:
-      template<typename Grid, int... dimensions>
-      void verifyDimensionGetters(const Grid& grid) const { FAIL() << "Expect to be specialized"; }
+      template<typename Grid, typename... T>
+      void verifyDimensionGetters(const Grid& grid, T... coordinates) const { FAIL() << "Expect to be specialized"; }
 
-      template<typename Grid, int ...entitiesCount>
-      void verifyEntitiesCountGetters(const Grid& grid) const { FAIL() << "Expect to be specialized"; }
+      template<typename Grid>
+      void verifyEntitiesCountGetters(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCount) const { FAIL() << "Expect to be specialized"; }
 
       template<typename Grid, typename... T>
       void verifyOriginGetters(const Grid& grid, T... coordinates) const { FAIL() << "Expect to be specialized"; }
@@ -28,14 +28,17 @@ class GridTestCaseSupportInterface {
       template<typename Grid, typename... T>
       void verifyDimensionSetByIndiciesGetter(const Grid& grid, T... dimensions) const { FAIL() << "Expect to be specialized"; }
 
-      template<typename Grid, typename... T>
-      void verifyEntitiesCountByContainerGetter(const Grid& grid, T... entitiesCounts) const { FAIL() << "Expect to be specialized"; }
+      template<typename Grid>
+      void verifyEntitiesCountByContainerGetter(const Grid& grid,const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
 
-      template<typename Grid, typename... T>
-      void verifyEntitiesCountByIndexGetter(const Grid& grid, T... entitiesCounts) const { FAIL() << "Expect to be specialized"; }
+      template<typename Grid>
+      void verifyEntitiesCountByIndexGetter(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
 
-      template<typename Grid, typename... T>
-      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, T... entitiesCounts) const { FAIL() << "Expect to be specialized"; }
+      template<typename Grid>
+      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
+
+      template<typename Grid, int EntityDimension>
+      void verifyForAll(const Grid& grid) const { FAIL() << "Expect to be specialized"; }
 };
 
 
@@ -45,18 +48,18 @@ class GridTestCaseSupport: public GridTestCaseSupportInterface<Device> {};
 template<>
 class GridTestCaseSupport<TNL::Devices::Host>: public GridTestCaseSupportInterface<TNL::Devices::Host> {
    public:
-      template<typename Grid, int... dimensions>
-      void verifyDimensionGetters(const Grid& grid) const {
+      template<typename Grid, typename... T>
+      void verifyDimensionGetters(const Grid& grid, T... dimensions) const {
          this->verifyDimensionSetByCoordinateGetter<Grid>(grid, dimensions...);
          this->verifyDimensionSetByIndexGetter<Grid>(grid, dimensions...);
          this->verifyDimensionSetByIndiciesGetter<Grid>(grid, dimensions...);
       }
 
-      template<typename Grid, int ...entitiesCount>
-      void verifyEntitiesCountGetters(const Grid& grid) const {
-         this->verifyEntitiesCountByContainerGetter<Grid>(grid, entitiesCount...);
-         this->verifyEntitiesCountByIndexGetter<Grid>(grid, entitiesCount...);
-         this->verifyEntitiesCountByIndiciesGetter<Grid>(grid, entitiesCount...);
+      template<typename Grid>
+      void verifyEntitiesCountGetters(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const {
+         this->verifyEntitiesCountByContainerGetter<Grid>(grid, entitiesCounts);
+         this->verifyEntitiesCountByIndexGetter<Grid>(grid, entitiesCounts);
+         this->verifyEntitiesCountByIndiciesGetter<Grid>(grid, entitiesCounts);
       }
 
       template<typename Grid,
@@ -69,7 +72,6 @@ class GridTestCaseSupport<TNL::Devices::Host>: public GridTestCaseSupportInterfa
 
          EXPECT_EQ(point, result) << "Verify, that the origin was correctly set";
       }
-
 
       template<typename Grid,
                typename... T,
@@ -109,54 +111,51 @@ class GridTestCaseSupport<TNL::Devices::Host>: public GridTestCaseSupportInterfa
          }
       }
 
-      template<typename Grid, typename... T>
-      void verifyEntitiesCountByContainerGetter(const Grid& grid, T... entitiesCounts) const {
-         constexpr auto optionsSize = grid.getMeshDimension() + 1;
-         typename Grid::Container<optionsSize, typename Grid::IndexType> counts(entitiesCounts...);
-
+      template<typename Grid>
+      void verifyEntitiesCountByContainerGetter(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const {
          auto result = grid.getEntitiesCounts();
 
-         EXPECT_EQ(counts, result) << "Verify, that returns expected entities counts";
+         EXPECT_EQ(entitiesCounts, result) << "Verify, that returns expected entities counts";
       }
 
-      template<typename Grid, typename... T>
-      void verifyEntitiesCountByIndexGetter(const Grid& grid, T... entitiesCounts) const {
-         constexpr auto optionsSize = grid.getMeshDimension() + 1;
-         typename Grid::Container<optionsSize, typename Grid::IndexType> counts(entitiesCounts...);
-
-         for (int i = 0; i < optionsSize; i++) {
-            EXPECT_EQ(grid.getEntitiesCount(i), counts[i]) << "Verify, that index access is correct";
-         }
+      template<typename Grid>
+      void verifyEntitiesCountByIndexGetter(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const {
+         for (int i = 0; i < optionsSize; i++)
+            EXPECT_EQ(grid.getEntitiesCount(i), entitiesCounts[i]) << "Verify, that index access is correct";
       }
 
-      template<typename Grid, typename... T>
-      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, T... entitiesCounts) const {
-         constexpr auto optionsSize = grid.getMeshDimension() + 1;
-         typename Grid::Container<optionsSize, typename Grid::IndexType> counts(entitiesCounts...);
-
+      template<typename Grid>
+      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const {
          for (int i = 0; i < optionsSize; i++) {
             auto repeated = grid.getEntitiesCounts(i, i, i, i, i, i, i, i, i, i);
 
             EXPECT_EQ(repeated.getSize(), 10) << "Verify, that all dimension indices are returned";
 
             for (int j = 0; j < repeated.getSize(); j++)
-               EXPECT_EQ(repeated[j], counts[i]) << "Verify, that it is possible to request the same dimension multiple times";
+               EXPECT_EQ(repeated[j], entitiesCounts[i]) << "Verify, that it is possible to request the same dimension multiple times";
          }
+      }
+
+      template<typename Grid>
+      void verifyForAll(const Grid& grid) const {
+
+
+
       }
 };
 
 template<>
 class GridTestCaseSupport<TNL::Devices::Cuda>: public GridTestCaseSupportInterface<TNL::Devices::Cuda> {
    public:
-      template<typename Grid, int... dimensions>
-      void verifyDimensionGetters(const Grid& grid) const {
+      template<typename Grid, typename... T>
+      void verifyDimensionGetters(const Grid& grid, T... dimensions) const {
          this->verifyDimensionSetByCoordinateGetter<Grid>(grid, dimensions...);
          this->verifyDimensionSetByIndexGetter<Grid>(grid, dimensions...);
          this->verifyDimensionSetByIndiciesGetter<Grid>(grid, dimensions...);
       }
 
-      template<typename Grid, int... entitiesCount>
-      void verifyEntitiesCountGetters(const Grid& grid) const {
+      template<typename Grid>
+      void verifyEntitiesCountGetters(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCount) const {
          this->verifyEntitiesCountByContainerGetter<Grid>(grid, entitiesCount...);
          this->verifyEntitiesCountByIndexGetter<Grid>(grid, entitiesCount...);
          this->verifyEntitiesCountByIndiciesGetter<Grid>(grid, entitiesCount...);
@@ -240,49 +239,40 @@ class GridTestCaseSupport<TNL::Devices::Cuda>: public GridTestCaseSupportInterfa
          this -> executeFromDevice<typename Grid::IndexType>(update, verify);
       }
 
-      template<typename Grid, typename... T>
-      void verifyEntitiesCountByContainerGetter(const Grid& grid, T... entitiesCounts) const {
-         constexpr auto optionsSize = grid.getMeshDimension() + 1;
-         typename Grid::Container<optionsSize, typename Grid::IndexType> counts(entitiesCounts...);
-
+      template<typename Grid>
+      void verifyEntitiesCountByContainerGetter(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const {
          auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
             reference = grid.getEntitiesCounts()[index % optionsSize];
          };
 
          auto verify = [=] __cuda_callable__ (const int index, const typename Grid::IndexType& reference) mutable {
-            EXPECT_EQ(reference, counts[index % optionsSize]);
+            EXPECT_EQ(reference, entitiesCounts[index % optionsSize]);
          };
 
          this -> executeFromDevice<typename Grid::IndexType>(update, verify);
       }
 
-      template<typename Grid, typename... T>
-      void verifyEntitiesCountByIndexGetter(const Grid& grid, T... entitiesCounts) const {
-         constexpr auto optionsSize = grid.getMeshDimension() + 1;
-         typename Grid::Container<optionsSize, typename Grid::IndexType> counts(entitiesCounts...);
-
+      template<typename Grid>
+      void verifyEntitiesCountByIndexGetter(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const {
          auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
             reference = grid.getEntitiesCount(index % optionsSize);
          };
 
          auto verify = [=] __cuda_callable__ (const int index, const typename Grid::IndexType& reference) mutable {
-            EXPECT_EQ(reference, counts[index % optionsSize]);
+            EXPECT_EQ(reference, entitiesCounts[index % optionsSize]);
          };
 
          this -> executeFromDevice<typename Grid::IndexType>(update, verify);
       }
 
       template<typename Grid, typename... T>
-      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, T... entitiesCounts) const {
-         constexpr auto optionsSize = grid.getMeshDimension() + 1;
-         typename Grid::Container<optionsSize, typename Grid::IndexType> counts(entitiesCounts...);
-
+      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const {
          auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
             reference = grid.getEntitiesCounts(index % optionsSize)[0];
          };
 
          auto verify = [=] __cuda_callable__ (const int index, const typename Grid::IndexType& reference) mutable {
-            EXPECT_EQ(reference, counts[index % optionsSize]);
+            EXPECT_EQ(reference, entitiesCounts[index % optionsSize]);
          };
 
          this -> executeFromDevice<typename Grid::IndexType>(update, verify);
@@ -300,56 +290,37 @@ std::string makeString(Parameters... parameters) {
 }
 
 
-template<typename Grid, bool isValid, int... dimensions>
-void testDimensionSetByIndex(Grid& grid) {
+template<typename Grid, typename... T>
+void testDimensionSetByIndex(Grid& grid, T... dimensions) {
    auto paramString = makeString(dimensions...);
 
-   if (isValid) {
-      EXPECT_NO_THROW(grid.setDimensions(dimensions...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
-   } else {
-      EXPECT_ANY_THROW(grid.setDimensions(dimensions...)) << "Verify, that the set of " << paramString << " causes assert";
-      return;
-   }
+   EXPECT_NO_THROW(grid.setDimensions(dimensions...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
 
    GridTestCaseSupport<typename Grid::DeviceType> support;
 
-   support.template verifyDimensionGetters<Grid, dimensions...>(grid);
+   support.template verifyDimensionGetters<Grid>(grid, dimensions...);
 }
 
-template<typename Grid, bool isValid, int... dimensions>
-void testDimensionSetByCoordinate(Grid& grid) {
+template<typename Grid, typename... T>
+void testDimensionSetByCoordinate(Grid& grid, T... dimensions) {
    auto paramString = makeString(dimensions...);
    typename Grid::Coordinate coordinate(dimensions...);
 
-   if (isValid) {
-      EXPECT_NO_THROW(grid.setDimensions(coordinate)) << "Verify, that the set of" << paramString << " doesn't cause assert";
-   } else {
-      EXPECT_ANY_THROW(grid.setDimensions(coordinate)) << "Verify, that the set of " << paramString << " causes assert";
-      return;
-   }
+   EXPECT_NO_THROW(grid.setDimensions(coordinate)) << "Verify, that the set of" << paramString << " doesn't cause assert";
 
    GridTestCaseSupport<typename Grid::DeviceType> support;
 
-   support.template verifyDimensionGetters<Grid, dimensions...>(grid);
+   support.template verifyDimensionGetters<Grid>(grid, dimensions...);
 }
 
-template<typename Grid, typename, typename>
-struct TestEntitiesCount;
+template<typename Grid>
+void testEntitiesCounts(Grid& grid, const Grid::Coordinate& dimensions, const Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) {
+   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
-template<typename Grid, int... dimensions, int... entitiesCounts>
-struct TestEntitiesCount<Grid, IntPack<dimensions...>, IntPack<entitiesCounts...>> {
-public:
-   static void exec(Grid& grid) {
-      auto paramString = makeString(dimensions...);
+   GridTestCaseSupport<typename Grid::DeviceType> support;
 
-      EXPECT_NO_THROW(grid.setDimensions(dimensions...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
-
-      GridTestCaseSupport<typename Grid::DeviceType> support;
-
-      support.template verifyEntitiesCountGetters<Grid, entitiesCounts...>(grid);
-   }
-};
-
+   support.template verifyEntitiesCountGetters<Grid>(grid, entitiesCounts);
+}
 
 template<typename Grid,
          typename... T,

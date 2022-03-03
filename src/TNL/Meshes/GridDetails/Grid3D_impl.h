@@ -414,10 +414,8 @@ void Grid<3, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
       this -> forEach({ 0, 0, 0 }, { dimensions.x(), dimensions.y(), dimensions.z() + 1 }, outerOriented, *this, CoordinatesType(0, 0, 1), args...);
       break;
    case 3:
+      this -> forEach({ 0, 0, 0 }, dimensions, outer, *this, args...);
       // TODO: Verify for distributed grids
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 0,
-                                                   dimensions.x(), dimensions.y(), dimensions.z(),
-                                                   outer, *this, args...);
       break;
    }
 }

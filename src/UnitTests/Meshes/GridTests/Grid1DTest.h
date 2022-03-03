@@ -46,44 +46,30 @@ TYPED_TEST(GridTestSuite, TestMeshDimensionGetter) {
 }
 
 TYPED_TEST(GridTestSuite, TestSetWithParameterPack) {
-   testDimensionSetByIndex<TypeParam, true, 0>(this->grid);
-   testDimensionSetByIndex<TypeParam, true, 1>(this->grid);
-   testDimensionSetByIndex<TypeParam, true, 2>(this->grid);
-   testDimensionSetByIndex<TypeParam, true, 11211>(this->grid);
-   testDimensionSetByIndex<TypeParam, true, 232121>(this->grid);
-   testDimensionSetByIndex<TypeParam, true, 434343>(this->grid);
-
-   testDimensionSetByIndex<TypeParam, false, -1>(this->grid);
-   testDimensionSetByIndex<TypeParam, false, -2>(this->grid);
-   testDimensionSetByIndex<TypeParam, false, -3>(this->grid);
-   testDimensionSetByIndex<TypeParam, false, -12312>(this->grid);
-   testDimensionSetByIndex<TypeParam, false, -5454>(this->grid);
-   testDimensionSetByIndex<TypeParam, false, -3424243>(this->grid);
+   testDimensionSetByIndex<TypeParam>(this->grid, 0);
+   testDimensionSetByIndex<TypeParam>(this->grid, 1);
+   testDimensionSetByIndex<TypeParam>(this->grid, 2);
+   testDimensionSetByIndex<TypeParam>(this->grid, 11211);
+   testDimensionSetByIndex<TypeParam>(this->grid, 232121);
+   testDimensionSetByIndex<TypeParam>(this->grid, 434343);
 }
 
 TYPED_TEST(GridTestSuite, TestSetWithCoordinates) {
-   testDimensionSetByCoordinate<TypeParam, true, 0>(this -> grid);
-   testDimensionSetByCoordinate<TypeParam, true, 1>(this -> grid);
-   testDimensionSetByCoordinate<TypeParam, true, 2>(this -> grid);
-   testDimensionSetByCoordinate<TypeParam, true, 10232>(this -> grid);
-   testDimensionSetByCoordinate<TypeParam, true, 45235423>(this -> grid);
-   testDimensionSetByCoordinate<TypeParam, true, 3231312>(this -> grid);
-
-   testDimensionSetByCoordinate<TypeParam, false, -1>(this -> grid);
-   testDimensionSetByCoordinate<TypeParam, false, -2>(this -> grid);
-   testDimensionSetByCoordinate<TypeParam, false, -3>(this -> grid);
-   testDimensionSetByCoordinate<TypeParam, false, -1232>(this -> grid);
-   testDimensionSetByCoordinate<TypeParam, false, -3243>(this -> grid);
-   testDimensionSetByCoordinate<TypeParam, false, -43121>(this -> grid);
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, 0);
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, 1);
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, 2);
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, 10232);
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, 45235423);
+   testDimensionSetByCoordinate<TypeParam>(this -> grid, 3231312);
 }
 
 TYPED_TEST(GridTestSuite, TestEntitiesCount) {
    // GridType, Edges, Vertices | Edges
-   TestEntitiesCount<TypeParam, IntPack<0>, IntPack<0, 0>>::exec(this -> grid);
-   TestEntitiesCount<TypeParam, IntPack<1>, IntPack<2, 1>>::exec(this -> grid);
-   TestEntitiesCount<TypeParam, IntPack<2>, IntPack<3, 2>>::exec(this -> grid);
+   testEntitiesCounts(this -> grid, { 0 }, { 0, 0 });
+   testEntitiesCounts(this -> grid, { 1 }, { 2, 1 });
+   testEntitiesCounts(this -> grid, { 2 }, { 3, 2 });
 
-   TestEntitiesCount<TypeParam, IntPack<100>, IntPack<101, 100>>::exec(this -> grid);
+   testEntitiesCounts(this -> grid, { 100 }, { 101, 100 });
 }
 
 TYPED_TEST(GridTestSuite, TestOriginSet) {

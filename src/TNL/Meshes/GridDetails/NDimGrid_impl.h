@@ -193,35 +193,32 @@ void __NDIM_PREFIX__::writeProlog(Logger &&logger) const noexcept {
 
 __NDIMGRID_TEMPLATE__
 void __NDIM_PREFIX__::fillEntitiesCount() {
-   std::array<bool, Dimension> combinationBuffer = {};
-   std::size_t j = 0;
+   Index j = 0;
 
-   for (std::size_t i = 0; i < Dimension + 1; i++) cumulativeEntitiesCountAlongBases[i] = 0;
+   for (Index i = 0; i < Dimension + 1; i++) cumulativeEntitiesCountAlongBases[i] = 0;
 
    // In case, if some dimension is zero. Clear all counts
-   for (std::size_t i = 0; i < Dimension; i++) {
+   for (Index i = 0; i < Dimension; i++) {
       if (dimensions[i] == 0) {
-         for (std::size_t k = 0; (int)k < entitiesCountAlongBases.getSize(); k++) this->entitiesCountAlongBases[k] = 0;
+         for (Index k = 0; k < (Index)entitiesCountAlongBases.getSize(); k++)
+            entitiesCountAlongBases[k] = 0;
 
          return;
       }
    }
 
-   for (std::size_t i = 0; i <= Dimension; i++) {
-      std::fill(combinationBuffer.begin(), combinationBuffer.end(), false);
-      std::fill(combinationBuffer.end() - i, combinationBuffer.end(), true);
-
-      do {
+   for (Index i = 0; i <= Dimension; i++) {
+      forEachPermutation(Dimension - i, Dimension, [&](const std::vector<Index>& permutation) {
          int result = 1;
 
-         for (std::size_t k = 0; k < combinationBuffer.size(); k++)
-            result *= combinationBuffer[k] ? dimensions[Dimension - k - 1] : dimensions[Dimension - k - 1] + 1;
+         for (Index k = 0; k < (Index)permutation.size(); k++)
+            result *= dimensions[k] + permutation[k];
 
          entitiesCountAlongBases[j] = result;
          cumulativeEntitiesCountAlongBases[i] += result;
 
          j++;
-      } while (std::next_permutation(combinationBuffer.begin(), combinationBuffer.end()));
+      });
    }
 }
 
@@ -289,6 +286,21 @@ void __NDIM_PREFIX__::forEach(const Coordinate& from, const Coordinate& to, Func
       TNL_ASSERT_LE(from[i], to[i], "Traverse rect must be specified from bottom-leading angle (from) to upper-trailing angle (to)");
 
    Templates::ParallelFor<Dimension, Device, Index>::exec(from, to, func, args...);
+}
+
+__NDIMGRID_TEMPLATE__
+template <typename Func, typename... FuncArgs>
+void __NDIM_PREFIX__::forEachPermutation(const Index k, const Index n, Func func, FuncArgs... args) const {
+   std::vector<int> buffer = {};
+
+   buffer.resize(n);
+
+   std::fill(buffer.begin(), buffer.end(), 0);
+   std::fill(buffer.end() - k, buffer.end(), 1);
+
+   do {
+      func(buffer, args...);
+   } while (std::next_permutation(buffer.begin(), buffer.end()));
 }
 
 }  // namespace Meshes

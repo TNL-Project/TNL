@@ -79,14 +79,14 @@ void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
 
    switch (EntityDimension) {
       case 0:
-         this -> forEach({ 0 }, { this->dimension.x() + 1 }, outer, *this, args...);
+         this -> forEach({ 0 }, { this -> dimensions.x() + 1 }, outer, *this, args...);
          break;
       case 1:
          // TODO: - Update for distributed grid
          // TNL::Algorithms::ParallelFor<Device>::exec(localBegin.x(), localEnd.x(), outer, *this,
          // args...);
 
-         this -> forEach({ 0 }, { this->dimension.x()}, outer, *this, args...);
+         this -> forEach({ 0 }, this -> dimensions, outer, *this, args...);
          break;
       default:
          break;
@@ -112,11 +112,11 @@ void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
    switch (EntityDimension) {
       case 0:
          this -> forEach({ 0 }, { 1 }, outer, *this, args...);
-         this -> forEach({ this -> getDimensions().x() }, { this -> getDimensions().x() + 1 }, outer, *this, args...);
+         this -> forEach({ this -> dimensions.x() }, { this -> dimensions.x() + 1 }, outer, *this, args...);
          break;
       case 1:
          this -> forEach({ 0 }, { 1 }, outer, *this, args...);
-         this -> forEach({ this -> getDimensions().x() - 1 }, { this -> getDimensions().x() }, outer, *this, args...);
+         this -> forEach({ this -> dimensions.x() - 1 }, { this -> dimensions.x() }, outer, *this, args...);
          // TODO: - Verify for distributed grid
          /*if (localBegin < interiorBegin && interiorEnd < localEnd) {
             outer(interiorBegin.x() - 1, *this, args...);
@@ -155,10 +155,10 @@ void Grid<1, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
 
    switch (EntityDimension) {
       case 0:
-         this -> forEach({ 1 }, { this->dimension.x() }, outer, *this, args...);
+         this -> forEach({ 1 }, this -> dimensions, outer, *this, args...);
          break;
       case 1:
-         this -> forEach({ 1 }, { this->dimension.x() - 1 }, outer, *this, args...);
+         this -> forEach({ 1 }, { this -> dimensions.x() - 1 }, outer, *this, args...);
          // TODO: - Verify for distributed grids
          // TNL::Algorithms::ParallelFor<Device>::exec(interiorBegin.x(), interiorEnd.x(), outer,
          // *this, args...);
