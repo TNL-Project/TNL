@@ -284,23 +284,11 @@ void __NDIM_PREFIX__::fillSpaceStepsPowers() {
 
 __NDIMGRID_TEMPLATE__
 template <typename Func, typename... FuncArgs>
-void __NDIM_PREFIX__::forEach(const Container<Dimension, Index> from, const Container<Dimension, Index> to, Func func, FuncArgs... args) {
+void __NDIM_PREFIX__::forEach(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
    for (Index i = 0; i < Dimension; i++)
       TNL_ASSERT_LE(from[i], to[i], "Traverse rect must be specified from bottom-leading angle (from) to upper-trailing angle (to)");
 
-   switch (Dimension) {
-      case 1:
-         TNL::Algorithms::ParallelFor<Device>::exec(from.x(), to.x(), func, args...);
-         break;
-      case 2:
-         TNL::Algorithms::ParallelFor2D<Device>::exec(from.x(), from.y(), to.x(), to.y(), func, args...);
-         break;
-      case 3:
-         TNL::Algorithms::ParallelFor3D<Device>::exec(from.x(), from.y(), from.z(), to.x(), to.y(), to.z(), func, args...);
-         break;
-      default:
-         static_assert("Unexpected dimension was passed");
-   }
+   Templates::ParallelFor<Dimension, Device, Index>::exec(from, to, func, args...);
 }
 
 }  // namespace Meshes

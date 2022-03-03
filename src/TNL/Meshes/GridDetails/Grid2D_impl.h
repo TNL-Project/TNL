@@ -65,7 +65,7 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
 
    switch (EntityDimension) {
       case 0:
-         TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0, this->dimensions.x() + 1, this->dimensions.y() + 1, outer, *this, args...);
+         this -> forEach({ 0, 0 }, { this -> dimensions.x() + 1, this -> dimensions.y() + 1 }, outer, *this, args...);
          break;
       case 1: {
          auto outerOriented = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>& grid, const CoordinatesType& orientation,
@@ -77,15 +77,12 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
             func(entity, args...);
          };
 
-         TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0, this->dimensions.x() + 1, this->dimensions.y(), outerOriented, *this,
-                                                      CoordinatesType(1, 0), args...);
-
-         TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0, this->dimensions.x(), this->dimensions.y() + 1, outerOriented, *this,
-                                                      CoordinatesType(0, 1), args...);
+         this -> forEach({ 0, 0 }, { this -> dimensions.x() + 1, this -> dimensions.y() }, outerOriented, *this, CoordinatesType(1, 0), args...);
+         this -> forEach({ 0, 0 }, { this -> dimensions.x(), this -> dimensions.y() + 1 }, outerOriented, *this, CoordinatesType(0, 1), args...);
          break;
       }
       case 2:
-         TNL::Algorithms::ParallelFor2D<Device>::exec(0, 0, this->dimensions.x(), this->dimensions.y(), outer, *this, args...);
+         this -> forEach({ 0, 0 }, { this -> dimensions.x(), this -> dimensions.y() }, outer, *this, args...);
 
          // TODO: - Verify for distributed grids
          // TNL::Algorithms::ParallelFor2D<Device>::exec(localBegin.x(), localBegin.y(), localEnd.x(), localEnd.y(), outer, * this, args...);
@@ -111,7 +108,7 @@ void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
 
    switch (EntityDimension) {
       case 0:
-         TNL::Algorithms::ParallelFor2D<Device>::exec(1, 1, this->dimensions.x(), this->dimensions.y(), outer, *this, args...);
+         this -> forEach({ 1, 1 }, { this -> dimensions.x(), this -> dimensions.y() }, outer, *this, args...);
          break;
       case 1: {
          auto outerOriented = [=] __cuda_callable__(Index i, Index j, Grid<2, Real, Device, Index> & grid, const CoordinatesType& orientation,
@@ -123,16 +120,12 @@ void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
             func(entity, args...);
          };
 
-         TNL::Algorithms::ParallelFor2D<Device>::exec(1, 0, this->dimensions.x(), this->dimensions.y(), outerOriented, *this, CoordinatesType(1, 0),
-                                                      args...);
-
-         TNL::Algorithms::ParallelFor2D<Device>::exec(0, 1, this->dimensions.x(), this->dimensions.y(), outerOriented, *this, CoordinatesType(0, 1),
-                                                      args...);
+         this -> forEach({ 1, 0 }, { this -> dimensions.x(), this -> dimensions.y() }, outerOriented, *this, CoordinatesType(1, 0), args...);
+         this -> forEach({ 0, 1 }, { this -> dimensions.x(), this -> dimensions.y() }, outerOriented, *this, CoordinatesType(0, 1), args...);
          break;
       }
       case 2:
-         TNL::Algorithms::ParallelFor2D<Device>::exec(1, 1, this->dimensions.x() - 1, this->dimensions.y() - 1, outer, *this, args...);
-
+         this -> forEach({ 1, 1 }, { this -> dimensions.x() - 1, this -> dimensions.y() - 1 }, outer, *this, args...);
          // TODO: - Verify for distributed grids
          // TNL::Algorithms::ParallelFor2D<Device>::exec(interiorBegin.x(), interiorBegin.y(), interiorEnd.x(), interiorEnd.y(), outer, *this,
          // args...);

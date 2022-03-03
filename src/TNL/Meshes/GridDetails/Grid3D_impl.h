@@ -389,7 +389,7 @@ void Grid<3, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
    };
 
    auto outerOriented = [=] __cuda_callable__(Index i, Index j, Index k,
-                                              const Grid<2, Real, Device, Index>&grid,
+                                              const Grid<3, Real, Device, Index>&grid,
                                               const CoordinatesType & orientation,
                                               FuncArgs... args) mutable {
       EntityType<EntityDimension> entity(grid, CoordinatesType(i, j, k), orientation);
@@ -401,35 +401,17 @@ void Grid<3, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
 
    switch (EntityDimension) {
    case 0:
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 0,
-                                                   dimensions.x() + 1, dimensions.y() + 1, dimensions.z() + 1,
-                                                   outer, *this, args...);
+      this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y() + 1, dimensions.z() + 1 }, outer, *this, args...);
       break;
    case 1:
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 0,
-                                                   dimensions.x(), dimensions.y() + 1, dimensions.z() + 1,
-                                                   outerOriented, *this, CoordinatesType(1, 0, 0), args...);
-
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 0,
-                                                   dimensions.x() + 1, dimensions.y(), dimensions.z() + 1,
-                                                   outerOriented, *this, CoordinatesType(0, 1, 0), args...);
-
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 0,
-                                                   dimensions.x() + 1, dimensions.y() + 1, dimensions.z(),
-                                                   outerOriented, *this, CoordinatesType(0, 0, 1), args...);
+      this -> forEach({ 0, 0, 0 }, { dimensions.x(), dimensions.y() + 1, dimensions.z() + 1 }, outerOriented, *this, CoordinatesType(1, 0, 0), args...);
+      this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y(), dimensions.z() + 1 }, outerOriented, *this, CoordinatesType(0, 1, 0), args...);
+      this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y() + 1, dimensions.z() }, outerOriented, *this, CoordinatesType(0, 0, 1), args...);
       break;
    case 2:
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 0,
-                                                   dimensions.x() + 1, dimensions.y(), dimensions.z(),
-                                                   outerOriented, *this, CoordinatesType(1, 0, 0), args...);
-
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 0,
-                                                   dimensions.x(), dimensions.y() + 1, dimensions.z(),
-                                                   outerOriented, *this, CoordinatesType(0, 1, 0), args...);
-
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 0,
-                                                   dimensions.x(), dimensions.y(), dimensions.z() + 1,
-                                                   outerOriented, *this, CoordinatesType(0, 0, 1), args...);
+      this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y(), dimensions.z() }, outerOriented, *this, CoordinatesType(1, 0, 0), args...);
+      this -> forEach({ 0, 0, 0 }, { dimensions.x(), dimensions.y() + 1, dimensions.z() }, outerOriented, *this, CoordinatesType(0, 1, 0), args...);
+      this -> forEach({ 0, 0, 0 }, { dimensions.x(), dimensions.y(), dimensions.z() + 1 }, outerOriented, *this, CoordinatesType(0, 0, 1), args...);
       break;
    case 3:
       // TODO: Verify for distributed grids
@@ -458,7 +440,7 @@ void Grid<3, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
    };
 
    auto outerOriented = [=] __cuda_callable__(Index i, Index j, Index k,
-                                              const Grid<2, Real, Device, Index>&grid,
+                                              const Grid<3, Real, Device, Index>&grid,
                                               const CoordinatesType & orientation,
                                               FuncArgs... args) mutable {
       EntityType<EntityDimension> entity(grid, CoordinatesType(i, j, k), orientation);
