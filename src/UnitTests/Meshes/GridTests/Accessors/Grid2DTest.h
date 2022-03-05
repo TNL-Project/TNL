@@ -11,7 +11,7 @@
 #include "support.h"
 
 using Implementations = ::testing::Types<
-   TNL::Meshes::NDimGrid<2, double, TNL::Devices::Host, int>
+   TNL::Meshes::NDimGrid<2, double, TNL::Devices::Host, int>,
    TNL::Meshes::NDimGrid<2, float, TNL::Devices::Host, int>,
    TNL::Meshes::NDimGrid<2, double, TNL::Devices::Cuda, int>,
    TNL::Meshes::NDimGrid<2, float, TNL::Devices::Cuda, int>,
@@ -92,10 +92,10 @@ TYPED_TEST(GridTestSuite, TestOriginSet) {
    testOriginSetByCoordinate<TypeParam>(this -> grid, { 323121, -100312 });
 
    testOriginSetByIndex<TypeParam>(this -> grid, 0.6, 1.2);
-   testOriginSetByIndex<TypeParam>(this -> grid, -1., 23232.);
-   testOriginSetByIndex<TypeParam>(this -> grid, 100., -12132.);
-   testOriginSetByIndex<TypeParam>(this -> grid, -100000., 32112.);
-   testOriginSetByIndex<TypeParam>(this -> grid, 323121., -100312.);
+   testOriginSetByIndex<TypeParam>(this -> grid, -1, 23232);
+   testOriginSetByIndex<TypeParam>(this -> grid, 100, -12132);
+   testOriginSetByIndex<TypeParam>(this -> grid, -100000, 32112);
+   testOriginSetByIndex<TypeParam>(this -> grid, 323121, -100312);
 }
 
 #endif

@@ -5,14 +5,13 @@
 #include <TNL/Containers/Array.h>
 
 template<typename Device>
-class GridTestCaseSupportInterface {
+class GridAccessorsTestCaseInterface {
    public:
       template<typename Grid>
       void verifyDimensionGetters(const Grid& grid, const typename Grid::Coordinate& coordinates) const { FAIL() << "Expect to be specialized"; }
 
       template<typename Grid>
       void verifyEntitiesCountGetters(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCount) const { FAIL() << "Expect to be specialized"; }
-
 
       template<typename Grid>
       void verifyOriginGetters(const Grid& grid, const typename Grid::Point& coordinates) const { FAIL() << "Expect to be specialized"; }
@@ -36,18 +35,14 @@ class GridTestCaseSupportInterface {
 
       template<typename Grid>
       void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
-
-
-      template<typename Grid, int EntityDimension>
-      void verifyForAll(const Grid& grid) const { FAIL() << "Expect to be specialized"; }
 };
 
 
 template<typename Device>
-class GridTestCaseSupport: public GridTestCaseSupportInterface<Device> {};
+class GridAccessorsTestCase: public GridAccessorsTestCaseInterface<Device> {};
 
 template<>
-class GridTestCaseSupport<TNL::Devices::Host>: public GridTestCaseSupportInterface<TNL::Devices::Host> {
+class GridAccessorsTestCase<TNL::Devices::Host>: public GridAccessorsTestCaseInterface<TNL::Devices::Host> {
    public:
       template<typename Grid>
       void verifyDimensionGetters(const Grid& grid, const typename Grid::Coordinate& dimensions) const {
@@ -119,17 +114,10 @@ class GridTestCaseSupport<TNL::Devices::Host>: public GridTestCaseSupportInterfa
                EXPECT_EQ(repeated[j], entitiesCounts[i]) << "Verify, that it is possible to request the same dimension multiple times";
          }
       }
-
-      template<typename Grid>
-      void verifyForAll(const Grid& grid) const {
-
-
-
-      }
 };
 
 template<>
-class GridTestCaseSupport<TNL::Devices::Cuda>: public GridTestCaseSupportInterface<TNL::Devices::Cuda> {
+class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInterface<TNL::Devices::Cuda> {
    public:
       template<typename Grid>
       void verifyDimensionGetters(const Grid& grid, const typename Grid::Coordinate& dimensions) const {
@@ -281,7 +269,7 @@ void testDimensionSetByIndex(Grid& grid, T... dimensions) {
 
    EXPECT_NO_THROW(grid.setDimensions(dimensions...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
 
-   GridTestCaseSupport<typename Grid::DeviceType> support;
+   GridAccessorsTestCase<typename Grid::DeviceType> support;
 
    support.template verifyDimensionGetters<Grid>(grid, typename Grid::Coordinate(dimensions...));
 }
@@ -290,7 +278,7 @@ template<typename Grid, typename... T>
 void testDimensionSetByCoordinate(Grid& grid, const typename Grid::Coordinate& dimensions) {
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
-   GridTestCaseSupport<typename Grid::DeviceType> support;
+   GridAccessorsTestCase<typename Grid::DeviceType> support;
 
    support.template verifyDimensionGetters<Grid>(grid, dimensions);
 }
@@ -301,7 +289,7 @@ void testEntitiesCounts(Grid& grid,
                         const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) {
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
-   GridTestCaseSupport<typename Grid::DeviceType> support;
+   GridAccessorsTestCase<typename Grid::DeviceType> support;
 
    support.template verifyEntitiesCountGetters<Grid>(grid, entitiesCounts);
 }
@@ -314,7 +302,7 @@ void testOriginSetByIndex(Grid& grid, T... coordinates) {
 
    EXPECT_NO_THROW(grid.setOrigin(coordinates...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
 
-   GridTestCaseSupport<typename Grid::DeviceType> support;
+   GridAccessorsTestCase<typename Grid::DeviceType> support;
 
    support.template verifyOriginGetter<Grid>(grid, typename Grid::Point(coordinates...));
 }
@@ -323,7 +311,7 @@ template<typename Grid>
 void testOriginSetByCoordinate(Grid& grid, const typename Grid::Point& coordinates) {
    EXPECT_NO_THROW(grid.setOrigin(coordinates)) << "Verify, that the set of" << coordinates << " doesn't cause assert";
 
-   GridTestCaseSupport<typename Grid::DeviceType> support;
+   GridAccessorsTestCase<typename Grid::DeviceType> support;
 
    support.template verifyOriginGetter<Grid>(grid, coordinates);
 }
