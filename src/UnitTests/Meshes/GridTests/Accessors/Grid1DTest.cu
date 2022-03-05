@@ -1,3 +1,3 @@
 
 #include "Grid1DTest.h"
-#include "../../main.h"
+#include "../../../main.h"

@@ -82,6 +82,10 @@ class NDimGrid {
    using RealType = Real;
 
    using Coordinate = Container<Dimension, Index>;
+   // TODO: - Remove
+   using CoordinatesType = Container<Dimension, Index>;
+   using PointType = Container<Dimension, Real>;
+
    using Point = Container<Dimension, Real>;
 
    /**

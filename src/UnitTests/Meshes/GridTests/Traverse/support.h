@@ -1,20 +1,21 @@
 #pragma once
 
 #ifdef HAVE_GTEST
+#include <functional>
 #include <TNL/Containers/Array.h>
 #include <gtest/gtest.h>
 
 template<typename Index, typename Device, int GridDimension>
 struct EntityDataStore {
    public:
-      using Container = TNL::Containers::Array<Index, Device>;
+      using Container = TNL::Containers::Array<Index, Device, Index>;
 
-      EntityDataStore(const Index& entitiesCount)
-          : entitiesCount(entitiesCount),
-            indices(entitiesCount),
-            isBoundary(entitiesCount),
-            coordinates(GridDimension * entitiesCount),
-            orientation(GridDimension * entitiesCount) {
+      EntityDataStore(const Index& entitiesCount) : entitiesCount(entitiesCount) {
+         indices.resize(entitiesCount);
+         isBoundary.resize(entitiesCount);
+         coordinates.resize(GridDimension * entitiesCount);
+         orientation.resize(GridDimension * entitiesCount);
+
          indices = 0;
          isBoundary = 0;
          coordinates = 0;
@@ -36,10 +37,10 @@ struct EntityDataStore {
          return newContainer;
       };
 
-      auto getIndicesView() { return indices.getView(); }
-      auto getIsBoundaryView() { return isBoundary.getView(); }
-      auto getCoordinatesView() { return coordinates.getView(); }
-      auto getOrientationView() { return orientation.getView(); }
+      typename Container::ViewType getIndicesView() { return indices.getView(); }
+      typename Container::ViewType getIsBoundaryView() { return isBoundary.getView(); }
+      typename Container::ViewType getCoordinatesView() { return coordinates.getView(); }
+      typename Container::ViewType getOrientationView() { return orientation.getView(); }
    private:
       Index entitiesCount;
 
@@ -51,25 +52,28 @@ class GridTraverseTestCase {
    public:
       using Index = typename Grid::IndexType;
       using Coordinate = typename Grid::Coordinate;
-      using DataStore = EntityDataStore<Index, typename Grid::DeviceType, EntityDimension>;
+      using DataStore = EntityDataStore<Index, typename Grid::DeviceType, Grid::getMeshDimension()>;
+
+      // NVCC is incapable of deducing auto lambda input parameters
+      using UpdateFunctionType = std::function<void(const typename Grid::EntityType<EntityDimension>&)>;
 
       void storeAll(const Grid& grid, DataStore& store) const {
-         store(grid, store, [&](const auto& update) { grid.template forAll<EntityDimension>(update); });
+         this -> store(grid, store, [=] __cuda_callable__ (const UpdateFunctionType& update) { grid.template forAll<EntityDimension>(update); });
       }
       void storeBoundary(const Grid& grid, DataStore& store) const {
-         store(grid, store, [&](const auto& update) { grid.template forBoundary<EntityDimension>(update); });
+        // this -> store(grid, store, [&](const auto& update) { grid.template forBoundary<EntityDimension>(update); });
       }
       void storeInterior(const Grid& grid, DataStore& store) const {
-         store(grid, store, [&](const auto& update) { grid.template forInterior<EntityDimension>(update); });
+       //  this -> store(grid, store, [&](const auto& update) { grid.template forInterior<EntityDimension>(update); });
       }
       void clearAll(const Grid& grid, DataStore& store) const {
-         clear(grid, store, [&](const auto& update) { grid.template forAll<EntityDimension>(update); });
+      //   clear(grid, store, [&](const auto& update) { grid.template forAll<EntityDimension>(update); });
       }
       void clearBoundary(const Grid& grid, DataStore& store) const {
-         clear(grid, store, [&](const auto& update) { grid.template forBoundary<EntityDimension>(update); });
+       //  clear(grid, store, [&](const auto& update) { grid.template forBoundary<EntityDimension>(update); });
       }
       void clearInterior(const Grid& grid, DataStore& store) const {
-         clear(grid, store, [&](const auto& update) { grid.template forInterior<EntityDimension>(update); });
+       //  clear(grid, store, [&](const auto& update) { grid.template forInterior<EntityDimension>(update); });
       }
 
 
@@ -79,7 +83,7 @@ class GridTraverseTestCase {
          CoordinateIterator iter(grid.getDimensions());
 
          do {
-            FAIL() << iter.coordinate() << " " << iter.isBoundary();
+            EXPECT_EQ(0, 1) << iter.getCoordinate() << " " << iter.isBoundary();
          } while (iter.next());
       }
       void verifyBoundary(const Grid& grid, const DataStore& store) const {
@@ -95,14 +99,14 @@ class GridTraverseTestCase {
          auto indicesView = store.getIndicesView();
          auto isBoundaryView = store.getIsBoundaryView();
          auto coordinatesView = store.getCoordinatesView();
-         auto orientationsView = store.getOrientationsView();
+         auto orientationView = store.getOrientationView();
          auto gridDimension = Grid::getMeshDimension();
 
-         auto update = [=] __cuda_callable__(const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
             auto index = entity.getIndex();
 
             indicesView[index] = index;
-            isBoundaryView[index] = entity.isBoundary();
+            isBoundaryView[index] = entity.isBoundaryEntity();
 
             auto coordinates = entity.getCoordinates();
 
@@ -112,7 +116,7 @@ class GridTraverseTestCase {
             auto orientation = entity.getOrientation();
 
             for (Index i = 0; i < gridDimension; i++)
-               orientationsView[index * gridDimension + i] = orientation[i];
+               orientationView[index * gridDimension + i] = orientation[i];
          };
 
          traverser(update);
@@ -123,10 +127,10 @@ class GridTraverseTestCase {
          auto indicesView = store.getIndicesView();
          auto isBoundaryView = store.getIsBoundaryView();
          auto coordinatesView = store.getCoordinatesView();
-         auto orientationsView = store.getOrientationsView();
+         auto orientationView = store.getOrientationView();
          auto gridDimension = Grid::getMeshDimension();
 
-         auto update = [=] __cuda_callable__(const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
             auto index = entity.getIndex();
 
             indicesView[index] = 0;
@@ -136,7 +140,7 @@ class GridTraverseTestCase {
                coordinatesView[index * gridDimension + i] = 0;
 
             for (Index i = 0; i < gridDimension; i++)
-               orientationsView[index * gridDimension + i] = 0;
+               orientationView[index * gridDimension + i] = 0;
          };
 
          traverser(update);

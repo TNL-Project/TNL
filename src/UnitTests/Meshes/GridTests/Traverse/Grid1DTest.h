@@ -38,6 +38,9 @@ class GridTestSuite: public ::testing::Test {
 TYPED_TEST_SUITE(GridTestSuite, Implementations);
 
 TYPED_TEST(GridTestSuite, TestForAllTraverse) {
+   testForAllTraverse<TypeParam, 0>(this -> grid, { 1 });
+   testForAllTraverse<TypeParam, 0>(this -> grid, { 2 });
+
    testForAllTraverse<TypeParam, 0>(this -> grid, { 10 });
 }
 

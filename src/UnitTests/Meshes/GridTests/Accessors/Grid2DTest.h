@@ -75,7 +75,7 @@ TYPED_TEST(GridTestSuite, TestEntitiesCount) {
    testEntitiesCounts(this -> grid, { 2, 1 }, { 6, 7, 2 });
    testEntitiesCounts(this -> grid, { 1, 2 }, { 6, 7, 2 });
 
-   testEntitiesCounts(this -> grid, { 1, 2 }, { 9, 12, 4 });
+   testEntitiesCounts(this -> grid, { 2, 2 }, { 9, 12, 4 });
 
    testEntitiesCounts(this -> grid, { 2, 3 }, { 12, 17, 6 });
    testEntitiesCounts(this -> grid, { 3, 2 }, { 12, 17, 6 });

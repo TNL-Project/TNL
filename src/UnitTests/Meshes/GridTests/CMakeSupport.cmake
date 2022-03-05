@@ -2,8 +2,6 @@
 function(generate_executables HEADER SUFFIX MAIN_FILE_PATH ARGS)
    get_filename_component(MODULE_NAME ${HEADER} NAME_WE)
 
-   set(MODULE_NAME ${MODULE_NAME}_${SUFFIX})
-
    if (${BUILD_CUDA})
       SET(SUPPORT_FILENAME ${MODULE_NAME}.cu)
    else()
@@ -15,6 +13,9 @@ function(generate_executables HEADER SUFFIX MAIN_FILE_PATH ARGS)
 #include \"${HEADER}\"
 #include \"${MAIN_FILE_PATH}\"
 ")
+
+   # Targets are separated by suffix provided
+   set(MODULE_NAME ${MODULE_NAME}_${SUFFIX})
 
    if (${BUILD_CUDA})
       CUDA_ADD_EXECUTABLE(${MODULE_NAME} ${HEADER} ${SUPPORT_FILENAME} OPTIONS ${CUDA_TESTS_FLAGS})
