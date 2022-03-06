@@ -9,8 +9,8 @@
 namespace TNL {
 namespace Meshes {
 
-template <typename GridEntity>
-class GridEntityCenterGetter {};
+template <template <typename, int> class GridEntity>
+class GridEntityCenterGetter;
 
 /***
  * 1D grids
