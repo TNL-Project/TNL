@@ -15,9 +15,5 @@ class GridEntityGetter
    // static_assert( false, "Wrong mesh type or entity topology." );
 };
 
-/***
- * The main code is in template specializations in GridEntityIndexer.h
- */
-
-}  // namespace Meshes
-}  // namespace TNL
+} // namespace Meshes
+} // namespace TNL
