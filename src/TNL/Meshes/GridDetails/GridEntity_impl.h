@@ -29,6 +29,12 @@ const __GRID_ENTITY_PREFIX__::Cordinate& __GRID_ENTITY_PREFIX__::getCoordinates(
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
+__GRID_ENTITY_PREFIX__::Cordinate& __GRID_ENTITY_PREFIX__::getCoordinates() {
+   return this -> coordinates;
+}
+
+__GRID_ENTITY_TEMPLATE__
+__cuda_callable__ inline
 void __GRID_ENTITY_PREFIX__::setCoordinates( const Coordinates& coordinates ) const {
    this -> coordinates = coordinates;
 }

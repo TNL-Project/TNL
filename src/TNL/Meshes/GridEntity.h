@@ -13,10 +13,10 @@
 namespace TNL {
 namespace Meshes {
 
-template <typename GridEntity, int NeighborEntityDimension, typename StencilStorage>
+template <typename GridEntity, int NeighborEntityDimension>
 class NeighborGridEntityGetter;
 
-template <typename GridEntityType>
+template<typename>
 class BoundaryGridEntityChecker;
 
 template <typename GridEntityType>
@@ -24,7 +24,6 @@ class GridEntityCenterGetter;
 
 template <typename Grid, int EntityDimension>
 class GridEntity;
-
 
 // TODO: - Implement
 //       // compatibility with meshes, equivalent to getCenter
@@ -42,11 +41,11 @@ class GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension> 
       using DeviceType = Device;
       using RealType = Real;
 
+      using Grid = Meshes::Grid<Dimension, Real, Device, Index>;
       using Coordinate = typename Grid::Coordinate;
       using Point = typename Grid::Point;
-      using Grid = Meshes::Grid<Dimension, Real, Device, Index>;
 
-      constexpr static int getMeshDimension() { return GridType::getMeshDimension(); };
+      constexpr static int getMeshDimension() { return Grid::getMeshDimension(); };
       constexpr static int getEntityDimension() { return EntityDimension; };
 
 
@@ -55,14 +54,14 @@ class GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension> 
    //     NeighborGridEntityGetter<GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension, Config>, NeighborEntityDimension>;
 
       __cuda_callable__ inline
-      GridEntity(const GridType& grid, const Coordinate& coordinates, const Coordinate& basis);
+      GridEntity(const Grid& grid, const Coordinate& coordinates, const Coordinate& basis);
 
 
       __cuda_callable__ inline
       const Coordinate& getCoordinates() const;
 
       __cuda_callable__ inline
-      Coordinate& getCoordinates() const;
+      Coordinate& getCoordinates();
 
       __cuda_callable__ inline
       void setCoordinates(const Coordinate& coordinates);
