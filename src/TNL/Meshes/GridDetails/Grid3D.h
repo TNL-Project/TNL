@@ -41,10 +41,10 @@ public:
    template< int EntityDimension>
    using EntityType = GridEntity< Grid, EntityDimension >;
 
-   using Cell = EntityType< getMeshDimension(), GridEntityCrossStencilStorage< 1 > >;
-   using Face = EntityType< getMeshDimension() - 1 >;
-   using Edge = EntityType< 1 >;
-   using Vertex = EntityType< 0 >;
+   typedef EntityType< getMeshDimension() > Cell;
+   typedef EntityType< getMeshDimension() - 1 > Face;
+   typedef EntityType< 1 > Edge;
+   typedef EntityType< 0 > Vertex;
 
    /**
     * \brief See Grid1D::Grid().

@@ -1,19 +1,23 @@
-// Copyright (c) 2004-2022 Tomáš Oberhuber et al.
-//
-// This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
-//
-// SPDX-License-Identifier: MIT
+// /***************************************************************************
+//                           NeighborGridEntityGetter.h  -  description
+//                              -------------------
+//     begin                : Nov 23, 2015
+//     copyright            : (C) 2015 by Tomas Oberhuber
+//     email                : tomas.oberhuber@fjfi.cvut.cz
+//  ***************************************************************************/
 
-#pragma once
+// /* See Copyright Notice in tnl/Copyright */
 
-#include <TNL/Assert.h>
-#include <TNL/Cuda/CudaCallable.h>
+// #pragma once
 
-namespace TNL {
-namespace Meshes {
+// #include <TNL/Assert.h>
+// #include <TNL/Cuda/CudaCallable.h>
 
-template <typename GridEntity, int NeighborEntityDimension>
-class NeighborGridEntityGetter;
+// namespace TNL {
+// namespace Meshes {
 
-}  // namespace Meshes
-}  // namespace TNL
+// template <typename GridEntity, int NeighborEntityDimension>
+// class NeighborGridEntityGetter;
+
+// }  // namespace Meshes
+// }  // namespace TNL

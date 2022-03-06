@@ -9,7 +9,7 @@
 namespace TNL {
 namespace Meshes {
 
-template<typename>
+template<class>
 class BoundaryGridEntityChecker;
 
 /***

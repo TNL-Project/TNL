@@ -57,21 +57,21 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
    static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0..<2]");
 
    auto outer = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>& grid, FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid);
+      // EntityType<EntityDimension> entity(grid);
 
-      entity.setCoordinates(CoordinatesType(i, j));
-      entity.refresh();
+      // entity.setCoordinates(CoordinatesType(i, j));
+      // entity.refresh();
 
-      func(entity, args...);
+      // func(entity, args...);
    };
 
    auto outerOriented = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>& grid, const CoordinatesType& orientation,
                                               FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation);
+      // EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation);
 
-      entity.refresh();
+      // entity.refresh();
 
-      func(entity, args...);
+      // func(entity, args...);
    };
 
    switch (EntityDimension) {
@@ -99,21 +99,21 @@ void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
    static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0..<2]");
 
    auto outer = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>& grid, FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid);
+      // EntityType<EntityDimension> entity(grid);
 
-      entity.setCoordinates({i, j});
-      entity.refresh();
+      // entity.setCoordinates({i, j});
+      // entity.refresh();
 
-      func(entity, args...);
+      // func(entity, args...);
    };
 
    auto outerOriented = [=] __cuda_callable__(Index i, Index j, Grid<2, Real, Device, Index> & grid, const CoordinatesType& orientation,
                                               FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation);
+      // EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation);
 
-      entity.refresh();
+      // entity.refresh();
 
-      func(entity, args...);
+      // func(entity, args...);
    };
 
    switch (EntityDimension) {
@@ -142,22 +142,22 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
    static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0...2]");
 
    auto outer = [=] __cuda_callable__(Index i, Index axis, Index axisIndex, const Grid<2, Real, Device, Index>& grid, FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid);
+      // EntityType<EntityDimension> entity(grid);
 
-      switch (axis) {
-         case 0:
-            entity.setCoordinates({axisIndex, i});
-            break;
-         case 1:
-            entity.setCoordinates({i, axisIndex});
-            break;
-         default:
-            TNL_ASSERT_TRUE(false, "Received axis index. Expect in range [0..<1]");
-      }
+      // switch (axis) {
+      //    case 0:
+      //       entity.setCoordinates({axisIndex, i});
+      //       break;
+      //    case 1:
+      //       entity.setCoordinates({i, axisIndex});
+      //       break;
+      //    default:
+      //       TNL_ASSERT_TRUE(false, "Received axis index. Expect in range [0..<1]");
+      // }
 
-      entity.refresh();
+      // entity.refresh();
 
-      func(entity, args...);
+      // func(entity, args...);
    };
 
    switch (EntityDimension) {
@@ -174,26 +174,26 @@ void Grid<2, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
       case 1: {
          auto outerOriented = [=] __cuda_callable__(Index i, Index axis, Index axisIndex, const Grid<2, Real, Device, Index>& grid,
                                                     const CoordinatesType& orientation, FuncArgs... args) mutable {
-            CoordinatesType coordinates;
+            // CoordinatesType coordinates;
 
-            switch (axis) {
-               case 0:
-                  coordinates[0] = axisIndex;
-                  coordinates[1] = i;
-                  break;
-               case 1:
-                  coordinates[0] = i;
-                  coordinates[1] = axisIndex;
-                  break;
-               default:
-                  TNL_ASSERT_TRUE(false, "Received axis index. Expect in range [0...1]");
-            }
+            // switch (axis) {
+            //    case 0:
+            //       coordinates[0] = axisIndex;
+            //       coordinates[1] = i;
+            //       break;
+            //    case 1:
+            //       coordinates[0] = i;
+            //       coordinates[1] = axisIndex;
+            //       break;
+            //    default:
+            //       TNL_ASSERT_TRUE(false, "Received axis index. Expect in range [0...1]");
+            // }
 
-            EntityType<EntityDimension> entity(grid, coordinates, orientation);
+            // EntityType<EntityDimension> entity(grid, coordinates, orientation);
 
-            entity.refresh();
+            // entity.refresh();
 
-            func(entity, args...);
+            // func(entity, args...);
          };
 
          // Lower horizontal

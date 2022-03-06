@@ -69,12 +69,12 @@ void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
 
    auto outer = [=] __cuda_callable__(Index i, const Grid<1, Real, Device, Index> &grid,
                                       FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid);
+      // EntityType<EntityDimension> entity(grid);
 
-      entity.setCoordinates(i);
-      entity.refresh();
+      // entity.setCoordinates(i);
+      // entity.refresh();
 
-      func(entity, args...);
+      // func(entity, args...);
    };
 
    switch (EntityDimension) {
@@ -101,12 +101,12 @@ void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
 
    auto outer = [=] __cuda_callable__(Index i, const Grid<1, Real, Device, Index> &grid,
                                       FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid);
+      // EntityType<EntityDimension> entity(grid);
 
-      entity.setCoordinates(i);
-      entity.refresh();
+      // entity.setCoordinates(i);
+      // entity.refresh();
 
-      func(entity, args...);
+      // func(entity, args...);
    };
 
    switch (EntityDimension) {
@@ -145,12 +145,12 @@ void Grid<1, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
 
    auto outer = [=] __cuda_callable__(Index i, const Grid<1, Real, Device, Index> &grid,
                                       FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid);
+      // EntityType<EntityDimension> entity(grid);
 
-      entity.setCoordinates(i);
-      entity.refresh();
+      // entity.setCoordinates(i);
+      // entity.refresh();
 
-      func(entity, args...);
+      // func(entity, args...);
    };
 
    switch (EntityDimension) {

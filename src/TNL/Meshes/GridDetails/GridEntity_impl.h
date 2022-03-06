@@ -19,23 +19,19 @@ namespace Meshes {
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-__GRID_ENTITY_PREFIX__::GridEntity(const Grid& grid, const Coordinate& coordinates, const Coordinate& basis): grid(grid), coordinates(coordinates), basis(basis) {}
-
-__GRID_ENTITY_TEMPLATE__
-__cuda_callable__ inline
-const __GRID_ENTITY_PREFIX__::Cordinate& __GRID_ENTITY_PREFIX__::getCoordinates() const {
+const typename __GRID_ENTITY_PREFIX__::Coordinate& __GRID_ENTITY_PREFIX__::getCoordinates() const {
    return this -> coordinates;
 }
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-__GRID_ENTITY_PREFIX__::Cordinate& __GRID_ENTITY_PREFIX__::getCoordinates() {
+typename __GRID_ENTITY_PREFIX__::Coordinate& __GRID_ENTITY_PREFIX__::getCoordinates() {
    return this -> coordinates;
 }
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-void __GRID_ENTITY_PREFIX__::setCoordinates( const Coordinates& coordinates ) const {
+void __GRID_ENTITY_PREFIX__::setCoordinates(const Coordinate& coordinates) {
    this -> coordinates = coordinates;
 }
 
@@ -63,14 +59,14 @@ bool __GRID_ENTITY_PREFIX__::isBoundary() const {
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-const __GRID_ENTITY_PREFIX__::Point& __GRID_ENTITY_PREFIX__::getCenter() const {
-   return GridEntityCenterGetter< GridEntity >::getEntityCenter(*this);
+const typename __GRID_ENTITY_PREFIX__::Point& __GRID_ENTITY_PREFIX__::getCenter() const {
+   return GridEntityCenterGetter<GridEntity>::getEntityCenter(*this);
 }
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-const __GRID_ENTITY_PREFIX__::Point& __GRID_ENTITY_PREFIX__::getMeasure() const {
-   return GridEntityMeasureGetter< GridType, EntityDimension >::getMeasure( this->getMesh(), *this );
+Real __GRID_ENTITY_PREFIX__::getMeasure() const {
+   return GridEntityMeasureGetter<Grid, EntityDimension>::getMeasure( this->getMesh(), *this );
 }
 
 __GRID_ENTITY_TEMPLATE__
@@ -81,13 +77,13 @@ const typename __GRID_ENTITY_PREFIX__::Grid& __GRID_ENTITY_PREFIX__::getMesh() c
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-const __GRID_ENTITY_PREFIX__::Cordinate& __GRID_ENTITY_PREFIX__::getBasis() const {
+const typename __GRID_ENTITY_PREFIX__::Coordinate& __GRID_ENTITY_PREFIX__::getBasis() const {
    return this -> basis;
 }
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-void __GRID_ENTITY_PREFIX__::setBasis(const Coordinates& basis) const {
+void __GRID_ENTITY_PREFIX__::setBasis(const Coordinate& basis) {
    this -> basis = basis;
 }
 

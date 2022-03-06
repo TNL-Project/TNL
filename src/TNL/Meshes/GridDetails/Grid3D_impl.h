@@ -429,23 +429,23 @@ void Grid<3, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
 
    auto outer = [=] __cuda_callable__(Index i, Index j, Index k,
                                       const Grid<3, Real, Device, Index>&grid, FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid);
+      // EntityType<EntityDimension> entity(grid);
 
-      entity.setCoordinates({ i, j, k });
-      entity.refresh();
+      // entity.setCoordinates({ i, j, k });
+      // entity.refresh();
 
-      func(entity, args...);
+      // func(entity, args...);
    };
 
    auto outerOriented = [=] __cuda_callable__(Index i, Index j, Index k,
                                               const Grid<3, Real, Device, Index>&grid,
                                               const CoordinatesType & orientation,
                                               FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid, CoordinatesType(i, j, k), orientation);
+      // EntityType<EntityDimension> entity(grid, CoordinatesType(i, j, k), orientation);
 
-      entity.refresh();
+      // entity.refresh();
 
-      func(entity, args...);
+      // func(entity, args...);
    };
 
    switch (EntityDimension) {

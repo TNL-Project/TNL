@@ -8,22 +8,21 @@
 
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Meshes/Grid.h>
-#include <TNL/Meshes/GridDetails/NeighborGridEntitiesStorage.h>
 
 namespace TNL {
 namespace Meshes {
 
-template <typename GridEntity, int NeighborEntityDimension>
+template <class GridEntity, int NeighborEntityDimension>
 class NeighborGridEntityGetter;
 
-template<typename>
+template<class>
 class BoundaryGridEntityChecker;
 
-template <typename>
+template <class>
 class GridEntityCenterGetter;
 
-template <typename, int>
-class GridEntity;
+template <class, int>
+class GridEntity {};
 
 // TODO: - Implement
 //       // compatibility with meshes, equivalent to getCenter
@@ -54,8 +53,7 @@ class GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension> 
    //     NeighborGridEntityGetter<GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension, Config>, NeighborEntityDimension>;
 
       __cuda_callable__ inline
-      GridEntity(const Grid& grid, const Coordinate& coordinates, const Coordinate& basis);
-
+      GridEntity(const Grid& grid, const Coordinate& coordinates, const Coordinate& basis): grid(grid), coordinates(coordinates), basis(basis) {}
 
       __cuda_callable__ inline
       const Coordinate& getCoordinates() const;
