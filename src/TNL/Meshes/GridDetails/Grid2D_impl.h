@@ -57,7 +57,9 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
    static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0..<2]");
 
    auto outer = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>& grid, FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid, CoordinatesType(i, j));
+      EntityType<EntityDimension> entity(grid);
+
+      entity.setCoordinates(CoordinatesType(i, j));
       entity.refresh();
 
       func(entity, args...);
@@ -77,8 +79,8 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
          this -> forEach({ 0, 0 }, { this -> dimensions.x() + 1, this -> dimensions.y() + 1 }, outer, *this, args...);
          break;
       case 1: {
-         this -> forEach({ 0, 0 }, { this -> dimensions.x() + 1, this -> dimensions.y() }, outerOriented, *this, CoordinatesType(1, 0), args...);
-         this -> forEach({ 0, 0 }, { this -> dimensions.x(), this -> dimensions.y() + 1 }, outerOriented, *this, CoordinatesType(0, 1), args...);
+         this -> forEach({ 0, 0 }, { this -> dimensions.x() + 1, this -> dimensions.y() }, outerOriented, *this, this -> encodeOrientation(0), args...);
+         this -> forEach({ 0, 0 }, { this -> dimensions.x(), this -> dimensions.y() + 1 }, outerOriented, *this, this -> encodeOrientation(1), args...);
          break;
       }
       case 2:
@@ -119,8 +121,8 @@ void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) cons
          this -> forEach({ 1, 1 }, this -> dimensions, outer, *this, args...);
          break;
       case 1: {
-         this -> forEach({ 1, 0 }, this -> dimensions, outerOriented, *this, CoordinatesType(1, 0), args...);
-         this -> forEach({ 0, 1 }, this -> dimensions, outerOriented, *this, CoordinatesType(0, 1), args...);
+         this -> forEach({ 1, 0 }, this -> dimensions, outerOriented, *this, this -> encodeOrientation(0), args...);
+         this -> forEach({ 0, 1 }, this -> dimensions, outerOriented, *this, this -> encodeOrientation(1), args...);
          break;
       }
       case 2:

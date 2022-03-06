@@ -29,6 +29,42 @@ constexpr size_t pow() {
    return result;
 }
 
+
+template<typename Index>
+constexpr Index product(Index from, Index to) {
+   Index result = 1;
+
+   if (from <= to)
+      for (Index i = from; i < to; i++)
+         result *= i;
+
+   return result;
+}
+
+template<typename Index>
+constexpr Index firstKCombinationSum(Index k, Index n) {
+   if (k == 0)
+      return 0;
+
+   if (k == n)
+      return 1 << n;
+
+   Index result = 0;
+
+   // Fraction simplification of k-combination
+   for (Index i = 0; i < k; i++)
+      result += product(i + 1, n) / product(1, n - i);
+
+   return result;
+}
+
+constexpr bool isInClosedRange(int lower, int value, int upper) {
+   return lower <= value && value <= upper;
+}
+
+/**
+ * @brief - A dimension based interface of parallel for function
+ */
 template <int, typename, typename>
 struct ParallelFor;
 
@@ -82,10 +118,6 @@ class NDimGrid {
    using RealType = Real;
 
    using Coordinate = Container<Dimension, Index>;
-   // TODO: - Remove
-   using CoordinatesType = Container<Dimension, Index>;
-   using PointType = Container<Dimension, Real>;
-
    using Point = Container<Dimension, Real>;
 
    /**
@@ -96,10 +128,15 @@ class NDimGrid {
    NDimGrid() {}
    // empty destructor is needed only to avoid crappy nvcc warnings
    virtual ~NDimGrid() {}
+
+   // TODO: - Simplify orientation encoding
+   Coordinate encodeOrientation(const Index direction) const;
+
    /**
     *  @brief - Specifies dimensions of the grid as the number of edges at each dimenison
     */
-   template <typename... Dimensions, std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Dimensions>::value...>::value, bool> = true,
+   template <typename... Dimensions,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Dimensions>::value...>::value, bool> = true,
              std::enable_if_t<sizeof...(Dimensions) == Dimension, bool> = true>
    void setDimensions(Dimensions... dimensions);
    /**
@@ -128,8 +165,8 @@ class NDimGrid {
    /**
     * @param[in] index - index of dimension
     */
-   template <int EntityDimension, std::enable_if_t<(EntityDimension >= 0), bool> = true,
-             std::enable_if_t<(EntityDimension <= Dimension), bool> = true>
+   template <int EntityDimension,
+             std::enable_if_t<Templates::isInClosedRange(0, EntityDimension, Dimension), bool> = true>
    __cuda_callable__ inline Index getEntitiesCount() const noexcept;
    /**
     * @brief - Returns the number of entities of specific dimension
@@ -142,6 +179,20 @@ class NDimGrid {
     * @brief - Returns entities counts along every dimension
     */
    __cuda_callable__ inline const Container<Dimension + 1, Index>& getEntitiesCounts() const noexcept;
+    /**
+    * @param[in] dimension - index of dimension
+    * @param[in] orientation - orientation of the dimension
+    */
+   __cuda_callable__ inline Index getOrientedEntitiesCount(Index dimension, Index orientation) const;
+   /**
+    * @param[in] Dimension - index of dimension
+    * @param[in] Orientation - orientation of the dimension
+    */
+   template<int EntityDimension,
+            int EntityOrientation,
+            std::enable_if_t<Templates::isInClosedRange(0, EntityDimension, Dimension), bool> = true,
+            std::enable_if_t<Templates::isInClosedRange(0, EntityOrientation, Dimension), bool> = true>
+   __cuda_callable__ inline Index getOrientedEntitiesCount() const noexcept;
    /**
     * \brief Sets the origin and proportions of this grid.
     * \param origin Point where this grid starts.
@@ -159,7 +210,8 @@ class NDimGrid {
     * beginning of the list. Least significant dimension is in the end of the
     * list
     */
-   template <typename... Coordinates, std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Coordinates>::value...>::value, bool> = true,
+   template <typename... Coordinates,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Coordinates>::value...>::value, bool> = true,
              std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setOrigin(Coordinates... coordinates) noexcept;
    /**
@@ -177,7 +229,8 @@ class NDimGrid {
     * beginning of the list. Least significant dimension is in the end of the
     * list
     */
-   template <typename... Coordinates, std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Coordinates>::value...>::value, bool> = true,
+   template <typename... Coordinates,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Coordinates>::value...>::value, bool> = true,
              std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setSpaceSteps(Coordinates... coordinates) noexcept;
    /**
@@ -187,7 +240,8 @@ class NDimGrid {
    /**
     * @brief Returns product of space steps to the xPow.
     */
-   template <typename... Powers, std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Powers>::value...>::value, bool> = true,
+   template <typename... Powers,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Powers>::value...>::value, bool> = true,
              std::enable_if_t<sizeof...(Powers) == Dimension, bool> = true>
    __cuda_callable__ inline Real getSpaceStepsProducts(Powers... powers) const noexcept;
    /**
@@ -254,6 +308,9 @@ class NDimGrid {
    void fillProportions();
 
    template <typename Func, typename... FuncArgs>
+   void forEach(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
+
+   template <int TraverseDimension, typename Func, typename... FuncArgs>
    void forEach(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
 
    template <typename Func, typename... FuncArgs>

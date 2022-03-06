@@ -6,53 +6,49 @@
 
 #pragma once
 
-#include <TNL/Devices/Host.h>
 #include <TNL/Containers/StaticArray.h>
+#include <TNL/Devices/Host.h>
 #include <TNL/Meshes/NDimGrid.h>
 
 #include <type_traits>
 
-namespace TNL
-{
-   namespace Meshes
-   {
-      template <int Dimension,
-                typename Real = double,
-                typename Device = Devices::Host,
-                typename Index = int>
-      class Grid: public NDimGrid<Dimension, Real, Device, Index> { };
+namespace TNL {
+namespace Meshes {
 
-      // template< int Dimension, typename Real, typename Device, typename Index >
-      // bool operator==( const Grid< Dimension, Real, Device, Index >& lhs,
-      //                  const Grid< Dimension, Real, Device, Index >& rhs )
-      // {
-      //    return lhs.getDimensions() == rhs.getDimensions()
-      //        && lhs.getOrigin() == rhs.getOrigin()
-      //        && lhs.getProportions() == rhs.getProportions();
-      // }
+template <int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int>
+class Grid : public NDimGrid<Dimension, Real, Device, Index> {};
 
-      // template< int Dimension, typename Real, typename Device, typename Index >
-      // bool operator!=( const Grid< Dimension, Real, Device, Index >& lhs,
-      //                  const Grid< Dimension, Real, Device, Index >& rhs )
-      // {
-      //    return ! (lhs == rhs);
-      // }
+// template< int Dimension, typename Real, typename Device, typename Index >
+// bool operator==( const Grid< Dimension, Real, Device, Index >& lhs,
+//                  const Grid< Dimension, Real, Device, Index >& rhs )
+// {
+//    return lhs.getDimensions() == rhs.getDimensions()
+//        && lhs.getOrigin() == rhs.getOrigin()
+//        && lhs.getProportions() == rhs.getProportions();
+// }
 
-      // template< int Dimension, typename Real, typename Device, typename Index >
-      // std::ostream& operator<<( std::ostream& str, const Grid< Dimension, Real, Device, Index >& grid )
-      // {
-      //    str << "Grid dimensions:    " << grid.getDimensions()  << std::endl;
-      //    str << "     origin:        " << grid.getOrigin()      << std::endl;
-      //    str << "     proportions:   " << grid.getProportions() << std::endl;
-      //    str << "     localBegin:    " << grid.getLocalBegin() << std::endl;
-      //    str << "     localEnd:      " << grid.getLocalEnd() << std::endl;
-      //    str << "     interiorBegin: " << grid.getInteriorBegin() << std::endl;
-      //    str << "     interiorEnd:   " << grid.getInteriorEnd() << std::endl;
-      //    return str;
-      // }
+// template< int Dimension, typename Real, typename Device, typename Index >
+// bool operator!=( const Grid< Dimension, Real, Device, Index >& lhs,
+//                  const Grid< Dimension, Real, Device, Index >& rhs )
+// {
+//    return ! (lhs == rhs);
+// }
 
-   } // namespace Meshes
-} // namespace TNL
+// template< int Dimension, typename Real, typename Device, typename Index >
+// std::ostream& operator<<( std::ostream& str, const Grid< Dimension, Real, Device, Index >& grid )
+// {
+//    str << "Grid dimensions:    " << grid.getDimensions()  << std::endl;
+//    str << "     origin:        " << grid.getOrigin()      << std::endl;
+//    str << "     proportions:   " << grid.getProportions() << std::endl;
+//    str << "     localBegin:    " << grid.getLocalBegin() << std::endl;
+//    str << "     localEnd:      " << grid.getLocalEnd() << std::endl;
+//    str << "     interiorBegin: " << grid.getInteriorBegin() << std::endl;
+//    str << "     interiorEnd:   " << grid.getInteriorEnd() << std::endl;
+//    return str;
+// }
+
+}  // namespace Meshes
+}  // namespace TNL
 
 #include <TNL/Meshes/GridDetails/Grid1D.h>
 #include <TNL/Meshes/GridDetails/Grid2D.h>

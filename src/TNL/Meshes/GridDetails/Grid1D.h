@@ -21,8 +21,8 @@ namespace Meshes {
 template <typename Real, typename Device, typename Index>
 class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
   public:
-   template <int EntityDimension, typename Config = GridEntityCrossStencilStorage<1> >
-   using EntityType = GridEntity<Grid, EntityDimension, Config>;
+   template <int EntityDimension>
+   using EntityType = GridEntity<Grid, EntityDimension>;
 
    /**
     * \brief Basic constructor.

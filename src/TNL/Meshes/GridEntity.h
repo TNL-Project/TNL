@@ -7,181 +7,65 @@
 #pragma once
 
 #include <TNL/Containers/StaticVector.h>
+#include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/GridDetails/NeighborGridEntitiesStorage.h>
 
 namespace TNL {
 namespace Meshes {
 
-template< typename GridEntity, int NeighborEntityDimension, typename StencilStorage >
+template <typename GridEntity, int NeighborEntityDimension, typename StencilStorage>
 class NeighborGridEntityGetter;
 
-template< typename GridEntityType >
+template <typename GridEntityType>
 class BoundaryGridEntityChecker;
 
-template< typename GridEntityType >
+template <typename GridEntityType>
 class GridEntityCenterGetter;
 
-template< typename Grid, int EntityDimension, typename Config >
-class GridEntity
-{};
+template <typename Grid, int EntityDimension>
+class GridEntity;
 
-template< int Dimension, typename Real, typename Device, typename Index, int EntityDimension, typename Config >
-class GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >
-{
+
+// TODO: - Implement
+//       // compatibility with meshes, equivalent to getCenter
+//       __cuda_callable__ inline
+//       PointType getPoint() const;
+
+//       __cuda_callable__ inline
+//       const PointType& getEntityProportions() const;
+
+
+template <int Dimension, typename Real, typename Device, typename Index, int EntityDimension>
+class GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension> {
    public:
+      using IndexType = Index;
+      using DeviceType = Device;
+      using RealType = Real;
 
-      typedef Meshes::Grid< Dimension, Real, Device, Index > GridType;
-      typedef GridType MeshType;
-      typedef typename GridType::RealType RealType;
-      typedef typename GridType::IndexType IndexType;
-      typedef typename GridType::CoordinatesType CoordinatesType;
-      typedef Config ConfigType;
+      using Coordinate = typename Grid::Coordinate;
+      using Point = typename Grid::Point;
+      using Grid = Meshes::Grid<Dimension, Real, Device, Index>;
 
       constexpr static int getMeshDimension() { return GridType::getMeshDimension(); };
-
       constexpr static int getEntityDimension() { return EntityDimension; };
 
-      typedef Containers::StaticArray< getMeshDimension(), IndexType > EntityOrientationType;
-      typedef typename GridType::PointType PointType;
 
-      template< int NeighborEntityDimension = getEntityDimension() >
-      using NeighborEntities =
-         NeighborGridEntityGetter<
-            GridEntity< Meshes::Grid< Dimension, Real, Device, Index >,
-                           EntityDimension,
-                           Config >,
-            NeighborEntityDimension >;
-
-   template< int NeighborEntityDimension = getEntityDimension() >
-   using NeighborEntities =
-      NeighborGridEntityGetter< GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, EntityDimension, Config >,
-                                NeighborEntityDimension >;
+   // template <int NeighborEntityDimension = getEntityDimension()>
+   // using NeighborEntities =
+   //     NeighborGridEntityGetter<GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension, Config>, NeighborEntityDimension>;
 
       __cuda_callable__ inline
-      GridEntity( const GridType& grid,
-                     const CoordinatesType& coordinates,
-                     const EntityOrientationType& orientation);
-
-   __cuda_callable__
-   inline GridEntity( const GridType& grid,
-                      const CoordinatesType& coordinates,
-                      const EntityOrientationType& orientation,
-                      const EntityBasisType& basis );
-
-   __cuda_callable__
-   inline const CoordinatesType&
-   getCoordinates() const;
-
-   __cuda_callable__
-   inline CoordinatesType&
-   getCoordinates();
-
-   __cuda_callable__
-   inline void
-   setCoordinates( const CoordinatesType& coordinates );
-
-   /***
-    * Call this method every time the coordinates are changed
-    * to recompute the mesh entity index. The reason for this strange
-    * mechanism is a performance.
-    */
-   __cuda_callable__
-   inline
-      // void setIndex( IndexType entityIndex );
-      void
-      refresh();
-
-   __cuda_callable__
-   inline Index
-   getIndex() const;
-
-   __cuda_callable__
-   inline const EntityOrientationType&
-   getOrientation() const;
-
-      __cuda_callable__ inline
-      bool isBoundaryEntity() const;
-
-   __cuda_callable__
-   inline bool
-   isBoundaryEntity() const;
-
-   __cuda_callable__
-   inline PointType
-   getCenter() const;
-
-   __cuda_callable__
-   inline const RealType&
-   getMeasure() const;
-
-   __cuda_callable__
-   inline const GridType&
-   getMesh() const;
-
-protected:
-   const GridType& grid;
-
-   IndexType entityIndex;
-
-   CoordinatesType coordinates;
-
-   EntityOrientationType orientation;
-
-      //__cuda_callable__ inline
-      //GridEntity();
-
-   friend class BoundaryGridEntityChecker< GridEntity >;
-
-   friend class GridEntityCenterGetter< GridEntity >;
-};
-
-/****
- * Specializations for cells
- */
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-class GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >
-{
-   public:
-
-      typedef Meshes::Grid< Dimension, Real, Device, Index > GridType;
-      typedef GridType MeshType;
-      typedef typename GridType::RealType RealType;
-      typedef typename GridType::IndexType IndexType;
-      typedef typename GridType::CoordinatesType CoordinatesType;
-      typedef typename GridType::PointType PointType;
-      typedef Config ConfigType;
-
-      constexpr static int getMeshDimension() { return GridType::getMeshDimension(); };
-
-      constexpr static int getEntityDimension() { return getMeshDimension(); };
-
-      typedef Containers::StaticVector< getMeshDimension(), IndexType > EntityOrientationType;
-
-      template< int NeighborEntityDimension = getEntityDimension() >
-      using NeighborEntities =
-         NeighborGridEntityGetter<
-            GridEntity< Meshes::Grid< Dimension, Real, Device, Index >,
-                           Dimension,
-                           Config >,
-            NeighborEntityDimension >;
+      GridEntity(const GridType& grid, const Coordinate& coordinates, const Coordinate& basis);
 
 
       __cuda_callable__ inline
-      GridEntity( const GridType& grid );
+      const Coordinate& getCoordinates() const;
 
       __cuda_callable__ inline
-      GridEntity( const GridType& grid,
-                  const CoordinatesType& coordinates,
-                  const EntityOrientationType& orientation = EntityOrientationType( ( Index ) 0 ) );
+      Coordinate& getCoordinates() const;
 
       __cuda_callable__ inline
-      const CoordinatesType& getCoordinates() const;
-
-      __cuda_callable__ inline
-      CoordinatesType& getCoordinates();
-
-      __cuda_callable__ inline
-      void setCoordinates( const CoordinatesType& coordinates );
+      void setCoordinates(const Coordinate& coordinates);
 
       /***
        * Call this method every time the coordinates are changed
@@ -189,144 +73,34 @@ class GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Con
        * mechanism is a performance.
        */
       __cuda_callable__ inline
-      //void setIndex( IndexType entityIndex );
       void refresh();
 
       __cuda_callable__ inline
       Index getIndex() const;
 
       __cuda_callable__ inline
-      const EntityOrientationType getOrientation() const;
+      bool isBoundary() const;
 
       __cuda_callable__ inline
-      void setOrientation( const EntityOrientationType& orientation ){};
+      const Point& getCenter() const;
 
       __cuda_callable__ inline
-      bool isBoundaryEntity() const;
+      Real getMeasure() const;
 
       __cuda_callable__ inline
-      PointType getCenter() const;
+      const Grid& getMesh() const;
 
       __cuda_callable__ inline
-      const RealType& getMeasure() const;
+      void setBasis(const Coordinate& orientation);
 
       __cuda_callable__ inline
-      const PointType& getEntityProportions() const;
-
-      __cuda_callable__ inline
-      const GridType& getMesh() const;
-
-   CoordinatesType coordinates;
-
-   NeighborGridEntitiesStorageType neighborEntitiesStorage;
-
-   //__cuda_callable__ inline
-   // GridEntity();
-
-   friend class BoundaryGridEntityChecker< GridEntity >;
-
-      //__cuda_callable__ inline
-      //GridEntity();
-
-      friend class BoundaryGridEntityChecker< GridEntity >;
-
-      friend class GridEntityCenterGetter< GridEntity >;
-};
-
-/****
- * Specialization for vertices
- */
-template< int Dimension, typename Real, typename Device, typename Index, typename Config >
-class GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >
-{
-   public:
-
-      typedef Meshes::Grid< Dimension, Real, Device, Index > GridType;
-      typedef GridType MeshType;
-      typedef typename GridType::RealType RealType;
-      typedef typename GridType::IndexType IndexType;
-      typedef typename GridType::CoordinatesType CoordinatesType;
-      typedef typename GridType::PointType PointType;
-      typedef Config ConfigType;
-
-      constexpr static int getMeshDimension() { return GridType::getMeshDimension(); };
-
-      constexpr static int getEntityDimension() { return 0; };
-
-      typedef Containers::StaticVector< getMeshDimension(), IndexType > EntityOrientationType;
-
-      template< int NeighborEntityDimension = getEntityDimension() >
-      using NeighborEntities =
-         NeighborGridEntityGetter<
-            GridEntity< Meshes::Grid< Dimension, Real, Device, Index >,
-                           0,
-                           Config >,
-            NeighborEntityDimension >;
-
-
-      __cuda_callable__ inline
-      GridEntity( const GridType& grid );
-
-      __cuda_callable__ inline
-      GridEntity( const GridType& grid,
-                     const CoordinatesType& coordinates,
-                     const EntityOrientationType& orientation = EntityOrientationType( ( Index ) 0 ) );
-
-      __cuda_callable__ inline
-      const CoordinatesType& getCoordinates() const;
-
-      __cuda_callable__ inline
-      CoordinatesType& getCoordinates();
-
-      __cuda_callable__ inline
-      void setCoordinates( const CoordinatesType& coordinates );
-
-      /***
-       * Call this method every time the coordinates are changed
-       * to recompute the mesh entity index. The reason for this strange
-       * mechanism is a performance.
-       */
-      __cuda_callable__ inline
-      //void setIndex( IndexType entityIndex );
-      void refresh();
-
-      __cuda_callable__ inline
-      Index getIndex() const;
-
-   IndexType entityIndex;
-
-   CoordinatesType coordinates;
-
-      __cuda_callable__ inline
-      bool isBoundaryEntity() const;
-
-      __cuda_callable__ inline
-      PointType getCenter() const;
-
-      // compatibility with meshes, equivalent to getCenter
-      __cuda_callable__ inline
-      PointType getPoint() const;
-
-      __cuda_callable__ inline
-      const RealType getMeasure() const;
-
-      __cuda_callable__ inline
-      PointType getEntityProportions() const;
-
-      __cuda_callable__ inline
-      const GridType& getMesh() const;
-
+      const Coordinate& getBasis() const;
    protected:
+      const Grid& grid;
 
-      const GridType& grid;
-
-      IndexType entityIndex;
-
-      CoordinatesType coordinates;
-
-      friend class BoundaryGridEntityChecker< GridEntity >;
-
-      friend class GridEntityCenterGetter< GridEntity >;
+      Index entityIndex;
+      Coordinate coordinates;
+      Coordinate basis;
 };
 
 }  // namespace Meshes

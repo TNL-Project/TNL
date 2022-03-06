@@ -61,19 +61,19 @@ class GridTraverseTestCase {
          this -> store(grid, store, [=] __cuda_callable__ (const UpdateFunctionType& update) { grid.template forAll<EntityDimension>(update); });
       }
       void storeBoundary(const Grid& grid, DataStore& store) const {
-        // this -> store(grid, store, [&](const auto& update) { grid.template forBoundary<EntityDimension>(update); });
+         this -> store(grid, store, [&](const UpdateFunctionType& update) { grid.template forBoundary<EntityDimension>(update); });
       }
       void storeInterior(const Grid& grid, DataStore& store) const {
-       //  this -> store(grid, store, [&](const auto& update) { grid.template forInterior<EntityDimension>(update); });
+         this -> store(grid, store, [&](const UpdateFunctionType& update) { grid.template forInterior<EntityDimension>(update); });
       }
       void clearAll(const Grid& grid, DataStore& store) const {
-      //   clear(grid, store, [&](const auto& update) { grid.template forAll<EntityDimension>(update); });
+         clear(grid, store, [&](const UpdateFunctionType& update) { grid.template forAll<EntityDimension>(update); });
       }
       void clearBoundary(const Grid& grid, DataStore& store) const {
-       //  clear(grid, store, [&](const auto& update) { grid.template forBoundary<EntityDimension>(update); });
+         clear(grid, store, [&](const UpdateFunctionType& update) { grid.template forBoundary<EntityDimension>(update); });
       }
       void clearInterior(const Grid& grid, DataStore& store) const {
-       //  clear(grid, store, [&](const auto& update) { grid.template forInterior<EntityDimension>(update); });
+         clear(grid, store, [&](const UpdateFunctionType& update) { grid.template forInterior<EntityDimension>(update); });
       }
 
 
@@ -82,9 +82,19 @@ class GridTraverseTestCase {
 
          CoordinateIterator iter(grid.getDimensions());
 
-         do {
-            EXPECT_EQ(0, 1) << iter.getCoordinate() << " " << iter.isBoundary();
-         } while (iter.next());
+         EXPECT_EQ(0, 1) << hostStore.getIndicesView();
+         EXPECT_EQ(0, 1) << hostStore.getCoordinatesView();
+         EXPECT_EQ(0, 1) << hostStore.getIsBoundaryView();
+         EXPECT_EQ(0, 1) << hostStore.getOrientationView();
+
+         int i = 0;
+
+         while (iter.hasNext() && i != 10) {
+            EXPECT_EQ(0, 1) << iter.getIndex() << iter.getCoordinate();
+            i++;
+
+            iter.next();
+         }
       }
       void verifyBoundary(const Grid& grid, const DataStore& store) const {
 
@@ -149,7 +159,7 @@ class GridTraverseTestCase {
    private:
       class CoordinateIterator {
          public:
-            CoordinateIterator(const Coordinate& end): end(end) {
+            CoordinateIterator(const Coordinate& end, const Coordinate& orientation): end(end) {
                for (Index i = 0; i < current.getSize(); i++)
                   current[i] = 0;
             }
@@ -166,32 +176,51 @@ class GridTraverseTestCase {
                return current;
             }
 
-            // Index getIndex(const Coordinate& orientation) {
-            //    Index result = 0;
+            Index getIndex() {
+               Index result = 0;
 
-            //    for (Index i = 0; i < current.size(); i++) {
-            //       result += current[i];
-            //    }
-            // }
+               for (Index i = 0; i < current.getSize(); i++)
+                  result += current[i] * (i == 0 ? 1 : end[i]);
 
-            bool next() {
+               return result;
+            }
+
+            Index getOrientedIndex(const Grid& grid, const Coordinate& orientation, Index index) {
+               if (EntityDimension == 0 || EntityDimension == grid.getMeshDimension())
+                  return index;
+
+               for (Index i = 0; i < orientation.getSize(); i++) {
+                  if (orientation[i])
+                     break;
+
+                  index += grid.getOrientedEntitiesCount(EntityDimension, i);
+               }
+
+               return index;
+            }
+
+            void next() {
+               current[0] += 1;
+
                if (current == end)
-                  return false;
+                  return;
 
                Index carry = 0;
 
                for (Index i = 0; i < current.getSize(); i++) {
-                  current[i] += (i == 0) + carry;
+                  current[i] += carry;
 
-                  if (current[i] == end[i]) {
+                  if (current[i] == end[i] && i != current.getSize() - 1) {
                      carry = 1;
                      current[i] = 0;
                   } else {
                      break;
                   }
                }
+            }
 
-               return current == end;
+            bool hasNext() const {
+               return current != end;
             }
          private:
             Coordinate current, end;

@@ -38,8 +38,8 @@ public:
       return 3;
    };
 
-   template< int EntityDimension, typename Config = GridEntityCrossStencilStorage< 1 > >
-   using EntityType = GridEntity< Grid, EntityDimension, Config >;
+   template< int EntityDimension>
+   using EntityType = GridEntity< Grid, EntityDimension >;
 
    using Cell = EntityType< getMeshDimension(), GridEntityCrossStencilStorage< 1 > >;
    using Face = EntityType< getMeshDimension() - 1 >;

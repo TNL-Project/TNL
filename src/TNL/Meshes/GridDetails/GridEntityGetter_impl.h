@@ -145,7 +145,8 @@ class GridEntityGetter< Meshes::Grid< 2, Real, Device, Index >, GridEntity, 1 >
 
          if( entity.getOrientation().x() )
             return coordinates.y() * ( dimensions.x() + 1 ) + coordinates.x();
-         return grid.numberOfNxFaces + coordinates.y() * dimensions.x() + coordinates.x();
+
+         return grid.template getOrientedEntitiesCount<2, 0>() + coordinates.y() * dimensions.x() + coordinates.x();
       }
       const IndexType i = index - grid.numberOfNxFaces;
       const IndexType& aux = dimensions.x();

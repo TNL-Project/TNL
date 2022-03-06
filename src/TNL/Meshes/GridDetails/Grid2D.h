@@ -29,18 +29,8 @@ class Grid<2, Real, Device, Index>: public NDimGrid<2, Real, Device, Index> {
    // TODO: deprecated and to be removed (GlobalIndexType shall be used instead)
    using IndexType = Index;
 
-   static constexpr int
-   getMeshDimension()
-   {
-      return 2;
-   };
-
-   template <int EntityDimension, typename Config = GridEntityCrossStencilStorage<1> >
-   using EntityType = GridEntity<Grid, EntityDimension, Config>;
-
-   typedef EntityType<getMeshDimension(), GridEntityCrossStencilStorage<1> > Cell;
-   typedef EntityType<getMeshDimension() - 1> Face;
-   typedef EntityType<0> Vertex;
+   template <int EntityDimension>
+   using EntityType = GridEntity<Grid, EntityDimension>;
 
    /**
     * \brief See Grid1D::Grid().
@@ -88,7 +78,6 @@ class Grid<2, Real, Device, Index>: public NDimGrid<2, Real, Device, Index> {
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
    void forBoundary(Func func, FuncArgs... args) const;
-
   protected:
    template <typename, typename, int>
    friend class GridEntityGetter;

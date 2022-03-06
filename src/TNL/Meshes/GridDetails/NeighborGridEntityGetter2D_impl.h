@@ -10,20 +10,24 @@
 #include <TNL/Meshes/GridDetails/Grid1D.h>
 #include <TNL/Meshes/GridDetails/Grid2D.h>
 #include <TNL/Meshes/GridDetails/Grid3D.h>
-#include <TNL/Algorithms/staticFor.h>
 
 namespace TNL {
 namespace Meshes {
 
 /****
- * +-----------------+---------------------------+-------------------+
- * | EntityDimenions | NeighborEntityDimension |  Stencil Storage  |
- * +-----------------+---------------------------+-------------------+
- * |       2         |              2            | No specialization |
- * +-----------------+---------------------------+-------------------+
+ * +-----------------+---------------------------+
+ * | EntityDimenions | NeighborEntityDimension   |
+ * +-----------------+---------------------------+
+ * |       2         |              2            |
+ * +-----------------+---------------------------+
  */
-template< typename Real, typename Device, typename Index, typename Config, typename StencilStorage >
-class NeighborGridEntityGetter< GridEntity< Meshes::Grid< 2, Real, Device, Index >, 2, Config >, 2, StencilStorage >
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename Config >
+class NeighborGridEntityGetter<
+   GridEntity< Meshes::Grid< 2, Real, Device, Index >, 2, Config >,
+   2>
 {
 public:
    static constexpr int EntityDimension = 2;
@@ -83,113 +87,19 @@ protected:
 };
 
 /****
- * +-----------------+---------------------------+-------------------+
- * | EntityDimenions | NeighborEntityDimension |  Stencil Storage  |
- * +-----------------+---------------------------+-------------------+
- * |       2         |              2            |       Cross       |
- * +-----------------+---------------------------+-------------------+
+ * +-----------------+---------------------------+
+ * | EntityDimenions | NeighborEntityDimension   |
+ * +-----------------+---------------------------+
+ * |       2         |              1            |
+ * +-----------------+---------------------------+
  */
-template< typename Real, typename Device, typename Index, typename Config >
-class NeighborGridEntityGetter< GridEntity< Meshes::Grid< 2, Real, Device, Index >, 2, Config >,
-                                2,
-                                GridEntityStencilStorageTag< GridEntityCrossStencil > >
-{
-public:
-   static constexpr int EntityDimension = 2;
-   static constexpr int NeighborEntityDimension = 2;
-   using GridType = Meshes::Grid< 2, Real, Device, Index >;
-   using GridEntityType = GridEntity< GridType, EntityDimension, Config >;
-   using NeighborGridEntityType = GridEntity< GridType, NeighborEntityDimension, Config >;
-   using RealType = Real;
-   using IndexType = Index;
-   using CoordinatesType = typename GridType::CoordinatesType;
-   using GridEntityGetterType = GridEntityGetter< GridType, NeighborGridEntityType >;
-   using StencilStorage = GridEntityStencilStorageTag< GridEntityCrossStencil >;
-
-   static constexpr int stencilSize = Config::getStencilSize();
-
-   __cuda_callable__
-   inline NeighborGridEntityGetter( const GridEntityType& entity ) : entity( entity ) {}
-
-   template< int stepX, int stepY >
-   __cuda_callable__
-   inline NeighborGridEntityType
-   getEntity() const
-   {
-      TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0 ), "wrong coordinates" );
-      TNL_ASSERT_LT( entity.getCoordinates(), entity.getMesh().getDimensions(), "wrong coordinates" );
-      TNL_ASSERT( entity.getCoordinates() + CoordinatesType( stepX, stepY ) >= CoordinatesType( 0, 0 )
-                     && entity.getCoordinates() + CoordinatesType( stepX, stepY ) < entity.getMesh().getDimensions(),
-                  std::cerr << "entity.getCoordinates()  + CoordinatesType( stepX, stepY ) = "
-                            << entity.getCoordinates() + CoordinatesType( stepX, stepY )
-                            << " entity.getMesh().getDimensions() = " << entity.getMesh().getDimensions()
-                            << " EntityDimension = " << EntityDimension );
-      return NeighborGridEntityType(
-         this->entity.getMesh(), CoordinatesType( entity.getCoordinates().x() + stepX, entity.getCoordinates().y() + stepY ) );
-   }
-
-   template< int stepX, int stepY >
-   __cuda_callable__
-   inline IndexType
-   getEntityIndex() const
-   {
-      TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0 ), "wrong coordinates" );
-      TNL_ASSERT_LT( entity.getCoordinates(), entity.getMesh().getDimensions(), "wrong coordinates" );
-      TNL_ASSERT( entity.getCoordinates() + CoordinatesType( stepX, stepY ) >= CoordinatesType( 0, 0 )
-                     && entity.getCoordinates() + CoordinatesType( stepX, stepY ) < entity.getMesh().getDimensions(),
-                  std::cerr << "entity.getCoordinates()  + CoordinatesType( stepX, stepY ) = "
-                            << entity.getCoordinates() + CoordinatesType( stepX, stepY )
-                            << " entity.getMesh().getDimensions() = " << entity.getMesh().getDimensions()
-                            << " EntityDimension = " << EntityDimension );
-#ifndef HAVE_CUDA  // TODO: fix this to work with CUDA
-      if( ( stepX != 0 && stepY != 0 )
-          || ( stepX < -stencilSize || stepX > stencilSize || stepY < -stencilSize || stepY > stencilSize ) )
-         return this->entity.getIndex() + stepY * entity.getMesh().getDimensions().x() + stepX;
-      if( stepY == 0 )
-         return stencilX[ stepX + stencilSize ];
-      return stencilY[ stepY + stencilSize ];
-#else
-      return this->entity.getIndex() + stepY * entity.getMesh().getDimensions().x() + stepX;
-#endif
-   }
-
-   __cuda_callable__
-   void
-   refresh( const GridType& grid, const IndexType& entityIndex )
-   {
-#ifndef HAVE_CUDA  // TODO: fix this to work with CUDA
-      auto stencilXRefresher = [ & ]( auto index )
-      {
-         stencilX[ index + stencilSize ] = entityIndex + index;
-      };
-      auto stencilYRefresher = [ & ]( auto index )
-      {
-         stencilY[ index + stencilSize ] = entityIndex + index * entity.getMesh().getDimensions().x();
-      };
-      Algorithms::staticFor< IndexType, -stencilSize, 0 >( stencilYRefresher );
-      Algorithms::staticFor< IndexType, 1, stencilSize + 1 >( stencilYRefresher );
-      Algorithms::staticFor< IndexType, -stencilSize, stencilSize + 1 >( stencilXRefresher );
-#endif
-   };
-
-protected:
-   const GridEntityType& entity;
-
-   IndexType stencilX[ 2 * stencilSize + 1 ];
-   IndexType stencilY[ 2 * stencilSize + 1 ];
-
-   // NeighborGridEntityGetter(){};
-};
-
-/****
- * +-----------------+---------------------------+-------------------+
- * | EntityDimenions | NeighborEntityDimension |  Stencil Storage  |
- * +-----------------+---------------------------+-------------------+
- * |       2         |              1            |       None        |
- * +-----------------+---------------------------+-------------------+
- */
-template< typename Real, typename Device, typename Index, typename Config, typename StencilStorage >
-class NeighborGridEntityGetter< GridEntity< Meshes::Grid< 2, Real, Device, Index >, 2, Config >, 1, StencilStorage >
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename Config >
+class NeighborGridEntityGetter<
+   GridEntity< Meshes::Grid< 2, Real, Device, Index >, 2, Config >,
+   1>
 {
 public:
    static constexpr int EntityDimension = 2;
@@ -248,14 +158,19 @@ protected:
 };
 
 /****
- * +-----------------+---------------------------+-------------------+
- * | EntityDimenions | NeighborEntityDimension |  Stencil Storage  |
- * +-----------------+---------------------------+-------------------+
- * |       2         |            0              |       None        |
- * +-----------------+---------------------------+-------------------+
+ * +-----------------+---------------------------+
+ * | EntityDimenions | NeighborEntityDimension   |
+ * +-----------------+---------------------------+
+ * |       2         |            0              |
+ * +-----------------+---------------------------+
  */
-template< typename Real, typename Device, typename Index, typename Config, typename StencilStorage >
-class NeighborGridEntityGetter< GridEntity< Meshes::Grid< 2, Real, Device, Index >, 2, Config >, 0, StencilStorage >
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename Config>
+class NeighborGridEntityGetter<
+   GridEntity< Meshes::Grid< 2, Real, Device, Index >, 2, Config >,
+   0 >
 {
 public:
    static constexpr int EntityDimension = 2;
@@ -312,14 +227,19 @@ protected:
 };
 
 /****
- * +-----------------+---------------------------+-------------------+
- * | EntityDimenions | NeighborEntityDimension |  Stencil Storage  |
- * +-----------------+---------------------------+-------------------+
- * |       1         |              2            |       None        |
- * +-----------------+---------------------------+-------------------+
+ * +-----------------+---------------------------+
+ * | EntityDimenions | NeighborEntityDimension   |
+ * +-----------------+---------------------------+
+ * |       1         |              2            |
+ * +-----------------+---------------------------+
  */
-template< typename Real, typename Device, typename Index, typename Config, typename StencilStorage >
-class NeighborGridEntityGetter< GridEntity< Meshes::Grid< 2, Real, Device, Index >, 1, Config >, 2, StencilStorage >
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename Config >
+class NeighborGridEntityGetter<
+   GridEntity< Meshes::Grid< 2, Real, Device, Index >, 1, Config >,
+   2>
 {
 public:
    static constexpr int EntityDimension = 1;
@@ -385,14 +305,19 @@ protected:
 };
 
 /****
- * +-----------------+---------------------------+-------------------+
- * | EntityDimenions | NeighborEntityDimension |  Stencil Storage  |
- * +-----------------+---------------------------+-------------------+
- * |       0         |              0            |       None        |
- * +-----------------+---------------------------+-------------------+
+ * +-----------------+---------------------------+
+ * | EntityDimenions | NeighborEntityDimension   |
+ * +-----------------+---------------------------+
+ * |       0         |              0            |
+ * +-----------------+---------------------------+
  */
-template< typename Real, typename Device, typename Index, typename Config, typename StencilStorage >
-class NeighborGridEntityGetter< GridEntity< Meshes::Grid< 2, Real, Device, Index >, 0, Config >, 0, StencilStorage >
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename Config>
+class NeighborGridEntityGetter<
+   GridEntity< Meshes::Grid< 2, Real, Device, Index >, 0, Config >,
+   0>
 {
 public:
    static constexpr int EntityDimension = 0;

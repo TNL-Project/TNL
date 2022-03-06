@@ -10,6 +10,16 @@ namespace Meshes {
 #define __NDIM_PREFIX__ NDimGrid<Dimension, Real, Device, Index>
 
 __NDIMGRID_TEMPLATE__
+typename __NDIM_PREFIX__::Coordinate __NDIM_PREFIX__::encodeOrientation(const Index direction) const {
+   Coordinate orientation;
+
+   for (Index i = 0; i < (Index)Dimension; i++)
+      orientation[i] = i == direction;
+
+   return orientation;
+ }
+
+__NDIMGRID_TEMPLATE__
 template <typename... Dimensions, std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Dimensions>::value...>::value, bool>,
           std::enable_if_t<sizeof...(Dimensions) == Dimension, bool>>
 void __NDIM_PREFIX__::setDimensions(Dimensions... dimensions) {
@@ -70,13 +80,15 @@ __cuda_callable__ inline Index __NDIM_PREFIX__::getEntitiesCount(Index index) co
 }
 
 __NDIMGRID_TEMPLATE__
-template <int EntityDimension, std::enable_if_t<(EntityDimension >= 0), bool>, std::enable_if_t<(EntityDimension <= Dimension), bool>>
+template <int EntityDimension,
+          std::enable_if_t<Templates::isInClosedRange(0, EntityDimension, Dimension), bool>>
 __cuda_callable__ inline Index __NDIM_PREFIX__::getEntitiesCount() const noexcept {
    return this->cumulativeEntitiesCountAlongBases(EntityDimension);
 }
 
 __NDIMGRID_TEMPLATE__
-template <typename... DimensionIndex, std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool>,
+template <typename... DimensionIndex,
+          std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool>,
           std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool>>
 __cuda_callable__ inline __NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index> __NDIM_PREFIX__::getEntitiesCounts(
     DimensionIndex... indices) const {
@@ -105,6 +117,35 @@ void __NDIM_PREFIX__::setOrigin(Coordinates... coordinates) noexcept {
       this->origin[i] = x;
       i++;
    }
+}
+
+__NDIMGRID_TEMPLATE__
+__cuda_callable__ inline
+Index __NDIM_PREFIX__::getOrientedEntitiesCount(Index dimension, Index orientation) const {
+   TNL_ASSERT_GE(dimension, 0, "Dimension must be greater than zero");
+   TNL_ASSERT_LE(dimension, Dimension, "Requested dimension must be less than or equal to Dimension");
+
+   if (dimension == 0 || dimension == Dimension)
+      return this -> getEntitiesCount(dimension);
+
+   Index index = Templates::firstKCombinationSum(dimension, Dimension) + orientation;
+
+   return this -> entitiesCountAlongBases[index];
+}
+
+__NDIMGRID_TEMPLATE__
+template <int EntityDimension,
+          int EntityOrientation,
+          std::enable_if_t<Templates::isInClosedRange(0, EntityDimension, Dimension), bool>,
+          std::enable_if_t<Templates::isInClosedRange(0, EntityOrientation, Dimension), bool>>
+__cuda_callable__ inline
+Index __NDIM_PREFIX__::getOrientedEntitiesCount() const noexcept {
+   if (EntityDimension == 0 || EntityDimension == Dimension)
+      return this -> getEntitiesCount(EntityDimension);
+
+   constexpr Index index = Templates::firstKCombinationSum(EntityDimension, Dimension) + EntityOrientation;
+
+   return this -> entitiesCountAlongBases[index];
 }
 
 __NDIMGRID_TEMPLATE__
@@ -286,6 +327,15 @@ void __NDIM_PREFIX__::forEach(const Coordinate& from, const Coordinate& to, Func
       TNL_ASSERT_LE(from[i], to[i], "Traverse rect must be specified from bottom-leading angle (from) to upper-trailing angle (to)");
 
    Templates::ParallelFor<Dimension, Device, Index>::exec(from, to, func, args...);
+}
+
+__NDIMGRID_TEMPLATE__
+template <int TraverseDimension, typename Func, typename... FuncArgs>
+void __NDIM_PREFIX__::forEach(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
+   for (Index i = 0; i < Dimension; i++)
+      TNL_ASSERT_LE(from[i], to[i], "Traverse rect must be specified from bottom-leading angle (from) to upper-trailing angle (to)");
+
+   Templates::ParallelFor<TraverseDimension, Device, Index>::exec(from, to, func, args...);
 }
 
 __NDIMGRID_TEMPLATE__
