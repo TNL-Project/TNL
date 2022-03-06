@@ -19,10 +19,10 @@ class NeighborGridEntityGetter;
 template<typename>
 class BoundaryGridEntityChecker;
 
-template <typename GridEntityType>
+template <typename>
 class GridEntityCenterGetter;
 
-template <typename Grid, int EntityDimension>
+template <typename, int>
 class GridEntity;
 
 // TODO: - Implement
