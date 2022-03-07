@@ -259,12 +259,6 @@ public:
    PointType spaceSteps;
 
    RealType spaceStepsProducts[ 5 ][ 5 ][ 5 ];
-
-   template< typename, typename, int >
-   friend class GridEntityGetter;
-
-   template< typename, int, typename >
-   friend class NeighbourGridEntityGetter;
 };
 
 }  // namespace Meshes

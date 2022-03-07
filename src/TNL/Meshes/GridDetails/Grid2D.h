@@ -63,7 +63,7 @@ class Grid<2, Real, Device, Index>: public NDimGrid<2, Real, Device, Index> {
    __cuda_callable__ inline Index getEntityIndex(const Entity& entity) const;
 
    /**
-    * \breif Returns the measure (area) of a cell in this grid.
+    * \brief Returns the measure (area) of a cell in this grid.
     */
    __cuda_callable__ inline const Real& getCellMeasure() const;
 
@@ -78,9 +78,6 @@ class Grid<2, Real, Device, Index>: public NDimGrid<2, Real, Device, Index> {
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
    void forBoundary(Func func, FuncArgs... args) const;
-  protected:
-   template <typename, typename, int>
-   friend class GridEntityGetter;
 };
 
 }  // namespace Meshes

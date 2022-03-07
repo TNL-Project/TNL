@@ -9,7 +9,7 @@
 #include <fstream>
 #include <iomanip>
 #include <TNL/Assert.h>
-#include <TNL/Meshes/GridDetails/GridEntityGetter_impl.h>
+#include <TNL/Meshes/GridDetails/GridEntityGetter.h>
 #include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter3D_impl.h>
 #include <TNL/Meshes/GridDetails/Grid3D.h>
 #include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.h>
@@ -305,7 +305,7 @@ Grid< 3, Real, Device, Index >::getEntity( const IndexType& entityIndex ) const
 {
    static_assert( Entity::getEntityDimension() <= 3 && Entity::getEntityDimension() >= 0, "Wrong grid entity dimensions." );
 
-   return GridEntityGetter< Grid, Entity >::getEntity( *this, entityIndex );
+   return GridEntityGetter< Grid, Entity::getEntityDimension() >::getEntity( *this, entityIndex );
 }
 
 template< typename Real, typename Device, typename Index >
@@ -316,7 +316,7 @@ Grid< 3, Real, Device, Index >::getEntityIndex( const Entity& entity ) const
 {
    static_assert( Entity::getEntityDimension() <= 3 && Entity::getEntityDimension() >= 0, "Wrong grid entity dimensions." );
 
-   return GridEntityGetter< Grid, Entity >::getEntityIndex( *this, entity );
+   return GridEntityGetter< Grid, Entity::getEntityDimension() >::getEntityIndex( *this, entity );
 }
 
 template< typename Real, typename Device, typename Index >

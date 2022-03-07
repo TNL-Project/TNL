@@ -9,7 +9,7 @@
 #include <TNL/Assert.h>
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/GridDetails/Grid1D.h>
-#include <TNL/Meshes/GridDetails/GridEntityGetter_impl.h>
+#include <TNL/Meshes/GridDetails/GridEntityGetter.h>
 #include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.h>
 #include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter1D_impl.h>
 #include <TNL/String.h>
@@ -43,7 +43,7 @@ __cuda_callable__ inline Entity Grid<1, Real, Device, Index>::getEntity(
    static_assert(Entity::getEntityDimension() <= 1 && Entity::getEntityDimension() >= 0,
                  "Wrong grid entity dimensions.");
 
-   return GridEntityGetter<Grid, Entity>::getEntity(*this, entityIndex);
+   return GridEntityGetter<Grid, Entity::getEntityDimension()>::getEntity(*this, entityIndex);
 }
 
 template <typename Real, typename Device, typename Index>
@@ -53,7 +53,7 @@ __cuda_callable__ inline Index Grid<1, Real, Device, Index>::getEntityIndex(
    static_assert(Entity::getEntityDimension() <= 1 && Entity::getEntityDimension() >= 0,
                  "Wrong grid entity dimensions.");
 
-   return GridEntityGetter<Grid, Entity>::getEntityIndex(*this, entity);
+   return GridEntityGetter<Grid, Entity::getEntityDimension()>::getEntityIndex(*this, entity);
 }
 
 template <typename Real, typename Device, typename Index>

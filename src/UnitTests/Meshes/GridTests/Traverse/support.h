@@ -80,7 +80,7 @@ class GridTraverseTestCase {
       void verifyAll(const Grid& grid, const DataStore& store) const {
          auto hostStore = store.template move<TNL::Devices::Host>();
 
-         CoordinateIterator iter(grid.getDimensions());
+         CoordinateIterator iter(grid.getDimensions(), grid.getDimensions());
 
          EXPECT_EQ(0, 1) << hostStore.getIndicesView();
          EXPECT_EQ(0, 1) << hostStore.getCoordinatesView();
@@ -116,17 +116,17 @@ class GridTraverseTestCase {
             auto index = entity.getIndex();
 
             indicesView[index] = index;
-            isBoundaryView[index] = entity.isBoundaryEntity();
+            isBoundaryView[index] = entity.isBoundary();
 
             auto coordinates = entity.getCoordinates();
 
             for (Index i = 0; i < gridDimension; i++)
                coordinatesView[index * gridDimension + i] = coordinates[i];
 
-            auto orientation = entity.getOrientation();
+            // auto orientation = entity.getOrientation();
 
-            for (Index i = 0; i < gridDimension; i++)
-               orientationView[index * gridDimension + i] = orientation[i];
+            // for (Index i = 0; i < gridDimension; i++)
+            //    orientationView[index * gridDimension + i] = orientation[i];
          };
 
          traverser(update);

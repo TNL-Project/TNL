@@ -36,7 +36,7 @@ class DistributedGrid : public Grid<Dimension, Real, Device, Index> {
     *                          Least significant dimension is in the end of the list
     */
    template <typename... Coordinates,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Coordinates>::value..., bool>::value> = true,
+             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Coordinates>::value...>::value, bool> = true,
              std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setLocalEnd(Coordinates... coordinates) noexcept;
    /**
