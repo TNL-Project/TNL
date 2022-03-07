@@ -11,7 +11,7 @@
 #include <TNL/Meshes/GridDetails/Grid1D.h>
 #include <TNL/Meshes/GridDetails/GridEntityGetter_impl.h>
 #include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.h>
-#include <TNL/Meshes/GridDetails/NeighborGridEntityGetter1D_impl.h>
+#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter1D_impl.h>
 #include <TNL/String.h>
 
 #include <fstream>

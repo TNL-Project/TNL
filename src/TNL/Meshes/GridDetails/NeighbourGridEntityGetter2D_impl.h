@@ -1,5 +1,5 @@
 /***************************************************************************
-                          NeighborGridEntityGetter2D_impl.h  -  description
+                          NeighbourGridEntityGetter2D_impl.h  -  description
                              -------------------
     begin                : Nov 23, 2015
     copyright            : (C) 2015 by Tomas Oberhuber
@@ -13,7 +13,7 @@
 #include <TNL/Meshes/GridDetails/Grid1D.h>
 #include <TNL/Meshes/GridDetails/Grid2D.h>
 #include <TNL/Meshes/GridDetails/Grid3D.h>
-#include <TNL/Meshes/GridDetails/NeighborGridEntityGetter.h>
+#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.h>
 
 namespace TNL {
 namespace Meshes {
@@ -26,7 +26,7 @@ namespace Meshes {
  * +-----------------+---------------------------+
  */
 template <typename Real, typename Device, typename Index>
-class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 2>, 2> {
+class NeighbourGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 2>, 2> {
    public:
       static constexpr int EntityDimension = 2;
       static constexpr int NeighbourEntityDimension = 2;
@@ -36,10 +36,12 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
       using NeighbourEntity = GridEntity<Grid, NeighbourEntityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
-      __cuda_callable__ inline NeighborGridEntityGetter(const Entity& entity) : entity(entity) {}
+      __cuda_callable__ inline
+      NeighbourGridEntityGetter(const Entity& entity) : entity(entity) {}
 
       template <int stepX, int stepY>
-      __cuda_callable__ inline NeighbourEntity getEntity() const {
+      __cuda_callable__ inline
+       NeighbourEntity getEntity() const {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
          TNL_ASSERT_LT(entity.getCoordinates(), entity.getMesh().getDimensions(), "wrong coordinates");
          TNL_ASSERT(
@@ -53,7 +55,8 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
 
       // TODO: - Fix
       template <int stepX, int stepY>
-      __cuda_callable__ inline Index getEntityIndex() const {
+      __cuda_callable__ inline
+      Index getEntityIndex() const {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
          TNL_ASSERT_LT(entity.getCoordinates(), entity.getMesh().getDimensions(), "wrong coordinates");
          TNL_ASSERT(
@@ -75,7 +78,7 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
  * +-----------------+---------------------------+
  */
 template <typename Real, typename Device, typename Index>
-class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 2>, 1> {
+class NeighbourGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 2>, 1> {
    public:
       static constexpr int EntityDimension = 2;
       static constexpr int NeighbourEntityDimension = 1;
@@ -85,10 +88,12 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
       using NeighbourEntity = GridEntity<Grid, NeighbourEntityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
-      __cuda_callable__ inline NeighborGridEntityGetter(const Entity& entity) : entity(entity) {}
+      __cuda_callable__ inline
+      NeighbourGridEntityGetter(const Entity& entity) : entity(entity) {}
 
       template <int stepX, int stepY>
-      __cuda_callable__ inline NeighbourEntity getEntity() const {
+      __cuda_callable__ inline
+      NeighbourEntity getEntity() const {
          static_assert(!stepX + !stepY == 1, "Only one of the steps can be non-zero.");
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
          TNL_ASSERT_LT(entity.getCoordinates(), entity.getMesh().getDimensions(), "wrong coordinates");
@@ -102,12 +107,13 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
          return NeighbourEntity(
             this->entity.getMesh(),
             Coordinate(entity.getCoordinates().x() + stepX + (stepX < 0), entity.getCoordinates().y() + stepY + (stepY < 0)),
-            Coordinate(stepX ? (stepX > 0 ? 1 : -1) : 0, stepY ? (stepY > 0 ? 1 : -1) : 0), Coordinate`(!stepX, !stepY));
+            Coordinate(stepX ? (stepX > 0 ? 1 : -1) : 0, stepY ? (stepY > 0 ? 1 : -1) : 0), Coordinate(!stepX, !stepY));
       }
 
       // TODO: - Fix
       template <int stepX, int stepY>
-      __cuda_callable__ inline Index getEntityIndex() const {
+      __cuda_callable__ inline
+      Index getEntityIndex() const {
          return -1;// GridEntityGetterType::getEntityIndex(this->entity.getMesh(), this->template getEntity<stepX, stepY>());
       }
    protected:
@@ -122,7 +128,7 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
  * +-----------------+---------------------------+
  */
 template <typename Real, typename Device, typename Index>
-class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 2>, 0> {
+class NeighbourGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 2>, 0> {
    public:
       static constexpr int EntityDimension = 2;
       static constexpr int NeighbourEntityDimension = 0;
@@ -132,10 +138,12 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
       using NeighbourEntity = GridEntity<Grid, NeighbourEntityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
-      __cuda_callable__ inline NeighborGridEntityGetter(const Entity& entity) : entity(entity) {}
+      __cuda_callable__ inline
+      NeighbourGridEntityGetter(const Entity& entity) : entity(entity) {}
 
       template <int stepX, int stepY>
-      __cuda_callable__ inline NeighbourEntity getEntity() const {
+      __cuda_callable__ inline
+      NeighbourEntity getEntity() const {
          TNL_ASSERT(stepX != 0 && stepY != 0, std::cerr << " stepX = " << stepX << " stepY = " << stepY);
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
          TNL_ASSERT_LT(entity.getCoordinates(), entity.getMesh().getDimensions(), "wrong coordinates");
@@ -153,7 +161,8 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
 
       // TODO: - Fix
       template <int stepX, int stepY>
-      __cuda_callable__ inline Index getEntityIndex() const {
+      __cuda_callable__ inline
+       Index getEntityIndex() const {
          return -1;//GridEntityGetterType::getEntityIndex(this->entity.getMesh(), this->template getEntity<stepX, stepY>());
       }
    protected:
@@ -168,7 +177,7 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
  * +-----------------+---------------------------+
  */
 template <typename Real, typename Device, typename Index>
-class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 1>, 2> {
+class NeighbourGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 1>, 2> {
    public:
       static constexpr int EntityDimension = 1;
       static constexpr int NeighbourEntityDimension = 2;
@@ -178,10 +187,12 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
       using NeighbourEntity = GridEntity<Grid, NeighbourEntityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
-      __cuda_callable__ inline NeighborGridEntityGetter(const Entity& entity) : entity(entity) {}
+      __cuda_callable__ inline
+      NeighbourGridEntityGetter(const Entity& entity) : entity(entity) {}
 
       template <int stepX, int stepY>
-      __cuda_callable__ inline NeighbourEntity getEntity() const {
+      __cuda_callable__ inline
+      NeighbourEntity getEntity() const {
          /*TNL_ASSERT( ( ( !! stepX ) == ( !! entity.getOrientation().x() ) ) &&
                   ( ( !! stepY ) == ( !! entity.getOrientation().y() ) ),
                   std::cerr << "( stepX, stepY ) cannot be perpendicular to entity coordinates: stepX = " << stepX << " stepY = " << stepY
@@ -204,7 +215,8 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
       }
 
       template <int stepX, int stepY>
-      __cuda_callable__ inline Index getEntityIndex() const {
+      __cuda_callable__ inline
+       Index getEntityIndex() const {
          return -1;// GridEntityGetterType::getEntityIndex(this->entity.getMesh(), this->template getEntity<stepX, stepY>());
       }
    protected:
@@ -219,7 +231,7 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
  * +-----------------+---------------------------+
  */
 template <typename Real, typename Device, typename Index>
-class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 0>, 0> {
+class NeighbourGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 0>, 0> {
    public:
       static constexpr int EntityDimension = 0;
       static constexpr int NeighbourEntityDimension = 0;
@@ -229,10 +241,12 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
       using NeighbourEntity = GridEntity<Grid, NeighbourEntityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
-      __cuda_callable__ inline NeighborGridEntityGetter(const Entity& entity) : entity(entity) {}
+      __cuda_callable__ inline
+      NeighbourGridEntityGetter(const Entity& entity) : entity(entity) {}
 
       template <int stepX, int stepY>
-      __cuda_callable__ inline NeighbourEntity getEntity() const {
+      __cuda_callable__ inline
+      NeighbourEntity getEntity() const {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
          TNL_ASSERT_LE(entity.getCoordinates(), entity.getMesh().getDimensions(), "wrong coordinates");
          TNL_ASSERT(
@@ -245,7 +259,8 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 
       }
 
       template <int stepX, int stepY>
-      __cuda_callable__ inline Index getEntityIndex() const {
+      __cuda_callable__ inline
+      Index getEntityIndex() const {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
          TNL_ASSERT_LE(entity.getCoordinates(), entity.getMesh().getDimensions(), "wrong coordinates");
          TNL_ASSERT(

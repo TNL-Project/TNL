@@ -1,5 +1,5 @@
 /***************************************************************************
-                          NeighborGridEntityGetter1D_impl.h  -  description
+                          NeighbourGridEntityGetter1D_impl.h  -  description
                              -------------------
     begin                : Nov 23, 2015
     copyright            : (C) 2015 by Tomas Oberhuber
@@ -13,31 +13,31 @@
 #include <TNL/Meshes/GridDetails/Grid1D.h>
 #include <TNL/Meshes/GridDetails/Grid2D.h>
 #include <TNL/Meshes/GridDetails/Grid3D.h>
-#include <TNL/Meshes/GridDetails/NeighborGridEntityGetter.h>
+#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.h>
 
 namespace TNL {
 namespace Meshes {
 
 /****
  * +-----------------+---------------------------+
- * | EntityDimenions | NeighborEntityDimension   |
+ * | EntityDimenions | NeighbourEntityDimension   |
  * +-----------------+---------------------------+
  * |       1         |              1            |
  * +-----------------+---------------------------+
  */
 template <typename Real, typename Device, typename Index>
-class NeighborGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 1>, 1> {
+class NeighbourGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 1>, 1> {
    public:
       static constexpr int EntityDimension = 1;
-      static constexpr int NeighborEntityDimension = 1;
+      static constexpr int NeighbourEntityDimension = 1;
 
       using Grid = Meshes::Grid<1, Real, Device, Index>;
       using Entity = GridEntity<Grid, EntityDimension>;
-      using NeighbourEntity = GridEntity<Grid, NeighborEntityDimension>;
+      using NeighbourEntity = GridEntity<Grid, NeighbourEntityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      NeighborGridEntityGetter(const Entity& entity) : entity(entity) {}
+      NeighbourGridEntityGetter(const Entity& entity) : entity(entity) {}
 
       template <int step>
       __cuda_callable__ inline
@@ -70,24 +70,24 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 
 
 /****
  * +-----------------+---------------------------+
- * | EntityDimenions | NeighborEntityDimension   |
+ * | EntityDimenions | NeighbourEntityDimension   |
  * +-----------------+---------------------------+
  * |       1         |              0            |
  * +-----------------+---------------------------+
  */
 template <typename Real, typename Device, typename Index>
-class NeighborGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 1>, 0> {
+class NeighbourGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 1>, 0> {
    public:
       static constexpr int EntityDimension = 1;
-      static constexpr int NeighborEntityDimension = 0;
+      static constexpr int NeighbourEntityDimension = 0;
 
       using Grid = Meshes::Grid<1, Real, Device, Index>;
       using Entity = GridEntity<Grid, EntityDimension>;
-      using NeighbourEntity = GridEntity<Grid, NeighborEntityDimension>;
+      using NeighbourEntity = GridEntity<Grid, NeighbourEntityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      NeighborGridEntityGetter(const Entity& entity) : entity(entity) {}
+      NeighbourGridEntityGetter(const Entity& entity) : entity(entity) {}
 
       template <int step>
       __cuda_callable__ inline
@@ -118,24 +118,24 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 
 
 /****
  * +-----------------+---------------------------+
- * | EntityDimenions | NeighborEntityDimension   |
+ * | EntityDimenions | NeighbourEntityDimension   |
  * +-----------------+---------------------------+
  * |       0         |              1            |
  * +-----------------+---------------------------+
  */
 template <typename Real, typename Device, typename Index>
-class NeighborGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 0>, 1> {
+class NeighbourGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 0>, 1> {
    public:
       static constexpr int EntityDimension = 0;
-      static constexpr int NeighborEntityDimension = 1;
+      static constexpr int NeighbourEntityDimension = 1;
 
       using Grid = Meshes::Grid<1, Real, Device, Index>;
       using Entity = GridEntity<Grid, EntityDimension>;
-      using NeighbourEntity = GridEntity<Grid, NeighborEntityDimension>;
+      using NeighbourEntity = GridEntity<Grid, NeighbourEntityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      NeighborGridEntityGetter(const Entity& entity) : entity(entity) {}
+      NeighbourGridEntityGetter(const Entity& entity) : entity(entity) {}
 
       template <int step>
       __cuda_callable__ inline
@@ -166,24 +166,24 @@ class NeighborGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 
 
 /****
  * +-----------------+---------------------------+
- * | EntityDimenions | NeighborEntityDimension   |
+ * | EntityDimenions | NeighbourEntityDimension   |
  * +-----------------+---------------------------+
  * |       0         |              0            |
  * +-----------------+---------------------------+
  */
 template <typename Real, typename Device, typename Index>
-class NeighborGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 0>, 0> {
+class NeighbourGridEntityGetter<GridEntity<Meshes::Grid<1, Real, Device, Index>, 0>, 0> {
    public:
       static constexpr int EntityDimension = 0;
-      static constexpr int NeighborEntityDimension = 0;
+      static constexpr int NeighbourEntityDimension = 0;
 
       using Grid = Meshes::Grid<1, Real, Device, Index>;
       using Entity = GridEntity<Grid, EntityDimension>;
-      using NeighbourEntity = GridEntity<Grid, NeighborEntityDimension>;
+      using NeighbourEntity = GridEntity<Grid, NeighbourEntityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      NeighborGridEntityGetter(const Entity& entity) : entity(entity) {}
+      NeighbourGridEntityGetter(const Entity& entity) : entity(entity) {}
 
       template <int step>
       __cuda_callable__ inline

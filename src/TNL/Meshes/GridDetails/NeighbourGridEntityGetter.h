@@ -1,5 +1,5 @@
 /***************************************************************************
-                          NeighborGridEntityGetter.h  -  description
+                          NeighbourGridEntityGetter.h  -  description
                              -------------------
     begin                : Nov 23, 2015
     copyright            : (C) 2015 by Tomas Oberhuber
@@ -16,8 +16,8 @@
 namespace TNL {
 namespace Meshes {
 
-template <typename GridEntity, int NeighborEntityDimension>
-class NeighborGridEntityGetter;
+template <typename GridEntity, int NeighbourEntityDimension>
+class NeighbourGridEntityGetter;
 
 }  // namespace Meshes
 }  // namespace TNL

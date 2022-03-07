@@ -13,7 +13,7 @@ namespace TNL {
 namespace Meshes {
 
 template <class GridEntity, int NeighborEntityDimension>
-class NeighborGridEntityGetter;
+class NeighbourGridEntityGetter;
 
 template<class>
 class BoundaryGridEntityChecker;
@@ -50,7 +50,7 @@ class GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension> 
 
    // template <int NeighborEntityDimension = getEntityDimension()>
    // using NeighborEntities =
-   //     NeighborGridEntityGetter<GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension, Config>, NeighborEntityDimension>;
+   //     NeighbourGridEntityGetter<GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension, Config>, NeighborEntityDimension>;
 
       __cuda_callable__ inline
       GridEntity(const Grid& grid, const Coordinate& coordinates, const Coordinate& basis): grid(grid), coordinates(coordinates), basis(basis) {}

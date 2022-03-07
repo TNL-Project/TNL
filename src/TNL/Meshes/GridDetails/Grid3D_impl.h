@@ -10,7 +10,7 @@
 #include <iomanip>
 #include <TNL/Assert.h>
 #include <TNL/Meshes/GridDetails/GridEntityGetter_impl.h>
-#include <TNL/Meshes/GridDetails/NeighborGridEntityGetter3D_impl.h>
+#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter3D_impl.h>
 #include <TNL/Meshes/GridDetails/Grid3D.h>
 #include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.h>
 
