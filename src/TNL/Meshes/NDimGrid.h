@@ -72,7 +72,7 @@ class NDimGrid {
     * @param[in] index - index of dimension
     */
    template <int EntityDimension,
-             std::enable_if_t<Templates::isInClosedRange(0, EntityDimension, Dimension), bool> = true>
+             std::enable_if_t<Templates::isInClosedInterval(0, EntityDimension, Dimension), bool> = true>
    __cuda_callable__ inline Index getEntitiesCount() const noexcept;
    /**
     * @brief - Returns the number of entities of specific dimension
@@ -96,8 +96,8 @@ class NDimGrid {
     */
    template<int EntityDimension,
             int EntityOrientation,
-            std::enable_if_t<Templates::isInClosedRange(0, EntityDimension, Dimension), bool> = true,
-            std::enable_if_t<Templates::isInClosedRange(0, EntityOrientation, Dimension), bool> = true>
+            std::enable_if_t<Templates::isInClosedInterval(0, EntityDimension, Dimension), bool> = true,
+            std::enable_if_t<Templates::isInClosedInterval(0, EntityOrientation, Dimension), bool> = true>
    __cuda_callable__ inline Index getOrientedEntitiesCount() const noexcept;
    /**
     * \brief Sets the origin and proportions of this grid.

@@ -81,7 +81,7 @@ __cuda_callable__ inline Index __NDIM_PREFIX__::getEntitiesCount(Index index) co
 
 __NDIMGRID_TEMPLATE__
 template <int EntityDimension,
-          std::enable_if_t<Templates::isInClosedRange(0, EntityDimension, Dimension), bool>>
+          std::enable_if_t<Templates::isInClosedInterval(0, EntityDimension, Dimension), bool>>
 __cuda_callable__ inline Index __NDIM_PREFIX__::getEntitiesCount() const noexcept {
    return this->cumulativeEntitiesCountAlongBases(EntityDimension);
 }
@@ -137,8 +137,8 @@ Index __NDIM_PREFIX__::getOrientedEntitiesCount(Index dimension, Index orientati
 __NDIMGRID_TEMPLATE__
 template <int EntityDimension,
           int EntityOrientation,
-          std::enable_if_t<Templates::isInClosedRange(0, EntityDimension, Dimension), bool>,
-          std::enable_if_t<Templates::isInClosedRange(0, EntityOrientation, Dimension), bool>>
+          std::enable_if_t<Templates::isInClosedInterval(0, EntityDimension, Dimension), bool>,
+          std::enable_if_t<Templates::isInClosedInterval(0, EntityOrientation, Dimension), bool>>
 __cuda_callable__ inline
 Index __NDIM_PREFIX__::getOrientedEntitiesCount() const noexcept {
    if (EntityDimension == 0 || EntityDimension == Dimension)

@@ -169,7 +169,7 @@ struct Pop;
 
 template <class T, class... Types, std::size_t... Indices>
 struct Pop<T, pack<counted_pack<Types, Indices>...>> {
-   using type = typename remove_first<counted_pack<T, 0>, pack<counted_pack<Types, Indices - (std::is_same<Types, T>::value ? 1 : 0)>...>>::type;
+   using type = remove_first<counted_pack<T, 0>, pack<counted_pack<Types, Indices - (std::is_same<Types, T>::value ? 1 : 0)>...>>;
 };
 
 template <class Type, class CountedType>
@@ -231,35 +231,72 @@ struct MakePermutations<N, pack<counted_pack<Types, Counts>...>, pack<Current...
                                             MakePermutationsImpl<N, pack<counted_pack<Types, Counts>...>, pack<Current...>>>::type;
 };
 
-template<std::size_t N, typename Pack>
+template <std::size_t N, typename Pack>
 using make_permutations = typename MakePermutations<N, count_types<Pack>>::type;
 
 /*
  * Recursively goes through pack tree and merges specified level.
  */
 
-template<std::size_t, class...>
+template <std::size_t, class...>
 struct GroupLevel {};
 
-template<std::size_t N, class... Types>
+template <std::size_t N, class... Types>
 struct GroupLevel<N, pack<Types...>> {
-	using type = pack<typename GroupLevel<N-1, Types>::type...>;
+   using type = pack<typename GroupLevel<N - 1, Types>::type...>;
 };
 
-template<class... Types>
+template <class... Types>
 struct GroupLevel<0, pack<Types...>> {
-	using type = typename merge<Types...>::type;
+   using type = merge<Types...>;
 };
 
-template<std::size_t N, class... Types>
+template <std::size_t N, class... Types>
 using group_level = typename GroupLevel<N, Types...>::type;
 
 /*
  * A support for the int_pack permutations.
  * The result of make_permutations is pack<pack<int_pack<>, int_pack<>...>, ...>, that's why we merge the 1 level.
  */
-template<std::size_t N, typename Pack>
-using make_int_permutations = GroupLevel<1, make_permutations<N, Pack>>;
+template <std::size_t N, typename Pack>
+using make_int_permutations = group_level<1, make_permutations<N, Pack>>;
+
+/**
+ * Builds the pack with k ones at the end.
+ */
+template <int, int, class = int_pack<>>
+struct BuildOnesPack;
+
+template <int OnesCount, int Size, int... Values>
+struct BuildOnesPack<OnesCount, Size, int_pack<Values...>> : std::conditional_t<OnesCount == 0, BuildOnesPack<0, Size - 1, int_pack<0, Values...>>,
+                                                                                BuildOnesPack<OnesCount - 1, Size - 1, int_pack<1, Values...>>> {};
+
+template <int Value, int... Values>
+struct BuildOnesPack<Value, 0, int_pack<Values...>> {
+  public:
+   using type = int_pack<Values...>;
+};
+
+template <int OnesCount, int Size>
+using build_ones_pack = typename BuildOnesPack<OnesCount, Size>::type;
+
+/*
+ * Gets specific element from the parameter pack
+ */
+template <int, class>
+struct Get;
+
+template <int Index, class Head, class... Tail>
+struct Get<Index, pack<Head, Tail...>> : Get<Index - 1, pack<Tail...>> {};
+
+template <class Head, class... Tail>
+struct Get<0, pack<Head, Tail...>> {
+  public:
+   using type = Head;
+};
+
+template <int N, class Pack>
+using get = typename Get<N, Pack>::type;
 
 /**
  * A dimension-based interface of ParallelFor algorithm
@@ -326,53 +363,47 @@ struct DescendingFor<0> {
    }
 };
 
-
 template <size_t Value, size_t Power>
 constexpr size_t pow() {
    size_t result = 1;
 
-   for (size_t i = 0; i < Power; i++)
-      result *= Value;
+   for (size_t i = 0; i < Power; i++) result *= Value;
 
    return result;
 }
 
-template<typename Index>
+template <typename Index>
 constexpr Index product(Index from, Index to) {
    Index result = 1;
 
    if (from <= to)
-      for (Index i = from; i < to; i++)
-         result *= i;
+      for (Index i = from; i < to; i++) result *= i;
 
    return result;
 }
 
-template<typename Index>
+template <typename Index>
 constexpr Index combination(Index k, Index n) {
    return product(k + 1, n) / product(1, n - k);
 }
 
-template<typename Index>
+template <typename Index>
 constexpr Index firstKCombinationSum(Index k, Index n) {
-   if (k == 0)
-      return 0;
+   if (k == 0) return 0;
 
-   if (k == n)
-      return 1 << n;
+   if (k == n) return 1 << n;
 
    Index result = 0;
 
    // Fraction simplification of k-combination
-   for (Index i = 0; i < k; i++)
-      result += combination(i, n);
+   for (Index i = 0; i < k; i++) result += combination(i, n);
 
    return result;
 }
 
-constexpr bool isInClosedRange(int lower, int value, int upper) {
-   return lower <= value && value <= upper;
-}
+constexpr bool isInClosedInterval(int lower, int value, int upper) { return lower <= value && value <= upper; }
+
+constexpr bool isInLeftClosedRightOpenInterval(int lower, int value, int upper) { return lower <= value && value < upper; }
 
 }  // namespace Templates
 }  // namespace Meshes

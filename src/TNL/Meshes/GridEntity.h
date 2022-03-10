@@ -8,6 +8,7 @@
 
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Meshes/Grid.h>
+#include <TNL/Meshes/Basis.h>
 
 namespace TNL {
 namespace Meshes {
