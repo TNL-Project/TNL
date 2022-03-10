@@ -17,7 +17,7 @@ class DistributedGrid : public Grid<Dimension, Real, Device, Index> {
     *                          Least significant dimension is in the end of the list
     */
    template <typename... Coordinates,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Coordinates>::value...>::value, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Coordinates>...>, bool> = true,
              std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setLocalBegin(Coordinates... coordinates) noexcept;
    /**
@@ -36,7 +36,7 @@ class DistributedGrid : public Grid<Dimension, Real, Device, Index> {
     *                          Least significant dimension is in the end of the list
     */
    template <typename... Coordinates,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Coordinates>::value...>::value, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Coordinates>...>, bool> = true,
              std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setLocalEnd(Coordinates... coordinates) noexcept;
    /**
@@ -55,7 +55,7 @@ class DistributedGrid : public Grid<Dimension, Real, Device, Index> {
     *                          Least significant dimension is in the end of the list
     */
    template <typename... Coordinates,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Coordinates>::value...>::value, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Coordinates>...>, bool> = true,
              std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setInteriorBegin(Coordinates... point) noexcept;
    /**
@@ -74,7 +74,8 @@ class DistributedGrid : public Grid<Dimension, Real, Device, Index> {
     *                          Least significant dimension is in the end of the list
     */
    template <typename... Coordinates,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Coordinates>::value...>::value, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Coordinates>
+             ...>, bool> = true,
              std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setInteriorEnd(Coordinates... coordinates) noexcept;
    /**

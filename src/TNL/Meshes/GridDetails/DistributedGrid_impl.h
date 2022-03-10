@@ -7,7 +7,7 @@ namespace Meshes {
 
 template <typename Dimension, typename Real, typename Device, typename Index>
 template <typename... Coordinates,
-          std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Coordinates>::value...>::value, bool>,
+          std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Coordinates>...>, bool>,
           std::enable_if_t<sizeof...(Coordinates) == Dimension, bool>>
 void DistributedGrid<Dimension, Real, Device, Index>::setLocalBegin(Coordinates... coordinates) noexcept {
    Index i = 0;
@@ -31,7 +31,7 @@ DistributedGrid<Dimension, Real, Device, Index>::getLocalBegin() const {
 
 template <typename Dimension, typename Real, typename Device, typename Index>
 template <typename... Coordinates,
-          std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Coordinates>::value...>::value, bool>,
+          std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Coordinates>...>, bool>,
           std::enable_if_t<sizeof...(Coordinates) == Dimension, bool>>
 void DistributedGrid<Dimension, Real, Device, Index>::setLocalEnd(Coordinates... coordinates) noexcept {
    Index i = 0;
@@ -55,7 +55,7 @@ DistributedGrid<Dimension, Real, Device, Index>::getLocalEnd() const {
 
 template <typename Dimension, typename Real, typename Device, typename Index>
 template <typename... Coordinates,
-          std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Coordinates>::value...>::value, bool>,
+          std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Coordinates>...>, bool>,
           std::enable_if_t<sizeof...(Coordinates) == Dimension, bool>>
 void DistributedGrid<Dimension, Real, Device, Index>::setInteriorBegin(Coordinates... coordinates) noexcept {
    Index i = 0;
@@ -79,7 +79,7 @@ DistributedGrid<Dimension, Real, Device, Index>::getInteriorBegin() const {
 
 template <typename Dimension, typename Real, typename Device, typename Index>
 template <typename... Coordinates,
-          std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Coordinates>::value...>::value, bool>,
+          std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Coordinates>...>, bool>,
           std::enable_if_t<sizeof...(Coordinates) == Dimension, bool>>
 void DistributedGrid<Dimension, Real, Device, Index>::setInteriorEnd(Coordinates... coordinates) noexcept {
    Index i = 0;

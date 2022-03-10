@@ -5,106 +5,12 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Logger.h>
+#include <TNL/Meshes/Templates.h>
 
 #include <type_traits>
 
 namespace TNL {
 namespace Meshes {
-
-namespace Templates {
-template <bool...>
-struct bool_pack {};
-
-template <bool... Bs>
-using conjunction = std::is_same<bool_pack<true, Bs...>, bool_pack<Bs..., true> >;
-
-template <size_t Value, size_t Power>
-constexpr size_t pow() {
-   size_t result = 1;
-
-   for (size_t i = 0; i < Power; i++) {
-      result *= Value;
-   }
-
-   return result;
-}
-
-
-template<typename Index>
-constexpr Index product(Index from, Index to) {
-   Index result = 1;
-
-   if (from <= to)
-      for (Index i = from; i < to; i++)
-         result *= i;
-
-   return result;
-}
-
-template<typename Index>
-constexpr Index firstKCombinationSum(Index k, Index n) {
-   if (k == 0)
-      return 0;
-
-   if (k == n)
-      return 1 << n;
-
-   Index result = 0;
-
-   // Fraction simplification of k-combination
-   for (Index i = 0; i < k; i++)
-      result += product(i + 1, n) / product(1, n - i);
-
-   return result;
-}
-
-constexpr bool isInClosedRange(int lower, int value, int upper) {
-   return lower <= value && value <= upper;
-}
-
-/**
- * @brief - A dimension based interface of parallel for function
- */
-template <int, typename, typename>
-struct ParallelFor;
-
-template <typename Device, typename Index>
-struct ParallelFor<1, Device, Index > {
-  public:
-   template <typename Func, typename... FuncArgs>
-   static void exec(const TNL::Containers::StaticVector<1, Index>& from,
-                    const TNL::Containers::StaticVector<1, Index>& to,
-                    Func func,
-                    FuncArgs... args) {
-      TNL::Algorithms::ParallelFor<Device>::exec(from.x(), to.x(), func, args...);
-   }
-};
-
-template <typename Device, typename Index>
-struct ParallelFor<2, Device, Index> {
-  public:
-   template <typename Func, typename... FuncArgs>
-   static void exec(const TNL::Containers::StaticVector<2, Index>& from,
-                    const TNL::Containers::StaticVector<2, Index>& to,
-                    Func func,
-                     FuncArgs... args) {
-      TNL::Algorithms::ParallelFor2D<Device>::exec(from.x(), from.y(), to.x(), to.y(), func, args...);
-   }
-};
-
-template <typename Device, typename Index>
-struct ParallelFor<3, Device, Index> {
-  public:
-   template <typename Func, typename... FuncArgs>
-   static void exec(const TNL::Containers::StaticVector<3, Index>& from,
-                    const TNL::Containers::StaticVector<3, Index>& to,
-                    Func func,
-                    FuncArgs... args) {
-      TNL::Algorithms::ParallelFor3D<Device>::exec(from.x(), from.y(), from.z(), to.x(), to.y(), to.z(), func, args...);
-   }
-};
-
-}  // namespace Templates
 
 // A base class for common methods for each grid.
 template <int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int>
@@ -136,7 +42,7 @@ class NDimGrid {
     *  @brief - Specifies dimensions of the grid as the number of edges at each dimenison
     */
    template <typename... Dimensions,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Dimensions>::value...>::value, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Dimensions>...>, bool> = true,
              std::enable_if_t<sizeof...(Dimensions) == Dimension, bool> = true>
    void setDimensions(Dimensions... dimensions);
    /**
@@ -151,7 +57,7 @@ class NDimGrid {
     * @param[in] indices - A dimension indicies pack
     */
    template <typename... DimensionIndex,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, DimensionIndex>...>, bool> = true,
              std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool> = true>
    __cuda_callable__ inline Container<sizeof...(DimensionIndex), Index> getDimensions(DimensionIndex... indices) const noexcept;
    /**
@@ -172,7 +78,7 @@ class NDimGrid {
     * @brief - Returns the number of entities of specific dimension
     */
    template <typename... DimensionIndex,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, DimensionIndex>...>, bool> = true,
              std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool> = true>
    __cuda_callable__ inline Container<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indices) const;
    /**
@@ -211,7 +117,7 @@ class NDimGrid {
     * list
     */
    template <typename... Coordinates,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Coordinates>::value...>::value, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Coordinates>...>, bool> = true,
              std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setOrigin(Coordinates... coordinates) noexcept;
    /**
@@ -230,7 +136,7 @@ class NDimGrid {
     * list
     */
    template <typename... Coordinates,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Coordinates>::value...>::value, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Coordinates>...>, bool> = true,
              std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
    void setSpaceSteps(Coordinates... coordinates) noexcept;
    /**
@@ -241,7 +147,7 @@ class NDimGrid {
     * @brief Returns product of space steps to the xPow.
     */
    template <typename... Powers,
-             std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Powers>::value...>::value, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Powers>...>, bool> = true,
              std::enable_if_t<sizeof...(Powers) == Dimension, bool> = true>
    __cuda_callable__ inline Real getSpaceStepsProducts(Powers... powers) const noexcept;
    /**

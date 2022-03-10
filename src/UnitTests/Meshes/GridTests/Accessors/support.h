@@ -296,7 +296,7 @@ void testEntitiesCounts(Grid& grid,
 
 template<typename Grid,
          typename... T,
-         std::enable_if_t<TNL::Meshes::Templates::conjunction<std::is_convertible<typename Grid::RealType, T>::value...>::value, bool> = true>
+         std::enable_if_t<TNL::Meshes::Templates::conjunction_v<std::is_convertible<typename Grid::RealType, T>...>, bool> = true>
 void testOriginSetByIndex(Grid& grid, T... coordinates) {
    auto paramString = makeString(coordinates...);
 

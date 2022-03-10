@@ -20,7 +20,7 @@ typename __NDIM_PREFIX__::Coordinate __NDIM_PREFIX__::encodeOrientation(const In
  }
 
 __NDIMGRID_TEMPLATE__
-template <typename... Dimensions, std::enable_if_t<Templates::conjunction<std::is_convertible<Index, Dimensions>::value...>::value, bool>,
+template <typename... Dimensions, std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Dimensions>...>, bool>,
           std::enable_if_t<sizeof...(Dimensions) == Dimension, bool>>
 void __NDIM_PREFIX__::setDimensions(Dimensions... dimensions) {
    Index i = 0;
@@ -55,7 +55,7 @@ __cuda_callable__ inline Index __NDIM_PREFIX__::getDimension(Index index) const 
 }
 
 __NDIMGRID_TEMPLATE__
-template <typename... DimensionIndex, std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool>,
+template <typename... DimensionIndex, std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, DimensionIndex>...>, bool>,
           std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool>>
 __cuda_callable__ inline __NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index> __NDIM_PREFIX__::getDimensions(
     DimensionIndex... indices) const noexcept {
@@ -88,7 +88,7 @@ __cuda_callable__ inline Index __NDIM_PREFIX__::getEntitiesCount() const noexcep
 
 __NDIMGRID_TEMPLATE__
 template <typename... DimensionIndex,
-          std::enable_if_t<Templates::conjunction<std::is_convertible<Index, DimensionIndex>::value...>::value, bool>,
+          std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, DimensionIndex>...>, bool>,
           std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool>>
 __cuda_callable__ inline __NDIM_PREFIX__::Container<sizeof...(DimensionIndex), Index> __NDIM_PREFIX__::getEntitiesCounts(
     DimensionIndex... indices) const {
@@ -108,7 +108,8 @@ __NDIMGRID_TEMPLATE__
 void __NDIM_PREFIX__::setOrigin(const typename __NDIM_PREFIX__::Point &origin) noexcept { this->origin = origin; }
 
 __NDIMGRID_TEMPLATE__
-template <typename... Coordinates, std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Coordinates>::value...>::value, bool>,
+template <typename... Coordinates,
+          std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Coordinates>...>, bool>,
           std::enable_if_t<sizeof...(Coordinates) == Dimension, bool>>
 void __NDIM_PREFIX__::setOrigin(Coordinates... coordinates) noexcept {
    Index i = 0;
@@ -168,7 +169,7 @@ void __NDIM_PREFIX__::setSpaceSteps(const typename __NDIM_PREFIX__::Point &space
 }
 
 __NDIMGRID_TEMPLATE__
-template <typename... Coordinates, std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Coordinates>::value...>::value, bool>,
+template <typename... Coordinates, std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Coordinates>...>, bool>,
           std::enable_if_t<sizeof...(Coordinates) == Dimension, bool>>
 void __NDIM_PREFIX__::setSpaceSteps(Coordinates... coordinates) noexcept {
    Index i = 0;
@@ -189,7 +190,7 @@ __NDIMGRID_TEMPLATE__
 __cuda_callable__ inline const typename __NDIM_PREFIX__::Point &__NDIM_PREFIX__::getProportions() const noexcept { return this->proportions; }
 
 __NDIMGRID_TEMPLATE__
-template <typename... Powers, std::enable_if_t<Templates::conjunction<std::is_convertible<Real, Powers>::value...>::value, bool>,
+template <typename... Powers, std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Powers>...>, bool>,
           std::enable_if_t<sizeof...(Powers) == Dimension, bool>>
 __cuda_callable__ inline Real __NDIM_PREFIX__::getSpaceStepsProducts(Powers... powers) const noexcept {
    constexpr Index halfSize = this->spaceStepsPowersSize >> 1;
