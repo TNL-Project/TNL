@@ -24,6 +24,9 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
    template <int EntityDimension>
    using EntityType = GridEntity<Grid, EntityDimension>;
 
+   using Base = NDimGrid<1, Real, Device, Index>;
+   using Coordinate = typename Base::Coordinate;
+
    /**
     * \brief Basic constructor.
     */

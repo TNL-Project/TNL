@@ -378,46 +378,46 @@ template<int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<3, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
    static_assert(EntityDimension >= 0 && EntityDimension <= 3, "Entity dimension must be in range [0...3]");
 
-   auto outer = [=] __cuda_callable__(Index i, Index j, Index k,
-                                      const Grid<3, Real, Device, Index>&grid, FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid);
+   // auto outer = [=] __cuda_callable__(Index i, Index j, Index k,
+   //                                    const Grid<3, Real, Device, Index>&grid, FuncArgs... args) mutable {
+   //    // EntityType<EntityDimension> entity(grid);
 
-      entity.setCoordinates({ i, j, k });
-      entity.refresh();
+   //    // entity.setCoordinates({ i, j, k });
+   //    // entity.refresh();
 
-      func(entity, args...);
-   };
+   //    // func(entity, args...);
+   // };
 
-   auto outerOriented = [=] __cuda_callable__(Index i, Index j, Index k,
-                                              const Grid<3, Real, Device, Index>&grid,
-                                              const CoordinatesType & orientation,
-                                              FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid, CoordinatesType(i, j, k), orientation);
+   // auto outerOriented = [=] __cuda_callable__(Index i, Index j, Index k,
+   //                                            const Grid<3, Real, Device, Index>&grid,
+   //                                            const CoordinatesType & orientation,
+   //                                            FuncArgs... args) mutable {
+   //    // EntityType<EntityDimension> entity(grid, CoordinatesType(i, j, k), orientation);
 
-      entity.refresh();
+   //    // entity.refresh();
 
-      func(entity, args...);
-   };
+   //    // func(entity, args...);
+   // };
 
-   switch (EntityDimension) {
-   case 0:
-      this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y() + 1, dimensions.z() + 1 }, outer, *this, args...);
-      break;
-   case 1:
-      this -> forEach({ 0, 0, 0 }, { dimensions.x(), dimensions.y() + 1, dimensions.z() + 1 }, outerOriented, *this, CoordinatesType(1, 0, 0), args...);
-      this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y(), dimensions.z() + 1 }, outerOriented, *this, CoordinatesType(0, 1, 0), args...);
-      this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y() + 1, dimensions.z() }, outerOriented, *this, CoordinatesType(0, 0, 1), args...);
-      break;
-   case 2:
-      this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y(), dimensions.z() }, outerOriented, *this, CoordinatesType(1, 0, 0), args...);
-      this -> forEach({ 0, 0, 0 }, { dimensions.x(), dimensions.y() + 1, dimensions.z() }, outerOriented, *this, CoordinatesType(0, 1, 0), args...);
-      this -> forEach({ 0, 0, 0 }, { dimensions.x(), dimensions.y(), dimensions.z() + 1 }, outerOriented, *this, CoordinatesType(0, 0, 1), args...);
-      break;
-   case 3:
-      this -> forEach({ 0, 0, 0 }, dimensions, outer, *this, args...);
-      // TODO: Verify for distributed grids
-      break;
-   }
+   // switch (EntityDimension) {
+   // case 0:
+   //    this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y() + 1, dimensions.z() + 1 }, outer, *this, args...);
+   //    break;
+   // case 1:
+   //    this -> forEach({ 0, 0, 0 }, { dimensions.x(), dimensions.y() + 1, dimensions.z() + 1 }, outerOriented, *this, CoordinatesType(1, 0, 0), args...);
+   //    this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y(), dimensions.z() + 1 }, outerOriented, *this, CoordinatesType(0, 1, 0), args...);
+   //    this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y() + 1, dimensions.z() }, outerOriented, *this, CoordinatesType(0, 0, 1), args...);
+   //    break;
+   // case 2:
+   //    this -> forEach({ 0, 0, 0 }, { dimensions.x() + 1, dimensions.y(), dimensions.z() }, outerOriented, *this, CoordinatesType(1, 0, 0), args...);
+   //    this -> forEach({ 0, 0, 0 }, { dimensions.x(), dimensions.y() + 1, dimensions.z() }, outerOriented, *this, CoordinatesType(0, 1, 0), args...);
+   //    this -> forEach({ 0, 0, 0 }, { dimensions.x(), dimensions.y(), dimensions.z() + 1 }, outerOriented, *this, CoordinatesType(0, 0, 1), args...);
+   //    break;
+   // case 3:
+   //    this -> forEach({ 0, 0, 0 }, dimensions, outer, *this, args...);
+   //    // TODO: Verify for distributed grids
+   //    break;
+   // }
 }
 
 template< typename Real,
@@ -427,66 +427,66 @@ template<int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<3, Real, Device, Index>::forInterior(Func func, FuncArgs... args) const {
    static_assert(EntityDimension >= 0 && EntityDimension <= 3, "Entity dimension must be in range [0...3]");
 
-   auto outer = [=] __cuda_callable__(Index i, Index j, Index k,
-                                      const Grid<3, Real, Device, Index>&grid, FuncArgs... args) mutable {
-      // EntityType<EntityDimension> entity(grid);
+   // auto outer = [=] __cuda_callable__(Index i, Index j, Index k,
+   //                                    const Grid<3, Real, Device, Index>&grid, FuncArgs... args) mutable {
+   //    // EntityType<EntityDimension> entity(grid);
 
-      // entity.setCoordinates({ i, j, k });
-      // entity.refresh();
+   //    // entity.setCoordinates({ i, j, k });
+   //    // entity.refresh();
 
-      // func(entity, args...);
-   };
+   //    // func(entity, args...);
+   // };
 
-   auto outerOriented = [=] __cuda_callable__(Index i, Index j, Index k,
-                                              const Grid<3, Real, Device, Index>&grid,
-                                              const CoordinatesType & orientation,
-                                              FuncArgs... args) mutable {
-      // EntityType<EntityDimension> entity(grid, CoordinatesType(i, j, k), orientation);
+   // auto outerOriented = [=] __cuda_callable__(Index i, Index j, Index k,
+   //                                            const Grid<3, Real, Device, Index>&grid,
+   //                                            const CoordinatesType & orientation,
+   //                                            FuncArgs... args) mutable {
+   //    // EntityType<EntityDimension> entity(grid, CoordinatesType(i, j, k), orientation);
 
-      // entity.refresh();
+   //    // entity.refresh();
 
-      // func(entity, args...);
-   };
+   //    // func(entity, args...);
+   // };
 
-   switch (EntityDimension) {
-   case 0:
-      TNL::Algorithms::ParallelFor3D<Device>::exec(1, 1, 1,
-                                                   dimensions.x(), dimensions.y(), dimensions.z(),
-                                                   outer, *this, args...);
-      break;
-   case 1:
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 1, 1,
-                                                   dimensions.x() + 1, dimensions.y(), dimensions.z(),
-                                                   outerOriented, *this, CoordinatesType(1, 0, 0), args...);
+   // switch (EntityDimension) {
+   // case 0:
+   //    TNL::Algorithms::ParallelFor3D<Device>::exec(1, 1, 1,
+   //                                                 dimensions.x(), dimensions.y(), dimensions.z(),
+   //                                                 outer, *this, args...);
+   //    break;
+   // case 1:
+   //    TNL::Algorithms::ParallelFor3D<Device>::exec(0, 1, 1,
+   //                                                 dimensions.x() + 1, dimensions.y(), dimensions.z(),
+   //                                                 outerOriented, *this, CoordinatesType(1, 0, 0), args...);
 
-      TNL::Algorithms::ParallelFor3D<Device>::exec(1, 0, 1,
-                                                   dimensions.x(), dimensions.y() + 1, dimensions.z(),
-                                                   outerOriented, *this, CoordinatesType(0, 1, 0), args...);
+   //    TNL::Algorithms::ParallelFor3D<Device>::exec(1, 0, 1,
+   //                                                 dimensions.x(), dimensions.y() + 1, dimensions.z(),
+   //                                                 outerOriented, *this, CoordinatesType(0, 1, 0), args...);
 
-      TNL::Algorithms::ParallelFor3D<Device>::exec(1, 1, 0,
-                                                   dimensions.x(), dimensions.y(), dimensions.z() + 1,
-                                                   outerOriented, *this, CoordinatesType(0, 0, 1), args...);
-      break;
-   case 2:
-      TNL::Algorithms::ParallelFor3D<Device>::exec(1, 0, 0,
-                                                   dimensions.x(), dimensions.y(), dimensions.z(),
-                                                   outerOriented, *this, CoordinatesType(1, 0, 0), args...);
+   //    TNL::Algorithms::ParallelFor3D<Device>::exec(1, 1, 0,
+   //                                                 dimensions.x(), dimensions.y(), dimensions.z() + 1,
+   //                                                 outerOriented, *this, CoordinatesType(0, 0, 1), args...);
+   //    break;
+   // case 2:
+   //    TNL::Algorithms::ParallelFor3D<Device>::exec(1, 0, 0,
+   //                                                 dimensions.x(), dimensions.y(), dimensions.z(),
+   //                                                 outerOriented, *this, CoordinatesType(1, 0, 0), args...);
 
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 1, 0,
-                                                   dimensions.x(), dimensions.y(), dimensions.z(),
-                                                   outerOriented, *this, CoordinatesType(0, 1, 0), args...);
+   //    TNL::Algorithms::ParallelFor3D<Device>::exec(0, 1, 0,
+   //                                                 dimensions.x(), dimensions.y(), dimensions.z(),
+   //                                                 outerOriented, *this, CoordinatesType(0, 1, 0), args...);
 
-      TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 1,
-                                                   dimensions.x(), dimensions.y(), dimensions.z(),
-                                                   outerOriented, *this, CoordinatesType(0, 0, 1), args...);
-      break;
-   case 3:
-      // TODO: Verify for distributed grids
-      TNL::Algorithms::ParallelFor3D<Device>::exec(1, 1, 1,
-                                                   dimensions.x() - 1, dimensions.y() - 1, dimensions.z() - 1,
-                                                   outer, *this, args...);
-      break;
-   }
+   //    TNL::Algorithms::ParallelFor3D<Device>::exec(0, 0, 1,
+   //                                                 dimensions.x(), dimensions.y(), dimensions.z(),
+   //                                                 outerOriented, *this, CoordinatesType(0, 0, 1), args...);
+   //    break;
+   // case 3:
+   //    // TODO: Verify for distributed grids
+   //    TNL::Algorithms::ParallelFor3D<Device>::exec(1, 1, 1,
+   //                                                 dimensions.x() - 1, dimensions.y() - 1, dimensions.z() - 1,
+   //                                                 outer, *this, args...);
+   //    break;
+   // }
 }
 
 template< typename Real,

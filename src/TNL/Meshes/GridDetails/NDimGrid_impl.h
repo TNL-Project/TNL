@@ -10,16 +10,6 @@ namespace Meshes {
 #define __NDIM_PREFIX__ NDimGrid<Dimension, Real, Device, Index>
 
 __NDIMGRID_TEMPLATE__
-typename __NDIM_PREFIX__::Coordinate __NDIM_PREFIX__::encodeOrientation(const Index direction) const {
-   Coordinate orientation;
-
-   for (Index i = 0; i < (Index)Dimension; i++)
-      orientation[i] = i == direction;
-
-   return orientation;
- }
-
-__NDIMGRID_TEMPLATE__
 template <typename... Dimensions, std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Dimensions>...>, bool>,
           std::enable_if_t<sizeof...(Dimensions) == Dimension, bool>>
 void __NDIM_PREFIX__::setDimensions(Dimensions... dimensions) {
@@ -322,21 +312,16 @@ void __NDIM_PREFIX__::fillSpaceStepsPowers() {
 }
 
 __NDIMGRID_TEMPLATE__
-template <typename Func, typename... FuncArgs>
+template <int EntityDimension, typename Func, typename... FuncArgs>
 void __NDIM_PREFIX__::forEach(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
    for (Index i = 0; i < Dimension; i++)
       TNL_ASSERT_LE(from[i], to[i], "Traverse rect must be specified from bottom-leading angle (from) to upper-trailing angle (to)");
 
-   Templates::ParallelFor<Dimension, Device, Index>::exec(from, to, func, args...);
-}
+   auto exec = [&](const Coordinate& basis) {
+      Templates::ParallelFor<Dimension, Device, Index>::exec(from, to, func, basis, args...);
+   };
 
-__NDIMGRID_TEMPLATE__
-template <int TraverseDimension, typename Func, typename... FuncArgs>
-void __NDIM_PREFIX__::forEach(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
-   for (Index i = 0; i < Dimension; i++)
-      TNL_ASSERT_LE(from[i], to[i], "Traverse rect must be specified from bottom-leading angle (from) to upper-trailing angle (to)");
-
-   Templates::ParallelFor<TraverseDimension, Device, Index>::exec(from, to, func, args...);
+   ForEachOrientation<EntityDimension>::exec(from, to, func, args...);
 }
 
 __NDIMGRID_TEMPLATE__

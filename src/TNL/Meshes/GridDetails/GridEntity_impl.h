@@ -14,8 +14,8 @@
 namespace TNL {
 namespace Meshes {
 
-#define __GRID_ENTITY_TEMPLATE__ template <int Dimension, typename Real, typename Device, typename Index, int EntityDimension>
-#define __GRID_ENTITY_PREFIX__ GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension>
+#define __GRID_ENTITY_TEMPLATE__ template <typename Grid, int EntityDimension>
+#define __GRID_ENTITY_PREFIX__ GridEntity<Grid, EntityDimension>
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
@@ -43,7 +43,7 @@ void __GRID_ENTITY_PREFIX__::refresh() {
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-Index __GRID_ENTITY_PREFIX__::getIndex() const {
+typename __GRID_ENTITY_PREFIX__::Index __GRID_ENTITY_PREFIX__::getIndex() const {
    TNL_ASSERT_GE( this->entityIndex, 0, "Entity index is not non-negative." );
    TNL_ASSERT_LT( this->entityIndex, grid.template getEntitiesCount< EntityDimension >(), "Entity index is out of bounds." );
    TNL_ASSERT_EQ( this->entityIndex, grid.getEntityIndex( *this ), "Wrong value of stored index." );
@@ -65,13 +65,13 @@ const typename __GRID_ENTITY_PREFIX__::Point& __GRID_ENTITY_PREFIX__::getCenter(
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-Real __GRID_ENTITY_PREFIX__::getMeasure() const {
+typename __GRID_ENTITY_PREFIX__::Real __GRID_ENTITY_PREFIX__::getMeasure() const {
    return GridEntityMeasureGetter<Grid, EntityDimension>::getMeasure( this->getMesh(), *this );
 }
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-const typename __GRID_ENTITY_PREFIX__::Grid& __GRID_ENTITY_PREFIX__::getMesh() const {
+const typename __GRID_ENTITY_PREFIX__::GridType& __GRID_ENTITY_PREFIX__::getMesh() const {
    return this->grid;
 }
 

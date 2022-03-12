@@ -22,9 +22,6 @@ class BoundaryGridEntityChecker;
 template <class>
 class GridEntityCenterGetter;
 
-template <class, int>
-class GridEntity {};
-
 // TODO: - Implement
 //       // compatibility with meshes, equivalent to getCenter
 //       __cuda_callable__ inline
@@ -34,19 +31,19 @@ class GridEntity {};
 //       const PointType& getEntityProportions() const;
 
 
-template <int Dimension, typename Real, typename Device, typename Index, int EntityDimension>
-class GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension> {
+template <class Grid, int EntityDimension>
+class GridEntity {
    public:
-      using IndexType = Index;
-      using DeviceType = Device;
-      using RealType = Real;
+      using GridType = Grid;
+      using Index = typename Grid::IndexType;
+      using Device = typename Grid::DeviceType;
+      using Real = typename Grid::RealType;
 
-      using Grid = Meshes::Grid<Dimension, Real, Device, Index>;
       using Coordinate = typename Grid::Coordinate;
       using Point = typename Grid::Point;
 
-      constexpr static int getMeshDimension() { return Grid::getMeshDimension(); };
-      constexpr static int getEntityDimension() { return EntityDimension; };
+      constexpr static int meshDimension = Grid::getMeshDimension();
+      constexpr static int entityDimension = EntityDimension;
 
 
    // template <int NeighborEntityDimension = getEntityDimension()>
@@ -86,7 +83,7 @@ class GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension> 
       Real getMeasure() const;
 
       __cuda_callable__ inline
-      const Grid& getMesh() const;
+      const GridType& getMesh() const;
 
       __cuda_callable__ inline
       void setBasis(const Coordinate& orientation);

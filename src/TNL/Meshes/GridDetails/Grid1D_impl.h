@@ -12,10 +12,6 @@
 #include <TNL/Meshes/GridDetails/GridEntityGetter.h>
 #include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.h>
 #include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter1D_impl.h>
-#include <TNL/String.h>
-
-#include <fstream>
-#include <iomanip>
 
 namespace TNL {
 namespace Meshes {
@@ -64,108 +60,73 @@ __cuda_callable__ const Real &Grid<1, Real, Device, Index>::getCellMeasure() con
 template <typename Real, typename Device, typename Index>
 template <int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
-   static_assert(EntityDimension >= 0 && EntityDimension <= 1,
-                 "Entity dimension must be either 0 or 1");
+   auto exec = [func] __cuda_callable__ (const Coordinate& coordinate, const Coordinate& basis, const Grid &grid, FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid, coordinate, basis);
 
-   auto outer = [=] __cuda_callable__(Index i, const Grid<1, Real, Device, Index> &grid,
-                                      FuncArgs... args) mutable {
-      // EntityType<EntityDimension> entity(grid);
+      entity.refresh();
 
-      // entity.setCoordinates(i);
-      // entity.refresh();
-
-      // func(entity, args...);
+      func(entity, args...);
    };
 
-   switch (EntityDimension) {
-      case 0:
-         this -> forEach({ 0 }, { this -> dimensions.x() + 1 }, outer, *this, args...);
-         break;
-      case 1:
-         // TODO: - Update for distributed grid
-         // TNL::Algorithms::ParallelFor<Device>::exec(localBegin.x(), localEnd.x(), outer, *this,
-         // args...);
-
-         this -> forEach({ 0 }, this -> dimensions, outer, *this, args...);
-         break;
-      default:
-         break;
-   }
+   this -> template forEach<EntityDimension>(Coordinate(0), this -> dimensions, exec, *this, args...);
 }
 
 template <typename Real, typename Device, typename Index>
 template <int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) const {
-   static_assert(EntityDimension >= 0 && EntityDimension <= 1,
-                 "Entity dimension must be either 0 or 1");
+   // static_assert(EntityDimension >= 0 && EntityDimension <= 1,
+   //               "Entity dimension must be either 0 or 1");
 
-   auto outer = [=] __cuda_callable__(Index i, const Grid<1, Real, Device, Index> &grid,
-                                      FuncArgs... args) mutable {
-      // EntityType<EntityDimension> entity(grid);
+   // auto outer = [=] __cuda_callable__(Index i, const Grid<1, Real, Device, Index> &grid,
+   //                                    FuncArgs... args) mutable {
+   //    // EntityType<EntityDimension> entity(grid);
 
-      // entity.setCoordinates(i);
-      // entity.refresh();
+   //    // entity.setCoordinates(i);
+   //    // entity.refresh();
 
-      // func(entity, args...);
-   };
+   //    // func(entity, args...);
+   // };
 
-   switch (EntityDimension) {
-      case 0:
-         this -> forEach({ 0 }, { 1 }, outer, *this, args...);
-         this -> forEach({ this -> dimensions.x() }, { this -> dimensions.x() + 1 }, outer, *this, args...);
-         break;
-      case 1:
-         this -> forEach({ 0 }, { 1 }, outer, *this, args...);
-         this -> forEach({ this -> dimensions.x() - 1 }, { this -> dimensions.x() }, outer, *this, args...);
-         // TODO: - Verify for distributed grid
-         /*if (localBegin < interiorBegin && interiorEnd < localEnd) {
-            outer(interiorBegin.x() - 1, *this, args...);
-            outer(interiorEnd.x(), *this, args...);
-            break;
-         }
+   // switch (EntityDimension) {
+   //    case 0:
+   //       this -> forEach({ 0 }, { 1 }, outer, *this, args...);
+   //       this -> forEach({ this -> dimensions.x() }, { this -> dimensions.x() + 1 }, outer, *this, args...);
+   //       break;
+   //    case 1:
+   //       this -> forEach({ 0 }, { 1 }, outer, *this, args...);
+   //       this -> forEach({ this -> dimensions.x() - 1 }, { this -> dimensions.x() }, outer, *this, args...);
+   //       // TODO: - Verify for distributed grid
+   //       /*if (localBegin < interiorBegin && interiorEnd < localEnd) {
+   //          outer(interiorBegin.x() - 1, *this, args...);
+   //          outer(interiorEnd.x(), *this, args...);
+   //          break;
+   //       }
 
-         if (localBegin < interiorBegin) {
-            outer(interiorBegin.x() - 1, *this, args...);
-            break;
-         }
+   //       if (localBegin < interiorBegin) {
+   //          outer(interiorBegin.x() - 1, *this, args...);
+   //          break;
+   //       }
 
-         if (interiorEnd < localEnd)
-            outer(interiorEnd.x(), *this, args...);*/
-         break;
-      default:
-         break;
-   }
+   //       if (interiorEnd < localEnd)
+   //          outer(interiorEnd.x(), *this, args...);*/
+   //       break;
+   //    default:
+   //       break;
+   // }
 }
 
 template <typename Real, typename Device, typename Index>
 template <int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<1, Real, Device, Index>::forInterior(Func func, FuncArgs... args) const {
-   static_assert(EntityDimension >= 0 && EntityDimension <= 1,
-                 "Entity dimension must be either 0 or 1");
+   // auto exec = [func] __cuda_callable__(const Grid::Coordinate& coordinate, const Grid::Coordinate& basis, const Grid &grid, FuncArgs... args) mutable {
+   //    EntityType<EntityDimension> entity(grid, coordinate, basis);
 
-   auto outer = [=] __cuda_callable__(Index i, const Grid<1, Real, Device, Index> &grid,
-                                      FuncArgs... args) mutable {
-      // EntityType<EntityDimension> entity(grid);
+   //    entity.refresh();
 
-      // entity.setCoordinates(i);
-      // entity.refresh();
+   //    func(entity, args...);
+   // };
 
-      // func(entity, args...);
-   };
-
-   switch (EntityDimension) {
-      case 0:
-         this -> forEach({ 1 }, this -> dimensions, outer, *this, args...);
-         break;
-      case 1:
-         this -> forEach({ 1 }, { this -> dimensions.x() - 1 }, outer, *this, args...);
-         // TODO: - Verify for distributed grids
-         // TNL::Algorithms::ParallelFor<Device>::exec(interiorBegin.x(), interiorEnd.x(), outer,
-         // *this, args...);
-         break;
-      default:
-         break;
-   }
+   // this -> forEach<EntityDimension>({ 1 }, this -> dimensions.x() - 1, exec, *this, args...);
 }
 
 }  // namespace Meshes

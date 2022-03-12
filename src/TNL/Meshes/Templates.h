@@ -310,7 +310,13 @@ struct ParallelFor<1, Device, Index> {
    template <typename Func, typename... FuncArgs>
    static void exec(const TNL::Containers::StaticVector<1, Index>& from, const TNL::Containers::StaticVector<1, Index>& to, Func func,
                     FuncArgs... args) {
-      TNL::Algorithms::ParallelFor<Device>::exec(from.x(), to.x(), func, args...);
+      auto groupIndex = [=] __cuda_callable__ (Index i , FuncArgs... args) mutable {
+         func(TNL::Containers::StaticVector<1, Index>(i), args...);
+      };
+
+      TNL::Algorithms::ParallelFor<Device>::exec(from.x(), to.x(),
+                                                 groupIndex,
+                                                 std::forward<FuncArgs>(args)...);
    }
 };
 
@@ -320,7 +326,14 @@ struct ParallelFor<2, Device, Index> {
    template <typename Func, typename... FuncArgs>
    static void exec(const TNL::Containers::StaticVector<2, Index>& from, const TNL::Containers::StaticVector<2, Index>& to, Func func,
                     FuncArgs... args) {
-      TNL::Algorithms::ParallelFor2D<Device>::exec(from.x(), from.y(), to.x(), to.y(), func, args...);
+      auto groupIndex = [=] __cuda_callable__ (Index i, Index j, FuncArgs... args) mutable {
+         func(TNL::Containers::StaticVector<2, Index>(i, j), args...);
+      };
+
+      TNL::Algorithms::ParallelFor2D<Device>::exec(from.x(), from.y(),
+                                                   to.x(), to.y(),
+                                                   groupIndex,
+                                                   std::forward<FuncArgs>(args)...);
    }
 };
 
@@ -330,7 +343,14 @@ struct ParallelFor<3, Device, Index> {
    template <typename Func, typename... FuncArgs>
    static void exec(const TNL::Containers::StaticVector<3, Index>& from, const TNL::Containers::StaticVector<3, Index>& to, Func func,
                     FuncArgs... args) {
-      TNL::Algorithms::ParallelFor3D<Device>::exec(from.x(), from.y(), from.z(), to.x(), to.y(), to.z(), func, args...);
+      auto groupIndex = [=] __cuda_callable__ (Index i, Index j, Index k, FuncArgs... args) mutable {
+         func(TNL::Containers::StaticVector<3, Index>(i, j, k), args...);
+      };
+
+      TNL::Algorithms::ParallelFor3D<Device>::exec(from.x(), from.y(), from.z(),
+                                                   to.x(), to.y(), to.z(),
+                                                   groupIndex,
+                                                   std::forward<FuncArgs>(args)...);
    }
 };
 

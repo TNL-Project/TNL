@@ -8,17 +8,6 @@
 namespace TNL {
 namespace Meshes {
 
-namespace Templates {
-template <class>
-struct BuildBasis;
-
-template <int... Values>
-struct BuildBasis<TNL::Meshes::Templates::int_pack<Values...>> {
-  public:
-   constexpr static Coordinate build() { return Coordinate(Values...); }
-};
-}  // namespace Templates
-
 template <typename Index,
           Index Orientation,
           Index EntityDimension,
@@ -37,9 +26,17 @@ struct Basis {
       >;
 
       constexpr static Coordinate getBasis() {
-         return Templates::BuildBasis<Value>::build();
+         return BuildBasis<Value>::build();
       }
+   private:
+      template <class>
+      struct BuildBasis;
 
+      template <int... Values>
+      struct BuildBasis<TNL::Meshes::Templates::int_pack<Values...>> {
+        public:
+         constexpr static Coordinate build() { return Coordinate(Values...); }
+      };
 };
 
 }  // namespace Meshes

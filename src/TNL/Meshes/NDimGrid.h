@@ -6,6 +6,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Logger.h>
 #include <TNL/Meshes/Templates.h>
+#include <TNL/Meshes/Basis.h>
 
 #include <type_traits>
 
@@ -34,9 +35,6 @@ class NDimGrid {
    NDimGrid() {}
    // empty destructor is needed only to avoid crappy nvcc warnings
    virtual ~NDimGrid() {}
-
-   // TODO: - Simplify orientation encoding
-   Coordinate encodeOrientation(const Index direction) const;
 
    /**
     *  @brief - Specifies dimensions of the grid as the number of edges at each dimenison
@@ -179,6 +177,29 @@ class NDimGrid {
    void writeProlog(Logger&& logger) const noexcept;
 
   protected:
+   template<int Orientation, int EntityDimension>
+   struct _ForEachOrientation {
+      public:
+         template<typename Func>
+         static void exec(Func func) {
+            func(Basis<Index, Orientation, EntityDimension, Dimension>::getBasis());
+
+            _ForEachOrientation<Orientation - 1, EntityDimension>::exex(func);
+         };
+   };
+
+   template<int EntityDimension>
+   struct _ForEachOrientation<0, EntityDimension> {
+      public:
+         template<typename Func>
+         static void exec(Func func) {
+            func(Basis<Index, 0, EntityDimension, Dimension>::getBasis());
+         };
+   };
+
+   template<int EntityDimension>
+   struct ForEachOrientation: _ForEachOrientation<Templates::combination(EntityDimension, Dimension) - 1, EntityDimension> {};
+
    static constexpr int spaceStepsPowersSize = 5;
 
    Coordinate dimensions;
@@ -213,10 +234,7 @@ class NDimGrid {
    void fillSpaceStepsPowers();
    void fillProportions();
 
-   template <typename Func, typename... FuncArgs>
-   void forEach(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
-
-   template <int TraverseDimension, typename Func, typename... FuncArgs>
+   template <int EntityDimension, typename Func, typename... FuncArgs>
    void forEach(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
 
    template <typename Func, typename... FuncArgs>
