@@ -10,6 +10,11 @@ namespace Meshes {
 #define __NDIM_PREFIX__ NDimGrid<Dimension, Real, Device, Index>
 
 __NDIMGRID_TEMPLATE__
+constexpr Index __NDIM_PREFIX__::getEntityOrientationsCount(const Index entityDimension) {
+   return Templates::combination(entityDimension, Dimension);
+}
+
+__NDIMGRID_TEMPLATE__
 template <typename... Dimensions, std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Dimensions>...>, bool>,
           std::enable_if_t<sizeof...(Dimensions) == Dimension, bool>>
 void __NDIM_PREFIX__::setDimensions(Dimensions... dimensions) {
@@ -37,7 +42,7 @@ void __NDIM_PREFIX__::setDimensions(const typename __NDIM_PREFIX__::Coordinate &
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ inline Index __NDIM_PREFIX__::getDimension(Index index) const {
+__cuda_callable__ inline Index __NDIM_PREFIX__::getDimension(const Index index) const {
    TNL_ASSERT_GE(index, 0, "Index must be greater or equal to zero");
    TNL_ASSERT_LT(index, Dimension, "Index must be less than Dimension");
 
@@ -62,7 +67,7 @@ __cuda_callable__ inline const typename __NDIM_PREFIX__::Container<Dimension, In
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ inline Index __NDIM_PREFIX__::getEntitiesCount(Index index) const {
+__cuda_callable__ inline Index __NDIM_PREFIX__::getEntitiesCount(const Index index) const {
    TNL_ASSERT_GE(index, 0, "Index must be greater than zero");
    TNL_ASSERT_LE(index, Dimension, "Index must be less than or equal to Dimension");
 
@@ -112,7 +117,7 @@ void __NDIM_PREFIX__::setOrigin(Coordinates... coordinates) noexcept {
 
 __NDIMGRID_TEMPLATE__
 __cuda_callable__ inline
-Index __NDIM_PREFIX__::getOrientedEntitiesCount(Index dimension, Index orientation) const {
+Index __NDIM_PREFIX__::getOrientedEntitiesCount(const Index dimension, const Index orientation) const {
    TNL_ASSERT_GE(dimension, 0, "Dimension must be greater than zero");
    TNL_ASSERT_LE(dimension, Dimension, "Requested dimension must be less than or equal to Dimension");
 
@@ -318,10 +323,10 @@ void __NDIM_PREFIX__::forEach(const Coordinate& from, const Coordinate& to, Func
       TNL_ASSERT_LE(from[i], to[i], "Traverse rect must be specified from bottom-leading angle (from) to upper-trailing angle (to)");
 
    auto exec = [&](const Coordinate& basis) {
-      Templates::ParallelFor<Dimension, Device, Index>::exec(from, to, func, basis, args...);
+      Templates::ParallelFor<Dimension, Device, Index>::exec(from, to + basis, func, basis, args...);
    };
 
-   ForEachOrientation<EntityDimension>::exec(from, to, func, args...);
+   ForEachOrientation<EntityDimension>::exec(exec);
 }
 
 __NDIMGRID_TEMPLATE__

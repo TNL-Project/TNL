@@ -21,7 +21,7 @@ struct Basis {
          Orientation,
          Templates::make_int_permutations<
             GridDimension,
-            Templates::build_ones_pack<EntityDimension, GridDimension>
+            Templates::build_ones_pack<GridDimension - EntityDimension, GridDimension>
          >
       >;
 

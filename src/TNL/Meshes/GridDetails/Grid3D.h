@@ -32,11 +32,10 @@ public:
    // TODO: deprecated and to be removed (GlobalIndexType shall be used instead)
    using IndexType = Index;
 
-   static constexpr int
-   getMeshDimension()
-   {
-      return 3;
-   };
+   using Base = NDimGrid<2, Real, Device, Index>;
+   using Coordinate = typename Base::Coordinate;
+
+   static constexpr int getMeshDimension() { return 3; };
 
    template< int EntityDimension>
    using EntityType = GridEntity< Grid, EntityDimension >;

@@ -32,15 +32,15 @@ class Grid<2, Real, Device, Index>: public NDimGrid<2, Real, Device, Index> {
    template <int EntityDimension>
    using EntityType = GridEntity<Grid, EntityDimension>;
 
+   using Base = NDimGrid<2, Real, Device, Index>;
+   using Coordinate = typename Base::Coordinate;
+
    /**
     * \brief See Grid1D::Grid().
     */
    Grid() = default;
 
    Grid(const Index xSize, const Index ySize);
-
-   // empty destructor is needed only to avoid crappy nvcc warnings
-   ~Grid() = default;
 
    // TODO: - Fix method
    // /**

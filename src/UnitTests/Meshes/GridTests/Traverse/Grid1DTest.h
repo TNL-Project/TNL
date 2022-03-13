@@ -37,11 +37,28 @@ class GridTestSuite: public ::testing::Test {
 
 TYPED_TEST_SUITE(GridTestSuite, Implementations);
 
-TYPED_TEST(GridTestSuite, TestForAllTraverse) {
+TYPED_TEST(GridTestSuite, TestForAllTraverse_0D_Entity) {
    // testForAllTraverse<TypeParam, 0>(this -> grid, { 1 });
    // testForAllTraverse<TypeParam, 0>(this -> grid, { 2 });
+   // testForAllTraverse<TypeParam, 0>(this -> grid, { 4 });
+   // testForAllTraverse<TypeParam, 0>(this -> grid, { 8 });
 
-   // testForAllTraverse<TypeParam, 0>(this -> grid, { 10 });
+   // testForAllTraverse<TypeParam, 0>(this -> grid, { 9 });
+   // testForAllTraverse<TypeParam, 0>(this -> grid, { 127 });
+
+   // testForAllTraverse<TypeParam, 0>(this -> grid, { 1024 });
+}
+
+TYPED_TEST(GridTestSuite, TestForAllTraverse_1D_Entity) {
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 1 });
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 2 });
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 4 });
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 8 });
+
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 9 });
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 127 });
+
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 1024 });
 }
 
 #endif

@@ -133,8 +133,8 @@ class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 0> {
 
       __cuda_callable__ inline
       static Index getEntityIndex(const Grid& grid, const Entity& entity) {
-         TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
-         TNL_ASSERT_LE(entity.getCoordinates(), grid.getDimensions(), "wrong coordinates");
+         // TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
+         // TNL_ASSERT_LE(entity.getCoordinates(), grid.getDimensions(), "wrong coordinates");
 
          const Coordinate& coordinates = entity.getCoordinates();
          const Coordinate& dimensions = grid.getDimensions();

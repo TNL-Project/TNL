@@ -34,22 +34,18 @@ Grid<1, Real, Device, Index>::Grid(const Index xSize) {
 
 template <typename Real, typename Device, typename Index>
 template <typename Entity>
-__cuda_callable__ inline Entity Grid<1, Real, Device, Index>::getEntity(
-    const Index &entityIndex) const {
-   static_assert(Entity::getEntityDimension() <= 1 && Entity::getEntityDimension() >= 0,
-                 "Wrong grid entity dimensions.");
+__cuda_callable__ inline Entity Grid<1, Real, Device, Index>::getEntity(const Index &entityIndex) const {
+   static_assert(Templates::isInClosedInterval(0, Entity::entityDimension, 1),  "Wrong grid entity dimensions.");
 
-   return GridEntityGetter<Grid, Entity::getEntityDimension()>::getEntity(*this, entityIndex);
+   return GridEntityGetter<Grid, Entity::entityDimension>::getEntity(*this, entityIndex);
 }
 
 template <typename Real, typename Device, typename Index>
 template <typename Entity>
-__cuda_callable__ inline Index Grid<1, Real, Device, Index>::getEntityIndex(
-    const Entity &entity) const {
-   static_assert(Entity::getEntityDimension() <= 1 && Entity::getEntityDimension() >= 0,
-                 "Wrong grid entity dimensions.");
+__cuda_callable__ inline Index Grid<1, Real, Device, Index>::getEntityIndex(const Entity &entity) const {
+   static_assert(Templates::isInClosedInterval(0, Entity::entityDimension, 1),  "Wrong grid entity dimensions.");
 
-   return GridEntityGetter<Grid, Entity::getEntityDimension()>::getEntityIndex(*this, entity);
+   return GridEntityGetter<Grid, Entity::entityDimension>::getEntityIndex(*this, entity);
 }
 
 template <typename Real, typename Device, typename Index>
@@ -60,7 +56,7 @@ __cuda_callable__ const Real &Grid<1, Real, Device, Index>::getCellMeasure() con
 template <typename Real, typename Device, typename Index>
 template <int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
-   auto exec = [func] __cuda_callable__ (const Coordinate& coordinate, const Coordinate& basis, const Grid &grid, FuncArgs... args) mutable {
+   auto exec = [=] __cuda_callable__ (const Coordinate& coordinate, const Coordinate& basis, const Grid &grid, FuncArgs... args) mutable {
       EntityType<EntityDimension> entity(grid, coordinate, basis);
 
       entity.refresh();

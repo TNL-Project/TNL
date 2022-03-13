@@ -11,14 +11,14 @@
 #include "support.h"
 
 using Implementations = ::testing::Types<
-   TNL::Meshes::Grid<2, double, TNL::Devices::Host, int>,
-   // TNL::Meshes::Grid<1, float, TNL::Devices::Host, int>,
-   // TNL::Meshes::Grid<1, double, TNL::Devices::Cuda, int>,
-   // TNL::Meshes::Grid<1, float, TNL::Devices::Cuda, int>,
-   // TNL::Meshes::DistributedGrid<1, double, TNL::Devices::Host, int>,
-   // TNL::Meshes::DistributedGrid<1, float, TNL::Devices::Host, int>,
-   // TNL::Meshes::DistributedGrid<1, double, TNL::Devices::Cuda, int>,
-   // TNL::Meshes::DistributedGrid<1, float, TNL::Devices::Cuda, int>
+ //  TNL::Meshes::Grid<2, double, TNL::Devices::Host, int>,
+   // TNL::Meshes::Grid<2, float, TNL::Devices::Host, int>,
+   TNL::Meshes::Grid<2, double, TNL::Devices::Cuda, int>
+   // TNL::Meshes::Grid<2, float, TNL::Devices::Cuda, int>,
+   // TNL::Meshes::DistributedGrid<2, double, TNL::Devices::Host, int>,
+   // TNL::Meshes::DistributedGrid<2, float, TNL::Devices::Host, int>,
+   // TNL::Meshes::DistributedGrid<2, double, TNL::Devices::Cuda, int>,
+   // TNL::Meshes::DistributedGrid<2, float, TNL::Devices::Cuda, int>
 >;
 
 template <class GridType>
@@ -37,8 +37,40 @@ class GridTestSuite: public ::testing::Test {
 
 TYPED_TEST_SUITE(GridTestSuite, Implementations);
 
-TYPED_TEST(GridTestSuite, TestForAllTraverse) {
-   testForAllTraverse<TypeParam, 1>(this -> grid, { 2, 2 });
+TYPED_TEST(GridTestSuite, TestForAllTraverse_0D_Entity) {
+   testForAllTraverse<TypeParam, 0>(this -> grid, { 1, 1 });
+
+   // testForAllTraverse<TypeParam, 0>(this -> grid, { 2, 1 });
+   // testForAllTraverse<TypeParam, 0>(this -> grid, { 1, 2 });
+
+   // testForAllTraverse<TypeParam, 0>(this -> grid, { 100, 1 });
+   // testForAllTraverse<TypeParam, 0>(this -> grid, { 1, 100 });
+
+   // testForAllTraverse<TypeParam, 0>(this -> grid, { 100, 100 });
+}
+
+TYPED_TEST(GridTestSuite, TestForAllTraverse_1D_Entity) {
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 1, 1 });
+
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 2, 1 });
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 1, 2 });
+
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 100, 1 });
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 1, 100 });
+
+   // testForAllTraverse<TypeParam, 1>(this -> grid, { 100, 100 });
+}
+
+TYPED_TEST(GridTestSuite, TestForAllTraverse_2D_Entity) {
+   // testForAllTraverse<TypeParam, 2>(this -> grid, { 1, 1 });
+
+   // testForAllTraverse<TypeParam, 2>(this -> grid, { 2, 1 });
+   // testForAllTraverse<TypeParam, 2>(this -> grid, { 1, 2 });
+
+   // testForAllTraverse<TypeParam, 2>(this -> grid, { 100, 1 });
+   // testForAllTraverse<TypeParam, 2>(this -> grid, { 1, 100 });
+
+   // testForAllTraverse<TypeParam, 2>(this -> grid, { 100, 100 });
 }
 
 #endif

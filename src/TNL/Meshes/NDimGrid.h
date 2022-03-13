@@ -28,14 +28,17 @@ class NDimGrid {
    using Point = Container<Dimension, Real>;
 
    /**
-    * \brief Returns number of this mesh grid dimensions.
+    * @brief Returns number of this mesh grid dimensions.
     */
    static constexpr int getMeshDimension() { return Dimension; };
 
    NDimGrid() {}
-   // empty destructor is needed only to avoid crappy nvcc warnings
-   virtual ~NDimGrid() {}
 
+   /**
+    * @brief Each entity has specific count of the orientations.
+    *        For example in 2-D Grid the edge can be vertical or horizontal.
+    */
+   static constexpr Index getEntityOrientationsCount(const Index entityDimension);
    /**
     *  @brief - Specifies dimensions of the grid as the number of edges at each dimenison
     */
@@ -50,7 +53,7 @@ class NDimGrid {
    /**
     * @param[in] index - Index of dimension
     */
-   __cuda_callable__ inline Index getDimension(Index index) const;
+   __cuda_callable__ inline Index getDimension(const Index index) const;
    /**
     * @param[in] indices - A dimension indicies pack
     */
@@ -65,7 +68,7 @@ class NDimGrid {
    /**
     * @param[in] index - index of dimension
     */
-   __cuda_callable__ inline Index getEntitiesCount(Index index) const;
+   __cuda_callable__ inline Index getEntitiesCount(const Index index) const;
    /**
     * @param[in] index - index of dimension
     */
@@ -87,7 +90,7 @@ class NDimGrid {
     * @param[in] dimension - index of dimension
     * @param[in] orientation - orientation of the dimension
     */
-   __cuda_callable__ inline Index getOrientedEntitiesCount(Index dimension, Index orientation) const;
+   __cuda_callable__ inline Index getOrientedEntitiesCount(const Index dimension, const Index orientation) const;
    /**
     * @param[in] Dimension - index of dimension
     * @param[in] Orientation - orientation of the dimension
@@ -175,7 +178,6 @@ class NDimGrid {
     * @brief Writes info about the grid
     */
    void writeProlog(Logger&& logger) const noexcept;
-
   protected:
    template<int Orientation, int EntityDimension>
    struct _ForEachOrientation {
