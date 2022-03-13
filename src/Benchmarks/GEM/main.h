@@ -8,6 +8,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
+#include <TNL/Config/parseCommandLine.h>
 
 #include "gem.h"
 
@@ -23,7 +24,7 @@ void setupConfig( TNL::Config::ConfigDescription & config )
    config.addDelimiter( "Gaussian Elimination Method setting:" );
    config.addRequiredEntry< String >( "input-matrix", "Input matrix file name (mtx)." );
    config.addEntry< String >( "input-vector", "Input vector file name (txt). None for result as vector of ones.", "none" );
-      
+
    config.addEntry< String >( "precision", "Precision of the arithmetics.", "all" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
@@ -40,7 +41,7 @@ void setupConfig( TNL::Config::ConfigDescription & config )
 }
 
 int main( int argc, char* argv[] )
-{     
+{
 #ifdef HAVE_MPI
   // Initialize the MPI environment
   MPI_Init(NULL, NULL);
@@ -57,18 +58,16 @@ int main( int argc, char* argv[] )
             " some processes will compute on same device!. (Processes %d, Devices %d)\n", numOfProcesses, numOfDevices);
   cudaSetDevice(processID%numOfDevices);
 #endif
-  
-  
+
+
   Config::ParameterContainer parameters;
   Config::ConfigDescription conf_desc;
 
   setupConfig( conf_desc );
-  
-  if( ! parseCommandLine( argc, argv, conf_desc, parameters ) ) {
-      conf_desc.printUsage( argv[ 0 ] );
+
+  if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
-   }
-  
+
   const String & matrixName = parameters.getParameter< String >( "input-matrix" );
   const String & vectorName = parameters.getParameter< String >( "input-vector" );
   const String & device = parameters.getParameter< String >( "device" );
@@ -76,37 +75,37 @@ int main( int argc, char* argv[] )
   const String & pivoting = parameters.getParameter< String >( "pivoting" );
   int loops = parameters.getParameter< int >( "loops" );
   int verbose = parameters.getParameter< int >( "verbose" );
-  
+
 #ifdef HAVE_MPI
   if( processID == 0 )
 #endif
     printf("%20s %15s %15s %10s %20s %17s %17s %17s\n",  "vector", "device", "precision", "loops","matrix", "#rows", "time", "error");
 
- 
+
   if( ( precision == "all" || precision == "float" ) )
   {
     if( ( device == "CPU" || device == "both" ) )
-      Vector< float, TNL::Devices::Host, int > result = 
+      Vector< float, TNL::Devices::Host, int > result =
         runGEM< float, int, TNL::Devices::Host >( matrixName, vectorName, loops, verbose, (String)"CPU", pivoting );
 
     if( ( device == "GPU" || device == "both" ) )
       Vector< float, TNL::Devices::Cuda, int > result =
         runGEM< float, int, TNL::Devices::Cuda >( matrixName, vectorName, loops, verbose, (String)"GPU", pivoting );
   }
-  
+
   if( ( precision == "all" || precision == "double" ) )
   {
     if( ( device == "CPU" || device == "both" ) )
-      Vector< double, TNL::Devices::Host, int > result = 
+      Vector< double, TNL::Devices::Host, int > result =
         runGEM< double, int, TNL::Devices::Host >( matrixName, vectorName, loops, verbose, (String)"CPU", pivoting );
     if( ( device == "GPU" || device == "both" ) )
-      Vector< double, TNL::Devices::Cuda, int > result = 
+      Vector< double, TNL::Devices::Cuda, int > result =
         runGEM< double, int, TNL::Devices::Cuda >( matrixName, vectorName, loops, verbose, (String)"GPU", pivoting );
   }
-  
+
 #ifdef HAVE_MPI
   MPI_Finalize();
 #endif
 
-  return EXIT_SUCCESS; 
+  return EXIT_SUCCESS;
 }
