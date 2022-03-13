@@ -1,5 +1,5 @@
-#include <chrono> 
-#include <thread> 
+#include <chrono>
+#include <thread>
 
 #include "Matrix/Matrix.h"
 #include "gem/GEM.h"
@@ -41,9 +41,9 @@ void readVector( Vector< Real, Devices::Host, Index >& vector_host, const String
 
 
 template < typename Real, typename Index >
-void readMatrixVector( Matrix< Real, Devices::Host, Index>& matrix, 
+void readMatrixVector( Matrix< Real, Devices::Host, Index>& matrix,
         Vector< Real, Devices::Host, Index >& vector,
-        const String& matrixName,  const String& vectorName, 
+        const String& matrixName,  const String& vectorName,
         Index &rows, Index &nonzeros, const int verbose );
 
 
@@ -52,12 +52,12 @@ template < typename Real,
         typename Device >
 Vector< Real, Device, Index > runGEM( const String& matrixName, const String& vectorName, const int loops,
         const int verbose, const String& device, const String& pivoting )
-{  
+{
   typedef Matrix< Real, Device, Index > MatrixType;
   typedef Vector< Real, Device, Index > VectorType;
   typedef Matrix< Real, Devices::Host, Index > MatrixTypeHost;
   typedef Vector< Real, Devices::Host, Index > VectorTypeHost;
-  
+
   int processID = 0; // MPI processID, without mpi == 0
 #ifdef HAVE_MPI
   MPI_Comm_rank( MPI_COMM_WORLD, &processID );
@@ -68,23 +68,23 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
   MatrixType matrix;
   VectorType vector;
   VectorType vectorResult;
-  
+
   Index rows, nonzeros;
   readMatrixVector( matrixHost, vectorHost, matrixName, vectorName, rows, nonzeros, verbose );
-    
+
   // Computation
   double* time;
   time = new double[ loops ];
   double error = -1;
-  
+
   if( verbose > 1 )
     cout << "Starting computation on " << device << endl;
-  
+
   for( int i = 0; i < loops; i++ )
   {
 #ifdef HAVE_MPI
     Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif 
+#endif
     //readMatrixVector( matrixHost, vectorHost, matrixName, vectorName, rows, nonzeros, verbose );
     matrix.reset();
     vector.reset();
@@ -93,25 +93,25 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
     vectorResult.setSize( rows );
     vectorResult.setValue( 0 );
     GEM< Real, Device, Index > gem( matrix, vector );
-    
+
 #ifdef HAVE_MPI
     Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif 
+#endif
     double duration;
     std::clock_t start;
     start = std::clock();
     if( verbose > 1 && processID == 0 )
       cout << "starting computation number " << i+1 << endl;
-    
+
     gem.solve( vectorResult, pivoting, verbose );
-    
+
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-    
-    
+
+
     if( processID == 0 )
     {
       time[i] = duration;
-      
+
       if( vectorName == "none" )
       {
         double l2norm = 0;
@@ -119,7 +119,7 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
           l2norm += (vectorResult.getElement( j ) - 1)*(vectorResult.getElement( j ) - 1);
         l2norm = std::sqrt(l2norm);
         error = l2norm;
-        
+
         if( verbose > 1 )
           printf( "Norm in %d calculation is %.4f\n", i+1, l2norm);
       }
@@ -127,27 +127,27 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
   }
   if( verbose > 1 && processID == 0 )
     printf("\n ... done!\n");
-  
+
   double timeMean = 0;
   for( int i = 0; i < loops; i++ )
     timeMean += time[i];
   timeMean /= loops;
-  
+
   if( processID == 0 )
     printf("%20s %15s %15s %10d %20s & %15d & %15.3f & %15.3f\n", vectorName == "none" ? "-":vectorName.c_str(),
             device.c_str(), typeid(Real).name() == (string)"f" ? "float":"double", loops, matrixName.c_str(),
             rows, timeMean, error);
-  
+
   delete []time;
-  
+
 #ifdef HAVE_MPI
   Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif 
+#endif
   matrix.reset();
   if( processID == 0 ){
     //printf("%d: returning\n", processID );
     return vectorResult;
-    
+
   }
   else{
     //("%d: returning\n", processID );
@@ -157,20 +157,20 @@ Vector< Real, Device, Index > runGEM( const String& matrixName, const String& ve
 }
 
 template < typename Real, typename Index >
-void readMatrixVector( Matrix< Real, Devices::Host, Index>& matrix, 
+void readMatrixVector( Matrix< Real, Devices::Host, Index>& matrix,
         Vector< Real, Devices::Host, Index >& vector,
-        const String& matrixName,  const String& vectorName, 
+        const String& matrixName,  const String& vectorName,
         Index &rows, Index &nonzeros, const int verbose )
 {
   if( verbose > 1 )
     cout << "reading matrix " << matrixName << endl;
   // Get matrix
   Matrices::MatrixReader< Matrix< Real, Devices::Host, Index> > m;
-  m.readMtxFile( "./test-matrices/" + matrixName, matrix, verbose );
+  m.readMtx( "./test-matrices/" + matrixName, matrix, verbose );
   rows = matrix.getNumRows();
   nonzeros = matrix.getNumNonzeros();
   vector.setSize( rows );
-  
+
   // Get vector
   if( vectorName == "none" ){
     calculHostVecOne( matrix, vector, vectorName );
@@ -180,13 +180,13 @@ void readMatrixVector( Matrix< Real, Devices::Host, Index>& matrix,
     if( verbose > 1 )
       cout << "reading vector " << vectorName << endl;
   }
-  
+
 #ifdef HAVE_MPI
   cutMatrixVectorMPI( matrix, vector );
 #endif
   if( verbose > 2 )
     matrix.showMatrix();
-  
+
   if( verbose > 2 )
     cout << vector << endl;
 }
@@ -204,15 +204,15 @@ void calculHostVecOne( Matrix< Real, Devices::Host, Index >& matrix,
     }
     vector.setElement( i, pom );
   }
-  
+
   /*ofstream outdata; // outdata is like cin
-   
+
    outdata.open("./test-matrices/" + vectorName ); // opens the file
    if( !outdata ) { // file couldn't be opened
    cerr << "Error: file could not be opened" << endl;
    exit(1);
    }
-   
+
    for( int i = 0; i < vector.getSize(); i++ )
    {
    outdata << vector[i] << endl;
@@ -231,7 +231,7 @@ void readVector( Vector< Real, Devices::Host, Index >& vector_host, const String
     cout << "Unable to open file" << endl;
     return;
   }
-  
+
   int i = 0;
   while ( inFile >> x ) {
     vector_host[i] = x;
@@ -248,13 +248,13 @@ void cutMatrixVectorMPI( Matrix< Real, Devices::Host, Index >& matrix,
 {
   Matrix< Real, Devices::Host, Index> matrixTemp;
   Vector< Real, Devices::Host, Index > vectorTemp;
-  
+
   int processID;
   int numOfProcesses;
-  
+
   MPI_Comm_rank( MPI_COMM_WORLD, &processID );
   MPI_Comm_size( MPI_COMM_WORLD, &numOfProcesses );
-  
+
   /*if( processID == 0 )
   {
     printf( "%d: %d\n", numOfProcesses, processID );
@@ -262,13 +262,13 @@ void cutMatrixVectorMPI( Matrix< Real, Devices::Host, Index >& matrix,
     cout << vector << endl;
   }
   */
-  
+
   Index numRowsCUT = TNL::roundUpDivision( matrix.getNumRows(), numOfProcesses );
   matrixTemp.setDimensions( numRowsCUT, matrix.getNumRows() );
   vectorTemp.setSize( numRowsCUT );
-  
+
   //printf( "%d: %d num of rows = %d\n", numOfProcesses, processID, numRowsCUT );
-  
+
   for( int j = 0; j < matrix.getNumColumns(); j++ ){
     for( int i = 0; i < numRowsCUT; i++ ){
       if( i + numRowsCUT * processID < matrix.getNumRows() ){
