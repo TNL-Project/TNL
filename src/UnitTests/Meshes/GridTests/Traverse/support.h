@@ -228,8 +228,8 @@ class GridTraverseTestCase {
                return;
             }
 
-            while (!iterator.next()) {
-               auto index = iterator.getIndex();
+            do {
+               auto index = iterator.getIndex(grid);
 
                EXPECT_EQ(callsView[index], 1) << "Expect the index to be called once. View [" << callsView << "]";
                EXPECT_EQ(indicesView[index], index) << "Expect the index was correctly set. View [" << indicesView << "]";
@@ -237,13 +237,15 @@ class GridTraverseTestCase {
                auto coordinate = iterator.getCoordinate();
                auto basis = iterator.getBasis();
 
+            //   EXPECT_EQ(0, 1) << index << iterator.getCoordinate() << iterator.getBasis() << grid.getOrientedEntitiesCount(EntityDimension, orientation);
+
                for (Index i = 0; i < gridDimension; i++) {
                   EXPECT_EQ(coordinatesView[index * gridDimension + i], coordinate[i])
-                    << "Expect the coordinates are the same on the same index. View [" << coordinatesView << "]";
+                    << "Expect the coordinates are the same on the same index. " << "Entity Index: [" << index << "] " << "View [" << coordinatesView << "]";
                   EXPECT_EQ(basisView[index * gridDimension + i], basis[i])
-                    << "Expect the coordinates are the same on the same index. View [" << basisView <<  "]";
+                    << "Expect the coordinates are the same on the same index. " << "Entity Index: [" << index << "] " << "View [" << basisView <<  "]";
                }
-            }
+            } while (!iterator.next());
          };
 
          Templates::DescendingFor<orientationsCount - 1>::exec(verify);
@@ -277,7 +279,7 @@ class GridTraverseTestCase {
                return current;
             }
 
-            Index getIndex() const {
+            Index getIndex(const Grid& grid) const {
                Index result = 0;
 
                for (Index i = 0; i < current.getSize(); i++) {
@@ -292,6 +294,9 @@ class GridTraverseTestCase {
                      result += current[i] * offset;
                   }
                }
+
+               for (Index i = 0; i < Orientation; i++)
+                  result += grid.getOrientedEntitiesCount(EntityDimension, i);
 
                return result;
             }

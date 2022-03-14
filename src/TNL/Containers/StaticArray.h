@@ -103,6 +103,17 @@ public:
    constexpr StaticArray( const Value& v1, const Value& v2, const Value& v3 );
 
    /**
+    * \brief Constructor that sets components of arrays with Size = 4.
+    *
+    * \param v1 Value of the first array component.
+    * \param v2 Value of the second array component.
+    * \param v3 Value of the third array component.
+    * \param v4 Value of the forth array component.
+    */
+   __cuda_callable__
+   constexpr StaticArray( const Value& v1, const Value& v2, const Value& v3, const Value& v4 );
+
+   /**
     * \brief Gets pointer to data of this static array.
     */
    __cuda_callable__

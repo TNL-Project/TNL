@@ -156,6 +156,17 @@ constexpr StaticArray< Size, Value >::StaticArray( const Value& v1, const Value&
 }
 
 template< int Size, typename Value >
+ __cuda_callable__
+constexpr StaticArray< Size, Value >::StaticArray( const Value& v1, const Value& v2, const Value& v3, const Value& v4 )
+{
+   static_assert( Size == 4, "This constructor can be called only for arrays with Size = 4." );
+   data[ 0 ] = v1;
+   data[ 1 ] = v2;
+   data[ 2 ] = v3;
+   data[ 3 ] = v4;
+}
+
+template< int Size, typename Value >
 __cuda_callable__
 Value*
 StaticArray< Size, Value >::getData()

@@ -105,9 +105,9 @@ class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 1> {
          const Coordinate& coordinates = entity.getCoordinates();
          const Coordinate& dimensions = grid.getDimensions();
 
-         if (entity.getBasis().x()) return coordinates.y() * (dimensions.x() + 1) + coordinates.x();
+         if (entity.getBasis().y()) return coordinates.y() * (dimensions.x()) + coordinates.x();
 
-         return grid.template getOrientedEntitiesCount<1, 0>() + coordinates.y() * dimensions.x() + coordinates.x();
+         return grid.template getOrientedEntitiesCount<1, 0>() + coordinates.y() * (dimensions.x() + 1) + coordinates.x();
       }
 };
 
