@@ -368,7 +368,7 @@ constexpr Index product(Index from, Index to) {
    Index result = 1;
 
    if (from <= to)
-      for (Index i = from; i < to; i++) result *= i;
+      for (Index i = from; i <= to; i++) result *= i;
 
    return result;
 }

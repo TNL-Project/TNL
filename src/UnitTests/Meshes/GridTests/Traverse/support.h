@@ -43,7 +43,51 @@ struct EntityDataStore {
    public:
       using Container = TNL::Containers::Array<Index, Device, Index>;
 
-      EntityDataStore(const Index& entitiesCount) : entitiesCount(entitiesCount) {
+      struct View {
+         public:
+            View(typename Container::ViewType calls,
+                 typename Container::ViewType indices,
+                 typename Container::ViewType coordinates,
+                 typename Container::ViewType isBoundary,
+                 typename Container::ViewType basis)
+               : calls(calls), indices(indices), coordinates(coordinates), isBoundary(isBoundary), basis(basis) {}
+
+            template <typename Entity>
+            __cuda_callable__ void store(const Entity entity) {
+               auto index = entity.getIndex();
+
+               calls[index] += 1;
+               indices[index] = entity.getIndex();
+               isBoundary[index] = entity.isBoundary();
+
+               auto coordinates = entity.getCoordinates();
+               auto basis = entity.getBasis();
+
+               for (Index i = 0; i < GridDimension; i++) {
+                  this -> coordinates[index * GridDimension + i] = coordinates[i];
+                  this -> basis[index * GridDimension + i] = basis[i];
+               }
+            }
+
+            template <typename Entity>
+            __cuda_callable__ void clear(const Entity entity) {
+               auto index = entity.getIndex();
+
+               calls[index] = 0;
+               indices[index] = 0;
+               isBoundary[index] = 0;
+
+               for (Index i = 0; i < GridDimension; i++) {
+                  coordinates[index * GridDimension + i] = 0;
+                  basis[index * GridDimension + i] = 0;
+               }
+            }
+         private:
+            typename Container::ViewType calls, indices, coordinates, basis, isBoundary;
+      };
+
+      EntityDataStore(const Index& entitiesCount)
+          : entitiesCount(entitiesCount) {
          calls.resize(entitiesCount);
          indices.resize(entitiesCount);
          isBoundary.resize(entitiesCount);
@@ -77,6 +121,8 @@ struct EntityDataStore {
          return newContainer;
       };
 
+      View getView() { return { getCallsView(), getIndicesView(), getCoordinatesView(),  getIsBoundaryView(), getBasisView() }; }
+
       typename Container::ViewType getCallsView() { return calls.getView(); }
       typename Container::ViewType getIndicesView() { return indices.getView(); }
       typename Container::ViewType getIsBoundaryView() { return isBoundary.getView(); }
@@ -87,6 +133,8 @@ struct EntityDataStore {
 
       Container calls, indices, coordinates, basis, isBoundary;
 };
+
+
 
 template<typename Grid, int EntityDimension>
 class GridTraverseTestCase {
@@ -99,22 +147,58 @@ class GridTraverseTestCase {
       using UpdateFunctionType = std::function<void(const typename Grid::EntityType<EntityDimension>&)>;
 
       void storeAll(const Grid& grid, DataStore& store) const {
-         this -> store(grid, store, [=] __cuda_callable__ (const UpdateFunctionType& update) { grid.template forAll<EntityDimension>(update); });
+         auto view = store.getView();
+
+         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+            view.store(entity);
+         };
+
+         grid.template forAll<EntityDimension>(update);
       }
       void storeBoundary(const Grid& grid, DataStore& store) const {
-         this -> store(grid, store, [&](const UpdateFunctionType& update) { grid.template forBoundary<EntityDimension>(update); });
+         auto view = store.getView();
+
+         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+            view.store(entity);
+         };
+
+         grid.template forBoundary<EntityDimension>(update);
       }
       void storeInterior(const Grid& grid, DataStore& store) const {
-         this -> store(grid, store, [&](const UpdateFunctionType& update) { grid.template forInterior<EntityDimension>(update); });
+         auto view = store.getView();
+
+         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+            view.store(entity);
+         };
+
+         grid.template forInterior<EntityDimension>(update);
       }
       void clearAll(const Grid& grid, DataStore& store) const {
-         clear(grid, store, [&](const UpdateFunctionType& update) { grid.template forAll<EntityDimension>(update); });
+         auto view = store.getView();
+
+         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+            view.clear(entity);
+         };
+
+         grid.template forAll<EntityDimension>(update);
       }
       void clearBoundary(const Grid& grid, DataStore& store) const {
-         clear(grid, store, [&](const UpdateFunctionType& update) { grid.template forBoundary<EntityDimension>(update); });
+         auto view = store.getView();
+
+         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+            view.clear(entity);
+         };
+
+         grid.template forBoundary<EntityDimension>(update);
       }
       void clearInterior(const Grid& grid, DataStore& store) const {
-         clear(grid, store, [&](const UpdateFunctionType& update) { grid.template forInterior<EntityDimension>(update); });
+         auto view = store.getView();
+
+         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+            view.clear(entity);
+         };
+
+         grid.template forInterior<EntityDimension>(update);
       }
 
       void verifyAll(const Grid& grid, const DataStore& store) const {
@@ -126,7 +210,7 @@ class GridTraverseTestCase {
 
          auto callsView = hostStore.getCallsView();
          auto indicesView = hostStore.getIndicesView();
-         auto isBoundaryView = hostStore.getIsBoundaryView();
+         // auto isBoundaryView = hostStore.getIsBoundaryView();
          auto coordinatesView = hostStore.getCoordinatesView();
          auto basisView = hostStore.getBasisView();
 
@@ -144,90 +228,32 @@ class GridTraverseTestCase {
                return;
             }
 
-            int i = 0;
-            while (!iterator.next() && i++ <= 100) {
+            while (!iterator.next()) {
                auto index = iterator.getIndex();
 
-               EXPECT_EQ(callsView[index], 1) << "Expect the index to be called once";
-               EXPECT_EQ(indicesView[index], index) << "Expect the index was correctly set";
+               EXPECT_EQ(callsView[index], 1) << "Expect the index to be called once. View [" << callsView << "]";
+               EXPECT_EQ(indicesView[index], index) << "Expect the index was correctly set. View [" << indicesView << "]";
 
                auto coordinate = iterator.getCoordinate();
                auto basis = iterator.getBasis();
 
                for (Index i = 0; i < gridDimension; i++) {
-                  EXPECT_EQ(coordinatesView[index * gridDimension + i], coordinate[i]) << "Expect the coordinates are the same on the same index";
-                  EXPECT_EQ(basisView[index * gridDimension + i], basis[i]) << "Expect the coordinates are the same on the same index";
+                  EXPECT_EQ(coordinatesView[index * gridDimension + i], coordinate[i])
+                    << "Expect the coordinates are the same on the same index. View [" << coordinatesView << "]";
+                  EXPECT_EQ(basisView[index * gridDimension + i], basis[i])
+                    << "Expect the coordinates are the same on the same index. View [" << basisView <<  "]";
                }
             }
          };
 
          Templates::DescendingFor<orientationsCount - 1>::exec(verify);
       }
-
       void verifyBoundary(const Grid& grid, const DataStore& store) const {
 
       }
       void verifyInterior(const Grid& grid, const DataStore& store) const {
 
       }
-
-      template<typename Traverser>
-      void store(const Grid& grid, DataStore& store, const Traverser traverser) const {
-         auto callsView = store.getCallsView();
-         auto indicesView = store.getIndicesView();
-         auto isBoundaryView = store.getIsBoundaryView();
-         auto coordinatesView = store.getCoordinatesView();
-         auto basisView = store.getBasisView();
-         auto gridDimension = Grid::getMeshDimension();
-
-         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
-            auto index = entity.getIndex();
-
-            callsView[index] += 1;
-
-            indicesView[index] = index;
-            isBoundaryView[index] = entity.isBoundary();
-
-            auto coordinates = entity.getCoordinates();
-
-            for (Index i = 0; i < gridDimension; i++)
-               coordinatesView[index * gridDimension + i] = coordinates[i];
-
-            auto basis = entity.getBasis();
-
-            for (Index i = 0; i < gridDimension; i++)
-               basisView[index * gridDimension + i] = basis[i];
-         };
-
-         traverser(update);
-      }
-
-      template<typename Traverser>
-      void clear(const Grid& grid, DataStore& store, Traverser traverser) const {
-         auto callsView = store.getCallsView();
-         auto indicesView = store.getIndicesView();
-         auto isBoundaryView = store.getIsBoundaryView();
-         auto coordinatesView = store.getCoordinatesView();
-         auto basisView = store.getBasisView();
-         auto gridDimension = Grid::getMeshDimension();
-
-         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
-            auto index = entity.getIndex();
-
-            callsView[index] = 0;
-            indicesView[index] = 0;
-            isBoundaryView[index] = 0;
-
-            for (Index i = 0; i < gridDimension; i++)
-               coordinatesView[index * gridDimension + i] = 0;
-
-            for (Index i = 0; i < gridDimension; i++)
-               basisView[index * gridDimension + i] = 0;
-         };
-
-         traverser(update);
-      }
-
    private:
       template<int Orientation>
       class CoordinateIterator {

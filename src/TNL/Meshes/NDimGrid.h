@@ -186,7 +186,7 @@ class NDimGrid {
          static void exec(Func func) {
             func(Basis<Index, Orientation, EntityDimension, Dimension>::getBasis());
 
-            _ForEachOrientation<Orientation - 1, EntityDimension>::exex(func);
+            _ForEachOrientation<Orientation - 1, EntityDimension>::exec(func);
          };
    };
 

@@ -34,9 +34,6 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
 
    Grid(const Index xSize);
 
-   // empty destructor is needed only to avoid crappy nvcc warnings
-   ~Grid() {}
-
    /**
     * \brief Gets number of entities in this grid.
     * \tparam Entity Type of the entity.
