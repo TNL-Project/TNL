@@ -26,6 +26,17 @@ class GridTestSuite: public ::testing::Test {
    protected:
       GridType grid;
 
+      std::vector<typename GridType::Coordinate> dimensions = {
+         { 1, 1 },
+         { 2, 1 },
+         { 1, 2 },
+         { 2, 2 },
+         { 3, 3 },
+         { 100, 1 },
+         { 1, 100 },
+         { 100, 100 }
+      };
+
 #ifndef HAVE_CUDA
       void SetUp() override {
          if (std::is_same<typename GridType::DeviceType, TNL::Devices::Cuda>::value) {
@@ -38,39 +49,33 @@ class GridTestSuite: public ::testing::Test {
 TYPED_TEST_SUITE(GridTestSuite, Implementations);
 
 TYPED_TEST(GridTestSuite, TestForAllTraverse_0D_Entity) {
-   testForAllTraverse<TypeParam, 0>(this -> grid, { 1, 1 });
-
-   testForAllTraverse<TypeParam, 0>(this -> grid, { 2, 1 });
-   testForAllTraverse<TypeParam, 0>(this -> grid, { 1, 2 });
-
-   testForAllTraverse<TypeParam, 0>(this -> grid, { 100, 1 });
-   testForAllTraverse<TypeParam, 0>(this -> grid, { 1, 100 });
-
-   testForAllTraverse<TypeParam, 0>(this -> grid, { 100, 100 });
+   for (const auto& dimension : this -> dimensions)
+      testForAllTraverse<TypeParam, 0>(this -> grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestForAllTraverse_1D_Entity) {
-   testForAllTraverse<TypeParam, 1>(this -> grid, { 1, 1 });
-
-   testForAllTraverse<TypeParam, 1>(this -> grid, { 2, 1 });
-   testForAllTraverse<TypeParam, 1>(this -> grid, { 1, 2 });
-
-   testForAllTraverse<TypeParam, 1>(this -> grid, { 100, 1 });
-   testForAllTraverse<TypeParam, 1>(this -> grid, { 1, 100 });
-
-   testForAllTraverse<TypeParam, 1>(this -> grid, { 100, 100 });
+   for (const auto& dimension : this -> dimensions)
+      testForAllTraverse<TypeParam, 1>(this -> grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestForAllTraverse_2D_Entity) {
-   testForAllTraverse<TypeParam, 2>(this -> grid, { 1, 1 });
+  for (const auto& dimension : this -> dimensions)
+      testForAllTraverse<TypeParam, 2>(this -> grid, dimension);
+}
 
-   testForAllTraverse<TypeParam, 2>(this -> grid, { 2, 1 });
-   testForAllTraverse<TypeParam, 2>(this -> grid, { 1, 2 });
+TYPED_TEST(GridTestSuite, TestForInteriorTraverse_0D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testForInteriorTraverse<TypeParam, 0>(this -> grid, dimension);
+}
 
-   testForAllTraverse<TypeParam, 2>(this -> grid, { 100, 1 });
-   testForAllTraverse<TypeParam, 2>(this -> grid, { 1, 100 });
+TYPED_TEST(GridTestSuite, TestForInteriorTraverse_1D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testForInteriorTraverse<TypeParam, 1>(this -> grid, dimension);
+}
 
-   testForAllTraverse<TypeParam, 2>(this -> grid, { 100, 100 });
+TYPED_TEST(GridTestSuite, TestForInteriorTraverse_2D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testForInteriorTraverse<TypeParam, 2>(this -> grid, dimension);
 }
 
 #endif

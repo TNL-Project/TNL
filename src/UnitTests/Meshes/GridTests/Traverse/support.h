@@ -148,6 +148,8 @@ class GridTraverseTestCase {
       using UpdateFunctionType = std::function<void(const typename Grid::EntityType<EntityDimension>&)>;
 
       void storeAll(const Grid& grid, DataStore& store) const {
+         SCOPED_TRACE("Store all");
+
          auto view = store.getView();
 
          auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
@@ -157,6 +159,8 @@ class GridTraverseTestCase {
          grid.template forAll<EntityDimension>(update);
       }
       void storeBoundary(const Grid& grid, DataStore& store) const {
+         SCOPED_TRACE("Store boundary");
+
          auto view = store.getView();
 
          auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
@@ -166,6 +170,8 @@ class GridTraverseTestCase {
          grid.template forBoundary<EntityDimension>(update);
       }
       void storeInterior(const Grid& grid, DataStore& store) const {
+         SCOPED_TRACE("Store interior");
+
          auto view = store.getView();
 
          auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
@@ -175,6 +181,8 @@ class GridTraverseTestCase {
          grid.template forInterior<EntityDimension>(update);
       }
       void clearAll(const Grid& grid, DataStore& store) const {
+         SCOPED_TRACE("Clear all");
+
          auto view = store.getView();
 
          auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
@@ -184,6 +192,8 @@ class GridTraverseTestCase {
          grid.template forAll<EntityDimension>(update);
       }
       void clearBoundary(const Grid& grid, DataStore& store) const {
+         SCOPED_TRACE("Clear boundary");
+
          auto view = store.getView();
 
          auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
@@ -193,6 +203,8 @@ class GridTraverseTestCase {
          grid.template forBoundary<EntityDimension>(update);
       }
       void clearInterior(const Grid& grid, DataStore& store) const {
+         SCOPED_TRACE("Clear interior");
+
          auto view = store.getView();
 
          auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
@@ -203,6 +215,8 @@ class GridTraverseTestCase {
       }
 
       void verifyAll(const Grid& grid, const DataStore& store) const {
+         SCOPED_TRACE("Verifying forAll");
+
          auto hostStore = store.template move<TNL::Devices::Host>();
 
          constexpr int orientationsCount = Grid::getEntityOrientationsCount(EntityDimension);
@@ -221,18 +235,21 @@ class GridTraverseTestCase {
             CoordinateIterator<orientation> iterator(grid.getDimensions());
 
             if (!iterator.canIterate()) {
+               SCOPED_TRACE("Skip iteration");
                EXPECT_EQ(callsView.getSize(), 0) << "Expect, that we can't iterate, when grid is empty";
                return;
             }
 
             do {
-               verifyEntity(iterator, hostStore, true);
+               verifyEntity(grid, iterator, hostStore, true);
             } while (!iterator.next());
          };
 
          Templates::DescendingFor<orientationsCount - 1>::exec(verify);
       }
       void verifyBoundary(const Grid& grid, const DataStore& store) const {
+         SCOPED_TRACE("Verifying forBoundary");
+
          auto hostStore = store.template move<TNL::Devices::Host>();
 
          constexpr int orientationsCount = Grid::getEntityOrientationsCount(EntityDimension);
@@ -246,18 +263,21 @@ class GridTraverseTestCase {
             CoordinateIterator<orientation> iterator(grid.getDimensions());
 
             if (!iterator.canIterate()) {
+               SCOPED_TRACE("Skip iteration");
                EXPECT_EQ(hostStore.getCallsView().getSize(), 0) << "Expect, that we can't iterate, when grid is empty";
                return;
             }
 
             do {
-               verifyEntity(iterator, hostStore, iterator.isBoundary());
+               verifyEntity(grid, iterator, hostStore, iterator.isBoundary(grid));
             } while (!iterator.next());
          };
 
          Templates::DescendingFor<orientationsCount - 1>::exec(verify);
       }
       void verifyInterior(const Grid& grid, const DataStore& store) const {
+         SCOPED_TRACE("Verifying forInterior");
+
          auto hostStore = store.template move<TNL::Devices::Host>();
 
          constexpr int orientationsCount = Grid::getEntityOrientationsCount(EntityDimension);
@@ -271,12 +291,13 @@ class GridTraverseTestCase {
             CoordinateIterator<orientation> iterator(grid.getDimensions());
 
             if (!iterator.canIterate()) {
+               SCOPED_TRACE("Skip iteration");
                EXPECT_EQ(hostStore.getCallsView().getSize(), 0) << "Expect, that we can't iterate, when grid is empty";
                return;
             }
 
             do {
-               verifyEntity(iterator, hostStore, !iterator.isBoundary());
+               verifyEntity(grid, iterator, hostStore, !iterator.isBoundary(grid));
             } while (!iterator.next());
          };
 
@@ -293,10 +314,26 @@ class GridTraverseTestCase {
                   current[i] = 0;
             }
 
-            bool isBoundary() const {
-               for (Index i = 0; i < current.getSize(); i++)
-                  if (current[i] == 0 || current[i] == end[i])
-                     return true;
+            bool isBoundary(const Grid& grid) const {
+               switch (EntityDimension) {
+               case Grid::getMeshDimension():
+                  for (Index i = 0; i < current.getSize(); i++)
+                     if (current[i] == 0 || current[i] == grid.getDimension(i) - 1)
+                        return true;
+
+                  break;
+               case 0:
+                  for (Index i = 0; i < current.getSize(); i++)
+                     if (getBasis()[i] && (current[i] == 0 || current[i] == grid.getDimension(i)))
+                        return true;
+
+                  break;
+               default:
+                  for (Index i = 0; i < current.getSize(); i++)
+                     if (getBasis()[i] && (current[i] == 0 || current[i] == grid.getDimension(i) + 1))
+                        return true;
+                  break;
+               }
 
                return false;
             }
@@ -382,13 +419,15 @@ class GridTraverseTestCase {
       };
 
       template<int Orientation>
-      void verifyEntity(const CoordinateIterator<Orientation>& iterator,
-                        const HostDataStore& dataStore,
-                        const bool expectCall) {
+      void verifyEntity(const Grid& grid,
+                        const CoordinateIterator<Orientation>& iterator,
+                        HostDataStore& dataStore,
+                        bool expectCall) const {
+         auto gridDimension = grid.getMeshDimension();
          auto index = iterator.getIndex(grid);
 
-         auto callsView = hostStore.getCallsView();
-         auto indicesView = hostStore.getIndicesView();
+         auto callsView = dataStore.getCallsView();
+         auto indicesView = dataStore.getIndicesView();
 
          EXPECT_EQ(callsView[index], expectCall ? 1 : 0) << "Expect the index to be called once. View [" << callsView << "]";
          EXPECT_EQ(indicesView[index], expectCall ? index : 0) << "Expect the index was correctly set. View [" << indicesView << "]";
@@ -399,16 +438,22 @@ class GridTraverseTestCase {
          auto coordinatesView = dataStore.getCoordinatesView();
          auto basisView = dataStore.getBasisView();
 
+         Coordinate entityCoordinate;
+         Coordinate entityBasis;
+
          for (Index i = 0; i < gridDimension; i++) {
-            EXPECT_EQ(coordinatesView[index * gridDimension + i], iterator.isBoundary() ? 0 : coordinate[i])
+            entityCoordinate[i] = coordinatesView[index * gridDimension + i];
+            entityBasis[i] = basisView[index * gridDimension + i];
+         }
+
+         EXPECT_EQ(entityCoordinate, expectCall ? coordinate : Coordinate(0))
                 << "Expect the coordinates are the same on the same index. "
                 << "Entity Index: [" << index << "] "
                 << "View [" << coordinatesView << "]";
-            EXPECT_EQ(basisView[index * gridDimension + i], iterator.isBoundary() ? 0 : basis[i])
-                << "Expect the coordinates are the same on the same index. "
+         EXPECT_EQ(entityBasis, expectCall ? basis : Coordinate(0))
+                << "Expect the bases are the same on the same index. "
                 << "Entity Index: [" << index << "] "
                 << "View [" << basisView << "]";
-         }
       }
 };
 
@@ -448,22 +493,6 @@ void testForBoundaryTraverse(Grid& grid, const typename Grid::Coordinate& dimens
    typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
 
    test.storeBoundary(grid, store);
-   test.verifyBoundary(grid, store);
-}
-
-template<typename Grid, int EntityDimension>
-void testTraverserProperties(Grid& grid, const typename Grid::Coordinate& dimensions) {
-   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
-
-   using Test = GridTraverseTestCase<Grid, EntityDimension>;
-
-   Test test;
-   typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
-
-   test.storeAll(grid, store);
-   test.verifyAll(grid, store);
-
-   test.clearInterior(grid, store);
    test.verifyBoundary(grid, store);
 }
 
