@@ -159,21 +159,6 @@ class NDimGrid {
     * @brief Get the proportions of the Grid
     */
    __cuda_callable__ inline const Point& getProportions() const noexcept;
-   /*
-    * @brief Traverses all elements
-    */
-   template <int EntityDimension, typename Func, typename... FuncArgs>
-   void forAll(Func func, FuncArgs... args) const;
-   /*
-    * @brief Traverses interior elements
-    */
-   template <int EntityDimension, typename Func, typename... FuncArgs>
-   void forInterior(Func func, FuncArgs... args) const;
-   /*
-    * @brief Traverses boundary elements
-    */
-   template <int EntityDimension, typename Func, typename... FuncArgs>
-   void forBoundary(Func func, FuncArgs... args) const;
    /**
     * @brief Writes info about the grid
     */
@@ -236,8 +221,21 @@ class NDimGrid {
    void fillSpaceStepsPowers();
    void fillProportions();
 
+   /*
+    * @brief Traverses all elements
+    */
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   void forEach(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
+   inline void traverseAll(Func func, FuncArgs... args) const;
+   /*
+    * @brief Traverses interior elements
+    */
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline void traverseInterior(Func func, FuncArgs... args) const;
+   /*
+    * @brief Traverses boundary elements
+    */
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline void forBoundary(Func func, FuncArgs... args) const;
 
    template <typename Func, typename... FuncArgs>
    void forEachPermutation(const Index k, const Index n, Func func, FuncArgs... args) const;

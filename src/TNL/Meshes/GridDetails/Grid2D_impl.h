@@ -62,49 +62,21 @@ void Grid<2, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
       func(entity, args...);
    };
 
-   this -> template forEach<EntityDimension>(Coordinate(0, 0), this -> dimensions, exec, *this, args...);
+   this -> template traverseAll<EntityDimension>(exec, *this, args...);
 }
 
 template <typename Real, typename Device, typename Index>
 template <int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<2, Real, Device, Index>::forInterior(Func func, FuncArgs... args) const {
-   // static_assert(EntityDimension >= 0 && EntityDimension <= 2, "Entity dimension must be in range [0..<2]");
-   // auto outer = [=] __cuda_callable__(Index i, Index j, const Grid<2, Real, Device, Index>& grid, FuncArgs... args) mutable {
-   //    // EntityType<EntityDimension> entity(grid);
+   auto exec = [=] __cuda_callable__ (const Coordinate& coordinate, const Coordinate& basis, const Grid &grid, FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid, coordinate, basis);
 
-   //    // entity.setCoordinates({i, j});
-   //    // entity.refresh();
+      entity.refresh();
 
-   //    // func(entity, args...);
-   // };
+      func(entity, args...);
+   };
 
-   // auto outerOriented = [=] __cuda_callable__(Index i, Index j, Grid<2, Real, Device, Index> & grid, const CoordinatesType& orientation,
-   //                                            FuncArgs... args) mutable {
-   //    // EntityType<EntityDimension> entity(grid, CoordinatesType(i, j), orientation);
-
-   //    // entity.refresh();
-
-   //    // func(entity, args...);
-   // };
-
-   // switch (EntityDimension) {
-   //    case 0:
-   //       this -> forEach({ 1, 1 }, this -> dimensions, outer, *this, args...);
-   //       break;
-   //    case 1: {
-   //       this -> forEach({ 1, 0 }, this -> dimensions, outerOriented, *this, this -> encodeOrientation(0), args...);
-   //       this -> forEach({ 0, 1 }, this -> dimensions, outerOriented, *this, this -> encodeOrientation(1), args...);
-   //       break;
-   //    }
-   //    case 2:
-   //       this -> forEach({ 1, 1 }, { this -> dimensions.x() - 1, this -> dimensions.y() - 1 }, outer, *this, args...);
-   //       // TODO: - Verify for distributed grids
-   //       // TNL::Algorithms::ParallelFor2D<Device>::exec(interiorBegin.x(), interiorBegin.y(), interiorEnd.x(), interiorEnd.y(), outer, *this,
-   //       // args...);
-   //       break;
-   //    default:
-   //       break;
-   // }
+   this -> template traverseInterior<EntityDimension>(exec, *this, args...);
 }
 
 template <typename Real, typename Device, typename Index>

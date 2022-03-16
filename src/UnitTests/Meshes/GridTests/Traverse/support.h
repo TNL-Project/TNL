@@ -142,6 +142,7 @@ class GridTraverseTestCase {
       using Index = typename Grid::IndexType;
       using Coordinate = typename Grid::Coordinate;
       using DataStore = EntityDataStore<Index, typename Grid::DeviceType, Grid::getMeshDimension()>;
+      using HostDataStore = EntityDataStore<Index, TNL::Devices::Host, Grid::getMeshDimension()>;
 
       // NVCC is incapable of deducing generic lambda
       using UpdateFunctionType = std::function<void(const typename Grid::EntityType<EntityDimension>&)>;
@@ -209,10 +210,6 @@ class GridTraverseTestCase {
          ASSERT_GT(orientationsCount, 0) << "Every entity must have at least one orientation";
 
          auto callsView = hostStore.getCallsView();
-         auto indicesView = hostStore.getIndicesView();
-         // auto isBoundaryView = hostStore.getIsBoundaryView();
-         auto coordinatesView = hostStore.getCoordinatesView();
-         auto basisView = hostStore.getBasisView();
 
          for (Index i = 0; i < callsView.getSize(); i++)
             EXPECT_EQ(callsView[i], 1) << "Expect each index to be called only once";
@@ -229,32 +226,61 @@ class GridTraverseTestCase {
             }
 
             do {
-               auto index = iterator.getIndex(grid);
-
-               EXPECT_EQ(callsView[index], 1) << "Expect the index to be called once. View [" << callsView << "]";
-               EXPECT_EQ(indicesView[index], index) << "Expect the index was correctly set. View [" << indicesView << "]";
-
-               auto coordinate = iterator.getCoordinate();
-               auto basis = iterator.getBasis();
-
-            //   EXPECT_EQ(0, 1) << index << iterator.getCoordinate() << iterator.getBasis() << grid.getOrientedEntitiesCount(EntityDimension, orientation);
-
-               for (Index i = 0; i < gridDimension; i++) {
-                  EXPECT_EQ(coordinatesView[index * gridDimension + i], coordinate[i])
-                    << "Expect the coordinates are the same on the same index. " << "Entity Index: [" << index << "] " << "View [" << coordinatesView << "]";
-                  EXPECT_EQ(basisView[index * gridDimension + i], basis[i])
-                    << "Expect the coordinates are the same on the same index. " << "Entity Index: [" << index << "] " << "View [" << basisView <<  "]";
-               }
+               verifyEntity(iterator, hostStore, true);
             } while (!iterator.next());
          };
 
          Templates::DescendingFor<orientationsCount - 1>::exec(verify);
       }
       void verifyBoundary(const Grid& grid, const DataStore& store) const {
+         auto hostStore = store.template move<TNL::Devices::Host>();
 
+         constexpr int orientationsCount = Grid::getEntityOrientationsCount(EntityDimension);
+
+         ASSERT_GT(orientationsCount, 0) << "Every entity must have at least one orientation";
+
+         // Test each traversion of each orientation
+         auto gridDimension = grid.getMeshDimension();
+
+         auto verify = [&](const auto orientation) {
+            CoordinateIterator<orientation> iterator(grid.getDimensions());
+
+            if (!iterator.canIterate()) {
+               EXPECT_EQ(hostStore.getCallsView().getSize(), 0) << "Expect, that we can't iterate, when grid is empty";
+               return;
+            }
+
+            do {
+               verifyEntity(iterator, hostStore, iterator.isBoundary());
+            } while (!iterator.next());
+         };
+
+         Templates::DescendingFor<orientationsCount - 1>::exec(verify);
       }
       void verifyInterior(const Grid& grid, const DataStore& store) const {
+         auto hostStore = store.template move<TNL::Devices::Host>();
 
+         constexpr int orientationsCount = Grid::getEntityOrientationsCount(EntityDimension);
+
+         ASSERT_GT(orientationsCount, 0) << "Every entity must have at least one orientation";
+
+         // Test each traversion of each orientation
+         auto gridDimension = grid.getMeshDimension();
+
+         auto verify = [&](const auto orientation) {
+            CoordinateIterator<orientation> iterator(grid.getDimensions());
+
+            if (!iterator.canIterate()) {
+               EXPECT_EQ(hostStore.getCallsView().getSize(), 0) << "Expect, that we can't iterate, when grid is empty";
+               return;
+            }
+
+            do {
+               verifyEntity(iterator, hostStore, !iterator.isBoundary());
+            } while (!iterator.next());
+         };
+
+         Templates::DescendingFor<orientationsCount - 1>::exec(verify);
       }
    private:
       template<int Orientation>
@@ -354,6 +380,36 @@ class GridTraverseTestCase {
          private:
             Coordinate current, end;
       };
+
+      template<int Orientation>
+      void verifyEntity(const CoordinateIterator<Orientation>& iterator,
+                        const HostDataStore& dataStore,
+                        const bool expectCall) {
+         auto index = iterator.getIndex(grid);
+
+         auto callsView = hostStore.getCallsView();
+         auto indicesView = hostStore.getIndicesView();
+
+         EXPECT_EQ(callsView[index], expectCall ? 1 : 0) << "Expect the index to be called once. View [" << callsView << "]";
+         EXPECT_EQ(indicesView[index], expectCall ? index : 0) << "Expect the index was correctly set. View [" << indicesView << "]";
+
+         auto coordinate = iterator.getCoordinate();
+         auto basis = iterator.getBasis();
+
+         auto coordinatesView = dataStore.getCoordinatesView();
+         auto basisView = dataStore.getBasisView();
+
+         for (Index i = 0; i < gridDimension; i++) {
+            EXPECT_EQ(coordinatesView[index * gridDimension + i], iterator.isBoundary() ? 0 : coordinate[i])
+                << "Expect the coordinates are the same on the same index. "
+                << "Entity Index: [" << index << "] "
+                << "View [" << coordinatesView << "]";
+            EXPECT_EQ(basisView[index * gridDimension + i], iterator.isBoundary() ? 0 : basis[i])
+                << "Expect the coordinates are the same on the same index. "
+                << "Entity Index: [" << index << "] "
+                << "View [" << basisView << "]";
+         }
+      }
 };
 
 template<typename Grid, int EntityDimension>
@@ -368,5 +424,48 @@ void testForAllTraverse(Grid& grid, const typename Grid::Coordinate& dimensions)
    test.storeAll(grid, store);
    test.verifyAll(grid, store);
 }
+
+template<typename Grid, int EntityDimension>
+void testForInteriorTraverse(Grid& grid, const typename Grid::Coordinate& dimensions) {
+   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+
+   using Test = GridTraverseTestCase<Grid, EntityDimension>;
+
+   Test test;
+   typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
+
+   test.storeInterior(grid, store);
+   test.verifyInterior(grid, store);
+}
+
+template<typename Grid, int EntityDimension>
+void testForBoundaryTraverse(Grid& grid, const typename Grid::Coordinate& dimensions) {
+   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+
+   using Test = GridTraverseTestCase<Grid, EntityDimension>;
+
+   Test test;
+   typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
+
+   test.storeBoundary(grid, store);
+   test.verifyBoundary(grid, store);
+}
+
+template<typename Grid, int EntityDimension>
+void testTraverserProperties(Grid& grid, const typename Grid::Coordinate& dimensions) {
+   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+
+   using Test = GridTraverseTestCase<Grid, EntityDimension>;
+
+   Test test;
+   typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
+
+   test.storeAll(grid, store);
+   test.verifyAll(grid, store);
+
+   test.clearInterior(grid, store);
+   test.verifyBoundary(grid, store);
+}
+
 
 #endif

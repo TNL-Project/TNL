@@ -214,6 +214,41 @@ __cuda_callable__ inline Real __NDIM_PREFIX__::getSmallestSpaceSteps() const noe
 }
 
 __NDIMGRID_TEMPLATE__
+template <int EntityDimension, typename Func, typename... FuncArgs>
+inline
+void __NDIM_PREFIX__::traverseAll(Func func, FuncArgs... args) const {
+   auto exec = [&](const Coordinate& basis) {
+      Templates::ParallelFor<Dimension, Device, Index>::exec(Coordinate(0), this -> getDimensions() + basis, func, basis, args...);
+   };
+
+   ForEachOrientation<EntityDimension>::exec(exec);
+}
+
+__NDIMGRID_TEMPLATE__
+template <int EntityDimension, typename Func, typename... FuncArgs>
+inline
+void __NDIM_PREFIX__::traverseInterior(Func func, FuncArgs... args) const {
+   auto exec = [&](const Coordinate& basis) {
+      switch (EntityDimension) {
+      case 0: {
+         Templates::ParallelFor<Dimension, Device, Index>::exec(Coordinate(1), this -> getDimensions(), func, basis, args...);
+         break;
+      }
+      case Dimension: {
+         Templates::ParallelFor<Dimension, Device, Index>::exec(Coordinate(1), this -> getDimensions() - Coordinate(1), func, basis, args...);
+         break;
+      }
+      default: {
+         Templates::ParallelFor<Dimension, Device, Index>::exec(basis, this -> getDimensions() + basis, func, basis, args...);
+         break;
+      }
+      }
+   };
+
+   ForEachOrientation<EntityDimension>::exec(exec);
+}
+
+__NDIMGRID_TEMPLATE__
 void __NDIM_PREFIX__::writeProlog(Logger &&logger) const noexcept {
    logger.writeParameter("Dimensions:", this->dimensions);
 
@@ -314,19 +349,6 @@ void __NDIM_PREFIX__::fillSpaceStepsPowers() {
 
       spaceProducts[i] = product;
    }
-}
-
-__NDIMGRID_TEMPLATE__
-template <int EntityDimension, typename Func, typename... FuncArgs>
-void __NDIM_PREFIX__::forEach(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
-   for (Index i = 0; i < Dimension; i++)
-      TNL_ASSERT_LE(from[i], to[i], "Traverse rect must be specified from bottom-leading angle (from) to upper-trailing angle (to)");
-
-   auto exec = [&](const Coordinate& basis) {
-      Templates::ParallelFor<Dimension, Device, Index>::exec(from, to + basis, func, basis, args...);
-   };
-
-   ForEachOrientation<EntityDimension>::exec(exec);
 }
 
 __NDIMGRID_TEMPLATE__

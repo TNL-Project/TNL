@@ -64,7 +64,7 @@ void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
       func(entity, args...);
    };
 
-   this -> template forEach<EntityDimension>(Coordinate(0), this -> dimensions, exec, *this, args...);
+   this -> template traverseAll<EntityDimension>(exec, *this, args...);
 }
 
 template <typename Real, typename Device, typename Index>
@@ -114,15 +114,15 @@ void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
 template <typename Real, typename Device, typename Index>
 template <int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<1, Real, Device, Index>::forInterior(Func func, FuncArgs... args) const {
-   // auto exec = [func] __cuda_callable__(const Grid::Coordinate& coordinate, const Grid::Coordinate& basis, const Grid &grid, FuncArgs... args) mutable {
-   //    EntityType<EntityDimension> entity(grid, coordinate, basis);
+   auto exec = [=] __cuda_callable__ (const Coordinate& coordinate, const Coordinate& basis, const Grid &grid, FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid, coordinate, basis);
 
-   //    entity.refresh();
+      entity.refresh();
 
-   //    func(entity, args...);
-   // };
+      func(entity, args...);
+   };
 
-   // this -> forEach<EntityDimension>({ 1 }, this -> dimensions.x() - 1, exec, *this, args...);
+   this -> template traverseInterior<EntityDimension>(exec, *this, args...);
 }
 
 }  // namespace Meshes
