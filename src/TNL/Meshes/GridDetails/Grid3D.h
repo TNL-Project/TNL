@@ -32,13 +32,13 @@ public:
    // TODO: deprecated and to be removed (GlobalIndexType shall be used instead)
    using IndexType = Index;
 
-   using Base = NDimGrid<2, Real, Device, Index>;
+   template <int EntityDimension>
+   using EntityType = GridEntity<Grid, EntityDimension>;
+
+   using Base = NDimGrid<3, Real, Device, Index>;
    using Coordinate = typename Base::Coordinate;
 
    static constexpr int getMeshDimension() { return 3; };
-
-   template< int EntityDimension>
-   using EntityType = GridEntity< Grid, EntityDimension >;
 
    typedef EntityType< getMeshDimension() > Cell;
    typedef EntityType< getMeshDimension() - 1 > Face;
@@ -51,9 +51,6 @@ public:
    Grid() = default;
 
    Grid( Index xSize, Index ySize, Index zSize );
-
-   // empty destructor is needed only to avoid crappy nvcc warnings
-   ~Grid() = default;
 
    /**
     * \brief Sets the size of dimensions.
@@ -131,23 +128,21 @@ public:
    inline const PointType&
    getProportions() const;
 
-   /**
-    * \brief Gets number of entities in this grid.
-    * \tparam EntityDimension Integer specifying dimension of the entity.
-    */
-   template< int EntityDimension >
-   __cuda_callable__
-   IndexType
-   getEntitiesCount() const;
+   // /**
+   //  * \brief Gets number of entities in this grid.
+   //  * \tparam EntityDimension Integer specifying dimension of the entity.
+   //  */
+   // template< int EntityDimension >
+   // __cuda_callable__
+   // IndexType getEntitiesCount() const;
 
    /**
     * \brief Gets number of entities in this grid.
     * \tparam Entity Type of the entity.
-    */
-   template< typename Entity >
-   __cuda_callable__
-   IndexType
-   getEntitiesCount() const;
+   //  */
+   // template< typename Entity >
+   // __cuda_callable__
+   // IndexType getEntitiesCount() const;
 
    /**
     * \brief See Grid1D::getEntity().

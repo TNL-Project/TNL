@@ -162,30 +162,49 @@ class NDimGrid {
    /**
     * @brief Writes info about the grid
     */
-   void writeProlog(Logger&& logger) const noexcept;
+   void writeProlog(Logger& logger) const noexcept;
   protected:
-   template<int Orientation, int EntityDimension>
+   template<int Orientation, int EntityDimension, int skipOrientation = -1>
    struct _ForEachOrientation {
       public:
          template<typename Func>
+         inline
          static void exec(Func func) {
             func(Basis<Index, Orientation, EntityDimension, Dimension>::getBasis());
-
-            _ForEachOrientation<Orientation - 1, EntityDimension>::exec(func);
+            _ForEachOrientation<Orientation - 1, EntityDimension, skipOrientation>::exec(func);
          };
    };
 
-   template<int EntityDimension>
-   struct _ForEachOrientation<0, EntityDimension> {
+   template<int EntityDimension, int skipOrientation>
+   struct _ForEachOrientation<skipOrientation, EntityDimension, skipOrientation> {
       public:
          template<typename Func>
+         inline
+         static void exec(Func func) {
+            _ForEachOrientation<skipOrientation - 1, EntityDimension, skipOrientation>::exec(func);
+         };
+   };
+
+   template<int EntityDimension, int skipOrientation>
+   struct _ForEachOrientation<0, EntityDimension, skipOrientation> {
+      public:
+         template<typename Func>
+         inline
          static void exec(Func func) {
             func(Basis<Index, 0, EntityDimension, Dimension>::getBasis());
          };
    };
 
    template<int EntityDimension>
-   struct ForEachOrientation: _ForEachOrientation<Templates::combination(EntityDimension, Dimension) - 1, EntityDimension> {};
+   struct _ForEachOrientation<0, EntityDimension, 0> {
+      public:
+         template<typename Func>
+         inline
+         static void exec(Func func) {};
+   };
+
+   template<int EntityDimension, int skipOrientation = -1>
+   struct ForEachOrientation: _ForEachOrientation<Templates::combination(EntityDimension, Dimension) - 1, EntityDimension, skipOrientation> {};
 
    static constexpr int spaceStepsPowersSize = 5;
 
@@ -235,7 +254,7 @@ class NDimGrid {
     * @brief Traverses boundary elements
     */
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   inline void forBoundary(Func func, FuncArgs... args) const;
+   inline void traverseBoundary(Func func, FuncArgs... args) const;
 
    template <typename Func, typename... FuncArgs>
    void forEachPermutation(const Index k, const Index n, Func func, FuncArgs... args) const;

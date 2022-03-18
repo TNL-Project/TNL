@@ -70,6 +70,15 @@ void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
 template <typename Real, typename Device, typename Index>
 template <int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) const {
+   auto exec = [=] __cuda_callable__(const Coordinate& coordinate, const Coordinate& basis, const Grid& grid, FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid, coordinate, basis);
+
+      entity.refresh();
+
+      func(entity, args...);
+   };
+
+   this->template traverseBoundary<EntityDimension>(exec, *this, args...);
    // static_assert(EntityDimension >= 0 && EntityDimension <= 1,
    //               "Entity dimension must be either 0 or 1");
 

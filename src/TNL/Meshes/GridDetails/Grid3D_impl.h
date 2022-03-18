@@ -267,35 +267,44 @@ Grid< 3, Real, Device, Index >::getProportions() const
    return this->proportions;
 }
 
-template< typename Real, typename Device, typename Index >
-template< int EntityDimension >
-__cuda_callable__
-inline Index
-Grid< 3, Real, Device, Index >::getEntitiesCount() const
-{
-   static_assert( EntityDimension <= 3 && EntityDimension >= 0, "Wrong grid entity dimensions." );
 
-   switch( EntityDimension ) {
-      case 3:
-         return this->numberOfCells;
-      case 2:
-         return this->numberOfFaces;
-      case 1:
-         return this->numberOfEdges;
-      case 0:
-         return this->numberOfVertices;
-   }
-   return -1;
-}
+// template< typename Real,
+//           typename Device,
+//           typename Index >
+//    template< int EntityDimension >
+// __cuda_callable__  inline
+// Index
+// Grid< 3, Real, Device, Index >::
+// getEntitiesCount() const
+// {
+//    static_assert( EntityDimension <= 3 &&
+//                   EntityDimension >= 0, "Wrong grid entity dimensions." );
 
-template< typename Real, typename Device, typename Index >
-template< typename Entity >
-__cuda_callable__
-inline Index
-Grid< 3, Real, Device, Index >::getEntitiesCount() const
-{
-   return getEntitiesCount< Entity::getEntityDimension() >();
-}
+//    switch( EntityDimension )
+//    {
+//       case 3:
+//          return this->numberOfCells;
+//       case 2:
+//          return this->numberOfFaces;
+//       case 1:
+//          return this->numberOfEdges;
+//       case 0:
+//          return this->numberOfVertices;
+//    }
+//    return -1;
+// }
+
+// template< typename Real,
+//           typename Device,
+//           typename Index >
+//    template< typename Entity >
+// __cuda_callable__  inline
+// Index
+// Grid< 3, Real, Device, Index >::
+// getEntitiesCount() const
+// {
+//    return getEntitiesCount< Entity::entityDimension >();
+// }
 
 template< typename Real, typename Device, typename Index >
 template< typename Entity >
@@ -303,9 +312,10 @@ __cuda_callable__
 inline Entity
 Grid< 3, Real, Device, Index >::getEntity( const IndexType& entityIndex ) const
 {
-   static_assert( Entity::getEntityDimension() <= 3 && Entity::getEntityDimension() >= 0, "Wrong grid entity dimensions." );
+   static_assert( Entity::entityDimension <= 3 &&
+                  Entity::entityDimension >= 0, "Wrong grid entity dimensions." );
 
-   return GridEntityGetter< Grid, Entity::getEntityDimension() >::getEntity( *this, entityIndex );
+   return GridEntityGetter< Grid, Entity::entityDimension >::getEntity( *this, entityIndex );
 }
 
 template< typename Real, typename Device, typename Index >
@@ -314,9 +324,10 @@ __cuda_callable__
 inline Index
 Grid< 3, Real, Device, Index >::getEntityIndex( const Entity& entity ) const
 {
-   static_assert( Entity::getEntityDimension() <= 3 && Entity::getEntityDimension() >= 0, "Wrong grid entity dimensions." );
+   static_assert( Entity::entityDimension <= 3 &&
+                  Entity::entityDimension >= 0, "Wrong grid entity dimensions." );
 
-   return GridEntityGetter< Grid, Entity::getEntityDimension() >::getEntityIndex( *this, entity );
+   return GridEntityGetter< Grid, Entity::entityDimension >::getEntityIndex( *this, entity );
 }
 
 template< typename Real, typename Device, typename Index >
@@ -408,18 +419,34 @@ template< typename Real,
           typename Index >
 template<int EntityDimension, typename Func, typename... FuncArgs>
 void Grid<3, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) const {
-   static_assert(EntityDimension >= 0 && EntityDimension <= 3, "Entity dimension must be in range [0...3]");
+   auto exec = [=] __cuda_callable__ (const Coordinate& coordinate, const Coordinate& basis, const Grid &grid, FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid, coordinate, basis);
 
-   // switch (EntityDimension) {
-   // case 0:
+      entity.refresh();
 
-   // case 1:
+      func(entity, args...);
+   };
 
-   // case 2:
-
-   // case 3:
-   // }
+   this -> template traverseBoundary<EntityDimension>(exec, *this, args...);
 }
+
+// template< typename Real,
+//           typename Device,
+//           typename Index >
+// template<int EntityDimension, typename Func, typename... FuncArgs>
+// void Grid<3, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) const {
+//    static_assert(EntityDimension >= 0 && EntityDimension <= 3, "Entity dimension must be in range [0...3]");
+
+//    // switch (EntityDimension) {
+//    // case 0:
+
+//    // case 1:
+
+//    // case 2:
+
+//    // case 3:
+//    // }
+// }
 
 template< typename Real,
           typename Device,
@@ -427,14 +454,14 @@ template< typename Real,
 void
 Grid< 3, Real, Device, Index >::writeProlog( Logger& logger ) const
 {
-   logger.writeParameter( "Dimension:", getMeshDimension() );
-   logger.writeParameter( "Domain origin:", this->origin );
-   logger.writeParameter( "Domain proportions:", this->proportions );
-   logger.writeParameter( "Domain dimensions:", this->dimensions );
-   logger.writeParameter( "Space steps:", this->getSpaceSteps() );
-   logger.writeParameter( "Number of cells:", getEntitiesCount< Cell >() );
-   logger.writeParameter( "Number of faces:", getEntitiesCount< Face >() );
-   logger.writeParameter( "Number of vertices:", getEntitiesCount< Vertex >() );
+   // logger.writeParameter( "Dimension:", getMeshDimension() );
+   // logger.writeParameter( "Domain origin:", this->origin );
+   // logger.writeParameter( "Domain proportions:", this->proportions );
+   // logger.writeParameter( "Domain dimensions:", this->dimensions );
+   // logger.writeParameter( "Space steps:", this->getSpaceSteps() );
+   // logger.writeParameter( "Number of cells:", getEntitiesCount< Cell >() );
+   // logger.writeParameter( "Number of faces:", getEntitiesCount< Face >() );
+   // logger.writeParameter( "Number of vertices:", getEntitiesCount< Vertex >() );
 }
 
 }  // namespace Meshes

@@ -249,7 +249,38 @@ void __NDIM_PREFIX__::traverseInterior(Func func, FuncArgs... args) const {
 }
 
 __NDIMGRID_TEMPLATE__
-void __NDIM_PREFIX__::writeProlog(Logger &&logger) const noexcept {
+template <int EntityDimension, typename Func, typename... FuncArgs>
+inline
+void __NDIM_PREFIX__::traverseBoundary(Func func, FuncArgs... args) const {
+   // To define boundaries of the grid, we need to tell, that t
+   // Boundaries of the grid are formed by the entities of Dimension - 1.
+   // We need to traverse each orientation independently.
+   constexpr int orientationsCount = getEntityOrientationsCount(Dimension - 1);
+
+   auto exec = [&](const auto& orientation) {
+      auto forEachOrientation = [&](const Coordinate& basis) {
+         Coordinate from(0);
+         Coordinate to = this -> getDimensions() + basis;
+
+         from[orientation] = to[orientation] - 1;
+
+         Templates::ParallelFor<Dimension, Device, Index>::exec(from, to, func, basis, args...);
+
+         from[orientation] = 0;
+         to[orientation] = 1;
+
+         Templates::ParallelFor<Dimension, Device, Index>::exec(from, to, func, basis, args...);
+      };
+
+      // Skip orthogonal entities to orientation, if entity is oriented
+      ForEachOrientation<EntityDimension, orientationsCount == 1 ? -1 : orientation>::exec(forEachOrientation);
+   };
+
+   Templates::DescendingFor<orientationsCount - 1>::exec(exec);
+}
+
+__NDIMGRID_TEMPLATE__
+void __NDIM_PREFIX__::writeProlog(Logger& logger) const noexcept {
    logger.writeParameter("Dimensions:", this->dimensions);
 
    logger.writeParameter("Origin:", this->origin);
