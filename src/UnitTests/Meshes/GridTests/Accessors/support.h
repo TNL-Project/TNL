@@ -269,6 +269,10 @@ void testDimensionSetByIndex(Grid& grid, T... dimensions) {
 
    EXPECT_NO_THROW(grid.setDimensions(dimensions...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
 
+   SCOPED_TRACE("Test dimension set by index");
+   SCOPED_TRACE("Dimension: " + TNL::convertToString(typename Grid::Coordinate(dimensions...)));
+   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(grid.getDimensions()));
+
    GridAccessorsTestCase<typename Grid::DeviceType> support;
 
    support.template verifyDimensionGetters<Grid>(grid, typename Grid::Coordinate(dimensions...));
@@ -277,6 +281,10 @@ void testDimensionSetByIndex(Grid& grid, T... dimensions) {
 template<typename Grid, typename... T>
 void testDimensionSetByCoordinate(Grid& grid, const typename Grid::Coordinate& dimensions) {
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+
+   SCOPED_TRACE("Test dimension set by coordinate");
+   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(grid.getDimensions()));
 
    GridAccessorsTestCase<typename Grid::DeviceType> support;
 
@@ -288,6 +296,11 @@ void testEntitiesCounts(Grid& grid,
                         const typename Grid::Coordinate& dimensions,
                         const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) {
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+
+   SCOPED_TRACE("Test entities count");
+   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Grid Entities Counts: " + TNL::convertToString(grid.getEntitiesCounts()));
+   SCOPED_TRACE("Expected Entities Counts:: " + TNL::convertToString(entitiesCounts));
 
    GridAccessorsTestCase<typename Grid::DeviceType> support;
 
@@ -302,6 +315,10 @@ void testOriginSetByIndex(Grid& grid, T... coordinates) {
 
    EXPECT_NO_THROW(grid.setOrigin(coordinates...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
 
+   SCOPED_TRACE("Test origin set by index");
+   SCOPED_TRACE("Coordinates: " + TNL::convertToString(typename Grid::Coordinate(coordinates...)));
+   SCOPED_TRACE("Grid origin: " + TNL::convertToString(grid.getOrigin()));
+
    GridAccessorsTestCase<typename Grid::DeviceType> support;
 
    support.template verifyOriginGetter<Grid>(grid, typename Grid::Point(coordinates...));
@@ -310,6 +327,10 @@ void testOriginSetByIndex(Grid& grid, T... coordinates) {
 template<typename Grid>
 void testOriginSetByCoordinate(Grid& grid, const typename Grid::Point& coordinates) {
    EXPECT_NO_THROW(grid.setOrigin(coordinates)) << "Verify, that the set of" << coordinates << " doesn't cause assert";
+
+   SCOPED_TRACE("Test origin set by index");
+   SCOPED_TRACE("Coordinates: " + TNL::convertToString(coordinates));
+   SCOPED_TRACE("Grid origin: " + TNL::convertToString(grid.getOrigin()));
 
    GridAccessorsTestCase<typename Grid::DeviceType> support;
 
