@@ -511,5 +511,59 @@ void testForBoundaryTraverse(Grid& grid, const typename Grid::Coordinate& dimens
    test.verifyBoundary(grid, store);
 }
 
+template<typename Grid, int EntityDimension>
+void testBoundaryUnionInteriorEqualAllProperty(Grid& grid, const typename Grid::Coordinate& dimensions) {
+   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
+   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
+   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+
+   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+
+   using Test = GridTraverseTestCase<Grid, EntityDimension>;
+
+   Test test;
+   typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
+
+   test.storeBoundary(grid, store);
+   test.storeInterior(grid, store);
+   test.verifyAll(grid, store);
+}
+
+template<typename Grid, int EntityDimension>
+void testAllMinusBoundaryEqualInteriorProperty(Grid& grid, const typename Grid::Coordinate& dimensions) {
+   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
+   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
+   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+
+   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+
+   using Test = GridTraverseTestCase<Grid, EntityDimension>;
+
+   Test test;
+   typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
+
+   test.storeAll(grid, store);
+   test.clearBoundary(grid, store);
+   test.verifyInterior(grid, store);
+}
+
+template<typename Grid, int EntityDimension>
+void testAllMinusInteriorEqualBoundaryProperty(Grid& grid, const typename Grid::Coordinate& dimensions) {
+   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
+   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
+   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+
+   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+
+   using Test = GridTraverseTestCase<Grid, EntityDimension>;
+
+   Test test;
+   typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
+
+   test.storeAll(grid, store);
+   test.clearInterior(grid, store);
+   test.verifyBoundary(grid, store);
+}
+
 
 #endif

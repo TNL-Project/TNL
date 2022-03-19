@@ -93,5 +93,50 @@ TYPED_TEST(GridTestSuite, TestForBoundaryTraverse_2D_Entity) {
       testForBoundaryTraverse<TypeParam, 2>(this -> grid, dimension);
 }
 
+TYPED_TEST(GridTestSuite, TestBoundaryUnionInternalEqualAllProperty_0D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testBoundaryUnionInteriorEqualAllProperty<TypeParam, 0>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestBoundaryUnionInternalEqualAllProperty_1D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testBoundaryUnionInteriorEqualAllProperty<TypeParam, 1>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestBoundaryUnionInternalEqualAllProperty_2D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testBoundaryUnionInteriorEqualAllProperty<TypeParam, 2>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestAllMinusBoundaryEqualInteriorProperty_0D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testAllMinusBoundaryEqualInteriorProperty<TypeParam, 0>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestAllMinusBoundaryEqualInteriorProperty_1D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testAllMinusBoundaryEqualInteriorProperty<TypeParam, 1>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestAllMinusBoundaryEqualInteriorProperty_2D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testAllMinusBoundaryEqualInteriorProperty<TypeParam, 2>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestAllMinusInteriorEqualBoundaryProperty_0D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testAllMinusInteriorEqualBoundaryProperty<TypeParam, 0>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestAllMinusInteriorEqualBoundaryProperty_1D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testAllMinusInteriorEqualBoundaryProperty<TypeParam, 1>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestAllMinusInteriorEqualBoundaryProperty_2D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testAllMinusInteriorEqualBoundaryProperty<TypeParam, 2>(this -> grid, dimension);
+}
+
 
 #endif
