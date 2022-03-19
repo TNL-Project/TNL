@@ -163,48 +163,54 @@ class NDimGrid {
     * @brief Writes info about the grid
     */
    void writeProlog(Logger& logger) const noexcept;
+
   protected:
-   template<int Orientation, int EntityDimension, int skipOrientation = -1>
-   struct _ForEachOrientation {
+   template <int Orientation, int EntityDimension, int SkipValue>
+   struct _ForEachOrientationMain;
+
+   template <int Orientation, int EntityDimension, int SkipValue>
+   struct _ForEachOrientationSupport {
       public:
-         template<typename Func>
+         template <typename Func>
          inline
          static void exec(Func func) {
-            func(Basis<Index, Orientation, EntityDimension, Dimension>::getBasis());
-            _ForEachOrientation<Orientation - 1, EntityDimension, skipOrientation>::exec(func);
-         };
+            using Basis = Basis<Index, Orientation, EntityDimension, Dimension>;
+
+            func(Basis::getBasis());
+
+            _ForEachOrientationMain<Orientation - 1, EntityDimension, SkipValue>::exec(func);
+         }
    };
 
-   template<int EntityDimension, int skipOrientation>
-   struct _ForEachOrientation<skipOrientation, EntityDimension, skipOrientation> {
+   template <int EntityDimension, int SkipValue>
+   struct _ForEachOrientationSupport<0, EntityDimension, SkipValue> {
       public:
-         template<typename Func>
+         template <typename Func>
          inline
          static void exec(Func func) {
-            _ForEachOrientation<skipOrientation - 1, EntityDimension, skipOrientation>::exec(func);
-         };
+            using Basis = Basis<Index, 0, EntityDimension, Dimension>;
+
+            func(Basis::getBasis());
+         }
    };
 
-   template<int EntityDimension, int skipOrientation>
-   struct _ForEachOrientation<0, EntityDimension, skipOrientation> {
+   template <int EntityDimension>
+   struct _ForEachOrientationSupport<0, EntityDimension, 0> {
       public:
-         template<typename Func>
+         template <typename Func>
          inline
-         static void exec(Func func) {
-            func(Basis<Index, 0, EntityDimension, Dimension>::getBasis());
-         };
+         static void exec(Func func) {}
    };
 
-   template<int EntityDimension>
-   struct _ForEachOrientation<0, EntityDimension, 0> {
-      public:
-         template<typename Func>
-         inline
-         static void exec(Func func) {};
-   };
+   template <int Orientation, int EntityDimension, int SkipValue>
+   struct _ForEachOrientationMain:
+      std::conditional_t<Orientation == SkipValue,
+                         _ForEachOrientationSupport<(Orientation <= 1 ? 0 : Orientation - 1), EntityDimension, SkipValue>,
+                         _ForEachOrientationSupport<Orientation, EntityDimension, SkipValue>> {};
+
 
    template<int EntityDimension, int skipOrientation = -1>
-   struct ForEachOrientation: _ForEachOrientation<Templates::combination(EntityDimension, Dimension) - 1, EntityDimension, skipOrientation> {};
+   struct ForEachOrientation: _ForEachOrientationMain<Templates::combination(EntityDimension, Dimension) - 1, EntityDimension, skipOrientation> {};
 
    static constexpr int spaceStepsPowersSize = 5;
 

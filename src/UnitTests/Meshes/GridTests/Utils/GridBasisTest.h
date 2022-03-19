@@ -7,7 +7,6 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Meshes/Basis.h>
 
-
 template<int GridDimension, int EntityOrientation, int EntityDimension>
 void compare(const TNL::Containers::StaticVector<GridDimension, int>& expectation) {
    auto basis = TNL::Meshes::Basis<int, EntityOrientation, EntityDimension, GridDimension>::getBasis();

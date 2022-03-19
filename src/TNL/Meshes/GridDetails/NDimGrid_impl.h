@@ -239,7 +239,7 @@ void __NDIM_PREFIX__::traverseInterior(Func func, FuncArgs... args) const {
          break;
       }
       default: {
-         Templates::ParallelFor<Dimension, Device, Index>::exec(basis, this -> getDimensions() + basis, func, basis, args...);
+         Templates::ParallelFor<Dimension, Device, Index>::exec(basis, this -> getDimensions(), func, basis, args...);
          break;
       }
       }
@@ -257,23 +257,37 @@ void __NDIM_PREFIX__::traverseBoundary(Func func, FuncArgs... args) const {
    // We need to traverse each orientation independently.
    constexpr int orientationsCount = getEntityOrientationsCount(Dimension - 1);
 
-   auto exec = [&](const auto& orientation) {
+   Coordinate from(0);
+   Coordinate to = this -> getDimensions();
+
+   auto exec = [&](const auto orientation) {
       auto forEachOrientation = [&](const Coordinate& basis) {
-         Coordinate from(0);
-         Coordinate to = this -> getDimensions() + basis;
+         Coordinate start = from;
+         Coordinate end = to + basis;
 
-         from[orientation] = to[orientation] - 1;
+         start[orientation] = end[orientation] - 1;
 
-         Templates::ParallelFor<Dimension, Device, Index>::exec(from, to, func, basis, args...);
+         Templates::ParallelFor<Dimension, Device, Index>::exec(start, end, func, basis, args...);
 
-         from[orientation] = 0;
-         to[orientation] = 1;
+         // Skip entities defined only once
+         if (!start[orientation] && end[orientation])
+            return;
 
-         Templates::ParallelFor<Dimension, Device, Index>::exec(from, to, func, basis, args...);
+         start[orientation] = 0;
+         end[orientation] = 1;
+
+         Templates::ParallelFor<Dimension, Device, Index>::exec(start, end, func, basis, args...);
       };
 
-      // Skip orthogonal entities to orientation, if entity is oriented
-      ForEachOrientation<EntityDimension, orientationsCount == 1 ? -1 : orientation>::exec(forEachOrientation);
+      if (EntityDimension == 0 || EntityDimension == Dimension) {
+         ForEachOrientation<EntityDimension>::exec(forEachOrientation);
+
+         // Advance traverse coordinates to fix overlapping entities
+         from[orientation] = 1;
+         to[orientation] = to[orientation] - 1;
+      } else {
+         ForEachOrientation<EntityDimension, orientation>::exec(forEachOrientation);
+      }
    };
 
    Templates::DescendingFor<orientationsCount - 1>::exec(exec);

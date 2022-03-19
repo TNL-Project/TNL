@@ -78,4 +78,20 @@ TYPED_TEST(GridTestSuite, TestForInteriorTraverse_2D_Entity) {
       testForInteriorTraverse<TypeParam, 2>(this -> grid, dimension);
 }
 
+TYPED_TEST(GridTestSuite, TestForBoundaryTraverse_0D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testForBoundaryTraverse<TypeParam, 0>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestForBoundaryTraverse_1D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testForBoundaryTraverse<TypeParam, 1>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestForBoundaryTraverse_2D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testForBoundaryTraverse<TypeParam, 2>(this -> grid, dimension);
+}
+
+
 #endif

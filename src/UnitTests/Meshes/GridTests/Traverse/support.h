@@ -215,11 +215,12 @@ class GridTraverseTestCase {
       }
 
       void verifyAll(const Grid& grid, const DataStore& store) const {
-         SCOPED_TRACE("Verifying forAll");
-
          auto hostStore = store.template move<TNL::Devices::Host>();
 
          constexpr int orientationsCount = Grid::getEntityOrientationsCount(EntityDimension);
+
+         SCOPED_TRACE("Verifying forAll");
+         SCOPED_TRACE("Orientations Count: " + TNL::convertToString(orientationsCount));
 
          ASSERT_GT(orientationsCount, 0) << "Every entity must have at least one orientation";
 
@@ -248,11 +249,12 @@ class GridTraverseTestCase {
          Templates::DescendingFor<orientationsCount - 1>::exec(verify);
       }
       void verifyBoundary(const Grid& grid, const DataStore& store) const {
-         SCOPED_TRACE("Verifying forBoundary");
-
          auto hostStore = store.template move<TNL::Devices::Host>();
 
          constexpr int orientationsCount = Grid::getEntityOrientationsCount(EntityDimension);
+
+         SCOPED_TRACE("Verifying forBoundary");
+         SCOPED_TRACE("Orientations Count: " + TNL::convertToString(orientationsCount));
 
          ASSERT_GT(orientationsCount, 0) << "Every entity must have at least one orientation";
 
@@ -276,11 +278,12 @@ class GridTraverseTestCase {
          Templates::DescendingFor<orientationsCount - 1>::exec(verify);
       }
       void verifyInterior(const Grid& grid, const DataStore& store) const {
-         SCOPED_TRACE("Verifying forInterior");
-
          auto hostStore = store.template move<TNL::Devices::Host>();
 
          constexpr int orientationsCount = Grid::getEntityOrientationsCount(EntityDimension);
+
+         SCOPED_TRACE("Verifying forInterior");
+         SCOPED_TRACE("Orientations Count: " + TNL::convertToString(orientationsCount));
 
          ASSERT_GT(orientationsCount, 0) << "Every entity must have at least one orientation";
 
@@ -330,7 +333,7 @@ class GridTraverseTestCase {
                   break;
                default:
                   for (Index i = 0; i < current.getSize(); i++)
-                     if (getBasis()[i] && (current[i] == 0 || current[i] == grid.getDimension(i) + 1))
+                     if (getBasis()[i] && (current[i] == 0 || current[i] == grid.getDimension(i)))
                         return true;
                   break;
                }
@@ -459,6 +462,10 @@ class GridTraverseTestCase {
 
 template<typename Grid, int EntityDimension>
 void testForAllTraverse(Grid& grid, const typename Grid::Coordinate& dimensions) {
+   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
+   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
+   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    using Test = GridTraverseTestCase<Grid, EntityDimension>;
@@ -472,6 +479,10 @@ void testForAllTraverse(Grid& grid, const typename Grid::Coordinate& dimensions)
 
 template<typename Grid, int EntityDimension>
 void testForInteriorTraverse(Grid& grid, const typename Grid::Coordinate& dimensions) {
+   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
+   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
+   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    using Test = GridTraverseTestCase<Grid, EntityDimension>;
@@ -485,6 +496,10 @@ void testForInteriorTraverse(Grid& grid, const typename Grid::Coordinate& dimens
 
 template<typename Grid, int EntityDimension>
 void testForBoundaryTraverse(Grid& grid, const typename Grid::Coordinate& dimensions) {
+   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
+   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
+   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    using Test = GridTraverseTestCase<Grid, EntityDimension>;
