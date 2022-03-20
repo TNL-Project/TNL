@@ -165,53 +165,6 @@ class NDimGrid {
    void writeProlog(Logger& logger) const noexcept;
 
   protected:
-   template <int Orientation, int EntityDimension, int SkipValue>
-   struct _ForEachOrientationMain;
-
-   template <int Orientation, int EntityDimension, int SkipValue>
-   struct _ForEachOrientationSupport {
-      public:
-         template <typename Func>
-         inline
-         static void exec(Func func) {
-            using Basis = Basis<Index, Orientation, EntityDimension, Dimension>;
-
-            func(std::integral_constant<int, Orientation>(), Basis::getBasis());
-
-            _ForEachOrientationMain<Orientation - 1, EntityDimension, SkipValue>::exec(func);
-         }
-   };
-
-   template <int EntityDimension, int SkipValue>
-   struct _ForEachOrientationSupport<0, EntityDimension, SkipValue> {
-      public:
-         template <typename Func>
-         inline
-         static void exec(Func func) {
-            using Basis = Basis<Index, 0, EntityDimension, Dimension>;
-
-            func(std::integral_constant<int, 0>(), Basis::getBasis());
-         }
-   };
-
-   template <int EntityDimension>
-   struct _ForEachOrientationSupport<0, EntityDimension, 0> {
-      public:
-         template <typename Func>
-         inline
-         static void exec(Func func) {}
-   };
-
-   template <int Orientation, int EntityDimension, int SkipValue>
-   struct _ForEachOrientationMain:
-      std::conditional_t<Orientation == SkipValue,
-                         _ForEachOrientationSupport<(Orientation <= 1 ? 0 : Orientation - 1), EntityDimension, SkipValue>,
-                         _ForEachOrientationSupport<Orientation, EntityDimension, SkipValue>> {};
-
-
-   template<int EntityDimension, int skipOrientation = -1>
-   struct ForEachOrientation: _ForEachOrientationMain<Templates::combination(EntityDimension, Dimension) - 1, EntityDimension, skipOrientation> {};
-
    static constexpr int spaceStepsPowersSize = 5;
 
    Coordinate dimensions;
@@ -250,16 +203,25 @@ class NDimGrid {
     */
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline void traverseAll(Func func, FuncArgs... args) const;
+
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline void traverseAll(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
    /*
     * @brief Traverses interior elements
     */
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline void traverseInterior(Func func, FuncArgs... args) const;
+
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline void traverseInterior(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
    /*
     * @brief Traverses boundary elements
     */
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline void traverseBoundary(Func func, FuncArgs... args) const;
+
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline void traverseBoundary(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
 
    template <typename Func, typename... FuncArgs>
    void forEachPermutation(const Index k, const Index n, Func func, FuncArgs... args) const;

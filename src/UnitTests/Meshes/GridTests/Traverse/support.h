@@ -325,12 +325,6 @@ class GridTraverseTestCase {
                         return true;
 
                   break;
-               case 0:
-                  for (Index i = 0; i < current.getSize(); i++)
-                     if (getBasis()[i] && (current[i] == 0 || current[i] == grid.getDimension(i)))
-                        return true;
-
-                  break;
                default:
                   for (Index i = 0; i < current.getSize(); i++)
                      if (getBasis()[i] && (current[i] == 0 || current[i] == grid.getDimension(i)))
@@ -431,9 +425,11 @@ class GridTraverseTestCase {
 
          auto callsView = dataStore.getCallsView();
          auto indicesView = dataStore.getIndicesView();
+         auto isBoundaryView = dataStore.getIsBoundaryView();
 
          EXPECT_EQ(callsView[index], expectCall ? 1 : 0) << "Expect the index to be called once. View [" << callsView << "]";
          EXPECT_EQ(indicesView[index], expectCall ? index : 0) << "Expect the index was correctly set. View [" << indicesView << "]";
+         EXPECT_EQ(isBoundaryView[index], expectCall ? iterator.isBoundary(grid) : 0) << "Expect the index was correctly set. View [" << isBoundaryView << "]";
 
          auto coordinate = iterator.getCoordinate();
          auto basis = iterator.getBasis();

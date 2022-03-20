@@ -10,7 +10,6 @@
 #include <TNL/Logger.h>
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/GridDetails/GridEntityGetter.h>
-#include <TNL/Meshes/GridDetails/GridEntityTopology.h>
 #include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.h>
 #include <TNL/Meshes/GridEntity.h>
 #include <TNL/Meshes/GridEntityConfig.h>

@@ -2,6 +2,7 @@
 #pragma once
 
 #include <TNL/Meshes/NDimGrid.h>
+#include <TNL/Meshes/GridDetails/ForEachOrientation.h>
 
 namespace TNL {
 namespace Meshes {
@@ -213,48 +214,76 @@ __cuda_callable__ inline Real __NDIM_PREFIX__::getSmallestSpaceSteps() const noe
    return minStep;
 }
 
+
 __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
 inline
 void __NDIM_PREFIX__::traverseAll(Func func, FuncArgs... args) const {
-   auto exec = [&](const Coordinate& basis) {
-      Templates::ParallelFor<Dimension, Device, Index>::exec(Coordinate(0), this -> getDimensions() + basis, func, basis, args...);
+   this -> traverseAll<EntityDimension>({ 0 }, this -> getDimensions(), func, args...);
+}
+
+__NDIMGRID_TEMPLATE__
+template <int EntityDimension, typename Func, typename... FuncArgs>
+inline
+void __NDIM_PREFIX__::traverseAll(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
+   TNL_ASSERT_GE(from, Coordinate(0), "Traverse rect must be in the grid dimensions");
+   TNL_ASSERT_LE(to, this -> getDimensions(), "Traverse rect be in the grid dimensions");
+   TNL_ASSERT_LE(from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor");
+
+   auto exec = [&](const int, const Coordinate& basis) {
+      Templates::ParallelFor<Dimension, Device, Index>::exec(from, to + basis, func, basis, args...);
    };
 
-   ForEachOrientation<EntityDimension>::exec(exec);
+   Templates::ForEachOrientation<Index, EntityDimension, Dimension>::exec(exec);
 }
 
 __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
 inline
 void __NDIM_PREFIX__::traverseInterior(Func func, FuncArgs... args) const {
-   auto exec = [&](const Coordinate& basis) {
+   this -> traverseInterior<EntityDimension>({ 0 }, this -> getDimensions(), func, args...);
+}
+
+__NDIMGRID_TEMPLATE__
+template <int EntityDimension, typename Func, typename... FuncArgs>
+inline
+void __NDIM_PREFIX__::traverseInterior(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
+   TNL_ASSERT_GE(from, Coordinate(0), "Traverse rect must be in the grid dimensions");
+   TNL_ASSERT_LE(to, this -> getDimensions(), "Traverse rect be in the grid dimensions");
+   TNL_ASSERT_LE(from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor");
+
+   auto exec = [&](const int, const Coordinate& basis) {
       switch (EntityDimension) {
       case 0: {
-         Templates::ParallelFor<Dimension, Device, Index>::exec(Coordinate(1), this -> getDimensions(), func, basis, args...);
+         Templates::ParallelFor<Dimension, Device, Index>::exec(from + Coordinate(1), to, func, basis, args...);
          break;
       }
       case Dimension: {
-         Templates::ParallelFor<Dimension, Device, Index>::exec(Coordinate(1), this -> getDimensions() - Coordinate(1), func, basis, args...);
+         Templates::ParallelFor<Dimension, Device, Index>::exec(from + Coordinate(1), to - Coordinate(1), func, basis, args...);
          break;
       }
       default: {
-         Templates::ParallelFor<Dimension, Device, Index>::exec(basis, this -> getDimensions(), func, basis, args...);
+         Templates::ParallelFor<Dimension, Device, Index>::exec(from + basis, to, func, basis, args...);
          break;
       }
       }
    };
 
-   ForEachOrientation<EntityDimension>::exec(exec);
+   Templates::ForEachOrientation<Index, EntityDimension, Dimension>::exec(exec);
 }
 
 __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
-inline void __NDIM_PREFIX__::traverseBoundary(Func func, FuncArgs... args) const {
-   Coordinate from(0);
-   Coordinate to = this->getDimensions();
+inline
+ void __NDIM_PREFIX__::traverseBoundary(Func func, FuncArgs... args) const {
+   this -> traverseBoundary<EntityDimension>({ 0 }, this -> getDimensions(), func, args...);
+}
 
-   // Boundaries of the grid are formed by the entities of Dimension - 1.
+__NDIMGRID_TEMPLATE__
+template <int EntityDimension, typename Func, typename... FuncArgs>
+inline
+void __NDIM_PREFIX__::traverseBoundary(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
+    // Boundaries of the grid are formed by the entities of Dimension - 1.
    // We need to traverse each orientation independently.
    constexpr int orientationsCount = getEntityOrientationsCount(Dimension - 1);
    constexpr bool isDirectedEntity = EntityDimension != 0 && EntityDimension != Dimension;
@@ -294,7 +323,7 @@ inline void __NDIM_PREFIX__::traverseBoundary(Func func, FuncArgs... args) const
          forBoundary(orthogonalOrientation, basis);
       };
 
-      ForEachOrientation<EntityDimension>::exec(exec);
+      Templates::ForEachOrientation<Index, EntityDimension, Dimension>::exec(exec);
       return;
    }
 
@@ -304,9 +333,9 @@ inline void __NDIM_PREFIX__::traverseBoundary(Func func, FuncArgs... args) const
       };
 
       if (EntityDimension == 0 || EntityDimension == Dimension) {
-         ForEachOrientation<EntityDimension>::exec(exec);
+         Templates::ForEachOrientation<Index, EntityDimension, Dimension>::exec(exec);
       } else {
-         ForEachOrientation<EntityDimension, orthogonalOrientation>::exec(exec);
+         Templates::ForEachOrientation<Index, EntityDimension, Dimension, orthogonalOrientation>::exec(exec);
       }
 
       isBoundaryTraversed[orthogonalOrientation] = 1;
