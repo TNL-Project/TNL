@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 
 
@@ -21,8 +21,6 @@ class Grid : public tnlObject
 //#include <mesh/grids/Grid1D.h>
 //#include <mesh/grids/Grid3D.h>
 
-
-#include <mesh/grids/GridEntityTopology.h>
 #include <mesh/grids/GridEntityGetter.h>
 #include <mesh/grids/GridEntityConfig.h>
 #include <mesh/grids/NeighborGridEntityGetter.h>
@@ -45,25 +43,25 @@ class Meshes::Grid< 2, Real, Device, Index > : public tnlObject
    typedef Index IndexType;
    typedef Containers::StaticVector< 2, Real > PointType;
    typedef Containers::StaticVector< 2, Index > CoordinatesType;
-   
+
    static const int meshDimension = 2;
 
-   //template< int EntityDimension, 
+   //template< int EntityDimension,
    //          typename Config = GridEntityNoStencilStorage >//CrossStencilStorage< 1 > >
    //using MeshEntity = GridEntity< ThisType, EntityDimension, Config >;
-   
+
    //typedef MeshEntity< meshDimension, GridEntityCrossStencilStorage< 1 > > Cell;
    //typedef MeshEntity< meshDimension - 1, GridEntityNoStencilStorage > Face;
    //typedef MeshEntity< 0 > Point;
-   
+
 
    // TODO: remove this
-   template< int EntityDimension, 
+   template< int EntityDimension,
              typename Config = GridEntityNoStencilStorage >//CrossStencilStorage< 1 > >
    using TestMeshEntity = tnlTestGridEntity< ThisType, EntityDimension, Config >;
    typedef TestMeshEntity< meshDimension, GridEntityCrossStencilStorage< 1 > > TestCell;
    /////
-   
+
    static constexpr int getMeshDimension() { return meshDimension; };
 
    Grid();
@@ -90,11 +88,11 @@ class Meshes::Grid< 2, Real, Device, Index > : public tnlObject
    template< typename EntityType >
    __cuda_callable__
    inline IndexType getEntitiesCount() const;
-   
+
    template< typename EntityType >
    __cuda_callable__
    inline EntityType getEntity( const IndexType& entityIndex ) const;
-   
+
    template< typename EntityType >
    __cuda_callable__
    inline Index getEntityIndex( const EntityType& entity ) const;
@@ -102,21 +100,21 @@ class Meshes::Grid< 2, Real, Device, Index > : public tnlObject
    template< typename EntityType >
    __cuda_callable__
    RealType getEntityMeasure( const EntityType& entity ) const;
-      
+
    __cuda_callable__
    RealType getCellMeasure() const;
-   
+
    __cuda_callable__
    inline PointType getSpaceSteps() const;
 
    template< int xPow, int yPow >
    __cuda_callable__
    inline const RealType& getSpaceStepsProducts() const;
-   
+
    __cuda_callable__
    inline RealType getSmallestSpaceStep() const;
 
-   
+
    template< typename GridFunction >
    typename GridFunction::RealType getAbsMax( const GridFunction& f ) const;
 
@@ -159,16 +157,16 @@ class Meshes::Grid< 2, Real, Device, Index > : public tnlObject
    void computeSpaceSteps();
 
    CoordinatesType dimensions;
-   
+
    IndexType numberOfCells, numberOfNxFaces, numberOfNyFaces, numberOfFaces, numberOfVertices;
 
    PointType origin, proportions;
-   
+
    PointType spaceSteps;
-   
+
    RealType spaceStepsProducts[ 5 ][ 5 ];
-  
-   template< typename, typename, int > 
+
+   template< typename, typename, int >
    friend class GridEntityGetter;
 };
 
@@ -225,9 +223,9 @@ void Meshes::Grid< 2, Real, Device, Index > :: computeSpaceSteps()
    {
       this->spaceSteps.x() = this->proportions.x() / ( Real ) this->getDimensions().x();
       this->spaceSteps.y() = this->proportions.y() / ( Real ) this->getDimensions().y();
-      const RealType& hx = this->spaceSteps.x(); 
+      const RealType& hx = this->spaceSteps.x();
       const RealType& hy = this->spaceSteps.y();
-      
+
       Real auxX, auxY;
       for( int i = 0; i < 5; i++ )
       {
@@ -269,7 +267,7 @@ void Meshes::Grid< 2, Real, Device, Index > :: computeSpaceSteps()
                   auxY = hy * hy;
                   break;
             }
-            this->spaceStepsProducts[ i ][ j ] = auxX * auxY;         
+            this->spaceStepsProducts[ i ][ j ] = auxX * auxY;
          }
       }
    }
@@ -325,7 +323,7 @@ void Meshes::Grid< 2, Real, Device, Index > :: setDomain( const PointType& origi
 template< typename Real,
           typename Device,
           typename Index >
-__cuda_callable__ inline 
+__cuda_callable__ inline
 const typename Meshes::Grid< 2, Real, Device, Index >::PointType&
 Meshes::Grid< 2, Real, Device, Index >::getOrigin() const
 {
@@ -335,7 +333,7 @@ Meshes::Grid< 2, Real, Device, Index >::getOrigin() const
 template< typename Real,
           typename Device,
           typename Index >
-__cuda_callable__ inline 
+__cuda_callable__ inline
 const typename Meshes::Grid< 2, Real, Device, Index > :: PointType&
    Meshes::Grid< 2, Real, Device, Index > :: getProportions() const
 {
@@ -346,23 +344,23 @@ template< typename Real,
           typename Device,
           typename Index >
    template< typename EntityType >
-__cuda_callable__ inline 
+__cuda_callable__ inline
 Index
-Meshes::Grid< 2, Real, Device, Index >:: 
+Meshes::Grid< 2, Real, Device, Index >::
 getEntitiesCount() const
 {
    static_assert( EntityType::entityDimension <= 2 &&
                   EntityType::entityDimension >= 0, "Wrong grid entity dimension." );
-   
+
    switch( EntityType::entityDimension )
    {
       case 2:
          return this->numberOfCells;
       case 1:
-         return this->numberOfFaces;         
+         return this->numberOfFaces;
       case 0:
          return this->numberOfVertices;
-   }            
+   }
    return -1;
 }
 
@@ -370,14 +368,14 @@ template< typename Real,
           typename Device,
           typename Index >
    template< typename EntityType >
-__cuda_callable__ inline 
+__cuda_callable__ inline
 EntityType
 Meshes::Grid< 2, Real, Device, Index >::
 getEntity( const IndexType& entityIndex ) const
 {
    static_assert( EntityType::entityDimension <= 2 &&
                   EntityType::entityDimension >= 0, "Wrong grid entity dimension." );
-   
+
    return GridEntityGetter< ThisType, EntityType >::getEntity( *this, entityIndex );
 }
 
@@ -385,14 +383,14 @@ template< typename Real,
           typename Device,
           typename Index >
    template< typename EntityType >
-__cuda_callable__ inline 
+__cuda_callable__ inline
 Index
 Meshes::Grid< 2, Real, Device, Index >::
 getEntityIndex( const EntityType& entity ) const
 {
    static_assert( EntityType::entityDimension <= 2 &&
                   EntityType::entityDimension >= 0, "Wrong grid entity dimension." );
-   
+
    return GridEntityGetter< ThisType, EntityType >::getEntityIndex( *this, entity );
 }
 
@@ -435,14 +433,14 @@ template< typename Real,
           typename Device,
           typename Index >
    template< int xPow, int yPow  >
-__cuda_callable__ inline 
-const Real& 
+__cuda_callable__ inline
+const Real&
 Meshes::Grid< 2, Real, Device, Index >::
 getSpaceStepsProducts() const
 {
-   tnlTNL_ASSERT( xPow >= -2 && xPow <= 2, 
+   tnlTNL_ASSERT( xPow >= -2 && xPow <= 2,
              std::cerr << " xPow = " << xPow );
-   tnlTNL_ASSERT( yPow >= -2 && yPow <= 2, 
+   tnlTNL_ASSERT( yPow >= -2 && yPow <= 2,
              std::cerr << " yPow = " << yPow );
 
    return this->spaceStepsProducts[ yPow + 2 ][ xPow + 2 ];
@@ -714,8 +712,8 @@ bool Meshes::Grid< 2, Real, Device, Index > :: write( const MeshFunction& functi
 {
    if( this->template getEntitiesCount< Cell >() != function. getSize() )
    {
-     std::cerr << "The size ( " << function. getSize() 
-           << " ) of a mesh function does not agree with the DOFs ( " 
+     std::cerr << "The size ( " << function. getSize()
+           << " ) of a mesh function does not agree with the DOFs ( "
            << this->template getEntitiesCount< Cell >() << " ) of a mesh." <<std::endl;
       return false;
    }
@@ -798,25 +796,25 @@ class Meshes::Grid< 2, Real, Device, Index > : public tnlObject
    typedef Index IndexType;
    typedef Containers::StaticVector< 2, Real > PointType;
    typedef Containers::StaticVector< 2, Index > CoordinatesType;
-   
+
    static const int meshDimension = 2;
 
-   /*template< int EntityDimension, 
+   /*template< int EntityDimension,
              typename Config = GridEntityNoStencilStorage >//CrossStencilStorage< 1 > >
    using MeshEntity = GridEntity< ThisType, EntityDimension, Config >;
-   
+
    typedef MeshEntity< meshDimension, GridEntityCrossStencilStorage< 1 > > Cell;
    typedef MeshEntity< meshDimension - 1, GridEntityNoStencilStorage > Face;
    typedef MeshEntity< 0 > Point;*/
-   
+
 
    // TODO: remove this
-   template< int EntityDimension, 
+   template< int EntityDimension,
              typename Config = GridEntityNoStencilStorage >//CrossStencilStorage< 1 > >
    using TestMeshEntity = tnlTestGridEntity< ThisType, EntityDimension, Config >;
    typedef TestMeshEntity< meshDimension, GridEntityCrossStencilStorage< 1 > > Cell;
    /////
-   
+
    static constexpr int getMeshDimension() { return meshDimension; };
 
    Grid();
@@ -843,11 +841,11 @@ class Meshes::Grid< 2, Real, Device, Index > : public tnlObject
    template< typename EntityType >
    __cuda_callable__
    inline IndexType getEntitiesCount() const;
-   
+
    template< typename EntityType >
    __cuda_callable__
    inline EntityType getEntity( const IndexType& entityIndex ) const;
-   
+
    template< typename EntityType >
    __cuda_callable__
    inline Index getEntityIndex( const EntityType& entity ) const;
@@ -855,21 +853,21 @@ class Meshes::Grid< 2, Real, Device, Index > : public tnlObject
    template< typename EntityType >
    __cuda_callable__
    RealType getEntityMeasure( const EntityType& entity ) const;
-      
+
    __cuda_callable__
    RealType getCellMeasure() const;
-   
+
    __cuda_callable__
    inline PointType getSpaceSteps() const;
 
    template< int xPow, int yPow >
    __cuda_callable__
    inline const RealType& getSpaceStepsProducts() const;
-   
+
    __cuda_callable__
    inline RealType getSmallestSpaceStep() const;
 
-   
+
    template< typename GridFunction >
    typename GridFunction::RealType getAbsMax( const GridFunction& f ) const;
 
@@ -912,16 +910,16 @@ class Meshes::Grid< 2, Real, Device, Index > : public tnlObject
    void computeSpaceSteps();
 
    CoordinatesType dimensions;
-   
+
    IndexType numberOfCells, numberOfNxFaces, numberOfNyFaces, numberOfFaces, numberOfVertices;
 
    PointType origin, proportions;
-   
+
    PointType spaceSteps;
-   
+
    RealType spaceStepsProducts[ 5 ][ 5 ];
-  
-   template< typename, typename, int > 
+
+   template< typename, typename, int >
    friend class GridEntityGetter;
 };
 
@@ -967,9 +965,9 @@ void Meshes::Grid< 2, Real, Device, Index > :: computeSpaceSteps()
    {
       this->spaceSteps.x() = this->proportions.x() / ( Real ) this->getDimensions().x();
       this->spaceSteps.y() = this->proportions.y() / ( Real ) this->getDimensions().y();
-      const RealType& hx = this->spaceSteps.x(); 
+      const RealType& hx = this->spaceSteps.x();
       const RealType& hy = this->spaceSteps.y();
-      
+
       Real auxX, auxY;
       for( int i = 0; i < 5; i++ )
       {
@@ -1011,7 +1009,7 @@ void Meshes::Grid< 2, Real, Device, Index > :: computeSpaceSteps()
                   auxY = hy * hy;
                   break;
             }
-            this->spaceStepsProducts[ i ][ j ] = auxX * auxY;         
+            this->spaceStepsProducts[ i ][ j ] = auxX * auxY;
          }
       }
    }
@@ -1067,7 +1065,7 @@ void Meshes::Grid< 2, Real, Device, Index > :: setDomain( const PointType& origi
 template< typename Real,
           typename Device,
           typename Index >
-__cuda_callable__ inline 
+__cuda_callable__ inline
 const typename Meshes::Grid< 2, Real, Device, Index >::PointType&
 Meshes::Grid< 2, Real, Device, Index >::getOrigin() const
 {
@@ -1077,7 +1075,7 @@ Meshes::Grid< 2, Real, Device, Index >::getOrigin() const
 template< typename Real,
           typename Device,
           typename Index >
-__cuda_callable__ inline 
+__cuda_callable__ inline
 const typename Meshes::Grid< 2, Real, Device, Index > :: PointType&
    Meshes::Grid< 2, Real, Device, Index > :: getProportions() const
 {
@@ -1088,23 +1086,23 @@ template< typename Real,
           typename Device,
           typename Index >
    template< typename EntityType >
-__cuda_callable__ inline 
+__cuda_callable__ inline
 Index
-Meshes::Grid< 2, Real, Device, Index >:: 
+Meshes::Grid< 2, Real, Device, Index >::
 getEntitiesCount() const
 {
    static_assert( EntityType::entityDimension <= 2 &&
                   EntityType::entityDimension >= 0, "Wrong grid entity dimension." );
-   
+
    switch( EntityType::entityDimension )
    {
       case 2:
          return this->numberOfCells;
       case 1:
-         return this->numberOfFaces;         
+         return this->numberOfFaces;
       case 0:
          return this->numberOfVertices;
-   }            
+   }
    return -1;
 }
 
@@ -1112,14 +1110,14 @@ template< typename Real,
           typename Device,
           typename Index >
    template< typename EntityType >
-__cuda_callable__ inline 
+__cuda_callable__ inline
 EntityType
 Meshes::Grid< 2, Real, Device, Index >::
 getEntity( const IndexType& entityIndex ) const
 {
    static_assert( EntityType::entityDimension <= 2 &&
                   EntityType::entityDimension >= 0, "Wrong grid entity dimension." );
-   
+
    return GridEntityGetter< ThisType, EntityType >::getEntity( *this, entityIndex );
 }
 
@@ -1127,14 +1125,14 @@ template< typename Real,
           typename Device,
           typename Index >
    template< typename EntityType >
-__cuda_callable__ inline 
+__cuda_callable__ inline
 Index
 Meshes::Grid< 2, Real, Device, Index >::
 getEntityIndex( const EntityType& entity ) const
 {
    static_assert( EntityType::entityDimension <= 2 &&
                   EntityType::entityDimension >= 0, "Wrong grid entity dimension." );
-   
+
    return GridEntityGetter< ThisType, EntityType >::getEntityIndex( *this, entity );
 }
 
@@ -1177,14 +1175,14 @@ template< typename Real,
           typename Device,
           typename Index >
    template< int xPow, int yPow  >
-__cuda_callable__ inline 
-const Real& 
+__cuda_callable__ inline
+const Real&
 Meshes::Grid< 2, Real, Device, Index >::
 getSpaceStepsProducts() const
 {
-   tnlTNL_ASSERT( xPow >= -2 && xPow <= 2, 
+   tnlTNL_ASSERT( xPow >= -2 && xPow <= 2,
              std::cerr << " xPow = " << xPow );
-   tnlTNL_ASSERT( yPow >= -2 && yPow <= 2, 
+   tnlTNL_ASSERT( yPow >= -2 && yPow <= 2,
              std::cerr << " yPow = " << yPow );
 
    return this->spaceStepsProducts[ yPow + 2 ][ xPow + 2 ];
@@ -1456,8 +1454,8 @@ bool Meshes::Grid< 2, Real, Device, Index > :: write( const MeshFunction& functi
 {
    if( this->template getEntitiesCount< Cell >() != function. getSize() )
    {
-      std::cerr << "The size ( " << function. getSize() 
-           << " ) of a mesh function does not agree with the DOFs ( " 
+      std::cerr << "The size ( " << function. getSize()
+           << " ) of a mesh function does not agree with the DOFs ( "
            << this->template getEntitiesCount< Cell >() << " ) of a mesh." << std::endl;
       return false;
    }
@@ -1503,7 +1501,3 @@ writeProlog( tnlLogger& logger )
    logger.writeParameter( "Space steps:", this->getSpaceSteps() );
 }
 #endif
-
-
-
-
