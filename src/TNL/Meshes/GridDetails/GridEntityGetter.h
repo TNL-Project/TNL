@@ -216,16 +216,20 @@ class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 2> {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0, 0), "wrong coordinates");
          // TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + abs(entity.getOrientation()), "wrong coordinates");
 
-         const Coordinate coordinates = entity.getCoordinates();
-         const Coordinate dimensions = grid.getDimensions();
+         const Coordinate& coordinates = entity.getCoordinates();
+         const Coordinate& dimensions = grid.getDimensions();
 
-         // if (entity.getOrientation().x()) {
-         //    return (coordinates.z() * dimensions.y() + coordinates.y()) * (dimensions.x() + 1) + coordinates.x();
-         // }
-         // if (entity.getOrientation().y()) {
-         //    return grid.numberOfNxFaces + (coordinates.z() * (dimensions.y() + 1) + coordinates.y()) * dimensions.x() + coordinates.x();
-         // }
-         return grid.numberOfNxAndNyFaces + (coordinates.z() * dimensions.y() + coordinates.y()) * dimensions.x() + coordinates.x();
+         if (entity.getBasis().z()) {
+            return (coordinates.z() * dimensions.y() + coordinates.y()) * (dimensions.x()) + coordinates.x();
+         }
+
+         if (entity.getBasis().y()) {
+            return grid.template getOrientedEntitiesCount<2, 0>() + (coordinates.z() * (dimensions.y() + 1) + coordinates.y()) * dimensions.x() + coordinates.x();
+         }
+
+         return grid.template getOrientedEntitiesCount<2, 1>() +
+                grid.template getOrientedEntitiesCount<2, 0>() +
+                (coordinates.z() * dimensions.y() + coordinates.y()) * (dimensions.x() + 1) + coordinates.x();
       }
 };
 
@@ -267,13 +271,18 @@ class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 1> {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0, 0), "wrong coordinates");
          // TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + Coordinate(1, 1, 1) - entity.getBasis(), "wrong coordinates");
 
-         const Coordinate coordinates = entity.getCoordinates();
-         const Coordinate dimensions = grid.getDimensions();
+         const Coordinate& coordinates = entity.getCoordinates();
+         const Coordinate& dimensions = grid.getDimensions();
 
-         // if (entity.getBasis().x()) return (coordinates.z() * (dimensions.y() + 1) + coordinates.y()) * dimensions.x() + coordinates.x();
-         // if (entity.getBasis().y())
-         //    return grid.numberOfDxEdges + (coordinates.z() * dimensions.y() + coordinates.y()) * (dimensions.x() + 1) + coordinates.x();
-         return grid.numberOfDxAndDyEdges + (coordinates.z() * (dimensions.y() + 1) + coordinates.y()) * (dimensions.x() + 1) + coordinates.x();
+         if (!entity.getBasis().x())
+            return (coordinates.z() * (dimensions.y() + 1) + coordinates.y()) * dimensions.x() + coordinates.x();
+
+         if (!entity.getBasis().y())
+            return grid.template getOrientedEntitiesCount<1, 0>() + (coordinates.z() * dimensions.y() + coordinates.y()) * (dimensions.x() + 1) + coordinates.x();
+
+         return grid.template getOrientedEntitiesCount<1, 1>() +
+                grid.template getOrientedEntitiesCount<1, 0>() +
+                (coordinates.z() * (dimensions.y() + 1) + coordinates.y()) * (dimensions.x() + 1) + coordinates.x();
       }
 };
 

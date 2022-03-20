@@ -11,14 +11,14 @@
 #include "support.h"
 
 using Implementations = ::testing::Types<
-   TNL::Meshes::Grid<2, double, TNL::Devices::Host, int>,
-   TNL::Meshes::Grid<2, float, TNL::Devices::Host, int>,
-   TNL::Meshes::Grid<2, double, TNL::Devices::Cuda, int>,
-   TNL::Meshes::Grid<2, float, TNL::Devices::Cuda, int>,
-   TNL::Meshes::DistributedGrid<2, double, TNL::Devices::Host, int>,
-   TNL::Meshes::DistributedGrid<2, float, TNL::Devices::Host, int>,
-   TNL::Meshes::DistributedGrid<2, double, TNL::Devices::Cuda, int>,
-   TNL::Meshes::DistributedGrid<2, float, TNL::Devices::Cuda, int>
+   TNL::Meshes::Grid<3, double, TNL::Devices::Host, int>,
+   TNL::Meshes::Grid<3, float, TNL::Devices::Host, int>,
+   TNL::Meshes::Grid<3, double, TNL::Devices::Cuda, int>,
+   TNL::Meshes::Grid<3, float, TNL::Devices::Cuda, int>,
+   TNL::Meshes::DistributedGrid<3, double, TNL::Devices::Host, int>,
+   TNL::Meshes::DistributedGrid<3, float, TNL::Devices::Host, int>,
+   TNL::Meshes::DistributedGrid<3, double, TNL::Devices::Cuda, int>,
+   TNL::Meshes::DistributedGrid<3, float, TNL::Devices::Cuda, int>
 >;
 
 template <class GridType>
@@ -27,14 +27,19 @@ class GridTestSuite: public ::testing::Test {
       GridType grid;
 
       std::vector<typename GridType::Coordinate> dimensions = {
-         { 1, 1 },
-         { 2, 1 },
-         { 1, 2 },
-         { 2, 2 },
-         { 3, 3 },
-         { 100, 1 },
-         { 1, 100 },
-         { 100, 100 }
+         { 1, 1, 1 },
+         { 2, 1, 1 },
+         { 1, 2, 1 },
+         { 1, 1, 2 },
+         { 2, 2, 2 },
+         { 3, 3, 3 },
+         { 10, 1, 1 },
+         { 1, 10, 1 },
+         { 1, 1, 10 },
+         { 10, 10, 1 },
+         { 1, 10, 10 },
+         { 10, 1, 10 },
+         { 10, 10, 10 }
       };
 
 #ifndef HAVE_CUDA
@@ -49,48 +54,63 @@ class GridTestSuite: public ::testing::Test {
 TYPED_TEST_SUITE(GridTestSuite, Implementations);
 
 TYPED_TEST(GridTestSuite, TestForAllTraverse_0D_Entity) {
-   for (const auto& dimension : this -> dimensions)
-      testForAllTraverse<TypeParam, 0>(this -> grid, dimension);
+   for (const auto& dimension : this->dimensions)
+      testForAllTraverse<TypeParam, 0>(this->grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestForAllTraverse_1D_Entity) {
-   for (const auto& dimension : this -> dimensions)
-      testForAllTraverse<TypeParam, 1>(this -> grid, dimension);
+   for (const auto& dimension : this->dimensions)
+      testForAllTraverse<TypeParam, 1>(this->grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestForAllTraverse_2D_Entity) {
-  for (const auto& dimension : this -> dimensions)
-      testForAllTraverse<TypeParam, 2>(this -> grid, dimension);
+   for (const auto& dimension : this->dimensions)
+      testForAllTraverse<TypeParam, 2>(this->grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestForAllTraverse_3D_Entity) {
+   for (const auto& dimension : this->dimensions)
+      testForAllTraverse<TypeParam, 3>(this->grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestForInteriorTraverse_0D_Entity) {
-   for (const auto& dimension : this -> dimensions)
-      testForInteriorTraverse<TypeParam, 0>(this -> grid, dimension);
+   for (const auto& dimension : this->dimensions)
+      testForInteriorTraverse<TypeParam, 0>(this->grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestForInteriorTraverse_1D_Entity) {
-   for (const auto& dimension : this -> dimensions)
-      testForInteriorTraverse<TypeParam, 1>(this -> grid, dimension);
+   for (const auto& dimension : this->dimensions)
+      testForInteriorTraverse<TypeParam, 1>(this->grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestForInteriorTraverse_2D_Entity) {
-   for (const auto& dimension : this -> dimensions)
-      testForInteriorTraverse<TypeParam, 2>(this -> grid, dimension);
+   for (const auto& dimension : this->dimensions)
+      testForInteriorTraverse<TypeParam, 2>(this->grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestForInteriorTraverse_3D_Entity) {
+   for (const auto& dimension : this->dimensions)
+      testForInteriorTraverse<TypeParam, 3>(this->grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestForBoundaryTraverse_0D_Entity) {
-   for (const auto& dimension : this -> dimensions)
-      testForBoundaryTraverse<TypeParam, 0>(this -> grid, dimension);
+   for (const auto& dimension : this->dimensions)
+      testForBoundaryTraverse<TypeParam, 0>(this->grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestForBoundaryTraverse_1D_Entity) {
-   for (const auto& dimension : this -> dimensions)
-      testForBoundaryTraverse<TypeParam, 1>(this -> grid, dimension);
+   for (const auto& dimension : this->dimensions)
+      testForBoundaryTraverse<TypeParam, 1>(this->grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestForBoundaryTraverse_2D_Entity) {
-   for (const auto& dimension : this -> dimensions)
-      testForBoundaryTraverse<TypeParam, 2>(this -> grid, dimension);
+   for (const auto& dimension : this->dimensions)
+      testForBoundaryTraverse<TypeParam, 2>(this->grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestForBoundaryTraverse_3D_Entity) {
+   for (const auto& dimension : this->dimensions)
+      testForBoundaryTraverse<TypeParam, 3>(this->grid, dimension);
 }
 
 TYPED_TEST(GridTestSuite, TestBoundaryUnionInternalEqualAllProperty_0D_Entity) {
@@ -108,6 +128,11 @@ TYPED_TEST(GridTestSuite, TestBoundaryUnionInternalEqualAllProperty_2D_Entity) {
       testBoundaryUnionInteriorEqualAllProperty<TypeParam, 2>(this -> grid, dimension);
 }
 
+TYPED_TEST(GridTestSuite, TestBoundaryUnionInternalEqualAllProperty_3D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testBoundaryUnionInteriorEqualAllProperty<TypeParam, 3>(this -> grid, dimension);
+}
+
 TYPED_TEST(GridTestSuite, TestAllMinusBoundaryEqualInteriorProperty_0D_Entity) {
    for (const auto& dimension : this -> dimensions)
       testAllMinusBoundaryEqualInteriorProperty<TypeParam, 0>(this -> grid, dimension);
@@ -123,6 +148,11 @@ TYPED_TEST(GridTestSuite, TestAllMinusBoundaryEqualInteriorProperty_2D_Entity) {
       testAllMinusBoundaryEqualInteriorProperty<TypeParam, 2>(this -> grid, dimension);
 }
 
+TYPED_TEST(GridTestSuite, TestAllMinusBoundaryEqualInteriorProperty_3D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testAllMinusBoundaryEqualInteriorProperty<TypeParam, 3>(this -> grid, dimension);
+}
+
 TYPED_TEST(GridTestSuite, TestAllMinusInteriorEqualBoundaryProperty_0D_Entity) {
    for (const auto& dimension : this -> dimensions)
       testAllMinusInteriorEqualBoundaryProperty<TypeParam, 0>(this -> grid, dimension);
@@ -136,6 +166,11 @@ TYPED_TEST(GridTestSuite, TestAllMinusInteriorEqualBoundaryProperty_1D_Entity) {
 TYPED_TEST(GridTestSuite, TestAllMinusInteriorEqualBoundaryProperty_2D_Entity) {
    for (const auto& dimension : this -> dimensions)
       testAllMinusInteriorEqualBoundaryProperty<TypeParam, 2>(this -> grid, dimension);
+}
+
+TYPED_TEST(GridTestSuite, TestAllMinusInteriorEqualBoundaryProperty_3D_Entity) {
+   for (const auto& dimension : this -> dimensions)
+      testAllMinusInteriorEqualBoundaryProperty<TypeParam, 3>(this -> grid, dimension);
 }
 
 #endif

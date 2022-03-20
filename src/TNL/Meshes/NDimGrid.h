@@ -176,7 +176,7 @@ class NDimGrid {
          static void exec(Func func) {
             using Basis = Basis<Index, Orientation, EntityDimension, Dimension>;
 
-            func(Basis::getBasis());
+            func(std::integral_constant<int, Orientation>(), Basis::getBasis());
 
             _ForEachOrientationMain<Orientation - 1, EntityDimension, SkipValue>::exec(func);
          }
@@ -190,7 +190,7 @@ class NDimGrid {
          static void exec(Func func) {
             using Basis = Basis<Index, 0, EntityDimension, Dimension>;
 
-            func(Basis::getBasis());
+            func(std::integral_constant<int, 0>(), Basis::getBasis());
          }
    };
 
@@ -218,11 +218,10 @@ class NDimGrid {
    /**
     * @brief - A list of elements count along specific directions.
     *          First, (n choose 0) elements will contain the count of 0
-    * dimension elements Second, (n choose 1) elements will contain the count
-    * of 1-dimension elements
-    *          ....
+    *          dimension elements Second, (n choose 1) elements will contain the count
+    *          of 1-dimension elements....
     *
-    *          For example, let's have a 3-d grid, then the map indexing will
+    * For example, let's have a 3-d grid, then the map indexing will
     * be the next: 0 - 0 - count of vertices 1, 2, 3 - count of edges in x, y,
     * z plane 4, 5, 6 - count of faces in xy, yz, zy plane 7 - count of cells
     * in z y x plane

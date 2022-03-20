@@ -250,44 +250,66 @@ void __NDIM_PREFIX__::traverseInterior(Func func, FuncArgs... args) const {
 
 __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
-inline
-void __NDIM_PREFIX__::traverseBoundary(Func func, FuncArgs... args) const {
-   // To define boundaries of the grid, we need to tell, that t
+inline void __NDIM_PREFIX__::traverseBoundary(Func func, FuncArgs... args) const {
+   Coordinate from(0);
+   Coordinate to = this->getDimensions();
+
    // Boundaries of the grid are formed by the entities of Dimension - 1.
    // We need to traverse each orientation independently.
    constexpr int orientationsCount = getEntityOrientationsCount(Dimension - 1);
+   constexpr bool isDirectedEntity = EntityDimension != 0 && EntityDimension != Dimension;
+   constexpr bool isAnyBoundaryIntersects = EntityDimension != Dimension - 1;
 
-   Coordinate from(0);
-   Coordinate to = this -> getDimensions();
+   Container<orientationsCount, Index> isBoundaryTraversed = { 0 };
 
-   auto exec = [&](const auto orientation) {
-      auto forEachOrientation = [&](const Coordinate& basis) {
-         Coordinate start = from;
-         Coordinate end = to + basis;
+   auto forBoundary = [&](const auto orientation, const Coordinate& basis) {
+      Coordinate start = from;
+      Coordinate end = to + basis;
 
-         start[orientation] = end[orientation] - 1;
+      if (isAnyBoundaryIntersects) {
+         #pragma unroll
+         for (Index i = 0; i < Dimension; i++) {
+            start[i] = (!isDirectedEntity || basis[i]) && isBoundaryTraversed[i] ? 1 : 0;
+            end[i] = end[i] - ((!isDirectedEntity || basis[i]) && isBoundaryTraversed[i] ? 1 : 0);
+         }
+      }
 
-         Templates::ParallelFor<Dimension, Device, Index>::exec(start, end, func, basis, args...);
+      start[orientation] = end[orientation] - 1;
 
-         // Skip entities defined only once
-         if (!start[orientation] && end[orientation])
-            return;
+      Templates::ParallelFor<Dimension, Device, Index>::exec(start, end, func, basis, args...);
 
-         start[orientation] = 0;
-         end[orientation] = 1;
+      // Skip entities defined only once
+      if (!start[orientation] && end[orientation]) return;
 
-         Templates::ParallelFor<Dimension, Device, Index>::exec(start, end, func, basis, args...);
+      start[orientation] = 0;
+      end[orientation] = 1;
+
+      Templates::ParallelFor<Dimension, Device, Index>::exec(start, end, func, basis, args...);
+   };
+
+   if (!isAnyBoundaryIntersects) {
+      auto exec = [&](const auto orientation, const Coordinate& basis) {
+         constexpr int orthogonalOrientation = EntityDimension - orientation;
+
+         forBoundary(orthogonalOrientation, basis);
+      };
+
+      ForEachOrientation<EntityDimension>::exec(exec);
+      return;
+   }
+
+   auto exec = [&](const auto orthogonalOrientation) {
+      auto exec = [&](const auto, const Coordinate& basis) {
+         forBoundary(orthogonalOrientation, basis);
       };
 
       if (EntityDimension == 0 || EntityDimension == Dimension) {
-         ForEachOrientation<EntityDimension>::exec(forEachOrientation);
-
-         // Advance traverse coordinates to fix overlapping entities
-         from[orientation] = 1;
-         to[orientation] = to[orientation] - 1;
+         ForEachOrientation<EntityDimension>::exec(exec);
       } else {
-         ForEachOrientation<EntityDimension, orientation>::exec(forEachOrientation);
+         ForEachOrientation<EntityDimension, orthogonalOrientation>::exec(exec);
       }
+
+      isBoundaryTraversed[orthogonalOrientation] = 1;
    };
 
    Templates::DescendingFor<orientationsCount - 1>::exec(exec);

@@ -352,10 +352,10 @@ class GridTraverseTestCase {
                   if (i == 0) {
                      result += current[i];
                   } else {
-                     Index offset = 0;
+                     Index offset = 1;
 
                      for (Index j = 0; j < i; j++)
-                        offset += end[j];
+                        offset *= end[j];
 
                      result += current[i] * offset;
                   }
