@@ -402,12 +402,8 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
       auto index = entity.getIndex();
       auto center = 2 * uxView[index];
 
-      auxView[index] = (uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
-                       (uxView[index - xDimension] - center + uxView[index + xDimension]) * hy_inv;
-   };
-
-   auto update = [=] __cuda_callable__(int i) mutable {
-      uxView[i] += auxView[i] * timestep;
+      auxView[index] = ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
+                         (uxView[index - xDimension] - center + uxView[index + xDimension]) * hy_inv) * timestep;
    };
 
    Real start = 0;
@@ -417,8 +413,6 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
                     { grid.getEndIndex(0) - 1, grid.getEndIndex(1) - 1 },
                     { direction },
                     next);
-
-      grid.traverseAll(update);
 
       start += timestep;
    }

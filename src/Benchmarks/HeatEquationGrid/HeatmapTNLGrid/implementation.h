@@ -58,21 +58,22 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
       auto index = entity.getIndex();
       auto center = 2 * uxView[index];
 
-      auxView[index] = (uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
-                       (uxView[index - width] - center + uxView[index + width]) * hy_inv;
+      auxView[index] = ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
+                        (uxView[index - width] - center + uxView[index + width]) * hy_inv) * timestep;
    };
 
-   auto update = [=] __cuda_callable__(const typename Grid2D::EntityType<0>&entity) mutable {
-      auto index = entity.getIndex();
+   // auto update = [=] __cuda_callable__(const typename Grid2D::EntityType<0>&entity) mutable {
+   //    auto index = entity.getIndex();
 
-      uxView[index] += auxView[index] * timestep;
-   };
+   //    uxView[index] += auxView[index] * timestep;
+   // };
 
    Real start = 0;
 
    while (start < params.finalTime) {
       grid.template forInterior<0>(next);
-      grid.template forInterior<0>(update);
+
+      auxView.swap(uxView);
 
       start += timestep;
    }

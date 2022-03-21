@@ -125,16 +125,16 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
       auto index = entity.j * xSize + entity.i;
       auto center = 2 * uxView[index];
 
-      auxView[index] = (uxView[index - 1] - center + uxView[index + 1]) * hx_inv + (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv;
+      auxView[index] = ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
+                        (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv) * timestep;
    };
-
-   auto update = [=] __cuda_callable__(int i) mutable { uxView[i] += auxView[i] * timestep; };
 
    Real start = 0;
 
    while (start < params.finalTime) {
       TNL::Algorithms::ParallelFor2D<Device>::exec(1, 1, params.xSize - 1, params.ySize - 1, next);
-      TNL::Algorithms::ParallelFor<Device>::exec(0, params.xSize * params.ySize, update);
+
+      auxView.swap(uxView);
 
       start += timestep;
    }
