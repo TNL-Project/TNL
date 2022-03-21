@@ -83,7 +83,7 @@ class GridEntity {
       Real getMeasure() const;
 
       __cuda_callable__ inline
-      const GridType& getMesh() const;
+      const Grid& getMesh() const;
 
       __cuda_callable__ inline
       void setBasis(const Coordinate& orientation);

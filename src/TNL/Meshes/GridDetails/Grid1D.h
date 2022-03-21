@@ -25,6 +25,8 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
 
    using Base = NDimGrid<1, Real, Device, Index>;
    using Coordinate = typename Base::Coordinate;
+   using Point = typename Base::Point;
+   using EntitiesCounts = typename Base::EntitiesCounts;
 
    /**
     * \brief Basic constructor.

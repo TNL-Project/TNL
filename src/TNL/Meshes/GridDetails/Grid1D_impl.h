@@ -79,45 +79,6 @@ void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
    };
 
    this->template traverseBoundary<EntityDimension>(exec, *this, args...);
-   // static_assert(EntityDimension >= 0 && EntityDimension <= 1,
-   //               "Entity dimension must be either 0 or 1");
-
-   // auto outer = [=] __cuda_callable__(Index i, const Grid<1, Real, Device, Index> &grid,
-   //                                    FuncArgs... args) mutable {
-   //    // EntityType<EntityDimension> entity(grid);
-
-   //    // entity.setCoordinates(i);
-   //    // entity.refresh();
-
-   //    // func(entity, args...);
-   // };
-
-   // switch (EntityDimension) {
-   //    case 0:
-   //       this -> forEach({ 0 }, { 1 }, outer, *this, args...);
-   //       this -> forEach({ this -> dimensions.x() }, { this -> dimensions.x() + 1 }, outer, *this, args...);
-   //       break;
-   //    case 1:
-   //       this -> forEach({ 0 }, { 1 }, outer, *this, args...);
-   //       this -> forEach({ this -> dimensions.x() - 1 }, { this -> dimensions.x() }, outer, *this, args...);
-   //       // TODO: - Verify for distributed grid
-   //       /*if (localBegin < interiorBegin && interiorEnd < localEnd) {
-   //          outer(interiorBegin.x() - 1, *this, args...);
-   //          outer(interiorEnd.x(), *this, args...);
-   //          break;
-   //       }
-
-   //       if (localBegin < interiorBegin) {
-   //          outer(interiorBegin.x() - 1, *this, args...);
-   //          break;
-   //       }
-
-   //       if (interiorEnd < localEnd)
-   //          outer(interiorEnd.x(), *this, args...);*/
-   //       break;
-   //    default:
-   //       break;
-   // }
 }
 
 template <typename Real, typename Device, typename Index>

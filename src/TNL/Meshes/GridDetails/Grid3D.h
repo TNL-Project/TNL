@@ -36,6 +36,8 @@ public:
 
    using Base = NDimGrid<3, Real, Device, Index>;
    using Coordinate = typename Base::Coordinate;
+   using Point = typename Base::Point;
+   using EntitiesCounts = typename Base::EntitiesCounts;
 
    static constexpr int getMeshDimension() { return 3; };
 

@@ -71,7 +71,7 @@ typename __GRID_ENTITY_PREFIX__::Real __GRID_ENTITY_PREFIX__::getMeasure() const
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-const typename __GRID_ENTITY_PREFIX__::GridType& __GRID_ENTITY_PREFIX__::getMesh() const {
+const Grid& __GRID_ENTITY_PREFIX__::getMesh() const {
    return this->grid;
 }
 

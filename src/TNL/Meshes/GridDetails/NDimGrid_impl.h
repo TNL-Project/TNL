@@ -96,7 +96,7 @@ __cuda_callable__ inline __NDIM_PREFIX__::Container<sizeof...(DimensionIndex), I
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ inline const typename __NDIM_PREFIX__::Container<Dimension + 1, Index> &__NDIM_PREFIX__::getEntitiesCounts() const noexcept {
+__cuda_callable__ inline const typename __NDIM_PREFIX__::EntitiesCounts& __NDIM_PREFIX__::getEntitiesCounts() const noexcept {
    return this->cumulativeEntitiesCountAlongBases;
 }
 
@@ -219,7 +219,7 @@ __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
 inline
 void __NDIM_PREFIX__::traverseAll(Func func, FuncArgs... args) const {
-   this -> traverseAll<EntityDimension>({ 0 }, this -> getDimensions(), func, args...);
+   this -> traverseAll<EntityDimension>(Coordinate(0), this -> getDimensions(), func, args...);
 }
 
 __NDIMGRID_TEMPLATE__
@@ -241,7 +241,7 @@ __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
 inline
 void __NDIM_PREFIX__::traverseInterior(Func func, FuncArgs... args) const {
-   this -> traverseInterior<EntityDimension>({ 0 }, this -> getDimensions(), func, args...);
+   this -> traverseInterior<EntityDimension>(Coordinate(0), this -> getDimensions(), func, args...);
 }
 
 __NDIMGRID_TEMPLATE__
@@ -276,7 +276,7 @@ __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
 inline
  void __NDIM_PREFIX__::traverseBoundary(Func func, FuncArgs... args) const {
-   this -> traverseBoundary<EntityDimension>({ 0 }, this -> getDimensions(), func, args...);
+   this -> traverseBoundary<EntityDimension>(Coordinate(0), this -> getDimensions(), func, args...);
 }
 
 __NDIMGRID_TEMPLATE__
@@ -289,7 +289,7 @@ void __NDIM_PREFIX__::traverseBoundary(const Coordinate& from, const Coordinate&
    constexpr bool isDirectedEntity = EntityDimension != 0 && EntityDimension != Dimension;
    constexpr bool isAnyBoundaryIntersects = EntityDimension != Dimension - 1;
 
-   Container<orientationsCount, Index> isBoundaryTraversed = { 0 };
+   Container<orientationsCount, Index> isBoundaryTraversed(0);
 
    auto forBoundary = [&](const auto orientation, const Coordinate& basis) {
       Coordinate start = from;

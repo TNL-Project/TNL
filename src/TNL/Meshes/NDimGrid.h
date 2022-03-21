@@ -26,6 +26,7 @@ class NDimGrid {
 
    using Coordinate = Container<Dimension, Index>;
    using Point = Container<Dimension, Real>;
+   using EntitiesCounts = Container<Dimension + 1, Index>;
 
    /**
     * @brief Returns number of this mesh grid dimensions.
@@ -85,7 +86,7 @@ class NDimGrid {
    /**
     * @brief - Returns entities counts along every dimension
     */
-   __cuda_callable__ inline const Container<Dimension + 1, Index>& getEntitiesCounts() const noexcept;
+   __cuda_callable__ inline const EntitiesCounts& getEntitiesCounts() const noexcept;
     /**
     * @param[in] dimension - index of dimension
     * @param[in] orientation - orientation of the dimension
