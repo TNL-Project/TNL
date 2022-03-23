@@ -3,7 +3,7 @@
 #ifdef HAVE_GTEST
 #include <functional>
 #include <TNL/Containers/Array.h>
-#include <TNL/Meshes/Basis.h>
+#include <TNL/Meshes/GridDetails/Basis.h>
 #include <gtest/gtest.h>
 
 namespace Templates {

@@ -1,12 +1,12 @@
 
 #pragma once
 
-#include <TNL/Meshes/Basis.h>
-#include <TNL/Meshes/Templates.h>
+#include <TNL/Meshes/GridDetails/Basis.h>
 
 namespace TNL {
 namespace Meshes {
 namespace Templates {
+
 template <typename Index,
           int Orientation,
           int EntityDimension,

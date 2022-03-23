@@ -1,12 +1,12 @@
 
-#include <TNL/Containers/StaticArray.h>
-#include <TNL/Devices/Host.h>
+#pragma once
+
 #include <TNL/Meshes/Grid.h>
 
 namespace TNL {
 namespace Meshes {
 template <int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int>
-class DistributedGrid : public Grid<Dimension, Real, Device, Index> {
+class _DistributedGrid: public Grid<Dimension, Real, Device, Index> {
   public:
    template <int ContainerDimension, typename ContainerIndex>
    using Container = typename Grid<Dimension, Real, Device, Index>::Container<ContainerDimension, ContainerIndex>;
@@ -93,3 +93,5 @@ class DistributedGrid : public Grid<Dimension, Real, Device, Index> {
 };
 }  // namespace Meshes
 }  // namespace TNL
+
+#include <TNL/Meshes/GridDetails/Implementations/DistributedGrid.hpp>

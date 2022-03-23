@@ -6,107 +6,88 @@
 
 #pragma once
 
-#include <TNL/Logger.h>
-#include <TNL/Meshes/Grid.h>
-#include <TNL/Meshes/GridDetails/GridEntityGetter.h>
-#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.h>
-#include <TNL/Meshes/GridEntity.h>
-#include <TNL/Meshes/GridEntityConfig.h>
+#include <TNL/Meshes/GridDetails/NDimGrid.h>
 
 namespace TNL {
 namespace Meshes {
 
-template< typename Real,
-          typename Device,
-          typename Index >
-class Grid< 3, Real, Device, Index >: public NDimGrid<3, Real, Device, Index>
-{
-public:
-   using RealType = Real;
-   using DeviceType = Device;
-   using GlobalIndexType = Index;
-   using PointType = Containers::StaticVector< 3, Real >;
-   using CoordinatesType = Containers::StaticVector< 3, Index >;
+template <class, int>
+class GridEntity;
 
-   // TODO: deprecated and to be removed (GlobalIndexType shall be used instead)
-   using IndexType = Index;
+template <typename Real, typename Device, typename Index>
+class Grid<3, Real, Device, Index> : public NDimGrid<3, Real, Device, Index> {
+   public:
+      template <int EntityDimension>
+      using EntityType = GridEntity<Grid, EntityDimension>;
 
-   template <int EntityDimension>
-   using EntityType = GridEntity<Grid, EntityDimension>;
+      using Base = NDimGrid<3, Real, Device, Index>;
+      using Coordinate = typename Base::Coordinate;
+      using Point = typename Base::Point;
+      using EntitiesCounts = typename Base::EntitiesCounts;
 
-   using Base = NDimGrid<3, Real, Device, Index>;
-   using Coordinate = typename Base::Coordinate;
-   using Point = typename Base::Point;
-   using EntitiesCounts = typename Base::EntitiesCounts;
+      /**
+       * \brief See Grid1D::Grid().
+       */
+      Grid();
 
-   static constexpr int getMeshDimension() { return 3; };
+      Grid(const Index xSize, const Index ySize, const Index zSize);
 
-   /**
-    * \brief See Grid1D::Grid().
-    */
-   Grid() = default;
+      // /**
+      //  * \brief Gets number of entities in this grid.
+      //  * \tparam EntityDimension Integer specifying dimension of the entity.
+      //  */
+      // template< int EntityDimension >
+      // __cuda_callable__
+      // IndexType getEntitiesCount() const;
 
-   Grid( Index xSize, Index ySize, Index zSize );
+      /**
+       * \brief Gets number of entities in this grid.
+       * \tparam Entity Type of the entity.
+      //  */
+      // template< typename Entity >
+      // __cuda_callable__
+      // IndexType getEntitiesCount() const;
 
-   // /**
-   //  * \brief Gets number of entities in this grid.
-   //  * \tparam EntityDimension Integer specifying dimension of the entity.
-   //  */
-   // template< int EntityDimension >
-   // __cuda_callable__
-   // IndexType getEntitiesCount() const;
+      /**
+       * \brief See Grid1D::getEntity().
+       */
+      template <typename Entity>
+      __cuda_callable__ inline
+      Entity getEntity(const Index& entityIndex) const;
 
-   /**
-    * \brief Gets number of entities in this grid.
-    * \tparam Entity Type of the entity.
-   //  */
-   // template< typename Entity >
-   // __cuda_callable__
-   // IndexType getEntitiesCount() const;
+      /**
+       * \brief See Grid1D::getEntityIndex().
+       */
+      template <typename Entity>
+      __cuda_callable__ inline
+      Index getEntityIndex(const Entity& entity) const;
 
-   /**
-    * \brief See Grid1D::getEntity().
-    */
-   template< typename Entity >
-   __cuda_callable__
-   inline Entity
-   getEntity( const IndexType& entityIndex ) const;
+      /**
+       * \breif Returns the measure (volume) of a cell in this grid.
+       */
+      __cuda_callable__ inline
+      const Real& getCellMeasure() const;
 
-   /**
-    * \brief See Grid1D::getEntityIndex().
-    */
-   template< typename Entity >
-   __cuda_callable__
-   inline Index
-   getEntityIndex( const Entity& entity ) const;
+      /**
+       * \brief Traverses all elements
+       */
+      template <int EntityDimension, typename Func, typename... FuncArgs>
+      inline void forAll(Func func, FuncArgs... args) const;
 
-   /**
-    * \breif Returns the measure (volume) of a cell in this grid.
-    */
-   __cuda_callable__
-   inline const RealType&
-   getCellMeasure() const;
+      /**
+       * \brief Traversers interior elements
+       */
+      template <int EntityDimension, typename Func, typename... FuncArgs>
+      inline void forInterior(Func func, FuncArgs... args) const;
 
-   /**
-    * \brief Traverses all elements
-    */
-   template<int EntityDimension, typename Func, typename... FuncArgs>
-   void forAll(Func func, FuncArgs... args) const;
-
-   /**
-    * \brief Traversers interior elements
-    */
-   template<int EntityDimension, typename Func, typename... FuncArgs>
-   void forInterior(Func func, FuncArgs... args) const;
-
-   /**
-    * \brief Traversers boundary elements
-    */
-   template<int EntityDimension, typename Func, typename... FuncArgs>
-   void forBoundary(Func func, FuncArgs... args) const;
+      /**
+       * \brief Traversers boundary elements
+       */
+      template <int EntityDimension, typename Func, typename... FuncArgs>
+      inline void forBoundary(Func func, FuncArgs... args) const;
 };
 
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/Grid3D_impl.h>
+#include <TNL/Meshes/GridDetails/Implementations/Grid3D.hpp>

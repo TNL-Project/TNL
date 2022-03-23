@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <TNL/Containers/StaticVector.h>
-#include <TNL/Meshes/Basis.h>
+#include <TNL/Meshes/GridDetails/Basis.h>
 
 template<int GridDimension, int EntityOrientation, int EntityDimension>
 void compare(const TNL::Containers::StaticVector<GridDimension, int>& expectation) {

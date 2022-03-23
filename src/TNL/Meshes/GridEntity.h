@@ -6,9 +6,7 @@
 
 #pragma once
 
-#include <TNL/Containers/StaticVector.h>
 #include <TNL/Meshes/Grid.h>
-#include <TNL/Meshes/Basis.h>
 
 namespace TNL {
 namespace Meshes {
@@ -101,4 +99,4 @@ class GridEntity {
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/GridEntity_impl.h>
+#include <TNL/Meshes/GridDetails/Implementations/GridEntity.hpp>

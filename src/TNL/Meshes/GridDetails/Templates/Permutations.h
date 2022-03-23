@@ -1,49 +1,12 @@
 
 #pragma once
 
-#include <TNL/Algorithms/ParallelFor.h>
-
+#include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <type_traits>
 
 namespace TNL {
 namespace Meshes {
 namespace Templates {
-
-/**
- * One of the possible implementation of the conjuction operator.
- *
- * This one is taken from https://en.cppreference.com/w/cpp/types/conjunction
- */
-
-template <class...>
-struct conjuction : std::true_type {};
-
-template <class Type>
-struct conjuction<Type> : Type {};
-
-template <class Head, class... Tail>
-struct conjuction<Head, Tail...> : std::conditional_t<bool(Head::value), conjuction<Tail...>, Head> {};
-
-template <class... Types>
-constexpr bool conjunction_v = conjuction<Types...>::value;
-
-/**
- * One of the possible implementation of the conjuction operator.
- *
- * This one is taken from https://en.cppreference.com/w/cpp/types/disjunction
- */
-
-template <class...>
-struct disjunction : std::false_type {};
-
-template <class Type>
-struct disjunction<Type> : Type {};
-
-template <class Head, class... Tail>
-struct disjunction<Head, Tail...> : std::conditional_t<bool(Head::value), Head, disjunction<Tail...>> {};
-
-template <class... Types>
-constexpr bool disjunction_v = disjunction<Types...>::value;
 
 /*
  * A pack of type and its count
@@ -298,138 +261,6 @@ struct Get<0, pack<Head, Tail...>> {
 template <int N, class Pack>
 using get = typename Get<N, Pack>::type;
 
-/**
- * A dimension-based interface of ParallelFor algorithm
- */
-template <int, typename, typename>
-struct ParallelFor;
-
-template <typename Device, typename Index>
-struct ParallelFor<1, Device, Index> {
-  public:
-   template <typename Func, typename... FuncArgs>
-   inline
-   static void exec(const TNL::Containers::StaticVector<1, Index>& from, const TNL::Containers::StaticVector<1, Index>& to, Func func,
-                    FuncArgs... args) {
-      auto groupIndex = [=] __cuda_callable__ (Index i , FuncArgs... args) mutable {
-         func(TNL::Containers::StaticVector<1, Index>(i), args...);
-      };
-
-      TNL::Algorithms::ParallelFor<Device>::exec(from.x(), to.x(),
-                                                 groupIndex,
-                                                 std::forward<FuncArgs>(args)...);
-   }
-};
-
-template <typename Device, typename Index>
-struct ParallelFor<2, Device, Index> {
-  public:
-   template <typename Func, typename... FuncArgs>
-   inline
-   static void exec(const TNL::Containers::StaticVector<2, Index>& from, const TNL::Containers::StaticVector<2, Index>& to, Func func,
-                    FuncArgs... args) {
-      auto groupIndex = [=] __cuda_callable__ (Index i, Index j, FuncArgs... args) mutable {
-         func(TNL::Containers::StaticVector<2, Index>(i, j), args...);
-      };
-
-      TNL::Algorithms::ParallelFor2D<Device>::exec(from.x(), from.y(),
-                                                   to.x(), to.y(),
-                                                   groupIndex,
-                                                   std::forward<FuncArgs>(args)...);
-   }
-};
-
-template <typename Device, typename Index>
-struct ParallelFor<3, Device, Index> {
-  public:
-   template <typename Func, typename... FuncArgs>
-   inline
-   static void exec(const TNL::Containers::StaticVector<3, Index>& from, const TNL::Containers::StaticVector<3, Index>& to, Func func,
-                    FuncArgs... args) {
-      auto groupIndex = [=] __cuda_callable__ (Index i, Index j, Index k, FuncArgs... args) mutable {
-         func(TNL::Containers::StaticVector<3, Index>(i, j, k), args...);
-      };
-
-      TNL::Algorithms::ParallelFor3D<Device>::exec(from.x(), from.y(), from.z(),
-                                                   to.x(), to.y(), to.z(),
-                                                   groupIndex,
-                                                   std::forward<FuncArgs>(args)...);
-   }
-};
-
-/*
- * A compiler-friendly implementation of the templated for-cycle, because
- * the template specializations count is O(Value) bounded.
- */
-template <int>
-struct DescendingFor;
-
-template <int Value>
-struct DescendingFor {
-  public:
-   template <typename Func, typename... FuncArgs>
-   inline
-   static void exec(Func func, FuncArgs&&... args) {
-      static_assert(Value > 0, "Couldn't descend for negative values");
-
-      func(std::integral_constant<int, Value>(), std::forward<FuncArgs>(args)...);
-
-      DescendingFor<Value - 1>::exec(std::forward<Func>(func), std::forward<FuncArgs>(args)...);
-   }
-};
-
-template <>
-struct DescendingFor<0> {
-  public:
-   template <typename Func, typename... FuncArgs>
-   inline
-   static void exec(Func func, FuncArgs&&... args) {
-      func(std::integral_constant<int, 0>(), std::forward<FuncArgs>(args)...);
-   }
-};
-
-template <size_t Value, size_t Power>
-constexpr size_t pow() {
-   size_t result = 1;
-
-   for (size_t i = 0; i < Power; i++) result *= Value;
-
-   return result;
 }
-
-template <typename Index>
-constexpr Index product(Index from, Index to) {
-   Index result = 1;
-
-   if (from <= to)
-      for (Index i = from; i <= to; i++) result *= i;
-
-   return result;
-}
-
-template <typename Index>
-constexpr Index combination(Index k, Index n) {
-   return product(k + 1, n) / product(1, n - k);
-}
-
-template <typename Index>
-constexpr Index firstKCombinationSum(Index k, Index n) {
-   if (k == 0) return 0;
-
-   if (k == n) return 1 << n;
-
-   Index result = 0;
-
-   // Fraction simplification of k-combination
-   for (Index i = 0; i < k; i++) result += combination(i, n);
-
-   return result;
-}
-
-constexpr bool isInClosedInterval(int lower, int value, int upper) { return lower <= value && value <= upper; }
-
-constexpr bool isInLeftClosedRightOpenInterval(int lower, int value, int upper) { return lower <= value && value < upper; }
-
-}  // namespace Templates
 }  // namespace Meshes
 }  // namespace TNL

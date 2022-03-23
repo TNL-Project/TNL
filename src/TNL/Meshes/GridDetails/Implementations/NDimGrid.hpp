@@ -1,8 +1,11 @@
 
 #pragma once
 
-#include <TNL/Meshes/NDimGrid.h>
-#include <TNL/Meshes/GridDetails/ForEachOrientation.h>
+#include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
+#include <TNL/Meshes/GridDetails/Templates/Templates.h>
+#include <TNL/Meshes/GridDetails/Templates/ParallelFor.h>
+#include <TNL/Meshes/GridDetails/Templates/DescendingFor.h>
+#include <TNL/Meshes/GridDetails/Templates/ForEachOrientation.h>
 
 namespace TNL {
 namespace Meshes {
@@ -186,7 +189,8 @@ __NDIMGRID_TEMPLATE__
 __cuda_callable__ inline const typename __NDIM_PREFIX__::Point &__NDIM_PREFIX__::getProportions() const noexcept { return this->proportions; }
 
 __NDIMGRID_TEMPLATE__
-template <typename... Powers, std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Powers>...>, bool>,
+template <typename... Powers,
+          std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Powers>...>, bool>,
           std::enable_if_t<sizeof...(Powers) == Dimension, bool>>
 __cuda_callable__ inline Real __NDIM_PREFIX__::getSpaceStepsProducts(Powers... powers) const noexcept {
    constexpr Index halfSize = this->spaceStepsPowersSize >> 1;
@@ -219,7 +223,10 @@ __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
 inline
 void __NDIM_PREFIX__::traverseAll(Func func, FuncArgs... args) const {
-   this -> traverseAll<EntityDimension>(Coordinate(0), this -> getDimensions(), func, args...);
+   this -> traverseAll<EntityDimension>(Coordinate(0),
+                                       this -> getDimensions(),
+                                       func,
+                                       args...);
 }
 
 __NDIMGRID_TEMPLATE__
@@ -231,7 +238,11 @@ void __NDIM_PREFIX__::traverseAll(const Coordinate& from, const Coordinate& to, 
    TNL_ASSERT_LE(from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor");
 
    auto exec = [&](const int, const Coordinate& basis) {
-      Templates::ParallelFor<Dimension, Device, Index>::exec(from, to + basis, func, basis, args...);
+      Templates::ParallelFor<Dimension, Device, Index>::exec(from,
+                                                             to + basis,
+                                                             func,
+                                                             basis,
+                                                             args...);
    };
 
    Templates::ForEachOrientation<Index, EntityDimension, Dimension>::exec(exec);
@@ -241,7 +252,10 @@ __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
 inline
 void __NDIM_PREFIX__::traverseInterior(Func func, FuncArgs... args) const {
-   this -> traverseInterior<EntityDimension>(Coordinate(0), this -> getDimensions(), func, args...);
+   this -> traverseInterior<EntityDimension>(Coordinate(0),
+                                             this -> getDimensions(),
+                                             func,
+                                             args...);
 }
 
 __NDIMGRID_TEMPLATE__
@@ -255,15 +269,27 @@ void __NDIM_PREFIX__::traverseInterior(const Coordinate& from, const Coordinate&
    auto exec = [&](const int, const Coordinate& basis) {
       switch (EntityDimension) {
       case 0: {
-         Templates::ParallelFor<Dimension, Device, Index>::exec(from + Coordinate(1), to, func, basis, args...);
+         Templates::ParallelFor<Dimension, Device, Index>::exec(from + Coordinate(1),
+                                                                to,
+                                                                func,
+                                                                basis,
+                                                                args...);
          break;
       }
       case Dimension: {
-         Templates::ParallelFor<Dimension, Device, Index>::exec(from + Coordinate(1), to - Coordinate(1), func, basis, args...);
+         Templates::ParallelFor<Dimension, Device, Index>::exec(from + Coordinate(1),
+                                                                to - Coordinate(1),
+                                                                func,
+                                                                basis,
+                                                                args...);
          break;
       }
       default: {
-         Templates::ParallelFor<Dimension, Device, Index>::exec(from + basis, to, func, basis, args...);
+         Templates::ParallelFor<Dimension, Device, Index>::exec(from + basis,
+                                                                to,
+                                                                func,
+                                                                basis,
+                                                                args...);
          break;
       }
       }
@@ -276,7 +302,10 @@ __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
 inline
  void __NDIM_PREFIX__::traverseBoundary(Func func, FuncArgs... args) const {
-   this -> traverseBoundary<EntityDimension>(Coordinate(0), this -> getDimensions(), func, args...);
+   this -> traverseBoundary<EntityDimension>(Coordinate(0),
+                                             this -> getDimensions(),
+                                             func,
+                                             args...);
 }
 
 __NDIMGRID_TEMPLATE__
@@ -305,7 +334,11 @@ void __NDIM_PREFIX__::traverseBoundary(const Coordinate& from, const Coordinate&
 
       start[orientation] = end[orientation] - 1;
 
-      Templates::ParallelFor<Dimension, Device, Index>::exec(start, end, func, basis, args...);
+      Templates::ParallelFor<Dimension, Device, Index>::exec(start,
+                                                             end,
+                                                             func,
+                                                             basis,
+                                                             args...);
 
       // Skip entities defined only once
       if (!start[orientation] && end[orientation]) return;
@@ -313,7 +346,11 @@ void __NDIM_PREFIX__::traverseBoundary(const Coordinate& from, const Coordinate&
       start[orientation] = 0;
       end[orientation] = 1;
 
-      Templates::ParallelFor<Dimension, Device, Index>::exec(start, end, func, basis, args...);
+      Templates::ParallelFor<Dimension, Device, Index>::exec(start,
+                                                             end,
+                                                             func,
+                                                             basis,
+                                                             args...);
    };
 
    if (!isAnyBoundaryIntersects) {
@@ -412,7 +449,8 @@ void __NDIM_PREFIX__::fillSpaceSteps() {
    }
 
    if (!hasAnyInvalidDimension) {
-      for (Index i = 0; i < Dimension; i++) this->spaceSteps[i] = this->proportions[i] / this->dimensions[i];
+      for (Index i = 0; i < Dimension; i++)
+         this->spaceSteps[i] = this->proportions[i] / this->dimensions[i];
 
       fillSpaceStepsPowers();
    }
@@ -423,7 +461,7 @@ void __NDIM_PREFIX__::fillSpaceStepsPowers() {
    Container<spaceStepsPowersSize * Dimension, Real> powers;
 
    for (Index i = 0; i < Dimension; i++) {
-      Index power = -2;
+      Index power = -(this -> spaceStepsPowersSize >> 1);
 
       for (Index j = 0; j < spaceStepsPowersSize; j++) {
          powers[i * spaceStepsPowersSize + j] = pow(this->spaceSteps[i], power);

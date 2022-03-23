@@ -6,17 +6,13 @@
 
 #pragma once
 
-#include <TNL/Containers/StaticArray.h>
-#include <TNL/Devices/Host.h>
-#include <TNL/Meshes/NDimGrid.h>
-
-#include <type_traits>
+#include <TNL/Meshes/GridDetails/NDimGrid.h>
 
 namespace TNL {
 namespace Meshes {
 
 template <int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int>
-class Grid : public NDimGrid<Dimension, Real, Device, Index> {};
+class Grid: public NDimGrid<Dimension, Real, Device, Index> {};
 
 // template< int Dimension, typename Real, typename Device, typename Index >
 // bool operator==( const Grid< Dimension, Real, Device, Index >& lhs,

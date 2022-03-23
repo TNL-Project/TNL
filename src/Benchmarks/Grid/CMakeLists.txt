@@ -8,11 +8,6 @@ else()
    SET(SUPPORT_FILENAME ${MODULE_NAME}.cpp)
 endif()
 
-file(WRITE ${SUPPORT_FILENAME}
-"
-#include \"${MAIN_FILE_PATH}\"
-")
-
 # Targets are separated by suffix provided
 set(MODULE_NAME ${MODULE_NAME}_${SUFFIX})
 

@@ -1,9 +1,8 @@
 
 #pragma once
 
-#include <type_traits>
-#include <TNL/Meshes/Templates.h>
-#include <TNL/Containers/StaticVector.h>
+#include <TNL/Meshes/GridDetails/Templates/Permutations.h>
+#include <TNL/Meshes/GridDetails/Templates/Templates.h>
 
 namespace TNL {
 namespace Meshes {

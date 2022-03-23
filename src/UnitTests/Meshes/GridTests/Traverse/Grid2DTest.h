@@ -15,10 +15,10 @@ using Implementations = ::testing::Types<
    TNL::Meshes::Grid<2, float, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<2, double, TNL::Devices::Cuda, int>,
    TNL::Meshes::Grid<2, float, TNL::Devices::Cuda, int>,
-   TNL::Meshes::DistributedGrid<2, double, TNL::Devices::Host, int>,
-   TNL::Meshes::DistributedGrid<2, float, TNL::Devices::Host, int>,
-   TNL::Meshes::DistributedGrid<2, double, TNL::Devices::Cuda, int>,
-   TNL::Meshes::DistributedGrid<2, float, TNL::Devices::Cuda, int>
+   TNL::Meshes::_DistributedGrid<2, double, TNL::Devices::Host, int>,
+   TNL::Meshes::_DistributedGrid<2, float, TNL::Devices::Host, int>,
+   TNL::Meshes::_DistributedGrid<2, double, TNL::Devices::Cuda, int>,
+   TNL::Meshes::_DistributedGrid<2, float, TNL::Devices::Cuda, int>
 >;
 
 template <class GridType>

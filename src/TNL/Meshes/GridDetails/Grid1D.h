@@ -6,16 +6,13 @@
 
 #pragma once
 
-#include <TNL/Algorithms/ParallelFor.h>
-#include <TNL/Logger.h>
-#include <TNL/Meshes/Grid.h>
-#include <TNL/Meshes/GridDetails/GridEntityGetter.h>
-#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.h>
-#include <TNL/Meshes/GridEntity.h>
-#include <TNL/Meshes/GridEntityConfig.h>
+#include <TNL/Meshes/GridDetails/NDimGrid.h>
 
 namespace TNL {
 namespace Meshes {
+
+template<class, int>
+class GridEntity;
 
 template <typename Real, typename Device, typename Index>
 class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
@@ -67,16 +64,19 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
     * @brief Traverses all elements
     */
    template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline
    void forAll(Func func, FuncArgs... args) const;
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline
    void forInterior(Func func, FuncArgs... args) const;
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline
    void forBoundary(Func func, FuncArgs... args) const;
 };
 
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/Grid1D_impl.h>
+#include <TNL/Meshes/GridDetails/Implementations/Grid1D.hpp>

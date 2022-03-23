@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <TNL/Meshes/GridDetails/Grid1D.h>
-#include <TNL/Meshes/GridDetails/Grid2D.h>
-#include <TNL/Meshes/GridDetails/Grid3D.h>
-#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.h>
+// #include <TNL/Meshes/GridDetails/Grid1D.h>
+// #include <TNL/Meshes/GridDetails/Grid2D.h>
+// #include <TNL/Meshes/GridDetails/Grid3D.h>
+// #include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.h>
 
 // namespace TNL {
 // namespace Meshes {

@@ -6,23 +6,23 @@
 
 #pragma once
 
-#include <TNL/Assert.h>
-#include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/GridDetails/Grid1D.h>
 #include <TNL/Meshes/GridDetails/GridEntityGetter.h>
 #include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.h>
-#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter1D_impl.h>
 
 namespace TNL {
 namespace Meshes {
 
-template <typename Real, typename Device, typename Index>
-Grid<1, Real, Device, Index>::Grid() {
+#define __GRID_1D_TEMPLATE__ template <typename Real, typename Device, typename Index>
+#define __GRID_1D_PREFIX__ Grid<1, Real, Device, Index>
+
+__GRID_1D_TEMPLATE__
+__GRID_1D_PREFIX__::Grid() {
    this->setDimensions(0);
 }
 
-template <typename Real, typename Device, typename Index>
-Grid<1, Real, Device, Index>::Grid(const Index xSize) {
+__GRID_1D_TEMPLATE__
+__GRID_1D_PREFIX__::Grid(const Index xSize) {
    this->setDimensions(xSize);
 }
 
@@ -32,33 +32,36 @@ Grid<1, Real, Device, Index>::Grid(const Index xSize) {
 //    return getEntitiesCount<Entity::getEntityDimension()>();
 // }
 
-template <typename Real, typename Device, typename Index>
+__GRID_1D_TEMPLATE__
 template <typename Entity>
-__cuda_callable__ inline Entity Grid<1, Real, Device, Index>::getEntity(const Index &entityIndex) const {
+__cuda_callable__ inline Entity __GRID_1D_PREFIX__::getEntity(const Index &entityIndex) const {
    static_assert(Templates::isInClosedInterval(0, Entity::entityDimension, 1),  "Wrong grid entity dimensions.");
 
    return GridEntityGetter<Grid, Entity::entityDimension>::getEntity(*this, entityIndex);
 }
 
-template <typename Real, typename Device, typename Index>
+__GRID_1D_TEMPLATE__
 template <typename Entity>
-__cuda_callable__ inline Index Grid<1, Real, Device, Index>::getEntityIndex(const Entity &entity) const {
+__cuda_callable__ inline Index __GRID_1D_PREFIX__::getEntityIndex(const Entity &entity) const {
    static_assert(Templates::isInClosedInterval(0, Entity::entityDimension, 1),  "Wrong grid entity dimensions.");
 
    return GridEntityGetter<Grid, Entity::entityDimension>::getEntityIndex(*this, entity);
 }
 
-template <typename Real, typename Device, typename Index>
-__cuda_callable__ const Real &Grid<1, Real, Device, Index>::getCellMeasure() const {
+__GRID_1D_TEMPLATE__
+__cuda_callable__ const Real& __GRID_1D_PREFIX__::getCellMeasure() const {
    return this->template getSpaceStepsProducts<1>();
 }
 
-template <typename Real, typename Device, typename Index>
+__GRID_1D_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
-void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
-   auto exec = [=] __cuda_callable__ (const Coordinate& coordinate, const Coordinate& basis, const Grid &grid, FuncArgs... args) mutable {
+inline
+void __GRID_1D_PREFIX__::forAll(Func func, FuncArgs... args) const {
+   auto exec = [=] __cuda_callable__ (const Coordinate& coordinate,
+                                      const Coordinate& basis,
+                                      const Grid &grid,
+                                      FuncArgs... args) mutable {
       EntityType<EntityDimension> entity(grid, coordinate, basis);
-
       entity.refresh();
 
       func(entity, args...);
@@ -67,10 +70,14 @@ void Grid<1, Real, Device, Index>::forAll(Func func, FuncArgs... args) const {
    this -> template traverseAll<EntityDimension>(exec, *this, args...);
 }
 
-template <typename Real, typename Device, typename Index>
+__GRID_1D_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
-void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) const {
-   auto exec = [=] __cuda_callable__(const Coordinate& coordinate, const Coordinate& basis, const Grid& grid, FuncArgs... args) mutable {
+inline
+void __GRID_1D_PREFIX__::forBoundary(Func func, FuncArgs... args) const {
+   auto exec = [=] __cuda_callable__(const Coordinate& coordinate,
+                                     const Coordinate& basis,
+                                     const Grid& grid,
+                                     FuncArgs... args) mutable {
       EntityType<EntityDimension> entity(grid, coordinate, basis);
 
       entity.refresh();
@@ -81,10 +88,14 @@ void Grid<1, Real, Device, Index>::forBoundary(Func func, FuncArgs... args) cons
    this->template traverseBoundary<EntityDimension>(exec, *this, args...);
 }
 
-template <typename Real, typename Device, typename Index>
+__GRID_1D_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
-void Grid<1, Real, Device, Index>::forInterior(Func func, FuncArgs... args) const {
-   auto exec = [=] __cuda_callable__ (const Coordinate& coordinate, const Coordinate& basis, const Grid &grid, FuncArgs... args) mutable {
+inline
+void __GRID_1D_PREFIX__::forInterior(Func func, FuncArgs... args) const {
+   auto exec = [=] __cuda_callable__ (const Coordinate& coordinate,
+                                      const Coordinate& basis,
+                                      const Grid &grid,
+                                      FuncArgs... args) mutable {
       EntityType<EntityDimension> entity(grid, coordinate, basis);
 
       entity.refresh();

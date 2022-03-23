@@ -1,6 +1,5 @@
 #pragma once
 
-#include "TNL/Meshes/NDimGrid.h"
 #include "TNL/Meshes/GridDetails/Grid2D.h"
 #include "../Base/HeatmapSolver.h"
 
@@ -61,12 +60,6 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
       auxView[index] = ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
                         (uxView[index - width] - center + uxView[index + width]) * hy_inv) * timestep;
    };
-
-   // auto update = [=] __cuda_callable__(const typename Grid2D::EntityType<0>&entity) mutable {
-   //    auto index = entity.getIndex();
-
-   //    uxView[index] += auxView[index] * timestep;
-   // };
 
    Real start = 0;
 

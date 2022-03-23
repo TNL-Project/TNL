@@ -10,9 +10,6 @@
 
 #pragma once
 
-#include <TNL/Assert.h>
-#include <TNL/Cuda/CudaCallable.h>
-
 namespace TNL {
 namespace Meshes {
 

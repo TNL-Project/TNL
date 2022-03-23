@@ -1,12 +1,10 @@
 
 #pragma once
 
-#include <TNL/Algorithms/ParallelFor.h>
-#include <TNL/Containers/StaticVector.h>
-#include <TNL/Devices/Host.h>
 #include <TNL/Logger.h>
-#include <TNL/Meshes/Templates.h>
-#include <TNL/Meshes/Basis.h>
+#include <TNL/Containers/StaticVector.h>
+#include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
+#include <TNL/Meshes/GridDetails/Templates/Templates.h>
 
 #include <type_traits>
 
@@ -14,7 +12,7 @@ namespace TNL {
 namespace Meshes {
 
 // A base class for common methods for each grid.
-template <int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int>
+template <int Dimension, typename Real, typename Device, typename Index>
 class NDimGrid {
   public:
    template <int ContainerDimension, typename ContainerValue, std::enable_if_t<(ContainerDimension > 0), bool> = true>
@@ -230,4 +228,4 @@ class NDimGrid {
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/NDimGrid_impl.h>
+#include <TNL/Meshes/GridDetails/Implementations/NDimGrid.hpp>

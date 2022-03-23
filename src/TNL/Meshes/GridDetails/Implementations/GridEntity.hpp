@@ -54,7 +54,7 @@ typename __GRID_ENTITY_PREFIX__::Index __GRID_ENTITY_PREFIX__::getIndex() const 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
 bool __GRID_ENTITY_PREFIX__::isBoundary() const {
-   return BoundaryGridEntityChecker< GridEntity >::isBoundaryEntity( *this );
+   return BoundaryGridEntityChecker<GridEntity>::isBoundaryEntity(*this);
 }
 
 __GRID_ENTITY_TEMPLATE__
