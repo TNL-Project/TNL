@@ -309,28 +309,29 @@ class GridTraverseTestCase {
       }
    private:
       template<int Orientation>
-      class GridCoordinateIterator: public CoordinateIterator<Grid::IndexType, Grid::getMeshDimension()> {
+      class GridCoordinateIterator: public CoordinateIterator<typename Grid::IndexType, Grid::getMeshDimension()> {
          public:
+            using Base = CoordinateIterator<typename Grid::IndexType, Grid::getMeshDimension()>;
             using EntityBasis = TNL::Meshes::Basis<Index, Orientation, EntityDimension, Grid::getMeshDimension()>;
 
-            GridCoordinateIterator(const Coordinate& end): CoordinateIterator(Coordinate(0), end(end + EntityBasis::getBasis())) {
-               for (Index i = 0; i < current.getSize(); i++) {
-                  start[i] = 0;
-                  current[i] = 0;
+            GridCoordinateIterator(const Coordinate& end): Base(Coordinate(0), end + EntityBasis::getBasis()) {
+               for (Index i = 0; i < this -> current.getSize(); i++) {
+                  this -> start[i] = 0;
+                  this -> current[i] = 0;
                }
             }
 
             bool isBoundary(const Grid& grid) const {
                switch (EntityDimension) {
                case Grid::getMeshDimension():
-                  for (Index i = 0; i < current.getSize(); i++)
-                     if (current[i] == 0 || current[i] == grid.getDimension(i) - 1)
+                  for (Index i = 0; i < this -> current.getSize(); i++)
+                     if (this -> current[i] == 0 || this -> current[i] == grid.getDimension(i) - 1)
                         return true;
 
                   break;
                default:
-                  for (Index i = 0; i < current.getSize(); i++)
-                     if (getBasis()[i] && (current[i] == 0 || current[i] == grid.getDimension(i)))
+                  for (Index i = 0; i < this -> current.getSize(); i++)
+                     if (getBasis()[i] && (this -> current[i] == 0 || this -> current[i] == grid.getDimension(i)))
                         return true;
                   break;
                }
@@ -339,22 +340,22 @@ class GridTraverseTestCase {
             }
 
             Coordinate getCoordinate() const {
-               return current;
+               return this -> current;
             }
 
             Index getIndex(const Grid& grid) const {
                Index result = 0;
 
-               for (Index i = 0; i < current.getSize(); i++) {
+               for (Index i = 0; i < this -> current.getSize(); i++) {
                   if (i == 0) {
-                     result += current[i];
+                     result += this -> current[i];
                   } else {
                      Index offset = 1;
 
                      for (Index j = 0; j < i; j++)
-                        offset *= end[j];
+                        offset *= this -> end[j];
 
-                     result += current[i] * offset;
+                     result += this -> current[i] * offset;
                   }
                }
 
