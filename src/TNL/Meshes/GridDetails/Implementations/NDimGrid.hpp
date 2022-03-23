@@ -22,13 +22,9 @@ __NDIMGRID_TEMPLATE__
 template <typename... Dimensions, std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Dimensions>...>, bool>,
           std::enable_if_t<sizeof...(Dimensions) == Dimension, bool>>
 void __NDIM_PREFIX__::setDimensions(Dimensions... dimensions) {
-   Index i = 0;
+   this->dimensions = Coordinate(dimensions...);
 
-   for (auto x : {dimensions...}) {
-      TNL_ASSERT_GE(x, 0, "Dimension must be positive");
-      this->dimensions[i] = x;
-      i++;
-   }
+   TNL_ASSERT_GE(this -> dimensions, Coordinate(0), "Dimension must be positive");
 
    fillEntitiesCount();
    fillSpaceSteps();
@@ -36,10 +32,9 @@ void __NDIM_PREFIX__::setDimensions(Dimensions... dimensions) {
 
 __NDIMGRID_TEMPLATE__
 void __NDIM_PREFIX__::setDimensions(const typename __NDIM_PREFIX__::Coordinate &dimensions) {
-   for (Index i = 0; i < Dimension; i++) {
-      TNL_ASSERT_GE(dimensions[i], 0, "Dimension must be positive");
-      this->dimensions[i] = dimensions[i];
-   }
+   this -> dimensions = dimensions;
+
+   TNL_ASSERT_GE(this -> dimensions, Coordinate(0), "Dimension must be positive");
 
    fillEntitiesCount();
    fillSpaceSteps();
@@ -60,7 +55,8 @@ __cuda_callable__ inline __NDIM_PREFIX__::Container<sizeof...(DimensionIndex), I
     DimensionIndex... indices) const noexcept {
    Container<sizeof...(DimensionIndex), Index> result{indices...};
 
-   for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++) result[i] = this->getDimension(result[i]);
+   for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++)
+      result[i] = this->getDimension(result[i]);
 
    return result;
 }
@@ -93,7 +89,8 @@ __cuda_callable__ inline __NDIM_PREFIX__::Container<sizeof...(DimensionIndex), I
     DimensionIndex... indices) const {
    Container<sizeof...(DimensionIndex), Index> result{indices...};
 
-   for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++) result[i] = this->cumulativeEntitiesCountAlongBases(result[i]);
+   for (std::size_t i = 0; i < sizeof...(DimensionIndex); i++)
+      result[i] = this->cumulativeEntitiesCountAlongBases(result[i]);
 
    return result;
 }
@@ -111,12 +108,7 @@ template <typename... Coordinates,
           std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Coordinates>...>, bool>,
           std::enable_if_t<sizeof...(Coordinates) == Dimension, bool>>
 void __NDIM_PREFIX__::setOrigin(Coordinates... coordinates) noexcept {
-   Index i = 0;
-
-   for (auto x : {coordinates...}) {
-      this->origin[i] = x;
-      i++;
-   }
+   this->origin = Point(coordinates...);
 }
 
 __NDIMGRID_TEMPLATE__
@@ -149,6 +141,12 @@ Index __NDIM_PREFIX__::getOrientedEntitiesCount() const noexcept {
 }
 
 __NDIMGRID_TEMPLATE__
+__cuda_callable__ inline
+Index __NDIM_PREFIX__::getOrientedEntityIndexOffset(const Index dimension, const Index orientation) const {
+   return 0;
+}
+
+__NDIMGRID_TEMPLATE__
 __cuda_callable__ inline const typename __NDIM_PREFIX__::Point &__NDIM_PREFIX__::getOrigin() const noexcept { return this->origin; }
 
 __NDIMGRID_TEMPLATE__
@@ -168,15 +166,11 @@ void __NDIM_PREFIX__::setSpaceSteps(const typename __NDIM_PREFIX__::Point &space
 }
 
 __NDIMGRID_TEMPLATE__
-template <typename... Coordinates, std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Coordinates>...>, bool>,
-          std::enable_if_t<sizeof...(Coordinates) == Dimension, bool>>
-void __NDIM_PREFIX__::setSpaceSteps(Coordinates... coordinates) noexcept {
-   Index i = 0;
-
-   for (auto x : {coordinates...}) {
-      this->spaceSteps[i] = x;
-      i++;
-   }
+template <typename... Steps,
+          std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Steps>...>, bool>,
+          std::enable_if_t<sizeof...(Steps) == Dimension, bool>>
+void __NDIM_PREFIX__::setSpaceSteps(Steps... spaceSteps) noexcept {
+   this->spaceSteps = Point(spaceSteps...);
 
    fillSpaceStepsPowers();
    fillProportions();
@@ -190,34 +184,42 @@ __cuda_callable__ inline const typename __NDIM_PREFIX__::Point &__NDIM_PREFIX__:
 
 __NDIMGRID_TEMPLATE__
 template <typename... Powers,
-          std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Powers>...>, bool>,
+          std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Powers>...>, bool>,
           std::enable_if_t<sizeof...(Powers) == Dimension, bool>>
-__cuda_callable__ inline Real __NDIM_PREFIX__::getSpaceStepsProducts(Powers... powers) const noexcept {
-   constexpr Index halfSize = this->spaceStepsPowersSize >> 1;
+__cuda_callable__ inline
+Real __NDIM_PREFIX__::getSpaceStepsProducts(Powers... powers) const {
+   int index = Templates::makeCollapsedIndex(this -> spaceStepsPowersSize, Coordinate(powers...));
 
-   Index i = 0;
-   Index base = 1;
-
-   for (auto x : {powers...}) {
-      static_assert(x >= -halfSize && x <= halfSize, "Unsupported power");
-
-      i += x * base;
-      base *= this->spaceStepsPowersSize;
-   }
-
-   return this->spaceStepsProducts(i);
+   return this->spaceStepsProducts(index);
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ inline Real __NDIM_PREFIX__::getSmallestSpaceSteps() const noexcept {
+__cuda_callable__ inline Real __NDIM_PREFIX__::getSpaceStepsProducts(const Coordinate& powers) const {
+   int index = Templates::makeCollapsedIndex(this -> spaceStepsPowersSize, powers);
+
+   return this->spaceStepsProducts(index);
+}
+
+__NDIMGRID_TEMPLATE__
+template <Index... Powers,
+          std::enable_if_t<sizeof...(Powers) == Dimension, bool>>
+__cuda_callable__ inline
+Real __NDIM_PREFIX__::getSpaceStepsProducts() const noexcept {
+   constexpr int index = Templates::makeCollapsedIndex(this -> spaceStepsPowersSize, Coordinate(Powers...));
+
+   return this -> spaceStepsProducs(index);
+}
+
+__NDIMGRID_TEMPLATE__
+__cuda_callable__ inline Real __NDIM_PREFIX__::getSmallestSpaceStep() const noexcept {
    Real minStep = this->spaceSteps[0];
    Index i = 1;
 
-   while (i != Dimension) minStep = min(minStep, this->spaceSteps[i++]);
+   while (i != Dimension)
+      minStep = min(minStep, this->spaceSteps[i++]);
 
    return minStep;
 }
-
 
 __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
@@ -469,7 +471,7 @@ void __NDIM_PREFIX__::fillSpaceStepsPowers() {
       }
    }
 
-   for (Index i = 0; i < this->spaceProducts.getSize(); i++) {
+   for (Index i = 0; i < this->spaceStepsProducts.getSize(); i++) {
       Real product = 1;
       Index index = i;
 
@@ -481,7 +483,7 @@ void __NDIM_PREFIX__::fillSpaceStepsPowers() {
          product *= powers[j * spaceStepsPowersSize + residual];
       }
 
-      spaceProducts[i] = product;
+      spaceStepsProducts[i] = product;
    }
 }
 

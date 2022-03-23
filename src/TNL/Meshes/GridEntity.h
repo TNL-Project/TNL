@@ -49,7 +49,9 @@ class GridEntity {
    //     NeighbourGridEntityGetter<GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension, Config>, NeighborEntityDimension>;
 
       __cuda_callable__ inline
-      GridEntity(const Grid& grid, const Coordinate& coordinates, const Coordinate& basis): grid(grid), coordinates(coordinates), basis(basis) {}
+      GridEntity(const Grid& grid,
+                 const Coordinate& coordinates,
+                 const Coordinate& basis): grid(grid), coordinates(coordinates), basis(basis) {}
 
       __cuda_callable__ inline
       const Coordinate& getCoordinates() const;

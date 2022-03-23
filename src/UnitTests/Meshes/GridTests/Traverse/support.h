@@ -5,6 +5,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Meshes/GridDetails/Basis.h>
 #include <gtest/gtest.h>
+#include "../CoordinateIterator.h"
 
 namespace Templates {
 /*
@@ -233,7 +234,7 @@ class GridTraverseTestCase {
          auto gridDimension = grid.getMeshDimension();
 
          auto verify = [&](const auto orientation) {
-            CoordinateIterator<orientation> iterator(grid.getDimensions());
+            GridCoordinateIterator<orientation> iterator(grid.getDimensions());
 
             if (!iterator.canIterate()) {
                SCOPED_TRACE("Skip iteration");
@@ -262,7 +263,7 @@ class GridTraverseTestCase {
          auto gridDimension = grid.getMeshDimension();
 
          auto verify = [&](const auto orientation) {
-            CoordinateIterator<orientation> iterator(grid.getDimensions());
+            GridCoordinateIterator<orientation> iterator(grid.getDimensions());
 
             if (!iterator.canIterate()) {
                SCOPED_TRACE("Skip iteration");
@@ -291,7 +292,7 @@ class GridTraverseTestCase {
          auto gridDimension = grid.getMeshDimension();
 
          auto verify = [&](const auto orientation) {
-            CoordinateIterator<orientation> iterator(grid.getDimensions());
+            GridCoordinateIterator<orientation> iterator(grid.getDimensions());
 
             if (!iterator.canIterate()) {
                SCOPED_TRACE("Skip iteration");
@@ -308,13 +309,15 @@ class GridTraverseTestCase {
       }
    private:
       template<int Orientation>
-      class CoordinateIterator {
+      class GridCoordinateIterator: public CoordinateIterator<Grid::IndexType, Grid::getMeshDimension()> {
          public:
             using EntityBasis = TNL::Meshes::Basis<Index, Orientation, EntityDimension, Grid::getMeshDimension()>;
 
-            CoordinateIterator(const Coordinate& end): end(end + EntityBasis::getBasis()) {
-               for (Index i = 0; i < current.getSize(); i++)
+            GridCoordinateIterator(const Coordinate& end): CoordinateIterator(Coordinate(0), end(end + EntityBasis::getBasis())) {
+               for (Index i = 0; i < current.getSize(); i++) {
+                  start[i] = 0;
                   current[i] = 0;
+               }
             }
 
             bool isBoundary(const Grid& grid) const {
@@ -375,49 +378,14 @@ class GridTraverseTestCase {
                return index;
             }
 
-            bool next() {
-               current[0] += 1;
-
-               Index carry = 0;
-
-               bool isEnded = false;
-
-               for (Index i = 0; i < current.getSize(); i++) {
-                  current[i] += carry;
-
-                  if (current[i] == end[i]) {
-                     carry = 1;
-                     current[i] = 0;
-
-                     isEnded = i == current.getSize() - 1;
-                     continue;
-                  }
-
-                  break;
-               }
-
-               return isEnded;
-            }
-
-            bool canIterate() {
-               for (Index i = 0; i < current.getSize(); i++)
-                  if (current[i] >= end[i])
-                     return false;
-
-               return true;
-            }
-
-
             Coordinate getBasis() const {
                return EntityBasis::getBasis();
             }
-         private:
-            Coordinate current, end;
       };
 
       template<int Orientation>
       void verifyEntity(const Grid& grid,
-                        const CoordinateIterator<Orientation>& iterator,
+                        const GridCoordinateIterator<Orientation>& iterator,
                         HostDataStore& dataStore,
                         bool expectCall) const {
          auto gridDimension = grid.getMeshDimension();

@@ -30,19 +30,6 @@ class Grid: public NDimGrid<Dimension, Real, Device, Index> {};
 //    return ! (lhs == rhs);
 // }
 
-// template< int Dimension, typename Real, typename Device, typename Index >
-// std::ostream& operator<<( std::ostream& str, const Grid< Dimension, Real, Device, Index >& grid )
-// {
-//    str << "Grid dimensions:    " << grid.getDimensions()  << std::endl;
-//    str << "     origin:        " << grid.getOrigin()      << std::endl;
-//    str << "     proportions:   " << grid.getProportions() << std::endl;
-//    str << "     localBegin:    " << grid.getLocalBegin() << std::endl;
-//    str << "     localEnd:      " << grid.getLocalEnd() << std::endl;
-//    str << "     interiorBegin: " << grid.getInteriorBegin() << std::endl;
-//    str << "     interiorEnd:   " << grid.getInteriorEnd() << std::endl;
-//    return str;
-// }
-
 }  // namespace Meshes
 }  // namespace TNL
 

@@ -30,6 +30,7 @@ class NDimGrid {
     * @brief Returns number of this mesh grid dimensions.
     */
    static constexpr int getMeshDimension() { return Dimension; };
+   static constexpr int spaceStepsPowersSize = 5;
 
    NDimGrid() {}
 
@@ -91,6 +92,22 @@ class NDimGrid {
     */
    __cuda_callable__ inline Index getOrientedEntitiesCount(const Index dimension, const Index orientation) const;
    /**
+    * @brief Every oriented entity is aligned
+    *
+    * @param[in] dimension - dimension of the entity
+    * @param[in] orientation - orientation of the entity
+    */
+   __cuda_callable__ inline Index getOrientedEntityIndexOffset(const Index dimension, const Index orientation) const;
+    /**
+    * @brief Every oriented entity is aligned
+    *
+    * @param[in] dimension - dimension of the entity
+    * @param[in] orientation - orientation of the entity
+    */
+   // template<int Orientation,
+   //          std::enable_if_t<Templates::isInClosedInterval(0, EntityDimension, Dimension), bool> = true, >
+   // __cuda_callable__ inline Index getOrientedEntityIndexOffset(const Index dimension) const;
+   /**
     * @param[in] Dimension - index of dimension
     * @param[in] Orientation - orientation of the dimension
     */
@@ -135,10 +152,10 @@ class NDimGrid {
     * beginning of the list. Least significant dimension is in the end of the
     * list
     */
-   template <typename... Coordinates,
-             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Coordinates>...>, bool> = true,
-             std::enable_if_t<sizeof...(Coordinates) == Dimension, bool> = true>
-   void setSpaceSteps(Coordinates... coordinates) noexcept;
+   template <typename... Steps,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Steps>...>, bool> = true,
+             std::enable_if_t<sizeof...(Steps) == Dimension, bool> = true>
+   void setSpaceSteps(Steps... spaceSteps) noexcept;
    /**
     * @brief - Returns the origin of the grid
     */
@@ -147,13 +164,23 @@ class NDimGrid {
     * @brief Returns product of space steps to the xPow.
     */
    template <typename... Powers,
-             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Powers>...>, bool> = true,
+             std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Powers>...>, bool> = true,
              std::enable_if_t<sizeof...(Powers) == Dimension, bool> = true>
-   __cuda_callable__ inline Real getSpaceStepsProducts(Powers... powers) const noexcept;
+   __cuda_callable__ inline Real getSpaceStepsProducts(Powers... powers) const;
+   /**
+    * @brief Returns product of space steps to the xPow.
+    */
+   __cuda_callable__ inline Real getSpaceStepsProducts(const Coordinate& powers) const;
+   /**
+    * @brief Returns product of space steps to the xPow.
+    */
+   template <Index... Powers,
+             std::enable_if_t<sizeof...(Powers) == Dimension, bool> = true>
+   __cuda_callable__ inline Real getSpaceStepsProducts() const noexcept;
    /**
     * @brief Get the Smalles Space Steps object
     */
-   __cuda_callable__ inline Real getSmallestSpaceSteps() const noexcept;
+   __cuda_callable__ inline Real getSmallestSpaceStep() const noexcept;
    /**
     * @brief Get the proportions of the Grid
     */
@@ -164,8 +191,6 @@ class NDimGrid {
    void writeProlog(Logger& logger) const noexcept;
 
   protected:
-   static constexpr int spaceStepsPowersSize = 5;
-
    Coordinate dimensions;
    /**
     * @brief - A list of elements count along specific directions.
@@ -190,7 +215,7 @@ class NDimGrid {
     */
    Point origin, proportions, spaceSteps;
 
-   Container<std::integral_constant<Index, Templates::pow<spaceStepsPowersSize, Dimension>()>::value, Real> spaceProducts;
+   Container<std::integral_constant<Index, Templates::pow(spaceStepsPowersSize, Dimension)>::value, Real> spaceStepsProducts;
 
    void fillEntitiesCount();
    void fillSpaceSteps();
