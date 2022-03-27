@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TNL/Meshes/GridDetails/Grid2D.h"
+#include "TNL/Meshes/Grid.h"
 #include "../Base/HeatmapSolver.h"
 
 template <typename Real>
