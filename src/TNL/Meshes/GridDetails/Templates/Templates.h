@@ -41,13 +41,27 @@ constexpr Index combination(Index k, Index n) {
  * @return constexpr int
  */
 template <typename Index, int Size>
-constexpr int makeCollapsedIndex(int base, TNL::Containers::StaticVector<Size, Index> powers) {
+constexpr Index makeCollapsedIndex(const Index base, const TNL::Containers::StaticVector<Size, Index> powers) {
    Index index = 0;
    Index currentBase = 1;
    Index halfBase = base >> 1;
 
    for (Index i = 0; i < powers.getSize(); i++) {
       index += (powers[i] + halfBase) * currentBase;
+      currentBase *= base;
+   }
+
+   return index;
+}
+
+template <typename Index, Index... Powers>
+constexpr Index makeCollapsedIndex(const int base) {
+   Index index = 0;
+   Index currentBase = 1;
+   Index halfBase = base >> 1;
+
+   for (const auto x: { Powers... }) {
+      index += (x + halfBase) * currentBase;
       currentBase *= base;
    }
 

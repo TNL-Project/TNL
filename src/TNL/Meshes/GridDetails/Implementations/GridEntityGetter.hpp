@@ -12,6 +12,8 @@ namespace Meshes {
 template <typename Real, typename Device, typename Index, int EntityDimension>
 class GridEntityGetter<Meshes::Grid<1, Real, Device, Index>, EntityDimension> {
    public:
+       static constexpr int entityDimension = EntityDimension;
+
       using Grid = Meshes::Grid<1, Real, Device, Index>;
       using Entity = GridEntity<Grid, EntityDimension>;
       using Coordinate = typename Grid::Coordinate;
@@ -31,10 +33,10 @@ class GridEntityGetter<Meshes::Grid<1, Real, Device, Index>, EntityDimension> {
 template <typename Real, typename Device, typename Index>
 class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 2> {
    public:
-      static constexpr int EntityDimension = 2;
+      static constexpr int entityDimension = 2;
 
       using Grid = Meshes::Grid<2, Real, Device, Index>;
-      using Entity = GridEntity<Grid, EntityDimension>;
+      using Entity = GridEntity<Grid, entityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
@@ -49,10 +51,10 @@ class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 2> {
 template <typename Real, typename Device, typename Index>
 class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 1> {
    public:
-      static constexpr int EntityDimension = 1;
+      static constexpr int entityDimension = 1;
 
       using Grid = Meshes::Grid<2, Real, Device, Index>;
-      using Entity = GridEntity<Grid, EntityDimension>;
+      using Entity = GridEntity<Grid, entityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
@@ -73,10 +75,10 @@ class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 1> {
 template <typename Real, typename Device, typename Index>
 class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 0> {
    public:
-      static constexpr int EntityDimension = 0;
+      static constexpr int entityDimension = 0;
 
       using Grid = Meshes::Grid<2, Real, Device, Index>;
-      using Entity = GridEntity<Grid, EntityDimension>;
+      using Entity = GridEntity<Grid, entityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
@@ -97,10 +99,10 @@ class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 0> {
 template <typename Real, typename Device, typename Index>
 class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 3> {
    public:
-      static constexpr int EntityDimension = 3;
+      static constexpr int entityDimension = 3;
 
       using Grid = Meshes::Grid<3, Real, Device, Index>;
-      using Entity = GridEntity<Grid, EntityDimension>;
+      using Entity = GridEntity<Grid, entityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
@@ -118,10 +120,10 @@ class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 3> {
 template <typename Real, typename Device, typename Index>
 class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 2> {
    public:
-      static constexpr int EntityDimension = 2;
+      static constexpr int entityDimension = 2;
 
       using Grid = Meshes::Grid<3, Real, Device, Index>;
-      using Entity = GridEntity<Grid, EntityDimension>;
+      using Entity = GridEntity<Grid, entityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
@@ -147,12 +149,11 @@ class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 2> {
 template <typename Real, typename Device, typename Index>
 class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 1> {
    public:
-      static constexpr int EntityDimension = 1;
+      static constexpr int entityDimension = 1;
 
       using Grid = Meshes::Grid<3, Real, Device, Index>;
-      using Entity = GridEntity<Grid, EntityDimension>;
+      using Entity = GridEntity<Grid, entityDimension>;
       using Coordinate = typename Grid::Coordinate;
-
 
       __cuda_callable__ inline
       static Index getEntityIndex(const Grid& grid, const Entity& entity) {
@@ -177,10 +178,10 @@ class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 1> {
 template <typename Real, typename Device, typename Index>
 class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 0> {
    public:
-      static constexpr int EntityDimension = 0;
+      static constexpr int entityDimension = 0;
 
       using Grid = Meshes::Grid<3, Real, Device, Index>;
-      using Entity = GridEntity<Grid, EntityDimension>;
+      using Entity = GridEntity<Grid, entityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline

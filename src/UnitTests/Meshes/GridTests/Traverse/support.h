@@ -49,6 +49,7 @@ class GridTraverseTestCase {
       using Index = typename Grid::IndexType;
       using Real = typename Grid::RealType;
       using Coordinate = typename Grid::Coordinate;
+      using Point = typename Grid::Point;
       using DataStore = EntityDataStore<Index, Real, typename Grid::DeviceType, Grid::getMeshDimension()>;
       using HostDataStore = EntityDataStore<Index, Real, TNL::Devices::Host, Grid::getMeshDimension()>;
 
@@ -278,6 +279,30 @@ class GridTraverseTestCase {
             Coordinate getBasis() const {
                return EntityBasis::template getBasis<Orientation>();
             }
+
+            Point getCenter(const Grid& grid) const {
+               Point origin = grid.getOrigin(), center, spaceSteps = grid.getSpaceSteps();
+
+               Coordinate basis = getBasis();
+
+               for (Index i = 0; i < this -> current.getSize(); i++)
+                 center[i] = origin[i] + (this -> current[i] + (Real)(0.5 * !basis[i])) * spaceSteps[i];
+
+               return center;
+            }
+
+            Real getMeasure(const Grid& grid) const {
+               if (EntityDimension == 0) {
+                  return 0.0;
+               }
+
+               Coordinate basis = getBasis(), powers;
+
+               for (Index i = 0; i < this -> current.getSize(); i++)
+                  powers[i] = !basis[i];
+
+               return grid.getSpaceStepsProducts(powers);
+            }
       };
 
       template<int Orientation>
@@ -285,6 +310,8 @@ class GridTraverseTestCase {
                         const GridCoordinateIterator<Orientation>& iterator,
                         typename HostDataStore::View& dataStore,
                         bool expectCall) const {
+         static Real precision = 9e-5;
+
          auto gridDimension = grid.getMeshDimension();
          auto index = iterator.getIndex(grid);
 
@@ -296,23 +323,39 @@ class GridTraverseTestCase {
          EXPECT_EQ(entity.index, expectCall ? index : 0) << "Expect the index was correctly set";
          EXPECT_EQ(entity.isBoundary, expectCall ? iterator.isBoundary(grid) : 0) << "Expect the index was correctly set" ;
 
-         auto coordinate = iterator.getCoordinate();
-         auto basis = iterator.getBasis();
+         Coordinate coordinate = expectCall ? iterator.getCoordinate() : Coordinate(0);
+         Coordinate basis = expectCall ? iterator.getBasis() : Coordinate(0);
+         Point center = expectCall ? iterator.getCenter(grid) : Point(0);
 
-         EXPECT_EQ(entity.coordinate, expectCall ? coordinate : Coordinate(0))
+         EXPECT_EQ(entity.coordinate, coordinate)
                 << "Expect the coordinates are the same on the same index. ";
-         EXPECT_EQ(entity.basis, expectCall ? basis : Coordinate(0))
+         EXPECT_EQ(entity.basis, basis)
                 << "Expect the bases are the same on the same index. ";
+
+         // CUDA calculates floating points differently.
+         EXPECT_NEAR(expectCall ? iterator.getMeasure(grid) : 0.0, entity.measure, precision)
+               << "Expect the measure was correctly calculated. ";
+
+         for (Index i = 0; i < Grid::getMeshDimension(); i++)
+            EXPECT_NEAR(entity.center[i], center[i], precision)
+               << "Expect the centers are the same on the same index. " << entity.center << " " << center;
       }
 };
 
 template<typename Grid, int EntityDimension>
-void testForAllTraverse(Grid& grid, const typename Grid::Coordinate& dimensions) {
+void testForAllTraverse(Grid& grid,
+                        const typename Grid::Coordinate& dimensions,
+                        const typename Grid::Point& origin = typename Grid::Point(0),
+                        const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
+   SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
 
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setOrigin(origin)) << "Verify, that the set of" << origin << "doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSpaceSteps(spaceSteps)) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
    using Test = GridTraverseTestCase<Grid, EntityDimension>;
 
@@ -324,12 +367,19 @@ void testForAllTraverse(Grid& grid, const typename Grid::Coordinate& dimensions)
 }
 
 template<typename Grid, int EntityDimension>
-void testForInteriorTraverse(Grid& grid, const typename Grid::Coordinate& dimensions) {
+void testForInteriorTraverse(Grid& grid,
+                             const typename Grid::Coordinate& dimensions,
+                             const typename Grid::Point& origin = typename Grid::Point(0),
+                             const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
+   SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
 
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setOrigin(origin)) << "Verify, that the set of" << origin << "doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSpaceSteps(spaceSteps)) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
    using Test = GridTraverseTestCase<Grid, EntityDimension>;
 
@@ -341,12 +391,19 @@ void testForInteriorTraverse(Grid& grid, const typename Grid::Coordinate& dimens
 }
 
 template<typename Grid, int EntityDimension>
-void testForBoundaryTraverse(Grid& grid, const typename Grid::Coordinate& dimensions) {
+void testForBoundaryTraverse(Grid& grid,
+                             const typename Grid::Coordinate& dimensions,
+                             const typename Grid::Point& origin = typename Grid::Point(0),
+                             const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
+   SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
 
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setOrigin(origin)) << "Verify, that the set of" << origin << "doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSpaceSteps(spaceSteps)) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
    using Test = GridTraverseTestCase<Grid, EntityDimension>;
 
@@ -358,12 +415,19 @@ void testForBoundaryTraverse(Grid& grid, const typename Grid::Coordinate& dimens
 }
 
 template<typename Grid, int EntityDimension>
-void testBoundaryUnionInteriorEqualAllProperty(Grid& grid, const typename Grid::Coordinate& dimensions) {
+void testBoundaryUnionInteriorEqualAllProperty(Grid& grid,
+                                               const typename Grid::Coordinate& dimensions,
+                                               const typename Grid::Point& origin = typename Grid::Point(0),
+                                               const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
+   SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
 
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setOrigin(origin)) << "Verify, that the set of" << origin << "doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSpaceSteps(spaceSteps)) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
    using Test = GridTraverseTestCase<Grid, EntityDimension>;
 
@@ -376,12 +440,19 @@ void testBoundaryUnionInteriorEqualAllProperty(Grid& grid, const typename Grid::
 }
 
 template<typename Grid, int EntityDimension>
-void testAllMinusBoundaryEqualInteriorProperty(Grid& grid, const typename Grid::Coordinate& dimensions) {
+void testAllMinusBoundaryEqualInteriorProperty(Grid& grid,
+                                               const typename Grid::Coordinate& dimensions,
+                                               const typename Grid::Point& origin = typename Grid::Point(0),
+                                               const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
+   SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
 
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setOrigin(origin)) << "Verify, that the set of" << origin << "doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSpaceSteps(spaceSteps)) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
    using Test = GridTraverseTestCase<Grid, EntityDimension>;
 
@@ -394,12 +465,19 @@ void testAllMinusBoundaryEqualInteriorProperty(Grid& grid, const typename Grid::
 }
 
 template<typename Grid, int EntityDimension>
-void testAllMinusInteriorEqualBoundaryProperty(Grid& grid, const typename Grid::Coordinate& dimensions) {
+void testAllMinusInteriorEqualBoundaryProperty(Grid& grid,
+                                               const typename Grid::Coordinate& dimensions,
+                                               const typename Grid::Point& origin = typename Grid::Point(0),
+                                               const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
+   SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
 
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setOrigin(origin)) << "Verify, that the set of" << origin << "doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSpaceSteps(spaceSteps)) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
    using Test = GridTraverseTestCase<Grid, EntityDimension>;
 

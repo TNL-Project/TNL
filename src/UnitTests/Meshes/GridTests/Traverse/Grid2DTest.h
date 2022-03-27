@@ -32,6 +32,23 @@ class GridTestSuite: public ::testing::Test {
          { 100, 100 }
       };
 
+      std::vector<typename GridType::Point> origins = {
+         { 1, 1 },
+         { -10, -10 },
+         { 0.1, 0.1 },
+         { 1, 0.2 },
+         { 1, -1 },
+         { -2, -2 }
+      };
+
+      std::vector<typename GridType::Point> spaceSteps = {
+         { 0.1, 0.1 },
+         { 2, 2.4 },
+         { 0.1, 3.1 },
+         { 1, 4 },
+         { 12, 2 }
+      };
+
 #ifndef HAVE_CUDA
       void SetUp() override {
          if (std::is_same<typename GridType::DeviceType, TNL::Devices::Cuda>::value) {
@@ -44,18 +61,24 @@ class GridTestSuite: public ::testing::Test {
 TYPED_TEST_SUITE(GridTestSuite, Implementations);
 
 TYPED_TEST(GridTestSuite, TestForAllTraverse_0D_Entity) {
-   for (const auto& dimension : this -> dimensions)
-      testForAllTraverse<TypeParam, 0>(this -> grid, dimension);
+   for (const auto& dimension: this->dimensions)
+      for (const auto& origin: this->origins)
+         for (const auto& spaceStep: this->spaceSteps)
+            testForAllTraverse<TypeParam, 0>(this -> grid, dimension, origin, spaceStep);
 }
 
 TYPED_TEST(GridTestSuite, TestForAllTraverse_1D_Entity) {
-   for (const auto& dimension : this -> dimensions)
-      testForAllTraverse<TypeParam, 1>(this -> grid, dimension);
+   for (const auto& dimension: this->dimensions)
+      for (const auto& origin: this->origins)
+         for (const auto& spaceStep: this->spaceSteps)
+            testForAllTraverse<TypeParam, 1>(this -> grid, dimension, origin, spaceStep);
 }
 
 TYPED_TEST(GridTestSuite, TestForAllTraverse_2D_Entity) {
-  for (const auto& dimension : this -> dimensions)
-      testForAllTraverse<TypeParam, 2>(this -> grid, dimension);
+   for (const auto& dimension: this->dimensions)
+      for (const auto& origin: this->origins)
+         for (const auto& spaceStep: this->spaceSteps)
+            testForAllTraverse<TypeParam, 2>(this -> grid, dimension, origin, spaceStep);
 }
 
 TYPED_TEST(GridTestSuite, TestForInteriorTraverse_0D_Entity) {

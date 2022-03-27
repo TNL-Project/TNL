@@ -8,13 +8,16 @@ template <typename Index, typename Real, int GridDimension>
 struct EntityPrototype {
   public:
    using Coordinate = TNL::Containers::StaticVector<GridDimension, Index>;
+   using Point = TNL::Containers::StaticVector<GridDimension, Real>;
 
    EntityPrototype(const Coordinate& coordinate,
                    const Coordinate& basis,
                    const Index index,
                    const Index calls,
                    const Index orientation,
-                   const bool isBoundary): coordinate(coordinate), basis(basis), index(index), calls(calls), orientation(orientation), isBoundary(isBoundary) {}
+                   const bool isBoundary,
+                   const Point& center,
+                   const Real& measure): coordinate(coordinate), basis(basis), index(index), calls(calls), orientation(orientation), isBoundary(isBoundary), center(center), measure(measure) {}
 
    const Coordinate coordinate;
    const Coordinate basis;
@@ -22,6 +25,8 @@ struct EntityPrototype {
    const Index calls;
    const Index orientation;
    const bool isBoundary;
+   const Point center;
+   const Real measure;
 
    template<typename EntityIndex, typename EntityReal, int EntityGridDimension>
    friend std::ostream & operator << (std::ostream & os, const EntityPrototype<EntityIndex, EntityReal, EntityGridDimension>& entity);
@@ -35,6 +40,8 @@ std::ostream & operator << (std::ostream & os, const EntityPrototype<EntityIndex
    os << "Calls: " << entity.calls << std::endl;
    os << "Orientation: " << entity.orientation << std::endl;
    os << "Is boundary: " << entity.isBoundary << std::endl;
+   os << "Center: " << entity.center << std::endl;
+   os << "Measure: " << entity.measure << std::endl;
 
    return os;
 }
@@ -43,6 +50,7 @@ template<typename Index, typename Real, typename Device, int GridDimension>
 struct EntityDataStore {
    public:
       using Coordinate = TNL::Containers::StaticVector<GridDimension, Index>;
+      using Point = TNL::Containers::StaticVector<GridDimension, Real>;
 
       template<typename Value>
       using Container = TNL::Containers::Array<Value, Device, Index>;
@@ -53,7 +61,9 @@ struct EntityDataStore {
               typename Container<Index>::ViewType coordinates,
               typename Container<Index>::ViewType basis,
               typename Container<Index>::ViewType orientations,
-              typename Container<Index>::ViewType isBoundary): calls(calls), indices(indices), coordinates(coordinates), basis(basis), orientations(orientations), isBoundary(isBoundary) {}
+              typename Container<Index>::ViewType isBoundary,
+              typename Container<Real>::ViewType center,
+              typename Container<Real>::ViewType measure): calls(calls), indices(indices), coordinates(coordinates), basis(basis), orientations(orientations), isBoundary(isBoundary), center(center), measure(measure) {}
 
          template <typename Entity>
          __cuda_callable__ void store(const Entity entity) {
@@ -66,13 +76,18 @@ struct EntityDataStore {
             indices[index] = entity.getIndex();
             isBoundary[index] = entity.isBoundary();
             orientations[index] = entity.getOrientation();
+            measure[index] = entity.getMeasure();
 
             auto coordinates = entity.getCoordinates();
             auto basis = entity.getBasis();
+            auto center = entity.getCenter();
 
             for (Index i = 0; i < GridDimension; i++) {
-               this->coordinates[index * GridDimension + i] = coordinates[i];
-               this->basis[index * GridDimension + i] = basis[i];
+               Index containerIndex = index * GridDimension + i;
+
+               this->coordinates[containerIndex] = coordinates[i];
+               this->basis[containerIndex] = basis[i];
+               this->center[containerIndex] = center[i];
             }
          }
 
@@ -84,26 +99,35 @@ struct EntityDataStore {
             indices[index] = 0;
             isBoundary[index] = 0;
             orientations[index] = 0;
+            measure[index] = 0;
 
             for (Index i = 0; i < GridDimension; i++) {
-               coordinates[index * GridDimension + i] = 0;
-               basis[index * GridDimension + i] = 0;
+               Index containerIndex = index * GridDimension + i;
+
+               coordinates[containerIndex] = 0;
+               basis[containerIndex] = 0;
+               center[containerIndex] = 0;
             }
          }
 
          EntityPrototype<Index, Real, GridDimension> getEntity(const Index index) {
             Coordinate coordinates, basis;
+            Point center;
 
             for (Index i = 0; i < GridDimension; i++) {
-               coordinates[i] = this -> coordinates[index * GridDimension + i];
-               basis[i] = this -> basis[index * GridDimension + i];
+               Index containerIndex = index * GridDimension + i;
+
+               coordinates[i] = this -> coordinates[containerIndex];
+               basis[i] = this -> basis[containerIndex];
+               center[i] = this -> center[containerIndex];
             }
 
-            return { coordinates, basis, indices[index], calls[index], orientations[index], isBoundary[index] > 0 };
+            return { coordinates, basis, indices[index], calls[index], orientations[index], isBoundary[index] > 0, center, measure[index] };
          }
 
          protected:
             typename Container<Index>::ViewType calls, indices, coordinates, basis, orientations, isBoundary;
+            typename Container<Real>::ViewType center, measure;
       };
 
       EntityDataStore(const Index& entitiesCount): entitiesCount(entitiesCount) {
@@ -111,8 +135,12 @@ struct EntityDataStore {
          indices.resize(entitiesCount);
          isBoundary.resize(entitiesCount);
          orientations.resize(entitiesCount);
+
+         measure.resize(entitiesCount);
+
          coordinates.resize(GridDimension * entitiesCount);
          basis.resize(GridDimension * entitiesCount);
+         center.resize(GridDimension * entitiesCount);
 
          calls = 0;
          indices = 0;
@@ -120,6 +148,8 @@ struct EntityDataStore {
          orientations = 0;
          coordinates = 0;
          basis = 0;
+         center = 0;
+         measure = 0;
       }
 
       EntityDataStore(const Index& entitiesCount,
@@ -128,22 +158,27 @@ struct EntityDataStore {
                       const Container<Index>& coordinates,
                       const Container<Index>& basis,
                       const Container<Index>& orientations,
-                      const Container<Index>& isBoundary)
+                      const Container<Index>& isBoundary,
+                      const Container<Real>& center,
+                      const Container<Real>& measure)
           : entitiesCount(entitiesCount),
             calls(calls),
             indices(indices),
             coordinates(coordinates),
             orientations(orientations),
             basis(basis),
-            isBoundary(isBoundary) {}
+            isBoundary(isBoundary),
+            center(center),
+            measure(measure) {}
 
       View getView() {
-         return { calls.getView(), indices.getView(), coordinates.getView(), basis.getView(), orientations.getView(), isBoundary.getView() };
+         return { calls.getView(), indices.getView(), coordinates.getView(), basis.getView(), orientations.getView(), isBoundary.getView(), center.getView(), measure.getView() };
       }
 
       template<typename NewDevice>
       EntityDataStore<Index, Real, NewDevice, GridDimension> move() const {
          using NewIndexContainer = TNL::Containers::Array<Index, NewDevice, Index>;
+         using NewRealContainer = TNL::Containers::Array<Real, NewDevice, Index>;
 
          EntityDataStore<Index, Real, NewDevice, GridDimension> newContainer(this -> entitiesCount,
                                                                              NewIndexContainer(this -> calls),
@@ -151,7 +186,9 @@ struct EntityDataStore {
                                                                              NewIndexContainer(this -> coordinates),
                                                                              NewIndexContainer(this -> basis),
                                                                              NewIndexContainer(this -> orientations),
-                                                                             NewIndexContainer(this -> isBoundary));
+                                                                             NewIndexContainer(this -> isBoundary),
+                                                                             NewRealContainer(this -> center),
+                                                                             NewRealContainer(this -> measure));
 
          return newContainer;
       };
@@ -161,4 +198,6 @@ struct EntityDataStore {
       Index entitiesCount;
 
       Container<Index> calls, indices, coordinates, orientations, basis, isBoundary;
+      Container<Real> center, measure;
+
 };

@@ -64,8 +64,8 @@ class GridEntityCenterGetter<GridEntity<Meshes::Grid<2, Real, Device, Index>, 1>
       __cuda_callable__ inline
       static Point getEntityCenter(const Entity& entity) {
          const Grid& grid = entity.getMesh();
-         return Point(grid.getOrigin().x() + (entity.getCoordinates().x() + 0.5 * entity.getBasis().x()) * grid.getSpaceSteps().x(),
-                      grid.getOrigin().y() + (entity.getCoordinates().y() + 0.5 * entity.getBasis().y()) * grid.getSpaceSteps().y());
+         return Point(grid.getOrigin().x() + (entity.getCoordinates().x() + 0.5 * !entity.getBasis().x()) * grid.getSpaceSteps().x(),
+                      grid.getOrigin().y() + (entity.getCoordinates().y() + 0.5 * !entity.getBasis().y()) * grid.getSpaceSteps().y());
       }
 };
 
@@ -97,9 +97,9 @@ class GridEntityCenterGetter<GridEntity<Meshes::Grid<3, Real, Device, Index>, En
       __cuda_callable__ inline
       static Point getEntityCenter(const Entity& entity) {
          const Grid& grid = entity.getMesh();
-         return Point(grid.getOrigin().x() + (entity.getCoordinates().x() + 0.5 * entity.getBasis().x()) * grid.getSpaceSteps().x(),
-                      grid.getOrigin().y() + (entity.getCoordinates().y() + 0.5 * entity.getBasis().y()) * grid.getSpaceSteps().y(),
-                      grid.getOrigin().z() + (entity.getCoordinates().z() + 0.5 * entity.getBasis().z()) * grid.getSpaceSteps().z());
+         return Point(grid.getOrigin().x() + (entity.getCoordinates().x() + 0.5 * !entity.getBasis().x()) * grid.getSpaceSteps().x(),
+                      grid.getOrigin().y() + (entity.getCoordinates().y() + 0.5 * !entity.getBasis().y()) * grid.getSpaceSteps().y(),
+                      grid.getOrigin().z() + (entity.getCoordinates().z() + 0.5 * !entity.getBasis().z()) * grid.getSpaceSteps().z());
       }
 };
 

@@ -60,7 +60,7 @@ bool __GRID_ENTITY_PREFIX__::isBoundary() const {
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
-const typename __GRID_ENTITY_PREFIX__::Point& __GRID_ENTITY_PREFIX__::getCenter() const {
+const typename __GRID_ENTITY_PREFIX__::Point __GRID_ENTITY_PREFIX__::getCenter() const {
    return GridEntityCenterGetter<GridEntity>::getEntityCenter(*this);
 }
 

@@ -15,7 +15,7 @@ class GridEntityMeasureGetter<Meshes::Grid<Dimension, Real, Device, Index>, 0> {
    using GridType = Grid<Dimension, Real, Device, Index>;
 
    template <typename EntityType>
-   __cuda_callable__ inline static const Real getMeasure(const GridType& grid, const EntityType& entity) {
+   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
       return 0.0;
    }
 };
@@ -30,7 +30,7 @@ class GridEntityMeasureGetter<Meshes::Grid<1, Real, Device, Index>, 1> {
    using GridType = Grid<1, Real, Device, Index>;
 
    template <typename EntityType>
-   __cuda_callable__ inline static const Real& getMeasure(const GridType& grid, const EntityType& entity) {
+   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
       return grid.template getSpaceStepsProducts<1>();
    }
 };
@@ -44,7 +44,7 @@ class GridEntityMeasureGetter<Meshes::Grid<2, Real, Device, Index>, 2> {
    using GridType = Grid<2, Real, Device, Index>;
 
    template <typename EntityType>
-   __cuda_callable__ inline static const Real& getMeasure(const GridType& grid, const EntityType& entity) {
+   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
       return grid.template getSpaceStepsProducts<1, 1>();
    }
 };
@@ -55,11 +55,11 @@ class GridEntityMeasureGetter<Meshes::Grid<2, Real, Device, Index>, 1> {
    using GridType = Grid<2, Real, Device, Index>;
 
    template <typename EntityType>
-   __cuda_callable__ inline static const Real& getMeasure(const GridType& grid, const EntityType& entity) {
-      if (entity.getOrientation().x())
-         return grid.template getSpaceStepsProducts<0, 1>();
-      else
+   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
+      if (entity.getOrientation() == 0)
          return grid.template getSpaceStepsProducts<1, 0>();
+
+      return grid.template getSpaceStepsProducts<0, 1>();
    }
 };
 
@@ -72,7 +72,7 @@ class GridEntityMeasureGetter<Meshes::Grid<3, Real, Device, Index>, 3> {
    using GridType = Grid<3, Real, Device, Index>;
 
    template <typename EntityType>
-   __cuda_callable__ inline static const Real& getMeasure(const GridType& grid, const EntityType& entity) {
+   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
       return grid.template getSpaceStepsProducts<1, 1, 1>();
    }
 };
@@ -83,13 +83,14 @@ class GridEntityMeasureGetter<Meshes::Grid<3, Real, Device, Index>, 2> {
    using GridType = Grid<3, Real, Device, Index>;
 
    template <typename EntityType>
-   __cuda_callable__ inline static const Real& getMeasure(const GridType& grid, const EntityType& entity) {
-      if (entity.getBasis().z())
+   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
+      if (entity.getOrientation() == 0)
          return grid.template getSpaceStepsProducts<1, 1, 0>();
-      if (entity.getBasis().y())
-         return grid.template getSpaceStepsProducts<1, 1, 1>();
 
-      return grid.template getSpaceStepsProducts<1, 1, 0>();
+      if (entity.getOrientation() == 1)
+         return grid.template getSpaceStepsProducts<1, 0, 1>();
+
+      return grid.template getSpaceStepsProducts<0, 1, 1>();
    }
 };
 
@@ -99,10 +100,11 @@ class GridEntityMeasureGetter<Meshes::Grid<3, Real, Device, Index>, 1> {
    using GridType = Grid<3, Real, Device, Index>;
 
    template <typename EntityType>
-   __cuda_callable__ inline static const Real& getMeasure(const GridType& grid, const EntityType& entity) {
-      if (entity.getBasis().x())
+   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
+      if (entity.getOrientation() == 0)
          return grid.template getSpaceStepsProducts<1, 0, 0>();
-      if (entity.getBasis().y())
+
+      if (entity.getOrientation() == 1)
          return grid.template getSpaceStepsProducts<0, 1, 0>();
 
       return grid.template getSpaceStepsProducts<0, 0, 1>();

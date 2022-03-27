@@ -35,11 +35,6 @@ __cuda_callable__ inline Index __GRID_1D_PREFIX__::getEntityIndex(const Entity &
 }
 
 __GRID_1D_TEMPLATE__
-__cuda_callable__ const Real& __GRID_1D_PREFIX__::getCellMeasure() const {
-   return this->template getSpaceStepsProducts<1>();
-}
-
-__GRID_1D_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
 inline
 void __GRID_1D_PREFIX__::forAll(Func func, FuncArgs... args) const {

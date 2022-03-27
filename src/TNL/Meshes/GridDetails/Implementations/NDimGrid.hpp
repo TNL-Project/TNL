@@ -215,9 +215,9 @@ template <Index... Powers,
           std::enable_if_t<sizeof...(Powers) == Dimension, bool>>
 __cuda_callable__ inline
 Real __NDIM_PREFIX__::getSpaceStepsProducts() const noexcept {
-   constexpr int index = Templates::makeCollapsedIndex(this -> spaceStepsPowersSize, Coordinate(Powers...));
+   constexpr int index = Templates::makeCollapsedIndex<Index, Powers...>(this -> spaceStepsPowersSize);
 
-   return this -> spaceStepsProducs(index);
+   return this -> spaceStepsProducts(index);
 }
 
 __NDIMGRID_TEMPLATE__

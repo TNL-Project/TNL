@@ -64,7 +64,7 @@ class GridEntity {
       bool isBoundary() const;
 
       __cuda_callable__ inline
-      const Point& getCenter() const;
+      const Point getCenter() const;
 
       __cuda_callable__ inline
       Real getMeasure() const;
