@@ -72,6 +72,4 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
    }
 
    return writeGNUPlot("data_final.txt", params, ux);
-
-   return false;
 }

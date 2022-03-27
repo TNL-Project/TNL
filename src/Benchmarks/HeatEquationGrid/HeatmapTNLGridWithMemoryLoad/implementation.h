@@ -51,11 +51,12 @@ class Entity {
       __cuda_callable__ inline
       Entity() {};
 
-      // const Grid<Size, Index, Real>& grid;
+      const Grid<Size, Index, Real>& grid;
 
       Index i, j;
       Index index;
-      TNL::Containers::StaticVector<Size, Index> coordinates; //, orientation, basis;
+      Index orientation;
+      TNL::Containers::StaticVector<Size, Index> coordinates, basis;
 };
 
 /***
