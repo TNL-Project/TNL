@@ -11,7 +11,6 @@
 namespace TNL {
 namespace Meshes {
 
-// A base class for common methods for each grid.
 template <int Dimension, typename Real, typename Device, typename Index>
 class NDimGrid {
   public:
@@ -29,9 +28,12 @@ class NDimGrid {
    using OrientationBasesContainer = Container<1 << Dimension, Coordinate>;
 
    /**
-    * @brief Returns number of this mesh grid dimensions.
+    * @brief Returns the dimension of grid
     */
    static constexpr int getMeshDimension() { return Dimension; };
+    /**
+    * @brief Returns the coefficient powers size.
+    */
    static constexpr int spaceStepsPowersSize = 5;
 
    using SpaceProductsContainer = Container<std::integral_constant<Index, Templates::pow(spaceStepsPowersSize, Dimension)>::value, Real>;
@@ -41,83 +43,85 @@ class NDimGrid {
    }
 
    /**
-    * @brief Each entity has specific count of the orientations.
+    * @brief Returns the number of orientations for entity dimension.
     *        For example in 2-D Grid the edge can be vertical or horizontal.
     */
    static constexpr Index getEntityOrientationsCount(const Index entityDimension);
-   /**
-    *  @brief - Specifies dimensions of the grid as the number of edges at each dimenison
-    */
+
    template <typename... Dimensions,
              std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Dimensions>...>, bool> = true,
              std::enable_if_t<sizeof...(Dimensions) == Dimension, bool> = true>
    void setDimensions(Dimensions... dimensions);
-   /**
-    *  @brief - Specifies dimensions of the grid
-    */
+
    void setDimensions(const Container<Dimension, Index>& dimensions);
+
    /**
+    * @brief - Returns dimensions as a count of edges along each axis
     * @param[in] index - Index of dimension
     */
    __cuda_callable__ inline Index getDimension(const Index index) const;
    /**
-    * @param[in] indices - A dimension indicies pack
+    * @brief - Returns dimensions as a count of edges along each axis
+    * @param[in] indices - A list of indices
     */
    template <typename... DimensionIndex,
              std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, DimensionIndex>...>, bool> = true,
              std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool> = true>
    __cuda_callable__ inline Container<sizeof...(DimensionIndex), Index> getDimensions(DimensionIndex... indices) const noexcept;
    /**
-    * @brief Get all dimensions of the objects
+    * @brief - Returns dimensions as a count of edges along each axis
     */
    __cuda_callable__ inline const Coordinate& getDimensions() const noexcept;
    /**
-    * @param[in] index - index of dimension
+    * @brief - Returns count of entities of specific dimension
     */
    __cuda_callable__ inline Index getEntitiesCount(const Index index) const;
    /**
-    * @param[in] index - index of dimension
+    * @brief - Returns count of entities of specific dimension
     */
    template <int EntityDimension,
              std::enable_if_t<Templates::isInClosedInterval(0, EntityDimension, Dimension), bool> = true>
    __cuda_callable__ inline Index getEntitiesCount() const noexcept;
-   /**
-    * @brief - Returns the number of entities of specific dimension
+    /**
+    * @brief - Returns count of entities of specific dimension
     */
    template <typename... DimensionIndex,
              std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, DimensionIndex>...>, bool> = true,
              std::enable_if_t<(sizeof...(DimensionIndex) > 0), bool> = true>
    __cuda_callable__ inline Container<sizeof...(DimensionIndex), Index> getEntitiesCounts(DimensionIndex... indices) const;
    /**
-    * @brief - Returns entities counts along every dimension
+    * @brief - Returns count of entities of specific dimension
     */
    __cuda_callable__ inline const EntitiesCounts& getEntitiesCounts() const noexcept;
-    /**
-    * @param[in] dimension - index of dimension
-    * @param[in] orientation - orientation of the dimension
+   /**
+    * @brief - Returns count of entities of specific dimension and orientation
+    *
+    * @param[in] dimension
+    * @param[in] orientation - orientation of the entity
     */
    __cuda_callable__ inline Index getOrientedEntitiesCount(const Index dimension, const Index orientation) const;
    /**
-    * @brief Every oriented entity is aligned
+    * @brief - Returns count of entities of specific dimension and orientation
     *
-    * @param[in] dimension - dimension of the entity
+    * @param[in] dimension
     * @param[in] orientation - orientation of the entity
-    */
-   __cuda_callable__ inline Index getOrientedEntityIndexOffset(const Index dimension, const Index orientation) const;
-   /**
-    * @param[in] Dimension - index of dimension
-    * @param[in] Orientation - orientation of the dimension
     */
    template<int EntityDimension,
             int EntityOrientation,
             std::enable_if_t<Templates::isInClosedInterval(0, EntityDimension, Dimension), bool> = true,
             std::enable_if_t<Templates::isInClosedInterval(0, EntityOrientation, Dimension), bool> = true>
    __cuda_callable__ inline Index getOrientedEntitiesCount() const noexcept;
-
+   /**
+    * @brief - Returns basis of the entity with the specific orientation
+    *
+    * @param[in] dimension
+    * @param[in] orientation - orientation of the entity
+    */
    template<int EntityDimension>
    __cuda_callable__ inline Coordinate getBasis(Index orientation) const noexcept;
    /**
     * \brief Sets the origin and proportions of this grid.
+    *
     * \param origin Point where this grid starts.
     * \param proportions Total length of this grid.
     */
@@ -127,11 +131,7 @@ class NDimGrid {
     */
    void setOrigin(const Point& origin) noexcept;
    /**
-    *  @brief - Specifies dimensions of the grid
-    *  @param[in] coordinates - A parameter pack, which specifies points count
-    * in the specific coordinates. Most significant dimension is in the
-    * beginning of the list. Least significant dimension is in the end of the
-    * list
+    * @brief Set the Origin of the grid
     */
    template <typename... Coordinates,
              std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Coordinates>...>, bool> = true,
@@ -147,32 +147,28 @@ class NDimGrid {
    void setSpaceSteps(const Point& steps) noexcept;
    /**
     *  @brief - Specifies space steps of the grid
-    *  @param[in] coordinates - A parameter pack, which specifies space steps
-    * in the specific coordinates. Most significant dimension is in the
-    * beginning of the list. Least significant dimension is in the end of the
-    * list
     */
    template <typename... Steps,
              std::enable_if_t<Templates::conjunction_v<std::is_convertible<Real, Steps>...>, bool> = true,
              std::enable_if_t<sizeof...(Steps) == Dimension, bool> = true>
    void setSpaceSteps(Steps... spaceSteps) noexcept;
    /**
-    * @brief - Returns the origin of the grid
+    * @brief - Returns the space staps of the grid
     */
    __cuda_callable__ inline const Point& getSpaceSteps() const noexcept;
    /**
-    * @brief Returns product of space steps to the xPow.
+    * @brief Returns product of space steps
     */
    template <typename... Powers,
              std::enable_if_t<Templates::conjunction_v<std::is_convertible<Index, Powers>...>, bool> = true,
              std::enable_if_t<sizeof...(Powers) == Dimension, bool> = true>
    __cuda_callable__ inline Real getSpaceStepsProducts(Powers... powers) const;
    /**
-    * @brief Returns product of space steps to the xPow.
+    * @brief Returns product of space steps
     */
    __cuda_callable__ inline Real getSpaceStepsProducts(const Coordinate& powers) const;
    /**
-    * @brief Returns product of space steps to the xPow.
+    * @brief Returns product of space step
     */
    template <Index... Powers,
              std::enable_if_t<sizeof...(Powers) == Dimension, bool> = true>
@@ -210,9 +206,7 @@ class NDimGrid {
     * @brief - A cumulative map over dimensions.
     */
    Container<Dimension + 1, Index> cumulativeEntitiesCountAlongBases;
-   /**
-    * @brief - Origin and proportions of the grid domain
-    */
+
    Point origin, proportions, spaceSteps;
 
    OrientationBasesContainer bases;
@@ -224,25 +218,18 @@ class NDimGrid {
    void fillProportions();
    void fillBases();
 
-   /*
-    * @brief Traverses all elements
-    */
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline void traverseAll(Func func, FuncArgs... args) const;
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline void traverseAll(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
-   /*
-    * @brief Traverses interior elements
-    */
+
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline void traverseInterior(Func func, FuncArgs... args) const;
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline void traverseInterior(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
-   /*
-    * @brief Traverses boundary elements
-    */
+
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline void traverseBoundary(Func func, FuncArgs... args) const;
 

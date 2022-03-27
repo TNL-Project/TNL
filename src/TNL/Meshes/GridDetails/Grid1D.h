@@ -11,7 +11,7 @@
 namespace TNL {
 namespace Meshes {
 
-template<class, int>
+template <class, int>
 class GridEntity;
 
 template <typename Real, typename Device, typename Index>
@@ -25,47 +25,59 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
    using Point = typename Base::Point;
    using EntitiesCounts = typename Base::EntitiesCounts;
 
-   /**
-    * \brief Basic constructor.
-    */
    Grid();
 
    Grid(const Index xSize);
 
    /**
-    * \brief Gets entity index using entity type.
+    * @brief Gets entity index using entity type.
     * \param entity Type of entity.
     * \tparam Entity Type of the entity.
     */
    template <typename Entity>
-   __cuda_callable__ inline Index getEntityIndex(const Entity &entity) const;
+   __cuda_callable__ inline Index getEntityIndex(const Entity& entity) const;
 
-   /*
-    * @brief Traverses all elements
+   /**
+    * @brief Traverser all elements in rect
     */
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   inline
-   void forAll(Func func, FuncArgs... args) const;
+   inline void forAll(Func func, FuncArgs... args) const;
 
+   /**
+    * @brief Traverser all elements in rect
+    * @param from - bottom left anchor of traverse rect
+    * @param to - top right anchor of traverse rect
+    */
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   inline
-   void forAll(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
+   inline void forAll(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
 
+   /**
+    * @brief Traverser interior elements in rect
+    */
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   inline
-   void forInterior(Func func, FuncArgs... args) const;
+   inline void forInterior(Func func, FuncArgs... args) const;
 
+   /**
+    * @brief Traverser interior elements
+    * @param from - bottom left anchor of traverse rect
+    * @param to - top right anchor of traverse rect
+    */
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   inline
-   void forInterior(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
+   inline void forInterior(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
 
+   /**
+    * @brief Traverser boundary elements in rect
+    */
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   inline
-   void forBoundary(Func func, FuncArgs... args) const;
+   inline void forBoundary(Func func, FuncArgs... args) const;
 
+   /**
+    * @brief Traverser boundary elements in rect
+    * @param from - bottom left anchor of traverse rect
+    * @param to - top right anchor of traverse rect
+    */
    template <int EntityDimension, typename Func, typename... FuncArgs>
-   inline
-   void forBoundary(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
+   inline void forBoundary(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
 };
 
 }  // namespace Meshes

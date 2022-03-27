@@ -151,12 +151,6 @@ Index __NDIM_PREFIX__::getOrientedEntitiesCount() const noexcept {
 }
 
 __NDIMGRID_TEMPLATE__
-__cuda_callable__ inline
-Index __NDIM_PREFIX__::getOrientedEntityIndexOffset(const Index dimension, const Index orientation) const {
-   return 0;
-}
-
-__NDIMGRID_TEMPLATE__
 __cuda_callable__ inline const typename __NDIM_PREFIX__::Point &__NDIM_PREFIX__::getOrigin() const noexcept { return this->origin; }
 
 __NDIMGRID_TEMPLATE__

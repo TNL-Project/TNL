@@ -50,22 +50,34 @@ class GridEntity {
       void setCoordinates(const Coordinate& coordinates);
 
       /***
-       * Call this method every time the coordinates are changed
-       * to recompute the mesh entity index. The reason for this strange
-       * mechanism is a performance.
+       * @brief - Recalculates entity index.
+       *
+       * @warning - Call this method every time the coordinates are changed
        */
       __cuda_callable__ inline
       void refresh();
 
+      /**
+       * @brief Get the entity index in global grid
+       */
       __cuda_callable__ inline
       Index getIndex() const;
 
+      /**
+       * @brief Tells, if entity is boundary
+       */
       __cuda_callable__ inline
       bool isBoundary() const;
 
+      /**
+       * @brief Returns, the center of the entity
+       */
       __cuda_callable__ inline
       const Point getCenter() const;
 
+      /**
+       * @brief Returns, the measure (volume) of the entity
+       */
       __cuda_callable__ inline
       Real getMeasure() const;
 
@@ -75,18 +87,39 @@ class GridEntity {
       __cuda_callable__ inline
       void setBasis(const Coordinate& orientation);
 
+      /**
+       * @brief Returns, the entity basis
+       */
       __cuda_callable__ inline
       const Coordinate& getBasis() const;
 
+      /**
+       * @brief Returns, the entity orientation
+       *
+       * Orientation is always paired with the basis. In other words, if orientations, entityDimensions and dimensions are equal, then bases are equal also.
+       */
       __cuda_callable__ inline
       Index getOrientation() const;
 
+      /**
+       * @brief Returns, the neighbour entity
+       *
+       * @warning - In case, if the parent entity orientation is greater than possible orientations of neighbour entity,
+       *            then orientation is reduces. For example, 3-d cell neighbour of edge with orientaiton 1, will have
+       *            orientation 0
+       * @warning - You should refresh index manually
+       */
       template <int Dimension,
                 int... Steps,
                 std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool> = true>
       __cuda_callable__ inline
       GridEntity<Grid, Dimension> getNeighbourEntity() const;
 
+      /**
+       * @brief Returns, the neighbour entity
+       *
+       * @warning - You should refresh index manually
+       */
       template <int Dimension,
                 int Orientation,
                 int... Steps,
@@ -94,10 +127,23 @@ class GridEntity {
       __cuda_callable__ inline
       GridEntity<Grid, Dimension> getNeighbourEntity() const;
 
+      /**
+       * @brief Returns, the neighbour entity
+       *
+       * @warning - In case, if the parent entity orientation is greater than possible orientations of neighbour entity,
+       *            then orientation is reduces. For example, 3-d cell neighbour of edge with orientaiton 1, will have
+       *            orientation 0
+       * @warning - You should refresh index manually
+       */
       template <int Dimension>
       __cuda_callable__ inline
       GridEntity<Grid, Dimension> getNeighbourEntity(const Coordinate& offset) const;
 
+      /**
+       * @brief Returns, the neighbour entity
+       *
+       * @warning - You should refresh index manually
+       */
       template <int Dimension, int Orientation>
       __cuda_callable__ inline
       GridEntity<Grid, Dimension> getNeighbourEntity(const Coordinate& offset) const;
