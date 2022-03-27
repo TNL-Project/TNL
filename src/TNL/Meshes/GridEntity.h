@@ -20,15 +20,6 @@ class BoundaryGridEntityChecker;
 template <class>
 class GridEntityCenterGetter;
 
-// TODO: - Implement
-//       // compatibility with meshes, equivalent to getCenter
-//       __cuda_callable__ inline
-//       PointType getPoint() const;
-
-//       __cuda_callable__ inline
-//       const PointType& getEntityProportions() const;
-
-
 template <class Grid, int EntityDimension>
 class GridEntity {
    public:

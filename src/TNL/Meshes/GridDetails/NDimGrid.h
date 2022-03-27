@@ -26,13 +26,19 @@ class NDimGrid {
    using Point = Container<Dimension, Real>;
    using EntitiesCounts = Container<Dimension + 1, Index>;
 
+   using OrientationBasesContainer = Container<1 << Dimension, Coordinate>;
+
    /**
     * @brief Returns number of this mesh grid dimensions.
     */
    static constexpr int getMeshDimension() { return Dimension; };
    static constexpr int spaceStepsPowersSize = 5;
 
-   NDimGrid() {}
+   using SpaceProductsContainer = Container<std::integral_constant<Index, Templates::pow(spaceStepsPowersSize, Dimension)>::value, Real>;
+
+   NDimGrid() {
+      fillBases();
+   }
 
    /**
     * @brief Each entity has specific count of the orientations.
@@ -98,15 +104,6 @@ class NDimGrid {
     * @param[in] orientation - orientation of the entity
     */
    __cuda_callable__ inline Index getOrientedEntityIndexOffset(const Index dimension, const Index orientation) const;
-    /**
-    * @brief Every oriented entity is aligned
-    *
-    * @param[in] dimension - dimension of the entity
-    * @param[in] orientation - orientation of the entity
-    */
-   // template<int Orientation,
-   //          std::enable_if_t<Templates::isInClosedInterval(0, EntityDimension, Dimension), bool> = true, >
-   // __cuda_callable__ inline Index getOrientedEntityIndexOffset(const Index dimension) const;
    /**
     * @param[in] Dimension - index of dimension
     * @param[in] Orientation - orientation of the dimension
@@ -116,6 +113,9 @@ class NDimGrid {
             std::enable_if_t<Templates::isInClosedInterval(0, EntityDimension, Dimension), bool> = true,
             std::enable_if_t<Templates::isInClosedInterval(0, EntityOrientation, Dimension), bool> = true>
    __cuda_callable__ inline Index getOrientedEntitiesCount() const noexcept;
+
+   template<int EntityDimension>
+   __cuda_callable__ inline Coordinate getBasis(Index orientation) const noexcept;
    /**
     * \brief Sets the origin and proportions of this grid.
     * \param origin Point where this grid starts.
@@ -215,12 +215,14 @@ class NDimGrid {
     */
    Point origin, proportions, spaceSteps;
 
-   Container<std::integral_constant<Index, Templates::pow(spaceStepsPowersSize, Dimension)>::value, Real> spaceStepsProducts;
+   OrientationBasesContainer bases;
+   SpaceProductsContainer spaceStepsProducts;
 
    void fillEntitiesCount();
    void fillSpaceSteps();
    void fillSpaceStepsPowers();
    void fillProportions();
+   void fillBases();
 
    /*
     * @brief Traverses all elements

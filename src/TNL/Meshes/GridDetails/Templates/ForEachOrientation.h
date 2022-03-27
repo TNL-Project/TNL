@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <TNL/Meshes/GridDetails/Basis.h>
+#include <TNL/Meshes/GridDetails/BasisGetter.h>
 
 namespace TNL {
 namespace Meshes {
@@ -16,12 +16,12 @@ struct _ForEachOrientationMain;
 
 template <typename Index, int Orientation, int EntityDimension, int Dimension, int SkipValue>
 struct _ForEachOrientationSupport {
+  using BasisGetterType = BasisGetter<Index, EntityDimension, Dimension>;
+
   public:
    template <typename Func>
    inline static void exec(Func func) {
-      using Basis = Basis<Index, Orientation, EntityDimension, Dimension>;
-
-      func(std::integral_constant<int, Orientation>(), Basis::getBasis());
+      func(std::integral_constant<int, Orientation>(), BasisGetterType::template getBasis<Orientation>());
 
       _ForEachOrientationMain<Index, Orientation - 1, EntityDimension, Dimension, SkipValue>::exec(func);
    }
@@ -30,11 +30,11 @@ struct _ForEachOrientationSupport {
 template <typename Index, int EntityDimension, int Dimension, int SkipValue>
 struct _ForEachOrientationSupport<Index, 0, EntityDimension, Dimension, SkipValue> {
   public:
+   using BasisGetterType = BasisGetter<Index, EntityDimension, Dimension>;
+
    template <typename Func>
    inline static void exec(Func func) {
-      using Basis = Basis<Index, 0, EntityDimension, Dimension>;
-
-      func(std::integral_constant<int, 0>(), Basis::getBasis());
+      func(std::integral_constant<int, 0>(), BasisGetterType::template getBasis<0>());
    }
 };
 

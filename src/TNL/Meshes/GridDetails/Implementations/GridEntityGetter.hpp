@@ -17,16 +17,9 @@ class GridEntityGetter<Meshes::Grid<1, Real, Device, Index>, EntityDimension> {
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      static Entity getEntity(const Grid& grid, const Index& index) {
-         TNL_ASSERT_GE(index, 0, "Index must be non-negative.");
-         TNL_ASSERT_LT(index, grid.template getEntitiesCount<Entity>(), "Index is out of bounds.");
-         return Entity(grid, Coordinate(index), Coordinate(0));
-      }
-
-      __cuda_callable__ inline
       static Index getEntityIndex(const Grid& grid, const Entity& entity) {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0), "wrong coordinates");
-         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + Coordinate(1 - EntityDimension), "wrong coordinates");
+         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates");
 
          return entity.getCoordinates().x();
       }
@@ -45,19 +38,9 @@ class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 2> {
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      static Entity getEntity(const Grid& grid, const Index& index) {
-         TNL_ASSERT_GE(index, 0, "Index must be non-negative.");
-         TNL_ASSERT_LT(index, grid.template getEntitiesCount<Entity>(), "Index is out of bounds.");
-
-         const Coordinate dimensions = grid.getDimensions();
-
-         return Entity(grid, Coordinate(index % dimensions.x(), index / dimensions.x()), Coordinate(0, 0));
-      }
-
-      __cuda_callable__ inline
       static Index getEntityIndex(const Grid& grid, const Entity& entity) {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
-         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions(), "wrong coordinates");
+         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates");
 
          return entity.getCoordinates().y() * grid.getDimensions().x() + entity.getCoordinates().x();
       }
@@ -73,30 +56,15 @@ class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 1> {
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      static Entity getEntity(const Grid& grid, const Index& index) {
-         TNL_ASSERT_GE(index, 0, "Index must be non-negative.");
-         TNL_ASSERT_LT(index, grid.template getEntitiesCount<Entity>(), "Index is out of bounds.");
-
-         const Coordinate dimensions = grid.getDimensions();
-
-         if (index < grid.numberOfNxFaces) {
-            const Index aux = dimensions.x() + 1;
-            return Entity(grid, Coordinate(index % aux, index / aux), Coordinate(1, 0));
-         }
-         const Index i = index - grid.numberOfNxFaces;
-         const Index& aux = dimensions.x();
-         return Entity(grid, Coordinate(i % aux, i / aux), Coordinate(0, 1));
-      }
-
-      __cuda_callable__ inline
       static Index getEntityIndex(const Grid& grid, const Entity& entity) {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
-         // TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + abs(entity.getOrientation()), "wrong coordinates");
+         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates");
 
          const Coordinate& coordinates = entity.getCoordinates();
          const Coordinate& dimensions = grid.getDimensions();
 
-         if (entity.getBasis().y()) return coordinates.y() * (dimensions.x()) + coordinates.x();
+         if (entity.getOrientation() == 0)
+            return coordinates.y() * (dimensions.x()) + coordinates.x();
 
          return grid.template getOrientedEntitiesCount<1, 0>() + coordinates.y() * (dimensions.x() + 1) + coordinates.x();
       }
@@ -112,20 +80,9 @@ class GridEntityGetter<Meshes::Grid<2, Real, Device, Index>, 0> {
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      static Entity getEntity(const Grid& grid, const Index& index) {
-         TNL_ASSERT_GE(index, 0, "Index must be non-negative.");
-         TNL_ASSERT_LT(index, grid.template getEntitiesCount<Entity>(), "Index is out of bounds.");
-
-         const Coordinate dimensions = grid.getDimensions();
-
-         const Index aux = dimensions.x() + 1;
-         return Entity(grid, Coordinate(index % aux, index / aux), Coordinate(0, 0));
-      }
-
-      __cuda_callable__ inline
       static Index getEntityIndex(const Grid& grid, const Entity& entity) {
-         // TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
-         // TNL_ASSERT_LE(entity.getCoordinates(), grid.getDimensions(), "wrong coordinates");
+         TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0), "wrong coordinates");
+         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates");
 
          const Coordinate& coordinates = entity.getCoordinates();
          const Coordinate& dimensions = grid.getDimensions();
@@ -147,21 +104,9 @@ class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 3> {
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      static Entity getEntity(const Grid& grid, const Index& index) {
-         TNL_ASSERT_GE(index, 0, "Index must be non-negative.");
-         TNL_ASSERT_LT(index, grid.template getEntitiesCount<Entity>(), "Index is out of bounds.");
-
-         const Coordinate dimensions = grid.getDimensions();
-
-         return Entity(grid,
-                           Coordinate(index % dimensions.x(), (index / dimensions.x()) % dimensions.y(), index / (dimensions.x() * dimensions.y())),
-                           Coordinate(0, 0, 0));
-      }
-
-      __cuda_callable__ inline
       static Index getEntityIndex(const Grid& grid, const Entity& entity) {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0, 0), "wrong coordinates");
-         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions(), "wrong coordinates");
+         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates");
 
          const Coordinate coordinates = entity.getCoordinates();
          const Coordinate dimensions = grid.getDimensions();
@@ -180,43 +125,18 @@ class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 2> {
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      static Entity getEntity(const Grid& grid, const Index& index) {
-         TNL_ASSERT_GE(index, 0, "Index must be non-negative.");
-         TNL_ASSERT_LT(index, grid.template getEntitiesCount<Entity>(), "Index is out of bounds.");
-
-         const Coordinate dimensions = grid.getDimensions();
-
-         if (index < grid.numberOfNxFaces) {
-            const Index aux = dimensions.x() + 1;
-            return Entity(grid, Coordinate(index % aux, (index / aux) % dimensions.y(), index / (aux * dimensions.y())),
-                              Coordinate(1, 0, 0));
-         }
-         if (index < grid.numberOfNxAndNyFaces) {
-            const Index i = index - grid.numberOfNxFaces;
-            const Index aux = dimensions.y() + 1;
-            return Entity(grid, Coordinate(i % dimensions.x(), (i / dimensions.x()) % aux, i / (aux * dimensions.x())),
-                              Coordinate(0, 1, 0));
-         }
-         const Index i = index - grid.numberOfNxAndNyFaces;
-         return Entity(grid, Coordinate(i % dimensions.x(), (i / dimensions.x()) % dimensions.y(), i / (dimensions.x() * dimensions.y())),
-                           Coordinate(0, 0, 1));
-      }
-
-      __cuda_callable__ inline
       static Index getEntityIndex(const Grid& grid, const Entity& entity) {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0, 0), "wrong coordinates");
-         // TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + abs(entity.getOrientation()), "wrong coordinates");
+         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates");
 
          const Coordinate& coordinates = entity.getCoordinates();
          const Coordinate& dimensions = grid.getDimensions();
 
-         if (entity.getBasis().z()) {
+         if (entity.getOrientation() == 0)
             return (coordinates.z() * dimensions.y() + coordinates.y()) * (dimensions.x()) + coordinates.x();
-         }
 
-         if (entity.getBasis().y()) {
+         if (entity.getOrientation() == 1)
             return grid.template getOrientedEntitiesCount<2, 0>() + (coordinates.z() * (dimensions.y() + 1) + coordinates.y()) * dimensions.x() + coordinates.x();
-         }
 
          return grid.template getOrientedEntitiesCount<2, 1>() +
                 grid.template getOrientedEntitiesCount<2, 0>() +
@@ -233,42 +153,19 @@ class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 1> {
       using Entity = GridEntity<Grid, EntityDimension>;
       using Coordinate = typename Grid::Coordinate;
 
-      __cuda_callable__ inline
-      static Entity getEntity(const Grid& grid, const Index& index) {
-         TNL_ASSERT_GE(index, 0, "Index must be non-negative.");
-         TNL_ASSERT_LT(index, grid.template getEntitiesCount<Entity>(), "Index is out of bounds.");
-
-         const Coordinate dimensions = grid.getDimensions();
-
-         if (index < grid.numberOfDxEdges) {
-            const Index aux = dimensions.y() + 1;
-            return Entity(grid, Coordinate(index % dimensions.x(), (index / dimensions.x()) % aux, index / (dimensions.x() * aux)),
-                              Coordinate(0, 0, 0));
-         }
-         if (index < grid.numberOfDxAndDyEdges) {
-            const Index i = index - grid.numberOfDxEdges;
-            const Index aux = dimensions.x() + 1;
-            return Entity(grid, Coordinate(i % aux, (i / aux) % dimensions.y(), i / (aux * dimensions.y())),
-                              Coordinate(0, 0, 0));
-         }
-         const Index i = index - grid.numberOfDxAndDyEdges;
-         const Index aux1 = dimensions.x() + 1;
-         const Index aux2 = dimensions.y() + 1;
-         return Entity(grid, Coordinate(i % aux1, (i / aux1) % aux2, i / (aux1 * aux2)), Coordinate(0, 0, 0));
-      }
 
       __cuda_callable__ inline
       static Index getEntityIndex(const Grid& grid, const Entity& entity) {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0, 0), "wrong coordinates");
-         // TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + Coordinate(1, 1, 1) - entity.getBasis(), "wrong coordinates");
+         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates");
 
          const Coordinate& coordinates = entity.getCoordinates();
          const Coordinate& dimensions = grid.getDimensions();
 
-         if (!entity.getBasis().x())
+         if (entity.getOrientation() == 0)
             return (coordinates.z() * (dimensions.y() + 1) + coordinates.y()) * dimensions.x() + coordinates.x();
 
-         if (!entity.getBasis().y())
+         if (entity.getOrientation() == 1)
             return grid.template getOrientedEntitiesCount<1, 0>() + (coordinates.z() * dimensions.y() + coordinates.y()) * (dimensions.x() + 1) + coordinates.x();
 
          return grid.template getOrientedEntitiesCount<1, 1>() +
@@ -287,22 +184,9 @@ class GridEntityGetter<Meshes::Grid<3, Real, Device, Index>, 0> {
       using Coordinate = typename Grid::Coordinate;
 
       __cuda_callable__ inline
-      static Entity getEntity(const Grid& grid, const Index& index) {
-         TNL_ASSERT_GE(index, 0, "Index must be non-negative.");
-         TNL_ASSERT_LT(index, grid.template getEntitiesCount<Entity>(), "Index is out of bounds.");
-
-         const Coordinate dimensions = grid.getDimensions();
-
-         const Index auxX = dimensions.x() + 1;
-         const Index auxY = dimensions.y() + 1;
-         return Entity(grid, Coordinate(index % auxX, (index / auxX) % auxY, index / (auxX * auxY)),
-                           Coordinate(0, 0, 0));
-      }
-
-      __cuda_callable__ inline
       static Index getEntityIndex(const Grid& grid, const Entity& entity) {
          TNL_ASSERT_GE(entity.getCoordinates(), Coordinate(0, 0, 0), "wrong coordinates");
-         TNL_ASSERT_LE(entity.getCoordinates(), grid.getDimensions(), "wrong coordinates");
+         TNL_ASSERT_LT(entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates");
 
          const Coordinate coordinates = entity.getCoordinates();
          const Coordinate dimensions = grid.getDimensions();

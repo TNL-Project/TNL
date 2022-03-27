@@ -127,6 +127,15 @@ Index __NDIM_PREFIX__::getOrientedEntitiesCount(const Index dimension, const Ind
 }
 
 __NDIMGRID_TEMPLATE__
+template<int EntityDimension>
+__cuda_callable__ inline
+typename __NDIM_PREFIX__::Coordinate __NDIM_PREFIX__::getBasis(Index orientation) const noexcept {
+   constexpr Index index = Templates::firstKCombinationSum(EntityDimension, Dimension);
+
+   return this -> bases(index + orientation);
+}
+
+__NDIMGRID_TEMPLATE__
 template <int EntityDimension,
           int EntityOrientation,
           std::enable_if_t<Templates::isInClosedInterval(0, EntityDimension, Dimension), bool>,
@@ -492,6 +501,27 @@ void __NDIM_PREFIX__::fillSpaceStepsPowers() {
 
       spaceStepsProducts[i] = product;
    }
+}
+
+__NDIMGRID_TEMPLATE__
+void __NDIM_PREFIX__::fillBases() {
+   OrientationBasesContainer container;
+
+   int index = container.getSize() - 1;
+
+   auto forEachEntityDimension = [&](const auto entityDimension) {
+      constexpr Index combinationsCount = this -> getEntityOrientationsCount(entityDimension);
+
+      auto forEachOrientation = [&](const auto orientation, const auto entityDimension) {
+         container[index--] = BasisGetter<Index, entityDimension, Dimension>::template getBasis<orientation>();
+      };
+
+      Templates::DescendingFor<combinationsCount - 1>::exec(forEachOrientation, entityDimension);
+   };
+
+   Templates::DescendingFor<Dimension>::exec(forEachEntityDimension);
+
+   this -> bases = container;
 }
 
 __NDIMGRID_TEMPLATE__
