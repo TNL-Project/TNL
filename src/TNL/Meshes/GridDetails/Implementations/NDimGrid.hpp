@@ -2,6 +2,7 @@
 #pragma once
 
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
+#include <TNL/Meshes/GridDetails/BasisGetter.h>
 #include <TNL/Meshes/GridDetails/Templates/Templates.h>
 #include <TNL/Meshes/GridDetails/Templates/ParallelFor.h>
 #include <TNL/Meshes/GridDetails/Templates/DescendingFor.h>

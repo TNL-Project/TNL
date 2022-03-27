@@ -11,7 +11,7 @@
 namespace TNL {
 namespace Meshes {
 
-template <class GridEntity, int NeighborEntityDimension>
+template <int, int, int>
 class NeighbourGridEntityGetter;
 
 template<class>
@@ -86,7 +86,31 @@ class GridEntity {
 
       __cuda_callable__ inline
       const Coordinate& getBasis() const;
-   protected:
+
+      __cuda_callable__ inline
+      Index getOrientation() const;
+
+      template <int Dimension,
+                int... Steps,
+                std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool> = true>
+      __cuda_callable__ inline
+      GridEntity<Grid, Dimension> getNeighbourEntity() const;
+
+      template <int Dimension,
+                int Orientation,
+                int... Steps,
+                std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool> = true>
+      __cuda_callable__ inline
+      GridEntity<Grid, Dimension> getNeighbourEntity() const;
+
+      template <int Dimension>
+      __cuda_callable__ inline
+      GridEntity<Grid, Dimension> getNeighbourEntity(const Coordinate& offset) const;
+
+      template <int Dimension, int Orientation>
+      __cuda_callable__ inline
+      GridEntity<Grid, Dimension> getNeighbourEntity(const Coordinate& offset) const;
+     protected:
       const Grid& grid;
 
       Index index;

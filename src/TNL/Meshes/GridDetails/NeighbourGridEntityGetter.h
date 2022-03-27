@@ -13,8 +13,13 @@
 namespace TNL {
 namespace Meshes {
 
-template <typename GridEntity, int NeighbourEntityDimension>
+template<class, int>
+class GridEntity;
+
+template<int GridDimension, int ParentEntityDimension, int NeighbourEntityDimension>
 class NeighbourGridEntityGetter;
 
 }  // namespace Meshes
 }  // namespace TNL
+
+#include <TNL/Meshes/GridDetails/Implementations/NeighbourGridEntityGetter.hpp>

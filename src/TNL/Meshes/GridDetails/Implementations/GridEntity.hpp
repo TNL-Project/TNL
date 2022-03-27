@@ -10,6 +10,7 @@
 #include <TNL/Meshes/GridDetails/BoundaryGridEntityChecker.h>
 #include <TNL/Meshes/GridDetails/GridEntityCenterGetter.h>
 #include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.h>
+#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.h>
 
 namespace TNL {
 namespace Meshes {
@@ -85,6 +86,53 @@ __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
 void __GRID_ENTITY_PREFIX__::setBasis(const Coordinate& basis) {
    this -> basis = basis;
+}
+
+__GRID_ENTITY_TEMPLATE__
+__cuda_callable__ inline
+typename __GRID_ENTITY_PREFIX__::Index __GRID_ENTITY_PREFIX__::getOrientation() const {
+   return this -> orientation;
+}
+
+__GRID_ENTITY_TEMPLATE__
+template<int Dimension,
+         int... Steps,
+         std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool>>
+__cuda_callable__ inline
+GridEntity<Grid, Dimension> __GRID_ENTITY_PREFIX__::getNeighbourEntity() const {
+   using Getter = NeighbourGridEntityGetter<meshDimension, entityDimension, Dimension>;
+
+   return Getter::template getEntity<Grid, Steps...>(*this);
+}
+
+__GRID_ENTITY_TEMPLATE__
+template<int Dimension,
+         int Orientation,
+         int... Steps,
+         std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool>>
+__cuda_callable__ inline
+GridEntity<Grid, Dimension> __GRID_ENTITY_PREFIX__::getNeighbourEntity() const {
+   using Getter = NeighbourGridEntityGetter<meshDimension, entityDimension, Dimension>;
+
+   return Getter::template getEntity<Grid, Orientation, Steps...>(*this);
+}
+
+__GRID_ENTITY_TEMPLATE__
+template<int Dimension>
+__cuda_callable__ inline
+GridEntity<Grid, Dimension> __GRID_ENTITY_PREFIX__::getNeighbourEntity(const Coordinate& offset) const {
+   using Getter = NeighbourGridEntityGetter<meshDimension, entityDimension, Dimension>;
+
+   return Getter::template getEntity<Grid>(*this, offset);
+}
+
+__GRID_ENTITY_TEMPLATE__
+template<int Dimension, int Orientation>
+__cuda_callable__ inline
+GridEntity<Grid, Dimension> __GRID_ENTITY_PREFIX__::getNeighbourEntity(const Coordinate& offset) const {
+   using Getter = NeighbourGridEntityGetter<meshDimension, entityDimension, Dimension>;
+
+   return Getter::template getEntity<Grid, Orientation>(*this, offset);
 }
 
 } // namespace Meshes
