@@ -414,6 +414,8 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
                     { direction },
                     next);
 
+      auxView.swap(uxView);
+
       start += timestep;
    }
 
