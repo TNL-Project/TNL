@@ -32,41 +32,12 @@ class Grid<3, Real, Device, Index> : public NDimGrid<3, Real, Device, Index> {
 
       Grid(const Index xSize, const Index ySize, const Index zSize);
 
-      // /**
-      //  * \brief Gets number of entities in this grid.
-      //  * \tparam EntityDimension Integer specifying dimension of the entity.
-      //  */
-      // template< int EntityDimension >
-      // __cuda_callable__
-      // IndexType getEntitiesCount() const;
-
-      /**
-       * \brief Gets number of entities in this grid.
-       * \tparam Entity Type of the entity.
-      //  */
-      // template< typename Entity >
-      // __cuda_callable__
-      // IndexType getEntitiesCount() const;
-
-      /**
-       * \brief See Grid1D::getEntity().
-       */
-      template <typename Entity>
-      __cuda_callable__ inline
-      Entity getEntity(const Index& entityIndex) const;
-
       /**
        * \brief See Grid1D::getEntityIndex().
        */
       template <typename Entity>
       __cuda_callable__ inline
       Index getEntityIndex(const Entity& entity) const;
-
-      /**
-       * \breif Returns the measure (volume) of a cell in this grid.
-       */
-      __cuda_callable__ inline
-      const Real& getCellMeasure() const;
 
       template <int EntityDimension, typename Func, typename... FuncArgs>
       inline void forAll(Func func, FuncArgs... args) const;

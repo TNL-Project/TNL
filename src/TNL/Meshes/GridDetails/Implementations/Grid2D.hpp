@@ -18,7 +18,7 @@ namespace Meshes {
 
 __GRID_2D_TEMPLATE__
 __GRID_2D_PREFIX__::Grid() {
-   this->setDimensions(0);
+   this->setDimensions(0, 0);
 }
 
 __GRID_2D_TEMPLATE__
@@ -28,23 +28,10 @@ __GRID_2D_PREFIX__::Grid(const Index xSize, const Index ySize) {
 
 __GRID_2D_TEMPLATE__
 template <typename Entity>
-__cuda_callable__ inline Entity __GRID_2D_PREFIX__::getEntity(const Index& entityIndex) const {
-   static_assert(Entity::entityDimension <= 2 && Entity::entityDimension >= 0, "Wrong grid entity dimensions.");
-
-   return GridEntityGetter<Grid, Entity::entityDimension>::getEntity(*this, entityIndex);
-}
-
-__GRID_2D_TEMPLATE__
-template <typename Entity>
 __cuda_callable__ inline Index __GRID_2D_PREFIX__::getEntityIndex(const Entity& entity) const {
    static_assert(Entity::entityDimension <= 2 && Entity::entityDimension >= 0, "Wrong grid entity dimensions.");
 
    return GridEntityGetter<Grid, Entity::entityDimension>::getEntityIndex(*this, entity);
-}
-
-__GRID_2D_TEMPLATE__
-__cuda_callable__ const Real& __GRID_2D_PREFIX__::getCellMeasure() const {
-   return this->template getSpaceStepsProducts<1, 1>();
 }
 
 __GRID_2D_TEMPLATE__

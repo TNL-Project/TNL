@@ -21,19 +21,11 @@ namespace Meshes {
 #define __GRID_3D_PREFIX__ Grid<3, Real, Device, Index>
 
 __GRID_3D_TEMPLATE__
-__GRID_3D_PREFIX__::Grid() { this->setDimensions(0); }
+__GRID_3D_PREFIX__::Grid() { this->setDimensions(0, 0, 0); }
 
 __GRID_3D_TEMPLATE__
 __GRID_3D_PREFIX__::Grid(const Index xSize, const Index ySize, const Index zSize) {
    this->setDimensions(xSize, ySize, zSize);
-}
-
-__GRID_3D_TEMPLATE__
-template <typename Entity>
-__cuda_callable__ inline Entity __GRID_3D_PREFIX__::getEntity(const Index& entityIndex) const {
-   static_assert(Entity::entityDimension <= 3 && Entity::entityDimension >= 0, "Wrong grid entity dimensions.");
-
-   return GridEntityGetter<Grid, Entity::entityDimension>::getEntity(*this, entityIndex);
 }
 
 __GRID_3D_TEMPLATE__
@@ -43,9 +35,6 @@ __cuda_callable__ inline Index __GRID_3D_PREFIX__::getEntityIndex(const Entity& 
 
    return GridEntityGetter<Grid, Entity::entityDimension>::getEntityIndex(*this, entity);
 }
-
-__GRID_3D_TEMPLATE__
-__cuda_callable__ const Real& __GRID_3D_PREFIX__::getCellMeasure() const { return this->template getSpaceStepsProducts<1, 1, 1>(); }
 
 __GRID_3D_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>

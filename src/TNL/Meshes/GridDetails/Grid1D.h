@@ -33,32 +33,12 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
    Grid(const Index xSize);
 
    /**
-    * \brief Gets number of entities in this grid.
-    * \tparam Entity Type of the entity.
-    */
-   // template <typename Entity>
-   // __cuda_callable__ Index getEntitiesCount() const;
-
-   /**
-    * \brief Gets entity type using entity index.
-    * \param entityIndex Index of entity.
-    * \tparam Entity Type of the entity.
-    */
-   template <typename Entity>
-   __cuda_callable__ inline Entity getEntity(const Index &entityIndex) const;
-
-   /**
     * \brief Gets entity index using entity type.
     * \param entity Type of entity.
     * \tparam Entity Type of the entity.
     */
    template <typename Entity>
    __cuda_callable__ inline Index getEntityIndex(const Entity &entity) const;
-
-   /**
-    * \brief Returns the measure (length) of a cell in this grid.
-    */
-   __cuda_callable__ inline const Real &getCellMeasure() const;
 
    /*
     * @brief Traverses all elements

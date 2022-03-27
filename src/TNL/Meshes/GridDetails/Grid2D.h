@@ -32,21 +32,6 @@ class Grid<2, Real, Device, Index>: public NDimGrid<2, Real, Device, Index> {
 
    Grid(const Index xSize, const Index ySize);
 
-   // TODO: - Fix method
-   // /**
-   //  * \brief Gets number of entities in this grid.
-   //  * \tparam Entity Type of the entity.
-   //  */
-   // template <typename Entity, std::enable_if_t<(std::is_integral<Entity>::value), bool> = true>
-   // __cuda_callable__ inline Index getEntitiesCountA() const;
-
-   /**
-    * \brief See Grid1D::getEntity().
-    */
-   template <typename Entity>
-   __cuda_callable__ inline
-   Entity getEntity(const Index& entityIndex) const;
-
    /**
     * \brief See Grid1D::getEntityIndex().
     */
@@ -54,16 +39,10 @@ class Grid<2, Real, Device, Index>: public NDimGrid<2, Real, Device, Index> {
    __cuda_callable__ inline
    Index getEntityIndex(const Entity& entity) const;
 
-   /**
-    * \brief Returns the measure (area) of a cell in this grid.
-    */
-   __cuda_callable__ inline
-   const Real& getCellMeasure() const;
-
    /*
     * @brief Traverses all elements
     */
-  template <int EntityDimension, typename Func, typename... FuncArgs>
+   template <int EntityDimension, typename Func, typename... FuncArgs>
    inline
    void forAll(Func func, FuncArgs... args) const;
 

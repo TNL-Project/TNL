@@ -26,20 +26,6 @@ __GRID_1D_PREFIX__::Grid(const Index xSize) {
    this->setDimensions(xSize);
 }
 
-// template <typename Real, typename Device, typename Index>
-// template <typename Entity>
-// __cuda_callable__ inline Index Grid<1, Real, Device, Index>::getEntitiesCount() const {
-//    return getEntitiesCount<Entity::getEntityDimension()>();
-// }
-
-__GRID_1D_TEMPLATE__
-template <typename Entity>
-__cuda_callable__ inline Entity __GRID_1D_PREFIX__::getEntity(const Index &entityIndex) const {
-   static_assert(Templates::isInClosedInterval(0, Entity::entityDimension, 1),  "Wrong grid entity dimensions.");
-
-   return GridEntityGetter<Grid, Entity::entityDimension>::getEntity(*this, entityIndex);
-}
-
 __GRID_1D_TEMPLATE__
 template <typename Entity>
 __cuda_callable__ inline Index __GRID_1D_PREFIX__::getEntityIndex(const Entity &entity) const {
