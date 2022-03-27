@@ -5,11 +5,11 @@
 #include <gtest/gtest.h>
 
 #include <TNL/Containers/StaticVector.h>
-#include <TNL/Meshes/GridDetails/Basis.h>
+#include <TNL/Meshes/GridDetails/BasisGetter.h>
 
 template<int GridDimension, int EntityOrientation, int EntityDimension>
 void compare(const TNL::Containers::StaticVector<GridDimension, int>& expectation) {
-   auto basis = TNL::Meshes::Basis<int, EntityOrientation, EntityDimension, GridDimension>::getBasis();
+   auto basis = TNL::Meshes::BasisGetter<int, EntityDimension, GridDimension>::template getBasis<EntityOrientation>();
 
    EXPECT_EQ(basis, expectation) << "Grid Dimension: [" << GridDimension << "], "
                                  << "Entity Orientation: [" << EntityOrientation << "], "
