@@ -68,23 +68,23 @@ class Grid<3, Real, Device, Index> : public NDimGrid<3, Real, Device, Index> {
       __cuda_callable__ inline
       const Real& getCellMeasure() const;
 
-      /**
-       * \brief Traverses all elements
-       */
       template <int EntityDimension, typename Func, typename... FuncArgs>
       inline void forAll(Func func, FuncArgs... args) const;
 
-      /**
-       * \brief Traversers interior elements
-       */
+      template <int EntityDimension, typename Func, typename... FuncArgs>
+      inline void forAll(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
+
       template <int EntityDimension, typename Func, typename... FuncArgs>
       inline void forInterior(Func func, FuncArgs... args) const;
 
-      /**
-       * \brief Traversers boundary elements
-       */
+      template <int EntityDimension, typename Func, typename... FuncArgs>
+      inline void forInterior(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
+
       template <int EntityDimension, typename Func, typename... FuncArgs>
       inline void forBoundary(Func func, FuncArgs... args) const;
+
+      template <int EntityDimension, typename Func, typename... FuncArgs>
+      inline void forBoundary(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
 };
 
 }  // namespace Meshes

@@ -14,7 +14,7 @@
 namespace TNL {
 namespace Meshes {
 
-#define __GRID_ENTITY_TEMPLATE__ template <typename Grid, int EntityDimension>
+#define __GRID_ENTITY_TEMPLATE__ template <class Grid, int EntityDimension>
 #define __GRID_ENTITY_PREFIX__ GridEntity<Grid, EntityDimension>
 
 __GRID_ENTITY_TEMPLATE__
@@ -38,17 +38,17 @@ void __GRID_ENTITY_PREFIX__::setCoordinates(const Coordinate& coordinates) {
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
 void __GRID_ENTITY_PREFIX__::refresh() {
-   this -> entityIndex = this -> grid.getEntityIndex( *this );
+   this -> index = this -> grid.getEntityIndex( *this );
 }
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
 typename __GRID_ENTITY_PREFIX__::Index __GRID_ENTITY_PREFIX__::getIndex() const {
-   TNL_ASSERT_GE( this->entityIndex, 0, "Entity index is not non-negative." );
-   TNL_ASSERT_LT( this->entityIndex, grid.template getEntitiesCount< EntityDimension >(), "Entity index is out of bounds." );
-   TNL_ASSERT_EQ( this->entityIndex, grid.getEntityIndex( *this ), "Wrong value of stored index." );
+   TNL_ASSERT_GE( this->index, 0, "Entity index is not non-negative." );
+   TNL_ASSERT_LT( this->index, grid.template getEntitiesCount<EntityDimension>(), "Entity index is out of bounds." );
+   TNL_ASSERT_EQ( this->index, grid.getEntityIndex( *this ), "Wrong value of stored index." );
 
-   return this->entityIndex;
+   return this->index;
 }
 
 __GRID_ENTITY_TEMPLATE__
@@ -66,13 +66,13 @@ const typename __GRID_ENTITY_PREFIX__::Point& __GRID_ENTITY_PREFIX__::getCenter(
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
 typename __GRID_ENTITY_PREFIX__::Real __GRID_ENTITY_PREFIX__::getMeasure() const {
-   return GridEntityMeasureGetter<Grid, EntityDimension>::getMeasure( this->getMesh(), *this );
+   return GridEntityMeasureGetter<Grid, EntityDimension>::getMeasure(this->getMesh(), *this);
 }
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__ inline
 const Grid& __GRID_ENTITY_PREFIX__::getMesh() const {
-   return this->grid;
+   return this -> grid;
 }
 
 __GRID_ENTITY_TEMPLATE__

@@ -63,9 +63,13 @@ class Grid<2, Real, Device, Index>: public NDimGrid<2, Real, Device, Index> {
    /*
     * @brief Traverses all elements
     */
-   template <int EntityDimension, typename Func, typename... FuncArgs>
+  template <int EntityDimension, typename Func, typename... FuncArgs>
    inline
    void forAll(Func func, FuncArgs... args) const;
+
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline
+   void forAll(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline
@@ -73,7 +77,15 @@ class Grid<2, Real, Device, Index>: public NDimGrid<2, Real, Device, Index> {
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline
+   void forInterior(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
+
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline
    void forBoundary(Func func, FuncArgs... args) const;
+
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline
+   void forBoundary(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
 };
 
 }  // namespace Meshes

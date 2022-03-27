@@ -52,9 +52,10 @@ template <int EntityDimension, typename Func, typename... FuncArgs>
 inline void __GRID_3D_PREFIX__::forAll(Func func, FuncArgs... args) const {
    auto exec = [=] __cuda_callable__(const Coordinate& coordinate,
                                      const Coordinate& basis,
+                                     const Index orientation,
                                      const Grid& grid,
                                      FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid, coordinate, basis);
+      EntityType<EntityDimension> entity(grid, coordinate, basis, orientation);
 
       entity.refresh();
 
@@ -66,12 +67,31 @@ inline void __GRID_3D_PREFIX__::forAll(Func func, FuncArgs... args) const {
 
 __GRID_3D_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
+inline
+void __GRID_3D_PREFIX__::forAll(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
+   auto exec = [=] __cuda_callable__ (const Coordinate& coordinate,
+                                      const Coordinate& basis,
+                                      const Index orientation,
+                                      const Grid &grid,
+                                      FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid, coordinate, basis, orientation);
+      entity.refresh();
+
+      func(entity, args...);
+   };
+
+   this -> template traverseAll<EntityDimension>(from, to, exec, *this, args...);
+}
+
+__GRID_3D_TEMPLATE__
+template <int EntityDimension, typename Func, typename... FuncArgs>
 inline void __GRID_3D_PREFIX__::forInterior(Func func, FuncArgs... args) const {
    auto exec = [=] __cuda_callable__(const Coordinate& coordinate,
                                      const Coordinate& basis,
+                                     const Index orientation,
                                      const Grid& grid,
                                      FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid, coordinate, basis);
+      EntityType<EntityDimension> entity(grid, coordinate, basis, orientation);
 
       entity.refresh();
 
@@ -83,12 +103,33 @@ inline void __GRID_3D_PREFIX__::forInterior(Func func, FuncArgs... args) const {
 
 __GRID_3D_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
+inline
+void __GRID_3D_PREFIX__::forInterior(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
+   auto exec = [=] __cuda_callable__(const Coordinate& coordinate,
+                                     const Coordinate& basis,
+                                     const Index orientation,
+                                     const Grid& grid,
+                                     FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid, coordinate, basis, orientation);
+
+      entity.refresh();
+
+      func(entity, args...);
+   };
+
+   this->template traverseInterior<EntityDimension>(from, to, exec, *this, args...);
+}
+
+
+__GRID_3D_TEMPLATE__
+template <int EntityDimension, typename Func, typename... FuncArgs>
 inline void __GRID_3D_PREFIX__::forBoundary(Func func, FuncArgs... args) const {
    auto exec = [=] __cuda_callable__(const Coordinate& coordinate,
                                      const Coordinate& basis,
+                                     const Index orientation,
                                      const Grid& grid,
                                      FuncArgs... args) mutable {
-      EntityType<EntityDimension> entity(grid, coordinate, basis);
+      EntityType<EntityDimension> entity(grid, coordinate, basis, orientation);
 
       entity.refresh();
 
@@ -97,6 +138,26 @@ inline void __GRID_3D_PREFIX__::forBoundary(Func func, FuncArgs... args) const {
 
    this->template traverseBoundary<EntityDimension>(exec, *this, args...);
 }
+
+__GRID_3D_TEMPLATE__
+template <int EntityDimension, typename Func, typename... FuncArgs>
+inline
+void __GRID_3D_PREFIX__::forBoundary(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
+   auto exec = [=] __cuda_callable__(const Coordinate& coordinate,
+                                     const Coordinate& basis,
+                                     const Index orientation,
+                                     const Grid& grid,
+                                     FuncArgs... args) mutable {
+      EntityType<EntityDimension> entity(grid, coordinate, basis, orientation);
+
+      entity.refresh();
+
+      func(entity, args...);
+   };
+
+   this->template traverseBoundary<EntityDimension>(from, to, exec, *this, args...);
+}
+
 
 }  // namespace Meshes
 }  // namespace TNL

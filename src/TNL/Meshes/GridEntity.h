@@ -43,15 +43,11 @@ class GridEntity {
       constexpr static int meshDimension = Grid::getMeshDimension();
       constexpr static int entityDimension = EntityDimension;
 
-
-   // template <int NeighborEntityDimension = getEntityDimension()>
-   // using NeighborEntities =
-   //     NeighbourGridEntityGetter<GridEntity<Meshes::Grid<Dimension, Real, Device, Index>, EntityDimension, Config>, NeighborEntityDimension>;
-
       __cuda_callable__ inline
       GridEntity(const Grid& grid,
                  const Coordinate& coordinates,
-                 const Coordinate& basis): grid(grid), coordinates(coordinates), basis(basis) {}
+                 const Coordinate& basis,
+                 const Index orientation): grid(grid), coordinates(coordinates), basis(basis), orientation(orientation) {}
 
       __cuda_callable__ inline
       const Coordinate& getCoordinates() const;
@@ -93,9 +89,10 @@ class GridEntity {
    protected:
       const Grid& grid;
 
-      Index entityIndex;
+      Index index;
       Coordinate coordinates;
       Coordinate basis;
+      Index orientation;
 };
 
 }  // namespace Meshes

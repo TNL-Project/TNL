@@ -69,11 +69,23 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline
+   void forAll(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
+
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline
    void forInterior(Func func, FuncArgs... args) const;
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline
+   void forInterior(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
+
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline
    void forBoundary(Func func, FuncArgs... args) const;
+
+   template <int EntityDimension, typename Func, typename... FuncArgs>
+   inline
+   void forBoundary(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
 };
 
 }  // namespace Meshes

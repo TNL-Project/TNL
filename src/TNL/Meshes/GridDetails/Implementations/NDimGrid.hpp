@@ -239,11 +239,12 @@ void __NDIM_PREFIX__::traverseAll(const Coordinate& from, const Coordinate& to, 
    TNL_ASSERT_LE(to, this -> getDimensions(), "Traverse rect be in the grid dimensions");
    TNL_ASSERT_LE(from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor");
 
-   auto exec = [&](const int, const Coordinate& basis) {
+   auto exec = [&](const Index orientation, const Coordinate& basis) {
       Templates::ParallelFor<Dimension, Device, Index>::exec(from,
                                                              to + basis,
                                                              func,
                                                              basis,
+                                                             orientation,
                                                              args...);
    };
 
@@ -268,13 +269,14 @@ void __NDIM_PREFIX__::traverseInterior(const Coordinate& from, const Coordinate&
    TNL_ASSERT_LE(to, this -> getDimensions(), "Traverse rect be in the grid dimensions");
    TNL_ASSERT_LE(from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor");
 
-   auto exec = [&](const int, const Coordinate& basis) {
+   auto exec = [&](const Index orientation, const Coordinate& basis) {
       switch (EntityDimension) {
       case 0: {
          Templates::ParallelFor<Dimension, Device, Index>::exec(from + Coordinate(1),
                                                                 to,
                                                                 func,
                                                                 basis,
+                                                                orientation,
                                                                 args...);
          break;
       }
@@ -283,6 +285,7 @@ void __NDIM_PREFIX__::traverseInterior(const Coordinate& from, const Coordinate&
                                                                 to - Coordinate(1),
                                                                 func,
                                                                 basis,
+                                                                orientation,
                                                                 args...);
          break;
       }
@@ -291,6 +294,7 @@ void __NDIM_PREFIX__::traverseInterior(const Coordinate& from, const Coordinate&
                                                                 to,
                                                                 func,
                                                                 basis,
+                                                                orientation,
                                                                 args...);
          break;
       }
@@ -314,7 +318,7 @@ __NDIMGRID_TEMPLATE__
 template <int EntityDimension, typename Func, typename... FuncArgs>
 inline
 void __NDIM_PREFIX__::traverseBoundary(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const {
-    // Boundaries of the grid are formed by the entities of Dimension - 1.
+   // Boundaries of the grid are formed by the entities of Dimension - 1.
    // We need to traverse each orientation independently.
    constexpr int orientationsCount = getEntityOrientationsCount(Dimension - 1);
    constexpr bool isDirectedEntity = EntityDimension != 0 && EntityDimension != Dimension;
@@ -322,7 +326,7 @@ void __NDIM_PREFIX__::traverseBoundary(const Coordinate& from, const Coordinate&
 
    Container<orientationsCount, Index> isBoundaryTraversed(0);
 
-   auto forBoundary = [&](const auto orientation, const Coordinate& basis) {
+   auto forBoundary = [&](const auto orthogonalOrientation, const auto orientation, const Coordinate& basis) {
       Coordinate start = from;
       Coordinate end = to + basis;
 
@@ -334,24 +338,26 @@ void __NDIM_PREFIX__::traverseBoundary(const Coordinate& from, const Coordinate&
          }
       }
 
-      start[orientation] = end[orientation] - 1;
+      start[orthogonalOrientation] = end[orthogonalOrientation] - 1;
 
       Templates::ParallelFor<Dimension, Device, Index>::exec(start,
                                                              end,
                                                              func,
                                                              basis,
+                                                             orientation,
                                                              args...);
 
       // Skip entities defined only once
-      if (!start[orientation] && end[orientation]) return;
+      if (!start[orthogonalOrientation] && end[orthogonalOrientation]) return;
 
-      start[orientation] = 0;
-      end[orientation] = 1;
+      start[orthogonalOrientation] = 0;
+      end[orthogonalOrientation] = 1;
 
       Templates::ParallelFor<Dimension, Device, Index>::exec(start,
                                                              end,
                                                              func,
                                                              basis,
+                                                             orientation,
                                                              args...);
    };
 
@@ -359,7 +365,7 @@ void __NDIM_PREFIX__::traverseBoundary(const Coordinate& from, const Coordinate&
       auto exec = [&](const auto orientation, const Coordinate& basis) {
          constexpr int orthogonalOrientation = EntityDimension - orientation;
 
-         forBoundary(orthogonalOrientation, basis);
+         forBoundary(orthogonalOrientation, orientation, basis);
       };
 
       Templates::ForEachOrientation<Index, EntityDimension, Dimension>::exec(exec);
@@ -367,8 +373,8 @@ void __NDIM_PREFIX__::traverseBoundary(const Coordinate& from, const Coordinate&
    }
 
    auto exec = [&](const auto orthogonalOrientation) {
-      auto exec = [&](const auto, const Coordinate& basis) {
-         forBoundary(orthogonalOrientation, basis);
+      auto exec = [&](const auto orientation, const Coordinate& basis) {
+         forBoundary(orthogonalOrientation, orientation, basis);
       };
 
       if (EntityDimension == 0 || EntityDimension == Dimension) {
