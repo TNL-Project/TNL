@@ -28,7 +28,7 @@ class Grid {
    public:
       __cuda_callable__ inline
       Entity<Size, Index, Real> getEntity(Index i, Index j) const {
-         Entity<Size, Index, Real> entity;
+         Entity<Size, Index, Real> entity(*this);
 
          entity.i = i;
          entity.j = j;
@@ -49,7 +49,7 @@ template<int Size, typename Index, typename Real>
 class Entity {
    public:
       __cuda_callable__ inline
-      Entity() {};
+      Entity(const Grid<Size, Index, Real>& grid): grid(grid) {};
 
       const Grid<Size, Index, Real>& grid;
 
