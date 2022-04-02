@@ -56,55 +56,64 @@ convolution1D( Index kernelWidth,
    store( ix, result );
 }
 
-// template<>
-// struct Convolution< 2, TNL::Devices::Cuda >
-// {
-// public:
-//    template< typename Index >
-//    static size_t
-//    getDynamicSharedMemorySize( Index kernelWidth, Index kernelHeight, Index endX, Index endY )
-//    {
-//       return 0;
-//    }
-// };
+template<>
+struct Convolution< 2, TNL::Devices::Cuda >
+{
+public:
+   template< typename Index >
+   static size_t
+   getDynamicSharedMemorySize( Index kernelWidth, Index kernelHeight, Index endX, Index endY )
+   {
+      return 0;
+   }
+};
 
-// template< typename Index,
-//           typename Real,
-//           typename FetchData,
-//           typename FetchBoundary,
-//           typename FetchKernel,
-//           typename Convolve,
-//           typename Store >
-// __global__
-// static void
-// convolution2D( Index kernelWidth,
-//                Index kernelHeight,
-//                Index endX,
-//                Index endY,
-//                FetchData& fetchData,
-//                FetchBoundary& fetchBoundary,
-//                FetchKernel& fetchKernel,
-//                Convolve& convolve,
-//                Store& store )
-// {
-//    int iy = threadIdx.y + blockIdx.y * blockDim.y;
-//    int ix = threadIdx.x + blockIdx.x * blockDim.x;
+template< typename Index,
+          typename Real,
+          typename FetchData,
+          typename FetchBoundary,
+          typename FetchKernel,
+          typename Convolve,
+          typename Store >
+__global__
+static void
+convolution2D( Index kernelWidth,
+               Index kernelHeight,
+               Index endX,
+               Index endY,
+               FetchData fetchData,
+               FetchBoundary fetchBoundary,
+               FetchKernel fetchKernel,
+               Convolve convolve,
+               Store store )
+{
+   Index iy = threadIdx.y + blockIdx.y * blockDim.y;
+   Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-//    Real result = 0;
+   Index radiusY = kernelHeight >> 1;
+   Index radiusX = kernelHeight >> 1;
 
-//    for( Index j = iy - kernelHeight; j <= iy + kernelHeight; j++ ) {
-//       for( Index i = ix - kernelWidth; i <= ix + kernelWidth; i++ ) {
-//          if( i < 0 || i >= endX || j < 0 || j >= endY ) {
-//             result = convolve( result, fetchBoundary( i, j ) );
-//          }
-//          else {
-//             result = convolve( result, fetchData( i, j ), fetchKernel( i, j ) );
-//          }
-//       }
-//    }
+   Real result = 0;
 
-//    store( ix, iy, result );
-// }
+   for( Index j = - radiusY; j <= radiusY; j++ ) {
+      Index elementIndexY = j + iy;
+      Index kernelIndexY = j + radiusY;
+
+      for( Index i = - radiusX; i <= radiusX; i++ ) {
+         Index elementIndexX = i + ix;
+         Index kernelIndexX = i + radiusX;
+
+         if( elementIndexX < 0 || elementIndexX >= endX || elementIndexY < 0 || elementIndexY >= endY ) {
+            result = convolve( result, fetchBoundary( elementIndexX, elementIndexY ), fetchKernel ( kernelIndexX, kernelIndexY ) );
+         }
+         else {
+            result = convolve( result, fetchData( elementIndexX, elementIndexY ), fetchKernel( kernelIndexX, kernelIndexY ) );
+         }
+      }
+   }
+
+   store( ix, iy, result );
+}
 
 // template<>
 // struct Convolution< 3, TNL::Devices::Cuda >
