@@ -1,16 +1,18 @@
-
 #pragma once
 
 #ifdef HAVE_CUDA
+
+/**
+ * This method stores image tile into shared memory
+ * and then calculates convolution.
+ *
+ * Thanks for the idea  https://www.evl.uic.edu/sjames/cs525/final.html
+ */
 
    #include <TNL/Devices/Cuda.h>
    #include <TNL/Containers/StaticVector.h>
    #include <TNL/Cuda/LaunchHelpers.h>
    #include <TNL/Cuda/SharedMemory.h>
-
-/**
- * This method stores kernel in the shared memory to reduce amount of loads.
- */
 
 template< int Dimension, typename Device >
 struct Convolution;
@@ -29,7 +31,7 @@ public:
       Index kernelElementCount = 1;
 
       for( Index i = 0; i < kernelSize.getSize(); i++ )
-         kernelElementCount *= kernelSize[ i ];
+         kernelElementCount *= ( 2 * kernelSize[ i ] ) - 1;
 
       configuration.dynamicSharedMemorySize = kernelElementCount * sizeof( Real );
 
@@ -62,26 +64,37 @@ convolution1D( Index kernelWidth,
       return;
 
    Real* shared = TNL::Cuda::getSharedMemory< Real >();
-
    Index radius = kernelWidth >> 1;
 
-   // The size of the block is equal to the kernel size
-   shared[ threadIdx.x ] = fetchKernel( threadIdx.x );
+   // Left
+   Index lhs = ix - radius;
+
+   if( lhs < 0 ) {
+      shared[ threadIdx.x ] = fetchBoundary( lhs );
+   }
+   else {
+      shared[ threadIdx.x ] = fetchData( lhs );
+   }
+
+   // Right
+   Index rhs = ix + radius;
+
+   if( rhs >= endX ) {
+      shared[ threadIdx.x + blockDim.x ] = fetchBoundary( rhs );
+   }
+   else {
+      shared[ threadIdx.x + blockDim.x ] = fetchData( rhs );
+   }
 
    __syncthreads();
 
    Real result = 0;
 
-   for( Index i = -radius; i <= radius; i++ ) {
-      Index elementIndex = i + ix;
-      Index kernelIndex = i + radius;
+   #pragma unroll
+   for( Index i = 0; i < kernelWidth; i++ ) {
+      Index elementIndex = i + threadIdx.x;
 
-      if( elementIndex < 0 || elementIndex >= endX ) {
-         result = convolve( result, fetchBoundary( elementIndex ), shared[ kernelIndex ] );
-      }
-      else {
-         result = convolve( result, fetchData( elementIndex ), shared[ kernelIndex ] );
-      }
+      result = convolve( result, shared[ elementIndex ], fetchKernel( i ) );
    }
 
    store( ix, result );
@@ -101,7 +114,7 @@ public:
       Index kernelElementCount = 1;
 
       for( Index i = 0; i < kernelSize.getSize(); i++ )
-         kernelElementCount *= kernelSize[ i ];
+         kernelElementCount *= ( 2 * kernelSize[ i ] ) - 1;
 
       configuration.dynamicSharedMemorySize = kernelElementCount * sizeof( Real );
 
@@ -145,31 +158,71 @@ convolution2D( Index kernelWidth,
    Index radiusY = kernelHeight >> 1;
    Index radiusX = kernelWidth >> 1;
 
-   Index threadIndex = threadIdx.x + blockDim.x * threadIdx.y;
+   Index x, y, index;
 
-   // The size of the block is equal to the kernel size
-   shared[ threadIndex ] = fetchKernel( threadIdx.x, threadIdx.y );
+   // Top Left
+   x = ix - radiusX;
+   y = iy - radiusY;
+
+   index = threadIdx.x + threadIdx.y * blockDim.x;
+
+   if( x < 0 || y < 0 ) {
+      shared[ index ] = fetchBoundary( x, y );
+   }
+   else {
+      shared[ index ] = fetchData( x, y );
+   }
+
+   // Top right
+   x = ix + radiusX;
+   y = iy - radiusY;
+
+   index = radiusX + threadIdx.x + threadIdx.y * blockDim.x;
+
+   if( x >= endX || y < 0 ) {
+      shared[ index ] = fetchBoundary( x, y );
+   }
+   else {
+      shared[ index ] = fetchData( x, y );
+   }
+
+   // Bottom Left
+   x = ix - radiusX;
+   y = iy + radiusY;
+
+   index = threadIdx.x + ( radiusY + threadIdx.y ) * blockDim.x;
+
+   if( x < 0 || y >= endY ) {
+      shared[ index ] = fetchBoundary( x, y );
+   }
+   else {
+      shared[ index ] = fetchData( x, y );
+   }
+
+   // Bottom Right
+   x = ix + radiusX;
+   y = iy + radiusY;
+
+   index = radiusX + threadIdx.x + ( radiusY + threadIdx.y ) * blockDim.x;
+
+   if( x >= endX || y >= endY ) {
+      shared[ index ] = fetchBoundary( x, y );
+   }
+   else {
+      shared[ index ] = fetchData( x, y );
+   }
 
    __syncthreads();
 
    Real result = 0;
 
-   for( Index j = -radiusY; j <= radiusY; j++ ) {
-      Index elementIndexY = j + iy;
-      Index kernelIndexY = j + radiusY;
+   for( Index j = 0; j <= radiusY; j++ ) {
+      Index align = ( j + threadIdx.y ) * blockDim.y;
 
-      for( Index i = -radiusX; i <= radiusX; i++ ) {
-         Index elementIndexX = i + ix;
-         Index kernelIndexX = i + radiusX;
+      for( Index i = 0; i <= radiusX; i++ ) {
+         Index index = i + threadIdx.x + align;
 
-         Index threadIndex = kernelIndexX + kernelWidth * kernelIndexY;
-
-         if( elementIndexX < 0 || elementIndexX >= endX || elementIndexY < 0 || elementIndexY >= endY ) {
-            result = convolve( result, fetchBoundary( elementIndexX, elementIndexY ), shared[ threadIndex ] );
-         }
-         else {
-            result = convolve( result, fetchData( elementIndexX, elementIndexY ), shared[ threadIndex ] );
-         }
+         result = convolve( result, shared[ index ], fetchKernel( i, j ) );
       }
    }
 
@@ -190,7 +243,7 @@ public:
       Index kernelElementCount = 1;
 
       for( Index i = 0; i < kernelSize.getSize(); i++ )
-         kernelElementCount *= kernelSize[ i ];
+         kernelElementCount *= ( 2 * kernelSize[ i ] ) - 1;
 
       configuration.dynamicSharedMemorySize = kernelElementCount * sizeof( Real );
 
@@ -241,39 +294,134 @@ convolution3D( Index kernelWidth,
    Index radiusY = kernelHeight >> 1;
    Index radiusX = kernelWidth >> 1;
 
-   Index threadIndex = threadIdx.x + blockDim.x * threadIdx.y + blockDim.x * blockDim.y * threadIdx.z;
+   Index x, y, z, index;
 
-   printf( "%d\n", threadIndex );
+   // Z: 0 Y: 0 X: 0
+   x = ix - radiusX;
+   y = iy - radiusY;
+   z = iz - radiusZ;
 
-   // The size of the block is equal to the kernel size
-   shared[ threadIndex ] = fetchKernel( threadIdx.x, threadIdx.y, threadIdx.z );
+   index = threadIdx.x + threadIdx.y * blockDim.y + threadIdx.z * blockDim.x * blockDim.y;
+
+   if( x < 0 || y < 0 || z < 0 ) {
+      shared[ index ] = fetchBoundary( x, y, z );
+   }
+   else {
+      shared[ index ] = fetchData( x, y, z );
+   }
+
+   // Z: 0 Y: 0 X: 1
+   x = ix + radiusX;
+   y = iy - radiusY;
+   z = iz - radiusZ;
+
+   index = radiusX + threadIdx.x + threadIdx.y * blockDim.y + threadIdx.z * blockDim.x * blockDim.y;
+
+   if( x >= endX || y < 0 || z < 0 ) {
+      shared[ index ] = fetchBoundary( x, y, z );
+   }
+   else {
+      shared[ index ] = fetchData( x, y, z );
+   }
+
+   // Z: 0 Y: 1 X: 0
+   x = ix - radiusX;
+   y = iy + radiusY;
+   z = iz - radiusZ;
+
+   index = radiusX + threadIdx.x + ( radiusY + threadIdx.y ) * blockDim.y + threadIdx.z * blockDim.x * blockDim.y;
+
+   if( x < 0 || y >= endY || z < 0 ) {
+      shared[ index ] = fetchBoundary( x, y, z );
+   }
+   else {
+      shared[ index ] = fetchData( x, y, z );
+   }
+
+   // Z: 1 Y: 0 X: 0
+   x = ix - radiusX;
+   y = iy - radiusY;
+   z = iz + radiusZ;
+
+   index = threadIdx.x + threadIdx.y * blockDim.y + ( radiusZ + threadIdx.z ) * blockDim.x * blockDim.y;
+
+   if( x < 0 || y < 0 || z >= endZ ) {
+      shared[ index ] = fetchBoundary( x, y, z );
+   }
+   else {
+      shared[ index ] = fetchData( x, y, z );
+   }
+
+   // Z: 0 Y: 1 X: 1
+   x = ix + radiusX;
+   y = iy + radiusY;
+   z = iz - radiusZ;
+
+   index = radiusX + threadIdx.x + ( radiusY + threadIdx.y ) * blockDim.y + threadIdx.z * blockDim.x * blockDim.y;
+
+   if( x >= endX || y >= endY || z < 0 ) {
+      shared[ index ] = fetchBoundary( x, y, z );
+   }
+   else {
+      shared[ index ] = fetchData( x, y, z );
+   }
+
+   // Z: 1 Y: 0 X: 1
+   x = ix + radiusX;
+   y = iy - radiusY;
+   z = iz + radiusZ;
+
+   index = radiusX + threadIdx.x + threadIdx.y * blockDim.y + ( radiusZ + threadIdx.z ) * blockDim.x * blockDim.y;
+
+   if( x >= endX || y < 0 || z >= endZ ) {
+      shared[ index ] = fetchBoundary( x, y, z );
+   }
+   else {
+      shared[ index ] = fetchData( x, y, z );
+   }
+
+   // Z: 1 Y: 1 X: 0
+   x = ix - radiusX;
+   y = iy + radiusY;
+   z = iz + radiusZ;
+
+   index = threadIdx.x + ( radiusY + threadIdx.y ) * blockDim.y + ( radiusZ + threadIdx.z ) * blockDim.x * blockDim.y;
+
+   if( x < 0 || y >= endY || z >= endZ ) {
+      shared[ index ] = fetchBoundary( x, y, z );
+   }
+   else {
+      shared[ index ] = fetchData( x, y, z );
+   }
+
+   // Z: 1 Y: 1 X: 1
+   x = ix + radiusX;
+   y = iy + radiusY;
+   z = iz + radiusZ;
+
+   index = radiusX + threadIdx.x + ( radiusY + threadIdx.y ) * blockDim.y + ( radiusZ + threadIdx.z ) * blockDim.x * blockDim.y;
+
+   if( x >= endX || y >= endY || z >= endZ ) {
+      shared[ index ] = fetchBoundary( x, y, z );
+   }
+   else {
+      shared[ index ] = fetchData( x, y, z );
+   }
 
    __syncthreads();
 
    Real result = 0;
 
-   for( Index k = -radiusZ; k <= radiusZ; k++ ) {
-      Index elementIndexZ = k + iz;
-      Index kernelIndexZ = k + radiusZ;
+   for( Index k = 0; k <= radiusZ; k++ ) {
+      Index xyAlign = ( k + threadIdx.z ) * blockDim.y * blockDim.x;
 
-      for( Index j = -radiusY; j <= radiusY; j++ ) {
-         Index elementIndexY = j + iy;
-         Index kernelIndexY = j + radiusY;
+      for( Index j = 0; j <= radiusY; j++ ) {
+         Index xAlign = ( j + threadIdx.y ) * blockDim.y;
 
-         for( Index i = -radiusX; i <= radiusX; i++ ) {
-            Index elementIndexX = i + ix;
-            Index kernelIndexX = i + radiusX;
+         for( Index i = 0; i <= radiusX; i++ ) {
+            Index index = i + threadIdx.x + xAlign + xyAlign;
 
-            Index threadIndex = kernelIndexX + kernelWidth * kernelIndexY + kernelWidth * kernelHeight * kernelIndexZ;
-
-            if( elementIndexX < 0 || elementIndexX >= endX || elementIndexY < 0 || elementIndexY >= endY || elementIndexZ < 0
-                || elementIndexZ >= endZ )
-            {
-               result = convolve( result, fetchBoundary( elementIndexX, elementIndexY, elementIndexZ ), shared[ threadIndex ] );
-            }
-            else {
-               result = convolve( result, fetchData( elementIndexX, elementIndexY, elementIndexZ ), shared[ threadIndex ] );
-            }
+            result = convolve( result, shared[ index ], fetchKernel( i, j, k ) );
          }
       }
    }
