@@ -37,6 +37,10 @@ convolution1D( Index kernelWidth,
                Store store )
 {
    Index ix =  threadIdx.x + blockIdx.x * blockDim.x;
+
+   if (ix >= endX)
+      return;
+
    Index radius = kernelWidth >> 1;
 
    Real result = 0;
@@ -90,8 +94,11 @@ convolution2D( Index kernelWidth,
    Index iy = threadIdx.y + blockIdx.y * blockDim.y;
    Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
+   if (ix >= endX || iy >= endY)
+      return;
+
    Index radiusY = kernelHeight >> 1;
-   Index radiusX = kernelHeight >> 1;
+   Index radiusX = kernelWidth >> 1;
 
    Real result = 0;
 
@@ -115,59 +122,75 @@ convolution2D( Index kernelWidth,
    store( ix, iy, result );
 }
 
-// template<>
-// struct Convolution< 3, TNL::Devices::Cuda >
-// {
-// public:
-//    template< typename Index >
-//    static size_t
-//    getDynamicSharedMemorySize( Index kernelWidth, Index kernelHeight, Index kernelDepth, Index endX, Index endY, Index endZ )
-//    {
-//       return 0;
-//    }
-// };
+template<>
+struct Convolution< 3, TNL::Devices::Cuda >
+{
+public:
+   template< typename Index >
+   static size_t
+   getDynamicSharedMemorySize( Index kernelWidth, Index kernelHeight, Index kernelDepth, Index endX, Index endY, Index endZ )
+   {
+      return 0;
+   }
+};
 
-// template< typename Index,
-//           typename Real,
-//           typename FetchData,
-//           typename FetchBoundary,
-//           typename FetchKernel,
-//           typename Convolve,
-//           typename Store >
-// __global__
-// static void
-// convolution3D( Index kernelWidth,
-//                Index kernelHeight,
-//                Index kernelDepth,
-//                Index endX,
-//                Index endY,
-//                Index endZ,
-//                FetchData& fetchData,
-//                FetchBoundary& fetchBoundary,
-//                FetchKernel& fetchKernel,
-//                Convolve& convolve,
-//                Store& store )
-// {
-//    int ix = threadIdx.x + blockIdx.x * blockDim.x;
-//    int iy = threadIdx.y + blockIdx.y * blockDim.y;
-//    int iz = threadIdx.z + blockIdx.z * blockDim.z;
+template< typename Index,
+          typename Real,
+          typename FetchData,
+          typename FetchBoundary,
+          typename FetchKernel,
+          typename Convolve,
+          typename Store >
+__global__
+static void
+convolution3D( Index kernelWidth,
+               Index kernelHeight,
+               Index kernelDepth,
+               Index endX,
+               Index endY,
+               Index endZ,
+               FetchData fetchData,
+               FetchBoundary fetchBoundary,
+               FetchKernel fetchKernel,
+               Convolve convolve,
+               Store store )
+{
+   Index iz = threadIdx.z + blockIdx.z * blockDim.z;
+   Index iy = threadIdx.y + blockIdx.y * blockDim.y;
+   Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-//    Real result = 0;
+   if (ix >= endX || iy >= endY || iz >= endZ)
+      return;
 
-//    for( Index k = iz - kernelDepth; k <= iz + kernelDepth; k++ ) {
-//       for( Index j = iy - kernelHeight; j <= iy + kernelHeight; j++ ) {
-//          for( Index i = ix - kernelWidth; i <= ix + kernelWidth; i++ ) {
-//             if( i < 0 || i >= endX || j < 0 || j >= endY || k < 0 || k >= endZ ) {
-//                result = convolve( result, fetchBoundary( i, j, k ) );
-//             }
-//             else {
-//                result = convolve( result, fetchData( i, j, k ), fetchKernel( i, j, k ) );
-//             }
-//          }
-//       }
-//    }
+   Index radiusZ = kernelDepth >> 1;
+   Index radiusY = kernelHeight >> 1;
+   Index radiusX = kernelWidth >> 1;
 
-//    store( ix, iy, iz, result );
-// }
+   Real result = 0;
+
+   for( Index k = -radiusZ; k <= radiusZ; k++ ) {
+      Index elementIndexZ = k + iz;
+      Index kernelIndexZ = k + radiusZ;
+
+      for( Index j = -radiusY; j <= radiusY; j++ ) {
+         Index elementIndexY = j + iy;
+         Index kernelIndexY = j + radiusY;
+
+         for( Index i = -radiusX; i <= radiusX; i++ ) {
+            Index elementIndexX = i + ix;
+            Index kernelIndexX = i + radiusX;
+
+            if( elementIndexX < 0 || elementIndexX >= endX || elementIndexY < 0 || elementIndexY >= endY || elementIndexZ < 0 || elementIndexZ >= endZ ) {
+               result = convolve( result, fetchBoundary( elementIndexX, elementIndexY, elementIndexZ ), fetchKernel( kernelIndexX, kernelIndexY, kernelIndexZ ) );
+            }
+            else {
+               result = convolve( result, fetchData( elementIndexX, elementIndexY, elementIndexZ ), fetchKernel( kernelIndexX, kernelIndexY, kernelIndexZ ) );
+            }
+         }
+      }
+   }
+
+   store( ix, iy, iz, result );
+}
 
 #endif

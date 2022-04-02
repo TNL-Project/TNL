@@ -17,7 +17,7 @@ public:
    using Launcher = Launcher< Dimension, Device >;
 
    static void
-   exec( const Vector& dimensions, const Vector& kernelSize, DataStore input, DataStore result, DataStore kernel )
+   exec( const Vector& dimensions, const Vector& kernelSize, DataStore& input, DataStore& result, DataStore& kernel )
    {
       auto fetchData = [ = ] __cuda_callable__( Index i )
       {
@@ -36,12 +36,12 @@ public:
 
       auto convolve = [ = ] __cuda_callable__( Real result, Index data, Index kernel )
       {
-        return result + data * kernel;
+         return result + data * kernel;
       };
 
       auto store = [ = ] __cuda_callable__( Index i, Real resultValue ) mutable
       {
-         result[i] = resultValue;
+         result[ i ] = resultValue;
       };
 
       Launcher::exec< Index, Real >( dimensions,
@@ -108,46 +108,56 @@ public:
    }
 };
 
-// template< typename Index, typename Real >
-// struct DummyTask< Index, Real, 3, TNL::Devices::Cuda >
-// {
-// public:
-//    static constexpr int Dimension = 3;
-//    using Device = TNL::Devices::Cuda;
-//    using Vector = TNL::Containers::StaticVector< Dimension, Index >;
-//    using DataStore = typename TNL::Containers::Array< Real, Device, Index >::ViewType;
-//    using Launcher = Launcher< Dimension, Device >;
+template< typename Index, typename Real >
+struct DummyTask< Index, Real, 3, TNL::Devices::Cuda >
+{
+public:
+   static constexpr int Dimension = 3;
+   using Device = TNL::Devices::Cuda;
+   using Vector = TNL::Containers::StaticVector< Dimension, Index >;
+   using DataStore = typename TNL::Containers::Array< Real, Device, Index >::ViewType;
+   using Launcher = Launcher< Dimension, Device >;
 
-//    static void
-//    exec( const Vector& dimensions, const Vector& kernelSize, DataStore& input, DataStore& result, DataStore& kernel )
-//    {
-//       auto fetchData = [ = ] __cuda_callable__( Index i, Index j, Index k ) {
+   static void
+   exec( const Vector& dimensions, const Vector& kernelSize, DataStore& input, DataStore& result, DataStore& kernel )
+   {
+      auto fetchData = [ = ] __cuda_callable__( Index i, Index j, Index k )
+      {
+         auto index = i + j * dimensions.x() + k * dimensions.x() * dimensions.y();
 
-//       };
+         return input[index];
+      };
 
-//       auto fetchBoundary = [ = ] __cuda_callable__( Index i, Index j, Index k ) {
+      auto fetchBoundary = [ = ] __cuda_callable__( Index i, Index j, Index k )
+      {
+         return 1;
+      };
 
-//       };
+      auto fetchKernel = [ = ] __cuda_callable__( Index i, Index j, Index k )
+      {
+         auto index = i + j * kernelSize.x() + k * kernelSize.x() * kernelSize.y();
 
-//       auto fetchKernel = [ = ] __cuda_callable__( Index i, Index j, Index k ) {
+         return kernel[ index ];
+      };
 
-//       };
+      auto convolve = [ = ] __cuda_callable__( float result, Index data, Index kernel )
+      {
+         return result + data * kernel;
+      };
 
-//       auto convolve = [ = ] __cuda_callable__( float result, Index data, Index kernel )
-//       {
-//          return result + data * kernel;
-//       };
+      auto store = [ = ] __cuda_callable__( Index i, Index j, Index k, Real resultValue ) mutable
+      {
+         auto index = i + j * dimensions.x() + k * dimensions.x() * dimensions.y();
 
-//       auto store = [ = ] __cuda_callable__( Index i, Index j, Index k, Real result ) {
+         result[ index ] = resultValue;
+      };
 
-//       };
-
-//       Launcher::exec< Index >( dimensions,
-//                                kernelSize,
-//                                std::forward< decltype( fetchData ) >( fetchData ),
-//                                std::forward< decltype( fetchBoundary ) >( fetchBoundary ),
-//                                std::forward< decltype( fetchKernel ) >( fetchKernel ),
-//                                std::forward< decltype( convolve ) >( convolve ),
-//                                std::forward< decltype( store ) >( store ) );
-//    }
-// };
+      Launcher::exec< Index, Real >( dimensions,
+                                     kernelSize,
+                                     std::forward< decltype( fetchData ) >( fetchData ),
+                                     std::forward< decltype( fetchBoundary ) >( fetchBoundary ),
+                                     std::forward< decltype( fetchKernel ) >( fetchKernel ),
+                                     std::forward< decltype( convolve ) >( convolve ),
+                                     std::forward< decltype( store ) >( store ) );
+   }
+};
