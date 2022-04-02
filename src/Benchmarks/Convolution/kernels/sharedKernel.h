@@ -3,10 +3,10 @@
 
 #ifdef HAVE_CUDA
 
-   #include <TNL/Devices/Cuda.h>
-   #include <TNL/Containers/StaticVector.h>
-   #include <TNL/Cuda/LaunchHelpers.h>
-   #include <TNL/Cuda/SharedMemory.h>
+#include <TNL/Devices/Cuda.h>
+#include <TNL/Containers/StaticVector.h>
+#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Cuda/SharedMemory.h>
 
 template< int Dimension, typename Device >
 struct Convolution;
