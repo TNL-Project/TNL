@@ -32,13 +32,14 @@ public:
          start[ i ] = parameters.getParameter< int >( minDimensionIds[ i ] );
          end[ i ] = parameters.getParameter< int >( maxDimensionIds[ i ] );
          minKernelSize[ i ] = parameters.getParameter< int >( minKernelSizeIds[ i ] );
-         maxKernelSizeIds[ i ] = parameters.getParameter< int >( maxKernelSizeIds[ i ] );
+         maxKernelSize[ i ] = parameters.getParameter< int >( maxKernelSizeIds[ i ] );
 
          TNL_ASSERT_GT( start[ i ], 1, "Start dimension must be positive integer" );
          TNL_ASSERT_GT( end[ i ], start[ i ], "End dimension must be greater than start dimension" );
 
          TNL_ASSERT_GE( minKernelSize[ i ], 1, "Minimal kernel size must be a positive number" );
          TNL_ASSERT_EQ( minKernelSize[ i ] % 2, 1, "Minimal kernel size must be odd" );
+         TNL_ASSERT_GT( maxKernelSize[ i ], minKernelSize[ i ], "End dimension must be greater than start dimension" );
          TNL_ASSERT_GT( end[ i ], start[ i ], "End kernel size must be greater than start kernel size" );
       }
 
@@ -85,7 +86,7 @@ public:
          for( size_t i = 0; i < currentDimension.getSize() - 1; i++ ) {
             if( currentDimension[ i ] >= maxDimension[ i ] ) {
                currentDimension[ i ] = minDimension[ i ];
-               currentDimension[ i ] = maxDimension[ i ];
+               currentDimension[ i + 1 ] *= dimensionStep;
             }
          }
 
