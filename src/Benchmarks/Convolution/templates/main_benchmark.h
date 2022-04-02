@@ -1,10 +1,11 @@
 
-#include "../kernels/naive.h"
+#define KERNEL KERNEL_VALUE
+#define DIMENSION DIMENSION_VALUE
+
+#include KERNEL_VALUE
 #include "../support/DummyBenchmark.h"
 
 #include <TNL/Config/parseCommandLine.h>
-
-#define DIMENSION DIMENSION_VALUE
 
 using TaskBenchmark = DummyBenchmark< DIMENSION, TNL::Devices::Cuda >;
 

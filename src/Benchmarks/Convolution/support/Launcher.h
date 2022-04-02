@@ -5,7 +5,14 @@
 #include <TNL/Cuda/KernelLaunch.h>
 
 template< int Dimension, typename Device >
-struct Convolution;
+struct Convolution {
+   template< typename Index >
+   using Vector = TNL::Containers::StaticVector< 1, Index >;
+
+   template< typename Index, typename Real >
+   static void
+   setup(TNL::Cuda::LaunchConfiguration& configuration, const Vector< Index >& dimensions, const Vector< Index >& kernelSize);
+};
 
 template< int Dimension, typename Device >
 struct Launcher;
@@ -29,7 +36,7 @@ public:
    {
       TNL::Cuda::LaunchConfiguration launchConfig;
 
-      ConvolutionKernel::setup<Index>(launchConfig, dimensions, kernelSize);
+      ConvolutionKernel::setup<Index, Real>(launchConfig, dimensions, kernelSize);
 
       constexpr auto kernel = convolution1D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
 
@@ -65,7 +72,7 @@ public:
    {
       TNL::Cuda::LaunchConfiguration launchConfig;
 
-      ConvolutionKernel::setup<Index>(launchConfig, dimensions, kernelSize);
+      ConvolutionKernel::setup<Index, Real>(launchConfig, dimensions, kernelSize);
 
       constexpr auto kernel = convolution2D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
 
@@ -107,7 +114,7 @@ public:
 
       TNL::Cuda::LaunchConfiguration launchConfig;
 
-      ConvolutionKernel::setup<Index>(launchConfig, dimensions, kernelSize);
+      ConvolutionKernel::setup<Index, Real>(launchConfig, dimensions, kernelSize);
 
       constexpr auto kernel = convolution3D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
 
