@@ -59,70 +59,65 @@ public:
    }
 };
 
-// template<>
-// struct Launcher< 2, TNL::Devices::Cuda >
-// {
-// public:
-//    using Vector = TNL::Containers::StaticVector< 2, int >;
-//    using ConvolutionKernel = Convolution< 2, TNL::Devices::Cuda >;
+template<>
+struct Launcher< 2, TNL::Devices::Cuda >
+{
+public:
+   using Vector = TNL::Containers::StaticVector< 2, int >;
+   using ConvolutionKernel = Convolution< 2, TNL::Devices::Cuda >;
 
-//    template< typename Index, typename Real, typename FetchData, typename FetchBoundary, typename FetchKernel, typename Convolve, typename Store >
-//    static inline void
-//    exec( const Vector& dimensions,
-//          const Vector& kernelSize,
-//          FetchData&& fetchData,
-//          FetchBoundary&& fetchBoundary,
-//          FetchKernel&& fetchKernel,
-//          Convolve&& convolve,
-//          Store&& store )
-//    {
-//       TNL::Cuda::LaunchConfiguration launchConfig;
+   template< typename Index, typename Real, typename FetchData, typename FetchBoundary, typename FetchKernel, typename Convolve, typename Store >
+   static inline void
+   exec( const Vector& dimensions,
+         const Vector& kernelSize,
+         FetchData&& fetchData,
+         FetchBoundary&& fetchBoundary,
+         FetchKernel&& fetchKernel,
+         Convolve&& convolve,
+         Store&& store )
+   {
+      TNL::Cuda::LaunchConfiguration launchConfig;
 
-//       launchConfig.dynamicSharedMemorySize = ConvolutionKernel::getDynamicSharedMemorySize< Index >(
-//          kernelSize.x(), kernelSize.y(), dimensions.x(), dimensions.y() );
+      launchConfig.dynamicSharedMemorySize = ConvolutionKernel::getDynamicSharedMemorySize< Index >(
+         kernelSize.x(), kernelSize.y(), dimensions.x(), dimensions.y() );
 
-//       const Index sizeX = dimensions.x();
-//       const Index sizeY = dimensions.y();
+      const Index sizeX = dimensions.x();
+      const Index sizeY = dimensions.y();
 
-//       if( sizeX >= sizeY * sizeY ) {
-//          launchConfig.blockSize.x = TNL::min( 256, sizeX );
-//          launchConfig.blockSize.y = 1;
-//       }
-//       else if( sizeY >= sizeX * sizeX ) {
-//          launchConfig.blockSize.x = 1;
-//          launchConfig.blockSize.y = TNL::min( 256, sizeY );
-//       }
-//       else {
-//          launchConfig.blockSize.x = TNL::min( 32, sizeX );
-//          launchConfig.blockSize.y = TNL::min( 8, sizeY );
-//       }
+      if( sizeX >= sizeY * sizeY ) {
+         launchConfig.blockSize.x = TNL::min( 256, sizeX );
+         launchConfig.blockSize.y = 1;
+      }
+      else if( sizeY >= sizeX * sizeX ) {
+         launchConfig.blockSize.x = 1;
+         launchConfig.blockSize.y = TNL::min( 256, sizeY );
+      }
+      else {
+         launchConfig.blockSize.x = TNL::min( 32, sizeX );
+         launchConfig.blockSize.y = TNL::min( 8, sizeY );
+      }
 
-//       launchConfig.gridSize.x =
-//          TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( sizeX, launchConfig.blockSize.x ) );
-//       launchConfig.gridSize.y =
-//          TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( sizeY, launchConfig.blockSize.y ) );
+      launchConfig.gridSize.x =
+         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( sizeX, launchConfig.blockSize.x ) );
+      launchConfig.gridSize.y =
+         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( sizeY, launchConfig.blockSize.y ) );
 
-//       dim3 gridCount;
+      constexpr auto kernel = convolution2D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
 
-//       gridCount.x = roundUpDivision( sizeX, launchConfig.blockSize.x * launchConfig.gridSize.x );
-//       gridCount.y = roundUpDivision( sizeY, launchConfig.blockSize.y * launchConfig.gridSize.y );
-
-//       constexpr auto kernel = convolution2D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
-
-//       TNL::Cuda::launchKernel< true >( kernel,
-//                                        0,
-//                                        launchConfig,
-//                                        kernelSize.x(),
-//                                        kernelSize.y(),
-//                                        dimensions.x(),
-//                                        dimensions.y(),
-//                                        std::forward< FetchData >( fetchData ),
-//                                        std::forward< FetchBoundary >( fetchBoundary ),
-//                                        std::forward< FetchKernel >( fetchKernel ),
-//                                        std::forward< Convolve >( convolve ),
-//                                        std::forward< Store >( store ) );
-//    }
-// };
+      TNL::Cuda::launchKernel< true >( kernel,
+                                       0,
+                                       launchConfig,
+                                       kernelSize.x(),
+                                       kernelSize.y(),
+                                       dimensions.x(),
+                                       dimensions.y(),
+                                       fetchData,
+                                       fetchBoundary,
+                                       fetchKernel,
+                                       convolve,
+                                       store );
+   }
+};
 
 // template<>
 // struct Launcher< 3, TNL::Devices::Cuda >
