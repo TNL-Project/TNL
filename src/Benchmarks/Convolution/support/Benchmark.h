@@ -14,10 +14,10 @@ template< int Dimension, typename Device >
 class Benchmark
 {
 public:
-   using Benchmark = typename TNL::Benchmarks::Benchmark<>;
+   using TNLBenchmark = typename TNL::Benchmarks::Benchmark<>;
 
    void
-   runBenchmark( const TNL::Config::ParameterContainer& parameters ) const
+   run( const TNL::Config::ParameterContainer& parameters ) const
    {
       if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters ) )
          return;
@@ -36,7 +36,7 @@ public:
 
       std::ofstream logFile( logFileName.getString(), mode );
 
-      Benchmark benchmark( logFile, loops, verbose );
+      TNLBenchmark benchmark( logFile, loops, verbose );
 
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
       TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
@@ -44,8 +44,8 @@ public:
       start(benchmark, parameters);
    }
 
-   virtual void start(const Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters) const {
-      TNL_ASSERT_TRUE(false, << "Should be overriden");
+   virtual void start( TNLBenchmark& benchmark, const TNL::Config::ParameterContainer& parameters) const {
+      TNL_ASSERT_TRUE(false, "Should be overriden");
    }
 
    virtual TNL::Config::ConfigDescription makeInputConfig() const {
@@ -68,7 +68,6 @@ public:
 
       config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
       config.addEntry< int >( "verbose", "Verbose mode.", 1 );
-
 
       config.addDelimiter( "Device settings:" );
       TNL::Devices::Host::configSetup( config );

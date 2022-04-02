@@ -24,3 +24,8 @@ endfunction()
 
 GENERATE_CUDA_EXECUTABLE("Convolution" 1 "templates/main_solver.h" "kernels/naive.h")
 GENERATE_CUDA_EXECUTABLE("Convolution" 2 "templates/main_solver.h" "kernels/naive.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_solver.h" "kernels/naive.h")
+
+GENERATE_CUDA_EXECUTABLE("Convolution" 1 "templates/main_benchmark.h" "kernels/naive.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 2 "templates/main_benchmark.h" "kernels/naive.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_benchmark.h" "kernels/naive.h")

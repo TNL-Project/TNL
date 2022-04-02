@@ -16,12 +16,12 @@ class DummyBenchmark : public Benchmark< Dimension, Device >
 {
 public:
    using Vector = TNL::Containers::StaticVector< Dimension, int >;
-   using DataStore = TNL::Containers::Array< int, Device, float >;
-   using Benchmark = Base::Benchmark;
+   using DataStore = TNL::Containers::Array< float, Device, int >;
    using Base = Benchmark< Dimension, Device >;
+   using TNLBenchmark = typename Base::TNLBenchmark;
 
    virtual void
-   start( const Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters ) const override
+   start( TNLBenchmark& benchmark, const TNL::Config::ParameterContainer& parameters ) const override
    {
       Vector start;
       Vector end;
@@ -53,7 +53,7 @@ public:
    }
 
    virtual void
-   time( Benchmark& bencmark,
+   time( TNLBenchmark& benchmark,
          const Vector& minDimension,
          const Vector& maxDimension,
          const int dimensionStep,
@@ -68,14 +68,14 @@ public:
          currentKernelSize = minKernelSize;
 
          do {
-            time( benchmark, currentDimension, currentKernelSize );
+            timeConvolution( benchmark, currentDimension, currentKernelSize );
 
             currentKernelSize[ 0 ] += kernelStep;
 
             for( size_t i = 0; i < currentKernelSize.getSize() - 1; i++ ) {
                if( currentKernelSize[ i ] >= maxKernelSize[ i ] ) {
                   currentKernelSize[ i ] = minKernelSize[ i ];
-                  maxKernelSize[ i + 1 ] += kernelStep;
+                  currentKernelSize[ i + 1 ] += kernelStep;
                }
             }
          } while( currentKernelSize < maxKernelSize );
@@ -85,7 +85,7 @@ public:
          for( size_t i = 0; i < currentDimension.getSize() - 1; i++ ) {
             if( currentDimension[ i ] >= maxDimension[ i ] ) {
                currentDimension[ i ] = minDimension[ i ];
-               maxDimension[ i ] = maxDimension[ i ];
+               currentDimension[ i ] = maxDimension[ i ];
             }
          }
 
@@ -93,11 +93,11 @@ public:
    }
 
    void
-   timeConvolution( Benchmark& benchmark, const Vector& dimension, const Vector& kernelSize ) const
+   timeConvolution( TNLBenchmark& benchmark, const Vector& dimension, const Vector& kernelSize ) const
    {
       auto device = TNL::getType< Device >();
 
-      Benchmark::MetadataColumns columns = {};
+      typename TNLBenchmark::MetadataColumns columns;
 
       size_t elementsCount = 1;
       size_t kernelElementsCount = 1;
@@ -106,18 +106,19 @@ public:
          elementsCount *= dimension[ i ];
          kernelElementsCount *= kernelSize[ i ];
 
-         columns.insert( { dimensionIds[ i ], dimension[ i ] } );
-         columns.insert( { kernelSizeIds[ i ], kernelSize[ i ] } );
+         columns.push_back( { dimensionIds[ i ], TNL::convertToString(dimension[ i ]) } );
+         columns.push_back( { kernelSizeIds[ i ], TNL::convertToString(kernelSize[ i ]) } );
       }
 
       benchmark.setDatasetSize( ( elementsCount * 4 ) / 1.e9, 1.0 );
+      benchmark.setMetadataColumns( columns );
 
       // Setup input data
       DataStore input, result, kernel;
 
       input.resize( elementsCount );
       result.resize( elementsCount );
-      kernel.resize( kernelSize );
+      kernel.resize( kernelElementsCount );
 
       input = 1;
       result = 1;
@@ -129,24 +130,24 @@ public:
 
       auto measure = [ & ]()
       {
-         DummyTask<Dimension, Device>::exec(dimension, kernelSize, inputView, resultView, kernelView);
+         DummyTask<int, float, Dimension, Device>::exec(dimension, kernelSize, inputView, resultView, kernelView);
       };
 
-      benchmark.time< Device >( device, measure );
+      benchmark.template time<Device>( device, measure );
    }
 
    TNL::Config::ConfigDescription
    makeInputConfig() const override
    {
-      auto config = Base::makeInputConfig();
+      TNL::Config::ConfigDescription config = Base::makeInputConfig();
 
       config.addDelimiter( "Grid dimension settings:" );
 
       for( int i = 0; i < Dimension; i++ )
-         config.addEntry< int >( minDimensionIds[ i ], minDimensionIds[ i ], 512 );
+         config.addEntry< int >( minDimensionIds[ i ], minDimensionIds[ i ], 16 );
 
       for( int i = 0; i < Dimension; i++ )
-         config.addEntry< int >( maxDimensionIds[ i ], maxDimensionIds[ i ], 512 );
+         config.addEntry< int >( maxDimensionIds[ i ], maxDimensionIds[ i ], 128 );
 
       config.addEntry< int >( "dimension-step", "Step of kernel increase by which dimension is multiplied (must be even)", 2 );
 
@@ -156,7 +157,7 @@ public:
          config.addEntry< int >( minKernelSizeIds[ i ], minKernelSizeIds[ i ] + " (odd) :", 1 );
 
       for( int i = 0; i < Dimension; i++ )
-         config.addEntry< int >( minKernelSizeIds[ i ], minKernelSizeIds[ i ] + " (odd) :", 11 );
+         config.addEntry< int >( maxKernelSizeIds[ i ], maxKernelSizeIds[ i ] + " (odd) :", 11 );
 
       config.addEntry< int >( "kernel-step", "Step of kernel increase which is added to kernel (must be even)", 2 );
 
