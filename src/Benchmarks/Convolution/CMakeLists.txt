@@ -38,3 +38,11 @@ GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_solver.h" "kernels/shar
 GENERATE_CUDA_EXECUTABLE("Convolution" 1 "templates/main_benchmark.h" "kernels/sharedKernel.h")
 GENERATE_CUDA_EXECUTABLE("Convolution" 2 "templates/main_benchmark.h" "kernels/sharedKernel.h")
 GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_benchmark.h" "kernels/sharedKernel.h")
+
+GENERATE_CUDA_EXECUTABLE("Convolution" 1 "templates/main_solver.h" "kernels/sharedData.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 2 "templates/main_solver.h" "kernels/sharedData.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_solver.h" "kernels/sharedData.h")
+
+GENERATE_CUDA_EXECUTABLE("Convolution" 1 "templates/main_benchmark.h" "kernels/sharedData.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 2 "templates/main_benchmark.h" "kernels/sharedData.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_benchmark.h" "kernels/sharedData.h")
