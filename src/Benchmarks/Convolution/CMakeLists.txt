@@ -10,6 +10,7 @@ if (${BUILD_CUDA})
    FILE(READ ${TEMPLATE} TEMPLATE_CONTENT)
 
    STRING(REGEX REPLACE "DIMENSION_VALUE" ${DIMENSION} TEMPLATE_CONTENT "${TEMPLATE_CONTENT}")
+   STRING(REGEX REPLACE "KERNEL_VALUE" "\"../${KERNEL_HEADER}\"" TEMPLATE_CONTENT "${TEMPLATE_CONTENT}")
 
    FILE(WRITE ${SOURCE_FILE} "${TEMPLATE_CONTENT}")
 
@@ -29,3 +30,11 @@ GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_solver.h" "kernels/naiv
 GENERATE_CUDA_EXECUTABLE("Convolution" 1 "templates/main_benchmark.h" "kernels/naive.h")
 GENERATE_CUDA_EXECUTABLE("Convolution" 2 "templates/main_benchmark.h" "kernels/naive.h")
 GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_benchmark.h" "kernels/naive.h")
+
+GENERATE_CUDA_EXECUTABLE("Convolution" 1 "templates/main_solver.h" "kernels/sharedKernel.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 2 "templates/main_solver.h" "kernels/sharedKernel.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_solver.h" "kernels/sharedKernel.h")
+
+GENERATE_CUDA_EXECUTABLE("Convolution" 1 "templates/main_benchmark.h" "kernels/sharedKernel.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 2 "templates/main_benchmark.h" "kernels/sharedKernel.h")
+GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_benchmark.h" "kernels/sharedKernel.h")

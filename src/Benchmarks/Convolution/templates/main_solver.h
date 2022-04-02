@@ -1,10 +1,12 @@
 
-#include "../kernels/naive.h"
+#define KERNEL KERNEL_VALUE
+#define DIMENSION DIMENSION_VALUE
+
+#include KERNEL
 #include "../support/DummySolver.h"
 
 #include <TNL/Config/parseCommandLine.h>
 
-#define DIMENSION DIMENSION_VALUE
 
 using TaskSolver = DummySolver< DIMENSION, TNL::Devices::Cuda >;
 

@@ -3,16 +3,10 @@
 
 #ifdef HAVE_CUDA
 
-#include <TNL/Devices/Cuda.h>
-#include <TNL/Containers/StaticVector.h>
-#include <TNL/Cuda/LaunchHelpers.h>
-
-/**
- * There are several pitfalls with such configuration.
- *
- * 1. At first we don't use shared memory
- * 2. At second we don't control block size, so we may launch extremely small kernels or otherwise we can launch extremely large kernels.
- */
+   #include <TNL/Devices/Cuda.h>
+   #include <TNL/Containers/StaticVector.h>
+   #include <TNL/Cuda/LaunchHelpers.h>
+   #include <TNL/Cuda/SharedMemory.h>
 
 template< int Dimension, typename Device >
 struct Convolution;
@@ -28,9 +22,13 @@ public:
    static void
    setup( TNL::Cuda::LaunchConfiguration& configuration, const Vector< Index >& dimensions, const Vector< Index >& kernelSize )
    {
-      configuration.dynamicSharedMemorySize = 0;
+      Index kernelElementCount = 1;
 
-      // TODO: - Benchmark the best value
+      for( Index i = 0; i < kernelSize.getSize(); i++ )
+         kernelElementCount *= kernelSize[ i ];
+
+      configuration.dynamicSharedMemorySize = kernelElementCount * sizeof( Real );
+
       configuration.blockSize.x = kernelSize.x();
       configuration.gridSize.x =
          TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.x(), configuration.blockSize.x ) );
@@ -54,12 +52,15 @@ convolution1D( Index kernelWidth,
                Convolve convolve,
                Store store )
 {
-   Index ix = threadIdx.x + blockIdx.x * blockDim.x;
-
-   if( ix >= endX )
-      return;
+   Real* shared = TNL::Cuda::getSharedMemory< Real >();
 
    Index radius = kernelWidth >> 1;
+   Index ix = threadIdx.x + blockIdx.x * blockDim.x;
+
+   // The size of the block is equal to the kernel size
+   shared[ threadIdx.x ] = fetchKernel( threadIdx.x );
+
+   __syncthreads();
 
    Real result = 0;
 
@@ -68,10 +69,10 @@ convolution1D( Index kernelWidth,
       Index kernelIndex = i + radius;
 
       if( elementIndex < 0 || elementIndex >= endX ) {
-         result = convolve( result, fetchBoundary( elementIndex ), fetchKernel( kernelIndex ) );
+         result = convolve( result, fetchBoundary( elementIndex ), shared[ kernelIndex ] );
       }
       else {
-         result = convolve( result, fetchData( elementIndex ), fetchKernel( kernelIndex ) );
+         result = convolve( result, fetchData( elementIndex ), shared[ kernelIndex ] );
       }
    }
 
@@ -89,7 +90,12 @@ public:
    static void
    setup( TNL::Cuda::LaunchConfiguration& configuration, const Vector< Index >& dimensions, const Vector< Index >& kernelSize )
    {
-      configuration.dynamicSharedMemorySize = 0;
+      Index kernelElementCount = 1;
+
+      for( Index i = 0; i < kernelSize.getSize(); i++ )
+         kernelElementCount *= kernelSize[ i ];
+
+      configuration.dynamicSharedMemorySize = kernelElementCount * sizeof( Real );
 
       configuration.blockSize.x = kernelSize.x();
       configuration.blockSize.y = kernelSize.y();
@@ -120,14 +126,20 @@ convolution2D( Index kernelWidth,
                Convolve convolve,
                Store store )
 {
-   Index iy = threadIdx.y + blockIdx.y * blockDim.y;
-   Index ix = threadIdx.x + blockIdx.x * blockDim.x;
-
-   if( ix >= endX || iy >= endY )
-      return;
+   Real* shared = TNL::Cuda::getSharedMemory< Real >();
 
    Index radiusY = kernelHeight >> 1;
    Index radiusX = kernelWidth >> 1;
+
+   Index iy = threadIdx.y + blockIdx.y * blockDim.y;
+   Index ix = threadIdx.x + blockIdx.x * blockDim.x;
+
+   Index threadIndex = threadIdx.x + blockDim.x * threadIdx.y;
+
+   // The size of the block is equal to the kernel size
+   shared[ threadIndex ] = fetchKernel( threadIdx.x, threadIdx.y );
+
+   __syncthreads();
 
    Real result = 0;
 
@@ -139,12 +151,13 @@ convolution2D( Index kernelWidth,
          Index elementIndexX = i + ix;
          Index kernelIndexX = i + radiusX;
 
+         Index threadIndex = kernelIndexX + kernelWidth * kernelIndexY;
+
          if( elementIndexX < 0 || elementIndexX >= endX || elementIndexY < 0 || elementIndexY >= endY ) {
-            result =
-               convolve( result, fetchBoundary( elementIndexX, elementIndexY ), fetchKernel( kernelIndexX, kernelIndexY ) );
+            result = convolve( result, fetchBoundary( elementIndexX, elementIndexY ), shared[ threadIndex ] );
          }
          else {
-            result = convolve( result, fetchData( elementIndexX, elementIndexY ), fetchKernel( kernelIndexX, kernelIndexY ) );
+            result = convolve( result, fetchData( elementIndexX, elementIndexY ), shared[ threadIndex ] );
          }
       }
    }
@@ -163,9 +176,13 @@ public:
    static void
    setup( TNL::Cuda::LaunchConfiguration& configuration, const Vector< Index >& dimensions, const Vector< Index >& kernelSize )
    {
-      configuration.dynamicSharedMemorySize = 0;
+      Index kernelElementCount = 1;
 
-      // TODO: - Benchmark the best value
+      for( Index i = 0; i < kernelSize.getSize(); i++ )
+         kernelElementCount *= kernelSize[ i ];
+
+      configuration.dynamicSharedMemorySize = kernelElementCount * sizeof( Real );
+
       configuration.blockSize.x = kernelSize.x();
       configuration.blockSize.y = kernelSize.y();
       configuration.blockSize.z = kernelSize.z();
@@ -200,16 +217,24 @@ convolution3D( Index kernelWidth,
                Convolve convolve,
                Store store )
 {
+   Real* shared = TNL::Cuda::getSharedMemory< Real >();
+
    Index iz = threadIdx.z + blockIdx.z * blockDim.z;
    Index iy = threadIdx.y + blockIdx.y * blockDim.y;
    Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-   if( ix >= endX || iy >= endY || iz >= endZ )
-      return;
-
    Index radiusZ = kernelDepth >> 1;
    Index radiusY = kernelHeight >> 1;
    Index radiusX = kernelWidth >> 1;
+
+   Index threadIndex = threadIdx.x + blockDim.x * threadIdx.y + blockDim.x * blockDim.y * threadIdx.z;
+
+   printf( "%d\n", threadIndex );
+
+   // The size of the block is equal to the kernel size
+   shared[ threadIndex ] = fetchKernel( threadIdx.x, threadIdx.y, threadIdx.z );
+
+   __syncthreads();
 
    Real result = 0;
 
@@ -225,17 +250,19 @@ convolution3D( Index kernelWidth,
             Index elementIndexX = i + ix;
             Index kernelIndexX = i + radiusX;
 
+            Index threadIndex = kernelIndexX + kernelWidth * kernelIndexY + kernelWidth * kernelHeight * kernelIndexZ;
+
             if( elementIndexX < 0 || elementIndexX >= endX || elementIndexY < 0 || elementIndexY >= endY || elementIndexZ < 0
                 || elementIndexZ >= endZ )
             {
                result = convolve( result,
                                   fetchBoundary( elementIndexX, elementIndexY, elementIndexZ ),
-                                  fetchKernel( kernelIndexX, kernelIndexY, kernelIndexZ ) );
+                                  shared[threadIndex] );
             }
             else {
                result = convolve( result,
                                   fetchData( elementIndexX, elementIndexY, elementIndexZ ),
-                                  fetchKernel( kernelIndexX, kernelIndexY, kernelIndexZ ) );
+                                  shared[threadIndex] );
             }
          }
       }
