@@ -50,11 +50,14 @@ public:
       TNL_ASSERT_GT( kernelStep, 0, "Kernel step must be a positive number" );
       TNL_ASSERT_EQ( kernelStep % 2, 0, "Kernel step must be even" );
 
-      time( benchmark, start, end, dimensionStep, minKernelSize, maxKernelSize, kernelStep );
+      TNL::String id = parameters.getParameter<TNL::String>("id");
+
+      time( id, benchmark, start, end, dimensionStep, minKernelSize, maxKernelSize, kernelStep );
    }
 
    virtual void
-   time( TNLBenchmark& benchmark,
+   time( const TNL::String& id,
+         TNLBenchmark& benchmark,
          const Vector& minDimension,
          const Vector& maxDimension,
          const int dimensionStep,
@@ -69,7 +72,7 @@ public:
          currentKernelSize = minKernelSize;
 
          do {
-            timeConvolution( benchmark, currentDimension, currentKernelSize );
+            timeConvolution( id, benchmark, currentDimension, currentKernelSize );
 
             currentKernelSize[ 0 ] += kernelStep;
 
@@ -94,11 +97,11 @@ public:
    }
 
    void
-   timeConvolution( TNLBenchmark& benchmark, const Vector& dimension, const Vector& kernelSize ) const
+   timeConvolution( const TNL::String& id, TNLBenchmark& benchmark, const Vector& dimension, const Vector& kernelSize ) const
    {
       auto device = TNL::getType< Device >();
 
-      typename TNLBenchmark::MetadataColumns columns;
+      typename TNLBenchmark::MetadataColumns columns = {{ "id", id }};
 
       size_t elementsCount = 1;
       size_t kernelElementsCount = 1;
