@@ -29,20 +29,7 @@ public:
    {
       TNL::Cuda::LaunchConfiguration launchConfig;
 
-      launchConfig.dynamicSharedMemorySize =
-         ConvolutionKernel::getDynamicSharedMemorySize< Index >( kernelSize.x(), dimensions.x() );
-
-      // TODO: - Benchmark the best value
-      launchConfig.blockSize.x = 256;
-      launchConfig.gridSize.x =
-         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.x(), launchConfig.blockSize.x ) );
-
-      if( (std::size_t) launchConfig.blockSize.x * launchConfig.gridSize.x < (std::size_t) dimensions.x() ) {
-         const int desGridSize = 32 * TNL::Cuda::DeviceInfo::getCudaMultiprocessors( TNL::Cuda::DeviceInfo::getActiveDevice() );
-
-         launchConfig.gridSize.x =
-            TNL::min( desGridSize, TNL::Cuda::getNumberOfBlocks( dimensions.x(), launchConfig.blockSize.x ) );
-      }
+      ConvolutionKernel::setup<Index>(launchConfig, dimensions, kernelSize);
 
       constexpr auto kernel = convolution1D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
 
@@ -78,29 +65,7 @@ public:
    {
       TNL::Cuda::LaunchConfiguration launchConfig;
 
-      launchConfig.dynamicSharedMemorySize = ConvolutionKernel::getDynamicSharedMemorySize< Index >(
-         kernelSize.x(), kernelSize.y(), dimensions.x(), dimensions.y() );
-
-      const Index sizeX = dimensions.x();
-      const Index sizeY = dimensions.y();
-
-      if( sizeX >= sizeY * sizeY ) {
-         launchConfig.blockSize.x = TNL::min( 256, sizeX );
-         launchConfig.blockSize.y = 1;
-      }
-      else if( sizeY >= sizeX * sizeX ) {
-         launchConfig.blockSize.x = 1;
-         launchConfig.blockSize.y = TNL::min( 256, sizeY );
-      }
-      else {
-         launchConfig.blockSize.x = TNL::min( 32, sizeX );
-         launchConfig.blockSize.y = TNL::min( 8, sizeY );
-      }
-
-      launchConfig.gridSize.x =
-         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( sizeX, launchConfig.blockSize.x ) );
-      launchConfig.gridSize.y =
-         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( sizeY, launchConfig.blockSize.y ) );
+      ConvolutionKernel::setup<Index>(launchConfig, dimensions, kernelSize);
 
       constexpr auto kernel = convolution2D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
 
@@ -142,52 +107,7 @@ public:
 
       TNL::Cuda::LaunchConfiguration launchConfig;
 
-      launchConfig.dynamicSharedMemorySize = ConvolutionKernel::getDynamicSharedMemorySize< Index >(
-         kernelSize.x(), kernelSize.y(), kernelSize.z(), dimensions.x(), dimensions.y(), dimensions.z() );
-
-      if( sizeX >= sizeY * sizeY * sizeZ * sizeZ ) {
-         launchConfig.blockSize.x = TNL::min( 256, sizeX );
-         launchConfig.blockSize.y = 1;
-         launchConfig.blockSize.z = 1;
-      }
-      else if( sizeY >= sizeX * sizeX * sizeZ * sizeZ ) {
-         launchConfig.blockSize.x = 1;
-         launchConfig.blockSize.y = TNL::min( 256, sizeY );
-         launchConfig.blockSize.z = 1;
-      }
-      else if( sizeZ >= sizeX * sizeX * sizeY * sizeY ) {
-         launchConfig.blockSize.x = TNL::min( 2, sizeX );
-         launchConfig.blockSize.y = TNL::min( 2, sizeY );
-         // CUDA allows max 64 for launchConfig.blockSize.z
-         launchConfig.blockSize.z = TNL::min( 64, sizeZ );
-      }
-      else if( sizeX >= sizeZ * sizeZ && sizeY >= sizeZ * sizeZ ) {
-         launchConfig.blockSize.x = TNL::min( 32, sizeX );
-         launchConfig.blockSize.y = TNL::min( 8, sizeY );
-         launchConfig.blockSize.z = 1;
-      }
-      else if( sizeX >= sizeY * sizeY && sizeZ >= sizeY * sizeY ) {
-         launchConfig.blockSize.x = TNL::min( 32, sizeX );
-         launchConfig.blockSize.y = 1;
-         launchConfig.blockSize.z = TNL::min( 8, sizeZ );
-      }
-      else if( sizeY >= sizeX * sizeX && sizeZ >= sizeX * sizeX ) {
-         launchConfig.blockSize.x = 1;
-         launchConfig.blockSize.y = TNL::min( 32, sizeY );
-         launchConfig.blockSize.z = TNL::min( 8, sizeZ );
-      }
-      else {
-         launchConfig.blockSize.x = TNL::min( 16, sizeX );
-         launchConfig.blockSize.y = TNL::min( 4, sizeY );
-         launchConfig.blockSize.z = TNL::min( 4, sizeZ );
-      }
-
-      launchConfig.gridSize.x =
-         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( sizeX, launchConfig.blockSize.x ) );
-      launchConfig.gridSize.y =
-         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( sizeY, launchConfig.blockSize.y ) );
-      launchConfig.gridSize.z =
-         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( sizeZ, launchConfig.blockSize.z ) );
+      ConvolutionKernel::setup<Index>(launchConfig, dimensions, kernelSize);
 
       constexpr auto kernel = convolution3D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
 

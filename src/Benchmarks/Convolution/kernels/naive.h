@@ -1,8 +1,9 @@
 
 #ifdef HAVE_CUDA
 
-#include <TNL/Devices/Cuda.h>
-#include <TNL/Cuda/LaunchHelpers.h>
+   #include <TNL/Devices/Cuda.h>
+   #include <TNL/Containers/StaticVector.h>
+   #include <TNL/Cuda/LaunchHelpers.h>
 
 template< int Dimension, typename Device >
 struct Convolution;
@@ -12,10 +13,18 @@ struct Convolution< 1, TNL::Devices::Cuda >
 {
 public:
    template< typename Index >
-   static size_t
-   getDynamicSharedMemorySize( Index kernelWidth, Index endX )
+   using Vector = TNL::Containers::StaticVector< 1, Index >;
+
+   template< typename Index >
+   static void
+   setup( TNL::Cuda::LaunchConfiguration& configuration, const Vector< Index >& dimensions, const Vector< Index >& kernelSize )
    {
-      return 0;
+      configuration.dynamicSharedMemorySize = 0;
+
+      // TODO: - Benchmark the best value
+      configuration.blockSize.x = kernelSize.x();
+      configuration.gridSize.x =
+         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.x(), configuration.blockSize.x ) );
    }
 };
 
@@ -36,9 +45,9 @@ convolution1D( Index kernelWidth,
                Convolve convolve,
                Store store )
 {
-   Index ix =  threadIdx.x + blockIdx.x * blockDim.x;
+   Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-   if (ix >= endX)
+   if( ix >= endX )
       return;
 
    Index radius = kernelWidth >> 1;
@@ -65,10 +74,22 @@ struct Convolution< 2, TNL::Devices::Cuda >
 {
 public:
    template< typename Index >
-   static size_t
-   getDynamicSharedMemorySize( Index kernelWidth, Index kernelHeight, Index endX, Index endY )
+   using Vector = TNL::Containers::StaticVector< 2, Index >;
+
+   template< typename Index >
+   static void
+   setup( TNL::Cuda::LaunchConfiguration& configuration, const Vector< Index >& dimensions, const Vector< Index >& kernelSize )
    {
-      return 0;
+      configuration.dynamicSharedMemorySize = 0;
+
+      // TODO: - Benchmark the best value
+      configuration.blockSize.x = kernelSize.x();
+      configuration.blockSize.y = kernelSize.y();
+
+      configuration.gridSize.x =
+         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.x(), configuration.blockSize.x ) );
+      configuration.gridSize.y =
+         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.y(), configuration.blockSize.y ) );
    }
 };
 
@@ -94,7 +115,7 @@ convolution2D( Index kernelWidth,
    Index iy = threadIdx.y + blockIdx.y * blockDim.y;
    Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-   if (ix >= endX || iy >= endY)
+   if( ix >= endX || iy >= endY )
       return;
 
    Index radiusY = kernelHeight >> 1;
@@ -102,16 +123,17 @@ convolution2D( Index kernelWidth,
 
    Real result = 0;
 
-   for( Index j = - radiusY; j <= radiusY; j++ ) {
+   for( Index j = -radiusY; j <= radiusY; j++ ) {
       Index elementIndexY = j + iy;
       Index kernelIndexY = j + radiusY;
 
-      for( Index i = - radiusX; i <= radiusX; i++ ) {
+      for( Index i = -radiusX; i <= radiusX; i++ ) {
          Index elementIndexX = i + ix;
          Index kernelIndexX = i + radiusX;
 
          if( elementIndexX < 0 || elementIndexX >= endX || elementIndexY < 0 || elementIndexY >= endY ) {
-            result = convolve( result, fetchBoundary( elementIndexX, elementIndexY ), fetchKernel ( kernelIndexX, kernelIndexY ) );
+            result =
+               convolve( result, fetchBoundary( elementIndexX, elementIndexY ), fetchKernel( kernelIndexX, kernelIndexY ) );
          }
          else {
             result = convolve( result, fetchData( elementIndexX, elementIndexY ), fetchKernel( kernelIndexX, kernelIndexY ) );
@@ -127,10 +149,25 @@ struct Convolution< 3, TNL::Devices::Cuda >
 {
 public:
    template< typename Index >
-   static size_t
-   getDynamicSharedMemorySize( Index kernelWidth, Index kernelHeight, Index kernelDepth, Index endX, Index endY, Index endZ )
+   using Vector = TNL::Containers::StaticVector< 3, Index >;
+
+   template< typename Index >
+   static void
+   setup( TNL::Cuda::LaunchConfiguration& configuration, const Vector< Index >& dimensions, const Vector< Index >& kernelSize )
    {
-      return 0;
+      configuration.dynamicSharedMemorySize = 0;
+
+      // TODO: - Benchmark the best value
+      configuration.blockSize.x = kernelSize.x();
+      configuration.blockSize.y = kernelSize.y();
+      configuration.blockSize.z = kernelSize.z();
+
+      configuration.gridSize.x =
+         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.x(), configuration.blockSize.x ) );
+      configuration.gridSize.y =
+         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.y(), configuration.blockSize.y ) );
+      configuration.gridSize.y =
+         TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.z(), configuration.blockSize.z ) );
    }
 };
 
@@ -159,7 +196,7 @@ convolution3D( Index kernelWidth,
    Index iy = threadIdx.y + blockIdx.y * blockDim.y;
    Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-   if (ix >= endX || iy >= endY || iz >= endZ)
+   if( ix >= endX || iy >= endY || iz >= endZ )
       return;
 
    Index radiusZ = kernelDepth >> 1;
@@ -180,11 +217,17 @@ convolution3D( Index kernelWidth,
             Index elementIndexX = i + ix;
             Index kernelIndexX = i + radiusX;
 
-            if( elementIndexX < 0 || elementIndexX >= endX || elementIndexY < 0 || elementIndexY >= endY || elementIndexZ < 0 || elementIndexZ >= endZ ) {
-               result = convolve( result, fetchBoundary( elementIndexX, elementIndexY, elementIndexZ ), fetchKernel( kernelIndexX, kernelIndexY, kernelIndexZ ) );
+            if( elementIndexX < 0 || elementIndexX >= endX || elementIndexY < 0 || elementIndexY >= endY || elementIndexZ < 0
+                || elementIndexZ >= endZ )
+            {
+               result = convolve( result,
+                                  fetchBoundary( elementIndexX, elementIndexY, elementIndexZ ),
+                                  fetchKernel( kernelIndexX, kernelIndexY, kernelIndexZ ) );
             }
             else {
-               result = convolve( result, fetchData( elementIndexX, elementIndexY, elementIndexZ ), fetchKernel( kernelIndexX, kernelIndexY, kernelIndexZ ) );
+               result = convolve( result,
+                                  fetchData( elementIndexX, elementIndexY, elementIndexZ ),
+                                  fetchKernel( kernelIndexX, kernelIndexY, kernelIndexZ ) );
             }
          }
       }
