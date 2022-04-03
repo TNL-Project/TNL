@@ -19,12 +19,12 @@ public:
    void
    run( const TNL::Config::ParameterContainer& parameters ) const
    {
-      if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters ) )
+      if( ! TNL::Devices::Cuda::setup( parameters ) )
          return;
 
       const TNL::String logFileName = parameters.getParameter< TNL::String >( "log-file" );
       const TNL::String outputMode = parameters.getParameter< TNL::String >( "output-mode" );
-      const TNL::String device = parameters.getParameter< TNL::String >( "device" );
+   
 
       const int verbose = parameters.getParameter< int >( "verbose" );
       const int loops = parameters.getParameter< int >( "loops" );
@@ -58,19 +58,10 @@ public:
       config.addEntryEnum( "append" );
       config.addEntryEnum( "overwrite" );
 
-      config.addEntry< TNL::String >( "device", "Device the computation will run on.", "cuda" );
-      config.addEntryEnum< TNL::String >( "all" );
-      config.addEntryEnum< TNL::String >( "host" );
-
-#ifdef HAVE_CUDA
-      config.addEntryEnum< TNL::String >( "cuda" );
-#endif
-
       config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
       config.addEntry< int >( "verbose", "Verbose mode.", 1 );
 
       config.addDelimiter( "Device settings:" );
-      TNL::Devices::Host::configSetup( config );
 
 #ifdef HAVE_CUDA
       TNL::Devices::Cuda::configSetup( config );
