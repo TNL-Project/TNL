@@ -1,7 +1,28 @@
 
 #pragma once
 
-#include "Launcher.h"
+template< int Dimension, typename Device >
+struct Convolution
+{
+   template< typename Index >
+   using Vector = TNL::Containers::StaticVector< Dimension, Index >;
+
+   template< typename Index,
+             typename Real,
+             typename FetchData,
+             typename FetchBoundary,
+             typename FetchKernel,
+             typename Convolve,
+             typename Store >
+   static void
+   execute( const Vector< Index >& dimensions,
+            const Vector< Index >& kernelSize,
+            FetchData&& fetchData,
+            FetchBoundary&& fetchBoundary,
+            FetchKernel&& fetchKernel,
+            Convolve&& convolve,
+            Store&& store );
+};
 
 template< typename Index, typename Real, int Dimension, typename Device >
 struct DummyTask;
@@ -14,7 +35,7 @@ public:
    using Device = TNL::Devices::Cuda;
    using Vector = TNL::Containers::StaticVector< Dimension, Index >;
    using DataStore = typename TNL::Containers::Array< Real, Device, Index >::ViewType;
-   using Launcher = Launcher< Dimension, Device >;
+   using ConvolutionLauncher = Convolution< Dimension, Device >;
 
    static void
    exec( const Vector& dimensions, const Vector& kernelSize, DataStore& input, DataStore& result, DataStore& kernel )
@@ -44,13 +65,13 @@ public:
          result[ i ] = resultValue;
       };
 
-      Launcher::exec< Index, Real >( dimensions,
-                                     kernelSize,
-                                     std::forward< decltype( fetchData ) >( fetchData ),
-                                     std::forward< decltype( fetchBoundary ) >( fetchBoundary ),
-                                     std::forward< decltype( fetchKernel ) >( fetchKernel ),
-                                     std::forward< decltype( convolve ) >( convolve ),
-                                     std::forward< decltype( store ) >( store ) );
+      ConvolutionLauncher::execute< Index, Real >( dimensions,
+                                                   kernelSize,
+                                                   std::forward< decltype( fetchData ) >( fetchData ),
+                                                   std::forward< decltype( fetchBoundary ) >( fetchBoundary ),
+                                                   std::forward< decltype( fetchKernel ) >( fetchKernel ),
+                                                   std::forward< decltype( convolve ) >( convolve ),
+                                                   std::forward< decltype( store ) >( store ) );
    }
 };
 
@@ -62,7 +83,7 @@ public:
    using Device = TNL::Devices::Cuda;
    using Vector = TNL::Containers::StaticVector< Dimension, Index >;
    using DataStore = typename TNL::Containers::Array< Real, Device, Index >::ViewType;
-   using Launcher = Launcher< Dimension, Device >;
+   using ConvolutionLauncher = Convolution< Dimension, Device >;
 
    static void
    exec( const Vector& dimensions, const Vector& kernelSize, DataStore& input, DataStore& result, DataStore& kernel )
@@ -98,13 +119,13 @@ public:
          result[ index ] = resultValue;
       };
 
-      Launcher::exec< Index, Real >( dimensions,
-                                     kernelSize,
-                                     std::forward< decltype( fetchData ) >( fetchData ),
-                                     std::forward< decltype( fetchBoundary ) >( fetchBoundary ),
-                                     std::forward< decltype( fetchKernel ) >( fetchKernel ),
-                                     std::forward< decltype( convolve ) >( convolve ),
-                                     std::forward< decltype( store ) >( store ) );
+      ConvolutionLauncher::execute< Index, Real >( dimensions,
+                                                   kernelSize,
+                                                   std::forward< decltype( fetchData ) >( fetchData ),
+                                                   std::forward< decltype( fetchBoundary ) >( fetchBoundary ),
+                                                   std::forward< decltype( fetchKernel ) >( fetchKernel ),
+                                                   std::forward< decltype( convolve ) >( convolve ),
+                                                   std::forward< decltype( store ) >( store ) );
    }
 };
 
@@ -116,7 +137,7 @@ public:
    using Device = TNL::Devices::Cuda;
    using Vector = TNL::Containers::StaticVector< Dimension, Index >;
    using DataStore = typename TNL::Containers::Array< Real, Device, Index >::ViewType;
-   using Launcher = Launcher< Dimension, Device >;
+   using ConvolutionLauncher = Convolution< Dimension, Device >;
 
    static void
    exec( const Vector& dimensions, const Vector& kernelSize, DataStore& input, DataStore& result, DataStore& kernel )
@@ -125,7 +146,7 @@ public:
       {
          auto index = i + j * dimensions.x() + k * dimensions.x() * dimensions.y();
 
-         return input[index];
+         return input[ index ];
       };
 
       auto fetchBoundary = [ = ] __cuda_callable__( Index i, Index j, Index k )
@@ -152,12 +173,12 @@ public:
          result[ index ] = resultValue;
       };
 
-      Launcher::exec< Index, Real >( dimensions,
-                                     kernelSize,
-                                     std::forward< decltype( fetchData ) >( fetchData ),
-                                     std::forward< decltype( fetchBoundary ) >( fetchBoundary ),
-                                     std::forward< decltype( fetchKernel ) >( fetchKernel ),
-                                     std::forward< decltype( convolve ) >( convolve ),
-                                     std::forward< decltype( store ) >( store ) );
+      ConvolutionLauncher::execute< Index, Real >( dimensions,
+                                                   kernelSize,
+                                                   std::forward< decltype( fetchData ) >( fetchData ),
+                                                   std::forward< decltype( fetchBoundary ) >( fetchBoundary ),
+                                                   std::forward< decltype( fetchKernel ) >( fetchKernel ),
+                                                   std::forward< decltype( convolve ) >( convolve ),
+                                                   std::forward< decltype( store ) >( store ) );
    }
 };
