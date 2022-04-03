@@ -6,8 +6,6 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Containers/Array.h>
 
-#include "Launcher.h"
-
 template< int Dimension, typename Device >
 class Solver
 {
