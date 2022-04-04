@@ -61,6 +61,11 @@ public:
 
       DummyTask<int, float, Dimension, Device>::exec(dimension, kernelSize, inputView, resultView, kernelView);
 
+      TNL::Containers::Array< float, TNL::Devices::Host, int > host(result);
+
+      for (int i = 0; i < host.getSize(); i++)
+         TNL_ASSERT_EQ(host[i], kernelElementsCount, "Dummy task always sets volume of kernel");
+
       std::cout << "Everything is fine" << std::endl;
    }
 
@@ -72,12 +77,12 @@ public:
       config.addDelimiter( "Grid dimension settings:" );
 
       for( int i = 0; i < Dimension; i++ )
-         config.addEntry< int >( dimensionIds[ i ], dimensionIds[ i ], 512 );
+         config.addEntry< int >( dimensionIds[ i ], dimensionIds[ i ], 64 );
 
       config.addDelimiter( "Kernel settings:" );
 
       for( int i = 0; i < Dimension; i++ )
-         config.addEntry< int >( kernelSizeIds[ i ], kernelSizeIds[ i ] + " (odd) :", 11 );
+         config.addEntry< int >( kernelSizeIds[ i ], kernelSizeIds[ i ] + " (odd) :", 9 );
 
       return config;
    }
