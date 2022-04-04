@@ -34,9 +34,6 @@ convolution1D( Index kernelWidth,
 {
    Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-   if( ix >= endX )
-      return;
-
    Real* shared = TNL::Cuda::getSharedMemory< Real >();
 
    Index radius = kernelWidth >> 1;
@@ -46,8 +43,12 @@ convolution1D( Index kernelWidth,
 
    __syncthreads();
 
+   if( ix >= endX )
+      return;
+
    Real result = 0;
 
+   #pragma unroll
    for( Index i = -radius; i <= radius; i++ ) {
       Index elementIndex = i + ix;
       Index kernelIndex = i + radius;
@@ -85,9 +86,6 @@ convolution2D( Index kernelWidth,
    Index iy = threadIdx.y + blockIdx.y * blockDim.y;
    Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-   if( ix >= endX || iy >= endY )
-      return;
-
    Real* shared = TNL::Cuda::getSharedMemory< Real >();
 
    Index radiusY = kernelHeight >> 1;
@@ -100,12 +98,17 @@ convolution2D( Index kernelWidth,
 
    __syncthreads();
 
+   if( ix >= endX || iy >= endY )
+      return;
+
    Real result = 0;
 
+   #pragma unroll
    for( Index j = -radiusY; j <= radiusY; j++ ) {
       Index elementIndexY = j + iy;
       Index kernelIndexY = j + radiusY;
 
+      #pragma unroll
       for( Index i = -radiusX; i <= radiusX; i++ ) {
          Index elementIndexX = i + ix;
          Index kernelIndexX = i + radiusX;
@@ -149,9 +152,6 @@ convolution3D( Index kernelWidth,
    Index iy = threadIdx.y + blockIdx.y * blockDim.y;
    Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-   if( ix >= endX || iy >= endY || iz >= endZ )
-      return;
-
    Real* shared = TNL::Cuda::getSharedMemory< Real >();
 
    Index radiusZ = kernelDepth >> 1;
@@ -160,23 +160,27 @@ convolution3D( Index kernelWidth,
 
    Index threadIndex = threadIdx.x + blockDim.x * threadIdx.y + blockDim.x * blockDim.y * threadIdx.z;
 
-   printf( "%d\n", threadIndex );
-
    // The size of the block is equal to the kernel size
    shared[ threadIndex ] = fetchKernel( threadIdx.x, threadIdx.y, threadIdx.z );
 
    __syncthreads();
 
+   if( ix >= endX || iy >= endY || iz >= endZ )
+      return;
+
    Real result = 0;
 
+   #pragma unroll
    for( Index k = -radiusZ; k <= radiusZ; k++ ) {
       Index elementIndexZ = k + iz;
       Index kernelIndexZ = k + radiusZ;
 
+      #pragma unroll
       for( Index j = -radiusY; j <= radiusY; j++ ) {
          Index elementIndexY = j + iy;
          Index kernelIndexY = j + radiusY;
 
+         #pragma unroll
          for( Index i = -radiusX; i <= radiusX; i++ ) {
             Index elementIndexX = i + ix;
             Index kernelIndexX = i + radiusX;
@@ -338,7 +342,7 @@ public:
          TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.x(), configuration.blockSize.x ) );
       configuration.gridSize.y =
          TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.y(), configuration.blockSize.y ) );
-      configuration.gridSize.y =
+      configuration.gridSize.z =
          TNL::min( TNL::Cuda::getMaxGridSize(), TNL::Cuda::getNumberOfBlocks( dimensions.z(), configuration.blockSize.z ) );
    }
 

@@ -55,7 +55,7 @@ public:
          return kernel[ i ];
       };
 
-      auto convolve = [ = ] __cuda_callable__( Real result, Index data, Index kernel )
+      auto convolve = [ = ] __cuda_callable__( Real result, Real data, Real kernel )
       {
          return result + data * kernel;
       };
@@ -97,7 +97,7 @@ public:
 
       auto fetchBoundary = [ = ] __cuda_callable__( Index i, Index j )
       {
-         return -1;
+         return 1;
       };
 
       auto fetchKernel = [ = ] __cuda_callable__( Index i, Index j )
@@ -107,7 +107,7 @@ public:
          return kernel[ index ];
       };
 
-      auto convolve = [ = ] __cuda_callable__( Real result, Index data, Index kernel )
+      auto convolve = [ = ] __cuda_callable__( Real result, Real data, Real kernel )
       {
          return result + data * kernel;
       };
@@ -161,7 +161,7 @@ public:
          return kernel[ index ];
       };
 
-      auto convolve = [ = ] __cuda_callable__( float result, Index data, Index kernel )
+      auto convolve = [ = ] __cuda_callable__( Real result, Real data, Real kernel )
       {
          return result + data * kernel;
       };
