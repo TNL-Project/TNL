@@ -1,3 +1,4 @@
+add_subdirectory(Convolution)
 add_subdirectory(HeatEquation)
 add_subdirectory(DenseLinearSolvers)
 add_subdirectory(Graphs)
