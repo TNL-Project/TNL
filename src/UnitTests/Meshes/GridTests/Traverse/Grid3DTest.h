@@ -8,12 +8,19 @@
 #include <TNL/Meshes/Grid.h>
 #include "support.h"
 
+#ifdef HAVE_CUDA
 using Implementations = ::testing::Types<
    TNL::Meshes::Grid<3, double, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<3, float, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<3, double, TNL::Devices::Cuda, int>,
    TNL::Meshes::Grid<3, float, TNL::Devices::Cuda, int>
 >;
+#else
+using Implementations = ::testing::Types<
+   TNL::Meshes::Grid<3, double, TNL::Devices::Host, int>,
+   TNL::Meshes::Grid<3, float, TNL::Devices::Host, int>
+>;
+#endif
 
 template <class GridType>
 class GridTestSuite: public ::testing::Test {
@@ -29,11 +36,14 @@ class GridTestSuite: public ::testing::Test {
          { 3, 3, 3 },
          { 10, 1, 1 },
          { 1, 10, 1 },
-         { 1, 1, 10 },
+         { 1, 1, 10 }
+#if defined(HAVE_CUDA) || defined(HAVE_OPENMP)
+         ,
          { 10, 10, 1 },
          { 1, 10, 10 },
          { 10, 1, 10 },
          { 10, 10, 10 }
+#endif
       };
 
       std::vector<typename GridType::Point> origins = {

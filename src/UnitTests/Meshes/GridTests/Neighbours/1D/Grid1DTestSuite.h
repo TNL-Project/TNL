@@ -26,9 +26,12 @@ class GridTestSuite: public ::testing::Test {
          { 2 },
          { 4 },
          { 8 },
-         { 9 },
+         { 9 }
+#if defined(HAVE_CUDA) || defined(HAVE_OPENMP)
+         ,
          { 127 },
          { 1024 }
+#endif
       };
 
 #ifndef HAVE_CUDA

@@ -9,6 +9,7 @@
 
 #include "support.h"
 
+#ifdef HAVE_CUDA
 using Implementations = ::testing::Types<
    TNL::Meshes::NDimGrid<3, double, TNL::Devices::Host, int>,
    TNL::Meshes::NDimGrid<3, float, TNL::Devices::Host, int>,
@@ -19,6 +20,14 @@ using Implementations = ::testing::Types<
    TNL::Meshes::Grid<3, double, TNL::Devices::Cuda, int>,
    TNL::Meshes::Grid<3, float, TNL::Devices::Cuda, int>
 >;
+#else
+using Implementations = ::testing::Types<
+   TNL::Meshes::NDimGrid<3, double, TNL::Devices::Host, int>,
+   TNL::Meshes::NDimGrid<3, float, TNL::Devices::Host, int>,
+   TNL::Meshes::Grid<3, double, TNL::Devices::Host, int>,
+   TNL::Meshes::Grid<3, float, TNL::Devices::Host, int>
+>;
+#endif
 
 template <class GridType>
 class GridTestSuite: public ::testing::Test {

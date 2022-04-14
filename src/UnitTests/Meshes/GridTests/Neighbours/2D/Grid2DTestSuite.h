@@ -26,10 +26,13 @@ class GridTestSuite: public ::testing::Test {
          { 2, 1 },
          { 1, 2 },
          { 2, 2 },
-         { 3, 3 },
+         { 3, 3 }
+#if HAVE_CUDA || HAVE_OPENMP
+         ,
          { 100, 1 },
          { 1, 100 },
          { 100, 100 }
+#endif
       };
 
 #ifndef HAVE_CUDA

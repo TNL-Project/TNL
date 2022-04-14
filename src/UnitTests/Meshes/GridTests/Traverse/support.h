@@ -139,9 +139,6 @@ class GridTraverseTestCase {
          for (Index i = 0; i < callsView.getSize(); i++)
             EXPECT_EQ(callsView[i], 1) << "Expect each index to be called only once";
 
-         // Test each traversion of each orientation
-         auto gridDimension = grid.getMeshDimension();
-
          auto verify = [&](const auto orientation) {
             GridCoordinateIterator<orientation> iterator(grid.getDimensions());
 
@@ -169,9 +166,6 @@ class GridTraverseTestCase {
 
          ASSERT_GT(orientationsCount, 0) << "Every entity must have at least one orientation";
 
-         // Test each traversion of each orientation
-         auto gridDimension = grid.getMeshDimension();
-
          auto verify = [&](const auto orientation) {
             GridCoordinateIterator<orientation> iterator(grid.getDimensions());
 
@@ -198,9 +192,6 @@ class GridTraverseTestCase {
          SCOPED_TRACE("Orientations Count: " + TNL::convertToString(orientationsCount));
 
          ASSERT_GT(orientationsCount, 0) << "Every entity must have at least one orientation";
-
-         // Test each traversion of each orientation
-         auto gridDimension = grid.getMeshDimension();
 
          auto verify = [&](const auto orientation) {
             GridCoordinateIterator<orientation> iterator(grid.getDimensions());
@@ -312,9 +303,7 @@ class GridTraverseTestCase {
                         bool expectCall) const {
          static Real precision = 9e-5;
 
-         auto gridDimension = grid.getMeshDimension();
          auto index = iterator.getIndex(grid);
-
          auto entity = dataStore.getEntity(index);
 
          SCOPED_TRACE("Entity: " + TNL::convertToString(entity));

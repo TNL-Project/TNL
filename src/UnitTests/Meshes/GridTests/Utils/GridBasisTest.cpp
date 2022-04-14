@@ -1,3 +1,3 @@
 
-#include "Grid2DTest.h"
+#include "GridBasisTest.h"
 #include "../../../main.h"

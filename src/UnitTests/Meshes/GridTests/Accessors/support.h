@@ -162,6 +162,7 @@ class GridAccessorsTestCase<TNL::Devices::Host>: public GridAccessorsTestCaseInt
          }
       }
 };
+#ifdef HAVE_CUDA
 
 template<>
 class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInterface<TNL::Devices::Cuda> {
@@ -313,6 +314,8 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
          this -> executeFromDevice<typename Grid::IndexType>(update, verify);
       }
 };
+
+#endif
 
 template<typename... Parameters>
 std::string makeString(Parameters... parameters) {

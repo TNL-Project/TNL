@@ -30,11 +30,14 @@ class GridTestSuite: public ::testing::Test {
          { 3, 3, 3 },
          { 10, 1, 1 },
          { 1, 10, 1 },
-         { 1, 1, 10 },
+         { 1, 1, 10 }
+#if defined(HAVE_CUDA) || defined(HAVE_OPENMP)
+         ,
          { 10, 10, 1 },
          { 1, 10, 10 },
          { 10, 1, 10 },
          { 10, 10, 10 }
+#endif
       };
 
 #ifndef HAVE_CUDA
