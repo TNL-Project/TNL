@@ -29,7 +29,7 @@ public:
    using IndexType = std::remove_const_t< Index >;
    using KernelType = Kernel;
    using OffsetsView = typename Containers::VectorView< Index, DeviceType, IndexType >;
-   using ConstOffsetsView = typename Containers::Vector< Index, DeviceType, IndexType >::ConstViewType;
+   using ConstOffsetsView = typename OffsetsView::ConstViewType;
    using KernelView = typename Kernel::ViewType;
    using ViewType = CSRView;
    template< typename Device_, typename Index_ >
@@ -166,6 +166,18 @@ public:
    template< typename Fetch >
    SegmentsPrinter< CSRView, Fetch >
    print( Fetch&& fetch ) const;
+
+   OffsetsView
+   getOffsets()
+   {
+      return offsets;
+   }
+
+   ConstOffsetsView
+   getOffsets() const
+   {
+      return offsets.getConstView();
+   }
 
    KernelType&
    getKernel()
