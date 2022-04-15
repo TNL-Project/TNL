@@ -151,7 +151,7 @@ void
 DistributedArrayView< Value, Device, Index >::setSynchronizer( std::shared_ptr< SynchronizerType > synchronizer,
                                                                int valuesPerElement )
 {
-   this->synchronizer = synchronizer;
+   this->synchronizer = std::move( synchronizer );
    this->valuesPerElement = valuesPerElement;
 }
 

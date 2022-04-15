@@ -133,7 +133,7 @@ void
 DistributedArray< Value, Device, Index, Allocator >::setSynchronizer( std::shared_ptr< SynchronizerType > synchronizer,
                                                                       int valuesPerElement )
 {
-   view.setSynchronizer( synchronizer, valuesPerElement );
+   view.setSynchronizer( std::move( synchronizer ), valuesPerElement );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
