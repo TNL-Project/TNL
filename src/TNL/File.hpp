@@ -234,6 +234,15 @@ File::save_impl( const Type* buffer, std::streamsize elements )
 #endif
 }
 
+template< typename SourceType >
+void
+File::ignore( std::streamsize elements )
+{
+   // use seekg instead of ignore for efficiency
+   // https://stackoverflow.com/a/31246560
+   file.seekg( sizeof( SourceType ) * elements, std::ios_base::cur );
+}
+
 inline bool
 fileExists( const String& fileName )
 {

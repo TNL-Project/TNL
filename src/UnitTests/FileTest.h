@@ -18,11 +18,13 @@ TEST( FileTest, WriteAndRead )
    File file;
    ASSERT_NO_THROW( file.open( String( TEST_FILE_NAME ), std::ios_base::out ) );
 
-   int intData( 5 );
+   int intData = 5;
    double doubleData[ 3 ] = { 1.0, 2.0, 3.0 };
+   const int ignoredValue = 42;
    const double constDoubleData = 3.14;
    ASSERT_NO_THROW( file.save( &intData ) );
    ASSERT_NO_THROW( file.save( doubleData, 3 ) );
+   ASSERT_NO_THROW( file.save( &ignoredValue ) );
    ASSERT_NO_THROW( file.save( &constDoubleData ) );
    ASSERT_NO_THROW( file.close() );
 
@@ -32,6 +34,7 @@ TEST( FileTest, WriteAndRead )
    double newConstDoubleData;
    ASSERT_NO_THROW( file.load( &newIntData, 1 ) );
    ASSERT_NO_THROW( file.load( newDoubleData, 3 ) );
+   ASSERT_NO_THROW( file.ignore< decltype(ignoredValue) >( 1 ) );
    ASSERT_NO_THROW( file.load( &newConstDoubleData, 1 ) );
 
    EXPECT_EQ( newIntData, intData );
