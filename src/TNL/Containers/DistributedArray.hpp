@@ -316,5 +316,19 @@ DistributedArray< Value, Device, Index, Allocator >::forElements( IndexType begi
    view.forElements( begin, end, f );
 }
 
+template< typename Value, typename Device, typename Index, typename Allocator >
+void
+DistributedArray< Value, Device, Index, Allocator >::loadFromGlobalFile( const String& fileName, bool allowCasting )
+{
+   view.loadFromGlobalFile( fileName, allowCasting );
+}
+
+template< typename Value, typename Device, typename Index, typename Allocator >
+void
+DistributedArray< Value, Device, Index, Allocator >::loadFromGlobalFile( File& file, bool allowCasting )
+{
+   view.loadFromGlobalFile( file, allowCasting );
+}
+
 }  // namespace Containers
 }  // namespace TNL

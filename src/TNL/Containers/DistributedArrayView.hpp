@@ -377,5 +377,35 @@ DistributedArrayView< Value, Device, Index >::forElements( IndexType begin, Inde
    localData.forElements( localBegin, localEnd, local_f );
 }
 
+template< typename Value, typename Device, typename Index >
+void
+DistributedArrayView< Value, Device, Index >::loadFromGlobalFile( const String& fileName, bool allowCasting )
+{
+   File file( fileName, std::ios_base::in );
+   loadFromGlobalFile( file, allowCasting );
+}
+
+template< typename Value, typename Device, typename Index >
+void
+DistributedArrayView< Value, Device, Index >::loadFromGlobalFile( File& file, bool allowCasting )
+{
+   using IO = detail::ArrayIO< Value, Index, typename Allocators::Default< Device >::template Allocator< Value > >;
+   const std::string type = getObjectType( file );
+   const auto parsedType = parseObjectType( type );
+
+   if( ! allowCasting && type != IO::getSerializationType() )
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(), "object type does not match (expected " + IO::getSerializationType() + ", found " + type + ")." );
+
+   std::size_t elementsInFile;
+   file.load( &elementsInFile );
+
+   if( allowCasting )
+      IO::loadSubrange(
+         file, elementsInFile, localRange.getBegin(), localData.getData(), localData.getSize(), parsedType[ 1 ] );
+   else
+      IO::loadSubrange( file, elementsInFile, localRange.getBegin(), localData.getData(), localData.getSize() );
+}
+
 }  // namespace Containers
 }  // namespace TNL
