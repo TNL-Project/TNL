@@ -26,8 +26,7 @@ struct ArrayIO< Value, Index, Allocator, true >
    static std::string
    getSerializationType()
    {
-      return "Containers::Array< " + TNL::getSerializationType< Value >() + ", [any_device], "
-           + TNL::getSerializationType< Index >() + ", [any_allocator] >";
+      return "TNL::Containers::Array< " + TNL::getSerializationType< Value >() + " >";
    }
 
    static void
@@ -92,8 +91,7 @@ struct ArrayIO< Value, Index, Allocator, false >
    static std::string
    getSerializationType()
    {
-      return "Containers::Array< " + TNL::getSerializationType< Value >() + ", [any_device], "
-           + TNL::getSerializationType< Index >() + ", [any_allocator] >";
+      return "TNL::Containers::Array< " + TNL::getSerializationType< Value >() + " >";
    }
 
    template< typename TargetValue = Value >

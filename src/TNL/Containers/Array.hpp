@@ -579,7 +579,7 @@ operator<<( File& file, const Array< Value, Device, Index, Allocator >& array )
 {
    using IO = detail::ArrayIO< Value, Index, Allocator >;
    saveObjectType( file, IO::getSerializationType() );
-   const Index size = array.getSize();
+   const std::size_t size = array.getSize();
    file.save( &size );
    IO::save( file, array.getData(), array.getSize() );
    return file;
@@ -603,11 +603,9 @@ operator>>( File& file, Array< Value, Device, Index, Allocator >& array )
    if( type != IO::getSerializationType() )
       throw Exceptions::FileDeserializationError(
          file.getFileName(), "object type does not match (expected " + IO::getSerializationType() + ", found " + type + ")." );
-   Index _size;
-   file.load( &_size );
-   if( _size < 0 )
-      throw Exceptions::FileDeserializationError( file.getFileName(), "invalid array size: " + std::to_string( _size ) );
-   array.setSize( _size );
+   std::size_t size;
+   file.load( &size );
+   array.setSize( size );
    IO::load( file, array.getData(), array.getSize() );
    return file;
 }

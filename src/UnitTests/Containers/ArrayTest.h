@@ -676,9 +676,9 @@ TYPED_TEST( ArrayTest, SaveAndLoadSubrangeWithCast )
       const std::string type = getObjectType( file );
       ASSERT_EQ( type, ArrayType::getSerializationType() );
       // read size
-      Index elementsInFile;
+      std::size_t elementsInFile;
       file.load( &elementsInFile );
-      EXPECT_EQ( elementsInFile, v.getSize() );
+      EXPECT_EQ( elementsInFile, static_cast< std::size_t >( v.getSize() ) );
       // read data, cast from Value to short int
       using IO = ArrayIO< CastValue, Index, typename Allocators::Default< typename ArrayType::DeviceType >::template Allocator< CastValue > >;
       // hack for the test...
