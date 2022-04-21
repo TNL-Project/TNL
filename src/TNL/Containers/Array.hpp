@@ -134,7 +134,7 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 std::string
 Array< Value, Device, Index, Allocator >::getSerializationType()
 {
-   return detail::ArrayIO< Value, Device, Index >::getSerializationType();
+   return detail::ArrayIO< Value, Index, Allocator >::getSerializationType();
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
