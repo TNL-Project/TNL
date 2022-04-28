@@ -49,6 +49,3 @@ public:
 }  // namespace TNL
 
 #include <TNL/Meshes/Traverser.hpp>
-#include <TNL/Meshes/GridDetails/Traverser_Grid1D.h>
-#include <TNL/Meshes/GridDetails/Traverser_Grid2D.h>
-#include <TNL/Meshes/GridDetails/Traverser_Grid3D.h>
