@@ -21,7 +21,8 @@ class NeighbourGridEntityGetter {
 
          const Coordinate coordinate = entity.getCoordinates() + offset;
          const int orientation = TNL::min(orientationsCount - 1, entity.getOrientation());
-         const Coordinate basis = entity.getMesh().template getBasis<NeighbourEntityDimension>(orientation);
+         const Coordinate basis = orientation == entity.getOrientation() && ParentEntityDimension == NeighbourEntityDimension ?
+            entity.getBasis() : entity.getMesh().template getBasis<NeighbourEntityDimension>(orientation);
 
          TNL_ASSERT_GE(coordinate, Coordinate(0), "wrong coordinate");
          TNL_ASSERT_LT(coordinate, entity.getMesh().getDimensions() + basis, "wrong coordinate");
@@ -47,7 +48,8 @@ class NeighbourGridEntityGetter {
 
          const Coordinate coordinate = entity.getCoordinates() + Coordinate(Steps...);
          const int orientation = TNL::min(orientationsCount - 1, entity.getOrientation());
-         const Coordinate basis = entity.getMesh().template getBasis<NeighbourEntityDimension>(orientation);
+         const Coordinate basis = orientation == entity.getOrientation() && ParentEntityDimension == NeighbourEntityDimension ?
+            entity.getBasis() : entity.getMesh().template getBasis<NeighbourEntityDimension>(orientation);
 
          TNL_ASSERT_GE(coordinate, Coordinate(0), "wrong coordinate");
          TNL_ASSERT_LT(coordinate, entity.getMesh().getDimensions() + basis, "wrong coordinate");

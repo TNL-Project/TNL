@@ -503,7 +503,7 @@ void __NDIM_PREFIX__::fillBases() {
    int index = container.getSize() - 1;
 
    auto forEachEntityDimension = [&](const auto entityDimension) {
-      constexpr Index combinationsCount = this -> getEntityOrientationsCount(entityDimension);
+      constexpr Index combinationsCount = this -> getEntityOrientationsCount( entityDimension );
 
       auto forEachOrientation = [&](const auto orientation, const auto entityDimension) {
          container[index--] = BasisGetter<Index, entityDimension, Dimension>::template getBasis<orientation>();
