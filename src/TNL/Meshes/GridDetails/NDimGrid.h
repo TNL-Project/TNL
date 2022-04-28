@@ -247,9 +247,6 @@ class NDimGrid {
 
    template <int EntityDimension, typename Func, typename... FuncArgs>
    inline void traverseBoundary(const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args) const;
-
-   template <typename Func, typename... FuncArgs>
-   void forEachPermutation(const Index k, const Index n, Func func, FuncArgs... args) const;
 };
 }  // namespace Meshes
 }  // namespace TNL

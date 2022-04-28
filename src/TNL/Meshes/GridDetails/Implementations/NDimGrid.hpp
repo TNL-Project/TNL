@@ -410,7 +410,7 @@ void __NDIM_PREFIX__::writeProlog(TNL::Logger& logger) const noexcept {
 
 __NDIMGRID_TEMPLATE__
 void __NDIM_PREFIX__::fillEntitiesCount() {
-   Index j = 0;
+
 
    for (Index i = 0; i < Dimension + 1; i++) cumulativeEntitiesCountAlongBases[i] = 0;
 
@@ -424,18 +424,17 @@ void __NDIM_PREFIX__::fillEntitiesCount() {
       }
    }
 
-   for (Index i = 0; i <= Dimension; i++) {
-      forEachPermutation(Dimension - i, Dimension, [&](const std::vector<Index>& permutation) {
+   for (Index i = 0, j = 0; i <= Dimension; i++) {
+      for (Index n = 0; n < this -> getEntityOrientationsCount(i); n++, j++) {
          int result = 1;
+         auto basis = bases[ j ];
 
-         for (Index k = 0; k < (Index)permutation.size(); k++)
-            result *= dimensions[k] + permutation[k];
+         for( Index k = 0; k < (Index) basis.getSize(); k++ )
+            result *= dimensions[ k ] + basis[ k ];
 
-         entitiesCountAlongBases[j] = result;
-         cumulativeEntitiesCountAlongBases[i] += result;
-
-         j++;
-      });
+         entitiesCountAlongBases[ j ] = result;
+         cumulativeEntitiesCountAlongBases[ i ] += result;
+      }
    }
 }
 
@@ -516,21 +515,6 @@ void __NDIM_PREFIX__::fillBases() {
    Templates::DescendingFor<Dimension>::exec(forEachEntityDimension);
 
    this -> bases = container;
-}
-
-__NDIMGRID_TEMPLATE__
-template <typename Func, typename... FuncArgs>
-void __NDIM_PREFIX__::forEachPermutation(const Index k, const Index n, Func func, FuncArgs... args) const {
-   std::vector<int> buffer = {};
-
-   buffer.resize(n);
-
-   std::fill(buffer.begin(), buffer.end(), 0);
-   std::fill(buffer.end() - k, buffer.end(), 1);
-
-   do {
-      func(buffer, args...);
-   } while (std::next_permutation(buffer.begin(), buffer.end()));
 }
 
 }  // namespace Meshes
