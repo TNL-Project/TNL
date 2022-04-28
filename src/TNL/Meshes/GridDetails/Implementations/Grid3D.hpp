@@ -21,9 +21,6 @@ namespace Meshes {
 #define __GRID_3D_PREFIX__ Grid<3, Real, Device, Index>
 
 __GRID_3D_TEMPLATE__
-__GRID_3D_PREFIX__::Grid() { this->setDimensions(0, 0, 0); }
-
-__GRID_3D_TEMPLATE__
 __GRID_3D_PREFIX__::Grid(const Index xSize, const Index ySize, const Index zSize) {
    this->setDimensions(xSize, ySize, zSize);
 }

@@ -25,8 +25,7 @@ class Grid<1, Real, Device, Index> : public NDimGrid<1, Real, Device, Index> {
    using Point = typename Base::Point;
    using EntitiesCounts = typename Base::EntitiesCounts;
 
-   Grid();
-
+   Grid() = default;
    Grid(const Index xSize);
 
    /**

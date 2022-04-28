@@ -26,6 +26,8 @@ constexpr int spaceStepsPowers = 5;
 template<int Size, typename Index, typename Real>
 class Grid {
    public:
+      Grid() = default;
+
       __cuda_callable__ inline
       Entity<Size, Index, Real> getEntity(Index i, Index j) const {
          Entity<Size, Index, Real> entity(*this);

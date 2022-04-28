@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <TNL/Logger.h>
 #include <TNL/Meshes/GridDetails/NDimGrid.h>
 
 namespace TNL {

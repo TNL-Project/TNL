@@ -17,11 +17,6 @@ namespace Meshes {
 #define __GRID_2D_PREFIX__ Grid<2, Real, Device, Index>
 
 __GRID_2D_TEMPLATE__
-__GRID_2D_PREFIX__::Grid() {
-   this->setDimensions(0, 0);
-}
-
-__GRID_2D_TEMPLATE__
 __GRID_2D_PREFIX__::Grid(const Index xSize, const Index ySize) {
    this->setDimensions(xSize, ySize);
 }
