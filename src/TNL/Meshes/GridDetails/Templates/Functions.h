@@ -28,7 +28,7 @@ constexpr Index product(Index from, Index to) {
 
 template <typename Index>
 constexpr Index combination(Index k, Index n) {
-   return product(k + 1, n) / product(1, n - k);
+   return product<Index>( k + 1, n) / product<Index>( 1, n - k);
 }
 
 /**

@@ -4,7 +4,7 @@
 #include <TNL/Logger.h>
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
-#include <TNL/Meshes/GridDetails/Templates/Templates.h>
+#include <TNL/Meshes/GridDetails/Templates/Functions.h>
 
 #include <type_traits>
 

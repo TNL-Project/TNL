@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include <TNL/Meshes/GridDetails/Templates/Templates.h>
+#include <TNL/Meshes/GridDetails/Templates/Functions.h>
 #include "../CoordinateIterator.h"
 
 void testCombination(const int k, const int n, const int expectation) {

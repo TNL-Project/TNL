@@ -3,7 +3,7 @@
 
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/BasisGetter.h>
-#include <TNL/Meshes/GridDetails/Templates/Templates.h>
+#include <TNL/Meshes/GridDetails/Templates/Functions.h>
 #include <TNL/Meshes/GridDetails/Templates/ParallelFor.h>
 #include <TNL/Meshes/GridDetails/Templates/DescendingFor.h>
 #include <TNL/Meshes/GridDetails/Templates/ForEachOrientation.h>
@@ -16,7 +16,9 @@ namespace Meshes {
 
 __NDIMGRID_TEMPLATE__
 constexpr Index __NDIM_PREFIX__::getEntityOrientationsCount(const Index entityDimension) {
-   return Templates::combination(entityDimension, Dimension);
+   const Index dimension = Dimension;
+
+   return Templates::combination<Index>(entityDimension, dimension);
 }
 
 __NDIMGRID_TEMPLATE__
@@ -410,8 +412,6 @@ void __NDIM_PREFIX__::writeProlog(TNL::Logger& logger) const noexcept {
 
 __NDIMGRID_TEMPLATE__
 void __NDIM_PREFIX__::fillEntitiesCount() {
-
-
    for (Index i = 0; i < Dimension + 1; i++) cumulativeEntitiesCountAlongBases[i] = 0;
 
    // In case, if some dimension is zero. Clear all counts
@@ -503,7 +503,7 @@ void __NDIM_PREFIX__::fillBases() {
    int index = container.getSize() - 1;
 
    auto forEachEntityDimension = [&](const auto entityDimension) {
-      constexpr Index combinationsCount = this -> getEntityOrientationsCount( entityDimension );
+      constexpr Index combinationsCount = this -> getEntityOrientationsCount( (Index) entityDimension() );
 
       auto forEachOrientation = [&](const auto orientation, const auto entityDimension) {
          container[index--] = BasisGetter<Index, entityDimension, Dimension>::template getBasis<orientation>();
