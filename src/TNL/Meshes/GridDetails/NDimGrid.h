@@ -23,6 +23,14 @@ class NDimGrid {
 
    using Coordinate = Container<Dimension, Index>;
    using Point = Container<Dimension, Real>;
+
+   ///////////////////////////////
+   // Compatability with meshes
+   using CoordinatesType = Container<Dimension, Index>;
+   using PointType = Container<Dimension, Real>;
+   using GlobalIndexType = Index;
+   ///////////////////////////////
+
    using EntitiesCounts = Container<Dimension + 1, Index>;
 
    using OrientationBasesContainer = Container<1 << Dimension, Coordinate>;
@@ -39,6 +47,10 @@ class NDimGrid {
    using SpaceProductsContainer = Container<std::integral_constant<Index, Templates::pow(spaceStepsPowersSize, Dimension)>::value, Real>;
 
    NDimGrid() {
+      Coordinate zero = 0;
+
+      setDimensions(zero);
+
       fillBases();
    }
 
@@ -184,7 +196,7 @@ class NDimGrid {
    /**
     * @brief Writes info about the grid
     */
-   void writeProlog(Logger& logger) const noexcept;
+   void writeProlog(TNL::Logger& logger) const noexcept;
 
   protected:
    Coordinate dimensions;

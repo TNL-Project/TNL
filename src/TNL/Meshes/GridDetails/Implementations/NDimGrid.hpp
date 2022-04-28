@@ -394,7 +394,7 @@ void __NDIM_PREFIX__::traverseBoundary(const Coordinate& from, const Coordinate&
 }
 
 __NDIMGRID_TEMPLATE__
-void __NDIM_PREFIX__::writeProlog(Logger& logger) const noexcept {
+void __NDIM_PREFIX__::writeProlog(TNL::Logger& logger) const noexcept {
    logger.writeParameter("Dimensions:", this->dimensions);
 
    logger.writeParameter("Origin:", this->origin);
@@ -402,7 +402,7 @@ void __NDIM_PREFIX__::writeProlog(Logger& logger) const noexcept {
    logger.writeParameter("Space steps:", this->spaceSteps);
 
    for (Index i = 0; i <= Dimension; i++) {
-      String tmp = String("Entities count along dimension ") + String(i) + ":";
+      TNL::String tmp = TNL::String("Entities count along dimension ") + TNL::convertToString(i) + ":";
 
       logger.writeParameter(tmp, this->cumulativeEntitiesCountAlongBases[i]);
    }
