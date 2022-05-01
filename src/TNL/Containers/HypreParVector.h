@@ -23,6 +23,8 @@ namespace Containers {
  * - https://github.com/hypre-space/hypre/blob/master/src/parcsr_mv/par_vector.h
  * - https://github.com/hypre-space/hypre/blob/master/src/parcsr_mv/par_vector.c
  * - https://github.com/hypre-space/hypre/blob/master/src/parcsr_mv/_hypre_parcsr_mv.h (catch-all interface)
+ *
+ * \ingroup Hypre
  */
 class HypreParVector
 {

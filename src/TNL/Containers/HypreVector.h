@@ -24,6 +24,8 @@ namespace Containers {
  * - https://github.com/hypre-space/hypre/blob/master/src/seq_mv/vector.h
  * - https://github.com/hypre-space/hypre/blob/master/src/seq_mv/vector.c
  * - https://github.com/hypre-space/hypre/blob/master/src/seq_mv/seq_mv.h (catch-all interface)
+ *
+ * \ingroup Hypre
  */
 class HypreVector
 {

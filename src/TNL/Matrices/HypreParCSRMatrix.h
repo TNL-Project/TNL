@@ -20,6 +20,8 @@ namespace Matrices {
  * - https://github.com/hypre-space/hypre/blob/master/src/seq_mv/csr_matrix.h
  * - https://github.com/hypre-space/hypre/blob/master/src/seq_mv/csr_matrix.c
  * - https://github.com/hypre-space/hypre/blob/master/src/seq_mv/seq_mv.h (catch-all interface)
+ *
+ * \ingroup Hypre
  */
 class HypreParCSRMatrix
 {

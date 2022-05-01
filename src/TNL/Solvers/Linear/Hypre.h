@@ -17,6 +17,9 @@ namespace TNL {
 namespace Solvers {
 namespace Linear {
 
+//! \addtogroup Hypre
+//! @{
+
 //! \brief Abstract class for Hypre's solvers and preconditioners
 class HypreSolver
 {
@@ -761,5 +764,8 @@ protected:
 }  // namespace TNL
 
    #include "Hypre.hpp"
+
+// this is a Doxygen end-group marker
+//! @}
 
 #endif  // HAVE_HYPRE

@@ -37,6 +37,19 @@
 namespace TNL {
 
 /**
+ * \defgroup Hypre  Wrappers for the Hypre library
+ *
+ * This group includes various wrapper classes for data structures and
+ * algorithms implemented in the [Hypre library][hypre]. See the
+ * [example][example] for how these wrappers can be used.
+ *
+ * [hypre]: https://github.com/hypre-space/hypre
+ * [example]: https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/-/blob/develop/src/Examples/Hypre/tnl-hypre-ex5.cpp
+ *
+ * @{
+ */
+
+/**
  * \brief A simple RAII wrapper for Hypre's initialization and finalization.
  *
  * When the object is constructed, it calls \e HYPRE_Init() and sets some
@@ -110,5 +123,8 @@ struct Hypre
       }
    #endif
 // clang-format on
+
+// this is a Doxygen end-group marker
+//! @}
 
 #endif  // HAVE_HYPRE
