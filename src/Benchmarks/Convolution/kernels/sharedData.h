@@ -6,7 +6,7 @@
  * This method stores image tile into shared memory
  * and then calculates convolution.
  *
- * Thanks for the idea  https://www.evl.uic.edu/sjames/cs525/final.html
+ * Thanks for the idea https://www.evl.uic.edu/sjames/cs525/final.html
  */
 
    #include <TNL/Devices/Cuda.h>

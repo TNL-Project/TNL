@@ -247,6 +247,8 @@ public:
 
       constexpr auto kernel = convolution1D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
 
+      cudaFuncSetCacheConfig(kernel, cudaFuncCachePreferShared);
+
       TNL::Cuda::launchKernel< true >(
          kernel, 0, configuration, kernelSize.x(), dimensions.x(), fetchData, fetchBoundary, fetchKernel, convolve, store );
    };
@@ -300,6 +302,8 @@ public:
       setup< Index, Real >( configuration, dimensions, kernelSize );
 
       constexpr auto kernel = convolution2D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
+
+      cudaFuncSetCacheConfig(kernel, cudaFuncCachePreferShared);
 
       TNL::Cuda::launchKernel< true >( kernel,
                                        0,
@@ -367,6 +371,8 @@ public:
       setup< Index, Real >( configuration, dimensions, kernelSize );
 
       constexpr auto kernel = convolution3D< Index, Real, FetchData, FetchBoundary, FetchKernel, Convolve, Store >;
+
+      cudaFuncSetCacheConfig(kernel, cudaFuncCachePreferShared);
 
       TNL::Cuda::launchKernel< true >( kernel,
                                        0,
