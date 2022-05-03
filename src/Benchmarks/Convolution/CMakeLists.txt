@@ -17,6 +17,10 @@ if (${BUILD_CUDA})
    SET(EXECUTABLE_NAME "${PREFIX}_${DIMENSION}_${MODULE_NAME}_${TEMPLATE_NAME}")
 
    CUDA_ADD_EXECUTABLE(${EXECUTABLE_NAME} ${SOURCE_FILE})
+
+   if( PNG_FOUND )
+      target_link_libraries( ${EXECUTABLE_NAME} ${PNG_LIBRARIES} )
+   endif()
 else()
    MESSAGE(WARNING "Convolutions are not supported on CPU")
 endif()
@@ -54,3 +58,8 @@ GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_solver.h" "kernels/shar
 GENERATE_CUDA_EXECUTABLE("Convolution" 1 "templates/main_benchmark.h" "kernels/sharedDataAndKernel.h")
 GENERATE_CUDA_EXECUTABLE("Convolution" 2 "templates/main_benchmark.h" "kernels/sharedDataAndKernel.h")
 GENERATE_CUDA_EXECUTABLE("Convolution" 3 "templates/main_benchmark.h" "kernels/sharedDataAndKernel.h")
+
+GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "kernels/naive.h")
+GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "kernels/sharedData.h")
+GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "kernels/sharedKernel.h")
+GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "kernels/sharedDataAndKernel.h")
