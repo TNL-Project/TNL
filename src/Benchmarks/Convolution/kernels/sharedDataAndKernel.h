@@ -8,7 +8,7 @@
    #include <TNL/Cuda/SharedMemory.h>
 
 /**
- * This method stores kernel and data in the shared memory to reduce amount of loads.
+ * This method stores kernel and data in the data memory to reduce amount of loads.
  *
  * We can calculate the size of shared memory needed the next way:
  * 1. We need to store in shared memory:
@@ -49,7 +49,7 @@ convolution1D( Index kernelWidth,
 {
    Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-   Index kernelOffset = 2 * kernelWidth;
+   Index kernelOffset = 2 * kernelWidth - 1;
 
    Real* data = TNL::Cuda::getSharedMemory< Real >();
    Real* kernel = data + kernelOffset;
@@ -114,26 +114,29 @@ convolution2D( Index kernelWidth,
                Convolve convolve,
                Store store )
 {
-   Index iy = threadIdx.y + blockIdx.y * blockDim.y;
-   Index ix = threadIdx.x + blockIdx.x * blockDim.x;
+   const Index iy = threadIdx.y + blockIdx.y * blockDim.y;
+   const Index ix = threadIdx.x + blockIdx.x * blockDim.x;
 
-   Index kernelOffset = ( 2 * kernelWidth - 1 ) * ( 2 * kernelHeight - 1 );
+   const Index radiusY = kernelHeight >> 1;
+   const Index radiusX = kernelWidth >> 1;
+
+   const Index dataBlockWidth = 2 * kernelWidth - 1;
+   const Index dataBlockHeight = 2 * kernelHeight - 1;
+
+   const Index dataBlockRadiusX = dataBlockWidth >> 1;
+   const Index dataBlockRadiusY = dataBlockHeight >> 1;
+
+   const Index kernelOffset = dataBlockWidth * dataBlockHeight;
 
    Real* data = TNL::Cuda::getSharedMemory< Real >();
    Real* kernel = data + kernelOffset;
-
-   Index radiusY = kernelHeight >> 1;
-   Index radiusX = kernelWidth >> 1;
 
    Index x, y, index;
 
    // Top Left
    x = ix - radiusX;
    y = iy - radiusY;
-
-   index = threadIdx.x + threadIdx.y * blockDim.x;
-
-   kernel[ index ] = fetchKernel( threadIdx.x, threadIdx.y );
+   index = threadIdx.x + threadIdx.y * dataBlockWidth;
 
    if( x < 0 || y < 0 || x >= endX || y >= endY ) {
       data[ index ] = fetchBoundary( x, y );
@@ -145,8 +148,7 @@ convolution2D( Index kernelWidth,
    // Top right
    x = ix + radiusX;
    y = iy - radiusY;
-
-   index = kernelWidth + threadIdx.x + threadIdx.y * blockDim.x;
+   index = dataBlockRadiusX + threadIdx.x + threadIdx.y * dataBlockWidth;
 
    if( x < 0 || y < 0 || x >= endX || y >= endY ) {
       data[ index ] = fetchBoundary( x, y );
@@ -158,10 +160,9 @@ convolution2D( Index kernelWidth,
    // Bottom Left
    x = ix - radiusX;
    y = iy + radiusY;
+   index = threadIdx.x + ( dataBlockRadiusY + threadIdx.y ) * dataBlockWidth;
 
-   index = threadIdx.x + ( kernelHeight + threadIdx.y ) * blockDim.x;
-
-   if( x < 0 || y < 0 || x >= endX || y >= endY ) {
+   if(x < 0 || y < 0 || x >= endX || y >= endY ) {
       data[ index ] = fetchBoundary( x, y );
    }
    else {
@@ -171,8 +172,7 @@ convolution2D( Index kernelWidth,
    // Bottom Right
    x = ix + radiusX;
    y = iy + radiusY;
-
-   index = kernelWidth + threadIdx.x + ( kernelHeight + threadIdx.y ) * blockDim.x;
+   index = dataBlockRadiusX + threadIdx.x + ( dataBlockRadiusY + threadIdx.y ) * dataBlockWidth;
 
    if( x < 0 || y < 0 || x >= endX || y >= endY ) {
       data[ index ] = fetchBoundary( x, y );
@@ -180,6 +180,10 @@ convolution2D( Index kernelWidth,
    else {
       data[ index ] = fetchData( x, y );
    }
+
+   index = threadIdx.x + threadIdx.y * blockDim.x;
+
+   kernel[index] = fetchKernel( threadIdx.x, threadIdx.y );
 
    __syncthreads();
 
@@ -190,7 +194,7 @@ convolution2D( Index kernelWidth,
 
    #pragma unroll
    for( Index j = 0; j < kernelHeight; j++ ) {
-      Index elementAlign = ( j + threadIdx.y ) * blockDim.x;
+      Index elementAlign = ( j + threadIdx.y ) * dataBlockWidth;
       Index kernelAlign = j * blockDim.x;
 
    #pragma unroll
@@ -226,18 +230,28 @@ convolution3D( Index kernelWidth,
                Convolve convolve,
                Store store )
 {
-   Index iz = threadIdx.z + blockIdx.z * blockDim.z;
-   Index iy = threadIdx.y + blockIdx.y * blockDim.y;
-   Index ix = threadIdx.x + blockIdx.x * blockDim.x;
+   const Index ix = threadIdx.x + blockIdx.x * blockDim.x;
+   const Index iy = threadIdx.y + blockIdx.y * blockDim.y;
+   const Index iz = threadIdx.z + blockIdx.z * blockDim.z;
 
-   Index kernelOffset = ( 2 * kernelWidth - 1 ) * ( 2 * kernelHeight - 1 ) * ( 2 * kernelDepth - 1 );
+   const Index radiusX = kernelWidth >> 1;
+   const Index radiusY = kernelHeight >> 1;
+   const Index radiusZ = kernelDepth >> 1;
+
+   const Index dataBlockWidth = 2 * kernelWidth - 1;
+   const Index dataBlockHeight = 2 * kernelHeight - 1;
+   const Index dataBlockDepth = 2 * kernelDepth - 1;
+
+   const Index dataBlockXYVolume = dataBlockWidth * dataBlockHeight;
+
+   const Index dataBlockRadiusX = dataBlockWidth >> 1;
+   const Index dataBlockRadiusY = dataBlockHeight >> 1;
+   const Index dataBlockRadiusZ = dataBlockDepth >> 1;
+
+   const Index kernelOffset = dataBlockWidth * dataBlockHeight * dataBlockDepth;
 
    Real* data = TNL::Cuda::getSharedMemory< Real >();
    Real* kernel = data + kernelOffset;
-
-   Index radiusZ = kernelDepth >> 1;
-   Index radiusY = kernelHeight >> 1;
-   Index radiusX = kernelWidth >> 1;
 
    Index x, y, z, index;
 
@@ -246,9 +260,7 @@ convolution3D( Index kernelWidth,
    y = iy - radiusY;
    z = iz - radiusZ;
 
-   index = threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y;
-
-   kernel[ index ] = fetchKernel( threadIdx.x, threadIdx.y, threadIdx.z );
+   index = threadIdx.x + threadIdx.y * dataBlockWidth + threadIdx.z * dataBlockXYVolume;
 
    if( x < 0 || y < 0 || z < 0 || x >= endX || y >= endY || z >= endZ ) {
       data[ index ] = fetchBoundary( x, y, z );
@@ -262,7 +274,7 @@ convolution3D( Index kernelWidth,
    y = iy - radiusY;
    z = iz - radiusZ;
 
-   index = kernelWidth + threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y;
+   index = dataBlockRadiusX + threadIdx.x + threadIdx.y * dataBlockWidth + threadIdx.z * dataBlockXYVolume;
 
    if( x < 0 || y < 0 || z < 0 || x >= endX || y >= endY || z >= endZ ) {
       data[ index ] = fetchBoundary( x, y, z );
@@ -276,7 +288,7 @@ convolution3D( Index kernelWidth,
    y = iy + radiusY;
    z = iz - radiusZ;
 
-   index = kernelWidth + threadIdx.x + ( kernelHeight + threadIdx.y ) * blockDim.x + threadIdx.z * blockDim.x * blockDim.y;
+   index = dataBlockRadiusX + threadIdx.x + ( dataBlockRadiusY + threadIdx.y ) * dataBlockWidth + threadIdx.z * dataBlockXYVolume;
 
    if( x < 0 || y < 0 || z < 0 || x >= endX || y >= endY || z >= endZ ) {
       data[ index ] = fetchBoundary( x, y, z );
@@ -290,7 +302,7 @@ convolution3D( Index kernelWidth,
    y = iy - radiusY;
    z = iz + radiusZ;
 
-   index = threadIdx.x + threadIdx.y * blockDim.x + ( kernelDepth + threadIdx.z ) * blockDim.x * blockDim.y;
+   index = threadIdx.x + threadIdx.y * dataBlockWidth + ( dataBlockRadiusZ + threadIdx.z ) * dataBlockXYVolume;
 
    if( x < 0 || y < 0 || z < 0 || x >= endX || y >= endY || z >= endZ ) {
       data[ index ] = fetchBoundary( x, y, z );
@@ -304,9 +316,9 @@ convolution3D( Index kernelWidth,
    y = iy + radiusY;
    z = iz - radiusZ;
 
-   index = kernelWidth + threadIdx.x + ( kernelHeight + threadIdx.y ) * blockDim.x + threadIdx.z * blockDim.x * blockDim.y;
+   index = dataBlockRadiusX + threadIdx.x + ( dataBlockRadiusY + threadIdx.y ) * dataBlockWidth + threadIdx.z * dataBlockXYVolume;
 
-   if( x < 0 || y < 0 || z < 0 || x >= endX || y >= endY || z >= endZ) {
+   if( x < 0 || y < 0 || z < 0 || x >= endX || y >= endY || z >= endZ ) {
       data[ index ] = fetchBoundary( x, y, z );
    }
    else {
@@ -318,7 +330,7 @@ convolution3D( Index kernelWidth,
    y = iy - radiusY;
    z = iz + radiusZ;
 
-   index = kernelWidth + threadIdx.x + threadIdx.y * blockDim.x + ( kernelDepth + threadIdx.z ) * blockDim.x * blockDim.y;
+   index = dataBlockRadiusX + threadIdx.x + threadIdx.y * dataBlockWidth + ( dataBlockRadiusZ + threadIdx.z ) * dataBlockXYVolume;
 
    if( x < 0 || y < 0 || z < 0 || x >= endX || y >= endY || z >= endZ ) {
       data[ index ] = fetchBoundary( x, y, z );
@@ -332,9 +344,9 @@ convolution3D( Index kernelWidth,
    y = iy + radiusY;
    z = iz + radiusZ;
 
-   index = threadIdx.x + ( kernelHeight + threadIdx.y ) * blockDim.x + ( kernelDepth + threadIdx.z ) * blockDim.x * blockDim.y;
+   index = threadIdx.x + ( dataBlockRadiusY + threadIdx.y ) * dataBlockWidth + ( dataBlockRadiusZ + threadIdx.z ) * dataBlockXYVolume;
 
-   if(x < 0 || y < 0 || z < 0 || x >= endX || y >= endY || z >= endZ ) {
+   if( x < 0 || y < 0 || z < 0 || x >= endX || y >= endY || z >= endZ ) {
       data[ index ] = fetchBoundary( x, y, z );
    }
    else {
@@ -346,7 +358,7 @@ convolution3D( Index kernelWidth,
    y = iy + radiusY;
    z = iz + radiusZ;
 
-   index = kernelWidth + threadIdx.x + ( kernelHeight + threadIdx.y ) * blockDim.x + ( kernelDepth + threadIdx.z ) * blockDim.x * blockDim.y;
+   index = dataBlockRadiusX + threadIdx.x + ( dataBlockRadiusY + threadIdx.y ) * dataBlockWidth + ( dataBlockRadiusZ + threadIdx.z ) * dataBlockXYVolume;
 
    if( x < 0 || y < 0 || z < 0 || x >= endX || y >= endY || z >= endZ ) {
       data[ index ] = fetchBoundary( x, y, z );
@@ -354,6 +366,10 @@ convolution3D( Index kernelWidth,
    else {
       data[ index ] = fetchData( x, y, z );
    }
+
+   index = threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y;
+
+   kernel[index] = fetchKernel( threadIdx.x, threadIdx.y, threadIdx.z );
 
    __syncthreads();
 
@@ -364,11 +380,11 @@ convolution3D( Index kernelWidth,
 
    #pragma unroll
    for( Index k = 0; k < kernelDepth; k++ ) {
-      Index xyAlign = ( k + threadIdx.z ) * blockDim.y * blockDim.x;
+      Index xyAlign = ( k + threadIdx.z ) * dataBlockXYVolume;
       Index xyKernelAlign = k * blockDim.x * blockDim.y;
    #pragma unroll
       for( Index j = 0; j < kernelHeight; j++ ) {
-         Index xAlign = ( j + threadIdx.y ) * blockDim.x;
+         Index xAlign = ( j + threadIdx.y ) * dataBlockWidth;
          Index xKernelAlign = j * blockDim.x;
    #pragma unroll
          for( Index i = 0; i < kernelWidth; i++ ) {

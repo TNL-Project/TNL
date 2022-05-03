@@ -263,6 +263,7 @@ PNGImage< Index >::write( const Meshes::Grid< 2, Real, Device, Index >& grid, Ve
       for( j = 0; j < grid.getDimensions().x(); j++ ) {
          cell.getCoordinates().x() = j;
          cell.getCoordinates().y() = grid.getDimensions().y() - 1 - i;
+         cell.refresh();
 
          // Index cellIndex = grid.getCellIndex( CoordinatesType( j,
          //                                      grid.getDimensions().y() - 1 - i ) );
@@ -302,6 +303,7 @@ PNGImage< Index >::write( const Functions::MeshFunction< Meshes::Grid< 2, MeshRe
       for( j = 0; j < grid.getDimensions().x(); j++ ) {
          cell.getCoordinates().x() = j;
          cell.getCoordinates().y() = grid.getDimensions().y() - 1 - i;
+         cell.refresh();
 
          // Index cellIndex = grid.getCellIndex( CoordinatesType( j,
          //                                      grid.getDimensions().y() - 1 - i ) );

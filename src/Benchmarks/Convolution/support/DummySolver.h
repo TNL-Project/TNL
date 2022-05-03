@@ -13,7 +13,7 @@ class DummySolver : public Solver< Dimension, Device >
 public:
    using Base = Solver< Dimension, Device >;
    using Vector = TNL::Containers::StaticVector< Dimension, int >;
-   using DataStore = TNL::Containers::Array< float, Device, int >;
+   using DataStore = TNL::Containers::Vector< float, Device, int >;
 
    virtual void
    start( const TNL::Config::ParameterContainer& parameters ) const override
@@ -55,9 +55,9 @@ public:
       result = 1;
       kernel = 1;
 
-      auto inputView = input.getView();
+      auto inputView = input.getConstView();
+      auto kernelView = kernel.getConstView();
       auto resultView = result.getView();
-      auto kernelView = kernel.getView();
 
       DummyTask<int, float, Dimension, Device>::exec(dimension, kernelSize, inputView, resultView, kernelView);
 

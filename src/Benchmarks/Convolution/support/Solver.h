@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <TNL/Containers/StaticVector.h>
-#include <TNL/Containers/Array.h>
+#include <TNL/Containers/Vector.h>
 
 template< int Dimension, typename Device >
 class Solver

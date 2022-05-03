@@ -16,7 +16,7 @@ class DummyBenchmark : public Benchmark< Dimension, Device >
 {
 public:
    using Vector = TNL::Containers::StaticVector< Dimension, int >;
-   using DataStore = TNL::Containers::Array< float, Device, int >;
+   using DataStore = TNL::Containers::Vector< float, Device, int >;
    using Base = Benchmark< Dimension, Device >;
    using TNLBenchmark = typename Base::TNLBenchmark;
 
@@ -103,9 +103,9 @@ public:
       result = 1;
       kernel = 1;
 
-      auto inputView = input.getView();
+      auto inputView = input.getConstView();
+      auto kernelView = kernel.getConstView();
       auto resultView = result.getView();
-      auto kernelView = kernel.getView();
 
       auto measure = [ & ]()
       {

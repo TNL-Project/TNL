@@ -34,11 +34,12 @@ public:
    static constexpr int Dimension = 1;
    using Device = TNL::Devices::Cuda;
    using Vector = TNL::Containers::StaticVector< Dimension, Index >;
-   using DataStore = typename TNL::Containers::Array< Real, Device, Index >::ViewType;
+   using ConstDataStore = typename TNL::Containers::Vector< Real, Device, Index >::ConstViewType;
+   using DataStore = typename TNL::Containers::Vector< Real, Device, Index >::ViewType;
    using ConvolutionLauncher = Convolution< Dimension, Device >;
 
    static void
-   exec( const Vector& dimensions, const Vector& kernelSize, DataStore& input, DataStore& result, DataStore& kernel )
+   exec( const Vector& dimensions, const Vector& kernelSize, ConstDataStore& input, DataStore& result, ConstDataStore& kernel )
    {
       auto fetchData = [ = ] __cuda_callable__( Index i )
       {
@@ -82,11 +83,12 @@ public:
    static constexpr int Dimension = 2;
    using Device = TNL::Devices::Cuda;
    using Vector = TNL::Containers::StaticVector< Dimension, Index >;
-   using DataStore = typename TNL::Containers::Array< Real, Device, Index >::ViewType;
+   using ConstDataStore = typename TNL::Containers::Vector< Real, Device, Index >::ConstViewType;
+   using DataStore = typename TNL::Containers::Vector< Real, Device, Index >::ViewType;
    using ConvolutionLauncher = Convolution< Dimension, Device >;
 
    static void
-   exec( const Vector& dimensions, const Vector& kernelSize, DataStore& input, DataStore& result, DataStore& kernel )
+   exec( const Vector& dimensions, const Vector& kernelSize, ConstDataStore& input, DataStore& result, ConstDataStore& kernel )
    {
       auto fetchData = [ = ] __cuda_callable__( Index i, Index j )
       {
@@ -116,7 +118,7 @@ public:
       {
          auto index = i + j * dimensions.x();
 
-         result[ index ] = resultValue;
+         result[ index ] = TNL::max(TNL::min(resultValue, 1.), 0.);
       };
 
       ConvolutionLauncher::execute< Index, Real >( dimensions,
@@ -136,11 +138,12 @@ public:
    static constexpr int Dimension = 3;
    using Device = TNL::Devices::Cuda;
    using Vector = TNL::Containers::StaticVector< Dimension, Index >;
-   using DataStore = typename TNL::Containers::Array< Real, Device, Index >::ViewType;
+   using ConstDataStore = typename TNL::Containers::Vector< Real, Device, Index >::ConstViewType;
+   using DataStore = typename TNL::Containers::Vector< Real, Device, Index >::ViewType;
    using ConvolutionLauncher = Convolution< Dimension, Device >;
 
    static void
-   exec( const Vector& dimensions, const Vector& kernelSize, DataStore& input, DataStore& result, DataStore& kernel )
+   exec( const Vector& dimensions, const Vector& kernelSize, ConstDataStore& input, DataStore& result, ConstDataStore& kernel )
    {
       auto fetchData = [ = ] __cuda_callable__( Index i, Index j, Index k )
       {
