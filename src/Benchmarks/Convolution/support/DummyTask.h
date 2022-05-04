@@ -118,7 +118,7 @@ public:
       {
          auto index = i + j * dimensions.x();
 
-         result[ index ] = TNL::max(TNL::min(resultValue, 1.), 0.);
+         result[ index ] = resultValue;
       };
 
       ConvolutionLauncher::execute< Index, Real >( dimensions,
