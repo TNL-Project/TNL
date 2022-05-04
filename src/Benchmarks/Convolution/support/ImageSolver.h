@@ -14,6 +14,8 @@
 
 static std::vector< TNL::String > dimensionIds = { "x-dimension", "y-dimension", "z-dimension" };
 static std::vector< TNL::String > kernelSizeIds = { "x-kernel-size", "y-kernel-size", "z-kernel-size" };
+static std::vector< TNL::String > kernels = { "identity",        "gauss3x3",      "gauss5x5",
+                                              "sobelHorizontal", "sobelVertical", "edgeDetection" };
 
 class ImageSolver : public Solver< 2, TNL::Devices::Cuda >
 {
@@ -42,18 +44,19 @@ public:
 
       auto output = parameters.getParameter< TNL::String >( "output" );
 
-      if (!this -> readImage(parameters, grid, meshFunction, image, roi) ||
-          !this -> convolve(parameters, meshFunction) ||
-          !this -> write(parameters, image, meshFunction))
+      if( ! this->readImage( parameters, grid, meshFunction, image, roi ) || ! this->convolve( parameters, meshFunction )
+          || ! this->write( parameters, image, meshFunction ) )
          return;
    }
 
-   template<typename Image>
-   bool readImage(const TNL::Config::ParameterContainer& parameters,
-                  GridPointer & grid,
-                  MeshFunctionType& meshFunction,
-                  Image& image,
-                  TNL::Images::RegionOfInterest< int >& roi) const {
+   template< typename Image >
+   bool
+   readImage( const TNL::Config::ParameterContainer& parameters,
+              GridPointer& grid,
+              MeshFunctionType& meshFunction,
+              Image& image,
+              TNL::Images::RegionOfInterest< int >& roi ) const
+   {
       auto input = parameters.getParameter< TNL::String >( "input" );
 
       if( image.openForRead( input ) ) {
@@ -67,12 +70,13 @@ public:
 
          auto meshPointer = meshFunction.getMeshPointer();
 
-         meshPointer -> setDimensions(image.getWidth(), image.getHeight());
+         meshPointer->setDimensions( image.getWidth(), image.getHeight() );
 
-         meshFunction.setMesh(meshPointer);
+         meshFunction.setMesh( meshPointer );
 
          if( ! image.read( roi, meshFunction ) ) {
-            std::cout << "Invalid image size" << std::endl;;
+            std::cout << "Invalid image size" << std::endl;
+
             image.close();
             return false;
          }
@@ -83,18 +87,20 @@ public:
          return true;
       }
 
-      std::cout << "Image open for read failed. Please check file path" << std::endl;;
+      std::cout << "Image open for read failed. Please check file path" << std::endl;
 
       return false;
    }
 
-   bool convolve(const TNL::Config::ParameterContainer& parameters, MeshFunctionType& meshFunction) const {
+   bool
+   convolve( const TNL::Config::ParameterContainer& parameters, MeshFunctionType& meshFunction ) const
+   {
       auto imageData = meshFunction.getData().getConstView();
 
       Vector kernelSize;
       DataStore kernel;
 
-      kernel = getKernel(parameters, kernelSize);
+      kernel = getKernel( parameters, kernelSize );
 
       DataStore result;
 
@@ -107,13 +113,16 @@ public:
 
       std::cout << imageData.getSize() << " " << result.getSize() << std::endl;
 
-      launchConvolution( imageData,
-                         kernel.getConstView(),
-                         result.getView(),
-                         meshFunction.getMeshPointer() -> getDimensions(),
-                         kernelSize );
+      launchConvolution(
+         imageData, kernel.getConstView(), result.getView(), meshFunction.getMeshPointer()->getDimensions(), kernelSize );
 
       timer.stop();
+
+      result.forAllElements(
+         [] __cuda_callable__( int i, float& value )
+         {
+            value = TNL::max( TNL::min( value, 1.0 ), 0.0 );
+         } );
 
       meshFunction.getData() = result;
 
@@ -122,14 +131,17 @@ public:
       return true;
    }
 
-   template<typename Image>
-   bool write(const TNL::Config::ParameterContainer& parameters, Image& image, MeshFunctionType& meshFunction) const {
+   template< typename Image >
+   bool
+   write( const TNL::Config::ParameterContainer& parameters, Image& image, MeshFunctionType& meshFunction ) const
+   {
       auto output = parameters.getParameter< TNL::String >( "output" );
       GridType grid = meshFunction.getMesh();
 
       if( image.openForWrite( output, grid ) ) {
          if( ! image.write( meshFunction ) ) {
-            std::cout << "Image write failed" << std::endl;;
+            std::cout << "Image write failed" << std::endl;
+
             image.close();
             return false;
          }
@@ -144,12 +156,71 @@ public:
       return false;
    }
 
-   HostDataStore getKernel( const TNL::Config::ParameterContainer& parameters, Vector& kernelDimension ) const {
-      kernelDimension = {3, 3};
+   HostDataStore
+   getKernel( const TNL::Config::ParameterContainer& parameters, Vector& kernelDimension ) const
+   {
+      auto kernel = parameters.getParameter< TNL::String >( "kernel" );
 
-      return {-1, -1, -1,
-              -1, 8, -1,
-              -1, -1, -1};
+      if( kernel == "identity" ) {
+         kernelDimension = { 3, 3 };
+
+         return { 0, 0, 0,
+                  0, 1, 0,
+                  0, 0, 0 };
+      }
+
+      if( kernel == "gauss3x3" ) {
+         kernelDimension = { 3, 3 };
+
+         HostDataStore kernel = { 1, 2, 1,
+                                  2, 4, 2,
+                                  1, 2, 1 };
+
+         kernel /= 16;
+
+         return kernel;
+      }
+
+      if( kernel == "gauss5x5" ) {
+         kernelDimension = { 5, 5 };
+
+        HostDataStore kernel = { 1, 4, 7, 4, 1,
+                                 4, 16, 26, 16, 4,
+                                 7, 26, 41, 26, 7,
+                                 4, 16, 26, 16, 4,
+                                 1, 4, 7, 4, 1 };
+
+         kernel /= 273;
+
+         return kernel;
+      }
+
+      if( kernel == "sobelHorizontal" ) {
+         kernelDimension = { 3, 3 };
+
+         return { 1, 2, 1,
+                  0, 0, 0,
+                  -1, -2, -1 };
+      }
+
+      if( kernel == "sobelVertical" ) {
+         kernelDimension = { 3, 3 };
+
+         return { 1, 0, -1,
+                  2, 0, -2,
+                  1, 0, -1 };
+      }
+
+      if( kernel == "edgeDetection" ) {
+         kernelDimension = { 3, 3 };
+
+         return { -1, -1, -1,
+                  -1, 8, -1,
+                  -1, -1, -1 };
+      }
+
+      std::cout << "Unknown kernel " << kernel << ". Exit" << std::endl;
+      exit(1);
    }
 
    void
@@ -157,9 +228,9 @@ public:
                       DataStore::ConstViewType kernel,
                       DataStore::ViewType result,
                       const GridType::CoordinatesType& imageDimension,
-                      const GridType::CoordinatesType& kernelDimension) const
+                      const GridType::CoordinatesType& kernelDimension ) const
    {
-      DummyTask<int, float, Dimension, Device>::exec(imageDimension, kernelDimension, image, result, kernel);
+      DummyTask< int, float, Dimension, Device >::exec( imageDimension, kernelDimension, image, result, kernel );
    }
 
    virtual TNL::Config::ConfigDescription
@@ -171,6 +242,10 @@ public:
 
       config.addEntry< TNL::String >( "input", "PNG image" );
       config.addEntry< TNL::String >( "output", "PNG image" );
+      config.addEntry< TNL::String >( "kernel", "A kernel to apply", kernels[ 0 ] );
+
+      for( const auto& kernel : kernels )
+         config.addEntryEnum( kernel);
 
       config.addDelimiter( "Roi settings:" );
 
