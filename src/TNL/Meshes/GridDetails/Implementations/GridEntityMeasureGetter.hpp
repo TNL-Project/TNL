@@ -9,13 +9,17 @@ namespace Meshes {
 /***
  * Common implementation for vertices
  */
-template <int Dimension, typename Real, typename Device, typename Index>
-class GridEntityMeasureGetter<Meshes::Grid<Dimension, Real, Device, Index>, 0> {
-  public:
-   using GridType = Grid<Dimension, Real, Device, Index>;
+template< int Dimension, typename Real, typename Device, typename Index >
+class GridEntityMeasureGetter< Meshes::Grid< Dimension, Real, Device, Index >, 0 >
+{
+public:
+   using GridType = Grid< Dimension, Real, Device, Index >;
 
-   template <typename EntityType>
-   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
+   template< typename EntityType >
+   __cuda_callable__
+   inline static Real
+   getMeasure( const GridType& grid, const EntityType& entity )
+   {
       return 0.0;
    }
 };
@@ -24,90 +28,114 @@ class GridEntityMeasureGetter<Meshes::Grid<Dimension, Real, Device, Index>, 0> {
  * 1D grid
  */
 
-template <typename Real, typename Device, typename Index>
-class GridEntityMeasureGetter<Meshes::Grid<1, Real, Device, Index>, 1> {
-  public:
-   using GridType = Grid<1, Real, Device, Index>;
+template< typename Real, typename Device, typename Index >
+class GridEntityMeasureGetter< Meshes::Grid< 1, Real, Device, Index >, 1 >
+{
+public:
+   using GridType = Grid< 1, Real, Device, Index >;
 
-   template <typename EntityType>
-   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
-      return grid.template getSpaceStepsProducts<1>();
+   template< typename EntityType >
+   __cuda_callable__
+   inline static Real
+   getMeasure( const GridType& grid, const EntityType& entity )
+   {
+      return grid.template getSpaceStepsProducts< 1 >();
    }
 };
 
 /****
  * 2D grid
  */
-template <typename Real, typename Device, typename Index>
-class GridEntityMeasureGetter<Meshes::Grid<2, Real, Device, Index>, 2> {
-  public:
-   using GridType = Grid<2, Real, Device, Index>;
+template< typename Real, typename Device, typename Index >
+class GridEntityMeasureGetter< Meshes::Grid< 2, Real, Device, Index >, 2 >
+{
+public:
+   using GridType = Grid< 2, Real, Device, Index >;
 
-   template <typename EntityType>
-   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
-      return grid.template getSpaceStepsProducts<1, 1>();
+   template< typename EntityType >
+   __cuda_callable__
+   inline static Real
+   getMeasure( const GridType& grid, const EntityType& entity )
+   {
+      return grid.template getSpaceStepsProducts< 1, 1 >();
    }
 };
 
-template <typename Real, typename Device, typename Index>
-class GridEntityMeasureGetter<Meshes::Grid<2, Real, Device, Index>, 1> {
-  public:
-   using GridType = Grid<2, Real, Device, Index>;
+template< typename Real, typename Device, typename Index >
+class GridEntityMeasureGetter< Meshes::Grid< 2, Real, Device, Index >, 1 >
+{
+public:
+   using GridType = Grid< 2, Real, Device, Index >;
 
-   template <typename EntityType>
-   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
-      if (entity.getOrientation() == 0)
-         return grid.template getSpaceStepsProducts<1, 0>();
+   template< typename EntityType >
+   __cuda_callable__
+   inline static Real
+   getMeasure( const GridType& grid, const EntityType& entity )
+   {
+      if( entity.getOrientation() == 0 )
+         return grid.template getSpaceStepsProducts< 1, 0 >();
 
-      return grid.template getSpaceStepsProducts<0, 1>();
+      return grid.template getSpaceStepsProducts< 0, 1 >();
    }
 };
 
 /****
  * 3D grid
  */
-template <typename Real, typename Device, typename Index>
-class GridEntityMeasureGetter<Meshes::Grid<3, Real, Device, Index>, 3> {
-  public:
-   using GridType = Grid<3, Real, Device, Index>;
+template< typename Real, typename Device, typename Index >
+class GridEntityMeasureGetter< Meshes::Grid< 3, Real, Device, Index >, 3 >
+{
+public:
+   using GridType = Grid< 3, Real, Device, Index >;
 
-   template <typename EntityType>
-   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
-      return grid.template getSpaceStepsProducts<1, 1, 1>();
+   template< typename EntityType >
+   __cuda_callable__
+   inline static Real
+   getMeasure( const GridType& grid, const EntityType& entity )
+   {
+      return grid.template getSpaceStepsProducts< 1, 1, 1 >();
    }
 };
 
-template <typename Real, typename Device, typename Index>
-class GridEntityMeasureGetter<Meshes::Grid<3, Real, Device, Index>, 2> {
-  public:
-   using GridType = Grid<3, Real, Device, Index>;
+template< typename Real, typename Device, typename Index >
+class GridEntityMeasureGetter< Meshes::Grid< 3, Real, Device, Index >, 2 >
+{
+public:
+   using GridType = Grid< 3, Real, Device, Index >;
 
-   template <typename EntityType>
-   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
-      if (entity.getOrientation() == 0)
-         return grid.template getSpaceStepsProducts<1, 1, 0>();
+   template< typename EntityType >
+   __cuda_callable__
+   inline static Real
+   getMeasure( const GridType& grid, const EntityType& entity )
+   {
+      if( entity.getOrientation() == 0 )
+         return grid.template getSpaceStepsProducts< 1, 1, 0 >();
 
-      if (entity.getOrientation() == 1)
-         return grid.template getSpaceStepsProducts<1, 0, 1>();
+      if( entity.getOrientation() == 1 )
+         return grid.template getSpaceStepsProducts< 1, 0, 1 >();
 
-      return grid.template getSpaceStepsProducts<0, 1, 1>();
+      return grid.template getSpaceStepsProducts< 0, 1, 1 >();
    }
 };
 
-template <typename Real, typename Device, typename Index>
-class GridEntityMeasureGetter<Meshes::Grid<3, Real, Device, Index>, 1> {
-  public:
-   using GridType = Grid<3, Real, Device, Index>;
+template< typename Real, typename Device, typename Index >
+class GridEntityMeasureGetter< Meshes::Grid< 3, Real, Device, Index >, 1 >
+{
+public:
+   using GridType = Grid< 3, Real, Device, Index >;
 
-   template <typename EntityType>
-   __cuda_callable__ inline static Real getMeasure(const GridType& grid, const EntityType& entity) {
-      if (entity.getOrientation() == 0)
-         return grid.template getSpaceStepsProducts<1, 0, 0>();
+   template< typename EntityType >
+   __cuda_callable__
+   inline static Real
+   getMeasure( const GridType& grid, const EntityType& entity )
+   {
+      if( entity.getOrientation() == 0 )
+         return grid.template getSpaceStepsProducts< 1, 0, 0 >();
 
-      if (entity.getOrientation() == 1)
-         return grid.template getSpaceStepsProducts<0, 1, 0>();
+      if( entity.getOrientation() == 1 )
+         return grid.template getSpaceStepsProducts< 0, 1, 0 >();
 
-      return grid.template getSpaceStepsProducts<0, 0, 1>();
+      return grid.template getSpaceStepsProducts< 0, 0, 1 >();
    }
 };
 

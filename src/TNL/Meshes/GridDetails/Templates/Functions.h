@@ -8,27 +8,35 @@ namespace TNL {
 namespace Meshes {
 namespace Templates {
 
-constexpr size_t pow(size_t Value, size_t Power) {
+constexpr size_t
+pow( size_t Value, size_t Power )
+{
    size_t result = 1;
 
-   for (size_t i = 0; i < Power; i++) result *= Value;
+   for( size_t i = 0; i < Power; i++ )
+      result *= Value;
 
    return result;
 }
 
-template <typename Index>
-constexpr Index product(Index from, Index to) {
+template< typename Index >
+constexpr Index
+product( Index from, Index to )
+{
    Index result = 1;
 
-   if (from <= to)
-      for (Index i = from; i <= to; i++) result *= i;
+   if( from <= to )
+      for( Index i = from; i <= to; i++ )
+         result *= i;
 
    return result;
 }
 
-template <typename Index>
-constexpr Index combination(Index k, Index n) {
-   return product<Index>( k + 1, n) / product<Index>( 1, n - k);
+template< typename Index >
+constexpr Index
+combination( Index k, Index n )
+{
+   return product< Index >( k + 1, n ) / product< Index >( 1, n - k );
 }
 
 /**
@@ -40,54 +48,66 @@ constexpr Index combination(Index k, Index n) {
  * @param powers - powers values
  * @return constexpr int
  */
-template <typename Index, int Size>
-constexpr Index makeCollapsedIndex(const Index base, const TNL::Containers::StaticVector<Size, Index> powers) {
+template< typename Index, int Size >
+constexpr Index
+makeCollapsedIndex( const Index base, const TNL::Containers::StaticVector< Size, Index > powers )
+{
    Index index = 0;
    Index currentBase = 1;
    Index halfBase = base >> 1;
 
-   for (Index i = 0; i < powers.getSize(); i++) {
-      index += (powers[i] + halfBase) * currentBase;
+   for( Index i = 0; i < powers.getSize(); i++ ) {
+      index += ( powers[ i ] + halfBase ) * currentBase;
       currentBase *= base;
    }
 
    return index;
 }
 
-template <typename Index, Index... Powers>
-constexpr Index makeCollapsedIndex(const int base) {
+template< typename Index, Index... Powers >
+constexpr Index
+makeCollapsedIndex( const int base )
+{
    Index index = 0;
    Index currentBase = 1;
    Index halfBase = base >> 1;
 
-   for (const auto x: { Powers... }) {
-      index += (x + halfBase) * currentBase;
+   for( const auto x : { Powers... } ) {
+      index += ( x + halfBase ) * currentBase;
       currentBase *= base;
    }
 
    return index;
 }
 
-template <typename Index>
-constexpr Index firstKCombinationSum(Index k, Index n) {
-   if (k == 0) return 0;
+template< typename Index >
+constexpr Index
+firstKCombinationSum( Index k, Index n )
+{
+   if( k == 0 )
+      return 0;
 
-   if (k == n) return (1 << n) - 1;
+   if( k == n )
+      return ( 1 << n ) - 1;
 
    Index result = 0;
 
    // Fraction simplification of k-combination
-   for (Index i = 0; i < k; i++)
-      result += combination(i, n);
+   for( Index i = 0; i < k; i++ )
+      result += combination( i, n );
 
    return result;
 }
 
-constexpr bool isInClosedInterval(int lower, int value, int upper) {
+constexpr bool
+isInClosedInterval( int lower, int value, int upper )
+{
    return lower <= value && value <= upper;
 }
 
-constexpr bool isInLeftClosedRightOpenInterval(int lower, int value, int upper) {
+constexpr bool
+isInLeftClosedRightOpenInterval( int lower, int value, int upper )
+{
    return lower <= value && value < upper;
 }
 

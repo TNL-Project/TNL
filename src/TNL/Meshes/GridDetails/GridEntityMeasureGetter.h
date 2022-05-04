@@ -11,10 +11,10 @@
 namespace TNL {
 namespace Meshes {
 
-template<typename Grid, int EntityDimension>
+template< typename Grid, int EntityDimension >
 class GridEntityMeasureGetter;
 
-} // namespace Meshes
-} // namespace TNL
+}  // namespace Meshes
+}  // namespace TNL
 
 #include <TNL/Meshes/GridDetails/Implementations/GridEntityMeasureGetter.hpp>

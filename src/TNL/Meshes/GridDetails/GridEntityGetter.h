@@ -11,10 +11,10 @@
 namespace TNL {
 namespace Meshes {
 
-template<class, int>
+template< class, int >
 class GridEntity;
 
-template<typename, int>
+template< typename, int >
 class GridEntityGetter;
 
 }  // namespace Meshes

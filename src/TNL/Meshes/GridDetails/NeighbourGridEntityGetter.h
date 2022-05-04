@@ -13,10 +13,10 @@
 namespace TNL {
 namespace Meshes {
 
-template<class, int>
+template< class, int >
 class GridEntity;
 
-template<int GridDimension, int ParentEntityDimension, int NeighbourEntityDimension>
+template< int GridDimension, int ParentEntityDimension, int NeighbourEntityDimension >
 class NeighbourGridEntityGetter;
 
 }  // namespace Meshes
