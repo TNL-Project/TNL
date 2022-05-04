@@ -11,149 +11,165 @@
 namespace TNL {
 namespace Meshes {
 
-template <int, int, int>
+template< int, int, int >
 class NeighbourGridEntityGetter;
 
-template<class>
+template< class >
 class BoundaryGridEntityChecker;
 
-template <class>
+template< class >
 class GridEntityCenterGetter;
 
-template <class Grid, int EntityDimension>
-class GridEntity {
-   public:
-      using GridType = Grid;
-      using Index = typename Grid::IndexType;
-      using Device = typename Grid::DeviceType;
-      using Real = typename Grid::RealType;
+template< class Grid, int EntityDimension >
+class GridEntity
+{
+public:
+   using GridType = Grid;
+   using Index = typename Grid::IndexType;
+   using Device = typename Grid::DeviceType;
+   using Real = typename Grid::RealType;
 
-      using Coordinate = typename Grid::Coordinate;
-      using Point = typename Grid::Point;
+   using Coordinate = typename Grid::Coordinate;
+   using Point = typename Grid::Point;
 
-      constexpr static int meshDimension = Grid::getMeshDimension();
-      constexpr static int entityDimension = EntityDimension;
+   constexpr static int meshDimension = Grid::getMeshDimension();
+   constexpr static int entityDimension = EntityDimension;
 
-      __cuda_callable__ inline
-      GridEntity(const Grid& grid,
-                 const Coordinate& coordinates,
-                 const Coordinate& basis,
-                 const Index orientation): grid(grid), coordinates(coordinates), basis(basis), orientation(orientation) {}
+   __cuda_callable__
+   inline GridEntity( const Grid& grid, const Coordinate& coordinates, const Coordinate& basis, const Index orientation )
+   : grid( grid ), coordinates( coordinates ), basis( basis ), orientation( orientation )
+   {}
 
-      __cuda_callable__ inline
-      const Coordinate& getCoordinates() const;
+   __cuda_callable__
+   inline const Coordinate&
+   getCoordinates() const;
 
-      __cuda_callable__ inline
-      Coordinate& getCoordinates();
+   __cuda_callable__
+   inline Coordinate&
+   getCoordinates();
 
-      __cuda_callable__ inline
-      void setCoordinates(const Coordinate& coordinates);
+   __cuda_callable__
+   inline void
+   setCoordinates( const Coordinate& coordinates );
 
-      /***
-       * @brief - Recalculates entity index.
-       *
-       * @warning - Call this method every time the coordinates are changed
-       */
-      __cuda_callable__ inline
-      void refresh();
+   /***
+    * @brief - Recalculates entity index.
+    *
+    * @warning - Call this method every time the coordinates are changed
+    */
+   __cuda_callable__
+   inline void
+   refresh();
 
-      /**
-       * @brief Get the entity index in global grid
-       */
-      __cuda_callable__ inline
-      Index getIndex() const;
+   /**
+    * @brief Get the entity index in global grid
+    */
+   __cuda_callable__
+   inline Index
+   getIndex() const;
 
-      /**
-       * @brief Tells, if entity is boundary
-       */
-      __cuda_callable__ inline
-      bool isBoundary() const;
+   /**
+    * @brief Tells, if entity is boundary
+    */
+   __cuda_callable__
+   inline bool
+   isBoundary() const;
 
-      /**
-       * @brief Returns, the center of the entity
-       */
-      __cuda_callable__ inline
-      const Point getCenter() const;
+   /**
+    * @brief Returns, the center of the entity
+    */
+   __cuda_callable__
+   inline const Point
+   getCenter() const;
 
-      /**
-       * @brief Returns, the measure (volume) of the entity
-       */
-      __cuda_callable__ inline
-      Real getMeasure() const;
+   /**
+    * @brief Returns, the measure (volume) of the entity
+    */
+   __cuda_callable__
+   inline Real
+   getMeasure() const;
 
-      __cuda_callable__ inline
-      const Grid& getMesh() const;
+   __cuda_callable__
+   inline const Grid&
+   getMesh() const;
 
-      __cuda_callable__ inline
-      void setBasis(const Coordinate& orientation);
+   __cuda_callable__
+   inline void
+   setBasis( const Coordinate& orientation );
 
-      /**
-       * @brief Returns, the entity basis
-       */
-      __cuda_callable__ inline
-      const Coordinate& getBasis() const;
+   /**
+    * @brief Returns, the entity basis
+    */
+   __cuda_callable__
+   inline const Coordinate&
+   getBasis() const;
 
-      /**
-       * @brief Returns, the entity orientation
-       *
-       * Orientation is always paired with the basis. In other words, if orientations, entityDimensions and dimensions are equal, then bases are equal also.
-       */
-      __cuda_callable__ inline
-      Index getOrientation() const;
+   /**
+    * @brief Returns, the entity orientation
+    *
+    * Orientation is always paired with the basis. In other words, if orientations, entityDimensions and dimensions are equal,
+    * then bases are equal also.
+    */
+   __cuda_callable__
+   inline Index
+   getOrientation() const;
 
-      /**
-       * @brief Returns, the neighbour entity
-       *
-       * @warning - In case, if the parent entity orientation is greater than possible orientations of neighbour entity,
-       *            then orientation is reduces. For example, 3-d cell neighbour of edge with orientaiton 1, will have
-       *            orientation 0
-       * @warning - You should refresh index manually
-       */
-      template <int Dimension,
-                int... Steps,
-                std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool> = true>
-      __cuda_callable__ inline
-      GridEntity<Grid, Dimension> getNeighbourEntity() const;
+   /**
+    * @brief Returns, the neighbour entity
+    *
+    * @warning - In case, if the parent entity orientation is greater than possible orientations of neighbour entity,
+    *            then orientation is reduces. For example, 3-d cell neighbour of edge with orientaiton 1, will have
+    *            orientation 0
+    * @warning - You should refresh index manually
+    */
+   template< int Dimension, int... Steps, std::enable_if_t< sizeof...( Steps ) == Grid::getMeshDimension(), bool > = true >
+   __cuda_callable__
+   inline GridEntity< Grid, Dimension >
+   getNeighbourEntity() const;
 
-      /**
-       * @brief Returns, the neighbour entity
-       *
-       * @warning - You should refresh index manually
-       */
-      template <int Dimension,
-                int Orientation,
-                int... Steps,
-                std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool> = true>
-      __cuda_callable__ inline
-      GridEntity<Grid, Dimension> getNeighbourEntity() const;
+   /**
+    * @brief Returns, the neighbour entity
+    *
+    * @warning - You should refresh index manually
+    */
+   template< int Dimension,
+             int Orientation,
+             int... Steps,
+             std::enable_if_t< sizeof...( Steps ) == Grid::getMeshDimension(), bool > = true >
+   __cuda_callable__
+   inline GridEntity< Grid, Dimension >
+   getNeighbourEntity() const;
 
-      /**
-       * @brief Returns, the neighbour entity
-       *
-       * @warning - In case, if the parent entity orientation is greater than possible orientations of neighbour entity,
-       *            then orientation is reduces. For example, 3-d cell neighbour of edge with orientaiton 1, will have
-       *            orientation 0
-       * @warning - You should refresh index manually
-       */
-      template <int Dimension>
-      __cuda_callable__ inline
-      GridEntity<Grid, Dimension> getNeighbourEntity(const Coordinate& offset) const;
+   /**
+    * @brief Returns, the neighbour entity
+    *
+    * @warning - In case, if the parent entity orientation is greater than possible orientations of neighbour entity,
+    *            then orientation is reduces. For example, 3-d cell neighbour of edge with orientaiton 1, will have
+    *            orientation 0
+    * @warning - You should refresh index manually
+    */
+   template< int Dimension >
+   __cuda_callable__
+   inline GridEntity< Grid, Dimension >
+   getNeighbourEntity( const Coordinate& offset ) const;
 
-      /**
-       * @brief Returns, the neighbour entity
-       *
-       * @warning - You should refresh index manually
-       */
-      template <int Dimension, int Orientation>
-      __cuda_callable__ inline
-      GridEntity<Grid, Dimension> getNeighbourEntity(const Coordinate& offset) const;
-     protected:
-      const Grid& grid;
+   /**
+    * @brief Returns, the neighbour entity
+    *
+    * @warning - You should refresh index manually
+    */
+   template< int Dimension, int Orientation >
+   __cuda_callable__
+   inline GridEntity< Grid, Dimension >
+   getNeighbourEntity( const Coordinate& offset ) const;
 
-      Index index;
-      Coordinate coordinates;
-      Coordinate basis;
-      Index orientation;
+protected:
+   const Grid& grid;
+
+   Index index;
+   Coordinate coordinates;
+   Coordinate basis;
+   Index orientation;
 };
 
 }  // namespace Meshes

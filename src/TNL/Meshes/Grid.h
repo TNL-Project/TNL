@@ -12,34 +12,34 @@
 namespace TNL {
 namespace Meshes {
 
-template <int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int>
-class Grid: public NDimGrid<Dimension, Real, Device, Index> {};
+template< int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int >
+class Grid : public NDimGrid< Dimension, Real, Device, Index >
+{};
 
 template< int Dimension, typename Real, typename Device, typename Index >
 std::ostream&
 operator<<( std::ostream& str, const Grid< Dimension, Real, Device, Index >& grid )
 {
-   TNL::Logger logger(100, str);
+   TNL::Logger logger( 100, str );
 
-   grid.writeProlog(logger);
+   grid.writeProlog( logger );
 
    return str;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-bool operator==( const Grid< Dimension, Real, Device, Index >& lhs,
-                 const Grid< Dimension, Real, Device, Index >& rhs )
+bool
+operator==( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimension, Real, Device, Index >& rhs )
 {
-   return lhs.getDimensions() == rhs.getDimensions()
-       && lhs.getOrigin() == rhs.getOrigin()
+   return lhs.getDimensions() == rhs.getDimensions() && lhs.getOrigin() == rhs.getOrigin()
        && lhs.getProportions() == rhs.getProportions();
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-bool operator!=( const Grid< Dimension, Real, Device, Index >& lhs,
-                 const Grid< Dimension, Real, Device, Index >& rhs )
+bool
+operator!=( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimension, Real, Device, Index >& rhs )
 {
-   return ! (lhs == rhs);
+   return ! ( lhs == rhs );
 }
 
 }  // namespace Meshes
