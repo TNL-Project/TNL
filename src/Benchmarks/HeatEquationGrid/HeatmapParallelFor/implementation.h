@@ -71,10 +71,11 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
    auto next = [=] __cuda_callable__(int i, int j) mutable
    {
       auto index = j * xSize + i;
-      auto center = 2 * uxView[index];
+      auto element = uxView[index];
+      auto center = 2 * element;
 
-      auxView[index] = ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
-                        (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv) * timestep;
+      auxView[index] = element + ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
+                                  (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv) * timestep;
    };
 
    Real start = 0;
@@ -83,7 +84,8 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
    {
       TNL::Algorithms::ParallelFor2D<Device>::exec(1, 1, params.xSize - 1, params.ySize - 1, next);
 
-      auxView.swap(uxView);
+      uxView = aux.getView();
+      auxView = ux.getView();
 
       start += timestep;
    }

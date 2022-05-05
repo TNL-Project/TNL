@@ -13,8 +13,8 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
    // Grid implementation defines its dimensions in the amount of edges.
    // To align it size to all other benchmarks substract 1
    grid.setDimensions(params.xSize - 1, params.ySize - 1);
+   grid.setDomain({0., 0.}, { params.xDomainSize, params.yDomainSize });
 
-   // TODO: - Improve style of access. It is counterintuitive for person, who doesn't know C++ well
    auto verticesCount = grid.template getEntitiesCount<0>();
 
    TNL::Containers::Array<Real, Device> ux(verticesCount), // data at step u
@@ -24,12 +24,13 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
    ux = 0;
    aux = 0;
 
-   const Real hx = params.xDomainSize / (Real)params.xSize;
-   const Real hy = params.yDomainSize / (Real)params.ySize;
-   const Real hx_inv = 1. / (hx * hx);
-   const Real hy_inv = 1. / (hy * hy);
+   const Real hx = grid.template getSpaceStepsProducts<1, 0>();
+   const Real hy = grid.template getSpaceStepsProducts<0, 1>();
+   const Real hx_inv = grid.template getSpaceStepsProducts<-2, 0>();
+   const Real hy_inv = grid.template getSpaceStepsProducts<0, -2>();
 
-   auto timestep = params.timeStep ? params.timeStep : std::min(hx * hx, hy * hy);
+   auto timestep = params.timeStep ?
+      params.timeStep : std::min(grid.template getSpaceStepsProducts<2, 0>(), grid.template getSpaceStepsProducts<0, 2>());
 
    auto uxView = ux.getView(),
         auxView = aux.getView();
@@ -55,10 +56,11 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
    auto width = grid.getDimensions().x() + 1;
    auto next = [=] __cuda_callable__(const typename Grid2D::EntityType<0>&entity) mutable {
       auto index = entity.getIndex();
-      auto center = 2 * uxView[index];
+      auto element = uxView[index];
+      auto center = 2 * element;
 
-      auxView[index] = ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
-                        (uxView[index - width] - center + uxView[index + width]) * hy_inv) * timestep;
+      auxView[index] = element + ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
+                                  (uxView[index - width] - center + uxView[index + width]) * hy_inv) * timestep;
    };
 
    Real start = 0;
@@ -66,7 +68,8 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters& params) c
    while (start < params.finalTime) {
       grid.template forInterior<0>(next);
 
-      auxView.swap(uxView);
+      uxView = aux.getView();
+      auxView = ux.getView();
 
       start += timestep;
    }

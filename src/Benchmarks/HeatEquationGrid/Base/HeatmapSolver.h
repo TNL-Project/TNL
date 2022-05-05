@@ -60,16 +60,16 @@ TNL::Config::ConfigDescription HeatmapSolver<Real>::Parameters::makeInputConfig(
 #ifdef HAVE_CUDA
    config.addEntryEnum<TNL::String>("cuda");
 #endif
-   config.addEntry<int>("grid-x-size", "Grid size along x-axis.", 100);
-   config.addEntry<int>("grid-y-size", "Grid size along y-axis.", 100);
+   config.addEntry<int>("grid-x-size", "Grid size along x-axis.", 200);
+   config.addEntry<int>("grid-y-size", "Grid size along y-axis.", 200);
 
-   config.addEntry<Real>("domain-x-size", "Domain size along x-axis.", 2.0);
-   config.addEntry<Real>("domain-y-size", "Domain size along y-axis.", 2.0);
+   config.addEntry<Real>("domain-x-size", "Domain size along x-axis.", 4.0);
+   config.addEntry<Real>("domain-y-size", "Domain size along y-axis.", 4.0);
 
-   config.addEntry<Real>("sigma", "Sigma in exponential initial condition.", 1.0);
+   config.addEntry<Real>("sigma", "Sigma in exponential initial condition.", 0.5);
 
-   config.addEntry<Real>("time-step", "Time step. By default it is proportional to one over space step square.", 0.00001);
-   config.addEntry<Real>("final-time", "Final time of the simulation.", 0.012);
+   config.addEntry<Real>("time-step", "Time step. By default it is proportional to one over space step square.", 0.000005);
+   config.addEntry<Real>("final-time", "Final time of the simulation.", 0.36);
    config.addEntry<bool>("verbose", "Verbose mode.", true);
 
    return config;
@@ -105,9 +105,14 @@ bool HeatmapSolver<Real>::writeGNUPlot(const std::string &filename,
    if (!out.is_open())
       return false;
 
+   const Real hx = params.xDomainSize / (Real)params.xSize;
+   const Real hy = params.yDomainSize / (Real)params.ySize;
+
    for (int j = 0; j < params.ySize; j++)
       for (int i = 0; i < params.xSize; i++)
-         out << i << " " << j << " " << map[j * params.xSize + i] << std::endl;
+          out << i * hx - params.xDomainSize / 2. << " "
+              << j * hy - params.yDomainSize / 2. << " "
+              << map.getElement( j * params.xSize + i ) << std::endl;
 
    return out.good();
 }
