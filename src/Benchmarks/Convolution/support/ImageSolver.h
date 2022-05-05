@@ -13,7 +13,7 @@
 #include <TNL/Images/RegionOfInterest.h>
 
 static std::vector< TNL::String > dimensionIds = { "x-dimension", "y-dimension", "z-dimension" };
-static std::vector< TNL::String > kernelSizeIds = { "x-kernel-size", "y-kernel-size", "z-kernel-size" };
+static std::vector< TNL::String > kernelSizeIds = { "kernel-x-size", "kernel-y-size", "kernel-z-size" };
 static std::vector< TNL::String > kernels = { "identity",        "gauss3x3",      "gauss5x5",
                                               "sobelHorizontal", "sobelVertical", "edgeDetection" };
 
@@ -47,6 +47,30 @@ public:
       if( ! this->readImage( parameters, grid, meshFunction, image, roi ) || ! this->convolve( parameters, meshFunction )
           || ! this->write( parameters, image, meshFunction ) )
          return;
+   }
+
+   virtual TNL::Config::ConfigDescription
+   makeInputConfig() const override
+   {
+      TNL::Config::ConfigDescription config = Base::makeInputConfig();
+
+      config.addDelimiter( "Image settings:" );
+
+      config.addEntry< TNL::String >( "input", "PNG image" );
+      config.addEntry< TNL::String >( "output", "PNG image" );
+      config.addEntry< TNL::String >( "kernel", "A kernel to apply", kernels[ 0 ] );
+
+      for( const auto& kernel : kernels )
+         config.addEntryEnum( kernel );
+
+      config.addDelimiter( "Roi settings:" );
+
+      config.addEntry< int >( "roi-top", "Top (smaller number) line of the region of interest.", -1 );
+      config.addEntry< int >( "roi-bottom", "Bottom (larger number) line of the region of interest.", -1 );
+      config.addEntry< int >( "roi-left", "Left (smaller number) column of the region of interest.", -1 );
+      config.addEntry< int >( "roi-right", "Right (larger number) column of the region of interest.", -1 );
+
+      return config;
    }
 
    template< typename Image >
@@ -164,17 +188,13 @@ public:
       if( kernel == "identity" ) {
          kernelDimension = { 3, 3 };
 
-         return { 0, 0, 0,
-                  0, 1, 0,
-                  0, 0, 0 };
+         return { 0, 0, 0, 0, 1, 0, 0, 0, 0 };
       }
 
       if( kernel == "gauss3x3" ) {
          kernelDimension = { 3, 3 };
 
-         HostDataStore kernel = { 1, 2, 1,
-                                  2, 4, 2,
-                                  1, 2, 1 };
+         HostDataStore kernel = { 1, 2, 1, 2, 4, 2, 1, 2, 1 };
 
          kernel /= 16;
 
@@ -184,11 +204,7 @@ public:
       if( kernel == "gauss5x5" ) {
          kernelDimension = { 5, 5 };
 
-        HostDataStore kernel = { 1, 4, 7, 4, 1,
-                                 4, 16, 26, 16, 4,
-                                 7, 26, 41, 26, 7,
-                                 4, 16, 26, 16, 4,
-                                 1, 4, 7, 4, 1 };
+         HostDataStore kernel = { 1, 4, 7, 4, 1, 4, 16, 26, 16, 4, 7, 26, 41, 26, 7, 4, 16, 26, 16, 4, 1, 4, 7, 4, 1 };
 
          kernel /= 273;
 
@@ -198,29 +214,23 @@ public:
       if( kernel == "sobelHorizontal" ) {
          kernelDimension = { 3, 3 };
 
-         return { 1, 2, 1,
-                  0, 0, 0,
-                  -1, -2, -1 };
+         return { 1, 2, 1, 0, 0, 0, -1, -2, -1 };
       }
 
       if( kernel == "sobelVertical" ) {
          kernelDimension = { 3, 3 };
 
-         return { 1, 0, -1,
-                  2, 0, -2,
-                  1, 0, -1 };
+         return { 1, 0, -1, 2, 0, -2, 1, 0, -1 };
       }
 
       if( kernel == "edgeDetection" ) {
          kernelDimension = { 3, 3 };
 
-         return { -1, -1, -1,
-                  -1, 8, -1,
-                  -1, -1, -1 };
+         return { -1, -1, -1, -1, 8, -1, -1, -1, -1 };
       }
 
       std::cout << "Unknown kernel " << kernel << ". Exit" << std::endl;
-      exit(1);
+      exit( 1 );
    }
 
    void
@@ -231,29 +241,5 @@ public:
                       const GridType::CoordinatesType& kernelDimension ) const
    {
       DummyTask< int, float, Dimension, Device >::exec( imageDimension, kernelDimension, image, result, kernel );
-   }
-
-   virtual TNL::Config::ConfigDescription
-   makeInputConfig() const override
-   {
-      TNL::Config::ConfigDescription config = Base::makeInputConfig();
-
-      config.addDelimiter( "Image settings:" );
-
-      config.addEntry< TNL::String >( "input", "PNG image" );
-      config.addEntry< TNL::String >( "output", "PNG image" );
-      config.addEntry< TNL::String >( "kernel", "A kernel to apply", kernels[ 0 ] );
-
-      for( const auto& kernel : kernels )
-         config.addEntryEnum( kernel);
-
-      config.addDelimiter( "Roi settings:" );
-
-      config.addEntry< int >( "roi-top", "Top (smaller number) line of the region of interest.", -1 );
-      config.addEntry< int >( "roi-bottom", "Bottom (larger number) line of the region of interest.", -1 );
-      config.addEntry< int >( "roi-left", "Left (smaller number) column of the region of interest.", -1 );
-      config.addEntry< int >( "roi-right", "Right (larger number) column of the region of interest.", -1 );
-
-      return config;
    }
 };

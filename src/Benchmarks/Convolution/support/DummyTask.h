@@ -39,7 +39,7 @@ public:
    using ConvolutionLauncher = Convolution< Dimension, Device >;
 
    static void
-   exec( const Vector& dimensions, const Vector& kernelSize, ConstDataStore& input, DataStore& result, ConstDataStore& kernel )
+   exec( const Vector& dimensions, const Vector& kernelSize, ConstDataStore& input, DataStore& result, ConstDataStore& kernel, int boundaryValue = 1 )
    {
       auto fetchData = [ = ] __cuda_callable__( Index i )
       {
@@ -48,7 +48,7 @@ public:
 
       auto fetchBoundary = [ = ] __cuda_callable__( Index i )
       {
-         return 1;
+         return boundaryValue;
       };
 
       auto fetchKernel = [ = ] __cuda_callable__( Index i )
@@ -88,7 +88,7 @@ public:
    using ConvolutionLauncher = Convolution< Dimension, Device >;
 
    static void
-   exec( const Vector& dimensions, const Vector& kernelSize, ConstDataStore& input, DataStore& result, ConstDataStore& kernel )
+   exec( const Vector& dimensions, const Vector& kernelSize, ConstDataStore& input, DataStore& result, ConstDataStore& kernel, int boundaryValue = 1 )
    {
       auto fetchData = [ = ] __cuda_callable__( Index i, Index j )
       {
@@ -99,7 +99,7 @@ public:
 
       auto fetchBoundary = [ = ] __cuda_callable__( Index i, Index j )
       {
-         return 1;
+         return boundaryValue;
       };
 
       auto fetchKernel = [ = ] __cuda_callable__( Index i, Index j )
@@ -143,7 +143,7 @@ public:
    using ConvolutionLauncher = Convolution< Dimension, Device >;
 
    static void
-   exec( const Vector& dimensions, const Vector& kernelSize, ConstDataStore& input, DataStore& result, ConstDataStore& kernel )
+   exec( const Vector& dimensions, const Vector& kernelSize, ConstDataStore& input, DataStore& result, ConstDataStore& kernel, int boundaryValue = 1 )
    {
       auto fetchData = [ = ] __cuda_callable__( Index i, Index j, Index k )
       {
@@ -154,7 +154,7 @@ public:
 
       auto fetchBoundary = [ = ] __cuda_callable__( Index i, Index j, Index k )
       {
-         return 1;
+         return boundaryValue;
       };
 
       auto fetchKernel = [ = ] __cuda_callable__( Index i, Index j, Index k )

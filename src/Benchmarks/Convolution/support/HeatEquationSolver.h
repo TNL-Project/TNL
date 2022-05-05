@@ -1,0 +1,189 @@
+
+#pragma once
+
+#include "Solver.h"
+#include "DummyTask.h"
+
+#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Timer.h>
+
+static std::vector< TNL::String > dimensionIds = { "grid-x-size", "grid-y-size" };
+static std::vector< TNL::String > kernelSizeIds = { "kernel-x-size", "kernel-y-size" };
+static std::vector< TNL::String > domainIds = { "domain-x-size", "domain-y-size" };
+static std::string sigmaKey = "sigma";
+static std::string timestepKey = "timeStep";
+static std::string finalTimeKey = "finalTime";
+static std::string outputFilenamePrefix = "outputFilenamePrefix";
+
+template< typename Real = double >
+class HeatEquationSolver : public Solver< 2, TNL::Devices::Cuda >
+{
+public:
+   constexpr static int Dimension = 2;
+   using Device = TNL::Devices::Cuda;
+
+   using Base = Solver< Dimension, Device >;
+   using Vector = TNL::Containers::StaticVector< Dimension, int >;
+   using Point = TNL::Containers::StaticVector< Dimension, Real >;
+   using DataStore = TNL::Containers::Vector< Real, Device, int >;
+   using HostDataStore = TNL::Containers::Vector< Real, TNL::Devices::Host, int >;
+
+   virtual void
+   start( const TNL::Config::ParameterContainer& parameters ) const override
+   {
+      int gridXSize = parameters.getParameter< int >( dimensionIds[ 0 ] );
+      int gridYSize = parameters.getParameter< int >( dimensionIds[ 1 ] );
+
+      int kernelXSize = parameters.getParameter< int >( kernelSizeIds[ 0 ] );
+      int kernelYSize = parameters.getParameter< int >( kernelSizeIds[ 1 ] );
+
+      Real xDomainSize = parameters.getParameter< Real >( domainIds[ 0 ] );
+      Real yDomainSize = parameters.getParameter< Real >( domainIds[ 1 ] );
+
+      Real hx = xDomainSize / (Real) gridXSize;
+      Real hy = yDomainSize / (Real) gridYSize;
+
+      Point domain = { xDomainSize, yDomainSize };
+      Point spaceSteps = { hx, hy };
+
+      Vector dimensions = { gridXSize, gridYSize };
+      Vector kernelSize = { kernelXSize, kernelYSize };
+
+      DataStore function = prepareFunction( parameters, dimensions, domain, spaceSteps );
+
+      auto filenamePrefix = parameters.getParameter< TNL::String >( outputFilenamePrefix );
+      auto initialFilename = filenamePrefix + "_initial.txt";
+
+      if( ! writeGNUPlot( initialFilename, dimensions, spaceSteps, domain, function.getConstView() ) ) {
+         std::cout << "Did fail during file write";
+         return;
+      }
+
+      DataStore result;
+
+      result.setLike( function );
+      result = 0;
+
+      auto finalTime = parameters.getParameter< Real >( finalTimeKey );
+
+      convolve( dimensions, domain, spaceSteps, kernelSize, function.getConstView(), result.getView(), finalTime );
+
+      auto finalFilename = filenamePrefix + "_final.txt";
+
+      if( ! writeGNUPlot( finalFilename, dimensions, spaceSteps, domain, result.getConstView() ) ) {
+         std::cout << "Did fail during file write";
+         return;
+      }
+   }
+
+   virtual TNL::Config::ConfigDescription
+   makeInputConfig() const override
+   {
+      TNL::Config::ConfigDescription config = Base::makeInputConfig();
+
+      config.addDelimiter( "Grid settings:" );
+      config.addEntry< int >( dimensionIds[ 0 ], "Grid size along x-axis.", 100 );
+      config.addEntry< int >( dimensionIds[ 1 ], "Grid size along y-axis.", 100 );
+
+      config.addDelimiter( "Kernel settings:" );
+      config.addEntry< int >( kernelSizeIds[ 0 ], "Kernel size along x-axis.", 3 );
+      config.addEntry< int >( kernelSizeIds[ 1 ], "Kernel size along y-axis.", 3 );
+
+      config.addDelimiter( "Problem settings:" );
+      config.addEntry< TNL::String >( outputFilenamePrefix, "The prefix in name of the output file", "data" );
+
+      config.addEntry< Real >( domainIds[ 0 ], "Domain size along x-axis.", 4.0 );
+      config.addEntry< Real >( domainIds[ 1 ], "Domain size along y-axis.", 4.0 );
+
+      config.addEntry< Real >( sigmaKey, "Sigma in exponential initial condition.", 0.5);
+
+      config.addEntry< Real >( finalTimeKey, "Final time of the simulation.", 0.12);
+
+      return config;
+   }
+
+   DataStore
+   prepareFunction( const TNL::Config::ParameterContainer& parameters,
+                    const Vector& dimensions,
+                    const Point& domain,
+                    const Point& spaceSteps ) const
+   {
+      DataStore function;
+
+      function.resize( dimensions.x() * dimensions.y() );
+
+      auto functionView = function.getView();
+
+      auto xDomainSize = parameters.getParameter< Real >( domainIds[ 0 ] );
+      auto yDomainSize = parameters.getParameter< Real >( domainIds[ 1 ] );
+      auto sigma = parameters.getParameter< Real >( sigmaKey );
+
+      auto init = [ = ] __cuda_callable__( int i, int j ) mutable
+      {
+         auto index = j * dimensions.x() + i;
+
+         auto x = i * spaceSteps.x() - domain.x() / 2.;
+         auto y = j * spaceSteps.y() - domain.y() / 2.;
+
+         functionView[ index ] = exp( sigma * ( x * x + y * y ) );
+      };
+
+      TNL::Algorithms::ParallelFor2D< Device >::exec( 0, 0, dimensions.x(), dimensions.y(), init );
+
+      return function;
+   }
+
+   void
+   convolve( const Vector& dimensions,
+             const Point& domain,
+             const Point& spaceSteps,
+             const Vector& kernelSize,
+             typename DataStore::ConstViewType input,
+             typename DataStore::ViewType result,
+             const Real time ) const
+   {
+      HostDataStore kernel;
+
+      kernel.resize( kernelSize.x() * kernelSize.y() );
+
+      for( int j = 0; j < kernelSize.y(); j++ ) {
+         for( int i = 0; i < kernelSize.x(); i++ ) {
+            int index = i + j * kernelSize.x();
+
+            auto x = i * spaceSteps.x() - domain.x() / 2.;
+            auto y = j * spaceSteps.y() - domain.y() / 2.;
+
+            kernel[ index ] = ( 1. / ( 4. * M_PI * time ) ) * exp( -( x * x + y * y ) / ( 4. * time ) );
+         }
+      }
+
+      std::cout << kernel << std::endl;
+
+      DataStore kernelDevice( kernel );
+
+      auto kernelView = kernelDevice.getConstView();
+
+      DummyTask< int, Real, Dimension, Device >::exec( dimensions, kernelSize, input, result, kernelView, 0);
+   }
+
+   bool
+   writeGNUPlot( const std::string& filename,
+                 const Vector& dimensions,
+                 const Point& spaceSteps,
+                 const Point& domain,
+                 const typename DataStore::ConstViewType& map ) const
+   {
+      std::ofstream out( filename, std::ios::out );
+
+      if( ! out.is_open() )
+         return false;
+
+      for( int j = 0; j < dimensions.y(); j++ )
+         for( int i = 0; i < dimensions.x(); i++ )
+            out << i * spaceSteps.x() - domain.x() / 2. << " "
+                << j * spaceSteps.y() - domain.y() / 2. << " "
+                << map.getElement( j * dimensions.x() + i ) << std::endl;
+
+      return out.good();
+   }
+};

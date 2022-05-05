@@ -12,7 +12,11 @@ if (${BUILD_CUDA})
    STRING(REGEX REPLACE "DIMENSION_VALUE" ${DIMENSION} TEMPLATE_CONTENT "${TEMPLATE_CONTENT}")
    STRING(REGEX REPLACE "KERNEL_VALUE" "\"../${KERNEL_HEADER}\"" TEMPLATE_CONTENT "${TEMPLATE_CONTENT}")
 
-   FILE(WRITE ${SOURCE_FILE} "${TEMPLATE_CONTENT}")
+   FILE(READ ${SOURCE_FILE} SOURCE_FILE_CONTENT)
+
+   if ( NOT "${SOURCE_FILE_CONTENT}" STREQUAL "${TEMPLATE_CONTENT}" )
+      FILE(WRITE ${SOURCE_FILE} "${TEMPLATE_CONTENT}")
+   endif()
 
    SET(EXECUTABLE_NAME "${PREFIX}_${DIMENSION}_${MODULE_NAME}_${TEMPLATE_NAME}")
 
@@ -63,3 +67,6 @@ GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "k
 GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "kernels/sharedData.h")
 GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "kernels/sharedKernel.h")
 GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "kernels/sharedDataAndKernel.h")
+
+GENERATE_CUDA_EXECUTABLE("HeatEquation" 2 "templates/main_heat_equation_solver.h" "kernels/naive.h")
+GENERATE_CUDA_EXECUTABLE("HeatEquation" 2 "templates/main_heat_equation_solver.h" "kernels/sharedDataAndKernel.h")
