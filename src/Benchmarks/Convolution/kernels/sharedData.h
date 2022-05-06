@@ -9,10 +9,10 @@
  * Thanks for the idea https://www.evl.uic.edu/sjames/cs525/final.html
  */
 
-   #include <TNL/Devices/Cuda.h>
-   #include <TNL/Containers/StaticVector.h>
-   #include <TNL/Cuda/LaunchHelpers.h>
-   #include <TNL/Cuda/SharedMemory.h>
+#include <TNL/Devices/Cuda.h>
+#include <TNL/Containers/StaticVector.h>
+#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Cuda/SharedMemory.h>
 
 template< typename Index,
           typename Real,

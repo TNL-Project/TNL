@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Solver.h"
-#include "DummyTask.h"
+#include "HeatEquationTask.h"
 
 #include <TNL/Algorithms/ParallelFor.h>
 #include <TNL/Timer.h>
@@ -11,8 +11,8 @@ static std::vector< TNL::String > dimensionIds = { "grid-x-size", "grid-y-size" 
 static std::vector< TNL::String > kernelSizeIds = { "kernel-x-size", "kernel-y-size" };
 static std::vector< TNL::String > domainIds = { "domain-x-size", "domain-y-size" };
 static std::string sigmaKey = "sigma";
-static std::string timestepKey = "timeStep";
-static std::string finalTimeKey = "finalTime";
+static std::string timeStepKey = "timeStep";
+static std::string timeKey = "time";
 static std::string outputFilenamePrefix = "outputFilenamePrefix";
 
 template< typename Real = double >
@@ -64,15 +64,28 @@ public:
       result.setLike( function );
       result = 0;
 
-      auto finalTime = parameters.getParameter< Real >( finalTimeKey );
+      auto timeStep = parameters.getParameter< double >( timeStepKey );
+      auto finalTime = parameters.getParameter< double >( timeKey );
 
-      convolve( dimensions, domain, spaceSteps, kernelSize, function.getConstView(), result.getView(), finalTime );
+      int iterationsCount = finalTime / timeStep;
 
-      auto finalFilename = filenamePrefix + "_final.txt";
+      double time = timeStep;
 
-      if( ! writeGNUPlot( finalFilename, dimensions, spaceSteps, domain, result.getConstView() ) ) {
-         std::cout << "Did fail during file write";
-         return;
+      for (int i = 1; i <= iterationsCount; i++) {
+         printf("Time: %lf\n", time);
+
+         convolve( dimensions, domain, kernelSize, function.getConstView(), result.getView(), time );
+
+         auto filename = TNL::String("data_") + TNL::convertToString(i) + ".txt";
+
+         if( ! writeGNUPlot( filename, dimensions, spaceSteps, domain, result.getConstView() ) ) {
+            std::cout << "Did fail during file write";
+            return;
+         }
+
+         result = 0;
+
+         time += timeStep;
       }
    }
 
@@ -82,8 +95,8 @@ public:
       TNL::Config::ConfigDescription config = Base::makeInputConfig();
 
       config.addDelimiter( "Grid settings:" );
-      config.addEntry< int >( dimensionIds[ 0 ], "Grid size along x-axis.", 100 );
-      config.addEntry< int >( dimensionIds[ 1 ], "Grid size along y-axis.", 100 );
+      config.addEntry< int >( dimensionIds[ 0 ], "Grid size along x-axis.", 200 );
+      config.addEntry< int >( dimensionIds[ 1 ], "Grid size along y-axis.", 200 );
 
       config.addDelimiter( "Kernel settings:" );
       config.addEntry< int >( kernelSizeIds[ 0 ], "Kernel size along x-axis.", 3 );
@@ -97,7 +110,8 @@ public:
 
       config.addEntry< Real >( sigmaKey, "Sigma in exponential initial condition.", 0.5);
 
-      config.addEntry< Real >( finalTimeKey, "Final time of the simulation.", 0.12);
+      config.addEntry< Real >( timeStepKey, "Time step of the simulation.", 0.005);
+      config.addEntry< Real >( timeKey, "Final time of the simulation.", 0.36);
 
       return config;
    }
@@ -136,34 +150,12 @@ public:
    void
    convolve( const Vector& dimensions,
              const Point& domain,
-             const Point& spaceSteps,
              const Vector& kernelSize,
              typename DataStore::ConstViewType input,
              typename DataStore::ViewType result,
              const Real time ) const
    {
-      HostDataStore kernel;
-
-      kernel.resize( kernelSize.x() * kernelSize.y() );
-
-      for( int j = 0; j < kernelSize.y(); j++ ) {
-         for( int i = 0; i < kernelSize.x(); i++ ) {
-            int index = i + j * kernelSize.x();
-
-            auto x = i * spaceSteps.x() - domain.x() / 2.;
-            auto y = j * spaceSteps.y() - domain.y() / 2.;
-
-            kernel[ index ] = ( 1. / ( 4. * M_PI * time ) ) * exp( -( x * x + y * y ) / ( 4. * time ) );
-         }
-      }
-
-      std::cout << kernel << std::endl;
-
-      DataStore kernelDevice( kernel );
-
-      auto kernelView = kernelDevice.getConstView();
-
-      DummyTask< int, Real, Dimension, Device >::exec( dimensions, kernelSize, input, result, kernelView, 0);
+      HeatEquationTask< int, Real, Dimension, Device >::exec( dimensions, kernelSize, domain, { 3., 3. }, time, input, result);
    }
 
    bool
