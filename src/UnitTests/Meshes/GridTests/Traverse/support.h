@@ -43,6 +43,112 @@ struct DescendingFor<0> {
 
 }  // namespace Templates
 
+template< typename Grid, int EntityDimension, int Orientation >
+class GridCoordinateIterator : public CoordinateIterator< typename Grid::IndexType, Grid::getMeshDimension() >
+{
+public:
+   using Coordinate = typename Grid::Coordinate;
+   using Point = typename Grid::Point;
+   using Index = typename Grid::IndexType;
+   using Real = typename Grid::RealType;
+   using Base = CoordinateIterator< Index, Grid::getMeshDimension() >;
+   using EntityBasis = TNL::Meshes::BasisGetter< Index, EntityDimension, Grid::getMeshDimension() >;
+
+   GridCoordinateIterator( const typename Grid::Coordinate& end )
+   : Base( Coordinate( 0 ), end + EntityBasis::template getBasis< Orientation >() )
+   {
+      for( Index i = 0; i < this->current.getSize(); i++ ) {
+         this->start[ i ] = 0;
+         this->current[ i ] = 0;
+      }
+   }
+
+   bool
+   isBoundary( const Grid& grid ) const
+   {
+      switch( EntityDimension ) {
+         case Grid::getMeshDimension():
+            for( Index i = 0; i < this->current.getSize(); i++ )
+               if( this->current[ i ] == 0 || this->current[ i ] == grid.getDimension( i ) - 1 )
+                  return true;
+
+            break;
+         default:
+            for( Index i = 0; i < this->current.getSize(); i++ )
+               if( getBasis()[ i ] && ( this->current[ i ] == 0 || this->current[ i ] == grid.getDimension( i ) ) )
+                  return true;
+            break;
+      }
+
+      return false;
+   }
+
+   Coordinate
+   getCoordinate() const
+   {
+      return this->current;
+   }
+
+   Index
+   getIndex( const Grid& grid ) const
+   {
+      Index result = 0;
+
+      for( Index i = 0; i < this->current.getSize(); i++ ) {
+         if( i == 0 ) {
+            result += this->current[ i ];
+         }
+         else {
+            Index offset = 1;
+
+            for( Index j = 0; j < i; j++ )
+               offset *= this->end[ j ];
+
+            result += this->current[ i ] * offset;
+         }
+      }
+
+      for( Index i = 0; i < Orientation; i++ )
+         result += grid.getOrientedEntitiesCount( EntityDimension, i );
+
+      return result;
+   }
+
+   Coordinate
+   getBasis() const
+   {
+      return EntityBasis::template getBasis< Orientation >();
+   }
+
+   Point
+   getCenter( const Grid& grid ) const
+   {
+      Point origin = grid.getOrigin(), center, spaceSteps = grid.getSpaceSteps();
+
+      Coordinate basis = getBasis();
+
+      for( Index i = 0; i < this->current.getSize(); i++ )
+         center[ i ] = origin[ i ] + ( this->current[ i ] + (Real) ( 0.5 * ! basis[ i ] ) ) * spaceSteps[ i ];
+
+      return center;
+   }
+
+   Real
+   getMeasure( const Grid& grid ) const
+   {
+      if( EntityDimension == 0 ) {
+         return 0.0;
+      }
+
+      Coordinate basis = getBasis(), powers;
+
+      for( Index i = 0; i < this->current.getSize(); i++ )
+         powers[ i ] = ! basis[ i ];
+
+      return grid.getSpaceStepsProducts( powers );
+   }
+};
+
 template<typename Grid, int EntityDimension>
 class GridTraverseTestCase {
    public:
@@ -52,6 +158,9 @@ class GridTraverseTestCase {
       using Point = typename Grid::Point;
       using DataStore = EntityDataStore<Index, Real, typename Grid::DeviceType, Grid::getMeshDimension()>;
       using HostDataStore = EntityDataStore<Index, Real, TNL::Devices::Host, Grid::getMeshDimension()>;
+
+      template<int Orientation>
+      using Iterator = GridCoordinateIterator<Grid, EntityDimension, Orientation>;
 
       // NVCC is incapable of deducing generic lambda
       using UpdateFunctionType = std::function<void(const typename Grid::EntityType<EntityDimension>&)>;
@@ -140,7 +249,7 @@ class GridTraverseTestCase {
             EXPECT_EQ(callsView[i], 1) << "Expect each index to be called only once";
 
          auto verify = [&](const auto orientation) {
-            GridCoordinateIterator<orientation> iterator(grid.getDimensions());
+            Iterator<orientation> iterator(grid.getDimensions());
 
             if (!iterator.canIterate()) {
                SCOPED_TRACE("Skip iteration");
@@ -167,7 +276,7 @@ class GridTraverseTestCase {
          ASSERT_GT(orientationsCount, 0) << "Every entity must have at least one orientation";
 
          auto verify = [&](const auto orientation) {
-            GridCoordinateIterator<orientation> iterator(grid.getDimensions());
+            Iterator<orientation> iterator(grid.getDimensions());
 
             if (!iterator.canIterate()) {
                SCOPED_TRACE("Skip iteration");
@@ -194,7 +303,7 @@ class GridTraverseTestCase {
          ASSERT_GT(orientationsCount, 0) << "Every entity must have at least one orientation";
 
          auto verify = [&](const auto orientation) {
-            GridCoordinateIterator<orientation> iterator(grid.getDimensions());
+            Iterator<orientation> iterator(grid.getDimensions());
 
             if (!iterator.canIterate()) {
                SCOPED_TRACE("Skip iteration");
@@ -211,94 +320,8 @@ class GridTraverseTestCase {
       }
    private:
       template<int Orientation>
-      class GridCoordinateIterator: public CoordinateIterator<typename Grid::IndexType, Grid::getMeshDimension()> {
-         public:
-            using Base = CoordinateIterator<typename Grid::IndexType, Grid::getMeshDimension()>;
-            using EntityBasis = TNL::Meshes::BasisGetter<Index, EntityDimension, Grid::getMeshDimension()>;
-
-            GridCoordinateIterator(const Coordinate& end): Base(Coordinate(0), end + EntityBasis::template getBasis<Orientation>()) {
-               for (Index i = 0; i < this -> current.getSize(); i++) {
-                  this -> start[i] = 0;
-                  this -> current[i] = 0;
-               }
-            }
-
-            bool isBoundary(const Grid& grid) const {
-               switch (EntityDimension) {
-               case Grid::getMeshDimension():
-                  for (Index i = 0; i < this -> current.getSize(); i++)
-                     if (this -> current[i] == 0 || this -> current[i] == grid.getDimension(i) - 1)
-                        return true;
-
-                  break;
-               default:
-                  for (Index i = 0; i < this -> current.getSize(); i++)
-                     if (getBasis()[i] && (this -> current[i] == 0 || this -> current[i] == grid.getDimension(i)))
-                        return true;
-                  break;
-               }
-
-               return false;
-            }
-
-            Coordinate getCoordinate() const {
-               return this -> current;
-            }
-
-            Index getIndex(const Grid& grid) const {
-               Index result = 0;
-
-               for (Index i = 0; i < this -> current.getSize(); i++) {
-                  if (i == 0) {
-                     result += this -> current[i];
-                  } else {
-                     Index offset = 1;
-
-                     for (Index j = 0; j < i; j++)
-                        offset *= this -> end[j];
-
-                     result += this -> current[i] * offset;
-                  }
-               }
-
-               for (Index i = 0; i < Orientation; i++)
-                  result += grid.getOrientedEntitiesCount(EntityDimension, i);
-
-               return result;
-            }
-
-            Coordinate getBasis() const {
-               return EntityBasis::template getBasis<Orientation>();
-            }
-
-            Point getCenter(const Grid& grid) const {
-               Point origin = grid.getOrigin(), center, spaceSteps = grid.getSpaceSteps();
-
-               Coordinate basis = getBasis();
-
-               for (Index i = 0; i < this -> current.getSize(); i++)
-                 center[i] = origin[i] + (this -> current[i] + (Real)(0.5 * !basis[i])) * spaceSteps[i];
-
-               return center;
-            }
-
-            Real getMeasure(const Grid& grid) const {
-               if (EntityDimension == 0) {
-                  return 0.0;
-               }
-
-               Coordinate basis = getBasis(), powers;
-
-               for (Index i = 0; i < this -> current.getSize(); i++)
-                  powers[i] = !basis[i];
-
-               return grid.getSpaceStepsProducts(powers);
-            }
-      };
-
-      template<int Orientation>
       void verifyEntity(const Grid& grid,
-                        const GridCoordinateIterator<Orientation>& iterator,
+                        const Iterator<Orientation>& iterator,
                         typename HostDataStore::View& dataStore,
                         bool expectCall) const {
          static Real precision = 9e-5;
