@@ -8,11 +8,17 @@ function(generate_executables HEADER SUFFIX MAIN_FILE_PATH ARGS)
       SET(SUPPORT_FILENAME ${MODULE_NAME}.cpp)
    endif()
 
-   file(WRITE ${SUPPORT_FILENAME}
+   SET(TEMPLATE_CONTENT
 "
 #include \"${HEADER}\"
 #include \"${MAIN_FILE_PATH}\"
 ")
+
+   FILE(READ ${SUPPORT_FILENAME} SOURCE_FILE_CONTENT)
+
+   if ( NOT "${SOURCE_FILE_CONTENT}" STREQUAL "${TEMPLATE_CONTENT}" )
+      FILE(WRITE ${SUPPORT_FILENAME} "${TEMPLATE_CONTENT}")
+   endif()
 
    # Targets are separated by suffix provided
    set(MODULE_NAME ${MODULE_NAME}_${SUFFIX})
