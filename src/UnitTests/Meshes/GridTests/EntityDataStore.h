@@ -95,6 +95,10 @@ struct EntityDataStore {
          __cuda_callable__ void clear(const Entity entity) {
             auto index = entity.getIndex();
 
+            clear(index);
+         }
+
+         __cuda_callable__ void clear(const Index index) {
             calls[index] = 0;
             indices[index] = 0;
             isBoundary[index] = 0;

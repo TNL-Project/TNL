@@ -55,8 +55,11 @@ public:
    NDimGrid()
    {
       Coordinate zero = 0;
-
       setDimensions( zero );
+
+      Point zeroPoint = 0;
+      proportions = zeroPoint;
+      spaceSteps = zeroPoint;
 
       fillBases();
    }
