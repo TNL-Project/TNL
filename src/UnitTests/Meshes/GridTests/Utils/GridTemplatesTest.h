@@ -95,4 +95,28 @@ TEST(TemplatesTestSuite, IndexCollapseTest) {
    testIndexCollapse<4>(5);
 }
 
+void testPower(const size_t value, const size_t power, const int expectation) {
+   EXPECT_EQ(TNL::Meshes::Templates::pow(value, power), expectation) << value<< " " << power;
+}
+
+TEST(TemplatesTestSuite, PowerTest) {
+  testPower(0, 1, 0);
+  testPower(1, 1, 1);
+
+  testPower(0, 2, 0);
+  testPower(1, 2, 1);
+  testPower(2, 2, 4);
+
+  testPower(0, 3, 0);
+  testPower(1, 3, 1);
+  testPower(2, 3, 8);
+  testPower(3, 3, 27);
+
+  testPower(0, 4, 0);
+  testPower(1, 4, 1);
+  testPower(2, 4, 16);
+  testPower(3, 4, 81);
+  testPower(4, 4, 256);
+}
+
 #endif
