@@ -13,7 +13,7 @@ class GridAccessorsTestCaseInterface {
       void verifyDimensionGetters(const Grid& grid, const typename Grid::Coordinate& coordinates) const { FAIL() << "Expect to be specialized"; }
 
       template<typename Grid>
-      void verifyEntitiesCountGetters(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCount) const { FAIL() << "Expect to be specialized"; }
+      void verifyEntitiesCountGetters(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCount) const { FAIL() << "Expect to be specialized"; }
 
       template<typename Grid>
       void verifyOriginGetters(const Grid& grid, const typename Grid::Point& coordinates) const { FAIL() << "Expect to be specialized"; }
@@ -33,13 +33,13 @@ class GridAccessorsTestCaseInterface {
 
 
       template<typename Grid>
-      void verifyEntitiesCountByContainerGetter(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
+      void verifyEntitiesCountByContainerGetter(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
 
       template<typename Grid>
-      void verifyEntitiesCountByIndexGetter(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
+      void verifyEntitiesCountByIndexGetter(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
 
       template<typename Grid>
-      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
+      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
 
 
       template <typename Grid>
@@ -92,7 +92,7 @@ class GridAccessorsTestCase<TNL::Devices::Host>: public GridAccessorsTestCaseInt
       }
 
       template<typename Grid>
-      void verifyEntitiesCountGetters(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
+      void verifyEntitiesCountGetters(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
          this->verifyEntitiesCountByContainerGetter<Grid>(grid, entitiesCounts);
          this->verifyEntitiesCountByIndexGetter<Grid>(grid, entitiesCounts);
          this->verifyEntitiesCountByIndiciesGetter<Grid>(grid, entitiesCounts);
@@ -138,20 +138,20 @@ class GridAccessorsTestCase<TNL::Devices::Host>: public GridAccessorsTestCaseInt
       }
 
       template<typename Grid>
-      void verifyEntitiesCountByContainerGetter(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
+      void verifyEntitiesCountByContainerGetter(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
          auto result = grid.getEntitiesCounts();
 
          EXPECT_EQ(entitiesCounts, result) << "Verify, that returns expected entities counts";
       }
 
       template<typename Grid>
-      void verifyEntitiesCountByIndexGetter(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
+      void verifyEntitiesCountByIndexGetter(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
          for (typename Grid::IndexType i = 0; i < entitiesCounts.getSize(); i++)
             EXPECT_EQ(grid.getEntitiesCount(i), entitiesCounts[i]) << "Verify, that index access is correct";
       }
 
       template<typename Grid>
-      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
+      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
          for (typename Grid::IndexType i = 0; i < entitiesCounts.getSize(); i++) {
             auto repeated = grid.getEntitiesCounts(i, i, i, i, i, i, i, i, i, i);
 
@@ -175,7 +175,7 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
       }
 
       template<typename Grid>
-      void verifyEntitiesCountGetters(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCount) const {
+      void verifyEntitiesCountGetters(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCount) const {
          this->verifyEntitiesCountByContainerGetter<Grid>(grid, entitiesCount);
          this->verifyEntitiesCountByIndexGetter<Grid>(grid, entitiesCount);
          this->verifyEntitiesCountByIndiciesGetter<Grid>(grid, entitiesCount);
@@ -270,7 +270,7 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
 
 
       template<typename Grid>
-      void verifyEntitiesCountByContainerGetter(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
+      void verifyEntitiesCountByContainerGetter(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
          auto size = entitiesCounts.getSize();
 
          auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
@@ -285,7 +285,7 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
       }
 
       template<typename Grid>
-      void verifyEntitiesCountByIndexGetter(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
+      void verifyEntitiesCountByIndexGetter(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
          auto size = entitiesCounts.getSize();
 
          auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
@@ -300,7 +300,7 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
       }
 
       template<typename Grid>
-      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
+      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
           auto size = entitiesCounts.getSize();
 
          auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
@@ -358,7 +358,7 @@ void testDimensionSetByCoordinate(Grid& grid, const typename Grid::Coordinate& d
 template<typename Grid>
 void testEntitiesCounts(Grid& grid,
                         const typename Grid::Coordinate& dimensions,
-                        const typename Grid::Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) {
+                        const typename Grid::template Container<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) {
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    SCOPED_TRACE("Test entities count");

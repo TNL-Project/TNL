@@ -66,7 +66,7 @@ template< typename... DimensionIndex,
           std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool >,
           std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > >
 __cuda_callable__
-inline __NDIM_PREFIX__::Container< sizeof...( DimensionIndex ), Index >
+inline typename __NDIM_PREFIX__::template Container< sizeof...( DimensionIndex ), Index >
 __NDIM_PREFIX__::getDimensions( DimensionIndex... indices ) const noexcept
 {
    Container< sizeof...( DimensionIndex ), Index > result{ indices... };
@@ -79,7 +79,7 @@ __NDIM_PREFIX__::getDimensions( DimensionIndex... indices ) const noexcept
 
 __NDIMGRID_TEMPLATE__
 __cuda_callable__
-inline const typename __NDIM_PREFIX__::Container< Dimension, Index >&
+inline const typename __NDIM_PREFIX__::template Container< Dimension, Index >&
 __NDIM_PREFIX__::getDimensions() const noexcept
 {
    return this->dimensions;
@@ -110,7 +110,7 @@ template< typename... DimensionIndex,
           std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool >,
           std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > >
 __cuda_callable__
-inline __NDIM_PREFIX__::Container< sizeof...( DimensionIndex ), Index >
+inline typename __NDIM_PREFIX__::template Container< sizeof...( DimensionIndex ), Index >
 __NDIM_PREFIX__::getEntitiesCounts( DimensionIndex... indices ) const
 {
    Container< sizeof...( DimensionIndex ), Index > result{ indices... };
@@ -276,7 +276,7 @@ __cuda_callable__
 inline Real
 __NDIM_PREFIX__::getSpaceStepsProducts() const noexcept
 {
-   constexpr int index = Templates::makeCollapsedIndex< Index, Powers... >( this->spaceStepsPowersSize );
+   constexpr int index = Templates::makeCollapsedIndex< Index, Powers... >( spaceStepsPowersSize );
 
    return this->spaceStepsProducts( index );
 }
@@ -565,7 +565,8 @@ __NDIM_PREFIX__::fillBases()
 
    auto forEachEntityDimension = [ & ]( const auto entityDimension )
    {
-      constexpr Index combinationsCount = this->getEntityOrientationsCount( (Index) entityDimension() );
+      constexpr Index dimension = entityDimension();
+      constexpr Index combinationsCount = getEntityOrientationsCount( dimension );
 
       auto forEachOrientation = [ & ]( const auto orientation, const auto entityDimension )
       {

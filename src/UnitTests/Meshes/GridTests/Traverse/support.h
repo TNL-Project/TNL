@@ -163,14 +163,14 @@ class GridTraverseTestCase {
       using Iterator = GridCoordinateIterator<Grid, EntityDimension, Orientation>;
 
       // NVCC is incapable of deducing generic lambda
-      using UpdateFunctionType = std::function<void(const typename Grid::EntityType<EntityDimension>&)>;
+      using UpdateFunctionType = std::function<void(const typename Grid::template EntityType<EntityDimension>&)>;
 
       void storeAll(const Grid& grid, DataStore& store) const {
          SCOPED_TRACE("Store all");
 
          auto view = store.getView();
 
-         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             view.store(entity);
          };
 
@@ -181,7 +181,7 @@ class GridTraverseTestCase {
 
          auto view = store.getView();
 
-         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             view.store(entity);
          };
 
@@ -192,7 +192,7 @@ class GridTraverseTestCase {
 
          auto view = store.getView();
 
-         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             view.store(entity);
          };
 
@@ -203,7 +203,7 @@ class GridTraverseTestCase {
 
          auto view = store.getView();
 
-         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             view.clear(entity);
          };
 
@@ -214,7 +214,7 @@ class GridTraverseTestCase {
 
          auto view = store.getView();
 
-         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             view.clear(entity);
          };
 
@@ -225,7 +225,7 @@ class GridTraverseTestCase {
 
          auto view = store.getView();
 
-         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             view.clear(entity);
          };
 

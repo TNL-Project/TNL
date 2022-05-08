@@ -22,7 +22,7 @@ class NeighbourGridEntityGetterTestCase {
          constexpr int neighbourOrientationsCount = Grid::getEntityOrientationsCount(NeighbourEntityDimension);
 
          auto view = store.getView();
-         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             int neighbourEntityOrientation = TNL::min(entity.getOrientation(), neighbourOrientationsCount - 1);
             Coordinate alignedCoordinate = entity.getCoordinates() + Coordinate(Steps...);
             Coordinate boundary = grid.getDimensions() + grid.template getBasis<NeighbourEntityDimension>(neighbourEntityOrientation);
@@ -44,7 +44,7 @@ class NeighbourGridEntityGetterTestCase {
          SCOPED_TRACE("Store using static accessor with orientation");
 
          auto view = store.getView();
-         auto update = [=] __cuda_callable__ (const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             Coordinate alignedCoordinate = entity.getCoordinates() + Coordinate(Steps...);
             Coordinate boundary = grid.getDimensions() + grid.template getBasis<NeighbourEntityDimension>(NeighbourEntityOrientation);
 
@@ -66,7 +66,7 @@ class NeighbourGridEntityGetterTestCase {
          constexpr int neighbourOrientationsCount = Grid::getEntityOrientationsCount(NeighbourEntityDimension);
 
          auto view = store.getView();
-         auto update = [=] __cuda_callable__(const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__(const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             int neighbourEntityOrientation = TNL::min(entity.getOrientation(), neighbourOrientationsCount - 1);
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
             Coordinate boundary = grid.getDimensions() + grid.template getBasis<NeighbourEntityDimension>(neighbourEntityOrientation);
@@ -88,7 +88,7 @@ class NeighbourGridEntityGetterTestCase {
          SCOPED_TRACE("Store using dynamic accessor with orientation");
 
          auto view = store.getView();
-         auto update = [=] __cuda_callable__(const typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto update = [=] __cuda_callable__(const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
             Coordinate boundary = grid.getDimensions() + grid.template getBasis<NeighbourEntityDimension>(NeighbourEntityOrientation);
 
