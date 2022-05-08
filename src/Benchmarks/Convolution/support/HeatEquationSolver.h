@@ -10,9 +10,11 @@
 static std::vector< TNL::String > dimensionIds = { "grid-x-size", "grid-y-size" };
 static std::vector< TNL::String > kernelSizeIds = { "kernel-x-size", "kernel-y-size" };
 static std::vector< TNL::String > domainIds = { "domain-x-size", "domain-y-size" };
+static std::vector< TNL::String > kernelDomainIds = { "kernel-domain-x-size", "kernel-domain-y-size" };
 static std::string sigmaKey = "sigma";
 static std::string timeStepKey = "timeStep";
-static std::string timeKey = "time";
+static std::string startTimeKey = "startTime";
+static std::string finalTimeKey = "finalTime";
 static std::string outputFilenamePrefix = "outputFilenamePrefix";
 
 template< typename Real = double >
@@ -40,10 +42,14 @@ public:
       Real xDomainSize = parameters.getParameter< Real >( domainIds[ 0 ] );
       Real yDomainSize = parameters.getParameter< Real >( domainIds[ 1 ] );
 
+      Real kernelXDomainSize = parameters.getParameter< Real >( kernelDomainIds[ 0 ] );
+      Real kernelYDomainSize = parameters.getParameter< Real >( kernelDomainIds[ 1 ] );
+
       Real hx = xDomainSize / (Real) gridXSize;
       Real hy = yDomainSize / (Real) gridYSize;
 
       Point domain = { xDomainSize, yDomainSize };
+      Point kernelDomain = { kernelXDomainSize, kernelYDomainSize };
       Point spaceSteps = { hx, hy };
 
       Vector dimensions = { gridXSize, gridYSize };
@@ -65,16 +71,18 @@ public:
       result = 0;
 
       auto timeStep = parameters.getParameter< double >( timeStepKey );
-      auto finalTime = parameters.getParameter< double >( timeKey );
+      auto startTime = parameters.getParameter< double >( startTimeKey );
+      auto finalTime = parameters.getParameter< double >( finalTimeKey );
 
-      int iterationsCount = finalTime / timeStep;
+      int iteration = (startTime / timeStep) + 1;
+      int finalIteration = finalTime / timeStep;
 
-      double time = timeStep;
+      double time = iteration * timeStep;
 
-      for (int i = 1; i <= iterationsCount; i++) {
+      for (int i = iteration; i <= finalIteration; i++) {
          printf("Time: %lf\n", time);
 
-         convolve( dimensions, domain, kernelSize, function.getConstView(), result.getView(), time );
+         convolve( dimensions, domain, kernelSize, kernelDomain, function.getConstView(), result.getView(), time );
 
          auto filename = TNL::String("data_") + TNL::convertToString(i) + ".txt";
 
@@ -108,10 +116,14 @@ public:
       config.addEntry< Real >( domainIds[ 0 ], "Domain size along x-axis.", 4.0 );
       config.addEntry< Real >( domainIds[ 1 ], "Domain size along y-axis.", 4.0 );
 
+      config.addEntry< Real >( kernelDomainIds[ 0 ], "Kernel domain size along x-axis.", 3.0 );
+      config.addEntry< Real >( kernelDomainIds[ 1 ], "Kernel domain size along y-axis.", 3.0 );
+
       config.addEntry< Real >( sigmaKey, "Sigma in exponential initial condition.", 0.5);
 
+      config.addEntry< Real >( startTimeKey, "Final time of the simulation.", 0.0);
       config.addEntry< Real >( timeStepKey, "Time step of the simulation.", 0.005);
-      config.addEntry< Real >( timeKey, "Final time of the simulation.", 0.36);
+      config.addEntry< Real >( finalTimeKey, "Final time of the simulation.", 0.36);
 
       return config;
    }
@@ -151,11 +163,12 @@ public:
    convolve( const Vector& dimensions,
              const Point& domain,
              const Vector& kernelSize,
+             const Point& kernelDomain,
              typename DataStore::ConstViewType input,
              typename DataStore::ViewType result,
              const Real time ) const
    {
-      HeatEquationTask< int, Real, Dimension, Device >::exec( dimensions, kernelSize, domain, { 3., 3. }, time, input, result);
+      HeatEquationTask< int, Real, Dimension, Device >::exec( dimensions, kernelSize, domain, kernelDomain, time, input, result);
    }
 
    bool
