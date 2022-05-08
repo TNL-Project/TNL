@@ -60,6 +60,7 @@ public:
       Point zeroPoint = 0;
       proportions = zeroPoint;
       spaceSteps = zeroPoint;
+      origin = zeroPoint;
 
       fillBases();
    }

@@ -26,6 +26,12 @@ public:
    using Point = typename Base::Point;
    using EntitiesCounts = typename Base::EntitiesCounts;
 
+   /////////////////////////////
+   // Compatability with meshes
+   using Vertex = EntityType<0>;
+   using Cell = EntityType<2>;
+   /////////////////////////////
+
    Grid() = default;
    Grid( const Index xSize, const Index ySize );
 

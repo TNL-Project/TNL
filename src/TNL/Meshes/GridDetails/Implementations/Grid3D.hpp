@@ -50,8 +50,6 @@ __GRID_3D_PREFIX__::forAll( Func func, FuncArgs... args ) const
    {
       EntityType< EntityDimension > entity( grid, coordinate, basis, orientation );
 
-      entity.refresh();
-
       func( entity, args... );
    };
 
@@ -70,7 +68,6 @@ __GRID_3D_PREFIX__::forAll( const Coordinate& from, const Coordinate& to, Func f
                                         FuncArgs... args ) mutable
    {
       EntityType< EntityDimension > entity( grid, coordinate, basis, orientation );
-      entity.refresh();
 
       func( entity, args... );
    };
@@ -91,8 +88,6 @@ __GRID_3D_PREFIX__::forInterior( Func func, FuncArgs... args ) const
    {
       EntityType< EntityDimension > entity( grid, coordinate, basis, orientation );
 
-      entity.refresh();
-
       func( entity, args... );
    };
 
@@ -111,8 +106,6 @@ __GRID_3D_PREFIX__::forInterior( const Coordinate& from, const Coordinate& to, F
                                         FuncArgs... args ) mutable
    {
       EntityType< EntityDimension > entity( grid, coordinate, basis, orientation );
-
-      entity.refresh();
 
       func( entity, args... );
    };
@@ -133,8 +126,6 @@ __GRID_3D_PREFIX__::forBoundary( Func func, FuncArgs... args ) const
    {
       EntityType< EntityDimension > entity( grid, coordinate, basis, orientation );
 
-      entity.refresh();
-
       func( entity, args... );
    };
 
@@ -153,8 +144,6 @@ __GRID_3D_PREFIX__::forBoundary( const Coordinate& from, const Coordinate& to, F
                                         FuncArgs... args ) mutable
    {
       EntityType< EntityDimension > entity( grid, coordinate, basis, orientation );
-
-      entity.refresh();
 
       func( entity, args... );
    };

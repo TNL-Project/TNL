@@ -35,10 +35,28 @@ public:
    constexpr static int meshDimension = Grid::getMeshDimension();
    constexpr static int entityDimension = EntityDimension;
 
+   /////////////////////////////
+   // Compatability with meshes
+   constexpr static int getEntityDimension() {
+      return entityDimension;
+   }
+   /////////////////////////////
+
+   __cuda_callable__
+   inline GridEntity( const Grid& grid, const Coordinate& coordinates )
+   : grid( grid ), coordinates( coordinates )
+   {
+      basis = grid.template getBasis<EntityDimension>(0);
+      orientation = 0;
+      refresh();
+   }
+
    __cuda_callable__
    inline GridEntity( const Grid& grid, const Coordinate& coordinates, const Coordinate& basis, const Index orientation )
    : grid( grid ), coordinates( coordinates ), basis( basis ), orientation( orientation )
-   {}
+   {
+      refresh();
+   }
 
    __cuda_callable__
    inline const Coordinate&
@@ -101,7 +119,7 @@ public:
     * @brief Returns, the entity basis
     */
    __cuda_callable__
-   inline const Coordinate&
+   inline Coordinate
    getBasis() const;
 
    /**
@@ -114,6 +132,9 @@ public:
    inline Index
    getOrientation() const;
 
+   __cuda_callable__
+   inline void
+   setOrientation( const Index orientation );
    /**
     * @brief Returns, the neighbour entity
     *

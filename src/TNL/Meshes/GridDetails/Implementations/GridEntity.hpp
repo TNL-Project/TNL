@@ -40,6 +40,7 @@ inline void
 __GRID_ENTITY_PREFIX__::setCoordinates( const Coordinate& coordinates )
 {
    this->coordinates = coordinates;
+   refresh();
 }
 
 __GRID_ENTITY_TEMPLATE__
@@ -96,7 +97,7 @@ __GRID_ENTITY_PREFIX__::getMesh() const
 
 __GRID_ENTITY_TEMPLATE__
 __cuda_callable__
-inline const typename __GRID_ENTITY_PREFIX__::Coordinate&
+inline typename __GRID_ENTITY_PREFIX__::Coordinate
 __GRID_ENTITY_PREFIX__::getBasis() const
 {
    return this->basis;
@@ -116,6 +117,13 @@ inline typename __GRID_ENTITY_PREFIX__::Index
 __GRID_ENTITY_PREFIX__::getOrientation() const
 {
    return this->orientation;
+}
+
+__GRID_ENTITY_TEMPLATE__
+__cuda_callable__
+inline void
+__GRID_ENTITY_PREFIX__::setOrientation( const Index orientation ) {
+   this->orientation = orientation;
 }
 
 __GRID_ENTITY_TEMPLATE__
