@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Solver.h"
-#include "HeatEquationTask.h"
+#include "DummyTask.h"
 
 #include <TNL/Algorithms/ParallelFor.h>
 #include <TNL/Timer.h>
@@ -11,7 +11,11 @@ static std::vector< TNL::String > dimensionIds = { "grid-x-size", "grid-y-size" 
 static std::vector< TNL::String > kernelSizeIds = { "kernel-x-size", "kernel-y-size" };
 static std::vector< TNL::String > domainIds = { "domain-x-size", "domain-y-size" };
 static std::vector< TNL::String > kernelDomainIds = { "kernel-domain-x-size", "kernel-domain-y-size" };
-static std::string sigmaKey = "sigma";
+
+static std::string alphaKey = "alpha";
+static std::string betaKey = "beta";
+static std::string gammaKey = "gamma";
+
 static std::string timeStepKey = "timeStep";
 static std::string startTimeKey = "startTime";
 static std::string finalTimeKey = "finalTime";
@@ -116,11 +120,15 @@ public:
       config.addEntry< Real >( domainIds[ 0 ], "Domain size along x-axis.", 4.0 );
       config.addEntry< Real >( domainIds[ 1 ], "Domain size along y-axis.", 4.0 );
 
-      config.addEntry< Real >( kernelDomainIds[ 0 ], "Kernel domain size along x-axis.", 3.0 );
-      config.addEntry< Real >( kernelDomainIds[ 1 ], "Kernel domain size along y-axis.", 3.0 );
+      config.addEntry< Real >( kernelDomainIds[ 0 ], "Kernel domain size along x-axis.", 4.0 );
+      config.addEntry< Real >( kernelDomainIds[ 1 ], "Kernel domain size along y-axis.", 4.0 );
 
-      config.addEntry< Real >( sigmaKey, "Sigma in exponential initial condition.", 0.5);
+      config.addDelimiter( "Initial condition settings ( (x^2/alpha + y^2/beta) + gamma)):" );
+      config.addEntry< Real >( alphaKey, "Alpha value in initial condition", -0.05 );
+      config.addEntry< Real >( betaKey, "Beta value in initial condition", -0.05 );
+      config.addEntry< Real >( gammaKey, "Gamma key in initial condition", 15 );
 
+      config.addDelimiter( "Time settings:" );
       config.addEntry< Real >( startTimeKey, "Final time of the simulation.", 0.0);
       config.addEntry< Real >( timeStepKey, "Time step of the simulation.", 0.005);
       config.addEntry< Real >( finalTimeKey, "Final time of the simulation.", 0.36);
@@ -142,7 +150,10 @@ public:
 
       auto xDomainSize = parameters.getParameter< Real >( domainIds[ 0 ] );
       auto yDomainSize = parameters.getParameter< Real >( domainIds[ 1 ] );
-      auto sigma = parameters.getParameter< Real >( sigmaKey );
+
+      auto alpha = parameters.getParameter< Real >( alphaKey );
+      auto beta = parameters.getParameter< Real >( betaKey );
+      auto gamma = parameters.getParameter< Real >( gammaKey );
 
       auto init = [ = ] __cuda_callable__( int i, int j ) mutable
       {
@@ -151,7 +162,7 @@ public:
          auto x = i * spaceSteps.x() - domain.x() / 2.;
          auto y = j * spaceSteps.y() - domain.y() / 2.;
 
-         functionView[ index ] = exp( sigma * ( x * x + y * y ) );
+         functionView[ index ] = TNL::max((x * x / alpha)  + (y * y / beta) + gamma, 0);
       };
 
       TNL::Algorithms::ParallelFor2D< Device >::exec( 0, 0, dimensions.x(), dimensions.y(), init );
@@ -168,7 +179,42 @@ public:
              typename DataStore::ViewType result,
              const Real time ) const
    {
-      HeatEquationTask< int, Real, Dimension, Device >::exec( dimensions, kernelSize, domain, kernelDomain, time, input, result);
+      DataStore kernel;
+      kernel.resize(kernelSize.x() * kernelSize.y());
+
+      auto kernelView = kernel.getView();
+      auto domainSpaceSteps = Point(domain.x() / dimensions.x(), domain.y() / dimensions.y());
+      auto kernelSpaceSteps = Point(kernelDomain.x() / (kernelSize.x() - 1), kernelDomain.y() / (kernelSize.y() - 1));
+
+      auto init = [ = ] __cuda_callable__( int i, int j ) mutable {
+         auto index = j * kernelSize.x() + i;
+
+         auto x = i * kernelSpaceSteps.x() - kernelDomain.x() / 2.;
+         auto y = j * kernelSpaceSteps.y() - kernelDomain.y() / 2.;
+
+         // The space step is given by the function domain
+         // However, because the kernel is limited to 31x31 size
+         // The user can specify it custom kernel domain from which values are taken
+         kernelView[ index ] = domainSpaceSteps.x() * domainSpaceSteps.y() * ( (Real)1 / ( (Real)4 * M_PI * time ) ) * exp( - ( pow(x, 2.) + pow(y, 2.)  ) / ( (Real)4 * time ) );
+      };
+
+      TNL::Algorithms::ParallelFor2D< Device >::exec( 0, 0, kernelSize.x(), kernelSize.y(), init );
+
+      // std::cout << std::endl << std::endl << std::endl;
+
+      for (int i = 0; i < kernelSize.x(); i++) {
+         for (int j = 0; j < kernelSize.y(); j++) {
+            auto index = j * kernelSize.x() + i;
+
+            printf("%lf ", kernelView.getElement(index));
+         }
+
+         printf("\n");
+      }
+
+      auto kernelConstView = kernel.getConstView();
+
+      DummyTask<int, Real, Dimension, Device>::exec(dimensions, kernelSize, input, result, kernelConstView, 0);
    }
 
    bool
