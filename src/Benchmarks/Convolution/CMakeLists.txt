@@ -74,4 +74,4 @@ GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "k
 GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "kernels/sharedKernel.h")
 GENERATE_CUDA_EXECUTABLE("ImageConvolution" 2 "templates/main_image_solver.h" "kernels/sharedDataAndKernel.h")
 
-GENERATE_CUDA_EXECUTABLE("HeatEquation" 2 "templates/main_heat_equation_solver.h" "kernels/heatEquationSharedData.h")
+GENERATE_CUDA_EXECUTABLE("HeatEquation" 2 "templates/main_heat_equation_solver.h" "kernels/sharedDataAndKernel.h")
