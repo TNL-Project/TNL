@@ -67,6 +67,11 @@ TNL::Config::ConfigDescription HeatmapSolverBenchmark::makeInputConfig() {
    config.addEntry<double>("domain-x-size", "Domain size along x-axis.", 2.0);
    config.addEntry<double>("domain-y-size", "Domain size along y-axis.", 2.0);
 
+   config.addDelimiter( "Initial condition settings ( (x^2/alpha + y^2/beta) + gamma)):" );
+   config.addEntry< double >( "alpha", "Alpha value in initial condition", -0.05 );
+   config.addEntry< double >( "beta", "Beta value in initial condition", -0.05 );
+   config.addEntry< double >( "gamma", "Gamma key in initial condition", 15 );
+
    config.addEntry<double>("sigma", "Sigma in exponential initial condition.", 1.0);
 
    config.addEntry<double>("time-step", "Time step. By default it is proportional to one over space step square.", 0.000001);
@@ -100,7 +105,9 @@ void HeatmapSolverBenchmark::runBenchmark(TNL::Benchmarks::Benchmark<>& benchmar
                                           const TNL::Config::ParameterContainer& parameters) const {
    Real xDomainSize = parameters.getParameter<Real>("domain-x-size");
    Real yDomainSize = parameters.getParameter<Real>("domain-y-size");
-   Real sigma = parameters.getParameter<Real>("sigma");
+   Real alpha = parameters.getParameter<Real>("alpha");
+   Real beta = parameters.getParameter<Real>("beta");
+   Real gamma = parameters.getParameter<Real>("gamma");
    Real timeStep = parameters.getParameter<Real>("time-step");
    Real finalTime = parameters.getParameter<Real>("final-time");
 
@@ -120,7 +127,7 @@ void HeatmapSolverBenchmark::runBenchmark(TNL::Benchmarks::Benchmark<>& benchmar
          benchmark.setDatasetSize(xSize * ySize);
 
          auto lambda = [=]() {
-            typename HeatmapSolver<Real>::Parameters params(xSize, ySize, xDomainSize, yDomainSize, sigma, timeStep, finalTime, false, false);
+            typename HeatmapSolver<Real>::Parameters params(xSize, ySize, xDomainSize, yDomainSize, alpha, beta, gamma, timeStep, finalTime, false, false);
 
             exec<Real, Device>(params);
          };

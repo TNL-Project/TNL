@@ -19,7 +19,7 @@ public:
    public:
       const int xSize, ySize;
       const Real xDomainSize, yDomainSize;
-      const Real sigma;
+      const Real alpha, beta, gamma;
       const Real timeStep, finalTime;
       const bool outputData;
       const bool verbose;
@@ -27,13 +27,13 @@ public:
       Parameters(const TNL::Config::ParameterContainer &parameters);
       Parameters(const int xSize, const int ySize,
                  const Real xDomainSize, const Real yDomainSize,
-                 const Real sigma,
+                 const Real alpha,  const Real beta,  const Real gamma,
                  const Real timeStep, const Real finalTime,
                  const bool outputData,
                  const bool verbose):
                  xSize(xSize), ySize(ySize),
                  xDomainSize(xDomainSize), yDomainSize(yDomainSize),
-                 sigma(sigma),
+                 alpha(alpha), beta(beta), gamma(gamma),
                  timeStep(timeStep), finalTime(finalTime),
                  outputData(outputData), verbose(verbose) {}
 
@@ -66,7 +66,10 @@ TNL::Config::ConfigDescription HeatmapSolver<Real>::Parameters::makeInputConfig(
    config.addEntry<Real>("domain-x-size", "Domain size along x-axis.", 4.0);
    config.addEntry<Real>("domain-y-size", "Domain size along y-axis.", 4.0);
 
-   config.addEntry<Real>("sigma", "Sigma in exponential initial condition.", 0.5);
+   config.addDelimiter( "Initial condition settings ( (x^2/alpha + y^2/beta) + gamma)):" );
+   config.addEntry< double >( "alpha", "Alpha value in initial condition", -0.05 );
+   config.addEntry< double >( "beta", "Beta value in initial condition", -0.05 );
+   config.addEntry< double >( "gamma", "Gamma key in initial condition", 15 );
 
    config.addEntry<Real>("time-step", "Time step. By default it is proportional to one over space step square.", 0.000005);
    config.addEntry<Real>("final-time", "Final time of the simulation.", 0.36);
@@ -80,7 +83,9 @@ HeatmapSolver<Real>::Parameters::Parameters(const TNL::Config::ParameterContaine
                                                                                                  ySize(parameters.getParameter<int>("grid-y-size")),
                                                                                                  xDomainSize(parameters.getParameter<Real>("domain-x-size")),
                                                                                                  yDomainSize(parameters.getParameter<Real>("domain-y-size")),
-                                                                                                 sigma(parameters.getParameter<Real>("sigma")),
+                                                                                                 alpha(parameters.getParameter<Real>("alpha")),
+                                                                                                 beta(parameters.getParameter<Real>("beta")),
+                                                                                                 gamma(parameters.getParameter<Real>("gamma")),
                                                                                                  timeStep(parameters.getParameter<Real>("time-step")),
                                                                                                  finalTime(parameters.getParameter<Real>("final-time")),
                                                                                                  outputData(parameters.getParameter<bool>("outputData")),

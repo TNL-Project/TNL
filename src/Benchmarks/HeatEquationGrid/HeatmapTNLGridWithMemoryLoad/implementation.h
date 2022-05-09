@@ -103,7 +103,10 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
    auto xSize = params.xSize;
    auto xDomainSize = params.xDomainSize;
    auto yDomainSize = params.yDomainSize;
-   auto sigma = params.sigma;
+
+   auto alpha = params.alpha;
+   auto beta = params.beta;
+   auto gamma = params.gamma;
 
    Grid<2, int, Real> grid;
 
@@ -115,7 +118,7 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
       auto x = entity.i * hx - xDomainSize / 2.;
       auto y = entity.j * hy - yDomainSize / 2.;
 
-      uxView[index] = exp(sigma * (x * x + y * y));
+      uxView[index] = TNL::max((x * x / alpha)  + (y * y / beta) + gamma, 0);
    };
 
    TNL::Algorithms::ParallelFor2D<Device>::exec(1, 1, params.xSize - 1, params.ySize - 1, init);

@@ -365,7 +365,10 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
    auto timestep = params.timeStep ? params.timeStep : std::min(hx * hx, hy * hy);
    auto xDomainSize = params.xDomainSize;
    auto yDomainSize = params.yDomainSize;
-   auto sigma = params.sigma;
+
+   auto alpha = params.alpha;
+   auto beta = params.beta;
+   auto gamma = params.gamma;
 
    TNL::Containers::Array<Real, Device> ux(entitiesCount), // data at step u
                                         aux(entitiesCount);// data at step u + 1
@@ -383,7 +386,7 @@ bool HeatmapSolver<Real>::solve(const HeatmapSolver<Real>::Parameters &params) c
       auto x = position[0] * hx - xDomainSize / 2;
       auto y = position[1] * hx - yDomainSize / 2;
 
-      uxView[index] = exp(sigma * (x * x + y * y));
+      uxView[index] = TNL::max((x * x / alpha)  + (y * y / beta) + gamma, 0);
    };
 
    const Container<2, bool> direction{ false, false };
