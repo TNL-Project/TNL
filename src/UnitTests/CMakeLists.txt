@@ -54,3 +54,23 @@ if( ZLIB_FOUND )
       add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
    endforeach()
 endif()
+
+
+if( ${BUILD_MPI} )
+   find_package(Hypre)
+
+   if( ${HYPRE_FOUND} )
+      foreach( target IN ITEMS HypreTest )
+         add_executable( ${target} ${target}.cpp )
+         target_compile_definitions( ${target} PUBLIC "-DHAVE_HYPRE" )
+         target_compile_options( ${target} PRIVATE ${CXX_TESTS_FLAGS} )
+         target_include_directories( ${target} PUBLIC ${HYPRE_INCLUDE_DIRS} )
+         target_link_libraries( ${target} ${TESTS_LIBRARIES} ${HYPRE_LIBRARIES} )
+         target_link_options( ${target} PRIVATE ${TESTS_LINKER_FLAGS} )
+
+         set( mpi_test_parameters -np 4 -H localhost:4 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
+         add_test( NAME ${target} COMMAND "mpirun" ${mpi_test_parameters})
+         add_test( ${target}_nodistr ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
+      endforeach()
+   endif()
+endif()

@@ -103,7 +103,6 @@ File::load_impl( Type* buffer, std::streamsize elements )
          file.read( reinterpret_cast< char* >( cast_buffer.get() ), sizeof( SourceType ) * transfer );
          for( std::streamsize i = 0; i < transfer; i++ )
             buffer[ readElements++ ] = static_cast< Type >( cast_buffer[ i ] );
-         readElements += transfer;
       }
    }
 }
@@ -184,7 +183,6 @@ File::save_impl( const Type* buffer, std::streamsize elements )
          for( std::streamsize i = 0; i < transfer; i++ )
             cast_buffer[ i ] = static_cast< TargetType >( buffer[ writtenElements++ ] );
          file.write( reinterpret_cast< char* >( cast_buffer.get() ), sizeof( TargetType ) * transfer );
-         writtenElements += transfer;
       }
    }
 }
@@ -232,6 +230,15 @@ File::save_impl( const Type* buffer, std::streamsize elements )
 #else
    throw Exceptions::CudaSupportMissing();
 #endif
+}
+
+template< typename SourceType >
+void
+File::ignore( std::streamsize elements )
+{
+   // use seekg instead of ignore for efficiency
+   // https://stackoverflow.com/a/31246560
+   file.seekg( sizeof( SourceType ) * elements, std::ios_base::cur );
 }
 
 inline bool

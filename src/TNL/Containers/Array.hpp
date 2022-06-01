@@ -134,7 +134,7 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 std::string
 Array< Value, Device, Index, Allocator >::getSerializationType()
 {
-   return detail::ArrayIO< Value, Device, Index >::getSerializationType();
+   return detail::ArrayIO< Value, Index, Allocator >::getSerializationType();
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -579,7 +579,7 @@ operator<<( File& file, const Array< Value, Device, Index, Allocator >& array )
 {
    using IO = detail::ArrayIO< Value, Index, Allocator >;
    saveObjectType( file, IO::getSerializationType() );
-   const Index size = array.getSize();
+   const std::size_t size = array.getSize();
    file.save( &size );
    IO::save( file, array.getData(), array.getSize() );
    return file;
@@ -603,11 +603,9 @@ operator>>( File& file, Array< Value, Device, Index, Allocator >& array )
    if( type != IO::getSerializationType() )
       throw Exceptions::FileDeserializationError(
          file.getFileName(), "object type does not match (expected " + IO::getSerializationType() + ", found " + type + ")." );
-   Index _size;
-   file.load( &_size );
-   if( _size < 0 )
-      throw Exceptions::FileDeserializationError( file.getFileName(), "invalid array size: " + std::to_string( _size ) );
-   array.setSize( _size );
+   std::size_t size;
+   file.load( &size );
+   array.setSize( size );
    IO::load( file, array.getData(), array.getSize() );
    return file;
 }

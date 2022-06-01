@@ -35,6 +35,12 @@ struct MyData
    // operator used in tests, not necessary for Array to work
    template< typename T >
    bool operator==( T v ) const { return data == v; }
+
+   // operator used in ArrayIO::loadSubrange (due to casting requested from the tests)
+   operator double() const
+   {
+      return data;
+   }
 };
 
 std::ostream& operator<<( std::ostream& str, const MyData& v )
@@ -642,6 +648,48 @@ TYPED_TEST( ArrayTest, SaveAndLoad )
    ASSERT_NO_THROW( File( TEST_FILE_NAME, std::ios_base::out ) << v );
    ASSERT_NO_THROW( File( TEST_FILE_NAME, std::ios_base::in ) >> u );
    EXPECT_EQ( u, v );
+
+   EXPECT_EQ( std::remove( TEST_FILE_NAME ), 0 );
+}
+
+TYPED_TEST( ArrayTest, SaveAndLoadSubrangeWithCast )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Value = typename ArrayType::ValueType;
+   using Index = typename ArrayType::IndexType;
+   using namespace TNL::Containers::detail;
+
+   ArrayType v;
+   v.setSize( 100 );
+   for( int i = 0; i < 100; i ++ )
+      v.setElement( i, i );
+   ASSERT_NO_THROW( File( TEST_FILE_NAME, std::ios_base::out ) << v );
+
+   const int offset = 25;
+   const int subrangeSize = 50;
+   using CastValue = short int;
+   Array< CastValue, typename ArrayType::DeviceType, long > array;
+   array.setSize( subrangeSize );
+   File file( TEST_FILE_NAME, std::ios_base::in );
+   {
+      // read type
+      const std::string type = getObjectType( file );
+      ASSERT_EQ( type, ArrayType::getSerializationType() );
+      // read size
+      std::size_t elementsInFile;
+      file.load( &elementsInFile );
+      EXPECT_EQ( elementsInFile, static_cast< std::size_t >( v.getSize() ) );
+      // read data, cast from Value to short int
+      using IO = ArrayIO< CastValue, Index, typename Allocators::Default< typename ArrayType::DeviceType >::template Allocator< CastValue > >;
+      // hack for the test...
+      if( getType< Value >() == "MyData" )
+         IO::loadSubrange( file, elementsInFile, offset, array.getData(), array.getSize(), "double" );
+      else
+         IO::loadSubrange( file, elementsInFile, offset, array.getData(), array.getSize(), getType< Value >() );
+   }
+   for( Index i = 0; i < subrangeSize; i++ ) {
+      EXPECT_EQ( array.getElement( i ), offset + i );
+   }
 
    EXPECT_EQ( std::remove( TEST_FILE_NAME ), 0 );
 }

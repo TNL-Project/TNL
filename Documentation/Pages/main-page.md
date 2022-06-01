@@ -178,6 +178,11 @@ computing platform, and (optionally) some libraries.
       <td> </td>
       <td> Only used for the compilation of the `tnl-decompose-mesh` tool. </td>
   </tr>
+  <tr><td> [Hypre](https://github.com/hypre-space/hypre) </td>
+      <td> \ref Hypre "Wrappers for Hypre solvers" </td>
+      <td> `-DHAVE_HYPRE -lHYPRE` </td>
+      <td> Attention should be paid to Hypre build options, e.g. `--enable-bigint`. </td>
+  </tr>
   <tr><td> [libpng](http://www.libpng.org/pub/png/libpng.html) </td>
       <td> \ref TNL::Images "Image processing" classes </td>
       <td> `-DHAVE_PNG_H -lpng` </td>

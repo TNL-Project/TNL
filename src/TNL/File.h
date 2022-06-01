@@ -140,6 +140,18 @@ public:
    void
    save( const Type* buffer, std::streamsize elements = 1 );
 
+   /**
+    * \brief Extracts and discards characters from the file.
+    *
+    * Throws \ref std::ios_base::failure on failure.
+    *
+    * \tparam SourceType type of data stored on the file,
+    * \param elements number of elements to be read and ignored.
+    */
+   template< typename SourceType >
+   void
+   ignore( std::streamsize elements = 1 );
+
 protected:
    // implementation for all allocators which allocate data accessible from host
    template< typename Type,

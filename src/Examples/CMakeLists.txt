@@ -1,3 +1,5 @@
+add_subdirectory( Hypre )
+
 #add_subdirectory( simple-examples )
 #add_subdirectory( Hamilton-Jacobi )
 #add_subdirectory( heat-equation )

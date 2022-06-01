@@ -355,7 +355,7 @@ operator<<( File& file, const ArrayView< Value, Device, Index > view )
 {
    using IO = detail::ArrayIO< Value, Index, typename Allocators::Default< Device >::template Allocator< Value > >;
    saveObjectType( file, IO::getSerializationType() );
-   const Index size = view.getSize();
+   const std::size_t size = view.getSize();
    file.save( &size );
    IO::save( file, view.getData(), view.getSize() );
    return file;
@@ -379,11 +379,11 @@ operator>>( File& file, ArrayView< Value, Device, Index > view )
    if( type != IO::getSerializationType() )
       throw Exceptions::FileDeserializationError(
          file.getFileName(), "object type does not match (expected " + IO::getSerializationType() + ", found " + type + ")." );
-   Index _size;
-   file.load( &_size );
-   if( _size != view.getSize() )
+   std::size_t size;
+   file.load( &size );
+   if( size != static_cast< std::size_t >( view.getSize() ) )
       throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "invalid array size: " + std::to_string( _size ) + " (expected "
+                                                  "invalid array size: " + std::to_string( size ) + " (expected "
                                                      + std::to_string( view.getSize() ) + ")." );
    IO::load( file, view.getData(), view.getSize() );
    return file;

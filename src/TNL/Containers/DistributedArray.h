@@ -277,6 +277,12 @@ public:
    void
    forElements( IndexType begin, IndexType end, Function&& f ) const;
 
+   void
+   loadFromGlobalFile( const String& fileName, bool allowCasting = false );
+
+   void
+   loadFromGlobalFile( File& file, bool allowCasting = false );
+
 protected:
    ViewType view;
    LocalArrayType localData;
