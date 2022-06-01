@@ -128,12 +128,14 @@ Before contributing, please get accustomed with the [code of conduct][code of co
 
 ## Citing
 
-If you use TNL in your scientific projects, please cite the following paper in
+If you use TNL in your scientific projects, please cite the following papers in
 your publications:
 
-- T. Oberhuber, J. Klinkovský, R. Fučík, [TNL: Numerical library for modern
-  parallel architectures](https://ojs.cvut.cz/ojs/index.php/ap/article/view/6075),
-  Acta Polytechnica 61.SI (2021), 122-134.
+- T. Oberhuber, J. Klinkovský, R. Fučík, [TNL: Numerical library for modern parallel architectures](
+  https://ojs.cvut.cz/ojs/index.php/ap/article/view/6075), Acta Polytechnica 61.SI (2021), 122-134.
+- J. Klinkovský, T. Oberhuber, R. Fučík, V. Žabka, [Configurable open-source data structure for
+  distributed conforming unstructured homogeneous meshes with GPU support](
+  https://doi.org/10.1145/3536164), Just Accepted in ACM Transactions on Mathematical Software.
 
 ## Authors
 
