@@ -50,3 +50,11 @@ TODO: compare the implementation of multidimensional arrays
 - [RAJA](https://github.com/LLNL/RAJA) - No memory management, views are initialized with a raw pointer, index permutations are initialized at runtime, only dynamic dimensions.
 - [Kokkos](https://github.com/kokkos/kokkos) - Configurable layout and default selection based on the memory/execution space, but only AoS and SoA are considered, even for `N > 2`. For parallel work there is only one leading dimension - it does not map to 2D or 3D CUDA grids.
 - [CUV](https://github.com/deeplearningais/CUV) - Assumption that "everything is an n-dimensional array" (like Matlab), CPU and GPU support, column-major or row-major, integration with Python and Numpy.
+
+## Unstructured meshes
+
+TNL has a unique data structure for the representation of unstructured meshes in high-performance
+simulation software, including GPU accelerators. See the original paper [Configurable open-source
+data structure for distributed conforming unstructured homogeneous meshes with GPU support](
+https://doi.org/10.1145/3536164) for the design choices an benchmarks comparing it to the
+[MOAB library](https://sigma.mcs.anl.gov/moab-library/).
