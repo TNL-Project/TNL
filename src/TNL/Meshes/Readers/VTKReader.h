@@ -419,6 +419,8 @@ protected:
       // check header
       getline( str, line );
       static const std::string prefix = "# vtk DataFile Version ";
+      if( line.size() < prefix.size() )
+         throw MeshReaderError( "VTKReader", "failed to parse the VTK file header: unsupported VTK header '" + line + "'" );
       formatVersion = line.substr( prefix.length() );
       if( line.substr( 0, prefix.length() ) != prefix )
          throw MeshReaderError( "VTKReader", "failed to parse the VTK file header: unsupported VTK header '" + line + "'" );
