@@ -22,26 +22,36 @@ HypreSolver::HypreSolver( const Matrices::HypreParCSRMatrix& A )
 }
 
 void
+HypreSolver::setup( const Containers::HypreParVector& b, Containers::HypreParVector& x ) const
+{
+   if( A == nullptr )
+      throw std::runtime_error( "HypreSolver::setup(...) : HypreParCSRMatrix A is missing" );
+
+   if( setup_called )
+      return;
+
+   const HYPRE_Int err_flag = setupFcn()( *this, *A, b, x );
+   if( err_flag != 0 ) {
+      if( error_mode == WARN_HYPRE_ERRORS )
+         std::cout << "Error during setup! Error code: " << err_flag << std::endl;
+      else if( error_mode == ABORT_HYPRE_ERRORS )
+         throw std::runtime_error( "Error during setup! Error code: " + std::to_string( err_flag ) );
+   }
+   hypre_error_flag = 0;
+
+   setup_called = true;
+}
+
+void
 HypreSolver::solve( const Containers::HypreParVector& b, Containers::HypreParVector& x ) const
 {
-   HYPRE_Int err_flag;
-   if( A == nullptr ) {
+   if( A == nullptr )
       throw std::runtime_error( "HypreSolver::solve(...) : HypreParCSRMatrix A is missing" );
-   }
 
-   if( ! setup_called ) {
-      err_flag = setupFcn()( *this, *A, b, x );
-      if( err_flag != 0 ) {
-         if( error_mode == WARN_HYPRE_ERRORS )
-            std::cout << "Error during setup! Error code: " << err_flag << std::endl;
-         else if( error_mode == ABORT_HYPRE_ERRORS )
-            throw std::runtime_error( "Error during setup! Error code: " + std::to_string( err_flag ) );
-      }
-      hypre_error_flag = 0;
-      setup_called = true;
-   }
+   if( ! setup_called )
+      setup( b, x );
 
-   err_flag = solveFcn()( *this, *A, b, x );
+   const HYPRE_Int err_flag = solveFcn()( *this, *A, b, x );
    if( err_flag != 0 ) {
       if( error_mode == WARN_HYPRE_ERRORS )
          std::cout << "Error during solve! Error code: " << err_flag << std::endl;
@@ -70,11 +80,11 @@ HyprePCG::~HyprePCG()
 }
 
 void
-HyprePCG::setMatrix( const Matrices::HypreParCSRMatrix& op )
+HyprePCG::setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup )
 {
-   HypreSolver::setMatrix( op );
+   HypreSolver::setMatrix( op, reuse_setup );
    if( precond != nullptr )
-      precond->setMatrix( *A );
+      precond->setMatrix( *A, reuse_setup );
 }
 
 void
@@ -132,11 +142,11 @@ HypreBiCGSTAB::~HypreBiCGSTAB()
 }
 
 void
-HypreBiCGSTAB::setMatrix( const Matrices::HypreParCSRMatrix& op )
+HypreBiCGSTAB::setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup )
 {
-   HypreSolver::setMatrix( op );
+   HypreSolver::setMatrix( op, reuse_setup );
    if( precond != nullptr )
-      precond->setMatrix( *A );
+      precond->setMatrix( *A, reuse_setup );
 }
 
 void
@@ -182,11 +192,11 @@ HypreGMRES::~HypreGMRES()
 }
 
 void
-HypreGMRES::setMatrix( const Matrices::HypreParCSRMatrix& op )
+HypreGMRES::setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup )
 {
-   HypreSolver::setMatrix( op );
+   HypreSolver::setMatrix( op, reuse_setup );
    if( precond != nullptr )
-      precond->setMatrix( *A );
+      precond->setMatrix( *A, reuse_setup );
 }
 
 void
@@ -234,11 +244,11 @@ HypreFlexGMRES::~HypreFlexGMRES()
 }
 
 void
-HypreFlexGMRES::setMatrix( const Matrices::HypreParCSRMatrix& op )
+HypreFlexGMRES::setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup )
 {
-   HypreSolver::setMatrix( op );
+   HypreSolver::setMatrix( op, reuse_setup );
    if( precond != nullptr )
-      precond->setMatrix( *A );
+     precond->setMatrix( *A, reuse_setup );
 }
 
 void
@@ -271,33 +281,17 @@ HypreFlexGMRES::postSolveHook() const
 
 HypreParaSails::HypreParaSails( MPI_Comm comm )
 {
-   reset( comm );
+   HYPRE_ParaSailsCreate( comm, &solver );
 }
 
 HypreParaSails::HypreParaSails( const Matrices::HypreParCSRMatrix& A ) : HypreSolver( A )
 {
-   reset( A.getCommunicator() );
+   HYPRE_ParaSailsCreate( A.getCommunicator() , &solver );
 }
 
 HypreParaSails::~HypreParaSails()
 {
    HYPRE_ParaSailsDestroy( solver );
-}
-
-void
-HypreParaSails::reset( MPI_Comm comm )
-{
-   if( solver != nullptr )
-      HYPRE_ParaSailsDestroy( solver );
-   HYPRE_ParaSailsCreate( comm, &solver );
-}
-
-void
-HypreParaSails::setMatrix( const Matrices::HypreParCSRMatrix& op )
-{
-   if( A != nullptr )
-      reset( A->getCommunicator() );
-   HypreSolver::setMatrix( op );
 }
 
 HypreEuclid::HypreEuclid( MPI_Comm comm )
@@ -315,30 +309,16 @@ HypreEuclid::~HypreEuclid()
    HYPRE_EuclidDestroy( solver );
 }
 
-void
-HypreEuclid::reset( MPI_Comm comm )
-{
-   if( solver != nullptr )
-      HYPRE_EuclidDestroy( solver );
-   HYPRE_EuclidCreate( comm, &solver );
-}
-
-void
-HypreEuclid::setMatrix( const Matrices::HypreParCSRMatrix& op )
-{
-   if( A != nullptr )
-      reset( A->getCommunicator() );
-   HypreSolver::setMatrix( op );
-}
-
 HypreILU::HypreILU()
 {
-   reset();
+   HYPRE_ILUCreate( &solver );
+   setDefaultOptions();
 }
 
 HypreILU::HypreILU( const Matrices::HypreParCSRMatrix& A ) : HypreSolver( A )
 {
-   reset();
+   HYPRE_ILUCreate( &solver );
+   setDefaultOptions();
 }
 
 HypreILU::~HypreILU()
@@ -365,30 +345,16 @@ HypreILU::setDefaultOptions()
    HYPRE_ILUSetLocalReordering( solver, 1 );
 }
 
-void
-HypreILU::reset()
-{
-   if( solver != nullptr )
-      HYPRE_ILUDestroy( solver );
-   HYPRE_ILUCreate( &solver );
-   setDefaultOptions();
-}
-
-void
-HypreILU::setMatrix( const Matrices::HypreParCSRMatrix& op )
-{
-   reset();
-   HypreSolver::setMatrix( op );
-}
-
 HypreBoomerAMG::HypreBoomerAMG()
 {
-   reset();
+   HYPRE_BoomerAMGCreate( &solver );
+   setDefaultOptions();
 }
 
 HypreBoomerAMG::HypreBoomerAMG( const Matrices::HypreParCSRMatrix& A ) : HypreSolver( A )
 {
-   reset();
+   HYPRE_BoomerAMGCreate( &solver );
+   setDefaultOptions();
 }
 
 HypreBoomerAMG::~HypreBoomerAMG()
@@ -448,22 +414,6 @@ HypreBoomerAMG::setDefaultOptions()
    // Use as a preconditioner (one V-cycle, zero tolerance)
    HYPRE_BoomerAMGSetMaxIter( solver, 1 );
    HYPRE_BoomerAMGSetTol( solver, 0.0 );
-}
-
-void
-HypreBoomerAMG::reset()
-{
-   if( solver != nullptr )
-      HYPRE_BoomerAMGDestroy( solver );
-   HYPRE_BoomerAMGCreate( &solver );
-   setDefaultOptions();
-}
-
-void
-HypreBoomerAMG::setMatrix( const Matrices::HypreParCSRMatrix& op )
-{
-   reset();
-   HypreSolver::setMatrix( op );
 }
 
 void

@@ -218,14 +218,12 @@ main( int argc, char* argv[] )
       TNL::Solvers::Linear::HypreBoomerAMG solver;
 
       // Set the matrix of the linear system
-      // WARNING: setMatrix resets the preconditioner, including setting
-      //          default options.
-      // NOTE: The wrapper class sets its own default options that are
-      //       different from Hypre. The overriding settings below result in
-      //       the same state as the hypre-ex5.c example.
       solver.setMatrix( parcsr_A );
 
       // Set some parameters (See Reference Manual for more parameters)
+      // NOTE: The wrapper class sets its own default options that are
+      //       different from Hypre. The overriding settings below result in
+      //       the same state as the hypre-ex5.c example.
       HYPRE_BoomerAMGSetPrintLevel( solver, 3 );    // Print solve info + parameters
       HYPRE_BoomerAMGSetOldDefault( solver );       // Falgout coarsening with modified classical interpolation
       HYPRE_BoomerAMGSetRelaxType( solver, 6 );     // Sym. G-S/Jacobi hybrid relaxation
@@ -271,8 +269,6 @@ main( int argc, char* argv[] )
       solver.setPreconditioner( precond );
 
       // Set the matrix of the linear system
-      // WARNING: setMatrix resets the preconditioner, including setting
-      //          default options.
       solver.setMatrix( parcsr_A );
 
       // Set some parameters (See Reference Manual for more parameters)
@@ -303,8 +299,6 @@ main( int argc, char* argv[] )
       solver.setPreconditioner( precond );
 
       // Set the matrix of the linear system
-      // WARNING: setMatrix resets the preconditioner, including setting
-      //          default options.
       solver.setMatrix( parcsr_A );
 
       // Set some parameters (See Reference Manual for more parameters)
@@ -333,8 +327,6 @@ main( int argc, char* argv[] )
       solver.setPreconditioner( precond );
 
       // Set the matrix of the linear system
-      // WARNING: setMatrix resets the preconditioner, including setting
-      //          default options.
       solver.setMatrix( parcsr_A );
 
       // Set some parameters (See Reference Manual for more parameters)

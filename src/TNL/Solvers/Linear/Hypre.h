@@ -72,16 +72,38 @@ public:
    /**
     * \brief Set the matrix of the linear system to be solved.
     *
-    * This function also resets the current state of the solver causing the
-    * Hypre's internal setup function to be called before the solve function.
+    * This function also resets the internal flag indicating whether the Hypre
+    * setup function was called for the current matrix.
+    *
+    * \param reuse_setup When true, the result of the previous setup phase will
+    *                    be preserved, i.e., the solver (and preconditioner)
+    *                    will not be updated for the new matrix when calling
+    *                    the \ref solve method.
     */
-   virtual void setMatrix( const Matrices::HypreParCSRMatrix& op )
+   virtual void setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup = false )
    {
       A = &op;
-      setup_called = false;
+      if( setup_called && reuse_setup )
+         setup_called = true;
+      else
+         setup_called = false;
    }
 
-   //! Solve the linear system Ax=b
+   /**
+    * \brief Setup the solver for solving the linear system Ax=b.
+    *
+    * Calling this function repeatedly has no effect until the internal flag is
+    * reset via the \ref setMatrix function.
+    */
+   virtual void
+   setup( const Containers::HypreParVector& b, Containers::HypreParVector& x ) const;
+
+   /**
+    * \brief Solve the linear system Ax=b.
+    *
+    * This function checks if the \ref setup function was already called and
+    * calls it if necessary.
+    */
    virtual void
    solve( const Containers::HypreParVector& b, Containers::HypreParVector& x ) const;
 
@@ -125,7 +147,7 @@ public:
    ~HyprePCG() override;
 
    void
-   setMatrix( const Matrices::HypreParCSRMatrix& op ) override;
+   setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup = false ) override;
 
    //! Set the Hypre solver to be used as a preconditioner
    void
@@ -219,7 +241,7 @@ public:
    ~HypreBiCGSTAB() override;
 
    void
-   setMatrix( const Matrices::HypreParCSRMatrix& op ) override;
+   setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup = false ) override;
 
    //! Set the Hypre solver to be used as a preconditioner
    void
@@ -302,7 +324,7 @@ public:
    ~HypreGMRES() override;
 
    void
-   setMatrix( const Matrices::HypreParCSRMatrix& op ) override;
+   setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup = false ) override;
 
    //! Set the Hypre solver to be used as a preconditioner
    void
@@ -390,7 +412,7 @@ public:
    ~HypreFlexGMRES() override;
 
    void
-   setMatrix( const Matrices::HypreParCSRMatrix& op ) override;
+   setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup = false ) override;
 
    //! Set the Hypre solver to be used as a preconditioner
    void
@@ -518,20 +540,12 @@ public:
  */
 class HypreParaSails : public HypreSolver
 {
-private:
-   //! \brief Reset the preconditioner to the default state
-   void
-   reset( MPI_Comm comm );
-
 public:
    explicit HypreParaSails( MPI_Comm comm );
 
    explicit HypreParaSails( const Matrices::HypreParCSRMatrix& A );
 
    ~HypreParaSails() override;
-
-   void
-   setMatrix( const Matrices::HypreParCSRMatrix& op ) override;
 
    HYPRE_PtrToParSolverFcn
    setupFcn() const override
@@ -567,20 +581,12 @@ public:
  */
 class HypreEuclid : public HypreSolver
 {
-private:
-   //! \brief Reset the preconditioner to the default state
-   void
-   reset( MPI_Comm comm );
-
 public:
    explicit HypreEuclid( MPI_Comm comm );
 
    explicit HypreEuclid( const Matrices::HypreParCSRMatrix& A );
 
    ~HypreEuclid() override;
-
-   void
-   setMatrix( const Matrices::HypreParCSRMatrix& op ) override;
 
    HYPRE_PtrToParSolverFcn
    setupFcn() const override
@@ -616,10 +622,6 @@ private:
    void
    setDefaultOptions();
 
-   //! \brief Reset the preconditioner to the default state (including default options).
-   void
-   reset();
-
 public:
    HypreILU();
 
@@ -633,9 +635,6 @@ public:
    {
       HYPRE_ILUSetPrintLevel( solver, print_level );
    }
-
-   void
-   setMatrix( const Matrices::HypreParCSRMatrix& op ) override;
 
    HYPRE_PtrToParSolverFcn
    setupFcn() const override
@@ -676,19 +675,12 @@ private:
    void
    setDefaultOptions();
 
-   //! \brief Reset the preconditioner to the default state (including default options).
-   void
-   reset();
-
 public:
    HypreBoomerAMG();
 
    explicit HypreBoomerAMG( const Matrices::HypreParCSRMatrix& A );
 
    ~HypreBoomerAMG() override;
-
-   void
-   setMatrix( const Matrices::HypreParCSRMatrix& op ) override;
 
    //! \brief More robust options for systems of PDEs
    void
