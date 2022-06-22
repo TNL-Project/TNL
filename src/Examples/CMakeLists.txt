@@ -13,8 +13,8 @@ add_subdirectory( Hypre )
 #add_subdirectory( flow-sw )
 #add_subdirectory( flow-vl )
 
-set( CPP_TARGETS  tnl-optimize-ranks )
-set( CUDA_TARGETS  tnl-optimize-ranks-cuda )
+set( CPP_TARGETS  tnl-optimize-ranks tnl-turbulence-generator )
+set( CUDA_TARGETS  tnl-optimize-ranks-cuda tnl-turbulence-generator-cuda )
 
 foreach( target IN ITEMS ${CPP_TARGETS} )
    add_executable( ${target} ${target}.cpp )
