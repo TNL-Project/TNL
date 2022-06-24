@@ -10,6 +10,8 @@ set( MESH_TOOLS
          tnl-planar-correct-mesh
          tnl-refine-mesh
          tnl-game-of-life
+         tnl-reorder-mesh
+         tnl-plot-mesh-ordering
 )
 set( CUDA_MESH_TOOLS )
 if( BUILD_CUDA )
@@ -42,19 +44,31 @@ endforeach()
 
 find_package( METIS QUIET )
 if( METIS_FOUND )
-   add_executable(tnl-decompose-mesh tnl-decompose-mesh.cpp)
-   target_include_directories(tnl-decompose-mesh PUBLIC ${METIS_INCLUDE_DIRS})
-   target_link_libraries(tnl-decompose-mesh ${METIS_LIBRARIES})
+   add_executable( tnl-decompose-mesh tnl-decompose-mesh.cpp )
+   target_include_directories( tnl-decompose-mesh PUBLIC ${METIS_INCLUDE_DIRS} )
+   target_link_libraries( tnl-decompose-mesh ${METIS_LIBRARIES} )
    if( ZLIB_FOUND )
-      target_compile_definitions(tnl-decompose-mesh PUBLIC "-DHAVE_ZLIB")
-      target_include_directories(tnl-decompose-mesh PUBLIC ${ZLIB_INCLUDE_DIRS})
-      target_link_libraries(tnl-decompose-mesh ${ZLIB_LIBRARIES})
+      target_compile_definitions( tnl-decompose-mesh PUBLIC "-DHAVE_ZLIB" )
+      target_include_directories( tnl-decompose-mesh PUBLIC ${ZLIB_INCLUDE_DIRS} )
+      target_link_libraries( tnl-decompose-mesh ${ZLIB_LIBRARIES} )
    endif()
    if( tinyxml2_FOUND )
-      target_compile_definitions(tnl-decompose-mesh PUBLIC "-DHAVE_TINYXML2")
-      target_link_libraries(tnl-decompose-mesh tinyxml2::tinyxml2)
+      target_compile_definitions( tnl-decompose-mesh PUBLIC "-DHAVE_TINYXML2" )
+      target_link_libraries( tnl-decompose-mesh tinyxml2::tinyxml2 )
    endif()
    install( TARGETS tnl-decompose-mesh DESTINATION bin )
+endif()
+
+set( CGAL_DATA_DIR "/" )  # to disable stupid warning: https://github.com/CGAL/cgal/pull/6649
+find_package( CGAL )
+if( CGAL_FOUND )
+   option( CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE "disable warning" ON )
+
+   target_compile_definitions( tnl-reorder-mesh PUBLIC "-DHAVE_CGAL" )
+   target_link_libraries( tnl-reorder-mesh CGAL::CGAL )
+
+   target_compile_definitions( tnl-plot-mesh-ordering PUBLIC "-DHAVE_CGAL" )
+   target_link_libraries( tnl-plot-mesh-ordering CGAL::CGAL )
 endif()
 
 
