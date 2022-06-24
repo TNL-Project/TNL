@@ -173,6 +173,11 @@ computing platform, and (optionally) some libraries.
       <td> If TinyXML2 is not found as a system library, the `install` script
            will download, compile and install TinyXML2 along with TNL. </td>
   </tr>
+  <tr><td> [CGAL](https://github.com/CGAL/cgal/) </td>
+      <td> Additional mesh ordering algorithms for `tnl-reorder-mesh` and `tnl-plot-mesh-ordering` </td>
+      <td> `-DHAVE_CGAL` </td>
+      <td> Only used for the compilation of these tools. </td>
+  </tr>
   <tr><td> [Metis](http://glaros.dtc.umn.edu/gkhome/metis/metis/overview) </td>
       <td> `tnl-decompose-mesh` </td>
       <td> </td>
