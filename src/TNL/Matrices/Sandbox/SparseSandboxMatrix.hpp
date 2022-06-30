@@ -479,7 +479,7 @@ template< typename Function >
 void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::forAllRows( Function&& function ) const
 {
-   this->getConsView().forAllRows( function );
+   this->getConstView().forAllRows( function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >

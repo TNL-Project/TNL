@@ -795,7 +795,7 @@ void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::forAllRows(
    Function&& function ) const
 {
-   this->getConsView().forAllRows( function );
+   this->getConstView().forAllRows( function );
 }
 
 template< typename Real,
