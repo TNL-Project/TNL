@@ -31,11 +31,16 @@ struct AtomicOperations< Devices::Host >
    TNL_NVCC_HD_WARNING_DISABLE
    template< typename Value >
    __cuda_callable__
-   static void
+   static Value
    add( Value& v, const Value& a )
    {
-      #pragma omp atomic update
-      v += a;
+      Value old;
+      #pragma omp atomic capture
+      {
+         old = v;
+         v += a;
+      }
+      return old;
    }
 };
 
@@ -48,10 +53,12 @@ struct AtomicOperations< Devices::Sequential >
    TNL_NVCC_HD_WARNING_DISABLE
    template< typename Value >
    __cuda_callable__
-   static void
+   static Value
    add( Value& v, const Value& a )
    {
+      const Value old = v;
       v += a;
+      return old;
    }
 };
 
@@ -60,17 +67,17 @@ struct AtomicOperations< Devices::Cuda >
 {
    template< typename Value >
    __cuda_callable__
-   static void
+   static Value
    add( Value& v, const Value& a )
    {
 #ifdef HAVE_CUDA
-      atomicAdd( &v, a );
-#endif  // HAVE_CUDA
+      return atomicAdd( &v, a );
+#endif
    }
 
 #ifdef HAVE_CUDA
    __device__
-   static void
+   static double
    add( double& v, const double& a )
    {
    #if __CUDA_ARCH__ < 600
@@ -83,32 +90,32 @@ struct AtomicOperations< Devices::Cuda >
 
          // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
       } while( assumed != old );
+
+      return old;
    #else   // __CUDA_ARCH__ < 600
-      atomicAdd( &v, a );
+      return atomicAdd( &v, a );
    #endif  //__CUDA_ARCH__ < 600
    }
-#else   // HAVE_CUDA
-   static void
-   add( double& v, const double& a )
-   {}
 #endif  // HAVE_CUDA
 
    __cuda_callable__
-   static void
+   static long int
    add( long int& v, const long int& a )
    {
 #ifdef HAVE_CUDA
       TNL_ASSERT_TRUE( false, "Atomic add for long int is not supported on CUDA." );
 #endif  // HAVE_CUDA
+      return 0;
    }
 
    __cuda_callable__
-   static void
+   static short int
    add( short int& v, const short int& a )
    {
 #ifdef HAVE_CUDA
       TNL_ASSERT_TRUE( false, "Atomic add for short int is not supported on CUDA." );
 #endif  // HAVE_CUDA
+      return 0;
    }
 };
 }  // namespace Algorithms
