@@ -8,19 +8,13 @@
 
 #pragma once
 
-#ifdef HAVE_CUDA
-   #include <cuda.h>
-#endif
-#include <TNL/Devices/Sequential.h>
-#include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Atomic.h>
 
 namespace TNL {
 namespace Algorithms {
 
 template< typename Device >
-struct AtomicOperations
-{};
+struct AtomicOperations;
 
 template<>
 struct AtomicOperations< Devices::Host >
@@ -31,11 +25,16 @@ struct AtomicOperations< Devices::Host >
    TNL_NVCC_HD_WARNING_DISABLE
    template< typename Value >
    __cuda_callable__
-   static void
+   static Value
    add( Value& v, const Value& a )
    {
-      #pragma omp atomic update
-      v += a;
+      Value old;
+      #pragma omp atomic capture
+      {
+         old = v;
+         v += a;
+      }
+      return old;
    }
 };
 
@@ -48,10 +47,12 @@ struct AtomicOperations< Devices::Sequential >
    TNL_NVCC_HD_WARNING_DISABLE
    template< typename Value >
    __cuda_callable__
-   static void
+   static Value
    add( Value& v, const Value& a )
    {
+      const Value old = v;
       v += a;
+      return old;
    }
 };
 
@@ -60,56 +61,26 @@ struct AtomicOperations< Devices::Cuda >
 {
    template< typename Value >
    __cuda_callable__
-   static void
+   static Value
    add( Value& v, const Value& a )
    {
 #ifdef HAVE_CUDA
-      atomicAdd( &v, a );
-#endif  // HAVE_CUDA
-   }
-
-#ifdef HAVE_CUDA
-   __device__
-   static void
-   add( double& v, const double& a )
-   {
-   #if __CUDA_ARCH__ < 600
-      unsigned long long int* v_as_ull = (unsigned long long int*) &v;
-      unsigned long long int old = *v_as_ull, assumed;
-
-      do {
-         assumed = old;
-         old = atomicCAS( v_as_ull, assumed, __double_as_longlong( a + __longlong_as_double( assumed ) ) );
-
-         // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
-      } while( assumed != old );
-   #else   // __CUDA_ARCH__ < 600
-      atomicAdd( &v, a );
-   #endif  //__CUDA_ARCH__ < 600
-   }
-#else   // HAVE_CUDA
-   static void
-   add( double& v, const double& a )
-   {}
-#endif  // HAVE_CUDA
-
-   __cuda_callable__
-   static void
-   add( long int& v, const long int& a )
-   {
-#ifdef HAVE_CUDA
-      TNL_ASSERT_TRUE( false, "Atomic add for long int is not supported on CUDA." );
-#endif  // HAVE_CUDA
+      return atomicAdd( &v, a );
+#else
+      return 0;
+#endif
    }
 
    __cuda_callable__
-   static void
+   static short int
    add( short int& v, const short int& a )
    {
 #ifdef HAVE_CUDA
       TNL_ASSERT_TRUE( false, "Atomic add for short int is not supported on CUDA." );
-#endif  // HAVE_CUDA
+#endif
+      return 0;
    }
 };
+
 }  // namespace Algorithms
 }  // namespace TNL

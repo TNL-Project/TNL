@@ -80,7 +80,8 @@ public:
     *                    will not be updated for the new matrix when calling
     *                    the \ref solve method.
     */
-   virtual void setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup = false )
+   virtual void
+   setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup = false )
    {
       A = &op;
       if( setup_called && reuse_setup )

@@ -795,7 +795,7 @@ void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::forAllRows(
    Function&& function ) const
 {
-   this->getConsView().forAllRows( function );
+   this->getConstView().forAllRows( function );
 }
 
 template< typename Real,
@@ -870,7 +870,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    this->sequentialForRows( (IndexType) 0, this->getRows(), function );
 }
 
-/*template< typename Real,
+/*
+template< typename Real,
           template< typename, typename, typename > class Segments,
           typename Device,
           typename Index,
@@ -882,23 +883,75 @@ addMatrix( const SparseMatrix< Real2, Segments2, Device, Index2, RealAllocator2,
            const RealType& matrixMultiplicator,
            const RealType& thisMatrixMultiplicator )
 {
-
 }
+*/
 
 template< typename Real,
-          template< typename, typename, typename > class Segments,
           typename Device,
           typename Index,
+          typename MatrixType,
+          template< typename, typename, typename >
+          class Segments,
+          typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
-template< typename Real2, typename Index2 >
+template< typename Real2, typename Index2, template< typename, typename, typename > class Segments2 >
 void
-SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::
-getTransposition( const SparseMatrix< Real2, Device, Index2 >& matrix,
-                  const RealType& matrixMultiplicator )
+SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::getTransposition(
+   const SparseMatrix< Real2, Device, Index2, MatrixType, Segments2 >& matrix,
+   const ComputeRealType& matrixMultiplicator )
 {
+   // set transposed dimensions
+   setDimensions( matrix.getColumns(), matrix.getRows() );
 
-}*/
+   // stage 1: compute row capacities for the transposition
+   RowsCapacitiesType capacities;
+   capacities.resize( this->getRows(), 0 );
+   auto capacities_view = capacities.getView();
+   using MatrixRowView = typename SparseMatrix< Real2, Device, Index2, MatrixType, Segments2 >::ConstRowView;
+   matrix.forAllRows(
+      [ = ] __cuda_callable__( const MatrixRowView& row ) mutable
+      {
+         for( IndexType c = 0; c < row.getSize(); c++ ) {
+            // row index of the transpose = column index of the input
+            const IndexType& transRowIdx = row.getColumnIndex( c );
+            if( transRowIdx == row.getPaddingIndex() )
+               continue;
+            // increment the capacity for the row in the transpose
+            Algorithms::AtomicOperations< DeviceType >::add( capacities_view[ transRowIdx ], IndexType( 1 ) );
+         }
+      } );
+
+   // set the row capacities
+   setRowCapacities( capacities );
+   capacities.reset();
+
+   // index of the first unwritten element per row
+   RowsCapacitiesType offsets;
+   offsets.resize( this->getRows(), 0 );
+   auto offsets_view = offsets.getView();
+
+   // stage 2: copy and transpose the data
+   auto trans_view = getView();
+   matrix.forAllRows(
+      [ = ] __cuda_callable__( const MatrixRowView& row ) mutable
+      {
+         // row index of the input = column index of the transpose
+         const IndexType& rowIdx = row.getRowIndex();
+         for( IndexType c = 0; c < row.getSize(); c++ ) {
+            // row index of the transpose = column index of the input
+            const IndexType& transRowIdx = row.getColumnIndex( c );
+            if( transRowIdx == row.getPaddingIndex() )
+               continue;
+            // local index in the row of the transpose
+            const IndexType transLocalIdx =
+               Algorithms::AtomicOperations< DeviceType >::add( offsets_view[ transRowIdx ], IndexType( 1 ) );
+            // get the row in the transposed matrix and set the value
+            auto transRow = trans_view.getRow( transRowIdx );
+            transRow.setElement( transLocalIdx, rowIdx, row.getValue( c ) * matrixMultiplicator );
+         }
+      } );
+}
 
 // copy assignment
 template< typename Real,

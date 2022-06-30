@@ -248,7 +248,7 @@ HypreFlexGMRES::setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_set
 {
    HypreSolver::setMatrix( op, reuse_setup );
    if( precond != nullptr )
-     precond->setMatrix( *A, reuse_setup );
+      precond->setMatrix( *A, reuse_setup );
 }
 
 void
@@ -286,7 +286,7 @@ HypreParaSails::HypreParaSails( MPI_Comm comm )
 
 HypreParaSails::HypreParaSails( const Matrices::HypreParCSRMatrix& A ) : HypreSolver( A )
 {
-   HYPRE_ParaSailsCreate( A.getCommunicator() , &solver );
+   HYPRE_ParaSailsCreate( A.getCommunicator(), &solver );
 }
 
 HypreParaSails::~HypreParaSails()

@@ -83,7 +83,7 @@ public:
    /**
     * \brief The type of matrix elements.
     */
-   using RealType = Real;
+   using RealType = std::remove_const_t< Real >;
 
    // using ComputeRealType = ComputeReal;
 

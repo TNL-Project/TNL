@@ -1054,11 +1054,12 @@ public:
    void addMatrix( const SparseMatrix< Real2, Segments, Device, Index2 >& matrix,
                    const RealType& matrixMultiplicator = 1.0,
                    const RealType& thisMatrixMultiplicator = 1.0 );
+   */
 
    template< typename Real2, typename Index2 >
-   void getTransposition( const SparseMatrix< Real2, Segments, Device, Index2 >& matrix,
-                          const RealType& matrixMultiplicator = 1.0 );
-    */
+   void
+   getTransposition( const SparseSandboxMatrix< Real2, Device, Index2, MatrixType >& matrix,
+                     const RealType& matrixMultiplicator = 1.0 );
 
    template< typename Vector1, typename Vector2 >
    bool

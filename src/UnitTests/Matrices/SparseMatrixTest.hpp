@@ -1356,4 +1356,68 @@ void test_SaveAndLoad( const char* filename )
    EXPECT_EQ( std::remove( filename ), 0 );
 }
 
+template< typename Matrix >
+void test_getTransposition()
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+
+   /*
+    * Sets up the following 5x4 sparse matrix:
+    *
+    *    /  1  2  3  0 \
+    *    |  0  4  0  5 |
+    *    |  6  7  8  0 |
+    *    |  0  9 10 11 |
+    *    \ 12  0  0  0 /
+    */
+
+   const IndexType m_rows = 5;
+   const IndexType m_cols = 4;
+
+   Matrix matrix( m_rows, m_cols );
+   typename Matrix::RowsCapacitiesType capacities( m_rows, 4 );
+   matrix.setRowCapacities( capacities );
+
+   RealType value = 1;
+   for( IndexType i = 0; i < m_cols - 1; i++ )   // 0th row
+      matrix.setElement( 0, i, value++ );
+
+   matrix.setElement( 1, 1, value++ );      // 1st row
+   matrix.setElement( 1, 3, value++ );
+
+   for( IndexType i = 0; i < m_cols - 1; i++ )   // 2nd row
+      matrix.setElement( 2, i, value++ );
+
+   for( IndexType i = 1; i < m_cols; i++ )       // 3rd row
+      matrix.setElement( 3, i, value++ );
+
+   matrix.setElement( 4, 0, value++ );      // 4th row
+
+   Matrix transposed;
+   transposed.getTransposition( matrix );
+
+   EXPECT_EQ( transposed.getElement( 0, 0 ),  1 );
+   EXPECT_EQ( transposed.getElement( 1, 0 ),  2 );
+   EXPECT_EQ( transposed.getElement( 2, 0 ),  3 );
+   EXPECT_EQ( transposed.getElement( 3, 0 ),  0 );
+
+   EXPECT_EQ( transposed.getElement( 0, 1 ),  0 );
+   EXPECT_EQ( transposed.getElement( 1, 1 ),  4 );
+   EXPECT_EQ( transposed.getElement( 2, 1 ),  0 );
+   EXPECT_EQ( transposed.getElement( 3, 1 ),  5 );
+
+   EXPECT_EQ( transposed.getElement( 0, 2 ),  6 );
+   EXPECT_EQ( transposed.getElement( 1, 2 ),  7 );
+   EXPECT_EQ( transposed.getElement( 2, 2 ),  8 );
+   EXPECT_EQ( transposed.getElement( 3, 2 ),  0 );
+
+   EXPECT_EQ( transposed.getElement( 0, 3 ),  0 );
+   EXPECT_EQ( transposed.getElement( 1, 3 ),  9 );
+   EXPECT_EQ( transposed.getElement( 2, 3 ), 10 );
+   EXPECT_EQ( transposed.getElement( 3, 3 ), 11 );
+
+   EXPECT_EQ( transposed.getElement( 0, 4 ), 12 );
+}
+
 #endif
