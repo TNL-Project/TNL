@@ -521,7 +521,8 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    this->sequentialForRows( 0, this->getRows(), function );
 }
 
-/*template< typename Real,
+/*
+template< typename Real,
           template< typename, typename, typename > class Segments,
           typename Device,
           typename Index,
@@ -532,23 +533,67 @@ IndexAllocator2 > void SparseSandboxMatrix< Real, Device, Index, MatrixType, Rea
 SparseSandboxMatrix< Real2, Segments2, Device, Index2, RealAllocator2, IndexAllocator2 >& matrix, const RealType&
 matrixMultiplicator, const RealType& thisMatrixMultiplicator )
 {
-
 }
+*/
 
-template< typename Real,
-          template< typename, typename, typename > class Segments,
-          typename Device,
-          typename Index,
-          typename RealAllocator,
-          typename IndexAllocator >
+template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
 template< typename Real2, typename Index2 >
 void
-SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::
-getTransposition( const SparseSandboxMatrix< Real2, Device, Index2 >& matrix,
-                  const RealType& matrixMultiplicator )
+SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getTransposition(
+   const SparseSandboxMatrix< Real2, Device, Index2, MatrixType >& matrix,
+   const RealType& matrixMultiplicator )
 {
+   // set transposed dimensions
+   setDimensions( matrix.getColumns(), matrix.getRows() );
 
-}*/
+   // stage 1: compute row capacities for the transposition
+   RowsCapacitiesType capacities;
+   capacities.resize( this->getRows(), 0 );
+   auto capacities_view = capacities.getView();
+   using MatrixRowView = typename SparseSandboxMatrix< Real2, Device, Index2, MatrixType >::ConstRowView;
+   matrix.forAllRows(
+      [ = ] __cuda_callable__( const MatrixRowView& row ) mutable
+      {
+         for( IndexType c = 0; c < row.getSize(); c++ ) {
+            // row index of the transpose = column index of the input
+            const IndexType& transRowIdx = row.getColumnIndex( c );
+            if( transRowIdx < 0 )
+               continue;
+            // increment the capacity for the row in the transpose
+            Algorithms::AtomicOperations< DeviceType >::add( capacities_view[ row.getColumnIndex( c ) ], IndexType( 1 ) );
+         }
+      } );
+
+   // set the row capacities
+   setRowCapacities( capacities );
+   capacities.reset();
+
+   // index of the first unwritten element per row
+   RowsCapacitiesType offsets;
+   offsets.resize( this->getRows(), 0 );
+   auto offsets_view = offsets.getView();
+
+   // stage 2: copy and transpose the data
+   auto trans_view = getView();
+   matrix.forAllRows(
+      [ = ] __cuda_callable__( const MatrixRowView& row ) mutable
+      {
+         // row index of the input = column index of the transpose
+         const IndexType& rowIdx = row.getRowIndex();
+         for( IndexType c = 0; c < row.getSize(); c++ ) {
+            // row index of the transpose = column index of the input
+            const IndexType& transRowIdx = row.getColumnIndex( c );
+            if( transRowIdx < 0 )
+               continue;
+            // local index in the row of the transpose
+            const IndexType transLocalIdx =
+               Algorithms::AtomicOperations< DeviceType >::add( offsets_view[ transRowIdx ], IndexType( 1 ) );
+            // get the row in the transposed matrix and set the value
+            auto transRow = trans_view.getRow( transRowIdx );
+            transRow.setElement( transLocalIdx, rowIdx, row.getValue( c ) * matrixMultiplicator );
+         }
+      } );
+}
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
 template< typename Vector1, typename Vector2 >

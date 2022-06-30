@@ -1088,11 +1088,12 @@ public:
    void addMatrix( const SparseMatrix< Real2, Segments, Device, Index2 >& matrix,
                    const RealType& matrixMultiplicator = 1.0,
                    const RealType& thisMatrixMultiplicator = 1.0 );
-
-   template< typename Real2, typename Index2 >
-   void getTransposition( const SparseMatrix< Real2, Segments, Device, Index2 >& matrix,
-                          const RealType& matrixMultiplicator = 1.0 );
     */
+
+   template< typename Real2, typename Index2, template< typename, typename, typename > class Segments2 >
+   void
+   getTransposition( const SparseMatrix< Real2, Device, Index2, MatrixType, Segments2 >& matrix,
+                     const ComputeRealType& matrixMultiplicator = 1.0 );
 
    /**
     * \brief Copy-assignment of exactly the same matrix type.

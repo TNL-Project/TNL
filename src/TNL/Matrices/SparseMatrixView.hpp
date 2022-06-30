@@ -820,35 +820,6 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    this->sequentialForRows( (IndexType) 0, this->getRows(), function );
 }
 
-/*template< typename Real,
-          template< typename, typename > class SegmentsView,
-          typename Device,
-          typename Index,
-          typename RealAllocator,
-          typename IndexAllocator >
-template< typename Real2, template< typename, typename > class Segments2, typename Index2, typename RealAllocator2, typename
-IndexAllocator2 > void SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >:: addMatrix( const
-SparseMatrixView< Real2, Segments2, Device, Index2, RealAllocator2, IndexAllocator2 >& matrix, const RealType&
-matrixMultiplicator, const RealType& thisMatrixMultiplicator )
-{
-
-}
-
-template< typename Real,
-          template< typename, typename > class SegmentsView,
-          typename Device,
-          typename Index,
-          typename RealAllocator,
-          typename IndexAllocator >
-template< typename Real2, typename Index2 >
-void
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
-getTransposition( const SparseMatrixView< Real2, Device, Index2 >& matrix,
-                  const RealType& matrixMultiplicator )
-{
-
-}*/
-
 template< typename Real,
           typename Device,
           typename Index,
