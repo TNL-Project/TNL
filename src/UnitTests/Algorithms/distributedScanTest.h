@@ -17,6 +17,12 @@ using namespace TNL::Algorithms;
 using namespace TNL::Algorithms::detail;
 using namespace TNL::MPI;
 
+// this is a workaround for an nvcc 11.7 bug: it drops the scope of enum class members in template function calls
+#ifdef HAVE_CUDA
+static constexpr auto Inclusive = TNL::Algorithms::detail::ScanType::Inclusive;
+static constexpr auto Exclusive = TNL::Algorithms::detail::ScanType::Exclusive;
+#endif
+
 /*
  * Light check of DistributedArray.
  *
