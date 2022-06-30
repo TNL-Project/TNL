@@ -112,7 +112,7 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
                          this->getColumns(),
                          this->getValues().getConstView(),
                          this->columnIndexes.getConstView(),
-                         this->segments.getConstView() );
+                         const_cast< SparseSandboxMatrix* >( this )->rowPointers.getView() );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >

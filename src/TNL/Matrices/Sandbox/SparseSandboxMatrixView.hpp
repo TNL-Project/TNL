@@ -793,7 +793,7 @@ template< typename Real, typename Device, typename Index, typename MatrixType >
 void
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::save( File& file ) const
 {
-   MatrixView< RealType, DeviceType, IndexType >::save( file );
+   MatrixView< Real, Device, Index >::save( file );
    file << this->columnIndexes << this->rowPointers;  // SANDBOX_TODO: Replace this with medata required by your format
 }
 
