@@ -14,11 +14,12 @@
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Cuda.h>
 
+#ifdef HAVE_CUDA
+namespace {
+
 // double-precision atomicAdd function for Maxwell and older GPUs
 // copied from: https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#atomic-functions
-#ifdef HAVE_CUDA
-   #if __CUDA_ARCH__ < 600
-namespace {
+   #if defined( __CUDA_ARCH__ ) && __CUDA_ARCH__ < 600
 __device__
 double
 atomicAdd( double* address, double val )
@@ -35,8 +36,28 @@ atomicAdd( double* address, double val )
 
    return __longlong_as_double( old );
 }
-}  // namespace
    #endif
+
+__device__
+long int
+atomicAdd( long int* address, long int val )
+{
+   unsigned long long int* address_as_unsigned = reinterpret_cast< unsigned long long int* >( address );
+   long int old = *address;
+   long int assumed;
+
+   do {
+      assumed = old;
+      long int sum = val + assumed;
+      old = atomicCAS( address_as_unsigned,
+                       *reinterpret_cast< unsigned long long int* >( &assumed ),
+                       *reinterpret_cast< unsigned long long int* >( &sum ) );
+   } while( assumed != old );
+
+   return old;
+}
+
+}  // namespace
 #endif
 
 namespace TNL {
