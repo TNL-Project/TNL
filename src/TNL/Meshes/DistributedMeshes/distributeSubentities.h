@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <TNL/Meshes/DistributedMeshes/DistributedMeshSynchronizer.h>

@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <map>
@@ -405,7 +403,7 @@ public:
    }
 
    VariantVector
-   readPointData( std::string arrayName ) override
+   readPointData( const std::string& arrayName ) override
    {
 #ifdef HAVE_TINYXML2
       return readPointOrCellData( "PointData", arrayName );
@@ -415,7 +413,7 @@ public:
    }
 
    VariantVector
-   readCellData( std::string arrayName ) override
+   readCellData( const std::string& arrayName ) override
    {
 #ifdef HAVE_TINYXML2
       return readPointOrCellData( "CellData", arrayName );

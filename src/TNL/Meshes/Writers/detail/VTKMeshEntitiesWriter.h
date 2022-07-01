@@ -677,7 +677,7 @@ struct VTKMeshEntityTypesWriter
 
       const Index entitiesCount = mesh.template getEntitiesCount< EntityType >();
       for( Index i = 0; i < entitiesCount; i++ ) {
-         const int type = (int) VTK::TopologyToEntityShape< typename EntityType::EntityTopology >::shape;
+         const int type = static_cast< int >( VTK::TopologyToEntityShape< typename EntityType::EntityTopology >::shape );
          writeValue( format, str, type );
          if( format == VTK::FileFormat::ascii )
             str << "\n";
@@ -697,7 +697,7 @@ struct VTKMeshEntityTypesWriter< Grid< Dimension, MeshReal, Device, MeshIndex >,
 
       const MeshIndex entitiesCount = mesh.template getEntitiesCount< EntityType >();
       for( MeshIndex i = 0; i < entitiesCount; i++ ) {
-         const int type = (int) VTK::GridEntityShape< EntityType >::shape;
+         const int type = static_cast< int >( VTK::GridEntityShape< EntityType >::shape );
          writeValue( format, str, type );
          if( format == VTK::FileFormat::ascii )
             str << "\n";

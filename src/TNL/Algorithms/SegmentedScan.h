@@ -98,10 +98,10 @@ struct SegmentedScan< Devices::Sequential, Type >
    static void
    perform( Vector& v,
             Flags& flags,
-            const typename Vector::IndexType begin,
-            const typename Vector::IndexType end,
+            typename Vector::IndexType begin,
+            typename Vector::IndexType end,
             const Reduction& reduction,
-            const typename Vector::ValueType identity );
+            typename Vector::ValueType identity );
 };
 
 template< detail::ScanType Type >
@@ -141,10 +141,10 @@ struct SegmentedScan< Devices::Host, Type >
    static void
    perform( Vector& v,
             Flags& flags,
-            const typename Vector::IndexType begin,
-            const typename Vector::IndexType end,
+            typename Vector::IndexType begin,
+            typename Vector::IndexType end,
             const Reduction& reduction,
-            const typename Vector::ValueType identity );
+            typename Vector::ValueType identity );
 };
 
 template< detail::ScanType Type >
@@ -186,10 +186,10 @@ struct SegmentedScan< Devices::Cuda, Type >
    static void
    perform( Vector& v,
             Flags& flags,
-            const typename Vector::IndexType begin,
-            const typename Vector::IndexType end,
+            typename Vector::IndexType begin,
+            typename Vector::IndexType end,
             const Reduction& reduction,
-            const typename Vector::ValueType identity );
+            typename Vector::ValueType identity );
 };
 
 }  // namespace Algorithms

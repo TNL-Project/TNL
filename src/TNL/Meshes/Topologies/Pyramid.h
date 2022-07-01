@@ -21,7 +21,7 @@ struct Pyramid
 template<>
 struct Subtopology< Pyramid, 0 >
 {
-   typedef Vertex Topology;
+   using Topology = Vertex;
 
    static constexpr int count = 5;
 };
@@ -29,7 +29,7 @@ struct Subtopology< Pyramid, 0 >
 template<>
 struct Subtopology< Pyramid, 1 >
 {
-   typedef Edge Topology;
+   using Topology = Edge;
 
    static constexpr int count = 8;
 };
@@ -37,7 +37,7 @@ struct Subtopology< Pyramid, 1 >
 template<>
 struct Subtopology< Pyramid, 2 >
 {
-   typedef Polygon Topology;
+   using Topology = Polygon;
 
    static constexpr int count = 5;
 };

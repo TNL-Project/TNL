@@ -34,7 +34,8 @@ struct VTUPolyhedralFacesWriter
    {
       // build the "face stream" for VTK
       using IndexType = typename Mesh::GlobalIndexType;
-      std::vector< IndexType > faces, faceoffsets;
+      std::vector< IndexType > faces;
+      std::vector< IndexType > faceoffsets;
       for( IndexType c = 0; c < mesh.template getEntitiesCount< M::getMeshDimension() >(); c++ ) {
          const IndexType num_faces = mesh.template getSubentitiesCount< M::getMeshDimension(), M::getMeshDimension() - 1 >( c );
          faces.push_back( num_faces );

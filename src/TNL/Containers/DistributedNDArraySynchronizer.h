@@ -141,7 +141,7 @@ public:
 
    // async::threadpool is not move-constructible (due to std::atomic), so we need
    // custom move-constructor that skips moving tp
-   DistributedNDArraySynchronizer( DistributedNDArraySynchronizer&& other )
+   DistributedNDArraySynchronizer( DistributedNDArraySynchronizer&& other ) noexcept
    : tp( other.tp.size() ), gpu_id( std::move( other.gpu_id ) ), tag_offset( std::move( other.tag_offset ) )
    {}
 

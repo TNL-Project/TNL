@@ -4,12 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-/***
- * Authors:
- * Oberhuber Tomas, tomas.oberhuber@fjfi.cvut.cz
- * Zabka Vitezslav, zabkav@gmail.com
- */
-
 #pragma once
 
 #include <TNL/Meshes/Topologies/Quadrangle.h>

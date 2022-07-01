@@ -82,7 +82,6 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
    static_assert( std::is_same< typename Matrix1::IndexType, typename Matrix2::IndexType >::value,
                   "The matrices must have the same IndexType." );
 
-   using RealType = typename Matrix1::RealType;
    using DeviceType = typename Matrix1::DeviceType;
    using IndexType = typename Matrix1::IndexType;
 

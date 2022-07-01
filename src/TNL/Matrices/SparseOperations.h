@@ -32,7 +32,7 @@ copyAdjacencyStructure( const Matrix& A, AdjacencyMatrix& B, bool has_symmetric_
 // inverse permutation represented by the iperm vector.
 template< typename Matrix1, typename Matrix2, typename PermutationArray >
 void
-reorderSparseMatrix( const Matrix1& A, Matrix2& A_perm, const PermutationArray& perm, const PermutationArray& iperm );
+reorderSparseMatrix( const Matrix1& matrix1, Matrix2& matrix2, const PermutationArray& perm, const PermutationArray& iperm );
 
 // TODO: the method does not belong here, but there is no better place...
 template< typename Array1, typename Array2, typename PermutationArray >

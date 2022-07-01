@@ -226,7 +226,7 @@ public:
    getIndex() const;
 
    __cuda_callable__
-   inline const EntityOrientationType
+   inline EntityOrientationType
    getOrientation() const;
 
    __cuda_callable__
@@ -234,7 +234,7 @@ public:
    setOrientation( const EntityOrientationType& orientation ){};
 
    __cuda_callable__
-   inline const EntityBasisType
+   inline EntityBasisType
    getBasis() const;
 
    __cuda_callable__
@@ -355,7 +355,7 @@ public:
    getIndex() const;
 
    __cuda_callable__
-   inline const EntityOrientationType
+   inline EntityOrientationType
    getOrientation() const;
 
    __cuda_callable__
@@ -363,7 +363,7 @@ public:
    setOrientation( const EntityOrientationType& orientation ){};
 
    __cuda_callable__
-   inline const EntityBasisType
+   inline EntityBasisType
    getBasis() const;
 
    __cuda_callable__

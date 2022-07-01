@@ -74,7 +74,7 @@ public:
     * \brief Move-assignment operator for acquiring data from \e rvalues.
     */
    DistributedVector&
-   operator=( DistributedVector&& ) noexcept = default;
+   operator=( DistributedVector&& ) noexcept( false ) = default;
 
    /**
     * \brief Returns a modifiable view of the local part of the vector.

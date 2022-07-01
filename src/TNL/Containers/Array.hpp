@@ -353,11 +353,11 @@ Array< Value, Device, Index, Allocator >::getArrayData()
 template< typename Value, typename Device, typename Index, typename Allocator >
 __cuda_callable__
 void
-Array< Value, Device, Index, Allocator >::setElement( IndexType i, ValueType x )
+Array< Value, Device, Index, Allocator >::setElement( IndexType i, ValueType value )
 {
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
-   Algorithms::MemoryOperations< Device >::setElement( &( this->data[ i ] ), x );
+   Algorithms::MemoryOperations< Device >::setElement( &( this->data[ i ] ), value );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -433,7 +433,7 @@ Array< Value, Device, Index, Allocator >::operator=( const Array< Value, Device,
 
 template< typename Value, typename Device, typename Index, typename Allocator >
 Array< Value, Device, Index, Allocator >&
-Array< Value, Device, Index, Allocator >::operator=( Array< Value, Device, Index, Allocator >&& array ) noexcept
+Array< Value, Device, Index, Allocator >::operator=( Array< Value, Device, Index, Allocator >&& array ) noexcept( false )
 {
    reset();
 

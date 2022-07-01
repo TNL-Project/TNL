@@ -11,6 +11,7 @@
 #include "SegmentedScan.h"
 
 #include <TNL/Exceptions/NotImplementedError.h>
+#include <TNL/Exceptions/CudaSupportMissing.h>
 
 namespace TNL {
 namespace Algorithms {
@@ -20,10 +21,10 @@ template< typename Vector, typename Reduction, typename Flags >
 void
 SegmentedScan< Devices::Sequential, Type >::perform( Vector& v,
                                                      Flags& flags,
-                                                     const typename Vector::IndexType begin,
-                                                     const typename Vector::IndexType end,
+                                                     typename Vector::IndexType begin,
+                                                     typename Vector::IndexType end,
                                                      const Reduction& reduction,
-                                                     const typename Vector::ValueType identity )
+                                                     typename Vector::ValueType identity )
 {
    using ValueType = typename Vector::ValueType;
    using IndexType = typename Vector::IndexType;
@@ -52,10 +53,10 @@ template< typename Vector, typename Reduction, typename Flags >
 void
 SegmentedScan< Devices::Host, Type >::perform( Vector& v,
                                                Flags& flags,
-                                               const typename Vector::IndexType begin,
-                                               const typename Vector::IndexType end,
+                                               typename Vector::IndexType begin,
+                                               typename Vector::IndexType end,
                                                const Reduction& reduction,
-                                               const typename Vector::ValueType identity )
+                                               typename Vector::ValueType identity )
 {
 #ifdef HAVE_OPENMP
    // TODO: parallelize with OpenMP
@@ -70,10 +71,10 @@ template< typename Vector, typename Reduction, typename Flags >
 void
 SegmentedScan< Devices::Cuda, Type >::perform( Vector& v,
                                                Flags& flags,
-                                               const typename Vector::IndexType begin,
-                                               const typename Vector::IndexType end,
+                                               typename Vector::IndexType begin,
+                                               typename Vector::IndexType end,
                                                const Reduction& reduction,
-                                               const typename Vector::ValueType identity )
+                                               typename Vector::ValueType identity )
 {
 #ifdef HAVE_CUDA
    using ValueType = typename Vector::ValueType;

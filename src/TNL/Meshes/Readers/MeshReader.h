@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <string>
@@ -271,14 +269,14 @@ public:
    }
 
    virtual VariantVector
-   readPointData( std::string arrayName )
+   readPointData( const std::string& arrayName )
    {
       throw Exceptions::NotImplementedError(
          "readPointData is not implemented in the mesh reader for this specific file format." );
    }
 
    virtual VariantVector
-   readCellData( std::string arrayName )
+   readCellData( const std::string& arrayName )
    {
       throw Exceptions::NotImplementedError(
          "readCellData is not implemented in the mesh reader for this specific file format." );
@@ -363,8 +361,8 @@ protected:
 
    // string representation of mesh types (forced means specified by the user, otherwise
    // the type detected by detectMesh takes precedence)
-   std::string forcedRealType = "";
-   std::string forcedGlobalIndexType = "";
+   std::string forcedRealType;
+   std::string forcedGlobalIndexType;
    std::string forcedLocalIndexType = "short int";  // not stored in any file format
 
    // intermediate representation of a grid (this is relevant only for TNL::Meshes::Grid)

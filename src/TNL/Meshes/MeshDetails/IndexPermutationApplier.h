@@ -154,9 +154,6 @@ public:
    static void
    exec( Mesh& mesh, const GlobalIndexArray& perm, const GlobalIndexArray& iperm )
    {
-      using IndexType = typename Mesh::GlobalIndexType;
-      using DeviceType = typename Mesh::DeviceType;
-
       if( Dimension == 0 )
          permuteArray( mesh.getPoints(), perm );
 

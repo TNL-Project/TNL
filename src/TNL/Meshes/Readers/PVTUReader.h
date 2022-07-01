@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <experimental/filesystem>
@@ -247,13 +245,13 @@ public:
    }
 
    VariantVector
-   readPointData( std::string arrayName ) override
+   readPointData( const std::string& arrayName ) override
    {
       return localReader.readPointData( arrayName );
    }
 
    VariantVector
-   readCellData( std::string arrayName ) override
+   readCellData( const std::string& arrayName ) override
    {
       return localReader.readCellData( arrayName );
    }

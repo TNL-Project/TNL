@@ -4,12 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-/***
- * Authors:
- * Oberhuber Tomas, tomas.oberhuber@fjfi.cvut.cz
- * Zabka Vitezslav, zabkav@gmail.com
- */
-
 #pragma once
 
 #include <ostream>
@@ -86,7 +80,7 @@ public:
 
    Mesh( const Mesh& mesh ) = default;
 
-   Mesh( Mesh&& mesh ) = default;
+   Mesh( Mesh&& mesh ) noexcept = default;
 
    template< typename Device_ >
    Mesh( const Mesh< MeshConfig, Device_ >& mesh );
@@ -95,7 +89,7 @@ public:
    operator=( const Mesh& mesh ) = default;
 
    Mesh&
-   operator=( Mesh&& mesh ) = default;
+   operator=( Mesh&& mesh ) noexcept( false ) = default;
 
    template< typename Device_ >
    Mesh&

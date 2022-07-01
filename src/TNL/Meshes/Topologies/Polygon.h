@@ -20,13 +20,13 @@ struct Polygon
 template<>
 struct Subtopology< Polygon, 0 >
 {
-   typedef Vertex Topology;
+   using Topology = Vertex;
 };
 
 template<>
 struct Subtopology< Polygon, 1 >
 {
-   typedef Edge Topology;
+   using Topology = Edge;
 };
 
 }  // namespace Topologies

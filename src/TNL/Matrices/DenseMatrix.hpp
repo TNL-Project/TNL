@@ -131,9 +131,9 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setRowCapacitie
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Vector >
 void
-DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getRowCapacities( Vector& rowLengths ) const
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getRowCapacities( Vector& rowCapacities ) const
 {
-   this->view.getCompressedRowLengths( rowLengths );
+   this->view.getCompressedRowLengths( rowCapacities );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -288,11 +288,11 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::forElements( In
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Function >
 void
-DenseMatrix< Real, Device, Index, Organization, RealAllocator >::forElements( IndexType first,
-                                                                              IndexType last,
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::forElements( IndexType begin,
+                                                                              IndexType end,
                                                                               Function&& function )
 {
-   this->view.forElements( first, last, function );
+   this->view.forElements( begin, end, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -358,11 +358,11 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::sequentialForRo
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Function >
 void
-DenseMatrix< Real, Device, Index, Organization, RealAllocator >::sequentialForRows( IndexType first,
-                                                                                    IndexType last,
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::sequentialForRows( IndexType begin,
+                                                                                    IndexType end,
                                                                                     Function&& function )
 {
-   this->view.sequentialForRows( first, last, function );
+   this->view.sequentialForRows( begin, end, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >

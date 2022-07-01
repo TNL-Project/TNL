@@ -246,7 +246,7 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >:
 
 template< int Dimension, typename Real, typename Device, typename Index, typename Config >
 __cuda_callable__
-inline const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::EntityOrientationType
+inline typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::EntityOrientationType
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::getOrientation() const
 {
    return EntityOrientationType( (IndexType) 0 );
@@ -254,7 +254,7 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >:
 
 template< int Dimension, typename Real, typename Device, typename Index, typename Config >
 __cuda_callable__
-inline const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::EntityBasisType
+inline typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::EntityBasisType
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, Dimension, Config >::getBasis() const
 {
    return EntityBasisType( (IndexType) 1 );
@@ -377,7 +377,7 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::getInde
 
 template< int Dimension, typename Real, typename Device, typename Index, typename Config >
 __cuda_callable__
-inline const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::EntityOrientationType
+inline typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::EntityOrientationType
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::getOrientation() const
 {
    return EntityOrientationType( (IndexType) 0 );
@@ -385,7 +385,7 @@ GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::getOrie
 
 template< int Dimension, typename Real, typename Device, typename Index, typename Config >
 __cuda_callable__
-inline const typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::EntityBasisType
+inline typename GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::EntityBasisType
 GridEntity< Meshes::Grid< Dimension, Real, Device, Index >, 0, Config >::getBasis() const
 {
    return EntityBasisType( (IndexType) 0 );
