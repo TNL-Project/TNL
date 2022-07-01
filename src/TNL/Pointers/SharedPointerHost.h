@@ -440,10 +440,21 @@ protected:
    free()
    {
       if( this->pd ) {
+         // As far as we know, GCC 12.0.0 and 12.1.0 issue a false-positive use-after-free warning
+         // These bug reports may be related:
+         // - https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105327
+         // - https://bugzilla.redhat.com/show_bug.cgi?id=2047715
+#if defined( __GNUC__ ) && ! defined( __clang__ ) && ! defined( __NVCC__ )
+   #pragma GCC diagnostic push
+   #pragma GCC diagnostic ignored "-Wuse-after-free"
+#endif
          if( ! --this->pd->counter ) {
             delete this->pd;
             this->pd = nullptr;
          }
+#if defined( __GNUC__ ) && ! defined( __clang__ ) && ! defined( __NVCC__ )
+   #pragma GCC diagnostic pop
+#endif
       }
    }
 
