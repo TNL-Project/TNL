@@ -86,6 +86,18 @@ public:
    }
 
    template< int Dimension, int Subdimension >
+   void
+   setSubentitiesCounts( typename MeshTraitsType::NeighborCountsArray&& counts )
+   {
+      static_assert( Dimension > Subdimension, "Invalid combination of Dimension and Subdimension." );
+      static_assert( SubentityTraits< Dimension, Subdimension >::storageEnabled,
+                     "You try to set subentitiesCounts for a combination of Dimension and Subdimension which is disabled in "
+                     "the mesh configuration." );
+      using BaseType = SubentityStorageLayerFamily< MeshConfig, Device, typename EntityTraits< Dimension >::EntityTopology >;
+      BaseType::template setSubentitiesCounts< Subdimension >( std::move( counts ) );
+   }
+
+   template< int Dimension, int Subdimension >
    __cuda_callable__
    typename MeshTraitsType::LocalIndexType
    getSubentitiesCount( const GlobalIndexType entityIndex ) const

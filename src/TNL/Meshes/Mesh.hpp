@@ -146,6 +146,14 @@ Mesh< MeshConfig, Device >::setSubentitiesCounts( const typename MeshTraitsType:
 
 template< typename MeshConfig, typename Device >
 template< int EntityDimension, int SubentityDimension >
+void
+Mesh< MeshConfig, Device >::setSubentitiesCounts( typename MeshTraitsType::NeighborCountsArray&& counts )
+{
+   StorageBaseType::template setSubentitiesCounts< EntityDimension, SubentityDimension >( std::move( counts ) );
+}
+
+template< typename MeshConfig, typename Device >
+template< int EntityDimension, int SubentityDimension >
 __cuda_callable__
 constexpr typename Mesh< MeshConfig, Device >::LocalIndexType
 Mesh< MeshConfig, Device >::getSubentitiesCount( GlobalIndexType entityIndex ) const

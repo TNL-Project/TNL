@@ -301,6 +301,10 @@ protected:
    template< int EntityDimension, int SubentityDimension >
    void
    setSubentitiesCounts( const typename MeshTraitsType::NeighborCountsArray& counts );
+
+   template< int EntityDimension, int SubentityDimension >
+   void
+   setSubentitiesCounts( typename MeshTraitsType::NeighborCountsArray&& counts );
 };
 
 template< typename MeshConfig, typename Device >
