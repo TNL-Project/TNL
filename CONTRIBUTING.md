@@ -46,7 +46,7 @@ editor without having to rely on the continuous integration.
 ## How to configure git
 
 It is important to [configure your git username and email address](
-https://mmg-gitlab.fjfi.cvut.cz/gitlab/help/gitlab-basics/start-using-git.md#add-your-git-username-and-set-your-email),
+https://docs.gitlab.com/ee/gitlab-basics/start-using-git.html#configure-git),
 since every git commit will use this information to identify you as the author:
 
     git config --global user.name "John Doe"
@@ -108,7 +108,7 @@ The development of new features should follow the rebase-based workflow:
       the changes appear in the `develop` branch) and to split commits into
       logical parts.
 - When your work is ready for review, you can open a [merge request](
-  https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/merge_requests/new).
+  https://gitlab.com/tnl-project/tnl/merge_requests/new).
     - If the branch is not ready for merge yet, prepend `[WIP]` to the merge
       request title to indicate _work in progress_ and to prevent a premature
       merge.

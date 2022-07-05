@@ -52,19 +52,19 @@ See also [Comparison with other libraries](comparison-with-other-libraries.md).
 TNL also provides several optional components:
 
 - TNL header files in the
-  [src/TNL](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/tree/develop/src/TNL)
+  [src/TNL](https://gitlab.com/tnl-project/tnl/tree/main/src/TNL)
   directory.
 - Various pre-processing and post-processing tools in the
-  [src/Tools](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/tree/develop/src/Tools)
+  [src/Tools](https://gitlab.com/tnl-project/tnl/tree/main/src/Tools)
   directory.
 - Python bindings and scripts in the
-  [src/Python](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/tree/develop/src/Python)
+  [src/Python](https://gitlab.com/tnl-project/tnl/tree/main/src/Python)
   directory.
 - Examples of various numerical solvers in the
-  [src/Examples](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/tree/develop/src/Examples)
+  [src/Examples](https://gitlab.com/tnl-project/tnl/tree/main/src/Examples)
   directory.
 - Benchmarks in the
-  [src/Benchmarks](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/tree/develop/src/Benchmarks)
+  [src/Benchmarks](https://gitlab.com/tnl-project/tnl/tree/main/src/Benchmarks)
   directory.
 
 These components can be individually enabled or disabled and installed by a
@@ -96,11 +96,11 @@ In the following, we review the available installation methods:
 
    You can clone the git repository via HTTPS:
 
-       git clone https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev.git
+       git clone https://gitlab.com/tnl-project/tnl.git
 
    or via SSH:
 
-       git clone gitlab@mmg-gitlab.fjfi.cvut.cz:tnl/tnl-dev.git
+       git clone git@gitlab.com:tnl-project/tnl.git
 
    Then execute the `install` script to copy the header files to the final
    location (`~/.local/include` by default):
@@ -120,7 +120,7 @@ In the following, we review the available installation methods:
    To include TNL as a git submodule in another project, e.g. in the `libs/tnl`
    location, execute the following command in the git repository:
 
-       git submodule add https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev.git libs/tnl
+       git submodule add https://gitlab.com/tnl-project/tnl.git libs/tnl
 
    See the [git submodules tutorial](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
    for details.
@@ -242,7 +242,7 @@ Note that [CMake](https://cmake.org/) 3.13 or later is required when using the
 
 TNL can be used with various build systems if you configure the compiler flags
 as explained below. See also an [example project](
-https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/example-project) providing a simple
+https://gitlab.com/tnl-project/example-project) providing a simple
 `Makefile`.
 
 ### C++ compiler flags
@@ -265,7 +265,7 @@ https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/example-project) providing a simple
 - Enable optimizations: `-O3 -DNDEBUG` (you can also add
   `-march=native -mtune=native` to enable CPU-specific optimizations).
 - Of course, there are many other useful compiler flags. See, for example, our
-  [CMakeLists.txt](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/-/blob/develop/CMakeLists.txt)
+  [CMakeLists.txt](https://gitlab.com/tnl-project/tnl/-/blob/main/CMakeLists.txt)
   file for flags that we use when developing TNL (there are flags for e.g.
   hiding some useless compiler warnings).
 

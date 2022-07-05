@@ -40,7 +40,7 @@ represented by different template parameters. See the \ref core_concepts
 ## Multidimensional arrays
 
 TODO: compare the implementation of multidimensional arrays
-(features described in the merge request: https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/merge_requests/18 )
+(features described in the merge request: https://gitlab.com/tnl-project/tnl/merge_requests/18 )
 
 - http://cpptruths.blogspot.cz/2011/10/multi-dimensional-arrays-in-c11.html
 - http://www.nongnu.org/tensors/ (last commit in 2012)

@@ -125,7 +125,7 @@ public:
       std::iota( permutation.begin(), permutation.end(), (GlobalIndexType) 0 );
 
       // workaround for lexicographical sorting
-      // FIXME: https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/-/issues/79
+      // FIXME: https://gitlab.com/tnl-project/tnl/-/issues/79
       auto lexless = [ numericalThreshold, this ]( const GlobalIndexType& a, const GlobalIndexType& b ) -> bool
       {
          const PointType& left = this->points[ a ];
@@ -215,7 +215,7 @@ public:
       std::iota( permutation.begin(), permutation.end(), (GlobalIndexType) 0 );
 
       // workaround for lexicographical sorting
-      // FIXME: https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/-/issues/79
+      // FIXME: https://gitlab.com/tnl-project/tnl/-/issues/79
       auto lexless = [ this ]( const GlobalIndexType& a, const GlobalIndexType& b ) -> bool
       {
          const auto& left = this->faceSeeds.getSeed( a );

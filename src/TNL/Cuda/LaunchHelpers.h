@@ -12,7 +12,7 @@ namespace TNL {
 namespace Cuda {
 
 // TODO: the max grid size depends on the axis: (x,y,z): (2147483647, 65535, 65535)
-// see https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/-/issues/4
+// see https://gitlab.com/tnl-project/tnl/-/issues/4
 inline constexpr std::size_t
 getMaxGridSize()
 {

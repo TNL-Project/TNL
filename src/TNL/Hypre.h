@@ -44,7 +44,7 @@ namespace TNL {
  * [example][example] for how these wrappers can be used.
  *
  * [hypre]: https://github.com/hypre-space/hypre
- * [example]: https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/-/blob/develop/src/Examples/Hypre/tnl-hypre-ex5.cpp
+ * [example]: https://gitlab.com/tnl-project/tnl/-/blob/main/src/Examples/Hypre/tnl-hypre-ex5.cpp
  *
  * @{
  */

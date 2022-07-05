@@ -1,4 +1,4 @@
-[![pipeline status](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/badges/develop/pipeline.svg)](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/commits/develop)
+[![pipeline status](https://gitlab.com/tnl-project/tnl/badges/main/pipeline.svg)](https://gitlab.com/tnl-project/tnl/commits/main)
 
 # Template Numerical Library
 
@@ -63,19 +63,19 @@ https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/md_Pages_comparison_with_other_libraries
 TNL also provides several optional components:
 
 - TNL header files in the
-  [src/TNL](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/tree/develop/src/TNL)
+  [src/TNL](https://gitlab.com/tnl-project/tnl/tree/main/src/TNL)
   directory.
 - Various pre-processing and post-processing tools in the
-  [src/Tools](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/tree/develop/src/Tools)
+  [src/Tools](https://gitlab.com/tnl-project/tnl/tree/main/src/Tools)
   directory.
 - Python bindings and scripts in the
-  [src/Python](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/tree/develop/src/Python)
+  [src/Python](https://gitlab.com/tnl-project/tnl/tree/main/src/Python)
   directory.
 - Examples of various numerical solvers in the
-  [src/Examples](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/tree/develop/src/Examples)
+  [src/Examples](https://gitlab.com/tnl-project/tnl/tree/main/src/Examples)
   directory.
 - Benchmarks in the
-  [src/Benchmarks](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/tree/develop/src/Benchmarks)
+  [src/Benchmarks](https://gitlab.com/tnl-project/tnl/tree/main/src/Benchmarks)
   directory.
 
 These components can be individually enabled or disabled and installed by a
@@ -122,7 +122,7 @@ project. Note that this is not an exhaustive list.
 
 Before contributing, please get accustomed with the [code of conduct][code of conduct].
 
-[GitLab issues]: https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/-/issues
+[GitLab issues]: https://gitlab.com/tnl-project/tnl/-/issues
 [code of conduct]: CODE_OF_CONDUCT.md
 [contact]: https://tnl-project.org/#contact
 
@@ -140,10 +140,10 @@ your publications:
 ## Authors
 
 See the [list of team members](https://tnl-project.org/about/) on our website.
-The [overview of contributions](https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/-/graphs/develop)
+The [overview of contributions](https://gitlab.com/tnl-project/tnl/-/graphs/main)
 can be viewed on GitLab.
 
 ## License
 
 Template Numerical Library is provided under the terms of the [MIT License](
-https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/blob/develop/LICENSE).
+https://gitlab.com/tnl-project/tnl/blob/main/LICENSE).

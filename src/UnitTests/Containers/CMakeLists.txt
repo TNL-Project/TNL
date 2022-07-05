@@ -23,7 +23,7 @@ set( CUDA_TESTS
          VectorUnaryOperationsTestCuda
          VectorVerticalOperationsTestCuda
          # FIXME: fails due to unspecified launch failure in the CUDA reduction kernel for scalar product,
-         #        see https://mmg-gitlab.fjfi.cvut.cz/gitlab/tnl/tnl-dev/-/issues/82
+         #        see https://gitlab.com/tnl-project/tnl/-/issues/82
          #VectorOfStaticVectorsTestCuda
 )
 
