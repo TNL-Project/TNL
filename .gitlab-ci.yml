@@ -477,7 +477,7 @@ deploy documentation:
         variables:
             - $TNL_DOC_DEPLOY_KEY
         refs:
-            - develop
+            - main
             - schedules
             - triggers
     # use "dependencies" instead of "needs" to deploy only when the entire pipeline succeeds
