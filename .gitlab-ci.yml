@@ -15,7 +15,6 @@ stages:
     - build:cuda
     - build:gcc
     - build:clang
-    - build:doc
     - deploy
 
 # default flags for cmake
@@ -450,54 +449,34 @@ documentation examples:
         paths:
             - Documentation/output_snippets/
 
-build documentation:
-    stage: build:doc
-    only:
-        changes:
-            - Documentation/**/*
-            - src/TNL/**/*.{h,hpp}
-            - .gitlab-ci.yml
-    # use "needs" instead of "dependencies" to allow out-of-order start of this job
-    needs:
-        - job: documentation examples
-          artifacts: true
-    script:
-        - ./Documentation/build
-    artifacts:
-        paths:
-            - ./Documentation/html/
-
-deploy documentation:
+pages:
     stage: deploy
     only:
         changes:
             - Documentation/**/*
             - src/TNL/**/*.{h,hpp}
             - .gitlab-ci.yml
-        variables:
-            - $TNL_DOC_DEPLOY_KEY
-        refs:
-            - main
-            - schedules
-            - triggers
-    # use "dependencies" instead of "needs" to deploy only when the entire pipeline succeeds
-    dependencies:
-        - build documentation
-    image: "archlinux:latest"
-    before_script:
-        - pacman -Suy --noconfirm --needed rsync openssh
+#        refs:
+#            - main
+#            - schedules
+#            - triggers
+    # use "needs" instead of "dependencies" to allow out-of-order start of this job
+    needs:
+        - job: documentation examples
+          artifacts: true
     script:
-        - ./Documentation/deploy
-    tags:
-        - docker
-        - deploy_key
+        - ./Documentation/build
+        - mv ./Documentation/html/ public/
+    artifacts:
+        paths:
+            - public
 
 clang-format:
     stage: lint
-#    only:
-#        changes:
-#            - Documentation/**/*.{h,hpp,cpp,cu}
-#            - src/**/*.{h,hpp,cpp,cu}
+    only:
+        changes:
+            - Documentation/**/*.{h,hpp,cpp,cu}
+            - src/**/*.{h,hpp,cpp,cu}
     script:
         # TODO: replace "src/TNL" with "src"
         - ./scripts/run-clang-format.py
