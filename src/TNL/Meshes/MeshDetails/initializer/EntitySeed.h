@@ -4,12 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-/***
- * Authors:
- * Oberhuber Tomas, tomas.oberhuber@fjfi.cvut.cz
- * Zabka Vitezslav, zabkav@gmail.com
- */
-
 #pragma once
 
 #include <algorithm>
@@ -139,15 +133,15 @@ public:
    // causes warning: warning #20011-D: calling a __host__ function("std::allocator<int> ::allocator") from a __host__
    // __device__ function("TNL::Meshes::EntitySeed< ::MeshTest::TestTwoWedgesMeshConfig,
    // ::TNL::Meshes::Topologies::Polygon> ::EntitySeed [subobject]") is not allowed
-   EntitySeed() {}
+   EntitySeed() = default;
 
    void
    setCornersCount( const LocalIndexType& cornersCount )
    {
       if( std::is_same< EntityTopology, Topologies::Polygon >::value )
          TNL_ASSERT_GE( cornersCount, 3, "polygons must have at least 3 corners" );
-      /*else if( std::is_same< EntityTopology, Topologies::Polyhedron >::value )
-         TNL_ASSERT_GE( cornersCount, 2, "polyhedron must have at least 2 faces" );*/
+      else if( std::is_same< EntityTopology, Topologies::Polyhedron >::value )
+         TNL_ASSERT_GE( cornersCount, 4, "polyhedron must have at least 4 faces" );
 
       this->cornerIds.setSize( cornersCount );
    }
@@ -205,7 +199,7 @@ struct EntitySeedHash
       // because we *want* to ignore the order of the corner IDs.
       std::size_t hash = 0;
       for( LocalIndexType i = 0; i < seed.getCornersCount(); i++ )
-         //         hash ^= std::hash< GlobalIndexType >{}( seed.getCornerIds()[ i ] );
+         // hash ^= std::hash< GlobalIndexType >{}( seed.getCornerIds()[ i ] );
          hash += std::hash< GlobalIndexType >{}( seed.getCornerIds()[ i ] );
       return hash;
    }

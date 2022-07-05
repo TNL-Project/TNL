@@ -136,7 +136,7 @@ public:
     * \brief Move-assignment operator for acquiring data from \e rvalues.
     */
    Vector&
-   operator=( Vector&& ) noexcept = default;
+   operator=( Vector&& ) noexcept( false ) = default;
 
    /**
     * \brief Returns a modifiable view of the vector.

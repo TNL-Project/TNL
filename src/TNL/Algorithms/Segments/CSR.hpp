@@ -195,27 +195,27 @@ CSR< Device, Index, Kernel, IndexAllocator >::sequentialForAllSegments( Function
 }
 
 template< typename Device, typename Index, typename Kernel, typename IndexAllocator >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename Fetch, typename Reduce, typename Keep, typename Value >
 void
-CSR< Device, Index, Kernel, IndexAllocator >::reduceSegments( IndexType first,
-                                                              IndexType last,
+CSR< Device, Index, Kernel, IndexAllocator >::reduceSegments( IndexType begin,
+                                                              IndexType end,
                                                               Fetch& fetch,
-                                                              const Reduction& reduction,
-                                                              ResultKeeper& keeper,
-                                                              const Real& zero ) const
+                                                              const Reduce& reduce,
+                                                              Keep& keep,
+                                                              const Value& zero ) const
 {
-   this->getConstView().reduceSegments( first, last, fetch, reduction, keeper, zero );
+   this->getConstView().reduceSegments( begin, end, fetch, reduce, keep, zero );
 }
 
 template< typename Device, typename Index, typename Kernel, typename IndexAllocator >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename Fetch, typename Reduce, typename Keep, typename Value >
 void
 CSR< Device, Index, Kernel, IndexAllocator >::reduceAllSegments( Fetch& fetch,
-                                                                 const Reduction& reduction,
-                                                                 ResultKeeper& keeper,
-                                                                 const Real& zero ) const
+                                                                 const Reduce& reduce,
+                                                                 Keep& keep,
+                                                                 const Value& zero ) const
 {
-   this->reduceSegments( 0, this->getSegmentsCount(), fetch, reduction, keeper, zero );
+   this->reduceSegments( 0, this->getSegmentsCount(), fetch, reduce, keep, zero );
 }
 
 template< typename Device, typename Index, typename Kernel, typename IndexAllocator >

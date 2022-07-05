@@ -8,6 +8,7 @@
 
 //#include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
 #include <TNL/Meshes/Topologies/IsDynamicTopology.h>
+#include <TNL/Devices/Host.h>
 
 namespace TNL {
 namespace Meshes {
@@ -36,13 +37,13 @@ public:
 
    EntitySeedMatrix( const EntitySeedMatrix& other ) = default;
 
-   EntitySeedMatrix( EntitySeedMatrix&& other ) = default;
+   EntitySeedMatrix( EntitySeedMatrix&& other ) noexcept = default;
 
    EntitySeedMatrix&
    operator=( const EntitySeedMatrix& other ) = default;
 
    EntitySeedMatrix&
-   operator=( EntitySeedMatrix&& other ) = default;
+   operator=( EntitySeedMatrix&& other ) noexcept( false ) = default;
 
    class EntitySeedMatrixSeed
    {
@@ -211,13 +212,13 @@ public:
 
    EntitySeedMatrix( const EntitySeedMatrix& other ) = default;
 
-   EntitySeedMatrix( EntitySeedMatrix&& other ) = default;
+   EntitySeedMatrix( EntitySeedMatrix&& other ) noexcept = default;
 
    EntitySeedMatrix&
    operator=( const EntitySeedMatrix& other ) = default;
 
    EntitySeedMatrix&
-   operator=( EntitySeedMatrix&& other ) = default;
+   operator=( EntitySeedMatrix&& other ) noexcept( false ) = default;
 
    class EntitySeedMatrixSeed
    {
@@ -363,13 +364,13 @@ public:
 
    EntitySeedMatrix( const EntitySeedMatrix& other ) = default;
 
-   EntitySeedMatrix( EntitySeedMatrix&& other ) = default;
+   EntitySeedMatrix( EntitySeedMatrix&& other ) noexcept = default;
 
    EntitySeedMatrix&
    operator=( const EntitySeedMatrix& other ) = default;
 
    EntitySeedMatrix&
-   operator=( EntitySeedMatrix&& other ) = default;
+   operator=( EntitySeedMatrix&& other ) noexcept( false ) = default;
 
    class EntitySeedMatrixSeed
    {

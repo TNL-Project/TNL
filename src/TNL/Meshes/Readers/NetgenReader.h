@@ -4,13 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-/***
- * Authors:
- * Tomas Oberhuber
- * Vitezslav Zabka
- * Jakub Klinkovsky
- */
-
 #pragma once
 
 #include <fstream>

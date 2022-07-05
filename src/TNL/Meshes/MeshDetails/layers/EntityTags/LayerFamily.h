@@ -53,7 +53,7 @@ protected:
 
    explicit LayerInheritor( const LayerInheritor& other ) = default;
 
-   LayerInheritor( LayerInheritor&& other ) = default;
+   LayerInheritor( LayerInheritor&& other ) noexcept = default;
 
    template< typename Device_ >
    LayerInheritor( const LayerInheritor< MeshConfig, Device_, Dimension >& other )
@@ -65,7 +65,7 @@ protected:
    operator=( const LayerInheritor& other ) = default;
 
    LayerInheritor&
-   operator=( LayerInheritor&& other ) = default;
+   operator=( LayerInheritor&& other ) noexcept( false ) = default;
 
    template< typename Device_ >
    LayerInheritor&
@@ -121,14 +121,14 @@ protected:
 
    LayerInheritor() = default;
    explicit LayerInheritor( const LayerInheritor& other ) = default;
-   LayerInheritor( LayerInheritor&& other ) = default;
+   LayerInheritor( LayerInheritor&& other ) noexcept = default;
    template< typename Device_ >
    LayerInheritor( const LayerInheritor< MeshConfig, Device_, DimensionTag< MeshConfig::meshDimension + 1 > >& other )
    {}
    LayerInheritor&
    operator=( const LayerInheritor& other ) = default;
    LayerInheritor&
-   operator=( LayerInheritor&& other ) = default;
+   operator=( LayerInheritor&& other ) noexcept = default;
    template< typename Device_ >
    LayerInheritor&
    operator=( const LayerInheritor< MeshConfig, Device_, DimensionTag< MeshConfig::meshDimension + 1 > >& other )

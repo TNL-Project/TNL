@@ -282,21 +282,21 @@ template< typename Real,
 template< typename RowsCapacitiesVector >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setRowCapacities(
-   const RowsCapacitiesVector& rowsCapacities )
+   const RowsCapacitiesVector& rowCapacities )
 {
    TNL_ASSERT_EQ(
-      rowsCapacities.getSize(), this->getRows(), "Number of matrix rows does not fit with rowCapacities vector size." );
+      rowCapacities.getSize(), this->getRows(), "Number of matrix rows does not fit with rowCapacities vector size." );
    using RowsCapacitiesVectorDevice = typename RowsCapacitiesVector::DeviceType;
    if( std::is_same< DeviceType, RowsCapacitiesVectorDevice >::value )
-      this->segments.setSegmentsSizes( rowsCapacities );
+      this->segments.setSegmentsSizes( rowCapacities );
    else {
-      RowsCapacitiesType thisRowsCapacities;
-      thisRowsCapacities = rowsCapacities;
-      this->segments.setSegmentsSizes( thisRowsCapacities );
+      RowsCapacitiesType thisRowCapacities;
+      thisRowCapacities = rowCapacities;
+      this->segments.setSegmentsSizes( thisRowCapacities );
    }
    if( ! isBinary() ) {
       this->values.setSize( this->segments.getStorageSize() );
-      this->values = (RealType) 0;
+      this->values = 0;
    }
    this->columnIndexes.setSize( this->segments.getStorageSize() );
    this->columnIndexes = this->getPaddingIndex();
@@ -564,10 +564,10 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    OutVector& outVector,
    ComputeRealType matrixMultiplicator,
    ComputeRealType outVectorMultiplicator,
-   IndexType firstRow,
-   IndexType lastRow ) const
+   IndexType begin,
+   IndexType end ) const
 {
-   this->getView().vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, firstRow, lastRow );
+   this->getView().vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, begin, end );
 }
 
 template< typename Real,
@@ -829,11 +829,11 @@ template< typename Real,
 template< typename Function >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::sequentialForRows(
-   IndexType first,
-   IndexType last,
+   IndexType begin,
+   IndexType end,
    Function& function )
 {
-   this->view.sequentialForRows( first, last, function );
+   this->view.sequentialForRows( begin, end, function );
 }
 
 template< typename Real,
@@ -987,7 +987,7 @@ template< typename Real,
           typename IndexAllocator >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >&
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::operator=(
-   SparseMatrix&& matrix )
+   SparseMatrix&& matrix ) noexcept( false )
 {
    this->columnIndexes = std::move( matrix.columnIndexes );
    this->segments = std::move( matrix.segments );

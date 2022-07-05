@@ -300,14 +300,14 @@ template< typename T >
 class HasCountMember
 {
 private:
-   typedef char YesType[1];
-   typedef char NoType[2];
+   using YesType = char[1];
+   using NoType = char[2];
 
    template< typename C > static YesType& test( decltype( &C::count ) );
    template< typename C > static NoType& test(...);
 
 public:
-   static constexpr bool value = ( sizeof( test< std::decay_t<T> >(0) ) == sizeof( YesType ) );
+   static constexpr bool value = ( sizeof( test< std::decay_t<T> >(0) ) == sizeof( YesType ) );  // NOLINT(readability-implicit-bool-conversion, modernize-use-nullptr)
 };
 
 // clang-format on

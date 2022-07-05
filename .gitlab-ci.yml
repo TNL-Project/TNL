@@ -27,7 +27,7 @@ stages:
     # build targets
     BUILD_TESTS: "no"
     BUILD_MATRIX_TESTS: "no"
-    WITH_COVERAGE: "yes"
+    WITH_COVERAGE: "no"
     BUILD_DOC: "no"
     BUILD_BENCHMARKS: "no"
     BUILD_EXAMPLES: "no"
@@ -106,14 +106,18 @@ stages:
 
 # template for collecting code coverage
 .coverage_template:
-    after_script:
-        - mkdir coverage_html
-        - if [[ ${CXX} == "clang++" ]]; then
-                GCOV_COMMAND="llvm-cov gcov";
-          else
-                GCOV_COMMAND="gcov";
-          fi
-        - gcovr --print-summary --html-details coverage_html/coverage.html --xml coverage.xml --xml-pretty --gcov-executable "${GCOV_COMMAND}" --exclude-unreachable-branches --root "${CI_PROJECT_DIR}" --filter "${CI_PROJECT_DIR}/src/TNL/"
+    # NOTE: gcovr is very slow, maybe it could be solved with fastcov:
+    # https://github.com/gcovr/gcovr/issues/289
+    # https://github.com/RPGillespie6/fastcov
+    # NOTE: when enabling, the WITH_COVERAGE env var must be switched to yes
+    #after_script:
+    #    - mkdir coverage_html
+    #    - if [[ ${CXX} == "clang++" ]]; then
+    #            GCOV_COMMAND="llvm-cov gcov";
+    #      else
+    #            GCOV_COMMAND="gcov";
+    #      fi
+    #    - gcovr --print-summary --html-details coverage_html/coverage.html --xml coverage.xml --xml-pretty --gcov-executable "${GCOV_COMMAND}" --exclude-unreachable-branches --root "${CI_PROJECT_DIR}" --filter "${CI_PROJECT_DIR}/src/TNL/"
     coverage: /^\s*lines:\s*\d+.\d+\%/
     artifacts:
         name: ${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA}

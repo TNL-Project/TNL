@@ -266,7 +266,7 @@ EllpackView< Device, Index, Organization, Alignment >::getSegmentView( const Ind
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 template< typename Function >
 void
-EllpackView< Device, Index, Organization, Alignment >::forElements( IndexType first, IndexType last, Function&& f ) const
+EllpackView< Device, Index, Organization, Alignment >::forElements( IndexType begin, IndexType end, Function&& f ) const
 {
    if( Organization == RowMajorOrder ) {
       const IndexType segmentSize = this->segmentSize;
@@ -278,7 +278,7 @@ EllpackView< Device, Index, Organization, Alignment >::forElements( IndexType fi
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
             f( segmentIdx, localIdx++, globalIdx );
       };
-      Algorithms::ParallelFor< Device >::exec( first, last, l );
+      Algorithms::ParallelFor< Device >::exec( begin, end, l );
    }
    else {
       const IndexType storageSize = this->getStorageSize();
@@ -291,7 +291,7 @@ EllpackView< Device, Index, Organization, Alignment >::forElements( IndexType fi
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
             f( segmentIdx, localIdx++, globalIdx );
       };
-      Algorithms::ParallelFor< Device >::exec( first, last, l );
+      Algorithms::ParallelFor< Device >::exec( begin, end, l );
    }
 }
 

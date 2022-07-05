@@ -28,7 +28,7 @@ public:
    }
 
    inline void
-   setSize( std::size_t size )
+   setSize( std::size_t size )  // NOLINT(readability-convert-member-functions-to-static)
    {
 #ifdef HAVE_CUDA
       if( size > this->size ) {

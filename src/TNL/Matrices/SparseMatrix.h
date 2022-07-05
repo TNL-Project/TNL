@@ -385,7 +385,7 @@ public:
     * \param columns is the number of matrix columns.
     */
    virtual void
-   setColumnsWithoutReset( const IndexType columns );
+   setColumnsWithoutReset( IndexType columns );
 
    /**
     * \brief Set the number of matrix rows and columns by the given matrix.
@@ -1111,7 +1111,7 @@ public:
     * \return reference to this matrix.
     */
    SparseMatrix&
-   operator=( SparseMatrix&& matrix );
+   operator=( SparseMatrix&& matrix ) noexcept( false );
 
    /**
     * \brief Assignment of dense matrix

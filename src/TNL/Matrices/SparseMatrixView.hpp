@@ -143,18 +143,18 @@ template< typename Real,
           typename ComputeReal >
 template< typename Vector >
 void
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getRowCapacities( Vector& rowLengths ) const
+SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getRowCapacities( Vector& rowCapacities ) const
 {
-   details::set_size_if_resizable( rowLengths, this->getRows() );
-   rowLengths = 0;
-   auto rowLengths_view = rowLengths.getView();
+   details::set_size_if_resizable( rowCapacities, this->getRows() );
+   rowCapacities = 0;
+   auto rowCapacities_view = rowCapacities.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
    {
       return 1;
    };
    auto keep = [ = ] __cuda_callable__( const IndexType rowIdx, const IndexType value ) mutable
    {
-      rowLengths_view[ rowIdx ] = value;
+      rowCapacities_view[ rowIdx ] = value;
    };
    this->reduceAllRows( fetch, std::plus<>{}, keep, 0 );
 }
@@ -392,8 +392,8 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    OutVector& outVector,
    ComputeRealType matrixMultiplicator,
    ComputeRealType outVectorMultiplicator,
-   IndexType firstRow,
-   IndexType lastRow ) const
+   IndexType begin,
+   IndexType end ) const
 {
    TNL_ASSERT_EQ( this->getColumns(), inVector.getSize(), "Matrix columns do not fit with input vector." );
    TNL_ASSERT_EQ( this->getRows(), outVector.getSize(), "Matrix rows do not fit with output vector." );
@@ -470,22 +470,22 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
    };
 
-   if( lastRow == 0 )
-      lastRow = this->getRows();
+   if( end == 0 )
+      end = this->getRows();
    if( isSymmetric() )
-      this->segments.reduceSegments( firstRow, lastRow, symmetricFetch, std::plus<>{}, keeperGeneral, (ComputeRealType) 0.0 );
+      this->segments.reduceSegments( begin, end, symmetricFetch, std::plus<>{}, keeperGeneral, (ComputeRealType) 0.0 );
    else {
       if( outVectorMultiplicator == 0.0 ) {
          if( matrixMultiplicator == 1.0 )
-            this->segments.reduceSegments( firstRow, lastRow, fetch, std::plus<>{}, keeperDirect, (ComputeRealType) 0.0 );
+            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperDirect, (ComputeRealType) 0.0 );
          else
-            this->segments.reduceSegments( firstRow, lastRow, fetch, std::plus<>{}, keeperMatrixMult, (ComputeRealType) 0.0 );
+            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperMatrixMult, (ComputeRealType) 0.0 );
       }
       else {
          if( matrixMultiplicator == 1.0 )
-            this->segments.reduceSegments( firstRow, lastRow, fetch, std::plus<>{}, keeperVectorMult, (ComputeRealType) 0.0 );
+            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperVectorMult, (ComputeRealType) 0.0 );
          else
-            this->segments.reduceSegments( firstRow, lastRow, fetch, std::plus<>{}, keeperGeneral, (ComputeRealType) 0.0 );
+            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperGeneral, (ComputeRealType) 0.0 );
       }
    }
 }

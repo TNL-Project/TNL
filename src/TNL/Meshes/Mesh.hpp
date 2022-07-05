@@ -4,12 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-/***
- * Authors:
- * Oberhuber Tomas, tomas.oberhuber@fjfi.cvut.cz
- * Zabka Vitezslav, zabkav@gmail.com
- */
-
 #pragma once
 
 #include <TNL/Meshes/Mesh.h>
@@ -148,6 +142,14 @@ void
 Mesh< MeshConfig, Device >::setSubentitiesCounts( const typename MeshTraitsType::NeighborCountsArray& counts )
 {
    StorageBaseType::template setSubentitiesCounts< EntityDimension, SubentityDimension >( counts );
+}
+
+template< typename MeshConfig, typename Device >
+template< int EntityDimension, int SubentityDimension >
+void
+Mesh< MeshConfig, Device >::setSubentitiesCounts( typename MeshTraitsType::NeighborCountsArray&& counts )
+{
+   StorageBaseType::template setSubentitiesCounts< EntityDimension, SubentityDimension >( std::move( counts ) );
 }
 
 template< typename MeshConfig, typename Device >

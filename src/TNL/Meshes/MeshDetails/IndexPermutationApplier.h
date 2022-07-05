@@ -28,6 +28,18 @@ private:
       static void
       exec( Mesh& mesh, const GlobalIndexArray& perm )
       {
+         using EntityTopology = typename Mesh::template EntityType< Dimension >::EntityTopology;
+         if( Topologies::IsDynamicTopology< EntityTopology >::value ) {
+            // copy the subentity counts into an array
+            typename Mesh::MeshTraitsType::NeighborCountsArray counts( perm.getSize() );
+            for( typename GlobalIndexArray::ValueType i = 0; i < perm.getSize(); i++ )
+               counts[ i ] = mesh.template getSubentitiesCount< Dimension, Subdimension >( i );
+            // permute the array
+            permuteArray( counts, perm );
+            // set the permuted counts
+            mesh.template setSubentitiesCounts< Dimension, Subdimension >( std::move( counts ) );
+         }
+
          auto& subentitiesStorage = mesh.template getSubentitiesMatrix< Dimension, Subdimension >();
          Matrices::permuteMatrixRows( subentitiesStorage, perm );
       }
@@ -154,9 +166,6 @@ public:
    static void
    exec( Mesh& mesh, const GlobalIndexArray& perm, const GlobalIndexArray& iperm )
    {
-      using IndexType = typename Mesh::GlobalIndexType;
-      using DeviceType = typename Mesh::DeviceType;
-
       if( Dimension == 0 )
          permuteArray( mesh.getPoints(), perm );
 

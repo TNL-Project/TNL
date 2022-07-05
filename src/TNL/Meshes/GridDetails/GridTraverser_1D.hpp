@@ -4,10 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomas Oberhuber,
-//                 Jakub Klinkovsky,
-//                 Vit Hanousek
-
 #pragma once
 
 #include <TNL/Meshes/Grid.h>

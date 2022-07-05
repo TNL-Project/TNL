@@ -211,7 +211,7 @@ public:
 
    // Move-assignment operator
    DistributedArray&
-   operator=( DistributedArray&& ) noexcept = default;
+   operator=( DistributedArray&& ) noexcept( false ) = default;
 
    template< typename Array, typename..., typename = std::enable_if_t< HasSubscriptOperator< Array >::value > >
    DistributedArray&

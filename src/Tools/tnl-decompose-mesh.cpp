@@ -38,8 +38,10 @@ template<> struct GridRealTag< DecomposeMeshConfigTag, long double > { static co
 template<> struct MeshCellTopologyTag< DecomposeMeshConfigTag, Topologies::Edge > { static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< DecomposeMeshConfigTag, Topologies::Triangle > { static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< DecomposeMeshConfigTag, Topologies::Quadrangle > { static constexpr bool enabled = true; };
+template<> struct MeshCellTopologyTag< DecomposeMeshConfigTag, Topologies::Polygon > { static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< DecomposeMeshConfigTag, Topologies::Tetrahedron > { static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< DecomposeMeshConfigTag, Topologies::Hexahedron > { static constexpr bool enabled = true; };
+//template<> struct MeshCellTopologyTag< DecomposeMeshConfigTag, Topologies::Polyhedron > { static constexpr bool enabled = true; };
 
 // Meshes are enabled only for the space dimension equal to the cell dimension.
 template< typename CellTopology, int SpaceDimension >
@@ -63,30 +65,31 @@ struct MeshConfigTemplateTag< DecomposeMeshConfigTag >
              typename GlobalIndex = int,
              typename LocalIndex = GlobalIndex >
    struct MeshConfig
+   : public TNL::Meshes::DefaultConfig< Cell, SpaceDimension, Real, GlobalIndex, LocalIndex >
    {
-      using CellTopology = Cell;
-      using RealType = Real;
-      using GlobalIndexType = GlobalIndex;
-      using LocalIndexType = LocalIndex;
-
-      static constexpr int spaceDimension = SpaceDimension;
-      static constexpr int meshDimension = Cell::dimension;
-
       static constexpr bool subentityStorage( int entityDimension, int subentityDimension )
       {
+         constexpr int D = Cell::dimension;
          // subvertices of faces are needed due to cell boundary tags
-         return subentityDimension == 0 && entityDimension >= meshDimension - 1;
+         if( subentityDimension == 0 && entityDimension >= D - 1 )
+            return true;
+         // subfaces of cells are needed for polyhedral meshes
+         if( std::is_same< Cell, TNL::Meshes::Topologies::Polyhedron >::value && subentityDimension == D - 1 && entityDimension == D )
+            return true;
+         return false;
       }
 
       static constexpr bool superentityStorage( int entityDimension, int superentityDimension )
       {
+         constexpr int D = Cell::dimension;
          // superentities from faces to cells are needed due to cell boundary tags
-         return superentityDimension == meshDimension && entityDimension == meshDimension - 1;
+         return superentityDimension == D && entityDimension == D - 1;
       }
 
       static constexpr bool entityTagsStorage( int entityDimension )
       {
-         return entityDimension >= meshDimension - 1;
+         constexpr int D = Cell::dimension;
+         return entityDimension >= D - 1;
       }
 
       static constexpr bool dualGraphStorage()
@@ -429,6 +432,8 @@ decompose_and_save( const Mesh& mesh,
          if( cell_global_indices.count( cell.getIndex() ) != 0 )
             return false;
          CellSeed seed;
+         seed.setCornersCount( cell.template getSubentitiesCount< 0 >() );
+         // TODO: implement support for polyhedral meshes
          for( Index v = 0; v < cell.template getSubentitiesCount< 0 >(); v++ ) {
             const Index global_idx = cell.template getSubentityIndex< 0 >( v );
             if( vertex_global_to_local.count(global_idx) == 0 )
@@ -577,10 +582,17 @@ decompose_and_save( const Mesh& mesh,
 
       // copy points and cell seeds to the MeshBuilder
       TNL::Meshes::MeshBuilder< Mesh > builder;
+      // TODO: implement support for polyhedral meshes
       builder.setEntitiesCount( points.getSize(), seeds.size() );
       for( Index i = 0; i < points.getSize(); i++ )
          builder.setPoint( i, points[ i ] );
       points.reset();
+      if( TNL::Meshes::Topologies::IsDynamicTopology< typename Mesh::Cell::EntityTopology >::value ) {
+         typename TNL::Meshes::MeshBuilder< Mesh >::NeighborCountsArray cellCornersCounts( seeds.size() );
+         for( std::size_t i = 0; i < seeds.size(); i++ )
+            cellCornersCounts[ i ] = seeds[ i ].getCornersCount();
+         builder.setCellCornersCounts( cellCornersCounts );
+      }
       for( std::size_t i = 0; i < seeds.size(); i++ ) {
          const auto& cornerIds = seeds[ i ].getCornerIds();
          for( Index v = 0; v < cornerIds.getSize(); v++ )

@@ -4,12 +4,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
-#include <TNL/Meshes/Readers/XMLVTK.h>
 #include <cstdint>
+
+#include <TNL/Meshes/Readers/XMLVTK.h>
 
 namespace TNL {
 namespace Meshes {
@@ -40,8 +39,9 @@ class VTIReader : public XMLVTK
       // parse the extent
       {
          std::stringstream ss( extent );
-         gridExtent.resize( 6, 0 );
-         for( int i = 0; i < 6; i++ ) {
+         constexpr int vtk_extent_size = 6;
+         gridExtent.resize( vtk_extent_size, 0 );
+         for( int i = 0; i < vtk_extent_size; i++ ) {
             ss >> gridExtent[ i ];
             // check conversion error
             if( ! ss.good() )

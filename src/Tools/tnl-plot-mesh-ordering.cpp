@@ -35,8 +35,12 @@ template<> struct GridIndexTag< MyConfigTag, long int >{ static constexpr bool e
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge >{ static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >{ static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >{ static constexpr bool enabled = true; };
+template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polygon > { static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron >{ static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron >{ static constexpr bool enabled = true; };
+template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Wedge >{ static constexpr bool enabled = true; };
+template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Pyramid >{ static constexpr bool enabled = true; };
+template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron >{ static constexpr bool enabled = true; };
 
 // Meshes are enabled only for the world dimension equal to the cell dimension.
 template< typename CellTopology, int WorldDimension >

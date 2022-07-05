@@ -543,7 +543,7 @@ public:
     * \return Reference to this array.
     */
    Array&
-   operator=( Array&& array ) noexcept;
+   operator=( Array&& array ) noexcept( false );
 
    /**
     * \brief Assigns either array-like container or a single value.

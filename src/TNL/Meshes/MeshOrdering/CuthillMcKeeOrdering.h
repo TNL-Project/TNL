@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <type_traits>
@@ -107,7 +105,7 @@ private:
          const IndexType count = neighborCounts[ k ];
          for( IndexType n = 0; n < count; n++ ) {
             const IndexType nk = mesh.getCellNeighborIndex( k, n );
-            if( marker[ nk ] == false ) {
+            if( ! marker[ nk ] ) {
                neighbors.push_back( nk );
                marker[ nk ] = true;
             }
@@ -148,7 +146,7 @@ private:
          for( typename Mesh::LocalIndexType e = 0; e < cell.template getSubentitiesCount< MeshEntity::getEntityDimension() >();
               e++ ) {
             const auto E = cell.template getSubentityIndex< MeshEntity::getEntityDimension() >( e );
-            if( marker[ E ] == false ) {
+            if( ! marker[ E ] ) {
                marker[ E ] = true;
                perm[ permIndex ] = E;
                iperm[ E ] = permIndex;

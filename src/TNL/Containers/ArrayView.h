@@ -231,7 +231,7 @@ public:
              typename...,
              typename = std::enable_if_t< std::is_convertible< T, ValueType >::value || IsArrayType< T >::value > >
    ArrayView&
-   operator=( const T& array );
+   operator=( const T& data );
 
    /**
     * \brief Swaps this array view with another.

@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
@@ -27,7 +25,7 @@ public:
 
    explicit DualGraphLayer( const DualGraphLayer& ) = default;
 
-   DualGraphLayer( DualGraphLayer&& ) = default;
+   DualGraphLayer( DualGraphLayer&& ) noexcept = default;
 
    template< typename Device_ >
    DualGraphLayer( const DualGraphLayer< MeshConfig, Device_ >& other )
@@ -39,7 +37,7 @@ public:
    operator=( const DualGraphLayer& ) = default;
 
    DualGraphLayer&
-   operator=( DualGraphLayer&& ) = default;
+   operator=( DualGraphLayer&& ) noexcept( false ) = default;
 
    template< typename Device_ >
    DualGraphLayer&

@@ -420,9 +420,9 @@ convertToString( const T& value )
  */
 template<>
 inline String
-convertToString( const bool& b )
+convertToString( const bool& value )
 {
-   if( b )
+   if( value )
       return "true";
    return "false";
 }

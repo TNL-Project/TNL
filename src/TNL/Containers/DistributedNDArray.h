@@ -56,7 +56,7 @@ public:
    // default move-semantics
    DistributedNDArray( DistributedNDArray&& ) noexcept = default;
    DistributedNDArray&
-   operator=( DistributedNDArray&& ) noexcept = default;
+   operator=( DistributedNDArray&& ) noexcept( false ) = default;
 
    // Templated copy-assignment
    template< typename OtherArray >
