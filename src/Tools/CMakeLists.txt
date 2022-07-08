@@ -6,6 +6,7 @@ set( MESH_TOOLS
          tnl-decompose-grid
          tnl-grid-to-mesh
          tnl-mesh-converter
+         tnl-mesh-info
          tnl-triangulate-mesh
          tnl-planar-correct-mesh
          tnl-refine-mesh
