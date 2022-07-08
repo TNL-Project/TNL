@@ -22,10 +22,11 @@ stages:
 # default flags for cmake
 .default_cmake_flags_def: &default_cmake_flags
     # architectures
-    WITH_OPENMP: "no"
     WITH_CUDA: "no"
     WITH_CUDA_ARCH: "auto"
-    WITH_MPI: "no"
+    # MPI is selectively added to targets, so there is no point to have separate jobs without MPI
+    WITH_MPI: "yes"
+    WITH_OPENMP: "yes"
     # build targets
     BUILD_TESTS: "no"
     BUILD_MATRIX_TESTS: "no"
@@ -35,12 +36,6 @@ stages:
     BUILD_EXAMPLES: "no"
     BUILD_TOOLS: "no"
     BUILD_PYTHON: "no"
-
-# base for OpenMP+MPI builds
-.openmp_mpi:
-    variables:
-        WITH_OPENMP: "yes"
-        WITH_MPI: "yes"
 
 # base for Clang builds
 .clang:
@@ -245,36 +240,6 @@ cuda_nontests_Release:
         BUILD_PYTHON: "yes"
 
 
-cuda_mpi_tests_Debug:
-    extends:
-        - cuda_tests_Debug
-        - .openmp_mpi
-
-cuda_mpi_tests_Release:
-    extends:
-        - cuda_tests_Release
-        - .openmp_mpi
-
-cuda_mpi_matrix_tests_Debug:
-    extends:
-        - cuda_matrix_tests_Debug
-        - .openmp_mpi
-
-cuda_mpi_matrix_tests_Release:
-    extends:
-        - cuda_matrix_tests_Release
-        - .openmp_mpi
-
-cuda_mpi_nontests_Debug:
-    extends:
-        - cuda_nontests_Debug
-        - .openmp_mpi
-
-cuda_mpi_nontests_Release:
-    extends:
-        - cuda_nontests_Release
-        - .openmp_mpi
-
 
 
 
@@ -348,48 +313,6 @@ default_nontests_Release:
     needs: ["cuda_nontests_Release"]
 
 
-mpi_tests_Debug:
-    extends:
-        - default_tests_Debug
-        - .openmp_mpi
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_tests_Debug"]
-
-mpi_tests_Release:
-    extends:
-        - default_tests_Release
-        - .openmp_mpi
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_tests_Release"]
-
-mpi_matrix_tests_Debug:
-    extends:
-        - default_matrix_tests_Debug
-        - .openmp_mpi
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_matrix_tests_Debug"]
-
-mpi_matrix_tests_Release:
-    extends:
-        - default_matrix_tests_Release
-        - .openmp_mpi
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_matrix_tests_Release"]
-
-mpi_nontests_Debug:
-    extends:
-        - default_nontests_Debug
-        - .openmp_mpi
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_nontests_Debug"]
-
-mpi_nontests_Release:
-    extends:
-        - default_nontests_Release
-        - .openmp_mpi
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_nontests_Release"]
-
 
 clang_tests_Debug:
     extends:
@@ -433,48 +356,6 @@ clang_nontests_Release:
     # hack to lower the priority below the CUDA job
     needs: ["cuda_nontests_Release"]
 
-
-clang_mpi_tests_Debug:
-    extends:
-        - mpi_tests_Debug
-        - .clang
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_tests_Debug"]
-
-clang_mpi_tests_Release:
-    extends:
-        - mpi_tests_Release
-        - .clang
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_tests_Release"]
-
-clang_mpi_matrix_tests_Debug:
-    extends:
-        - mpi_matrix_tests_Debug
-        - .clang
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_matrix_tests_Debug"]
-
-clang_mpi_matrix_tests_Release:
-    extends:
-        - mpi_matrix_tests_Release
-        - .clang
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_matrix_tests_Release"]
-
-clang_mpi_nontests_Debug:
-    extends:
-        - mpi_nontests_Debug
-        - .clang
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_nontests_Debug"]
-
-clang_mpi_nontests_Release:
-    extends:
-        - mpi_nontests_Release
-        - .clang
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_mpi_nontests_Release"]
 
 
 
