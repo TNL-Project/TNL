@@ -13,24 +13,24 @@ set( MESH_TOOLS
          tnl-game-of-life
          tnl-reorder-mesh
          tnl-plot-mesh-ordering
+         tnl-test-distributed-mesh
 )
 set( CUDA_MESH_TOOLS )
 if( BUILD_CUDA )
    set( CUDA_MESH_TOOLS  ${CUDA_MESH_TOOLS} tnl-test-distributed-mesh )
-else()
-   set( MESH_TOOLS  ${MESH_TOOLS} tnl-test-distributed-mesh )
 endif()
 
 foreach( target IN ITEMS ${MESH_TOOLS} )
    add_executable( ${target} ${target}.cpp )
 endforeach()
 foreach( target IN ITEMS ${CUDA_MESH_TOOLS} )
-   cuda_add_executable( ${target} ${target}.cu )
+   cuda_add_executable( ${target}-cuda ${target}.cu )
+   set( MESH_TOOLS  ${MESH_TOOLS} ${target}-cuda )
 endforeach()
 
 find_package( ZLIB )
 find_package( tinyxml2 QUIET )
-foreach( target IN ITEMS ${MESH_TOOLS} ${CUDA_MESH_TOOLS} )
+foreach( target IN ITEMS ${MESH_TOOLS} )
    if( ZLIB_FOUND )
       target_compile_definitions( ${target} PUBLIC "-DHAVE_ZLIB" )
       target_include_directories( ${target} PUBLIC ${ZLIB_INCLUDE_DIRS} )
