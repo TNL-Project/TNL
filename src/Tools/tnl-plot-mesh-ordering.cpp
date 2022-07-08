@@ -18,16 +18,11 @@ namespace Meshes {
 namespace BuildConfigTags {
 
 /****
- * Turn off support for float and long double.
+ * Turn off all grids.
  */
-template<> struct GridRealTag< MyConfigTag, float >{ static constexpr bool enabled = false; };
-template<> struct GridRealTag< MyConfigTag, long double >{ static constexpr bool enabled = false; };
-
-/****
- * Turn off support for short int and long int indexing.
- */
-template<> struct GridIndexTag< MyConfigTag, short int >{ static constexpr bool enabled = false; };
-template<> struct GridIndexTag< MyConfigTag, long int >{ static constexpr bool enabled = false; };
+template<> struct GridRealTag< MyConfigTag, float > { static constexpr bool enabled = false; };
+template<> struct GridRealTag< MyConfigTag, double > { static constexpr bool enabled = false; };
+template<> struct GridRealTag< MyConfigTag, long double > { static constexpr bool enabled = false; };
 
 /****
  * Unstructured meshes.
@@ -71,14 +66,6 @@ writeMeshOrdering( const MeshType& mesh, const String& outputFileName )
          outputFile << center[ j ] << " ";
       outputFile << std::endl;
    }
-}
-
-template< typename Mesh >
-bool
-plotOrdering( const Mesh& mesh, const String& fileName )
-{
-   std::cerr << "plot-ordering is not implemented for meshes of type " << TNL::getType< Mesh >() << std::endl;
-   return false;
 }
 
 template< typename Mesh >
