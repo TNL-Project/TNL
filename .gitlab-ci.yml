@@ -253,7 +253,7 @@ default_tests_Debug:
         BUILD_TYPE: Debug
         BUILD_TESTS: "yes"
     # hack to lower the priority below the CUDA job
-    needs: ["cuda_tests_Debug"]
+    needs: ["cuda_nontests_Debug"]
 
 default_tests_Release:
     extends:
@@ -264,7 +264,7 @@ default_tests_Release:
         BUILD_TYPE: Release
         BUILD_TESTS: "yes"
     # hack to lower the priority below the CUDA job
-    needs: ["cuda_tests_Release"]
+    needs: ["cuda_nontests_Release"]
 
 default_matrix_tests_Debug:
     extends:
@@ -275,7 +275,7 @@ default_matrix_tests_Debug:
         BUILD_TYPE: Debug
         BUILD_MATRIX_TESTS: "yes"
     # hack to lower the priority below the CUDA job
-    needs: ["cuda_matrix_tests_Debug"]
+    needs: ["cuda_nontests_Debug"]
 
 default_matrix_tests_Release:
     extends:
@@ -286,7 +286,7 @@ default_matrix_tests_Release:
         BUILD_TYPE: Release
         BUILD_MATRIX_TESTS: "yes"
     # hack to lower the priority below the CUDA job
-    needs: ["cuda_matrix_tests_Release"]
+    needs: ["cuda_nontests_Release"]
 
 default_nontests_Debug:
     extends: .build_template
@@ -297,8 +297,6 @@ default_nontests_Debug:
         BUILD_BENCHMARKS: "yes"
         BUILD_TOOLS: "yes"
         BUILD_PYTHON: "yes"
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_nontests_Debug"]
 
 default_nontests_Release:
     extends: .build_template
@@ -309,8 +307,6 @@ default_nontests_Release:
         BUILD_BENCHMARKS: "yes"
         BUILD_TOOLS: "yes"
         BUILD_PYTHON: "yes"
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_nontests_Release"]
 
 
 
@@ -319,42 +315,38 @@ clang_tests_Debug:
         - default_tests_Debug
         - .clang
     # hack to lower the priority below the CUDA job
-    needs: ["cuda_tests_Debug"]
+    needs: ["cuda_nontests_Debug"]
 
 clang_tests_Release:
     extends:
         - default_tests_Release
         - .clang
     # hack to lower the priority below the CUDA job
-    needs: ["cuda_tests_Release"]
+    needs: ["cuda_nontests_Release"]
 
 clang_matrix_tests_Debug:
     extends:
         - default_matrix_tests_Debug
         - .clang
     # hack to lower the priority below the CUDA job
-    needs: ["cuda_matrix_tests_Debug"]
+    needs: ["cuda_nontests_Debug"]
 
 clang_matrix_tests_Release:
     extends:
         - default_matrix_tests_Release
         - .clang
     # hack to lower the priority below the CUDA job
-    needs: ["cuda_matrix_tests_Release"]
+    needs: ["cuda_nontests_Release"]
 
 clang_nontests_Debug:
     extends:
         - default_nontests_Debug
         - .clang
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_nontests_Debug"]
 
 clang_nontests_Release:
     extends:
         - default_nontests_Release
         - .clang
-    # hack to lower the priority below the CUDA job
-    needs: ["cuda_nontests_Release"]
 
 
 
