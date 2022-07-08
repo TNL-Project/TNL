@@ -151,6 +151,9 @@ link_libraries( stdc++fs )
 if( ${BUILD_TESTS} OR ${BUILD_MATRIX_TESTS} )
    enable_testing()
 
+   # repeat failed tests to tolerate sporadic failures
+   set( CMAKE_CTEST_ARGUMENTS ${CMAKE_CTEST_ARGUMENTS} --repeat until-pass:2 )
+
    # let CTest write test results in the JUnit XML format
    set( CMAKE_CTEST_ARGUMENTS ${CMAKE_CTEST_ARGUMENTS} --output-junit "${CMAKE_BINARY_DIR}/tests-report.xml" )
 
