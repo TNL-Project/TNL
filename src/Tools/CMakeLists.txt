@@ -1,5 +1,6 @@
 add_subdirectory(tnl-quickstart)
 
+# Mesh tools: will link to zlib and tinyxml2
 set( MESH_TOOLS
          tnl-init
          tnl-diff
@@ -20,12 +21,20 @@ if( BUILD_CUDA )
    set( CUDA_MESH_TOOLS  ${CUDA_MESH_TOOLS} tnl-test-distributed-mesh )
 endif()
 
+# MPI tools: will link to MPI
+set( MPI_TOOLS
+         tnl-init
+         tnl-game-of-life
+         tnl-test-distributed-mesh
+)
+
 foreach( target IN ITEMS ${MESH_TOOLS} )
    add_executable( ${target} ${target}.cpp )
 endforeach()
 foreach( target IN ITEMS ${CUDA_MESH_TOOLS} )
    cuda_add_executable( ${target}-cuda ${target}.cu )
    set( MESH_TOOLS  ${MESH_TOOLS} ${target}-cuda )
+   set( MPI_TOOLS  ${MPI_TOOLS} ${target}-cuda )
 endforeach()
 
 find_package( ZLIB )
@@ -42,6 +51,15 @@ foreach( target IN ITEMS ${MESH_TOOLS} )
    endif()
    install( TARGETS ${target} DESTINATION bin )
 endforeach()
+
+if( BUILD_MPI )
+   foreach( target IN ITEMS ${MPI_TOOLS} )
+      # enable MPI support in TNL
+      target_compile_definitions( ${target} PUBLIC "-DHAVE_MPI" )
+      # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+      target_link_libraries( ${target} MPI::MPI_CXX )
+   endforeach()
+endif()
 
 find_package( METIS QUIET )
 if( METIS_FOUND )

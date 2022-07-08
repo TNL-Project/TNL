@@ -71,6 +71,13 @@ if( ${BUILD_MPI} )
    TARGET_LINK_LIBRARIES( DistributedVectorVerticalOperationsTest ${TESTS_LIBRARIES} )
    target_link_options( DistributedVectorVerticalOperationsTest PRIVATE ${TESTS_LINKER_FLAGS} )
 
+   foreach( target IN ITEMS DistributedArrayTest DistributedVectorBinaryOperationsTest DistributedVectorUnaryOperationsTest DistributedVectorVerticalOperationsTest )
+      # enable MPI support in TNL
+      target_compile_definitions( ${target} PUBLIC "-DHAVE_MPI" )
+      # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+      target_link_libraries( ${target} MPI::MPI_CXX )
+   endforeach()
+
    if( BUILD_CUDA )
       CUDA_ADD_EXECUTABLE( DistributedVectorBinaryOperationsTestCuda DistributedVectorBinaryOperationsTestCuda.cu OPTIONS ${CUDA_TESTS_FLAGS} )
       TARGET_LINK_LIBRARIES( DistributedVectorBinaryOperationsTestCuda ${TESTS_LIBRARIES} )
@@ -83,6 +90,13 @@ if( ${BUILD_MPI} )
       CUDA_ADD_EXECUTABLE( DistributedVectorVerticalOperationsTestCuda DistributedVectorVerticalOperationsTestCuda.cu OPTIONS ${CUDA_TESTS_FLAGS} )
       TARGET_LINK_LIBRARIES( DistributedVectorVerticalOperationsTestCuda ${TESTS_LIBRARIES} )
       target_link_options( DistributedVectorVerticalOperationsTestCuda PRIVATE ${TESTS_LINKER_FLAGS} )
+
+      foreach( target IN ITEMS DistributedVectorBinaryOperationsTestCuda DistributedVectorUnaryOperationsTestCuda DistributedVectorVerticalOperationsTestCuda )
+         # enable MPI support in TNL
+         target_compile_definitions( ${target} PUBLIC "-DHAVE_MPI" )
+         # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+         target_link_libraries( ${target} MPI::MPI_CXX )
+      endforeach()
    endif( BUILD_CUDA )
 
    SET( mpi_test_parameters -np 4 -H localhost:4 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedArrayTest${CMAKE_EXECUTABLE_SUFFIX}" )

@@ -44,16 +44,24 @@ endif()
 
 
 if( ${BUILD_MPI} )
-   ADD_EXECUTABLE( distributedScanTest distributedScanTest.cpp )
-   TARGET_COMPILE_OPTIONS( distributedScanTest PRIVATE ${CXX_TESTS_FLAGS} )
-   TARGET_LINK_LIBRARIES( distributedScanTest ${TESTS_LIBRARIES} )
-   TARGET_LINK_OPTIONS( distributedScanTest PRIVATE ${TESTS_LINKER_FLAGS} )
+   add_executable( distributedScanTest distributedScanTest.cpp )
+   target_compile_options( distributedScanTest PRIVATE ${CXX_TESTS_FLAGS} )
+   target_link_libraries( distributedScanTest ${TESTS_LIBRARIES} )
+   target_link_options( distributedScanTest PRIVATE ${TESTS_LINKER_FLAGS} )
+   # enable MPI support in TNL
+   target_compile_definitions( distributedScanTest PUBLIC "-DHAVE_MPI" )
+   # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+   target_link_libraries( distributedScanTest MPI::MPI_CXX )
 
    if( BUILD_CUDA )
-      CUDA_ADD_EXECUTABLE( distributedScanTestCuda distributedScanTestCuda.cu
+      cuda_add_executable( distributedScanTestCuda distributedScanTestCuda.cu
                            OPTIONS ${CUDA_TESTS_FLAGS} )
-      TARGET_LINK_LIBRARIES( distributedScanTestCuda ${TESTS_LIBRARIES} )
-      TARGET_LINK_OPTIONS( distributedScanTestCuda PRIVATE ${TESTS_LINKER_FLAGS} )
+      target_link_libraries( distributedScanTestCuda ${TESTS_LIBRARIES} )
+      target_link_options( distributedScanTestCuda PRIVATE ${TESTS_LINKER_FLAGS} )
+      # enable MPI support in TNL
+      target_compile_definitions( distributedScanTestCuda PUBLIC "-DHAVE_MPI" )
+      # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+      target_link_libraries( distributedScanTestCuda MPI::MPI_CXX )
    endif()
 
    SET( mpi_test_parameters -np 4 -H localhost:4 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTest${CMAKE_EXECUTABLE_SUFFIX}" )

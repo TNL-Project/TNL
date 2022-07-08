@@ -73,6 +73,11 @@ if( ${BUILD_MPI} )
    target_link_libraries( DistributedMatrixTest ${TESTS_LIBRARIES} )
    target_link_options( DistributedMatrixTest PRIVATE ${TESTS_LINKER_FLAGS} )
 
+   # enable MPI support in TNL
+   target_compile_definitions( DistributedMatrixTest PUBLIC "-DHAVE_MPI" )
+   # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+   target_link_libraries( DistributedMatrixTest MPI::MPI_CXX )
+
    SET( mpi_test_parameters -np 4 -H localhost:4 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMatrixTest${CMAKE_EXECUTABLE_SUFFIX}" )
    ADD_TEST( NAME DistributedMatrixTest COMMAND "mpirun" ${mpi_test_parameters})
    ADD_TEST( NAME DistributedMatrixTest_nodistr COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMatrixTest${CMAKE_EXECUTABLE_SUFFIX}" )

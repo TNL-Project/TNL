@@ -36,8 +36,8 @@ set( CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
 # Note that in cmake 3.10 the FindOpenMP and FindMPI modules are broken - they do not work when
 # CMAKE_EXECUTABLE_SUFFIX is not empty, see https://www.mail-archive.com/cmake@cmake.org/msg56886.html
 # Hence, we find OpenMP and MPI before setting CMAKE_EXECUTABLE_SUFFIX.
-find_package( OpenMP )
-find_package( MPI )
+find_package( OpenMP COMPONENTS CXX )
+find_package( MPI COMPONENTS CXX )
 
 # Settings for debug build
 if( CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -190,15 +190,9 @@ endif()
 # Check for MPI
 #
 if( MPI_CXX_FOUND AND ${WITH_MPI} )
-   set( BUILD_MPI TRUE)
-   # add the appropriate flags to all targets (will be hidden from the CMAKE_CXX_* variables)
-   include_directories( ${MPI_CXX_INCLUDE_DIRS} )
-   add_compile_options( ${MPI_CXX_COMPILE_OPTIONS} )
-   add_compile_definitions( ${MPI_CXX_COMPILE_DEFINITIONS} )
-   add_link_options( "SHELL:${MPI_CXX_LINK_FLAGS}" )
-   link_libraries( ${MPI_CXX_LIBRARIES} )
-   # enable MPI in TNL
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_MPI" )
+   set( BUILD_MPI TRUE )
+   # NOTE: MPI will be added selectively to the targets that need/can utilize it
+   # see https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
 endif()
 
 #####

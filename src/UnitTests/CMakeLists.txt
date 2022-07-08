@@ -62,6 +62,12 @@ if( ${BUILD_MPI} )
    if( ${HYPRE_FOUND} )
       foreach( target IN ITEMS HypreTest )
          add_executable( ${target} ${target}.cpp )
+
+         # enable MPI support in TNL
+         target_compile_definitions( ${target} PUBLIC "-DHAVE_MPI" )
+         # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+         target_link_libraries( ${target} MPI::MPI_CXX )
+
          target_compile_definitions( ${target} PUBLIC "-DHAVE_HYPRE" )
          target_compile_options( ${target} PRIVATE ${CXX_TESTS_FLAGS} )
          target_include_directories( ${target} PUBLIC ${HYPRE_INCLUDE_DIRS} )
