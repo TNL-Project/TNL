@@ -121,7 +121,7 @@ if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
 endif()
 
 # enable link time optimizations (but not in continuous integration)
-if( NOT DEFINED ENV{CI_JOB_NAME} )
+if( NOT DEFINED ENV{GITLAB_CI} )
    if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
       # LTO with GCC 9.1.0 and Debug build = internal compiler error
       # LTO with GCC 9.1.0 and nvcc 10.1 and Release build = fatal error: bytecode stream in file `blabla` generated with LTO version 7.1 instead of the expected 8.0
@@ -134,7 +134,7 @@ if( NOT DEFINED ENV{CI_JOB_NAME} )
 endif()
 
 # force colorized output in continuous integration
-if( DEFINED ENV{CI_JOB_NAME} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
+if( DEFINED ENV{GITLAB_CI} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
    message(STATUS "Continuous integration or Ninja detected -- forcing compilers to produce colorized output.")
    if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
       set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics" )
@@ -302,6 +302,13 @@ if( ${WITH_GMP} )
       set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${GMP_LIBRARIES}" )
       mark_as_advanced(GMP_INCLUDES GMP_LIBRARIES)
    endif()
+endif()
+
+# skip building host-only targets in CUDA-enabled CI jobs
+if( DEFINED ENV{GITLAB_CI} AND BUILD_CUDA )
+   set( BUILD_CPP_TARGETS FALSE )
+else()
+   set( BUILD_CPP_TARGETS TRUE )
 endif()
 
 # configure build paths

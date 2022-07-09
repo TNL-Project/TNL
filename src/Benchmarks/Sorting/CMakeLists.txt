@@ -5,6 +5,8 @@ if( BUILD_CUDA )
    install( TARGETS tnl-benchmark-sort-cuda RUNTIME DESTINATION bin )
 endif()
 
-add_executable( tnl-benchmark-sort tnl-benchmark-sort.cpp )
-
-install( TARGETS tnl-benchmark-sort RUNTIME DESTINATION bin )
+# skip building host-only targets in CUDA-enabled CI jobs
+if( BUILD_CPP_TARGETS )
+   add_executable( tnl-benchmark-sort tnl-benchmark-sort.cpp )
+   install( TARGETS tnl-benchmark-sort RUNTIME DESTINATION bin )
+endif()

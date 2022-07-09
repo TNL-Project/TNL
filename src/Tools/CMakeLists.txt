@@ -21,12 +21,25 @@ if( BUILD_CUDA )
    set( CUDA_MESH_TOOLS  ${CUDA_MESH_TOOLS} tnl-test-distributed-mesh )
 endif()
 
+# CGAL tools: will link to CGAL
+set( CGAL_TOOLS
+         tnl-reorder-mesh
+         tnl-plot-mesh-ordering
+)
+
 # MPI tools: will link to MPI
 set( MPI_TOOLS
          tnl-init
          tnl-game-of-life
          tnl-test-distributed-mesh
 )
+
+# skip building host-only targets in CUDA-enabled CI jobs
+if( NOT BUILD_CPP_TARGETS )
+   set( MESH_TOOLS )
+   set( MPI_TOOLS )
+   set( CGAL_TOOLS )
+endif()
 
 foreach( target IN ITEMS ${MESH_TOOLS} )
    add_executable( ${target} ${target}.cpp )
@@ -61,8 +74,20 @@ if( BUILD_MPI )
    endforeach()
 endif()
 
+set( CGAL_DATA_DIR "/" )  # to disable stupid warning: https://github.com/CGAL/cgal/pull/6649
+find_package( CGAL )
+if( CGAL_FOUND )
+   option( CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE "disable warning" ON )
+   foreach( target IN ITEMS ${CGAL_TOOLS} )
+      target_compile_definitions( ${target} PUBLIC "-DHAVE_CGAL" )
+      target_link_libraries( ${target} CGAL::CGAL )
+   endforeach()
+endif()
+
+
+# skip building host-only targets in CUDA-enabled CI jobs
 find_package( METIS QUIET )
-if( METIS_FOUND )
+if( BUILD_CPP_TARGETS AND METIS_FOUND )
    add_executable( tnl-decompose-mesh tnl-decompose-mesh.cpp )
    target_include_directories( tnl-decompose-mesh PUBLIC ${METIS_INCLUDE_DIRS} )
    target_link_libraries( tnl-decompose-mesh ${METIS_LIBRARIES} )
@@ -78,45 +103,37 @@ if( METIS_FOUND )
    install( TARGETS tnl-decompose-mesh DESTINATION bin )
 endif()
 
-set( CGAL_DATA_DIR "/" )  # to disable stupid warning: https://github.com/CGAL/cgal/pull/6649
-find_package( CGAL )
-if( CGAL_FOUND )
-   option( CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE "disable warning" ON )
-
-   target_compile_definitions( tnl-reorder-mesh PUBLIC "-DHAVE_CGAL" )
-   target_link_libraries( tnl-reorder-mesh CGAL::CGAL )
-
-   target_compile_definitions( tnl-plot-mesh-ordering PUBLIC "-DHAVE_CGAL" )
-   target_link_libraries( tnl-plot-mesh-ordering CGAL::CGAL )
-endif()
-
-
-add_executable( tnl-grid-setup tnl-grid-setup.cpp )
-
-add_executable( tnl-image-converter tnl-image-converter.cpp )
-if( PNG_FOUND )
-   target_link_libraries( tnl-image-converter ${PNG_LIBRARIES} )
-endif()
-if( JPEG_FOUND )
-   target_link_libraries( tnl-image-converter ${JPEG_LIBRARIES} )
-endif()
-
-add_executable( tnl-dicom-reader tnl-dicom-reader.cpp )
-if( DCMTK_FOUND )
-   target_link_libraries( tnl-dicom-reader ${DCMTK_LIBRARIES} )
-endif()
 
 IF( BUILD_CUDA )
    cuda_add_executable( tnl-cuda-arch tnl-cuda-arch.cu )
    install( TARGETS tnl-cuda-arch DESTINATION bin )
 ENDIF()
 
-install( TARGETS tnl-grid-setup
-                 tnl-image-converter
-                 tnl-dicom-reader
-         DESTINATION bin )
 
-install( PROGRAMS tnl-err2eoc
-                  tnl-benchmark-to-html.py
-                  tnl-log-to-html.py
-         DESTINATION bin )
+# skip building host-only targets in CUDA-enabled CI jobs
+if( BUILD_CPP_TARGETS )
+   add_executable( tnl-grid-setup tnl-grid-setup.cpp )
+
+   add_executable( tnl-image-converter tnl-image-converter.cpp )
+   if( PNG_FOUND )
+      target_link_libraries( tnl-image-converter ${PNG_LIBRARIES} )
+   endif()
+   if( JPEG_FOUND )
+      target_link_libraries( tnl-image-converter ${JPEG_LIBRARIES} )
+   endif()
+
+   add_executable( tnl-dicom-reader tnl-dicom-reader.cpp )
+   if( DCMTK_FOUND )
+      target_link_libraries( tnl-dicom-reader ${DCMTK_LIBRARIES} )
+   endif()
+
+   install( TARGETS tnl-grid-setup
+                    tnl-image-converter
+                    tnl-dicom-reader
+            DESTINATION bin )
+
+   install( PROGRAMS tnl-err2eoc
+                     tnl-benchmark-to-html.py
+                     tnl-log-to-html.py
+            DESTINATION bin )
+endif()

@@ -1,5 +1,8 @@
-add_executable( tnl-benchmark-blas tnl-benchmark-blas.cpp )
-set( BENCHMARKS tnl-benchmark-blas )
+# skip building host-only targets in CUDA-enabled CI jobs
+if( BUILD_CPP_TARGETS )
+   add_executable( tnl-benchmark-blas tnl-benchmark-blas.cpp )
+   set( BENCHMARKS tnl-benchmark-blas )
+endif()
 
 if( BUILD_CUDA )
    #find_library( CUDADEVRT NAMES cudadevrt )
