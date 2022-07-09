@@ -1,23 +1,20 @@
-IF( BUILD_CUDA )
-    CUDA_ADD_EXECUTABLE( tnl-benchmark-simple-heat-equation tnl-benchmark-simple-heat-equation.cu )
-
-    CUDA_ADD_EXECUTABLE( tnl-benchmark-simple-heat-equation-bug tnl-benchmark-simple-heat-equation-bug.cu )
-
-#    CUDA_ADD_EXECUTABLE( tnl-benchmark-heat-equation tnl-benchmark-heat-equation.cu )
-ELSE()
-#    ADD_EXECUTABLE( tnl-benchmark-heat-equation tnl-benchmark-heat-equation.cpp )
-
-    ADD_EXECUTABLE( tnl-benchmark-simple-heat-equation tnl-benchmark-simple-heat-equation.cpp )
-ENDIF()
-
-
-INSTALL( TARGETS
-#            tnl-benchmark-heat-equation
-            tnl-benchmark-simple-heat-equation
-         RUNTIME DESTINATION bin )
-
 if( BUILD_CUDA )
-    INSTALL( TARGETS
-                tnl-benchmark-simple-heat-equation-bug
-             RUNTIME DESTINATION bin )
+#   cuda_add_executable( tnl-benchmark-heat-equation-cuda tnl-benchmark-heat-equation.cu )
+   cuda_add_executable( tnl-benchmark-simple-heat-equation-cuda tnl-benchmark-simple-heat-equation.cu )
+
+   install( TARGETS
+#               tnl-benchmark-heat-equation-cuda
+               tnl-benchmark-simple-heat-equation-cuda
+            RUNTIME DESTINATION bin )
+endif()
+
+# skip building host-only targets in CUDA-enabled CI jobs
+if( BUILD_CPP_TARGETS )
+#   add_executable( tnl-benchmark-heat-equation tnl-benchmark-heat-equation.cpp )
+   add_executable( tnl-benchmark-simple-heat-equation tnl-benchmark-simple-heat-equation.cpp )
+
+   install( TARGETS
+#               tnl-benchmark-heat-equation
+               tnl-benchmark-simple-heat-equation
+            RUNTIME DESTINATION bin )
 endif()

@@ -33,7 +33,6 @@ WITH_COVERAGE="no"
 # targets
 BUILD_BENCHMARKS="no"
 BUILD_EXAMPLES="no"
-BUILD_PYTHON="no"
 BUILD_TOOLS="no"
 BUILD_TESTS="no"
 BUILD_MATRIX_TESTS="no"
@@ -64,7 +63,6 @@ Targets:
     tests           Compile unit tests in the 'src/UnitTests' directory (except
                     tests for matrix formats, which have a separate target).
     matrix-tests    Compile unit tests for matrix formats.
-    python          Compile the Python bindings.
     doc             Generate the documentation.
 
 General options:
@@ -155,7 +153,6 @@ for target in "$@"; do
             BUILD_TOOLS="yes"
             BUILD_TESTS="yes"
             BUILD_MATRIX_TESTS="yes"
-            BUILD_PYTHON="yes"
             BUILD_DOC="yes"
             ;;
         benchmarks)     BUILD_BENCHMARKS="yes" ;;
@@ -163,10 +160,9 @@ for target in "$@"; do
         tools)          BUILD_TOOLS="yes" ;;
         tests)          BUILD_TESTS="yes" ;;
         matrix-tests)   BUILD_MATRIX_TESTS="yes" ;;
-        python)         BUILD_PYTHON="yes" ;;
         doc)            BUILD_DOC="yes" ;;
         *)
-            echo "Unknown target $target. The available targets are: all, benchmarks, examples, tools, tests, matrix-tests, python, doc." >&2
+            echo "Unknown target $target. The available targets are: all, benchmarks, examples, tools, tests, matrix-tests, doc." >&2
             echo "Use --help for more information." >&2
             exit 1
     esac
@@ -229,7 +225,6 @@ cmake_command=(
          -DBUILD_TOOLS=${BUILD_TOOLS}
          -DBUILD_TESTS=${BUILD_TESTS}
          -DBUILD_MATRIX_TESTS=${BUILD_MATRIX_TESTS}
-         -DBUILD_PYTHON=${BUILD_PYTHON}
          -DBUILD_DOC=${BUILD_DOC}
          -DCUDA_SAMPLES_DIR=${CUDA_SAMPLES_DIR}
 )

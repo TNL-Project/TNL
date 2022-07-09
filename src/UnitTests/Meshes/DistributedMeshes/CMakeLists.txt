@@ -19,27 +19,27 @@ ADD_TEST( NAME CopyEntitesTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CopyEnt
 #ADD_TEST( NAME CutMeshFunctionTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutMeshFunctionTest${CMAKE_EXECUTABLE_SUFFIX} )
 
 if( BUILD_MPI )
-ADD_EXECUTABLE( DistributedGridTest_1D DistributedGridTest_1D.cpp )
+   ADD_EXECUTABLE( DistributedGridTest_1D DistributedGridTest_1D.cpp )
    TARGET_COMPILE_OPTIONS( DistributedGridTest_1D PRIVATE ${CXX_TESTS_FLAGS} )
    TARGET_LINK_LIBRARIES( DistributedGridTest_1D ${TESTS_LIBRARIES} )
    target_link_options( DistributedGridTest_1D PRIVATE ${TESTS_LINKER_FLAGS} )
 
-ADD_EXECUTABLE( DistributedGridTest_2D DistributedGridTest_2D.cpp )
+   ADD_EXECUTABLE( DistributedGridTest_2D DistributedGridTest_2D.cpp )
    TARGET_COMPILE_OPTIONS( DistributedGridTest_2D PRIVATE ${CXX_TESTS_FLAGS} )
    TARGET_LINK_LIBRARIES( DistributedGridTest_2D ${TESTS_LIBRARIES} )
    target_link_options( DistributedGridTest_2D PRIVATE ${TESTS_LINKER_FLAGS} )
 
-ADD_EXECUTABLE( DistributedGridTest_3D DistributedGridTest_3D.cpp )
+   ADD_EXECUTABLE( DistributedGridTest_3D DistributedGridTest_3D.cpp )
    TARGET_COMPILE_OPTIONS( DistributedGridTest_3D PRIVATE ${CXX_TESTS_FLAGS} )
    TARGET_LINK_LIBRARIES( DistributedGridTest_3D ${TESTS_LIBRARIES} )
    target_link_options( DistributedGridTest_3D PRIVATE ${TESTS_LINKER_FLAGS} )
 
-ADD_EXECUTABLE( CutDistributedGridTest CutDistributedGridTest.cpp )
+   ADD_EXECUTABLE( CutDistributedGridTest CutDistributedGridTest.cpp )
    TARGET_COMPILE_OPTIONS( CutDistributedGridTest PRIVATE ${CXX_TESTS_FLAGS} )
    TARGET_LINK_LIBRARIES( CutDistributedGridTest ${TESTS_LIBRARIES} )
    target_link_options( CutDistributedGridTest PRIVATE ${TESTS_LINKER_FLAGS} )
 
-#ADD_EXECUTABLE( CutDistributedMeshFunctionTest CutDistributedMeshFunctionTest.cpp )
+#   ADD_EXECUTABLE( CutDistributedMeshFunctionTest CutDistributedMeshFunctionTest.cpp )
 #   TARGET_COMPILE_OPTIONS( CutDistributedMeshFunctionTest PRIVATE ${CXX_TESTS_FLAGS} )
 #   TARGET_LINK_LIBRARIES( CutDistributedMeshFunctionTest ${TESTS_LIBRARIES} )
 #   target_link_options( CutDistributedMeshFunctionTest PRIVATE ${TESTS_LINKER_FLAGS} )
@@ -52,6 +52,13 @@ else()
 endif()
 target_link_libraries( DistributedMeshTest ${TESTS_LIBRARIES} )
 target_link_options( DistributedMeshTest PRIVATE ${TESTS_LINKER_FLAGS} )
+
+foreach( target IN ITEMS DistributedGridTest_1D DistributedGridTest_2D DistributedGridTest_3D CutDistributedGridTest DistributedMeshTest )
+   # enable MPI support in TNL
+   target_compile_definitions( ${target} PUBLIC "-DHAVE_MPI" )
+   # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+   target_link_libraries( ${target} MPI::MPI_CXX )
+endforeach()
 
 
 # external libraries for tests which use mesh readers

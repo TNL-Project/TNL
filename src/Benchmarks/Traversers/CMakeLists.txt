@@ -1,9 +1,10 @@
-# TODO: Split the benchmark into several files for faster build
-
 if( BUILD_CUDA )
-    CUDA_ADD_EXECUTABLE( tnl-benchmark-traversers tnl-benchmark-traversers.cu )
-else()
-    ADD_EXECUTABLE( tnl-benchmark-traversers tnl-benchmark-traversers.cpp )
+   cuda_add_executable( tnl-benchmark-traversers-cuda tnl-benchmark-traversers.cu )
+   install( TARGETS tnl-benchmark-traversers-cuda RUNTIME DESTINATION bin )
 endif()
 
-install( TARGETS tnl-benchmark-traversers RUNTIME DESTINATION bin )
+# skip building host-only targets in CUDA-enabled CI jobs
+if( BUILD_CPP_TARGETS )
+   add_executable( tnl-benchmark-traversers tnl-benchmark-traversers.cpp )
+   install( TARGETS tnl-benchmark-traversers RUNTIME DESTINATION bin )
+endif()

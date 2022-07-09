@@ -57,9 +57,10 @@ TNL also provides several optional components:
 - Various pre-processing and post-processing tools in the
   [src/Tools](https://gitlab.com/tnl-project/tnl/tree/main/src/Tools)
   directory.
-- Python bindings and scripts in the
+- Various utilities implemented in Python in the
   [src/Python](https://gitlab.com/tnl-project/tnl/tree/main/src/Python)
-  directory.
+  directory. Additionally, Python bindings for the C++ code are provided in
+  the separate [PyTNL](https://gitlab.com/tnl-project/pytnl) repository.
 - Examples of various numerical solvers in the
   [src/Examples](https://gitlab.com/tnl-project/tnl/tree/main/src/Examples)
   directory.
@@ -206,9 +207,8 @@ computing platform, and (optionally) some libraries.
   </table>
 
 - __Other language toolchains/interpreters:__
-    - Python – install an interpreter for using the Python scripts from TNL and
-      the corresponding development package (depending on your operating system)
-      for building the Python bindings.
+    - Python – install an interpreter for using the Python scripts included in
+      TNL.
 
 ### Optional components   {#optional-components}
 
@@ -229,7 +229,6 @@ of targets that can be selected from the following list:
 - `tests`: Compile unit tests in the `src/UnitTests` directory (except tests for
   matrix formats, which have a separate target).
 - `matrix-tests`: Compile unit tests for matrix formats.
-- `python`: Compile the Python bindings.
 - `doc`: Generate the documentation.
 
 Additionally, `[options]` can be replaced with a list of options with the `--`

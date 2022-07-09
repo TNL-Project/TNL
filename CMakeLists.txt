@@ -8,7 +8,7 @@ project( tnl )
 set( tnlVersion "0.1" )
 
 # declare all custom build options
-option(OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as pybind11)" OFF)
+option(OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF)
 option(WITH_CUDA "Build with CUDA support" ON)
 set(WITH_CUDA_ARCH "auto" CACHE STRING "Build for these CUDA architectures")
 option(WITH_OPENMP "Build with OpenMP support" ON)
@@ -21,7 +21,6 @@ option(BUILD_EXAMPLES "Compile the 'src/Examples' directory" OFF)
 option(BUILD_TOOLS "Compile the 'src/Tools' directory" OFF)
 option(BUILD_TESTS "Build tests" OFF)
 option(BUILD_MATRIX_TESTS "Build tests for matrix formats" OFF)
-option(BUILD_PYTHON "Compile the Python bindings" OFF)
 option(BUILD_DOC "Build examples included in the documentation" OFF)
 set(CUDA_SAMPLES_PATH "none" CACHE STRING "Path to CUDA Samples - it is used only for some benchmarking.")
 
@@ -36,8 +35,8 @@ set( CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
 # Note that in cmake 3.10 the FindOpenMP and FindMPI modules are broken - they do not work when
 # CMAKE_EXECUTABLE_SUFFIX is not empty, see https://www.mail-archive.com/cmake@cmake.org/msg56886.html
 # Hence, we find OpenMP and MPI before setting CMAKE_EXECUTABLE_SUFFIX.
-find_package( OpenMP )
-find_package( MPI )
+find_package( OpenMP COMPONENTS CXX )
+find_package( MPI COMPONENTS CXX )
 
 # Settings for debug build
 if( CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -121,7 +120,7 @@ if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
 endif()
 
 # enable link time optimizations (but not in continuous integration)
-if( NOT DEFINED ENV{CI_JOB_NAME} )
+if( NOT DEFINED ENV{GITLAB_CI} )
    if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
       # LTO with GCC 9.1.0 and Debug build = internal compiler error
       # LTO with GCC 9.1.0 and nvcc 10.1 and Release build = fatal error: bytecode stream in file `blabla` generated with LTO version 7.1 instead of the expected 8.0
@@ -134,7 +133,7 @@ if( NOT DEFINED ENV{CI_JOB_NAME} )
 endif()
 
 # force colorized output in continuous integration
-if( DEFINED ENV{CI_JOB_NAME} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
+if( DEFINED ENV{GITLAB_CI} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
    message(STATUS "Continuous integration or Ninja detected -- forcing compilers to produce colorized output.")
    if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
       set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics" )
@@ -150,6 +149,9 @@ link_libraries( stdc++fs )
 # gtest has to be built before we add the MPI flags
 if( ${BUILD_TESTS} OR ${BUILD_MATRIX_TESTS} )
    enable_testing()
+
+   # repeat failed tests to tolerate sporadic failures
+   set( CMAKE_CTEST_ARGUMENTS ${CMAKE_CTEST_ARGUMENTS} --repeat until-pass:2 )
 
    # let CTest write test results in the JUnit XML format
    set( CMAKE_CTEST_ARGUMENTS ${CMAKE_CTEST_ARGUMENTS} --output-junit "${CMAKE_BINARY_DIR}/tests-report.xml" )
@@ -187,15 +189,9 @@ endif()
 # Check for MPI
 #
 if( MPI_CXX_FOUND AND ${WITH_MPI} )
-   set( BUILD_MPI TRUE)
-   # add the appropriate flags to all targets (will be hidden from the CMAKE_CXX_* variables)
-   include_directories( ${MPI_CXX_INCLUDE_DIRS} )
-   add_compile_options( ${MPI_CXX_COMPILE_OPTIONS} )
-   add_compile_definitions( ${MPI_CXX_COMPILE_DEFINITIONS} )
-   add_link_options( "SHELL:${MPI_CXX_LINK_FLAGS}" )
-   link_libraries( ${MPI_CXX_LIBRARIES} )
-   # enable MPI in TNL
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_MPI" )
+   set( BUILD_MPI TRUE )
+   # NOTE: MPI will be added selectively to the targets that need/can utilize it
+   # see https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
 endif()
 
 #####
@@ -307,6 +303,13 @@ if( ${WITH_GMP} )
    endif()
 endif()
 
+# skip building host-only targets in CUDA-enabled CI jobs
+if( DEFINED ENV{GITLAB_CI} AND BUILD_CUDA )
+   set( BUILD_CPP_TARGETS FALSE )
+else()
+   set( BUILD_CPP_TARGETS TRUE )
+endif()
+
 # configure build paths
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib )
@@ -343,7 +346,6 @@ message( "   BUILD_EXAMPLES = ${BUILD_EXAMPLES}" )
 message( "   BUILD_TOOLS = ${BUILD_TOOLS}" )
 message( "   BUILD_TESTS = ${BUILD_TESTS}" )
 message( "   BUILD_MATRIX_TESTS = ${BUILD_MATRIX_TESTS}" )
-message( "   BUILD_PYTHON = ${BUILD_PYTHON}" )
 message( "   BUILD_DOC = ${BUILD_DOC}" )
 # Print compiler options
 message( "-- Compiler options:" )

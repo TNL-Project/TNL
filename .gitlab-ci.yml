@@ -5,9 +5,11 @@ default:
     tags:
         - docker
     retry:
-        max: 2
+        max: 1
         when:
+            - api_failure
             - runner_system_failure
+            - stuck_or_timeout_failure
 
 stages:
     - lint
@@ -15,15 +17,17 @@ stages:
     - build:cuda
     - build:gcc
     - build:clang
+    - build:doc
     - deploy
 
 # default flags for cmake
 .default_cmake_flags_def: &default_cmake_flags
     # architectures
-    WITH_OPENMP: "no"
     WITH_CUDA: "no"
     WITH_CUDA_ARCH: "auto"
-    WITH_MPI: "no"
+    # MPI is selectively added to targets, so there is no point to have separate jobs without MPI
+    WITH_MPI: "yes"
+    WITH_OPENMP: "yes"
     # build targets
     BUILD_TESTS: "no"
     BUILD_MATRIX_TESTS: "no"
@@ -32,13 +36,6 @@ stages:
     BUILD_BENCHMARKS: "no"
     BUILD_EXAMPLES: "no"
     BUILD_TOOLS: "no"
-    BUILD_PYTHON: "no"
-
-# base for OpenMP+MPI builds
-.openmp_mpi:
-    variables:
-        WITH_OPENMP: "yes"
-        WITH_MPI: "yes"
 
 # base for Clang builds
 .clang:
@@ -86,7 +83,6 @@ stages:
                 -DBUILD_BENCHMARKS=${BUILD_BENCHMARKS}
                 -DBUILD_EXAMPLES=${BUILD_EXAMPLES}
                 -DBUILD_TOOLS=${BUILD_TOOLS}
-                -DBUILD_PYTHON=${BUILD_PYTHON}
                 -DWITH_CI_FLAGS=yes
         # "install" implies the "all" target
         - ninja -C "./builddir/$CI_JOB_NAME" ${NINJAFLAGS} install
@@ -228,7 +224,6 @@ cuda_nontests_Debug:
         BUILD_EXAMPLES: "yes"
         BUILD_BENCHMARKS: "yes"
         BUILD_TOOLS: "yes"
-        BUILD_PYTHON: "yes"
 
 cuda_nontests_Release:
     extends: .build_template
@@ -240,38 +235,7 @@ cuda_nontests_Release:
         BUILD_EXAMPLES: "yes"
         BUILD_BENCHMARKS: "yes"
         BUILD_TOOLS: "yes"
-        BUILD_PYTHON: "yes"
 
-
-cuda_mpi_tests_Debug:
-    extends:
-        - cuda_tests_Debug
-        - .openmp_mpi
-
-cuda_mpi_tests_Release:
-    extends:
-        - cuda_tests_Release
-        - .openmp_mpi
-
-cuda_mpi_matrix_tests_Debug:
-    extends:
-        - cuda_matrix_tests_Debug
-        - .openmp_mpi
-
-cuda_mpi_matrix_tests_Release:
-    extends:
-        - cuda_matrix_tests_Release
-        - .openmp_mpi
-
-cuda_mpi_nontests_Debug:
-    extends:
-        - cuda_nontests_Debug
-        - .openmp_mpi
-
-cuda_mpi_nontests_Release:
-    extends:
-        - cuda_nontests_Release
-        - .openmp_mpi
 
 
 
@@ -285,6 +249,8 @@ default_tests_Debug:
         <<: *default_cmake_flags
         BUILD_TYPE: Debug
         BUILD_TESTS: "yes"
+    # hack to lower the priority below the CUDA job
+    needs: ["cuda_nontests_Debug"]
 
 default_tests_Release:
     extends:
@@ -294,6 +260,8 @@ default_tests_Release:
         <<: *default_cmake_flags
         BUILD_TYPE: Release
         BUILD_TESTS: "yes"
+    # hack to lower the priority below the CUDA job
+    needs: ["cuda_nontests_Release"]
 
 default_matrix_tests_Debug:
     extends:
@@ -303,6 +271,8 @@ default_matrix_tests_Debug:
         <<: *default_cmake_flags
         BUILD_TYPE: Debug
         BUILD_MATRIX_TESTS: "yes"
+    # hack to lower the priority below the CUDA job
+    needs: ["cuda_nontests_Debug"]
 
 default_matrix_tests_Release:
     extends:
@@ -312,6 +282,8 @@ default_matrix_tests_Release:
         <<: *default_cmake_flags
         BUILD_TYPE: Release
         BUILD_MATRIX_TESTS: "yes"
+    # hack to lower the priority below the CUDA job
+    needs: ["cuda_nontests_Release"]
 
 default_nontests_Debug:
     extends: .build_template
@@ -321,7 +293,6 @@ default_nontests_Debug:
         BUILD_EXAMPLES: "yes"
         BUILD_BENCHMARKS: "yes"
         BUILD_TOOLS: "yes"
-        BUILD_PYTHON: "yes"
 
 default_nontests_Release:
     extends: .build_template
@@ -331,59 +302,36 @@ default_nontests_Release:
         BUILD_EXAMPLES: "yes"
         BUILD_BENCHMARKS: "yes"
         BUILD_TOOLS: "yes"
-        BUILD_PYTHON: "yes"
 
-
-mpi_tests_Debug:
-    extends:
-        - default_tests_Debug
-        - .openmp_mpi
-
-mpi_tests_Release:
-    extends:
-        - default_tests_Release
-        - .openmp_mpi
-
-mpi_matrix_tests_Debug:
-    extends:
-        - default_matrix_tests_Debug
-        - .openmp_mpi
-
-mpi_matrix_tests_Release:
-    extends:
-        - default_matrix_tests_Release
-        - .openmp_mpi
-
-mpi_nontests_Debug:
-    extends:
-        - default_nontests_Debug
-        - .openmp_mpi
-
-mpi_nontests_Release:
-    extends:
-        - default_nontests_Release
-        - .openmp_mpi
 
 
 clang_tests_Debug:
     extends:
         - default_tests_Debug
         - .clang
+    # hack to lower the priority below the CUDA job
+    needs: ["cuda_nontests_Debug"]
 
 clang_tests_Release:
     extends:
         - default_tests_Release
         - .clang
+    # hack to lower the priority below the CUDA job
+    needs: ["cuda_nontests_Release"]
 
 clang_matrix_tests_Debug:
     extends:
         - default_matrix_tests_Debug
         - .clang
+    # hack to lower the priority below the CUDA job
+    needs: ["cuda_nontests_Debug"]
 
 clang_matrix_tests_Release:
     extends:
         - default_matrix_tests_Release
         - .clang
+    # hack to lower the priority below the CUDA job
+    needs: ["cuda_nontests_Release"]
 
 clang_nontests_Debug:
     extends:
@@ -395,36 +343,6 @@ clang_nontests_Release:
         - default_nontests_Release
         - .clang
 
-
-clang_mpi_tests_Debug:
-    extends:
-        - mpi_tests_Debug
-        - .clang
-
-clang_mpi_tests_Release:
-    extends:
-        - mpi_tests_Release
-        - .clang
-
-clang_mpi_matrix_tests_Debug:
-    extends:
-        - mpi_matrix_tests_Debug
-        - .clang
-
-clang_mpi_matrix_tests_Release:
-    extends:
-        - mpi_matrix_tests_Release
-        - .clang
-
-clang_mpi_nontests_Debug:
-    extends:
-        - mpi_nontests_Debug
-        - .clang
-
-clang_mpi_nontests_Release:
-    extends:
-        - mpi_nontests_Release
-        - .clang
 
 
 
@@ -453,6 +371,23 @@ documentation examples:
         paths:
             - Documentation/output_snippets/
 
+build documentation:
+    stage: build:doc
+    only:
+        changes:
+            - Documentation/**/*
+            - src/TNL/**/*.{h,hpp}
+            - .gitlab-ci.yml
+    # use "needs" instead of "dependencies" to allow out-of-order start of this job
+    needs:
+        - job: documentation examples
+          artifacts: true
+    script:
+        - ./Documentation/build
+    artifacts:
+        paths:
+            - ./Documentation/html/
+
 pages:
     stage: deploy
     only:
@@ -460,16 +395,15 @@ pages:
             - Documentation/**/*
             - src/TNL/**/*.{h,hpp}
             - .gitlab-ci.yml
-#        refs:
-#            - main
-#            - schedules
-#            - triggers
-    # use "needs" instead of "dependencies" to allow out-of-order start of this job
-    needs:
-        - job: documentation examples
-          artifacts: true
+        refs:
+            - main
+            - schedules
+            - triggers
+    # use "dependencies" instead of "needs" to deploy only when the entire pipeline succeeds
+    dependencies:
+        - build documentation
+    image: "archlinux:latest"
     script:
-        - ./Documentation/build
         - mv ./Documentation/html/ public/
     artifacts:
         paths:
@@ -516,7 +450,6 @@ clang-tidy:
                 -DBUILD_BENCHMARKS=yes
                 -DBUILD_EXAMPLES=no
                 -DBUILD_TOOLS=yes
-                -DBUILD_PYTHON=yes
                 -DWITH_CI_FLAGS=yes
         # cmake creates compile_commands.json only on the second run, WTF!?
         - cmake -B "./builddir/$CI_JOB_NAME" -S . -G Ninja

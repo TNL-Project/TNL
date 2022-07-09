@@ -16,10 +16,13 @@ add_subdirectory( Hypre )
 set( CPP_TARGETS  tnl-optimize-ranks tnl-turbulence-generator )
 set( CUDA_TARGETS  tnl-optimize-ranks-cuda tnl-turbulence-generator-cuda )
 
-foreach( target IN ITEMS ${CPP_TARGETS} )
-   add_executable( ${target} ${target}.cpp )
-endforeach()
-install( TARGETS ${CPP_TARGETS} RUNTIME DESTINATION bin )
+# skip building host-only targets in CUDA-enabled CI jobs
+if( BUILD_CPP_TARGETS )
+   foreach( target IN ITEMS ${CPP_TARGETS} )
+      add_executable( ${target} ${target}.cpp )
+   endforeach()
+   install( TARGETS ${CPP_TARGETS} RUNTIME DESTINATION bin )
+endif()
 
 if( BUILD_CUDA )
    foreach( target IN ITEMS ${CUDA_TARGETS} )
