@@ -17,6 +17,7 @@ stages:
     - build:cuda
     - build:gcc
     - build:clang
+    - build:doc
     - deploy
 
 # default flags for cmake
@@ -370,6 +371,23 @@ documentation examples:
         paths:
             - Documentation/output_snippets/
 
+build documentation:
+    stage: build:doc
+    only:
+        changes:
+            - Documentation/**/*
+            - src/TNL/**/*.{h,hpp}
+            - .gitlab-ci.yml
+    # use "needs" instead of "dependencies" to allow out-of-order start of this job
+    needs:
+        - job: documentation examples
+          artifacts: true
+    script:
+        - ./Documentation/build
+    artifacts:
+        paths:
+            - ./Documentation/html/
+
 pages:
     stage: deploy
     only:
@@ -377,16 +395,15 @@ pages:
             - Documentation/**/*
             - src/TNL/**/*.{h,hpp}
             - .gitlab-ci.yml
-#        refs:
-#            - main
-#            - schedules
-#            - triggers
-    # use "needs" instead of "dependencies" to allow out-of-order start of this job
-    needs:
-        - job: documentation examples
-          artifacts: true
+        refs:
+            - main
+            - schedules
+            - triggers
+    # use "dependencies" instead of "needs" to deploy only when the entire pipeline succeeds
+    dependencies:
+        - build documentation
+    image: "archlinux:latest"
     script:
-        - ./Documentation/build
         - mv ./Documentation/html/ public/
     artifacts:
         paths:
