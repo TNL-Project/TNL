@@ -68,9 +68,10 @@ TNL also provides several optional components:
 - Various pre-processing and post-processing tools in the
   [src/Tools](https://gitlab.com/tnl-project/tnl/tree/main/src/Tools)
   directory.
-- Python bindings and scripts in the
+- Various utilities implemented in Python in the
   [src/Python](https://gitlab.com/tnl-project/tnl/tree/main/src/Python)
-  directory.
+  directory. Additionally, Python bindings for the C++ code are provided in
+  the separate [PyTNL](https://gitlab.com/tnl-project/pytnl) repository.
 - Examples of various numerical solvers in the
   [src/Examples](https://gitlab.com/tnl-project/tnl/tree/main/src/Examples)
   directory.

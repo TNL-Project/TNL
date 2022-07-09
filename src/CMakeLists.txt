@@ -26,6 +26,4 @@ if( ${BUILD_MATRIX_TESTS} )
    add_subdirectory( UnitTests/Matrices )
 endif()
 
-if( ${BUILD_PYTHON} )
-   add_subdirectory( Python )
-endif()
+add_subdirectory( Python )
