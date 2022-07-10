@@ -22,7 +22,7 @@ template<> struct GridRealTag< MyConfigTag, long double > { static constexpr boo
 /****
  * Unstructured meshes.
  */
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge >{ static constexpr bool enabled = true; };
+//template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge >{ static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >{ static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >{ static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polygon > { static constexpr bool enabled = true; };
@@ -54,21 +54,38 @@ printInfo( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName 
    using CellType = typename MeshType::Cell;
    using RealType = typename MeshType::RealType;
    using GlobalIndexType = typename MeshType::GlobalIndexType;
+   using VectorType = TNL::Containers::Vector< RealType, TNL::Devices::Host, GlobalIndexType >;
 
    const auto verticesCount = mesh.template getEntitiesCount< 0 >();
    const auto facesCount = mesh.template getEntitiesCount< MeshType::getMeshDimension() - 1 >();
    const auto cellsCount = mesh.template getEntitiesCount< MeshType::getMeshDimension() >();
 
-   TNL::Containers::Vector< RealType, TNL::Devices::Host, GlobalIndexType > diameters( cellsCount );
+   VectorType diameters( cellsCount );
+   VectorType cellSubvertices( cellsCount );
+   VectorType faceSubvertices( facesCount );
+   VectorType cellSubfaces( cellsCount );
 
    mesh.template forAll< MeshType::getMeshDimension() >(
       [&] (GlobalIndexType i) {
-         const auto cell = mesh.template getEntity< CellType >( i );
+         const auto cell = mesh.template getEntity< MeshType::getMeshDimension() >( i );
          if( MeshType::getMeshDimension() == 3 )
             diameters[ i ] = std::cbrt( getEntityMeasure( mesh, cell ) * 6 / 3.1415926535897932384626433 );
          else
             diameters[ i ] = std::sqrt( getEntityMeasure( mesh, cell ) * 4 / 3.1415926535897932384626433 );
+
+         cellSubvertices[ i ] = cell.template getSubentitiesCount< 0 >();
+         cellSubfaces[ i ] = cell.template getSubentitiesCount< MeshType::getMeshDimension() - 1 >();
       } );
+
+   mesh.template forAll< MeshType::getMeshDimension() - 1 >(
+      [&] (GlobalIndexType i) {
+         const auto face = mesh.template getEntity< MeshType::getMeshDimension() - 1 >( i );
+         faceSubvertices[ i ] = face.template getSubentitiesCount< 0 >();
+      } );
+
+   const double avgCellSubvertices = TNL::sum( cellSubvertices ) / cellsCount;
+   const double avgFaceSubvertices = TNL::sum( faceSubvertices ) / facesCount;
+   const double avgSubfaces = TNL::sum( cellSubfaces ) / cellsCount;
 
    std::cout << fileName << ":\n"
              << "\tMesh dimension:\t" << MeshType::getMeshDimension() << "\n"
@@ -79,6 +96,9 @@ printInfo( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName 
              << "\tDiameter of a ball with the same volume as the largest cell:\t" << TNL::max( diameters ) << "\n"
              << "\tDiameter of a ball with the same volume as the smallest cell:\t" << TNL::min( diameters ) << "\n"
              << "\tAverage cell diameter:\t" << TNL::sum( diameters ) / cellsCount << "\n"
+             << "\tAverage number of subvertices per cell:\t" << avgCellSubvertices << "\n"
+             << "\tAverage number of subvertices per face:\t" << avgFaceSubvertices << "\n"
+             << "\tAverage number of faces per cell:\t" << avgSubfaces << "\n"
              << std::endl;
 
    return true;
