@@ -15,46 +15,43 @@
 namespace TNL {
 namespace Meshes {
 
-#define __GRID_ENTITY_TEMPLATE__ template< class Grid, int EntityDimension >
-#define __GRID_ENTITY_PREFIX__ GridEntity< Grid, EntityDimension >
-
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
-inline const typename __GRID_ENTITY_PREFIX__::Coordinate&
-__GRID_ENTITY_PREFIX__::getCoordinates() const
+inline const typename GridEntity< Grid, EntityDimension >::Coordinate&
+GridEntity< Grid, EntityDimension >::getCoordinates() const
 {
    return this->coordinates;
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
-inline typename __GRID_ENTITY_PREFIX__::Coordinate&
-__GRID_ENTITY_PREFIX__::getCoordinates()
+inline typename GridEntity< Grid, EntityDimension >::Coordinate&
+GridEntity< Grid, EntityDimension >::getCoordinates()
 {
    return this->coordinates;
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
 inline void
-__GRID_ENTITY_PREFIX__::setCoordinates( const Coordinate& coordinates )
+GridEntity< Grid, EntityDimension >::setCoordinates( const Coordinate& coordinates )
 {
    this->coordinates = coordinates;
    refresh();
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
 inline void
-__GRID_ENTITY_PREFIX__::refresh()
+GridEntity< Grid, EntityDimension >::refresh()
 {
    this->index = this->grid.getEntityIndex( *this );
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
-inline typename __GRID_ENTITY_PREFIX__::Index
-__GRID_ENTITY_PREFIX__::getIndex() const
+inline typename GridEntity< Grid, EntityDimension >::Index
+GridEntity< Grid, EntityDimension >::getIndex() const
 {
    TNL_ASSERT_GE( this->index, 0, "Entity index is not non-negative." );
    TNL_ASSERT_LT( this->index, grid.template getEntitiesCount< EntityDimension >(), "Entity index is out of bounds." );
@@ -63,110 +60,110 @@ __GRID_ENTITY_PREFIX__::getIndex() const
    return this->index;
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
 inline bool
-__GRID_ENTITY_PREFIX__::isBoundary() const
+GridEntity< Grid, EntityDimension >::isBoundary() const
 {
    return BoundaryGridEntityChecker< GridEntity >::isBoundaryEntity( *this );
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
-inline const typename __GRID_ENTITY_PREFIX__::Point
-__GRID_ENTITY_PREFIX__::getCenter() const
+inline const typename GridEntity< Grid, EntityDimension >::Point
+GridEntity< Grid, EntityDimension >::getCenter() const
 {
    return GridEntityCenterGetter< GridEntity >::getEntityCenter( *this );
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
-inline typename __GRID_ENTITY_PREFIX__::Real
-__GRID_ENTITY_PREFIX__::getMeasure() const
+inline typename GridEntity< Grid, EntityDimension >::Real
+GridEntity< Grid, EntityDimension >::getMeasure() const
 {
    return GridEntityMeasureGetter< Grid, EntityDimension >::getMeasure( this->getMesh(), *this );
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
 inline const Grid&
-__GRID_ENTITY_PREFIX__::getMesh() const
+GridEntity< Grid, EntityDimension >::getMesh() const
 {
    return this->grid;
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
-inline typename __GRID_ENTITY_PREFIX__::Coordinate
-__GRID_ENTITY_PREFIX__::getBasis() const
+inline typename GridEntity< Grid, EntityDimension >::Coordinate
+GridEntity< Grid, EntityDimension >::getBasis() const
 {
    return this->basis;
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
 inline void
-__GRID_ENTITY_PREFIX__::setBasis( const Coordinate& basis )
+GridEntity< Grid, EntityDimension >::setBasis( const Coordinate& basis )
 {
    this->basis = basis;
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
-inline typename __GRID_ENTITY_PREFIX__::Index
-__GRID_ENTITY_PREFIX__::getOrientation() const
+inline typename GridEntity< Grid, EntityDimension >::Index
+GridEntity< Grid, EntityDimension >::getOrientation() const
 {
    return this->orientation;
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 __cuda_callable__
 inline void
-__GRID_ENTITY_PREFIX__::setOrientation( const Index orientation ) {
+GridEntity< Grid, EntityDimension >::setOrientation( const Index orientation ) {
    this->orientation = orientation;
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 template< int Dimension, int... Steps, std::enable_if_t< sizeof...( Steps ) == Grid::getMeshDimension(), bool > >
 __cuda_callable__
 inline GridEntity< Grid, Dimension >
-__GRID_ENTITY_PREFIX__::getNeighbourEntity() const
+GridEntity< Grid, EntityDimension >::getNeighbourEntity() const
 {
    using Getter = NeighbourGridEntityGetter< meshDimension, entityDimension, Dimension >;
 
    return Getter::template getEntity< Grid, Steps... >( *this );
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 template< int Dimension,
           int Orientation,
           int... Steps,
           std::enable_if_t< sizeof...( Steps ) == Grid::getMeshDimension(), bool > >
 __cuda_callable__
 inline GridEntity< Grid, Dimension >
-__GRID_ENTITY_PREFIX__::getNeighbourEntity() const
+GridEntity< Grid, EntityDimension >::getNeighbourEntity() const
 {
    using Getter = NeighbourGridEntityGetter< meshDimension, entityDimension, Dimension >;
 
    return Getter::template getEntity< Grid, Orientation, Steps... >( *this );
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 template< int Dimension >
 __cuda_callable__
 inline GridEntity< Grid, Dimension >
-__GRID_ENTITY_PREFIX__::getNeighbourEntity( const Coordinate& offset ) const
+GridEntity< Grid, EntityDimension >::getNeighbourEntity( const Coordinate& offset ) const
 {
    using Getter = NeighbourGridEntityGetter< meshDimension, entityDimension, Dimension >;
 
    return Getter::template getEntity< Grid >( *this, offset );
 }
 
-__GRID_ENTITY_TEMPLATE__
+template< class Grid, int EntityDimension >
 template< int Dimension, int Orientation >
 __cuda_callable__
 inline GridEntity< Grid, Dimension >
-__GRID_ENTITY_PREFIX__::getNeighbourEntity( const Coordinate& offset ) const
+GridEntity< Grid, EntityDimension >::getNeighbourEntity( const Coordinate& offset ) const
 {
    using Getter = NeighbourGridEntityGetter< meshDimension, entityDimension, Dimension >;
 

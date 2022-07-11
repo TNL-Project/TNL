@@ -17,30 +17,27 @@
 namespace TNL {
 namespace Meshes {
 
-#define __GRID_3D_TEMPLATE__ template< typename Real, typename Device, typename Index >
-#define __GRID_3D_PREFIX__ Grid< 3, Real, Device, Index >
-
-__GRID_3D_TEMPLATE__
-__GRID_3D_PREFIX__::Grid( const Index xSize, const Index ySize, const Index zSize )
+template< typename Real, typename Device, typename Index >
+Grid< 3, Real, Device, Index >::Grid( const Index xSize, const Index ySize, const Index zSize )
 {
    this->setDimensions( xSize, ySize, zSize );
 }
 
-__GRID_3D_TEMPLATE__
+template< typename Real, typename Device, typename Index >
 template< typename Entity >
 __cuda_callable__
 inline Index
-__GRID_3D_PREFIX__::getEntityIndex( const Entity& entity ) const
+Grid< 3, Real, Device, Index >::getEntityIndex( const Entity& entity ) const
 {
    static_assert( Entity::entityDimension <= 3 && Entity::entityDimension >= 0, "Wrong grid entity dimensions." );
 
    return GridEntityGetter< Grid, Entity::entityDimension >::getEntityIndex( *this, entity );
 }
 
-__GRID_3D_TEMPLATE__
+template< typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-__GRID_3D_PREFIX__::forAll( Func func, FuncArgs... args ) const
+Grid< 3, Real, Device, Index >::forAll( Func func, FuncArgs... args ) const
 {
    auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
                                         const Coordinate& basis,
@@ -56,10 +53,10 @@ __GRID_3D_PREFIX__::forAll( Func func, FuncArgs... args ) const
    this->template traverseAll< EntityDimension >( exec, *this, args... );
 }
 
-__GRID_3D_TEMPLATE__
+template< typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-__GRID_3D_PREFIX__::forAll( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
+Grid< 3, Real, Device, Index >::forAll( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
 {
    auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
                                         const Coordinate& basis,
@@ -75,10 +72,10 @@ __GRID_3D_PREFIX__::forAll( const Coordinate& from, const Coordinate& to, Func f
    this->template traverseAll< EntityDimension >( from, to, exec, *this, args... );
 }
 
-__GRID_3D_TEMPLATE__
+template< typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-__GRID_3D_PREFIX__::forInterior( Func func, FuncArgs... args ) const
+Grid< 3, Real, Device, Index >::forInterior( Func func, FuncArgs... args ) const
 {
    auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
                                         const Coordinate& basis,
@@ -94,10 +91,10 @@ __GRID_3D_PREFIX__::forInterior( Func func, FuncArgs... args ) const
    this->template traverseInterior< EntityDimension >( exec, *this, args... );
 }
 
-__GRID_3D_TEMPLATE__
+template< typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-__GRID_3D_PREFIX__::forInterior( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
+Grid< 3, Real, Device, Index >::forInterior( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
 {
    auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
                                         const Coordinate& basis,
@@ -113,10 +110,10 @@ __GRID_3D_PREFIX__::forInterior( const Coordinate& from, const Coordinate& to, F
    this->template traverseInterior< EntityDimension >( from, to, exec, *this, args... );
 }
 
-__GRID_3D_TEMPLATE__
+template< typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-__GRID_3D_PREFIX__::forBoundary( Func func, FuncArgs... args ) const
+Grid< 3, Real, Device, Index >::forBoundary( Func func, FuncArgs... args ) const
 {
    auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
                                         const Coordinate& basis,
@@ -132,10 +129,10 @@ __GRID_3D_PREFIX__::forBoundary( Func func, FuncArgs... args ) const
    this->template traverseBoundary< EntityDimension >( exec, *this, args... );
 }
 
-__GRID_3D_TEMPLATE__
+template< typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-__GRID_3D_PREFIX__::forBoundary( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
+Grid< 3, Real, Device, Index >::forBoundary( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
 {
    auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
                                         const Coordinate& basis,
