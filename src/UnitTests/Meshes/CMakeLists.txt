@@ -1,5 +1,5 @@
 ADD_SUBDIRECTORY( DistributedMeshes )
-ADD_SUBDIRECTORY( GridTests )
+ADD_SUBDIRECTORY( Grids )
 
 ADD_EXECUTABLE( EntityTagsTest EntityTagsTest.cpp )
 TARGET_COMPILE_OPTIONS( EntityTagsTest PUBLIC ${CXX_TESTS_FLAGS} )
