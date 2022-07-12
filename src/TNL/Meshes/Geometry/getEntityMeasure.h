@@ -171,29 +171,29 @@ getPolygon2DArea( const Mesh< MeshConfig, Device >& mesh, const MeshEntity< Mesh
    using Real = typename MeshConfig::RealType;
    using Index = typename MeshConfig::LocalIndexType;
 
-   Real area{ 0.0 };
+   Real area = 0;
    const auto n = entity.template getSubentitiesCount< 0 >();
-   for( Index i = 1, j = 2, k = 0; j < n; i++, j++, k++ ) {
-      const auto& v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( i ) );
-      const auto& v1 = mesh.getPoint( entity.template getSubentityIndex< 0 >( j ) );
-      const auto& v2 = mesh.getPoint( entity.template getSubentityIndex< 0 >( k ) );
-      area += v0[ Coord1 ] * ( v1[ Coord2 ] - v2[ Coord2 ] );
+   auto v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
+   auto v1 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 1 ) );
+   for( Index j = 2; j < n; j++ ) {
+      const auto vj = mesh.getPoint( entity.template getSubentityIndex< 0 >( j ) );
+      area += v1[ Coord1 ] * ( vj[ Coord2 ] - v0[ Coord2 ] );
+      v0 = v1;
+      v1 = vj;
    }
 
    // 1. wrap around term
    {
-      const auto& v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( n - 1 ) );
-      const auto& v1 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
-      const auto& v2 = mesh.getPoint( entity.template getSubentityIndex< 0 >( n - 2 ) );
-      area += v0[ Coord1 ] * ( v1[ Coord2 ] - v2[ Coord2 ] );
+      const auto vj = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
+      area += v1[ Coord1 ] * ( vj[ Coord2 ] - v0[ Coord2 ] );
+      v0 = v1;
+      v1 = vj;
    }
 
    // 2. wrap around term
    {
-      const auto& v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
-      const auto& v1 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 1 ) );
-      const auto& v2 = mesh.getPoint( entity.template getSubentityIndex< 0 >( n - 1 ) );
-      area += v0[ Coord1 ] * ( v1[ Coord2 ] - v2[ Coord2 ] );
+      const auto vj = mesh.getPoint( entity.template getSubentityIndex< 0 >( 1 ) );
+      area += v1[ Coord1 ] * ( vj[ Coord2 ] - v0[ Coord2 ] );
    }
 
    return Real( 0.5 ) * area;
@@ -328,47 +328,22 @@ getEntityMeasure( const Mesh< MeshConfig, Device >& mesh,
 {
    using Real = typename MeshConfig::RealType;
    using Index = typename MeshConfig::LocalIndexType;
-   Real volume{ 0.0 };
+   using Point = typename Mesh< MeshConfig, Device >::PointType;
+   Real volume = 0;
    const Index facesCount = entity.template getSubentitiesCount< 2 >();
-   const auto& v3 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
-   for( Index faceIdx = 0; faceIdx < facesCount; faceIdx++ ) {
+   const Point v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
+   // start from faceIdx = 1, since faceIdx = 0 contains the v0 (the tetrahedron would be degenerate)
+   for( Index faceIdx = 1; faceIdx < facesCount; faceIdx++ ) {
       const auto face = mesh.template getEntity< 2 >( entity.template getSubentityIndex< 2 >( faceIdx ) );
       const Index verticesCount = face.template getSubentitiesCount< 0 >();
-      const auto& v0 = mesh.getPoint( face.template getSubentityIndex< 0 >( 0 ) );
-      for( Index i = 1, j = 2; j < verticesCount; i++, j++ ) {
-         const auto& v1 = mesh.getPoint( face.template getSubentityIndex< 0 >( i ) );
-         const auto& v2 = mesh.getPoint( face.template getSubentityIndex< 0 >( j ) );
-         // Partition polyhedron into tetrahedrons by triangulating faces and connecting each triangle to one point of the
-         // polyhedron.
-         volume += getTetrahedronVolume( v3 - v0, v2 - v0, v1 - v0 );
-      }
-   }
-   return volume;
-}
-
-template< typename MeshConfig >
-__cuda_callable__
-typename MeshConfig::RealType
-getEntityMeasure( const Mesh< MeshConfig, Devices::Cuda >& mesh,
-                  const MeshEntity< MeshConfig, Devices::Cuda, Topologies::Polyhedron >& entity )
-{
-   using Real = typename MeshConfig::RealType;
-   using Index = typename MeshConfig::LocalIndexType;
-   using Point = typename Mesh< MeshConfig, Devices::Cuda >::PointType;
-   Real volume{ 0.0 };
-   const Index facesCount = entity.template getSubentitiesCount< 2 >();
-   const Point v3 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
-   for( Index faceIdx = 0; faceIdx < facesCount; faceIdx++ ) {
-      const auto face = mesh.template getEntity< 2 >( entity.template getSubentityIndex< 2 >( faceIdx ) );
-      const Index verticesCount = face.template getSubentitiesCount< 0 >();
-      const Point v0 = mesh.getPoint( face.template getSubentityIndex< 0 >( 0 ) );
-      Point v1 = mesh.getPoint( face.template getSubentityIndex< 0 >( 1 ) );
+      const Point v1 = mesh.getPoint( face.template getSubentityIndex< 0 >( 0 ) ) - v0;
+      Point v2 = mesh.getPoint( face.template getSubentityIndex< 0 >( 1 ) ) - v0;
       for( Index j = 2; j < verticesCount; j++ ) {
-         const Point v2 = mesh.getPoint( face.template getSubentityIndex< 0 >( j ) );
-         // Partition polyhedron into tetrahedrons by triangulating faces and connecting each triangle to one point of the
-         // polyhedron.
-         volume += getTetrahedronVolume( v3 - v0, v2 - v0, v1 - v0 );
-         v1 = v2;
+         const Point v3 = mesh.getPoint( face.template getSubentityIndex< 0 >( j ) ) - v0;
+         // Partition the polyhedron into tetrahedrons by triangulating faces and connecting
+         // each triangle to one point of the polyhedron.
+         volume += getTetrahedronVolume( v1, v2, v3 );
+         v2 = v3;
       }
    }
    return volume;
