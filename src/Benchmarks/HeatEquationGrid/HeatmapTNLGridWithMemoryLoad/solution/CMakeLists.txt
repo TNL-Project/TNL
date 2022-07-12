@@ -1,5 +1,0 @@
-if (BUILD_CUDA)
-   CUDA_ADD_EXECUTABLE( heat_parallel_for_with_memory_load ../implementation.h ../../Base/HeatmapSolver.h main.h main.cu )
-ELSE()
-   add_executable( heat_parallel_for_with_memory_load ../implementation.h ../../Base/HeatmapSolver.h main.h main.cpp )
-ENDIF()

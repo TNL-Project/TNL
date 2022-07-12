@@ -1,4 +1,4 @@
-ADD_SUBDIRECTORY( HeatmapParallelFor )
-ADD_SUBDIRECTORY( HeatmapNDimGrid )
-ADD_SUBDIRECTORY( HeatmapTNLGrid )
-ADD_SUBDIRECTORY( HeatmapTNLGridWithMemoryLoad )
+ADD_SUBDIRECTORY( HeatEquationParallelFor )
+ADD_SUBDIRECTORY( HeatEquationNDimGrid )
+ADD_SUBDIRECTORY( HeatEquationTNLGrid )
+ADD_SUBDIRECTORY( HeatEquationTNLGridWithMemoryLoad )
