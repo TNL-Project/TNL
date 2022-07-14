@@ -2,10 +2,9 @@
 
 devices="host cuda"
 precisions="float double"
-tests="nd-grid parallel-for parallel-for-with-memory-load grid"
+tests="parallel-for simple-grid grid nd-grid"
 max_x_dimension="800"
 max_y_dimension="800"
-base="tnl-benchmark-heat-equation"
 
 for device in ${devices}
 do
@@ -13,8 +12,9 @@ do
    do
       for test in ${tests}
       do
-         tnl-benchmark-heat-equation-${test}                          \
+         tnl-benchmark-heat-equation                                  \
             --id "${test}"                                            \
+            --implementation "${test}"                                \
             --precision ${precision}                                  \
             --max-x-dimension ${max_x_dimension}                      \
             --max-y-dimension ${max_y_dimension}                      \

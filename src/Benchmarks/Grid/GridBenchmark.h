@@ -139,7 +139,7 @@ class GridBenchmark {
 
       template<int EntityDimension, typename Grid, typename Operation>
       void timeTraverse(Benchmark& benchmark, const Grid& grid) const {
-         auto exec = [] __cuda_callable__ (typename Grid::EntityType<EntityDimension>& entity) mutable {
+         auto exec = [] __cuda_callable__ (typename Grid::template EntityType<EntityDimension>& entity) mutable {
             Operation::exec(entity);
          };
 

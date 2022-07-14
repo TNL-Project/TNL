@@ -58,9 +58,6 @@ def processDf( df, precision ):
             new_df.iloc[0][ ('xSize','','') ]  = x_size
             new_df.iloc[0][ ('ySize','','') ]  = y_size
             for index, row in aux_df.iterrows():
-                device = 'Host'
-                if row[ 'performer'] == 'TNL::Devices::Cuda':
-                    device = "Cuda"
                 test = row[ 'id' ]
                 time = row[ 'time' ]
                 new_df.iloc[0][(test,device,'time') ] = time
