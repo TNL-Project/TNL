@@ -15,7 +15,7 @@
 #include "HeatEquationSolverBenchmarkGrid.h"
 #include "HeatEquationSolverBenchmarkNdGrid.h"
 
-void setupConfig( TNL::Config::ConfigDescription& config )
+void configSetup( TNL::Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addEntry< TNL::String >( "implementation", "Implementation of the heat equation solver.", "grid" );
@@ -96,7 +96,7 @@ bool resolveReal( TNL::Config::ParameterContainer& parameters )
 int main(int argc, char* argv[])
 {
    TNL::Config::ConfigDescription config;
-   setupConfig( config );
+   configSetup( config );
    HeatEquationSolverBenchmark<>::setupConfig( config );
 
    TNL::Config::ParameterContainer parameters;
