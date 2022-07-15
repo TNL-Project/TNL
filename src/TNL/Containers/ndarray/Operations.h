@@ -13,7 +13,7 @@
 namespace TNL {
 namespace Containers {
 
-namespace __ndarray_impl {
+namespace detail {
 
 #ifndef __NVCC__
 template< typename Output, typename Func, typename... Input >
@@ -175,7 +175,7 @@ nd_map_view( Output output, Func f, const Input1 input1, const Input2 input2, co
 
 #endif
 
-}  // namespace __ndarray_impl
+}  // namespace detail
 
 // f must be an N-ary function, where N is the dimension of the output and input arrays:
 //      output( i1, ..., iN ) = f( input1( i1, ..., iN ), ... inputM( i1, ..., iN ) )
@@ -183,7 +183,7 @@ template< typename Output, typename Func, typename... Input >
 void
 nd_map( Output& output, Func f, const Input&... input )
 {
-   __ndarray_impl::nd_map_view( output.getView(), f, input.getConstView()... );
+   detail::nd_map_view( output.getView(), f, input.getConstView()... );
 }
 
 template< typename Output, typename Input >

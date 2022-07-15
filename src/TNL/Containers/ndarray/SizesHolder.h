@@ -17,7 +17,7 @@
 namespace TNL {
 namespace Containers {
 
-namespace __ndarray_impl {
+namespace detail {
 
 template< typename Index, typename LevelTag, std::size_t size >
 class SizeHolder
@@ -125,15 +125,15 @@ protected:
    }
 };
 
-}  // namespace __ndarray_impl
+}  // namespace detail
 
 // dimensions and static sizes are specified as std::size_t,
 // the type of dynamic sizes is configurable with Index
 
 template< typename Index, std::size_t... sizes >
-class SizesHolder : public __ndarray_impl::SizesHolderLayer< Index, sizes... >
+class SizesHolder : public detail::SizesHolderLayer< Index, sizes... >
 {
-   using BaseType = __ndarray_impl::SizesHolderLayer< Index, sizes... >;
+   using BaseType = detail::SizesHolderLayer< Index, sizes... >;
 
 public:
    using IndexType = Index;
@@ -149,7 +149,7 @@ public:
    getStaticSize()
    {
       static_assert( dimension < sizeof...( sizes ), "Invalid dimension passed to getStaticSize()." );
-      return __ndarray_impl::get_from_pack< dimension >( sizes... );
+      return detail::get_from_pack< dimension >( sizes... );
    }
 
    template< std::size_t level >
@@ -158,7 +158,7 @@ public:
    getSize() const
    {
       static_assert( level < sizeof...( sizes ), "Invalid level passed to getSize()." );
-      return BaseType::getSize( __ndarray_impl::IndexTag< getDimension() - level - 1 >() );
+      return BaseType::getSize( detail::IndexTag< getDimension() - level - 1 >() );
    }
 
    template< std::size_t level >
@@ -167,7 +167,7 @@ public:
    setSize( Index size )
    {
       static_assert( level < sizeof...( sizes ), "Invalid level passed to setSize()." );
-      BaseType::setSize( __ndarray_impl::IndexTag< getDimension() - level - 1 >(), size );
+      BaseType::setSize( detail::IndexTag< getDimension() - level - 1 >(), size );
    }
 
    // methods for convenience
@@ -279,7 +279,7 @@ operator<<( std::ostream& str, const SizesHolder< Index, sizes... >& holder )
    return str;
 }
 
-namespace __ndarray_impl {
+namespace detail {
 
 // helper for the forInternal method
 template< typename SizesHolder, std::size_t ConstValue >
@@ -333,7 +333,7 @@ struct LocalBeginsHolder : public SizesHolder
 
 template< typename Index, std::size_t... sizes, std::size_t ConstValue >
 std::ostream&
-operator<<( std::ostream& str, const __ndarray_impl::LocalBeginsHolder< SizesHolder< Index, sizes... >, ConstValue >& holder )
+operator<<( std::ostream& str, const detail::LocalBeginsHolder< SizesHolder< Index, sizes... >, ConstValue >& holder )
 {
    str << "LocalBeginsHolder< SizesHolder< ";
    Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
@@ -352,7 +352,7 @@ operator<<( std::ostream& str, const __ndarray_impl::LocalBeginsHolder< SizesHol
    return str;
 }
 
-}  // namespace __ndarray_impl
+}  // namespace detail
 
 }  // namespace Containers
 }  // namespace TNL

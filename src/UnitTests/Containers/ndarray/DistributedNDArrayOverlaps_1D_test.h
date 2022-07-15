@@ -9,6 +9,7 @@
 
 using namespace TNL;
 using namespace TNL::Containers;
+using namespace TNL::Containers::detail;
 
 /*
  * Light check of DistributedNDArray.
@@ -32,7 +33,7 @@ protected:
    using LocalArrayViewType = ArrayView< ValueType, DeviceType, IndexType >;
 
    const int globalSize = 97;  // prime number to force non-uniform distribution
-   const int overlaps = __ndarray_impl::get< 0 >( typename DistributedNDArray::OverlapsType{} );
+   const int overlaps = get< 0 >( typename DistributedNDArray::OverlapsType{} );
 
    const MPI_Comm communicator = MPI_COMM_WORLD;
 
@@ -94,7 +95,7 @@ void test_helper_forLocalInternal( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
-   const int overlaps = __ndarray_impl::get< 0 >( typename DistributedArray::OverlapsType{} );
+   const int overlaps = get< 0 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getView();
 
@@ -142,7 +143,7 @@ void test_helper_forLocalBoundary( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
-   const int overlaps = __ndarray_impl::get< 0 >( typename DistributedArray::OverlapsType{} );
+   const int overlaps = get< 0 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getView();
 
@@ -190,7 +191,7 @@ void test_helper_forOverlaps( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
-   const int overlaps = __ndarray_impl::get< 0 >( typename DistributedArray::OverlapsType{} );
+   const int overlaps = get< 0 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getView();
 
@@ -238,7 +239,7 @@ void test_helper_synchronize( DistributedArray& a, const int rank, const int npr
 {
    using IndexType = typename DistributedArray::IndexType;
 
-   const int overlaps = __ndarray_impl::get< 0 >( typename DistributedArray::OverlapsType{} );
+   const int overlaps = get< 0 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getView();
 

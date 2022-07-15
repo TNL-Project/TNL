@@ -320,7 +320,7 @@ public:
 
 protected:
    using DistributedNDArrayView = typename DistributedNDArray::ViewType;
-   using Buffers = __ndarray_impl::SynchronizerBuffers< DistributedNDArray >;
+   using Buffers = detail::SynchronizerBuffers< DistributedNDArray >;
 
    DistributedNDArrayView array_view;
    SyncDirection mask = SyncDirection::All;

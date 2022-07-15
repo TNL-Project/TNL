@@ -18,9 +18,8 @@ namespace Containers {
 template< typename SizesHolder,
           typename Permutation,
           typename Base,
-          typename StridesHolder =
-             __ndarray_impl::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
-          typename Overlaps = __ndarray_impl::make_constant_index_sequence< SizesHolder::getDimension(), 0 > >
+          typename StridesHolder = detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
+          typename Overlaps = detail::make_constant_index_sequence< SizesHolder::getDimension(), 0 > >
 class NDArrayIndexer : public StridesHolder
 {
 public:
@@ -73,7 +72,7 @@ public:
    static constexpr std::size_t
    getOverlap()
    {
-      return __ndarray_impl::get< level >( Overlaps{} );
+      return detail::get< level >( Overlaps{} );
    }
 
    // returns the product of the aligned sizes
@@ -82,7 +81,7 @@ public:
    getStorageSize() const
    {
       using Alignment = typename Base::template Alignment< Permutation >;
-      return __ndarray_impl::StorageSizeGetter< SizesHolder, Alignment, Overlaps >::get( sizes );
+      return detail::StorageSizeGetter< SizesHolder, Alignment, Overlaps >::get( sizes );
    }
 
    template< typename... IndexTypes >
@@ -91,7 +90,7 @@ public:
    getStorageIndex( IndexTypes&&... indices ) const
    {
       static_assert( sizeof...( indices ) == SizesHolder::getDimension(), "got wrong number of indices" );
-      __ndarray_impl::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexTypes >( indices )... );
+      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexTypes >( indices )... );
       const IndexType result = Base::template getStorageIndex< Permutation, Overlaps >(
          sizes, static_cast< const StridesHolder& >( *this ), std::forward< IndexTypes >( indices )... );
       TNL_ASSERT_GE( result, (IndexType) 0, "storage index out of bounds - either input error or a bug in the indexer" );

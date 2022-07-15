@@ -67,8 +67,7 @@ public:
       static_assert( std::is_same< PermutationType, typename OtherArray::PermutationType >::value,
                      "Arrays must have the same permutation of indices." );
       // update sizes
-      __ndarray_impl::SetSizesCopyHelper< SizesHolderType, typename OtherArray::SizesHolderType >::copy( getSizes(),
-                                                                                                         other.getSizes() );
+      detail::SetSizesCopyHelper< SizesHolderType, typename OtherArray::SizesHolderType >::copy( getSizes(), other.getSizes() );
       // (re)allocate storage if necessary
       array.setSize( getStorageSize() );
       // copy data
@@ -144,13 +143,11 @@ public:
                      "got wrong number of dimensions" );
 // FIXME: nvcc chokes on the variadic brace-initialization
 #ifndef __NVCC__
-      static_assert( __ndarray_impl::all_elements_in_range( 0, PermutationType::size(), { Dimensions... } ),
-                     "invalid dimensions" );
-      static_assert( __ndarray_impl::is_increasing_sequence( { Dimensions... } ),
-                     "specifying permuted dimensions is not supported" );
+      static_assert( detail::all_elements_in_range( 0, PermutationType::size(), { Dimensions... } ), "invalid dimensions" );
+      static_assert( detail::is_increasing_sequence( { Dimensions... } ), "specifying permuted dimensions is not supported" );
 #endif
 
-      using Getter = __ndarray_impl::SubarrayGetter< typename Indexer::NDBaseType, PermutationType, Dimensions... >;
+      using Getter = detail::SubarrayGetter< typename Indexer::NDBaseType, PermutationType, Dimensions... >;
       using Subpermutation = typename Getter::Subpermutation;
       ValueType* begin = getData() + getStorageIndex( std::forward< IndexTypes >( indices )... );
       auto subarray_sizes = Getter::filterSizes( getSizes(), std::forward< IndexTypes >( indices )... );
@@ -190,7 +187,7 @@ public:
    operator[]( IndexType index )
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      __ndarray_impl::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
       return array[ index ];
    }
 
@@ -199,7 +196,7 @@ public:
    operator[]( IndexType index ) const
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      __ndarray_impl::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
       return array[ index ];
    }
 
@@ -207,7 +204,7 @@ public:
    void
    forAll( Func f ) const
    {
-      __ndarray_impl::ExecutorDispatcher< PermutationType, Device2 > dispatch;
+      detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       dispatch( Begins{}, getSizes(), f );
    }
@@ -216,13 +213,13 @@ public:
    void
    forInternal( Func f ) const
    {
-      __ndarray_impl::ExecutorDispatcher< PermutationType, Device2 > dispatch;
+      detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
       // subtract static sizes
-      using Ends = typename __ndarray_impl::SubtractedSizesHolder< SizesHolderType, 1 >::type;
+      using Ends = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       Ends ends;
-      __ndarray_impl::SetSizesSubtractHelper< 1, Ends, SizesHolderType >::subtract( ends, getSizes() );
+      detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType >::subtract( ends, getSizes() );
       dispatch( Begins{}, ends, f );
    }
 
@@ -231,7 +228,7 @@ public:
    forInternal( Func f, const Begins& begins, const Ends& ends ) const
    {
       // TODO: assert "begins <= sizes", "ends <= sizes"
-      __ndarray_impl::ExecutorDispatcher< PermutationType, Device2 > dispatch;
+      detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( begins, ends, f );
    }
 
@@ -242,12 +239,12 @@ public:
       using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       using SkipBegins = ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
       // subtract static sizes
-      using SkipEnds = typename __ndarray_impl::SubtractedSizesHolder< SizesHolderType, 1 >::type;
+      using SkipEnds = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       SkipEnds skipEnds;
-      __ndarray_impl::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType >::subtract( skipEnds, getSizes() );
+      detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType >::subtract( skipEnds, getSizes() );
 
-      __ndarray_impl::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
+      detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( Begins{}, SkipBegins{}, skipEnds, getSizes(), f );
    }
 
@@ -257,7 +254,7 @@ public:
    {
       // TODO: assert "skipBegins <= sizes", "skipEnds <= sizes"
       using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
-      __ndarray_impl::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
+      detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( Begins{}, skipBegins, skipEnds, getSizes(), f );
    }
 
@@ -276,7 +273,7 @@ public:
    setSizes( IndexTypes&&... sizes )
    {
       static_assert( sizeof...( sizes ) == getDimension(), "got wrong number of sizes" );
-      __ndarray_impl::setSizesHelper( getSizes(), std::forward< IndexTypes >( sizes )... );
+      detail::setSizesHelper( getSizes(), std::forward< IndexTypes >( sizes )... );
       array.setSize( getStorageSize() );
    }
 
@@ -332,24 +329,23 @@ template< typename Value,
           typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
           typename Device = Devices::Host,
           typename Index = typename SizesHolder::IndexType,
-          typename Overlaps = __ndarray_impl::make_constant_index_sequence< SizesHolder::getDimension(), 0 >,
+          typename Overlaps = detail::make_constant_index_sequence< SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
-class NDArray
-: public NDArrayStorage<
-     Array< Value, Device, Index, Allocator >,
-     NDArrayIndexer< SizesHolder,
-                     Permutation,
-                     __ndarray_impl::NDArrayBase< SliceInfo< 0, 0 > >,
-                     __ndarray_impl::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
-                     Overlaps > >
+class NDArray : public NDArrayStorage<
+                   Array< Value, Device, Index, Allocator >,
+                   NDArrayIndexer< SizesHolder,
+                                   Permutation,
+                                   detail::NDArrayBase< SliceInfo< 0, 0 > >,
+                                   detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
+                                   Overlaps > >
 {
-   using Base = NDArrayStorage<
-      Array< Value, Device, Index, Allocator >,
-      NDArrayIndexer< SizesHolder,
-                      Permutation,
-                      __ndarray_impl::NDArrayBase< SliceInfo< 0, 0 > >,
-                      __ndarray_impl::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
-                      Overlaps > >;
+   using Base =
+      NDArrayStorage< Array< Value, Device, Index, Allocator >,
+                      NDArrayIndexer< SizesHolder,
+                                      Permutation,
+                                      detail::NDArrayBase< SliceInfo< 0, 0 > >,
+                                      detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
+                                      Overlaps > >;
 
 public:
    // inherit all constructors and assignment operators
@@ -389,14 +385,14 @@ template< typename Value,
           typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
           typename Index = typename SizesHolder::IndexType >
 class StaticNDArray
-: public NDArrayStorage< StaticArray< __ndarray_impl::StaticStorageSizeGetter< SizesHolder >::get(), Value >,
-                         NDArrayIndexer< SizesHolder, Permutation, __ndarray_impl::NDArrayBase< SliceInfo< 0, 0 > > >,
+: public NDArrayStorage< StaticArray< detail::StaticStorageSizeGetter< SizesHolder >::get(), Value >,
+                         NDArrayIndexer< SizesHolder, Permutation, detail::NDArrayBase< SliceInfo< 0, 0 > > >,
                          Devices::Sequential >
 {
-   using Base = NDArrayStorage< StaticArray< __ndarray_impl::StaticStorageSizeGetter< SizesHolder >::get(), Value >,
-                                NDArrayIndexer< SizesHolder, Permutation, __ndarray_impl::NDArrayBase< SliceInfo< 0, 0 > > >,
+   using Base = NDArrayStorage< StaticArray< detail::StaticStorageSizeGetter< SizesHolder >::get(), Value >,
+                                NDArrayIndexer< SizesHolder, Permutation, detail::NDArrayBase< SliceInfo< 0, 0 > > >,
                                 Devices::Sequential >;
-   static_assert( __ndarray_impl::StaticStorageSizeGetter< SizesHolder >::get() > 0,
+   static_assert( detail::StaticStorageSizeGetter< SizesHolder >::get() > 0,
                   "All dimensions of a static array must to be positive." );
 
 public:
@@ -410,24 +406,24 @@ template< typename Value,
           typename SliceInfo = SliceInfo<>,                                                // no slicing by default
           typename Device = Devices::Host,
           typename Index = typename SizesHolder::IndexType,
-          typename Overlaps = __ndarray_impl::make_constant_index_sequence< SizesHolder::getDimension(), 0 >,
+          typename Overlaps = detail::make_constant_index_sequence< SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class SlicedNDArray
 : public NDArrayStorage<
      Array< Value, Device, Index, Allocator >,
      NDArrayIndexer< SizesHolder,
                      Permutation,
-                     __ndarray_impl::SlicedNDArrayBase< SliceInfo >,
-                     __ndarray_impl::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
+                     detail::SlicedNDArrayBase< SliceInfo >,
+                     detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
                      Overlaps > >
 {
-   using Base = NDArrayStorage<
-      Array< Value, Device, Index, Allocator >,
-      NDArrayIndexer< SizesHolder,
-                      Permutation,
-                      __ndarray_impl::SlicedNDArrayBase< SliceInfo >,
-                      __ndarray_impl::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
-                      Overlaps > >;
+   using Base =
+      NDArrayStorage< Array< Value, Device, Index, Allocator >,
+                      NDArrayIndexer< SizesHolder,
+                                      Permutation,
+                                      detail::SlicedNDArrayBase< SliceInfo >,
+                                      detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
+                                      Overlaps > >;
 
 public:
    // inherit all constructors and assignment operators

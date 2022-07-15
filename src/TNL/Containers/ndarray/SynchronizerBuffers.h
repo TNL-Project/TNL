@@ -12,7 +12,7 @@
 
 namespace TNL {
 namespace Containers {
-namespace __ndarray_impl {
+namespace detail {
 
 template< typename DistributedNDArray, std::size_t level >
 struct SynchronizerBuffersLayer
@@ -88,6 +88,6 @@ struct SynchronizerBuffers : public SynchronizerBuffersLayerHelper< DistributedN
    }
 };
 
-}  // namespace __ndarray_impl
+}  // namespace detail
 }  // namespace Containers
 }  // namespace TNL

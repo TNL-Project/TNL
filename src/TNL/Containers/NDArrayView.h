@@ -82,7 +82,7 @@ public:
                      "Arrays must have the same permutation of indices." );
       static_assert( NDArrayView::isContiguous() && OtherView::isContiguous(),
                      "Non-contiguous array views cannot be assigned." );
-      TNL_ASSERT_TRUE( __ndarray_impl::sizesWeakCompare( getSizes(), other.getSizes() ),
+      TNL_ASSERT_TRUE( detail::sizesWeakCompare( getSizes(), other.getSizes() ),
                        "The sizes of the array views must be equal, views are not resizable." );
       if( getStorageSize() > 0 ) {
          TNL_ASSERT_TRUE( array, "Attempted to assign to an empty view." );
@@ -206,13 +206,11 @@ public:
                      "got wrong number of dimensions" );
 // FIXME: nvcc chokes on the variadic brace-initialization
 #ifndef __NVCC__
-      static_assert( __ndarray_impl::all_elements_in_range( 0, PermutationType::size(), { Dimensions... } ),
-                     "invalid dimensions" );
-      static_assert( __ndarray_impl::is_increasing_sequence( { Dimensions... } ),
-                     "specifying permuted dimensions is not supported" );
+      static_assert( detail::all_elements_in_range( 0, PermutationType::size(), { Dimensions... } ), "invalid dimensions" );
+      static_assert( detail::is_increasing_sequence( { Dimensions... } ), "specifying permuted dimensions is not supported" );
 #endif
 
-      using Getter = __ndarray_impl::SubarrayGetter< typename Indexer::NDBaseType, PermutationType, Dimensions... >;
+      using Getter = detail::SubarrayGetter< typename Indexer::NDBaseType, PermutationType, Dimensions... >;
       using Subpermutation = typename Getter::Subpermutation;
       ValueType* begin = getData() + getStorageIndex( std::forward< IndexTypes >( indices )... );
       auto subarray_sizes = Getter::filterSizes( getSizes(), std::forward< IndexTypes >( indices )... );
@@ -252,7 +250,7 @@ public:
    operator[]( IndexType&& index )
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      __ndarray_impl::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
       return array[ index ];
    }
 
@@ -261,7 +259,7 @@ public:
    operator[]( IndexType index ) const
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      __ndarray_impl::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
       return array[ index ];
    }
 
@@ -269,7 +267,7 @@ public:
    void
    forAll( Func f ) const
    {
-      __ndarray_impl::ExecutorDispatcher< PermutationType, Device2 > dispatch;
+      detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       dispatch( Begins{}, getSizes(), f );
    }
@@ -278,13 +276,13 @@ public:
    void
    forInternal( Func f ) const
    {
-      __ndarray_impl::ExecutorDispatcher< PermutationType, Device2 > dispatch;
+      detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
       // subtract static sizes
-      using Ends = typename __ndarray_impl::SubtractedSizesHolder< SizesHolderType, 1 >::type;
+      using Ends = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       Ends ends;
-      __ndarray_impl::SetSizesSubtractHelper< 1, Ends, SizesHolderType >::subtract( ends, getSizes() );
+      detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType >::subtract( ends, getSizes() );
       dispatch( Begins{}, ends, f );
    }
 
@@ -293,7 +291,7 @@ public:
    forInternal( Func f, const Begins& begins, const Ends& ends ) const
    {
       // TODO: assert "begins <= getSizes()", "ends <= getSizes()"
-      __ndarray_impl::ExecutorDispatcher< PermutationType, Device2 > dispatch;
+      detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( begins, ends, f );
    }
 
@@ -304,12 +302,12 @@ public:
       using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       using SkipBegins = ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
       // subtract static sizes
-      using SkipEnds = typename __ndarray_impl::SubtractedSizesHolder< SizesHolderType, 1 >::type;
+      using SkipEnds = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       SkipEnds skipEnds;
-      __ndarray_impl::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType >::subtract( skipEnds, getSizes() );
+      detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType >::subtract( skipEnds, getSizes() );
 
-      __ndarray_impl::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
+      detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( Begins{}, SkipBegins{}, skipEnds, getSizes(), f );
    }
 
@@ -319,7 +317,7 @@ public:
    {
       // TODO: assert "skipBegins <= getSizes()", "skipEnds <= getSizes()"
       using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
-      __ndarray_impl::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
+      detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( Begins{}, skipBegins, skipEnds, getSizes(), f );
    }
 
