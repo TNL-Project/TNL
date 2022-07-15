@@ -1,5 +1,0 @@
-if (BUILD_CUDA)
-   CUDA_ADD_EXECUTABLE( heat_parallel_for_grid ../implementation.h ../../Base/HeatEquationSolver.h main.h main.cu )
-ELSE()
-   add_executable( heat_parallel_for_grid ../implementation.h ../../Base/HeatEquationSolver.h main.h main.cpp )
-ENDIF()

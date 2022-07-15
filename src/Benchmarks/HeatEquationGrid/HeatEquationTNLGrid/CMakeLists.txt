@@ -1,2 +1,0 @@
-ADD_SUBDIRECTORY( benchmark )
-ADD_SUBDIRECTORY( solution )
