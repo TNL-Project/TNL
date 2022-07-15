@@ -16,27 +16,62 @@
 namespace TNL {
 namespace Containers {
 
+/**
+ * \brief Distributed N-dimensional array view.
+ *
+ * \tparam NDArrayView Type of the N-dimensional array view which is used to
+ *                     access the local elements. It must be an instance of the
+ *                     \ref NDArrayView template.
+ *
+ * \ingroup ndarray
+ */
 template< typename NDArrayView >
 class DistributedNDArrayView
 {
 public:
+   //! \brief Type of the values stored in the array.
    using ValueType = typename NDArrayView::ValueType;
+
+   //! \brief Type of the \ref TNL::Devices "device" used for running operations on the array.
    using DeviceType = typename NDArrayView::DeviceType;
+
+   //! \brief Type of indices used for addressing the array elements.
    using IndexType = typename NDArrayView::IndexType;
+
+   //! \brief Type of the underlying object which represents the sizes of the N-dimensional array.
    using SizesHolderType = typename NDArrayView::SizesHolderType;
+
+   //! \brief Permutation that is applied to indices when accessing the array elements.
    using PermutationType = typename NDArrayView::PermutationType;
+
+   //! \brief Type which represents the position of the first local element in
+   //! the global N-dimensional array. It has all static sizes set to 0.
    using LocalBeginsType = detail::LocalBeginsHolder< typename NDArrayView::SizesHolderType >;
+
+   //! \brief Type which represents an integer range `[a, b)`.
    using LocalRangeType = Subrange< IndexType >;
+
+   //! \brief Sequence of integers representing the overlaps in each dimension
+   //! of a distributed N-dimensional array.
    using OverlapsType = typename NDArrayView::OverlapsType;
 
+   //! Compatible \ref DistributedNDArrayView type.
    using ViewType = DistributedNDArrayView< NDArrayView >;
+
+   //! Compatible constant \ref DistributedNDArrayView type.
    using ConstViewType = DistributedNDArrayView< typename NDArrayView::ConstViewType >;
+
+   //! Compatible \ref NDArrayView of the local array.
    using LocalViewType = NDArrayView;
+
+   //! Compatible constant \ref NDArrayView of the local array.
    using ConstLocalViewType = typename NDArrayView::ConstViewType;
 
+   //! \brief Constructs an empty array view with zero size.
    DistributedNDArrayView() = default;
 
-   // explicit initialization by local array view, global sizes and local begins and ends
+   //! \brief Constructs an array view initialized by local array view, global
+   //! sizes, local begins and ends, and MPI communicator.
    DistributedNDArrayView( NDArrayView localView,
                            SizesHolderType globalSizes,
                            LocalBeginsType localBegins,
@@ -46,21 +81,25 @@ public:
      localEnds( localEnds )
    {}
 
-   // copy-constructor does shallow copy
+   //! \brief A shallow-copy copy-constructor.
    DistributedNDArrayView( const DistributedNDArrayView& ) = default;
 
-   // default move-constructor
+   //! \brief Move constructor for initialization from \e rvalues.
    DistributedNDArrayView( DistributedNDArrayView&& ) noexcept = default;
 
-   // Copy-assignment does deep copy, just like regular array, but the sizes
-   // must match (i.e. copy-assignment cannot resize).
+   /**
+    * \brief Copy-assignment operator for deep-copying data from another array.
+    *
+    * This is just like the operator on a regular array, but the sizes must
+    * match (i.e. copy-assignment cannot resize).
+    *
+    * Note that there is no move-assignment operator, so expressions like
+    * `a = b.getView()` are resolved as copy-assignment.
+    */
    DistributedNDArrayView&
    operator=( const DistributedNDArrayView& other ) = default;
 
-   // There is no move-assignment operator, so expressions like `a = b.getView()`
-   // are resolved as copy-assignment.
-
-   // Templated copy-assignment
+   //! \brief Templated copy-assignment operator for deep-copying data from another array.
    template< typename OtherArray >
    DistributedNDArrayView&
    operator=( const OtherArray& other )
@@ -73,7 +112,7 @@ public:
       return *this;
    }
 
-   // methods for rebinding (reinitialization)
+   //! \brief Re-binds (re-initializes) the array view to a different view.
    void
    bind( DistributedNDArrayView view )
    {
@@ -84,20 +123,23 @@ public:
       localEnds = view.localEnds;
    }
 
-   // binds to the given raw pointer and changes the indexer
+   //! \brief Re-binds (re-initializes) the array view to the given raw pointer
+   //! and changes the indexer.
    void
    bind( ValueType* data, typename LocalViewType::IndexerType indexer )
    {
       localView.bind( data, indexer );
    }
 
-   // binds to the given raw pointer and preserves the current indexer
+   //! \brief Re-binds (re-initializes) the array view to the given raw pointer
+   //! and preserves the current indexer.
    void
    bind( ValueType* data )
    {
       localView.bind( data );
    }
 
+   //! \brief Resets the array view to the empty state.
    void
    reset()
    {
@@ -108,12 +150,14 @@ public:
       localEnds = SizesHolderType{};
    }
 
+   //! \brief Returns the dimension of the \e N-dimensional array, i.e. \e N.
    static constexpr std::size_t
    getDimension()
    {
       return NDArrayView::getDimension();
    }
 
+   //! \brief Returns the MPI communicator associated with the array.
    const MPI::Comm&
    getCommunicator() const
    {
@@ -127,7 +171,7 @@ public:
       return globalSizes;
    }
 
-   // Returns the *global* size
+   //! \brief Returns the N-dimensional sizes of the **global** array.
    template< std::size_t level >
    IndexType
    getSize() const
@@ -135,18 +179,28 @@ public:
       return globalSizes.template getSize< level >();
    }
 
+   //! \brief Returns the beginning position of the local array in the global
+   //! N-dimensional array.
    LocalBeginsType
    getLocalBegins() const
    {
       return localBegins;
    }
 
+   //! \brief Returns the ending position of the local array in the global
+   //! N-dimensional array.
    SizesHolderType
    getLocalEnds() const
    {
       return localEnds;
    }
 
+   /**
+    * \brief Returns a specific `[begin, end)` subrange of the local array in
+    * the global N-dimensional array.
+    *
+    * \tparam level Integer specifying the component of the sizes to be returned.
+    */
    template< std::size_t level >
    LocalRangeType
    getLocalRange() const
@@ -154,26 +208,37 @@ public:
       return LocalRangeType( localBegins.template getSize< level >(), localEnds.template getSize< level >() );
    }
 
-   // returns the local storage size
+   //! \brief Returns the size (number of elements) needed to store the local
+   //! N-dimensional array.
    IndexType
    getLocalStorageSize() const
    {
       return localView.getStorageSize();
    }
 
+   //! \brief Returns a modifiable view of the local array.
    LocalViewType
    getLocalView()
    {
       return localView;
    }
 
+   //! \brief Returns a non-modifiable view of the local array.
    ConstLocalViewType
    getConstLocalView() const
    {
       return localView.getConstView();
    }
 
-   // returns the *local* storage index for given *global* indices
+   /**
+    * \brief Returns the **local** storage index for given **global** indices.
+    *
+    * \param indices Global indices of the element in the N-dimensional array.
+    *                The number of indices supplied must be equal to \e N, i.e.
+    *                \ref getDimension().
+    * \returns An index that can be used to address the element in a local
+    *          one-dimensional array.
+    */
    template< typename... IndexTypes >
    IndexType
    getStorageIndex( IndexTypes&&... indices ) const
@@ -188,18 +253,31 @@ public:
          localBegins, getStorageIndex, std::forward< IndexTypes >( indices )... );
    }
 
+   //! \brief Returns a raw pointer to the local data.
    ValueType*
    getData()
    {
       return localView.getData();
    }
 
+   //! \brief Returns a \e const-qualified raw pointer to the local data.
    std::add_const_t< ValueType >*
    getData() const
    {
       return localView.getData();
    }
 
+   /**
+    * \brief Accesses an element of the array.
+    *
+    * Only local elements or elements in the overlapping region can be
+    * accessed.
+    *
+    * \param indices Global indices of the element in the N-dimensional array.
+    *                The number of indices supplied must be equal to \e N, i.e.
+    *                \ref getDimension().
+    * \returns Reference to the array element.
+    */
    template< typename... IndexTypes >
    __cuda_callable__
    ValueType&
@@ -211,6 +289,17 @@ public:
          localBegins, localView, std::forward< IndexTypes >( indices )... );
    }
 
+   /**
+    * \brief Accesses an element of the array.
+    *
+    * Only local elements or elements in the overlapping region can be
+    * accessed.
+    *
+    * \param indices Global indices of the element in the N-dimensional array.
+    *                The number of indices supplied must be equal to \e N, i.e.
+    *                \ref getDimension().
+    * \returns Constant reference to the array element.
+    */
    template< typename... IndexTypes >
    __cuda_callable__
    const ValueType&
@@ -222,7 +311,18 @@ public:
          localBegins, localView, std::forward< IndexTypes >( indices )... );
    }
 
-   // bracket operator for 1D arrays
+   /**
+    * \brief Accesses an element in a one-dimensional array.
+    *
+    * Only local elements or elements in the overlapping region can be
+    * accessed.
+    *
+    * \warning This function can be used only when the dimension of the array is
+    *          equal to 1.
+    *
+    * \param index Global index of the element in the one-dimensional array.
+    * \returns Reference to the array element.
+    */
    __cuda_callable__
    ValueType&
    operator[]( IndexType index )
@@ -232,6 +332,18 @@ public:
       return localView[ index - localBegins.template getSize< 0 >() ];
    }
 
+   /**
+    * \brief Accesses an element in a one-dimensional array.
+    *
+    * Only local elements or elements in the overlapping region can be
+    * accessed.
+    *
+    * \warning This function can be used only when the dimension of the array is
+    *          equal to 1.
+    *
+    * \param index Global index of the element in the one-dimensional array.
+    * \returns Reference to the array element.
+    */
    __cuda_callable__
    const ValueType&
    operator[]( IndexType index ) const
@@ -241,25 +353,28 @@ public:
       return localView[ index - localBegins.template getSize< 0 >() ];
    }
 
+   //! \brief Returns a modifiable view of the array.
    ViewType
    getView()
    {
       return ViewType( *this );
    }
 
+   //! \brief Returns a non-modifiable view of the array.
    ConstViewType
    getConstView() const
    {
       return ConstViewType( localView, globalSizes, localBegins, localEnds, communicator );
    }
 
-   // TODO: overlaps should be skipped, otherwise it works only after synchronization
+   //! \brief Compares the array with another distributed N-dimensional array.
    bool
    operator==( const DistributedNDArrayView& other ) const
    {
       // we can't run allreduce if the communicators are different
       if( communicator != other.getCommunicator() )
          return false;
+      // TODO: overlaps should be skipped, otherwise it works only after synchronization
       const bool localResult = globalSizes == other.globalSizes && localBegins == other.localBegins
                             && localEnds == other.localEnds && localView == other.localView;
       bool result = true;
@@ -268,13 +383,21 @@ public:
       return result;
    }
 
+   //! \brief Compares the array with another distributed N-dimensional array.
    bool
    operator!=( const DistributedNDArrayView& other ) const
    {
       return ! ( *this == other );
    }
 
-   // iterate over all local elements
+   /**
+    * \brief Evaluates the function `f` in parallel for all elements of the
+    * array.
+    *
+    * Each MPI rank iterates over all of its local elements.
+    *
+    * See \ref NDArrayView::forAll for the requirements on the function `f`.
+    */
    template< typename Device2 = DeviceType, typename Func >
    void
    forAll( Func f ) const
@@ -283,7 +406,15 @@ public:
       dispatch( localBegins, localEnds, f );
    }
 
-   // iterate over local elements which are not neighbours of *global* boundaries
+   /**
+    * \brief Evaluates the function `f` in parallel for all internal elements
+    * of the array.
+    *
+    * Each MPI rank iterates over its local elements which are not neighbours
+    * of **global** boundaries.
+    *
+    * See \ref NDArrayView::forAll for the requirements on the function `f`.
+    */
    template< typename Device2 = DeviceType, typename Func >
    void
    forInternal( Func f ) const
@@ -306,7 +437,14 @@ public:
       dispatch( begins, ends, f );
    }
 
-   // iterate over local elements inside the given [begins, ends) range specified by global indices
+   /**
+    * \brief Evaluates the function `f` in parallel for all elements inside the
+    * given `[begins, ends)` range specified by global indices.
+    *
+    * Each MPI rank iterates over its local elements from the range.
+    *
+    * See \ref NDArrayView::forAll for the requirements on the function `f`.
+    */
    template< typename Device2 = DeviceType, typename Func, typename Begins, typename Ends >
    void
    forInternal( Func f, const Begins& begins, const Ends& ends ) const
@@ -316,7 +454,15 @@ public:
       dispatch( begins, ends, f );
    }
 
-   // iterate over local elements which are neighbours of *global* boundaries
+   /**
+    * \brief Evaluates the function `f` in parallel for all boundary elements
+    * of the array.
+    *
+    * Each MPI rank iterates over its local elements which are neighbours of
+    * **global** boundaries.
+    *
+    * See \ref NDArrayView::forAll for the requirements on the function `f`.
+    */
    template< typename Device2 = DeviceType, typename Func >
    void
    forBoundary( Func f ) const
@@ -339,7 +485,14 @@ public:
       dispatch( localBegins, skipBegins, skipEnds, localEnds, f );
    }
 
-   // iterate over local elements outside the given [skipBegins, skipEnds) range specified by global indices
+   /**
+    * \brief Evaluates the function `f` in parallel for all elements outside
+    * the given `[skipBegins, skipEnds)` range specified by global indices.
+    *
+    * Each MPI rank iterates over its local elements outside the range.
+    *
+    * See \ref NDArrayView::forAll for the requirements on the function `f`.
+    */
    template< typename Device2 = DeviceType, typename Func, typename SkipBegins, typename SkipEnds >
    void
    forBoundary( Func f, const SkipBegins& skipBegins, const SkipEnds& skipEnds ) const
@@ -349,7 +502,15 @@ public:
       dispatch( localBegins, skipBegins, skipEnds, localEnds, f );
    }
 
-   // iterate over local elements which are not neighbours of overlaps (if all overlaps are 0, it is equivalent to forAll)
+   /**
+    * \brief Evaluates the function `f` in parallel for all local-internal
+    * elements of the array.
+    *
+    * Each MPI rank iterates over its local elements which are not neighbours
+    * of overlaps. If all overlaps are 0, it is equivalent to \ref forAll.
+    *
+    * See \ref NDArrayView::forAll for the requirements on the function `f`.
+    */
    template< typename Device2 = DeviceType, typename Func >
    void
    forLocalInternal( Func f ) const
@@ -366,7 +527,15 @@ public:
       dispatch( begins, ends, f );
    }
 
-   // iterate over local elements which are neighbours of overlaps (if all overlaps are 0, it has no effect)
+   /**
+    * \brief Evaluates the function `f` in parallel for all local-boundary
+    * elements of the array.
+    *
+    * Each MPI rank iterates over its local elements which are neighbours of
+    * overlaps. If all overlaps are 0, it has no effect.
+    *
+    * See \ref NDArrayView::forAll for the requirements on the function `f`.
+    */
    template< typename Device2 = DeviceType, typename Func >
    void
    forLocalBoundary( Func f ) const
@@ -383,7 +552,16 @@ public:
       dispatch( localBegins, skipBegins, skipEnds, localEnds, f );
    }
 
-   // iterate over elements of overlaps (if all overlaps are 0, it has no effect)
+   /**
+    * \brief Evaluates the function `f` in parallel for all elements in the
+    * overlapping region.
+    *
+    * Each MPI rank iterates over elements which are in the overlapping region
+    * (i.e., owned by a different MPI rank). If all overlaps are 0, it has no
+    * effect.
+    *
+    * See \ref NDArrayView::forAll for the requirements on the function `f`.
+    */
    template< typename Device2 = DeviceType, typename Func >
    void
    forOverlaps( Func f ) const
@@ -401,11 +579,27 @@ public:
    }
 
 protected:
+   //! \brief View of the N-dimensional array containing the local elements and overlaps.
    NDArrayView localView;
+
+   //! \brief MPI communicator associated with the array.
    MPI::Comm communicator = MPI_COMM_NULL;
+
+   //! \brief Global sizes of the whole distributed N-dimensional array.
    SizesHolderType globalSizes;
-   // static sizes should have different type: localBegin is always 0, localEnd is always the full size
+
+   /**
+    * \brief Global indices of the first local element in the whole
+    * N-dimensional array.
+    *
+    * Note that `localBegins` and \ref localEnds have different static sizes
+    * (and hence different C++ type): `localBegins` is always 0, `localEnds`
+    * has always the full static size.
+    */
    LocalBeginsType localBegins;
+
+   //! \brief Global indices of the end-of-range element,
+   //! `[localBegins, localEnds)`.
    SizesHolderType localEnds;
 };
 

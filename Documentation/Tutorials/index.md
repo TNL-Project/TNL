@@ -12,9 +12,10 @@
 
 ## Data structures
 
-1. [Matrices](./Matrices/tutorial_Matrices.md)
-2. [Segments aka sparse formats](./Segments/tutorial_Segments.md)
-3. [Unstructured meshes](./Meshes/tutorial_Meshes.md)
+1. [Multidimensional arrays](./NDArrays/tutorial_NDArrays.md)
+2. [Matrices](./Matrices/tutorial_Matrices.md)
+3. [Segments aka sparse formats](./Segments/tutorial_Segments.md)
+4. [Unstructured meshes](./Meshes/tutorial_Meshes.md)
 
 ## Numerical solvers
 

@@ -15,6 +15,23 @@
 namespace TNL {
 namespace Containers {
 
+/**
+ * \brief Indexer for N-dimensional arrays. It does not store any data, only
+ * the sizes of each dimension.
+ *
+ * \tparam SizesHolder Instance of \ref SizesHolder that will represent the
+ *                     array sizes.
+ * \tparam Permutation Permutation that will be applied to indices when
+ *                     accessing the array elements. The identity permutation
+ *                     is used by default.
+ * \tparam Base Either `detail::NDArrayBase` or `detail::SlicedNDArrayBase`.
+ * \tparam StridesHolder Type of the base class which represents the strides of
+ *                       the N-dimensional array.
+ * \tparam Overlaps Sequence of integers representing the overlaps in each
+ *                  dimension a distributed N-dimensional array.
+ *
+ * \ingroup ndarray
+ */
 template< typename SizesHolder,
           typename Permutation,
           typename Base,
@@ -22,13 +39,25 @@ template< typename SizesHolder,
           typename Overlaps = detail::make_constant_index_sequence< SizesHolder::getDimension(), 0 > >
 class NDArrayIndexer : public StridesHolder
 {
-public:
-   using IndexType = typename SizesHolder::IndexType;
+protected:
    using NDBaseType = Base;
+
+public:
+   //! \brief Type of the underlying object which represents the sizes of the N-dimensional array.
    using SizesHolderType = SizesHolder;
+
+   //! \brief Type of the base class which represents the strides of the N-dimensional array.
    using StridesHolderType = StridesHolder;
+
+   //! \brief Permutation that is applied to indices when accessing the array elements.
    using PermutationType = Permutation;
+
+   //! \brief Sequence of integers representing the overlaps in each dimension
+   //! of a distributed N-dimensional array.
    using OverlapsType = Overlaps;
+
+   //! \brief Type of indices used for addressing the array elements.
+   using IndexType = typename SizesHolder::IndexType;
 
    static_assert( StridesHolder::getDimension() == SizesHolder::getDimension(),
                   "Dimension of strides does not match the dimension of sizes." );
@@ -37,19 +66,22 @@ public:
    static_assert( Overlaps::size() == SizesHolder::getDimension(),
                   "Dimension of overlaps does not match the dimension of sizes." );
 
+   //! \brief Constructs an empty indexer with zero sizes and strides.
    __cuda_callable__
    NDArrayIndexer() = default;
 
-   // explicit initialization by sizes and strides
+   //! \brief Creates the indexer with given sizes and strides.
    __cuda_callable__
-   NDArrayIndexer( SizesHolder sizes, StridesHolder strides ) : StridesHolder( strides ), sizes( sizes ) {}
+   NDArrayIndexer( SizesHolderType sizes, StridesHolderType strides ) : StridesHolder( strides ), sizes( sizes ) {}
 
+   //! \brief Returns the dimension of the \e N-dimensional array, i.e. \e N.
    static constexpr std::size_t
    getDimension()
    {
       return SizesHolder::getDimension();
    }
 
+   //! \brief Returns the N-dimensional array sizes held by the indexer.
    __cuda_callable__
    const SizesHolderType&
    getSizes() const
@@ -57,6 +89,11 @@ public:
       return sizes;
    }
 
+   /**
+    * \brief Returns a specific component of the N-dimensional sizes.
+    *
+    * \tparam level Integer specifying the component of the sizes to be returned.
+    */
    template< std::size_t level >
    __cuda_callable__
    IndexType
@@ -68,6 +105,12 @@ public:
    // method template from base class
    using StridesHolder::getStride;
 
+   /**
+    * \brief Returns the overlap of a distributed N-dimensional array along the
+    *        specified axis.
+    *
+    * \tparam level Integer specifying the axis of the array.
+    */
    template< std::size_t level >
    static constexpr std::size_t
    getOverlap()
@@ -75,7 +118,11 @@ public:
       return detail::get< level >( Overlaps{} );
    }
 
-   // returns the product of the aligned sizes
+   /**
+    * \brief Returns the size (number of elements) needed to store the N-dimensional array.
+    *
+    * \returns The product of the aligned sizes.
+    */
    __cuda_callable__
    IndexType
    getStorageSize() const
@@ -84,6 +131,16 @@ public:
       return detail::StorageSizeGetter< SizesHolder, Alignment, Overlaps >::get( sizes );
    }
 
+   /**
+    * \brief Computes the one-dimensional storage index for a specific element
+    *        of the N-dimensional array.
+    *
+    * \param indices Indices of the element in the N-dimensional array. The
+    *                number of indices supplied must be equal to \e N, i.e.
+    *                \ref getDimension().
+    * \returns An index that can be used to address the element in a
+    *          one-dimensional array.
+    */
    template< typename... IndexTypes >
    __cuda_callable__
    IndexType
@@ -102,7 +159,12 @@ public:
    }
 
 protected:
-   // non-const reference accessor cannot be public - only subclasses like NDArrayStorage may modify the sizes
+   /**
+    * \brief Returns a non-constant reference to the underlying \ref sizes.
+    *
+    * The function is not public -- only subclasses like \ref NDArrayStorage
+    * may modify the sizes.
+    */
    __cuda_callable__
    SizesHolderType&
    getSizes()
@@ -110,7 +172,8 @@ protected:
       return sizes;
    }
 
-   SizesHolder sizes;
+   //! \brief Underlying object which represents the sizes of the N-dimensional array.
+   SizesHolderType sizes;
 };
 
 }  // namespace Containers
