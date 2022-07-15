@@ -362,7 +362,7 @@ template< typename Real = double,
           typename Index = int >
 struct HeatEquationSolverBenchmarkNdGrid : public HeatEquationSolverBenchmark< Real, Device, Index >
 {
-   void exec( const Index xSize, const Index ySize ) const
+   void exec( const Index xSize, const Index ySize )
    {
       NdGrid<2, int, Device> grid;
 
@@ -373,69 +373,32 @@ struct HeatEquationSolverBenchmarkNdGrid : public HeatEquationSolverBenchmark< R
       const Real hx_inv = 1.0 / (hx * hx);
       const Real hy_inv = 1.0 / (hy * hy);
 
-      auto entitiesCount = grid.getEntitiesCount(0);
-      auto timestep = this->timeStep ? this->timeStep : std::min(hx * hx, hy * hy);
-      auto xDomainSize_ = this->xDomainSize;
-      auto yDomainSize_ = this->yDomainSize;
-
-      auto alpha_ = this->alpha;
-      auto beta_  = this->beta;
-      auto gamma_ = this->gamma;
-
-      TNL::Containers::Array<Real, Device> ux(entitiesCount), // data at step u
-                                           aux(entitiesCount);// data at step u + 1
-
-      auto uxView = ux.getView(), auxView = aux.getView();
-
-      // Invalidate ux/aux
-      ux = 0;
-      aux = 0;
-
-      auto init = [=] __cuda_callable__(const GridEntity<2, int>& entity) mutable {
-         auto position = entity.getCoordinates();
-         auto index = entity.getIndex();
-
-         auto x = position[0] * hx - xDomainSize_ / 2;
-         auto y = position[1] * hx - yDomainSize_ / 2;
-
-         uxView[index] = TNL::max( ( x*x / alpha_ )  + ( y*y / beta_ ) + gamma_, 0);
-      };
-
       const Container<2, bool> direction{ false, false };
 
-      grid.traverse({ 1, 1 },
-                  { grid.getEndIndex(0) - 1, grid.getEndIndex(1) - 1 },
-                  { direction },
-                  init);
-
-      //if (!writeGNUPlot("data.txt", params, ux))
-      //   return false;
-
-      auto xDimension = grid.getDimension(0);
-
-      auto next = [=] __cuda_callable__(const GridEntity<2, int>& entity) mutable {
-         auto index = entity.getIndex();
-         auto element = uxView[index];
-         auto center = 2 * element;
-
-         auxView[index] = element + ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
-                                    (uxView[index - xDimension] - center + uxView[index + xDimension]) * hy_inv) * timestep;
-      };
-
       Real start = 0;
+      Index iterations = 0;
+      auto timestep = this->timeStep ? this->timeStep : std::min(hx * hx, hy * hy);
+      while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
+      {
+         auto uxView = this->aux.getView();
+         auto auxView = this->ux.getView();
+         auto xDimension = grid.getDimension(0);
 
-      while (start < this->finalTime) {
-         grid.traverse({ 1, 1 },
-                     { grid.getEndIndex(0) - 1, grid.getEndIndex(1) - 1 },
-                     { direction },
-                     next);
+         auto next = [=] __cuda_callable__(const GridEntity<2, int>& entity) mutable {
+            auto index = entity.getIndex();
+            auto element = uxView[index];
+            auto center = 2 * element;
 
-         uxView = aux.getView();
-         auxView = ux.getView();
-
+            auxView[index] = element + ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
+                                       (uxView[index - xDimension] - center + uxView[index + xDimension]) * hy_inv) * timestep;
+         };
+         grid.traverse( { 1, 1 },
+                        { grid.getEndIndex(0) - 1, grid.getEndIndex(1) - 1 },
+                        { direction },
+                        next );
+         this->ux.swap( this->aux );
          start += timestep;
+         iterations++;
       }
-
-      //return writeGNUPlot("data_final.txt", params, ux);
    };
 };

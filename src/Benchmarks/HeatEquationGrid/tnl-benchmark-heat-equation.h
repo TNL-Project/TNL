@@ -29,9 +29,7 @@ void configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum<TNL::String>( "all" );
    config.addEntryEnum<TNL::String>( "host" );
    config.addEntryEnum<TNL::String>( "sequential" );
-#ifdef HAVE_CUDA
    config.addEntryEnum<TNL::String>("cuda");
-#endif
    TNL::Devices::Host::configSetup( config );
    TNL::Devices::Cuda::configSetup( config );
 
@@ -74,10 +72,18 @@ template< typename Real >
 bool resolveDevice( TNL::Config::ParameterContainer& parameters )
 {
    auto device = parameters.getParameter<TNL::String>( "device" );
+   if( device == "sequential" )
+      return startBenchmark< Real, TNL::Devices::Sequential >( parameters );
    if( device == "host" )
       return startBenchmark< Real, TNL::Devices::Host >( parameters );
-   if( device == "cuda" )
+   if( device == "cuda" ) {
+#ifdef HAVE_CUDA
       return startBenchmark< Real, TNL::Devices::Cuda >( parameters );
+#else
+      std::cerr << "The benchmark was not built with CUDA support." << std::endl;
+      return false;
+#endif
+   }
    std::cerr << "Uknown device " << device << "." << std::endl;
    return false;
 }

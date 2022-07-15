@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-devices = [ "host", "cuda" ]
+devices = [ "sequential", "host", 'cuda' ]
 precisions = [ "float", "double" ]
-tests = [ "parallel-for", "parallel-for-with-memory-load", "grid", "nd-grid"  ]
+tests = [ "parallel-for", "simple-grid", "grid", "nd-grid"  ]
 
 ####
 # Create multiindex for columns
@@ -20,11 +20,11 @@ def get_multiindex():
     level3 = [ '',      ''      ]
     df_data = [[ ' ',' ']]
     for test in tests:
-        for device in [ 'Host', 'Cuda' ]:
+        for device in devices:
             values = ['time']
             if test != 'parallel-for':
                 values.append( 'parallel-for speed-up' )
-            if device == 'Cuda':
+            if device == 'cuda':
                 values.append( 'CPU speed-up' )
             for value in values:
                 level1.append( test )
@@ -58,26 +58,22 @@ def processDf( df, precision ):
             new_df.iloc[0][ ('xSize','','') ]  = x_size
             new_df.iloc[0][ ('ySize','','') ]  = y_size
             for index, row in aux_df.iterrows():
-                test = row[ 'id' ]
+                test = row[ 'implementation' ]
                 time = row[ 'time' ]
-                new_df.iloc[0][(test,device,'time') ] = time
+                new_df.iloc[0][(test,row['performer'],'time') ] = float( time )
             #print( new_df )
             frames.append( new_df)
     result = pd.concat( frames )
     idx = 0
     for index, row in result.iterrows():
         for test in tests:
-            result.iloc[idx][ (test, 'Cuda', 'CPU speed-up') ] =  row[ (test, 'Host', 'time')] / row[ (test, 'Cuda', 'time')]
+            result.iloc[idx][ (test, 'cuda', 'CPU speed-up') ] =  float( row[ (test, 'host', 'time')] ) / float( row[ (test, 'cuda', 'time')] )
             if test != 'parallel-for':
-                for device in [ 'Host', 'Cuda' ]:
-                    result.iloc[idx][ (test, device, 'parallel-for speed-up') ] =  row[ ('parallel-for', device, 'time')] / row[ (test, device, 'time')]
+                for device in devices:
+                    result.iloc[idx][ (test, device, 'parallel-for speed-up') ] =  float( row[ ('parallel-for', device, 'time')] ) / float( row[ (test, device, 'time')] )
         idx += 1
 
     result.to_html( f'output-{precision}.html' )
-
-
-
-
 
 
 #####

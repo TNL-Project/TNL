@@ -1,10 +1,11 @@
 #/bin/bash
 
-devices="host cuda"
+devices="sequential host cuda"
 precisions="float double"
 tests="parallel-for simple-grid grid nd-grid"
 max_x_dimension="800"
 max_y_dimension="800"
+base="tnl-benchmark-heat-equation"
 
 for device in ${devices}
 do
@@ -18,11 +19,12 @@ do
             --precision ${precision}                                  \
             --max-x-dimension ${max_x_dimension}                      \
             --max-y-dimension ${max_y_dimension}                      \
-            --time-step 0.005                                         \
+            --max-iterations 50                                       \
             --final-time 0.1                                          \
             --device ${device}                                        \
             --log-file "${base}-${test}-${device}-${precision}.json"  \
-            --output-mode append
+            --output-mode append                                      \
+            --write-data no
       done
    done
 done
