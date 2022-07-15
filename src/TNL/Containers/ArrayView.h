@@ -65,9 +65,9 @@ public:
    using ValueType = Value;
 
    /**
-    * \brief Device where the array is allocated.
+    * \brief Device used to run operations on the array.
     *
-    * See \ref Devices::Host or \ref Devices::Cuda.
+    * See \ref TNL::Devices for the available options.
     */
    using DeviceType = Device;
 
