@@ -30,16 +30,22 @@ done
 # Remove existing html/ directory which may contain old files
 rm -rf ./html/
 
-# Assemble environment variables which are used in the Doxyfile
-if [[ "$CI_COMMIT_REF_NAME" == "" ]]; then
-   # The following works only with newer versions of git, not in 2.19.1 for example
-   #_branch=$(git branch --show-current)
-   _branch=$(git rev-parse --abbrev-ref HEAD)
+# Check if we are in a git repository
+if [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
+    if [[ "$CI_COMMIT_REF_NAME" == "" ]]; then
+       # The following works only with newer versions of git, not in 2.19.1 for example
+       #_branch=$(git branch --show-current)
+       _branch=$(git rev-parse --abbrev-ref HEAD)
+    else
+       _branch="$CI_COMMIT_REF_NAME"
+    fi
+    # Assemble environment variables which are used in the Doxyfile
+    #PROJECT_NUMBER="version $_branch:$(git log -1 --format="%h (%cd)")"
+    PROJECT_NUMBER="version $_branch:$(git rev-parse --short HEAD)"
 else
-   _branch="$CI_COMMIT_REF_NAME"
+    # Assemble environment variables which are used in the Doxyfile
+    PROJECT_NUMBER="version UNKNOWN"
 fi
-#PROJECT_NUMBER="version $_branch:$(git log -1 --format="%h (%cd)")"
-PROJECT_NUMBER="version $_branch:$(git rev-parse --short HEAD)"
 
 # Generate documentation
 PROJECT_NUMBER="$PROJECT_NUMBER" doxygen
