@@ -11,8 +11,8 @@ set( CUDA_EXAMPLES
 
 foreach( target IN ITEMS ${CPP_EXAMPLES} )
    add_executable( ${target} ${target}.cpp )
-   add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out OUTPUT ${target}.out )
-   set( CPP_OUTPUTS ${CPP_OUTPUTS} ${target}.out )
+   add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
+   set( CPP_OUTPUTS ${CPP_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
 endforeach()
 add_custom_target( RunTutorialsMeshesExamples ALL DEPENDS ${CPP_OUTPUTS} )
 
@@ -23,8 +23,8 @@ if( BUILD_CUDA )
       cuda_add_executable( ${target} ${target}.cu OPTIONS "-DHAVE_ZLIB -DHAVE_TINYXML2" )
       target_link_libraries(${target} ${ZLIB_LIBRARIES} tinyxml2::tinyxml2)
 
-      add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out OUTPUT ${target}.out )
-      set( CUDA_OUTPUTS ${CUDA_OUTPUTS} ${target}.out )
+      add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
+      set( CUDA_OUTPUTS ${CUDA_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
    endforeach()
    add_custom_target( RunTutorialsMeshesCudaExamples ALL DEPENDS ${CUDA_OUTPUTS} )
 endif()
