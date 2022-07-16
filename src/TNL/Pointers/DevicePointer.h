@@ -59,6 +59,7 @@ class DevicePointer< Object, Devices::Host > : public SmartPointer
 private:
    /**
     * \typedef Enabler
+    *
     * Convenient template alias for controlling the selection of copy- and
     * move-constructors and assignment operators using SFINAE.
     * The type Object_ is "enabled" iff Object_ and Object are not the same,
@@ -74,13 +75,12 @@ private:
 
 public:
    /**
-    * \typedef ObjectType is the type of object owned by the pointer.
+    * \brief Type of the object owned by the pointer.
     */
    using ObjectType = Object;
 
    /**
-    * \typedef DeviceType is the type of device where the object is to be
-    * mirrored.
+    * \brief Type of the device where the object is to be mirrored.
     */
    using DeviceType = Devices::Host;
 
@@ -380,18 +380,17 @@ private:
 
 public:
    /**
-    * \typedef ObjectType is the type of object owned by the pointer.
+    * \brief Type of the object owned by the pointer.
     */
    using ObjectType = Object;
 
    /**
-    * \typedef DeviceType is the type of device where the object is to be
-    * mirrored.
+    * \brief Type of the device where the object is to be mirrored.
     */
    using DeviceType = Devices::Cuda;
 
    /**
-    * \typedef AllocatorType is the type of the allocator for \e DeviceType.
+    * \brief Type of the allocator for \e DeviceType.
     */
    using AllocatorType = typename Allocators::Default< DeviceType >::Allocator< ObjectType >;
 

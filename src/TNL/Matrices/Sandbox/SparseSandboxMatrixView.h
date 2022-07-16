@@ -771,7 +771,7 @@ public:
 
    /**
     * \brief Assignment of any matrix type.
-    * .
+    *
     * \param matrix is input matrix for the assignment.
     * \return reference to this matrix.
     */

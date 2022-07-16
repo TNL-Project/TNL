@@ -53,18 +53,17 @@ private:
 
 public:
    /**
-    * \typedef ObjectType is the type of object owned by the pointer.
+    * \brief Type of the object owned by the pointer.
     */
    using ObjectType = Object;
 
    /**
-    * \typedef DeviceType is the type of device where the object is to be
-    * mirrored.
+    * \brief Type of the device where the object is to be mirrored.
     */
    using DeviceType = Devices::Cuda;
 
    /**
-    * \typedef AllocatorType is the type of the allocator for \e DeviceType.
+    * \brief Type of the allocator for \e DeviceType.
     */
    using AllocatorType = typename Allocators::Default< DeviceType >::Allocator< ObjectType >;
 

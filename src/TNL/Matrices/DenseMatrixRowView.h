@@ -141,8 +141,8 @@ public:
    getColumnIndex( IndexType localIdx ) const;
 
    /**
-    * \brief Sets value of matrix element with given column index
-    * .
+    * \brief Sets value of matrix element with given column index.
+    *
     * \param column is a column index of the matrix element.
     * \param value is a value the matrix element will be set to.
     */
@@ -151,7 +151,7 @@ public:
    setValue( IndexType column, const RealType& value );
 
    /**
-    * \brief Sets value of matrix element with given column index
+    * \brief Sets value of matrix element with given column index.
     *
     * The \e localIdx parameter is here only for compatibility with
     * the sparse matrices and it is omitted.
