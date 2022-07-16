@@ -56,7 +56,6 @@ fi
 
 # Generate documentation
 PROJECT_NUMBER="$PROJECT_NUMBER" OUTPUT_SNIPPETS_PATH="$OUTPUT_SNIPPETS_PATH" doxygen
-cp "$OUTPUT_SNIPPETS_PATH"/*.png html
 
 # Install
 if [[ "$INSTALL" == "yes" ]]; then
