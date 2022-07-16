@@ -6,6 +6,7 @@ set( COMMON_EXAMPLES
    SortingExample3
    ParallelForExample
    SequentialForExample
+   reduceArrayExample
 )
 
 set( HOST_EXAMPLES
