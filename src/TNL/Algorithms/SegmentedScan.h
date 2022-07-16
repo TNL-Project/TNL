@@ -54,7 +54,7 @@ namespace Algorithms {
  * \tparam Device parameter says on what device the reduction is gonna be performed.
  * \tparam Type parameter says if inclusive or exclusive is scan is to be computed.
  *
- * See \ref Scan< Devices::Host, Type > and \ref Scan< Devices::Cuda, Type >.
+ * See \ref SegmentedScan< Devices::Host, Type > and \ref SegmentedScan< Devices::Cuda, Type >.
  *
  * **Note: Segmented scan is not implemented for CUDA yet.**
  */

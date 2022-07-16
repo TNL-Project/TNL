@@ -34,7 +34,7 @@ class StaticArray;
  * \tparam Allocator The type of the allocator used for the allocation and
  *                   deallocation of memory used by the array. By default,
  *                   an appropriate allocator for the specified \e Device
- *                   is selected with \ref Allocators::Default.
+ *                   is selected with \ref TNL::Allocators::Default.
  *
  * Memory management handled by constructors and destructors according to the
  * [RAII](https://en.wikipedia.org/wiki/RAII) principle and by methods
@@ -42,7 +42,7 @@ class StaticArray;
  * also use methods \ref getSize and \ref empty to check the current array size
  * and \ref getData to access the raw pointer.
  *
- * Methods annotated as \ref \_\_cuda_callable\_\_ can be called either from
+ * Methods annotated as \ref __cuda_callable__ can be called either from
  * host or from kernels executing on a device according to the \e Device
  * parameter. One of these methods is the \ref operator[] which provides direct
  * access to the array elements. However, it cannot be called from the host if
@@ -53,7 +53,7 @@ class StaticArray;
  * explicit data transfer which is not buffered, so it can be very slow.
  *
  * Other methods, such as \ref operator=, \ref operator==, \ref operator!=,
- * \ref setValue, and \ref evaluate, provide various operations on whole arrays.
+ * and \ref setValue, provide various operations on whole arrays.
  *
  * See also \ref ArrayView, \ref Vector, \ref VectorView.
  *
@@ -92,8 +92,7 @@ public:
    /**
     * \brief Allocator type used for allocating this array.
     *
-    * See \ref Allocators::Cuda, \ref Allocators::CudaHost, \ref Allocators::CudaManaged, \ref Allocators::Host or \ref
-    * Allocators:Default.
+    * See \ref TNL::Allocators.
     */
    using AllocatorType = Allocator;
 
@@ -236,14 +235,14 @@ public:
    getAllocator() const;
 
    /**
-    * \brief Returns a \ref String representation of the array type in C++ style,
+    * \brief Returns a string representation of the array type in C++ style,
     * with a placeholder in place of \e Device and \e Allocator.
     */
    static std::string
    getSerializationType();
 
    /**
-    * \brief Returns a \ref String representation of the array type in C++ style,
+    * \brief Returns a string representation of the array type in C++ style,
     * with a placeholder in place of \e Device and \e Allocator.
     */
    virtual std::string
@@ -800,7 +799,7 @@ protected:
  * \param str is a output stream.
  * \param array is the array to be printed.
  *
- * \return a reference on the output stream \ref std::ostream&.
+ * \return a reference to the output stream \ref std::ostream.
  */
 template< typename Value, typename Device, typename Index, typename Allocator >
 std::ostream&

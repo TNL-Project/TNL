@@ -134,7 +134,7 @@ public:
     *
     * \param localIdx is the rank of the matrix element in given row.
     *
-    * \return the value of \ref localIdx as column index.
+    * \return the value of \e localIdx as column index.
     */
    __cuda_callable__
    IndexType

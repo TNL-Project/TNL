@@ -283,7 +283,7 @@ which has the form `HAVE_<PLATFORM>`, i.e.:
 - `-D HAVE_MPI` enables MPI (use a compiler wrapper such as `mpicxx` or link
   manually against the MPI libraries)
 
-### Environment variables
+### Environment variables   {#environment-variables}
 
 If you installed some TNL tools or examples using the `install` script, we
 recommend you to configure several environment variables for convenience. If you

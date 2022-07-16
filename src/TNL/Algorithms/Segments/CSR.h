@@ -25,11 +25,8 @@ namespace Segments {
  * \tparam Device is type of device where the segments will be operating.
  * \tparam Index is type for indexing of the elements managed by the segments.
  * \tparam Kernel is type of kernel used for parallel operations with segments.
- *    It can be any of the following:
- *    \ref TNL::Containers::Segments::Kernels::CSRAdaptiveKernel,
- *    \ref TNL::Containers::Segments::Kernels::CSRHybridKernel,
- *    \ref TNL::Containers::Segments::Kernels::CSRScalarKernel,
- *    \ref TNL::Containers::Segments::Kernels::CSRVectorKernel
+ *    It can be any of the following: \ref CSRAdaptiveKernel,
+ *    \ref CSRHybridKernel, \ref CSRScalarKernel, \ref CSRVectorKernel.
  *
  * \tparam IndexAllocator is allocator for supporting index containers.
  */

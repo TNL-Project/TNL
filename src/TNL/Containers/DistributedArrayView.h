@@ -33,7 +33,9 @@ public:
    using SynchronizerType = ByteArraySynchronizer< DeviceType, IndexType >;
 
    /**
-    * \brief A template which allows to quickly obtain a \ref DistributedArrayView type with changed template parameters.
+    * \brief A template which allows to quickly obtain a
+    * \ref TNL::Containers::DistributedArrayView "DistributedArrayView" type
+    * with changed template parameters.
     */
    template< typename _Value, typename _Device = Device, typename _Index = Index >
    using Self = DistributedArrayView< _Value, _Device, _Index >;

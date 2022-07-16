@@ -20,23 +20,30 @@ namespace Sandbox {
 /**
  * \brief Implementation of sparse sandbox matrix view.
  *
- * It serves as an accessor to \ref SparseSandboxMatrix for example when passing the
- * matrix to lambda functions. SparseSandboxMatrix view can be also created in CUDA kernels.
+ * It serves as an accessor to \ref SparseSandboxMatrix for example when
+ * passing the matrix to lambda functions. SparseSandboxMatrix view can be also
+ * created in CUDA kernels.
  *
- * \tparam Real is a type of matrix elements. If \e Real equals \e bool the matrix is treated
- *    as binary and so the matrix elements values are not stored in the memory since we need
- *    to remember only coordinates of non-zero elements( which equal one).
+ * \tparam Real is a type of matrix elements. If \e Real equals \e bool the
+ *         matrix is treated as binary and so the matrix elements values are
+ *         not stored in the memory since we need to remember only coordinates
+ *         of non-zero elements (which equal one).
  * \tparam Device is a device where the matrix is allocated.
  * \tparam Index is a type for indexing of the matrix elements.
- * \tparam MatrixType specifies a symmetry of matrix. See \ref MatrixType. Symmetric
- *    matrices store only lower part of the matrix and its diagonal. The upper part is reconstructed on the fly.
- *    GeneralMatrix with no symmetry is used by default.
- * \tparam Segments is a structure representing the sparse matrix format. Depending on the pattern of the non-zero elements
- *    different matrix formats can perform differently especially on GPUs. By default \ref CSR format is used. See also
- *    \ref Ellpack, \ref SlicedEllpack, \ref ChunkedEllpack or \ref BiEllpack.
- * \tparam ComputeReal is the same as \e Real mostly but for binary matrices it is set to \e Index type. This can be changed
- *    bu the user, of course.
- *
+ * \tparam MatrixType specifies a symmetry of matrix. See \ref MatrixType.
+ *         Symmetric matrices store only lower part of the matrix and its
+ *         diagonal. The upper part is reconstructed on the fly.  GeneralMatrix
+ *         with no symmetry is used by default.
+ * \tparam Segments is a structure representing the sparse matrix format.
+ *         Depending on the pattern of the non-zero elements different matrix
+ *         formats can perform differently especially on GPUs. By default
+ *         \ref Algorithms::Segments::CSR format is used. See also
+ *         \ref Algorithms::Segments::Ellpack,
+ *         \ref Algorithms::Segments::SlicedEllpack,
+ *         \ref Algorithms::Segments::ChunkedEllpack, and
+ *         \ref Algorithms::Segments::BiEllpack.
+ * \tparam ComputeReal is the same as \e Real mostly but for binary matrices it
+ *         is set to \e Index type. This can be changed bu the user, of course.
  */
 template< typename Real, typename Device = Devices::Host, typename Index = int, typename MatrixType = GeneralMatrix >
 class SparseSandboxMatrixView : public MatrixView< Real, Device, Index >
@@ -590,7 +597,7 @@ public:
     * auto function = [] __cuda_callable__ ( RowView& row ) mutable { ... };
     * ```
     *
-    * \e RowView represents matrix row - see \ref TNL::Matrices::SparseSandboxMatrixView::RowView.
+    * \e RowView represents matrix row - see \ref RowView.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixViewExample_forRows.cpp
@@ -617,7 +624,7 @@ public:
     * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
     * ```
     *
-    * \e RowView represents matrix row - see \ref TNL::Matrices::SparseSandboxMatrixView::RowView.
+    * \e RowView represents matrix row - see \ref RowView.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixViewExample_forRows.cpp
@@ -642,7 +649,7 @@ public:
     * auto function = [] __cuda_callable__ ( RowView& row ) mutable { ... };
     * ```
     *
-    * \e RowView represents matrix row - see \ref TNL::Matrices::SparseSandboxMatrixView::RowView.
+    * \e RowView represents matrix row - see \ref RowView.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixViewExample_forRows.cpp
@@ -667,7 +674,7 @@ public:
     * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
     * ```
     *
-    * \e RowView represents matrix row - see \ref TNL::Matrices::SparseSandboxMatrixView::RowView.
+    * \e RowView represents matrix row - see \ref RowView.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixViewExample_forRows.cpp
@@ -741,10 +748,14 @@ public:
     *
     * `outVector = matrixMultiplicator * ( * this ) * inVector + outVectorMultiplicator * outVector`
     *
-    * \tparam InVector is type of input vector.  It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
-    * \tparam OutVector is type of output vector. It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
+    * \tparam InVector is type of input vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
+    * \tparam OutVector is type of output vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
     *
     * \param inVector is input vector.
     * \param outVector is output vector.

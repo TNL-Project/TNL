@@ -12,7 +12,7 @@ namespace TNL {
 namespace Meshes {
 
 /**
- * \brief Minimal class usable as \e Mesh in the \ref VTIWriter.
+ * \brief Minimal class usable as \e Mesh in the \ref Writers::VTIWriter.
  *
  * It does not have a \e Device template argument, because it does not describe
  * a data structure - it contains only the information describing the domain of

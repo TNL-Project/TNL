@@ -11,7 +11,7 @@ TNL is based on the following core concepts:
    (TODO: rename to `Executor` or something like that)
    - Device is responsible for the execution of algorithms in a specific way.
    - Algorithms can be specialized by the `Device` template parameter.
-3. \ref TNL::Containers::Algorithms "Algorithms"
+3. \ref TNL::Algorithms "Algorithms"
    - Basic (container-free) algorithms specialized by `Device`/`Executor`.
    - `ParallelFor`, `Reduction`, `MultiReduction`, `ArrayOperations`, ...
 4. \ref TNL::Containers "Containers"

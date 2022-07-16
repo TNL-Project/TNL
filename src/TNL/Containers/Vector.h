@@ -59,8 +59,7 @@ public:
    /**
     * \brief Allocator type used for allocating this vector.
     *
-    * See \ref Allocators::Cuda, \ref Allocators::CudaHost, \ref Allocators::CudaManaged, \ref Allocators::Host or \ref
-    * Allocators:Default.
+    * See \ref TNL::Allocators.
     */
    using AllocatorType = Allocator;
 
@@ -198,7 +197,8 @@ public:
    operator=( const VectorExpression& expression );
 
    /**
-    * \brief Assigns a value or an array - same as \ref Array::operator=.
+    * \brief Assigns a value or an array - same as
+    * \ref TNL::Containers::Array::operator= "Array::operator=".
     *
     * \return Reference to this vector.
     */

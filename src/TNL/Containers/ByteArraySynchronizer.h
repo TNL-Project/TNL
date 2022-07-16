@@ -50,6 +50,12 @@ public:
 
    ByteArraySynchronizer() : tp( 1 ) {}
 
+   /**
+    * \brief Main synchronization function.
+    *
+    * This is only a pure virtual function -- the functionality must be
+    * implemented in a subclass.
+    */
    virtual void
    synchronizeByteArray( ByteArrayView array, int bytesPerValue ) = 0;
 

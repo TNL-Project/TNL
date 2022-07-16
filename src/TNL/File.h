@@ -53,8 +53,8 @@ public:
     * \brief Open given file.
     *
     * Opens file with given \e fileName in some \e mode from \ref std::ios_base::openmode.
-    * Note that the file is always opened in binary mode, i.e. \ref std::ios_base::binary
-    * is always added to \e mode.
+    * Note that the file is always opened in binary mode, i.e. \ref std::ios_base::openmode
+    * "std::ios_base::binary" is always added to \e mode.
     *
     * Throws \ref std::ios_base::failure on failure.
     *

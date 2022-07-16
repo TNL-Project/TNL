@@ -941,10 +941,14 @@ public:
     * outVector = matrixTriplicator * ( * this ) * inVector + outVectorTriplicator * outVector
     * ```
     *
-    * \tparam InVector is type of input vector.  It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
-    * \tparam OutVector is type of output vector. It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
+    * \tparam InVector is type of input vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
+    * \tparam OutVector is type of output vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
     *
     * \param inVector is input vector.
     * \param outVector is output vector.

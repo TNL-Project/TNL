@@ -231,7 +231,7 @@ protected:
  * \param str is a output stream.
  * \param matrix is the matrix to be printed.
  *
- * \return a reference on the output stream \ref std::ostream&.
+ * \return a reference to the output stream \ref std::ostream.
  */
 template< typename Real, typename Device, typename Index >
 std::ostream&

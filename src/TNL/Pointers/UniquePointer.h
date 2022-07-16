@@ -222,11 +222,11 @@ public:
    /**
     * \brief Assignment operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
-    * The original pointer \ref ptr is reset to empty state.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
+    * The original pointer \e ptr is reset to empty state.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    const UniquePointer&
    operator=( UniquePointer& ptr )
@@ -241,11 +241,11 @@ public:
    /**
     * \brief Move operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
-    * The original pointer \ref ptr is reset to empty state.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
+    * The original pointer \e ptr is reset to empty state.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    const UniquePointer&
    operator=( UniquePointer&& ptr ) noexcept
@@ -473,11 +473,11 @@ public:
    /**
     * \brief Assignment operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
-    * The original pointer \ref ptr is reset to empty state.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
+    * The original pointer \e ptr is reset to empty state.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    const UniquePointer&
    operator=( UniquePointer& ptr )
@@ -493,11 +493,11 @@ public:
    /**
     * \brief Move operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
-    * The original pointer \ref ptr is reset to empty state.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
+    * The original pointer \e ptr is reset to empty state.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    const UniquePointer&
    operator=( UniquePointer&& ptr ) noexcept

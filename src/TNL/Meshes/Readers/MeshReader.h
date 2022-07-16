@@ -71,7 +71,7 @@ public:
     *
     * The implementation has to set all protected attributes of this class such
     * that the mesh representation can be loaded into the mesh object by the
-    * \ref loadMesh method.
+    * \ref MeshReader::loadMesh "loadMesh" method.
     */
    virtual void
    detectMesh() = 0;
@@ -376,6 +376,11 @@ protected:
    // string representation of each array's value type
    std::string pointsType, connectivityType, offsetsType, typesType;
 
+   /**
+    * \brief Resets the base class \ref MeshReader to the empty state.
+    *
+    * Subclasses should call this method from their \ref reset method.
+    */
    void
    resetBase()
    {
