@@ -367,9 +367,11 @@ documentation examples:
             - src/TNL/**/*.{h,hpp}
             - .gitlab-ci.yml
     # store output snippets for documentation
+    after_script:
+        - mv "./builddir/$CI_JOB_NAME/output_snippets" "./output_snippets"
     artifacts:
         paths:
-            - Documentation/output_snippets/
+            - ./output_snippets/
 
 build documentation:
     stage: build:doc
@@ -383,7 +385,7 @@ build documentation:
         - job: documentation examples
           artifacts: true
     script:
-        - ./Documentation/build
+        - ./Documentation/build --output-snippets-path="$(pwd)/output_snippets/"
     artifacts:
         paths:
             - ./Documentation/html/

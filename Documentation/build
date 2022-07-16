@@ -2,6 +2,7 @@
 
 PREFIX="$HOME/.local"
 INSTALL="no"
+OUTPUT_SNIPPETS_PATH=""
 
 set -e
 
@@ -24,8 +25,14 @@ do
    case $option in
       --prefix=*                       ) PREFIX="${option#*=}" ;;
       --install=*                      ) INSTALL="${option#*=}" ;;
+      --output-snippets-path=*         ) OUTPUT_SNIPPETS_PATH="${option#*=}" ;;
    esac
 done
+
+if [[ "$OUTPUT_SNIPPETS_PATH" == "" ]]; then
+    echo "ERROR: --output-snippets-path was not set" >&2
+    exit 1
+fi
 
 # Remove existing html/ directory which may contain old files
 rm -rf ./html/
@@ -48,8 +55,8 @@ else
 fi
 
 # Generate documentation
-PROJECT_NUMBER="$PROJECT_NUMBER" doxygen
-cp output_snippets/*png html
+PROJECT_NUMBER="$PROJECT_NUMBER" OUTPUT_SNIPPETS_PATH="$OUTPUT_SNIPPETS_PATH" doxygen
+cp "$OUTPUT_SNIPPETS_PATH"/*.png html
 
 # Install
 if [[ "$INSTALL" == "yes" ]]; then

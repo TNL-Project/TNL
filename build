@@ -294,7 +294,7 @@ if ! $make -C "$BUILD_DIR" ${VERBOSE} $make_target; then
 fi
 
 if [[ ${BUILD_DOC} == "yes" ]]; then
-   "$ROOT_DIR/Documentation/build" --prefix="$PREFIX" --install="$INSTALL"
+   "$ROOT_DIR/Documentation/build" --prefix="$PREFIX" --install="$INSTALL" --output-snippets-path="$(pwd)/$BUILD_DIR/output_snippets/"
 fi
 
 if [[ ${BUILD_TESTS} == "yes" ]] || [[ ${BUILD_MATRIX_TESTS} == "yes" ]]; then

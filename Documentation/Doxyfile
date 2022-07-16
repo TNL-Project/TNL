@@ -927,7 +927,7 @@ EXCLUDE_SYMBOLS += TNL::Assert::*  # internal namespace
 
 EXAMPLE_PATH += Examples
 EXAMPLE_PATH += Tutorials
-EXAMPLE_PATH += output_snippets
+EXAMPLE_PATH += $(OUTPUT_SNIPPETS_PATH)
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and
