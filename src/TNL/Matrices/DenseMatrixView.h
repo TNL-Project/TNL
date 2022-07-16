@@ -632,9 +632,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixViewExample_forAllRows.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixViewExample_forAllElements.cpp
     * \par Output
-    * \include DenseMatrixViewExample_forAllRows.out
+    * \include DenseMatrixViewExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -649,9 +649,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixExample_forAllRows.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixExample_forAllElements.cpp
     * \par Output
-    * \include DenseMatrixExample_forAllRows.out
+    * \include DenseMatrixExample_forAllElements.out
     */
    template< typename Function >
    void

@@ -231,9 +231,9 @@ public:
     * \return number of all non-zero matrix elements.
     *
     * \par Example
-    * \include Matrices/LambdaMatrix/LambdaMatrixExample_getElementsCount.cpp
+    * \include Matrices/LambdaMatrix/LambdaMatrixExample_getNonzeroElementsCount.cpp
     * \par Output
-    * \include LambdaMatrixExample_getElementsCount.out
+    * \include LambdaMatrixExample_getNonzeroElementsCount.out
     */
    IndexType
    getNonzeroElementsCount() const;
@@ -246,7 +246,7 @@ public:
     * \return RowView for accessing given matrix row.
     *
     * \par Example
-    * \include Matrices/SparseMatrix/LambdaMatrixExample_getRow.cpp
+    * \include Matrices/LambdaMatrix/LambdaMatrixExample_getRow.cpp
     * \par Output
     * \include LambdaMatrixExample_getRow.out
     *
@@ -285,9 +285,9 @@ public:
     * \param function is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/LambdaMatrix/LambdaMatrixExample_forRows.cpp
+    * \include Matrices/LambdaMatrix/LambdaMatrixExample_forElements.cpp
     * \par Output
-    * \include LambdaMatrixExample_forRows.out
+    * \include LambdaMatrixExample_forElements.out
     */
    template< typename Function >
    void
@@ -302,9 +302,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/LambdaMatrix/LambdaMatrixExample_forAllRows.cpp
+    * \include Matrices/LambdaMatrix/LambdaMatrixExample_forAllElements.cpp
     * \par Output
-    * \include LambdaMatrixExample_forAllRows.out
+    * \include LambdaMatrixExample_forAllElements.out
     */
    template< typename Function >
    void

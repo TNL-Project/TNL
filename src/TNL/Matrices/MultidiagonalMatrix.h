@@ -859,9 +859,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forAllRows.cpp
+    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forAllElements.cpp
     * \par Output
-    * \include MultidiagonalMatrixExample_forAllRows.out
+    * \include MultidiagonalMatrixExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -876,9 +876,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forAllRows.cpp
+    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forAllElements.cpp
     * \par Output
-    * \include MultidiagonalMatrixExample_forAllRows.out
+    * \include MultidiagonalMatrixExample_forAllElements.out
     */
    template< typename Function >
    void

@@ -22,6 +22,7 @@ set( HOST_EXAMPLES
    StringExampleGetAllocatedSize
    StringExampleReplace
    StringExampleSplit
+   StringExampleSetSize
    StringExampleStrip
    TimerExample
    TimerExampleLogger )

@@ -8,8 +8,7 @@ set( COMMON_EXAMPLES
 #    MultidiagonalMatrixExample_getElementsCount
     MultidiagonalMatrixExample_getConstRow
     MultidiagonalMatrixExample_getRow
-# This example does not work with nvcc 10.1. Restore it here when it works.
-#    MultidiagonalMatrixExample_setElement
+    MultidiagonalMatrixExample_setElement
     MultidiagonalMatrixExample_addElement
     MultidiagonalMatrixExample_getElement
     MultidiagonalMatrixExample_reduceRows

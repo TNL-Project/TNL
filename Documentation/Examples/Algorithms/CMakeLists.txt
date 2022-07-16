@@ -5,8 +5,11 @@ set( COMMON_EXAMPLES
    SortingExample2
    SortingExample3
    ParallelForExample
+   ParallelForExample-2D
+   ParallelForExample-3D
    SequentialForExample
    reduceArrayExample
+   reduceWithArgumentArrayExample
 )
 
 set( HOST_EXAMPLES

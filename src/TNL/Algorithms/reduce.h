@@ -60,11 +60,11 @@ namespace Algorithms {
  *
  * \par Example
  *
- * \include ReductionAndScan/SumExampleWithLambda.cpp
+ * \include ReductionAndScan/SumExample.cpp
  *
  * \par Output
  *
- * \include SumExampleWithLambda.out
+ * \include SumExample.out
  */
 template< typename Device, typename Index, typename Result, typename Fetch, typename Reduction >
 Result

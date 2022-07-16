@@ -6,8 +6,7 @@ set( COMMON_EXAMPLES
 #   TridiagonalMatrixExample_getElementsCount
     TridiagonalMatrixExample_getConstRow
     TridiagonalMatrixExample_getRow
-# This example does not work with nvcc 10.1. Restore it here when it works.
-#   TridiagonalMatrixExample_setElement
+    TridiagonalMatrixExample_setElement
     TridiagonalMatrixExample_addElement
     TridiagonalMatrixExample_getElement
     TridiagonalMatrixExample_reduceRows

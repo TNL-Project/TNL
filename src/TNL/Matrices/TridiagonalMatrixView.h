@@ -566,9 +566,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_forAllRows.cpp
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_forAllElements.cpp
     * \par Output
-    * \include TridiagonalMatrixViewExample_forAllRows.out
+    * \include TridiagonalMatrixViewExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -583,9 +583,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_forAllRows.cpp
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_forAllElements.cpp
     * \par Output
-    * \include TridiagonalMatrixViewExample_forAllRows.out
+    * \include TridiagonalMatrixViewExample_forAllElements.out
     */
    template< typename Function >
    void

@@ -555,9 +555,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixViewExample_forAllRows.cpp
+    * \include Matrices/SparseMatrix/SparseMatrixViewExample_forAllElements.cpp
     * \par Output
-    * \include SparseMatrixViewExample_forAllRows.out
+    * \include SparseMatrixViewExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -572,9 +572,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixViewExample_forAllRows.cpp
+    * \include Matrices/SparseMatrix/SparseMatrixViewExample_forAllElements.cpp
     * \par Output
-    * \include SparseMatrixViewExample_forAllRows.out
+    * \include SparseMatrixViewExample_forAllElements.out
     */
    template< typename Function >
    void
