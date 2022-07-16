@@ -66,9 +66,10 @@ MatrixWriter< Matrix, Device >::writeEps( std::ostream& str, const Matrix& matri
    MatrixWriter< HostMatrix >::writeEps( str, hostMatrix, verbose );
 }
 
-/**
- * MatrixWriter specialization for TNL::Devices::Host.
- */
+// MatrixWriter specialization for TNL::Devices::Host.
+
+// This is to prevent Doxygen warnings due to hidden class.
+/// \cond
 template< typename Matrix >
 void
 MatrixWriter< Matrix, TNL::Devices::Host >::writeGnuplot( const TNL::String& fileName, const Matrix& matrix, bool verbose )
@@ -193,6 +194,7 @@ MatrixWriter< Matrix, TNL::Devices::Host >::writeEpsBody( std::ostream& str,
          std::cout << "Drawing the row " << row << "      \r" << std::flush;
    }
 }
+/// \endcond
 
 }  // namespace Matrices
 }  // namespace TNL

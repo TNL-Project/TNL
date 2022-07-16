@@ -45,8 +45,6 @@ namespace TNL {
  *
  * [hypre]: https://github.com/hypre-space/hypre
  * [example]: https://gitlab.com/tnl-project/tnl/-/blob/main/src/Examples/Hypre/tnl-hypre-ex5.cpp
- *
- * @{
  */
 
 /**
@@ -55,6 +53,8 @@ namespace TNL {
  * When the object is constructed, it calls \e HYPRE_Init() and sets some
  * GPU-relevant options. The \e HYPRE_Finalize() function is called
  * automatically from the object's destructor.
+ *
+ * \ingroup Hypre
  */
 struct Hypre
 {
@@ -124,13 +124,12 @@ getHypreMemoryLocation()
           * The type depends on how the Hypre library was configured. By
           * default, it is \ref Devices::Host. When using Hypre built with CUDA
           * support, it is \ref Devices::Cuda.
+          *
+          * \ingroup Hypre
           */
          using HYPRE_Device = Devices::Host;
       }
    #endif
 // clang-format on
-
-// this is a Doxygen end-group marker
-//! @}
 
 #endif  // HAVE_HYPRE

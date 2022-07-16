@@ -57,8 +57,12 @@ protected:
 };
 
 template< typename Mesh, typename Device = typename Mesh::DeviceType, typename DimensionTag = Meshes::DimensionTag< 0 > >
-class GlobalIndexStorageFamily : public GlobalIndexStorage< Mesh, Device, DimensionTag::value >,
-                                 public GlobalIndexStorageFamily< Mesh, Device, typename DimensionTag::Increment >
+class GlobalIndexStorageFamily
+// Doxygen complains about recursive classes
+//! \cond
+: public GlobalIndexStorage< Mesh, Device, DimensionTag::value >,
+  public GlobalIndexStorageFamily< Mesh, Device, typename DimensionTag::Increment >
+//! \endcond
 {
 public:
    GlobalIndexStorageFamily() = default;

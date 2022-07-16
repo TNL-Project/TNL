@@ -34,10 +34,10 @@ MatrixReader< Matrix, Device >::readMtx( std::istream& str, Matrix& matrix, bool
    matrix = hostMatrix;
 }
 
-/**
- * MatrixReader specialization for TNL::Devices::Host.
- */
+// MatrixReader specialization for TNL::Devices::Host.
 
+// This is to prevent Doxygen warnings due to hidden class.
+/// \cond
 template< typename Matrix >
 void
 MatrixReader< Matrix, TNL::Devices::Host >::readMtx( const String& fileName, Matrix& matrix, bool verbose )
@@ -354,6 +354,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::parseMtxLineWithElement( const Strin
    column = atoi( parsedLine[ 1 ].getString() );
    value = (RealType) atof( parsedLine[ 2 ].getString() );
 }
+/// \endcond
 
 }  // namespace Matrices
 }  // namespace TNL

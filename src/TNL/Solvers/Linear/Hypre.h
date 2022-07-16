@@ -17,10 +17,8 @@ namespace TNL {
 namespace Solvers {
 namespace Linear {
 
-//! \addtogroup Hypre
-//! @{
-
 //! \brief Abstract class for Hypre's solvers and preconditioners
+//! \ingroup Hypre
 class HypreSolver
 {
 public:
@@ -134,6 +132,8 @@ public:
  * See the [Hypre Reference Manual][manual] for the available parameters.
  *
  * [manual]: https://hypre.readthedocs.io/_/downloads/en/latest/pdf/
+ *
+ * \ingroup Hypre
  */
 class HyprePCG : public HypreSolver
 {
@@ -224,6 +224,8 @@ protected:
  * See the [Hypre Reference Manual][manual] for the available parameters.
  *
  * [manual]: https://hypre.readthedocs.io/_/downloads/en/latest/pdf/
+ *
+ * \ingroup Hypre
  */
 class HypreBiCGSTAB : public HypreSolver
 {
@@ -311,6 +313,8 @@ protected:
  * See the [Hypre Reference Manual][manual] for the available parameters.
  *
  * [manual]: https://hypre.readthedocs.io/_/downloads/en/latest/pdf/
+ *
+ * \ingroup Hypre
  */
 class HypreGMRES : public HypreSolver
 {
@@ -399,6 +403,8 @@ protected:
  * See the [Hypre Reference Manual][manual] for the available parameters.
  *
  * [manual]: https://hypre.readthedocs.io/_/downloads/en/latest/pdf/
+ *
+ * \ingroup Hypre
  */
 class HypreFlexGMRES : public HypreSolver
 {
@@ -469,6 +475,7 @@ protected:
 };
 
 //! \brief Wrapper for the identity operator as a Hypre solver
+//! \ingroup Hypre
 class HypreIdentity : public HypreSolver
 {
 public:
@@ -486,6 +493,7 @@ public:
 };
 
 //! \brief Wrapper for the Jacobi preconditioner in Hypre
+//! \ingroup Hypre
 class HypreDiagScale : public HypreSolver
 {
 public:
@@ -508,6 +516,8 @@ public:
  *
  * Finds correct ordering and performs forward substitution on processor as
  * approximate inverse. Exact on one processor.
+ *
+ * \ingroup Hypre
  */
 class HypreTriSolve : public HypreSolver
 {
@@ -538,6 +548,8 @@ public:
  * See the [Hypre Reference Manual][manual] for the available parameters.
  *
  * [manual]: https://hypre.readthedocs.io/_/downloads/en/latest/pdf/
+ *
+ * \ingroup Hypre
  */
 class HypreParaSails : public HypreSolver
 {
@@ -579,6 +591,8 @@ public:
  * See the [Hypre Reference Manual][manual] for the available parameters.
  *
  * [manual]: https://hypre.readthedocs.io/_/downloads/en/latest/pdf/
+ *
+ * \ingroup Hypre
  */
 class HypreEuclid : public HypreSolver
 {
@@ -615,6 +629,8 @@ public:
  * See the [Hypre Reference Manual][manual] for the available parameters.
  *
  * [manual]: https://hypre.readthedocs.io/_/downloads/en/latest/pdf/
+ *
+ * \ingroup Hypre
  */
 class HypreILU : public HypreSolver
 {
@@ -668,6 +684,8 @@ public:
  * See the [Hypre Reference Manual][manual] for the available parameters.
  *
  * [manual]: https://hypre.readthedocs.io/_/downloads/en/latest/pdf/
+ *
+ * \ingroup Hypre
  */
 class HypreBoomerAMG : public HypreSolver
 {
@@ -757,8 +775,5 @@ protected:
 }  // namespace TNL
 
    #include "Hypre.hpp"
-
-// this is a Doxygen end-group marker
-//! @}
 
 #endif  // HAVE_HYPRE
