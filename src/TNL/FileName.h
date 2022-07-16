@@ -150,7 +150,7 @@ getFileExtension( const String& fileName );
 /**
  * \brief Cuts off the file extension.
  *
- * @param file_name Input file name.
+ * @param fileName Input file name.
  * @return String with the file name without extension.
  */
 String

@@ -111,7 +111,7 @@ public:
    /**
     * \brief Copy constructor.
     *
-    * \param matrix is an input multidiagonal matrix view.
+    * \param view is an input multidiagonal matrix view.
     */
    __cuda_callable__
    MultidiagonalMatrixView( const MultidiagonalMatrixView& view ) = default;
@@ -119,7 +119,7 @@ public:
    /**
     * \brief Move constructor.
     *
-    * \param matrix is an input multidiagonal matrix view.
+    * \param view is an input multidiagonal matrix view.
     */
    __cuda_callable__
    MultidiagonalMatrixView( MultidiagonalMatrixView&& view ) noexcept = default;
@@ -220,6 +220,8 @@ public:
     * \tparam Index_ is \e Index type of the source matrix.
     * \tparam Organization_ is \e Organization of the source matrix.
     *
+    * \param matrix is the source matrix view.
+    *
     * \return \e true if both matrices are identical and \e false otherwise.
     */
    template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_ >
@@ -234,7 +236,7 @@ public:
     * \tparam Index_ is \e Index type of the source matrix.
     * \tparam Organization_ is \e Organization of the source matrix.
     *
-    * \param matrix is the source matrix.
+    * \param matrix is the source matrix view.
     *
     * \return \e true if both matrices are NOT identical and \e false otherwise.
     */
@@ -284,7 +286,7 @@ public:
     * \param value is the new value of all matrix elements.
     */
    void
-   setValue( const RealType& v );
+   setValue( const RealType& value );
 
    /**
     * \brief Sets element at given \e row and \e column to given \e value.
@@ -401,7 +403,7 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& zero ) const;
+   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& identity ) const;
 
    /**
     * \brief Method for performing general reduction on matrix rows.
@@ -444,7 +446,7 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& zero );
+   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& identity );
 
    /**
     * \brief Method for performing general reduction on all matrix rows for constant instances.
@@ -843,7 +845,7 @@ public:
    /**
     * \brief Assignment of exactly the same matrix type.
     *
-    * \param matrix is input matrix for the assignment.
+    * \param view is input matrix view for the assignment.
     * \return reference to this matrix.
     */
    MultidiagonalMatrixView&

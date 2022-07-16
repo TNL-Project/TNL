@@ -145,8 +145,10 @@ sort( Array& array, const Compare& compare, const Sorter& sorter = Sorter{} )
  *         \ref TNL::Algorithms::Sorting::BitonicSort for sorting on CUDA GPU.
  *         Currently there is no algorithm for CPU :(.
  *
- * \param array is an instance of array/array view/vector/vector view for sorting.
+ * \param begin is the first index of the range `[begin, end)` to be sorted.
+ * \param end is the end index of the range `[begin, end)` to be sorted.
  * \param compare is an instance of the lambda function for comparison of two elements.
+ * \param swap is an instance of the lambda function for swapping of two elements.
  * \param sorter is an instance of sorter.
  *
  * \par Example

@@ -605,8 +605,6 @@ public:
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
     * \param fetch is an instance of lambda function for data fetch.
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
@@ -648,8 +646,6 @@ public:
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
     * \param fetch is an instance of lambda function for data fetch.
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
@@ -728,8 +724,6 @@ public:
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
     * \param function is an instance of the lambda function to be called in each row.
     *
     * \par Example
@@ -753,8 +747,6 @@ public:
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
     *
-    * \param begin defines beginning of the range [begin,end) of rows to be processed.
-    * \param end defines ending of the range [begin,end) of rows to be processed.
     * \param function is an instance of the lambda function to be called in each row.
     *
     * \par Example

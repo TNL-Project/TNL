@@ -212,7 +212,7 @@ public:
     * \tparam ListReal is type used in the initializer list defining matrix elements values.
     *
     * \param columns is number of matrix columns.
-    * \param diagonalOffsets are offsets of sub-diagonals from the main diagonal.
+    * \param diagonalsOffsets are offsets of sub-diagonals from the main diagonal.
     * \param data is initializer list holding matrix elements. The size of the outer list
     *    defines the number of matrix rows. Each inner list defines values of each sub-diagonal
     *    and so its size should be lower or equal to the size of \e diagonalsOffsets. Values
@@ -655,7 +655,7 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& zero );
+   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& identity );
 
    /**
     * \brief Method for performing general reduction on matrix rows for constant instances.
@@ -698,7 +698,7 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& zero ) const;
+   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& identity ) const;
 
    /**
     * \brief Method for performing general reduction on all matrix rows.

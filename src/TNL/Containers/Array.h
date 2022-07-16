@@ -576,7 +576,7 @@ public:
    /**
     * \brief Copies elements from \ref std::vector to this array.
     *
-    * \param list The STL vector containing elements to be copied.
+    * \param vector The STL vector containing elements to be copied.
     * \return Reference to this array.
     */
    template< typename InValue >

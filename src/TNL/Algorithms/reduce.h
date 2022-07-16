@@ -253,9 +253,6 @@ reduceWithArgument( Index begin, Index end, Fetch&& fetch, Reduction&& reduction
  * \param end defines range [begin, end) of indexes which will be used for the reduction.
  * \param fetch is a lambda function fetching the input data.
  * \param reduction is a lambda function defining the reduction operation and managing the elements positions.
- * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
- *                 for the reduction operation, i.e. element which does not
- *                 change the result of the reduction.
  * \return result of the reduction in a form of std::pair< Index, Result> structure. `pair.first`
  *         is the element position and `pair.second` is the reduction result.
  *

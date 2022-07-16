@@ -235,9 +235,9 @@ protected:
  */
 template< typename Real, typename Device, typename Index >
 std::ostream&
-operator<<( std::ostream& str, const MatrixView< Real, Device, Index >& m )
+operator<<( std::ostream& str, const MatrixView< Real, Device, Index >& matrix )
 {
-   m.print( str );
+   matrix.print( str );
    return str;
 }
 

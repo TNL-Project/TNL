@@ -153,9 +153,8 @@ public:
    /**
     * \brief Sets value of matrix element with given column index.
     *
-    * The \e localIdx parameter is here only for compatibility with
-    * the sparse matrices and it is omitted.
-    *
+    * \param localIdx is here only for compatibility with the sparse matrices
+    *        and it is unused.
     * \param column is a column index of the matrix element.
     * \param value is a value the matrix element will be set to.
     */

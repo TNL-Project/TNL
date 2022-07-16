@@ -65,7 +65,7 @@ public:
    /**
     * \brief Method for exporting matrix to STL output stream using Gnuplot format.
     *
-    * \param file is the output stream.
+    * \param str is the output stream.
     * \param matrix is the source matrix.
     * \param verbose controls verbosity of the matrix export.
     */
@@ -85,7 +85,7 @@ public:
    /**
     * \brief Method for exporting matrix to STL output stream using EPS format.
     *
-    * \param file is the output stream.
+    * \param str is the output stream.
     * \param matrix is the source matrix.
     * \param verbose controls verbosity of the matrix export.
     */
@@ -105,7 +105,7 @@ public:
    /**
     * \brief Method for exporting matrix to STL output stream using MTX format.
     *
-    * \param file is the output stream.
+    * \param str is the output stream.
     * \param matrix is the source matrix.
     * \param verbose controls verbosity of the matrix export.
     */

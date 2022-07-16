@@ -1059,7 +1059,7 @@ public:
     */
    template< typename Matrix >
    bool
-   operator==( const Matrix& m ) const;
+   operator==( const Matrix& matrix ) const;
 
    /**
     * \brief Comparison operator with another arbitrary matrix type.
@@ -1069,7 +1069,7 @@ public:
     */
    template< typename Matrix >
    bool
-   operator!=( const Matrix& m ) const;
+   operator!=( const Matrix& matrix ) const;
 
    /**
     * \brief Method for saving the matrix to the file with given filename.
@@ -1090,7 +1090,7 @@ public:
    /**
     * \brief Method for saving the matrix to a file.
     *
-    * \param fileName is name of the file.
+    * \param file is the file where the matrix will be saved.
     */
    void
    save( File& file ) const override;
@@ -1098,7 +1098,7 @@ public:
    /**
     * \brief Method for loading the matrix from a file.
     *
-    * \param fileName is name of the file.
+    * \param file is the file from which the matrix will be loaded.
     */
    void
    load( File& file ) override;

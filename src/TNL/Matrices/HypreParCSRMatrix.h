@@ -76,6 +76,7 @@ public:
    /**
     * \brief Convert Hypre's format to \e HypreParCSRMatrix
     *
+    * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the matrix should take ownership of
     * the handle, i.e. whether to call \e hypre_CSRMatrixDestroy when it does
     * not need it anymore.
@@ -149,10 +150,12 @@ public:
     *
     * \note This function can be used only for matrices allocated on the host.
     *
+    * \param communicator MPI communicator to associate with the matrix.
     * \param global_row_starts Array of `nproc + 1` elements, where `nproc` is
     *                          the number of ranks in the \e communicator.
     * \param global_col_starts Array of `nproc + 1` elements, where `nproc` is
     *                          the number of ranks in the \e communicator.
+    * \param matrix Matrix allocated on the master rank to be distributed.
     */
    static HypreParCSRMatrix
    fromMasterRank( MPI_Comm communicator, IndexType* global_row_starts, IndexType* global_col_starts, hypre_CSRMatrix* matrix )
@@ -193,6 +196,7 @@ public:
     *
     * \note This function can be used only for matrices allocated on the host.
     *
+    * \param matrix Matrix allocated on the master rank to be distributed.
     * \param x The values of the vector are unused, but its distribution is
     *          used for the distribution of the matrix **columns**.
     * \param b The values of the vector are unused, but its distribution is
@@ -237,6 +241,7 @@ public:
     * \brief Constructs a \e ParCSRMatrix from local blocks distributed across
     * the processors in \e communicator.
     *
+    * \param communicator MPI communicator to associate with the matrix.
     * \param global_num_rows Global number of rows of the distributed matrix.
     * \param global_num_cols Global number of columns of the distributed matrix.
     * \param local_row_range The range `[begin, end)` of rows owned by the
@@ -244,7 +249,7 @@ public:
     * \param local_col_range The range `[begin, end)` of columns owned by the
     *                        calling rank. For square matrices it should be
     *                        equal to \e local_row_range.
-    * \param matrix The local matrix block owned by the calling rank. The
+    * \param local_A The local matrix block owned by the calling rank. The
     *        number of rows must match the size of \e local_row_range and the
     *        column indices must span the whole `[0, global_cols)` range.
     */
@@ -408,6 +413,7 @@ public:
    /**
     * \brief Convert Hypre's format to \e HypreParCSRMatrix
     *
+    * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the matrix should take ownership of
     * the handle, i.e. whether to call \e hypre_CSRMatrixDestroy when it does
     * not need it anymore.

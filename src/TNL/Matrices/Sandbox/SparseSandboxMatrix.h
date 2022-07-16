@@ -260,7 +260,7 @@ public:
     *
     * \param matrix is the source matrix
     */
-   SparseSandboxMatrix( const SparseSandboxMatrix& matrix1 ) = default;
+   SparseSandboxMatrix( const SparseSandboxMatrix& matrix ) = default;
 
    /**
     * \brief Move constructor.
@@ -1073,8 +1073,8 @@ public:
                   OutVector& outVector,
                   RealType matrixMultiplicator = 1.0,
                   RealType outVectorMultiplicator = 0.0,
-                  IndexType firstRow = 0,
-                  IndexType lastRow = 0 ) const;
+                  IndexType begin = 0,
+                  IndexType end = 0 ) const;
 
    /*template< typename Real2, typename Index2 >
    void addMatrix( const SparseMatrix< Real2, Segments, Device, Index2 >& matrix,
@@ -1141,7 +1141,7 @@ public:
     */
    template< typename Matrix >
    bool
-   operator==( const Matrix& m ) const;
+   operator==( const Matrix& matrix ) const;
 
    /**
     * \brief Comparison operator with another arbitrary matrix type.
@@ -1151,7 +1151,7 @@ public:
     */
    template< typename Matrix >
    bool
-   operator!=( const Matrix& m ) const;
+   operator!=( const Matrix& matrix ) const;
 
    /**
     * \brief Method for saving the matrix to the file with given filename.

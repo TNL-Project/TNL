@@ -30,7 +30,8 @@ namespace Algorithms {
  * \tparam DistributedArray type of the distributed array to be scanned
  * \tparam Reduction type of the reduction functor
  *
- * \param array input array, the result of scan is stored in the same array
+ * \param input input array
+ * \param output output array
  * \param begin the first element in the array to be scanned
  * \param end the last element in the array to be scanned
  * \param reduction functor implementing the reduction operation
@@ -105,7 +106,8 @@ distributedInclusiveScan( const InputDistributedArray& input,
  * \tparam DistributedArray type of the distributed array to be scanned
  * \tparam Reduction type of the reduction functor
  *
- * \param array input array, the result of scan is stored in the same array
+ * \param input input array
+ * \param output output array
  * \param begin the first element in the array to be scanned
  * \param end the last element in the array to be scanned
  * \param reduction functor implementing the reduction operation

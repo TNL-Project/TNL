@@ -73,6 +73,7 @@ public:
     * This function also resets the internal flag indicating whether the Hypre
     * setup function was called for the current matrix.
     *
+    * \param op The input matrix.
     * \param reuse_setup When true, the result of the previous setup phase will
     *                    be preserved, i.e., the solver (and preconditioner)
     *                    will not be updated for the new matrix when calling
