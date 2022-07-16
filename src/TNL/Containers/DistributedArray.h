@@ -14,6 +14,9 @@
 namespace TNL {
 namespace Containers {
 
+/**
+ * \brief Distributed array.
+ */
 template< typename Value,
           typename Device = Devices::Host,
           typename Index = int,

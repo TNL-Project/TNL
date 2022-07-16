@@ -18,6 +18,9 @@
 namespace TNL {
 namespace Containers {
 
+/**
+ * \brief Distributed array view.
+ */
 template< typename Value, typename Device = Devices::Host, typename Index = int >
 class DistributedArrayView
 {
