@@ -474,8 +474,9 @@ public:
     *    It is should have form like
     *
     * ```
-    * auto function = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, const RealType& value
-    * ) { ... };
+    * auto function = [=] __cuda_callable__
+    *      ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, const RealType& value )
+    *      { ... };
     * ```
     *
     *  The column index repeats twice only for compatibility with sparse matrices.
@@ -500,8 +501,9 @@ public:
     *    It is should have form like
     *
     * ```
-    * auto function = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, RealType& value ) {
-    * ... };
+    * auto function = [=] __cuda_callable__
+    *      ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, RealType& value )
+    *      { ... };
     * ```
     *
     *  The column index repeats twice only for compatibility with sparse matrices.
@@ -783,7 +785,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row.
     *          It is declared as
     *
-    * ````
+    * ```
     * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
     * ```
     *
@@ -817,15 +819,16 @@ public:
     * auto fetch = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, RealType elementValue ) -> FetchValue { ... };
     * ```
     *
-    *      The return type of this lambda can be any non void.
+    * The return type of this lambda can be any non void.
+    *
     * \tparam Reduce is a type of lambda function for reduction declared as
     *
-    * ````
+    * ```
     * auto reduce = [=] __cuda_callable__ ( const FetchValue& v1, const FetchValue& v2 ) -> FetchValue { ... };
     * ```
     *
     * \tparam Keep is a type of lambda function for storing results of reduction in each row.
-    *          It is declared as
+    *         It is declared as
     * ```
     * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
     * ```
@@ -867,7 +870,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row.
     *          It is declared as
     *
-    *  ```
+    * ```
     * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
     * ```
     *
