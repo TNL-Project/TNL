@@ -241,6 +241,35 @@ operator-( const SizesHolder< Index, sizes... >& lhs, const OtherHolder& rhs )
    return result;
 }
 
+/**
+ * \brief Prints the sizes contained in an instance of \ref SizesHolder to the
+ * given output stream.
+ *
+ * \ingroup ndarray
+ */
+template< typename Index, std::size_t... sizes >
+std::ostream&
+operator<<( std::ostream& str, const SizesHolder< Index, sizes... >& holder )
+{
+   str << "SizesHolder< ";
+   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
+      [ &str, &holder ]( auto dimension )
+      {
+         str << holder.template getStaticSize< dimension >() << ", ";
+      } );
+   str << holder.template getStaticSize< sizeof...( sizes ) - 1 >() << " >( ";
+   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
+      [ &str, &holder ]( auto dimension )
+      {
+         str << holder.template getSize< dimension >() << ", ";
+      } );
+   str << holder.template getSize< sizeof...( sizes ) - 1 >() << " )";
+   return str;
+}
+
+namespace detail {
+
+// helper for the methods forAll, forInternal, etc.
 template< typename Index, std::size_t dimension, Index constSize >
 class ConstStaticSizesHolder
 {
@@ -285,34 +314,6 @@ public:
       return false;
    }
 };
-
-/**
- * \brief Prints the sizes contained in an instance of \ref SizesHolder to the
- * given output stream.
- *
- * \ingroup ndarray
- */
-template< typename Index, std::size_t... sizes >
-std::ostream&
-operator<<( std::ostream& str, const SizesHolder< Index, sizes... >& holder )
-{
-   str << "SizesHolder< ";
-   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
-      [ &str, &holder ]( auto dimension )
-      {
-         str << holder.template getStaticSize< dimension >() << ", ";
-      } );
-   str << holder.template getStaticSize< sizeof...( sizes ) - 1 >() << " >( ";
-   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
-      [ &str, &holder ]( auto dimension )
-      {
-         str << holder.template getSize< dimension >() << ", ";
-      } );
-   str << holder.template getSize< sizeof...( sizes ) - 1 >() << " )";
-   return str;
-}
-
-namespace detail {
 
 // helper for the forInternal method
 template< typename SizesHolder, std::size_t ConstValue >

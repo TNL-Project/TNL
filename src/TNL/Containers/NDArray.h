@@ -330,7 +330,7 @@ public:
    forAll( Func f ) const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       dispatch( Begins{}, getSizes(), f );
    }
 
@@ -355,7 +355,7 @@ public:
    forInternal( Func f ) const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
+      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
       // subtract static sizes
       using Ends = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
@@ -400,8 +400,8 @@ public:
    void
    forBoundary( Func f ) const
    {
-      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
-      using SkipBegins = ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
+      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using SkipBegins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
       // subtract static sizes
       using SkipEnds = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
@@ -424,7 +424,7 @@ public:
    forBoundary( Func f, const SkipBegins& skipBegins, const SkipEnds& skipEnds ) const
    {
       // TODO: assert "skipBegins <= sizes", "skipEnds <= sizes"
-      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( Begins{}, skipBegins, skipEnds, getSizes(), f );
    }
