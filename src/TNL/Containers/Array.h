@@ -20,9 +20,6 @@ namespace TNL {
  */
 namespace Containers {
 
-template< int, typename >
-class StaticArray;
-
 /**
  * \brief \e Array is responsible for memory management, access to array
  * elements, and general array operations.
