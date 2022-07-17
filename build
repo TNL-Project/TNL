@@ -199,10 +199,6 @@ else
    check_file="Makefile"
 fi
 
-# remove old build directories that were used before the unified top-level "builddir"
-# (TODO: this code be removed later)
-rm -rf ./Release ./Debug ./RelWithDebInfo ./Testing ./Build
-
 BUILD_DIR="builddir/$BUILD"
 cmake_command=(
    "$CMAKE" -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator"
