@@ -1,6 +1,6 @@
 add_subdirectory( 3rdparty )
 
-install( DIRECTORY TNL/ DESTINATION ${TNL_TARGET_INCLUDE_DIRECTORY}
+install( DIRECTORY TNL TYPE INCLUDE
          MESSAGE_NEVER
          FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" )
 
