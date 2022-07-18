@@ -1,4 +1,12 @@
 
+// Copyright (c) 2004-2022 Tomáš Oberhuber et al.
+//
+// This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+//
+// SPDX-License-Identifier: MIT
+
+// Implemented by: Tomáš Oberhuber, Yury Hayeu
+
 #pragma once
 
 #include "Operations.h"
@@ -15,19 +23,34 @@
 
 static std::vector<TNL::String> dimensionParameterIds = { "x-dimension", "y-dimension", "z-dimension" };
 
+template< typename Real = double,
+          typename Device = TNL::Devices::Host,
+           typename Index = int >
 class GridBenchmark {
    public:
       using Benchmark = typename TNL::Benchmarks::Benchmark<>;
 
-      template<int GridDimension>
+      static void setupConfig( TNL::Config::ConfigDescription& config ) {
+
+         config.addDelimiter("Benchmark settings:");
+         config.addEntry<TNL::String>("log-file", "Log file name.", "output.log");
+         config.addEntry<TNL::String>("output-mode", "Mode for opening the log file.", "overwrite");
+         config.addEntryEnum("append");
+         config.addEntryEnum("overwrite");
+         for (int i = 0; i < 3; i++)
+            config.addEntry<int>( dimensionParameterIds[i], "Grid resolution.", 100 );
+
+         config.addEntry<int>("loops", "Number of iterations for every computation.", 10);
+         config.addEntry<int>("verbose", "Verbose mode.", 1 );
+      }
+
+      template< int GridDimension >
       int runBenchmark(const TNL::Config::ParameterContainer& parameters) const {
          if (!TNL::Devices::Host::setup( parameters ) || !TNL::Devices::Cuda::setup( parameters ) )
             return EXIT_FAILURE;
 
          const TNL::String logFileName = parameters.getParameter<TNL::String>( "log-file" );
          const TNL::String outputMode = parameters.getParameter<TNL::String>( "output-mode" );
-         const TNL::String precision = parameters.getParameter<TNL::String>( "precision" );
-         const TNL::String device = parameters.getParameter<TNL::String>("device");
 
          const int verbose = parameters.getParameter< int >("verbose");
          const int loops = parameters.getParameter< int >("loops");
@@ -44,27 +67,11 @@ class GridBenchmark {
          // write global metadata into a separate file
          std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
          TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
-
-         if (device == "host" || device == "all") {
-            if (precision == "all" || precision == "float")
-               time<GridDimension, float, TNL::Devices::Host>(benchmark, parameters);
-            if (precision == "all" || precision == "double")
-               time<GridDimension, double, TNL::Devices::Host>(benchmark, parameters);
-         }
-
-         #ifdef HAVE_CUDA
-            if (device == "cuda" || device == "all") {
-               if (precision == "all" || precision == "float")
-                  time<GridDimension, float, TNL::Devices::Cuda>(benchmark, parameters);
-               if (precision == "all" || precision == "double")
-                  time<GridDimension, double, TNL::Devices::Cuda>(benchmark, parameters);
-            }
-         #endif
-
+         time< GridDimension >(benchmark, parameters);
          return 0;
       }
 
-      template<int GridDimension, typename Real, typename Device>
+      template< int GridDimension >
       void time(Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters) const {
          using Grid = typename TNL::Meshes::Grid<GridDimension, Real, Device, int>;
          using Coordinate = typename Grid::Coordinate;
@@ -93,48 +100,7 @@ class GridBenchmark {
             timeTraverse<entityDimension, Grid, GetOriginOperation>(benchmark, grid);
             timeTraverse<entityDimension, Grid, GetEntitiesCountsOperation>(benchmark, grid);
          };
-
-         TNL::Meshes::Templates::DescendingFor<GridDimension>::exec(forEachEntityDimension);
-      }
-
-      static TNL::Config::ConfigDescription makeInputConfig(int gridDimension) {
-         TNL_ASSERT_LE(gridDimension, 3, "Only support for grids with dimension less or equal 3");
-         TNL::Config::ConfigDescription config;
-
-         config.addDelimiter("Benchmark settings:");
-         config.addEntry<TNL::String>("id", "Identifier of the run", "unknown");
-         config.addEntry<TNL::String>("log-file", "Log file name.", "output.log");
-         config.addEntry<TNL::String>("output-mode", "Mode for opening the log file.", "overwrite");
-         config.addEntryEnum("append");
-         config.addEntryEnum("overwrite");
-
-         config.addEntry<TNL::String>("device", "Device the computation will run on.", "cuda");
-         config.addEntryEnum<TNL::String>("all");
-         config.addEntryEnum<TNL::String>("host");
-
-         #ifdef HAVE_CUDA
-            config.addEntryEnum<TNL::String>("cuda");
-         #endif
-
-         config.addEntry<TNL::String>("precision", "Precision of the arithmetics.", "double");
-         config.addEntryEnum("float");
-         config.addEntryEnum("double");
-         config.addEntryEnum("all");
-
-         config.addEntry<int>("loops", "Number of iterations for every computation.", 10);
-         config.addEntry<int>("verbose", "Verbose mode.", 1);
-
-         for (int i = 0; i < gridDimension; i++)
-            config.addEntry<int>(dimensionParameterIds[i], "The " + dimensionParameterIds[i] + " of grid:", 100);
-
-         config.addDelimiter("Device settings:");
-         TNL::Devices::Host::configSetup( config );
-
-         #ifdef HAVE_CUDA
-            TNL::Devices::Cuda::configSetup( config );
-         #endif
-
-         return config;
+         TNL::Meshes::Templates::DescendingFor< GridDimension >::exec(forEachEntityDimension);
       }
 
       template<int EntityDimension, typename Grid, typename Operation>
@@ -143,55 +109,46 @@ class GridBenchmark {
             Operation::exec(entity);
          };
 
-         auto device = TNL::getType<typename Grid::DeviceType>();
+         TNL::String device;
+         if( std::is_same< Device, TNL::Devices::Sequential >::value )
+            device = "sequential";
+         if( std::is_same< Device, TNL::Devices::Host >::value )
+            device = "host";
+         if( std::is_same< Device, TNL::Devices::Cuda >::value )
+            device = "cuda";
+
          auto operation = TNL::getType<Operation>();
 
          const Benchmark::MetadataColumns columns = {
-            { "operation_id", operation },
             { "dimensions", TNL::convertToString(grid.getDimensions()) },
             { "entity_dimension", TNL::convertToString(EntityDimension) },
-            { "entitiesCounts", TNL::convertToString(grid.getEntitiesCount(EntityDimension)) }
+            { "entitiesCounts", TNL::convertToString(grid.getEntitiesCount(EntityDimension)) },
+            { "operation_id", operation }
          };
 
-         Benchmark::MetadataColumns forAllColumns = {
-            { "traverse_id", "forAll" }
-         };
-
-         forAllColumns.insert(forAllColumns.end(), columns.begin(), columns.end());
+         Benchmark::MetadataColumns forAllColumns( columns );
+         forAllColumns.push_back( { "traverse_id", "forAll" } );
          benchmark.setMetadataColumns(forAllColumns);
-
          auto measureAll = [=]() {
             grid.template forAll<EntityDimension>(exec);
          };
-
          benchmark.time<typename Grid::DeviceType>(device, measureAll);
 
-
-         Benchmark::MetadataColumns forInteriorColumns = {
-            { "traverse_id", "forInterior" }
-         };
-
-         forInteriorColumns.insert(forInteriorColumns.end(), columns.begin(), columns.end());
+         Benchmark::MetadataColumns forInteriorColumns( columns );
+         forInteriorColumns.push_back( { "traverse_id", "forInterior" } );
          benchmark.setMetadataColumns(forInteriorColumns);
-
          auto measureInterior = [=]() {
             grid.template forInterior<EntityDimension>(exec);
          };
-
          benchmark.time<typename Grid::DeviceType>(device, measureInterior);
 
 
-         Benchmark::MetadataColumns forBoundaryColumns = {
-            { "traverse_id", "forBoundary" }
-         };
-
-         forBoundaryColumns.insert(forBoundaryColumns.end(), columns.begin(), columns.end());
+         Benchmark::MetadataColumns forBoundaryColumns( columns );
+         forBoundaryColumns.push_back( { "traverse_id", "forBoundary" } );
          benchmark.setMetadataColumns(forInteriorColumns);
-
          auto measureBoundary = [=]() {
             grid.template forBoundary<EntityDimension>(exec);
          };
-
          benchmark.time<typename Grid::DeviceType>(device, measureBoundary);
       }
 };

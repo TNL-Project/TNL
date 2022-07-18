@@ -1,3 +1,4 @@
+
 // Copyright (c) 2004-2022 Tomáš Oberhuber et al.
 //
 // This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
@@ -6,14 +7,9 @@
 
 // Implemented by: Tomáš Oberhuber, Yury Hayeu
 
-#include <TNL/Devices/Sequential.h>
-#include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#pragma once
 
-#include "HeatEquationSolverBenchmarkParallelFor.h"
-#include "HeatEquationSolverBenchmarkSimpleGrid.h"
-#include "HeatEquationSolverBenchmarkGrid.h"
-#include "HeatEquationSolverBenchmarkNdGrid.h"
+#include "GridBenchmark.h"
 
 void setupConfig( TNL::Config::ConfigDescription& config )
 {
@@ -40,32 +36,17 @@ void setupConfig( TNL::Config::ConfigDescription& config )
    config.addEntryEnum("all");
 }
 
-
 template< typename Real, typename Device >
 bool startBenchmark( TNL::Config::ParameterContainer& parameters )
 {
-   auto implementation = parameters.getParameter< TNL::String >( "implementation" );
-   if( implementation == "parallel-for" )
-   {
-      HeatEquationSolverBenchmarkParallelFor< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "simple-grid" )
-   {
-      HeatEquationSolverBenchmarkSimpleGrid< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "grid" )
-   {
-      HeatEquationSolverBenchmarkGrid< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "nd-grid" )
-   {
-      HeatEquationSolverBenchmarkNdGrid< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   return false;
+   GridBenchmark< Real, Device > benchmark;
+#ifndef GRID_DIM
+   return ( benchmark.template runBenchmark< 1 >( parameters ) &&
+            benchmark.template runBenchmark< 2 >( parameters ) &&
+            benchmark.template runBenchmark< 3 >( parameters ) );
+#else
+   return benchmark.template runBenchmark< GRID_DIM >( parameters );
+#endif
 }
 
 template< typename Real >
@@ -95,7 +76,7 @@ bool resolveReal( TNL::Config::ParameterContainer& parameters )
       return resolveDevice< float >( parameters );
    if( precision == "double" )
       return resolveDevice< double >( parameters );
-   std::cerr << "Unknown precison " << precision << "." << std::endl;
+   std::cerr << "Uknown precison " << precision << "." << std::endl;
    return false;
 }
 
@@ -103,7 +84,7 @@ int main(int argc, char* argv[])
 {
    TNL::Config::ConfigDescription config;
    setupConfig( config );
-   HeatEquationSolverBenchmark<>::setupConfig( config );
+   GridBenchmark<>::setupConfig( config );
 
    TNL::Config::ParameterContainer parameters;
 

@@ -7,6 +7,7 @@ from pandas.io.json import json_normalize
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+from os.path import exists
 
 devices = [ "sequential", "host", 'cuda' ]
 precisions = [ "float", "double" ]
@@ -73,7 +74,7 @@ def processDf( df, precision ):
                     result.iloc[idx][ (test, device, 'parallel-for speed-up') ] =  float( row[ ('parallel-for', device, 'time')] ) / float( row[ (test, device, 'time')] )
         idx += 1
 
-    result.to_html( f'output-{precision}.html' )
+    result.to_html( f'tnl-benchmark-heat-equation-{precision}.html' )
 
 
 #####
@@ -84,6 +85,9 @@ for device in devices:
     for precision in precisions:
         for test in tests:
             filename = f"tnl-benchmark-heat-equation-{test}-{device}-{precision}.json"
+            if not exists( filename ):
+                print( f"Skipping non-existing input file {filename} ...." )
+                continue
             print( f"Parsing input file {filename} ...." )
             with open( filename ) as f:
                 lines = f.readlines()

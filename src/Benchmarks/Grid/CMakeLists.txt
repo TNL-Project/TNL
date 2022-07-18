@@ -1,23 +1,14 @@
-set( GRID_TESTS Grid1D Grid2D Grid3D  )
+set( GRID_DIMS 1 2 3  )
 
-foreach( TARGET IN ITEMS ${GRID_TESTS} )
-   if (${BUILD_CUDA})
-      SET(SUPPORT_FILENAME ${TARGET}.cu)
-   else()
-      SET(SUPPORT_FILENAME ${TARGET}.cpp)
-   endif()
+foreach( DIM IN ITEMS ${GRID_DIMS} )
 
-   set(HEADER ${TARGET}.h )
-   set(MODULE_NAME tnl-benchmark-${TARGET}-operations )
+   if (BUILD_CUDA)
+      CUDA_ADD_EXECUTABLE( tnl-benchmark-grid-${DIM}D tnl-benchmark-grid.cu OPTIONS ${CUDA_TESTS_FLAGS} -DGRID_DIM=${DIM} )
+   ELSE()
+      add_executable( tnl-benchmark-grid-${DIM}D tnl-benchmark-grid.cpp )
+      target_compile_definitions( tnl-benchmark-grid-${DIM}D PUBLIC -DGRID_DIM=${DIM} )
+   ENDIF()
 
-   if (${BUILD_CUDA})
-      CUDA_ADD_EXECUTABLE( ${MODULE_NAME} ${HEADER} ${SUPPORT_FILENAME} OPTIONS ${CUDA_TESTS_FLAGS})
-      TARGET_LINK_LIBRARIES( ${MODULE_NAME} ${TESTS_LIBRARIES})
-   else()
-      ADD_EXECUTABLE( ${MODULE_NAME} ${HEADER} ${SUPPORT_FILENAME})
-      TARGET_COMPILE_OPTIONS( ${MODULE_NAME} PRIVATE ${CXX_TESTS_FLAGS})
-   endif()
-
-   install( TARGETS ${MODULE_NAME} RUNTIME DESTINATION bin )
-
+   install( TARGETS tnl-benchmark-grid-${DIM}D RUNTIME DESTINATION bin )
 endforeach()
+
