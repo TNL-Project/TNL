@@ -4,6 +4,8 @@
 //
 // SPDX-License-Identifier: MIT
 
+// Implemented by: Tomáš Oberhuber, Yury Hayeu
+
 #pragma once
 
 #include <TNL/Logger.h>
@@ -12,9 +14,72 @@
 namespace TNL {
 namespace Meshes {
 
+template< class, int >
+class GridEntity;
+
 template< int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int >
 class Grid : public NDGrid< Dimension, Real, Device, Index >
-{};
+{
+public:
+
+   template< int EntityDimension >
+   using EntityType = GridEntity< Grid, EntityDimension >;
+
+   using Base = NDGrid< Dimension, Real, Device, Index >;
+   using Coordinate = typename Base::Coordinate;
+   using Point = typename Base::Point;
+   using EntitiesCounts = typename Base::EntitiesCounts;
+
+
+   /**
+    * @brief Traverser all elements in rect
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   forAll( Func func, FuncArgs... args ) const;
+
+   /**
+    * @brief Traverser all elements in rect
+    * @param from - bottom left anchor of traverse rect
+    * @param to - top right anchor of traverse rect
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   forAll( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const;
+
+   /**
+    * @brief Traverser interior elements in rect
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   forInterior( Func func, FuncArgs... args ) const;
+
+   /**
+    * @brief Traverser interior elements
+    * @param from - bottom left anchor of traverse rect
+    * @param to - top right anchor of traverse rect
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   forInterior( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const;
+
+   /**
+    * @brief Traverser boundary elements in rect
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   forBoundary( Func func, FuncArgs... args ) const;
+
+   /**
+    * @brief Traverser boundary elements in rect
+    * @param from - bottom left anchor of traverse rect
+    * @param to - top right anchor of traverse rect
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   forBoundary( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const;
+
+};
 
 template< int Dimension, typename Real, typename Device, typename Index >
 std::ostream&
@@ -48,3 +113,4 @@ operator!=( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimen
 #include <TNL/Meshes/GridDetails/Grid1D.h>
 #include <TNL/Meshes/GridDetails/Grid2D.h>
 #include <TNL/Meshes/GridDetails/Grid3D.h>
+#include <TNL/Meshes/GridDetails/Grid.hpp>
