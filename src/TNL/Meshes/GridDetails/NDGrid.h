@@ -12,7 +12,7 @@ namespace TNL {
 namespace Meshes {
 
 template< int Dimension, typename Real, typename Device, typename Index >
-class NDimGrid
+class NDGrid
 {
 public:
    template< int ContainerDimension, typename ContainerValue, std::enable_if_t< ( ContainerDimension > 0 ), bool > = true >
@@ -52,7 +52,7 @@ public:
    using SpaceProductsContainer =
       Container< std::integral_constant< Index, Templates::pow( spaceStepsPowersSize, Dimension ) >::value, Real >;
 
-   NDimGrid()
+   NDGrid()
    {
       Coordinate zero = 0;
       setDimensions( zero );
@@ -315,4 +315,4 @@ protected:
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/Implementations/NDimGrid.hpp>
+#include <TNL/Meshes/GridDetails/Implementations/NDGrid.hpp>

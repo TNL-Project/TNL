@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Meshes/GridDetails/NDimGrid.h>
+#include <TNL/Meshes/GridDetails/NDGrid.h>
 
 namespace TNL {
 namespace Meshes {
@@ -15,13 +15,13 @@ template< class, int >
 class GridEntity;
 
 template< typename Real, typename Device, typename Index >
-class Grid< 2, Real, Device, Index > : public NDimGrid< 2, Real, Device, Index >
+class Grid< 2, Real, Device, Index > : public NDGrid< 2, Real, Device, Index >
 {
 public:
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
 
-   using Base = NDimGrid< 2, Real, Device, Index >;
+   using Base = NDGrid< 2, Real, Device, Index >;
    using Coordinate = typename Base::Coordinate;
    using Point = typename Base::Point;
    using EntitiesCounts = typename Base::EntitiesCounts;

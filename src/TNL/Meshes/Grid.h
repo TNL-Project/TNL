@@ -7,13 +7,13 @@
 #pragma once
 
 #include <TNL/Logger.h>
-#include <TNL/Meshes/GridDetails/NDimGrid.h>
+#include <TNL/Meshes/GridDetails/NDGrid.h>
 
 namespace TNL {
 namespace Meshes {
 
 template< int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int >
-class Grid : public NDimGrid< Dimension, Real, Device, Index >
+class Grid : public NDGrid< Dimension, Real, Device, Index >
 {};
 
 template< int Dimension, typename Real, typename Device, typename Index >

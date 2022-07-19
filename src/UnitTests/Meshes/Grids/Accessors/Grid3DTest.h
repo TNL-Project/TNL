@@ -11,10 +11,10 @@
 
 #ifdef HAVE_CUDA
 using Implementations = ::testing::Types<
-   TNL::Meshes::NDimGrid<3, double, TNL::Devices::Host, int>,
-   TNL::Meshes::NDimGrid<3, float, TNL::Devices::Host, int>,
-   TNL::Meshes::NDimGrid<3, double, TNL::Devices::Cuda, int>,
-   TNL::Meshes::NDimGrid<3, float, TNL::Devices::Cuda, int>,
+   TNL::Meshes::NDGrid<3, double, TNL::Devices::Host, int>,
+   TNL::Meshes::NDGrid<3, float, TNL::Devices::Host, int>,
+   TNL::Meshes::NDGrid<3, double, TNL::Devices::Cuda, int>,
+   TNL::Meshes::NDGrid<3, float, TNL::Devices::Cuda, int>,
    TNL::Meshes::Grid<3, double, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<3, float, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<3, double, TNL::Devices::Cuda, int>,
@@ -22,8 +22,8 @@ using Implementations = ::testing::Types<
 >;
 #else
 using Implementations = ::testing::Types<
-   TNL::Meshes::NDimGrid<3, double, TNL::Devices::Host, int>,
-   TNL::Meshes::NDimGrid<3, float, TNL::Devices::Host, int>,
+   TNL::Meshes::NDGrid<3, double, TNL::Devices::Host, int>,
+   TNL::Meshes::NDGrid<3, float, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<3, double, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<3, float, TNL::Devices::Host, int>
 >;
