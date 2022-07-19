@@ -2,6 +2,7 @@
 #pragma once
 
 #include <TNL/Meshes/GridDetails/NDGrid.h>
+#include <TNL/Meshes/GridDetails/GridEntityGetter.h>
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/BasisGetter.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
@@ -439,6 +440,17 @@ NDGrid< Dimension, Real, Device, Index >::traverseBoundary( const Coordinate& fr
    };
 
    Templates::DescendingFor< orientationsCount - 1 >::exec( exec );
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+template< typename Entity >
+__cuda_callable__
+inline Index
+NDGrid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) const
+{
+   static_assert( Entity::entityDimension <= Dimension && Entity::entityDimension >= 0, "Wrong grid entity dimensions." );
+
+   return GridEntityGetter< NDGrid, Entity::entityDimension >::getEntityIndex( *this, entity );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >

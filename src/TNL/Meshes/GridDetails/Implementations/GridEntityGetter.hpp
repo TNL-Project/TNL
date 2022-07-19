@@ -2,6 +2,10 @@
 #pragma once
 
 #include <TNL/Meshes/GridDetails/GridEntityGetter.h>
+#include <TNL/Meshes/GridEntity.h>
+
+//template< int Dimension, typename Real, typename Device, typename Index >
+//class Grid;
 
 namespace TNL {
 namespace Meshes {
@@ -10,18 +14,18 @@ namespace Meshes {
  * 1D grid
  */
 template< typename Real, typename Device, typename Index, int EntityDimension >
-class GridEntityGetter< Meshes::Grid< 1, Real, Device, Index >, EntityDimension >
+class GridEntityGetter< Meshes::NDGrid< 1, Real, Device, Index >, EntityDimension >
 {
 public:
    static constexpr int entityDimension = EntityDimension;
 
-   using Grid = Meshes::Grid< 1, Real, Device, Index >;
-   using Entity = GridEntity< Grid, EntityDimension >;
-   using Coordinate = typename Grid::Coordinate;
+   using NDGrid = Meshes::NDGrid< 1, Real, Device, Index >;
+   using Entity = GridEntity< Grid< 1, Real, Device, Index >, EntityDimension >;
+   using Coordinate = typename NDGrid::Coordinate;
 
    __cuda_callable__
    inline static Index
-   getEntityIndex( const Grid& grid, const Entity& entity )
+   getEntityIndex( const NDGrid& grid, const Entity& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), Coordinate( 0 ), "wrong coordinates" );
       TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
@@ -34,18 +38,18 @@ public:
  * 2D grid
  */
 template< typename Real, typename Device, typename Index >
-class GridEntityGetter< Meshes::Grid< 2, Real, Device, Index >, 2 >
+class GridEntityGetter< Meshes::NDGrid< 2, Real, Device, Index >, 2 >
 {
 public:
    static constexpr int entityDimension = 2;
 
-   using Grid = Meshes::Grid< 2, Real, Device, Index >;
-   using Entity = GridEntity< Grid, entityDimension >;
-   using Coordinate = typename Grid::Coordinate;
+   using NDGrid = Meshes::NDGrid< 2, Real, Device, Index >;
+   using Entity = GridEntity< Grid< 2, Real, Device, Index >, entityDimension >;
+   using Coordinate = typename NDGrid::Coordinate;
 
    __cuda_callable__
    inline static Index
-   getEntityIndex( const Grid& grid, const Entity& entity )
+   getEntityIndex( const NDGrid& grid, const Entity& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), Coordinate( 0, 0 ), "wrong coordinates" );
       TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
@@ -55,18 +59,18 @@ public:
 };
 
 template< typename Real, typename Device, typename Index >
-class GridEntityGetter< Meshes::Grid< 2, Real, Device, Index >, 1 >
+class GridEntityGetter< Meshes::NDGrid< 2, Real, Device, Index >, 1 >
 {
 public:
    static constexpr int entityDimension = 1;
 
-   using Grid = Meshes::Grid< 2, Real, Device, Index >;
-   using Entity = GridEntity< Grid, entityDimension >;
-   using Coordinate = typename Grid::Coordinate;
+   using NDGrid = Meshes::NDGrid< 2, Real, Device, Index >;
+   using Entity = GridEntity< Grid< 2, Real, Device, Index >, entityDimension >;
+   using Coordinate = typename NDGrid::Coordinate;
 
    __cuda_callable__
    inline static Index
-   getEntityIndex( const Grid& grid, const Entity& entity )
+   getEntityIndex( const NDGrid& grid, const Entity& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), Coordinate( 0, 0 ), "wrong coordinates" );
       TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
@@ -82,18 +86,18 @@ public:
 };
 
 template< typename Real, typename Device, typename Index >
-class GridEntityGetter< Meshes::Grid< 2, Real, Device, Index >, 0 >
+class GridEntityGetter< Meshes::NDGrid< 2, Real, Device, Index >, 0 >
 {
 public:
    static constexpr int entityDimension = 0;
 
-   using Grid = Meshes::Grid< 2, Real, Device, Index >;
-   using Entity = GridEntity< Grid, entityDimension >;
-   using Coordinate = typename Grid::Coordinate;
+   using NDGrid = Meshes::NDGrid< 2, Real, Device, Index >;
+   using Entity = GridEntity< Grid< 2, Real, Device, Index >, entityDimension >;
+   using Coordinate = typename NDGrid::Coordinate;
 
    __cuda_callable__
    inline static Index
-   getEntityIndex( const Grid& grid, const Entity& entity )
+   getEntityIndex( const NDGrid& grid, const Entity& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), Coordinate( 0, 0 ), "wrong coordinates" );
       TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
@@ -109,18 +113,18 @@ public:
  * 3D grid
  */
 template< typename Real, typename Device, typename Index >
-class GridEntityGetter< Meshes::Grid< 3, Real, Device, Index >, 3 >
+class GridEntityGetter< Meshes::NDGrid< 3, Real, Device, Index >, 3 >
 {
 public:
    static constexpr int entityDimension = 3;
 
-   using Grid = Meshes::Grid< 3, Real, Device, Index >;
-   using Entity = GridEntity< Grid, entityDimension >;
-   using Coordinate = typename Grid::Coordinate;
+   using NDGrid = Meshes::NDGrid< 3, Real, Device, Index >;
+   using Entity = GridEntity< Grid< 3, Real, Device, Index >, entityDimension >;
+   using Coordinate = typename NDGrid::Coordinate;
 
    __cuda_callable__
    inline static Index
-   getEntityIndex( const Grid& grid, const Entity& entity )
+   getEntityIndex( const NDGrid& grid, const Entity& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), Coordinate( 0, 0, 0 ), "wrong coordinates" );
       TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
@@ -133,18 +137,18 @@ public:
 };
 
 template< typename Real, typename Device, typename Index >
-class GridEntityGetter< Meshes::Grid< 3, Real, Device, Index >, 2 >
+class GridEntityGetter< Meshes::NDGrid< 3, Real, Device, Index >, 2 >
 {
 public:
    static constexpr int entityDimension = 2;
 
-   using Grid = Meshes::Grid< 3, Real, Device, Index >;
-   using Entity = GridEntity< Grid, entityDimension >;
-   using Coordinate = typename Grid::Coordinate;
+   using NDGrid = Meshes::NDGrid< 3, Real, Device, Index >;
+   using Entity = GridEntity< Grid< 3, Real, Device, Index >, entityDimension >;
+   using Coordinate = typename NDGrid::Coordinate;
 
    __cuda_callable__
    inline static Index
-   getEntityIndex( const Grid& grid, const Entity& entity )
+   getEntityIndex( const NDGrid& grid, const Entity& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), Coordinate( 0, 0, 0 ), "wrong coordinates" );
       TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
@@ -165,18 +169,18 @@ public:
 };
 
 template< typename Real, typename Device, typename Index >
-class GridEntityGetter< Meshes::Grid< 3, Real, Device, Index >, 1 >
+class GridEntityGetter< Meshes::NDGrid< 3, Real, Device, Index >, 1 >
 {
 public:
    static constexpr int entityDimension = 1;
 
-   using Grid = Meshes::Grid< 3, Real, Device, Index >;
-   using Entity = GridEntity< Grid, entityDimension >;
-   using Coordinate = typename Grid::Coordinate;
+   using NDGrid = Meshes::NDGrid< 3, Real, Device, Index >;
+   using Entity = GridEntity< Grid< 3, Real, Device, Index >, entityDimension >;
+   using Coordinate = typename NDGrid::Coordinate;
 
    __cuda_callable__
    inline static Index
-   getEntityIndex( const Grid& grid, const Entity& entity )
+   getEntityIndex( const NDGrid& grid, const Entity& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), Coordinate( 0, 0, 0 ), "wrong coordinates" );
       TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
@@ -197,18 +201,18 @@ public:
 };
 
 template< typename Real, typename Device, typename Index >
-class GridEntityGetter< Meshes::Grid< 3, Real, Device, Index >, 0 >
+class GridEntityGetter< Meshes::NDGrid< 3, Real, Device, Index >, 0 >
 {
 public:
    static constexpr int entityDimension = 0;
 
-   using Grid = Meshes::Grid< 3, Real, Device, Index >;
-   using Entity = GridEntity< Grid, entityDimension >;
-   using Coordinate = typename Grid::Coordinate;
+   using NDGrid = Meshes::NDGrid< 3, Real, Device, Index >;
+   using Entity = GridEntity< Grid< 3, Real, Device, Index >, entityDimension >;
+   using Coordinate = typename NDGrid::Coordinate;
 
    __cuda_callable__
    inline static Index
-   getEntityIndex( const Grid& grid, const Entity& entity )
+   getEntityIndex( const NDGrid& grid, const Entity& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), Coordinate( 0, 0, 0 ), "wrong coordinates" );
       TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );

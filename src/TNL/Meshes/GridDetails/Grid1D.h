@@ -34,10 +34,10 @@ public:
     * \param entity Type of entity.
     * \tparam Entity Type of the entity.
     */
-   template< typename Entity >
+   /*template< typename Entity >
    __cuda_callable__
    inline Index
-   getEntityIndex( const Entity& entity ) const;
+   getEntityIndex( const Entity& entity ) const;*/
 
    /**
     * @brief Traverser all elements in rect

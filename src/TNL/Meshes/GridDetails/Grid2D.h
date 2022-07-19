@@ -38,10 +38,10 @@ public:
    /**
     * \brief See Grid1D::getEntityIndex().
     */
-   template< typename Entity >
+   /*template< typename Entity >
    __cuda_callable__
    inline Index
-   getEntityIndex( const Entity& entity ) const;
+   getEntityIndex( const Entity& entity ) const;*/
 
    /**
     * @brief Traverser all elements in rect

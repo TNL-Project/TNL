@@ -253,6 +253,17 @@ public:
    __cuda_callable__
    inline const Point&
    getProportions() const noexcept;
+
+   /**
+    * @brief Gets entity index using entity type.
+    * \param entity Type of entity.
+    * \tparam Entity Type of the entity.
+    */
+   template< typename Entity >
+   __cuda_callable__
+   inline Index
+   getEntityIndex( const Entity& entity ) const;
+
    /**
     * @brief Writes info about the grid
     */

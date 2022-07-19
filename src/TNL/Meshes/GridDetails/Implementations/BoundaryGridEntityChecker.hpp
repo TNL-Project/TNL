@@ -15,6 +15,9 @@
 namespace TNL {
 namespace Meshes {
 
+template< int Dimension, typename Real, typename Device, typename Index >
+class Grid;
+
 /***
  * 1D grids
  */
