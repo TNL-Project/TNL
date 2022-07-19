@@ -30,16 +30,6 @@ public:
    Grid( const Index xSize );
 
    /**
-    * @brief Gets entity index using entity type.
-    * \param entity Type of entity.
-    * \tparam Entity Type of the entity.
-    */
-   /*template< typename Entity >
-   __cuda_callable__
-   inline Index
-   getEntityIndex( const Entity& entity ) const;*/
-
-   /**
     * @brief Traverser all elements in rect
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >

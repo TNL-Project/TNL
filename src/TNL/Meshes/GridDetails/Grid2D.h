@@ -36,14 +36,6 @@ public:
    Grid( const Index xSize, const Index ySize );
 
    /**
-    * \brief See Grid1D::getEntityIndex().
-    */
-   /*template< typename Entity >
-   __cuda_callable__
-   inline Index
-   getEntityIndex( const Entity& entity ) const;*/
-
-   /**
     * @brief Traverser all elements in rect
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >

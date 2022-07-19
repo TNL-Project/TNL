@@ -19,17 +19,6 @@ Grid< 1, Real, Device, Index >::Grid( const Index xSize )
    this->setDimensions( xSize );
 }
 
-/*template< typename Real, typename Device, typename Index >
-template< typename Entity >
-__cuda_callable__
-inline Index
-Grid< 1, Real, Device, Index >::getEntityIndex( const Entity& entity ) const
-{
-   static_assert( Templates::isInClosedInterval( 0, Entity::entityDimension, 1 ), "Wrong grid entity dimensions." );
-
-   return GridEntityGetter< Grid, Entity::entityDimension >::getEntityIndex( *this, entity );
-}*/
-
 template< typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
