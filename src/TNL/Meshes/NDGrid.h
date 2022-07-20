@@ -1,0 +1,486 @@
+
+// Copyright (c) 2004-2022 Tomáš Oberhuber et al.
+//
+// This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+//
+// SPDX-License-Identifier: MIT
+
+// Implemented by: Tomáš Oberhuber, Yury Hayeu
+
+#pragma once
+
+#include <TNL/Logger.h>
+#include <TNL/Containers/StaticVector.h>
+#include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
+#include <TNL/Meshes/GridDetails/Templates/Functions.h>
+
+#include <type_traits>
+
+namespace TNL {
+namespace Meshes {
+
+/**
+ * \brief Base class for orthogonal n-dimensional grid.
+ *
+ * This data structure represents regular orthogonal numerical mesh. It provides indexing of mesh
+ * entities like vertexes, edges, faces or cells together with parallel traversing of all, interior
+ * or boundary mesh entities.
+ *
+ * \tparam Dimension is grid dimension.
+ * \tparam Real is type of the floating point numbers.
+ * \tparam Device is the device to be used for the execution of grid operations.
+ * \tparam Index is type for indexing of the mesh entities of the grid.
+ */
+template< int Dimension, typename Real, typename Device, typename Index >
+class NDGrid
+{
+public:
+   template< int ContainerDimension, typename ContainerValue, std::enable_if_t< ( ContainerDimension > 0 ), bool > = true >
+   using Container = TNL::Containers::StaticVector< ContainerDimension, ContainerValue >;
+
+   /**
+    * \brief Dimension of the grid.
+    */
+   //static constexpr int Dimension = Dimension_;
+
+   /**
+    * \brief Type of the floating point numbers.
+    */
+   using RealType = Real;
+
+   /**
+    * \brief Device to be used for the execution of grid operations.
+    */
+   using DeviceType = Device;
+
+   /**
+    * \brief Type for indexing of the mesh entities of the grid.
+    */
+   using IndexType = Index;
+
+   /**
+    * \brief Type for indexing of the mesh entities of the grid.
+    *
+    * This is for compatiblity with unstructured meshes.
+    */
+   using GlobalIndexType = Index;
+
+   /**
+    * \brief Type for mesh entities cordinates within the grid.
+    */
+   using CoordinatesType = Container< Dimension, Index >;
+
+   /**
+    * \brief Type for world coordinates.
+    */
+   using PointType = Container< Dimension, Real >;
+
+   using EntitiesCounts = Container< Dimension + 1, Index >;
+
+   using OrientationBasesContainer = Container< 1 << Dimension, CoordinatesType >;
+
+   /**
+    * \brief Returns the dimension of grid
+    */
+   static constexpr int
+   getMeshDimension()
+   {
+      return Dimension;
+   };
+
+   /**
+    * \brief Returns the coefficient powers size.
+    */
+   // TODO: Move this to FDM = Finite Difference Method implementation
+   static constexpr int spaceStepsPowersSize = 5;
+
+   using SpaceProductsContainer =
+      Container< std::integral_constant< Index, Templates::pow( spaceStepsPowersSize, Dimension ) >::value, Real >;
+
+   /**
+    * \brief Construct.
+    */
+   NDGrid();
+
+   /**
+    * \brief Returns the number of orientations for entity dimension.
+    *        For example in 2-D Grid the edge can be vertical or horizontal.
+    *
+    * \param[in] entityDimension is dimension of grid entities to be counted.
+    */
+   static constexpr Index
+   getEntityOrientationsCount( const Index entityDimension );
+
+   /**
+    * \brief Set the dimensions (or resolution) of the grid.
+    *    The resolution must be given in terms on grid cells not grid vertices. The
+    *    mthod accepts as many indexes for the dimensions as the dimension of the grid.
+    *
+    * \tparam Dimensions variadic template accepting a serie of indexes.
+    * \param[in] dimensions serie of indexes defining resolution of the grid.
+    */
+   template< typename... Dimensions,
+             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
+             std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
+   void
+   setDimensions( Dimensions... dimensions );
+
+   /**
+    * \brief Set the dimensions (or resolution) of the grid.
+    *    This method accepts particular dimensions packed in a static vector.
+    *
+    * \param dimensions grid dimensions given in a form of coordinate vector.
+    */
+   void
+   setDimensions( const CoordinatesType& dimensions );
+
+   /**
+    * \brief Returns dimensions as a count of edges along each axis.
+    * \param[in] index is a index of dimension.
+    */
+   //__cuda_callable__
+   //inline Index
+   //getDimension( const Index index ) const;
+
+   /**
+    * \brief Returns dimensions as a count of edges along given axes.
+    *
+    * \tparam variadic template parameter for a list of axis indexes.
+    * \param[in] axes is a list of axis indexes.
+    *
+    * \return static vector of size equal to number of input indexes holding dimensions along particular axes.
+    */
+   template< typename... AxisIndex,
+             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, AxisIndex >... >, bool > = true,
+             std::enable_if_t< ( sizeof...( AxisIndex ) > 0 ), bool > = true >
+   __cuda_callable__
+   inline Container< sizeof...( AxisIndex ), Index >
+   getDimensions( AxisIndex... axes ) const noexcept;
+
+   /**
+    * \brief Returns dimensions as a number of edges along each axis in a form of coordinate vector.
+    *
+    *\return Coordinate vector with number of edges along each axis.
+    */
+   __cuda_callable__
+   inline const CoordinatesType&
+   getDimensions() const noexcept;
+
+   /**
+    * \brief Returns number of entities of specific dimension.
+    *
+    * \param[in] dimension is a dimension of grid entities to be counted.
+    * \return number of entities of specific dimension.
+    */
+   __cuda_callable__
+   inline Index
+   getEntitiesCount( const Index dimension ) const;
+
+   /**
+    * \brief Returns number of entities of specific dimension given as a template parameter.
+    *
+    * \tparam EntityDimension is dimension of grid entities to be counted.
+    *
+    * \return Number of grid entities with given dimension.
+    */
+   template< int EntityDimension,
+             std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true >
+   __cuda_callable__
+   inline Index
+   getEntitiesCount() const noexcept;
+
+   /**
+    * \brief Returns count of entities of specific dimensions.
+    *
+    * \tparam DimensionsIndex variadic template parameter for a list of dimensions.
+    * \param[in] indices is a list of dimensions of grid entities to be counted.
+    * \return count of entities of specific dimensions.
+    */
+   template< typename... DimensionIndex,
+             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool > = true,
+             std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > = true >
+   __cuda_callable__
+   inline Container< sizeof...( DimensionIndex ), Index >
+   getEntitiesCounts( DimensionIndex... indices ) const;
+
+   /**
+    * \brief Returns count of entities for all dimensions.
+    *
+    * \return vector of count of entities for all dimensions.
+    */
+   __cuda_callable__
+   inline const EntitiesCounts&
+   getEntitiesCounts() const noexcept;
+
+   /**
+    * \brief Returns number of entities of specific dimension and orientation.
+    *
+    * \param[in] dimension is dimension of grid entities.
+    * \param[in] orientation is orientation of the entities.
+    * \return number of entities of specific dimension and orientation.
+    */
+   __cuda_callable__
+   inline Index
+   getOrientedEntitiesCount( const Index dimension, const Index orientation ) const;
+
+   /**
+    * \brief Returns number of entities of specific dimension and orientation given as template parameters.
+    *
+    * \tparam EntityDimension is dimension of the grid entities.
+    * \tparam EntityOrientation is orientation of the grid entitie.
+    * \return number of entities of specific dimension and orientation.
+    */
+   template< int EntityDimension,
+             int EntityOrientation,
+             std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true,
+             std::enable_if_t< Templates::isInClosedInterval( 0, EntityOrientation, Dimension ), bool > = true >
+   __cuda_callable__
+   inline Index
+   getOrientedEntitiesCount() const noexcept;
+
+   /**
+    * \brief Returns basis of the entity with the specific orientation.
+    *
+    * Basis is integer vector having ones for axis along which the entity has non-zero lentghs.
+    * For example in 3D grid we have the following posibilities:
+    *
+    * | Entity                     | Basis        |
+    * |---------------------------:|-------------:|
+    * | Cells                      | ( 1, 1, 1 )  |
+    * | Faces along x- and y- axes | ( 1, 1, 0 )  |
+    * | Faces along x- and z- axes | ( 1, 0, 1 )  |
+    * | Faces along y- and z- axes | ( 0, 1, 1 )  |
+    * | Edges along x-axis         | ( 1, 0, 0 )  |
+    * | Edges along y-axis         | ( 0, 1, 0 )  |
+    * | Edges along z-axis         | ( 0, 0, 1 )  |
+    * | Vertexes                   | ( 0, 0, 0 )  |
+    *
+    * \tparam EntityDimension is dimensions of grid entity.
+    * \param[in] orientation is orientation of the entity
+    * \return basis of the grid entity.
+    */
+   template< int EntityDimension >
+   __cuda_callable__
+   inline CoordinatesType
+   getBasis( Index orientation ) const noexcept;
+
+   /**
+    * \brief Sets the origin and proportions of this grid.
+    *
+    * \param origin is the origin of the grid.
+    * \param proportions is total length of this grid along particular axis.
+    */
+   void
+   setDomain( const PointType& origin, const PointType& proportions );
+
+   /**
+    * \brief Set the origin of the grid in a form of a point.
+    *
+    * \param[in] origin of the grid.
+    */
+   void
+   setOrigin( const PointType& origin ) noexcept;
+
+   /**
+    * \brief Set the origin of the grid in a form of a pack of real numbers.
+    *
+    * \tparam Coordinates is a pack of templates types.
+    * \param[in] coordinates is a pack of real numbers defining the origin.
+    */
+   template< typename... Coordinates,
+             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Coordinates >... >, bool > = true,
+             std::enable_if_t< sizeof...( Coordinates ) == Dimension, bool > = true >
+   void
+   setOrigin( Coordinates... coordinates ) noexcept;
+
+   /**
+    * \brief Returns the origin of the grid.
+    *
+    * \return the origin of the grid.
+    */
+   __cuda_callable__
+   inline const PointType&
+   getOrigin() const noexcept;
+
+   /**
+    * \brief Set the space steps along each dimension of the grid.
+    *
+    * Calling of this method may change the grid proportions.
+    *
+    * \param[in] spaceSteps are the space steps along each dimension of the grid.
+    */
+   void
+   setSpaceSteps( const PointType& spaceSteps ) noexcept;
+
+   /**
+    * \brief Set the space steps along each dimension of the grid in a form of a pack of real numbers.
+    *
+    * \tparam Steps is a pack of template types.
+    * \param[in] spaceSteps is a pack of real numbers defining the space steps of the grid.
+    */
+   template< typename... Steps,
+             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Steps >... >, bool > = true,
+             std::enable_if_t< sizeof...( Steps ) == Dimension, bool > = true >
+   void
+   setSpaceSteps( Steps... spaceSteps ) noexcept;
+
+   /**
+    * \brief Returns the space steps of the grid.
+    *
+    * \return the space steps of the grid.
+    */
+   __cuda_callable__
+   inline const PointType&
+   getSpaceSteps() const noexcept;
+
+   /**
+    * \brief Returns product of given space steps powers.
+    *
+    * For example in 3D grid if powers are \f[ 1, 2, 3 \f] rthe methods returns \f[ h_x^1 \cdot h_y^2 \cdot h_z^3\f].
+    *
+    * \tparam Powers is a pack of template types.
+    * \param[in] powers is a pack of numbers telling power of particular space steps.
+    * \return product of given space steps powers.
+    */
+   template< typename... Powers,
+             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool > = true,
+             std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
+   __cuda_callable__
+   inline Real
+   getSpaceStepsProducts( Powers... powers ) const;
+
+   /**
+    * \brief Returns product of space steps powers.
+    *
+    * For example in 3D grid if powers are \f[ 1, 2, 3 \f] rthe methods returns \f[ h_x^1 \cdot h_y^2 \cdot h_z^3\f].
+    *
+    * \param[in] powers is vector of numbers telling power of particular space steps.
+    * \return product of given space steps powers.
+    */
+   __cuda_callable__
+   inline Real
+   getSpaceStepsProducts( const CoordinatesType& powers ) const;
+
+   /**
+    * \brief Returns product of space step powers given as template parameters.
+    *
+    * The powers can be only integers.
+    *
+    * For example in 3D grid if powers are \f[ 1, 2, 3 \f] rthe methods returns \f[ h_x^1 \cdot h_y^2 \cdot h_z^3\f].
+    *
+    * \tparam Powers is a pack of indexes.
+    * \return product of given space steps powers.
+    */
+   template< Index... Powers, std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
+   __cuda_callable__
+   inline Real
+   getSpaceStepsProducts() const noexcept;
+
+   /**
+    * \brief Get the smallest space step.
+    *
+    * \return the smallest space step.
+    */
+   __cuda_callable__
+   inline Real
+   getSmallestSpaceStep() const noexcept;
+
+   /**
+    * \brief Get the proportions of the grid.
+    *
+    * \return the proportions of the grid.
+    */
+   __cuda_callable__
+   inline const PointType&
+   getProportions() const noexcept;
+
+   /**
+    * \brief Gets entity index using entity type.
+    *
+    * \tparam Entity is a type of the entity.
+    * \param entity is instance of the entity.
+    * \return index of the entity.
+    */
+   template< typename Entity >
+   __cuda_callable__
+   inline Index
+   getEntityIndex( const Entity& entity ) const;
+
+   /**
+    * \brief Writes info about the grid.
+    *
+    * \param[in] logger is a logger used to write the grid.
+    */
+   void
+   writeProlog( TNL::Logger& logger ) const noexcept;
+
+protected:
+
+   /**
+    * \brief Grid dimensions.
+    */
+   CoordinatesType dimensions;
+
+   /**
+    * \brief - A list of elements count along specific directions.
+    *
+    * First, elements will contain the count of 0 dimension elements.
+    * Second, elements will contain the count of 1-dimension elements and so on.
+    *
+    * For example, let's have a 3-d grid, then the map indexing will
+    * be the next: 0 - 0 - count of vertices 1, 2, 3 - count of edges in x, y,
+    * z plane 4, 5, 6 - count of faces in xy, yz, zy plane 7 - count of cells
+    * in z y x plane
+    *
+    * \warning - The ordering of is lexigraphical.
+    */
+   Container< 1 << Dimension, Index > entitiesCountAlongBases;
+
+   /**
+    * \brief - A cumulative map over dimensions.
+    */
+   Container< Dimension + 1, Index > cumulativeEntitiesCountAlongBases;
+
+   PointType origin, proportions, spaceSteps;
+
+   OrientationBasesContainer bases;
+   SpaceProductsContainer spaceStepsProducts;
+
+   void fillEntitiesCount();
+
+   void fillSpaceSteps();
+
+   void fillSpaceStepsPowers();
+
+   void fillProportions();
+
+   void fillBases();
+
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   traverseAll( Func func, FuncArgs... args ) const;
+
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   traverseAll( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   traverseInterior( Func func, FuncArgs... args ) const;
+
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   traverseInterior( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   traverseBoundary( Func func, FuncArgs... args ) const;
+
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   inline void
+   traverseBoundary( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+};
+}  // namespace Meshes
+}  // namespace TNL
+
+#include <TNL/Meshes/GridDetails/Implementations/NDGrid.hpp>

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <TNL/Logger.h>
-#include <TNL/Meshes/GridDetails/NDGrid.h>
+#include <TNL/Meshes/NDGrid.h>
 
 namespace TNL {
 namespace Meshes {
@@ -17,38 +17,101 @@ namespace Meshes {
 template< class, int >
 class GridEntity;
 
-template< int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int >
-class Grid : public NDGrid< Dimension, Real, Device, Index >
+/**
+ * \brief Orthogonal n-dimensional grid.
+ *
+ * This data structure represents regular orthogonal numerical mesh. It provides indexing of mesh
+ * entities like vertexes, edges, faces or cells together with parallel traversing of all, interior
+ * or boundary mesh entities.
+ *
+ * \tparam Dimension is grid dimension.
+ * \tparam Real is type of the floating point numbers.
+ * \tparam Device is the device to be used for the execution of grid operations.
+ * \tparam Index is type for indexing of the mesh entities of the grid.
+ */
+template< int Dimension_, typename Real = double, typename Device = Devices::Host, typename Index = int >
+class Grid : public NDGrid< Dimension_, Real, Device, Index >
 {
 public:
+   using BaseType = NDGrid< Dimension_, Real, Device, Index >;
 
+   /**
+    * \brief Dimension of the grid.
+    */
+   static constexpr int Dimension = Dimension_;
+
+   /**
+    * \brief Type of the floating point numbers.
+    */
+   using RealType = Real;
+
+   /**
+    * \brief Device to be used for the execution of grid operations.
+    */
+   using DeviceType = Device;
+
+   /**
+    * \brief Type for indexing of the mesh entities of the grid.
+    */
+   using IndexType = Index;
+
+   /**
+    * \brief Type for indexing of the mesh entities of the grid.
+    *
+    * This is for compatiblity with unstructured meshes.
+    */
+   using GlobalIndexType = Index;
+
+   /**
+    * \brief Type for mesh entities cordinates within the grid.
+    */
+   using Coordinate = typename BaseType::Coordinate;
+
+   /**
+    * \brief Type for world coordinates.
+    */
+   using Point = typename BaseType::Point;
+
+   using EntitiesCounts = typename BaseType::EntitiesCounts;
+
+   /**
+    * \brief Alias for grid entities with given dimension.
+    *
+    * \tparam EntityDimension is dimensions of the grid entity.
+    */
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
 
-   using Base = NDGrid< Dimension, Real, Device, Index >;
-   using Coordinate = typename Base::Coordinate;
-   using Point = typename Base::Point;
-   using EntitiesCounts = typename Base::EntitiesCounts;
-
-
    /**
-    * @brief Traverser all elements in rect
+    * \brief Iterate over all mesh entities with given dimension and perform given lambda function
+    *    on each of them.
+    *
+    * \tparam EntityDimension is dimension of the grid entites.
+    * \tparam Func is lambda to be performed on each grid enitty.
+    *
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    *     It is supposed to have the following form:
+    *
+    * ```
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * ```
+    * where \ref entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    inline void
    forAll( Func func, FuncArgs... args ) const;
 
    /**
-    * @brief Traverser all elements in rect
-    * @param from - bottom left anchor of traverse rect
-    * @param to - top right anchor of traverse rect
+    * \brief Traverser all elements in rect
+    * \param from - bottom left anchor of traverse rect
+    * \param to - top right anchor of traverse rect
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    inline void
    forAll( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const;
 
    /**
-    * @brief Traverser interior elements in rect
+    * \brief Traverser interior elements in rect
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    inline void
@@ -81,6 +144,17 @@ public:
 
 };
 
+/**
+ * \brief Serialization of the grid structure.
+ *
+ * \tparam Dimension is grid dimension.
+ * \tparam Real is type of the floating point numbers of grid.
+ * \tparam Device is the device to be used for the execution of grid operations.
+ * \tparam Index is type for indexing of the mesh entities of grid.
+ * \param str is output stream.
+ * \param grid is an instance of grid.
+ * \return std::ostream& is reference on the input stream.
+ */
 template< int Dimension, typename Real, typename Device, typename Index >
 std::ostream&
 operator<<( std::ostream& str, const Grid< Dimension, Real, Device, Index >& grid )
@@ -92,6 +166,18 @@ operator<<( std::ostream& str, const Grid< Dimension, Real, Device, Index >& gri
    return str;
 }
 
+/**
+ * \brief Comparison operator for grid.
+ *
+ * \tparam Dimension is grid dimension.
+ * \tparam Real is type of the floating point numbers of grid.
+ * \tparam Device is the device to be used for the execution of grid operations.
+ * \tparam Index is type for indexing of the mesh entities of grid.
+ * \param lhs is an instance of one grid.
+ * \param rhs is an instance of another grid.
+ * \return true if both grids are equal.
+ * \return false if the grids are different.
+ */
 template< int Dimension, typename Real, typename Device, typename Index >
 bool
 operator==( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimension, Real, Device, Index >& rhs )
@@ -100,6 +186,18 @@ operator==( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimen
        && lhs.getProportions() == rhs.getProportions();
 }
 
+/**
+ * \brief Comparison operator for grid.
+ *
+ * \tparam Dimension is grid dimension.
+ * \tparam Real is type of the floating point numbers of grid.
+ * \tparam Device is the device to be used for the execution of grid operations.
+ * \tparam Index is type for indexing of the mesh entities of grid.
+ * \param lhs is an instance of one grid.
+ * \param rhs is an instance of another grid.
+ * \return true if the grids are different.
+ * \return false if both grids are equal.
+ */
 template< int Dimension, typename Real, typename Device, typename Index >
 bool
 operator!=( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimension, Real, Device, Index >& rhs )
