@@ -11,7 +11,7 @@ class NeighbourGridEntityGetterTestCase {
    public:
       using Index = typename Grid::IndexType;
       using Real = typename Grid::RealType;
-      using Coordinate = typename Grid::Coordinate;
+      using Coordinate = typename Grid::CoordinatesType;
       using DataStore = EntityDataStore<Index, Real, typename Grid::DeviceType, Grid::getMeshDimension()>;
       using HostDataStore = EntityDataStore<Index, Real, TNL::Devices::Host, Grid::getMeshDimension()>;
 
@@ -198,7 +198,7 @@ template<typename Grid,
          int NeighbourEntityDimension,
          int... Steps,
          std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool> = true>
-void testStaticNeighbourEntityGetter(Grid& grid, const typename Grid::Coordinate& dimensions) {
+void testStaticNeighbourEntityGetter(Grid& grid, const typename Grid::CoordinatesType& dimensions) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Neighbour Entity Dimension: " + TNL::convertToString(NeighbourEntityDimension));
@@ -212,7 +212,7 @@ void testStaticNeighbourEntityGetter(Grid& grid, const typename Grid::Coordinate
    typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
 
    test.template storeByStaticAccessor<Steps...>(grid, store);
-   test.verify(grid, store, typename Grid::Coordinate(Steps...), -1);
+   test.verify(grid, store, typename Grid::CoordinatesType(Steps...), -1);
 }
 
 template<typename Grid,
@@ -221,7 +221,7 @@ template<typename Grid,
          int NeighbourEntityOrientation,
          int... Steps,
          std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool> = true>
-void testStaticNeighbourEntityGetter(Grid& grid, const typename Grid::Coordinate& dimensions) {
+void testStaticNeighbourEntityGetter(Grid& grid, const typename Grid::CoordinatesType& dimensions) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Neighbour Entity Dimension: " + TNL::convertToString(NeighbourEntityDimension));
@@ -236,14 +236,14 @@ void testStaticNeighbourEntityGetter(Grid& grid, const typename Grid::Coordinate
    typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
 
    test.template storeByStaticAccessorWithOrientation<NeighbourEntityOrientation, Steps...>(grid, store);
-   test.verify(grid, store, typename Grid::Coordinate(Steps...), NeighbourEntityOrientation);
+   test.verify(grid, store, typename Grid::CoordinatesType(Steps...), NeighbourEntityOrientation);
 }
 
 
 template<typename Grid,
          int EntityDimension,
          int NeighbourEntityDimension>
-void testDynamicNeighbourEntityGetter(Grid& grid, const typename Grid::Coordinate& dimensions, const typename Grid::Coordinate& offset) {
+void testDynamicNeighbourEntityGetter(Grid& grid, const typename Grid::CoordinatesType& dimensions, const typename Grid::CoordinatesType& offset) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Neighbour Entity Dimension: " + TNL::convertToString(NeighbourEntityDimension));
@@ -264,7 +264,7 @@ template<typename Grid,
          int EntityDimension,
          int NeighbourEntityDimension,
          int NeighbourEntityOrientation>
-void testDynamicNeighbourEntityGetter(Grid& grid, const typename Grid::Coordinate& dimensions, const typename Grid::Coordinate& offset) {
+void testDynamicNeighbourEntityGetter(Grid& grid, const typename Grid::CoordinatesType& dimensions, const typename Grid::CoordinatesType& offset) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Neighbour Entity Dimension: " + TNL::convertToString(NeighbourEntityDimension));

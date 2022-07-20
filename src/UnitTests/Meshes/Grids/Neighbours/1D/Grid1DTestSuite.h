@@ -21,7 +21,7 @@ class GridTestSuite: public ::testing::Test {
    protected:
       GridType grid;
 
-      std::vector<typename GridType::Coordinate> dimensions = {
+      std::vector<typename GridType::CoordinatesType > dimensions = {
          { 1 },
          { 2 },
          { 4 },
@@ -44,7 +44,7 @@ class GridTestSuite: public ::testing::Test {
 };
 
 template<typename Grid, int EntityDimension, int NeighbourEntityDimension>
-void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::Coordinate& dimension) {
+void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension) {
    auto loop = [&](const auto i){
       testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, i - 1>(grid, dimension);
    };
@@ -53,7 +53,7 @@ void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Gr
 }
 
 template<typename Grid, int EntityDimension, int NeighbourEntityDimension, int NeighbourEntityOrientation>
-void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::Coordinate& dimension) {
+void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension) {
    auto loop = [&](const auto i){
       testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, i - 1>(grid, dimension);
    };
@@ -62,15 +62,15 @@ void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Gr
 }
 
 template<typename Grid, int EntityDimension, int NeighbourEntityDimension>
-void testDynamicNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::Coordinate& dimension, const int scale = 1) {
+void testDynamicNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension, const int scale = 1) {
    for (int i = -1 * scale; i < 1 * scale; i++)
-      testDynamicNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension>(grid, dimension, typename Grid::Coordinate(i));
+      testDynamicNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension>(grid, dimension, typename Grid::CoordinatesType(i));
 }
 
 template<typename Grid, int EntityDimension, int NeighbourEntityDimension, int NeighbourEntityOrientation>
-void testDynamicNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::Coordinate& dimension, const int scale = 1) {
+void testDynamicNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension, const int scale = 1) {
    for (int i = -1 * scale; i < 1 * scale; i++)
-      testDynamicNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, NeighbourEntityOrientation>(grid, dimension, typename Grid::Coordinate(i));
+      testDynamicNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, NeighbourEntityOrientation>(grid, dimension, typename Grid::CoordinatesType(i));
 }
 
 #endif

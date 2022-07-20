@@ -15,9 +15,9 @@ template<typename Grid, typename GridEntity, typename DataStore>
 void testTraverse(const Grid& grid, DataStore& dataStore, int entitiesCount ) {
   auto view = dataStore.getView();
 
-  auto exec = [ & ]( const auto orientation, const typename Grid::Coordinate& basis ) {
+  auto exec = [ & ]( const auto orientation, const typename Grid::CoordinatesType& basis ) {
     for(typename Grid::IndexType i = 0; i < entitiesCount; i++) {
-      typename Grid::Coordinate coordinate;
+      typename Grid::CoordinatesType coordinate;
 
       coordinate = i;
 
@@ -42,8 +42,8 @@ void testTraverse(const Grid& grid, DataStore& dataStore, int entitiesCount ) {
 
       auto emptyPrototype = view.getEntity(i);
 
-      typename Grid::Coordinate zeroCoordinate = 0;
-      typename Grid::Point zeroPoint = 0;
+      typename Grid::CoordinatesType zeroCoordinate = 0;
+      typename Grid::PointType zeroPoint = 0;
 
       EXPECT_EQ(0, emptyPrototype.calls);
       EXPECT_EQ(zeroCoordinate, emptyPrototype.coordinate);

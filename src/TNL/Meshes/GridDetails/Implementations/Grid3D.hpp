@@ -28,8 +28,8 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
 Grid< 3, Real, Device, Index >::forAll( Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
-                                        const Coordinate& basis,
+   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
+                                        const CoordinatesType& basis,
                                         const Index orientation,
                                         const Grid& grid,
                                         FuncArgs... args ) mutable
@@ -45,10 +45,10 @@ Grid< 3, Real, Device, Index >::forAll( Func func, FuncArgs... args ) const
 template< typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-Grid< 3, Real, Device, Index >::forAll( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
+Grid< 3, Real, Device, Index >::forAll( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
-                                        const Coordinate& basis,
+   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
+                                        const CoordinatesType& basis,
                                         const Index orientation,
                                         const Grid& grid,
                                         FuncArgs... args ) mutable
@@ -66,8 +66,8 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
 Grid< 3, Real, Device, Index >::forInterior( Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
-                                        const Coordinate& basis,
+   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
+                                        const CoordinatesType& basis,
                                         const Index orientation,
                                         const Grid& grid,
                                         FuncArgs... args ) mutable
@@ -83,10 +83,10 @@ Grid< 3, Real, Device, Index >::forInterior( Func func, FuncArgs... args ) const
 template< typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-Grid< 3, Real, Device, Index >::forInterior( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
+Grid< 3, Real, Device, Index >::forInterior( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
-                                        const Coordinate& basis,
+   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
+                                        const CoordinatesType& basis,
                                         const Index orientation,
                                         const Grid& grid,
                                         FuncArgs... args ) mutable
@@ -104,8 +104,8 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
 Grid< 3, Real, Device, Index >::forBoundary( Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
-                                        const Coordinate& basis,
+   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
+                                        const CoordinatesType& basis,
                                         const Index orientation,
                                         const Grid& grid,
                                         FuncArgs... args ) mutable
@@ -121,10 +121,10 @@ Grid< 3, Real, Device, Index >::forBoundary( Func func, FuncArgs... args ) const
 template< typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-Grid< 3, Real, Device, Index >::forBoundary( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
+Grid< 3, Real, Device, Index >::forBoundary( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const Coordinate& coordinate,
-                                        const Coordinate& basis,
+   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
+                                        const CoordinatesType& basis,
                                         const Index orientation,
                                         const Grid& grid,
                                         FuncArgs... args ) mutable

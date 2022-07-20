@@ -14,7 +14,7 @@ class GridEntityCenterGetter< GridEntity< Meshes::Grid< 1, Real, Device, Index >
 public:
    using Grid = Meshes::Grid< 1, Real, Device, Index >;
    using Entity = GridEntity< Grid, 1 >;
-   using Point = typename Grid::Point;
+   using Point = typename Grid::PointType;
 
    __cuda_callable__
    inline static Point
@@ -31,7 +31,7 @@ class GridEntityCenterGetter< GridEntity< Meshes::Grid< 1, Real, Device, Index >
 public:
    using Grid = Meshes::Grid< 1, Real, Device, Index >;
    using Entity = GridEntity< Grid, 0 >;
-   using Point = typename Grid::Point;
+   using Point = typename Grid::PointType;
 
    __cuda_callable__
    inline static Point
@@ -51,7 +51,7 @@ class GridEntityCenterGetter< GridEntity< Meshes::Grid< 2, Real, Device, Index >
 public:
    using Grid = Meshes::Grid< 2, Real, Device, Index >;
    using Entity = GridEntity< Grid, 2 >;
-   using Point = typename Grid::Point;
+   using Point = typename Grid::PointType;
 
    __cuda_callable__
    inline static Point
@@ -69,7 +69,7 @@ class GridEntityCenterGetter< GridEntity< Meshes::Grid< 2, Real, Device, Index >
 public:
    using Grid = Meshes::Grid< 2, Real, Device, Index >;
    using Entity = GridEntity< Grid, 1 >;
-   using Point = typename Grid::Point;
+   using Point = typename Grid::PointType;
 
    __cuda_callable__
    inline static Point
@@ -88,7 +88,7 @@ class GridEntityCenterGetter< GridEntity< Meshes::Grid< 2, Real, Device, Index >
 public:
    using Grid = Meshes::Grid< 2, Real, Device, Index >;
    using Entity = GridEntity< Grid, 0 >;
-   using Point = typename Grid::Point;
+   using Point = typename Grid::PointType;
 
    __cuda_callable__
    inline static Point
@@ -109,7 +109,7 @@ class GridEntityCenterGetter< GridEntity< Meshes::Grid< 3, Real, Device, Index >
 public:
    using Grid = Meshes::Grid< 3, Real, Device, Index >;
    using Entity = GridEntity< Grid, EntityDimension >;
-   using Point = typename Grid::Point;
+   using Point = typename Grid::PointType;
 
    __cuda_callable__
    inline static Point
@@ -129,7 +129,7 @@ class GridEntityCenterGetter< GridEntity< Meshes::Grid< 3, Real, Device, Index >
 public:
    using Grid = Meshes::Grid< 3, Real, Device, Index >;
    using Entity = GridEntity< Grid, 3 >;
-   using Point = typename Grid::Point;
+   using Point = typename Grid::PointType;
 
    __cuda_callable__
    inline static Point
@@ -148,7 +148,7 @@ class GridEntityCenterGetter< GridEntity< Meshes::Grid< 3, Real, Device, Index >
 public:
    using Grid = Meshes::Grid< 3, Real, Device, Index >;
    using Entity = GridEntity< Grid, 0 >;
-   using Point = typename Grid::Point;
+   using Point = typename Grid::PointType;
 
    __cuda_callable__
    inline static Point

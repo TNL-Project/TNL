@@ -28,7 +28,7 @@ class GridTestSuite: public ::testing::Test {
    protected:
       GridType grid;
 
-      std::vector<typename GridType::Coordinate> dimensions = {
+      std::vector<typename GridType::CoordinatesType > dimensions = {
          { 1, 1 },
          { 2, 1 },
          { 1, 2 },
@@ -42,7 +42,7 @@ class GridTestSuite: public ::testing::Test {
 #endif
       };
 
-      std::vector<typename GridType::Point> origins = {
+      std::vector<typename GridType::PointType > origins = {
          { 1, 1 },
          { -10, -10 },
          { 0.1, 0.1 },
@@ -51,7 +51,7 @@ class GridTestSuite: public ::testing::Test {
          { -2, -2 }
       };
 
-      std::vector<typename GridType::Point> spaceSteps = {
+      std::vector<typename GridType::PointType > spaceSteps = {
          { 0.1, 0.1 },
          { 2, 2.4 },
          { 0.1, 3.1 },

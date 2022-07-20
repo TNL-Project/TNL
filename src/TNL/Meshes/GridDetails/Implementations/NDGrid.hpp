@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <TNL/Meshes/GridDetails/NDGrid.h>
+#include <TNL/Meshes/NDGrid.h>
 #include <TNL/Meshes/GridDetails/GridEntityGetter.h>
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/BasisGetter.h>
@@ -14,8 +14,24 @@ namespace TNL {
 namespace Meshes {
 
 template< int Dimension, typename Real, typename Device, typename Index >
+NDGrid< Dimension, Real, Device, Index >::
+NDGrid()
+{
+   CoordinatesType zero = 0;
+   setDimensions( zero );
+
+   PointType zeroPoint = 0;
+   proportions = zeroPoint;
+   spaceSteps = zeroPoint;
+   origin = zeroPoint;
+
+   fillBases();
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
 constexpr Index
-NDGrid< Dimension, Real, Device, Index >::getEntityOrientationsCount( const Index entityDimension )
+NDGrid< Dimension, Real, Device, Index >::
+getEntityOrientationsCount( const Index entityDimension )
 {
    const Index dimension = Dimension;
 
@@ -23,15 +39,15 @@ NDGrid< Dimension, Real, Device, Index >::getEntityOrientationsCount( const Inde
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename... Dimensions,
-          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool >,
-          std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > >
+   template< typename... Dimensions,
+             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool >,
+             std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > >
 void
 NDGrid< Dimension, Real, Device, Index >::setDimensions( Dimensions... dimensions )
 {
-   this->dimensions = Coordinate( dimensions... );
+   this->dimensions = CoordinatesType( dimensions... );
 
-   TNL_ASSERT_GE( this->dimensions, Coordinate( 0 ), "Dimension must be positive" );
+   TNL_ASSERT_GE( this->dimensions, CoordinatesType( 0 ), "Dimension must be positive" );
 
    fillEntitiesCount();
    fillSpaceSteps();
@@ -39,17 +55,17 @@ NDGrid< Dimension, Real, Device, Index >::setDimensions( Dimensions... dimension
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void
-NDGrid< Dimension, Real, Device, Index >::setDimensions( const typename NDGrid< Dimension, Real, Device, Index >::Coordinate& dimensions )
+NDGrid< Dimension, Real, Device, Index >::setDimensions( const typename NDGrid< Dimension, Real, Device, Index >::CoordinatesType& dimensions )
 {
    this->dimensions = dimensions;
 
-   TNL_ASSERT_GE( this->dimensions, Coordinate( 0 ), "Dimension must be positive" );
+   TNL_ASSERT_GE( this->dimensions, CoordinatesType( 0 ), "Dimension must be positive" );
 
    fillEntitiesCount();
    fillSpaceSteps();
 }
 
-template< int Dimension, typename Real, typename Device, typename Index >
+/*template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
 inline Index
 NDGrid< Dimension, Real, Device, Index >::getDimension( const Index index ) const
@@ -58,7 +74,7 @@ NDGrid< Dimension, Real, Device, Index >::getDimension( const Index index ) cons
    TNL_ASSERT_LT( index, Dimension, "Index must be less than Dimension" );
 
    return dimensions[ index ];
-}
+}*/
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< typename... DimensionIndex,
@@ -71,7 +87,7 @@ NDGrid< Dimension, Real, Device, Index >::getDimensions( DimensionIndex... indic
    Container< sizeof...( DimensionIndex ), Index > result{ indices... };
 
    for( std::size_t i = 0; i < sizeof...( DimensionIndex ); i++ )
-      result[ i ] = this->getDimension( result[ i ] );
+      result[ i ] = this->getDimensions()[ result[ i ] ];
 
    return result;
 }
@@ -130,7 +146,7 @@ NDGrid< Dimension, Real, Device, Index >::getEntitiesCounts() const noexcept
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void
-NDGrid< Dimension, Real, Device, Index >::setOrigin( const typename NDGrid< Dimension, Real, Device, Index >::Point& origin ) noexcept
+NDGrid< Dimension, Real, Device, Index >::setOrigin( const typename NDGrid< Dimension, Real, Device, Index >::PointType& origin ) noexcept
 {
    this->origin = origin;
 }
@@ -142,7 +158,7 @@ template< typename... Coordinates,
 void
 NDGrid< Dimension, Real, Device, Index >::setOrigin( Coordinates... coordinates ) noexcept
 {
-   this->origin = Point( coordinates... );
+   this->origin = PointType( coordinates... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -164,7 +180,7 @@ NDGrid< Dimension, Real, Device, Index >::getOrientedEntitiesCount( const Index 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension >
 __cuda_callable__
-inline typename NDGrid< Dimension, Real, Device, Index >::Coordinate
+inline typename NDGrid< Dimension, Real, Device, Index >::CoordinatesType
 NDGrid< Dimension, Real, Device, Index >::getBasis( Index orientation ) const noexcept
 {
    constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
@@ -191,7 +207,7 @@ NDGrid< Dimension, Real, Device, Index >::getOrientedEntitiesCount() const noexc
 
 template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
-inline const typename NDGrid< Dimension, Real, Device, Index >::Point&
+inline const typename NDGrid< Dimension, Real, Device, Index >::PointType&
 NDGrid< Dimension, Real, Device, Index >::getOrigin() const noexcept
 {
    return this->origin;
@@ -199,7 +215,7 @@ NDGrid< Dimension, Real, Device, Index >::getOrigin() const noexcept
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void
-NDGrid< Dimension, Real, Device, Index >::setDomain( const typename NDGrid< Dimension, Real, Device, Index >::Point& origin, const typename NDGrid< Dimension, Real, Device, Index >::Point& proportions )
+NDGrid< Dimension, Real, Device, Index >::setDomain( const typename NDGrid< Dimension, Real, Device, Index >::PointType& origin, const typename NDGrid< Dimension, Real, Device, Index >::PointType& proportions )
 {
    this->origin = origin;
    this->proportions = proportions;
@@ -209,7 +225,7 @@ NDGrid< Dimension, Real, Device, Index >::setDomain( const typename NDGrid< Dime
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void
-NDGrid< Dimension, Real, Device, Index >::setSpaceSteps( const typename NDGrid< Dimension, Real, Device, Index >::Point& spaceSteps ) noexcept
+NDGrid< Dimension, Real, Device, Index >::setSpaceSteps( const typename NDGrid< Dimension, Real, Device, Index >::PointType& spaceSteps ) noexcept
 {
    this->spaceSteps = spaceSteps;
 
@@ -224,7 +240,7 @@ template< typename... Steps,
 void
 NDGrid< Dimension, Real, Device, Index >::setSpaceSteps( Steps... spaceSteps ) noexcept
 {
-   this->spaceSteps = Point( spaceSteps... );
+   this->spaceSteps = PointType( spaceSteps... );
 
    fillSpaceStepsPowers();
    fillProportions();
@@ -232,7 +248,7 @@ NDGrid< Dimension, Real, Device, Index >::setSpaceSteps( Steps... spaceSteps ) n
 
 template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
-inline const typename NDGrid< Dimension, Real, Device, Index >::Point&
+inline const typename NDGrid< Dimension, Real, Device, Index >::PointType&
 NDGrid< Dimension, Real, Device, Index >::getSpaceSteps() const noexcept
 {
    return this->spaceSteps;
@@ -240,7 +256,7 @@ NDGrid< Dimension, Real, Device, Index >::getSpaceSteps() const noexcept
 
 template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
-inline const typename NDGrid< Dimension, Real, Device, Index >::Point&
+inline const typename NDGrid< Dimension, Real, Device, Index >::PointType&
 NDGrid< Dimension, Real, Device, Index >::getProportions() const noexcept
 {
    return this->proportions;
@@ -254,7 +270,7 @@ __cuda_callable__
 inline Real
 NDGrid< Dimension, Real, Device, Index >::getSpaceStepsProducts( Powers... powers ) const
 {
-   int index = Templates::makeCollapsedIndex( this->spaceStepsPowersSize, Coordinate( powers... ) );
+   int index = Templates::makeCollapsedIndex( this->spaceStepsPowersSize, CoordinatesType( powers... ) );
 
    return this->spaceStepsProducts( index );
 }
@@ -262,7 +278,7 @@ NDGrid< Dimension, Real, Device, Index >::getSpaceStepsProducts( Powers... power
 template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
 inline Real
-NDGrid< Dimension, Real, Device, Index >::getSpaceStepsProducts( const Coordinate& powers ) const
+NDGrid< Dimension, Real, Device, Index >::getSpaceStepsProducts( const CoordinatesType& powers ) const
 {
    int index = Templates::makeCollapsedIndex( this->spaceStepsPowersSize, powers );
 
@@ -299,19 +315,19 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
 NDGrid< Dimension, Real, Device, Index >::traverseAll( Func func, FuncArgs... args ) const
 {
-   this->traverseAll< EntityDimension >( Coordinate( 0 ), this->getDimensions(), func, args... );
+   this->traverseAll< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-NDGrid< Dimension, Real, Device, Index >::traverseAll( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
+NDGrid< Dimension, Real, Device, Index >::traverseAll( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const
 {
-   TNL_ASSERT_GE( from, Coordinate( 0 ), "Traverse rect must be in the grid dimensions" );
+   TNL_ASSERT_GE( from, CoordinatesType( 0 ), "Traverse rect must be in the grid dimensions" );
    TNL_ASSERT_LE( to, this->getDimensions(), "Traverse rect be in the grid dimensions" );
    TNL_ASSERT_LE( from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor" );
 
-   auto exec = [ & ]( const Index orientation, const Coordinate& basis )
+   auto exec = [ & ]( const Index orientation, const CoordinatesType& basis )
    {
       Templates::ParallelFor< Dimension, Device, Index >::exec( from, to + basis, func, basis, orientation, args... );
    };
@@ -324,31 +340,31 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
 NDGrid< Dimension, Real, Device, Index >::traverseInterior( Func func, FuncArgs... args ) const
 {
-   this->traverseInterior< EntityDimension >( Coordinate( 0 ), this->getDimensions(), func, args... );
+   this->traverseInterior< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-NDGrid< Dimension, Real, Device, Index >::traverseInterior( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
+NDGrid< Dimension, Real, Device, Index >::traverseInterior( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const
 {
-   TNL_ASSERT_GE( from, Coordinate( 0 ), "Traverse rect must be in the grid dimensions" );
+   TNL_ASSERT_GE( from, CoordinatesType( 0 ), "Traverse rect must be in the grid dimensions" );
    TNL_ASSERT_LE( to, this->getDimensions(), "Traverse rect be in the grid dimensions" );
    TNL_ASSERT_LE( from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor" );
 
-   auto exec = [ & ]( const Index orientation, const Coordinate& basis )
+   auto exec = [ & ]( const Index orientation, const CoordinatesType& basis )
    {
       switch( EntityDimension ) {
          case 0:
             {
                Templates::ParallelFor< Dimension, Device, Index >::exec(
-                  from + Coordinate( 1 ), to, func, basis, orientation, args... );
+                  from + CoordinatesType( 1 ), to, func, basis, orientation, args... );
                break;
             }
          case Dimension:
             {
                Templates::ParallelFor< Dimension, Device, Index >::exec(
-                  from + Coordinate( 1 ), to - Coordinate( 1 ), func, basis, orientation, args... );
+                  from + CoordinatesType( 1 ), to - CoordinatesType( 1 ), func, basis, orientation, args... );
                break;
             }
          default:
@@ -367,13 +383,13 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
 NDGrid< Dimension, Real, Device, Index >::traverseBoundary( Func func, FuncArgs... args ) const
 {
-   this->traverseBoundary< EntityDimension >( Coordinate( 0 ), this->getDimensions(), func, args... );
+   this->traverseBoundary< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 inline void
-NDGrid< Dimension, Real, Device, Index >::traverseBoundary( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const
+NDGrid< Dimension, Real, Device, Index >::traverseBoundary( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const
 {
    // Boundaries of the grid are formed by the entities of Dimension - 1.
    // We need to traverse each orientation independently.
@@ -383,10 +399,10 @@ NDGrid< Dimension, Real, Device, Index >::traverseBoundary( const Coordinate& fr
 
    Container< orientationsCount, Index > isBoundaryTraversed( 0 );
 
-   auto forBoundary = [ & ]( const auto orthogonalOrientation, const auto orientation, const Coordinate& basis )
+   auto forBoundary = [ & ]( const auto orthogonalOrientation, const auto orientation, const CoordinatesType& basis )
    {
-      Coordinate start = from;
-      Coordinate end = to + basis;
+      CoordinatesType start = from;
+      CoordinatesType end = to + basis;
 
       if( isAnyBoundaryIntersects ) {
 #pragma unroll
@@ -411,7 +427,7 @@ NDGrid< Dimension, Real, Device, Index >::traverseBoundary( const Coordinate& fr
    };
 
    if( ! isAnyBoundaryIntersects ) {
-      auto exec = [ & ]( const auto orientation, const Coordinate& basis )
+      auto exec = [ & ]( const auto orientation, const CoordinatesType& basis )
       {
          constexpr int orthogonalOrientation = EntityDimension - orientation;
 
@@ -424,7 +440,7 @@ NDGrid< Dimension, Real, Device, Index >::traverseBoundary( const Coordinate& fr
 
    auto exec = [ & ]( const auto orthogonalOrientation )
    {
-      auto exec = [ & ]( const auto orientation, const Coordinate& basis )
+      auto exec = [ & ]( const auto orientation, const CoordinatesType& basis )
       {
          forBoundary( orthogonalOrientation, orientation, basis );
       };

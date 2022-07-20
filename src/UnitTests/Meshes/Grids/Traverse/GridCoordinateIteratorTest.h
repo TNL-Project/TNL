@@ -15,9 +15,9 @@ template< typename Grid, typename Iterator >
 void
 test( Iterator& iterator,
       Grid& grid,
-      typename Grid::Coordinate coordinate,
-      typename Grid::Coordinate basis,
-      typename Grid::Point center,
+      typename Grid::CoordinatesType coordinate,
+      typename Grid::CoordinatesType basis,
+      typename Grid::PointType center,
       bool isBoundary,
       typename Iterator::Index index,
       typename Iterator::Real measure,
@@ -32,7 +32,7 @@ test( Iterator& iterator,
 
    EXPECT_NEAR( measure, iterator.getMeasure( grid ), precision ) << coordinate;
 
-   typename Grid::Point iteratorCenter = iterator.getCenter( grid );
+   typename Grid::PointType iteratorCenter = iterator.getCenter( grid );
 
    for( Index i = 0; i < center.getSize(); i++ )
       EXPECT_NEAR( center[ i ], iteratorCenter[ i ], precision ) << coordinate << " " << iteratorCenter;

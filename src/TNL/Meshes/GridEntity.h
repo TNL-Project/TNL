@@ -31,8 +31,8 @@ public:
    using Device = typename Grid::DeviceType;
    using Real = typename Grid::RealType;
 
-   using Coordinate = typename Grid::Coordinate;
-   using Point = typename Grid::Point;
+   using CoordinatesType = typename Grid::CoordinatesType;
+   using PointType = typename Grid::PointType;
 
    constexpr static int meshDimension = Grid::getMeshDimension();
    constexpr static int entityDimension = EntityDimension;
@@ -45,7 +45,7 @@ public:
    /////////////////////////////
 
    __cuda_callable__
-   inline GridEntity( const Grid& grid, const Coordinate& coordinates )
+   inline GridEntity( const Grid& grid, const CoordinatesType& coordinates )
    : grid( grid ), coordinates( coordinates )
    {
       basis = grid.template getBasis<EntityDimension>(0);
@@ -54,23 +54,23 @@ public:
    }
 
    __cuda_callable__
-   inline GridEntity( const Grid& grid, const Coordinate& coordinates, const Coordinate& basis, const Index orientation )
+   inline GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& basis, const Index orientation )
    : grid( grid ), coordinates( coordinates ), basis( basis ), orientation( orientation )
    {
       refresh();
    }
 
    __cuda_callable__
-   inline const Coordinate&
+   inline const CoordinatesType&
    getCoordinates() const;
 
    __cuda_callable__
-   inline Coordinate&
+   inline CoordinatesType&
    getCoordinates();
 
    __cuda_callable__
    inline void
-   setCoordinates( const Coordinate& coordinates );
+   setCoordinates( const CoordinatesType& coordinates );
 
    /***
     * @brief - Recalculates entity index.
@@ -99,7 +99,7 @@ public:
     * @brief Returns, the center of the entity
     */
    __cuda_callable__
-   inline const Point
+   inline const PointType
    getCenter() const;
 
    /**
@@ -115,13 +115,13 @@ public:
 
    __cuda_callable__
    inline void
-   setBasis( const Coordinate& orientation );
+   setBasis( const CoordinatesType& orientation );
 
    /**
     * @brief Returns, the entity basis
     */
    __cuda_callable__
-   inline Coordinate
+   inline CoordinatesType
    getBasis() const;
 
    /**
@@ -174,7 +174,7 @@ public:
    template< int Dimension >
    __cuda_callable__
    inline GridEntity< Grid, Dimension >
-   getNeighbourEntity( const Coordinate& offset ) const;
+   getNeighbourEntity( const CoordinatesType& offset ) const;
 
    /**
     * @brief Returns, the neighbour entity
@@ -184,14 +184,14 @@ public:
    template< int Dimension, int Orientation >
    __cuda_callable__
    inline GridEntity< Grid, Dimension >
-   getNeighbourEntity( const Coordinate& offset ) const;
+   getNeighbourEntity( const CoordinatesType& offset ) const;
 
 protected:
    const Grid& grid;
 
    Index index;
-   Coordinate coordinates;
-   Coordinate basis;
+   CoordinatesType coordinates;
+   CoordinatesType basis;
    Index orientation;
 };
 

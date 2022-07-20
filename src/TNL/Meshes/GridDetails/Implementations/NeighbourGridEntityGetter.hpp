@@ -14,20 +14,20 @@ public:
    template< class Grid >
    static __cuda_callable__
    inline GridEntity< Grid, NeighbourEntityDimension >
-   getEntity( const GridEntity< Grid, ParentEntityDimension >& entity, const typename Grid::Coordinate& offset )
+   getEntity( const GridEntity< Grid, ParentEntityDimension >& entity, const typename Grid::CoordinatesType& offset )
    {
       using BasisGetterType = BasisGetter< typename Grid::IndexType, NeighbourEntityDimension, GridDimension >;
-      using Coordinate = typename Grid::Coordinate;
+      using CoordinatesType = typename Grid::CoordinatesType;
 
       constexpr int orientationsCount = Templates::combination( NeighbourEntityDimension, GridDimension );
 
-      const Coordinate coordinate = entity.getCoordinates() + offset;
+      const CoordinatesType coordinate = entity.getCoordinates() + offset;
       const int orientation = TNL::min( orientationsCount - 1, entity.getOrientation() );
-      const Coordinate basis = orientation == entity.getOrientation() && ParentEntityDimension == NeighbourEntityDimension
+      const CoordinatesType basis = orientation == entity.getOrientation() && ParentEntityDimension == NeighbourEntityDimension
                                 ? entity.getBasis()
                                 : entity.getMesh().template getBasis< NeighbourEntityDimension >( orientation );
 
-      TNL_ASSERT_GE( coordinate, Coordinate( 0 ), "wrong coordinate" );
+      TNL_ASSERT_GE( coordinate, CoordinatesType( 0 ), "wrong coordinate" );
       TNL_ASSERT_LT( coordinate, entity.getMesh().getDimensions() + basis, "wrong coordinate" );
 
       return { entity.getMesh(), coordinate, basis, orientation };
@@ -39,17 +39,17 @@ public:
    getEntity( const GridEntity< Grid, ParentEntityDimension >& entity )
    {
       using BasisGetterType = BasisGetter< typename Grid::IndexType, NeighbourEntityDimension, GridDimension >;
-      using Coordinate = typename Grid::Coordinate;
+      using CoordinatesType = typename Grid::CoordinatesType;
 
       constexpr int orientationsCount = Templates::combination( NeighbourEntityDimension, GridDimension );
 
-      const Coordinate coordinate = entity.getCoordinates() + Coordinate( Steps... );
+      const CoordinatesType coordinate = entity.getCoordinates() + CoordinatesType( Steps... );
       const int orientation = TNL::min( orientationsCount - 1, entity.getOrientation() );
-      const Coordinate basis = orientation == entity.getOrientation() && ParentEntityDimension == NeighbourEntityDimension
+      const CoordinatesType basis = orientation == entity.getOrientation() && ParentEntityDimension == NeighbourEntityDimension
                                 ? entity.getBasis()
                                 : entity.getMesh().template getBasis< NeighbourEntityDimension >( orientation );
 
-      TNL_ASSERT_GE( coordinate, Coordinate( 0 ), "wrong coordinate" );
+      TNL_ASSERT_GE( coordinate, CoordinatesType( 0 ), "wrong coordinate" );
       TNL_ASSERT_LT( coordinate, entity.getMesh().getDimensions() + basis, "wrong coordinate" );
 
       return { entity.getMesh(), coordinate, basis, orientation };
@@ -64,15 +64,15 @@ public:
                                bool > = true >
    static __cuda_callable__
    inline GridEntity< Grid, NeighbourEntityDimension >
-   getEntity( const GridEntity< Grid, ParentEntityDimension >& entity, const typename Grid::Coordinate& offset )
+   getEntity( const GridEntity< Grid, ParentEntityDimension >& entity, const typename Grid::CoordinatesType& offset )
    {
       using BasisGetterType = BasisGetter< typename Grid::IndexType, NeighbourEntityDimension, GridDimension >;
-      using Coordinate = typename Grid::Coordinate;
+      using CoordinatesType = typename Grid::CoordinatesType;
 
-      const Coordinate coordinate = entity.getCoordinates() + offset;
-      const Coordinate basis = BasisGetterType::template getBasis< Orientation >();
+      const CoordinatesType coordinate = entity.getCoordinates() + offset;
+      const CoordinatesType basis = BasisGetterType::template getBasis< Orientation >();
 
-      TNL_ASSERT_GE( coordinate, Coordinate( 0 ), "wrong coordinate" );
+      TNL_ASSERT_GE( coordinate, CoordinatesType( 0 ), "wrong coordinate" );
       TNL_ASSERT_LT( coordinate, entity.getMesh().getDimensions() + basis, "wrong coordinate" );
 
       return { entity.getMesh(), coordinate, basis, Orientation };
@@ -92,12 +92,12 @@ public:
    getEntity( const GridEntity< Grid, ParentEntityDimension >& entity )
    {
       using BasisGetterType = BasisGetter< typename Grid::IndexType, NeighbourEntityDimension, GridDimension >;
-      using Coordinate = typename Grid::Coordinate;
+      using CoordinatesType = typename Grid::CoordinatesType;
 
-      const Coordinate coordinate = entity.getCoordinates() + Coordinate( Steps... );
-      const Coordinate basis{ BasisGetterType::template getBasis< Orientation >() };
+      const CoordinatesType coordinate = entity.getCoordinates() + CoordinatesType( Steps... );
+      const CoordinatesType basis{ BasisGetterType::template getBasis< Orientation >() };
 
-      TNL_ASSERT_GE( coordinate, Coordinate( 0 ), "wrong coordinate" );
+      TNL_ASSERT_GE( coordinate, CoordinatesType( 0 ), "wrong coordinate" );
       TNL_ASSERT_LT( coordinate, entity.getMesh().getDimensions() + basis, "wrong coordinate" );
 
       return { entity.getMesh(), coordinate, basis, Orientation };

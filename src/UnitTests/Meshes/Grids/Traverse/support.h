@@ -47,14 +47,14 @@ template< typename Grid, int EntityDimension, int Orientation >
 class GridCoordinateIterator : public CoordinateIterator< typename Grid::IndexType, Grid::getMeshDimension() >
 {
 public:
-   using Coordinate = typename Grid::Coordinate;
-   using Point = typename Grid::Point;
+   using Coordinate = typename Grid::CoordinatesType;
+   using Point = typename Grid::PointType;
    using Index = typename Grid::IndexType;
    using Real = typename Grid::RealType;
    using Base = CoordinateIterator< Index, Grid::getMeshDimension() >;
    using EntityBasis = TNL::Meshes::BasisGetter< Index, EntityDimension, Grid::getMeshDimension() >;
 
-   GridCoordinateIterator( const typename Grid::Coordinate& end )
+   GridCoordinateIterator( const typename Grid::CoordinatesType& end )
    : Base( Coordinate( 0 ), end + EntityBasis::template getBasis< Orientation >() )
    {
       for( Index i = 0; i < this->current.getSize(); i++ ) {
@@ -69,13 +69,13 @@ public:
       switch( EntityDimension ) {
          case Grid::getMeshDimension():
             for( Index i = 0; i < this->current.getSize(); i++ )
-               if( this->current[ i ] == 0 || this->current[ i ] == grid.getDimension( i ) - 1 )
+               if( this->current[ i ] == 0 || this->current[ i ] == grid.getDimensions()[ i ] - 1 )
                   return true;
 
             break;
          default:
             for( Index i = 0; i < this->current.getSize(); i++ )
-               if( getBasis()[ i ] && ( this->current[ i ] == 0 || this->current[ i ] == grid.getDimension( i ) ) )
+               if( getBasis()[ i ] && ( this->current[ i ] == 0 || this->current[ i ] == grid.getDimensions()[ i ] ) )
                   return true;
             break;
       }
@@ -154,8 +154,8 @@ class GridTraverseTestCase {
    public:
       using Index = typename Grid::IndexType;
       using Real = typename Grid::RealType;
-      using Coordinate = typename Grid::Coordinate;
-      using Point = typename Grid::Point;
+      using Coordinate = typename Grid::CoordinatesType;
+      using Point = typename Grid::PointType;
       using DataStore = EntityDataStore<Index, Real, typename Grid::DeviceType, Grid::getMeshDimension()>;
       using HostDataStore = EntityDataStore<Index, Real, TNL::Devices::Host, Grid::getMeshDimension()>;
 
@@ -356,9 +356,9 @@ class GridTraverseTestCase {
 
 template<typename Grid, int EntityDimension>
 void testForAllTraverse(Grid& grid,
-                        const typename Grid::Coordinate& dimensions,
-                        const typename Grid::Point& origin = typename Grid::Point(0),
-                        const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
+                        const typename Grid::CoordinatesType& dimensions,
+                        const typename Grid::PointType& origin = typename Grid::PointType(0),
+                        const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
@@ -380,9 +380,9 @@ void testForAllTraverse(Grid& grid,
 
 template<typename Grid, int EntityDimension>
 void testForInteriorTraverse(Grid& grid,
-                             const typename Grid::Coordinate& dimensions,
-                             const typename Grid::Point& origin = typename Grid::Point(0),
-                             const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
+                             const typename Grid::CoordinatesType& dimensions,
+                             const typename Grid::PointType& origin = typename Grid::PointType(0),
+                             const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
@@ -404,9 +404,9 @@ void testForInteriorTraverse(Grid& grid,
 
 template<typename Grid, int EntityDimension>
 void testForBoundaryTraverse(Grid& grid,
-                             const typename Grid::Coordinate& dimensions,
-                             const typename Grid::Point& origin = typename Grid::Point(0),
-                             const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
+                             const typename Grid::CoordinatesType& dimensions,
+                             const typename Grid::PointType& origin = typename Grid::PointType(0),
+                             const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
@@ -428,9 +428,9 @@ void testForBoundaryTraverse(Grid& grid,
 
 template<typename Grid, int EntityDimension>
 void testBoundaryUnionInteriorEqualAllProperty(Grid& grid,
-                                               const typename Grid::Coordinate& dimensions,
-                                               const typename Grid::Point& origin = typename Grid::Point(0),
-                                               const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
+                                               const typename Grid::CoordinatesType& dimensions,
+                                               const typename Grid::PointType& origin = typename Grid::PointType(0),
+                                               const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
@@ -453,9 +453,9 @@ void testBoundaryUnionInteriorEqualAllProperty(Grid& grid,
 
 template<typename Grid, int EntityDimension>
 void testAllMinusBoundaryEqualInteriorProperty(Grid& grid,
-                                               const typename Grid::Coordinate& dimensions,
-                                               const typename Grid::Point& origin = typename Grid::Point(0),
-                                               const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
+                                               const typename Grid::CoordinatesType& dimensions,
+                                               const typename Grid::PointType& origin = typename Grid::PointType(0),
+                                               const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
@@ -478,9 +478,9 @@ void testAllMinusBoundaryEqualInteriorProperty(Grid& grid,
 
 template<typename Grid, int EntityDimension>
 void testAllMinusInteriorEqualBoundaryProperty(Grid& grid,
-                                               const typename Grid::Coordinate& dimensions,
-                                               const typename Grid::Point& origin = typename Grid::Point(0),
-                                               const typename Grid::Point& spaceSteps = typename Grid::Point(1)) {
+                                               const typename Grid::CoordinatesType& dimensions,
+                                               const typename Grid::PointType& origin = typename Grid::PointType(0),
+                                               const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));

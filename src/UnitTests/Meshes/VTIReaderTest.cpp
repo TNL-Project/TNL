@@ -35,8 +35,8 @@ template<> struct GridRealTag< MyConfigTag, long double > { static constexpr boo
 TEST( VTIReaderTest, Grid1D )
 {
    using GridType = Grid< 1, double, TNL::Devices::Host, short int >;
-   using PointType = GridType::Point;
-   using CoordinatesType = GridType::Coordinate;
+   using PointType = GridType::PointType;
+   using CoordinatesType = GridType::CoordinatesType;
 
    GridType grid;
    grid.setDomain( PointType( 1 ), PointType( 2 ) );
@@ -51,8 +51,8 @@ TEST( VTIReaderTest, Grid1D )
 TEST( VTIReaderTest, Grid2D )
 {
    using GridType = Grid< 2, double, TNL::Devices::Host, int >;
-   using PointType = GridType::Point;
-   using CoordinatesType = GridType::Coordinate;
+   using PointType = GridType::PointType;
+   using CoordinatesType = GridType::CoordinatesType;
 
    GridType grid;
    grid.setDomain( PointType( 1, 2 ), PointType( 3, 4 ) );
@@ -67,8 +67,8 @@ TEST( VTIReaderTest, Grid2D )
 TEST( VTIReaderTest, Grid3D )
 {
    using GridType = Grid< 3, double, TNL::Devices::Host, long int >;
-   using PointType = GridType::Point;
-   using CoordinatesType = GridType::Coordinate;
+   using PointType = GridType::PointType;
+   using CoordinatesType = GridType::CoordinatesType;
 
    GridType grid;
    grid.setDomain( PointType( 1, 2, 3 ), PointType( 4, 5, 6 ) );

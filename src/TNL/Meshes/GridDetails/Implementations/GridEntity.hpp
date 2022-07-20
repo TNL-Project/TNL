@@ -17,7 +17,7 @@ namespace Meshes {
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-inline const typename GridEntity< Grid, EntityDimension >::Coordinate&
+inline const typename GridEntity< Grid, EntityDimension >::CoordinatesType&
 GridEntity< Grid, EntityDimension >::getCoordinates() const
 {
    return this->coordinates;
@@ -25,7 +25,7 @@ GridEntity< Grid, EntityDimension >::getCoordinates() const
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-inline typename GridEntity< Grid, EntityDimension >::Coordinate&
+inline typename GridEntity< Grid, EntityDimension >::CoordinatesType&
 GridEntity< Grid, EntityDimension >::getCoordinates()
 {
    return this->coordinates;
@@ -34,7 +34,7 @@ GridEntity< Grid, EntityDimension >::getCoordinates()
 template< class Grid, int EntityDimension >
 __cuda_callable__
 inline void
-GridEntity< Grid, EntityDimension >::setCoordinates( const Coordinate& coordinates )
+GridEntity< Grid, EntityDimension >::setCoordinates( const CoordinatesType& coordinates )
 {
    this->coordinates = coordinates;
    refresh();
@@ -70,7 +70,7 @@ GridEntity< Grid, EntityDimension >::isBoundary() const
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-inline const typename GridEntity< Grid, EntityDimension >::Point
+inline const typename GridEntity< Grid, EntityDimension >::PointType
 GridEntity< Grid, EntityDimension >::getCenter() const
 {
    return GridEntityCenterGetter< GridEntity >::getEntityCenter( *this );
@@ -94,7 +94,7 @@ GridEntity< Grid, EntityDimension >::getMesh() const
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-inline typename GridEntity< Grid, EntityDimension >::Coordinate
+inline typename GridEntity< Grid, EntityDimension >::CoordinatesType
 GridEntity< Grid, EntityDimension >::getBasis() const
 {
    return this->basis;
@@ -103,7 +103,7 @@ GridEntity< Grid, EntityDimension >::getBasis() const
 template< class Grid, int EntityDimension >
 __cuda_callable__
 inline void
-GridEntity< Grid, EntityDimension >::setBasis( const Coordinate& basis )
+GridEntity< Grid, EntityDimension >::setBasis( const CoordinatesType& basis )
 {
    this->basis = basis;
 }
@@ -152,7 +152,7 @@ template< class Grid, int EntityDimension >
 template< int Dimension >
 __cuda_callable__
 inline GridEntity< Grid, Dimension >
-GridEntity< Grid, EntityDimension >::getNeighbourEntity( const Coordinate& offset ) const
+GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& offset ) const
 {
    using Getter = NeighbourGridEntityGetter< meshDimension, entityDimension, Dimension >;
 
@@ -163,7 +163,7 @@ template< class Grid, int EntityDimension >
 template< int Dimension, int Orientation >
 __cuda_callable__
 inline GridEntity< Grid, Dimension >
-GridEntity< Grid, EntityDimension >::getNeighbourEntity( const Coordinate& offset ) const
+GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& offset ) const
 {
    using Getter = NeighbourGridEntityGetter< meshDimension, entityDimension, Dimension >;
 

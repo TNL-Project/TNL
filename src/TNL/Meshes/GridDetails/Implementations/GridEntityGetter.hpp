@@ -21,7 +21,7 @@ public:
 
    using NDGrid = Meshes::NDGrid< 1, Real, Device, Index >;
    using Entity = GridEntity< Grid< 1, Real, Device, Index >, EntityDimension >;
-   using Coordinate = typename NDGrid::Coordinate;
+   using Coordinate = typename NDGrid::CoordinatesType;
 
    __cuda_callable__
    inline static Index
@@ -45,7 +45,7 @@ public:
 
    using NDGrid = Meshes::NDGrid< 2, Real, Device, Index >;
    using Entity = GridEntity< Grid< 2, Real, Device, Index >, entityDimension >;
-   using Coordinate = typename NDGrid::Coordinate;
+   using Coordinate = typename NDGrid::CoordinatesType;
 
    __cuda_callable__
    inline static Index
@@ -66,7 +66,7 @@ public:
 
    using NDGrid = Meshes::NDGrid< 2, Real, Device, Index >;
    using Entity = GridEntity< Grid< 2, Real, Device, Index >, entityDimension >;
-   using Coordinate = typename NDGrid::Coordinate;
+   using Coordinate = typename NDGrid::CoordinatesType;
 
    __cuda_callable__
    inline static Index
@@ -93,7 +93,7 @@ public:
 
    using NDGrid = Meshes::NDGrid< 2, Real, Device, Index >;
    using Entity = GridEntity< Grid< 2, Real, Device, Index >, entityDimension >;
-   using Coordinate = typename NDGrid::Coordinate;
+   using Coordinate = typename NDGrid::CoordinatesType;
 
    __cuda_callable__
    inline static Index
@@ -120,7 +120,7 @@ public:
 
    using NDGrid = Meshes::NDGrid< 3, Real, Device, Index >;
    using Entity = GridEntity< Grid< 3, Real, Device, Index >, entityDimension >;
-   using Coordinate = typename NDGrid::Coordinate;
+   using Coordinate = typename NDGrid::CoordinatesType;
 
    __cuda_callable__
    inline static Index
@@ -144,7 +144,7 @@ public:
 
    using NDGrid = Meshes::NDGrid< 3, Real, Device, Index >;
    using Entity = GridEntity< Grid< 3, Real, Device, Index >, entityDimension >;
-   using Coordinate = typename NDGrid::Coordinate;
+   using Coordinate = typename NDGrid::CoordinatesType;
 
    __cuda_callable__
    inline static Index
@@ -176,7 +176,7 @@ public:
 
    using NDGrid = Meshes::NDGrid< 3, Real, Device, Index >;
    using Entity = GridEntity< Grid< 3, Real, Device, Index >, entityDimension >;
-   using Coordinate = typename NDGrid::Coordinate;
+   using Coordinate = typename NDGrid::CoordinatesType;
 
    __cuda_callable__
    inline static Index
@@ -208,7 +208,7 @@ public:
 
    using NDGrid = Meshes::NDGrid< 3, Real, Device, Index >;
    using Entity = GridEntity< Grid< 3, Real, Device, Index >, entityDimension >;
-   using Coordinate = typename NDGrid::Coordinate;
+   using Coordinate = typename NDGrid::CoordinatesType;
 
    __cuda_callable__
    inline static Index

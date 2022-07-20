@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Meshes/GridDetails/NDGrid.h>
+#include <TNL/Meshes/NDGrid.h>
 
 namespace TNL {
 namespace Meshes {
@@ -22,8 +22,8 @@ public:
    using EntityType = GridEntity< Grid, EntityDimension >;
 
    using Base = NDGrid< 2, Real, Device, Index >;
-   using Coordinate = typename Base::Coordinate;
-   using Point = typename Base::Point;
+   using CoordinatesType = typename Base::CoordinatesType;
+   using PointType = typename Base::PointType;
    using EntitiesCounts = typename Base::EntitiesCounts;
 
    /////////////////////////////
@@ -31,6 +31,15 @@ public:
    using Vertex = EntityType<0>;
    using Cell = EntityType<2>;
    /////////////////////////////
+
+   /**
+    * \brief Returns the dimension of grid
+    */
+   static constexpr int
+   getMeshDimension()
+   {
+      return 2;
+   };
 
    Grid() = default;
    Grid( const Index xSize, const Index ySize );
@@ -49,7 +58,7 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    inline void
-   forAll( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const;
+   forAll( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 
    /**
     * @brief Traverser interior elements in rect
@@ -65,7 +74,7 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    inline void
-   forInterior( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const;
+   forInterior( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 
    /**
     * @brief Traverser boundary elements in rect
@@ -81,7 +90,7 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    inline void
-   forBoundary( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const;
+   forBoundary( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 };
 
 }  // namespace Meshes
