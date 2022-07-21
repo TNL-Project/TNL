@@ -82,6 +82,11 @@ public:
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
 
+   using Vertex = EntityType< 0 >;
+   using Edge = EntityType< 1 >;
+   using Face = EntityType< Dimension - 1 >;
+   using Cell = EntityType< Dimension >;
+
    /**
     * \brief Returns the dimension of grid
     */
