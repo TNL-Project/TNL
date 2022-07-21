@@ -365,24 +365,52 @@ struct LocalBeginsHolder : public SizesHolder
    }
 };
 
-template< typename Index, std::size_t... sizes, std::size_t ConstValue >
+template< typename SizesHolder, std::size_t ConstValue, typename OtherHolder >
+LocalBeginsHolder< SizesHolder, ConstValue >
+operator+( const LocalBeginsHolder< SizesHolder, ConstValue >& lhs, const OtherHolder& rhs )
+{
+   LocalBeginsHolder< SizesHolder, ConstValue > result;
+   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() >(
+      [ &result, &lhs, &rhs ]( auto level )
+      {
+         if( SizesHolder::template getStaticSize< level >() == 0 )
+            result.template setSize< level >( lhs.template getSize< level >() + rhs.template getSize< level >() );
+      } );
+   return result;
+}
+
+template< typename SizesHolder, std::size_t ConstValue, typename OtherHolder >
+LocalBeginsHolder< SizesHolder, ConstValue >
+operator-( const LocalBeginsHolder< SizesHolder, ConstValue >& lhs, const OtherHolder& rhs )
+{
+   LocalBeginsHolder< SizesHolder, ConstValue > result;
+   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() >(
+      [ &result, &lhs, &rhs ]( auto level )
+      {
+         if( SizesHolder::template getStaticSize< level >() == 0 )
+            result.template setSize< level >( lhs.template getSize< level >() - rhs.template getSize< level >() );
+      } );
+   return result;
+}
+
+template< typename SizesHolder, std::size_t ConstValue >
 std::ostream&
-operator<<( std::ostream& str, const detail::LocalBeginsHolder< SizesHolder< Index, sizes... >, ConstValue >& holder )
+operator<<( std::ostream& str, const LocalBeginsHolder< SizesHolder, ConstValue >& holder )
 {
    str << "LocalBeginsHolder< SizesHolder< ";
-   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
+   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() - 1 >(
       [ &str, &holder ]( auto dimension )
       {
          str << holder.template getStaticSize< dimension >() << ", ";
       } );
-   str << holder.template getStaticSize< sizeof...( sizes ) - 1 >() << " >, ";
+   str << holder.template getStaticSize< SizesHolder::getDimension() - 1 >() << " >, ";
    str << ConstValue << " >( ";
-   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
+   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() - 1 >(
       [ &str, &holder ]( auto dimension )
       {
          str << holder.template getSize< dimension >() << ", ";
       } );
-   str << holder.template getSize< sizeof...( sizes ) - 1 >() << " )";
+   str << holder.template getSize< SizesHolder::getDimension() - 1 >() << " )";
    return str;
 }
 

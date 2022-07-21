@@ -477,32 +477,32 @@ protected:
       if( buffered ) {
          // TODO: specify CUDA stream for the copy, otherwise async won't work !!!
          CopyKernel< decltype( dim_buffers.left_send_view ) > copy_kernel;
-         copy_kernel.array_view.bind( array_view );
+         copy_kernel.local_array_view.bind( array_view.getLocalView() );
          copy_kernel.to_buffer = to_buffer;
 
          if( to_buffer ) {
             if( ( mask & SyncDirection::Left ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.left_send_view );
-               copy_kernel.array_offsets = dim_buffers.left_send_offsets;
+               copy_kernel.local_array_offsets = dim_buffers.left_send_offsets - array_view.getLocalBegins();
                dim_buffers.left_send_view.forAll( copy_kernel );
             }
 
             if( ( mask & SyncDirection::Right ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.right_send_view );
-               copy_kernel.array_offsets = dim_buffers.right_send_offsets;
+               copy_kernel.local_array_offsets = dim_buffers.right_send_offsets - array_view.getLocalBegins();
                dim_buffers.right_send_view.forAll( copy_kernel );
             }
          }
          else {
             if( ( mask & SyncDirection::Right ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.left_recv_view );
-               copy_kernel.array_offsets = dim_buffers.left_recv_offsets;
+               copy_kernel.local_array_offsets = dim_buffers.left_recv_offsets - array_view.getLocalBegins();
                dim_buffers.left_recv_view.forAll( copy_kernel );
             }
 
             if( ( mask & SyncDirection::Left ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.right_recv_view );
-               copy_kernel.array_offsets = dim_buffers.right_recv_offsets;
+               copy_kernel.local_array_offsets = dim_buffers.right_recv_offsets - array_view.getLocalBegins();
                dim_buffers.right_recv_view.forAll( copy_kernel );
             }
          }
@@ -577,12 +577,12 @@ public:
    template< typename BufferView >
    struct CopyKernel
    {
-      using ArrayView = typename DistributedNDArray::ViewType;
-      using LocalBegins = typename ArrayView::LocalBeginsType;
+      using LocalArrayView = typename DistributedNDArray::LocalViewType;
+      using LocalBegins = typename DistributedNDArray::LocalBeginsType;
 
       BufferView buffer_view;
-      ArrayView array_view;
-      LocalBegins array_offsets;
+      LocalArrayView local_array_view;
+      LocalBegins local_array_offsets;
       bool to_buffer;
 
       template< typename... Indices >
@@ -591,9 +591,9 @@ public:
       operator()( Indices... indices )
       {
          if( to_buffer )
-            buffer_view( indices... ) = call_with_shifted_indices( array_offsets, array_view, indices... );
+            buffer_view( indices... ) = call_with_shifted_indices( local_array_offsets, local_array_view, indices... );
          else
-            call_with_shifted_indices( array_offsets, array_view, indices... ) = buffer_view( indices... );
+            call_with_shifted_indices( local_array_offsets, local_array_view, indices... ) = buffer_view( indices... );
       }
    };
 };
