@@ -65,12 +65,12 @@ public:
    /**
     * \brief Type for mesh entities cordinates within the grid.
     */
-   using Coordinate = typename BaseType::Coordinate;
+   using CoordinatesType = typename BaseType::CoordinatesType;
 
    /**
     * \brief Type for world coordinates.
     */
-   using Point = typename BaseType::Point;
+   using PointType = typename BaseType::PointType;
 
    using EntitiesCounts = typename BaseType::EntitiesCounts;
 
@@ -81,6 +81,22 @@ public:
     */
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
+
+   /**
+    * \brief Returns the dimension of grid
+    */
+   static constexpr int
+   getMeshDimension()
+   {
+      return Dimension;
+   };
+
+   Grid() = default;
+
+   template< typename... Dimensions,
+             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
+             std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
+   Grid( Dimensions... dimensions ) : NDGrid< Dimension, Real, Device, Index >( dimensions... ){};
 
    /**
     * \brief Iterate over all mesh entities with given dimension and perform given lambda function
@@ -108,7 +124,7 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    inline void
-   forAll( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const;
+   forAll( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 
    /**
     * \brief Traverser interior elements in rect
@@ -124,7 +140,7 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    inline void
-   forInterior( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const;
+   forInterior( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 
    /**
     * @brief Traverser boundary elements in rect
@@ -140,7 +156,7 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    inline void
-   forBoundary( const Coordinate& from, const Coordinate& to, Func func, FuncArgs... args ) const;
+   forBoundary( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 
 };
 

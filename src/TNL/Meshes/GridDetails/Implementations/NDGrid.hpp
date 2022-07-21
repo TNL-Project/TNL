@@ -17,6 +17,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 NDGrid< Dimension, Real, Device, Index >::
 NDGrid()
 {
+   fillBases();
    CoordinatesType zero = 0;
    setDimensions( zero );
 
@@ -25,7 +26,25 @@ NDGrid()
    spaceSteps = zeroPoint;
    origin = zeroPoint;
 
+   fillEntitiesCount();
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+   template< typename... Dimensions,
+             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool >,
+             std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > >
+NDGrid< Dimension, Real, Device, Index >::
+NDGrid( Dimensions... dimensions )
+{
    fillBases();
+   setDimensions( dimensions... );
+
+   PointType zeroPoint = 0;
+   proportions = zeroPoint;
+   spaceSteps = zeroPoint;
+   origin = zeroPoint;
+
+   fillEntitiesCount();
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -506,7 +525,8 @@ NDGrid< Dimension, Real, Device, Index >::fillEntitiesCount()
    for( Index i = 0, j = 0; i <= Dimension; i++ ) {
       for( Index n = 0; n < this->getEntityOrientationsCount( i ); n++, j++ ) {
          int result = 1;
-         auto basis = bases[ j ];
+         auto basis = this->bases[ j ];
+
 
          for( Index k = 0; k < (Index) basis.getSize(); k++ )
             result *= dimensions[ k ] + basis[ k ];
@@ -585,7 +605,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 void
 NDGrid< Dimension, Real, Device, Index >::fillBases()
 {
-   OrientationBasesContainer container;
+   OrientationBasesContainer container( ( Index ) 0 );
 
    int index = container.getSize() - 1;
 
@@ -598,12 +618,10 @@ NDGrid< Dimension, Real, Device, Index >::fillBases()
       {
          container[ index-- ] = BasisGetter< Index, entityDimension, Dimension >::template getBasis< orientation >();
       };
-
       Templates::DescendingFor< combinationsCount - 1 >::exec( forEachOrientation, entityDimension );
    };
 
    Templates::DescendingFor< Dimension >::exec( forEachEntityDimension );
-
    this->bases = container;
 }
 

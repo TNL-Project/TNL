@@ -102,6 +102,11 @@ public:
     */
    NDGrid();
 
+   template< typename... Dimensions,
+             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
+             std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
+   NDGrid( Dimensions... dimensions );
+
    /**
     * \brief Returns the number of orientations for entity dimension.
     *        For example in 2-D Grid the edge can be vertical or horizontal.
