@@ -248,7 +248,7 @@ template< int Size, typename Value >
 __cuda_callable__
 constexpr Value& StaticArray< Size, Value >::z()
 {
-   static_assert( Size > 1, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
+   static_assert( Size > 2, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
    return data[ 2 ];
 }
 
@@ -256,7 +256,7 @@ template< int Size, typename Value >
 __cuda_callable__
 constexpr const Value& StaticArray< Size, Value >::z() const
 {
-   static_assert( Size > 1, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
+   static_assert( Size > 2, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
    return data[ 2 ];
 }
 
