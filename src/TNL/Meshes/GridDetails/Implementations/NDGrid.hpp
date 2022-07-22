@@ -17,7 +17,6 @@ template< int Dimension, typename Real, typename Device, typename Index >
 NDGrid< Dimension, Real, Device, Index >::
 NDGrid()
 {
-   fillBases();
    CoordinatesType zero = 0;
    setDimensions( zero );
 
@@ -25,7 +24,7 @@ NDGrid()
    proportions = zeroPoint;
    spaceSteps = zeroPoint;
    origin = zeroPoint;
-
+   fillBases();
    fillEntitiesCount();
 }
 
@@ -36,14 +35,13 @@ template< int Dimension, typename Real, typename Device, typename Index >
 NDGrid< Dimension, Real, Device, Index >::
 NDGrid( Dimensions... dimensions )
 {
-   fillBases();
    setDimensions( dimensions... );
 
    PointType zeroPoint = 0;
    proportions = zeroPoint;
    spaceSteps = zeroPoint;
    origin = zeroPoint;
-
+   fillBases();
    fillEntitiesCount();
 }
 
@@ -605,7 +603,10 @@ template< int Dimension, typename Real, typename Device, typename Index >
 void
 NDGrid< Dimension, Real, Device, Index >::fillBases()
 {
-   OrientationBasesContainer container( ( Index ) 0 );
+   OrientationBasesContainer container;
+   for( int i = 0; i < OrientationBasesContainer::getSize(); i++ )
+      for( int j = 0; j < OrientationBasesContainer::ValueType::getSize(); j++ )
+         container[ i ][ j ] = 0;
 
    int index = container.getSize() - 1;
 
