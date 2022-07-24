@@ -252,13 +252,13 @@ public:
 
       // create handle for the matrix
       m = hypre_CSRMatrixCreate( rows, columns, rowOffsets.getElement( rows ) );
+      hypre_CSRMatrixMemoryLocation( m ) = getHypreMemoryLocation();
 
       // set view data
       hypre_CSRMatrixOwnsData( m ) = 0;
       hypre_CSRMatrixData( m ) = values.getData();
       hypre_CSRMatrixJ( m ) = columnIndexes.getData();
       hypre_CSRMatrixI( m ) = rowOffsets.getData();
-      // TODO: v->memory_location
    }
 
    void
@@ -328,6 +328,7 @@ public:
    {
       reset();
       m = hypre_CSRMatrixCreate( rows, cols, 0 );
+      hypre_CSRMatrixMemoryLocation( m ) = getHypreMemoryLocation();
       hypre_CSRMatrixInitialize( m );
    }
 

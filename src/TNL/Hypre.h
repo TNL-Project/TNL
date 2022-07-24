@@ -73,13 +73,8 @@ struct Hypre
       // Global Hypre options, see
       // https://hypre.readthedocs.io/en/latest/solvers-boomeramg.html#gpu-supported-options
 
-   #ifdef HYPRE_USING_CUDA
-      // Use hypre's SpGEMM instead of cuSPARSE for performance reasons
-      HYPRE_SetSpGemmUseCusparse( 0 );
-   #elif defined( HYPRE_USING_HIP )
-      // Use rocSPARSE instead of hypre's SpGEMM for performance reasons (default)
-      HYPRE_SetSpGemmUseCusparse( 1 );
-   #endif
+      // Use Hypre's SpGEMM instead of vendor (cuSPARSE, rocSPARSE, etc.) for performance reasons
+      HYPRE_SetSpGemmUseVendor( 0 );
 
       // The following options are Hypre's defaults as of version 2.24
 
@@ -99,6 +94,17 @@ struct Hypre
       HYPRE_Finalize();
    }
 };
+
+//! \brief Returns the memory location used by Hypre objects.
+inline constexpr HYPRE_MemoryLocation
+getHypreMemoryLocation()
+{
+   #ifdef HYPRE_USING_GPU
+   return HYPRE_MEMORY_DEVICE;
+   #else
+   return HYPRE_MEMORY_HOST;
+   #endif
+}
 
 }  // namespace TNL
 
