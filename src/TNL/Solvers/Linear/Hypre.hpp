@@ -368,38 +368,31 @@ HypreBoomerAMG::setDefaultOptions()
    #if ! defined( HYPRE_USING_GPU )
    // AMG coarsening options:
    const int coarsen_type = 10;  // 10 = HMIS, 8 = PMIS, 6 = Falgout, 0 = CLJP
-   const int agg_levels = 1;     // number of aggressive coarsening levels
-   const double theta = 0.25;    // strength threshold: 0.25, 0.5, 0.8
-
-   // AMG interpolation options:
-   const int interp_type = 6;  // 6 = extended+i, 0 = classical
-   const int Pmax = 4;         // max number of elements per row in P
 
    // AMG relaxation options:
-   const int relax_type = 8;    // 8 = l1-GS, 6 = symm. GS, 3 = GS, 18 = l1-Jacobi
-   const int relax_sweeps = 1;  // relaxation sweeps on each level
-
-   // Additional options:
-   const int print_level = 0;  // 0 = none, 1 = setup, 2 = solve, 3 = setup+solve
-   const int max_levels = 25;  // max number of levels in AMG hierarchy
+   const int relax_type = 8;  // 8 = l1-GS, 6 = symm. GS, 3 = GS, 18 = l1-Jacobi
    #else
    // AMG coarsening options:
    const int coarsen_type = 8;  // 10 = HMIS, 8 = PMIS, 6 = Falgout, 0 = CLJP
-   const int agg_levels = 0;    // number of aggressive coarsening levels
-   const double theta = 0.25;   // strength threshold: 0.25, 0.5, 0.8
+
+   // AMG relaxation options:
+   const int relax_type = 18;  // 18 = l1-Jacobi, or 16 = Chebyshev
+   #endif
+
+   // AMG coarsening options:
+   const int agg_levels = 1;   // number of aggressive coarsening levels
+   const double theta = 0.25;  // strength threshold: 0.25, 0.5, 0.8
+
+   // AMG relaxation options:
+   const int relax_sweeps = 1;  // relaxation sweeps on each level
 
    // AMG interpolation options:
    const int interp_type = 6;  // 6 = extended+i, or 18 = extended+e
    const int Pmax = 4;         // max number of elements per row in P
 
-   // AMG relaxation options:
-   const int relax_type = 18;   // 18 = l1-Jacobi, or 16 = Chebyshev
-   const int relax_sweeps = 1;  // relaxation sweeps on each level
-
    // Additional options:
    const int print_level = 0;  // 0 = none, 1 = setup, 2 = solve, 3 = setup+solve
    const int max_levels = 25;  // max number of levels in AMG hierarchy
-   #endif
 
    HYPRE_BoomerAMGSetCoarsenType( solver, coarsen_type );
    HYPRE_BoomerAMGSetAggNumLevels( solver, agg_levels );
