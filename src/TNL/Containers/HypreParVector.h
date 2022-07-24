@@ -200,6 +200,8 @@ public:
       partitioning[ 0 ] = localRange.getBegin();
       partitioning[ 1 ] = localRange.getEnd();
       v = hypre_ParVectorCreate( communicator, globalSize, partitioning );
+      // hypre_ParVectorMemoryLocation is read-only
+      hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( v ) ) = getHypreMemoryLocation();
 
       // set view data
       this->localData.bind( localData );
@@ -293,6 +295,8 @@ public:
       partitioning[ 0 ] = localRange.getBegin();
       partitioning[ 1 ] = localRange.getEnd();
       v = hypre_ParVectorCreate( communicator, globalSize, partitioning );
+      // hypre_ParVectorMemoryLocation is read-only
+      hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( v ) ) = getHypreMemoryLocation();
 
       // set view data
       this->localData.setSize( localRange.getSize() + ghosts );

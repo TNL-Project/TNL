@@ -159,12 +159,12 @@ public:
 
       // create handle for the vector
       v = hypre_SeqVectorCreate( 0 );
+      hypre_VectorMemoryLocation( v ) = getHypreMemoryLocation();
 
       // set view data
       hypre_VectorOwnsData( v ) = 0;
       hypre_VectorData( v ) = data;
       hypre_VectorSize( v ) = size;
-      // TODO: v->memory_location
    }
 
    void
@@ -229,6 +229,7 @@ public:
    {
       hypre_SeqVectorDestroy( v );
       v = hypre_SeqVectorCreate( size );
+      hypre_VectorMemoryLocation( v ) = getHypreMemoryLocation();
       hypre_SeqVectorInitialize( v );
    }
 

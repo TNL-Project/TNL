@@ -1,3 +1,11 @@
+// Copyright (c) 2004-2022 Tomáš Oberhuber et al.
+//
+// This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+//
+// SPDX-License-Identifier: MIT
+
+// Implemented by: Jakub Klinkovský
+
 #pragma once
 
 #ifdef HAVE_HYPRE
@@ -9,6 +17,7 @@
    #include <TNL/Containers/Subrange.h>
    #include <TNL/Containers/HypreVector.h>
    #include <TNL/Matrices/HypreCSRMatrix.h>
+   #include <TNL/Matrices/HypreGenerateDiagAndOffd.h>
 
 namespace TNL {
 namespace Matrices {
@@ -86,6 +95,12 @@ public:
    static HypreParCSRMatrix
    wrapCSRMatrix( hypre_CSRMatrix* matrix )
    {
+      TNL_ASSERT_TRUE( matrix, "invalid input" );
+      // check the memory location of the input
+      TNL_ASSERT_EQ( hypre_CSRMatrixMemoryLocation( matrix ),
+                     getHypreMemoryLocation(),
+                     "memory location of the input Hypre matrix does not match" );
+
       const IndexType global_num_rows = hypre_CSRMatrixNumRows( matrix );
       const IndexType global_num_cols = hypre_CSRMatrixNumCols( matrix );
       IndexType row_starts[ 2 ];
@@ -103,6 +118,9 @@ public:
       hypre_CSRMatrixDestroy( hypre_ParCSRMatrixDiag( A ) );
       hypre_ParCSRMatrixDiag( A ) = matrix;
 
+      // set the memory location of the (empty) offd matrix
+      hypre_CSRMatrixMemoryLocation( hypre_ParCSRMatrixOffd( A ) ) = getHypreMemoryLocation();
+
       // make sure that the first entry in each row of a square diagonal block is the diagonal element
       HypreCSRMatrix diag_view( hypre_ParCSRMatrixDiag( A ), false );
       diag_view.reorderDiagonalEntries();
@@ -114,6 +132,11 @@ public:
       hypre_CSRMatrixSetRownnz( hypre_ParCSRMatrixDiag( A ) );
       hypre_MatvecCommPkgCreate( A );
 
+      // check the memory location of the result
+      TNL_ASSERT_EQ( hypre_ParCSRMatrixMemoryLocation( A ),
+                     getHypreMemoryLocation(),
+                     "memory location of the output Hypre matrix does not match" );
+
       // set the diag owner flag
       HypreParCSRMatrix result( A );
       result.owns_diag = false;
@@ -123,6 +146,8 @@ public:
    /**
     * \brief Constructs a \e ParCSRMatrix distributed across the processors in
     * \e communicator from a \e CSRMatrix on rank 0.
+    *
+    * \note This function can be used only for matrices allocated on the host.
     *
     * \param global_row_starts Array of `nproc + 1` elements, where `nproc` is
     *                          the number of ranks in the \e communicator.
@@ -135,6 +160,10 @@ public:
       TNL_ASSERT_TRUE( global_row_starts, "invalid input" );
       TNL_ASSERT_TRUE( global_col_starts, "invalid input" );
       TNL_ASSERT_TRUE( matrix, "invalid input" );
+      // check the memory location of the input
+      TNL_ASSERT_EQ( hypre_CSRMatrixMemoryLocation( matrix ),
+                     getHypreMemoryLocation(),
+                     "memory location of the input Hypre matrix does not match" );
 
       // NOTE: this call creates a matrix on host even when device support is
       // enabled in Hypre
@@ -149,12 +178,20 @@ public:
       hypre_ParCSRMatrixSetNumNonzeros( A );
       hypre_MatvecCommPkgCreate( A );
 
+      // check the memory location of the result
+      // FIXME: wtf, we get HYPRE_MEMORY_DEVICE even when Hypre is compiled without CUDA
+      // TNL_ASSERT_EQ( hypre_ParCSRMatrixMemoryLocation( A ),
+      //                getHypreMemoryLocation(),
+      //                "memory location of the output Hypre matrix does not match" );
+
       return HypreParCSRMatrix( A );
    }
 
    /**
     * \brief Constructs a \e ParCSRMatrix distributed across the processors in
     * \e communicator from a \e CSRMatrix on rank 0.
+    *
+    * \note This function can be used only for matrices allocated on the host.
     *
     * \param x The values of the vector are unused, but its distribution is
     *          used for the distribution of the matrix **columns**.
@@ -220,6 +257,10 @@ public:
                     hypre_CSRMatrix* local_A )
    {
       TNL_ASSERT_TRUE( local_A, "invalid input" );
+      // check the memory location of the input
+      TNL_ASSERT_EQ( hypre_CSRMatrixMemoryLocation( local_A ),
+                     getHypreMemoryLocation(),
+                     "memory location of the input Hypre matrix does not match" );
 
       IndexType row_starts[ 2 ];
       row_starts[ 0 ] = local_row_range.getBegin();
@@ -231,11 +272,16 @@ public:
       hypre_ParCSRMatrix* A =
          hypre_ParCSRMatrixCreate( communicator, global_num_rows, global_num_cols, row_starts, col_starts, 0, 0, 0 );
 
+      // set the memory location of the (empty) diag and offd matrices
+      // (hypre_ParCSRMatrixMemoryLocation is read-only)
+      hypre_CSRMatrixMemoryLocation( hypre_ParCSRMatrixDiag( A ) ) = getHypreMemoryLocation();
+      hypre_CSRMatrixMemoryLocation( hypre_ParCSRMatrixOffd( A ) ) = getHypreMemoryLocation();
+
       const IndexType first_col_diag = hypre_ParCSRMatrixFirstColDiag( A );
       const IndexType last_col_diag = hypre_ParCSRMatrixLastColDiag( A );
 
-      // Hypre function which splits local_A into the diagonal and off-diagonal blocks
-      GenerateDiagAndOffd( local_A, A, first_col_diag, last_col_diag );
+      // split local_A into the diagonal and off-diagonal blocks
+      detail::GenerateDiagAndOffd( local_A, A, first_col_diag, last_col_diag );
 
       // make sure that the first entry in each row of a square diagonal block is the diagonal element
       HypreCSRMatrix diag_view( hypre_ParCSRMatrixDiag( A ), false );
@@ -245,6 +291,11 @@ public:
       hypre_CSRMatrixSetRownnz( hypre_ParCSRMatrixDiag( A ) );
       hypre_ParCSRMatrixSetNumNonzeros( A );
       hypre_MatvecCommPkgCreate( A );
+
+      // check the memory location of the result
+      TNL_ASSERT_EQ( hypre_ParCSRMatrixMemoryLocation( A ),
+                     getHypreMemoryLocation(),
+                     "memory location of the output Hypre matrix does not match" );
 
       return HypreParCSRMatrix( A );
    }
