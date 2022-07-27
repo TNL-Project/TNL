@@ -1,7 +1,6 @@
 # build/output directories
 /builddir
 /Documentation/html/
-/Documentation/output_snippets/
 
 # Netbeans project stuff
 /nbproject
@@ -29,3 +28,5 @@
 /RelWithDebInfo
 /Testing
 /Build
+/Documentation/output_snippets/
+/build-tinyxml2/
