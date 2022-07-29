@@ -14,7 +14,9 @@ namespace Segments {
 
 enum ElementsOrganization
 {
+   //! \brief Column-major order
    ColumnMajorOrder = 0,
+   //! \brief Row-major order
    RowMajorOrder
 };
 

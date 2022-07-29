@@ -62,7 +62,7 @@ The result is:
 
 \include ScalarProductExample.out
 
-Scalar product of vectors `u` and `v` in TNL can be computed by \ref TNL::dot "TNL::dot(u, v)" or simply as \ref TNL::Containers::operator, "(u, v)".
+Scalar product of vectors `u` and `v` in TNL can be computed by `TNL::dot(u, v)` or simply as `(u, v)`.
 
 ### Maximum norm
 
@@ -74,7 +74,7 @@ The output is:
 
 \include MaximumNormExample.out
 
-Maximum norm in TNL is computed by the function \ref TNL::maxNorm.
+Maximum norm in TNL is computed by the function `TNL::maxNorm`.
 
 ### Vectors comparison
 
@@ -167,7 +167,7 @@ This example also shows more compact how to evoke the function `reduce` (lines 1
 
 \include ScalarProductWithFunctionalExample.out
 
-In \ref TNL/Functionals.h you may find probably all operations that can be reasonably used for reduction:
+In `TNL/Functional.h` you may find probably all operations that can be reasonably used for reduction:
 
 | Functional                      | Reduction operation      |
 |---------------------------------|--------------------------|

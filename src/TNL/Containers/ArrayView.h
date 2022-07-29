@@ -65,9 +65,9 @@ public:
    using ValueType = Value;
 
    /**
-    * \brief Device where the array is allocated.
+    * \brief Device used to run operations on the array.
     *
-    * See \ref Devices::Host or \ref Devices::Cuda.
+    * See \ref TNL::Devices for the available options.
     */
    using DeviceType = Device;
 
@@ -402,8 +402,8 @@ public:
     *         container, e.g. \ref Array, \ref ArrayView, \ref Vector,
     *         \ref VectorView, etc.
     * \param array Reference to the array-like container.
-    * \return \ref True if the array view is element-wise equal to the
-    *         array-like container and \ref false otherwise.
+    * \return true if the array view is element-wise equal to the
+    *         array-like container and false otherwise.
     */
    template< typename ArrayT >
    bool
@@ -592,7 +592,7 @@ protected:
  * \param str is a output stream.
  * \param view is the array view to be printed.
  *
- * \return a reference on the output stream \ref std::ostream&.
+ * \return a reference to the output stream \ref std::ostream.
  */
 template< typename Value, typename Device, typename Index >
 std::ostream&

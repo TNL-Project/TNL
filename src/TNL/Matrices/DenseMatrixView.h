@@ -632,9 +632,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixViewExample_forAllRows.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixViewExample_forAllElements.cpp
     * \par Output
-    * \include DenseMatrixViewExample_forAllRows.out
+    * \include DenseMatrixViewExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -649,9 +649,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixExample_forAllRows.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixExample_forAllElements.cpp
     * \par Output
-    * \include DenseMatrixExample_forAllRows.out
+    * \include DenseMatrixExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -834,10 +834,14 @@ public:
     * outVector = matrixMultiplicator * ( *this ) * inVector + outVectorMultiplicator * outVector
     * ```
     *
-    * \tparam InVector is type of input vector.  It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
-    * \tparam OutVector is type of output vector. It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
+    * \tparam InVector is type of input vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
+    * \tparam OutVector is type of output vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
     *
     * \param inVector is input vector.
     * \param outVector is output vector.
@@ -914,7 +918,7 @@ public:
     */
    template< typename Matrix >
    bool
-   operator==( const Matrix& m ) const;
+   operator==( const Matrix& matrix ) const;
 
    /**
     * \brief Comparison operator with another arbitrary matrix type.
@@ -924,7 +928,7 @@ public:
     */
    template< typename Matrix >
    bool
-   operator!=( const Matrix& m ) const;
+   operator!=( const Matrix& matrix ) const;
 
    /**
     * \brief Method for saving the matrix view to the file with given filename.
@@ -941,7 +945,7 @@ public:
     *
     * The ouput file can be loaded by \ref DenseMatrix.
     *
-    * \param fileName is name of the file.
+    * \param file is the file where the matrix will be saved.
     */
    void
    save( File& file ) const override;

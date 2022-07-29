@@ -19,6 +19,7 @@ void
 SemiImplicitTimeStepper< Problem >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {}
 
+/*
 template< typename Problem >
 bool
 SemiImplicitTimeStepper< Problem >::setup( const Config::ParameterContainer& parameters, const String& prefix )
@@ -42,6 +43,7 @@ SemiImplicitTimeStepper< Problem >::setup( const Config::ParameterContainer& par
 
    return true;
 }
+*/
 
 template< typename Problem >
 bool

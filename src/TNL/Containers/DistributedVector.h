@@ -14,6 +14,9 @@
 namespace TNL {
 namespace Containers {
 
+/**
+ * \brief \e DistributedVector extends \ref DistributedArray with algebraic operations.
+ */
 template< typename Real,
           typename Device = Devices::Host,
           typename Index = int,

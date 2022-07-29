@@ -5,7 +5,11 @@ set( COMMON_EXAMPLES
    SortingExample2
    SortingExample3
    ParallelForExample
+   ParallelForExample-2D
+   ParallelForExample-3D
    SequentialForExample
+   reduceArrayExample
+   reduceWithArgumentArrayExample
 )
 
 set( HOST_EXAMPLES
@@ -15,26 +19,32 @@ set( HOST_EXAMPLES
 
 if( BUILD_CUDA )
    foreach( target IN ITEMS ${COMMON_EXAMPLES} )
-      cuda_add_executable( ${target}-cuda ${target}.cu OPTIONS )
-      add_custom_command( COMMAND ${target}-cuda > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out OUTPUT ${target}.out )
-      set( CUDA_OUTPUTS ${CUDA_OUTPUTS} ${target}.out )
+      cuda_add_executable( ${target} ${target}.cu )
+      add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                          OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                          DEPENDS ${target} )
+      set( CUDA_OUTPUTS ${CUDA_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
    endforeach()
 else()
    foreach( target IN ITEMS ${COMMON_EXAMPLES} )
       add_executable( ${target} ${target}.cpp )
-      add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out OUTPUT ${target}.out )
-      set( HOST_OUTPUTS ${HOST_OUTPUTS} ${target}.out )
+      add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                          OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                          DEPENDS ${target} )
+      set( HOST_OUTPUTS ${HOST_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
    endforeach()
 endif()
 
 foreach( target IN ITEMS ${HOST_EXAMPLES} )
    add_executable( ${target} ${target}.cpp )
-   add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out OUTPUT ${target}.out )
-   set( HOST_OUTPUTS ${HOST_OUTPUTS} ${target}.out )
+   add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                       OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                       DEPENDS ${target} )
+   set( HOST_OUTPUTS ${HOST_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
 endforeach()
 
 IF( BUILD_CUDA )
-   ADD_CUSTOM_TARGET( RunAlgorithmsExamples-cuda ALL DEPENDS ${CUDA_OUTPUTS} ${HOST_OUTPUTS} )
+   ADD_CUSTOM_TARGET( RunAlgorithmsExamples ALL DEPENDS ${CUDA_OUTPUTS} ${HOST_OUTPUTS} )
 ELSE()
    ADD_CUSTOM_TARGET( RunAlgorithmsExamples ALL DEPENDS ${HOST_OUTPUTS} )
 ENDIF()

@@ -212,7 +212,7 @@ public:
     * \tparam ListReal is type used in the initializer list defining matrix elements values.
     *
     * \param columns is number of matrix columns.
-    * \param diagonalOffsets are offsets of sub-diagonals from the main diagonal.
+    * \param diagonalsOffsets are offsets of sub-diagonals from the main diagonal.
     * \param data is initializer list holding matrix elements. The size of the outer list
     *    defines the number of matrix rows. Each inner list defines values of each sub-diagonal
     *    and so its size should be lower or equal to the size of \e diagonalsOffsets. Values
@@ -655,7 +655,7 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& zero );
+   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& identity );
 
    /**
     * \brief Method for performing general reduction on matrix rows for constant instances.
@@ -698,7 +698,7 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& zero ) const;
+   reduceRows( IndexType begin, IndexType end, Fetch& fetch, Reduce& reduce, Keep& keep, const FetchReal& identity ) const;
 
    /**
     * \brief Method for performing general reduction on all matrix rows.
@@ -859,9 +859,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forAllRows.cpp
+    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forAllElements.cpp
     * \par Output
-    * \include MultidiagonalMatrixExample_forAllRows.out
+    * \include MultidiagonalMatrixExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -876,9 +876,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forAllRows.cpp
+    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forAllElements.cpp
     * \par Output
-    * \include MultidiagonalMatrixExample_forAllRows.out
+    * \include MultidiagonalMatrixExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -1060,10 +1060,14 @@ public:
     * outVector = matrixMultiplicator * ( * this ) * inVector + outVectorMultiplicator * outVector
     * ```
     *
-    * \tparam InVector is type of input vector.  It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
-    * \tparam OutVector is type of output vector. It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
+    * \tparam InVector is type of input vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
+    * \tparam OutVector is type of output vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
     *
     * \param inVector is input vector.
     * \param outVector is output vector.

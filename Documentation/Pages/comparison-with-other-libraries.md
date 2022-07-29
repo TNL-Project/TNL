@@ -3,8 +3,8 @@
 ## Memory space and execution model
 
 TNL has separate concepts for the memory space and execution model, which are
-represented by different template parameters. See the \ref core_concepts
-"Core concepts" page for details.
+represented by different template parameters. See the [Core concepts](
+core-concepts.md) page for details.
 
 - Most other libraries have separate types for CPU and GPU data structures
   (e.g. `Vector` and `cuVector`):

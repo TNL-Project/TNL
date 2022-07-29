@@ -49,5 +49,5 @@ for u in u_data:
 
 ax.set_ylabel( f'$ u(x) $' )
 ax.set_xlabel( f'$x $' )
-plt.savefig( f"{sys.argv[2]}.png" )
+plt.savefig( sys.argv[2] )
 plt.close(fig)

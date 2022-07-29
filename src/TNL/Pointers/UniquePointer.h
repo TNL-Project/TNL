@@ -60,13 +60,12 @@ class UniquePointer< Object, Devices::Host > : public SmartPointer
 {
 public:
    /**
-    * \typedef ObjectType is the type of object owned by the pointer.
+    * \brief Type of the object owned by the pointer.
     */
    using ObjectType = Object;
 
    /**
-    * \typedef DeviceType is the type of device where the object is to be
-    * mirrored.
+    * \brief Type of the device where the object is to be mirrored.
     */
    using DeviceType = Devices::Host;
 
@@ -223,11 +222,11 @@ public:
    /**
     * \brief Assignment operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
-    * The original pointer \ref ptr is reset to empty state.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
+    * The original pointer \e ptr is reset to empty state.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    const UniquePointer&
    operator=( UniquePointer& ptr )
@@ -242,11 +241,11 @@ public:
    /**
     * \brief Move operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
-    * The original pointer \ref ptr is reset to empty state.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
+    * The original pointer \e ptr is reset to empty state.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    const UniquePointer&
    operator=( UniquePointer&& ptr ) noexcept
@@ -290,18 +289,17 @@ class UniquePointer< Object, Devices::Cuda > : public SmartPointer
 {
 public:
    /**
-    * \typedef ObjectType is the type of object owned by the pointer.
+    * \brief Type of the object owned by the pointer.
     */
    using ObjectType = Object;
 
    /**
-    * \typedef DeviceType is the type of device where the object is to be
-    * mirrored.
+    * \brief Type of the device where the object is to be mirrored.
     */
    using DeviceType = Devices::Cuda;
 
    /**
-    * \typedef AllocatorType is the type of the allocator for \e DeviceType.
+    * \brief Type of the allocator for \e DeviceType.
     */
    using AllocatorType = typename Allocators::Default< DeviceType >::Allocator< ObjectType >;
 
@@ -475,11 +473,11 @@ public:
    /**
     * \brief Assignment operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
-    * The original pointer \ref ptr is reset to empty state.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
+    * The original pointer \e ptr is reset to empty state.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    const UniquePointer&
    operator=( UniquePointer& ptr )
@@ -495,11 +493,11 @@ public:
    /**
     * \brief Move operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
-    * The original pointer \ref ptr is reset to empty state.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
+    * The original pointer \e ptr is reset to empty state.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    const UniquePointer&
    operator=( UniquePointer&& ptr ) noexcept

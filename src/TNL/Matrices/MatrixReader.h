@@ -71,8 +71,8 @@ protected:
    using HostMatrix = typename Matrix::template Self< RealType, TNL::Devices::Host >;
 };
 
-/// This is to prevent from appearing in Doxygen documentation.
-/// \cond HIDDEN_CLASS
+// This is to prevent from appearing in Doxygen documentation.
+/// \cond
 template< typename Matrix >
 class MatrixReader< Matrix, TNL::Devices::Host >
 {

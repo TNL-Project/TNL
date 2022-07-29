@@ -321,7 +321,7 @@ add_subdirectory( src )
 
 # Add subdirectories for examples included in the documentation
 if( ${BUILD_DOC} )
-   set( TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH "${CMAKE_SOURCE_DIR}/Documentation/output_snippets" )
+   set( TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH "${PROJECT_BINARY_DIR}/output_snippets" )
    file(MAKE_DIRECTORY ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH})
    add_subdirectory( Documentation/Examples )
    add_subdirectory( Documentation/Tutorials )

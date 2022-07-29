@@ -251,7 +251,7 @@ public:
     */
    __cuda_callable__
    void
-   setCourantNumber( const RealType& cfl );
+   setCourantNumber( const RealType& c );
 
    /**
     * \brief Getter for the Courant number.

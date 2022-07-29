@@ -231,9 +231,9 @@ public:
     * \return number of all non-zero matrix elements.
     *
     * \par Example
-    * \include Matrices/LambdaMatrix/LambdaMatrixExample_getElementsCount.cpp
+    * \include Matrices/LambdaMatrix/LambdaMatrixExample_getNonzeroElementsCount.cpp
     * \par Output
-    * \include LambdaMatrixExample_getElementsCount.out
+    * \include LambdaMatrixExample_getNonzeroElementsCount.out
     */
    IndexType
    getNonzeroElementsCount() const;
@@ -246,7 +246,7 @@ public:
     * \return RowView for accessing given matrix row.
     *
     * \par Example
-    * \include Matrices/SparseMatrix/LambdaMatrixExample_getRow.cpp
+    * \include Matrices/LambdaMatrix/LambdaMatrixExample_getRow.cpp
     * \par Output
     * \include LambdaMatrixExample_getRow.out
     *
@@ -285,9 +285,9 @@ public:
     * \param function is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/LambdaMatrix/LambdaMatrixExample_forRows.cpp
+    * \include Matrices/LambdaMatrix/LambdaMatrixExample_forElements.cpp
     * \par Output
-    * \include LambdaMatrixExample_forRows.out
+    * \include LambdaMatrixExample_forElements.out
     */
    template< typename Function >
    void
@@ -302,9 +302,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/LambdaMatrix/LambdaMatrixExample_forAllRows.cpp
+    * \include Matrices/LambdaMatrix/LambdaMatrixExample_forAllElements.cpp
     * \par Output
-    * \include LambdaMatrixExample_forAllRows.out
+    * \include LambdaMatrixExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -435,7 +435,8 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& zero ) const;
+   reduceRows( IndexType begin, IndexType end, Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& identity )
+      const;
 
    /**
     * \brief Method for performing general reduction on ALL matrix rows.
@@ -487,10 +488,14 @@ public:
     * outVector = matrixMultiplicator * ( *this ) * inVector + outVectorMultiplicator * outVector
     * ```
     *
-    * \tparam InVector is type of input vector.  It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
-    * \tparam OutVector is type of output vector. It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
+    * \tparam InVector is type of input vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
+    * \tparam OutVector is type of output vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
     *
     * \param inVector is input vector.
     * \param outVector is output vector.

@@ -19,7 +19,7 @@ namespace Linear {
  *
  * See [Wikipedia](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method) for more details.
  *
- * See \ref TNL::Solvers::Linear::IterativeSolver for example of showing how to use the linear solvers.
+ * See \ref TNL::Solvers::Linear::LinearSolver for example of showing how to use the linear solvers.
  *
  * \tparam Matrix is type of matrix describing the linear system.
  */

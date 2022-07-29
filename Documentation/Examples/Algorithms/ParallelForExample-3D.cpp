@@ -32,7 +32,7 @@ int main( int argc, char* argv[] )
    /***
     * Firstly, test the mesh function initiation on CPU.
     */
-   Vector< double, Devices::Host > host_v;
+   Vector< double, Devices::Host > host_v( size );
    initMeshFunction( xSize, ySize, zSize, host_v, 1.0 );
 
    /***
@@ -40,7 +40,7 @@ int main( int argc, char* argv[] )
     */
 #ifdef HAVE_CUDA
    Vector< double, Devices::Cuda > cuda_v( size );
-   initMeshFunction( xSize, ySize, cuda_v, 1.0 );
+   initMeshFunction( xSize, ySize, zSize, cuda_v, 1.0 );
 #endif
    return EXIT_SUCCESS;
 }

@@ -231,13 +231,13 @@ protected:
  * \param str is a output stream.
  * \param matrix is the matrix to be printed.
  *
- * \return a reference on the output stream \ref std::ostream&.
+ * \return a reference to the output stream \ref std::ostream.
  */
 template< typename Real, typename Device, typename Index >
 std::ostream&
-operator<<( std::ostream& str, const MatrixView< Real, Device, Index >& m )
+operator<<( std::ostream& str, const MatrixView< Real, Device, Index >& matrix )
 {
-   m.print( str );
+   matrix.print( str );
    return str;
 }
 

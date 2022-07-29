@@ -93,7 +93,7 @@ public:
    }
 
    /**
-    * \brief Stops the main loop of the monitor. See \ref TNL::SolverMonitor::runMainLoop.
+    * \brief Stops the main loop of the monitor. See \ref runMainLoop.
     */
    void
    stopMainLoop()

@@ -24,7 +24,7 @@ namespace Matrices {
  * \par Example
  * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_getRow.cpp
  * \par Output
- * \include TridiagonalatrixExample_getRow.out
+ * \include TridiagonalMatrixExample_getRow.out
  *
  * \par Example
  * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_getRow.cpp

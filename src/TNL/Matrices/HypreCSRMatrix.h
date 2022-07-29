@@ -87,6 +87,7 @@ public:
    /**
     * \brief Convert Hypre's format to \e HypreCSRMatrix
     *
+    * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the matrix should take ownership of
     * the handle, i.e. whether to call \e hypre_CSRMatrixDestroy when it does
     * not need it anymore.
@@ -282,6 +283,7 @@ public:
    /**
     * \brief Convert Hypre's format to \e HypreCSRMatrix
     *
+    * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the matrix should take ownership of
     * the handle, i.e. whether to call \e hypre_CSRMatrixDestroy when it does
     * not need it anymore.

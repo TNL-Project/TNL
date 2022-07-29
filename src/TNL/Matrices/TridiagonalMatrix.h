@@ -605,8 +605,6 @@ public:
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
     * \param fetch is an instance of lambda function for data fetch.
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
@@ -648,8 +646,6 @@ public:
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
     * \param fetch is an instance of lambda function for data fetch.
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
@@ -728,14 +724,12 @@ public:
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
     * \param function is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forAllRows.cpp
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forAllElements.cpp
     * \par Output
-    * \include TridiagonalMatrixExample_forAllRows.out
+    * \include TridiagonalMatrixExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -753,14 +747,12 @@ public:
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
     *
-    * \param begin defines beginning of the range [begin,end) of rows to be processed.
-    * \param end defines ending of the range [begin,end) of rows to be processed.
     * \param function is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forAllRows.cpp
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forAllElements.cpp
     * \par Output
-    * \include TridiagonalMatrixExample_forAllRows.out
+    * \include TridiagonalMatrixExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -941,10 +933,14 @@ public:
     * outVector = matrixTriplicator * ( * this ) * inVector + outVectorTriplicator * outVector
     * ```
     *
-    * \tparam InVector is type of input vector.  It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
-    * \tparam OutVector is type of output vector. It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
+    * \tparam InVector is type of input vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
+    * \tparam OutVector is type of output vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
     *
     * \param inVector is input vector.
     * \param outVector is output vector.

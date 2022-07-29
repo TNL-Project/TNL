@@ -45,6 +45,7 @@ int main( int argc, char* argv[] )
 
 #ifdef HAVE_CUDA
    std::cout << "Set elements on CUDA device:" << std::endl;
-   setElements< TNL::Devices::Cuda >();
+// FIXME: it does not work with nvcc 10.1
+//   setElements< TNL::Devices::Cuda >();
 #endif
 }

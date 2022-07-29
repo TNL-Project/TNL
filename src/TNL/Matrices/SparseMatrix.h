@@ -21,19 +21,26 @@ namespace Matrices {
 /**
  * \brief Implementation of sparse matrix, i.e. matrix storing only non-zero elements.
  *
- * \tparam Real is a type of matrix elements. If \e Real equals \e bool the matrix is treated
- *    as binary and so the matrix elements values are not stored in the memory since we need
- *    to remember only coordinates of non-zero elements( which equal one).
+ * \tparam Real is a type of matrix elements. If \e Real equals \e bool the
+ *         matrix is treated as binary and so the matrix elements values are
+ *         not stored in the memory since we need to remember only coordinates
+ *         of non-zero elements( which equal one).
  * \tparam Device is a device where the matrix is allocated.
  * \tparam Index is a type for indexing of the matrix elements.
- * \tparam MatrixType specifies a symmetry of matrix. See \ref MatrixType. Symmetric
- *    matrices store only lower part of the matrix and its diagonal. The upper part is reconstructed on the fly.
- *    GeneralMatrix with no symmetry is used by default.
- * \tparam Segments is a structure representing the sparse matrix format. Depending on the pattern of the non-zero elements
- *    different matrix formats can perform differently especially on GPUs. By default \ref CSR format is used. See also
- *    \ref Ellpack, \ref SlicedEllpack, \ref ChunkedEllpack or \ref BiEllpack.
- * \tparam ComputeReal is the same as \e Real mostly but for binary matrices it is set to \e Index type. This can be changed
- *    by the user, of course.
+ * \tparam MatrixType specifies a symmetry of matrix. See \ref MatrixType.
+ *         Symmetric matrices store only lower part of the matrix and its
+ *         diagonal. The upper part is reconstructed on the fly. GeneralMatrix
+ *         with no symmetry is used by default.
+ * \tparam Segments is a structure representing the sparse matrix format.
+ *         Depending on the pattern of the non-zero elements different matrix
+ *         formats can perform differently especially on GPUs. By default
+ *         \ref Algorithms::Segments::CSR format is used. See also
+ *         \ref Algorithms::Segments::Ellpack,
+ *         \ref Algorithms::Segments::SlicedEllpack,
+ *         \ref Algorithms::Segments::ChunkedEllpack, and
+ *         \ref Algorithms::Segments::BiEllpack.
+ * \tparam ComputeReal is the same as \e Real mostly but for binary matrices it
+ *         is set to \e Index type. This can be changed by the user, of course.
  * \tparam RealAllocator is allocator for the matrix elements values.
  * \tparam IndexAllocator is allocator for the matrix elements column indexes.
  */
@@ -1060,10 +1067,14 @@ public:
     * outVector = matrixMultiplicator * ( * this ) * inVector + outVectorMultiplicator * outVector
     * ```
     *
-    * \tparam InVector is type of input vector.  It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
-    * \tparam OutVector is type of output vector. It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
+    * \tparam InVector is type of input vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
+    * \tparam OutVector is type of output vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
     *
     * \param inVector is input vector.
     * \param outVector is output vector.
@@ -1144,7 +1155,7 @@ public:
     */
    template< typename Matrix >
    bool
-   operator==( const Matrix& m ) const;
+   operator==( const Matrix& matrix ) const;
 
    /**
     * \brief Comparison operator with another arbitrary matrix type.
@@ -1154,7 +1165,7 @@ public:
     */
    template< typename Matrix >
    bool
-   operator!=( const Matrix& m ) const;
+   operator!=( const Matrix& matrix ) const;
 
    /**
     * \brief Method for saving the matrix to the file with given filename.

@@ -97,7 +97,7 @@ We remind that segments represent rather sparse format then data structure becau
 
 \includelineno Algorithms/Segments/SegmentsPrintingExample-2.cpp
 
-On the line 19, we show how to create segments with vector (\ref TNL::Containers::Vector) carrying the segments sizes. Of course, the same constructor works even for arrays and views (i.e. \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView and \ref TNL::Containers::VectorView). Next we print the real segment sizes depending on the format in the background (line 20) the same way as we did in the previous example. On the line 25, we allocate array having the size requested by the `segments` by means of method `getStorageSize` (\ref TNL::Algortihms::Segments::CSR::getStorageSize for example). This method says how many elements the segments need to be able to address all elements by their global index. On the lines 26-28, we mark each element of the array by its rank in the array. On the line 35, we use function \ref TNL::Algorithms::Segments::printSegments which accepts lambda function `fetch` as one its parameters. The lambda function reads data from our array `data` (with the help of array view `data_view`) according to given global index `globalIdx` (line 34). The result looks as follows:
+On the line 19, we show how to create segments with vector (\ref TNL::Containers::Vector) carrying the segments sizes. Of course, the same constructor works even for arrays and views (i.e. \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView and \ref TNL::Containers::VectorView). Next we print the real segment sizes depending on the format in the background (line 20) the same way as we did in the previous example. On the line 25, we allocate array having the size requested by the `segments` by means of method `getStorageSize` (\ref TNL::Algorithms::Segments::CSR::getStorageSize for example). This method says how many elements the segments need to be able to address all elements by their global index. On the lines 26-28, we mark each element of the array by its rank in the array. On the line 35, we use function \ref TNL::Algorithms::Segments::printSegments which accepts lambda function `fetch` as one its parameters. The lambda function reads data from our array `data` (with the help of array view `data_view`) according to given global index `globalIdx` (line 34). The result looks as follows:
 
 \include SegmentsPrintingExample-2.out
 
@@ -107,9 +107,9 @@ Frankly, what we see is not so important. It only shows that different segments 
 
 In this section, we show how to iterate over the elements of segments and how to manipulate with them. There are three possible ways:
 
-1. Method `forElements` (\ref TNL::Algorihms::Segments::CSR::forElements for example), which iterates in parallel over all elements of segments and perform given lambda function on each of them.
-2. Method `forSegments` (\ref TNL::Algorihms::Segments::CSR::forSegments for example), which iterates in parallel over all segments. It is better choice when we need to process each segment sequentially are we have significant amount of computations common for all elements in each segment.
-3. Method `sequentailForSegments` (\ref TNL::Algorihms::Segments::CSR::sequentailForSegments for example), which iterates over all segments sequentially i.e. using only one thread even on GPUs. It is useful for debugging or for printing for example.
+1. Method `forElements` (\ref TNL::Algorithms::Segments::CSR::forElements for example), which iterates in parallel over all elements of segments and perform given lambda function on each of them.
+2. Method `forSegments` (\ref TNL::Algorithms::Segments::CSR::forSegments for example), which iterates in parallel over all segments. It is better choice when we need to process each segment sequentially are we have significant amount of computations common for all elements in each segment.
+3. Method `sequentailForSegments` (\ref TNL::Algorithms::Segments::CSR::sequentialForSegments for example), which iterates over all segments sequentially i.e. using only one thread even on GPUs. It is useful for debugging or for printing for example.
 
 Methods iterating over particular segments use a segment view (\ref TNL::Algorithms::Segments::SegmentView) to access the elements of given segment. The segment view offers iterator for better convenience.
 

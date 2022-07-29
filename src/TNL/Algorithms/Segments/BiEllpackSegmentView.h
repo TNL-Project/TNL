@@ -42,10 +42,10 @@ public:
    /**
     * \brief Constructor.
     *
+    * \param segmentIdx is the segment index.
     * \param offset is offset of the first group of the strip the segment belongs to.
-    * \param size is the segment size
     * \param inStripIdx is index of the segment within its strip.
-    * \param groupsWidth is a static vector containing widths of the strip groups
+    * \param groupsWidth is a static vector containing widths of the strip groups.
     */
    __cuda_callable__
    BiEllpackSegmentView( const IndexType segmentIdx,

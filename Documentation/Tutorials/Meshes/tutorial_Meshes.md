@@ -71,7 +71,7 @@ Given a mesh instance denoted as `mesh`, it can be used like this:
 
 \snippet MeshIterationExample.cpp getEntitiesCount
 
-Note that this member function and all other member functions presented below are marked as [\_\_cuda\_callable\_\_](../GeneralConcepts/tutorial_GeneralConcepts.md), so they can be called from usual host functions as well as CUDA kernels.
+Note that this member function and all other member functions presented below are marked as [`__cuda_callable__`](../GeneralConcepts/tutorial_GeneralConcepts.md), so they can be called from usual host functions as well as CUDA kernels.
 
 The entity of given dimension and index can be accessed via a member function template called [getEntity](@ref TNL::Meshes::Mesh::getEntity).
 Again, the entity dimension is specified as a template argument and the index is specified as a method argument.

@@ -474,8 +474,9 @@ public:
     *    It is should have form like
     *
     * ```
-    * auto function = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, const RealType& value
-    * ) { ... };
+    * auto function = [=] __cuda_callable__
+    *      ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, const RealType& value )
+    *      { ... };
     * ```
     *
     *  The column index repeats twice only for compatibility with sparse matrices.
@@ -500,8 +501,9 @@ public:
     *    It is should have form like
     *
     * ```
-    * auto function = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, RealType& value ) {
-    * ... };
+    * auto function = [=] __cuda_callable__
+    *      ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, RealType& value )
+    *      { ... };
     * ```
     *
     *  The column index repeats twice only for compatibility with sparse matrices.
@@ -528,9 +530,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixExample_forAllRows.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixExample_forAllElements.cpp
     * \par Output
-    * \include DenseMatrixExample_forAllRows.out
+    * \include DenseMatrixExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -545,9 +547,9 @@ public:
     * \param function  is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixExample_forAllRows.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixExample_forAllElements.cpp
     * \par Output
-    * \include DenseMatrixExample_forAllRows.out
+    * \include DenseMatrixExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -783,7 +785,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row.
     *          It is declared as
     *
-    * ````
+    * ```
     * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
     * ```
     *
@@ -817,15 +819,16 @@ public:
     * auto fetch = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, RealType elementValue ) -> FetchValue { ... };
     * ```
     *
-    *      The return type of this lambda can be any non void.
+    * The return type of this lambda can be any non void.
+    *
     * \tparam Reduce is a type of lambda function for reduction declared as
     *
-    * ````
+    * ```
     * auto reduce = [=] __cuda_callable__ ( const FetchValue& v1, const FetchValue& v2 ) -> FetchValue { ... };
     * ```
     *
     * \tparam Keep is a type of lambda function for storing results of reduction in each row.
-    *          It is declared as
+    *         It is declared as
     * ```
     * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
     * ```
@@ -867,7 +870,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row.
     *          It is declared as
     *
-    *  ```
+    * ```
     * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
     * ```
     *
@@ -898,10 +901,14 @@ public:
     * outVector = matrixMultiplicator * ( *this ) * inVector + outVectorMultiplicator * outVector
     * ```
     *
-    * \tparam InVector is type of input vector.  It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
-    * \tparam OutVector is type of output vector. It can be \ref Vector,
-    *     \ref VectorView, \ref Array, \ref ArraView or similar container.
+    * \tparam InVector is type of input vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
+    * \tparam OutVector is type of output vector. It can be
+    *         \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *         \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *         or similar container.
     *
     * \param inVector is input vector.
     * \param outVector is output vector.
@@ -1052,7 +1059,7 @@ public:
     */
    template< typename Matrix >
    bool
-   operator==( const Matrix& m ) const;
+   operator==( const Matrix& matrix ) const;
 
    /**
     * \brief Comparison operator with another arbitrary matrix type.
@@ -1062,7 +1069,7 @@ public:
     */
    template< typename Matrix >
    bool
-   operator!=( const Matrix& m ) const;
+   operator!=( const Matrix& matrix ) const;
 
    /**
     * \brief Method for saving the matrix to the file with given filename.
@@ -1083,7 +1090,7 @@ public:
    /**
     * \brief Method for saving the matrix to a file.
     *
-    * \param fileName is name of the file.
+    * \param file is the file where the matrix will be saved.
     */
    void
    save( File& file ) const override;
@@ -1091,7 +1098,7 @@ public:
    /**
     * \brief Method for loading the matrix from a file.
     *
-    * \param fileName is name of the file.
+    * \param file is the file from which the matrix will be loaded.
     */
    void
    load( File& file ) override;

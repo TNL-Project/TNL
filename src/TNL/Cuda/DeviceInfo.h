@@ -16,6 +16,7 @@ struct DeviceInfo
    static int
    getNumberOfDevices();
 
+   //! \brief Returns the ID of the active device.
    static int
    getActiveDevice();
 

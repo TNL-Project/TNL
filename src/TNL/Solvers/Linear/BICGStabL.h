@@ -47,7 +47,7 @@ namespace Linear {
  * [4] Martin H. Gutknecht, "Variants of BiCGStab for matrices with complex
  *     spectrum", IPS Research Report No. 91-14 (1991).
  *
- * See \ref TNL::Solvers::Linear::IterativeSolver for example of showing how to use the linear solvers.
+ * See \ref TNL::Solvers::Linear::LinearSolver for example of showing how to use the linear solvers.
  *
  * \tparam Matrix is type of matrix describing the linear system.
  */

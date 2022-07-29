@@ -2704,6 +2704,7 @@
     <class kind="class">std::alignment_of</class>
     <class kind="class">std::time_put</class>
     <class kind="class">std::bit_or</class>
+    <class kind="class">std::bit_xor</class>
     <member kind="function">
       <type>T</type>
       <name>rand</name>
@@ -4509,6 +4510,10 @@
       <anchor></anchor>
       <arglist>(T... args)</arglist>
     </member>
+  </compound>
+  <compound kind="class">
+    <name>std::ios_base::openmode</name>
+    <filename>cpp/io/ios_base/openmode</filename>
   </compound>
   <compound kind="class">
     <name>std::basic_ofstream::event_callback</name>
@@ -22945,6 +22950,17 @@
       <type>T</type>
       <name>operator()</name>
       <anchorfile>cpp/utility/functional/bit_or</anchorfile>
+      <anchor></anchor>
+      <arglist>(T... args)</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>std::bit_xor</name>
+    <filename>cpp/utility/functional/bit_xor</filename>
+    <member kind="function">
+      <type>T</type>
+      <name>operator()</name>
+      <anchorfile>cpp/utility/functional/bit_xor</anchorfile>
       <anchor></anchor>
       <arglist>(T... args)</arglist>
     </member>

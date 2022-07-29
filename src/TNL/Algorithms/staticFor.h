@@ -95,7 +95,7 @@ static_for_dispatch( Func&& f, ArgTypes&&... args )
  *    function.
  *
  * \param f is the functor to be called in each iteration.
- * \param args... are additional user-supplied arguments that are forwarded
+ * \param args are additional user-supplied arguments that are forwarded
  *    to each call of \e f.
  *
  * \par Example

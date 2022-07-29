@@ -88,6 +88,7 @@ public:
    /**
     * \brief Convert Hypre's format to HypreParVector
     *
+    * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the vector should take ownership of
     * the handle, i.e. whether to call \e hypre_VectorDestroy when it does
     * not need it anymore.
@@ -237,6 +238,7 @@ public:
    /**
     * \brief Convert Hypre's format to HypreParVector
     *
+    * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the vector should take ownership of
     * the handle, i.e. whether to call \e hypre_VectorDestroy when it does
     * not need it anymore.

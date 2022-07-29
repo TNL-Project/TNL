@@ -8,6 +8,7 @@
 
 namespace TNL {
 namespace Meshes {
+//! \brief Namespace for unstructured mesh entity topologies
 namespace Topologies {
 
 struct Vertex

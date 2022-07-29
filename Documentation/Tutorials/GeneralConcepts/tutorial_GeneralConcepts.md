@@ -26,7 +26,7 @@ in which case appropriate data transfer from CPU to GPU is performed. Each such 
 
 If we need to specialize some parts of algorithm with respect to its device we can do it by means of  \ref std::is_same :
 
-\includelineno snippet_devices_and_allocators_arrays_device_check.cpp
+\includelineno snippet_devices_and_allocators_arrays_device_test.cpp
 
 TODO: Allocators
 
@@ -38,15 +38,15 @@ Developing a code for GPUs (in [CUDA](https://developer.nvidia.com/CUDA-zone) fo
 2. Code implemented this way works even on CPU, so the developer writes only one code for both hardware architectures.
 3. The developer may debug the code on CPU first and then just run it on GPU. Quite likely it will work with only a little or no changes.
 
-The following code snippet demonstrates it on use of \ref TNL::Algorithms::ParallelFor:
+The following code snippet demonstrates it on use of \ref TNL::Algorithms::ParallelFor.
 
 \includelineno snippet_algorithms_and_lambda_functions_parallel_for.cpp
 
-In this example, we assume that all arrays `v1`, `v2` and `sum` were properly allocated on given `Device`. If `Device` equals \ref TNL::Devices::Host , the lambda function is processed sequentially or in parallel by several OpenMP threads on CPU. If `Device` equals \ref TNL::Devices::Cuda , the lambda function is called from CUDA kernel (this is why it is defined as `__cuda_callable__` which is just a substitute for `__host__ __device__` ) by apropriate number of CUDA threads. One more example demonstrates use of \ref TNL::Algorithms::Reduction .
+In this example, we assume that all arrays `v1`, `v2` and `sum` were properly allocated on given `Device`. If `Device` equals \ref TNL::Devices::Host , the lambda function is processed sequentially or in parallel by several OpenMP threads on CPU. If `Device` equals \ref TNL::Devices::Cuda , the lambda function is called from CUDA kernel (this is why it is defined as `__cuda_callable__` which is just a substitute for `__host__ __device__` ) by apropriate number of CUDA threads. One more example demonstrates use of \ref TNL::Algorithms::reduce.
 
 \includelineno snippet_algorithms_and_lambda_functions_reduction.cpp
 
-We will not explain the parallel reduction in TNL at this moment (see the section about [flexible parallel reduction](../ReductionAndScan/tutorial_ReductionAndScan.md) ), we hope that the idea is more or less clear from the code snippet. If `Device` equals to \ref TNL::Device::Host , the scalar product is evaluated sequentially or in parallel by several OpenMP threads on CPU, if `Device` equals \ref TNL::Algorithms::Cuda, the [parallel reduction](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf) fine tuned with the lambda functions is performed. Fortunately, there is no performance drop. On the contrary, since it is easy to generate CUDA kernels for particular situations, we may get more efficient code. Consider computing a scalar product of sum of vectors like this
+We will not explain the parallel reduction in TNL at this moment (see the section about [flexible parallel reduction](../ReductionAndScan/tutorial_ReductionAndScan.md)), we hope that the idea is more or less clear from the code snippet. If `Device` equals to \ref TNL::Devices::Host, the scalar product is evaluated sequentially or in parallel by several OpenMP threads on CPU, if `Device` equals \ref TNL::Devices::Cuda, the [parallel reduction](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf) fine tuned with the lambda functions is performed. Fortunately, there is no performance drop. On the contrary, since it is easy to generate CUDA kernels for particular situations, we may get more efficient code. Consider computing a scalar product of sum of vectors like this
 
 \f[
 s = (u_1 + u_2, v_1 + v_2).

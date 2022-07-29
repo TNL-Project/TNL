@@ -38,9 +38,9 @@ public:
    using RealType = Real;
 
    /**
-    * \brief Device where the vector is allocated.
+    * \brief Device used to run operations on the vector.
     *
-    * See \ref Devices::Host or \ref Devices::Cuda.
+    * See \ref TNL::Devices for the available options.
     */
    using DeviceType = Device;
 
@@ -135,7 +135,8 @@ public:
    operator=( const VectorExpression& expression );
 
    /**
-    * \brief Assigns a value or an array - same as \ref ArrayView::operator=.
+    * \brief Assigns a value or an array - same as
+    * \ref TNL::Containers::ArrayView::operator= "ArrayView::operator=".
     *
     * \return Reference to this vector view.
     */

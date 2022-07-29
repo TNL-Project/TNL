@@ -75,10 +75,14 @@ private:
 };
 
 template< typename Index, std::size_t currentSize, std::size_t... otherSizes >
-class SizesHolderLayer : public SizesHolderLayer< Index, otherSizes... >,
-                         public SizeHolder< Index,
-                                            IndexTag< sizeof...( otherSizes ) >,  // LevelTag
-                                            currentSize >
+class SizesHolderLayer
+// Doxygen complains about recursive classes
+//! \cond
+: public SizesHolderLayer< Index, otherSizes... >,
+  public SizeHolder< Index,
+                     IndexTag< sizeof...( otherSizes ) >,  // LevelTag
+                     currentSize >
+//! \endcond
 {
    using BaseType = SizesHolderLayer< Index, otherSizes... >;
    using Layer = SizeHolder< Index,

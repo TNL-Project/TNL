@@ -34,7 +34,7 @@ This problem can be solved as follows:
 
 \includelineno Solvers/ODE/StaticODESolver-SineExample.h
 
-We first define the type `Real` representing the floating-point arithmetics, which is `double` in this case (line 4). In the main function, we define the type of the ODE solver ( `ODESolver`, line 8). We choose \ref TNL::Solvers::ODE::StaticEuler. We define the variable `final_t` (line 9) representing the size of the time interval \f$ (0,T)\f$, next we define the integration time step `tau` (line 10) and the variable `output_time_step` (line 11) representing checkpoints in which we will print value of the solution \f$ x(t)\f$. On the line 13, we create an instance of the `ODESolver` and set the integration time step (line 14) and the initial time of the solver (line 15). Next we create variable `u` representing the solution of the given ODE and we initiate it with the initial condition \f$ u(0) = 0\f$ (line 16). On the lines 17-25, we iterate over the interval \f$ (0,T) \f$ with step given by the frequency of the checkpoints given by the variable `output_time_steps`. On the line 19, we let the solver to iterate until the next checkpoint or the end of the interval \f$(0,T) \f$ depending on what occurs first (it is expressed by `TNL::min( solver.getTime() + output_time_step, final_t )`). On the lines 20-22, we define the lambda function `f` representing the right-hand side of the ODE being solved. The lambda function receives the following arguments:
+We first define the type `Real` representing the floating-point arithmetics, which is `double` in this case (line 4). In the main function, we define the type of the ODE solver (`ODESolver`, line 8). We choose \ref TNL::Solvers::ODE::StaticEuler. We define the variable `final_t` (line 9) representing the size of the time interval \f$ (0,T)\f$, next we define the integration time step `tau` (line 10) and the variable `output_time_step` (line 11) representing checkpoints in which we will print value of the solution \f$ x(t)\f$. On the line 13, we create an instance of the `ODESolver` and set the integration time step (line 14) and the initial time of the solver (line 15). Next we create variable `u` representing the solution of the given ODE and we initiate it with the initial condition \f$ u(0) = 0\f$ (line 16). On the lines 17-25, we iterate over the interval \f$ (0,T) \f$ with step given by the frequency of the checkpoints given by the variable `output_time_steps`. On the line 19, we let the solver to iterate until the next checkpoint or the end of the interval \f$(0,T) \f$ depending on what occurs first (it is expressed by `TNL::min( solver.getTime() + output_time_step, final_t )`). On the lines 20-22, we define the lambda function `f` representing the right-hand side of the ODE being solved. The lambda function receives the following arguments:
 
 * `t` is the current value of the time variable \f$ t \in (0,T)\f$,
 * `tau` is the current integration time step,
@@ -66,14 +66,14 @@ In the next example, we demonstrate use of the static ODE solver to solve a syst
 \f[ \frac{dz}{dt} = xy - \beta z,\ \rm{ on }\ (0,T) \f]
 \f[ \vec u(0) = (x(0),y(0),z(0)) = \vec u_{ini} \f]
 
-for given constants \f$ \sigma, \rho \f$ and \f$ \beta \f$. The solution \f$ \vec u(t) = (x(t), y(t), z(t)) \in R^3 \f$ is represented by three-dimensional static vector ( \ref TNL::Containers::StaticVector). The solver looks as follows:
+for given constants \f$ \sigma, \rho \f$ and \f$ \beta \f$. The solution \f$ \vec u(t) = (x(t), y(t), z(t)) \in R^3 \f$ is represented by three-dimensional static vector (\ref TNL::Containers::StaticVector). The solver looks as follows:
 
 \includelineno Solvers/ODE/StaticODESolver-LorenzExample.h
 
 The code is very similar to the previous example. There are the following differences:
 
 1. We define the type of the variable `u` representing the solution \f$ \vec u(t) \f$ as \ref TNL::Containers::StaticVector< 3, Real > (line 9) which is reflected even in the definition of the ODE solver (\ref TNL::Solvers::ODE::StaticEuler< Vector > , line 10) and the variable `u` (line 21).
-2. In addition to the parameters of the solver ( `final_t`, `tau` and `output_time_step`, lines 14-16) we define parameters of the Lorenz system (`sigma`, `rho` and `beta`, lines 14-16).
+2. In addition to the parameters of the solver (`final_t`, `tau` and `output_time_step`, lines 14-16) we define parameters of the Lorenz system (`sigma`, `rho` and `beta`, lines 14-16).
 3. The initial condition \f$ \vec u(0) = (1,2,3) \f$ is set on the line 21.
 4. In the lambda function representing the right-hand side of the Lorenz system (lines 25-32), we first define auxiliary aliases `x` ,`y` and `z` (lines 26-28) to make the code easier to read. The main right-hand side of the Lorenz system is implemented on the lines (29-31).
 5. In the line 3, we print all components of the vector `u`.
@@ -346,4 +346,4 @@ There are the following differences compared to the previous example:
 
 The result looks as follows:
 
-\include /ODESolver-HeatEquationWithMonitorExample.out
+\include ODESolver-HeatEquationWithMonitorExample.out

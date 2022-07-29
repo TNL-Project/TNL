@@ -53,18 +53,17 @@ private:
 
 public:
    /**
-    * \typedef ObjectType is the type of object owned by the pointer.
+    * \brief Type of the object owned by the pointer.
     */
    using ObjectType = Object;
 
    /**
-    * \typedef DeviceType is the type of device where the object is to be
-    * mirrored.
+    * \brief Type of the device where the object is to be mirrored.
     */
    using DeviceType = Devices::Cuda;
 
    /**
-    * \typedef AllocatorType is the type of the allocator for \e DeviceType.
+    * \brief Type of the allocator for \e DeviceType.
     */
    using AllocatorType = typename Allocators::Default< DeviceType >::Allocator< ObjectType >;
 
@@ -126,8 +125,6 @@ public:
     *
     * This is specialization for compatible object types.
     *
-    * See \ref Enabler.
-    *
     * \param pointer is the source shared pointer.
     */
    template< typename Object_, typename = typename Enabler< Object_ >::type >
@@ -153,8 +150,6 @@ public:
     * \brief Move constructor.
     *
     * This is specialization for compatible object types.
-    *
-    * See \ref Enabler.
     *
     * \param pointer is the source shared pointer.
     */
@@ -361,10 +356,10 @@ public:
    /**
     * \brief Assignment operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    const SharedPointer&
    operator=( const SharedPointer& ptr )  // this is needed only to avoid the default compiler-generated operator
@@ -384,12 +379,10 @@ public:
    /**
     * \brief Assignment operator for compatible object types.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
-    *
-    * See \ref Enabler.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    template< typename Object_, typename = typename Enabler< Object_ >::type >
    const SharedPointer&
@@ -410,10 +403,10 @@ public:
    /**
     * \brief Move operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    const SharedPointer&
    operator=( SharedPointer&& ptr ) noexcept  // this is needed only to avoid the default compiler-generated operator
@@ -433,12 +426,10 @@ public:
    /**
     * \brief Move operator.
     *
-    * It assigns object owned by the pointer \ref ptr to \ref this pointer.
-    *
-    * See \ref Enabler.
+    * It assigns object owned by the pointer \e ptr to \e this pointer.
     *
     * \param ptr input pointer
-    * \return constant reference to \ref this
+    * \return constant reference to \e this
     */
    template< typename Object_, typename = typename Enabler< Object_ >::type >
    const SharedPointer&

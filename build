@@ -109,7 +109,7 @@ for option in "$@"; do
     case "$option" in
         --build=*             ) BUILD="${option#*=}" ;;
         --build-jobs=*        ) BUILD_JOBS="${option#*=}" ;;
-        --verbose             ) VERBOSE="VERBOSE=1" ;;
+        --verbose             ) VERBOSE="--verbose" ;;
         --offline-build       ) OFFLINE_BUILD="yes" ;;
         --install=*           ) INSTALL="${option#*=}" ;;
         --install             ) INSTALL="yes" ;;
@@ -193,21 +193,15 @@ fi
 
 if [[ $(command -v ninja) ]]; then
    generator=Ninja
-   make=ninja
    check_file="build.ninja"
 else
    generator="Unix Makefiles"
-   make=make
    check_file="Makefile"
 fi
 
-# remove old build directories that were used before the unified top-level "builddir"
-# (TODO: this code be removed later)
-rm -rf ./Release ./Debug ./RelWithDebInfo ./Testing ./Build
-
 BUILD_DIR="builddir/$BUILD"
 cmake_command=(
-   ${CMAKE} -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator"
+   "$CMAKE" -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator"
          -DCMAKE_BUILD_TYPE=${BUILD}
          -DCMAKE_INSTALL_PREFIX=${PREFIX}
          -DDCMTK_DIR=${DCMTK_DIR}
@@ -250,55 +244,34 @@ fi
 # install dependencies into $PREFIX if they are not found system-wide
 pkg-config --exists tinyxml2 || "$ROOT_DIR/scripts/install_tinyxml2" --prefix "$PREFIX"
 
-# get the number of physical cores present on the system, even with multiple NUMA nodes
-# see https://unix.stackexchange.com/a/279354
-SYSTEM_CORES=$(lscpu --all --parse=CORE,SOCKET | grep -Ev "^#" | sort -u | wc -l)
-
-if [[ "$make" == "make" ]]; then
-   if [[ -n ${BUILD_JOBS} ]]; then
-      # override $MAKEFLAGS from parent environment
-      export MAKEFLAGS=-j${BUILD_JOBS}
-   elif [[ -z ${MAKEFLAGS} ]]; then
-      # $BUILD_JOBS and $MAKEFLAGS are not set => set default value
-      BUILD_JOBS=$SYSTEM_CORES
-      export MAKEFLAGS=-j${BUILD_JOBS}
-   fi
-else
-   if [[ -z ${BUILD_JOBS} ]]; then
-      BUILD_JOBS=$SYSTEM_CORES
-   fi
-   make="$make -j$BUILD_JOBS"
-fi
-
 if [[ -n ${BUILD_JOBS} ]]; then
-   echo "Building ${BUILD} TNL using $BUILD_JOBS processors ..."
+   echo "Building ${BUILD} TNL using $BUILD_JOBS parallel jobs ..."
 else
-   # number of processors is unknown - it is encoded in $MAKEFLAGS from parent environment
+   # number of processors is unknown
    echo "Building ${BUILD} TNL ..."
+   # get the number of physical cores present on the system, even with multiple NUMA nodes
+   # see https://unix.stackexchange.com/a/279354
+   BUILD_JOBS=$(lscpu --all --parse=CORE,SOCKET | grep -Ev "^#" | sort -u | wc -l)
 fi
 
-if [[ "$INSTALL" == "yes" ]]; then
-   # install implies all
-   make_target="install"
-else
-   make_target="all"
-fi
-
-# make expects VERBOSE=1, ninja expects -v
-if [[ "$make" != "make" ]] && [[ "$VERBOSE" ]]; then
-   VERBOSE="-v"
-fi
-
-if ! $make -C "$BUILD_DIR" ${VERBOSE} $make_target; then
+# build the targets
+if ! "$CMAKE" --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target all; then
    exit 1
 fi
 
+if [[ "$INSTALL" == "yes" ]]; then
+   # install the targets
+   if ! "$CMAKE" --install "$BUILD_DIR" $VERBOSE; then
+      exit 1
+   fi
+fi
+
 if [[ ${BUILD_DOC} == "yes" ]]; then
-   "$ROOT_DIR/Documentation/build" --prefix="$PREFIX" --install="$INSTALL"
+   "$ROOT_DIR/Documentation/build" --prefix="$PREFIX" --install="$INSTALL" --output-snippets-path="$(pwd)/$BUILD_DIR/output_snippets/"
 fi
 
 if [[ ${BUILD_TESTS} == "yes" ]] || [[ ${BUILD_MATRIX_TESTS} == "yes" ]]; then
    if [[ ${RUN_TESTS} == "yes" ]]; then
-      OMP_NUM_THREADS=${TESTS_JOBS} CTEST_PARALLEL_LEVEL=${TESTS_JOBS} CTEST_OUTPUT_ON_FAILURE=1 $make -C "$BUILD_DIR" test
+      OMP_NUM_THREADS=${TESTS_JOBS} CTEST_PARALLEL_LEVEL=${TESTS_JOBS} CTEST_OUTPUT_ON_FAILURE=1 "$CMAKE" --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target test
    fi
 fi

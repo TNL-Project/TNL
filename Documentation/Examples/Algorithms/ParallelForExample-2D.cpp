@@ -31,7 +31,7 @@ int main( int argc, char* argv[] )
    /***
     * Firstly, test the mesh function initiation on CPU.
     */
-   Vector< double, Devices::Host > host_v;
+   Vector< double, Devices::Host > host_v( size );
    initMeshFunction( xSize, ySize, host_v, 1.0 );
 
    /***
