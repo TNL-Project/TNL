@@ -423,6 +423,81 @@ public:
       owns_handle = take_ownership;
    }
 
+   /**
+    * \brief Binds \e ParCSRMatrix to local \e diag and \e offd blocks.
+    *
+    * \param communicator MPI communicator to associate with the matrix.
+    * \param global_num_rows Global number of rows of the distributed matrix.
+    * \param global_num_cols Global number of columns of the distributed matrix.
+    * \param local_row_range The range `[begin, end)` of rows owned by the
+    *                        calling rank.
+    * \param local_col_range The range `[begin, end)` of columns owned by the
+    *                        calling rank. For square matrices it should be
+    *                        equal to \e local_row_range.
+    * \param diag The local diagonal matrix block owned by the calling rank.
+    * \param offd The local off-diagonal matrix block owned by the calling rank.
+    * \param col_map_offd Mapping of local-to-global indices for the columns in
+    *                     the off-diagonal block. It must be *always* a host
+    *                     pointer.
+    */
+   void
+   bind( MPI_Comm communicator,
+         IndexType global_num_rows,
+         IndexType global_num_cols,
+         LocalRangeType local_row_range,
+         LocalRangeType local_col_range,
+         hypre_CSRMatrix* diag,
+         hypre_CSRMatrix* offd,
+         IndexType* col_map_offd )
+   {
+      TNL_ASSERT_TRUE( diag, "invalid input: diag" );
+      TNL_ASSERT_TRUE( offd, "invalid input: offd" );
+      TNL_ASSERT_TRUE( col_map_offd, "invalid input: col_map_offd" );
+      // check the memory location of the input
+      TNL_ASSERT_EQ( hypre_CSRMatrixMemoryLocation( diag ),
+                     getHypreMemoryLocation(),
+                     "memory location of the input Hypre matrix 'diag' does not match" );
+      TNL_ASSERT_EQ( hypre_CSRMatrixMemoryLocation( offd ),
+                     getHypreMemoryLocation(),
+                     "memory location of the input Hypre matrix 'offd' does not match" );
+
+      // drop/deallocate the current data
+      reset();
+
+      IndexType row_starts[ 2 ];
+      row_starts[ 0 ] = local_row_range.getBegin();
+      row_starts[ 1 ] = local_row_range.getEnd();
+      IndexType col_starts[ 2 ];
+      col_starts[ 0 ] = local_col_range.getBegin();
+      col_starts[ 1 ] = local_col_range.getEnd();
+
+      // create new matrix
+      m = hypre_ParCSRMatrixCreate( communicator, global_num_rows, global_num_cols, row_starts, col_starts, 0, 0, 0 );
+
+      // bind the local matrices
+      hypre_CSRMatrixDestroy( hypre_ParCSRMatrixDiag( m ) );
+      hypre_CSRMatrixDestroy( hypre_ParCSRMatrixOffd( m ) );
+      hypre_ParCSRMatrixDiag( m ) = diag;
+      hypre_ParCSRMatrixOffd( m ) = offd;
+      owns_diag = false;
+      owns_offd = false;
+
+      // bind the offd col map
+      hypre_TFree( hypre_ParCSRMatrixColMapOffd( m ), HYPRE_MEMORY_HOST );
+      hypre_ParCSRMatrixColMapOffd( m ) = col_map_offd;
+      owns_col_map_offd = false;
+
+      // initialize auxiliary substructures
+      hypre_CSRMatrixSetRownnz( hypre_ParCSRMatrixDiag( m ) );
+      hypre_ParCSRMatrixSetNumNonzeros( m );
+      hypre_MatvecCommPkgCreate( m );
+
+      // check the memory location of the result
+      TNL_ASSERT_EQ( hypre_ParCSRMatrixMemoryLocation( m ),
+                     getHypreMemoryLocation(),
+                     "memory location of the output Hypre matrix does not match" );
+   }
+
    //! \brief Reset the matrix to empty state.
    void
    reset()
