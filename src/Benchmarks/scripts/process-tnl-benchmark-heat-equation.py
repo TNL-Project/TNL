@@ -51,6 +51,8 @@ def processDf( df, precision ):
     y_sizes = list(set(df['ySize']))
     y_sizes.sort()
 
+    performers = []
+
     for x_size in x_sizes:
         for y_size in y_sizes:
             aux_df=df.loc[ ( df['xSize'] == x_size ) & ( df['ySize'] == y_size ) ]
@@ -62,15 +64,20 @@ def processDf( df, precision ):
                 test = row[ 'implementation' ]
                 time = row[ 'time' ]
                 new_df.iloc[0][(test,row['performer'],'time') ] = float( time )
+                performers.append( row['performer'] )
             #print( new_df )
             frames.append( new_df)
     result = pd.concat( frames )
     idx = 0
+    have_cuda = ( performers.count( 'cuda' ) > 0 )
     for index, row in result.iterrows():
         for test in tests:
-            result.iloc[idx][ (test, 'cuda', 'CPU speed-up') ] =  float( row[ (test, 'host', 'time')] ) / float( row[ (test, 'cuda', 'time')] )
+            if have_cuda:
+                result.iloc[idx][ (test, 'cuda', 'CPU speed-up') ] =  float( row[ (test, 'host', 'time')] ) / float( row[ (test, 'cuda', 'time')] )
             if test != 'parallel-for':
                 for device in devices:
+                    if device == 'cuda' and not have_cuda:
+                        continue
                     result.iloc[idx][ (test, device, 'parallel-for speed-up') ] =  float( row[ ('parallel-for', device, 'time')] ) / float( row[ (test, device, 'time')] )
         idx += 1
 

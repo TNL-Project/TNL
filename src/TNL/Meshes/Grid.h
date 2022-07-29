@@ -229,7 +229,7 @@ operator!=( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimen
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/Grid1D.h>
-#include <TNL/Meshes/GridDetails/Grid2D.h>
-#include <TNL/Meshes/GridDetails/Grid3D.h>
+//#include <TNL/Meshes/GridDetails/Grid1D.h>
+//#include <TNL/Meshes/GridDetails/Grid2D.h>
+//#include <TNL/Meshes/GridDetails/Grid3D.h>
 #include <TNL/Meshes/GridDetails/Grid.hpp>

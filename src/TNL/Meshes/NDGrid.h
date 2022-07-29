@@ -366,6 +366,9 @@ public:
    inline Real
    getSpaceStepsProducts( const CoordinatesType& powers ) const;
 
+   __cuda_callable__
+   inline Real
+   getCellMeasure() const { return getSpaceProducts( CoordinatesType( 1 ) ); };
    /**
     * \brief Returns product of space step powers given as template parameters.
     *

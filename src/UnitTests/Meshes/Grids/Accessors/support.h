@@ -182,7 +182,7 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
       }
 
       template<typename Grid>
-      void verifyOriginGetter(const Grid& grid, const typename Grid::Point& coordinates) const {
+      void verifyOriginGetter(const Grid& grid, const typename Grid::PointType& coordinates) const {
          auto gridDimension = grid.getMeshDimension();
 
          auto update = [=] __device__ (const int index, typename Grid::RealType& reference) mutable {
@@ -197,7 +197,7 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
       }
 
       template<typename Grid>
-      void verifySpaceStepsGetter(const Grid& grid, const typename Grid::Point& spaceSteps) const {
+      void verifySpaceStepsGetter(const Grid& grid, const typename Grid::PointType& spaceSteps) const {
          auto gridDimension = grid.getMeshDimension();
 
          auto update = [=] __device__ (const int index, typename Grid::RealType& reference) mutable {
@@ -238,7 +238,7 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
          this->executeFromDevice<typename Grid::IndexType>(update, verify);
       }
 
-      template<typename Grid>
+      /*template<typename Grid>
       void verifyDimensionByIndexGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
          auto gridDimension = grid.getMeshDimension();
 
@@ -251,7 +251,7 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
          };
 
          this->executeFromDevice<typename Grid::IndexType>(update, verify);
-      }
+      }*/
 
       template<typename Grid>
       void verifyDimensionByIndiciesGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {

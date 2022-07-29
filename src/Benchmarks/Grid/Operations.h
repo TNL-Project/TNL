@@ -39,7 +39,7 @@ struct GetEntityCoordinateOperation {
       template<typename Entity>
       __cuda_callable__ inline
       static void exec(Entity& entity) {
-         typename Entity::GridType::Coordinate coordinate = entity.getCoordinates();
+         typename Entity::GridType::CoordinatesType coordinate = entity.getCoordinates();
 
          coordinate.x() += 1;
       }
@@ -61,7 +61,7 @@ struct GetEntityBasisOperation {
       template<typename Entity>
       __cuda_callable__ inline
       static void exec(Entity& entity) {
-         typename Entity::GridType::Coordinate coordinate = entity.getBasis();
+         typename Entity::GridType::CoordinatesType coordinate = entity.getBasis();
 
          coordinate.x() += 1;
       }
@@ -81,7 +81,7 @@ struct GetMeshDimensionOperation {
       template<typename Entity>
       __cuda_callable__ inline
       static void exec(Entity& entity) {
-         typename Entity::GridType::Coordinate coordinate = entity.getMesh().getDimensions();
+         typename Entity::GridType::CoordinatesType coordinate = entity.getMesh().getDimensions();
 
          coordinate.x() += 1;
       }
@@ -92,7 +92,7 @@ struct GetOriginOperation {
       template<typename Entity>
       __cuda_callable__ inline
       static void exec(Entity& entity) {
-         typename Entity::GridType::Point coordinate = entity.getMesh().getOrigin();
+         typename Entity::GridType::PointType coordinate = entity.getMesh().getOrigin();
 
          coordinate.x() += 1;
       }

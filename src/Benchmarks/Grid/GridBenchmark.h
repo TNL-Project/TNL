@@ -74,9 +74,9 @@ class GridBenchmark {
       template< int GridDimension >
       void time(Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters) const {
          using Grid = typename TNL::Meshes::Grid<GridDimension, Real, Device, int>;
-         using Coordinate = typename Grid::Coordinate;
+         using CoordinatesType = typename Grid::CoordinatesType;
 
-         Coordinate dimensions;
+         CoordinatesType dimensions;
 
          for (int i = 0; i < GridDimension; i++)
             dimensions[i] = parameters.getParameter<int>(dimensionParameterIds[i]);
