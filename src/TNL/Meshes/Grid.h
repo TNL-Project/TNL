@@ -103,6 +103,37 @@ public:
              std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
    Grid( Dimensions... dimensions ) : NDGrid< Dimension, Real, Device, Index >( dimensions... ){};
 
+
+  // TODO: !!!!!!!!!!!!!!!!!!!!!!!!!
+   void setLocalBegin( const CoordinatesType& localBegin ){};
+
+   void setLocalEnd( const CoordinatesType& localEnd ){};
+
+   void setInteriorBegin( const CoordinatesType& localBegin ){};
+
+   void setInteriorEnd( const CoordinatesType& localEnd ){};
+
+
+   Real getCellMeasure() const { return 0.0; };
+
+   template< typename EntityType >
+   Index getEntitiesCount() const { return 0;};
+
+
+   template< int EntityDimension >
+   Index getEntitiesCount() const { return 0;};
+
+   Index getEntitiesCount( IndexType entityDim ) const { return 0;};
+
+   template< typename EntityType >
+   EntityType getEntity( const IndexType& entityIdx ) const { return EntityType( *this, entityIdx );};
+
+   template< int EntityDimension >
+   EntityType< EntityDimension > getEntity( const IndexType& entityIdx ) const { return EntityType< EntityDimension >( *this, entityIdx );};
+   // TODO end
+
+
+
    /**
     * \brief Iterate over all mesh entities with given dimension and perform given lambda function
     *    on each of them.

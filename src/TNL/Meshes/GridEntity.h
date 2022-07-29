@@ -45,6 +45,16 @@ public:
    /////////////////////////////
 
    __cuda_callable__
+   inline GridEntity( const Grid& grid )
+   : grid( grid ), coordinates( 0 )
+   {
+      basis = grid.template getBasis<EntityDimension>(0);
+      orientation = 0;
+      refresh();
+   }
+
+
+   __cuda_callable__
    inline GridEntity( const Grid& grid, const CoordinatesType& coordinates )
    : grid( grid ), coordinates( coordinates )
    {
@@ -185,6 +195,12 @@ public:
    __cuda_callable__
    inline GridEntity< Grid, Dimension >
    getNeighbourEntity( const CoordinatesType& offset ) const;
+
+   // TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   //template< std::enable_if_t< getEntityDimension() == 0, bool > = true >
+   PointType getPoint() const { };
+
+   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 protected:
    const Grid& grid;
