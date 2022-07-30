@@ -48,11 +48,10 @@ public:
    inline GridEntity( const Grid& grid )
    : grid( grid ), coordinates( 0 )
    {
-      basis = grid.template getBasis<EntityDimension>(0);
-      orientation = 0;
-      refresh();
+      this->basis = grid.template getBasis<EntityDimension>(0);
+      this->orientation = 0;
+      this->refresh();
    }
-
 
    __cuda_callable__
    inline GridEntity( const Grid& grid, const CoordinatesType& coordinates )

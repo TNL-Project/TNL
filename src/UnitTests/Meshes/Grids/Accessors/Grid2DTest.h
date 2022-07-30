@@ -11,10 +11,6 @@
 
 #ifdef HAVE_CUDA
 using Implementations = ::testing::Types<
-   TNL::Meshes::NDGrid<2, double, TNL::Devices::Host, int>,
-   TNL::Meshes::NDGrid<2, float, TNL::Devices::Host, int>,
-   TNL::Meshes::NDGrid<2, double, TNL::Devices::Cuda, int>,
-   TNL::Meshes::NDGrid<2, float, TNL::Devices::Cuda, int>,
    TNL::Meshes::Grid<2, double, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<2, float, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<2, double, TNL::Devices::Cuda, int>,
@@ -22,8 +18,6 @@ using Implementations = ::testing::Types<
 >;
 #else
 using Implementations = ::testing::Types<
-   TNL::Meshes::NDGrid<2, double, TNL::Devices::Host, int>,
-   TNL::Meshes::NDGrid<2, float, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<2, double, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<2, float, TNL::Devices::Host, int>
 >;
