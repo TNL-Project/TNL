@@ -437,15 +437,19 @@ protected:
          // - https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105327
          // - https://bugzilla.redhat.com/show_bug.cgi?id=2047715
 #if defined( __GNUC__ ) && ! defined( __clang__ ) && ! defined( __NVCC__ )
+#if __GNUC__ >= 12
    #pragma GCC diagnostic push
    #pragma GCC diagnostic ignored "-Wuse-after-free"
+#endif
 #endif
          if( ! --this->pd->counter ) {
             delete this->pd;
             this->pd = nullptr;
          }
 #if defined( __GNUC__ ) && ! defined( __clang__ ) && ! defined( __NVCC__ )
+#if __GNUC__ >= 12
    #pragma GCC diagnostic pop
+#endif
 #endif
       }
    }

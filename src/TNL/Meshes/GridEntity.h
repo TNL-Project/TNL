@@ -195,11 +195,7 @@ public:
    inline GridEntity< Grid, Dimension >
    getNeighbourEntity( const CoordinatesType& offset ) const;
 
-   // TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   //template< std::enable_if_t< getEntityDimension() == 0, bool > = true >
-   PointType getPoint() const { };
-
-   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   PointType getPoint() const { return this->grid.getSpaceSteps() * this->getCoordinates(); };
 
 protected:
    const Grid& grid;

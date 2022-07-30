@@ -133,7 +133,14 @@ StaticArray< Size, Value >::StaticArray( const std::initializer_list< Value >& e
 {
    const auto* it = elems.begin();
    for( int i = 0; i < getSize(); i++ )
+#if defined( __GNUC__ ) && ! defined( __clang__ ) && ! defined( __NVCC__ )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
       data[ i ] = *it++;
+#if defined( __GNUC__ ) && ! defined( __clang__ ) && ! defined( __NVCC__ )
+#pragma GCC diagnostic pop
+#endif
 }
 
 template< int Size, typename Value >

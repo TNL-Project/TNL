@@ -48,7 +48,6 @@ void solveHeatEquation( const char* file_name )
    /***
     * Time loop
     */
-   Index output_idx( 1 );
    while( solver.getTime() < final_t )
    {
       solver.setStopTime( TNL::min( solver.getTime() + output_time_step, final_t ) );
