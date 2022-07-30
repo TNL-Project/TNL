@@ -16,7 +16,7 @@
 
 namespace TNL {
 namespace Containers {
-namespace __ndarray_impl {
+namespace detail {
 
 // Dynamic storage size with alignment
 template< typename SizesHolder,
@@ -28,7 +28,7 @@ struct StorageSizeGetter
    static typename SizesHolder::IndexType __cuda_callable__
    get( const SizesHolder& sizes )
    {
-      static constexpr std::size_t overlap = __ndarray_impl::get< LevelTag::value >( Overlaps{} );
+      static constexpr std::size_t overlap = detail::get< LevelTag::value >( Overlaps{} );
       const auto size = Alignment::template getAlignedSize< LevelTag::value >( sizes );
       return ( size + 2 * overlap )
            * StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< LevelTag::value - 1 > >::get( sizes );
@@ -39,8 +39,8 @@ struct StorageSizeGetter
    static typename SizesHolder::IndexType
    getPermuted( const SizesHolder& sizes, Permutation )
    {
-      static constexpr std::size_t idx = __ndarray_impl::get< LevelTag::value >( Permutation{} );
-      static constexpr std::size_t overlap = __ndarray_impl::get< idx >( Overlaps{} );
+      static constexpr std::size_t idx = detail::get< LevelTag::value >( Permutation{} );
+      static constexpr std::size_t overlap = detail::get< idx >( Overlaps{} );
       const auto size = Alignment::template getAlignedSize< idx >( sizes );
       return ( size + 2 * overlap )
            * StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< LevelTag::value - 1 > >::get( sizes );
@@ -53,7 +53,7 @@ struct StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< 0 > >
    static typename SizesHolder::IndexType __cuda_callable__
    get( const SizesHolder& sizes )
    {
-      static constexpr std::size_t overlap = __ndarray_impl::get< 0 >( Overlaps{} );
+      static constexpr std::size_t overlap = detail::get< 0 >( Overlaps{} );
       return Alignment::template getAlignedSize< 0 >( sizes ) + 2 * overlap;
    }
 
@@ -62,8 +62,8 @@ struct StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< 0 > >
    static typename SizesHolder::IndexType
    getPermuted( const SizesHolder& sizes, Permutation )
    {
-      static constexpr std::size_t idx = __ndarray_impl::get< 0 >( Permutation{} );
-      static constexpr std::size_t overlap = __ndarray_impl::get< idx >( Overlaps{} );
+      static constexpr std::size_t idx = detail::get< 0 >( Permutation{} );
+      static constexpr std::size_t overlap = detail::get< idx >( Overlaps{} );
       return Alignment::template getAlignedSize< idx >( sizes ) + 2 * overlap;
    }
 };
@@ -365,6 +365,6 @@ struct SetSizesMinHelper< TargetHolder, SourceHolder, 0 >
    }
 };
 
-}  // namespace __ndarray_impl
+}  // namespace detail
 }  // namespace Containers
 }  // namespace TNL

@@ -17,7 +17,7 @@
 namespace TNL {
 namespace Containers {
 
-namespace __ndarray_impl {
+namespace detail {
 
 template< typename Index, typename LevelTag, std::size_t size >
 class SizeHolder
@@ -125,52 +125,68 @@ protected:
    }
 };
 
-}  // namespace __ndarray_impl
+}  // namespace detail
 
-// dimensions and static sizes are specified as std::size_t,
-// the type of dynamic sizes is configurable with Index
-
+/**
+ * \brief Holds static and dynamic sizes of an N-dimensional array.
+ *
+ * The dimension of the array and static sizes are specified as
+ * \ref std::size_t, the type of dynamic sizes is configurable with \e Index.
+ *
+ * \tparam Index Integral type used for storing dynamic sizes.
+ * \tparam sizes Sequence of integers specifying static and dynamic sizes. The
+ *         number of integers in the sequence specifies the dimension of the
+ *         array.  Positive values specify static sizes, zeros specify dynamic
+ *         sizes that must be set at run-time via \ref setSize.
+ *
+ * \ingroup ndarray
+ */
 template< typename Index, std::size_t... sizes >
-class SizesHolder : public __ndarray_impl::SizesHolderLayer< Index, sizes... >
+class SizesHolder : public detail::SizesHolderLayer< Index, sizes... >
 {
-   using BaseType = __ndarray_impl::SizesHolderLayer< Index, sizes... >;
+   using BaseType = detail::SizesHolderLayer< Index, sizes... >;
 
 public:
    using IndexType = Index;
 
+   //! \brief Returns the dimension of the array, i.e. number of \e sizes
+   //! specified in the template parameters.
    static constexpr std::size_t
    getDimension()
    {
       return sizeof...( sizes );
    }
 
-   template< std::size_t dimension >
+   //! \brief Returns the _static_ size of a specific dimension.
+   template< std::size_t level >
    static constexpr std::size_t
    getStaticSize()
    {
-      static_assert( dimension < sizeof...( sizes ), "Invalid dimension passed to getStaticSize()." );
-      return __ndarray_impl::get_from_pack< dimension >( sizes... );
+      static_assert( level < sizeof...( sizes ), "Invalid dimension passed to getStaticSize()." );
+      return detail::get_from_pack< level >( sizes... );
    }
 
+   //! \brief Returns the _dynamic_ size along a specific axis.
    template< std::size_t level >
    __cuda_callable__
    Index
    getSize() const
    {
       static_assert( level < sizeof...( sizes ), "Invalid level passed to getSize()." );
-      return BaseType::getSize( __ndarray_impl::IndexTag< getDimension() - level - 1 >() );
+      return BaseType::getSize( detail::IndexTag< getDimension() - level - 1 >() );
    }
 
+   //! \brief Sets the _dynamic_ size along a specific axis.
    template< std::size_t level >
    __cuda_callable__
    void
    setSize( Index size )
    {
       static_assert( level < sizeof...( sizes ), "Invalid level passed to setSize()." );
-      BaseType::setSize( __ndarray_impl::IndexTag< getDimension() - level - 1 >(), size );
+      BaseType::setSize( detail::IndexTag< getDimension() - level - 1 >(), size );
    }
 
-   // methods for convenience
+   //! \brief Compares the sizes with another instance of the holder.
    __cuda_callable__
    bool
    operator==( const SizesHolder& other ) const
@@ -178,6 +194,7 @@ public:
       return BaseType::operator==( other );
    }
 
+   //! \brief Compares the sizes with another instance of the holder.
    __cuda_callable__
    bool
    operator!=( const SizesHolder& other ) const
@@ -186,6 +203,11 @@ public:
    }
 };
 
+/**
+ * \brief Combines the sizes of two instance of \ref SizesHolder with the operator `+`.
+ *
+ * \ingroup ndarray
+ */
 template< typename Index, std::size_t... sizes, typename OtherHolder >
 SizesHolder< Index, sizes... >
 operator+( const SizesHolder< Index, sizes... >& lhs, const OtherHolder& rhs )
@@ -200,6 +222,11 @@ operator+( const SizesHolder< Index, sizes... >& lhs, const OtherHolder& rhs )
    return result;
 }
 
+/**
+ * \brief Combines the sizes of two instance of \ref SizesHolder with the operator `-`.
+ *
+ * \ingroup ndarray
+ */
 template< typename Index, std::size_t... sizes, typename OtherHolder >
 SizesHolder< Index, sizes... >
 operator-( const SizesHolder< Index, sizes... >& lhs, const OtherHolder& rhs )
@@ -214,6 +241,35 @@ operator-( const SizesHolder< Index, sizes... >& lhs, const OtherHolder& rhs )
    return result;
 }
 
+/**
+ * \brief Prints the sizes contained in an instance of \ref SizesHolder to the
+ * given output stream.
+ *
+ * \ingroup ndarray
+ */
+template< typename Index, std::size_t... sizes >
+std::ostream&
+operator<<( std::ostream& str, const SizesHolder< Index, sizes... >& holder )
+{
+   str << "SizesHolder< ";
+   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
+      [ &str, &holder ]( auto dimension )
+      {
+         str << holder.template getStaticSize< dimension >() << ", ";
+      } );
+   str << holder.template getStaticSize< sizeof...( sizes ) - 1 >() << " >( ";
+   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
+      [ &str, &holder ]( auto dimension )
+      {
+         str << holder.template getSize< dimension >() << ", ";
+      } );
+   str << holder.template getSize< sizeof...( sizes ) - 1 >() << " )";
+   return str;
+}
+
+namespace detail {
+
+// helper for the methods forAll, forInternal, etc.
 template< typename Index, std::size_t dimension, Index constSize >
 class ConstStaticSizesHolder
 {
@@ -258,28 +314,6 @@ public:
       return false;
    }
 };
-
-template< typename Index, std::size_t... sizes >
-std::ostream&
-operator<<( std::ostream& str, const SizesHolder< Index, sizes... >& holder )
-{
-   str << "SizesHolder< ";
-   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
-      [ &str, &holder ]( auto dimension )
-      {
-         str << holder.template getStaticSize< dimension >() << ", ";
-      } );
-   str << holder.template getStaticSize< sizeof...( sizes ) - 1 >() << " >( ";
-   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
-      [ &str, &holder ]( auto dimension )
-      {
-         str << holder.template getSize< dimension >() << ", ";
-      } );
-   str << holder.template getSize< sizeof...( sizes ) - 1 >() << " )";
-   return str;
-}
-
-namespace __ndarray_impl {
 
 // helper for the forInternal method
 template< typename SizesHolder, std::size_t ConstValue >
@@ -331,28 +365,56 @@ struct LocalBeginsHolder : public SizesHolder
    }
 };
 
-template< typename Index, std::size_t... sizes, std::size_t ConstValue >
+template< typename SizesHolder, std::size_t ConstValue, typename OtherHolder >
+LocalBeginsHolder< SizesHolder, ConstValue >
+operator+( const LocalBeginsHolder< SizesHolder, ConstValue >& lhs, const OtherHolder& rhs )
+{
+   LocalBeginsHolder< SizesHolder, ConstValue > result;
+   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() >(
+      [ &result, &lhs, &rhs ]( auto level )
+      {
+         if( SizesHolder::template getStaticSize< level >() == 0 )
+            result.template setSize< level >( lhs.template getSize< level >() + rhs.template getSize< level >() );
+      } );
+   return result;
+}
+
+template< typename SizesHolder, std::size_t ConstValue, typename OtherHolder >
+LocalBeginsHolder< SizesHolder, ConstValue >
+operator-( const LocalBeginsHolder< SizesHolder, ConstValue >& lhs, const OtherHolder& rhs )
+{
+   LocalBeginsHolder< SizesHolder, ConstValue > result;
+   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() >(
+      [ &result, &lhs, &rhs ]( auto level )
+      {
+         if( SizesHolder::template getStaticSize< level >() == 0 )
+            result.template setSize< level >( lhs.template getSize< level >() - rhs.template getSize< level >() );
+      } );
+   return result;
+}
+
+template< typename SizesHolder, std::size_t ConstValue >
 std::ostream&
-operator<<( std::ostream& str, const __ndarray_impl::LocalBeginsHolder< SizesHolder< Index, sizes... >, ConstValue >& holder )
+operator<<( std::ostream& str, const LocalBeginsHolder< SizesHolder, ConstValue >& holder )
 {
    str << "LocalBeginsHolder< SizesHolder< ";
-   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
+   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() - 1 >(
       [ &str, &holder ]( auto dimension )
       {
          str << holder.template getStaticSize< dimension >() << ", ";
       } );
-   str << holder.template getStaticSize< sizeof...( sizes ) - 1 >() << " >, ";
+   str << holder.template getStaticSize< SizesHolder::getDimension() - 1 >() << " >, ";
    str << ConstValue << " >( ";
-   Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) - 1 >(
+   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() - 1 >(
       [ &str, &holder ]( auto dimension )
       {
          str << holder.template getSize< dimension >() << ", ";
       } );
-   str << holder.template getSize< sizeof...( sizes ) - 1 >() << " )";
+   str << holder.template getSize< SizesHolder::getDimension() - 1 >() << " )";
    return str;
 }
 
-}  // namespace __ndarray_impl
+}  // namespace detail
 
 }  // namespace Containers
 }  // namespace TNL

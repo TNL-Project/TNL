@@ -1,5 +1,6 @@
 #include <TNL/Meshes/Mesh.h>
 #include <TNL/Meshes/Geometry/getEntityMeasure.h>
+#include <TNL/Meshes/Geometry/getEntityCircumradius.h>
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
 
 using namespace TNL;
@@ -61,6 +62,7 @@ printInfo( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName 
    const auto cellsCount = mesh.template getEntitiesCount< MeshType::getMeshDimension() >();
 
    VectorType diameters( cellsCount );
+   VectorType circumradii( cellsCount );
    VectorType cellSubvertices( cellsCount );
    VectorType faceSubvertices( facesCount );
    VectorType cellSubfaces( cellsCount );
@@ -72,6 +74,7 @@ printInfo( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName 
             diameters[ i ] = std::cbrt( getEntityMeasure( mesh, cell ) * 6 / 3.1415926535897932384626433 );
          else
             diameters[ i ] = std::sqrt( getEntityMeasure( mesh, cell ) * 4 / 3.1415926535897932384626433 );
+         circumradii[ i ] = getEntityCircumradius( mesh, cell );
 
          cellSubvertices[ i ] = cell.template getSubentitiesCount< 0 >();
          cellSubfaces[ i ] = cell.template getSubentitiesCount< MeshType::getMeshDimension() - 1 >();
@@ -93,6 +96,8 @@ printInfo( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName 
              << "\tVertices count:\t" << verticesCount << "\n"
              << "\tFaces count:\t" << facesCount << "\n"
              << "\tCells count:\t" << cellsCount << "\n"
+             << "\tLargest cell circumradius:\t" << TNL::max( circumradii ) << "\n"
+             << "\tSmallest cell circumradius:\t" << TNL::min( circumradii ) << "\n"
              << "\tDiameter of a ball with the same volume as the largest cell:\t" << TNL::max( diameters ) << "\n"
              << "\tDiameter of a ball with the same volume as the smallest cell:\t" << TNL::min( diameters ) << "\n"
              << "\tAverage cell diameter:\t" << TNL::sum( diameters ) / cellsCount << "\n"

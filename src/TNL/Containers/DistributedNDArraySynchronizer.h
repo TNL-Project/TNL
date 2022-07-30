@@ -20,14 +20,24 @@
 namespace TNL {
 namespace Containers {
 
+/**
+ * \brief Directions for data synchronization in a distributed N-dimensional
+ * array.
+ *
+ * It is treated as bitfield, i.e. the elementary enumerators represent
+ * individual bits and compound enumerators are obtained by combining bits from
+ * relevant elementary enumerators.
+ *
+ * \ingroup ndarray
+ */
 enum class SyncDirection : std::uint8_t
 {
-   // special - sync in all directions
-   All = 0xff,
-   // sync directions like in LBM
-   None = 0,
-   Right = 1 << 0,
-   Left = 1 << 1,
+   All = 0xff,       //!< special value -- synchronize in all directions
+   None = 0,         //!< special value -- no synchronization
+
+   // 1D
+   Right = 1 << 0,   //!< synchronization from left to right
+   Left = 1 << 1,    //!< synchronization from right to left
 
    // TODO: for 2D distribution:
    // Right = 1 << 0,
@@ -68,19 +78,38 @@ enum class SyncDirection : std::uint8_t
    // FrontBottomLeft = Front | Bottom | Left,
 };
 
+/**
+ * \brief Bitwise AND operator for \ref SyncDirection.
+ *
+ * \ingroup ndarray
+ */
 inline SyncDirection
 operator&( SyncDirection a, SyncDirection b )
 {
    return static_cast< SyncDirection >( static_cast< std::uint8_t >( a ) & static_cast< std::uint8_t >( b ) );
 }
 
+/**
+ * \brief Bitwise OR operator for \ref SyncDirection.
+ *
+ * \ingroup ndarray
+ */
 inline SyncDirection
 operator|( SyncDirection a, SyncDirection b )
 {
    return static_cast< SyncDirection >( static_cast< std::uint8_t >( a ) | static_cast< std::uint8_t >( b ) );
 }
 
-// this operator makes `a -= b` equivalent to `a &= ~b`, i.e. it clears all bits from b in a
+/**
+ * \brief Bitwise operator which clears all bits from `b` in `a`.
+ *
+ * This operator makes `a -= b` equivalent to `a &= ~b`, i.e. it clears all
+ * bits from `b` in `a`.
+ *
+ * \returns reference to `a`
+ *
+ * \ingroup ndarray
+ */
 inline SyncDirection&
 operator-=( SyncDirection& a, SyncDirection b )
 {
@@ -88,6 +117,11 @@ operator-=( SyncDirection& a, SyncDirection b )
    return a;
 }
 
+/**
+ * \brief Synchronizer for \ref DistributedNDArray.
+ *
+ * \ingroup ndarray
+ */
 template< typename DistributedNDArray,
           // This can be set to false to optimize out buffering when it is not needed
           // (e.g. for LBM with 1D distribution and specific orientation of the ndarray)
@@ -134,7 +168,7 @@ public:
       async,
    };
 
-   //   DistributedNDArraySynchronizer(int max_threads = std::thread::hardware_concurrency())
+   // DistributedNDArraySynchronizer(int max_threads = std::thread::hardware_concurrency())
    DistributedNDArraySynchronizer( int max_threads = 1 )
    : tp( max_threads ), tag_offset( reserve_tags( 2 ) )  // reserve 2 communication tags (for left and right)
    {}
@@ -320,7 +354,7 @@ public:
 
 protected:
    using DistributedNDArrayView = typename DistributedNDArray::ViewType;
-   using Buffers = __ndarray_impl::SynchronizerBuffers< DistributedNDArray >;
+   using Buffers = detail::SynchronizerBuffers< DistributedNDArray >;
 
    DistributedNDArrayView array_view;
    SyncDirection mask = SyncDirection::All;
@@ -443,32 +477,32 @@ protected:
       if( buffered ) {
          // TODO: specify CUDA stream for the copy, otherwise async won't work !!!
          CopyKernel< decltype( dim_buffers.left_send_view ) > copy_kernel;
-         copy_kernel.array_view.bind( array_view );
+         copy_kernel.local_array_view.bind( array_view.getLocalView() );
          copy_kernel.to_buffer = to_buffer;
 
          if( to_buffer ) {
             if( ( mask & SyncDirection::Left ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.left_send_view );
-               copy_kernel.array_offsets = dim_buffers.left_send_offsets;
+               copy_kernel.local_array_offsets = dim_buffers.left_send_offsets - array_view.getLocalBegins();
                dim_buffers.left_send_view.forAll( copy_kernel );
             }
 
             if( ( mask & SyncDirection::Right ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.right_send_view );
-               copy_kernel.array_offsets = dim_buffers.right_send_offsets;
+               copy_kernel.local_array_offsets = dim_buffers.right_send_offsets - array_view.getLocalBegins();
                dim_buffers.right_send_view.forAll( copy_kernel );
             }
          }
          else {
             if( ( mask & SyncDirection::Right ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.left_recv_view );
-               copy_kernel.array_offsets = dim_buffers.left_recv_offsets;
+               copy_kernel.local_array_offsets = dim_buffers.left_recv_offsets - array_view.getLocalBegins();
                dim_buffers.left_recv_view.forAll( copy_kernel );
             }
 
             if( ( mask & SyncDirection::Left ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.right_recv_view );
-               copy_kernel.array_offsets = dim_buffers.right_recv_offsets;
+               copy_kernel.local_array_offsets = dim_buffers.right_recv_offsets - array_view.getLocalBegins();
                dim_buffers.right_recv_view.forAll( copy_kernel );
             }
          }
@@ -543,12 +577,12 @@ public:
    template< typename BufferView >
    struct CopyKernel
    {
-      using ArrayView = typename DistributedNDArray::ViewType;
-      using LocalBegins = typename ArrayView::LocalBeginsType;
+      using LocalArrayView = typename DistributedNDArray::LocalViewType;
+      using LocalBegins = typename DistributedNDArray::LocalBeginsType;
 
       BufferView buffer_view;
-      ArrayView array_view;
-      LocalBegins array_offsets;
+      LocalArrayView local_array_view;
+      LocalBegins local_array_offsets;
       bool to_buffer;
 
       template< typename... Indices >
@@ -557,9 +591,9 @@ public:
       operator()( Indices... indices )
       {
          if( to_buffer )
-            buffer_view( indices... ) = call_with_shifted_indices( array_offsets, array_view, indices... );
+            buffer_view( indices... ) = call_with_shifted_indices( local_array_offsets, local_array_view, indices... );
          else
-            call_with_shifted_indices( array_offsets, array_view, indices... ) = buffer_view( indices... );
+            call_with_shifted_indices( local_array_offsets, local_array_view, indices... ) = buffer_view( indices... );
       }
    };
 };

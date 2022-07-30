@@ -15,7 +15,7 @@
 
 namespace TNL {
 namespace Containers {
-namespace __ndarray_impl {
+namespace detail {
 
 template< typename Permutation, typename LevelTag = IndexTag< 0 > >
 struct SequentialExecutor
@@ -321,6 +321,6 @@ struct ExecutorDispatcher< Permutation, Devices::Cuda >
    }
 };
 
-}  // namespace __ndarray_impl
+}  // namespace detail
 }  // namespace Containers
 }  // namespace TNL

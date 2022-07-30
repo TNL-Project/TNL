@@ -30217,6 +30217,10 @@
     <filename>cpp/utility/integer_sequence</filename>
   </compound>
   <compound kind="class">
+    <name>std::index_sequence</name>
+    <filename>cpp/utility/integer_sequence</filename>
+  </compound>
+  <compound kind="class">
     <name>std::has_virtual_destructor</name>
     <filename>cpp/types/has_virtual_destructor</filename>
   </compound>
