@@ -633,7 +633,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 bool
 operator==( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimension, Real, Device, Index >& rhs )
 {
-   return lhs.getMeshDimension() == rhs.getMeshDimension() && lhs.getOrigin() == rhs.getOrigin()
+   return lhs.getDimensions() == rhs.getDimensions() && lhs.getOrigin() == rhs.getOrigin()
        && lhs.getProportions() == rhs.getProportions();
 }
 
