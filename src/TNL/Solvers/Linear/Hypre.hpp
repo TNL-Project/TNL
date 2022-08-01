@@ -404,6 +404,16 @@ HypreBoomerAMG::setDefaultOptions()
    HYPRE_BoomerAMGSetPrintLevel( solver, print_level );
    HYPRE_BoomerAMGSetMaxLevels( solver, max_levels );
 
+   // Additional options related to GPU performance, see https://github.com/hypre-space/hypre/wiki/GPUs
+   #if defined( HYPRE_USING_GPU )
+   // interpolation used on levels of aggressive coarsening (use 5 or 7)
+   HYPRE_BoomerAMGSetAggInterpType( solver, 7 );
+   // keep local interpolation transposes to avoid SpMTV
+   HYPRE_BoomerAMGSetKeepTranspose( solver, 1 );
+   // RAP in two matrix products instead of three (default: 0)
+   HYPRE_BoomerAMGSetRAP2( solver, 1 );
+   #endif
+
    // Use as a preconditioner (one V-cycle, zero tolerance)
    HYPRE_BoomerAMGSetMaxIter( solver, 1 );
    HYPRE_BoomerAMGSetTol( solver, 0.0 );
