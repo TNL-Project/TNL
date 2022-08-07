@@ -17,6 +17,7 @@
 #include <TNL/Meshes/GridDetails/Templates/ParallelFor.h>
 #include <TNL/Meshes/GridDetails/Templates/DescendingFor.h>
 #include <TNL/Meshes/GridDetails/Templates/ForEachOrientation.h>
+#include <TNL/Algorithms/staticFor.h>
 
 namespace TNL {
    namespace Meshes {
@@ -547,11 +548,15 @@ Grid< Dimension_, Real, Device, Index >::writeProlog( TNL::Logger& logger ) cons
    logger.writeParameter( "Proportions:", this->proportions );
    logger.writeParameter( "Space steps:", this->spaceSteps );
 
-   for( Index i = 0; i <= Dimension; i++ ) {
-      TNL::String tmp = TNL::String( "Entities count along dimension " ) + TNL::convertToString( i ) + ":";
-
-      logger.writeParameter( tmp, this->cumulativeEntitiesCountAlongBases[ i ] );
-   }
+   TNL::Algorithms::staticFor< IndexType, 0, Dimension + 1 >(
+      [&]( auto entityDim ) {
+         for( IndexType entityOrientation = 0;
+           entityOrientation < this->getEntityOrientationsCount( entityDim() );
+           entityOrientation++ ) {
+               auto basis = this->getBasis< entityDim >( entityOrientation );
+               TNL::String tmp = TNL::String( "Entities count with basis " ) + TNL::convertToString( basis ) + ":";
+               logger.writeParameter( tmp, this->getOrientedEntitiesCount( entityDim, entityOrientation) );
+      } } );
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
