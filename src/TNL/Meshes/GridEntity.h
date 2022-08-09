@@ -27,9 +27,9 @@ class GridEntity
 {
 public:
    using GridType = Grid;
-   using Index = typename Grid::IndexType;
-   using Device = typename Grid::DeviceType;
-   using Real = typename Grid::RealType;
+   using IndexType = typename Grid::IndexType;
+   using DeviceType = typename Grid::DeviceType;
+   using RealType = typename Grid::RealType;
 
    using CoordinatesType = typename Grid::CoordinatesType;
    using PointType = typename Grid::PointType;
@@ -45,7 +45,7 @@ public:
    /////////////////////////////
 
    __cuda_callable__
-   inline GridEntity( const Grid& grid )
+   GridEntity( const Grid& grid )
    : grid( grid ), coordinates( 0 )
    {
       this->normals = grid.template getNormals<EntityDimension>(0);
@@ -54,7 +54,7 @@ public:
    }
 
    __cuda_callable__
-   inline GridEntity( const Grid& grid, const CoordinatesType& coordinates )
+   GridEntity( const Grid& grid, const CoordinatesType& coordinates )
    : grid( grid ), coordinates( coordinates )
    {
       normals = grid.template getNormals<EntityDimension>(0);
@@ -63,23 +63,29 @@ public:
    }
 
    __cuda_callable__
-   inline GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals, const Index orientation )
+   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals )
+   : grid( grid ), coordinates( coordinates ), normals( normals ), 
+      orientation( grid.template getOrientation< EntityDimension >( normals ) )
+   {
+      refresh();
+   }
+
+   __cuda_callable__
+   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals, 
+      const IndexType orientation )
    : grid( grid ), coordinates( coordinates ), normals( normals ), orientation( orientation )
    {
       refresh();
    }
 
    __cuda_callable__
-   inline const CoordinatesType&
-   getCoordinates() const;
+   const CoordinatesType& getCoordinates() const;
 
    __cuda_callable__
-   inline CoordinatesType&
-   getCoordinates();
+   CoordinatesType& getCoordinates();
 
    __cuda_callable__
-   inline void
-   setCoordinates( const CoordinatesType& coordinates );
+   void setCoordinates( const CoordinatesType& coordinates );
 
    /***
     * @brief - Recalculates entity index.
@@ -87,51 +93,46 @@ public:
     * @warning - Call this method every time the coordinates are changed
     */
    __cuda_callable__
-   inline void
-   refresh();
+   void refresh();
 
    /**
     * @brief Get the entity index in global grid
     */
    __cuda_callable__
-   inline Index
-   getIndex() const;
+   IndexType getIndex() const;
 
    /**
     * @brief Tells, if entity is boundary
     */
    __cuda_callable__
-   inline bool
-   isBoundary() const;
+   bool isBoundary() const;
 
    /**
     * @brief Returns, the center of the entity
     */
    __cuda_callable__
-   inline const PointType
-   getCenter() const;
+   const PointType getCenter() const;
 
    /**
     * @brief Returns, the measure (volume) of the entity
     */
    __cuda_callable__
-   inline Real
-   getMeasure() const;
+   RealType getMeasure() const;
 
    __cuda_callable__
-   inline const Grid&
-   getMesh() const;
+   const Grid& getMesh() const;
 
    __cuda_callable__
-   inline void
-   setNormals( const CoordinatesType& orientation );
+   void setNormals( const CoordinatesType& orientation );
 
    /**
     * @brief Returns, the entity normals
     */
    __cuda_callable__
-   inline CoordinatesType
-   getNormals() const;
+   const CoordinatesType& getNormals() const;
+
+   __cuda_callable__
+   CoordinatesType getBasis() const;
 
    /**
     * @brief Returns, the entity orientation
@@ -140,12 +141,11 @@ public:
     * then normals are equal also.
     */
    __cuda_callable__
-   inline Index
-   getOrientation() const;
+   IndexType getOrientation() const;
 
    __cuda_callable__
    inline void
-   setOrientation( const Index orientation );
+   setOrientation( const IndexType orientation );
    /**
     * @brief Returns, the neighbour entity
     *
@@ -203,10 +203,10 @@ public:
 protected:
    const Grid& grid;
 
-   Index index;
+   IndexType index;
    CoordinatesType coordinates;
    CoordinatesType normals;
-   Index orientation;
+   IndexType orientation;
 };
 
 template< class Grid, int EntityDimension >
