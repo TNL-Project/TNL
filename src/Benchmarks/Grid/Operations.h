@@ -62,12 +62,12 @@ struct GetEntityIndexOperation {
       }
 };
 
-struct GetEntityBasisOperation {
+struct GetEntityNormalsOperation {
    public:
       template<typename Entity>
       __cuda_callable__ inline
       static void exec(Entity& entity) {
-         typename Entity::GridType::CoordinatesType coordinate = entity.getBasis();
+         typename Entity::GridType::CoordinatesType coordinate = entity.getNormals();
 
          coordinate.x() += 1;
       }

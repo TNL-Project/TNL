@@ -85,7 +85,7 @@ public:
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
 
-   using OrientationBasesContainer = Container< 1 << Dimension, CoordinatesType >;
+   using OrientationNormalsContainer = Container< 1 << Dimension, CoordinatesType >;
 
    /**
     * \brief Type of grid entity expressing vertexes, i.e. grid entity with dimension equal to zero.
@@ -276,12 +276,12 @@ public:
    getOrientedEntitiesCount() const noexcept;
 
    /**
-    * \brief Returns basis of the entity with the specific orientation.
+    * \brief Returns normals of the entity with the specific orientation.
     *
-    * Basis is integer vector having ones for axis along which the entity has non-zero lentghs.
+    * Normals is integer vector having ones for axis along which the entity has non-zero lentghs.
     * For example in 3D grid we have the following posibilities:
     *
-    * | Entity                     | Basis        |
+    * | Entity                     | Normals        |
     * |---------------------------:|-------------:|
     * | Cells                      | ( 1, 1, 1 )  |
     * | Faces along x- and y- axes | ( 1, 1, 0 )  |
@@ -294,18 +294,18 @@ public:
     *
     * \tparam EntityDimension is dimensions of grid entity.
     * \param[in] orientation is orientation of the entity
-    * \return basis of the grid entity.
+    * \return normals of the grid entity.
     */
    template< int EntityDimension >
    __cuda_callable__
    CoordinatesType
-   getBasis( Index orientation ) const noexcept;
+   getNormals( Index orientation ) const noexcept;
 
 
    template< int EntityDimension >
    __cuda_callable__
    IndexType
-   getOrientation( const CoordinatesType& bases ) const noexcept;
+   getOrientation( const CoordinatesType& normals ) const noexcept;
 
    /**
     * \brief Sets the origin and proportions of this grid.
@@ -562,16 +562,16 @@ protected:
     *
     * \warning - The ordering of is lexigraphical.
     */
-   Container< 1 << Dimension, Index > entitiesCountAlongBases;
+   Container< 1 << Dimension, Index > entitiesCountAlongNormals;
 
    /**
     * \brief - A cumulative map over dimensions.
     */
-   Container< Dimension + 1, Index > cumulativeEntitiesCountAlongBases;
+   Container< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals;
 
    PointType origin, proportions, spaceSteps;
 
-   OrientationBasesContainer bases;
+   OrientationNormalsContainer normals;
    SpaceProductsContainer spaceStepsProducts;
 
    void fillEntitiesCount();
@@ -582,7 +582,7 @@ protected:
 
    void fillProportions();
 
-   void fillBases();
+   void fillNormals();
 
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void

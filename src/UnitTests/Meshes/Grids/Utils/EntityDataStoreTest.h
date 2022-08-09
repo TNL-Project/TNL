@@ -15,13 +15,13 @@ template<typename Grid, typename GridEntity, typename DataStore>
 void testTraverse(const Grid& grid, DataStore& dataStore, int entitiesCount ) {
   auto view = dataStore.getView();
 
-  auto exec = [ & ]( const auto orientation, const typename Grid::CoordinatesType& basis ) {
+  auto exec = [ & ]( const auto orientation, const typename Grid::CoordinatesType& normals ) {
     for(typename Grid::IndexType i = 0; i < entitiesCount; i++) {
       typename Grid::CoordinatesType coordinate;
 
       coordinate = i;
 
-      GridEntity entity(grid, coordinate, basis, orientation);
+      GridEntity entity(grid, coordinate, normals, orientation);
 
       view.store(entity, i);
 
@@ -31,7 +31,7 @@ void testTraverse(const Grid& grid, DataStore& dataStore, int entitiesCount ) {
 
       EXPECT_EQ(1, prototype.calls);
       EXPECT_EQ(entity.getCoordinates(), prototype.coordinate);
-      EXPECT_EQ(entity.getBasis(), prototype.basis);
+      EXPECT_EQ(entity.getNormals(), prototype.normals);
       EXPECT_EQ(entity.getIndex(), prototype.index);
       EXPECT_EQ(entity.getOrientation(), prototype.orientation);
       EXPECT_EQ(entity.isBoundary(), prototype.isBoundary);
@@ -47,7 +47,7 @@ void testTraverse(const Grid& grid, DataStore& dataStore, int entitiesCount ) {
 
       EXPECT_EQ(0, emptyPrototype.calls);
       EXPECT_EQ(zeroCoordinate, emptyPrototype.coordinate);
-      EXPECT_EQ(zeroCoordinate, emptyPrototype.basis);
+      EXPECT_EQ(zeroCoordinate, emptyPrototype.normals);
       EXPECT_EQ(0, emptyPrototype.index);
       EXPECT_EQ(0, emptyPrototype.orientation);
       EXPECT_EQ(false, emptyPrototype.isBoundary);

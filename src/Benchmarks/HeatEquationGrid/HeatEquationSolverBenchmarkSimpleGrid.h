@@ -46,8 +46,8 @@ class Grid {
       }
 
       TNL::Containers::StaticVector<Size, Index> dimensions;
-      TNL::Containers::StaticVector<1 << Size, Index> entitiesCountAlongBases;
-      TNL::Containers::StaticVector<Size + 1, Index> cumulativeEntitiesCountAlongBases;
+      TNL::Containers::StaticVector<1 << Size, Index> entitiesCountAlongNormals;
+      TNL::Containers::StaticVector<Size + 1, Index> cumulativeEntitiesCountAlongNormals;
 
       TNL::Containers::StaticVector<Size, Real> origin, proportions, spaceSteps;
 
@@ -65,7 +65,7 @@ class Entity {
       Index i, j;
       Index index;
       Index orientation;
-      TNL::Containers::StaticVector<Size, Index> coordinates, basis;
+      TNL::Containers::StaticVector<Size, Index> coordinates, normals;
 };
 
 template< typename Real = double,

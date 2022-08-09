@@ -79,9 +79,9 @@ public:
    isBoundaryEntity( const Entity& entity )
    {
       return (
-         ( entity.getBasis().x()
+         ( entity.getNormals().x()
            && ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() ) )
-         || ( entity.getBasis().y()
+         || ( entity.getNormals().y()
               && ( entity.getCoordinates().y() == 0
                    || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() ) ) );
    }
@@ -133,11 +133,11 @@ public:
    isBoundaryEntity( const Entity& entity )
    {
       return (
-         ( entity.getBasis().x()
+         ( entity.getNormals().x()
            && ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() ) )
-         || ( entity.getBasis().y()
+         || ( entity.getNormals().y()
               && ( entity.getCoordinates().y() == 0 || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() ) )
-         || ( entity.getBasis().z()
+         || ( entity.getNormals().z()
               && ( entity.getCoordinates().z() == 0
                    || entity.getCoordinates().z() == entity.getMesh().getDimensions().z() ) ) );
    }
@@ -154,11 +154,11 @@ public:
    isBoundaryEntity( const Entity& entity )
    {
       return (
-         ( entity.getBasis().x()
+         ( entity.getNormals().x()
            && ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() ) )
-         || ( entity.getBasis().y()
+         || ( entity.getNormals().y()
               && ( entity.getCoordinates().y() == 0 || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() ) )
-         || ( entity.getBasis().z()
+         || ( entity.getNormals().z()
               && ( entity.getCoordinates().z() == 0
                    || entity.getCoordinates().z() == entity.getMesh().getDimensions().z() ) ) );
    }

@@ -5,24 +5,24 @@
 #include <gtest/gtest.h>
 
 #include <TNL/Containers/StaticVector.h>
-#include <TNL/Meshes/GridDetails/BasisGetter.h>
+#include <TNL/Meshes/GridDetails/NormalsGetter.h>
 
 template<int GridDimension, int EntityOrientation, int EntityDimension>
 void compare(const TNL::Containers::StaticVector<GridDimension, int>& expectation) {
-   auto basis = TNL::Meshes::BasisGetter<int, EntityDimension, GridDimension>::template getBasis<EntityOrientation>();
+   auto normals = TNL::Meshes::NormalsGetter<int, EntityDimension, GridDimension>::template getNormals<EntityOrientation>();
 
-   EXPECT_EQ(basis, expectation) << "Grid Dimension: [" << GridDimension << "], "
+   EXPECT_EQ(normals, expectation) << "Grid Dimension: [" << GridDimension << "], "
                                  << "Entity Orientation: [" << EntityOrientation << "], "
                                  << "Entity Dimension: [" << EntityDimension << "]";
 }
 
-TEST(BasisTestSuite, Basis1DTest) {
+TEST(NormalsTestSuite, Normals1DTest) {
    // Grid Dimension, EntityOrientation, EntityDimension
    compare<1, 0, 0>({ 1 });
    compare<1, 0, 1>({ 0 });
 }
 
-TEST(BasisTestSuite, Basis2DTest) {
+TEST(NormalsTestSuite, Normals2DTest) {
    // Grid Dimension, EntityOrientation, EntityDimension
    compare<2, 0, 0>({ 1, 1 });
 
@@ -32,7 +32,7 @@ TEST(BasisTestSuite, Basis2DTest) {
    compare<2, 0, 2>({ 0, 0 });
 }
 
-TEST(BasisTestSuite, Basis3DTest) {
+TEST(NormalsTestSuite, Normals3DTest) {
     // Grid Dimension, EntityOrientation, EntityDimension
    compare<3, 0, 0>({ 1, 1, 1 });
 
@@ -47,7 +47,7 @@ TEST(BasisTestSuite, Basis3DTest) {
    compare<3, 0, 3>({ 0, 0, 0 });
 }
 
-TEST(BasisTestSuite, Basis4DTest) {
+TEST(NormalsTestSuite, Normals4DTest) {
    // Grid Dimension, EntityOrientation, EntityDimension
    compare<4, 0, 0>({ 1, 1, 1, 1 });
 

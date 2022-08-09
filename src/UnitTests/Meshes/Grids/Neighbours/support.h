@@ -25,7 +25,7 @@ class NeighbourGridEntityGetterTestCase {
          auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             int neighbourEntityOrientation = TNL::min(entity.getOrientation(), neighbourOrientationsCount - 1);
             Coordinate alignedCoordinate = entity.getCoordinates() + Coordinate(Steps...);
-            Coordinate boundary = grid.getDimensions() + grid.template getBasis<NeighbourEntityDimension>(neighbourEntityOrientation);
+            Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(neighbourEntityOrientation);
 
             if (alignedCoordinate >= 0 && alignedCoordinate < boundary) {
                auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension, Steps...>();
@@ -46,7 +46,7 @@ class NeighbourGridEntityGetterTestCase {
          auto view = store.getView();
          auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             Coordinate alignedCoordinate = entity.getCoordinates() + Coordinate(Steps...);
-            Coordinate boundary = grid.getDimensions() + grid.template getBasis<NeighbourEntityDimension>(NeighbourEntityOrientation);
+            Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(NeighbourEntityOrientation);
 
             if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
                auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension, NeighbourEntityOrientation, Steps...>();
@@ -69,7 +69,7 @@ class NeighbourGridEntityGetterTestCase {
          auto update = [=] __cuda_callable__(const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             int neighbourEntityOrientation = TNL::min(entity.getOrientation(), neighbourOrientationsCount - 1);
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
-            Coordinate boundary = grid.getDimensions() + grid.template getBasis<NeighbourEntityDimension>(neighbourEntityOrientation);
+            Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(neighbourEntityOrientation);
 
             if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
                auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension>(offset);
@@ -90,7 +90,7 @@ class NeighbourGridEntityGetterTestCase {
          auto view = store.getView();
          auto update = [=] __cuda_callable__(const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
-            Coordinate boundary = grid.getDimensions() + grid.template getBasis<NeighbourEntityDimension>(NeighbourEntityOrientation);
+            Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(NeighbourEntityOrientation);
 
             if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
                auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension, NeighbourEntityOrientation>(offset);
@@ -129,7 +129,7 @@ class NeighbourGridEntityGetterTestCase {
                neighbourEntityOrientation = entityOrientation;
             }
 
-            const Coordinate neighbourEntityBasis = grid.template getBasis<NeighbourEntityDimension>(neighbourEntityOrientation);
+            const Coordinate neighbourEntityNormals = grid.template getNormals<NeighbourEntityDimension>(neighbourEntityOrientation);
 
             do {
                Index parentEntityIndex = iterator.getIndex(grid);
@@ -138,14 +138,14 @@ class NeighbourGridEntityGetterTestCase {
                Coordinate alignedCoordinate = iterator.getCoordinate() + offset;
 
                // Unable to get entity out of bounds
-               bool expectCall = alignedCoordinate >= Coordinate(0) && alignedCoordinate < grid.getDimensions() + neighbourEntityBasis;
+               bool expectCall = alignedCoordinate >= Coordinate(0) && alignedCoordinate < grid.getDimensions() + neighbourEntityNormals;
 
                EXPECT_EQ(expectCall, neighbourEntity.calls == 1) <<
                          "Expect, that the parent entity was called";
                EXPECT_EQ(expectCall ? alignedCoordinate : Coordinate(0), neighbourEntity.coordinate) <<
                          "Expect, that the coordinate is updated";
-               EXPECT_EQ(expectCall ? neighbourEntityBasis : Coordinate(0), neighbourEntity.basis) <<
-                         "Expect, that the basis is updated";
+               EXPECT_EQ(expectCall ? neighbourEntityNormals : Coordinate(0), neighbourEntity.normals) <<
+                         "Expect, that the normals is updated";
                EXPECT_EQ(expectCall ? neighbourEntityOrientation : 0, neighbourEntity.orientation) <<
                          "Expect, that the parent entity was called";
             } while (!iterator.next());
@@ -158,9 +158,9 @@ class NeighbourGridEntityGetterTestCase {
       class GridCoordinateIterator: public CoordinateIterator<typename Grid::IndexType, Grid::getMeshDimension()> {
          public:
             using Base = CoordinateIterator<typename Grid::IndexType, Grid::getMeshDimension()>;
-            using EntityBasis = TNL::Meshes::BasisGetter<Index, EntityDimension, Grid::getMeshDimension()>;
+            using EntityNormals = TNL::Meshes::NormalsGetter<Index, EntityDimension, Grid::getMeshDimension()>;
 
-            GridCoordinateIterator(const Coordinate& end): Base(Coordinate(0), end + EntityBasis::template getBasis<Orientation>()) {
+            GridCoordinateIterator(const Coordinate& end): Base(Coordinate(0), end + EntityNormals::template getNormals<Orientation>()) {
                for (Index i = 0; i < this -> current.getSize(); i++) {
                   this -> start[i] = 0;
                   this -> current[i] = 0;

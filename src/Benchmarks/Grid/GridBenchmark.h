@@ -93,7 +93,7 @@ class GridBenchmark {
             timeTraverse<entityDimension, Grid, GetEntityIsBoundaryOperation>(benchmark, grid);
             timeTraverse<entityDimension, Grid, GetEntityCoordinateOperation>(benchmark, grid);
             timeTraverse<entityDimension, Grid, GetEntityIndexOperation>(benchmark, grid);
-            timeTraverse<entityDimension, Grid, GetEntityBasisOperation>(benchmark, grid);
+            timeTraverse<entityDimension, Grid, GetEntityNormalsOperation>(benchmark, grid);
             timeTraverse<entityDimension, Grid, RefreshEntityOperation>(benchmark, grid);
 
             timeTraverse<entityDimension, Grid, GetMeshDimensionOperation>(benchmark, grid);

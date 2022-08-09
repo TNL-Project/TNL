@@ -9,11 +9,11 @@ namespace TNL {
 namespace Meshes {
 
 template< typename Index, Index EntityDimension, Index GridDimension >
-struct BasisGetter
+struct NormalsGetter
 {
 public:
    using Coordinate = TNL::Containers::StaticVector< GridDimension, Index >;
-   using OrientationBasesContainer =
+   using OrientationNormalsContainer =
       TNL::Containers::StaticVector< Templates::combination( EntityDimension, GridDimension ), Coordinate >;
    using Permutations =
       Templates::make_int_permutations< GridDimension,
@@ -25,19 +25,19 @@ public:
          Templates::isInLeftClosedRightOpenInterval( 0, Orientation, Templates::combination( EntityDimension, GridDimension ) ),
          bool > = true >
    constexpr static Coordinate
-   getBasis()
+   getNormals()
    {
       using Value = Templates::get< Orientation, Permutations >;
 
-      return BuildBasis< Value >::build();
+      return BuildNormals< Value >::build();
    }
 
 private:
    template< class >
-   struct BuildBasis;
+   struct BuildNormals;
 
    template< int... Values >
-   struct BuildBasis< TNL::Meshes::Templates::int_pack< Values... > >
+   struct BuildNormals< TNL::Meshes::Templates::int_pack< Values... > >
    {
    public:
       constexpr static Coordinate

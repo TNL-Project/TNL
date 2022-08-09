@@ -29,7 +29,7 @@ public:
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0 ), "wrong coordinates" );
-      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
+      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getNormals(), "wrong coordinates" );
 
       return entity.getCoordinates().x();
    }
@@ -53,7 +53,7 @@ public:
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0 ), "wrong coordinates" );
-      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
+      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getNormals(), "wrong coordinates" );
 
       return entity.getCoordinates().y() * grid.getDimensions().x() + entity.getCoordinates().x();
    }
@@ -74,7 +74,7 @@ public:
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0 ), "wrong coordinates" );
-      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
+      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getNormals(), "wrong coordinates" );
 
       const CoordinatesType& coordinates = entity.getCoordinates();
       const CoordinatesType& dimensions = grid.getDimensions();
@@ -101,7 +101,7 @@ public:
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0 ), "wrong coordinates" );
-      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
+      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getNormals(), "wrong coordinates" );
 
       const CoordinatesType& coordinates = entity.getCoordinates();
       const CoordinatesType& dimensions = grid.getDimensions();
@@ -128,7 +128,7 @@ public:
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0, 0 ), "wrong coordinates" );
-      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
+      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getNormals(), "wrong coordinates" );
 
       const CoordinatesType coordinates = entity.getCoordinates();
       const CoordinatesType dimensions = grid.getDimensions();
@@ -152,7 +152,7 @@ public:
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0, 0 ), "wrong coordinates" );
-      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
+      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getNormals(), "wrong coordinates" );
 
       const CoordinatesType& coordinates = entity.getCoordinates();
       const CoordinatesType& dimensions = grid.getDimensions();
@@ -184,7 +184,7 @@ public:
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0, 0 ), "wrong coordinates" );
-      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
+      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getNormals(), "wrong coordinates" );
 
       const CoordinatesType& coordinates = entity.getCoordinates();
       const CoordinatesType& dimensions = grid.getDimensions();
@@ -216,7 +216,7 @@ public:
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0, 0 ), "wrong coordinates" );
-      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getBasis(), "wrong coordinates" );
+      TNL_ASSERT_LT( entity.getCoordinates(), grid.getDimensions() + entity.getNormals(), "wrong coordinates" );
 
       const CoordinatesType coordinates = entity.getCoordinates();
       const CoordinatesType dimensions = grid.getDimensions();

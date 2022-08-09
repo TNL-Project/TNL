@@ -6,7 +6,7 @@
 #include <functional>
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Meshes/GridDetails/BasisGetter.h>
+#include <TNL/Meshes/GridDetails/NormalsGetter.h>
 
 #include "../CoordinateIterator.h"
 #include "../EntityDataStore.h"
@@ -52,10 +52,10 @@ public:
    using Index = typename Grid::IndexType;
    using Real = typename Grid::RealType;
    using Base = CoordinateIterator< Index, Grid::getMeshDimension() >;
-   using EntityBasis = TNL::Meshes::BasisGetter< Index, EntityDimension, Grid::getMeshDimension() >;
+   using EntityNormals = TNL::Meshes::NormalsGetter< Index, EntityDimension, Grid::getMeshDimension() >;
 
    GridCoordinateIterator( const typename Grid::CoordinatesType& end )
-   : Base( Coordinate( 0 ), end + EntityBasis::template getBasis< Orientation >() )
+   : Base( Coordinate( 0 ), end + EntityNormals::template getNormals< Orientation >() )
    {
       for( Index i = 0; i < this->current.getSize(); i++ ) {
          this->start[ i ] = 0;
@@ -75,7 +75,7 @@ public:
             break;
          default:
             for( Index i = 0; i < this->current.getSize(); i++ )
-               if( getBasis()[ i ] && ( this->current[ i ] == 0 || this->current[ i ] == grid.getDimensions()[ i ] ) )
+               if( getNormals()[ i ] && ( this->current[ i ] == 0 || this->current[ i ] == grid.getDimensions()[ i ] ) )
                   return true;
             break;
       }
@@ -115,9 +115,9 @@ public:
    }
 
    Coordinate
-   getBasis() const
+   getNormals() const
    {
-      return EntityBasis::template getBasis< Orientation >();
+      return EntityNormals::template getNormals< Orientation >();
    }
 
    Point
@@ -125,10 +125,10 @@ public:
    {
       Point origin = grid.getOrigin(), center, spaceSteps = grid.getSpaceSteps();
 
-      Coordinate basis = getBasis();
+      Coordinate normals = getNormals();
 
       for( Index i = 0; i < this->current.getSize(); i++ )
-         center[ i ] = origin[ i ] + ( this->current[ i ] + (Real) ( 0.5 * ! basis[ i ] ) ) * spaceSteps[ i ];
+         center[ i ] = origin[ i ] + ( this->current[ i ] + (Real) ( 0.5 * ! normals[ i ] ) ) * spaceSteps[ i ];
 
       return center;
    }
@@ -140,10 +140,10 @@ public:
          return 0.0;
       }
 
-      Coordinate basis = getBasis(), powers;
+      Coordinate normals = getNormals(), powers;
 
       for( Index i = 0; i < this->current.getSize(); i++ )
-         powers[ i ] = ! basis[ i ];
+         powers[ i ] = ! normals[ i ];
 
       return grid.getSpaceStepsProducts( powers );
    }
@@ -336,13 +336,13 @@ class GridTraverseTestCase {
          EXPECT_EQ(entity.isBoundary, expectCall ? iterator.isBoundary(grid) : 0) << "Expect the index was correctly set" ;
 
          Coordinate coordinate = expectCall ? iterator.getCoordinate() : Coordinate(0);
-         Coordinate basis = expectCall ? iterator.getBasis() : Coordinate(0);
+         Coordinate normals = expectCall ? iterator.getNormals() : Coordinate(0);
          Point center = expectCall ? iterator.getCenter(grid) : Point(0);
 
          EXPECT_EQ(entity.coordinate, coordinate)
                 << "Expect the coordinates are the same on the same index. ";
-         EXPECT_EQ(entity.basis, basis)
-                << "Expect the bases are the same on the same index. ";
+         EXPECT_EQ(entity.normals, normals)
+                << "Expect the normals are the same on the same index. ";
 
          // CUDA calculates floating points differently.
          EXPECT_NEAR(expectCall ? iterator.getMeasure(grid) : 0.0, entity.measure, precision)

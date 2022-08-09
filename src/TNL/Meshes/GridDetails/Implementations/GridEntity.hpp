@@ -95,17 +95,17 @@ GridEntity< Grid, EntityDimension >::getMesh() const
 template< class Grid, int EntityDimension >
 __cuda_callable__
 inline typename GridEntity< Grid, EntityDimension >::CoordinatesType
-GridEntity< Grid, EntityDimension >::getBasis() const
+GridEntity< Grid, EntityDimension >::getNormals() const
 {
-   return this->basis;
+   return this->normals;
 }
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
 inline void
-GridEntity< Grid, EntityDimension >::setBasis( const CoordinatesType& basis )
+GridEntity< Grid, EntityDimension >::setNormals( const CoordinatesType& normals )
 {
-   this->basis = basis;
+   this->normals = normals;
 }
 
 template< class Grid, int EntityDimension >

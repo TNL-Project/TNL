@@ -77,8 +77,8 @@ public:
    {
       const Grid& grid = entity.getMesh();
       return Point(
-         grid.getOrigin().x() + ( entity.getCoordinates().x() + 0.5 * ! entity.getBasis().x() ) * grid.getSpaceSteps().x(),
-         grid.getOrigin().y() + ( entity.getCoordinates().y() + 0.5 * ! entity.getBasis().y() ) * grid.getSpaceSteps().y() );
+         grid.getOrigin().x() + ( entity.getCoordinates().x() + 0.5 * ! entity.getNormals().x() ) * grid.getSpaceSteps().x(),
+         grid.getOrigin().y() + ( entity.getCoordinates().y() + 0.5 * ! entity.getNormals().y() ) * grid.getSpaceSteps().y() );
    }
 };
 
@@ -117,9 +117,9 @@ public:
    {
       const Grid& grid = entity.getMesh();
       return Point(
-         grid.getOrigin().x() + ( entity.getCoordinates().x() + 0.5 * ! entity.getBasis().x() ) * grid.getSpaceSteps().x(),
-         grid.getOrigin().y() + ( entity.getCoordinates().y() + 0.5 * ! entity.getBasis().y() ) * grid.getSpaceSteps().y(),
-         grid.getOrigin().z() + ( entity.getCoordinates().z() + 0.5 * ! entity.getBasis().z() ) * grid.getSpaceSteps().z() );
+         grid.getOrigin().x() + ( entity.getCoordinates().x() + 0.5 * ! entity.getNormals().x() ) * grid.getSpaceSteps().x(),
+         grid.getOrigin().y() + ( entity.getCoordinates().y() + 0.5 * ! entity.getNormals().y() ) * grid.getSpaceSteps().y(),
+         grid.getOrigin().z() + ( entity.getCoordinates().z() + 0.5 * ! entity.getNormals().z() ) * grid.getSpaceSteps().z() );
    }
 };
 

@@ -238,7 +238,7 @@ class NdGrid {
    private:
       Container<Dimension, Index> dimensions;
       /**
-       * @brief - A dimension map is a store for dimension limits over all combinations of basis.
+       * @brief - A dimension map is a store for dimension limits over all combinations of normals.
        *          First, (n choose 0) elements will contain the count of 0 dimension elements
        *          Second, (n choose 1) elements will contain the count of 1-dimension elements
        *          ....

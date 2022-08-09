@@ -16,7 +16,7 @@ void
 test( Iterator& iterator,
       Grid& grid,
       typename Grid::CoordinatesType coordinate,
-      typename Grid::CoordinatesType basis,
+      typename Grid::CoordinatesType normals,
       typename Grid::PointType center,
       bool isBoundary,
       typename Iterator::Index index,
@@ -26,7 +26,7 @@ test( Iterator& iterator,
    static Real precision = 9e-5;
 
    EXPECT_EQ( coordinate, iterator.getCoordinate() ) << coordinate;
-   EXPECT_EQ( basis, iterator.getBasis() ) << coordinate;
+   EXPECT_EQ( normals, iterator.getNormals() ) << coordinate;
    EXPECT_EQ( isBoundary, iterator.isBoundary( grid ) ) << coordinate;
    EXPECT_EQ( index, iterator.getIndex( grid ) ) << coordinate;
 

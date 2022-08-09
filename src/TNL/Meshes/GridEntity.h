@@ -48,7 +48,7 @@ public:
    inline GridEntity( const Grid& grid )
    : grid( grid ), coordinates( 0 )
    {
-      this->basis = grid.template getBasis<EntityDimension>(0);
+      this->normals = grid.template getNormals<EntityDimension>(0);
       this->orientation = 0;
       this->refresh();
    }
@@ -57,14 +57,14 @@ public:
    inline GridEntity( const Grid& grid, const CoordinatesType& coordinates )
    : grid( grid ), coordinates( coordinates )
    {
-      basis = grid.template getBasis<EntityDimension>(0);
+      normals = grid.template getNormals<EntityDimension>(0);
       orientation = 0;
       refresh();
    }
 
    __cuda_callable__
-   inline GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& basis, const Index orientation )
-   : grid( grid ), coordinates( coordinates ), basis( basis ), orientation( orientation )
+   inline GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals, const Index orientation )
+   : grid( grid ), coordinates( coordinates ), normals( normals ), orientation( orientation )
    {
       refresh();
    }
@@ -124,20 +124,20 @@ public:
 
    __cuda_callable__
    inline void
-   setBasis( const CoordinatesType& orientation );
+   setNormals( const CoordinatesType& orientation );
 
    /**
-    * @brief Returns, the entity basis
+    * @brief Returns, the entity normals
     */
    __cuda_callable__
    inline CoordinatesType
-   getBasis() const;
+   getNormals() const;
 
    /**
     * @brief Returns, the entity orientation
     *
-    * Orientation is always paired with the basis. In other words, if orientations, entityDimensions and dimensions are equal,
-    * then bases are equal also.
+    * Orientation is always paired with the normals. In other words, if orientations, entityDimensions and dimensions are equal,
+    * then normals are equal also.
     */
    __cuda_callable__
    inline Index
@@ -205,14 +205,14 @@ protected:
 
    Index index;
    CoordinatesType coordinates;
-   CoordinatesType basis;
+   CoordinatesType normals;
    Index orientation;
 };
 
 template< class Grid, int EntityDimension >
 std::ostream& operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity )
 {
-   str << "Entity dimension = " << EntityDimension << " coordinates = " << entity.getCoordinates() << " basis = " << entity.getBasis()
+   str << "Entity dimension = " << EntityDimension << " coordinates = " << entity.getCoordinates() << " normals = " << entity.getNormals()
        << " index = " << entity.getIndex() << " orientation = " << entity.getOrientation();
    return str;
 }
