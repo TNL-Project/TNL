@@ -4,36 +4,102 @@
 
 ## Introduction
 
-Grids are regular orthognal meshes. Similar to unstructured numerical meshes they provide indexing of mesh entites and express their adjacency. The difference, compared to the unstructured meshes, is that the adjacency of the mesh entities are not stored explicitly in the memory but the are computed on-the-fly. The interface of grids is as simillar as possible to the unstructured meshes but there are some differences. The main difference is that the mesh entities are given by their coordinates and orientation. The type and orientation of the entity is given by its *basis*. It is a vector having one for axes, along which the entity has non-zero length, and zeros otherwise. The following tables show all possible grid entities in 1D, 2D and 3D.
+Grids are regular orthognal meshes. Similar to unstructured numerical meshes they provide indexing of mesh entites and express their adjacency. The difference, compared to the unstructured meshes, is that the adjacency of the mesh entities are not stored explicitly in the memory but the are computed on-the-fly. The interface of grids is as simillar as possible to the unstructured meshes but there are some differences. The main difference is that the mesh entities are given by their coordinates and orientation. The type and orientation of the entity is given by its *basis* and *normals*. Basis is a vector having one for axes, along which the entity has non-zero length, and zeros otherwise. Normals is a vector orthogonal to the basis vector, i.e. it has ones where basis vector has zeros and vice versa. The meaning of the normals vector is such that it is like a pack of all vectors of standart basis which are orthogonal to the grid entity. The following tables show all possible grid entities in 1D, 2D and 3D.
 
 Grid entities in 1D are as follows:
 
-| Entities in 1D             | Basis        |
-|---------------------------:|-------------:|
-| Cells                      | ( 1 )        |
-| Vertexes                   | ( 0 )        |
+| Entities in 1D             | Basis        | Normals     | Unpacked normal vectors |
+|---------------------------:|-------------:|:-----------:|:-----------------------:|
+| Cells                      | ( 1 )        | ( 0 )      :|: N/a                   :| 
+| Vertexes                   | ( 0 )        | ( 1 )      :|: ( 1 )                 :|
 
 Grid entities in 2D are as follows:
 
-| Entities in 2D             | Basis        |
-|---------------------------:|-------------:|
-| Cells                      | ( 1, 1 )     |
-| Faces along x- axis        | ( 1, 0 )     |
-| Faces along y- axis        | ( 0, 1 )     |
-| Vertexes                   | ( 0, 0 )     |
+| Entities in 2D             | Basis        | Normals    | Unpacked normal vectors |
+|---------------------------:|-------------:|:----------:|:-----------------------:|
+| Cells                      | ( 1, 1 )     | ( 0, 0 )   | N/A                     |
+| Faces along x- axis        | ( 1, 0 )     | ( 0, 1 )   | ( 0, 1 )                |
+| Faces along y- axis        | ( 0, 1 )     | ( 1, 0 )   | ( 1, 0 )                |
+| Vertexes                   | ( 0, 0 )     | ( 1, 1 )   | ( 1, 0 ), ( 0, 1 )      |
 
 Grid entities in 3D are as follows:
 
-| Entities in 3D             | Basis        |
-|---------------------------:|-------------:|
-| Cells                      | ( 1, 1, 1 )  |
-| Faces along x- and y- axes | ( 1, 1, 0 )  |
-| Faces along x- and z- axes | ( 1, 0, 1 )  |
-| Faces along y- and z- axes | ( 0, 1, 1 )  |
-| Edges along x-axis         | ( 1, 0, 0 )  |
-| Edges along y-axis         | ( 0, 1, 0 )  |
-| Edges along z-axis         | ( 0, 0, 1 )  |
-| Vertexes                   | ( 0, 0, 0 )  |
+| Entities in 3D             | Basis        | Normals      | Unpacked normal vectors               |
+|---------------------------:|-------------:|:------------:|:-------------------------------------:|
+| Cells                      | ( 1, 1, 1 )  | ( 0, 0, 0 )  | N/A                                   |
+| Faces along x- and y- axes | ( 1, 1, 0 )  | ( 0, 0, 1 )  | ( 0, 0, 1 )                           |
+| Faces along x- and z- axes | ( 1, 0, 1 )  | ( 0, 1, 0 )  | ( 0, 1, 0 )                           |
+| Faces along y- and z- axes | ( 0, 1, 1 )  | ( 1, 0, 0 )  | ( 1, 0, 0 )                           |
+| Edges along x-axis         | ( 1, 0, 0 )  | ( 0, 1, 1 )  | ( 0, 1, 0 ), ( 0, 0, 1 )              |
+| Edges along y-axis         | ( 0, 1, 0 )  | ( 1, 0, 1 )  | ( 1, 0, 0 ), ( 0, 0, 1 )              |
+| Edges along z-axis         | ( 0, 0, 1 )  | ( 1, 1, 0 )  | ( 1, 0, 0 ), ( 0, 1, 0 )              |
+| Vertexes                   | ( 0, 0, 0 )  | ( 1, 1, 1 )  | ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ) |
+
+The grid entity stores the vector with packed normals, tha basis vector is always computed on the fly. So whenever it possible, using the the normals vector is preferred for better performance.
+
+** Remark: The entity orientation given by the normals or basis vector should be encoded staticaly in the type of the entity. This would make the implementation of the grid entities more efficient. Such implementation, however, requires suppport of the generic lambda function by the compiler. Since the CUDA compiler `nvcc` is not able to compile a code with the generic lambda functions we stay with current implementation which is not optimal. Therefore, in the future, the implementation of the grid entities may change. ** 
+
+The following figures show coordinates and indexing of the grid entities in 2D for demonstration. Indexing of cells looks as follows:
+
+```
++-------+-------+-------+-------+-------+    +-------+-------+-------+-------+-------+
+| (0,4) | (1,4) | (2,4) | (3,4) | (4,4) |    | (20 ) | (21 ) | (22 ) | (23 ) | (24 ) |
++-------+-------+-------+-------+-------+    +-------+-------+-------+-------+-------+
+| (0,3) | (1,3) | (2,3) | (3,3) | (4,3) |    | (15 ) | (16 ) | (17 ) | (18 ) | (19 ) |
++-------+-------+-------+-------+-------+    +-------+-------+-------+-------+-------+
+| (0,2) | (1,2) | (2,2) | (3,2) | (4,2) |    | (10 ) | (11 ) | (12 ) | (13 ) | (14 ) |
++-------+-------+-------+-------+-------+    +-------+-------+-------+-------+-------+
+| (0,1) | (1,1) | (2,1) | (3,1) | (4,1) |    | ( 5 ) | ( 6 ) | ( 7 ) | ( 8 ) | ( 9 ) |
++-------+-------+-------+-------+-------+    +-------+-------+-------+-------+-------+
+| (0,0) | (1,0) | (2,0) | (3,0) | (4,0) |    | ( 0 ) | ( 1 ) | ( 2 ) | ( 3 ) | ( 4 ) |
++-------+-------+-------+-------+-------+    +-------+-------+-------+-------+-------+  
+```
+
+Indexing of faces looks as:
+
+```
+  +-(0,6)-+-(1,6)-+-(2,6)-+-(3,6)-+-(4,6)-+       +-( 30)-+-( 31)-+-( 32)-+-( 33)-+-( 34)-+  
+  |       |       |       |       |       |       |       |       |       |       |       |
+(0,5)   (1,5)   (2,5)   (3,5)   (4,5)   (5,5)   ( 65)   ( 66)   ( 67)   ( 68)   ( 69)   ( 70)
+  |       |       |       |       |       |       |       |       |       |       |       |
+  +-(0,5)-+-(1,5)-+-(2,5)-+-(3,5)-+-(4,5)-+       +-( 25)-+-( 26)-+-( 27)-+-( 28)-+-( 29)-+
+  |       |       |       |       |       |       |       |       |       |       |       |
+(0,4)   (1,4)   (2,4)   (3,4)   (4,4)   (5,4)   ( 59)   ( 60)   ( 61)   ( 62)   ( 63)   ( 64)
+  |       |       |       |       |       |       |       |       |       |       |       |
+  +-(0,4)-+-(1,4)-+-(2,4)-+-(3,4)-+-(4,4)-+       +-( 20)-+-( 21)-+-( 22)-+-( 23)-+-( 24)-+
+  |       |       |       |       |       |       |       |       |       |       |       |
+(0,3)   (1,3)   (2,3)   (3,3)   (4,3)   (5,3)   ( 53)   ( 54)   ( 55)   ( 56)   ( 57)   ( 58)
+  |       |       |       |       |       |       |       |       |       |       |       |
+  +-(0,3)-+-(1,3)-+-(2,3)-+-(3,3)-+-(4,3)-+       +-( 15)-+-( 16)-+-( 17)-+-( 18)-+-( 19)-+
+  |       |       |       |       |       |       |       |       |       |       |       |
+(0,2)   (1,2)   (2,2)   (3,2)   (4,2)   (5,2)   ( 47)   ( 48)   ( 49)   ( 50)   ( 51)   ( 52)
+  |       |       |       |       |       |       |       |       |       |       |       |
+  +-(0,2)-+-(1,2)-+-(2,2)-+-(3,2)-+-(4,2)-+       +-( 10)-+-( 11)-+-( 12)-+-( 13)-+-( 14)-+
+  |       |       |       |       |       |       |       |       |       |       |       |
+(0,1)   (1,1)   (2,1)   (3,1)   (4,1)   (5,1)   ( 41)   ( 42)   ( 43)   ( 44)   ( 45)   ( 46)
+  |       |       |       |       |       |       |       |       |       |       |       |
+  +-(0,1)-+-(1,1)-+-(2,1)-+-(3,1)-+-(4,1)-+       +-( 5 )-+-( 6 )-+-( 7 )-+-( 8 )-+-( 9 )-+
+  |       |       |       |       |       |       |       |       |       |       |       |
+(0,0)   (1,0)   (2,0)   (3,0)   (4,0)   (5,0)   ( 35)   ( 36)   ( 37)   ( 38)   ( 39)   ( 40)
+  |       |       |       |       |       |       |       |       |       |       |       |
+  +-(0,0)-+-(1,0)-+-(2,0)-+-(3,0)-+-(4,0)-+       +-( 0 )-+-( 1 )-+-( 2 )-+-( 3 )-+-( 4 )-+  
+```
+
+And indexing of vertexes looks as follows:
+
+```
+(0,5)--(1,5)--(2,5)--(3,5)--(4,5)--(5,5)      ( 30)--( 31)--( 32)--( 33)--( 34)--( 35)
+  |      |      |      |      |      |          |      |      |      |      |      |
+(0,4)--(1,4)--(2,4)--(3,4)--(4,4)--(5,4)      ( 24)--( 25)--( 26)--( 27)--( 28)--( 29)
+  |      |      |      |      |      |          |      |      |      |      |      |
+(0,3)--(1,3)--(2,3)--(3,3)--(4,3)--(5,3)      ( 18)--( 19)--( 20)--( 21)--( 22)--( 23)
+  |      |      |      |      |      |          |      |      |      |      |      |
+(0,2)--(1,2)--(2,2)--(3,2)--(4,2)--(5,2)      ( 12)--( 13)--( 14)--( 15)--( 16)--( 17)
+  |      |      |      |      |      |          |      |      |      |      |      |
+(0,1)--(1,1)--(2,1)--(3,1)--(4,1)--(5,1)      (  6)--(  7)--(  8)--(  9)--( 10)--( 11)
+  |      |      |      |      |      |          |      |      |      |      |      |
+(0,0)--(1,0)--(2,0)--(3,0)--(4,0)--(5,0)      (  0)--(  1)--(  2)--(  3)--(  4)--(  5) 
+```
 
 Grid may have arbitrary dimension i.e. even higher than 3D. It is represented by the templated class \ref TNL::Meshes::Grid which has the wollowing template parameters:
 

@@ -16,6 +16,64 @@ namespace TNL {
 namespace Meshes {
 
 template< class Grid, int EntityDimension >
+constexpr int
+GridEntity< Grid, EntityDimension >::
+getMeshDimension()
+{
+   return meshDimension;
+}
+
+template< class Grid, int EntityDimension >
+constexpr int
+GridEntity< Grid, EntityDimension >::
+getEntityDimension()
+{
+   return entityDimension;
+}
+
+template< class Grid, int EntityDimension >
+__cuda_callable__
+GridEntity< Grid, EntityDimension >::
+GridEntity( const Grid& grid )
+: grid( grid ), coordinates( 0 )
+{
+   this->normals = grid.template getNormals<EntityDimension>(0);
+   this->orientation = 0;
+   this->refresh();
+}
+
+template< class Grid, int EntityDimension >
+__cuda_callable__
+GridEntity< Grid, EntityDimension >::
+GridEntity( const Grid& grid, const CoordinatesType& coordinates )
+: grid( grid ), coordinates( coordinates )
+{
+   normals = grid.template getNormals<EntityDimension>(0);
+   orientation = 0;
+   this->refresh();
+}
+
+template< class Grid, int EntityDimension >
+__cuda_callable__
+GridEntity< Grid, EntityDimension >::
+GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals )
+: grid( grid ), coordinates( coordinates ), normals( normals ), 
+   orientation( grid.template getOrientation< EntityDimension >( normals ) )
+{
+   this->refresh();
+}
+
+template< class Grid, int EntityDimension >
+__cuda_callable__
+GridEntity< Grid, EntityDimension >::
+GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals, 
+   const IndexType orientation )
+: grid( grid ), coordinates( coordinates ), normals( normals ), orientation( orientation )
+{
+   this->refresh();
+}
+
+template< class Grid, int EntityDimension >
 __cuda_callable__
 const typename GridEntity< Grid, EntityDimension >::CoordinatesType&
 GridEntity< Grid, EntityDimension >::getCoordinates() const
@@ -37,7 +95,7 @@ void
 GridEntity< Grid, EntityDimension >::setCoordinates( const CoordinatesType& coordinates )
 {
    this->coordinates = coordinates;
-   refresh();
+   this->refresh();
 }
 
 template< class Grid, int EntityDimension >
@@ -181,6 +239,13 @@ GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& 
 }
 
 template< class Grid, int EntityDimension >
+auto GridEntity< Grid, EntityDimension >::
+getPoint() const -> PointType
+{ 
+   return this->grid.getSpaceSteps() * this->getCoordinates(); 
+}
+
+template< class Grid, int EntityDimension >
 __cuda_callable__
 const Grid& 
 GridEntity< Grid, EntityDimension >::
@@ -188,6 +253,14 @@ getGrid() const
 {
    return this->grid;
 };
+
+template< class Grid, int EntityDimension >
+std::ostream& operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity )
+{
+   str << "Entity dimension = " << EntityDimension << " coordinates = " << entity.getCoordinates() << " normals = " << entity.getNormals()
+       << " index = " << entity.getIndex() << " orientation = " << entity.getOrientation();
+   return str;
+}
 
 }  // namespace Meshes
 }  // namespace TNL

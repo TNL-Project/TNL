@@ -66,7 +66,7 @@ public:
    using GlobalIndexType = Index;
 
    /**
-    * \brief Type for mesh entities cordinates within the grid.
+    * \brief Type for grid entities cordinates.
     */
    using CoordinatesType = Container< Dimension, Index >;
 
@@ -278,10 +278,36 @@ public:
    /**
     * \brief Returns normals of the entity with the specific orientation.
     *
-    * Normals is integer vector having ones for axis along which the entity has non-zero lentghs.
+    * Normals is integer vector having ones for axis along which the entity has zero length.
     * For example in 3D grid we have the following posibilities:
     *
     * | Entity                     | Normals        |
+    * |---------------------------:|-------------:|
+    * | Cells                      | ( 0, 0, 0 )  |
+    * | Faces along x- and y- axes | ( 0, 0, 1 )  |
+    * | Faces along x- and z- axes | ( 0, 1, 0 )  |
+    * | Faces along y- and z- axes | ( 0, 1, 1 )  |
+    * | Edges along x-axis         | ( 0, 1, 1 )  |
+    * | Edges along y-axis         | ( 1, 0, 1 )  |
+    * | Edges along z-axis         | ( 1, 1, 0 )  |
+    * | Vertexes                   | ( 1, 1, 1 )  |
+    *
+    * \tparam EntityDimension is dimensions of grid entity.
+    * \param[in] orientation is orientation of the entity
+    * \return normals of the grid entity.
+    */
+   template< int EntityDimension >
+   __cuda_callable__
+   CoordinatesType
+   getNormals( Index orientation ) const noexcept;
+
+   /**
+    * \brief Returns basis of the entity with the specific orientation.
+    *
+    * Basis is integer vector having ones for axis along which the entity has non-zero lengths.
+    * For example in 3D grid we have the following posibilities:
+    *
+    * | Entity                     | Basis       |
     * |---------------------------:|-------------:|
     * | Cells                      | ( 1, 1, 1 )  |
     * | Faces along x- and y- axes | ( 1, 1, 0 )  |
@@ -299,8 +325,7 @@ public:
    template< int EntityDimension >
    __cuda_callable__
    CoordinatesType
-   getNormals( Index orientation ) const noexcept;
-
+   getBasis( Index orientation ) const noexcept;
 
    template< int EntityDimension >
    __cuda_callable__

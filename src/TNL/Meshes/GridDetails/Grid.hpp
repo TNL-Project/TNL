@@ -239,6 +239,18 @@ Grid< Dimension_, Real, Device, Index >::getNormals( Index orientation ) const n
 template< int Dimension_, typename Real, typename Device, typename Index >
 template< int EntityDimension >
 __cuda_callable__
+typename Grid< Dimension_, Real, Device, Index >::CoordinatesType
+Grid< Dimension_, Real, Device, Index >::getBasis( Index orientation ) const noexcept
+{
+   constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   CoordinatesType ones = 1.0;
+
+   return ones - this->normals( index + orientation );
+}
+
+template< int Dimension_, typename Real, typename Device, typename Index >
+template< int EntityDimension >
+__cuda_callable__
 Index
 Grid< Dimension_, Real, Device, Index >::getOrientation( const CoordinatesType& normals ) const noexcept
 {
@@ -589,8 +601,8 @@ Grid< Dimension_, Real, Device, Index >::writeProlog( TNL::Logger& logger ) cons
          for( IndexType entityOrientation = 0;
            entityOrientation < this->getEntityOrientationsCount( entityDim() );
            entityOrientation++ ) {
-               auto normals = this->getNormals< entityDim >( entityOrientation );
-               TNL::String tmp = TNL::String( "Entities count with normals " ) + TNL::convertToString( normals ) + ":";
+               auto normals = this->getBasis< entityDim >( entityOrientation );
+               TNL::String tmp = TNL::String( "Entities count with basis " ) + TNL::convertToString( normals ) + ":";
                logger.writeParameter( tmp, this->getOrientedEntitiesCount( entityDim, entityOrientation) );
       } } );
 }
