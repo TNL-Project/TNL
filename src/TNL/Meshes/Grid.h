@@ -87,19 +87,33 @@ public:
 
    using OrientationBasesContainer = Container< 1 << Dimension, CoordinatesType >;
 
+   /**
+    * \brief Type of grid entity expressing vertexes, i.e. grid entity with dimension equal to zero.
+    */
    using Vertex = EntityType< 0 >;
+
+   /**
+    * \brief Type of grid entity expressing edges, i.e. grid entity with dimension equal to one.
+    * 
+    */
    using Edge = EntityType< 1 >;
+
+   /**
+    * \brief Type of grid entity expressing faces, i.e. grid entity with dimension equal to
+    *        the grid dimension minus one.
+    */
    using Face = EntityType< Dimension - 1 >;
+
+   /**
+    * \brief Type of grid entity expressing cells, i.e. grid entity with dimension equal to the grid dimension.
+    */
    using Cell = EntityType< Dimension >;
 
    /**
     * \brief Returns the dimension of grid
     */
    static constexpr int
-   getMeshDimension()
-   {
-      return Dimension;
-   };
+   getMeshDimension();
 
    /**
     * \brief Returns the coefficient powers size.
@@ -110,13 +124,24 @@ public:
    using SpaceProductsContainer =
       Container< std::integral_constant< Index, Templates::pow( spaceStepsPowersSize, Dimension ) >::value, Real >;
 
+   /**
+    * \brief Grid constructor with no parameters.
+    */
    Grid();
 
+   /**
+    * \brief Grid constructor with grid dimensions parameters.
+    * 
+    * \tparam Dimensions is variadic template pack.
+    * \param dimensions are dimensions along particular axes of the grid. The number of parameters must
+    *    be equal to the size od the grid.
+    */
    template< typename... Dimensions,
              std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
              std::enable_if_t< sizeof...( Dimensions ) == Dimension_, bool > = true >
    Grid( Dimensions... dimensions );
 
+   Grid( const CoordinatesType& dimensions );
 
    /**
     * \brief Returns the number of orientations for entity dimension.
@@ -149,14 +174,6 @@ public:
     */
    void
    setDimensions( const CoordinatesType& dimensions );
-
-   /**
-    * \brief Returns dimensions as a count of edges along each axis.
-    * \param[in] index is a index of dimension.
-    */
-   //__cuda_callable__
-   //Index
-   //getDimension( const Index index ) const;
 
    /**
     * \brief Returns dimensions as a count of edges along given axes.
@@ -208,7 +225,6 @@ public:
              std::enable_if_t< Templates::isInClosedInterval( 0, EntityType::getEntityDimension(), Dimension_ ), bool > = true >
    __cuda_callable__
    Index getEntitiesCount() const noexcept;
-
 
    /**
     * \brief Returns count of entities of specific dimensions.
@@ -284,6 +300,12 @@ public:
    __cuda_callable__
    CoordinatesType
    getBasis( Index orientation ) const noexcept;
+
+
+   template< int EntityDimension >
+   __cuda_callable__
+   IndexType
+   getOrientation( const CoordinatesType& bases ) const noexcept;
 
    /**
     * \brief Sets the origin and proportions of this grid.
@@ -427,14 +449,6 @@ public:
    __cuda_callable__
    EntityType< EntityDimension > getEntity( const CoordinatesType& coordinates ) const;
 
-   /*template< typename EntityType >
-   __cuda_callable__
-   EntityType getEntity( const IndexType& entityIdx ) const;
-
-   template< int EntityDimension >
-   __cuda_callable__
-   EntityType< EntityDimension > getEntity( const IndexType& entityIdx ) const;*/
-
    /**
     * \brief Gets entity index using entity type.
     *
@@ -504,25 +518,25 @@ public:
    forInterior( Func func, FuncArgs... args ) const;
 
    /**
-    * @brief Traverser interior elements
-    * @param from - bottom left anchor of traverse rect
-    * @param to - top right anchor of traverse rect
+    * \brief Traverser interior elements
+    * \param from - bottom left anchor of traverse rect
+    * \param to - top right anchor of traverse rect
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    forInterior( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 
    /**
-    * @brief Traverser boundary elements in rect
+    * \brief Traverser boundary elements in rect
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    forBoundary( Func func, FuncArgs... args ) const;
 
    /**
-    * @brief Traverser boundary elements in rect
-    * @param from - bottom left anchor of traverse rect
-    * @param to - top right anchor of traverse rect
+    * \brief Traverser boundary elements in rect
+    * \param from - bottom left anchor of traverse rect
+    * \param to - top right anchor of traverse rect
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void

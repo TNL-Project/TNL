@@ -23,6 +23,14 @@ namespace TNL {
    namespace Meshes {
 
 template< int Dimension_, typename Real, typename Device, typename Index >
+constexpr int
+Grid< Dimension_, Real, Device, Index >::
+getMeshDimension()
+{
+   return Dimension;
+}
+
+template< int Dimension_, typename Real, typename Device, typename Index >
 Grid< Dimension_, Real, Device, Index >::
 Grid()
 {
@@ -45,6 +53,20 @@ Grid< Dimension_, Real, Device, Index >::
 Grid( Dimensions... dimensions )
 {
    setDimensions( dimensions... );
+
+   PointType zeroPoint = 0;
+   proportions = zeroPoint;
+   spaceSteps = zeroPoint;
+   origin = zeroPoint;
+   fillBases();
+   fillEntitiesCount();
+}
+
+template< int Dimension_, typename Real, typename Device, typename Index >
+Grid< Dimension_, Real, Device, Index >::
+Grid( const CoordinatesType& dimensions )
+{
+   setDimensions( dimensions );
 
    PointType zeroPoint = 0;
    proportions = zeroPoint;
@@ -215,6 +237,21 @@ Grid< Dimension_, Real, Device, Index >::getBasis( Index orientation ) const noe
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
+template< int EntityDimension >
+__cuda_callable__
+Index
+Grid< Dimension_, Real, Device, Index >::getOrientation( const CoordinatesType& bases ) const noexcept
+{
+   constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   const Index count = this->getEntityOrientationsCount( EntityDimension );
+   for( IndexType orientation = 0; orientation < count; orientation++ )
+      if( this->bases( index + orientation ) == bases )
+         return orientation;
+   return -1;
+}
+
+
+template< int Dimension_, typename Real, typename Device, typename Index >
 template< int EntityDimension,
           int EntityOrientation,
           std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension_ ), bool >,
@@ -357,7 +394,6 @@ Grid< Dimension_, Real, Device, Index >::traverseAll( const CoordinatesType& fro
    {
       Templates::ParallelFor< Dimension_, Device, Index >::exec( from, to + basis, func, basis, orientation, args... );
    };
-
    Templates::ForEachOrientation< Index, EntityDimension, Dimension >::exec( exec );
 }
 
