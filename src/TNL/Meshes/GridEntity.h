@@ -197,6 +197,9 @@ public:
 
    PointType getPoint() const { return this->grid.getSpaceSteps() * this->getCoordinates(); };
 
+   __cuda_callable__
+   const Grid& getGrid() const;
+
 protected:
    const Grid& grid;
 
@@ -205,6 +208,14 @@ protected:
    CoordinatesType basis;
    Index orientation;
 };
+
+template< class Grid, int EntityDimension >
+std::ostream& operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity )
+{
+   str << "Entity dimension = " << EntityDimension << " coordinates = " << entity.getCoordinates() << " basis = " << entity.getBasis()
+       << " index = " << entity.getIndex() << " orientation = " << entity.getOrientation();
+   return str;
+}
 
 }  // namespace Meshes
 }  // namespace TNL

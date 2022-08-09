@@ -170,5 +170,14 @@ GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& 
    return Getter::template getEntity< Grid, Orientation >( *this, offset );
 }
 
+template< class Grid, int EntityDimension >
+__cuda_callable__
+const Grid& 
+GridEntity< Grid, EntityDimension >::
+getGrid() const
+{
+   return this->grid;
+};
+
 }  // namespace Meshes
 }  // namespace TNL
