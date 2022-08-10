@@ -283,7 +283,7 @@ template< typename Matrix >
 void
 BICGStabL< Matrix >::setSize( const VectorViewType& x )
 {
-   this->size = ldSize = Traits::getConstLocalView( x ).getSize();
+   this->size = ldSize = Traits::getConstLocalViewWithGhosts( x ).getSize();
    R.setSize( ( ell + 1 ) * ldSize );
    U.setSize( ( ell + 1 ) * ldSize );
    r_ast.setLike( x );

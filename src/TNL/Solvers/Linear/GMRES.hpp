@@ -764,7 +764,7 @@ template< typename Matrix >
 void
 GMRES< Matrix >::setSize( const VectorViewType& x )
 {
-   this->size = Traits::getLocalView( x ).getSize();
+   this->size = Traits::getConstLocalViewWithGhosts( x ).getSize();
    if( std::is_same< DeviceType, Devices::Cuda >::value )
       // align each column to 256 bytes - optimal for CUDA
       ldSize = roundToMultiple( size, 256 / sizeof( RealType ) );
