@@ -99,8 +99,12 @@ GMRES< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
    }
    else
       normb = lpNorm( b, 2.0 );
-   if( normb == 0.0 )
-      normb = 1.0;
+
+   // check for zero rhs - solution is the null vector
+   if( normb == 0 ) {
+      x = 0;
+      return true;
+   }
 
    // r = M.solve(b - A * x);
    compute_residue( r, x, b );
