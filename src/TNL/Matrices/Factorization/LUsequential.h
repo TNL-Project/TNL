@@ -22,9 +22,9 @@ LU_sequential_factorize( Matrix& A )
 {
    using IndexType = typename Matrix::IndexType;
 
-   static_assert( Matrix::getRows() == Matrix::getColumns(), "LU factorization is possible only for square matrices" );
+   TNL_ASSERT_EQ( A.getRows(), A.getColumns(), "LU factorization is possible only for square matrices" );
 
-   constexpr IndexType n = Matrix::getRows();
+   const IndexType n = A.getRows();
 
    for( IndexType k = 0; k < n; k++ ) {
       const auto pivot = A( k, k );
@@ -49,9 +49,9 @@ LU_sequential_solve_inplace( const Matrix& A, Vector& x )
    using IndexType = typename Matrix::IndexType;
    static_assert( std::is_signed< IndexType >::value, "LU got a matrix with an unsigned index type (2nd for loop won't work)" );
 
-   static_assert( Matrix::getRows() == Matrix::getColumns(), "LU factorization is possible only for square matrices" );
+   TNL_ASSERT_EQ( A.getRows(), A.getColumns(), "LU factorization is possible only for square matrices" );
 
-   constexpr IndexType n = Matrix::getRows();
+   const IndexType n = A.getRows();
 
    // Forward substitution
    for( IndexType k = 1; k < n; k++ )
