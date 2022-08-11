@@ -130,6 +130,7 @@ struct SolverConfig
          Linear::BICGStabL< MatrixType >::configSetup( config );
          Linear::GMRES< MatrixType >::configSetup( config );
          Linear::TFQMR< MatrixType >::configSetup( config );
+         Linear::IDRs< MatrixType >::configSetup( config );
          Linear::SOR< MatrixType >::configSetup( config );
 
          Linear::Preconditioners::Diagonal< MatrixType >::configSetup( config );
