@@ -33,9 +33,11 @@ several modules:
   \ref TNL::Matrices "sparse matrices",
   \ref TNL::Solvers::Linear "Krylov solvers" and
   \ref TNL::Solvers::Linear::Preconditioners "preconditioners".
-   - Sparse matrix formats: CSR, Ellpack, Sliced Ellpack, tridiagonal,
-     multidiagonal
-   - Krylov solvers: CG, BiCGstab, GMRES, CWYGMRES, TFQMR
+   - Sparse matrix formats: CSR, Ellpack, Sliced Ellpack, Chunked Ellpack, Bisection Ellpack,
+     tridiagonal, multidiagonal
+   - Lambda matrices (matrix elements are defined by C++ lambda functions)
+   - Stationary solvers: Jacobi, SOR
+   - Krylov solvers: CG, BiCGstab, BiCGstab(l), GMRES, TFQMR, IDR(s)
    - Preconditioners: Jacobi, ILU(0) (CPU only), ILUT (CPU only)
 - \ref TNL::Meshes "Meshes".
   TNL provides data structures for the representation of structured or

@@ -28,6 +28,7 @@
 #include <TNL/Solvers/Linear/TFQMR.h>
 #include <TNL/Solvers/Linear/BICGStab.h>
 #include <TNL/Solvers/Linear/BICGStabL.h>
+#include <TNL/Solvers/Linear/IDRs.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
@@ -60,6 +61,7 @@ static const std::set< std::string > valid_solvers = {
    "tfqmr",
    "bicgstab",
    "bicgstab-ell",
+   "idrs",
 };
 
 static const std::set< std::string > valid_gmres_variants = {
@@ -208,6 +210,14 @@ benchmarkIterativeSolvers( Benchmark<>& benchmark,
             #endif
          }
       }
+
+      if( solvers.count( "idrs" ) ) {
+         benchmark.setOperation("IDRs (Jacobi)");
+         benchmarkSolver< IDRs, Diagonal >( benchmark, parameters, matrixPointer, x0, b );
+         #ifdef HAVE_CUDA
+         benchmarkSolver< IDRs, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         #endif
+      }
    }
 
 
@@ -257,6 +267,14 @@ benchmarkIterativeSolvers( Benchmark<>& benchmark,
             #endif
          }
       }
+
+      if( solvers.count( "idrs" ) ) {
+         benchmark.setOperation("IDRs (ILU0)");
+         benchmarkSolver< IDRs, ILU0 >( benchmark, parameters, matrixPointer, x0, b );
+         #ifdef HAVE_CUDA
+         benchmarkSolver< IDRs, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         #endif
+      }
    }
 
 
@@ -305,6 +323,14 @@ benchmarkIterativeSolvers( Benchmark<>& benchmark,
             benchmarkSolver< BICGStabL, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
             #endif
          }
+      }
+
+      if( solvers.count( "idrs" ) ) {
+         benchmark.setOperation("IDRs (ILUT)");
+         benchmarkSolver< IDRs, ILUT >( benchmark, parameters, matrixPointer, x0, b );
+         #ifdef HAVE_CUDA
+         benchmarkSolver< IDRs, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         #endif
       }
    }
 }
@@ -535,7 +561,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    config.addEntry< bool >( "reorder-dofs", "Reorder matrix entries corresponding to the same DOF together.", false );
    config.addEntry< bool >( "with-direct", "Includes the 3rd party direct solvers in the benchmark.", false );
-   config.addEntry< String >( "solvers", "Comma-separated list of solvers to run benchmarks for. Options: gmres, tfqmr, bicgstab, bicgstab-ell.", "all" );
+   config.addEntry< String >( "solvers", "Comma-separated list of solvers to run benchmarks for. Options: gmres, tfqmr, bicgstab, bicgstab-ell, idrs.", "all" );
    config.addEntry< String >( "gmres-variants", "Comma-separated list of GMRES variants to run benchmarks for. Options: CGS, CGSR, MGS, MGSR, CWY.", "all" );
    config.addEntry< String >( "preconditioners", "Comma-separated list of preconditioners to run benchmarks for. Options: jacobi, ilu0, ilut.", "all" );
    config.addEntry< bool >( "with-preconditioner-update", "Run benchmark for the preconditioner update.", true );
