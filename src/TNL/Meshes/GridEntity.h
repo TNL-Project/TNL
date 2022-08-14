@@ -23,8 +23,8 @@ template< class >
 class GridEntityCenterGetter;
 
 /**
- * \brief Structure describing a grid entity i.e., grid cells, faces, edges, vertexes and so on. 
- * 
+ * \brief Structure describing a grid entity i.e., grid cells, faces, edges, vertexes and so on.
+ *
  * \tparam Grid is a typa of grid the entity belongs to.
  * \tparam EntityDimension is a dimensions of the grid entity.
  */
@@ -34,7 +34,7 @@ class GridEntity
 public:
 
    /**
-    * \brief Type of grid the entity belongs to. 
+    * \brief Type of grid the entity belongs to.
     */
    using GridType = Grid;
 
@@ -50,12 +50,12 @@ public:
 
    /**
     * \brief Type for indexing of the grid entities.
-    * 
+    *
     */
    using IndexType = typename Grid::IndexType;
-   
+
    /**
-    * \brief Type of grid entities coordinates. 
+    * \brief Type of grid entities coordinates.
     */
    using CoordinatesType = typename Grid::CoordinatesType;
 
@@ -70,27 +70,27 @@ public:
    constexpr static int meshDimension = Grid::getMeshDimension();
 
    /**
-    * \brief Dimension of the grid entity. 
+    * \brief Dimension of the grid entity.
     */
    constexpr static int entityDimension = EntityDimension;
 
    /**
     * \brief Getter of the dimension of the grid.
-    * 
+    *
     * \return dimension of the grid.
     */
    constexpr static int getMeshDimension();
 
    /**
     * \brief Getter of the dimensions of the grid entity.
-    * 
+    *
     * \return dimensions of the grid entity.
     */
    constexpr static int getEntityDimension();
 
    /**
     * \brief Constructore with a grid reference.
-    * 
+    *
     * \param grid is a reference on a grid the entity belongs to.
     */
    __cuda_callable__
@@ -98,7 +98,7 @@ public:
 
    /**
     * \brief Constructor with a grid reference and grid entity coordinates.
-    * 
+    *
     * \param grid is a reference on a grid the entity belongs to.
     * \param coordinates are coordinates of the grid entity.
     */
@@ -107,9 +107,9 @@ public:
 
    /**
     * \brief Constructor with a grid reference, grid entity coordinates and entity normals.
-    * 
+    *
     * Entity normals define the grid entity orientation.
-    * 
+    *
     * \param grid is a reference on a grid the entity belongs to.
     * \param coordinates are coordinates of the grid entity.
     * \param normals is a vector of packed normal vectors to the grid entity.
@@ -119,23 +119,23 @@ public:
 
    /**
     * \brief Constructor with a grid reference, grid entity coordinates, entity normals and index of entity orientation.
-    * 
+    *
     * Entity normals define the grid entity orientation.
     * Index of entity orientation is rather internal information. Constructor without this parameter may be used preferably.
     * The index can be computed using the method \ref TNL::Meshes::Grid::getOrientation.
-    * 
+    *
     * \param grid is a reference on a grid the entity belongs to.
     * \param coordinates are coordinates of the grid entity.
     * \param normals is a vector of packed normal vectors to the grid entity.
     * \param orientation is an index of the grid entity orientation.
     */
    __cuda_callable__
-   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals, 
+   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals,
       const IndexType orientation );
 
    /**
     * \brief Getter of the grid entity coordinates for constant instances.
-    * 
+    *
     * \return grid entity coordinates in a form of constant reference.
     */
    __cuda_callable__
@@ -143,7 +143,7 @@ public:
 
    /**
     * \brief Getter of the grid entity coordinates for non-constant instances.
-    * 
+    *
     * \return grid entity coordinates in a form of a reference.
     */
    __cuda_callable__
@@ -151,7 +151,7 @@ public:
 
    /**
     * \brief Setter of the grid entity coordinates.
-    * 
+    *
     * \param coordinates are new coordinates of the grid entity.
     */
    __cuda_callable__
@@ -167,7 +167,7 @@ public:
 
    /**
     * \brief Get the entity index in the grid.
-    * 
+    *
     * \return the grid entity index in the grid.
     */
    __cuda_callable__
@@ -175,7 +175,7 @@ public:
 
    /**
     * \brief Tells, if the entity is boundary entity.
-    * 
+    *
     * \return `true` if the entity is a boundary entity and `false` otherwise.
     */
    __cuda_callable__
@@ -183,7 +183,7 @@ public:
 
    /**
     * \brief Returns the center of the grid entity.
-    * 
+    *
     * \return the centre of the grid entity.
     */
    __cuda_callable__
@@ -191,7 +191,7 @@ public:
 
    /**
     * \brief Returns the measure (length, surface or volume) of the grid entity.
-    * 
+    *
     * \return the measure of the grid entity.
     */
    __cuda_callable__
@@ -199,7 +199,7 @@ public:
 
    /**
     * \brief Returns reference to the grid the grid entity belongs to.
-    * 
+    *
     * \return reference to the grid the grid entity belongs to.
     */
    __cuda_callable__
@@ -207,9 +207,9 @@ public:
 
    /**
     * \brief Setter for the packed normals vector of the grid entity.
-    * 
+    *
     * This vector defines the orienation of the grid entity.
-    * 
+    *
     * \param normals is a vector of packed normal vectors to the grid entity.
     */
    __cuda_callable__
@@ -223,11 +223,11 @@ public:
 
    /**
     * \brief Getter of the basis vector.
-    * 
+    *
     * The basis vector has one for each axis along which the grid entity has non-zero length.
-    * 
+    *
     * The basis vector is not stored explicitly in the grid entity and it is computed on the fly.
-    * 
+    *
     * \return basis vector.
     */
    __cuda_callable__
@@ -244,9 +244,9 @@ public:
 
    /**
     * \brief Setter of the grid entity orientation index.
-    * 
+    *
     * This is rather internal information. The index can be computed using the method \ref TNL::Meshes::Grid::getOrientation.
-    * 
+    *
     * \param orientation is a index of the grid entity orientation.
     */
    __cuda_callable__
@@ -314,14 +314,14 @@ public:
 
    /**
     * \brief Returns the point at the origin of the grid entity.
-    * 
+    *
     * \return the point at the origin of the grid entity.
     */
    PointType getPoint() const;
 
    /**
     * \brief Returns a reference on the grid the grid entity belongs to.
-    * 
+    *
     * \return a reference on the grid the grid entity belongs to.
     */
    __cuda_callable__
@@ -338,7 +338,7 @@ protected:
 
 /**
  * \brief Overloaded insertion operator for printing a grid entity to output stream.
- * 
+ *
  * \tparam Grid type of grid the grid entity belongs to.
  * \tparam EntityDimension dimension of the grid entity.
  * \param str insertion operator.
@@ -351,4 +351,4 @@ std::ostream& operator<<( std::ostream& str, const GridEntity< Grid, EntityDimen
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/Implementations/GridEntity.hpp>
+#include <TNL/Meshes/GridDetails/GridEntity.hpp>

@@ -18,4 +18,4 @@ class GridEntityCenterGetter;
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/Implementations/GridEntityCenterGetter.hpp>
+#include <TNL/Meshes/GridDetails/GridEntityCenterGetter.hpp>

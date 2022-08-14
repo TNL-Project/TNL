@@ -22,4 +22,4 @@ class NeighbourGridEntityGetter;
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/Implementations/NeighbourGridEntityGetter.hpp>
+#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.hpp>

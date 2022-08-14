@@ -17,4 +17,4 @@ class GridEntityMeasureGetter;
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/Implementations/GridEntityMeasureGetter.hpp>
+#include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.hpp>

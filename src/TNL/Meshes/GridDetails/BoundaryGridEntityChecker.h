@@ -18,4 +18,4 @@ class BoundaryGridEntityChecker;
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/Implementations/BoundaryGridEntityChecker.hpp>
+#include <TNL/Meshes/GridDetails/BoundaryGridEntityChecker.hpp>
