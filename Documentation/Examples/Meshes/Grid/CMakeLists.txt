@@ -1,7 +1,8 @@
 set( COMMON_EXAMPLES
-   GridExample_Constructor-1
-   GridExample_Constructor-2
+   GridExample_constructor-1
+   GridExample_constructor-2
    GridExample_traverse-1
+   GridExample_writer
 )
 
 if( BUILD_CUDA )

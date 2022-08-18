@@ -94,7 +94,7 @@ public:
 
    /**
     * \brief Type of grid entity expressing edges, i.e. grid entity with dimension equal to one.
-    * 
+    *
     */
    using Edge = EntityType< 1 >;
 
@@ -131,7 +131,7 @@ public:
 
    /**
     * \brief Grid constructor with grid dimensions parameters.
-    * 
+    *
     * \tparam Dimensions is variadic template pack.
     * \param dimensions are dimensions along particular axes of the grid. The number of parameters must
     *    be equal to the size od the grid.
@@ -698,7 +698,4 @@ operator!=( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimen
 }  // namespace Meshes
 }  // namespace TNL
 
-//#include <TNL/Meshes/GridDetails/Grid1D.h>
-//#include <TNL/Meshes/GridDetails/Grid2D.h>
-//#include <TNL/Meshes/GridDetails/Grid3D.h>
 #include <TNL/Meshes/GridDetails/Grid.hpp>

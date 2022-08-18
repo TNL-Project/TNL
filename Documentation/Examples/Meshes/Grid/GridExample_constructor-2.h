@@ -9,7 +9,7 @@ void createGrid()
    GridType grid( 10 );
    CoordinatesType origin( 0.0 ), proportions( 1.0 );
    grid.setDomain( origin, proportions );
-   
+
    std::cout << grid << std::endl;
 }
 
