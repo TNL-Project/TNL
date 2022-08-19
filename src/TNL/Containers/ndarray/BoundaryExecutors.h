@@ -182,7 +182,7 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
       Algorithms::ParallelFor3D< Device >::exec( skipBegin2, skipBegin1, skipEnd0, skipEnd2, skipEnd1, end0, kernel, f );
    }
 
-   template< typename __Device, typename = void >
+   template< typename Device2, typename dummy = void >
    struct Kernel
    {
       template< typename Index, typename Func >
@@ -194,8 +194,8 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
    };
 
    // dummy specialization to avoid a shitpile of nvcc warnings
-   template< typename __unused >
-   struct Kernel< Devices::Cuda, __unused >
+   template< typename dummy >
+   struct Kernel< Devices::Cuda, dummy >
    {
       template< typename Index, typename Func >
       __cuda_callable__
@@ -239,7 +239,7 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 2 > >
       Algorithms::ParallelFor2D< Device >::exec( skipBegin1, skipEnd0, skipEnd1, end0, kernel, f );
    }
 
-   template< typename __Device, typename = void >
+   template< typename Device2, typename dummy = void >
    struct Kernel
    {
       template< typename Index, typename Func >
@@ -251,8 +251,8 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 2 > >
    };
 
    // dummy specialization to avoid a shitpile of nvcc warnings
-   template< typename __unused >
-   struct Kernel< Devices::Cuda, __unused >
+   template< typename dummy >
+   struct Kernel< Devices::Cuda, dummy >
    {
       template< typename Index, typename Func >
       __cuda_callable__
