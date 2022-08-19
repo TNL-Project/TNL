@@ -35,7 +35,7 @@ else()
       add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                           OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                           DEPENDS ${target} )
-      set( HOST_OUTPUTS ${HOST_OUTPUTS} ${target}.out )
+      set( HOST_OUTPUTS ${HOST_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
    endforeach()
    if( ${BUILD_MPI} )
       foreach( target IN ITEMS ${MPI_COMMON_EXAMPLES} )
