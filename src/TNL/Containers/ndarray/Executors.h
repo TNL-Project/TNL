@@ -171,10 +171,10 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 3 > >
       using Index = typename Ends::IndexType;
 
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
-      //      auto kernel = [=] __cuda_callable__ ( Index i2, Index i1, Index i0 )
-      //      {
-      //         call_with_unpermuted_arguments< Permutation >( f, i0, i1, i2 );
-      //      };
+      // auto kernel = [=] __cuda_callable__ ( Index i2, Index i1, Index i0 )
+      // {
+      //    call_with_unpermuted_arguments< Permutation >( f, i0, i1, i2 );
+      // };
       Kernel< Device > kernel;
 
       const Index begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
@@ -223,10 +223,10 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 2 > >
       using Index = typename Ends::IndexType;
 
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
-      //      auto kernel = [=] __cuda_callable__ ( Index i1, Index i0 )
-      //      {
-      //         call_with_unpermuted_arguments< Permutation >( f, i0, i1 );
-      //      };
+      // auto kernel = [=] __cuda_callable__ ( Index i1, Index i0 )
+      // {
+      //    call_with_unpermuted_arguments< Permutation >( f, i0, i1 );
+      // };
       Kernel< Device > kernel;
 
       const Index begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
@@ -272,10 +272,10 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 1 > >
 
       using Index = typename Ends::IndexType;
 
-      //      auto kernel = [=] __cuda_callable__ ( Index i )
-      //      {
-      //         call_with_unpermuted_arguments< Permutation >( f, i );
-      //      };
+      // auto kernel = [=] __cuda_callable__ ( Index i )
+      // {
+      //    call_with_unpermuted_arguments< Permutation >( f, i );
+      // };
 
       const Index begin = begins.template getSize< get< 0 >( Permutation{} ) >();
       const Index end = ends.template getSize< get< 0 >( Permutation{} ) >();

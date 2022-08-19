@@ -154,11 +154,11 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
-      //      using Index = typename Ends::IndexType;
-      //      auto kernel = [=] __cuda_callable__ ( Index i2, Index i1, Index i0 )
-      //      {
-      //         call_with_unpermuted_arguments< Permutation >( f, i0, i1, i2 );
-      //      };
+      // using Index = typename Ends::IndexType;
+      // auto kernel = [=] __cuda_callable__ ( Index i2, Index i1, Index i0 )
+      // {
+      //    call_with_unpermuted_arguments< Permutation >( f, i0, i1, i2 );
+      // };
       Kernel< Device > kernel;
 
       const auto begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
@@ -217,11 +217,11 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 2 > >
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
-      //      using Index = typename Ends::IndexType;
-      //      auto kernel = [=] __cuda_callable__ ( Index i1, Index i0 )
-      //      {
-      //         call_with_unpermuted_arguments< Permutation >( f, i0, i1 );
-      //      };
+      // using Index = typename Ends::IndexType;
+      // auto kernel = [=] __cuda_callable__ ( Index i1, Index i0 )
+      // {
+      //    call_with_unpermuted_arguments< Permutation >( f, i0, i1 );
+      // };
       Kernel< Device > kernel;
 
       const auto begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
