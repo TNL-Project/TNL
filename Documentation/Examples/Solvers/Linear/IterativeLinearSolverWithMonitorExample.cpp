@@ -89,7 +89,7 @@ void iterativeLinearSolverExample()
 int main( int argc, char* argv[] )
 {
    std::cout << "Solving linear system on host: " << std::endl;
-   iterativeLinearSolverExample< TNL::Devices::Host >();
+   iterativeLinearSolverExample< TNL::Devices::Sequential >();
 
 #ifdef HAVE_CUDA
    std::cout << "Solving linear system on CUDA device: " << std::endl;

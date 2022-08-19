@@ -154,11 +154,11 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
-      //      using Index = typename Ends::IndexType;
-      //      auto kernel = [=] __cuda_callable__ ( Index i2, Index i1, Index i0 )
-      //      {
-      //         call_with_unpermuted_arguments< Permutation >( f, i0, i1, i2 );
-      //      };
+      // using Index = typename Ends::IndexType;
+      // auto kernel = [=] __cuda_callable__ ( Index i2, Index i1, Index i0 )
+      // {
+      //    call_with_unpermuted_arguments< Permutation >( f, i0, i1, i2 );
+      // };
       Kernel< Device > kernel;
 
       const auto begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
@@ -182,7 +182,7 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
       Algorithms::ParallelFor3D< Device >::exec( skipBegin2, skipBegin1, skipEnd0, skipEnd2, skipEnd1, end0, kernel, f );
    }
 
-   template< typename __Device, typename = void >
+   template< typename Device2, typename dummy = void >
    struct Kernel
    {
       template< typename Index, typename Func >
@@ -194,8 +194,8 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
    };
 
    // dummy specialization to avoid a shitpile of nvcc warnings
-   template< typename __unused >
-   struct Kernel< Devices::Cuda, __unused >
+   template< typename dummy >
+   struct Kernel< Devices::Cuda, dummy >
    {
       template< typename Index, typename Func >
       __cuda_callable__
@@ -217,11 +217,11 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 2 > >
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
-      //      using Index = typename Ends::IndexType;
-      //      auto kernel = [=] __cuda_callable__ ( Index i1, Index i0 )
-      //      {
-      //         call_with_unpermuted_arguments< Permutation >( f, i0, i1 );
-      //      };
+      // using Index = typename Ends::IndexType;
+      // auto kernel = [=] __cuda_callable__ ( Index i1, Index i0 )
+      // {
+      //    call_with_unpermuted_arguments< Permutation >( f, i0, i1 );
+      // };
       Kernel< Device > kernel;
 
       const auto begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
@@ -239,7 +239,7 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 2 > >
       Algorithms::ParallelFor2D< Device >::exec( skipBegin1, skipEnd0, skipEnd1, end0, kernel, f );
    }
 
-   template< typename __Device, typename = void >
+   template< typename Device2, typename dummy = void >
    struct Kernel
    {
       template< typename Index, typename Func >
@@ -251,8 +251,8 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 2 > >
    };
 
    // dummy specialization to avoid a shitpile of nvcc warnings
-   template< typename __unused >
-   struct Kernel< Devices::Cuda, __unused >
+   template< typename dummy >
+   struct Kernel< Devices::Cuda, dummy >
    {
       template< typename Index, typename Func >
       __cuda_callable__

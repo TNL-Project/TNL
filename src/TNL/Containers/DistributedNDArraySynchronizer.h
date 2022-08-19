@@ -32,12 +32,12 @@ namespace Containers {
  */
 enum class SyncDirection : std::uint8_t
 {
-   All = 0xff,       //!< special value -- synchronize in all directions
-   None = 0,         //!< special value -- no synchronization
+   All = 0xff,  //!< special value -- synchronize in all directions
+   None = 0,    //!< special value -- no synchronization
 
    // 1D
-   Right = 1 << 0,   //!< synchronization from left to right
-   Left = 1 << 1,    //!< synchronization from right to left
+   Right = 1 << 0,  //!< synchronization from left to right
+   Left = 1 << 1,   //!< synchronization from right to left
 
    // TODO: for 2D distribution:
    // Right = 1 << 0,
