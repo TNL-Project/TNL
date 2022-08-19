@@ -16,6 +16,7 @@
 #include <iomanip>
 #include <string>
 #include <fstream>
+#include <sstream>
 
 namespace TNL {
 namespace Benchmarks {
