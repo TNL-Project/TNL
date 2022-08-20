@@ -1,3 +1,4 @@
+add_subdirectory( Ginkgo )
 add_subdirectory( Hypre )
 
 #add_subdirectory( simple-examples )

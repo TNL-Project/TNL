@@ -47,9 +47,12 @@ set( CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
 
 # Note that in cmake 3.10 the FindOpenMP and FindMPI modules are broken - they do not work when
 # CMAKE_EXECUTABLE_SUFFIX is not empty, see https://www.mail-archive.com/cmake@cmake.org/msg56886.html
+# and https://gitlab.kitware.com/cmake/cmake/-/issues/23874
 # Hence, we find OpenMP and MPI before setting CMAKE_EXECUTABLE_SUFFIX.
 find_package( OpenMP COMPONENTS CXX )
 find_package( MPI COMPONENTS CXX )
+# workaround for https://github.com/ginkgo-project/ginkgo/issues/1096
+find_package( Ginkgo )
 
 # Settings for debug build
 if( CMAKE_BUILD_TYPE STREQUAL "Debug")

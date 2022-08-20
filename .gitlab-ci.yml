@@ -45,11 +45,8 @@ stages:
         CC: clang
         CUDA_HOST_COMPILER: clang++
 
-# template for build jobs
-.build_template:
-    stage: build:gcc
-    # don't wait for jobs in previous stages to complete before starting this job
-    needs: []
+# template for environment setup before build
+.env_setup:
     script:
         # make sure that $PATH and other essential variables are set correctly
         - source /etc/profile
@@ -71,6 +68,14 @@ stages:
         - if ! nvidia-smi --list-gpus > /dev/null; then
                 CUDA_ARCH=70;
           fi
+
+# template for build jobs
+.build_template:
+    stage: build:gcc
+    # don't wait for jobs in previous stages to complete before starting this job
+    needs: []
+    script:
+        - !reference [.env_setup, script]
         - cmake -B "./builddir/$CI_JOB_NAME" -S . -G Ninja
                 -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
                 -DCMAKE_INSTALL_PREFIX="$(pwd)/install_prefix/$CI_JOB_NAME"
@@ -328,6 +333,33 @@ clang_nontests_Release:
     extends:
         - default_nontests_Release
         - .clang
+
+
+
+
+
+Ginkgo examples:
+    extends: .build_template
+    stage: build:cuda
+    tags:
+        - docker
+        - nvidia
+    variables:
+        <<: *default_cmake_flags
+        USE_CUDA: "yes"
+        BUILD_TYPE: Debug
+        BUILD_EXAMPLES: "yes"
+    before_script:
+        - !reference [.env_setup, script]
+        # clone and build Ginkgo
+        - git clone https://github.com/ginkgo-project/ginkgo.git
+        - cmake -B "./builddir_ginkgo/$CI_JOB_NAME" -S "ginkgo" -G Ninja
+                -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+                -DGINKGO_BUILD_TESTS="no"
+                -DGINKGO_BUILD_EXAMPLES="no"
+                -DGINKGO_BUILD_BENCHMARKS="no"
+        # "install" implies the "all" target
+        - ninja -C "./builddir_ginkgo/$CI_JOB_NAME" ${NINJAFLAGS} install
 
 
 
