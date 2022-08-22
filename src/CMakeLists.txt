@@ -1,6 +1,4 @@
 if( TNL_INSTALL_HEADERS )
-   add_subdirectory( 3rdparty )
-
    install( DIRECTORY TNL TYPE INCLUDE
             MESSAGE_NEVER
             FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" )

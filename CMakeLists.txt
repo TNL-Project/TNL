@@ -312,7 +312,6 @@ endif()
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib )
 include_directories( src )
-include_directories( SYSTEM src/3rdparty )
 
 # Add all subdirectories
 add_subdirectory( src )
