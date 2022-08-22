@@ -1,6 +1,6 @@
 set( CPP_TESTS MPICommTest MPIUtilsTest )
 
-if( ${BUILD_MPI} )
+if( TNL_BUILD_MPI )
 foreach( target IN ITEMS ${CPP_TESTS} )
    add_executable( ${target} ${target}.cpp )
    target_compile_options( ${target} PRIVATE ${CXX_TESTS_FLAGS} )

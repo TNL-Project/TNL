@@ -1,4 +1,4 @@
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    cuda_add_executable( tnl-benchmark-ode-solvers-cuda tnl-benchmark-ode-solvers.cu
                         OPTIONS -DHAVE_CUSPARSE )
    target_link_libraries( tnl-benchmark-ode-solvers-cuda ${CUDA_cusparse_LIBRARY} )
@@ -13,7 +13,7 @@ if( BUILD_CUDA )
 endif()
 
 # skip building host-only targets in CUDA-enabled CI jobs
-if( BUILD_CPP_TARGETS )
+if( TNL_BUILD_CPP_TARGETS )
    add_executable( tnl-benchmark-ode-solvers tnl-benchmark-ode-solvers.cpp )
    install( TARGETS tnl-benchmark-ode-solvers RUNTIME DESTINATION bin )
 

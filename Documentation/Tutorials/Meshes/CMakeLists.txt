@@ -18,7 +18,7 @@ foreach( target IN ITEMS ${CPP_EXAMPLES} )
 endforeach()
 add_custom_target( RunTutorialsMeshesExamples ALL DEPENDS ${CPP_OUTPUTS} )
 
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${CUDA_EXAMPLES} )
       # FIXME: zlib and tinyxml2 should be conditional, but the custom command fails without them anyway...
 #      cuda_add_executable( ${target} ${target}.cu )

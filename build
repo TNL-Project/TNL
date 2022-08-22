@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # exit as soon as there is an error
-set -e
+set -o errexit
+# abort when an unset variable is used
+set -o nounset
 
 # get the root directory (i.e. the directory where this script is located)
 ROOT_DIR="$( builtin cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -11,24 +13,22 @@ BUILD_JOBS=""
 VERBOSE=""
 OFFLINE_BUILD="no"
 INSTALL="no"
-PREFIX=${HOME}/.local
+PREFIX="$HOME/.local"
 CMAKE="cmake"
 CMAKE_ONLY="no"
 COMPILER="gcc"
-DCMTK_DIR="/usr/include/dcmtk"
 
-WITH_MPI="yes"
-WITH_CUDA="yes"
-WITH_CUDA_ARCH="auto"
-WITH_OPENMP="yes"
-WITH_GMP="no"
-WITH_CI_FLAGS="no"
-WITH_SYSTEM_GTEST="no"
+USE_MPI="yes"
+USE_CUDA="yes"
+CUDA_ARCH="auto"
+USE_OPENMP="yes"
+USE_GMP="no"
+USE_CI_FLAGS="no"
+USE_SYSTEM_GTEST="no"
 
 # flags affecting only tests
 RUN_TESTS="yes"   # whether to run tests if they were compiled (coverage script sets it to no)
 TESTS_JOBS="4"
-WITH_COVERAGE="no"
 
 # targets
 BUILD_BENCHMARKS="no"
@@ -36,14 +36,13 @@ BUILD_EXAMPLES="no"
 BUILD_TOOLS="no"
 BUILD_TESTS="no"
 BUILD_MATRIX_TESTS="no"
+BUILD_COVERAGE="no"
 BUILD_DOC="no"
 
 # external dependencies
-CUDA_SAMPLES_DIR=none
-
-if [[ x"$CUDA_SAMPLES_PATH" != "x" ]]; then
-   CUDA_SAMPLES_DIR=${CUDA_SAMPLES_PATH}
-fi
+DCMTK_DIR="/usr/include/dcmtk"
+# set default value to "none"
+CUDA_SAMPLES_DIR="${CUDA_SAMPLES_DIR:-none}"
 
 function print_usage()
 {
@@ -69,7 +68,7 @@ General options:
     --help                                Write this help list and exit.
     --verbose                             Enables verbose build.
     --install=yes/no                      Enables the installation of TNL files. '$INSTALL' by default.
-    --prefix=PATH                         Prefix for the installation directory. '$HOME/local' by default.
+    --prefix=PATH                         Prefix for the installation directory. '$PREFIX' by default.
 
 Options affecting all targets:
     --offline-build=yes/no                Disables online updates during the build. '$OFFLINE_BUILD' by default.
@@ -78,21 +77,21 @@ Options affecting all targets:
     --cmake=CMAKE                         Path to the cmake command. '$CMAKE' by default.
     --cmake-only=yes/no                   Run only the cmake command, don't actually build anything. '$CMAKE_ONLY' by default.
     --compiler=gcc/clang/icc              Selects the compiler to use. '$COMPILER' by default.
-    --dcmtk-dir=PATH                      Path to the DCMTK (Dicom Toolkit) root dir. '$DCMTK_DIR' by default.
-    --with-mpi=yes/no                     Enables MPI. '$WITH_MPI' by default (OpenMPI required).
-    --with-cuda=yes/no                    Enables CUDA. '$WITH_CUDA' by default (CUDA Toolkit is required).
-    --with-cuda-arch=all/auto/3.0/3.5/... Chooses CUDA architecture. '$WITH_CUDA_ARCH' by default.
-    --with-openmp=yes/no                  Enables OpenMP. '$WITH_OPENMP' by default.
-    --with-gmp=yes/no                     Enables the wrapper for GNU Multiple Precision Arithmetic Library. '$WITH_GMP' by default.
+    --use-mpi=yes/no                      Enables MPI. '$USE_MPI' by default (OpenMPI required).
+    --use-cuda=yes/no                     Enables CUDA. '$USE_CUDA' by default (CUDA Toolkit is required).
+    --cuda-arch=all/auto/3.0/3.5/...      Chooses CUDA architecture. '$CUDA_ARCH' by default.
+    --use-openmp=yes/no                   Enables OpenMP. '$USE_OPENMP' by default.
+    --use-gmp=yes/no                      Enables the wrapper for GNU Multiple Precision Arithmetic Library. '$USE_GMP' by default.
 
 Options for the 'tests' and 'matrix-tests' targets:
     --run-tests=yes/no                    Runs unit tests if they were compiled. '$RUN_TESTS' by default.
-    --tests-jobs=NUM                      Number of processes to be used for the unit tests. It is $TEST_JOBS by default.
-    --with-coverage=yes/no                Enables code coverage reports for unit tests (lcov is required). '$WITH_COVERAGE' by default.
-    --with-system-gtest=yes/no            Use GTest installed in the local system and do not download the latest version. '$WITH_SYSTEM_GTEST' by default.
+    --tests-jobs=NUM                      Number of processes to be used for the unit tests. It is $TESTS_JOBS by default.
+    --build-coverage=yes/no               Enables code coverage reports for unit tests (lcov is required). '$BUILD_COVERAGE' by default.
+    --use-system-gtest=yes/no             Use GTest installed in the local system and do not download the latest version. '$USE_SYSTEM_GTEST' by default.
 
 External dependencies:
-   --cuda-samples-path=PATH                CUDA samples are used by some reference algorithms used in benchmarks. '$CUDA_SAMPLES_PATH' by default.
+    --dcmtk-dir=PATH                      Path to the DCMTK (Dicom Toolkit) root dir. '$DCMTK_DIR' by default.
+    --cuda-samples-dir=PATH               CUDA samples are used by some reference algorithms used in benchmarks. '$CUDA_SAMPLES_DIR' by default.
 EOF
 }
 
@@ -117,18 +116,18 @@ for option in "$@"; do
         --cmake=*             ) CMAKE="${option#*=}" ;;
         --cmake-only=*        ) CMAKE_ONLY="${option#*=}" ;;
         --compiler=*          ) COMPILER="${option#*=}" ;;
-        --dcmtk-dir=*         ) DCMTK_DIR="${option#*=}" ;;
-        --with-mpi=*          ) WITH_MPI="${option#*=}" ;;
-        --with-cuda=*         ) WITH_CUDA="${option#*=}" ;;
-        --with-cuda-arch=*    ) WITH_CUDA_ARCH="${option#*=}";;
-        --with-openmp=*       ) WITH_OPENMP="${option#*=}" ;;
-        --with-gmp=*          ) WITH_GMP="${option#*=}" ;;
+        --use-mpi=*           ) USE_MPI="${option#*=}" ;;
+        --use-cuda=*          ) USE_CUDA="${option#*=}" ;;
+        --cuda-arch=*         ) CUDA_ARCH="${option#*=}";;
+        --use-openmp=*        ) USE_OPENMP="${option#*=}" ;;
+        --use-gmp=*           ) USE_GMP="${option#*=}" ;;
         --run-tests=*         ) RUN_TESTS="${option#*=}" ;;
         --tests-jobs=*        ) TESTS_JOBS="${option#*=}" ;;
-        --with-coverage=*     ) WITH_COVERAGE="${option#*=}" ;;
-        --with-ci-flags=*     ) WITH_CI_FLAGS="${option#*=}" ;;
-        --with-system-gtest=* ) WITH_SYSTEM_GTEST="${option#*=}" ;;
-        --cuda-samples-path=* ) CUDA_SAMPLES_DIR="${option#*=}" ;;
+        --build-coverage=*    ) BUILD_COVERAGE="${option#*=}" ;;
+        --use-ci-flags=*      ) USE_CI_FLAGS="${option#*=}" ;;
+        --use-system-gtest=*  ) USE_SYSTEM_GTEST="${option#*=}" ;;
+        --dcmtk-dir=*         ) DCMTK_DIR="${option#*=}" ;;
+        --cuda-samples-dir=*  ) CUDA_SAMPLES_DIR="${option#*=}" ;;
         -*                    )
             echo "Unknown option $option. Use --help for more information." >&2
             exit 1
@@ -202,26 +201,29 @@ fi
 BUILD_DIR="builddir/$BUILD"
 cmake_command=(
    "$CMAKE" -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator"
-         -DCMAKE_BUILD_TYPE=${BUILD}
-         -DCMAKE_INSTALL_PREFIX=${PREFIX}
-         -DDCMTK_DIR=${DCMTK_DIR}
-         -DOFFLINE_BUILD=${OFFLINE_BUILD}
-         -DWITH_CUDA=${WITH_CUDA}
-         -DWITH_CUDA_ARCH=${WITH_CUDA_ARCH}
-         -DWITH_OPENMP=${WITH_OPENMP}
-         -DWITH_MPI=${WITH_MPI}
-         -DWITH_GMP=${WITH_GMP}
-         -DWITH_COVERAGE=${WITH_COVERAGE}
-         -DWITH_CI_FLAGS=${WITH_CI_FLAGS}
-         -DWITH_SYSTEM_GTEST=${WITH_SYSTEM_GTEST}
-         -DBUILD_BENCHMARKS=${BUILD_BENCHMARKS}
-         -DBUILD_EXAMPLES=${BUILD_EXAMPLES}
-         -DBUILD_TOOLS=${BUILD_TOOLS}
-         -DBUILD_TESTS=${BUILD_TESTS}
-         -DBUILD_MATRIX_TESTS=${BUILD_MATRIX_TESTS}
-         -DBUILD_DOC=${BUILD_DOC}
-         -DCUDA_SAMPLES_DIR=${CUDA_SAMPLES_DIR}
+         -DCMAKE_BUILD_TYPE="$BUILD"
+         -DCMAKE_INSTALL_PREFIX="$PREFIX"
+         -DDCMTK_DIR="$DCMTK_DIR"
+         -DTNL_OFFLINE_BUILD="$OFFLINE_BUILD"
+         -DTNL_USE_CUDA="$USE_CUDA"
+         -DTNL_CUDA_ARCH="$CUDA_ARCH"
+         -DTNL_USE_OPENMP="$USE_OPENMP"
+         -DTNL_USE_MPI="$USE_MPI"
+         -DTNL_USE_GMP="$USE_GMP"
+         -DTNL_USE_CI_FLAGS="$USE_CI_FLAGS"
+         -DTNL_USE_SYSTEM_GTEST="$USE_SYSTEM_GTEST"
+         -DTNL_BUILD_BENCHMARKS="$BUILD_BENCHMARKS"
+         -DTNL_BUILD_EXAMPLES="$BUILD_EXAMPLES"
+         -DTNL_BUILD_TOOLS="$BUILD_TOOLS"
+         -DTNL_BUILD_TESTS="$BUILD_TESTS"
+         -DTNL_BUILD_MATRIX_TESTS="$BUILD_MATRIX_TESTS"
+         -DTNL_BUILD_COVERAGE="$BUILD_COVERAGE"
+         -DTNL_BUILD_DOC="$BUILD_DOC"
 )
+
+# handle CUDA_SAMPLES_DIR - only used for one benchmark, the CMakeLists.txt
+# expects it in the environment
+export CUDA_SAMPLES_DIR
 
 # Skip running cmake if it was already run and the cmake command is the same.
 # The build system (e.g. make) will call it automatically if necessary (e.g.
@@ -266,12 +268,12 @@ if [[ "$INSTALL" == "yes" ]]; then
    fi
 fi
 
-if [[ ${BUILD_DOC} == "yes" ]]; then
+if [[ "$BUILD_DOC" == "yes" ]]; then
    "$ROOT_DIR/Documentation/build" --prefix="$PREFIX" --install="$INSTALL" --output-snippets-path="$(pwd)/$BUILD_DIR/output_snippets/"
 fi
 
-if [[ ${BUILD_TESTS} == "yes" ]] || [[ ${BUILD_MATRIX_TESTS} == "yes" ]]; then
-   if [[ ${RUN_TESTS} == "yes" ]]; then
-      OMP_NUM_THREADS=${TESTS_JOBS} CTEST_PARALLEL_LEVEL=${TESTS_JOBS} CTEST_OUTPUT_ON_FAILURE=1 "$CMAKE" --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target test
+if [[ "$BUILD_TESTS" == "yes" ]] || [[ "$BUILD_MATRIX_TESTS" == "yes" ]]; then
+   if [[ "$RUN_TESTS" == "yes" ]]; then
+      OMP_NUM_THREADS="$TESTS_JOBS" CTEST_PARALLEL_LEVEL="$TESTS_JOBS" CTEST_OUTPUT_ON_FAILURE=1 "$CMAKE" --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target test
    fi
 fi

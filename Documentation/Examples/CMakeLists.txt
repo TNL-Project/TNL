@@ -27,7 +27,7 @@ set( HOST_EXAMPLES
    TimerExample
    TimerExampleLogger )
 
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${COMMON_EXAMPLES} ${CUDA_EXAMPLES} )
       cuda_add_executable( ${target} ${target}.cu )
       add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
@@ -53,7 +53,7 @@ foreach( target IN ITEMS ${HOST_EXAMPLES} )
    set( HOST_OUTPUTS ${HOST_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
 endforeach()
 
-IF( BUILD_CUDA )
+IF( TNL_BUILD_CUDA )
    ADD_CUSTOM_TARGET( RunExamples-cuda ALL DEPENDS ${CUDA_OUTPUTS} )
 ENDIF()
 ADD_CUSTOM_TARGET( RunExamples ALL DEPENDS ${HOST_OUTPUTS} )

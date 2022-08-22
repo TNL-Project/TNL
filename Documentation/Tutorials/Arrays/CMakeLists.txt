@@ -12,7 +12,7 @@ set( HOST_EXAMPLES
    StaticArrayExample
 )
 
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${CUDA_EXAMPLES} )
       cuda_add_executable( ${target} ${target}.cu )
       add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out

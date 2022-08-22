@@ -8,21 +8,21 @@ project( tnl )
 set( tnlVersion "0.1" )
 
 # declare all custom build options
-option(OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF)
-option(WITH_CUDA "Build with CUDA support" ON)
-set(WITH_CUDA_ARCH "auto" CACHE STRING "Build for these CUDA architectures")
-option(WITH_OPENMP "Build with OpenMP support" ON)
-option(WITH_MPI "Build with MPI support" ON)
-option(WITH_GMP "Build with GMP support" OFF)
-option(WITH_COVERAGE "Enable code coverage reports from unit tests" OFF)
-option(WITH_SYSTEM_GTEST "Use GTest installed in the local system and do not download the latest version" OFF)
-option(BUILD_BENCHMARKS "Compile the 'src/Benchmarks' directory" OFF)
-option(BUILD_EXAMPLES "Compile the 'src/Examples' directory" OFF)
-option(BUILD_TOOLS "Compile the 'src/Tools' directory" OFF)
-option(BUILD_TESTS "Build tests" OFF)
-option(BUILD_MATRIX_TESTS "Build tests for matrix formats" OFF)
-option(BUILD_DOC "Build examples included in the documentation" OFF)
-set(CUDA_SAMPLES_PATH "none" CACHE STRING "Path to CUDA Samples - it is used only for some benchmarking.")
+option( TNL_INSTALL_HEADERS "Install TNL header files" ON )
+option( TNL_USE_CUDA "Build with CUDA support" ON )
+set( TNL_CUDA_ARCH "auto" CACHE STRING "Build for these CUDA architectures" )
+option( TNL_USE_OPENMP "Build with OpenMP support" ON )
+option( TNL_USE_MPI "Build with MPI support" ON )
+option( TNL_USE_GMP "Build with GMP support" OFF )
+option( TNL_USE_SYSTEM_GTEST "Use GTest installed in the local system and do not download the latest version" OFF )
+option( TNL_BUILD_BENCHMARKS "Compile the 'src/Benchmarks' directory" OFF )
+option( TNL_BUILD_EXAMPLES "Compile the 'src/Examples' directory" OFF )
+option( TNL_BUILD_TOOLS "Compile the 'src/Tools' directory" OFF )
+option( TNL_BUILD_TESTS "Build tests" OFF )
+option( TNL_BUILD_MATRIX_TESTS "Build tests for matrix formats" OFF )
+option( TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF )
+option( TNL_BUILD_DOC "Build examples included in the documentation" OFF )
+option( TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF )
 
 # install paths relative to the cmake's prefix
 set( TNL_TARGET_INCLUDE_DIRECTORY "include/TNL" )
@@ -79,7 +79,7 @@ set( CMAKE_SHARED_LINKER_FLAGS "" )
 set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "-rdynamic" )
 set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "" )
 
-if( ${WITH_CI_FLAGS} )
+if( TNL_USE_CI_FLAGS )
    # enforce (more or less) warning-free builds
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=uninitialized" )
 endif()
@@ -111,7 +111,7 @@ endif()
 
 # enable address sanitizer (does not work with MPI due to many false positives, does not work with nvcc at all)
 if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-   if( NOT ${WITH_MPI} AND NOT ${WITH_CUDA} )
+   if( NOT TNL_USE_MPI AND NOT TNL_USE_CUDA )
       set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer" )
       set( CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG "${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG} -fsanitize=address -fsanitize=undefined" )
       set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address -fsanitize=undefined" )
@@ -147,7 +147,7 @@ endif()
 link_libraries( stdc++fs )
 
 # gtest has to be built before we add the MPI flags
-if( ${BUILD_TESTS} OR ${BUILD_MATRIX_TESTS} )
+if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
    enable_testing()
 
    # repeat failed tests to tolerate sporadic failures
@@ -156,7 +156,7 @@ if( ${BUILD_TESTS} OR ${BUILD_MATRIX_TESTS} )
    # let CTest write test results in the JUnit XML format
    set( CMAKE_CTEST_ARGUMENTS ${CMAKE_CTEST_ARGUMENTS} --output-junit "${CMAKE_BINARY_DIR}/tests-report.xml" )
 
-   if( ${WITH_SYSTEM_GTEST} OR ${OFFLINE_BUILD} )
+   if( TNL_USE_SYSTEM_GTEST OR TNL_OFFLINE_BUILD )
       # find gtest installed in the local system
       find_package(GTest REQUIRED)
       if( GTEST_FOUND )
@@ -166,11 +166,12 @@ if( ${BUILD_TESTS} OR ${BUILD_MATRIX_TESTS} )
       # build gtest libs
       include( BuildGtest )
    endif()
-   set( CXX_TESTS_FLAGS ${CXX_TESTS_FLAGS} -DHAVE_GTEST )
-   set( CUDA_TESTS_FLAGS ${CUDA_TESTS_FLAGS} -DHAVE_GTEST )
-   set( TESTS_LIBRARIES ${TESTS_LIBRARIES} ${GTEST_LIBRARIES} )
+   set( CXX_TESTS_FLAGS -DHAVE_GTEST )
+   set( CUDA_TESTS_FLAGS -DHAVE_GTEST )
+   set( TESTS_LIBRARIES ${GTEST_LIBRARIES} )
+   set( TESTS_LINKER_FLAGS "" )
 
-   if( ${WITH_COVERAGE} AND CMAKE_BUILD_TYPE STREQUAL "Debug" )
+   if( TNL_BUILD_COVERAGE AND CMAKE_BUILD_TYPE STREQUAL "Debug" )
       # set compiler flags needed for code coverage
       set( CXX_TESTS_FLAGS ${CXX_TESTS_FLAGS} --coverage )
       set( CUDA_TESTS_FLAGS ${CUDA_TESTS_FLAGS} -Xcompiler --coverage )
@@ -181,15 +182,15 @@ endif()
 ####
 # Check for OpenMP
 #
-if( OPENMP_FOUND AND ${WITH_OPENMP} )
+if( OPENMP_FOUND AND TNL_USE_OPENMP )
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_OPENMP ${OpenMP_CXX_FLAGS}" )
 endif()
 
 ####
 # Check for MPI
 #
-if( MPI_CXX_FOUND AND ${WITH_MPI} )
-   set( BUILD_MPI TRUE )
+if( MPI_CXX_FOUND AND TNL_USE_MPI )
+   set( TNL_BUILD_MPI TRUE )
    # NOTE: MPI will be added selectively to the targets that need/can utilize it
    # see https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
 endif()
@@ -197,10 +198,10 @@ endif()
 #####
 # Check for CUDA
 #
-if( ${WITH_CUDA} )
+if( TNL_USE_CUDA )
     find_package( CUDA 10.0 )
     if( CUDA_FOUND )
-        set( BUILD_CUDA TRUE)
+        set( TNL_BUILD_CUDA TRUE)
         set(CUDA_SEPARABLE_COMPILATION ON)
         # Use the CUDA_HOST_COMPILER environment variable if the user specified it.
         if( NOT $ENV{CUDA_HOST_COMPILER} STREQUAL "" )
@@ -226,7 +227,7 @@ if( ${WITH_CUDA} )
         # This diagnostic is just plain wrong in CUDA 9 and later, see https://github.com/kokkos/kokkos/issues/1470
         set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ; -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored)
         # nvcc 10 causes many invalid VLA errors in the host code
-        if( ${CUDA_VERSION_MAJOR} STREQUAL "10" )
+        if( CUDA_VERSION_MAJOR STREQUAL "10" )
            set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -Wno-vla )
         endif()
         # Select GPU architecture
@@ -234,22 +235,19 @@ if( ${WITH_CUDA} )
         ## see https://gitlab.kitware.com/cmake/cmake/issues/19636
         set( executable_suffix_backup "${CMAKE_EXECUTABLE_SUFFIX}" )
         set( CMAKE_EXECUTABLE_SUFFIX "" )
-        if( WITH_CUDA_ARCH STREQUAL "all" )
+        if( TNL_CUDA_ARCH STREQUAL "all" )
            CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS "All")
            LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
-        elseif( WITH_CUDA_ARCH STREQUAL "auto" )
+        elseif( TNL_CUDA_ARCH STREQUAL "auto" )
            CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS "Auto")
            LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
-        elseif( NOT WITH_CUDA_ARCH STREQUAL "" )
-            CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS ${WITH_CUDA_ARCH})
+        elseif( NOT TNL_CUDA_ARCH STREQUAL "" )
+            CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS ${TNL_CUDA_ARCH})
             LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
         else()
-            message( FATAL_ERROR "\$WITH_CUDA_ARCH cannot be empty." )
+            message( FATAL_ERROR "\$TNL_CUDA_ARCH cannot be empty." )
         endif()
         set( CMAKE_EXECUTABLE_SUFFIX "${executable_suffix_backup}" )
-    endif()
-    if( NOT CUDA_SAMPLES_DIR STREQUAL "none" )
-      set( CUDA_SAMPLES_FLAGS "-I${CUDA_SAMPLES_DIR} -DHAVE_CUDA_SAMPLES")
     endif()
 endif()
 
@@ -275,7 +273,7 @@ endif()
 ####
 # Test for GMP
 #
-if( ${WITH_GMP} )
+if( TNL_USE_GMP )
    if (GMP_INCLUDES AND GMP_LIBRARIES)
       set(GMP_FIND_QUIETLY TRUE)
    endif (GMP_INCLUDES AND GMP_LIBRARIES)
@@ -293,7 +291,7 @@ if( ${WITH_GMP} )
    include(FindPackageHandleStandardArgs)
    find_package_handle_standard_args(GMP DEFAULT_MSG
                                       GMP_INCLUDES GMP_LIBRARIES)
-   if( ${GMP_INCLUDES} STREQUAL "GMP_INCLUDES-NOTFOUND" OR ${GMP_LIBRARIES} STREQUAL "GMP_LIBRARIES-NOTFOUND" )
+   if( GMP_INCLUDES STREQUAL "GMP_INCLUDES-NOTFOUND" OR GMP_LIBRARIES STREQUAL "GMP_LIBRARIES-NOTFOUND" )
       message( "GMP was not found. Some tests for higher precision arithmetics will not be passed." )
    else()
       set( HAVE_GMP )
@@ -304,10 +302,10 @@ if( ${WITH_GMP} )
 endif()
 
 # skip building host-only targets in CUDA-enabled CI jobs
-if( DEFINED ENV{GITLAB_CI} AND BUILD_CUDA )
-   set( BUILD_CPP_TARGETS FALSE )
+if( DEFINED ENV{GITLAB_CI} AND TNL_BUILD_CUDA )
+   set( TNL_BUILD_CPP_TARGETS FALSE )
 else()
-   set( BUILD_CPP_TARGETS TRUE )
+   set( TNL_BUILD_CPP_TARGETS TRUE )
 endif()
 
 # configure build paths
@@ -320,7 +318,7 @@ include_directories( SYSTEM src/3rdparty )
 add_subdirectory( src )
 
 # Add subdirectories for examples included in the documentation
-if( ${BUILD_DOC} )
+if( TNL_BUILD_DOC )
    set( TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH "${PROJECT_BINARY_DIR}/output_snippets" )
    file(MAKE_DIRECTORY ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH})
    add_subdirectory( Documentation/Examples )
@@ -333,20 +331,21 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "" )
 
 # Print custom build options
 message( "-- Build options:" )
-message( "   OFFLINE_BUILD = ${OFFLINE_BUILD}" )
-message( "   WITH_CUDA = ${WITH_CUDA}" )
-message( "   WITH_CUDA_ARCH = ${WITH_CUDA_ARCH}" )
-message( "   WITH_OPENMP = ${WITH_OPENMP}" )
-message( "   WITH_MPI = ${WITH_MPI}" )
-message( "   WITH_GMP = ${WITH_GMP}" )
-message( "   WITH_COVERAGE = ${WITH_COVERAGE}" )
-message( "   WITH_SYSTEM_GTEST= ${WITH_SYSTEM_GTEST}" )
-message( "   BUILD_BENCHMARKS = ${BUILD_BENCHMARKS}" )
-message( "   BUILD_EXAMPLES = ${BUILD_EXAMPLES}" )
-message( "   BUILD_TOOLS = ${BUILD_TOOLS}" )
-message( "   BUILD_TESTS = ${BUILD_TESTS}" )
-message( "   BUILD_MATRIX_TESTS = ${BUILD_MATRIX_TESTS}" )
-message( "   BUILD_DOC = ${BUILD_DOC}" )
+message( "   TNL_INSTALL_HEADERS = ${TNL_INSTALL_HEADERS}" )
+message( "   TNL_USE_CUDA = ${TNL_USE_CUDA}" )
+message( "   TNL_CUDA_ARCH = ${TNL_CUDA_ARCH}" )
+message( "   TNL_USE_OPENMP = ${TNL_USE_OPENMP}" )
+message( "   TNL_USE_MPI = ${TNL_USE_MPI}" )
+message( "   TNL_USE_GMP = ${TNL_USE_GMP}" )
+message( "   TNL_USE_SYSTEM_GTEST= ${TNL_USE_SYSTEM_GTEST}" )
+message( "   TNL_BUILD_BENCHMARKS = ${TNL_BUILD_BENCHMARKS}" )
+message( "   TNL_BUILD_EXAMPLES = ${TNL_BUILD_EXAMPLES}" )
+message( "   TNL_BUILD_TOOLS = ${TNL_BUILD_TOOLS}" )
+message( "   TNL_BUILD_TESTS = ${TNL_BUILD_TESTS}" )
+message( "   TNL_BUILD_MATRIX_TESTS = ${TNL_BUILD_MATRIX_TESTS}" )
+message( "   TNL_BUILD_COVERAGE = ${TNL_BUILD_COVERAGE}" )
+message( "   TNL_BUILD_DOC = ${TNL_BUILD_DOC}" )
+message( "   TNL_OFFLINE_BUILD = ${TNL_OFFLINE_BUILD}" )
 # Print compiler options
 message( "-- Compiler options:" )
 message( "   CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}" )
@@ -362,10 +361,9 @@ message( "   CMAKE_SHARED_LINKER_FLAGS = ${CMAKE_SHARED_LINKER_FLAGS}" )
 message( "   CMAKE_SHARED_LINKER_FLAGS_DEBUG = ${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
 message( "   CMAKE_SHARED_LINKER_FLAGS_RELEASE = ${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" )
 message( "   CUDA_NVCC_FLAGS = ${CUDA_NVCC_FLAGS}" )
-message( "   CUDA_SAMPLES_FLAGS = ${CUDA_SAMPLES_FLAGS}" )
 message( "   GMP_LIBRARIES = ${GMP_LIBRARIES}" )
 
-if( MPI_CXX_FOUND AND ${WITH_MPI} )
+if( MPI_CXX_FOUND AND TNL_USE_MPI )
    message( "   MPI_CXX_COMPILE_OPTIONS = ${MPI_CXX_COMPILE_OPTIONS}" )
    message( "   MPI_CXX_COMPILE_DEFINITIONS = ${MPI_CXX_COMPILE_DEFINITIONS}" )
    message( "   MPI_CXX_INCLUDE_DIRS = ${MPI_CXX_INCLUDE_DIRS}" )

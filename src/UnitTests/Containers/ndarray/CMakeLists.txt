@@ -1,6 +1,6 @@
 set( CPP_TESTS  NDSubarrayTest SlicedNDArrayTest StaticNDArrayTest )
 set( CUDA_TESTS  StaticNDArrayCudaTest )
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    set( CUDA_TESTS  ${CUDA_TESTS} NDArrayTest )
 else()
    set( CPP_TESTS  ${CPP_TESTS} NDArrayTest )
@@ -14,7 +14,7 @@ foreach( target IN ITEMS ${CPP_TESTS} )
    add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
 endforeach()
 
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${CUDA_TESTS} )
       cuda_add_executable( ${target} ${target}.cu OPTIONS ${CUDA_TESTS_FLAGS} )
       target_link_libraries( ${target} ${TESTS_LIBRARIES} )
@@ -23,14 +23,14 @@ if( BUILD_CUDA )
    endforeach()
 endif()
 
-if( ${BUILD_MPI} )
+if( TNL_BUILD_MPI )
    set( MPI_TESTS
             DistributedNDArray_1D_test
             DistributedNDArray_semi1D_test
             DistributedNDArrayOverlaps_1D_test
             DistributedNDArrayOverlaps_semi1D_test
    )
-   if( BUILD_CUDA )
+   if( TNL_BUILD_CUDA )
       foreach( target IN ITEMS ${MPI_TESTS} )
          cuda_add_executable( ${target} ${target}.cu OPTIONS ${CUDA_TESTS_FLAGS} )
       endforeach()

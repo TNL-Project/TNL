@@ -17,7 +17,7 @@ set( MESH_TOOLS
          tnl-test-distributed-mesh
 )
 set( CUDA_MESH_TOOLS )
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    set( CUDA_MESH_TOOLS  ${CUDA_MESH_TOOLS} tnl-test-distributed-mesh )
 endif()
 
@@ -35,7 +35,7 @@ set( MPI_TOOLS
 )
 
 # skip building host-only targets in CUDA-enabled CI jobs
-if( NOT BUILD_CPP_TARGETS )
+if( NOT TNL_BUILD_CPP_TARGETS )
    set( MESH_TOOLS )
    set( MPI_TOOLS )
    set( CGAL_TOOLS )
@@ -65,7 +65,7 @@ foreach( target IN ITEMS ${MESH_TOOLS} )
    install( TARGETS ${target} DESTINATION bin )
 endforeach()
 
-if( BUILD_MPI )
+if( TNL_BUILD_MPI )
    foreach( target IN ITEMS ${MPI_TOOLS} )
       # enable MPI support in TNL
       target_compile_definitions( ${target} PUBLIC "-DHAVE_MPI" )
@@ -87,7 +87,7 @@ endif()
 
 # skip building host-only targets in CUDA-enabled CI jobs
 find_package( METIS QUIET )
-if( BUILD_CPP_TARGETS AND METIS_FOUND )
+if( TNL_BUILD_CPP_TARGETS AND METIS_FOUND )
    add_executable( tnl-decompose-mesh tnl-decompose-mesh.cpp )
    target_include_directories( tnl-decompose-mesh PUBLIC ${METIS_INCLUDE_DIRS} )
    target_link_libraries( tnl-decompose-mesh ${METIS_LIBRARIES} )
@@ -104,14 +104,14 @@ if( BUILD_CPP_TARGETS AND METIS_FOUND )
 endif()
 
 
-IF( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    cuda_add_executable( tnl-cuda-arch tnl-cuda-arch.cu )
    install( TARGETS tnl-cuda-arch DESTINATION bin )
-ENDIF()
+endif()
 
 
 # skip building host-only targets in CUDA-enabled CI jobs
-if( BUILD_CPP_TARGETS )
+if( TNL_BUILD_CPP_TARGETS )
    add_executable( tnl-grid-setup tnl-grid-setup.cpp )
 
    add_executable( tnl-image-converter tnl-image-converter.cpp )

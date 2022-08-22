@@ -1,6 +1,6 @@
 set( CPP_TESTS  UniquePointerTest SharedPointerHostTest )
 set( CUDA_TESTS )
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    set( CUDA_TESTS  ${CUDA_TESTS} SharedPointerCudaTest DevicePointerCudaTest )
 endif()
 
@@ -12,7 +12,7 @@ foreach( target IN ITEMS ${CPP_TESTS} )
    add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
 endforeach()
 
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${CUDA_TESTS} )
       cuda_add_executable( ${target} ${target}.cu OPTIONS ${CUDA_TESTS_FLAGS} )
       target_link_libraries( ${target} ${TESTS_LIBRARIES} )

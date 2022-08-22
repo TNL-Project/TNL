@@ -1,4 +1,4 @@
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
 #   cuda_add_executable( tnl-benchmark-heat-equation-cuda tnl-benchmark-heat-equation.cu )
    cuda_add_executable( tnl-benchmark-simple-heat-equation-cuda tnl-benchmark-simple-heat-equation.cu )
 
@@ -9,7 +9,7 @@ if( BUILD_CUDA )
 endif()
 
 # skip building host-only targets in CUDA-enabled CI jobs
-if( BUILD_CPP_TARGETS )
+if( TNL_BUILD_CPP_TARGETS )
 #   add_executable( tnl-benchmark-heat-equation tnl-benchmark-heat-equation.cpp )
    add_executable( tnl-benchmark-simple-heat-equation tnl-benchmark-simple-heat-equation.cpp )
 

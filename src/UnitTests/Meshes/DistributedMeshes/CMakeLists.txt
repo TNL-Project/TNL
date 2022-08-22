@@ -18,7 +18,7 @@ ADD_TEST( NAME DirectionsTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Directio
 ADD_TEST( NAME CopyEntitesTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CopyEntitesTest${CMAKE_EXECUTABLE_SUFFIX} )
 #ADD_TEST( NAME CutMeshFunctionTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutMeshFunctionTest${CMAKE_EXECUTABLE_SUFFIX} )
 
-if( BUILD_MPI )
+if( TNL_BUILD_MPI )
    ADD_EXECUTABLE( DistributedGridTest_1D DistributedGridTest_1D.cpp )
    TARGET_COMPILE_OPTIONS( DistributedGridTest_1D PRIVATE ${CXX_TESTS_FLAGS} )
    TARGET_LINK_LIBRARIES( DistributedGridTest_1D ${TESTS_LIBRARIES} )
@@ -44,7 +44,7 @@ if( BUILD_MPI )
 #   TARGET_LINK_LIBRARIES( CutDistributedMeshFunctionTest ${TESTS_LIBRARIES} )
 #   target_link_options( CutDistributedMeshFunctionTest PRIVATE ${TESTS_LINKER_FLAGS} )
 
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    cuda_add_executable( DistributedMeshTest DistributedMeshTest.cu OPTIONS ${CUDA_TESTS_FLAGS})
 else()
    add_executable( DistributedMeshTest DistributedMeshTest.cpp )

@@ -18,7 +18,7 @@ set( CPP_TESTS  AssertTest
                 TimerTest
                 TypeInfoTest )
 set( CUDA_TESTS  AssertCudaTest )
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    set( CUDA_TESTS  ${CUDA_TESTS} AllocatorsTest FileTest )
 else()
    set( CPP_TESTS  ${CPP_TESTS} AllocatorsTest FileTest )
@@ -32,7 +32,7 @@ foreach( target IN ITEMS ${CPP_TESTS} )
    add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
 endforeach()
 
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${CUDA_TESTS} )
       cuda_add_executable( ${target} ${target}.cu OPTIONS ${CUDA_TESTS_FLAGS} )
       target_link_libraries( ${target} ${TESTS_LIBRARIES} )
@@ -56,10 +56,10 @@ if( ZLIB_FOUND )
 endif()
 
 
-if( ${BUILD_MPI} )
+if( TNL_BUILD_MPI )
    find_package(Hypre)
 
-   if( ${HYPRE_FOUND} )
+   if( HYPRE_FOUND )
       foreach( target IN ITEMS HypreTest )
          add_executable( ${target} ${target}.cpp )
 

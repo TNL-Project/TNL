@@ -39,7 +39,7 @@ set( CPP_TESTS
             StaticMatrixTest
 )
 set( CUDA_TESTS )
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    set( CUDA_TESTS  ${CUDA_TESTS} ${COMMON_TESTS} )
 else()
    set( CPP_TESTS  ${CPP_TESTS} ${COMMON_TESTS} )
@@ -53,7 +53,7 @@ foreach( target IN ITEMS ${CPP_TESTS} )
    add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
 endforeach()
 
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${CUDA_TESTS} )
       cuda_add_executable( ${target} ${target}.cu OPTIONS ${CUDA_TESTS_FLAGS} )
       target_link_libraries( ${target} ${TESTS_LIBRARIES} )
@@ -62,8 +62,8 @@ if( BUILD_CUDA )
    endforeach()
 endif()
 
-if( ${BUILD_MPI} )
-   if( BUILD_CUDA )
+if( TNL_BUILD_MPI )
+   if( TNL_BUILD_CUDA )
       CUDA_ADD_EXECUTABLE( DistributedMatrixTest DistributedMatrixTest.cu
                            OPTIONS ${CUDA_TESTS_FLAGS} )
    else()

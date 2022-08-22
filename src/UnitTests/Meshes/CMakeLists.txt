@@ -5,8 +5,7 @@ TARGET_COMPILE_OPTIONS( EntityTagsTest PRIVATE ${CXX_TESTS_FLAGS} )
 TARGET_LINK_LIBRARIES( EntityTagsTest ${TESTS_LIBRARIES} )
 target_link_options( EntityTagsTest PRIVATE ${TESTS_LINKER_FLAGS} )
 
-# Mesh cannot be compiled by nvcc < 9 due to bugs in the compiler
-if( ${BUILD_CUDA} AND ${CUDA_VERSION_MAJOR} GREATER_EQUAL 9 )
+if( TNL_BUILD_CUDA )
    CUDA_ADD_EXECUTABLE( MeshTest MeshTest.cu
                         OPTIONS ${CUDA_TESTS_FLAGS} )
    TARGET_LINK_LIBRARIES( MeshTest ${TESTS_LIBRARIES} )

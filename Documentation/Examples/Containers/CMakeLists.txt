@@ -12,7 +12,7 @@ set( MPI_COMMON_EXAMPLES
 
 SET( mpirun_parameters -np 4 -H localhost:4 )
 
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${COMMON_EXAMPLES} )
       cuda_add_executable( ${target} ${target}.cu )
       add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
@@ -20,7 +20,7 @@ if( BUILD_CUDA )
                           DEPENDS ${target} )
       set( CUDA_OUTPUTS ${CUDA_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
    endforeach()
-   if( ${BUILD_MPI} )
+   if( TNL_BUILD_MPI )
       foreach( target IN ITEMS ${MPI_COMMON_EXAMPLES} )
          cuda_add_executable( ${target} ${target}.cu )
          add_custom_command( COMMAND "mpirun" ${mpirun_parameters} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
@@ -37,7 +37,7 @@ else()
                           DEPENDS ${target} )
       set( HOST_OUTPUTS ${HOST_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
    endforeach()
-   if( ${BUILD_MPI} )
+   if( TNL_BUILD_MPI )
       foreach( target IN ITEMS ${MPI_COMMON_EXAMPLES} )
          add_executable( ${target} ${target}.cpp )
          add_custom_command( COMMAND "mpirun" ${mpirun_parameters} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
@@ -48,7 +48,7 @@ else()
    endif()
 endif()
 
-IF( BUILD_CUDA )
+IF( TNL_BUILD_CUDA )
    ADD_CUSTOM_TARGET( RunContainersExamples ALL DEPENDS ${CUDA_OUTPUTS} )
 ELSE()
    ADD_CUSTOM_TARGET( RunContainersExamples ALL DEPENDS ${HOST_OUTPUTS} )
