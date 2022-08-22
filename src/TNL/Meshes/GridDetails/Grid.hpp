@@ -58,8 +58,6 @@ Grid( Dimensions... dimensions )
    proportions = zeroPoint;
    spaceSteps = zeroPoint;
    origin = zeroPoint;
-   fillNormals();
-   fillEntitiesCount();
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
@@ -72,8 +70,6 @@ Grid( const CoordinatesType& dimensions )
    proportions = zeroPoint;
    spaceSteps = zeroPoint;
    origin = zeroPoint;
-   fillNormals();
-   fillEntitiesCount();
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
@@ -97,6 +93,7 @@ Grid< Dimension_, Real, Device, Index >::setDimensions( Dimensions... dimensions
 
    TNL_ASSERT_GE( this->dimensions, CoordinatesType( 0 ), "Dimension must be positive" );
 
+   fillNormals();
    fillEntitiesCount();
    fillSpaceSteps();
 }
@@ -109,6 +106,7 @@ Grid< Dimension_, Real, Device, Index >::setDimensions( const typename Grid< Dim
 
    TNL_ASSERT_GE( this->dimensions, CoordinatesType( 0 ), "Dimension must be positive" );
 
+   fillNormals();
    fillEntitiesCount();
    fillSpaceSteps();
 }
