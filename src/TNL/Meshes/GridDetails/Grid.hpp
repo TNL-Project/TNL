@@ -260,6 +260,34 @@ Grid< Dimension_, Real, Device, Index >::getOrientation( const CoordinatesType& 
    return -1;
 }
 
+template< int Dimension_, typename Real, typename Device, typename Index >
+template< int EntityDimension >
+__cuda_callable__
+auto
+Grid< Dimension_, Real, Device, Index >::
+getEntityCoordinates( IndexType entityIdx, CoordinatesType& entityNormals, Index& orientation ) const noexcept -> CoordinatesType
+{
+   orientation = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   const Index end = orientation + this->getEntityOrientationsCount( EntityDimension );
+   auto entityIdx_( entityIdx );
+   while( orientation < end && entityIdx_ >= this->entitiesCountAlongNormals[ orientation ] )
+   {
+      entityIdx_ -= this->entitiesCountAlongNormals[ orientation ];
+      orientation++;
+   }
+
+   entityNormals = this->normals[ orientation ];
+   const CoordinatesType dims = this->getDimensions() + entityNormals;
+   CoordinatesType entityCoordinates( 0 );
+   int idx = 0;
+   IndexType base = dims[ idx ];
+   while( idx < this->getMeshDimension() - 1 ) {
+      entityCoordinates[ idx ] = entityIdx % dims[ idx ];
+      entityIdx /= dims[ idx++ ];
+   }
+   entityCoordinates[ idx ] = entityIdx % dims[ idx ];
+   return entityCoordinates;
+}
 
 template< int Dimension_, typename Real, typename Device, typename Index >
 template< int EntityDimension,
@@ -564,17 +592,27 @@ getEntity( const CoordinatesType& coordinates ) const -> EntityType< EntityDimen
    return EntityType< EntityDimension >( *this, coordinates );
 }
 
-/*template< int Dimension_, typename Real, typename Device, typename Index >
+template< int Dimension_, typename Real, typename Device, typename Index >
    template< typename EntityType >
 EntityType
 Grid< Dimension_, Real, Device, Index >::
 getEntity( const IndexType& entityIdx ) const
 {
-   static_assert( EntityDimension <= getMeshDimension(), "Entity dimension must be lower or equal to grid dimension." );
+   static_assert( EntityType::getEntityDimension() <= getMeshDimension(), "Entity dimension must be lower or equal to grid dimension." );
    return EntityType( *this, entityIdx );
 };
 
 template< int Dimension_, typename Real, typename Device, typename Index >
+   template< int EntityDimension >
+auto
+Grid< Dimension_, Real, Device, Index >::
+getEntity( const IndexType& entityIdx ) const -> EntityType< EntityDimension >
+{
+   static_assert( EntityDimension <= getMeshDimension(), "Entity dimension must be lower or equal to grid dimension." );
+   return EntityType< EntityDimension >( *this, entityIdx );
+};
+
+/*template< int Dimension_, typename Real, typename Device, typename Index >
    template< int EntityDimension >
 auto
 Grid< Dimension_, Real, Device, Index >::

@@ -57,7 +57,7 @@ template< class Grid, int EntityDimension >
 __cuda_callable__
 GridEntity< Grid, EntityDimension >::
 GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals )
-: grid( grid ), coordinates( coordinates ), normals( normals ), 
+: grid( grid ), coordinates( coordinates ), normals( normals ),
    orientation( grid.template getOrientation< EntityDimension >( normals ) )
 {
    this->refresh();
@@ -66,7 +66,16 @@ GridEntity( const Grid& grid, const CoordinatesType& coordinates, const Coordina
 template< class Grid, int EntityDimension >
 __cuda_callable__
 GridEntity< Grid, EntityDimension >::
-GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals, 
+GridEntity( const Grid& grid, const IndexType& entityIdx )
+: grid( grid ), index( entityIdx )
+{
+   this->coordinates = grid.template getEntityCoordinates< EntityDimension >( entityIdx, this->normals, this->orientation );
+}
+
+template< class Grid, int EntityDimension >
+__cuda_callable__
+GridEntity< Grid, EntityDimension >::
+GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals,
    const IndexType orientation )
 : grid( grid ), coordinates( coordinates ), normals( normals ), orientation( orientation )
 {
@@ -241,13 +250,13 @@ GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& 
 template< class Grid, int EntityDimension >
 auto GridEntity< Grid, EntityDimension >::
 getPoint() const -> PointType
-{ 
-   return this->grid.getSpaceSteps() * this->getCoordinates(); 
+{
+   return this->grid.getSpaceSteps() * this->getCoordinates();
 }
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-const Grid& 
+const Grid&
 GridEntity< Grid, EntityDimension >::
 getGrid() const
 {

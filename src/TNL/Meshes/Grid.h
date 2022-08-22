@@ -221,8 +221,8 @@ public:
    __cuda_callable__
    Index getEntitiesCount() const noexcept;
 
-   template< typename EntityType,
-             std::enable_if_t< Templates::isInClosedInterval( 0, EntityType::getEntityDimension(), Dimension_ ), bool > = true >
+   template< typename Entity,
+             std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension_ ), bool > = true >
    __cuda_callable__
    Index getEntitiesCount() const noexcept;
 
@@ -331,6 +331,11 @@ public:
    __cuda_callable__
    IndexType
    getOrientation( const CoordinatesType& normals ) const noexcept;
+
+   template< int EntityDimension >
+   __cuda_callable__
+   CoordinatesType
+   getEntityCoordinates( IndexType entityIdx, CoordinatesType& normals, Index& coordination ) const noexcept;
 
    /**
     * \brief Sets the origin and proportions of this grid.
@@ -468,11 +473,20 @@ public:
 
    template< typename EntityType >
    __cuda_callable__
+   EntityType getEntity( const IndexType& entityIdx ) const;
+
+   template< typename EntityType >
+   __cuda_callable__
    EntityType getEntity( const CoordinatesType& coordinates ) const;
 
    template< int EntityDimension >
    __cuda_callable__
+   EntityType< EntityDimension > getEntity( const IndexType& entityIdx ) const;
+
+   template< int EntityDimension >
+   __cuda_callable__
    EntityType< EntityDimension > getEntity( const CoordinatesType& coordinates ) const;
+
 
    /**
     * \brief Gets entity index using entity type.

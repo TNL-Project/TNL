@@ -134,6 +134,15 @@ public:
       const IndexType orientation );
 
    /**
+    * \brief Constructor with a grid reference and grid entity index.
+    *
+    * \param grid is a reference on a grid the entity belongs to.
+    * \param entityIdx is index of the grid entity.
+    */
+   __cuda_callable__
+   GridEntity( const Grid& grid, const IndexType& entityIdx );
+
+   /**
     * \brief Getter of the grid entity coordinates for constant instances.
     *
     * \return grid entity coordinates in a form of constant reference.
