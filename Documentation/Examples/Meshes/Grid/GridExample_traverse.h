@@ -42,7 +42,7 @@ void traverseGrid()
    VectorType vertexes( grid.template getEntitiesCount< 0 >(), 0.0 );
 
    /***
-    * Prepare views for the data at thr grid entities so that we can
+    * Prepare views for the data at the grid entities so that we can
     * manipulate them in lambda functions runnig eventually on GPU.
     */
    auto cells_view = cells.getView();

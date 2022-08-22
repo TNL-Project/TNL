@@ -1,7 +1,7 @@
 set( COMMON_EXAMPLES
    GridExample_constructor-1
    GridExample_constructor-2
-   GridExample_traverse-1
+   GridExample_traverse
    GridExample_writer
 )
 
