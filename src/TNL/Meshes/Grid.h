@@ -141,6 +141,11 @@ public:
              std::enable_if_t< sizeof...( Dimensions ) == Dimension_, bool > = true >
    Grid( Dimensions... dimensions );
 
+   /**
+    * \brief Grid constructor with grid dimensions given as \ref TNL::Meshes::Grid::CoordinatesType.
+    *
+    * \param dimensions are dimensions along particular axes of the grid.
+    */
    Grid( const CoordinatesType& dimensions );
 
    /**
@@ -221,6 +226,13 @@ public:
    __cuda_callable__
    Index getEntitiesCount() const noexcept;
 
+   /**
+    * \brief Returns number of entities of specific entity type as a template parameter.
+    *
+    * \tparam Entity is type of grid entities to be counted.
+    *
+    * \return Number of grid entities with given dimension.
+    */
    template< typename Entity,
              std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension_ ), bool > = true >
    __cuda_callable__
@@ -327,15 +339,34 @@ public:
    CoordinatesType
    getBasis( Index orientation ) const noexcept;
 
+   /**
+    * \brief Computes orientation index of a grid entity based on normals.
+    *
+    * \tparam EntityDimension is dimension of the grid entity.
+    * \param normals defines the orientation of an entity.
+    * \return index of grid entity orientation.
+    */
    template< int EntityDimension >
    __cuda_callable__
    IndexType
    getOrientation( const CoordinatesType& normals ) const noexcept;
 
+   /**
+    * \brief Computes coordinates of a grid entity based on an index of the entity.
+    *
+    * Remark: Computation of grid coordinates and its orientation based on the grid entity index
+    *  is **highly inefficient** and it should not be used at critical parts of algorithms.
+    *
+    * \tparam EntityDimension is dimension of an entity.
+    * \param entityIdx is an index of the entity.
+    * \param normals this parameter is filled with the grid entity orientation in a form of normals.
+    * \param orientation is an index of the grid entity orientation.
+    * \return coordinates of the grid entity.
+    */
    template< int EntityDimension >
    __cuda_callable__
    CoordinatesType
-   getEntityCoordinates( IndexType entityIdx, CoordinatesType& normals, Index& coordination ) const noexcept;
+   getEntityCoordinates( IndexType entityIdx, CoordinatesType& normals, Index& orientation ) const noexcept;
 
    /**
     * \brief Sets the origin and proportions of this grid.
@@ -409,7 +440,7 @@ public:
    /**
     * \brief Returns product of given space steps powers.
     *
-    * For example in 3D grid if powers are \f[ 1, 2, 3 \f] rthe methods returns \f[ h_x^1 \cdot h_y^2 \cdot h_z^3\f].
+    * For example in 3D grid if powers are \f$ 1, 2, 3 \f$ the methods returns \f$ h_x^1 \cdot h_y^2 \cdot h_z^3\f$.
     *
     * \tparam Powers is a pack of template types.
     * \param[in] powers is a pack of numbers telling power of particular space steps.
@@ -425,7 +456,7 @@ public:
    /**
     * \brief Returns product of space steps powers.
     *
-    * For example in 3D grid if powers are \f[ 1, 2, 3 \f] rthe methods returns \f[ h_x^1 \cdot h_y^2 \cdot h_z^3\f].
+    * For example in 3D grid if powers are \f$ 1, 2, 3 \f$ the methods returns \f$ h_x^1 \cdot h_y^2 \cdot h_z^3\f$.
     *
     * \param[in] powers is vector of numbers telling power of particular space steps.
     * \return product of given space steps powers.
@@ -443,7 +474,7 @@ public:
     *
     * The powers can be only integers.
     *
-    * For example in 3D grid if powers are \f[ 1, 2, 3 \f] rthe methods returns \f[ h_x^1 \cdot h_y^2 \cdot h_z^3\f].
+    * For example in 3D grid if powers are \f$ 1, 2, 3 \f$ the methods returns \f$ h_x^1 \cdot h_y^2 \cdot h_z^3\f$.
     *
     * \tparam Powers is a pack of indexes.
     * \return product of given space steps powers.
@@ -471,18 +502,58 @@ public:
    const PointType&
    getProportions() const noexcept;
 
+   /**
+    * \brief Grid entity getter based on entity type and entity index.
+    *
+    * Remark: Computation of grid coordinates and its orientation based on the grid entity index
+    *  is **highly inefficient** and it should not be used at critical parts of algorithms.
+    *
+    * \tparam EntityType is type of the grid entity.
+    * \param entityIdx is index of the grid entity.
+    * \return grid entity of given type.
+    */
    template< typename EntityType >
    __cuda_callable__
    EntityType getEntity( const IndexType& entityIdx ) const;
 
+   /**
+    * \brief Grid entity getter based on entity type and entity coordinates.
+    *
+    * Grid entity orientation is set to the default value. This is especially no problem in
+    * case of cells and vertexes.
+    *
+    * \tparam EntityType is type of the grid entity.
+    * \param coordinates are coordinates of the grid entity.
+    * \return grid entity of given type.
+    */
    template< typename EntityType >
    __cuda_callable__
    EntityType getEntity( const CoordinatesType& coordinates ) const;
 
+   /**
+    * \brief Grid entity getter based on entity dimension and entity index.
+    *
+    * Remark: Computation of grid coordinates and its orientation based on the grid entity index
+    *  is **highly inefficient** and it should not be used at critical parts of algorithms.
+    *
+    * \tparam EntityDimension is dimension of the grid entity.
+    * \param entityIdx is index of the grid entity.
+    * \return grid entity of given type.
+    */
    template< int EntityDimension >
    __cuda_callable__
    EntityType< EntityDimension > getEntity( const IndexType& entityIdx ) const;
 
+   /**
+    * \brief Grid entity getter based on entity dimension and entity coordinates.
+    *
+    * Grid entity orientation is set to the default value. This is especially no problem in
+    * case of cells and vertexes.
+    *
+    * \tparam EntityDimension is dimension of the grid entity.
+    * \param coordinates are coordinates of the grid entity.
+    * \return grid entity of given type.
+    */
    template< int EntityDimension >
    __cuda_callable__
    EntityType< EntityDimension > getEntity( const CoordinatesType& coordinates ) const;
