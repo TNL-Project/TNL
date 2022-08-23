@@ -3,12 +3,21 @@
 # cmake 3.13 is required for add_link_options
 cmake_minimum_required( VERSION 3.13 )
 
-project( tnl )
+project( TNL )
 
 set( tnlVersion "0.1" )
 
+# check if TNL is being used directly or via add_subdirectory
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+   set( TNL_TOP_LEVEL_PROJECT ON )
+   set( TNL_SYSTEM "" )
+else()
+   set( TNL_TOP_LEVEL_PROJECT OFF )
+   set( TNL_SYSTEM SYSTEM )
+endif()
+
 # declare all custom build options
-option( TNL_INSTALL_HEADERS "Install TNL header files" ON )
+option( TNL_INSTALL_HEADERS "Install TNL header files" ${TNL_TOP_LEVEL_PROJECT} )
 option( TNL_USE_CUDA "Build with CUDA support" ON )
 set( TNL_CUDA_ARCH "auto" CACHE STRING "Build for these CUDA architectures" )
 option( TNL_USE_OPENMP "Build with OpenMP support" ON )
@@ -24,9 +33,16 @@ option( TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF )
 option( TNL_BUILD_DOC "Build examples included in the documentation" OFF )
 option( TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF )
 
+# make cache variables for install destinations
+include(GNUInstallDirs)
+
 # install paths relative to the cmake's prefix
-set( TNL_TARGET_INCLUDE_DIRECTORY "include/TNL" )
-set( TNL_TARGET_DATA_DIRECTORY "share/TNL" )
+set( TNL_TARGET_DATA_DIRECTORY "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}" )
+set( TNL_TARGET_CMAKE_DIRECTORY "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}" )
+
+# configure build paths
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib )
 
 # set cmake's include path so that we can include modules from
 # the cmake directory in the TNL repository
@@ -114,11 +130,9 @@ if( NOT DEFINED ENV{GITLAB_CI} )
    if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
       # LTO with GCC 9.1.0 and Debug build = internal compiler error
       # LTO with GCC 9.1.0 and nvcc 10.1 and Release build = fatal error: bytecode stream in file `blabla` generated with LTO version 7.1 instead of the expected 8.0
-#      add_compile_options( "-flto" )
-#      add_link_options( "-flto" )
+#      set( CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE )
    elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-      add_compile_options( "-flto=thin" )
-      add_link_options( "-flto=thin" )
+      set( CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE )
    endif()
 endif()
 
@@ -126,12 +140,62 @@ endif()
 if( DEFINED ENV{GITLAB_CI} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
    message(STATUS "Continuous integration or Ninja detected -- forcing compilers to produce colorized output.")
    if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-      set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics" )
+      set( TNL_COLOR_DIAGNOSTICS_FLAG "-fcolor-diagnostics" )
    elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
-      set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color" )
+      set( TNL_COLOR_DIAGNOSTICS_FLAG "-fdiagnostics-color" )
    endif()
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TNL_COLOR_DIAGNOSTICS_FLAG}" )
 endif()
 
+# skip building host-only targets in CUDA-enabled CI jobs
+if( DEFINED ENV{GITLAB_CI} AND TNL_BUILD_CUDA )
+   set( TNL_BUILD_CPP_TARGETS FALSE )
+else()
+   set( TNL_BUILD_CPP_TARGETS TRUE )
+endif()
+
+# make cache variable so it can be used in downstream projects
+set( TNL_INCLUDE_DIRS
+     "${CMAKE_CURRENT_LIST_DIR}/src"
+     CACHE INTERNAL "Directories where TNL headers are located" )
+
+# create the exported targets
+add_library( TNL INTERFACE )
+add_library( TNL_CXX INTERFACE )
+add_library( TNL_CUDA INTERFACE )
+# aliases to match exported targets
+add_library( TNL::TNL ALIAS TNL )
+add_library( TNL::TNL_CXX ALIAS TNL_CXX )
+add_library( TNL::TNL_CUDA ALIAS TNL_CUDA )
+# add dependencies between the exported targets
+target_link_libraries( TNL_CXX INTERFACE TNL )
+target_link_libraries( TNL_CUDA INTERFACE TNL )
+
+# add the include directory to the interface
+target_include_directories( TNL ${TNL_SYSTEM}
+                            INTERFACE $<BUILD_INTERFACE:${TNL_INCLUDE_DIRS}>
+                                      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> )
+# add compiler features to the interface
+target_compile_features( TNL INTERFACE cxx_std_14 )
+# add some compiler flags to the interface
+target_compile_options( TNL INTERFACE
+                        ${TNL_COLOR_DIAGNOSTICS_FLAG} )
+
+if( TNL_INSTALL_HEADERS )
+   # export the interface targets
+   install( TARGETS TNL TNL_CXX TNL_CUDA EXPORT TNLTargets )
+   # install a CMake file for the interface target
+   install( EXPORT TNLTargets
+            NAMESPACE TNL::
+            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} )
+endif()
+
+# add the filesystem library to the interface
+target_link_libraries( TNL INTERFACE stdc++fs )
+
+# TODO: remove this
+# configure include dirs
+include_directories( ${TNL_INCLUDE_DIRS} )
 # add the filesystem library to all targets
 # https://en.cppreference.com/w/cpp/filesystem
 link_libraries( stdc++fs )
@@ -173,7 +237,13 @@ endif()
 # Check for OpenMP
 #
 if( OPENMP_FOUND AND TNL_USE_OPENMP )
+   # NOTE: OpenMP + CUDA = segfault in matrix tests (the host code built by nvcc is also not optimal)
+   target_compile_definitions( TNL_CXX INTERFACE HAVE_OPENMP )
+   target_link_libraries( TNL_CXX INTERFACE OpenMP::OpenMP_CXX )
+   # TODO: remove this
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_OPENMP ${OpenMP_CXX_FLAGS}" )
+#   add_compile_definitions( HAVE_OPENMP )
+#   link_libraries( OpenMP::OpenMP_CXX )
 endif()
 
 ####
@@ -291,18 +361,6 @@ if( TNL_USE_GMP )
    endif()
 endif()
 
-# skip building host-only targets in CUDA-enabled CI jobs
-if( DEFINED ENV{GITLAB_CI} AND TNL_BUILD_CUDA )
-   set( TNL_BUILD_CPP_TARGETS FALSE )
-else()
-   set( TNL_BUILD_CPP_TARGETS TRUE )
-endif()
-
-# configure build paths
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin )
-set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib )
-include_directories( src )
-
 # Add all subdirectories
 add_subdirectory( src )
 
@@ -318,44 +376,46 @@ endif()
 # https://clang.llvm.org/docs/JSONCompilationDatabase.html
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "" )
 
-# Print custom build options
-message( "-- Build options:" )
-message( "   TNL_INSTALL_HEADERS = ${TNL_INSTALL_HEADERS}" )
-message( "   TNL_USE_CUDA = ${TNL_USE_CUDA}" )
-message( "   TNL_CUDA_ARCH = ${TNL_CUDA_ARCH}" )
-message( "   TNL_USE_OPENMP = ${TNL_USE_OPENMP}" )
-message( "   TNL_USE_MPI = ${TNL_USE_MPI}" )
-message( "   TNL_USE_GMP = ${TNL_USE_GMP}" )
-message( "   TNL_USE_SYSTEM_GTEST= ${TNL_USE_SYSTEM_GTEST}" )
-message( "   TNL_BUILD_BENCHMARKS = ${TNL_BUILD_BENCHMARKS}" )
-message( "   TNL_BUILD_EXAMPLES = ${TNL_BUILD_EXAMPLES}" )
-message( "   TNL_BUILD_TOOLS = ${TNL_BUILD_TOOLS}" )
-message( "   TNL_BUILD_TESTS = ${TNL_BUILD_TESTS}" )
-message( "   TNL_BUILD_MATRIX_TESTS = ${TNL_BUILD_MATRIX_TESTS}" )
-message( "   TNL_BUILD_COVERAGE = ${TNL_BUILD_COVERAGE}" )
-message( "   TNL_BUILD_DOC = ${TNL_BUILD_DOC}" )
-message( "   TNL_OFFLINE_BUILD = ${TNL_OFFLINE_BUILD}" )
-# Print compiler options
-message( "-- Compiler options:" )
-message( "   CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}" )
-message( "   CMAKE_CXX_FLAGS_DEBUG = ${CMAKE_CXX_FLAGS_DEBUG}" )
-message( "   CMAKE_CXX_FLAGS_RELEASE = ${CMAKE_CXX_FLAGS_RELEASE}" )
-message( "   CMAKE_SHARED_LIBRARY_LINK_C_FLAGS = ${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS}" )
-message( "   CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG = ${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG}" )
-message( "   CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_RELEASE = ${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_RELEASE}" )
-message( "   CMAKE_EXE_LINKER_FLAGS = ${CMAKE_EXE_LINKER_FLAGS}" )
-message( "   CMAKE_EXE_LINKER_FLAGS_DEBUG = ${CMAKE_EXE_LINKER_FLAGS_DEBUG}" )
-message( "   CMAKE_EXE_LINKER_FLAGS_RELEASE = ${CMAKE_EXE_LINKER_FLAGS_RELEASE}" )
-message( "   CMAKE_SHARED_LINKER_FLAGS = ${CMAKE_SHARED_LINKER_FLAGS}" )
-message( "   CMAKE_SHARED_LINKER_FLAGS_DEBUG = ${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
-message( "   CMAKE_SHARED_LINKER_FLAGS_RELEASE = ${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" )
-message( "   CUDA_NVCC_FLAGS = ${CUDA_NVCC_FLAGS}" )
-message( "   GMP_LIBRARIES = ${GMP_LIBRARIES}" )
+if( TNL_TOP_LEVEL_PROJECT )
+   # Print custom build options
+   message( "-- Build options:" )
+   message( "   TNL_INSTALL_HEADERS = ${TNL_INSTALL_HEADERS}" )
+   message( "   TNL_USE_CUDA = ${TNL_USE_CUDA}" )
+   message( "   TNL_CUDA_ARCH = ${TNL_CUDA_ARCH}" )
+   message( "   TNL_USE_OPENMP = ${TNL_USE_OPENMP}" )
+   message( "   TNL_USE_MPI = ${TNL_USE_MPI}" )
+   message( "   TNL_USE_GMP = ${TNL_USE_GMP}" )
+   message( "   TNL_USE_SYSTEM_GTEST= ${TNL_USE_SYSTEM_GTEST}" )
+   message( "   TNL_BUILD_BENCHMARKS = ${TNL_BUILD_BENCHMARKS}" )
+   message( "   TNL_BUILD_EXAMPLES = ${TNL_BUILD_EXAMPLES}" )
+   message( "   TNL_BUILD_TOOLS = ${TNL_BUILD_TOOLS}" )
+   message( "   TNL_BUILD_TESTS = ${TNL_BUILD_TESTS}" )
+   message( "   TNL_BUILD_MATRIX_TESTS = ${TNL_BUILD_MATRIX_TESTS}" )
+   message( "   TNL_BUILD_COVERAGE = ${TNL_BUILD_COVERAGE}" )
+   message( "   TNL_BUILD_DOC = ${TNL_BUILD_DOC}" )
+   message( "   TNL_OFFLINE_BUILD = ${TNL_OFFLINE_BUILD}" )
+   # Print compiler options
+   message( "-- Compiler options:" )
+   message( "   CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}" )
+   message( "   CMAKE_CXX_FLAGS_DEBUG = ${CMAKE_CXX_FLAGS_DEBUG}" )
+   message( "   CMAKE_CXX_FLAGS_RELEASE = ${CMAKE_CXX_FLAGS_RELEASE}" )
+   message( "   CMAKE_SHARED_LIBRARY_LINK_C_FLAGS = ${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS}" )
+   message( "   CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG = ${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG}" )
+   message( "   CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_RELEASE = ${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_RELEASE}" )
+   message( "   CMAKE_EXE_LINKER_FLAGS = ${CMAKE_EXE_LINKER_FLAGS}" )
+   message( "   CMAKE_EXE_LINKER_FLAGS_DEBUG = ${CMAKE_EXE_LINKER_FLAGS_DEBUG}" )
+   message( "   CMAKE_EXE_LINKER_FLAGS_RELEASE = ${CMAKE_EXE_LINKER_FLAGS_RELEASE}" )
+   message( "   CMAKE_SHARED_LINKER_FLAGS = ${CMAKE_SHARED_LINKER_FLAGS}" )
+   message( "   CMAKE_SHARED_LINKER_FLAGS_DEBUG = ${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
+   message( "   CMAKE_SHARED_LINKER_FLAGS_RELEASE = ${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" )
+   message( "   CUDA_NVCC_FLAGS = ${CUDA_NVCC_FLAGS}" )
+   message( "   GMP_LIBRARIES = ${GMP_LIBRARIES}" )
 
-if( MPI_CXX_FOUND AND TNL_USE_MPI )
-   message( "   MPI_CXX_COMPILE_OPTIONS = ${MPI_CXX_COMPILE_OPTIONS}" )
-   message( "   MPI_CXX_COMPILE_DEFINITIONS = ${MPI_CXX_COMPILE_DEFINITIONS}" )
-   message( "   MPI_CXX_INCLUDE_DIRS = ${MPI_CXX_INCLUDE_DIRS}" )
-   message( "   MPI_CXX_LINK_FLAGS = ${MPI_CXX_LINK_FLAGS}" )
-   message( "   MPI_CXX_LIBRARIES = ${MPI_CXX_LIBRARIES}" )
+   if( MPI_CXX_FOUND AND TNL_USE_MPI )
+      message( "   MPI_CXX_COMPILE_OPTIONS = ${MPI_CXX_COMPILE_OPTIONS}" )
+      message( "   MPI_CXX_COMPILE_DEFINITIONS = ${MPI_CXX_COMPILE_DEFINITIONS}" )
+      message( "   MPI_CXX_INCLUDE_DIRS = ${MPI_CXX_INCLUDE_DIRS}" )
+      message( "   MPI_CXX_LINK_FLAGS = ${MPI_CXX_LINK_FLAGS}" )
+      message( "   MPI_CXX_LIBRARIES = ${MPI_CXX_LIBRARIES}" )
+   endif()
 endif()
