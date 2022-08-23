@@ -11,38 +11,51 @@
 
 namespace TNL {
 namespace Meshes {
+namespace Writers {
 
+template< typename Mesh >
 class GnuplotWriter
 {
 public:
+
+   GnuplotWriter() = delete;
+
+   GnuplotWriter( std::ostream& str );
+
+   template< typename Array >
+   void
+   writePointData( const Mesh& mesh, const Array& array, const std::string& name, int numberOfComponents = 1 );
+
+   template< typename Array >
+   void
+   writeCellData( const Mesh& mesh, const Array& array, const std::string& name, int numberOfComponents = 1 );
+
+
+   void writeHeader( Mesh& mesh );
+
    template< typename Element >
    static void
-   write( std::ostream& str, const Element& d )
-   {
-      str << d;
-   }
+   write( std::ostream& str, const Element& d );
 
    template< typename Real >
    static void
-   write( std::ostream& str, const Containers::StaticVector< 1, Real >& d )
-   {
-      str << d.x() << " ";
-   }
+   write( std::ostream& str, const Containers::StaticVector< 1, Real >& d );
 
    template< typename Real >
    static void
-   write( std::ostream& str, const Containers::StaticVector< 2, Real >& d )
-   {
-      str << d.x() << " " << d.y() << " ";
-   }
+   write( std::ostream& str, const Containers::StaticVector< 2, Real >& d );
 
    template< typename Real >
    static void
-   write( std::ostream& str, const Containers::StaticVector< 3, Real >& d )
-   {
-      str << d.x() << " " << d.y() << " " << d.z() << " ";
-   }
+   write( std::ostream& str, const Containers::StaticVector< 3, Real >& d );
+
+protected:
+
+   std::ostream& str;
 };
 
+}  // namespace Writers
 }  // namespace Meshes
 }  // namespace TNL
+
+#include <TNL/Meshes/Writers/GnuplotWriter.hpp>

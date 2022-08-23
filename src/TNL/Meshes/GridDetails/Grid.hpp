@@ -280,7 +280,6 @@ getEntityCoordinates( IndexType entityIdx, CoordinatesType& entityNormals, Index
    const CoordinatesType dims = this->getDimensions() + entityNormals;
    CoordinatesType entityCoordinates( 0 );
    int idx = 0;
-   IndexType base = dims[ idx ];
    while( idx < this->getMeshDimension() - 1 ) {
       entityCoordinates[ idx ] = entityIdx % dims[ idx ];
       entityIdx /= dims[ idx++ ];
