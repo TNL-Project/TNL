@@ -6,6 +6,8 @@
 
 Grids are regular orthognal meshes. Similar to unstructured numerical meshes they provide indexing of mesh entites and express their adjacency. The difference, compared to the unstructured meshes, is that the adjacency of the mesh entities are not stored explicitly in the memory but the are computed on-the-fly. The interface of grids is as simillar as possible to the unstructured meshes but there are some differences. The main difference is that the mesh entities are given by their coordinates and orientation. The type and orientation of the entity is given by its *basis* and *normals*. Basis is a vector having one for axes, along which the entity has non-zero length, and zeros otherwise. Normals is a vector orthogonal to the basis vector, i.e. it has ones where basis vector has zeros and vice versa. The meaning of the normals vector is such that it is like a pack of all vectors of standart basis which are orthogonal to the grid entity. The following tables show all possible grid entities in 1D, 2D and 3D.
 
+### TODO: Bases and normals
+
 Grid entities in 1D are as follows:
 
 | Entities in 1D             | Basis        | Normals     | Unpacked normal vectors |

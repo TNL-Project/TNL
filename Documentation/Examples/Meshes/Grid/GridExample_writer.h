@@ -1,6 +1,9 @@
 #include <iostream>
 #include <iomanip>
 #include <TNL/Meshes/Grid.h>
+#include <TNL/Meshes/Writers/VTIWriter.h>
+#include <TNL/Meshes/Writers/VTKWriter.h>
+#include <TNL/Meshes/Writers/GnuplotWriter.h>
 #include <TNL/Containers/Vector.h>
 
 template< typename Device >
@@ -42,7 +45,7 @@ void traverseGrid()
    VectorType vertexes( grid.template getEntitiesCount< 0 >(), 0.0 );
 
    /***
-    * Prepare views for the data at thr grid entities so that we can
+    * Prepare views for the data at the grid entities so that we can
     * manipulate them in lambda functions runnig eventually on GPU.
     */
    auto cells_view = cells.getView();
@@ -57,59 +60,36 @@ void traverseGrid()
    } );
 
    /***
-    * Print values of all cells in the grid.
+    * Write values of all cells in the grid into a file in VTI format.
     */
-   std::cout << "Values of cells .... " << std::endl;
-   for( int i = grid_size-1; i>= 0; i-- ) {
-      for( int j = 0; j < grid_size; j++ ) {
-         GridCell cell( grid, {j, i} );
-         auto idx = cell.getIndex();
-         std::cout << std::right << std::setw( 12 ) << cells.getElement( idx );
-      }
-      std::cout << std::endl;
-   }
-   std::cout << std::endl;
+   TNL::String cells_file_name_vti( "GridExample-cells-values-" + TNL::getType( Device{}) + ".vti" );
+   std::cout << "Writing a file " << cells_file_name_vti << " ..." << std::endl;
+   std::fstream cells_file_vti;
+   cells_file_vti.open( cells_file_name_vti.getString(), std::ios::out );
+   TNL::Meshes::Writers::VTIWriter< GridType > cells_vti_writer( cells_file_vti );
+   cells_vti_writer.writeImageData( grid );
+   cells_vti_writer.writeCellData( cells, "cell-values");
 
    /***
-    * Setup values of all faces to an average value of its neighbour cells.
+    * Write values of all cells in the grid into a file in VTK format.
     */
-   grid.template forAll< Dimension - 1 >( [=] __cuda_callable__ ( const GridFace& face ) mutable {
-      const CoordinatesType normal =  face.getNormals();
-      double sum = 0.0;
-      double count = 0.0;
-      if( face.getCoordinates() - normal >= CoordinatesType( 0, 0 ) ) {
-         auto neighbour = face.template getNeighbourEntity< Dimension >( -normal );
-         sum += cells_view[ neighbour.getIndex() ];
-         count++;
-      }
-      if( face.getCoordinates() < face.getGrid().getDimensions() ) {
-         auto neighbour = face.template getNeighbourEntity< Dimension >( { 0, 0 } );
-         sum += cells_view[ neighbour.getIndex() ];
-         count++;
-      }
-      faces_view[ face.getIndex() ] = sum / count;
-   } );
+   TNL::String cells_file_name_vtk( "GridExample-cells-values-" + TNL::getType( Device{}) + ".vtk" );
+   std::cout << "Writing a file " << cells_file_name_vtk << " ..." << std::endl;
+   std::fstream cells_file_vtk;
+   cells_file_vtk.open( cells_file_name_vtk.getString(), std::ios::out );
+   TNL::Meshes::Writers::VTKWriter< GridType > cells_vtk_writer( cells_file_vtk );
+   cells_vtk_writer.writeEntities( grid );
+   cells_vtk_writer.writeCellData( cells, "cell-values");
 
    /***
-    * Print values of all faces in the grid.
+    * Write values of all cells in the grid into a file in VTK format.
     */
-   std::cout << "Values of faces ..." << std::endl;
-   for( int i = grid_size; i>= 0; i-- ) {
-      std::cout << std::right << std::setw( 6 ) << " ";
-      for( int j = 0; j < grid_size; j++ ) {
-         GridFace face( grid, {j, i}, {0,1} );
-         auto idx = face.getIndex();
-         std::cout << std::right << std::setw( 12 ) << faces.getElement( idx );
-      }
-      std::cout << std::endl;
-      if( i > 0 )
-      for( int j = 0; j <= grid_size; j++ ) {
-         GridFace face( grid, {j, i - 1}, { 1,0 } );
-         auto idx = face.getIndex();
-         std::cout << std::right << std::setw( 12 ) << faces.getElement( idx );
-      }
-      std::cout << std::endl;
-   }
+   TNL::String cells_file_name_gplt( "GridExample-cells-values-" + TNL::getType( Device{}) + ".gplt" );
+   std::cout << "Writing a file " << cells_file_name_gplt << " ..." << std::endl;
+   std::fstream cells_file_gplt;
+   cells_file_gplt.open( cells_file_name_gplt.getString(), std::ios::out );
+   TNL::Meshes::Writers::GnuplotWriter< GridType > cells_gplt_writer( cells_file_gplt );
+   cells_gplt_writer.writeCellData( grid, cells, "cell-values");
 
    /***
     * Setup values of all vertexes to an average value of its neighbouring cells.
@@ -142,17 +122,36 @@ void traverseGrid()
    } );
 
    /***
-    * Print values of all vertexes in the grid.
+    * Write values of all faces in the grid to a file in VTI format
     */
-   std::cout << "Values of vertexes .... " << std::endl;
-   for( int i = grid_size; i>= 0; i-- ) {
-      for( int j = 0; j <= grid_size; j++ ) {
-         GridVertex vertex( grid, {j, i} );
-         auto idx = vertex.getIndex();
-         std::cout << std::right << std::setw( 12 ) << vertexes.getElement( idx );
-      }
-      std::cout << std::endl;
-   }
+   TNL::String vertexes_file_name_vti( "GridExample-vertexes-values-" + TNL::getType( Device{} ) + ".vti" );
+   std::cout << "Writing a file " << vertexes_file_name_vti << " ..." << std::endl;
+   std::fstream vertexes_file_vti;
+   vertexes_file_vti.open( vertexes_file_name_vti.getString(), std::ios::out );
+   TNL::Meshes::Writers::VTIWriter< GridType > vertexes_vti_writer( vertexes_file_vti );
+   vertexes_vti_writer.writeImageData( grid );
+   vertexes_vti_writer.writePointData( vertexes, "vertexes-values" );
+
+   /***
+    * Write values of all faces in the grid to a file in VTK format
+    */
+   TNL::String vertexes_file_name_vtk( "GridExample-vertexes-values-" + TNL::getType( Device{} ) + ".vtk" );
+   std::cout << "Writing a file " << vertexes_file_name_vtk << " ..." << std::endl;
+   std::fstream vertexes_file_vtk;
+   vertexes_file_vtk.open( vertexes_file_name_vtk.getString(), std::ios::out );
+   TNL::Meshes::Writers::VTIWriter< GridType > vertexes_vtk_writer( vertexes_file_vtk );
+   vertexes_vtk_writer.writeEntities( grid );
+   vertexes_vtk_writer.writePointData( vertexes, "vertexes-values" );
+
+   /***
+    * Write values of all faces in the grid to a file in Gnuplot format
+    */
+   TNL::String vertexes_file_name_gplt( "GridExample-vertexes-values-" + TNL::getType( Device{} ) + ".gplt" );
+   std::cout << "Writing a file " << vertexes_file_name_gplt << " ..." << std::endl;
+   std::fstream vertexes_file_gplt;
+   vertexes_file_gplt.open( vertexes_file_name_gplt.getString(), std::ios::out );
+   TNL::Meshes::Writers::GnuplotWriter< GridType > vertexes_gplt_writer( vertexes_file_gplt );
+   vertexes_gplt_writer.writePointData( grid, vertexes, "vertexes-values" );
 }
 
 int main( int argc, char* argv[] )

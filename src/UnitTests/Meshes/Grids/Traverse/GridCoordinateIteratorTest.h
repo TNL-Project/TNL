@@ -506,3 +506,5 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity3DOrientation0Test )
 }
 
 #endif
+
+#include "../../../main.h"

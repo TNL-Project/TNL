@@ -1,9 +1,9 @@
 set( COMMON_TESTS )
 
 set( CPU_TESTS
-            Grid1DTest_indexing
-            Grid2DTest_indexing
-            Grid3DTest_indexing
+            Grid1DTest_Indexing
+            Grid2DTest_Indexing
+            Grid3DTest_Indexing
 )
 
 set( CUDA_TESTS )
