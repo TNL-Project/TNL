@@ -7,7 +7,7 @@
 #include <TNL/Containers/Vector.h>
 
 template< typename Device >
-void traverseGrid()
+void writeGrid()
 {
    /***
     * Define grid dimension and size.
@@ -41,7 +41,6 @@ void traverseGrid()
     * Allocate vectors for values stored in particular grid entities.
     */
    VectorType cells( grid.template getEntitiesCount< Dimension >(), 0.0 );
-   VectorType faces( grid.template getEntitiesCount< Dimension - 1 >(), 0.0 );
    VectorType vertexes( grid.template getEntitiesCount< 0 >(), 0.0 );
 
    /***
@@ -49,7 +48,6 @@ void traverseGrid()
     * manipulate them in lambda functions runnig eventually on GPU.
     */
    auto cells_view = cells.getView();
-   auto faces_view = faces.getView();
    auto vertexes_view = vertexes.getView();
 
    /***
@@ -82,13 +80,14 @@ void traverseGrid()
    cells_vtk_writer.writeCellData( cells, "cell-values");
 
    /***
-    * Write values of all cells in the grid into a file in VTK format.
+    * Write values of all cells in the grid into a file in Gnuplot format.
     */
    TNL::String cells_file_name_gplt( "GridExample-cells-values-" + TNL::getType( Device{}) + ".gplt" );
    std::cout << "Writing a file " << cells_file_name_gplt << " ..." << std::endl;
    std::fstream cells_file_gplt;
    cells_file_gplt.open( cells_file_name_gplt.getString(), std::ios::out );
    TNL::Meshes::Writers::GnuplotWriter< GridType > cells_gplt_writer( cells_file_gplt );
+   cells_gplt_writer.writeEntities( grid );
    cells_gplt_writer.writeCellData( grid, cells, "cell-values");
 
    /***
@@ -122,7 +121,7 @@ void traverseGrid()
    } );
 
    /***
-    * Write values of all faces in the grid to a file in VTI format
+    * Write values of all vertexes in the grid to a file in VTI format
     */
    TNL::String vertexes_file_name_vti( "GridExample-vertexes-values-" + TNL::getType( Device{} ) + ".vti" );
    std::cout << "Writing a file " << vertexes_file_name_vti << " ..." << std::endl;
@@ -133,7 +132,7 @@ void traverseGrid()
    vertexes_vti_writer.writePointData( vertexes, "vertexes-values" );
 
    /***
-    * Write values of all faces in the grid to a file in VTK format
+    * Write values of all vertexes in the grid to a file in VTK format
     */
    TNL::String vertexes_file_name_vtk( "GridExample-vertexes-values-" + TNL::getType( Device{} ) + ".vtk" );
    std::cout << "Writing a file " << vertexes_file_name_vtk << " ..." << std::endl;
@@ -144,24 +143,25 @@ void traverseGrid()
    vertexes_vtk_writer.writePointData( vertexes, "vertexes-values" );
 
    /***
-    * Write values of all faces in the grid to a file in Gnuplot format
+    * Write values of all vertexes in the grid to a file in Gnuplot format
     */
    TNL::String vertexes_file_name_gplt( "GridExample-vertexes-values-" + TNL::getType( Device{} ) + ".gplt" );
    std::cout << "Writing a file " << vertexes_file_name_gplt << " ..." << std::endl;
    std::fstream vertexes_file_gplt;
    vertexes_file_gplt.open( vertexes_file_name_gplt.getString(), std::ios::out );
    TNL::Meshes::Writers::GnuplotWriter< GridType > vertexes_gplt_writer( vertexes_file_gplt );
+   vertexes_gplt_writer.writeEntities( grid );
    vertexes_gplt_writer.writePointData( grid, vertexes, "vertexes-values" );
 }
 
 int main( int argc, char* argv[] )
 {
    std::cout << "Traversing grid on CPU..." << std::endl;
-   traverseGrid< TNL::Devices::Host >();
+   writeGrid< TNL::Devices::Host >();
 
 #ifdef HAVE_CUDA
    std::cout << "Traversing grid on CUDA GPU..." << std::endl;
-   traverseGrid< TNL::Devices::Cuda >();
+   writeGrid< TNL::Devices::Cuda >();
 #endif
    return EXIT_SUCCESS;
 }

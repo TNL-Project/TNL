@@ -20,6 +20,15 @@ GnuplotWriter( std::ostream& str ) : str( str )
 };
 
 template< typename Mesh >
+   template< int EntityDimension >
+void
+GnuplotWriter< Mesh >::
+writeEntities( const Mesh& mesh )
+{
+   this->writeHeader( mesh );
+}
+
+template< typename Mesh >
    template< typename Array >
 void
 GnuplotWriter< Mesh >::
@@ -31,6 +40,8 @@ writePointData( const Mesh& mesh, const Array& array, const std::string& name, i
    if( array.getSize() / numberOfComponents != typename Array::IndexType( pointsCount ) )
    throw std::length_error( "Mismatched array size for POINT_DATA section: " + std::to_string( array.getSize() )
                               + " (there are " + std::to_string( pointsCount ) + " points in the file)" );
+
+   str << "# " << name << std::endl;
 
    RealType last_x = std::numeric_limits< RealType >::lowest();
    for( IndexType idx = 0; idx < pointsCount; idx++ )
@@ -58,6 +69,8 @@ writeCellData( const Mesh& mesh, const Array& array, const std::string& name, in
       throw std::length_error( "Mismatched array size for CELL_DATA section: " + std::to_string( array.getSize() )
                                + " (there are " + std::to_string( cellsCount ) + " cells in the file)" );
 
+   str << "# " << name << std::endl;
+
    RealType last_x = std::numeric_limits< RealType >::lowest();
    for( IndexType idx = 0; idx < cellsCount; idx++ )
    {
@@ -74,7 +87,7 @@ writeCellData( const Mesh& mesh, const Array& array, const std::string& name, in
 template< typename Mesh >
 void
 GnuplotWriter< Mesh >::
-writeHeader( Mesh& mesh )
+writeHeader( const Mesh& mesh )
 {
    str << "# File generater by TNL" << std::endl;
 };

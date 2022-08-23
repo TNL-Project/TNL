@@ -157,5 +157,12 @@ The result looks as follows:
 
 \include GridExample_traverse.out
 
+## Writers
 
+Writers help to export data linked with a grid to some of standart formats like [VTK, VTI](https://kitware.github.io/vtk-examples/site/VTKFileFormats/) or [Gnuplot](http://www.gnuplot.info/). The following example shows the use of the grid writers:
 
+\includelineno GridExample_writer.h
+
+It is a modification of the previous example. As before, we first set values linked with the grid cells and vertexes and then we write the into output files. The values linked with cells are exported to VTI format on the lines 63-69, to VTK format on the lines 74-80 and the Gnuplot format on lines. The writers have the same interface. They have constructors which require output stream as a parameter (\ref TNL::Meshes::Writers::VTIWriter::VTIWriter, \ref TNL::Meshes::Writers::VTKWriter::VTKWriter ). Next we call a method `writeEntities` (\ref TNL::Meshes::Writers::VTIWriter::writeEntities, \ref TNL::Meshes::Writers::VTKWriter::writeEntities) which exports the grid entities to the file. In the case of the Gnuplot format, this method just writes simple header to the file and does not need to be called (the method is mainly for the compatibility with other writers). Finaly we may export data linked with the grid cells using a method `writeCellData` (\ref TNL::Meshes::Writers::VTIWriter::writeCellData, \ref TNL::Meshes::Writers::VTKWriter::writeCellData).
+
+In the same way, we can export data linked with vertexes (line 125-152).
