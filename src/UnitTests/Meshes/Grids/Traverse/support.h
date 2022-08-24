@@ -174,7 +174,7 @@ class GridTraverseTestCase {
             view.store(entity);
          };
 
-         grid.template forAll<EntityDimension>(update);
+         grid.template forAllEntities<EntityDimension>(update);
       }
       void storeBoundary(const Grid& grid, DataStore& store) const {
          SCOPED_TRACE("Store boundary");
@@ -185,7 +185,7 @@ class GridTraverseTestCase {
             view.store(entity);
          };
 
-         grid.template forBoundary<EntityDimension>(update);
+         grid.template forBoundaryEntities<EntityDimension>(update);
       }
       void storeInterior(const Grid& grid, DataStore& store) const {
          SCOPED_TRACE("Store interior");
@@ -196,7 +196,7 @@ class GridTraverseTestCase {
             view.store(entity);
          };
 
-         grid.template forInterior<EntityDimension>(update);
+         grid.template forInteriorEntities<EntityDimension>(update);
       }
       void clearAll(const Grid& grid, DataStore& store) const {
          SCOPED_TRACE("Clear all");
@@ -207,7 +207,7 @@ class GridTraverseTestCase {
             view.clear(entity);
          };
 
-         grid.template forAll<EntityDimension>(update);
+         grid.template forAllEntities<EntityDimension>(update);
       }
       void clearBoundary(const Grid& grid, DataStore& store) const {
          SCOPED_TRACE("Clear boundary");
@@ -218,7 +218,7 @@ class GridTraverseTestCase {
             view.clear(entity);
          };
 
-         grid.template forBoundary<EntityDimension>(update);
+         grid.template forBoundaryEntities<EntityDimension>(update);
       }
       void clearInterior(const Grid& grid, DataStore& store) const {
          SCOPED_TRACE("Clear interior");
@@ -229,7 +229,7 @@ class GridTraverseTestCase {
             view.clear(entity);
          };
 
-         grid.template forInterior<EntityDimension>(update);
+         grid.template forInteriorEntities<EntityDimension>(update);
       }
 
       void verifyAll(const Grid& grid, const DataStore& store) const {

@@ -36,7 +36,7 @@ class NeighbourGridEntityGetterTestCase {
             }
          };
 
-         grid.template forAll<EntityDimension>(update);
+         grid.template forAllEntities<EntityDimension>(update);
       }
 
       template<int NeighbourEntityOrientation, int... Steps>
@@ -57,7 +57,7 @@ class NeighbourGridEntityGetterTestCase {
             }
          };
 
-         grid.template forAll<EntityDimension>(update);
+         grid.template forAllEntities<EntityDimension>(update);
       }
 
       void storeByDynamicAccessor(const Grid& grid, DataStore& store, const Coordinate& offset) {
@@ -80,7 +80,7 @@ class NeighbourGridEntityGetterTestCase {
             }
          };
 
-         grid.template forAll<EntityDimension>(update);
+         grid.template forAllEntities<EntityDimension>(update);
       }
 
       template<int NeighbourEntityOrientation>
@@ -101,7 +101,7 @@ class NeighbourGridEntityGetterTestCase {
             }
          };
 
-         grid.template forAll<EntityDimension>(update);
+         grid.template forAllEntities<EntityDimension>(update);
       }
 
       void verify(const Grid& grid, DataStore& store, const Coordinate& offset, const int entityOrientation) {

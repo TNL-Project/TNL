@@ -571,6 +571,14 @@ public:
    Index
    getEntityIndex( const Entity& entity ) const;
 
+   void setSubdomainBegin( const CoordinatesType& begin );
+
+   void setSubdomainEnd( const CoordinatesType& end );
+
+   const CoordinatesType& getSubdomainBegin() const;
+
+   const CoordinatesType& getSubdomainEnd() const;
+
    /**
     * \brief Writes info about the grid.
     *
@@ -580,16 +588,10 @@ public:
    writeProlog( TNL::Logger& logger ) const noexcept;
 
 
-  // TODO: Necessary for distributed grid !!!!!!!!!!!!!!!!!!!!!!!!!
-   void setLocalBegin( const CoordinatesType& localBegin ){};
 
-   void setLocalEnd( const CoordinatesType& localEnd ){};
+   //void setInteriorBegin( const CoordinatesType& localBegin ){};
 
-   void setInteriorBegin( const CoordinatesType& localBegin ){};
-
-   void setInteriorEnd( const CoordinatesType& localEnd ){};
-
-   // TODO end
+   //void setInteriorEnd( const CoordinatesType& localEnd ){};
 
 
    /**
@@ -609,7 +611,7 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forAll( Func func, FuncArgs... args ) const;
+   forAllEntities( Func func, FuncArgs... args ) const;
 
    /**
     * \brief Traverser all elements in rect
@@ -618,14 +620,14 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forAll( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+   forAllEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 
    /**
     * \brief Traverser interior elements in rect
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forInterior( Func func, FuncArgs... args ) const;
+   forInteriorEntities( Func func, FuncArgs... args ) const;
 
    /**
     * \brief Traverser interior elements
@@ -634,14 +636,14 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forInterior( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+   forInteriorEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 
    /**
     * \brief Traverser boundary elements in rect
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forBoundary( Func func, FuncArgs... args ) const;
+   forBoundaryEntities( Func func, FuncArgs... args ) const;
 
    /**
     * \brief Traverser boundary elements in rect
@@ -650,39 +652,9 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forBoundary( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+   forBoundaryEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 
 protected:
-
-   /**
-    * \brief Grid dimensions.
-    */
-   CoordinatesType dimensions;
-
-   /**
-    * \brief - A list of elements count along specific directions.
-    *
-    * First, elements will contain the count of 0 dimension elements.
-    * Second, elements will contain the count of 1-dimension elements and so on.
-    *
-    * For example, let's have a 3-d grid, then the map indexing will
-    * be the next: 0 - 0 - count of vertices 1, 2, 3 - count of edges in x, y,
-    * z plane 4, 5, 6 - count of faces in xy, yz, zy plane 7 - count of cells
-    * in z y x plane
-    *
-    * \warning - The ordering of is lexigraphical.
-    */
-   Container< 1 << Dimension, Index > entitiesCountAlongNormals;
-
-   /**
-    * \brief - A cumulative map over dimensions.
-    */
-   Container< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals;
-
-   PointType origin, proportions, spaceSteps;
-
-   OrientationNormalsContainer normals;
-   SpaceProductsContainer spaceStepsProducts;
 
    void fillEntitiesCount();
 
@@ -717,6 +689,47 @@ protected:
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    traverseBoundary( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+
+   /**
+    * \brief Grid dimensions.
+    */
+   CoordinatesType dimensions;
+
+   PointType origin, proportions, spaceSteps;
+
+   /**
+    * \brief Region of subdomain if this grid represents one sudbdomain of distributed grid.
+    */
+   CoordinatesType subdomainBegin, subdomainEnd;
+
+   /**
+    * \brief - A list of elements count along specific directions.
+    *
+    * First, elements will contain the count of 0 dimension elements.
+    * Second, elements will contain the count of 1-dimension elements and so on.
+    *
+    * For example, let's have a 3-d grid, then the map indexing will
+    * be the next: 0 - 0 - count of vertices 1, 2, 3 - count of edges in x, y,
+    * z plane 4, 5, 6 - count of faces in xy, yz, zy plane 7 - count of cells
+    * in z y x plane
+    *
+    * \warning - The ordering of is lexigraphical.
+    */
+   Container< 1 << Dimension, Index > entitiesCountAlongNormals;
+
+   /**
+    * \brief - A cumulative map over dimensions.
+    */
+   Container< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals;
+
+   /**
+    * \brief Container with normals defining grid entity orientations.
+    *
+    * `normals[ orientationIdx ]` gives normals for given orientation index.
+    */
+   OrientationNormalsContainer normals;
+
+   SpaceProductsContainer spaceStepsProducts;
 };
 
 /**

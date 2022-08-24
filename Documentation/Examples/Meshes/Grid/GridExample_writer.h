@@ -53,7 +53,7 @@ void writeGrid()
    /***
     * Setup value of each cell to its index in the grid.
     */
-   grid.template forAll< Dimension >( [=] __cuda_callable__ ( const GridCell& cell ) mutable {
+   grid.template forAllEntities< Dimension >( [=] __cuda_callable__ ( const GridCell& cell ) mutable {
       cells_view[ cell.getIndex() ] = cell.getIndex();
    } );
 
@@ -93,7 +93,7 @@ void writeGrid()
    /***
     * Setup values of all vertexes to an average value of its neighbouring cells.
     */
-   grid.template forAll< 0 >( [=] __cuda_callable__ ( const GridVertex& vertex ) mutable {
+   grid.template forAllEntities< 0 >( [=] __cuda_callable__ ( const GridVertex& vertex ) mutable {
       double sum = 0.0;
       double count = 0.0;
       auto grid_dimensions = vertex.getGrid().getDimensions();

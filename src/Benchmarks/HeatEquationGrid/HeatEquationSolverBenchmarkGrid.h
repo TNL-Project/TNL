@@ -48,7 +48,7 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
                                          ( uxView[index - width] - center + uxView[index + width] ) * hy_inv ) * timestep;
          };
 
-         grid.template forInterior<0>( next );
+         grid.template forInteriorEntities<0>( next );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;

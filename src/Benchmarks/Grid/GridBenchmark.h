@@ -130,7 +130,7 @@ class GridBenchmark {
          forAllColumns.push_back( { "traverse_id", "forAll" } );
          benchmark.setMetadataColumns(forAllColumns);
          auto measureAll = [=]() {
-            grid.template forAll<EntityDimension>(exec);
+            grid.template forAllEntities<EntityDimension>(exec);
          };
          benchmark.time<typename Grid::DeviceType>(device, measureAll);
 
@@ -138,7 +138,7 @@ class GridBenchmark {
          forInteriorColumns.push_back( { "traverse_id", "forInterior" } );
          benchmark.setMetadataColumns(forInteriorColumns);
          auto measureInterior = [=]() {
-            grid.template forInterior<EntityDimension>(exec);
+            grid.template forInteriorEntities<EntityDimension>(exec);
          };
          benchmark.time<typename Grid::DeviceType>(device, measureInterior);
 
@@ -147,7 +147,7 @@ class GridBenchmark {
          forBoundaryColumns.push_back( { "traverse_id", "forBoundary" } );
          benchmark.setMetadataColumns(forInteriorColumns);
          auto measureBoundary = [=]() {
-            grid.template forBoundary<EntityDimension>(exec);
+            grid.template forBoundaryEntities<EntityDimension>(exec);
          };
          benchmark.time<typename Grid::DeviceType>(device, measureBoundary);
       }

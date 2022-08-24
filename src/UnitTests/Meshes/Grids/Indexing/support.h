@@ -15,7 +15,7 @@ void testGetEntityFromIndex( Grid& grid,
    EXPECT_NO_THROW(grid.setOrigin(origin)) << "Verify, that the set of" << origin << "doesn't cause assert";
    EXPECT_NO_THROW(grid.setSpaceSteps(spaceSteps)) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
-   grid.template forAll< EntityDimension >( [=] ( TNL::Meshes::GridEntity< Grid, EntityDimension >& entity ) mutable {
+   grid.template forAllEntities< EntityDimension >( [=] ( TNL::Meshes::GridEntity< Grid, EntityDimension >& entity ) mutable {
       auto new_entity = TNL::Meshes::GridEntity< Grid, EntityDimension >( entity.getGrid(), entity.getIndex() );
       EXPECT_EQ( new_entity.getCoordinates(), entity.getCoordinates() );
       EXPECT_EQ( new_entity.getNormals(), entity.getNormals() );
