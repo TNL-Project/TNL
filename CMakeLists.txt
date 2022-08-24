@@ -1,7 +1,5 @@
-# cmake 3.12.2 is required due to compatibility with CUDA 10
-# (see the issue reported here: https://github.com/clab/dynet/issues/1457 )
-# cmake 3.13 is required for add_link_options
-cmake_minimum_required( VERSION 3.13 )
+# cmake 3.24 is required for CUDA with "native" architecture selection
+cmake_minimum_required( VERSION 3.24 )
 
 project( TNL )
 
@@ -19,7 +17,6 @@ endif()
 # declare all custom build options
 option( TNL_INSTALL_HEADERS "Install TNL header files" ${TNL_TOP_LEVEL_PROJECT} )
 option( TNL_USE_CUDA "Build with CUDA support" ON )
-set( TNL_CUDA_ARCH "auto" CACHE STRING "Build for these CUDA architectures" )
 option( TNL_USE_OPENMP "Build with OpenMP support" ON )
 option( TNL_USE_MPI "Build with MPI support" ON )
 option( TNL_USE_GMP "Build with GMP support" OFF )
@@ -94,7 +91,7 @@ endif()
 # (that way we can exclude some options for specific targets, see https://stackoverflow.com/a/59734798 for details)
 add_compile_options(
    # GOTCHA: CMake uses semicolons as list item separator, spaces would lead to a single argument inside double-quotes on the command line
-   "$<$<CONFIG:RELEASE>:-march=native;-mtune=native>"
+   "$<$<AND:$<CONFIG:RELEASE>,$<COMPILE_LANGUAGE:CXX,CUDA>>:-march=native;-mtune=native>"
 )
 
 if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
@@ -181,24 +178,8 @@ target_compile_features( TNL INTERFACE cxx_std_14 )
 target_compile_options( TNL INTERFACE
                         ${TNL_COLOR_DIAGNOSTICS_FLAG} )
 
-if( TNL_INSTALL_HEADERS )
-   # export the interface targets
-   install( TARGETS TNL TNL_CXX TNL_CUDA EXPORT TNLTargets )
-   # install a CMake file for the interface target
-   install( EXPORT TNLTargets
-            NAMESPACE TNL::
-            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} )
-endif()
-
 # add the filesystem library to the interface
 target_link_libraries( TNL INTERFACE stdc++fs )
-
-# TODO: remove this
-# configure include dirs
-include_directories( ${TNL_INCLUDE_DIRS} )
-# add the filesystem library to all targets
-# https://en.cppreference.com/w/cpp/filesystem
-link_libraries( stdc++fs )
 
 # gtest has to be built before we add the MPI flags
 if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
@@ -240,10 +221,7 @@ if( OPENMP_FOUND AND TNL_USE_OPENMP )
    # NOTE: OpenMP + CUDA = segfault in matrix tests (the host code built by nvcc is also not optimal)
    target_compile_definitions( TNL_CXX INTERFACE HAVE_OPENMP )
    target_link_libraries( TNL_CXX INTERFACE OpenMP::OpenMP_CXX )
-   # TODO: remove this
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_OPENMP ${OpenMP_CXX_FLAGS}" )
-#   add_compile_definitions( HAVE_OPENMP )
-#   link_libraries( OpenMP::OpenMP_CXX )
+   set( TNL_BUILD_OPENMP TRUE )
 endif()
 
 ####
@@ -259,56 +237,68 @@ endif()
 # Check for CUDA
 #
 if( TNL_USE_CUDA )
-    find_package( CUDA 10.0 )
-    if( CUDA_FOUND )
-        set( TNL_BUILD_CUDA TRUE)
-        set(CUDA_SEPARABLE_COMPILATION ON)
-        # Use the CUDA_HOST_COMPILER environment variable if the user specified it.
-        if( NOT $ENV{CUDA_HOST_COMPILER} STREQUAL "" )
-            message( "-- Setting CUDA_HOST_COMPILER to '$ENV{CUDA_HOST_COMPILER}'" )
-            set( CUDA_HOST_COMPILER $ENV{CUDA_HOST_COMPILER} )
-        else()
-            if( EXISTS "${CUDA_TOOLKIT_ROOT_DIR}/bin/g++" )
-               message( "-- Setting CUDA_HOST_COMPILER to '${CUDA_TOOLKIT_ROOT_DIR}/bin/g++'" )
-               set( CUDA_HOST_COMPILER "${CUDA_TOOLKIT_ROOT_DIR}/bin/g++" )
-            else()
-               message( "-- Setting CUDA_HOST_COMPILER to '${CMAKE_CXX_COMPILER}'" )
-               set( CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER} )
-            endif()
-        endif()
-        set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ; -std=c++14 -DHAVE_CUDA --expt-relaxed-constexpr --expt-extended-lambda --default-stream per-thread)
-        if( CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" )
-            set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ; --generate-line-info)
-        endif()
-        # disable false compiler warnings
-        #   reference for the -Xcudafe --diag_suppress and --display_error_number flags: https://stackoverflow.com/a/54142937
-        #   incomplete list of tokens: http://www.ssl.berkeley.edu/~jimm/grizzly_docs/SSL/opt/intel/cc/9.0/lib/locale/en_US/mcpcom.msg
-        set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ; -Wno-deprecated-gpu-targets -Xcudafe --diag_suppress=code_is_unreachable -Xcudafe --diag_suppress=loop_not_reachable -Xcudafe --diag_suppress=implicit_return_from_non_void_function -Xcudafe --diag_suppress=unsigned_compare_with_zero -Xcudafe --display_error_number)
-        # This diagnostic is just plain wrong in CUDA 9 and later, see https://github.com/kokkos/kokkos/issues/1470
-        set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ; -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored)
-        # nvcc 10 causes many invalid VLA errors in the host code
-        if( CUDA_VERSION_MAJOR STREQUAL "10" )
-           set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -Wno-vla )
-        endif()
-        # Select GPU architecture
-        ## cmake bug: cuda_select_nvcc_arch_flags does not work with CMAKE_EXECUTABLE_SUFFIX
-        ## see https://gitlab.kitware.com/cmake/cmake/issues/19636
-        set( executable_suffix_backup "${CMAKE_EXECUTABLE_SUFFIX}" )
-        set( CMAKE_EXECUTABLE_SUFFIX "" )
-        if( TNL_CUDA_ARCH STREQUAL "all" )
-           CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS "All")
-           LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
-        elseif( TNL_CUDA_ARCH STREQUAL "auto" )
-           CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS "Auto")
-           LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
-        elseif( NOT TNL_CUDA_ARCH STREQUAL "" )
-            CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS ${TNL_CUDA_ARCH})
-            LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
-        else()
-            message( FATAL_ERROR "\$TNL_CUDA_ARCH cannot be empty." )
-        endif()
-        set( CMAKE_EXECUTABLE_SUFFIX "${executable_suffix_backup}" )
-    endif()
+   include( CheckLanguage )
+   # check_language(CUDA) or enable_language(CUDA) does not work with CMAKE_EXECUTABLE_SUFFIX
+   # see https://gitlab.kitware.com/cmake/cmake/-/issues/23887
+   set( executable_suffix_backup "${CMAKE_EXECUTABLE_SUFFIX}" )
+   set( CMAKE_EXECUTABLE_SUFFIX "" )
+   check_language( CUDA )
+   if( CMAKE_CUDA_COMPILER )
+      enable_language( CUDA )
+      set( TNL_BUILD_CUDA TRUE)
+
+      # set C++ standard
+      set( CMAKE_CUDA_STANDARD 14 )
+      set( CMAKE_CUDA_STANDARD_REQUIRED ON )
+      set( CMAKE_CUDA_EXTENSIONS OFF )
+
+      # enable separable compilation
+      set( CMAKE_CUDA_SEPARABLE_COMPILATION ON )
+
+      # set necessary CUDA compiler flags on the interface
+      target_compile_definitions( TNL_CUDA INTERFACE HAVE_CUDA )
+      target_compile_options( TNL_CUDA INTERFACE
+            $<$<CUDA_COMPILER_ID:NVIDIA>:
+                  --expt-relaxed-constexpr ;
+                  --extended-lambda ;
+                  --default-stream per-thread ;
+            >
+      )
+
+      # Disable false compiler warnings
+      #   reference for the --diag_suppress and --display_error_number flags: https://stackoverflow.com/a/54142937
+      #   incomplete list of tokens: http://www.ssl.berkeley.edu/~jimm/grizzly_docs/SSL/opt/intel/cc/9.0/lib/locale/en_US/mcpcom.msg
+      target_compile_options( TNL_CUDA INTERFACE
+            $<$<CUDA_COMPILER_ID:NVIDIA>:
+                  -Wno-deprecated-gpu-targets ;
+                  "SHELL:-Xcudafe --diag_suppress=code_is_unreachable" ;
+                  "SHELL:-Xcudafe --diag_suppress=loop_not_reachable" ;
+                  "SHELL:-Xcudafe --diag_suppress=implicit_return_from_non_void_function" ;
+                  "SHELL:-Xcudafe --diag_suppress=unsigned_compare_with_zero" ;
+                  --display-error-number ;
+            >
+      )
+      # This diagnostic is just plain wrong in CUDA 9 and later, see https://github.com/kokkos/kokkos/issues/1470
+      target_compile_options( TNL_CUDA INTERFACE
+            $<$<CUDA_COMPILER_ID:NVIDIA>:
+                  "SHELL:-Xcudafe --diag_suppress=esa_on_defaulted_function_ignored"
+            >
+      )
+      # nvcc 10 causes many invalid VLA errors in the host code
+      target_compile_options( TNL_CUDA INTERFACE
+            $<$<AND:$<CUDA_COMPILER_ID:NVIDIA>,$<VERSION_LESS:$<CUDA_COMPILER_VERSION>,11>>:
+                  "SHELL:-Xcompiler -Wno-vla"
+            >
+      )
+
+      # set project-specific (i.e. not exported) build options
+      set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wall" )
+      set( CMAKE_CUDA_FLAGS_DEBUG "-g" )
+      set( CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG" )
+      set( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELEASE} ${CMAKE_CUDA_FLAGS_DEBUG} --generate-line-info" )
+   endif()
+   set( CMAKE_EXECUTABLE_SUFFIX "${executable_suffix_backup}" )
+   unset( executable_suffix_backup )
 endif()
 
 
@@ -361,6 +351,22 @@ if( TNL_USE_GMP )
    endif()
 endif()
 
+if( TNL_INSTALL_HEADERS )
+   # export the interface targets
+   install( TARGETS TNL TNL_CXX TNL_CUDA EXPORT TNLTargets )
+   # install a CMake file for the interface target
+   install( EXPORT TNLTargets
+            NAMESPACE TNL::
+            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} )
+   # install the TNLConfig.cmake file
+   include( CMakePackageConfigHelpers )
+   configure_package_config_file( "cmake/${PROJECT_NAME}Config.cmake.in"
+                                  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+                                  INSTALL_DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} )
+   install( FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} )
+endif()
+
 # Add all subdirectories
 add_subdirectory( src )
 
@@ -381,7 +387,7 @@ if( TNL_TOP_LEVEL_PROJECT )
    message( "-- Build options:" )
    message( "   TNL_INSTALL_HEADERS = ${TNL_INSTALL_HEADERS}" )
    message( "   TNL_USE_CUDA = ${TNL_USE_CUDA}" )
-   message( "   TNL_CUDA_ARCH = ${TNL_CUDA_ARCH}" )
+   message( "   CMAKE_CUDA_ARCHITECTURES = ${CMAKE_CUDA_ARCHITECTURES}" )
    message( "   TNL_USE_OPENMP = ${TNL_USE_OPENMP}" )
    message( "   TNL_USE_MPI = ${TNL_USE_MPI}" )
    message( "   TNL_USE_GMP = ${TNL_USE_GMP}" )
@@ -396,9 +402,15 @@ if( TNL_TOP_LEVEL_PROJECT )
    message( "   TNL_OFFLINE_BUILD = ${TNL_OFFLINE_BUILD}" )
    # Print compiler options
    message( "-- Compiler options:" )
+   message( "   CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}" )
+   message( "   CMAKE_C_FLAGS_DEBUG = ${CMAKE_C_FLAGS_DEBUG}" )
+   message( "   CMAKE_C_FLAGS_RELEASE = ${CMAKE_C_FLAGS_RELEASE}" )
    message( "   CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}" )
    message( "   CMAKE_CXX_FLAGS_DEBUG = ${CMAKE_CXX_FLAGS_DEBUG}" )
    message( "   CMAKE_CXX_FLAGS_RELEASE = ${CMAKE_CXX_FLAGS_RELEASE}" )
+   message( "   CMAKE_CUDA_FLAGS = ${CMAKE_CUDA_FLAGS}" )
+   message( "   CMAKE_CUDA_FLAGS_DEBUG = ${CMAKE_CUDA_FLAGS_DEBUG}" )
+   message( "   CMAKE_CUDA_FLAGS_RELEASE = ${CMAKE_CUDA_FLAGS_RELEASE}" )
    message( "   CMAKE_SHARED_LIBRARY_LINK_C_FLAGS = ${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS}" )
    message( "   CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG = ${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG}" )
    message( "   CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_RELEASE = ${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_RELEASE}" )
@@ -408,7 +420,6 @@ if( TNL_TOP_LEVEL_PROJECT )
    message( "   CMAKE_SHARED_LINKER_FLAGS = ${CMAKE_SHARED_LINKER_FLAGS}" )
    message( "   CMAKE_SHARED_LINKER_FLAGS_DEBUG = ${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
    message( "   CMAKE_SHARED_LINKER_FLAGS_RELEASE = ${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" )
-   message( "   CUDA_NVCC_FLAGS = ${CUDA_NVCC_FLAGS}" )
    message( "   GMP_LIBRARIES = ${GMP_LIBRARIES}" )
 
    if( MPI_CXX_FOUND AND TNL_USE_MPI )

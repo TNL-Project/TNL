@@ -1,15 +1,15 @@
 # skip building host-only targets in CUDA-enabled CI jobs
 if( TNL_BUILD_CPP_TARGETS )
    add_executable( tnl-benchmark-blas tnl-benchmark-blas.cpp )
+   target_link_libraries( tnl-benchmark-blas PUBLIC TNL::TNL_CXX )
    set( BENCHMARKS tnl-benchmark-blas )
 endif()
 
 if( TNL_BUILD_CUDA )
-   #find_library( CUDADEVRT NAMES cudadevrt )
-   cuda_add_executable( tnl-benchmark-blas-cuda tnl-benchmark-blas.cu )
-   cuda_add_cublas_to_target( tnl-benchmark-blas-cuda )
-   #target_link_libraries( tnl-benchmark-blas-cuda ${CUDADEVRT} )#${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudadevrt.a )
-
+   add_executable( tnl-benchmark-blas-cuda tnl-benchmark-blas.cu )
+   target_link_libraries( tnl-benchmark-blas-cuda PUBLIC TNL::TNL_CUDA )
+   find_package( CUDAToolkit REQUIRED )
+   target_link_libraries( tnl-benchmark-blas-cuda PUBLIC CUDA::cublas )
    set( BENCHMARKS ${BENCHMARKS} tnl-benchmark-blas-cuda )
 endif()
 
@@ -27,20 +27,20 @@ find_package( BLAS )
 foreach( target IN ITEMS ${BENCHMARKS} )
    if( CBLAS_LIBRARY )
       target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
-      target_link_libraries( ${target} ${CBLAS_LIBRARY} )
+      target_link_libraries( ${target} PUBLIC ${CBLAS_LIBRARY} )
    elseif( TATLAS_LIBRARY )
       target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
-      target_link_libraries( ${target} ${TATLAS_LIBRARY} )
+      target_link_libraries( ${target} PUBLIC ${TATLAS_LIBRARY} )
    elseif( SATLAS_LIBRARY )
       target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
-      target_link_libraries( ${target} ${SATLAS_LIBRARY} )
+      target_link_libraries( ${target} PUBLIC ${SATLAS_LIBRARY} )
    else()
       # FIXME: We require the CBLAS interface, but CMake's FindBLAS cannot detect that,
       #        so this fails unless the BLAS implementation includes it in the same
       #        shared library file as the Fortran implementation (e.g. OpenBLAS does that).
       if( BLAS_FOUND )
          target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
-         target_link_libraries( ${target} ${BLAS_LIBRARIES} )
+         target_link_libraries( ${target} PUBLIC ${BLAS_LIBRARIES} )
       endif()
    endif()
 
