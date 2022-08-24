@@ -618,6 +618,15 @@ getEntity( const IndexType& entityIdx ) const -> EntityType< EntityDimension >
 template< int Dimension_, typename Real, typename Device, typename Index >
 void
 Grid< Dimension_, Real, Device, Index >::
+setSubdomain( const CoordinatesType& begin, const CoordinatesType& end )
+{
+   this->subdomainBegin = begin;
+   this->subdomainEnd = end;
+}
+
+template< int Dimension_, typename Real, typename Device, typename Index >
+void
+Grid< Dimension_, Real, Device, Index >::
 setSubdomainBegin( const CoordinatesType& begin )
 {
    this->subdomainBegin = begin;
@@ -816,7 +825,7 @@ template< int Dimension_, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension_, Real, Device, Index >::
-forAllEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const
+forEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const
 {
    auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
                                         const CoordinatesType& normals,
@@ -910,6 +919,26 @@ forInteriorEntities( const CoordinatesType& from, const CoordinatesType& to, Fun
    };
 
    this->template traverseInterior< EntityDimension >( from, to, exec, *this, args... );
+}
+
+template< int Dimension_, typename Real, typename Device, typename Index >
+template< int EntityDimension, typename Func, typename... FuncArgs >
+void
+Grid< Dimension_, Real, Device, Index >::
+forSubdomainEntities( Func func, FuncArgs... args ) const
+{
+   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
+                                        const CoordinatesType& normals,
+                                        const Index orientation,
+                                        const Grid& grid,
+                                        FuncArgs... args ) mutable
+   {
+      EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
+
+      func( entity, args... );
+   };
+
+   this->template traverseAll< EntityDimension >( this->subdomainBegin, this->subdomainEnd, exec, *this, args... );
 }
 
 }  // namespace Meshes

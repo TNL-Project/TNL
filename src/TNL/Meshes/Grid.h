@@ -571,12 +571,40 @@ public:
    Index
    getEntityIndex( const Entity& entity ) const;
 
+   /**
+    * \brief Sets the subdomain of distributed grid.
+    *
+    * \param begin is "lower left" corner of the subdomain.
+    * \param end is "upper right" corner of the subdomain.
+    */
+   void setSubdomain( const CoordinatesType& begin, const CoordinatesType& end );
+
+   /**
+    * \brief Sets the "lower left" corfner of subdomain of distributed grid.
+    *
+    * \param begin is "lower left" corner of the subdomain.
+    */
    void setSubdomainBegin( const CoordinatesType& begin );
 
+   /**
+    * \brief Sets the "upper right" corfner of subdomain of distributed grid.
+    *
+    * \param end is "upper right" corner of the subdomain.
+    */
    void setSubdomainEnd( const CoordinatesType& end );
 
+   /**
+    * \brief Gets the "lower left" corner of subdomain for distributed grid.
+    *
+    * \return const CoordinatesType& is "lower left" corner of subdomain for distributed grid.
+    */
    const CoordinatesType& getSubdomainBegin() const;
 
+   /**
+    * \brief Gets the "upper right" corner of subdomain for distributed grid.
+    *
+    * \return const CoordinatesType& is "upper right" corner of subdomain for distributed grid.
+    */
    const CoordinatesType& getSubdomainEnd() const;
 
    /**
@@ -586,13 +614,6 @@ public:
     */
    void
    writeProlog( TNL::Logger& logger ) const noexcept;
-
-
-
-   //void setInteriorBegin( const CoordinatesType& localBegin ){};
-
-   //void setInteriorEnd( const CoordinatesType& localEnd ){};
-
 
    /**
     * \brief Iterate over all mesh entities with given dimension and perform given lambda function
@@ -620,7 +641,7 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forAllEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+   forEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
 
    /**
     * \brief Traverser interior elements in rect
@@ -653,6 +674,10 @@ public:
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    forBoundaryEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   void
+   forSubdomainEntities( Func func, FuncArgs... args ) const;
 
 protected:
 
