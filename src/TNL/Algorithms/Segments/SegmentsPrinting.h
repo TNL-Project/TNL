@@ -31,7 +31,6 @@ std::ostream&
 printSegments( const Segments& segments, std::ostream& str )
 {
    using IndexType = typename Segments::IndexType;
-   using DeviceType = typename Segments::DeviceType;
 
    auto segmentsCount = segments.getSegmentsCount();
    str << " [";

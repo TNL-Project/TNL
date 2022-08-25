@@ -253,8 +253,6 @@ __cuda_callable__
 typename MeshConfig::RealType
 getEntityMeasure( const Mesh< MeshConfig, Device >& mesh, const MeshEntity< MeshConfig, Device, Topologies::Wedge >& entity )
 {
-   using Real = typename MeshConfig::RealType;
-
    const auto& v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
    const auto& v1 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 1 ) );
    const auto& v2 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 2 ) );
@@ -272,8 +270,6 @@ __cuda_callable__
 typename MeshConfig::RealType
 getEntityMeasure( const Mesh< MeshConfig, Device >& mesh, const MeshEntity< MeshConfig, Device, Topologies::Pyramid >& entity )
 {
-   using Real = typename MeshConfig::RealType;
-
    const auto& v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
    const auto& v1 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 1 ) );
    const auto& v2 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 2 ) );
