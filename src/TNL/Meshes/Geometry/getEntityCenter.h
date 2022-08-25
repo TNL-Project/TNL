@@ -43,7 +43,6 @@ __cuda_callable__
 typename MeshTraits< MeshConfig >::PointType
 getEntityCenter( const Mesh< MeshConfig, Device >& mesh, const MeshEntity< MeshConfig, Device, EntityTopology >& entity )
 {
-   using EntityType = MeshEntity< MeshConfig, Device, EntityTopology >;
    const typename MeshConfig::LocalIndexType subvertices = entity.template getSubentitiesCount< 0 >();
    typename MeshTraits< MeshConfig >::PointType c = 0;
    for( typename MeshConfig::LocalIndexType i = 0; i < subvertices; i++ ) {

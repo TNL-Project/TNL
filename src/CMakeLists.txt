@@ -1,29 +1,26 @@
-add_subdirectory( 3rdparty )
+if( TNL_INSTALL_HEADERS )
+   install( DIRECTORY TNL TYPE INCLUDE
+            MESSAGE_NEVER
+            FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" )
 
-install( DIRECTORY TNL TYPE INCLUDE
-         MESSAGE_NEVER
-         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" )
-
-# Note that it is important to start building examples as soon as possible,
-# because they take the longest time and other stuff can be pipelined before
-# they are finished (at least with Ninja).
-if( ${BUILD_EXAMPLES} )
-   add_subdirectory( Examples )
+   add_subdirectory( Python )
 endif()
 
-if( ${BUILD_BENCHMARKS} )
+if( TNL_BUILD_BENCHMARKS )
    add_subdirectory( Benchmarks )
 endif()
 
-if( ${BUILD_TOOLS} )
+if( TNL_BUILD_EXAMPLES )
+   add_subdirectory( Examples )
+endif()
+
+if( TNL_BUILD_TOOLS )
    add_subdirectory( Tools )
 endif()
 
-if( ${BUILD_TESTS} )
+if( TNL_BUILD_TESTS )
    add_subdirectory( UnitTests )
 endif()
-if( ${BUILD_MATRIX_TESTS} )
+if( TNL_BUILD_MATRIX_TESTS )
    add_subdirectory( UnitTests/Matrices )
 endif()
-
-add_subdirectory( Python )

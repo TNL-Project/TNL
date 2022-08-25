@@ -34,9 +34,10 @@ set( COMMON_EXAMPLES
    SparseMatrixViewExample_wrapEllpack
 )
 
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${COMMON_EXAMPLES} )
-      cuda_add_executable( ${target} ${target}.cu )
+      add_executable( ${target} ${target}.cu )
+      target_link_libraries( ${target} PUBLIC TNL::TNL_CUDA )
       add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                           OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                           DEPENDS ${target} )
@@ -45,6 +46,7 @@ if( BUILD_CUDA )
 else()
    foreach( target IN ITEMS ${COMMON_EXAMPLES} )
       add_executable( ${target} ${target}.cpp )
+      target_link_libraries( ${target} PUBLIC TNL::TNL_CXX )
       add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                           OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                           DEPENDS ${target} )
@@ -52,7 +54,7 @@ else()
    endforeach()
 endif()
 
-IF( BUILD_CUDA )
+IF( TNL_BUILD_CUDA )
    ADD_CUSTOM_TARGET( RunSparseMatricesExamples ALL DEPENDS ${CUDA_OUTPUTS} )
 ELSE()
    ADD_CUSTOM_TARGET( RunSparseMatricesExamples ALL DEPENDS ${HOST_OUTPUTS} )

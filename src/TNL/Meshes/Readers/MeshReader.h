@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <mpark/variant.hpp>  // backport of std::variant from C++17
+#include <TNL/3rdparty/mpark/variant.hpp>  // backport of std::variant from C++17
 
 #include <TNL/Meshes/MeshBuilder.h>
 #include <TNL/Meshes/VTKTraits.h>

@@ -10,7 +10,7 @@
 
 #include <future>
 // 3rd-party async library providing a thread-pool
-#include <async/threadpool.h>
+#include <TNL/3rdparty/async/threadpool.h>
 
 #include <TNL/Containers/ndarray/SynchronizerBuffers.h>
 #include <TNL/MPI/Comm.h>

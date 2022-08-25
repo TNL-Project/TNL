@@ -14,7 +14,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Config/parseCommandLine.h>  // for addDefaultValues and checkEnumValues
 
-#include <Leksys/iniparser.hpp>
+#include <TNL/3rdparty/Leksys/iniparser.hpp>
 
 namespace TNL {
 namespace Config {

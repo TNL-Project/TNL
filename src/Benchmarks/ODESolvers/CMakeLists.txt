@@ -1,7 +1,9 @@
-if( BUILD_CUDA )
-   cuda_add_executable( tnl-benchmark-ode-solvers-cuda tnl-benchmark-ode-solvers.cu
-                        OPTIONS -DHAVE_CUSPARSE )
-   target_link_libraries( tnl-benchmark-ode-solvers-cuda ${CUDA_cusparse_LIBRARY} )
+if( TNL_BUILD_CUDA )
+   add_executable( tnl-benchmark-ode-solvers-cuda tnl-benchmark-ode-solvers.cu )
+   target_link_libraries( tnl-benchmark-ode-solvers-cuda PUBLIC TNL::TNL_CUDA )
+   target_compile_definitions( tnl-benchmark-ode-solvers-cuda PUBLIC "-DHAVE_CUSPARSE" )
+   find_package( CUDAToolkit REQUIRED )
+   target_link_libraries( tnl-benchmark-ode-solvers-cuda PUBLIC CUDA::cusparse )
    install( TARGETS tnl-benchmark-ode-solvers-cuda RUNTIME DESTINATION bin )
 
    if( MPI_CXX_FOUND AND ${WITH_MPI} )
@@ -13,8 +15,9 @@ if( BUILD_CUDA )
 endif()
 
 # skip building host-only targets in CUDA-enabled CI jobs
-if( BUILD_CPP_TARGETS )
+if( TNL_BUILD_CPP_TARGETS )
    add_executable( tnl-benchmark-ode-solvers tnl-benchmark-ode-solvers.cpp )
+   target_link_libraries( tnl-benchmark-ode-solvers PUBLIC TNL::TNL_CXX )
    install( TARGETS tnl-benchmark-ode-solvers RUNTIME DESTINATION bin )
 
    if( MPI_CXX_FOUND AND ${WITH_MPI} )

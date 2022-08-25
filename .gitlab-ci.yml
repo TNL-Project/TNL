@@ -23,15 +23,15 @@ stages:
 # default flags for cmake
 .default_cmake_flags_def: &default_cmake_flags
     # architectures
-    WITH_CUDA: "no"
-    WITH_CUDA_ARCH: "auto"
+    USE_CUDA: "no"
+    CUDA_ARCH: "native"
     # MPI is selectively added to targets, so there is no point to have separate jobs without MPI
-    WITH_MPI: "yes"
-    WITH_OPENMP: "yes"
+    USE_MPI: "yes"
+    USE_OPENMP: "yes"
     # build targets
     BUILD_TESTS: "no"
     BUILD_MATRIX_TESTS: "no"
-    WITH_COVERAGE: "no"
+    BUILD_COVERAGE: "no"
     BUILD_DOC: "no"
     BUILD_BENCHMARKS: "no"
     BUILD_EXAMPLES: "no"
@@ -51,6 +51,8 @@ stages:
     # don't wait for jobs in previous stages to complete before starting this job
     needs: []
     script:
+        # make sure that $PATH and other essential variables are set correctly
+        - source /etc/profile
         # all cores including hyperthreading
 #        - export NUM_CORES=$(grep "core id" /proc/cpuinfo | wc -l)
         # all pyhsical cores
@@ -67,23 +69,23 @@ stages:
         - export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
         # fall back to arch 7.0 when the builder has no GPU to avoid building for all GPU architectures
         - if ! nvidia-smi --list-gpus > /dev/null; then
-                WITH_CUDA_ARCH=7.0;
+                CUDA_ARCH=70;
           fi
         - cmake -B "./builddir/$CI_JOB_NAME" -S . -G Ninja
                 -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
                 -DCMAKE_INSTALL_PREFIX="$(pwd)/install_prefix/$CI_JOB_NAME"
-                -DWITH_OPENMP=${WITH_OPENMP}
-                -DWITH_MPI=${WITH_MPI}
-                -DWITH_CUDA=${WITH_CUDA}
-                -DWITH_CUDA_ARCH=${WITH_CUDA_ARCH}
-                -DBUILD_TESTS=${BUILD_TESTS}
-                -DBUILD_MATRIX_TESTS=${BUILD_MATRIX_TESTS}
-                -DBUILD_DOC=${BUILD_DOC}
-                -DWITH_COVERAGE=${WITH_COVERAGE}
-                -DBUILD_BENCHMARKS=${BUILD_BENCHMARKS}
-                -DBUILD_EXAMPLES=${BUILD_EXAMPLES}
-                -DBUILD_TOOLS=${BUILD_TOOLS}
-                -DWITH_CI_FLAGS=yes
+                -DTNL_USE_OPENMP=${USE_OPENMP}
+                -DTNL_USE_MPI=${USE_MPI}
+                -DTNL_USE_CUDA=${USE_CUDA}
+                -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCH}
+                -DTNL_BUILD_TESTS=${BUILD_TESTS}
+                -DTNL_BUILD_MATRIX_TESTS=${BUILD_MATRIX_TESTS}
+                -DTNL_BUILD_DOC=${BUILD_DOC}
+                -DTNL_BUILD_COVERAGE=${BUILD_COVERAGE}
+                -DTNL_BUILD_BENCHMARKS=${BUILD_BENCHMARKS}
+                -DTNL_BUILD_EXAMPLES=${BUILD_EXAMPLES}
+                -DTNL_BUILD_TOOLS=${BUILD_TOOLS}
+                -DTNL_USE_CI_FLAGS=yes
         # "install" implies the "all" target
         - ninja -C "./builddir/$CI_JOB_NAME" ${NINJAFLAGS} install
         - if [[ ${BUILD_TESTS} == "yes" ]] || [[ ${BUILD_MATRIX_TESTS} == "yes" ]]; then
@@ -105,7 +107,7 @@ stages:
     # NOTE: gcovr is very slow, maybe it could be solved with fastcov:
     # https://github.com/gcovr/gcovr/issues/289
     # https://github.com/RPGillespie6/fastcov
-    # NOTE: when enabling, the WITH_COVERAGE env var must be switched to yes
+    # NOTE: when enabling, the BUILD_COVERAGE env var must be switched to yes
     #after_script:
     #    - mkdir coverage_html
     #    - if [[ ${CXX} == "clang++" ]]; then
@@ -166,7 +168,7 @@ cuda_tests_Debug:
         - nvidia
     variables:
         <<: *default_cmake_flags
-        WITH_CUDA: "yes"
+        USE_CUDA: "yes"
         BUILD_TYPE: Debug
         BUILD_TESTS: "yes"
 
@@ -180,7 +182,7 @@ cuda_tests_Release:
         - nvidia
     variables:
         <<: *default_cmake_flags
-        WITH_CUDA: "yes"
+        USE_CUDA: "yes"
         BUILD_TYPE: Release
         BUILD_TESTS: "yes"
 
@@ -195,7 +197,7 @@ cuda_matrix_tests_Debug:
         - nvidia
     variables:
         <<: *default_cmake_flags
-        WITH_CUDA: "yes"
+        USE_CUDA: "yes"
         BUILD_TYPE: Debug
         BUILD_MATRIX_TESTS: "yes"
 
@@ -209,7 +211,7 @@ cuda_matrix_tests_Release:
         - nvidia
     variables:
         <<: *default_cmake_flags
-        WITH_CUDA: "yes"
+        USE_CUDA: "yes"
         BUILD_TYPE: Release
         BUILD_MATRIX_TESTS: "yes"
 
@@ -219,7 +221,7 @@ cuda_nontests_Debug:
     stage: build:cuda
     variables:
         <<: *default_cmake_flags
-        WITH_CUDA: "yes"
+        USE_CUDA: "yes"
         BUILD_TYPE: Debug
         BUILD_EXAMPLES: "yes"
         BUILD_BENCHMARKS: "yes"
@@ -230,7 +232,7 @@ cuda_nontests_Release:
     stage: build:cuda
     variables:
         <<: *default_cmake_flags
-        WITH_CUDA: "yes"
+        USE_CUDA: "yes"
         BUILD_TYPE: Release
         BUILD_EXAMPLES: "yes"
         BUILD_BENCHMARKS: "yes"
@@ -355,9 +357,9 @@ documentation examples:
         - nvidia
     variables:
         <<: *default_cmake_flags
-        WITH_OPENMP: "yes"
-        WITH_CUDA: "yes"
-        WITH_MPI: "yes"
+        USE_OPENMP: "yes"
+        USE_CUDA: "yes"
+        USE_MPI: "yes"
         BUILD_TYPE: Debug
         # build output snippets for documentation
         BUILD_DOC: "yes"
@@ -443,16 +445,16 @@ clang-tidy:
         # TODO: set BUILD_EXAMPLES=yes to modernize examples
         - cmake -B "./builddir/$CI_JOB_NAME" -S . -G Ninja
                 -DCMAKE_BUILD_TYPE=Debug
-                -DWITH_OPENMP=yes
-                -DWITH_MPI=yes
-                -DWITH_CUDA=no
-                -DBUILD_TESTS=yes
-                -DBUILD_MATRIX_TESTS=yes
-                -DBUILD_DOC=yes
-                -DBUILD_BENCHMARKS=yes
-                -DBUILD_EXAMPLES=no
-                -DBUILD_TOOLS=yes
-                -DWITH_CI_FLAGS=yes
+                -DTNL_USE_OPENMP=yes
+                -DTNL_USE_MPI=yes
+                -DTNL_USE_CUDA=no
+                -DTNL_BUILD_TESTS=yes
+                -DTNL_BUILD_MATRIX_TESTS=yes
+                -DTNL_BUILD_DOC=yes
+                -DTNL_BUILD_BENCHMARKS=yes
+                -DTNL_BUILD_EXAMPLES=no
+                -DTNL_BUILD_TOOLS=yes
+                -DTNL_USE_CI_FLAGS=yes
         # cmake creates compile_commands.json only on the second run, WTF!?
         - cmake -B "./builddir/$CI_JOB_NAME" -S . -G Ninja
         - ls -lah "./builddir/$CI_JOB_NAME"

@@ -902,6 +902,8 @@ EXCLUDE_PATTERNS       = */Debugging/* \
                          */Meshes/GridDetails/* \
                          */Meshes/MeshDetails/* \
                          */Problems/*
+# skip 3rd-party files
+EXCLUDE_PATTERNS += */3rdparty/*
 # skip documentation in code snippets
 EXCLUDE_PATTERNS += */Tutorials/*.h
 EXCLUDE_PATTERNS += */Tutorials/*.cpp
