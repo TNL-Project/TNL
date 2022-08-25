@@ -236,7 +236,7 @@ of targets that can be selected from the following list:
 Additionally, `[options]` can be replaced with a list of options with the `--`
 prefix that can be viewed by running `./install --help`.
 
-Note that [CMake](https://cmake.org/) 3.13 or later is required when using the
+Note that [CMake](https://cmake.org/) 3.24 or later is required when using the
 `install` script.
 
 ## Usage   {#usage}
