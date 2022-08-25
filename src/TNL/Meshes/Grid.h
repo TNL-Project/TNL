@@ -619,62 +619,153 @@ public:
     * \brief Iterate over all mesh entities with given dimension and perform given lambda function
     *    on each of them.
     *
+    * Entities processed by this method are such that their coordinates \f$c\f$ fullfill \f$ origin \leq c < origin + proportions\f$.
+    *
     * \tparam EntityDimension is dimension of the grid entites.
     * \tparam Func is lambda to be performed on each grid enitty.
-    *
-    * \param func is an instance of the lambda function to be performed on each grid entity.
     *     It is supposed to have the following form:
     *
     * ```
     * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
     * ```
     * where \ref entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
+    *
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args... are packed arguments that are going to be passed to the lambda function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    forAllEntities( Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Traverser all elements in rect
-    * \param from - bottom left anchor of traverse rect
-    * \param to - top right anchor of traverse rect
+    * \brief Iterate over all mesh entities within given region with given dimension and perform given lambda function
+    *    on each of them.
+    *
+    * Entities processed by this method are such that their coordinates \f$c\f$ fullfill \f$ begin \leq c < end\f$.
+    *
+    * \tparam EntityDimension is dimension of the grid entites.
+    * \tparam Func is lambda to be performed on each grid enitty.
+    *     It is supposed to have the following form:
+    *
+    * ```
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * ```
+    * where \ref entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
+    *
+    * \param begin is the 'lower left' corner of the region.
+    * \param end is the 'upper right' corner of the region.
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args... are packed arguments that are going to be passed to the lambda function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+   forEntities( const CoordinatesType& begin, const CoordinatesType& end, Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Traverser interior elements in rect
+    * \brief Iterate over all interior mesh entities with given dimension and perform given lambda function
+    *    on each of them.
+    *
+    * Entities processed by this method are such that their coordinates \f$c\f$ fullfill \f$ origin < c < origin + proportions - 1\f$.
+    *
+    * \tparam EntityDimension is dimension of the grid entites.
+    * \tparam Func is lambda to be performed on each grid enitty.
+    *     It is supposed to have the following form:
+    *
+    * ```
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * ```
+    * where \ref entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args... are packed arguments that are going to be passed to the lambda function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    forInteriorEntities( Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Traverser interior elements
-    * \param from - bottom left anchor of traverse rect
-    * \param to - top right anchor of traverse rect
+    * \brief Iterate over all mesh entities within interior of given region with given dimension and perform given lambda function
+    *    on each of them.
+    *
+    * Entities processed by this method are such that their coordinates \f$c\f$ fullfill \f$ begin < c < end - 1\f$.
+    *
+    * \tparam EntityDimension is dimension of the grid entites.
+    * \tparam Func is lambda to be performed on each grid enitty.
+    *     It is supposed to have the following form:
+    *
+    * ```
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * ```
+    * where \ref entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
+    *
+    * \param begin is the 'lower left' corner of the region.
+    * \param end is the 'upper right' corner of the region.
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args... are packed arguments that are going to be passed to the lambda function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forInteriorEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+   forInteriorEntities( const CoordinatesType& begin, const CoordinatesType& end, Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Traverser boundary elements in rect
+    * \brief Iterate over all boundary mesh entities with given dimension and perform given lambda function
+    *    on each of them.
+    *
+    * \tparam EntityDimension is dimension of the grid entites.
+    * \tparam Func is lambda to be performed on each grid enitty.
+    *     It is supposed to have the following form:
+    *
+    * ```
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * ```
+    * where \ref entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
+    *
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args... are packed arguments that are going to be passed to the lambda function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    forBoundaryEntities( Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Traverser boundary elements in rect
-    * \param from - bottom left anchor of traverse rect
-    * \param to - top right anchor of traverse rect
+    * \brief Iterate over all boundary mesh entities of given region with given dimension and perform given lambda function
+    *    on each of them.
+    *
+    * \tparam EntityDimension is dimension of the grid entites.
+    * \tparam Func is lambda to be performed on each grid enitty.
+    *     It is supposed to have the following form:
+    *
+    * ```
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * ```
+    * where \ref entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
+    *
+    * \param begin is the 'lower left' corner of the region.
+    * \param end is the 'upper right' corner of the region.
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args... are packed arguments that are going to be passed to the lambda function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forBoundaryEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const;
+   forBoundaryEntities( const CoordinatesType& begin, const CoordinatesType& end, Func func, FuncArgs... args ) const;
 
+   /**
+    * \brief Iterate over all mesh entities within the local subdomain with given dimension and perform given lambda function
+    *    on each of them.
+    *
+    * Entities processed by this method are such that their coordinates \f$c\f$ fullfill \f$ subdomainBegin \leq c < subdomainEnd\f$.
+    *
+    * \tparam EntityDimension is dimension of the grid entites.
+    * \tparam Func is lambda to be performed on each grid enitty.
+    *     It is supposed to have the following form:
+    *
+    * ```
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * ```
+    * where \ref entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
+    *
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args... are packed arguments that are going to be passed to the lambda function.
+    */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    forSubdomainEntities( Func func, FuncArgs... args ) const;
