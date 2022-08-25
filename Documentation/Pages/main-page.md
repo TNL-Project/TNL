@@ -244,7 +244,11 @@ Note that [CMake](https://cmake.org/) 3.24 or later is required when using the
 TNL can be used with various build systems if you configure the compiler flags
 as explained below. See also an [example project](
 https://gitlab.com/tnl-project/example-project) providing a simple
-`Makefile`.
+`Makefile`. If you use the CMake build system, see the [PyTNL project](
+https://gitlab.com/tnl-project/pytnl) which uses a git submodule for TNL and
+includes it with `add_subdirectory(libs/tnl)` in the `CMakeLists.txt` file.
+As an alternative to the git submodule approach, you can use `find_package(TNL)`
+to find TNL installed on the system or in your user home directory.
 
 ### C++ compiler flags
 
