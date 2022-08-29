@@ -2,7 +2,9 @@
 
 devices="sequential host cuda"
 precisions="float double"
-tests="parallel-for simple-grid grid nd-grid"
+#tests="parallel-for simple-grid grid nd-grid"
+#tests="parallel-for-shmem-16 parallel-for-shmem-32 parallel-for-shmem-64 parallel-for-shmem-128 parallel-for-shmem-256 grid-shmem-16 grid-shmem-32 grid-shmem-64 grid-shmem-128 grid-shmem-256"
+tests="parallel-for-shmem-512 parallel-for-shmem-1024 parallel-for-shmem-2048 grid-shmem-512 grid-shmem-1024 grid-shmem-2048"
 max_x_dimension="800"
 max_y_dimension="800"
 base="tnl-benchmark-heat-equation"
