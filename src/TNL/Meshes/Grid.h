@@ -577,35 +577,40 @@ public:
     * \param begin is "lower left" corner of the subdomain.
     * \param end is "upper right" corner of the subdomain.
     */
-   void setSubdomain( const CoordinatesType& begin, const CoordinatesType& end );
+   void setLocalSubdomain( const CoordinatesType& begin, const CoordinatesType& end );
 
    /**
     * \brief Sets the "lower left" corfner of subdomain of distributed grid.
     *
     * \param begin is "lower left" corner of the subdomain.
     */
-   void setSubdomainBegin( const CoordinatesType& begin );
+   void setLocalBegin( const CoordinatesType& begin );
 
    /**
     * \brief Sets the "upper right" corfner of subdomain of distributed grid.
     *
     * \param end is "upper right" corner of the subdomain.
     */
-   void setSubdomainEnd( const CoordinatesType& end );
+   void setLocalEnd( const CoordinatesType& end );
 
    /**
     * \brief Gets the "lower left" corner of subdomain for distributed grid.
     *
     * \return const CoordinatesType& is "lower left" corner of subdomain for distributed grid.
     */
-   const CoordinatesType& getSubdomainBegin() const;
+   const CoordinatesType& getLocalBegin() const;
 
    /**
     * \brief Gets the "upper right" corner of subdomain for distributed grid.
     *
     * \return const CoordinatesType& is "upper right" corner of subdomain for distributed grid.
     */
-   const CoordinatesType& getSubdomainEnd() const;
+   const CoordinatesType& getLocalEnd() const;
+
+   void setInteriorBegin( const CoordinatesType& begin ) { this->interiorBegin = begin; };
+   void setInteriorEnd( const CoordinatesType& end ) { this->interiorBegin = end; };
+   const CoordinatesType& getInteriorBegin() const { return this->interiorBegin; };
+   const CoordinatesType& getInteriorEnd() const { return this->interiorEnd; };
 
    /**
     * \brief Writes info about the grid.
@@ -768,7 +773,7 @@ public:
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
-   forSubdomainEntities( Func func, FuncArgs... args ) const;
+   forLocalEntities( Func func, FuncArgs... args ) const;
 
 protected:
 
@@ -816,7 +821,9 @@ protected:
    /**
     * \brief Region of subdomain if this grid represents one sudbdomain of distributed grid.
     */
-   CoordinatesType subdomainBegin, subdomainEnd;
+   CoordinatesType localBegin, localEnd;
+
+   CoordinatesType interiorBegin, interiorEnd; // TODO: Why we needt it?
 
    /**
     * \brief - A list of elements count along specific directions.

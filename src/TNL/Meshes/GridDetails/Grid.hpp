@@ -96,8 +96,8 @@ Grid< Dimension_, Real, Device, Index >::setDimensions( Dimensions... dimensions
    fillNormals();
    fillEntitiesCount();
    fillSpaceSteps();
-   this->subdomainBegin = 0;
-   this->subdomainEnd = this->getDimensions();
+   this->localBegin = 0;
+   this->localEnd = this->getDimensions();
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
@@ -111,8 +111,8 @@ Grid< Dimension_, Real, Device, Index >::setDimensions( const typename Grid< Dim
    fillNormals();
    fillEntitiesCount();
    fillSpaceSteps();
-   this->subdomainBegin = 0;
-   this->subdomainEnd = this->getDimensions();
+   this->localBegin = 0;
+   this->localEnd = this->getDimensions();
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
@@ -618,42 +618,42 @@ getEntity( const IndexType& entityIdx ) const -> EntityType< EntityDimension >
 template< int Dimension_, typename Real, typename Device, typename Index >
 void
 Grid< Dimension_, Real, Device, Index >::
-setSubdomain( const CoordinatesType& begin, const CoordinatesType& end )
+setLocalSubdomain( const CoordinatesType& begin, const CoordinatesType& end )
 {
-   this->subdomainBegin = begin;
-   this->subdomainEnd = end;
+   this->localBegin = begin;
+   this->localEnd = end;
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
 void
 Grid< Dimension_, Real, Device, Index >::
-setSubdomainBegin( const CoordinatesType& begin )
+setLocalBegin( const CoordinatesType& begin )
 {
-   this->subdomainBegin = begin;
+   this->localBegin = begin;
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
 void
 Grid< Dimension_, Real, Device, Index >::
-setSubdomainEnd( const CoordinatesType& end )
+setLocalEnd( const CoordinatesType& end )
 {
-   this->subdomainEnd = end;
+   this->localEnd = end;
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
 auto
 Grid< Dimension_, Real, Device, Index >::
-getSubdomainBegin() const -> const CoordinatesType&
+getLocalBegin() const -> const CoordinatesType&
 {
-   return this->subdomainBegin;
+   return this->localBegin;
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
 auto
 Grid< Dimension_, Real, Device, Index >::
-getSubdomainEnd() const ->  const CoordinatesType&
+getLocalEnd() const ->  const CoordinatesType&
 {
-   return this->subdomainEnd;
+   return this->localEnd;
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
@@ -925,7 +925,7 @@ template< int Dimension_, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension_, Real, Device, Index >::
-forSubdomainEntities( Func func, FuncArgs... args ) const
+forLocalEntities( Func func, FuncArgs... args ) const
 {
    auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
                                         const CoordinatesType& normals,
@@ -938,7 +938,7 @@ forSubdomainEntities( Func func, FuncArgs... args ) const
       func( entity, args... );
    };
 
-   this->template traverseAll< EntityDimension >( this->subdomainBegin, this->subdomainEnd, exec, *this, args... );
+   this->template traverseAll< EntityDimension >( this->localBegin, this->localEnd, exec, *this, args... );
 }
 
 }  // namespace Meshes
