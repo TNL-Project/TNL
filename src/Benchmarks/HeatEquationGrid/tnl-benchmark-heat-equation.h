@@ -103,7 +103,7 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
       HeatEquationSolverBenchmarkParallelForShmem< 128, Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
-   if( implementation == "parallel-for-shmem-256" )
+   /*if( implementation == "parallel-for-shmem-256" )
    {
       HeatEquationSolverBenchmarkParallelForShmem< 256, Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
@@ -122,7 +122,7 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
    {
       HeatEquationSolverBenchmarkParallelForShmem< 2048, Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
-   }
+   }*/
 
    if( implementation == "grid-shmem-16" )
    {
@@ -144,7 +144,7 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
       HeatEquationSolverBenchmarkGridShmem< 128, Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
-   if( implementation == "grid-shmem-256" )
+   /*if( implementation == "grid-shmem-256" )
    {
       HeatEquationSolverBenchmarkGridShmem< 256, Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
@@ -163,7 +163,7 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
    {
       HeatEquationSolverBenchmarkGridShmem< 2048, Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
-   }
+   }*/
 
    return false;
 }

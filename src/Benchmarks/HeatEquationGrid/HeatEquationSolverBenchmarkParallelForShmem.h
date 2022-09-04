@@ -9,6 +9,7 @@
 #pragma once
 
 #include "HeatEquationSolverBenchmark.h"
+#include "UnrolledStaticVector.h"
 
 template< int Size = 1,
           typename Real = double,
@@ -36,10 +37,10 @@ struct HeatEquationSolverBenchmarkParallelForShmem : public HeatEquationSolverBe
             auto element = uxView[index];
             auto center = 2 * element;
 
-            TNL::Containers::StaticVector< Size, Real > v( 1.0 );
+            UnrolledStaticVector< Size, Real > v( 1.0 );
             auxView[index] = element + ( (uxView[index - 1] -     center + uxView[index + 1]    ) * hx_inv +
                                          (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv   ) *
-                                         TNL::l1Norm( v ) * timestep;
+                                         v.getL1Norm() * timestep;
          };
 
          TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize - 1, ySize - 1, next );

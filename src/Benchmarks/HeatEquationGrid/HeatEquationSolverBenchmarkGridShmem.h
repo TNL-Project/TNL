@@ -10,6 +10,7 @@
 
 #include <TNL/Meshes/Grid.h>
 #include "HeatEquationSolverBenchmark.h"
+#include "UnrolledStaticVector.h"
 
 template< int Size = 1,
           typename Real = double,
@@ -45,10 +46,10 @@ struct HeatEquationSolverBenchmarkGridShmem : public HeatEquationSolverBenchmark
             auto element = uxView[index];
             auto center = 2 * element;
 
-            TNL::Containers::StaticVector< Size, Real > v( 1.0 );
+            UnrolledStaticVector< Size, Real > v( 1.0 );
             auxView[index] = element + ( ( uxView[index - 1] - center + uxView[index + 1] ) * hx_inv +
                                          ( uxView[index - width] - center + uxView[index + width] ) * hy_inv ) *
-                                         TNL::l1Norm( v ) * timestep;
+                                         v.getL1Norm() * timestep;
          };
 
          grid.template forInteriorEntities<0>( next );
