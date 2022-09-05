@@ -17,7 +17,7 @@
 #include "HeatEquationSolverBenchmarkParallelForShmem.h"
 #include "HeatEquationSolverBenchmarkGridShmem.h"
 
-void setupConfig( TNL::Config::ConfigDescription& config )
+void configSetup( TNL::Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addEntry< TNL::String >( "implementation", "Implementation of the heat equation solver.", "grid" );
@@ -25,6 +25,8 @@ void setupConfig( TNL::Config::ConfigDescription& config )
    config.addEntryEnum< TNL::String >( "simple-grid" );
    config.addEntryEnum< TNL::String >( "grid" );
    config.addEntryEnum< TNL::String >( "nd-grid" );
+   config.addEntryEnum< TNL::String >( "parallel-for-shmem-4" );
+   config.addEntryEnum< TNL::String >( "parallel-for-shmem-8" );
    config.addEntryEnum< TNL::String >( "parallel-for-shmem-16" );
    config.addEntryEnum< TNL::String >( "parallel-for-shmem-32" );
    config.addEntryEnum< TNL::String >( "parallel-for-shmem-64" );
@@ -33,6 +35,8 @@ void setupConfig( TNL::Config::ConfigDescription& config )
    config.addEntryEnum< TNL::String >( "parallel-for-shmem-512" );
    config.addEntryEnum< TNL::String >( "parallel-for-shmem-1024" );
    config.addEntryEnum< TNL::String >( "parallel-for-shmem-2048" );
+   config.addEntryEnum< TNL::String >( "grid-shmem-4" );
+   config.addEntryEnum< TNL::String >( "grid-shmem-8" );
    config.addEntryEnum< TNL::String >( "grid-shmem-16" );
    config.addEntryEnum< TNL::String >( "grid-shmem-32" );
    config.addEntryEnum< TNL::String >( "grid-shmem-64" );
@@ -83,6 +87,16 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
       HeatEquationSolverBenchmarkNdGrid< Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
+   if( implementation == "parallel-for-shmem-4" )
+   {
+      HeatEquationSolverBenchmarkParallelForShmem< 4, Real, Device > benchmark;
+      return benchmark.runBenchmark( parameters );
+   }
+   if( implementation == "parallel-for-shmem-8" )
+   {
+      HeatEquationSolverBenchmarkParallelForShmem< 8, Real, Device > benchmark;
+      return benchmark.runBenchmark( parameters );
+   }
    if( implementation == "parallel-for-shmem-16" )
    {
       HeatEquationSolverBenchmarkParallelForShmem< 16, Real, Device > benchmark;
@@ -124,6 +138,16 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
       return benchmark.runBenchmark( parameters );
    }*/
 
+   if( implementation == "grid-shmem-4" )
+   {
+      HeatEquationSolverBenchmarkGridShmem< 4, Real, Device > benchmark;
+      return benchmark.runBenchmark( parameters );
+   }
+   if( implementation == "grid-shmem-8" )
+   {
+      HeatEquationSolverBenchmarkGridShmem< 8, Real, Device > benchmark;
+      return benchmark.runBenchmark( parameters );
+   }
    if( implementation == "grid-shmem-16" )
    {
       HeatEquationSolverBenchmarkGridShmem< 16, Real, Device > benchmark;
@@ -202,8 +226,8 @@ bool resolveReal( TNL::Config::ParameterContainer& parameters )
 int main(int argc, char* argv[])
 {
    TNL::Config::ConfigDescription config;
-   setupConfig( config );
-   HeatEquationSolverBenchmark<>::setupConfig( config );
+   configSetup( config );
+   HeatEquationSolverBenchmark<>::configSetup( config );
 
    TNL::Config::ParameterContainer parameters;
 

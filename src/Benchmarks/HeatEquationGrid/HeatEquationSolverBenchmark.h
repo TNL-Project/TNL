@@ -16,7 +16,7 @@ template< typename Real = double,
           typename Index = int >
 struct HeatEquationSolverBenchmark
 {
-   static void setupConfig( TNL::Config::ConfigDescription& config )
+   static void configSetup( TNL::Config::ConfigDescription& config )
    {
       config.addDelimiter("Benchmark settings:");
       config.addEntry<TNL::String>("id", "Identifier of the run", "unknown");
