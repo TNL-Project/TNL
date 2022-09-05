@@ -360,4 +360,4 @@ std::ostream& operator<<( std::ostream& str, const GridEntity< Grid, EntityDimen
 }  // namespace Meshes
 }  // namespace TNL
 
-#include <TNL/Meshes/GridDetails/GridEntity.hpp>
+#include <TNL/Meshes/GridEntity.hpp>
