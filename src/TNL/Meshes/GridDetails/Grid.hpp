@@ -98,6 +98,8 @@ Grid< Dimension_, Real, Device, Index >::setDimensions( Dimensions... dimensions
    fillSpaceSteps();
    this->localBegin = 0;
    this->localEnd = this->getDimensions();
+   this->interiorBegin = 1;
+   this->interiorEnd = this->getDimensions() - 1;
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
@@ -113,6 +115,8 @@ Grid< Dimension_, Real, Device, Index >::setDimensions( const typename Grid< Dim
    fillSpaceSteps();
    this->localBegin = 0;
    this->localEnd = this->getDimensions();
+   this->interiorBegin = 1;
+   this->interiorEnd = this->getDimensions() - 1;
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >
@@ -654,6 +658,38 @@ Grid< Dimension_, Real, Device, Index >::
 getLocalEnd() const ->  const CoordinatesType&
 {
    return this->localEnd;
+}
+
+template< int Dimension_, typename Real, typename Device, typename Index >
+void
+Grid< Dimension_, Real, Device, Index >::
+setInteriorBegin( const CoordinatesType& begin )
+{
+   this->interiorBegin = begin;
+}
+
+template< int Dimension_, typename Real, typename Device, typename Index >
+void
+Grid< Dimension_, Real, Device, Index >::
+setInteriorEnd( const CoordinatesType& end )
+{
+   this->interiorBegin = end;
+}
+
+template< int Dimension_, typename Real, typename Device, typename Index >
+auto
+Grid< Dimension_, Real, Device, Index >::
+getInteriorBegin() const -> const CoordinatesType&
+{
+   return this->interiorBegin;
+}
+
+template< int Dimension_, typename Real, typename Device, typename Index >
+auto
+Grid< Dimension_, Real, Device, Index >::
+getInteriorEnd() const -> const CoordinatesType&
+{
+   return this->interiorEnd;
 }
 
 template< int Dimension_, typename Real, typename Device, typename Index >

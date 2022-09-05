@@ -607,10 +607,33 @@ public:
     */
    const CoordinatesType& getLocalEnd() const;
 
-   void setInteriorBegin( const CoordinatesType& begin ) { this->interiorBegin = begin; };
-   void setInteriorEnd( const CoordinatesType& end ) { this->interiorBegin = end; };
-   const CoordinatesType& getInteriorBegin() const { return this->interiorBegin; };
-   const CoordinatesType& getInteriorEnd() const { return this->interiorEnd; };
+   /**
+    * \brief Sets begin of the region of interior cells, i.e. all cells without the boundary cells.
+    *
+    * \param begin is begin of the region of interior cells.
+    */
+   void setInteriorBegin( const CoordinatesType& begin );
+
+   /**
+    * \brief Sets end of the region of interior cells, i.e. all cells without the boundary cells.
+    *
+    * \param end is end of the region of interior cells.
+    */
+   void setInteriorEnd( const CoordinatesType& end );
+
+   /**
+    * \brief Gets begin of the region of interior cells, i.e. all cells without the boundary cells.
+    *
+    * \return begin of the region of interior cells.
+    */
+   const CoordinatesType& getInteriorBegin() const;
+
+   /**
+    * \brief Gets end of the region of interior cells, i.e. all cells without the boundary cells.
+    *
+    * \return end of the region of interior cells.
+    */
+   const CoordinatesType& getInteriorEnd() const;
 
    /**
     * \brief Writes info about the grid.
