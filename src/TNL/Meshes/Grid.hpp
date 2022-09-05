@@ -941,26 +941,6 @@ template< int Dimension_, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension_, Real, Device, Index >::
-forInteriorEntities( const CoordinatesType& from, const CoordinatesType& to, Func func, FuncArgs... args ) const
-{
-   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                        const CoordinatesType& normals,
-                                        const Index orientation,
-                                        const Grid& grid,
-                                        FuncArgs... args ) mutable
-   {
-      EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
-
-      func( entity, args... );
-   };
-
-   this->template traverseInterior< EntityDimension >( from, to, exec, *this, args... );
-}
-
-template< int Dimension_, typename Real, typename Device, typename Index >
-template< int EntityDimension, typename Func, typename... FuncArgs >
-void
-Grid< Dimension_, Real, Device, Index >::
 forLocalEntities( Func func, FuncArgs... args ) const
 {
    auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,

@@ -707,29 +707,6 @@ public:
    forInteriorEntities( Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Iterate over all mesh entities within interior of given region with given dimension and perform given lambda function
-    *    on each of them.
-    *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fullfil \f$ begin < c < end - 1\f$.
-    *
-    * \tparam EntityDimension is dimension of the grid entities.
-    * \param begin is the 'lower left' corner of the region.
-    * \param end is the 'upper right' corner of the region.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    *     It is supposed to have the following form:
-    *
-    * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
-    * ```
-    * where \ref entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
-    *
-    * \param args... are packed arguments that are going to be passed to the lambda function.
-    */
-   template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
-   forInteriorEntities( const CoordinatesType& begin, const CoordinatesType& end, Func func, FuncArgs... args ) const;
-
-   /**
     * \brief Iterate over all boundary mesh entities with given dimension and perform given lambda function
     *    on each of them.
     *
