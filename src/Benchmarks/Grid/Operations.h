@@ -49,16 +49,8 @@ struct GetEntityIndexOperation {
    public:
       template<typename Entity>
       __cuda_callable__ inline
-      static void exec(Entity& entity) {
-#if ! defined( __GNUC__ ) && defined( __clang__ ) && ! defined( __NVCC__ )
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-but-set-variable"
-#endif
-         int index = entity.getIndex();
-         index += 1;
-#if ! defined( __GNUC__ ) && defined( __clang__ ) && ! defined( __NVCC__ )
-#pragma clang diagnostic pop
-#endif
+      static typename Entity::IndexType exec(Entity& entity) {
+         return entity.getIndex();
       }
 };
 
