@@ -22,7 +22,7 @@ struct UnrolledStaticVector : public UnrolledStaticVector< Size - 1, Real >
 };
 
 template< typename Real >
-struct UnrolledStaticVector< 0, Real >
+struct UnrolledStaticVector< 1, Real >
 {
    UnrolledStaticVector( const Real& v ) : data( v ){};
 

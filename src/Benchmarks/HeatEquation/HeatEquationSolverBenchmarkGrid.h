@@ -22,24 +22,26 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
 
       Grid2D grid;
 
-      // Grid implementation defines its dimensions in the amount of edges.
-      // To align it size to all other benchmarks substract 1
-      grid.setDimensions( xSize - 1, ySize - 1 );
+      grid.setDimensions( xSize, ySize );
       grid.setDomain( { 0.0, 0.0}, { this->xDomainSize, this->yDomainSize } );
 
+      const Real hx = grid.template getSpaceStepsProducts<1, 0>();
+      const Real hy = grid.template getSpaceStepsProducts<0, 1>();
       const Real hx_inv = grid.template getSpaceStepsProducts<-2, 0>();
       const Real hy_inv = grid.template getSpaceStepsProducts<0, -2>();
 
+      TNL_ASSERT_EQ( hx, this->xDomainSize / (Real) xSize, "computed wrong hx on the grid" );
+      TNL_ASSERT_EQ( hy, this->yDomainSize / (Real) ySize, "computed wrong hy on the grid" );
+
       Real start = 0;
       Index iterations = 0;
-      auto timestep = this->timeStep ?
-         this->timeStep : std::min( grid.template getSpaceStepsProducts<2, 0>(), grid.template getSpaceStepsProducts<0, 2>() );
+      auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min(hx * hx, hy * hy);
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
      {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
-         auto width = grid.getDimensions().x() + 1;
-         auto next = [=] __cuda_callable__(const typename Grid2D::template EntityType<0>&entity) mutable {
+         auto width = grid.getDimensions().x();
+         auto next = [=] __cuda_callable__(const typename Grid2D::template EntityType<2>&entity) mutable {
             auto index = entity.getIndex();
             auto element = uxView[index];
             auto center = 2 * element;
@@ -48,7 +50,7 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
                                          ( uxView[index - width] - center + uxView[index + width] ) * hy_inv ) * timestep;
          };
 
-         grid.template forInteriorEntities<0>( next );
+         grid.template forInteriorEntities<2>( next );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;

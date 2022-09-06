@@ -38,9 +38,10 @@ struct HeatEquationSolverBenchmarkParallelForShmem : public HeatEquationSolverBe
             auto center = 2 * element;
 
             UnrolledStaticVector< Size, Real > v( 1.0 );
+            element += v.getL1Norm() - Size;
+
             auxView[index] = element + ( (uxView[index - 1] -     center + uxView[index + 1]    ) * hx_inv +
-                                         (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv   ) *
-                                         v.getL1Norm() * timestep;
+                                         (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv   ) * timestep;
          };
 
          TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize - 1, ySize - 1, next );

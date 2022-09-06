@@ -377,7 +377,7 @@ struct HeatEquationSolverBenchmarkNdGrid : public HeatEquationSolverBenchmark< R
 
       Real start = 0;
       Index iterations = 0;
-      auto timestep = this->timeStep ? this->timeStep : std::min(hx * hx, hy * hy);
+      auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min(hx * hx, hy * hy);
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
       {
          auto uxView = this->aux.getView();
