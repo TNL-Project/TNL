@@ -19,6 +19,8 @@
 #include <TNL/Meshes/GridDetails/Templates/ForEachOrientation.h>
 #include <TNL/Algorithms/staticFor.h>
 
+#ifndef DOXYGEN_ONLY
+
 namespace TNL {
    namespace Meshes {
 
@@ -958,3 +960,5 @@ forLocalEntities( Func func, FuncArgs... args ) const
 
 }  // namespace Meshes
 }  // namespace TNL
+
+#endif

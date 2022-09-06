@@ -815,7 +815,7 @@ protected:
    CoordinatesType interiorBegin, interiorEnd; // TODO: Why we needt it?
 
    /**
-    * \brief - A list of elements count along specific directions.
+    * \brief A list of elements count along specific directions.
     *
     * First, elements will contain the count of 0 dimension elements.
     * Second, elements will contain the count of 1-dimension elements and so on.
@@ -825,12 +825,12 @@ protected:
     * z plane 4, 5, 6 - count of faces in xy, yz, zy plane 7 - count of cells
     * in z y x plane
     *
-    * \warning - The ordering of is lexigraphical.
+    * \warning The ordering of is lexigraphical.
     */
    Container< 1 << Dimension, Index > entitiesCountAlongNormals;
 
    /**
-    * \brief - A cumulative map over dimensions.
+    * \brief A cumulative map over dimensions.
     */
    Container< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals;
 

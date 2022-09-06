@@ -169,7 +169,7 @@ public:
    /***
     * \brief Recalculates entity index.
     *
-    * \warning - Call this method every time the coordinates are changed.
+    * \warning Call this method every time the coordinates are changed.
     */
    __cuda_callable__
    void refresh();
@@ -267,7 +267,7 @@ public:
     *
     * \tparam Dimension is a dimension of the neighbour grid entity.
     * \tparam Steps is a offset of coordinates of the neighbour entity relative to this grid entity.
-    * \warning - In case, if the parent entity orientation is greater than possible orientations of neighbour entity,
+    * \warning In case the parent entity orientation is greater than possible orientations of neighbour entity,
     *            then orientation is reduced. For example, 3-D cell neighbour of edge with orientaiton 1, will have
     *            orientation 0.
     * \return neighbour grid entity.
@@ -298,7 +298,7 @@ public:
     *
     * \tparam Dimension is a dimension of the neighbour grid entity.
     * \param offset is a offset of coordinates of the neighbour entity relative to this grid entity.
-    * \warning - In case, if the parent entity orientation is greater than possible orientations of neighbour entity,
+    * \warning In case the parent entity orientation is greater than possible orientations of neighbour entity,
     *            then orientation is reduces. For example, 3-D cell neighbour of edge with orientaiton 1, will have
     *            orientation 0.
     * \return neighbour grid entity.
