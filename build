@@ -244,7 +244,7 @@ else
    last_cmake_command=""
 fi
 if [[ ! -f "$check_file" ]] || [[ "$last_cmake_command" != "${cmake_command[@]}" ]]; then
-   echo "Configuring ${BUILD} TNL ..."
+   echo "Configuring $BUILD TNL ..."
    "${cmake_command[@]}"
    echo -n "${cmake_command[@]}" > "$BUILD_DIR/.cmake_command"
 fi
@@ -257,13 +257,18 @@ fi
 pkg-config --exists tinyxml2 || "$ROOT_DIR/scripts/install_tinyxml2" --prefix "$PREFIX"
 
 if [[ -n ${BUILD_JOBS} ]]; then
-   echo "Building ${BUILD} TNL using $BUILD_JOBS parallel jobs ..."
+   echo "Building $BUILD TNL using $BUILD_JOBS parallel jobs ..."
 else
    # number of processors is unknown
-   echo "Building ${BUILD} TNL ..."
-   # get the number of physical cores present on the system, even with multiple NUMA nodes
-   # see https://unix.stackexchange.com/a/279354
-   BUILD_JOBS=$(lscpu --all --parse=CORE,SOCKET | grep -Ev "^#" | sort -u | wc -l)
+   if [[ $(command -v lscpu) ]]; then
+      # get the number of physical cores present on the system, even with multiple NUMA nodes
+      # see https://unix.stackexchange.com/a/279354
+      BUILD_JOBS=$(lscpu --all --parse=CORE,SOCKET | grep -Ev "^#" | sort -u | wc -l)
+   elif [[ $(command -v sysctl) && $OSTYPE == 'darwin'* ]]; then
+      # get the number of physical cores present on the system for MacOS
+      BUILD_JOBS=$(sysctl -n hw.ncpu)
+   fi
+   echo "Building $BUILD TNL using $BUILD_JOBS detected cores ..."
 fi
 
 # build the targets

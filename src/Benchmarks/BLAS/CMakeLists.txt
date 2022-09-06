@@ -24,10 +24,21 @@ find_library( SATLAS_LIBRARY NAMES satlas
 
 find_package( BLAS )
 
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+   find_path(BLAS_INCLUDE_DIRS cblas.h
+   /usr/include
+   /usr/local/include
+   $ENV{BLAS_HOME}/include
+   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Accelerate.framework/Versions/Current/Frameworks/vecLib.framework/Headers )
+endif()
+
 foreach( target IN ITEMS ${BENCHMARKS} )
    if( CBLAS_LIBRARY )
       target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
       target_link_libraries( ${target} PUBLIC ${CBLAS_LIBRARY} )
+      if( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+         target_include_directories( ${target} PUBLIC "${BLAS_INCLUDE_DIRS}" )
+      endif()
    elseif( TATLAS_LIBRARY )
       target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
       target_link_libraries( ${target} PUBLIC ${TATLAS_LIBRARY} )

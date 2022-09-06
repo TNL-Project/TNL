@@ -257,6 +257,26 @@ getTypeName( std::uint64_t )
 {
    return "UInt64";
 }
+// On macOS long seems to be different type then std::intXX_t
+// https://stackoverflow.com/questions/73406228/trouble-with-long-type-in-c-on-macos?noredirect=1#comment129633481_73406228
+#ifdef __APPLE__
+inline std::string
+getTypeName( long )
+{
+   if( sizeof( long ) == 4 )
+      return "Int32";
+   else
+      return "Int64";
+}
+inline std::string
+getTypeName( unsigned long )
+{
+   if( sizeof( unsigned long ) == 4 )
+      return "UInt32";
+   else
+      return "UInt64";
+}
+#endif
 inline std::string
 getTypeName( float )
 {

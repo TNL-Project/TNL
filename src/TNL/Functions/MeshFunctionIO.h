@@ -7,7 +7,12 @@
 #pragma once
 
 #include <type_traits>
+
+#ifdef __APPLE__
+#include <filesystem>
+#else
 #include <experimental/filesystem>
+#endif
 
 #include <TNL/Meshes/Traits.h>
 #include <TNL/Meshes/Readers/getMeshReader.h>
@@ -140,7 +145,12 @@ writeMeshFunction( const MeshFunction& function,
       return false;
    }
 
-   namespace fs = std::experimental::filesystem;
+#ifdef __APPLE__
+      namespace fs = std::__fs::filesystem;
+#else
+      namespace fs = std::experimental::filesystem;
+#endif
+
    std::string format = fileFormat;
    if( format == "auto" ) {
       format = fs::path( fileName ).extension();
@@ -181,7 +191,12 @@ writeMeshFunction( const MeshFunction& function,
       return false;
    }
 
-   namespace fs = std::experimental::filesystem;
+#ifdef __APPLE__
+      namespace fs = std::__fs::filesystem;
+#else
+      namespace fs = std::experimental::filesystem;
+#endif
+
    std::string format = fileFormat;
    if( format == "auto" ) {
       format = fs::path( fileName ).extension();
@@ -225,7 +240,12 @@ writeDistributedMeshFunction(
    const std::string& fileName,
    const std::string& fileFormat = "auto" )
 {
-   namespace fs = std::experimental::filesystem;
+#ifdef __APPLE__
+      namespace fs = std::__fs::filesystem;
+#else
+      namespace fs = std::experimental::filesystem;
+#endif
+
    std::string format = fileFormat;
    if( format == "auto" ) {
       format = fs::path( fileName ).extension();

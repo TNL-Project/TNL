@@ -7,7 +7,12 @@
 #pragma once
 
 #include <memory>
+
+#ifdef __APPLE__
+#include <filesystem>
+#else
 #include <experimental/filesystem>
+#endif
 
 #include <TNL/Meshes/Readers/NetgenReader.h>
 #include <TNL/Meshes/Readers/VTKReader.h>
@@ -24,7 +29,12 @@ namespace Readers {
 inline std::shared_ptr< MeshReader >
 getMeshReader( const std::string& fileName, const std::string& fileFormat )
 {
+#ifdef __APPLE__
+   namespace fs = std::__fs::filesystem;
+#else
    namespace fs = std::experimental::filesystem;
+#endif
+
    std::string format = fileFormat;
    if( format == "auto" ) {
       format = fs::path( fileName ).extension();

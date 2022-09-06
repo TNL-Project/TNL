@@ -139,8 +139,10 @@ protected:
     *
     * Only for x86 compatible CPUs.
     */
+#ifndef __APPLE__
    static inline unsigned long long
    rdtsc();
+#endif
 
    TimePoint initialRealTime;
 
