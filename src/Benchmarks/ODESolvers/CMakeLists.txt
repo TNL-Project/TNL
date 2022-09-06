@@ -6,11 +6,11 @@ if( TNL_BUILD_CUDA )
    target_link_libraries( tnl-benchmark-ode-solvers-cuda PUBLIC CUDA::cusparse )
    install( TARGETS tnl-benchmark-ode-solvers-cuda RUNTIME DESTINATION bin )
 
-   if( MPI_CXX_FOUND AND ${WITH_MPI} )
+   if( TNL_BUILD_MPI )
       # enable MPI support in TNL
       target_compile_definitions( tnl-benchmark-ode-solvers-cuda PUBLIC "-DHAVE_MPI" )
       # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-      target_link_libraries( tnl-benchmark-ode-solvers-cuda MPI::MPI_CXX )
+      target_link_libraries( tnl-benchmark-ode-solvers-cuda PUBLIC MPI::MPI_CXX )
    endif()
 endif()
 
@@ -20,10 +20,10 @@ if( TNL_BUILD_CPP_TARGETS )
    target_link_libraries( tnl-benchmark-ode-solvers PUBLIC TNL::TNL_CXX )
    install( TARGETS tnl-benchmark-ode-solvers RUNTIME DESTINATION bin )
 
-   if( MPI_CXX_FOUND AND ${WITH_MPI} )
+   if( TNL_BUILD_MPI )
       # enable MPI support in TNL
       target_compile_definitions( tnl-benchmark-ode-solvers PUBLIC "-DHAVE_MPI" )
       # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-      target_link_libraries( tnl-benchmark-ode-solvers MPI::MPI_CXX )
+      target_link_libraries( tnl-benchmark-ode-solvers PUBLIC MPI::MPI_CXX )
    endif()
 endif()
