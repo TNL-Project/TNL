@@ -512,7 +512,6 @@ Grid< Dimension_, Real, Device, Index >::traverseBoundary( const CoordinatesType
       CoordinatesType end = to + normals;
 
       if( isAnyBoundaryIntersects ) {
-#pragma unroll
          for( Index i = 0; i < Dimension; i++ ) {
             start[ i ] = ( ! isDirectedEntity || normals[ i ] ) && isBoundaryTraversed[ i ] ? 1 : 0;
             end[ i ] = end[ i ] - ( ( ! isDirectedEntity || normals[ i ] ) && isBoundaryTraversed[ i ] ? 1 : 0 );
