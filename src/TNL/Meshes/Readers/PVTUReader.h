@@ -6,7 +6,12 @@
 
 #pragma once
 
+#ifdef __APPLE__
+#include <filesystem>
+#else
 #include <experimental/filesystem>
+#endif
+
 #include <utility>
 
 #include <TNL/MPI/Comm.h>
@@ -23,7 +28,11 @@ class PVTUReader : public XMLVTK
    std::string
    getSourcePath( const std::string& source )
    {
+#ifdef __APPLE__
+      namespace fs = std::__fs::filesystem;
+#else
       namespace fs = std::experimental::filesystem;
+#endif
       return fs::path( fileName ).parent_path() / source;
    }
 

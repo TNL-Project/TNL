@@ -93,7 +93,12 @@ bool refineMesh( Mesh& mesh, const std::string& outputFileName, const std::strin
 
    std::string format = outputFormat;
    if( outputFormat == "auto" ) {
+#ifdef __APPLE__
+      namespace fs = std::__fs::filesystem;
+#else
       namespace fs = std::experimental::filesystem;
+#endif
+
       format = fs::path( outputFileName ).extension();
       if( format.length() > 0 )
          // remove dot from the extension

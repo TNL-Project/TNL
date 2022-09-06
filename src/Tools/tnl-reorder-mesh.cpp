@@ -1,4 +1,8 @@
+#ifdef __APPLE__
+#include <filesystem>
+#else
 #include <experimental/filesystem>
+#endif
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Meshes/Mesh.h>
@@ -91,7 +95,11 @@ reorder( Mesh&& mesh, const std::string& ordering, const std::string& outputFile
       return false;
    }
 
+#ifdef __APPLE__
+   namespace fs = std::__fs::filesystem;
+#else
    namespace fs = std::experimental::filesystem;
+#endif
    if( outputFileFormat == "auto" ) {
       outputFileFormat = fs::path( outputFileName ).extension();
       if( outputFileFormat.length() > 0 )

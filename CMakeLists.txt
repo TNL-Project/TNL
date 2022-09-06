@@ -89,12 +89,20 @@ endif()
 
 # set additional Debug/Release options using generator expressions
 # (that way we can exclude some options for specific targets, see https://stackoverflow.com/a/59734798 for details)
-add_compile_options(
-   # GOTCHA: CMake uses semicolons as list item separator, spaces would lead to a single argument inside double-quotes on the command line
-   "$<$<AND:$<CONFIG:RELEASE>,$<COMPILE_LANGUAGE:CXX,CUDA>>:-march=native;-mtune=native>"
-)
+if( CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15.0 )
+   # -march=native does not work on macOS with clang less than 15.0
+   # https://stackoverflow.com/questions/65966969/why-does-march-native-not-work-on-apple-m1
+   add_compile_options(
+      "$<$<AND:$<CONFIG:RELEASE>,$<COMPILE_LANGUAGE:CXX,CUDA>>:-mcpu=apple-m1>"
+   )
+else()
+   add_compile_options(
+      # GOTCHA: CMake uses semicolons as list item separator, spaces would lead to a single argument inside double-quotes on the command line
+      "$<$<AND:$<CONFIG:RELEASE>,$<COMPILE_LANGUAGE:CXX,CUDA>>:-march=native;-mtune=native>"
+   )
+endif()
 
-if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
    # disable some unimportant warnings
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs -Wno-unknown-pragmas" )
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Intel" )
@@ -178,8 +186,11 @@ target_compile_features( TNL INTERFACE cxx_std_14 )
 target_compile_options( TNL INTERFACE
                         ${TNL_COLOR_DIAGNOSTICS_FLAG} )
 
-# add the filesystem library to the interface
-target_link_libraries( TNL INTERFACE stdc++fs )
+# add the filesystem library to the interface if are not running on macOS
+# https://en.cppreference.com/w/cpp/filesystem
+if ( NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")  
+   target_link_libraries( TNL INTERFACE stdc++fs )
+endif()
 
 # gtest has to be built before we add the MPI flags
 if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )

@@ -12,7 +12,13 @@
 #include <tuple>
 #include <map>
 #include <fstream>
+
+#ifdef __APPLE__
+#include <filesystem>
+#else
 #include <experimental/filesystem>
+#endif
+
 
 #include <TNL/Timer.h>
 #include <TNL/Devices/Cuda.h>
@@ -157,7 +163,11 @@ writeMapAsJson( const std::map< std::string, std::string >& data, std::ostream& 
 inline void
 writeMapAsJson( const std::map< std::string, std::string >& data, std::string filename, const std::string& newExtension = "" )
 {
+#ifdef __APPLE__
+   namespace fs = std::__fs::filesystem;
+#else
    namespace fs = std::experimental::filesystem;
+#endif
 
    if( ! newExtension.empty() ) {
       const fs::path oldPath = filename;

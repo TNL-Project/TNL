@@ -76,7 +76,11 @@ TEST( StringTest, SetSize )
    String str;
    str.setSize( 42 );
    EXPECT_EQ( str.getSize(), 42 );
+#ifdef __APPLE__
+   EXPECT_GE( str.getAllocatedSize(), 42 );
+#else
    EXPECT_EQ( str.getAllocatedSize(), 42 );
+#endif
 }
 
 TEST( StringTest, GetString )
