@@ -28,7 +28,6 @@ class VTKWriter
    //   static_assert( Mesh::getSpaceDimension() <= 3, "The VTK format supports only 1D, 2D and 3D meshes." );
 
 public:
-
    /**
     * \brief Construct with no parameters is not allowed.
     */

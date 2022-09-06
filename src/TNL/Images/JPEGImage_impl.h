@@ -94,7 +94,7 @@ JPEGImage< Index >::read( const RegionOfInterest< Index > roi,
 #ifdef HAVE_JPEG_H
    using GridType = Meshes::Grid< 2, Real, Device, Index >;
    const GridType& grid = function.getMesh();
-   typename GridType::Cell cell( grid, { 0, 0 });
+   typename GridType::Cell cell( grid, { 0, 0 } );
 
    /***
     * Prepare the long jump back from libjpeg.
@@ -238,7 +238,7 @@ JPEGImage< Index >::write( const Functions::MeshFunction< Meshes::Grid< 2, MeshR
 {
    using GridType = Meshes::Grid< 2, Real, Device, Index >;
    const GridType& grid = function.getMesh();
-   typename GridType::Cell cell( grid, { 0, 0 });
+   typename GridType::Cell cell( grid, { 0, 0 } );
 
 #ifdef HAVE_JPEG_H
    Index i( 0 ), j;

@@ -23,9 +23,10 @@ public:
 
       const CoordinatesType coordinate = entity.getCoordinates() + offset;
       const int orientation = TNL::min( orientationsCount - 1, entity.getOrientation() );
-      const CoordinatesType normals = orientation == entity.getOrientation() && ParentEntityDimension == NeighbourEntityDimension
-                                ? entity.getNormals()
-                                : entity.getMesh().template getNormals< NeighbourEntityDimension >( orientation );
+      const CoordinatesType normals =
+         orientation == entity.getOrientation() && ParentEntityDimension == NeighbourEntityDimension
+            ? entity.getNormals()
+            : entity.getMesh().template getNormals< NeighbourEntityDimension >( orientation );
 
       TNL_ASSERT_GE( coordinate, CoordinatesType( 0 ), "wrong coordinate" );
       TNL_ASSERT_LT( coordinate, entity.getMesh().getDimensions() + normals, "wrong coordinate" );
@@ -45,9 +46,10 @@ public:
 
       const CoordinatesType coordinate = entity.getCoordinates() + CoordinatesType( Steps... );
       const int orientation = TNL::min( orientationsCount - 1, entity.getOrientation() );
-      const CoordinatesType normals = orientation == entity.getOrientation() && ParentEntityDimension == NeighbourEntityDimension
-                                ? entity.getNormals()
-                                : entity.getMesh().template getNormals< NeighbourEntityDimension >( orientation );
+      const CoordinatesType normals =
+         orientation == entity.getOrientation() && ParentEntityDimension == NeighbourEntityDimension
+            ? entity.getNormals()
+            : entity.getMesh().template getNormals< NeighbourEntityDimension >( orientation );
 
       TNL_ASSERT_GE( coordinate, CoordinatesType( 0 ), "wrong coordinate" );
       TNL_ASSERT_LT( coordinate, entity.getMesh().getDimensions() + normals, "wrong coordinate" );

@@ -4,7 +4,6 @@
 #include <TNL/Meshes/GridDetails/GridEntityGetter.h>
 #include <TNL/Meshes/GridEntity.h>
 
-
 namespace TNL {
 namespace Meshes {
 

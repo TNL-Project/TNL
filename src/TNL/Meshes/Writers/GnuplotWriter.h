@@ -22,7 +22,6 @@ template< typename Mesh >
 class GnuplotWriter
 {
 public:
-
    /**
     * \brief Construct with no parameters is not allowed.
     */
@@ -73,7 +72,8 @@ public:
    void
    writeCellData( const Mesh& mesh, const Array& array, const std::string& name, int numberOfComponents = 1 );
 
-   void writeHeader( const Mesh& mesh );
+   void
+   writeHeader( const Mesh& mesh );
 
    template< typename Element >
    static void
@@ -92,7 +92,6 @@ public:
    write( std::ostream& str, const Containers::StaticVector< 3, Real >& d );
 
 protected:
-
    std::ostream& str;
 };
 

@@ -17,56 +17,51 @@ namespace Meshes {
 
 template< class Grid, int EntityDimension >
 constexpr int
-GridEntity< Grid, EntityDimension >::
-getMeshDimension()
+GridEntity< Grid, EntityDimension >::getMeshDimension()
 {
    return Grid::getMeshDimension();
 }
 
 template< class Grid, int EntityDimension >
 constexpr int
-GridEntity< Grid, EntityDimension >::
-getEntityDimension()
+GridEntity< Grid, EntityDimension >::getEntityDimension()
 {
    return EntityDimension;
 }
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::
-GridEntity( const Grid& grid )
-: grid( grid ), coordinates( 0 )
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid ) : grid( grid ), coordinates( 0 )
 {
-   this->normals = grid.template getNormals<EntityDimension>(0);
+   this->normals = grid.template getNormals< EntityDimension >( 0 );
    this->orientation = 0;
    this->refresh();
 }
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::
-GridEntity( const Grid& grid, const CoordinatesType& coordinates )
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, const CoordinatesType& coordinates )
 : grid( grid ), coordinates( coordinates )
 {
-   normals = grid.template getNormals<EntityDimension>(0);
+   normals = grid.template getNormals< EntityDimension >( 0 );
    orientation = 0;
    this->refresh();
 }
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::
-GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals )
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
+                                                 const CoordinatesType& coordinates,
+                                                 const CoordinatesType& normals )
 : grid( grid ), coordinates( coordinates ), normals( normals ),
-   orientation( grid.template getOrientation< EntityDimension >( normals ) )
+  orientation( grid.template getOrientation< EntityDimension >( normals ) )
 {
    this->refresh();
 }
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::
-GridEntity( const Grid& grid, const IndexType& entityIdx )
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, const IndexType& entityIdx )
 : grid( grid ), index( entityIdx )
 {
    this->coordinates = grid.template getEntityCoordinates< EntityDimension >( entityIdx, this->normals, this->orientation );
@@ -74,9 +69,10 @@ GridEntity( const Grid& grid, const IndexType& entityIdx )
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::
-GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals,
-   const IndexType orientation )
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
+                                                 const CoordinatesType& coordinates,
+                                                 const CoordinatesType& normals,
+                                                 const IndexType orientation )
 : grid( grid ), coordinates( coordinates ), normals( normals ), orientation( orientation )
 {
    this->refresh();
@@ -196,7 +192,8 @@ GridEntity< Grid, EntityDimension >::getOrientation() const
 template< class Grid, int EntityDimension >
 __cuda_callable__
 void
-GridEntity< Grid, EntityDimension >::setOrientation( const IndexType orientation ) {
+GridEntity< Grid, EntityDimension >::setOrientation( const IndexType orientation )
+{
    this->orientation = orientation;
 }
 
@@ -248,8 +245,8 @@ GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& 
 }
 
 template< class Grid, int EntityDimension >
-auto GridEntity< Grid, EntityDimension >::
-getPoint() const -> PointType
+auto
+GridEntity< Grid, EntityDimension >::getPoint() const -> PointType
 {
    return this->grid.getSpaceSteps() * this->getCoordinates();
 }
@@ -257,17 +254,18 @@ getPoint() const -> PointType
 template< class Grid, int EntityDimension >
 __cuda_callable__
 const Grid&
-GridEntity< Grid, EntityDimension >::
-getGrid() const
+GridEntity< Grid, EntityDimension >::getGrid() const
 {
    return this->grid;
 };
 
 template< class Grid, int EntityDimension >
-std::ostream& operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity )
+std::ostream&
+operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity )
 {
-   str << "Entity dimension = " << EntityDimension << " coordinates = " << entity.getCoordinates() << " normals = " << entity.getNormals()
-       << " index = " << entity.getIndex() << " orientation = " << entity.getOrientation();
+   str << "Entity dimension = " << EntityDimension << " coordinates = " << entity.getCoordinates()
+       << " normals = " << entity.getNormals() << " index = " << entity.getIndex()
+       << " orientation = " << entity.getOrientation();
    return str;
 }
 

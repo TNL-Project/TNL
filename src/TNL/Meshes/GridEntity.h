@@ -32,7 +32,6 @@ template< class Grid, int EntityDimension >
 class GridEntity
 {
 public:
-
    /**
     * \brief Type of grid the entity belongs to.
     */
@@ -69,14 +68,16 @@ public:
     *
     * \return dimension of the grid.
     */
-   constexpr static int getMeshDimension();
+   constexpr static int
+   getMeshDimension();
 
    /**
     * \brief Getter of the dimensions of the grid entity.
     *
     * \return dimensions of the grid entity.
     */
-   constexpr static int getEntityDimension();
+   constexpr static int
+   getEntityDimension();
 
    /**
     * \brief Constructore with a grid reference.
@@ -120,8 +121,10 @@ public:
     * \param orientation is an index of the grid entity orientation.
     */
    __cuda_callable__
-   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals,
-      const IndexType orientation );
+   GridEntity( const Grid& grid,
+               const CoordinatesType& coordinates,
+               const CoordinatesType& normals,
+               const IndexType orientation );
 
    /**
     * \brief Constructor with a grid reference and grid entity index.
@@ -138,7 +141,8 @@ public:
     * \return grid entity coordinates in a form of constant reference.
     */
    __cuda_callable__
-   const CoordinatesType& getCoordinates() const;
+   const CoordinatesType&
+   getCoordinates() const;
 
    /**
     * \brief Getter of the grid entity coordinates for non-constant instances.
@@ -146,7 +150,8 @@ public:
     * \return grid entity coordinates in a form of a reference.
     */
    __cuda_callable__
-   CoordinatesType& getCoordinates();
+   CoordinatesType&
+   getCoordinates();
 
    /**
     * \brief Setter of the grid entity coordinates.
@@ -154,7 +159,8 @@ public:
     * \param coordinates are new coordinates of the grid entity.
     */
    __cuda_callable__
-   void setCoordinates( const CoordinatesType& coordinates );
+   void
+   setCoordinates( const CoordinatesType& coordinates );
 
    /***
     * \brief Recalculates entity index.
@@ -162,7 +168,8 @@ public:
     * \warning Call this method every time the coordinates are changed.
     */
    __cuda_callable__
-   void refresh();
+   void
+   refresh();
 
    /**
     * \brief Get the entity index in the grid.
@@ -170,7 +177,8 @@ public:
     * \return the grid entity index in the grid.
     */
    __cuda_callable__
-   IndexType getIndex() const;
+   IndexType
+   getIndex() const;
 
    /**
     * \brief Tells, if the entity is boundary entity.
@@ -178,7 +186,8 @@ public:
     * \return `true` if the entity is a boundary entity and `false` otherwise.
     */
    __cuda_callable__
-   bool isBoundary() const;
+   bool
+   isBoundary() const;
 
    /**
     * \brief Returns the center of the grid entity.
@@ -186,7 +195,8 @@ public:
     * \return the centre of the grid entity.
     */
    __cuda_callable__
-   const PointType getCenter() const;
+   const PointType
+   getCenter() const;
 
    /**
     * \brief Returns the measure (length, surface or volume) of the grid entity.
@@ -194,7 +204,8 @@ public:
     * \return the measure of the grid entity.
     */
    __cuda_callable__
-   RealType getMeasure() const;
+   RealType
+   getMeasure() const;
 
    /**
     * \brief Returns reference to the grid the grid entity belongs to.
@@ -202,7 +213,8 @@ public:
     * \return reference to the grid the grid entity belongs to.
     */
    __cuda_callable__
-   const Grid& getMesh() const;
+   const Grid&
+   getMesh() const;
 
    /**
     * \brief Setter for the packed normals vector of the grid entity.
@@ -212,13 +224,15 @@ public:
     * \param normals is a vector of packed normal vectors to the grid entity.
     */
    __cuda_callable__
-   void setNormals( const CoordinatesType& normals );
+   void
+   setNormals( const CoordinatesType& normals );
 
    /**
     * \brief Returns the packed normals vector of the grid entity.
     */
    __cuda_callable__
-   const CoordinatesType& getNormals() const;
+   const CoordinatesType&
+   getNormals() const;
 
    /**
     * \brief Getter of the basis vector.
@@ -230,16 +244,18 @@ public:
     * \return basis vector.
     */
    __cuda_callable__
-   CoordinatesType getBasis() const;
+   CoordinatesType
+   getBasis() const;
 
    /**
     * \brief Returns index of the entity orientation
     *
-    * Orientation is always paired with the normals. In other words, if orientations, entity dimensions and dimensions are equal,
-    * then normals are equal also.
+    * Orientation is always paired with the normals. In other words, if orientations, entity dimensions and dimensions are
+    * equal, then normals are equal also.
     */
    __cuda_callable__
-   IndexType getOrientation() const;
+   IndexType
+   getOrientation() const;
 
    /**
     * \brief Setter of the grid entity orientation index.
@@ -316,7 +332,8 @@ public:
     *
     * \return the point at the origin of the grid entity.
     */
-   PointType getPoint() const;
+   PointType
+   getPoint() const;
 
    /**
     * \brief Returns a reference on the grid the grid entity belongs to.
@@ -324,7 +341,8 @@ public:
     * \return a reference on the grid the grid entity belongs to.
     */
    __cuda_callable__
-   const Grid& getGrid() const;
+   const Grid&
+   getGrid() const;
 
 protected:
    const Grid& grid;
@@ -345,7 +363,8 @@ protected:
  * \return std::ostream& reference to the insertion operator.
  */
 template< class Grid, int EntityDimension >
-std::ostream& operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity );
+std::ostream&
+operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity );
 
 }  // namespace Meshes
 }  // namespace TNL

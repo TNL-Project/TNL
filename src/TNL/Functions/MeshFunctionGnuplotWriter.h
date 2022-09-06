@@ -131,7 +131,7 @@ public:
    write( const MeshFunction& function, std::ostream& str )
    {
       const MeshType& grid = function.getMesh();
-      EntityType entity( grid, { 0, 0 });
+      EntityType entity( grid, { 0, 0 } );
       auto& c = entity.getCoordinates();
       for( c.z() = 0; c.z() < grid.getDimensions().z(); c.z()++ )
          for( c.y() = 0; c.y() < grid.getDimensions().y(); c.y()++ ) {

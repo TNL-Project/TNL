@@ -18,9 +18,7 @@ namespace Meshes {
 namespace Writers {
 
 template< typename Mesh >
-VTKWriter< Mesh >::
-VTKWriter( std::ostream& str, VTK::FileFormat format )
- : str( str.rdbuf() ), format( format )
+VTKWriter< Mesh >::VTKWriter( std::ostream& str, VTK::FileFormat format ) : str( str.rdbuf() ), format( format )
 {
    if( format != VTK::FileFormat::ascii && format != VTK::FileFormat::binary )
       throw std::domain_error( "The Legacy VTK file formats support only ASCII and BINARY formats." );

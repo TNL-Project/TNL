@@ -31,7 +31,6 @@ class VTIWriter
    using HeaderType = std::make_unsigned_t< typename Mesh::GlobalIndexType >;
 
 public:
-
    /**
     * \brief Construct with no parameters is not allowed.
     */

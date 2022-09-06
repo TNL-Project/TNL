@@ -219,7 +219,8 @@ public:
    template< int EntityDimension,
              std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true >
    __cuda_callable__
-   Index getEntitiesCount() const noexcept;
+   Index
+   getEntitiesCount() const noexcept;
 
    /**
     * \brief Returns number of entities of specific entity type as a template parameter.
@@ -231,7 +232,8 @@ public:
    template< typename Entity,
              std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension ), bool > = true >
    __cuda_callable__
-   Index getEntitiesCount() const noexcept;
+   Index
+   getEntitiesCount() const noexcept;
 
    /**
     * \brief Returns count of entities of specific dimensions.
@@ -462,7 +464,10 @@ public:
 
    __cuda_callable__
    Real
-   getCellMeasure() const { return this->getSpaceStepsProducts( CoordinatesType( 1 ) ); };
+   getCellMeasure() const
+   {
+      return this->getSpaceStepsProducts( CoordinatesType( 1 ) );
+   };
 
    /**
     * \brief Returns product of space step powers given as template parameters.
@@ -509,7 +514,8 @@ public:
     */
    template< typename EntityType >
    __cuda_callable__
-   EntityType getEntity( const IndexType& entityIdx ) const;
+   EntityType
+   getEntity( const IndexType& entityIdx ) const;
 
    /**
     * \brief Grid entity getter based on entity type and entity coordinates.
@@ -523,7 +529,8 @@ public:
     */
    template< typename EntityType >
    __cuda_callable__
-   EntityType getEntity( const CoordinatesType& coordinates ) const;
+   EntityType
+   getEntity( const CoordinatesType& coordinates ) const;
 
    /**
     * \brief Grid entity getter based on entity dimension and entity index.
@@ -537,7 +544,8 @@ public:
     */
    template< int EntityDimension >
    __cuda_callable__
-   EntityType< EntityDimension > getEntity( const IndexType& entityIdx ) const;
+   EntityType< EntityDimension >
+   getEntity( const IndexType& entityIdx ) const;
 
    /**
     * \brief Grid entity getter based on entity dimension and entity coordinates.
@@ -551,8 +559,8 @@ public:
     */
    template< int EntityDimension >
    __cuda_callable__
-   EntityType< EntityDimension > getEntity( const CoordinatesType& coordinates ) const;
-
+   EntityType< EntityDimension >
+   getEntity( const CoordinatesType& coordinates ) const;
 
    /**
     * \brief Gets entity index using entity type.
@@ -572,63 +580,72 @@ public:
     * \param begin is "lower left" corner of the subdomain.
     * \param end is "upper right" corner of the subdomain.
     */
-   void setLocalSubdomain( const CoordinatesType& begin, const CoordinatesType& end );
+   void
+   setLocalSubdomain( const CoordinatesType& begin, const CoordinatesType& end );
 
    /**
     * \brief Sets the "lower left" corfner of subdomain of distributed grid.
     *
     * \param begin is "lower left" corner of the subdomain.
     */
-   void setLocalBegin( const CoordinatesType& begin );
+   void
+   setLocalBegin( const CoordinatesType& begin );
 
    /**
     * \brief Sets the "upper right" corfner of subdomain of distributed grid.
     *
     * \param end is "upper right" corner of the subdomain.
     */
-   void setLocalEnd( const CoordinatesType& end );
+   void
+   setLocalEnd( const CoordinatesType& end );
 
    /**
     * \brief Gets the "lower left" corner of subdomain for distributed grid.
     *
     * \return const CoordinatesType& is "lower left" corner of subdomain for distributed grid.
     */
-   const CoordinatesType& getLocalBegin() const;
+   const CoordinatesType&
+   getLocalBegin() const;
 
    /**
     * \brief Gets the "upper right" corner of subdomain for distributed grid.
     *
     * \return const CoordinatesType& is "upper right" corner of subdomain for distributed grid.
     */
-   const CoordinatesType& getLocalEnd() const;
+   const CoordinatesType&
+   getLocalEnd() const;
 
    /**
     * \brief Sets begin of the region of interior cells, i.e. all cells without the boundary cells.
     *
     * \param begin is begin of the region of interior cells.
     */
-   void setInteriorBegin( const CoordinatesType& begin );
+   void
+   setInteriorBegin( const CoordinatesType& begin );
 
    /**
     * \brief Sets end of the region of interior cells, i.e. all cells without the boundary cells.
     *
     * \param end is end of the region of interior cells.
     */
-   void setInteriorEnd( const CoordinatesType& end );
+   void
+   setInteriorEnd( const CoordinatesType& end );
 
    /**
     * \brief Gets begin of the region of interior cells, i.e. all cells without the boundary cells.
     *
     * \return begin of the region of interior cells.
     */
-   const CoordinatesType& getInteriorBegin() const;
+   const CoordinatesType&
+   getInteriorBegin() const;
 
    /**
     * \brief Gets end of the region of interior cells, i.e. all cells without the boundary cells.
     *
     * \return end of the region of interior cells.
     */
-   const CoordinatesType& getInteriorEnd() const;
+   const CoordinatesType&
+   getInteriorEnd() const;
 
    /**
     * \brief Writes info about the grid.
@@ -642,14 +659,16 @@ public:
     * \brief Iterate over all mesh entities with given dimension and perform given lambda function
     *    on each of them.
     *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fullfil \f$ origin \leq c < origin + proportions\f$.
+    * Entities processed by this method are such that their coordinates \f$c\f$ fullfil \f$ origin \leq c < origin +
+    * proportions\f$.
     *
     * \tparam EntityDimension is dimension of the grid entities.
     * \param func is an instance of the lambda function to be performed on each grid entity.
     *     It is supposed to have the following form:
     *
     * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
+    * EntityDimension >&entity ) mutable {};
     * ```
     * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
     *
@@ -672,7 +691,8 @@ public:
     *     It is supposed to have the following form:
     *
     * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
+    * EntityDimension >&entity ) mutable {};
     * ```
     * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
     * \param args are packed arguments that are going to be passed to the lambda function.
@@ -685,14 +705,16 @@ public:
     * \brief Iterate over all interior mesh entities with given dimension and perform given lambda function
     *    on each of them.
     *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fullfil \f$ origin < c < origin + proportions - 1\f$.
+    * Entities processed by this method are such that their coordinates \f$c\f$ fullfil \f$ origin < c < origin + proportions -
+    * 1\f$.
     *
     * \tparam EntityDimension is dimension of the grid entities.
     * \param func is an instance of the lambda function to be performed on each grid entity.
     *     It is supposed to have the following form:
     *
     * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
+    * EntityDimension >&entity ) mutable {};
     * ```
     * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
     * \param args are packed arguments that are going to be passed to the lambda function.
@@ -710,7 +732,8 @@ public:
     *     It is supposed to have the following form:
     *
     * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
+    * EntityDimension >&entity ) mutable {};
     * ```
     * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
     * \param args are packed arguments that are going to be passed to the lambda function.
@@ -730,7 +753,8 @@ public:
     *     It is supposed to have the following form:
     *
     * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
+    * EntityDimension >&entity ) mutable {};
     * ```
     * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
     * \param args are packed arguments that are going to be passed to the lambda function.
@@ -749,7 +773,8 @@ public:
     *     It is supposed to have the following form:
     *
     * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >&entity ) mutable {};
+    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
+    * EntityDimension >&entity ) mutable {};
     * ```
     * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
     * \param func is an instance of the lambda function to be performed on each grid entity.
@@ -760,16 +785,20 @@ public:
    forLocalEntities( Func func, FuncArgs... args ) const;
 
 protected:
+   void
+   fillEntitiesCount();
 
-   void fillEntitiesCount();
+   void
+   fillSpaceSteps();
 
-   void fillSpaceSteps();
+   void
+   fillSpaceStepsPowers();
 
-   void fillSpaceStepsPowers();
+   void
+   fillProportions();
 
-   void fillProportions();
-
-   void fillNormals();
+   void
+   fillNormals();
 
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
@@ -807,7 +836,7 @@ protected:
     */
    CoordinatesType localBegin, localEnd;
 
-   CoordinatesType interiorBegin, interiorEnd; // TODO: Why we needt it?
+   CoordinatesType interiorBegin, interiorEnd;  // TODO: Why we needt it?
 
    /**
     * \brief A list of elements count along specific directions.
