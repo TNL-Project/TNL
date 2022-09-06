@@ -176,21 +176,6 @@ public:
    setDimensions( const CoordinatesType& dimensions );
 
    /**
-    * \brief Returns dimensions as a count of edges along given axes.
-    *
-    * \tparam variadic template parameter for a list of axis indexes.
-    * \param[in] axes is a list of axis indexes.
-    *
-    * \return static vector of size equal to number of input indexes holding dimensions along particular axes.
-    */
-   template< typename... AxisIndex,
-             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, AxisIndex >... >, bool > = true,
-             std::enable_if_t< ( sizeof...( AxisIndex ) > 0 ), bool > = true >
-   __cuda_callable__
-   Container< sizeof...( AxisIndex ), Index >
-   getDimensions( AxisIndex... axes ) const noexcept;
-
-   /**
     * \brief Returns dimensions as a number of edges along each axis in a form of coordinate vector.
     *
     *\return Coordinate vector with number of edges along each axis.

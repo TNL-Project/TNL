@@ -118,22 +118,6 @@ Grid< Dimension, Real, Device, Index >::setDimensions(
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename... DimensionIndex,
-          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool >,
-          std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > >
-__cuda_callable__
-typename Grid< Dimension, Real, Device, Index >::template Container< sizeof...( DimensionIndex ), Index >
-Grid< Dimension, Real, Device, Index >::getDimensions( DimensionIndex... indices ) const noexcept
-{
-   Container< sizeof...( DimensionIndex ), Index > result{ indices... };
-
-   for( std::size_t i = 0; i < sizeof...( DimensionIndex ); i++ )
-      result[ i ] = this->getDimensions()[ result[ i ] ];
-
-   return result;
-}
-
-template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
 const typename Grid< Dimension, Real, Device, Index >::CoordinatesType&
 Grid< Dimension, Real, Device, Index >::getDimensions() const noexcept

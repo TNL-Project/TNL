@@ -25,12 +25,6 @@ class GridAccessorsTestCaseInterface {
       template<typename Grid>
       void verifyDimensionByCoordinateGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const { FAIL() << "Expect to be specialized"; }
 
-      template<typename Grid>
-      void verifyDimensionByIndexGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const { FAIL() << "Expect to be specialized"; }
-
-      template<typename Grid>
-      void verifyDimensionByIndiciesGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const { FAIL() << "Expect to be specialized"; }
-
 
       template<typename Grid>
       void verifyEntitiesCountByContainerGetter(const Grid& grid, const typename Grid::template Container<Grid::getMeshDimension() + 1, Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
@@ -87,8 +81,6 @@ class GridAccessorsTestCase<TNL::Devices::Host>: public GridAccessorsTestCaseInt
       template<typename Grid>
       void verifyDimensionGetters(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
          this->verifyDimensionByCoordinateGetter<Grid>(grid, dimensions);
-         //this->verifyDimensionByIndexGetter<Grid>(grid, dimensions);
-         this->verifyDimensionByIndiciesGetter<Grid>(grid, dimensions);
       }
 
       template<typename Grid>
@@ -117,24 +109,6 @@ class GridAccessorsTestCase<TNL::Devices::Host>: public GridAccessorsTestCaseInt
          auto result = grid.getDimensions();
 
          EXPECT_EQ(dimensions, result) << "Verify, that dimension container accessor returns valid dimension";
-      }
-
-      /*template<typename Grid>
-      void verifyDimensionByIndexGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
-         for (typename Grid::IndexType i = 0; i < dimensions.getSize(); i++)
-            EXPECT_EQ(grid.getDimension(i), dimensions[i]) << "Verify, that index access is correct";
-      }*/
-
-      template<typename Grid>
-      void verifyDimensionByIndiciesGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
-         for (typename Grid::IndexType i = 0; i < dimensions.getSize(); i++) {
-            auto repeatedDimensions = grid.getDimensions(i, i, i, i, i, i, i, i, i, i);
-
-            EXPECT_EQ(repeatedDimensions.getSize(), 10) << "Verify, that all dimension indices are returned";
-
-            for (typename Grid::IndexType j = 0; j < repeatedDimensions.getSize(); j++)
-               EXPECT_EQ(repeatedDimensions[j], dimensions[i]) << "Verify, that it is possible to request the same dimension multiple times";
-         }
       }
 
       template<typename Grid>
@@ -170,8 +144,6 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
       template<typename Grid>
       void verifyDimensionGetters(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
          this->verifyDimensionByCoordinateGetter<Grid>(grid, dimensions);
-         //this->verifyDimensionByIndexGetter<Grid>(grid, dimensions);
-         this->verifyDimensionByIndiciesGetter<Grid>(grid, dimensions);
       }
 
       template<typename Grid>
@@ -236,36 +208,6 @@ class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInt
          };
 
          this->executeFromDevice<typename Grid::IndexType>(update, verify);
-      }
-
-      /*template<typename Grid>
-      void verifyDimensionByIndexGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
-         auto gridDimension = grid.getMeshDimension();
-
-         auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
-            reference = grid.getDimension(index % gridDimension);
-         };
-
-         auto verify = [=] __cuda_callable__ (const int index, const typename Grid::IndexType& reference) mutable {
-            EXPECT_EQ(reference, dimensions[index % gridDimension]);
-         };
-
-         this->executeFromDevice<typename Grid::IndexType>(update, verify);
-      }*/
-
-      template<typename Grid>
-      void verifyDimensionByIndiciesGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
-         auto gridDimension = grid.getMeshDimension();
-
-         auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
-            reference = grid.getDimensions(index % gridDimension)[0];
-         };
-
-         auto verify = [=] __cuda_callable__ (const int index, const typename Grid::IndexType& reference) mutable {
-            EXPECT_EQ(reference, dimensions[index % gridDimension]);
-         };
-
-         this -> executeFromDevice<typename Grid::IndexType>(update, verify);
       }
 
 
