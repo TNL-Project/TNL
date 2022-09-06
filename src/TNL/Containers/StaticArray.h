@@ -167,43 +167,43 @@ public:
     * \brief Returns reference to the first coordinate.
     */
    __cuda_callable__
-   constexpr
-   Value& x();
+   constexpr Value&
+   x();
 
    /**
     * \brief Returns constant reference to the first coordinate.
     */
    __cuda_callable__
-   constexpr const
-   Value& x() const;
+   constexpr const Value&
+   x() const;
 
    /**
     * \brief Returns reference to the second coordinate for arrays with Size >= 2.
     */
    __cuda_callable__
-   constexpr
-   Value& y();
+   constexpr Value&
+   y();
 
    /**
     * \brief Returns constant reference to the second coordinate for arrays with Size >= 2.
     */
    __cuda_callable__
-   constexpr const
-   Value& y() const;
+   constexpr const Value&
+   y() const;
 
    /**
     * \brief Returns reference to the third coordinate for arrays with Size >= 3.
     */
    __cuda_callable__
-   constexpr
-   Value& z();
+   constexpr Value&
+   z();
 
    /**
     * \brief Returns constant reference to the third coordinate for arrays with Size >= 3.
     */
    __cuda_callable__
-   constexpr const
-   Value& z() const;
+   constexpr const Value&
+   z() const;
 
    /**
     * \brief Assigns another static \e array to this array.
