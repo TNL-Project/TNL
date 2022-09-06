@@ -918,3 +918,4 @@ operator!=( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimen
 }  // namespace TNL
 
 #include <TNL/Meshes/Grid.hpp>
+#include <TNL/Meshes/GridEntity.h>
