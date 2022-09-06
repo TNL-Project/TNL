@@ -20,7 +20,7 @@ constexpr int
 GridEntity< Grid, EntityDimension >::
 getMeshDimension()
 {
-   return meshDimension;
+   return Grid::getMeshDimension();
 }
 
 template< class Grid, int EntityDimension >
@@ -28,7 +28,7 @@ constexpr int
 GridEntity< Grid, EntityDimension >::
 getEntityDimension()
 {
-   return entityDimension;
+   return EntityDimension;
 }
 
 template< class Grid, int EntityDimension >
@@ -206,7 +206,7 @@ __cuda_callable__
 GridEntity< Grid, Dimension >
 GridEntity< Grid, EntityDimension >::getNeighbourEntity() const
 {
-   using Getter = NeighbourGridEntityGetter< meshDimension, entityDimension, Dimension >;
+   using Getter = NeighbourGridEntityGetter< getMeshDimension(), EntityDimension, Dimension >;
 
    return Getter::template getEntity< Grid, Steps... >( *this );
 }
@@ -220,7 +220,7 @@ __cuda_callable__
 GridEntity< Grid, Dimension >
 GridEntity< Grid, EntityDimension >::getNeighbourEntity() const
 {
-   using Getter = NeighbourGridEntityGetter< meshDimension, entityDimension, Dimension >;
+   using Getter = NeighbourGridEntityGetter< getMeshDimension(), EntityDimension, Dimension >;
 
    return Getter::template getEntity< Grid, Orientation, Steps... >( *this );
 }
@@ -231,7 +231,7 @@ __cuda_callable__
 GridEntity< Grid, Dimension >
 GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& offset ) const
 {
-   using Getter = NeighbourGridEntityGetter< meshDimension, entityDimension, Dimension >;
+   using Getter = NeighbourGridEntityGetter< getMeshDimension(), EntityDimension, Dimension >;
 
    return Getter::template getEntity< Grid >( *this, offset );
 }
@@ -242,7 +242,7 @@ __cuda_callable__
 GridEntity< Grid, Dimension >
 GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& offset ) const
 {
-   using Getter = NeighbourGridEntityGetter< meshDimension, entityDimension, Dimension >;
+   using Getter = NeighbourGridEntityGetter< getMeshDimension(), EntityDimension, Dimension >;
 
    return Getter::template getEntity< Grid, Orientation >( *this, offset );
 }

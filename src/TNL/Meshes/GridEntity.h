@@ -65,16 +65,6 @@ public:
    using PointType = typename Grid::PointType;
 
    /**
-    * \brief Dimension of the grid.
-    */
-   constexpr static int meshDimension = Grid::getMeshDimension();
-
-   /**
-    * \brief Dimension of the grid entity.
-    */
-   constexpr static int entityDimension = EntityDimension;
-
-   /**
     * \brief Getter of the dimension of the grid.
     *
     * \return dimension of the grid.
@@ -245,7 +235,7 @@ public:
    /**
     * \brief Returns index of the entity orientation
     *
-    * Orientation is always paired with the normals. In other words, if orientations, entityDimensions and dimensions are equal,
+    * Orientation is always paired with the normals. In other words, if orientations, entity dimensions and dimensions are equal,
     * then normals are equal also.
     */
    __cuda_callable__

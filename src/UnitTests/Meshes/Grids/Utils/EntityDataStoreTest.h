@@ -57,7 +57,7 @@ void testTraverse(const Grid& grid, DataStore& dataStore, int entitiesCount ) {
   };
 
   TNL::Meshes::Templates::ForEachOrientation<
-    Index, GridEntity::entityDimension, Grid::getMeshDimension()
+    Index, GridEntity::getEntityDimension(), Grid::getMeshDimension()
   >::exec( exec );
 }
 

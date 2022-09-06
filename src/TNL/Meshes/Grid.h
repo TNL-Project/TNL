@@ -31,17 +31,12 @@ class GridEntity;
  * \tparam Device is the device to be used for the execution of grid operations.
  * \tparam Index is type for indexing of the mesh entities of the grid.
  */
-template< int Dimension_, typename Real = double, typename Device = Devices::Host, typename Index = int >
+template< int Dimension, typename Real = double, typename Device = Devices::Host, typename Index = int >
 class Grid
 {
 public:
    template< int ContainerDimension, typename ContainerValue, std::enable_if_t< ( ContainerDimension > 0 ), bool > = true >
    using Container = TNL::Containers::StaticVector< ContainerDimension, ContainerValue >;
-
-   /**
-    * \brief Dimension of the grid.
-    */
-   static constexpr int Dimension = Dimension_;
 
    /**
     * \brief Type of the floating point numbers.
@@ -138,7 +133,7 @@ public:
     */
    template< typename... Dimensions,
              std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
-             std::enable_if_t< sizeof...( Dimensions ) == Dimension_, bool > = true >
+             std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
    Grid( Dimensions... dimensions );
 
    /**
@@ -167,7 +162,7 @@ public:
     */
    template< typename... Dimensions,
              std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
-             std::enable_if_t< sizeof...( Dimensions ) == Dimension_, bool > = true >
+             std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
    void
    setDimensions( Dimensions... dimensions );
 
@@ -222,7 +217,7 @@ public:
     * \return Number of grid entities with given dimension.
     */
    template< int EntityDimension,
-             std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension_ ), bool > = true >
+             std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true >
    __cuda_callable__
    Index getEntitiesCount() const noexcept;
 
@@ -234,7 +229,7 @@ public:
     * \return Number of grid entities with given dimension.
     */
    template< typename Entity,
-             std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension_ ), bool > = true >
+             std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension ), bool > = true >
    __cuda_callable__
    Index getEntitiesCount() const noexcept;
 
@@ -281,8 +276,8 @@ public:
     */
    template< int EntityDimension,
              int EntityOrientation,
-             std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension_ ), bool > = true,
-             std::enable_if_t< Templates::isInClosedInterval( 0, EntityOrientation, Dimension_ ), bool > = true >
+             std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true,
+             std::enable_if_t< Templates::isInClosedInterval( 0, EntityOrientation, Dimension ), bool > = true >
    __cuda_callable__
    Index
    getOrientedEntitiesCount() const noexcept;
@@ -393,7 +388,7 @@ public:
     */
    template< typename... Coordinates,
              std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Coordinates >... >, bool > = true,
-             std::enable_if_t< sizeof...( Coordinates ) == Dimension_, bool > = true >
+             std::enable_if_t< sizeof...( Coordinates ) == Dimension, bool > = true >
    void
    setOrigin( Coordinates... coordinates ) noexcept;
 
@@ -424,7 +419,7 @@ public:
     */
    template< typename... Steps,
              std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Steps >... >, bool > = true,
-             std::enable_if_t< sizeof...( Steps ) == Dimension_, bool > = true >
+             std::enable_if_t< sizeof...( Steps ) == Dimension, bool > = true >
    void
    setSpaceSteps( Steps... spaceSteps ) noexcept;
 
@@ -448,7 +443,7 @@ public:
     */
    template< typename... Powers,
              std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool > = true,
-             std::enable_if_t< sizeof...( Powers ) == Dimension_, bool > = true >
+             std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
    __cuda_callable__
    Real
    getSpaceStepsProducts( Powers... powers ) const;
@@ -479,7 +474,7 @@ public:
     * \tparam Powers is a pack of indexes.
     * \return product of given space steps powers.
     */
-   template< Index... Powers, std::enable_if_t< sizeof...( Powers ) == Dimension_, bool > = true >
+   template< Index... Powers, std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
    __cuda_callable__
    Real
    getSpaceStepsProducts() const noexcept;
