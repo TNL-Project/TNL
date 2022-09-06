@@ -9,7 +9,7 @@
 #include <TNL/Meshes/Topologies/Quadrangle.h>
 #include <TNL/Meshes/Topologies/Hexahedron.h>
 #include <TNL/Meshes/MeshBuilder.h>
-#include <TNL/Meshes/Traverser.h>
+#include <TNL/Pointers/SharedPointer.h>
 
 namespace MeshTest {
 
@@ -34,43 +34,19 @@ public:
    static constexpr bool superentityStorage( int entityDimension, int superentityDimension ) { return true; }
 };
 
-struct TestEntitiesProcessor
-{
-   template< typename Mesh, typename UserData, typename Entity >
-   __cuda_callable__
-   static void processEntity( const Mesh& mesh, UserData& userData, const Entity& entity )
-   {
-      userData[ entity.getIndex() ] += 1;
-   }
-};
-
 template< typename EntityType, typename DeviceMeshPointer, typename HostArray >
-void testTraverser( const DeviceMeshPointer& deviceMeshPointer,
+void testIteration( const DeviceMeshPointer& deviceMeshPointer,
                     const HostArray& host_array_boundary,
                     const HostArray& host_array_interior,
                     const HostArray& host_array_all )
 {
-   /*
    using MeshType = typename DeviceMeshPointer::ObjectType;
    using DeviceType = typename MeshType::DeviceType;
    static_assert( std::is_same< DeviceType, typename DeviceMeshPointer::DeviceType >::value, "devices must be the same" );
-   Traverser< MeshType, EntityType > traverser;
 
    Containers::Array< int, DeviceType > array_boundary( deviceMeshPointer->template getEntitiesCount< EntityType >() );
    Containers::Array< int, DeviceType > array_interior( deviceMeshPointer->template getEntitiesCount< EntityType >() );
    Containers::Array< int, DeviceType > array_all     ( deviceMeshPointer->template getEntitiesCount< EntityType >() );
-
-   array_boundary.setValue( 0 );
-   array_interior.setValue( 0 );
-   array_all     .setValue( 0 );
-
-   traverser.template processBoundaryEntities< TestEntitiesProcessor >( deviceMeshPointer, array_boundary.getView() );
-   traverser.template processInteriorEntities< TestEntitiesProcessor >( deviceMeshPointer, array_interior.getView() );
-   traverser.template processAllEntities     < TestEntitiesProcessor >( deviceMeshPointer, array_all.getView() );
-
-   EXPECT_EQ( array_boundary, host_array_boundary );
-   EXPECT_EQ( array_interior, host_array_interior );
-   EXPECT_EQ( array_all,      host_array_all      );
 
    // test iteration methods: forAll, forBoundary, forInterior
    array_boundary.setValue( 0 );
@@ -91,7 +67,7 @@ void testTraverser( const DeviceMeshPointer& deviceMeshPointer,
 
    EXPECT_EQ( array_boundary, host_array_boundary );
    EXPECT_EQ( array_interior, host_array_interior );
-   EXPECT_EQ( array_all,      host_array_all      );*/
+   EXPECT_EQ( array_all,      host_array_all      );
 }
 
 TEST( MeshTest, RegularMeshOfQuadranglesTest )
@@ -212,20 +188,20 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
       array_vertices_all[ idx ] = 1;
    }
 
-   // test traverser with host
-   testTraverser< QuadrangleMeshEntityType >( meshPointer, array_cells_boundary, array_cells_interior, array_cells_all );
-   testTraverser< EdgeMeshEntityType          >( meshPointer, array_edges_boundary, array_edges_interior, array_edges_all );
-   testTraverser< VertexMeshEntityType        >( meshPointer, array_vertices_boundary, array_vertices_interior, array_vertices_all );
+   // test iteration with host
+   testIteration< QuadrangleMeshEntityType >( meshPointer, array_cells_boundary, array_cells_interior, array_cells_all );
+   testIteration< EdgeMeshEntityType          >( meshPointer, array_edges_boundary, array_edges_interior, array_edges_all );
+   testIteration< VertexMeshEntityType        >( meshPointer, array_vertices_boundary, array_vertices_interior, array_vertices_all );
 
-   // test traverser with CUDA
+   // test iteration with CUDA
 #ifdef HAVE_CUDA
    using DeviceMesh = Mesh< TestQuadrangleMeshConfig, Devices::Cuda >;
    Pointers::SharedPointer< DeviceMesh > deviceMeshPointer;
    *deviceMeshPointer = *meshPointer;
 
-   testTraverser< QuadrangleMeshEntityType >( deviceMeshPointer, array_cells_boundary, array_cells_interior, array_cells_all );
-   testTraverser< EdgeMeshEntityType          >( deviceMeshPointer, array_edges_boundary, array_edges_interior, array_edges_all );
-   testTraverser< VertexMeshEntityType        >( deviceMeshPointer, array_vertices_boundary, array_vertices_interior, array_vertices_all );
+   testIteration< QuadrangleMeshEntityType >( deviceMeshPointer, array_cells_boundary, array_cells_interior, array_cells_all );
+   testIteration< EdgeMeshEntityType          >( deviceMeshPointer, array_edges_boundary, array_edges_interior, array_edges_all );
+   testIteration< VertexMeshEntityType        >( deviceMeshPointer, array_vertices_boundary, array_vertices_interior, array_vertices_all );
 #endif
 }
 
@@ -382,22 +358,22 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
       array_vertices_all[ idx ] = 1;
    }
 
-   // test traverser with host
-   testTraverser< HexahedronMeshEntityType    >( meshPointer, array_cells_boundary, array_cells_interior, array_cells_all );
-   testTraverser< QuadrangleMeshEntityType >( meshPointer, array_faces_boundary, array_faces_interior, array_faces_all );
-   testTraverser< EdgeMeshEntityType          >( meshPointer, array_edges_boundary, array_edges_interior, array_edges_all );
-   testTraverser< VertexMeshEntityType        >( meshPointer, array_vertices_boundary, array_vertices_interior, array_vertices_all );
+   // test iteration with host
+   testIteration< HexahedronMeshEntityType    >( meshPointer, array_cells_boundary, array_cells_interior, array_cells_all );
+   testIteration< QuadrangleMeshEntityType >( meshPointer, array_faces_boundary, array_faces_interior, array_faces_all );
+   testIteration< EdgeMeshEntityType          >( meshPointer, array_edges_boundary, array_edges_interior, array_edges_all );
+   testIteration< VertexMeshEntityType        >( meshPointer, array_vertices_boundary, array_vertices_interior, array_vertices_all );
 
-   // test traverser with CUDA
+   // test iteration with CUDA
 #ifdef HAVE_CUDA
    using DeviceMesh = Mesh< TestHexahedronMeshConfig, Devices::Cuda >;
    Pointers::SharedPointer< DeviceMesh > deviceMeshPointer;
    *deviceMeshPointer = *meshPointer;
 
-   testTraverser< HexahedronMeshEntityType    >( deviceMeshPointer, array_cells_boundary, array_cells_interior, array_cells_all );
-   testTraverser< QuadrangleMeshEntityType >( deviceMeshPointer, array_faces_boundary, array_faces_interior, array_faces_all );
-   testTraverser< EdgeMeshEntityType          >( deviceMeshPointer, array_edges_boundary, array_edges_interior, array_edges_all );
-   testTraverser< VertexMeshEntityType        >( deviceMeshPointer, array_vertices_boundary, array_vertices_interior, array_vertices_all );
+   testIteration< HexahedronMeshEntityType    >( deviceMeshPointer, array_cells_boundary, array_cells_interior, array_cells_all );
+   testIteration< QuadrangleMeshEntityType >( deviceMeshPointer, array_faces_boundary, array_faces_interior, array_faces_all );
+   testIteration< EdgeMeshEntityType          >( deviceMeshPointer, array_edges_boundary, array_edges_interior, array_edges_all );
+   testIteration< VertexMeshEntityType        >( deviceMeshPointer, array_vertices_boundary, array_vertices_interior, array_vertices_all );
 #endif
 }
 
