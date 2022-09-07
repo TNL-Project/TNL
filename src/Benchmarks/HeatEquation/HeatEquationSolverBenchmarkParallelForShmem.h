@@ -37,8 +37,8 @@ struct HeatEquationSolverBenchmarkParallelForShmem : public HeatEquationSolverBe
             auto element = uxView[index];
             auto center = 2 * element;
 
-            UnrolledStaticVector< Size, Real > v( 1.0 );
-            element += v.getL1Norm() - Size;
+            UnrolledStaticVector< Size * sizeof( Real ) / sizeof( float ), float > v( 1 );
+            element += v.getL1Norm();
 
             auxView[index] = element + ( (uxView[index - 1] -     center + uxView[index + 1]    ) * hx_inv +
                                          (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv   ) * timestep;
