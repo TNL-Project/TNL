@@ -11,9 +11,11 @@ from os.path import exists
 
 devices = [ "sequential", "host", 'cuda' ]
 precisions = [ "float", "double" ]
-tests = [ "parallel-for", "simple-grid", "grid", "nd-grid",
-          "parallel-for-shmem-4", "parallel-for-shmem-8","parallel-for-shmem-16", "parallel-for-shmem-32", "parallel-for-shmem-64", "parallel-for-shmem-128", # "parallel-for-shmem-256", "parallel-for-shmem-512", "parallel-for-shmem-1024", "parallel-for-shmem-2048",
-          "grid-shmem-4", "grid-shmem-8", "grid-shmem-16", "grid-shmem-32", "grid-shmem-64", "grid-shmem-128" ] #, "grid-shmem-256", "grid-shmem-512", "grid-shmem-1024", "grid-shmem-2048"  ]
+tests = [
+    "parallel-for", "simple-grid", "grid", #"nd-grid",
+    "parallel-for-shmem-4", "parallel-for-shmem-8","parallel-for-shmem-16", "parallel-for-shmem-32", "parallel-for-shmem-64", "parallel-for-shmem-128", # "parallel-for-shmem-256", "parallel-for-shmem-512", "parallel-for-shmem-1024", "parallel-for-shmem-2048",
+    "grid-shmem-4", "grid-shmem-8", "grid-shmem-16", "grid-shmem-32", "grid-shmem-64", "grid-shmem-128", # "grid-shmem-256", "grid-shmem-512", "grid-shmem-1024", "grid-shmem-2048"  ]
+]
 
 ####
 # Create multiindex for columns
@@ -76,7 +78,6 @@ def processDf( df, precision ):
     for index, row in result.iterrows():
         for test in tests:
             if have_cuda:
-                a = 1
                 result.iloc[idx][ (test, 'cuda', 'CPU speed-up') ] =  float( row[ (test, 'host', 'time')] ) / float( row[ (test, 'cuda', 'time')] )
             if test != 'parallel-for':
                 for device in devices:
