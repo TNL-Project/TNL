@@ -14,8 +14,6 @@
 #include "HeatEquationSolverBenchmarkSimpleGrid.h"
 #include "HeatEquationSolverBenchmarkGrid.h"
 #include "HeatEquationSolverBenchmarkNdGrid.h"
-#include "HeatEquationSolverBenchmarkParallelForShmem.h"
-#include "HeatEquationSolverBenchmarkGridShmem.h"
 
 void configSetup( TNL::Config::ConfigDescription& config )
 {
@@ -25,26 +23,6 @@ void configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum< TNL::String >( "simple-grid" );
    config.addEntryEnum< TNL::String >( "grid" );
    config.addEntryEnum< TNL::String >( "nd-grid" );
-   config.addEntryEnum< TNL::String >( "parallel-for-shmem-4" );
-   config.addEntryEnum< TNL::String >( "parallel-for-shmem-8" );
-   config.addEntryEnum< TNL::String >( "parallel-for-shmem-16" );
-   config.addEntryEnum< TNL::String >( "parallel-for-shmem-32" );
-   config.addEntryEnum< TNL::String >( "parallel-for-shmem-64" );
-   config.addEntryEnum< TNL::String >( "parallel-for-shmem-128" );
-   config.addEntryEnum< TNL::String >( "parallel-for-shmem-256" );
-   config.addEntryEnum< TNL::String >( "parallel-for-shmem-512" );
-   config.addEntryEnum< TNL::String >( "parallel-for-shmem-1024" );
-   config.addEntryEnum< TNL::String >( "parallel-for-shmem-2048" );
-   config.addEntryEnum< TNL::String >( "grid-shmem-4" );
-   config.addEntryEnum< TNL::String >( "grid-shmem-8" );
-   config.addEntryEnum< TNL::String >( "grid-shmem-16" );
-   config.addEntryEnum< TNL::String >( "grid-shmem-32" );
-   config.addEntryEnum< TNL::String >( "grid-shmem-64" );
-   config.addEntryEnum< TNL::String >( "grid-shmem-128" );
-   config.addEntryEnum< TNL::String >( "grid-shmem-256" );
-   config.addEntryEnum< TNL::String >( "grid-shmem-512" );
-   config.addEntryEnum< TNL::String >( "grid-shmem-1024" );
-   config.addEntryEnum< TNL::String >( "grid-shmem-2048" );
 
    config.addDelimiter( "Device settings:" );
    config.addEntry<TNL::String>( "device", "Device the computation will run on.", "cuda" );
@@ -87,108 +65,6 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
       HeatEquationSolverBenchmarkNdGrid< Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
-   if( implementation == "parallel-for-shmem-4" )
-   {
-      HeatEquationSolverBenchmarkParallelForShmem< 4, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "parallel-for-shmem-8" )
-   {
-      HeatEquationSolverBenchmarkParallelForShmem< 8, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "parallel-for-shmem-16" )
-   {
-      HeatEquationSolverBenchmarkParallelForShmem< 16, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "parallel-for-shmem-32" )
-   {
-      HeatEquationSolverBenchmarkParallelForShmem< 32, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "parallel-for-shmem-64" )
-   {
-      HeatEquationSolverBenchmarkParallelForShmem< 64, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "parallel-for-shmem-128" )
-   {
-      HeatEquationSolverBenchmarkParallelForShmem< 128, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   /*if( implementation == "parallel-for-shmem-256" )
-   {
-      HeatEquationSolverBenchmarkParallelForShmem< 256, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "parallel-for-shmem-512" )
-   {
-      HeatEquationSolverBenchmarkParallelForShmem< 512, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "parallel-for-shmem-1024" )
-   {
-      HeatEquationSolverBenchmarkParallelForShmem< 1024, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "parallel-for-shmem-2048" )
-   {
-      HeatEquationSolverBenchmarkParallelForShmem< 2048, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }*/
-
-   if( implementation == "grid-shmem-4" )
-   {
-      HeatEquationSolverBenchmarkGridShmem< 4, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "grid-shmem-8" )
-   {
-      HeatEquationSolverBenchmarkGridShmem< 8, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "grid-shmem-16" )
-   {
-      HeatEquationSolverBenchmarkGridShmem< 16, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "grid-shmem-32" )
-   {
-      HeatEquationSolverBenchmarkGridShmem< 32, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "grid-shmem-64" )
-   {
-      HeatEquationSolverBenchmarkGridShmem< 64, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "grid-shmem-128" )
-   {
-      HeatEquationSolverBenchmarkGridShmem< 128, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   /*if( implementation == "grid-shmem-256" )
-   {
-      HeatEquationSolverBenchmarkGridShmem< 256, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "grid-shmem-512" )
-   {
-      HeatEquationSolverBenchmarkGridShmem< 512, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "grid-shmem-1024" )
-   {
-      HeatEquationSolverBenchmarkGridShmem< 1024, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "grid-shmem-2048" )
-   {
-      HeatEquationSolverBenchmarkGridShmem< 2048, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }*/
-
    return false;
 }
 
