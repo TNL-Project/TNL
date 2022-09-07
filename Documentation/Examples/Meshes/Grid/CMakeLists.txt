@@ -1,0 +1,32 @@
+set( COMMON_EXAMPLES
+   GridExample_constructor-1
+   GridExample_constructor-2
+   GridExample_traverse
+   GridExample_writer
+)
+
+if( TNL_BUILD_CUDA )
+   foreach( target IN ITEMS ${COMMON_EXAMPLES} )
+      add_executable( ${target} ${target}.cu )
+      target_link_libraries( ${target} PUBLIC TNL::TNL_CUDA )
+      add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                          OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                          DEPENDS ${target} )
+      set( CUDA_OUTPUTS ${CUDA_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
+   endforeach()
+else()
+   foreach( target IN ITEMS ${COMMON_EXAMPLES} )
+      add_executable( ${target} ${target}.cpp )
+      target_link_libraries( ${target} PUBLIC TNL::TNL_CXX )
+      add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                          OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                          DEPENDS ${target} )
+      set( HOST_OUTPUTS ${HOST_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
+   endforeach()
+endif()
+
+if( TNL_BUILD_CUDA )
+   add_custom_target( RunSparseMeshesExamples-cuda ALL DEPENDS ${CUDA_OUTPUTS} )
+else()
+   add_custom_target( RunSparseMeshesExamples ALL DEPENDS ${HOST_OUTPUTS} )
+endif()

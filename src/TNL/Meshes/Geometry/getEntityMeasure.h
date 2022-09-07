@@ -25,10 +25,10 @@
 namespace TNL {
 namespace Meshes {
 
-template< typename Grid, typename Config >
+template< typename Grid >
 __cuda_callable__
 typename Grid::RealType
-getEntityMeasure( const Grid& grid, const GridEntity< Grid, 0, Config >& entity )
+getEntityMeasure( const Grid& grid, const GridEntity< Grid, 0 >& entity )
 {
    // entity.getMeasure() returns 0.0 !!!
    return 1.0;
@@ -37,7 +37,7 @@ getEntityMeasure( const Grid& grid, const GridEntity< Grid, 0, Config >& entity 
 template< typename Grid, int EntityDimension, typename Config >
 __cuda_callable__
 typename Grid::RealType
-getEntityMeasure( const Grid& grid, const GridEntity< Grid, EntityDimension, Config >& entity )
+getEntityMeasure( const Grid& grid, const GridEntity< Grid, EntityDimension >& entity )
 {
    return entity.getMeasure();
 }

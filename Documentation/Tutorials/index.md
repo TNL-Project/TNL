@@ -14,8 +14,9 @@
 
 1. [Multidimensional arrays](./NDArrays/tutorial_NDArrays.md)
 2. [Matrices](./Matrices/tutorial_Matrices.md)
-3. [Segments aka sparse formats](./Segments/tutorial_Segments.md)
-4. [Unstructured meshes](./Meshes/tutorial_Meshes.md)
+3. [Segments (sparse formats)](./Segments/tutorial_Segments.md)
+4. [Orthogonal grids](./Meshes/tutorial_Grids.md)
+5. [Unstructured meshes](./Meshes/tutorial_Meshes.md)
 
 ## Numerical solvers
 

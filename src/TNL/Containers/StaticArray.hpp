@@ -107,7 +107,7 @@ StaticArray< Size, Value >::StaticArray( const Value v[ Size ] )
 
 template< int Size, typename Value >
 __cuda_callable__
-StaticArray< Size, Value >::StaticArray( const Value& v )
+constexpr StaticArray< Size, Value >::StaticArray( const Value& v )
 {
    Algorithms::unrolledFor< int, 0, Size >(
       [ & ]( int i ) mutable
@@ -133,12 +133,19 @@ StaticArray< Size, Value >::StaticArray( const std::initializer_list< Value >& e
 {
    const auto* it = elems.begin();
    for( int i = 0; i < getSize(); i++ )
+#if defined( __GNUC__ ) && ! defined( __clang__ ) && ! defined( __NVCC__ )
+   #pragma GCC diagnostic push
+   #pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
       data[ i ] = *it++;
+#if defined( __GNUC__ ) && ! defined( __clang__ ) && ! defined( __NVCC__ )
+   #pragma GCC diagnostic pop
+#endif
 }
 
 template< int Size, typename Value >
 __cuda_callable__
-StaticArray< Size, Value >::StaticArray( const Value& v1, const Value& v2 )
+constexpr StaticArray< Size, Value >::StaticArray( const Value& v1, const Value& v2 )
 {
    static_assert( Size == 2, "This constructor can be called only for arrays with Size = 2." );
    data[ 0 ] = v1;
@@ -147,12 +154,23 @@ StaticArray< Size, Value >::StaticArray( const Value& v1, const Value& v2 )
 
 template< int Size, typename Value >
 __cuda_callable__
-StaticArray< Size, Value >::StaticArray( const Value& v1, const Value& v2, const Value& v3 )
+constexpr StaticArray< Size, Value >::StaticArray( const Value& v1, const Value& v2, const Value& v3 )
 {
    static_assert( Size == 3, "This constructor can be called only for arrays with Size = 3." );
    data[ 0 ] = v1;
    data[ 1 ] = v2;
    data[ 2 ] = v3;
+}
+
+template< int Size, typename Value >
+__cuda_callable__
+constexpr StaticArray< Size, Value >::StaticArray( const Value& v1, const Value& v2, const Value& v3, const Value& v4 )
+{
+   static_assert( Size == 4, "This constructor can be called only for arrays with Size = 4." );
+   data[ 0 ] = v1;
+   data[ 1 ] = v2;
+   data[ 2 ] = v3;
+   data[ 3 ] = v4;
 }
 
 template< int Size, typename Value >
@@ -173,7 +191,7 @@ StaticArray< Size, Value >::getData() const
 
 template< int Size, typename Value >
 __cuda_callable__
-const Value&
+constexpr const Value&
 StaticArray< Size, Value >::operator[]( int i ) const
 {
    TNL_ASSERT_GE( i, 0, "Element index must be non-negative." );
@@ -183,7 +201,7 @@ StaticArray< Size, Value >::operator[]( int i ) const
 
 template< int Size, typename Value >
 __cuda_callable__
-Value&
+constexpr Value&
 StaticArray< Size, Value >::operator[]( int i )
 {
    TNL_ASSERT_GE( i, 0, "Element index must be non-negative." );
@@ -193,7 +211,7 @@ StaticArray< Size, Value >::operator[]( int i )
 
 template< int Size, typename Value >
 __cuda_callable__
-const Value&
+constexpr const Value&
 StaticArray< Size, Value >::operator()( int i ) const
 {
    return operator[]( i );
@@ -201,7 +219,7 @@ StaticArray< Size, Value >::operator()( int i ) const
 
 template< int Size, typename Value >
 __cuda_callable__
-Value&
+constexpr Value&
 StaticArray< Size, Value >::operator()( int i )
 {
    return operator[]( i );
@@ -209,7 +227,7 @@ StaticArray< Size, Value >::operator()( int i )
 
 template< int Size, typename Value >
 __cuda_callable__
-Value&
+constexpr Value&
 StaticArray< Size, Value >::x()
 {
    return data[ 0 ];
@@ -217,7 +235,7 @@ StaticArray< Size, Value >::x()
 
 template< int Size, typename Value >
 __cuda_callable__
-const Value&
+constexpr const Value&
 StaticArray< Size, Value >::x() const
 {
    return data[ 0 ];
@@ -225,7 +243,7 @@ StaticArray< Size, Value >::x() const
 
 template< int Size, typename Value >
 __cuda_callable__
-Value&
+constexpr Value&
 StaticArray< Size, Value >::y()
 {
    static_assert( Size > 1, "Cannot call StaticArray< Size, Value >::y() for arrays with Size < 2." );
@@ -234,7 +252,7 @@ StaticArray< Size, Value >::y()
 
 template< int Size, typename Value >
 __cuda_callable__
-const Value&
+constexpr const Value&
 StaticArray< Size, Value >::y() const
 {
    static_assert( Size > 1, "Cannot call StaticArray< Size, Value >::y() for arrays with Size < 2." );
@@ -243,19 +261,19 @@ StaticArray< Size, Value >::y() const
 
 template< int Size, typename Value >
 __cuda_callable__
-Value&
+constexpr Value&
 StaticArray< Size, Value >::z()
 {
-   static_assert( Size > 1, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
+   static_assert( Size > 2, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
    return data[ 2 ];
 }
 
 template< int Size, typename Value >
 __cuda_callable__
-const Value&
+constexpr const Value&
 StaticArray< Size, Value >::z() const
 {
-   static_assert( Size > 1, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
+   static_assert( Size > 2, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
    return data[ 2 ];
 }
 
@@ -285,7 +303,7 @@ StaticArray< Size, Value >::operator=( const T& v )
 template< int Size, typename Value >
 template< typename Array >
 __cuda_callable__
-bool
+constexpr bool
 StaticArray< Size, Value >::operator==( const Array& array ) const
 {
    return detail::StaticArrayComparator< Size, Value, typename Array::ValueType, 0 >::EQ( *this, array );
@@ -294,7 +312,7 @@ StaticArray< Size, Value >::operator==( const Array& array ) const
 template< int Size, typename Value >
 template< typename Array >
 __cuda_callable__
-bool
+constexpr bool
 StaticArray< Size, Value >::operator!=( const Array& array ) const
 {
    return ! this->operator==( array );

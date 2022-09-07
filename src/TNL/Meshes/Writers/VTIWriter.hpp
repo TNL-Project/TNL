@@ -23,6 +23,10 @@ namespace Meshes {
 namespace Writers {
 
 template< typename Mesh >
+VTIWriter< Mesh >::VTIWriter( std::ostream& str, VTK::FileFormat format ) : str( str.rdbuf() ), format( format )
+{}
+
+template< typename Mesh >
 void
 VTIWriter< Mesh >::writeMetadata( int cycle, double time )
 {

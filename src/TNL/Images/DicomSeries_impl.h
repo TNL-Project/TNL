@@ -76,7 +76,7 @@ DicomSeries::getImage( const int imageIdx,
 #ifdef HAVE_DCMTK_H
    const Uint16* imageData = this->getData( imageIdx );
    using GridType = Meshes::Grid< 2, Real, Device, Index >;
-   typename GridType::Cell cell( grid );
+   typename GridType::Cell cell( grid, { 0, 0 } );
 
    Index i, j;
    int position( 0 );

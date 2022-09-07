@@ -62,7 +62,7 @@ public:
     * \param v Reference to a value.
     */
    __cuda_callable__
-   StaticArray( const Value& v );
+   constexpr StaticArray( const Value& v );
 
    /**
     * \brief Copy constructor.
@@ -90,7 +90,7 @@ public:
     * \param v2 Value of the second array component.
     */
    __cuda_callable__
-   StaticArray( const Value& v1, const Value& v2 );
+   constexpr StaticArray( const Value& v1, const Value& v2 );
 
    /**
     * \brief Constructor that sets components of arrays with Size = 3.
@@ -100,7 +100,18 @@ public:
     * \param v3 Value of the third array component.
     */
    __cuda_callable__
-   StaticArray( const Value& v1, const Value& v2, const Value& v3 );
+   constexpr StaticArray( const Value& v1, const Value& v2, const Value& v3 );
+
+   /**
+    * \brief Constructor that sets components of arrays with Size = 4.
+    *
+    * \param v1 Value of the first array component.
+    * \param v2 Value of the second array component.
+    * \param v3 Value of the third array component.
+    * \param v4 Value of the forth array component.
+    */
+   __cuda_callable__
+   constexpr StaticArray( const Value& v1, const Value& v2, const Value& v3, const Value& v4 );
 
    /**
     * \brief Gets pointer to data of this static array.
@@ -122,7 +133,7 @@ public:
     * \param i Index position of an element.
     */
    __cuda_callable__
-   const Value&
+   constexpr const Value&
    operator[]( int i ) const;
 
    /**
@@ -131,7 +142,7 @@ public:
     * \param i Index position of an element.
     */
    __cuda_callable__
-   Value&
+   constexpr Value&
    operator[]( int i );
 
    /**
@@ -140,7 +151,7 @@ public:
     * Equivalent to \ref operator[].
     */
    __cuda_callable__
-   const Value&
+   constexpr const Value&
    operator()( int i ) const;
 
    /**
@@ -149,49 +160,49 @@ public:
     * Equivalent to \ref operator[].
     */
    __cuda_callable__
-   Value&
+   constexpr Value&
    operator()( int i );
 
    /**
     * \brief Returns reference to the first coordinate.
     */
    __cuda_callable__
-   Value&
+   constexpr Value&
    x();
 
    /**
     * \brief Returns constant reference to the first coordinate.
     */
    __cuda_callable__
-   const Value&
+   constexpr const Value&
    x() const;
 
    /**
     * \brief Returns reference to the second coordinate for arrays with Size >= 2.
     */
    __cuda_callable__
-   Value&
+   constexpr Value&
    y();
 
    /**
     * \brief Returns constant reference to the second coordinate for arrays with Size >= 2.
     */
    __cuda_callable__
-   const Value&
+   constexpr const Value&
    y() const;
 
    /**
     * \brief Returns reference to the third coordinate for arrays with Size >= 3.
     */
    __cuda_callable__
-   Value&
+   constexpr Value&
    z();
 
    /**
     * \brief Returns constant reference to the third coordinate for arrays with Size >= 3.
     */
    __cuda_callable__
-   const Value&
+   constexpr const Value&
    z() const;
 
    /**
@@ -223,7 +234,7 @@ public:
     */
    template< typename Array >
    __cuda_callable__
-   bool
+   constexpr bool
    operator==( const Array& array ) const;
 
    /**
@@ -233,7 +244,7 @@ public:
     */
    template< typename Array >
    __cuda_callable__
-   bool
+   constexpr bool
    operator!=( const Array& array ) const;
 
    /**

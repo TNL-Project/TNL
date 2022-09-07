@@ -15,10 +15,10 @@ namespace TNL {
 namespace Meshes {
 
 // compatibility wrapper
-template< typename Grid, int EntityDimension, typename Config >
+template< typename Grid, int EntityDimension >
 __cuda_callable__
 typename Grid::PointType
-getEntityCenter( const Grid& grid, const GridEntity< Grid, EntityDimension, Config >& entity )
+getEntityCenter( const Grid& grid, const GridEntity< Grid, EntityDimension >& entity )
 {
    return entity.getCenter();
 }
