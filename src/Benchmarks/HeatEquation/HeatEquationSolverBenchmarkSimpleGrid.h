@@ -15,7 +15,8 @@ template<int Size, typename Index, typename Real>
 class Entity;
 
 template <size_t Value, size_t Power>
-constexpr size_t pow() {
+constexpr size_t pow()
+{
    size_t result = 1;
 
    for (size_t i = 0; i < Power; i++) {
@@ -28,19 +29,22 @@ constexpr size_t pow() {
 constexpr int spaceStepsPowers = 5;
 
 template<int Size, typename Index, typename Real>
-class Grid {
+class Grid
+{
    public:
       Grid() = default;
 
-      Grid( const TNL::Containers::StaticVector<Size, Index>& dim ) :
-      dimensions( dim ){};
+      Grid( const TNL::Containers::StaticVector<Size, Index>& dim )
+      : dimensions( dim )
+      {}
 
       __cuda_callable__ inline
       Entity<Size, Index, Real> getEntity(Index i, Index j) const {
          Entity<Size, Index, Real> entity(*this);
 
-         entity.i = i;
-         entity.j = j;
+         entity.coordinates.x() = i;
+         entity.coordinates.y() = j;
+         entity.index = j * dimensions.x() + i;
 
          return entity;
       }
@@ -55,17 +59,20 @@ class Grid {
 };
 
 template<int Size, typename Index, typename Real>
-class Entity {
+class Entity
+{
    public:
       __cuda_callable__ inline
-      Entity(const Grid<Size, Index, Real>& grid): grid(grid) {};
+      Entity( const Grid<Size, Index, Real>& grid )
+      : grid( grid )
+      {}
 
       const Grid<Size, Index, Real>& grid;
 
-      Index i, j;
       Index index;
-      Index orientation;
-      TNL::Containers::StaticVector<Size, Index> coordinates, normals;
+      //Index orientation;
+      TNL::Containers::StaticVector<Size, Index> coordinates;
+      //TNL::Containers::StaticVector<Size, Index> normals;
 };
 
 template< typename Real = double,
@@ -92,12 +99,12 @@ struct HeatEquationSolverBenchmarkSimpleGrid : public HeatEquationSolverBenchmar
          auto next = [=] __cuda_callable__(int i, int j) mutable {
             auto entity = grid.getEntity(i, j);
 
-            auto index = entity.j * xSize + entity.i;
+            auto index = entity.index;
             auto element = uxView[index];
             auto center = 2 * element;
 
-            auxView[index] =  element + ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
-                                          (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv) * timestep;
+            auxView[index] = element + ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
+                                        (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv) * timestep;
          };
          TNL::Algorithms::ParallelFor2D<Device>::exec( 1, 1, xSize - 1, ySize - 1, next);
          this->ux.swap( this->aux );
