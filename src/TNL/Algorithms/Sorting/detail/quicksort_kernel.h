@@ -19,7 +19,7 @@ namespace Sorting {
 
 #ifdef HAVE_CUDA
 
-template< typename Index = int >
+template< typename Index >
 __device__
 void
 writeNewTask( Index begin,
@@ -33,7 +33,7 @@ writeNewTask( Index begin,
 
 //-----------------------------------------------------------
 
-template< typename Index = int >
+template< typename Index >
 __global__
 void
 cudaCalcBlocksNeeded( Containers::ArrayView< TASK, Devices::Cuda > cuda_tasks,
