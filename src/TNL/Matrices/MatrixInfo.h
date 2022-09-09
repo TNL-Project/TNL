@@ -34,7 +34,13 @@ struct MatrixInfo< DenseMatrixView< Real, Device, Index, Organization > >
    static String
    getDensity()
    {
-      return "dense";
+      return String( "dense" );
+   };
+
+   static String
+   getFormat()
+   {
+      return "Dense";
    };
 };
 

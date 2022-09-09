@@ -19,12 +19,13 @@ namespace Sorting {
 
 #ifdef HAVE_CUDA
 
+template< typename Index >
 __device__
 void
-writeNewTask( int begin,
-              int end,
-              int iteration,
-              int maxElemFor2ndPhase,
+writeNewTask( Index begin,
+              Index end,
+              Index iteration,
+              Index maxElemFor2ndPhase,
               Containers::ArrayView< TASK, Devices::Cuda > newTasks,
               int* newTasksCnt,
               Containers::ArrayView< TASK, Devices::Cuda > secondPhaseTasks,
@@ -32,18 +33,19 @@ writeNewTask( int begin,
 
 //-----------------------------------------------------------
 
+template< typename Index >
 __global__
 void
 cudaCalcBlocksNeeded( Containers::ArrayView< TASK, Devices::Cuda > cuda_tasks,
-                      int elemPerBlock,
-                      Containers::ArrayView< int, Devices::Cuda > blocksNeeded )
+                      Index elemPerBlock,
+                      Containers::ArrayView< Index, Devices::Cuda > blocksNeeded )
 {
-   int i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index i = blockIdx.x * blockDim.x + threadIdx.x;
    if( i >= cuda_tasks.getSize() )
       return;
 
    TASK& task = cuda_tasks[ i ];
-   int size = task.partitionEnd - task.partitionBegin;
+   Index size = task.partitionEnd - task.partitionBegin;
    blocksNeeded[ i ] = size / elemPerBlock + ( size % elemPerBlock != 0 );
 }
 
@@ -171,12 +173,13 @@ cudaWritePivot( Containers::ArrayView< Value, Devices::Cuda > arr,
 
 //-----------------------------------------------------------
 
+template< typename Index >
 __device__
 void
-writeNewTask( int begin,
-              int end,
-              int iteration,
-              int maxElemFor2ndPhase,
+writeNewTask( Index begin,
+              Index end,
+              Index iteration,
+              Index maxElemFor2ndPhase,
               Containers::ArrayView< TASK, Devices::Cuda > newTasks,
               int* newTasksCnt,
               Containers::ArrayView< TASK, Devices::Cuda > secondPhaseTasks,

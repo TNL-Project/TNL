@@ -554,7 +554,7 @@ CSRLightKernel< Index, Device >::reduceSegments( const OffsetsView& offsets,
                                                  const Real& zero ) const
 {
    TNL_ASSERT_GE( this->threadsPerSegment, 0, "" );
-   TNL_ASSERT_LE( this->threadsPerSegment, 33, "" );
+   TNL_ASSERT_LE( this->threadsPerSegment, 128, "" );
    CSRLightKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduce, Keep >::reduce(
       offsets, first, last, fetch, reduce, keep, zero, this->threadsPerSegment );
 }

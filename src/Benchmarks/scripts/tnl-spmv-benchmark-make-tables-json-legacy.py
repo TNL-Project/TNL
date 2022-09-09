@@ -172,9 +172,9 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
          aux_df.iloc[0]['Matrix name']      = row['matrix name']
          aux_df.iloc[0]['rows']             = row['rows']
          aux_df.iloc[0]['columns']          = row['columns']
-         aux_df.iloc[0]['nonzeros per row'] = float(row['nonzeros'])/float(row['rows'])
+         aux_df.iloc[0]['nonzeros per row'] = float(row['nonzeros per row'])
          current_format = row['format']
-         current_device = row['performer']
+         current_device = row['device']
          #print( current_format + " / " + current_device )
          bw = pd.to_numeric(row['bandwidth'], errors='coerce')
          time = pd.to_numeric(row['time'], errors='coerce')
@@ -632,29 +632,25 @@ def cusparse_speedup_comparison( df, formats, head_size=10 ):
    for format in formats:
       if( 'Ellpack' in format and not 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format ):
          current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   draw_profiles( current_formats, profiles, xlabel, ylabel, "ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
 
    current_formats.clear()
    for format in formats:
       if( 'Ellpack' in format and 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format ):
          current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
 
    current_formats.clear()
    for format in formats:
       if( 'Ellpack' in format and not 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format ):
          current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "binary-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   draw_profiles( current_formats, profiles, xlabel, ylabel, "binary-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
 
    current_formats.clear()
    for format in formats:
       if( 'Ellpack' in format and 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format ):
          current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-binary-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-binary-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
 
 
    # Draw CSR formats profiles
@@ -662,28 +658,24 @@ def cusparse_speedup_comparison( df, formats, head_size=10 ):
    for format in formats:
       if( 'CSR' in format and not 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
          current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   draw_profiles( current_formats, profiles, xlabel, ylabel, "csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
    current_formats.clear()
    for format in formats:
       if( 'CSR' in format and 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
          current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
    current_formats.clear()
 
    for format in formats:
       if( 'CSR' in format and not 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
          current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "binary-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   draw_profiles( current_formats, profiles, xlabel, ylabel, "binary-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
    current_formats.clear()
 
    for format in formats:
       if( 'CSR' in format and 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
          current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "-symmetric-binary-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+   draw_profiles( current_formats, profiles, xlabel, ylabel, "-symmetric-binary-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
    current_formats.clear()
 
 ####
@@ -889,7 +881,7 @@ def analyze_light_csr( df, formats ):
    for f in formats:
       if not f in ['CSR Light Best']:
          sort_df.drop( labels=f, axis='columns', level=0, inplace=True )
-   sort_df.to_html( f"LightSpMV-Threads-per-row-best.html" )
+   sort_df.to_html( f"LightSpMV-Threads-per-row.html" )
    size = len(sort_df[('nonzeros per row', '','','')].index)
    t = np.arange( size )
    fig, axs = plt.subplots( 1, 1 )
@@ -905,17 +897,6 @@ def analyze_light_csr( df, formats ):
       "font.sans-serif": ["Helvetica"]})
    plt.savefig( f"LightSpMV-threads-mapping.pdf" )
    plt.close(fig)
-
-   profiles = {}
-   sort_df = df.sort_values(by=[('nonzeros per row','','','')],inplace=False,ascending=True)
-   formats_list = ['CSR< Light > 1', 'CSR< Light > 2', 'CSR< Light > 4', 'CSR< Light > 8', 'CSR< Light > 16', 'CSR< Light > 32']
-   for format in formats_list:
-      sort_df.drop( labels=format, axis='columns', level=0, inplace=True )
-      print( f'{format}')
-      profiles[format] = df[(format,'GPU','bandwidth','')].copy()
-   sort_df.to_html( f"LightSpMV-Threads-per-row.html" )
-   draw_profiles( formats_list, profiles, 'non-zeros per row', 'BW', "nonzeros-bw.pdf", 'lower right', "none" )
-
 
 def write_colormap( file, max_bw, size, x_position, y_position, standalone = False ):
    if standalone:
@@ -1124,26 +1105,21 @@ def parse( file_name ):
    df.to_html( "orig-pandas.html" )
 
 print( "Parsing input file...." )
-#d = parse_legacy('sparse-matrix-benchmark.log')
-input_df = get_benchmark_dataframe('sparse-matrix-benchmark.log')
-input_df.to_html( "sparse-matrix-benchmark-test.html")
+input_df = parse_legacy('sparse-matrix-benchmark.log')
+#input_df = get_benchmark_dataframe('sparse-matrix-benchmark.log')
 
 
 formats = list(set( input_df['format'].values.tolist() )) # list of all formats in the benchmark results
-if 'CSR< Light > Automatic' in formats:
-   formats.remove('CSR< Light > Automatic')
-if 'Binary CSR< Light > Automatic' in formats:
-   formats.remove('Binary CSR< Light > Automatic')
-if 'Symmetric CSR< Light > Automatic' in formats:
-   formats.remove('Symmetric CSR< Light > Automatic')
-if 'Symmetric Binary CSR< Light > Automatic' in formats:
-   formats.remove('Symmetric Binary CSR< Light > Automatic')
+formats.remove('CSR< Light > Automatic')
+formats.remove('Binary CSR< Light > Automatic')
+formats.remove('Symmetric CSR< Light > Automatic')
+formats.remove('Symmetric Binary CSR< Light > Automatic')
 formats.append('TNL Best')
 formats.append('CSR Light Best')
 multicolumns, df_data = get_multiindex( input_df, formats )
 
 print( "Converting data..." )
-result = convert_data_frame( input_df, multicolumns, df_data, 0, 2000 )
+result = convert_data_frame( input_df, multicolumns, df_data, 0, 20000 )
 compute_speedup( result, formats )
 
 result.replace( to_replace=' ',value=np.nan,inplace=True)

@@ -26,7 +26,7 @@ __btflo( unsigned int word )
 }
 
 __device__
-int
+inline int
 closestPow2_ptx( int bitonicLen )
 {
    return 1 << ( __btflo( (unsigned) bitonicLen - 1U ) + 1 );
@@ -34,7 +34,7 @@ closestPow2_ptx( int bitonicLen )
 
 __host__
 __device__
-int
+inline int
 closestPow2( int x )
 {
    if( x == 0 )
