@@ -61,6 +61,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
 
    if( threadIdx.x < CudaBlockSize / WarpSize )
       multivectorShared[ threadIdx.x ] = zero;
+   __syncthreads();
    Real result = zero;
    bool compute( true );
    const Index laneIdx = threadIdx.x & 31;  // & is cheaper than %
@@ -80,6 +81,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
       // Stream data to shared memory
       for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
          streamShared[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx, compute );
+      __syncwarp();
       const Index lastSegmentIdx = firstSegmentIdx + block.getSegmentsInBlock();
 
       for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
