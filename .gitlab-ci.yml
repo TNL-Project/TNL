@@ -413,20 +413,91 @@ pages:
         paths:
             - public
 
-clang-format:
+clang-format src/TNL:
+    stage: lint
+    only:
+        changes:
+            - src/TNL/**/*.{h,hpp,cpp,cu}
+    script:
+        - ./scripts/run-clang-format.py
+                --color always
+                --style file
+                --exclude "src/TNL/3rdparty/*"
+                --recursive
+                src/TNL
+    interruptible: true
+
+clang-format src/Benchmarks:
+    stage: lint
+    only:
+        changes:
+            - src/Benchmarks/**/*.{h,hpp,cpp,cu}
+    script:
+        - ./scripts/run-clang-format.py
+                --color always
+                --style file
+                --recursive
+                src/Benchmarks
+    interruptible: true
+    # TODO: remove to enforce formatting
+    allow_failure: true
+
+clang-format src/Examples:
+    stage: lint
+    only:
+        changes:
+            - src/Examples/**/*.{h,hpp,cpp,cu}
+    script:
+        - ./scripts/run-clang-format.py
+                --color always
+                --style file
+                --recursive
+                src/Examples
+    interruptible: true
+    # TODO: remove to enforce formatting
+    allow_failure: true
+
+clang-format src/Tools:
+    stage: lint
+    only:
+        changes:
+            - src/Tools/**/*.{h,hpp,cpp,cu}
+    script:
+        - ./scripts/run-clang-format.py
+                --color always
+                --style file
+                --recursive
+                src/Tools
+    interruptible: true
+    # TODO: remove to enforce formatting
+    allow_failure: true
+
+clang-format src/UnitTests:
+    stage: lint
+    only:
+        changes:
+            - src/UnitTests/**/*.{h,hpp,cpp,cu}
+    script:
+        - ./scripts/run-clang-format.py
+                --color always
+                --style file
+                --recursive
+                src/UnitTests
+    interruptible: true
+    # TODO: remove to enforce formatting
+    allow_failure: true
+
+clang-format Documentation:
     stage: lint
     only:
         changes:
             - Documentation/**/*.{h,hpp,cpp,cu}
-            - src/**/*.{h,hpp,cpp,cu}
     script:
-        # TODO: replace "src/TNL" with "src"
         - ./scripts/run-clang-format.py
                 --color always
                 --style file
-                --exclude "src/3rdparty/*"
                 --recursive
-                src/TNL Documentation
+                Documentation
     interruptible: true
     # TODO: remove to enforce formatting
     allow_failure: true
