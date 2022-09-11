@@ -121,10 +121,7 @@ public:
     * \param orientation is an index of the grid entity orientation.
     */
    __cuda_callable__
-   GridEntity( const Grid& grid,
-               const CoordinatesType& coordinates,
-               const CoordinatesType& normals,
-               const IndexType orientation );
+   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals, IndexType orientation );
 
    /**
     * \brief Constructor with a grid reference and grid entity index.
@@ -133,7 +130,7 @@ public:
     * \param entityIdx is index of the grid entity.
     */
    __cuda_callable__
-   GridEntity( const Grid& grid, const IndexType& entityIdx );
+   GridEntity( const Grid& grid, IndexType entityIdx );
 
    /**
     * \brief Getter of the grid entity coordinates for constant instances.
@@ -195,7 +192,7 @@ public:
     * \return the centre of the grid entity.
     */
    __cuda_callable__
-   const PointType
+   PointType
    getCenter() const;
 
    /**
@@ -265,8 +262,8 @@ public:
     * \param orientation is a index of the grid entity orientation.
     */
    __cuda_callable__
-   inline void
-   setOrientation( const IndexType orientation );
+   void
+   setOrientation( IndexType orientation );
 
    /**
     * \brief Returns the neighbour grid entity.
@@ -280,7 +277,7 @@ public:
     */
    template< int Dimension, int... Steps, std::enable_if_t< sizeof...( Steps ) == Grid::getMeshDimension(), bool > = true >
    __cuda_callable__
-   inline GridEntity< Grid, Dimension >
+   GridEntity< Grid, Dimension >
    getNeighbourEntity() const;
 
    /**
@@ -296,7 +293,7 @@ public:
              int... Steps,
              std::enable_if_t< sizeof...( Steps ) == Grid::getMeshDimension(), bool > = true >
    __cuda_callable__
-   inline GridEntity< Grid, Dimension >
+   GridEntity< Grid, Dimension >
    getNeighbourEntity() const;
 
    /**
@@ -311,7 +308,7 @@ public:
     */
    template< int Dimension >
    __cuda_callable__
-   inline GridEntity< Grid, Dimension >
+   GridEntity< Grid, Dimension >
    getNeighbourEntity( const CoordinatesType& offset ) const;
 
    /**
@@ -324,7 +321,7 @@ public:
     */
    template< int Dimension, int Orientation >
    __cuda_callable__
-   inline GridEntity< Grid, Dimension >
+   GridEntity< Grid, Dimension >
    getNeighbourEntity( const CoordinatesType& offset ) const;
 
    /**

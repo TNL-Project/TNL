@@ -61,8 +61,7 @@ GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, const IndexType& entityIdx )
-: grid( grid ), index( entityIdx )
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, IndexType entityIdx ) : grid( grid ), index( entityIdx )
 {
    this->coordinates = grid.template getEntityCoordinates< EntityDimension >( entityIdx, this->normals, this->orientation );
 }
@@ -133,7 +132,7 @@ GridEntity< Grid, EntityDimension >::isBoundary() const
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-const typename GridEntity< Grid, EntityDimension >::PointType
+typename GridEntity< Grid, EntityDimension >::PointType
 GridEntity< Grid, EntityDimension >::getCenter() const
 {
    return GridEntityCenterGetter< GridEntity >::getEntityCenter( *this );
@@ -169,7 +168,6 @@ void
 GridEntity< Grid, EntityDimension >::setNormals( const CoordinatesType& normals )
 {
    this->normals = normals;
-   std::cout << "Setting normals to " << this->normals << std::endl;
 }
 
 template< class Grid, int EntityDimension >
@@ -177,8 +175,7 @@ __cuda_callable__
 auto
 GridEntity< Grid, EntityDimension >::getBasis() const -> CoordinatesType
 {
-   CoordinatesType aux = 1.0;
-   return aux - this->normals;
+   return 1 - this->normals;
 }
 
 template< class Grid, int EntityDimension >
