@@ -152,13 +152,6 @@ if( DEFINED ENV{GITLAB_CI} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TNL_COLOR_DIAGNOSTICS_FLAG}" )
 endif()
 
-# skip building host-only targets in CUDA-enabled CI jobs
-if( DEFINED ENV{GITLAB_CI} AND TNL_BUILD_CUDA )
-   set( TNL_BUILD_CPP_TARGETS FALSE )
-else()
-   set( TNL_BUILD_CPP_TARGETS TRUE )
-endif()
-
 # make cache variable so it can be used in downstream projects
 set( TNL_INCLUDE_DIRS
      "${CMAKE_CURRENT_LIST_DIR}/src"
@@ -188,7 +181,7 @@ target_compile_options( TNL INTERFACE
 
 # add the filesystem library to the interface if are not running on macOS
 # https://en.cppreference.com/w/cpp/filesystem
-if ( NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")  
+if ( NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    target_link_libraries( TNL INTERFACE stdc++fs )
 endif()
 
@@ -310,6 +303,13 @@ if( TNL_USE_CUDA )
    endif()
    set( CMAKE_EXECUTABLE_SUFFIX "${executable_suffix_backup}" )
    unset( executable_suffix_backup )
+endif()
+
+# skip building host-only targets in CUDA-enabled CI jobs
+if( DEFINED ENV{GITLAB_CI} AND TNL_BUILD_CUDA )
+   set( TNL_BUILD_CPP_TARGETS FALSE )
+else()
+   set( TNL_BUILD_CPP_TARGETS TRUE )
 endif()
 
 
