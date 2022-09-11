@@ -109,7 +109,7 @@ inline unsigned long long int
 Timer::readCPUCycles()
 {
 #ifdef __APPLE__
-   return 0; // TODO: fix https://lemire.me/blog/2021/03/24/counting-cycles-and-instructions-on-the-apple-m1-processor/
+   return 0;  // TODO: fix https://lemire.me/blog/2021/03/24/counting-cycles-and-instructions-on-the-apple-m1-processor/
 #else
    return rdtsc();
 #endif

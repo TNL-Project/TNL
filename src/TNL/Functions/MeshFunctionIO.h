@@ -9,9 +9,9 @@
 #include <type_traits>
 
 #ifdef __APPLE__
-#include <filesystem>
+   #include <filesystem>
 #else
-#include <experimental/filesystem>
+   #include <experimental/filesystem>
 #endif
 
 #include <TNL/Meshes/Traits.h>
@@ -146,9 +146,9 @@ writeMeshFunction( const MeshFunction& function,
    }
 
 #ifdef __APPLE__
-      namespace fs = std::__fs::filesystem;
+   namespace fs = std::__fs::filesystem;
 #else
-      namespace fs = std::experimental::filesystem;
+   namespace fs = std::experimental::filesystem;
 #endif
 
    std::string format = fileFormat;
@@ -192,9 +192,9 @@ writeMeshFunction( const MeshFunction& function,
    }
 
 #ifdef __APPLE__
-      namespace fs = std::__fs::filesystem;
+   namespace fs = std::__fs::filesystem;
 #else
-      namespace fs = std::experimental::filesystem;
+   namespace fs = std::experimental::filesystem;
 #endif
 
    std::string format = fileFormat;
@@ -241,9 +241,9 @@ writeDistributedMeshFunction(
    const std::string& fileFormat = "auto" )
 {
 #ifdef __APPLE__
-      namespace fs = std::__fs::filesystem;
+   namespace fs = std::__fs::filesystem;
 #else
-      namespace fs = std::experimental::filesystem;
+   namespace fs = std::experimental::filesystem;
 #endif
 
    std::string format = fileFormat;

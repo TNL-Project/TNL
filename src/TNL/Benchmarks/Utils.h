@@ -14,11 +14,10 @@
 #include <fstream>
 
 #ifdef __APPLE__
-#include <filesystem>
+   #include <filesystem>
 #else
-#include <experimental/filesystem>
+   #include <experimental/filesystem>
 #endif
-
 
 #include <TNL/Timer.h>
 #include <TNL/Devices/Cuda.h>
