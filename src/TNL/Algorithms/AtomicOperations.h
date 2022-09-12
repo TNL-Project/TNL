@@ -29,7 +29,9 @@ struct AtomicOperations< Devices::Host >
    add( Value& v, const Value& a )
    {
       Value old;
+#ifdef HAVE_OPENMP
       #pragma omp atomic capture
+#endif
       {
          old = v;
          v += a;

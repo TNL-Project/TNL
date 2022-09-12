@@ -934,7 +934,7 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                value = (RealType) 1.0;
             else
                value = this->values.getElement( globalIdx );
-            if( value ) {
+            if( value != (RealType) 0 ) {
                std::stringstream str_;
                str_ << std::setw( 4 ) << std::right << column << ":" << std::setw( 4 ) << std::left << value;
                str << std::setw( 10 ) << str_.str();
