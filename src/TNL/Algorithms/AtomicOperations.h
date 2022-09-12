@@ -28,17 +28,15 @@ struct AtomicOperations< Devices::Host >
    static Value
    add( Value& v, const Value& a )
    {
-#ifdef HAVE_OPENMP
       Value old;
+#ifdef HAVE_OPENMP
       #pragma omp atomic capture
+#endif
       {
          old = v;
          v += a;
       }
       return old;
-#else
-   TNL_ASSERT_TRUE( false, "The program was build without OpenMP." );
-#endif
    }
 };
 
