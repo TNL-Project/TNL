@@ -72,7 +72,7 @@ if( TNL_BUILD_MPI )
 
          target_compile_definitions( ${target} PUBLIC "-DHAVE_HYPRE" )
          target_compile_options( ${target} PUBLIC ${CXX_TESTS_FLAGS} )
-         target_include_directories( ${target} PUBLIC ${HYPRE_INCLUDE_DIRS} )
+         target_include_directories( ${target} SYSTEM PUBLIC ${HYPRE_INCLUDE_DIRS} )
          target_link_libraries( ${target} PUBLIC ${TESTS_LIBRARIES} ${HYPRE_LIBRARIES} )
          target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
 

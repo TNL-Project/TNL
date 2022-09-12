@@ -6,13 +6,12 @@
 
 #pragma once
 
-#if defined(__APPLE__) && defined(__MACH__)
-#include <fenv.h>
+#if defined( __APPLE__ ) && defined( __MACH__ )
+   #include <fenv.h>
 #else
-#include <cfenv>
+   #include <cfenv>
 #endif
 #include <csignal>
-
 
 #include <TNL/Debugging/StackBacktrace.h>
 
@@ -46,20 +45,20 @@ printStackBacktraceAndAbort( int sig = 0 )
    abort();
 }
 
-#if defined(__APPLE__) && defined(__MACH__)
+#if defined( __APPLE__ ) && defined( __MACH__ )
 // https://stackoverflow.com/questions/69059981/how-to-trap-floating-point-exceptions-on-m1-macs
 
 static void
-fpe_signal_handler( int sig, siginfo_t *sip, void *scp )
+fpe_signal_handler( int sig, siginfo_t* sip, void* scp )
 {
-    int fe_code = sip->si_code;
+   int fe_code = sip->si_code;
 
-    printf("In signal handler : ");
+   printf( "In signal handler : " );
 
-    if (fe_code == ILL_ILLTRP)
-        printf("Illegal trap detected\n");
-    else
-        printf("Code detected : %d\n",fe_code);
+   if( fe_code == ILL_ILLTRP )
+      printf( "Illegal trap detected\n" );
+   else
+      printf( "Code detected : %d\n", fe_code );
 
    printStackBacktraceAndAbort( sig );
 }
@@ -81,18 +80,18 @@ fpe_signal_handler( int sig, siginfo_t *sip, void *scp )
 static void
 trackFloatingPointExceptions()
 {
-#if defined(__APPLE__) && defined(__MACH__)
+#if defined( __APPLE__ ) && defined( __MACH__ )
    fenv_t env;
-   fegetenv(&env);
+   fegetenv( &env );
 
    env.__fpcr = env.__fpcr | __fpcr_trap_invalid;
-   fesetenv(&env);
+   fesetenv( &env );
 
    struct sigaction act;
    act.sa_sigaction = fpe_signal_handler;
-   sigemptyset (&act.sa_mask);
+   sigemptyset( &act.sa_mask );
    act.sa_flags = SA_SIGINFO;
-   sigaction(SIGILL, &act, NULL);
+   sigaction( SIGILL, &act, NULL );
 #else
    signal( SIGSEGV, printStackBacktraceAndAbort );
    signal( SIGFPE, printStackBacktraceAndAbort );

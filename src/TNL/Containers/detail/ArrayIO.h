@@ -238,7 +238,7 @@ struct ArrayIO< Value, Index, Allocator, false >
          loadSubrange< std::int64_t >( file, elementsInFile, offset, data, size );
       else if( typeInFile == getType< std::uint64_t >() )
          loadSubrange< std::uint64_t >( file, elementsInFile, offset, data, size );
-      else if( typeInFile == getType< long >() )                            // this is for MacOS on ARM
+      else if( typeInFile == getType< long >() )  // this is for MacOS on ARM
          loadSubrange< long >( file, elementsInFile, offset, data, size );
       else if( typeInFile == getType< float >() )
          loadSubrange< float >( file, elementsInFile, offset, data, size );

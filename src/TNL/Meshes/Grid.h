@@ -150,7 +150,7 @@ public:
     * \param[in] entityDimension is dimension of grid entities to be counted.
     */
    static constexpr Index
-   getEntityOrientationsCount( const Index entityDimension );
+   getEntityOrientationsCount( IndexType entityDimension );
 
    /**
     * \brief Set the dimensions (or resolution) of the grid.
@@ -192,7 +192,7 @@ public:
     */
    __cuda_callable__
    Index
-   getEntitiesCount( const Index dimension ) const;
+   getEntitiesCount( IndexType dimension ) const;
 
    /**
     * \brief Returns number of entities of specific dimension given as a template parameter.
@@ -252,7 +252,7 @@ public:
     */
    __cuda_callable__
    Index
-   getOrientedEntitiesCount( const Index dimension, const Index orientation ) const;
+   getOrientedEntitiesCount( IndexType dimension, IndexType orientation ) const;
 
    /**
     * \brief Returns number of entities of specific dimension and orientation given as template parameters.
@@ -500,7 +500,7 @@ public:
    template< typename EntityType >
    __cuda_callable__
    EntityType
-   getEntity( const IndexType& entityIdx ) const;
+   getEntity( IndexType entityIdx ) const;
 
    /**
     * \brief Grid entity getter based on entity type and entity coordinates.
@@ -530,7 +530,7 @@ public:
    template< int EntityDimension >
    __cuda_callable__
    EntityType< EntityDimension >
-   getEntity( const IndexType& entityIdx ) const;
+   getEntity( IndexType entityIdx ) const;
 
    /**
     * \brief Grid entity getter based on entity dimension and entity coordinates.
