@@ -1,6 +1,6 @@
 # Documentation: https://clang.llvm.org/extra/clang-tidy/
 ---
-HeaderFilterRegex: '.*'
+HeaderFilterRegex: '^(?!.*3rdparty).*$'
 AnalyzeTemporaryDtors: false
 FormatStyle:      file
 User:             user
