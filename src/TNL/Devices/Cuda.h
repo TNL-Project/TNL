@@ -9,6 +9,7 @@
 #include <TNL/String.h>
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
+#include <TNL/Cuda/KernelLaunch.h>
 
 namespace TNL {
 namespace Devices {
@@ -16,6 +17,9 @@ namespace Devices {
 class Cuda
 {
 public:
+   //! \brief Alias to the CUDA kernel launch configuration structure.
+   using LaunchConfiguration = TNL::Cuda::LaunchConfiguration;
+
    static inline void
    configSetup( Config::ConfigDescription& config, const String& prefix = "" )
    {
