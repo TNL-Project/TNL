@@ -710,7 +710,6 @@ protected:
          cudaFuncSetCacheConfig( CudaReductionKernel< Reduction_maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
                                  cudaFuncCachePreferShared );
          Cuda::launchKernelSync( CudaReductionKernel< Reduction_maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                 0,
                                  launch_config,
                                  dataFetcher,
                                  reduction,
@@ -826,7 +825,6 @@ protected:
             cudaFuncCachePreferShared );
          Cuda::launchKernelSync(
             CudaReductionWithArgumentKernel< Reduction_maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-            0,
             launch_config,
             dataFetcher,
             reduction,

@@ -371,14 +371,14 @@ struct ParallelFor< Devices::Cuda, Mode >
 
       if( (std::size_t) launch_config.blockSize.x * launch_config.gridSize.x >= (std::size_t) end - start ) {
          constexpr auto kernel = ParallelForKernel< false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, start, end, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, start, end, f, args... );
       }
       else {
          // decrease the grid size and align to the number of multiprocessors
          const int desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
          launch_config.gridSize.x = TNL::min( desGridSize, Cuda::getNumberOfBlocks( end - start, launch_config.blockSize.x ) );
          constexpr auto kernel = ParallelForKernel< true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, start, end, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, start, end, f, args... );
       }
    }
 };
@@ -422,19 +422,19 @@ struct ParallelFor2D< Devices::Cuda, Mode >
 
       if( gridCount.x == 1 && gridCount.y == 1 ) {
          constexpr auto kernel = ParallelFor2DKernel< false, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, endX, endY, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, endX, endY, f, args... );
       }
       else if( gridCount.x == 1 && gridCount.y > 1 ) {
          constexpr auto kernel = ParallelFor2DKernel< false, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, endX, endY, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, endX, endY, f, args... );
       }
       else if( gridCount.x > 1 && gridCount.y == 1 ) {
          constexpr auto kernel = ParallelFor2DKernel< true, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, endX, endY, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, endX, endY, f, args... );
       }
       else {
          constexpr auto kernel = ParallelFor2DKernel< true, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, endX, endY, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, endX, endY, f, args... );
       }
    }
 };
@@ -506,35 +506,35 @@ struct ParallelFor3D< Devices::Cuda, Mode >
 
       if( gridCount.x == 1 && gridCount.y == 1 && gridCount.z == 1 ) {
          constexpr auto kernel = ParallelFor3DKernel< false, false, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
       }
       else if( gridCount.x == 1 && gridCount.y == 1 && gridCount.z > 1 ) {
          constexpr auto kernel = ParallelFor3DKernel< false, false, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
       }
       else if( gridCount.x == 1 && gridCount.y > 1 && gridCount.z == 1 ) {
          constexpr auto kernel = ParallelFor3DKernel< false, true, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
       }
       else if( gridCount.x > 1 && gridCount.y == 1 && gridCount.z == 1 ) {
          constexpr auto kernel = ParallelFor3DKernel< true, false, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
       }
       else if( gridCount.x == 1 && gridCount.y > 1 && gridCount.z > 1 ) {
          constexpr auto kernel = ParallelFor3DKernel< false, true, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
       }
       else if( gridCount.x > 1 && gridCount.y > 1 && gridCount.z == 1 ) {
          constexpr auto kernel = ParallelFor3DKernel< true, true, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
       }
       else if( gridCount.x > 1 && gridCount.y == 1 && gridCount.z > 1 ) {
          constexpr auto kernel = ParallelFor3DKernel< true, false, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
       }
       else {
          constexpr auto kernel = ParallelFor3DKernel< true, true, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel< synchronous >( kernel, 0, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         Cuda::launchKernel< synchronous >( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
       }
    }
 };
