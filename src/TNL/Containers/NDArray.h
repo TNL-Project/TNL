@@ -352,7 +352,7 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forInternal( Func f ) const
+   forInterior( Func f ) const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
@@ -373,7 +373,7 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func, typename Begins, typename Ends >
    void
-   forInternal( Func f, const Begins& begins, const Ends& ends ) const
+   forInterior( Func f, const Begins& begins, const Ends& ends ) const
    {
       // TODO: assert "begins <= sizes", "ends <= sizes"
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;

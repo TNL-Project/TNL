@@ -385,7 +385,7 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forInternal( Func f ) const
+   forInterior( Func f ) const
    {
       // add static sizes
       using Begins = detail::LocalBeginsHolder< SizesHolderType, 1 >;
@@ -415,7 +415,7 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func, typename Begins, typename Ends >
    void
-   forInternal( Func f, const Begins& begins, const Ends& ends ) const
+   forInterior( Func f, const Begins& begins, const Ends& ends ) const
    {
       // TODO: assert "localBegins <= begins <= localEnds", "localBegins <= ends <= localEnds"
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
@@ -481,7 +481,7 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forLocalInternal( Func f ) const
+   forLocalInterior( Func f ) const
    {
       // add overlaps to dynamic sizes
       LocalBeginsType begins;
@@ -522,7 +522,7 @@ public:
 
    /**
     * \brief Evaluates the function `f` in parallel for all elements in the
-    * overlapping region.
+    * ghost region.
     *
     * Each MPI rank iterates over elements which are in the overlapping region
     * (i.e., owned by a different MPI rank). If all overlaps are 0, it has no
@@ -532,7 +532,7 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forOverlaps( Func f ) const
+   forGhosts( Func f ) const
    {
       // subtract overlaps from dynamic sizes
       LocalBeginsType begins;

@@ -269,7 +269,7 @@ operator<<( std::ostream& str, const SizesHolder< Index, sizes... >& holder )
 
 namespace detail {
 
-// helper for the methods forAll, forInternal, etc.
+// helper for the methods forAll, forInterior, etc.
 template< typename Index, std::size_t dimension, Index constSize >
 class ConstStaticSizesHolder
 {
@@ -315,7 +315,7 @@ public:
    }
 };
 
-// helper for the forInternal method
+// helper for the forInterior method
 template< typename SizesHolder, std::size_t ConstValue >
 struct SubtractedSizesHolder
 {};
@@ -329,7 +329,7 @@ struct SubtractedSizesHolder< SizesHolder< Index, sizes... >, ConstValue >
 
 // wrapper for localBegins in DistributedNDArray (static sizes cannot be distributed, begins are always 0)
 template< typename SizesHolder,
-          // overridable value is useful in the forInternal method
+          // overridable value is useful in the forInterior method
           std::size_t ConstValue = 0 >
 struct LocalBeginsHolder : public SizesHolder
 {

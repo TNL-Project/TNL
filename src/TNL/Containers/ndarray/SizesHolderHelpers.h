@@ -207,7 +207,7 @@ sizesWeakCompare( const SizesHolder1& sizes1, const SizesHolder2& sizes2 )
    return result;
 }
 
-// helper for the forInternal and forBoundary methods (NDArray and DistributedNDArray)
+// helper for the forInterior and forBoundary methods (NDArray and DistributedNDArray)
 template< std::size_t ConstValue,
           typename TargetHolder,
           typename SourceHolder,
@@ -235,7 +235,7 @@ struct SetSizesSubtractHelper< ConstValue, TargetHolder, SourceHolder, Overlaps,
    }
 };
 
-// helper for the forInternal and forBoundary methods (DistributedNDArray)
+// helper for the forInterior and forBoundary methods (DistributedNDArray)
 template< std::size_t ConstValue,
           typename TargetHolder,
           typename SourceHolder,
@@ -263,7 +263,7 @@ struct SetSizesAddHelper< ConstValue, TargetHolder, SourceHolder, Overlaps, 0 >
    }
 };
 
-// helper for the forLocalInternal, forLocalBoundary and forOverlaps methods (DistributedNDArray)
+// helper for the forLocalInterior, forLocalBoundary and forGhosts methods (DistributedNDArray)
 template< typename TargetHolder,
           typename SourceHolder,
           typename Overlaps = make_constant_index_sequence< TargetHolder::getDimension(), 0 >,
@@ -290,7 +290,7 @@ struct SetSizesSubtractOverlapsHelper< TargetHolder, SourceHolder, Overlaps, 0 >
    }
 };
 
-// helper for the forLocalInternal, forLocalBoundary and forOverlaps methods (DistributedNDArray)
+// helper for the forLocalInterior, forLocalBoundary and forGhosts methods (DistributedNDArray)
 template< typename TargetHolder,
           typename SourceHolder,
           typename Overlaps = make_constant_index_sequence< TargetHolder::getDimension(), 0 >,
@@ -317,7 +317,7 @@ struct SetSizesAddOverlapsHelper< TargetHolder, SourceHolder, Overlaps, 0 >
    }
 };
 
-// helper for the forInternal method (DistributedNDArray)
+// helper for the forInterior method (DistributedNDArray)
 template< typename TargetHolder, typename SourceHolder, std::size_t level = TargetHolder::getDimension() - 1 >
 struct SetSizesMaxHelper
 {
@@ -341,7 +341,7 @@ struct SetSizesMaxHelper< TargetHolder, SourceHolder, 0 >
    }
 };
 
-// helper for the forInternal method (DistributedNDArray)
+// helper for the forInterior method (DistributedNDArray)
 template< typename TargetHolder, typename SourceHolder, std::size_t level = TargetHolder::getDimension() - 1 >
 struct SetSizesMinHelper
 {
