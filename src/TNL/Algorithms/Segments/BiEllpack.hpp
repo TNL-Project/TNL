@@ -91,7 +91,9 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::performRowBu
          if( this->getSize() - 1 < end )
             end = this->getSize() - 1;
          bool sorted = false;
-         IndexType permIndex1, permIndex2, offset = 0;
+         IndexType permIndex1 = 0;
+         IndexType permIndex2 = 0;
+         IndexType offset = 0;
          while( ! sorted ) {
             sorted = true;
             for( IndexType j = begin + offset; j < end - offset; j++ ) {
@@ -183,7 +185,8 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifyRowPer
       if( this->getSize() < end )
          end = this->getSize();
       for( IndexType i = begin; i < end - 1; i++ ) {
-         IndexType permIndex1, permIndex2;
+         IndexType permIndex1 = 0;
+         IndexType permIndex2 = 0;
          bool first = false;
          bool second = false;
          for( IndexType j = begin; j < end; j++ ) {
