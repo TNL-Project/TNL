@@ -3,6 +3,7 @@ ADD_SUBDIRECTORY( ndarray )
 set( CPP_TESTS
          ArrayTest
          ArrayViewTest
+         BitArrayTest
          StaticArrayTest
          StaticVectorTest
          StaticVectorOperationsTest

@@ -3,6 +3,7 @@ set( COMMON_EXAMPLES
          ArrayExample_forElements
          ArrayViewExample
          ArrayViewExample_forElements
+         BitArrayExample_constructorWithArray
          VectorExample
 )
 
