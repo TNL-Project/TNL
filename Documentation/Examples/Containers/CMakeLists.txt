@@ -4,6 +4,7 @@ set(COMMON_EXAMPLES
     ArrayViewExample
     ArrayViewExample_forElements
     VectorExample
+    BitArrayExample_constructorWithArray
 )
 
 set(MPI_COMMON_EXAMPLES DistributedArrayExample DistributedVectorExample DistributedNDArrayExample)

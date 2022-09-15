@@ -20,6 +20,7 @@ set(CPP_TESTS
     BlockTest
     BlockPartitioningTest
     LinearCombinationTest
+    BitArrayTest
 )
 set(CUDA_TESTS
     MemoryOperationsTestCuda
