@@ -424,9 +424,9 @@ public:
     * The function `f` is called as `f(indices...)`, where `indices...` are
     * substituted by the actual indices of all array view elements.
     */
-   template< typename Device2 = DeviceType, typename Func, typename Begins, typename Ends >
+   template< typename Device2 = DeviceType, typename Begins, typename Ends, typename Func >
    void
-   forInterior( Func f, const Begins& begins, const Ends& ends ) const
+   forInterior( const Begins& begins, const Ends& ends, Func f ) const
    {
       // TODO: assert "begins <= getSizes()", "ends <= getSizes()"
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
@@ -473,9 +473,9 @@ public:
     * The function `f` is called as `f(indices...)`, where `indices...` are
     * substituted by the actual indices of all array view elements.
     */
-   template< typename Device2 = DeviceType, typename Func, typename SkipBegins, typename SkipEnds >
+   template< typename Device2 = DeviceType, typename SkipBegins, typename SkipEnds, typename Func >
    void
-   forBoundary( Func f, const SkipBegins& skipBegins, const SkipEnds& skipEnds ) const
+   forBoundary( const SkipBegins& skipBegins, const SkipEnds& skipEnds, Func f ) const
    {
       // TODO: assert "skipBegins <= getSizes()", "skipEnds <= getSizes()"
       using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;

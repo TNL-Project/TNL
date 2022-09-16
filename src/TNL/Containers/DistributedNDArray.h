@@ -413,9 +413,9 @@ public:
     *
     * See \ref NDArrayView::forAll for the requirements on the function `f`.
     */
-   template< typename Device2 = DeviceType, typename Func, typename Begins, typename Ends >
+   template< typename Device2 = DeviceType, typename Begins, typename Ends, typename Func >
    void
-   forInterior( Func f, const Begins& begins, const Ends& ends ) const
+   forInterior( const Begins& begins, const Ends& ends, Func f ) const
    {
       // TODO: assert "localBegins <= begins <= localEnds", "localBegins <= ends <= localEnds"
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
@@ -461,9 +461,9 @@ public:
     *
     * See \ref NDArrayView::forAll for the requirements on the function `f`.
     */
-   template< typename Device2 = DeviceType, typename Func, typename SkipBegins, typename SkipEnds >
+   template< typename Device2 = DeviceType, typename SkipBegins, typename SkipEnds, typename Func >
    void
-   forBoundary( Func f, const SkipBegins& skipBegins, const SkipEnds& skipEnds ) const
+   forBoundary( const SkipBegins& skipBegins, const SkipEnds& skipEnds, Func f ) const
    {
       // TODO: assert "localBegins <= skipBegins <= localEnds", "localBegins <= skipEnds <= localEnds"
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
