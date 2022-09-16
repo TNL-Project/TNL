@@ -27,4 +27,10 @@ struct dim3
 
 using cudaStream_t = int;
 
+enum
+{
+   cudaStreamDefault,
+   cudaStreamNonBlocking,
+};
+
 #endif
