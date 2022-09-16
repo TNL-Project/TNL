@@ -149,7 +149,12 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const SkipBegins& skipBegins, const SkipEnds& skipEnds, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const SkipBegins& skipBegins,
+               const SkipEnds& skipEnds,
+               const Ends& ends,
+               const typename Device::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -174,12 +179,17 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
       const auto end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
       const auto end2 = ends.template getSize< get< 2 >( Permutation{} ) >();
 
-      Algorithms::ParallelFor3D< Device >::exec( begin2, begin1, begin0, skipBegin2, end1, end0, kernel, f );
-      Algorithms::ParallelFor3D< Device >::exec( skipEnd2, begin1, begin0, end2, end1, end0, kernel, f );
-      Algorithms::ParallelFor3D< Device >::exec( skipBegin2, begin1, begin0, skipEnd2, skipBegin1, end0, kernel, f );
-      Algorithms::ParallelFor3D< Device >::exec( skipBegin2, skipEnd1, begin0, skipEnd2, end1, end0, kernel, f );
-      Algorithms::ParallelFor3D< Device >::exec( skipBegin2, skipBegin1, begin0, skipEnd2, skipEnd1, skipBegin0, kernel, f );
-      Algorithms::ParallelFor3D< Device >::exec( skipBegin2, skipBegin1, skipEnd0, skipEnd2, skipEnd1, end0, kernel, f );
+      Algorithms::ParallelFor3D< Device >::exec(
+         begin2, begin1, begin0, skipBegin2, end1, end0, launch_configuration, kernel, f );
+      Algorithms::ParallelFor3D< Device >::exec( skipEnd2, begin1, begin0, end2, end1, end0, launch_configuration, kernel, f );
+      Algorithms::ParallelFor3D< Device >::exec(
+         skipBegin2, begin1, begin0, skipEnd2, skipBegin1, end0, launch_configuration, kernel, f );
+      Algorithms::ParallelFor3D< Device >::exec(
+         skipBegin2, skipEnd1, begin0, skipEnd2, end1, end0, launch_configuration, kernel, f );
+      Algorithms::ParallelFor3D< Device >::exec(
+         skipBegin2, skipBegin1, begin0, skipEnd2, skipEnd1, skipBegin0, launch_configuration, kernel, f );
+      Algorithms::ParallelFor3D< Device >::exec(
+         skipBegin2, skipBegin1, skipEnd0, skipEnd2, skipEnd1, end0, launch_configuration, kernel, f );
    }
 
    template< typename Device2, typename dummy = void >
@@ -212,7 +222,12 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 2 > >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const SkipBegins& skipBegins, const SkipEnds& skipEnds, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const SkipBegins& skipBegins,
+               const SkipEnds& skipEnds,
+               const Ends& ends,
+               const typename Device::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -233,10 +248,10 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 2 > >
       const auto end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
       const auto end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
 
-      Algorithms::ParallelFor2D< Device >::exec( begin1, begin0, skipBegin1, end0, kernel, f );
-      Algorithms::ParallelFor2D< Device >::exec( skipEnd1, begin0, end1, end0, kernel, f );
-      Algorithms::ParallelFor2D< Device >::exec( skipBegin1, begin0, skipEnd1, skipBegin0, kernel, f );
-      Algorithms::ParallelFor2D< Device >::exec( skipBegin1, skipEnd0, skipEnd1, end0, kernel, f );
+      Algorithms::ParallelFor2D< Device >::exec( begin1, begin0, skipBegin1, end0, launch_configuration, kernel, f );
+      Algorithms::ParallelFor2D< Device >::exec( skipEnd1, begin0, end1, end0, launch_configuration, kernel, f );
+      Algorithms::ParallelFor2D< Device >::exec( skipBegin1, begin0, skipEnd1, skipBegin0, launch_configuration, kernel, f );
+      Algorithms::ParallelFor2D< Device >::exec( skipBegin1, skipEnd0, skipEnd1, end0, launch_configuration, kernel, f );
    }
 
    template< typename Device2, typename dummy = void >
@@ -269,7 +284,12 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 1 > >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const SkipBegins& skipBegins, const SkipEnds& skipEnds, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const SkipBegins& skipBegins,
+               const SkipEnds& skipEnds,
+               const Ends& ends,
+               const typename Device::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -278,8 +298,8 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 1 > >
       const auto skipEnd = skipEnds.template getSize< get< 0 >( Permutation{} ) >();
       const auto end = ends.template getSize< get< 0 >( Permutation{} ) >();
 
-      Algorithms::ParallelFor< Device >::exec( begin, skipBegin, f );
-      Algorithms::ParallelFor< Device >::exec( skipEnd, end, f );
+      Algorithms::ParallelFor< Device >::exec( begin, skipBegin, launch_configuration, f );
+      Algorithms::ParallelFor< Device >::exec( skipEnd, end, launch_configuration, f );
    }
 };
 
@@ -289,7 +309,12 @@ struct BoundaryExecutorDispatcher
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const SkipBegins& skipBegins, const SkipEnds& skipEnds, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const SkipBegins& skipBegins,
+               const SkipEnds& skipEnds,
+               const Ends& ends,
+               const typename Device::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       SequentialBoundaryExecutor< Permutation >()( begins, skipBegins, skipEnds, ends, f );
    }
@@ -300,10 +325,16 @@ struct BoundaryExecutorDispatcher< Permutation, Devices::Host >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const SkipBegins& skipBegins, const SkipEnds& skipEnds, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const SkipBegins& skipBegins,
+               const SkipEnds& skipEnds,
+               const Ends& ends,
+               const Devices::Host::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       if( Devices::Host::isOMPEnabled() && Devices::Host::getMaxThreadsCount() > 1 )
-         ParallelBoundaryExecutor< Permutation, Devices::Host >()( begins, skipBegins, skipEnds, ends, f );
+         ParallelBoundaryExecutor< Permutation, Devices::Host >()(
+            begins, skipBegins, skipEnds, ends, launch_configuration, f );
       else
          SequentialBoundaryExecutor< Permutation >()( begins, skipBegins, skipEnds, ends, f );
    }
@@ -314,9 +345,14 @@ struct BoundaryExecutorDispatcher< Permutation, Devices::Cuda >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const SkipBegins& skipBegins, const SkipEnds& skipEnds, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const SkipBegins& skipBegins,
+               const SkipEnds& skipEnds,
+               const Ends& ends,
+               const Devices::Cuda::LaunchConfiguration& launch_configuration,
+               Func f )
    {
-      ParallelBoundaryExecutor< Permutation, Devices::Cuda >()( begins, skipBegins, skipEnds, ends, f );
+      ParallelBoundaryExecutor< Permutation, Devices::Cuda >()( begins, skipBegins, skipEnds, ends, launch_configuration, f );
    }
 };
 

@@ -98,7 +98,10 @@ struct ParallelExecutorDeviceDispatch
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const Ends& ends,
+               const typename Device::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -116,7 +119,7 @@ struct ParallelExecutorDeviceDispatch
       const Index end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
       const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
       const Index end2 = ends.template getSize< get< 2 >( Permutation{} ) >();
-      Algorithms::ParallelFor3D< Device >::exec( begin2, begin1, begin0, end2, end1, end0, kernel );
+      Algorithms::ParallelFor3D< Device >::exec( begin2, begin1, begin0, end2, end1, end0, launch_configuration, kernel );
    }
 };
 
@@ -125,7 +128,7 @@ struct ParallelExecutorDeviceDispatch< Permutation, Devices::Cuda >
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const Ends& ends, Func f )
+   operator()( const Begins& begins, const Ends& ends, const Devices::Cuda::LaunchConfiguration& launch_configuration, Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -143,7 +146,8 @@ struct ParallelExecutorDeviceDispatch< Permutation, Devices::Cuda >
       const Index end0 = ends.template getSize< get< Ends::getDimension() - 3 >( Permutation{} ) >();
       const Index end1 = ends.template getSize< get< Ends::getDimension() - 2 >( Permutation{} ) >();
       const Index end2 = ends.template getSize< get< Ends::getDimension() - 1 >( Permutation{} ) >();
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec( begin2, begin1, begin0, end2, end1, end0, kernel );
+      Algorithms::ParallelFor3D< Devices::Cuda >::exec(
+         begin2, begin1, begin0, end2, end1, end0, launch_configuration, kernel );
    }
 };
 
@@ -152,10 +156,13 @@ struct ParallelExecutor
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const Ends& ends,
+               const typename Device::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       ParallelExecutorDeviceDispatch< Permutation, Device > dispatch;
-      dispatch( begins, ends, f );
+      dispatch( begins, ends, launch_configuration, f );
    }
 };
 
@@ -164,7 +171,10 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 3 > >
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const Ends& ends,
+               const typename Device::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -183,7 +193,7 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 3 > >
       const Index end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
       const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
       const Index end2 = ends.template getSize< get< 2 >( Permutation{} ) >();
-      Algorithms::ParallelFor3D< Device >::exec( begin2, begin1, begin0, end2, end1, end0, kernel, f );
+      Algorithms::ParallelFor3D< Device >::exec( begin2, begin1, begin0, end2, end1, end0, launch_configuration, kernel, f );
    }
 
    template< typename Device2, typename dummy = void >
@@ -216,7 +226,10 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 2 > >
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const Ends& ends,
+               const typename Device::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -233,7 +246,7 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 2 > >
       const Index begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
       const Index end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
       const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
-      Algorithms::ParallelFor2D< Device >::exec( begin1, begin0, end1, end0, kernel, f );
+      Algorithms::ParallelFor2D< Device >::exec( begin1, begin0, end1, end0, launch_configuration, kernel, f );
    }
 
    template< typename Device2, typename dummy = void >
@@ -266,7 +279,10 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 1 > >
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const Ends& ends,
+               const typename Device::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -279,8 +295,8 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 1 > >
 
       const Index begin = begins.template getSize< get< 0 >( Permutation{} ) >();
       const Index end = ends.template getSize< get< 0 >( Permutation{} ) >();
-      //      Algorithms::ParallelFor< Device >::exec( begin, end, kernel );
-      Algorithms::ParallelFor< Device >::exec( begin, end, f );
+      // Algorithms::ParallelFor< Device >::exec( begin, end, launch_configuration, kernel );
+      Algorithms::ParallelFor< Device >::exec( begin, end, launch_configuration, f );
    }
 };
 
@@ -290,7 +306,10 @@ struct ExecutorDispatcher
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const Ends& ends, Func f )
+   operator()( const Begins& begins,
+               const Ends& ends,
+               const typename Device::LaunchConfiguration& launch_configuration,
+               Func f )
    {
       SequentialExecutor< Permutation >()( begins, ends, f );
    }
@@ -301,10 +320,10 @@ struct ExecutorDispatcher< Permutation, Devices::Host >
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const Ends& ends, Func f )
+   operator()( const Begins& begins, const Ends& ends, const Devices::Host::LaunchConfiguration& launch_configuration, Func f )
    {
       if( Devices::Host::isOMPEnabled() && Devices::Host::getMaxThreadsCount() > 1 )
-         ParallelExecutor< Permutation, Devices::Host >()( begins, ends, f );
+         ParallelExecutor< Permutation, Devices::Host >()( begins, ends, launch_configuration, f );
       else
          SequentialExecutor< Permutation >()( begins, ends, f );
    }
@@ -315,9 +334,9 @@ struct ExecutorDispatcher< Permutation, Devices::Cuda >
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins, const Ends& ends, Func f )
+   operator()( const Begins& begins, const Ends& ends, const Devices::Cuda::LaunchConfiguration& launch_configuration, Func f )
    {
-      ParallelExecutor< Permutation, Devices::Cuda >()( begins, ends, f );
+      ParallelExecutor< Permutation, Devices::Cuda >()( begins, ends, launch_configuration, f );
    }
 };
 

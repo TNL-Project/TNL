@@ -368,10 +368,11 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forAll( Func f ) const
+   forAll( Func f,
+           const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( localBegins, localEnds, f );
+      dispatch( localBegins, localEnds, launch_configuration, f );
    }
 
    /**
@@ -385,7 +386,9 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forInterior( Func f ) const
+   forInterior(
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // add static sizes
       using Begins = detail::LocalBeginsHolder< SizesHolderType, 1 >;
@@ -402,7 +405,7 @@ public:
       detail::SetSizesMinHelper< Ends, SizesHolderType >::min( ends, localEnds );
 
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( begins, ends, f );
+      dispatch( begins, ends, launch_configuration, f );
    }
 
    /**
@@ -415,11 +418,15 @@ public:
     */
    template< typename Device2 = DeviceType, typename Begins, typename Ends, typename Func >
    void
-   forInterior( const Begins& begins, const Ends& ends, Func f ) const
+   forInterior(
+      const Begins& begins,
+      const Ends& ends,
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // TODO: assert "localBegins <= begins <= localEnds", "localBegins <= ends <= localEnds"
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( begins, ends, f );
+      dispatch( begins, ends, launch_configuration, f );
    }
 
    /**
@@ -433,7 +440,9 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forBoundary( Func f ) const
+   forBoundary(
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // add static sizes
       using SkipBegins = detail::LocalBeginsHolder< SizesHolderType, 1 >;
@@ -450,7 +459,7 @@ public:
       detail::SetSizesMinHelper< SkipEnds, SizesHolderType >::min( skipEnds, localEnds );
 
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( localBegins, skipBegins, skipEnds, localEnds, f );
+      dispatch( localBegins, skipBegins, skipEnds, localEnds, launch_configuration, f );
    }
 
    /**
@@ -463,11 +472,15 @@ public:
     */
    template< typename Device2 = DeviceType, typename SkipBegins, typename SkipEnds, typename Func >
    void
-   forBoundary( const SkipBegins& skipBegins, const SkipEnds& skipEnds, Func f ) const
+   forBoundary(
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // TODO: assert "localBegins <= skipBegins <= localEnds", "localBegins <= skipEnds <= localEnds"
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( localBegins, skipBegins, skipEnds, localEnds, f );
+      dispatch( localBegins, skipBegins, skipEnds, localEnds, launch_configuration, f );
    }
 
    /**
@@ -481,7 +494,9 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forLocalInterior( Func f ) const
+   forLocalInterior(
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // add overlaps to dynamic sizes
       LocalBeginsType begins;
@@ -492,7 +507,7 @@ public:
       detail::SetSizesSubtractOverlapsHelper< SizesHolderType, SizesHolderType, OverlapsType >::subtract( ends, localEnds );
 
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( begins, ends, f );
+      dispatch( begins, ends, launch_configuration, f );
    }
 
    /**
@@ -506,7 +521,9 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forLocalBoundary( Func f ) const
+   forLocalBoundary(
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // add overlaps to dynamic sizes
       LocalBeginsType skipBegins;
@@ -517,7 +534,7 @@ public:
       detail::SetSizesSubtractOverlapsHelper< SizesHolderType, SizesHolderType, OverlapsType >::subtract( skipEnds, localEnds );
 
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( localBegins, skipBegins, skipEnds, localEnds, f );
+      dispatch( localBegins, skipBegins, skipEnds, localEnds, launch_configuration, f );
    }
 
    /**
@@ -532,7 +549,9 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forGhosts( Func f ) const
+   forGhosts(
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // subtract overlaps from dynamic sizes
       LocalBeginsType begins;
@@ -543,7 +562,7 @@ public:
       detail::SetSizesAddOverlapsHelper< SizesHolderType, SizesHolderType, OverlapsType >::add( ends, localEnds );
 
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( begins, localBegins, localEnds, ends, f );
+      dispatch( begins, localBegins, localEnds, ends, launch_configuration, f );
    }
 
    //! \brief Sets the **global** sizes of the array, but does not allocate storage.

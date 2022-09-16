@@ -327,11 +327,12 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forAll( Func f ) const
+   forAll( Func f,
+           const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
-      dispatch( Begins{}, getSizes(), f );
+      dispatch( Begins{}, getSizes(), launch_configuration, f );
    }
 
    /**
@@ -352,7 +353,9 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forInterior( Func f ) const
+   forInterior(
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
@@ -361,7 +364,7 @@ public:
       // subtract dynamic sizes
       Ends ends;
       detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType >::subtract( ends, getSizes() );
-      dispatch( Begins{}, ends, f );
+      dispatch( Begins{}, ends, launch_configuration, f );
    }
 
    /**
@@ -373,11 +376,15 @@ public:
     */
    template< typename Device2 = DeviceType, typename Begins, typename Ends, typename Func >
    void
-   forInterior( const Begins& begins, const Ends& ends, Func f ) const
+   forInterior(
+      const Begins& begins,
+      const Ends& ends,
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // TODO: assert "begins <= sizes", "ends <= sizes"
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( begins, ends, f );
+      dispatch( begins, ends, launch_configuration, f );
    }
 
    /**
@@ -398,7 +405,9 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forBoundary( Func f ) const
+   forBoundary(
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       using SkipBegins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
@@ -409,7 +418,7 @@ public:
       detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType >::subtract( skipEnds, getSizes() );
 
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( Begins{}, SkipBegins{}, skipEnds, getSizes(), f );
+      dispatch( Begins{}, SkipBegins{}, skipEnds, getSizes(), launch_configuration, f );
    }
 
    /**
@@ -421,12 +430,16 @@ public:
     */
    template< typename Device2 = DeviceType, typename SkipBegins, typename SkipEnds, typename Func >
    void
-   forBoundary( const SkipBegins& skipBegins, const SkipEnds& skipEnds, Func f ) const
+   forBoundary(
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      Func f,
+      const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // TODO: assert "skipBegins <= sizes", "skipEnds <= sizes"
       using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
-      dispatch( Begins{}, skipBegins, skipEnds, getSizes(), f );
+      dispatch( Begins{}, skipBegins, skipEnds, getSizes(), launch_configuration, f );
    }
 
    // TODO: rename to setSizes and make sure that overloading with the following method works
