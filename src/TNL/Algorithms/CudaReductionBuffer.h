@@ -4,11 +4,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
-
-#include <cstdlib>  // std::atexit
 
 #include <TNL/Cuda/CheckDevice.h>
 #include <TNL/Exceptions/CudaBadAlloc.h>
@@ -20,19 +16,22 @@ namespace Algorithms {
 class CudaReductionBuffer
 {
 public:
-   inline static CudaReductionBuffer&
+   static CudaReductionBuffer&
    getInstance()
    {
+      // note that this ensures construction on first use, and thus also correct
+      // destruction before the CUDA context is destroyed
+      // https://stackoverflow.com/questions/335369/finding-c-static-initialization-order-problems#335746
       static CudaReductionBuffer instance;
       return instance;
    }
 
-   inline void
+   void
    setSize( std::size_t size )  // NOLINT(readability-convert-member-functions-to-static)
    {
 #ifdef HAVE_CUDA
       if( size > this->size ) {
-         this->free();
+         this->reset();
          if( cudaMalloc( (void**) &this->data, size ) != cudaSuccess ) {
             this->data = 0;
             throw Exceptions::CudaBadAlloc();
@@ -44,11 +43,29 @@ public:
 #endif
    }
 
+   void
+   reset()
+   {
+#ifdef HAVE_CUDA
+      if( data ) {
+         cudaFree( data );
+         data = nullptr;
+         size = 0;
+         TNL_CHECK_CUDA_DEVICE;
+      }
+#endif
+   }
+
    template< typename Type >
    Type*
    getData()
    {
-      return (Type*) this->data;
+      return reinterpret_cast< Type* >( this->data );
+   }
+
+   ~CudaReductionBuffer()
+   {
+      reset();
    }
 
    // copy-constructor and copy-assignment are meaningless for a singleton class
@@ -58,36 +75,16 @@ public:
 
 private:
    // private constructor of the singleton
-   inline CudaReductionBuffer( std::size_t size = 0 )
+   CudaReductionBuffer( std::size_t size = 0 )
    {
-#ifdef HAVE_CUDA
       setSize( size );
-      std::atexit( CudaReductionBuffer::free_atexit );
-#endif
-   }
-
-   inline static void
-   free_atexit()
-   {
-      CudaReductionBuffer::getInstance().free();
-   }
-
-protected:
-   inline void
-   free()
-   {
-#ifdef HAVE_CUDA
-      if( data ) {
-         cudaFree( data );
-         data = nullptr;
-         TNL_CHECK_CUDA_DEVICE;
-      }
-#endif
    }
 
    void* data = nullptr;
 
+#ifdef HAVE_CUDA
    std::size_t size = 0;
+#endif
 };
 
 }  // namespace Algorithms
