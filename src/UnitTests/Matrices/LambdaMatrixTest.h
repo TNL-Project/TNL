@@ -1,7 +1,6 @@
 #ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 #include <TNL/Matrices/LambdaMatrix.h>
-#include <TNL/Devices/AnyDevice.h>
 #include <TNL/Devices/Host.h>
 #include "LambdaMatrixTest.hpp"
 #include <iostream>
