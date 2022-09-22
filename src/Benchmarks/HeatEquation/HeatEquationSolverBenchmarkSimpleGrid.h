@@ -35,7 +35,13 @@ class Grid
       Grid() = default;
 
       Grid( const TNL::Containers::StaticVector<Size, Index>& dim )
-      : dimensions( dim )
+      : dimensions( dim ),
+        entitiesCountAlongNormals( 0 ),
+        cumulativeEntitiesCountAlongNormals( 0 ),
+        origin( 0 ),
+        proportions( 0 ),
+        spaceSteps( 0 ),
+        spaceProducts( 0 )
       {}
 
       __cuda_callable__ inline

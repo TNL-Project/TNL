@@ -95,13 +95,13 @@ public:
    //! \brief Constructs an empty communicator with a null handle (`MPI_COMM_NULL`).
    Comm() = default;
 
-   //! \brief Deleted copy-constructor.
+   //! \brief Default copy-constructor.
    Comm( const Comm& other ) = default;
 
    //! \brief Default move-constructor.
    Comm( Comm&& other ) = default;
 
-   //! \brief Deleted copy-assignment operator.
+   //! \brief Default copy-assignment operator.
    Comm&
    operator=( const Comm& other ) = default;
 
@@ -196,7 +196,7 @@ public:
     * This routine permits the implicit conversion from \ref Comm to
     * `MPI_Comm`.
     *
-    * \b Warning: The obtained `MPI_Comm` handle becomes invalid when the
+    * \warning The obtained `MPI_Comm` handle becomes invalid when the
     * originating \ref Comm object is destroyed. For example, the following
     * code is invalid, because the \ref Comm object managing the lifetime of
     * the communicator is destroyed as soon as it is cast to `MPI_Comm`:

@@ -289,9 +289,9 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    }
 
    const IndexType rowSize = this->segments.getSegmentSize( row );
-   IndexType col( this->getPaddingIndex() );
+   IndexType col = this->getPaddingIndex();
    IndexType i;
-   IndexType globalIdx;
+   IndexType globalIdx = 0;
    for( i = 0; i < rowSize; i++ ) {
       globalIdx = this->segments.getGlobalIndex( row, i );
       TNL_ASSERT_LT( globalIdx, this->columnIndexes.getSize(), "" );

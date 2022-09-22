@@ -223,7 +223,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::addElement( IndexTyp
    const IndexType rowSize = this->rowPointers.getElement( row + 1 ) - this->rowPointers.getElement( row );
    IndexType col( this->getPaddingIndex() );
    IndexType i;
-   IndexType globalIdx;
+   IndexType globalIdx = 0;
    for( i = 0; i < rowSize; i++ ) {
       // SANDBOX_TODO: Replace the following line with a code that computes a global index of `i`-th nonzero matrix element
       //               in the `row`-th matrix row. The global index is a pointer to arrays `values` and `columnIndexes` storing
