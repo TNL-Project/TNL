@@ -149,6 +149,20 @@ class SizesHolder : public detail::SizesHolderLayer< Index, sizes... >
 public:
    using IndexType = Index;
 
+   //! \brief Default constructor.
+   SizesHolder() = default;
+
+   //! \brief Constructs the holder from given pack of sizes.
+   template< typename... Indices, std::enable_if_t< sizeof...( Indices ) == sizeof...( sizes ), bool > = true >
+   explicit SizesHolder( Indices... _sizes )
+   {
+      Algorithms::staticFor< std::size_t, 0, getDimension() >(
+         [ & ]( auto i )
+         {
+            setSize< i >( detail::get_from_pack< i >( _sizes... ) );
+         } );
+   }
+
    //! \brief Returns the dimension of the array, i.e. number of \e sizes
    //! specified in the template parameters.
    static constexpr std::size_t

@@ -222,6 +222,7 @@ public:
    using IndexerType::getStorageIndex;
    using IndexerType::getStorageSize;
    using IndexerType::getStride;
+   using IndexerType::isContiguousBlock;
 
    //! Returns a const-qualified reference to the underlying indexer.
    __cuda_callable__
