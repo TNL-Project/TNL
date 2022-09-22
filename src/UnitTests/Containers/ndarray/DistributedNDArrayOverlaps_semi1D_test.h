@@ -61,7 +61,13 @@ protected:
 using DistributedNDArrayTypes = ::testing::Types<
    DistributedNDArray< NDArray< double,
                                 SizesHolder< int, Q, 0, 0 >,  // Q, X, Y
-                                std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
+                                std::index_sequence< 0, 1, 2 >,  // permutation - non-contiguous blocks for synchronization
+                                Devices::Host,
+                                int,
+                                std::index_sequence< 0, 2, 0 > > >,  // overlaps
+   DistributedNDArray< NDArray< double,
+                                SizesHolder< int, Q, 0, 0 >,  // Q, X, Y
+                                std::index_sequence< 1, 0, 2 >,  // permutation - contiguous blocks for synchronization
                                 Devices::Host,
                                 int,
                                 std::index_sequence< 0, 2, 0 > > >  // overlaps
@@ -69,7 +75,13 @@ using DistributedNDArrayTypes = ::testing::Types<
    ,
    DistributedNDArray< NDArray< double,
                                 SizesHolder< int, Q, 0, 0 >,  // Q, X, Y
-                                std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
+                                std::index_sequence< 0, 1, 2 >,  // permutation - non-contiguous blocks for synchronization
+                                Devices::Cuda,
+                                int,
+                                std::index_sequence< 0, 2, 0 > > >,  // overlaps
+   DistributedNDArray< NDArray< double,
+                                SizesHolder< int, Q, 0, 0 >,  // Q, X, Y
+                                std::index_sequence< 1, 0, 2 >,  // permutation - contiguous blocks for synchronization
                                 Devices::Cuda,
                                 int,
                                 std::index_sequence< 0, 2, 0 > > >  // overlaps
@@ -273,7 +285,7 @@ TYPED_TEST( DistributedNDArrayOverlaps_semi1D_test, forGhosts )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_synchronize( DistributedArray& a, const int rank, const int nproc )
+void test_helper_synchronize( DistributedArray& a, int globalSize, int rank, int nproc )
 {
    using IndexType = typename DistributedArray::IndexType;
 
@@ -294,7 +306,7 @@ void test_helper_synchronize( DistributedArray& a, const int rank, const int npr
    for( int q = 0; q < Q; q++ )
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )
    for( int j = 0; j < a.template getSize< 2 >(); j++ )
-      EXPECT_EQ( a.getElement( q, gi, j ), gi + ((rank == 0) ? 97 : 0) )
+      EXPECT_EQ( a.getElement( q, gi, j ), gi + ((rank == 0) ? globalSize : 0) )
             << "q = " << q << ", gi = " << gi << ", j = " << j;
    for( int q = 0; q < Q; q++ )
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
@@ -304,7 +316,7 @@ void test_helper_synchronize( DistributedArray& a, const int rank, const int npr
    for( int q = 0; q < Q; q++ )
    for( int gi = localRange.getEnd(); gi < localRange.getEnd() + overlaps; gi++ )
    for( int j = 0; j < a.template getSize< 2 >(); j++ )
-      EXPECT_EQ( a.getElement( q, gi, j ), gi - ((rank == nproc-1) ? 97 : 0) )
+      EXPECT_EQ( a.getElement( q, gi, j ), gi - ((rank == nproc-1) ? globalSize : 0) )
             << "q = " << q << ", gi = " << gi << ", j = " << j;
 
    a.setValue( -1 );
@@ -315,7 +327,7 @@ void test_helper_synchronize( DistributedArray& a, const int rank, const int npr
    for( int q = 0; q < Q; q++ )
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )
    for( int j = 0; j < a.template getSize< 2 >(); j++ )
-      EXPECT_EQ( a.getElement( q, gi, j ), gi + ((rank == 0) ? 97 : 0) )
+      EXPECT_EQ( a.getElement( q, gi, j ), gi + ((rank == 0) ? globalSize : 0) )
             << "q = " << q << ", gi = " << gi << ", j = " << j;
    for( int q = 0; q < Q; q++ )
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
@@ -325,13 +337,13 @@ void test_helper_synchronize( DistributedArray& a, const int rank, const int npr
    for( int q = 0; q < Q; q++ )
    for( int gi = localRange.getEnd(); gi < localRange.getEnd() + overlaps; gi++ )
    for( int j = 0; j < a.template getSize< 2 >(); j++ )
-      EXPECT_EQ( a.getElement( q, gi, j ), gi - ((rank == nproc-1) ? 97 : 0) )
+      EXPECT_EQ( a.getElement( q, gi, j ), gi - ((rank == nproc-1) ? globalSize : 0) )
             << "q = " << q << ", gi = " << gi << ", j = " << j;
 }
 
 TYPED_TEST( DistributedNDArrayOverlaps_semi1D_test, synchronize )
 {
-   test_helper_synchronize( this->distributedNDArray, this->rank, this->nproc );
+   test_helper_synchronize( this->distributedNDArray, this->globalSize, this->rank, this->nproc );
 }
 
 #endif  // HAVE_GTEST
