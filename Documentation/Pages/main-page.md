@@ -108,7 +108,7 @@ In the following, we review the available installation methods:
    Then execute the `install` script to copy the header files to the final
    location (`~/.local/include` by default):
 
-       cd tnl-dev
+       cd tnl
        ./install
 
    However, we also recommend to install at least the `tools` [optional
