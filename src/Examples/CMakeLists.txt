@@ -32,3 +32,16 @@ if( TNL_BUILD_CUDA )
    endforeach()
    install( TARGETS ${CUDA_TARGETS} RUNTIME DESTINATION bin )
 endif()
+
+if( TNL_BUILD_MPI )
+   # enable MPI support in TNL and add MPI to the targets:
+   # https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+   if( TNL_BUILD_CPP_TARGETS )
+      target_compile_definitions( tnl-optimize-ranks PUBLIC "-DHAVE_MPI" )
+      target_link_libraries( tnl-optimize-ranks PUBLIC MPI::MPI_CXX )
+   endif()
+   if( TNL_BUILD_CUDA )
+      target_compile_definitions( tnl-optimize-ranks-cuda PUBLIC "-DHAVE_MPI" )
+      target_link_libraries( tnl-optimize-ranks-cuda PUBLIC MPI::MPI_CXX )
+   endif()
+endif()
