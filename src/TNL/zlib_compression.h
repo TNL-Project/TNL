@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include <memory>
 #include <cstdint>  // std::uint64_t
+#include <memory>
+#include <istream>
 
 #include <zlib.h>
 
