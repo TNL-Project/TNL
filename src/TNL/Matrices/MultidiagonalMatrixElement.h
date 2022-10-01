@@ -42,7 +42,7 @@ public:
     * \param localIdx is the rank of the non-zero elements in the matrix row.
     */
    __cuda_callable__
-   MultidiagonalMatrixElement( RealType& value, const IndexType& rowIdx, const IndexType& columnIdx, const IndexType& localIdx )
+   MultidiagonalMatrixElement( RealType& value, IndexType rowIdx, IndexType columnIdx, IndexType localIdx )
    : value_( value ), rowIdx( rowIdx ), columnIdx( columnIdx ), localIdx( localIdx )
    {}
 
@@ -83,18 +83,6 @@ public:
    }
 
    /**
-    * \brief Returns reference on matrix element column index.
-    *
-    * \return reference on matrix element column index.
-    */
-   __cuda_callable__
-   IndexType&
-   columnIndex()
-   {
-      return columnIdx;
-   }
-
-   /**
     * \brief Returns constant reference on matrix element column index.
     *
     * \return constant reference on matrix element column index.
@@ -121,11 +109,13 @@ public:
 protected:
    RealType& value_;
 
-   const IndexType& rowIdx;
+   // NOTE: this cannot be a reference to avoid binding to temporary objects
+   IndexType rowIdx;
 
    IndexType columnIdx;
 
-   const IndexType& localIdx;
+   // NOTE: this cannot be a reference to avoid binding to temporary objects
+   IndexType localIdx;
 };
 
 }  // namespace Matrices
