@@ -413,7 +413,8 @@ ChunkedEllpackView< Device, Index, Organization >::reduceSegmentsKernelWithAllPa
                                                                                           ResultKeeper keeper,
                                                                                           Real zero ) const
 {
-   using RealType = decltype( fetch( IndexType(), IndexType(), IndexType(), std::declval< bool& >() ) );
+   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   // using RealType = decltype( fetch( IndexType(), IndexType(), IndexType(), std::declval< bool& >() ) );
 
    const IndexType firstSlice = rowToSliceMapping[ first ];
    const IndexType lastSlice = rowToSliceMapping[ last - 1 ];
@@ -478,7 +479,8 @@ ChunkedEllpackView< Device, Index, Organization >::reduceSegmentsKernel( IndexTy
                                                                          ResultKeeper keeper,
                                                                          Real zero ) const
 {
-   using RealType = decltype( fetch( IndexType(), std::declval< bool& >() ) );
+   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   // using RealType = decltype( fetch( IndexType(), std::declval< bool& >() ) );
 
    const IndexType firstSlice = rowToSliceMapping[ first ];
    const IndexType lastSlice = rowToSliceMapping[ last - 1 ];

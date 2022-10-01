@@ -390,7 +390,8 @@ BiEllpackView< Device, Index, Organization, WarpSize >::reduceSegmentsKernelWith
                                                                                                ResultKeeper keeper,
                                                                                                Real zero ) const
 {
-   using RealType = decltype( fetch( IndexType(), IndexType(), IndexType(), std::declval< bool& >() ) );
+   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   // using RealType = decltype( fetch( IndexType(), IndexType(), IndexType(), std::declval< bool& >() ) );
    const IndexType segmentIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + first;
    if( segmentIdx >= last )
       return;
@@ -437,7 +438,8 @@ BiEllpackView< Device, Index, Organization, WarpSize >::reduceSegmentsKernel( In
                                                                               ResultKeeper keeper,
                                                                               Real zero ) const
 {
-   using RealType = decltype( fetch( IndexType(), std::declval< bool& >() ) );
+   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   // using RealType = decltype( fetch( IndexType(), std::declval< bool& >() ) );
    Index segmentIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + first;
 
    const IndexType strip = segmentIdx >> getLogWarpSize();
