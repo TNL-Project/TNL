@@ -10,6 +10,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/MultidiagonalMatrixRowView.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
+#include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Matrices/details/MultidiagonalMatrixIndexer.h>
 
 namespace TNL {

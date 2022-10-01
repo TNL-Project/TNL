@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <TNL/Matrices/TridiagonalMatrixRowView.h>
+
 namespace TNL {
 namespace Matrices {
 

@@ -7,6 +7,8 @@
 #pragma once
 
 #include <iomanip>
+#include <fstream>
+
 #include <TNL/Matrices/MatrixWriter.h>
 
 namespace TNL {

@@ -8,7 +8,9 @@
 
 #include <ostream>
 #include <iostream>
+
 #include <TNL/String.h>
+#include <TNL/Devices/Host.h>
 
 namespace TNL {
 namespace Matrices {

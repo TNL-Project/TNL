@@ -21,6 +21,7 @@
 #include <TNL/Math.h>
 #include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Cuda/SharedMemory.h>
+#include <TNL/Containers/Vector.h>
 
 namespace TNL {
 namespace Matrices {

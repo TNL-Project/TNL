@@ -6,6 +6,10 @@
 
 #pragma once
 
+#include <type_traits>
+
+#include <TNL/Cuda/CudaCallable.h>
+
 namespace TNL {
 namespace Matrices {
 namespace details {
