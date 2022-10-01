@@ -135,39 +135,5 @@ void
 MatrixView< Real, Device, Index >::print( std::ostream& str ) const
 {}
 
-/*void
-MatrixView< Real, Device, Index >::
-computeColorsVector(Containers::Vector<Index, Device, Index> &colorsVector)
-{
-    for( IndexType i = this->getRows() - 1; i >= 0; i-- )
-    {
-        // init color array
-        Containers::Vector< Index, Device, Index > usedColors;
-        usedColors.setSize( this->numberOfColors );
-        for( IndexType j = 0; j < this->numberOfColors; j++ )
-            usedColors.setElement( j, 0 );
-
-        // find all colors used in given row
-        for( IndexType j = i + 1; j < this->getColumns(); j++ )
-             if( this->getElement( i, j ) != 0.0 )
-                 usedColors.setElement( colorsVector.getElement( j ), 1 );
-
-        // find unused color
-        bool found = false;
-        for( IndexType j = 0; j < this->numberOfColors; j++ )
-            if( usedColors.getElement( j ) == 0 )
-            {
-                colorsVector.setElement( i, j );
-                found = true;
-                break;
-            }
-        if( !found )
-        {
-            colorsVector.setElement( i, this->numberOfColors );
-            this->numberOfColors++;
-        }
-    }
-} */
-
 }  // namespace Matrices
 }  // namespace TNL
