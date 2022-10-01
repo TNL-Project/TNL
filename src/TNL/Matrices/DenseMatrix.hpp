@@ -900,8 +900,6 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=( cons
    matrix.getCompressedRowLengths( rowLengths );
    this->setDimensions( matrix.getRows(), matrix.getColumns() );
 
-   // TODO: use getConstView when it works
-   const auto matrixView = const_cast< RHSMatrix& >( matrix ).getView();
    auto values_view = this->values.getView();
    RHSIndexType padding_index = matrix.getPaddingIndex();
    this->values = 0.0;

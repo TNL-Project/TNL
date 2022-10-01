@@ -20,9 +20,8 @@ void reduceRows()
    TNL::Containers::Vector< double, Device > rowMax( matrix.getRows() );
 
    /***
-    * Prepare vector view and matrix view for lambdas.
+    * Prepare vector view for lambdas.
     */
-   const auto matrixView = matrix.getConstView();
    auto rowMaxView = rowMax.getView();
 
    /***

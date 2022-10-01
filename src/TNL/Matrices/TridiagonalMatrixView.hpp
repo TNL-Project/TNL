@@ -530,7 +530,6 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::addMatrix(
          this->values = thisMatrixMultiplicator * this->values + matrixMultiplicator * matrix.getValues();
    }
    else {
-      const auto matrix_view = matrix;
       const auto matrixMult = matrixMultiplicator;
       const auto thisMult = thisMatrixMultiplicator;
       auto add0 = [ = ] __cuda_callable__(

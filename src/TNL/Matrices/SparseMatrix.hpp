@@ -1024,8 +1024,6 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Containers::Vector< IndexType, DeviceType, IndexType > rowLocalIndexes( matrix.getRows() );
    rowLocalIndexes = 0;
 
-   // TODO: use getConstView when it works
-   const auto matrixView = const_cast< RHSMatrix& >( matrix ).getView();
    const IndexType paddingIndex = this->getPaddingIndex();
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
@@ -1135,8 +1133,6 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Containers::Vector< IndexType, DeviceType, IndexType > rowLocalIndexes( matrix.getRows() );
    rowLocalIndexes = 0;
 
-   // TODO: use getConstView when it works
-   const auto matrixView = const_cast< RHSMatrix& >( matrix ).getView();
    const IndexType paddingIndex = this->getPaddingIndex();
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();

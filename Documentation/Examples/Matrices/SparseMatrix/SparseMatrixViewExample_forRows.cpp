@@ -19,7 +19,6 @@ void forRowsExample()
    using MatrixType = TNL::Matrices::SparseMatrix< double, Device >;
    const int size( 5 );
    MatrixType matrix( { 1, 3, 3, 3, 1 }, size );
-   auto view = matrix.getView();
 
    auto f = [=] __cuda_callable__ ( typename MatrixType::RowView& row ) mutable {
       const int rowIdx = row.getRowIndex();
