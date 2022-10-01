@@ -105,6 +105,7 @@ public:
 protected:
    IndexType rows, columns, diagonals, nonemptyRows;
 };
+
 }  // namespace details
 }  // namespace Matrices
 }  // namespace TNL

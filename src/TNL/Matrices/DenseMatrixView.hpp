@@ -220,8 +220,8 @@ DenseMatrixView< Real, Device, Index, Organization >::DenseMatrixView() = defaul
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
-DenseMatrixView< Real, Device, Index, Organization >::DenseMatrixView( const IndexType rows,
-                                                                       const IndexType columns,
+DenseMatrixView< Real, Device, Index, Organization >::DenseMatrixView( IndexType rows,
+                                                                       IndexType columns,
                                                                        const ValuesViewType& values )
 : MatrixView< Real, Device, Index >( rows, columns, values ), segments( rows, columns )
 {}
@@ -230,8 +230,8 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 template< typename Value_ >
 __cuda_callable__
 DenseMatrixView< Real, Device, Index, Organization >::DenseMatrixView(
-   const IndexType rows,
-   const IndexType columns,
+   IndexType rows,
+   IndexType columns,
    const Containers::VectorView< Value_, Device, Index >& values )
 : MatrixView< Real, Device, Index >( rows, columns, values ), segments( rows, columns, true )
 {}
@@ -289,7 +289,7 @@ DenseMatrixView< Real, Device, Index, Organization >::getCompressedRowLengths( V
    {
       return ( value != 0.0 );
    };
-   auto keep = [ = ] __cuda_callable__( const IndexType rowIdx, const IndexType value ) mutable
+   auto keep = [ = ] __cuda_callable__( IndexType rowIdx, IndexType value ) mutable
    {
       rowLengths_view[ rowIdx ] = value;
    };
@@ -308,7 +308,7 @@ Index
 DenseMatrixView< Real, Device, Index, Organization >::getNonzeroElementsCount() const
 {
    const auto values_view = this->values.getConstView();
-   auto fetch = [ = ] __cuda_callable__( const IndexType i ) -> IndexType
+   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> IndexType
    {
       return ( values_view[ i ] != 0.0 );
    };
@@ -325,7 +325,7 @@ DenseMatrixView< Real, Device, Index, Organization >::setValue( const Real& valu
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-DenseMatrixView< Real, Device, Index, Organization >::getRow( const IndexType& rowIdx ) const -> const RowView
+DenseMatrixView< Real, Device, Index, Organization >::getRow( IndexType rowIdx ) const -> RowView
 {
    TNL_ASSERT_LT( rowIdx, this->getRows(), "Row index is larger than number of matrix rows." );
    return RowView( this->segments.getSegmentView( rowIdx ), this->values.getConstView() );
@@ -334,7 +334,7 @@ DenseMatrixView< Real, Device, Index, Organization >::getRow( const IndexType& r
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-DenseMatrixView< Real, Device, Index, Organization >::getRow( const IndexType& rowIdx ) -> RowView
+DenseMatrixView< Real, Device, Index, Organization >::getRow( IndexType rowIdx ) -> RowView
 {
    TNL_ASSERT_LT( rowIdx, this->getRows(), "Row index is larger than number of matrix rows." );
    return RowView( this->segments.getSegmentView( rowIdx ), this->values.getView() );
@@ -343,7 +343,7 @@ DenseMatrixView< Real, Device, Index, Organization >::getRow( const IndexType& r
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 Real&
-DenseMatrixView< Real, Device, Index, Organization >::operator()( const IndexType row, const IndexType column )
+DenseMatrixView< Real, Device, Index, Organization >::operator()( IndexType row, IndexType column )
 {
    TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
    TNL_ASSERT_LT( row, this->getRows(), "Row index is out of bounds." );
@@ -356,7 +356,7 @@ DenseMatrixView< Real, Device, Index, Organization >::operator()( const IndexTyp
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 const Real&
-DenseMatrixView< Real, Device, Index, Organization >::operator()( const IndexType row, const IndexType column ) const
+DenseMatrixView< Real, Device, Index, Organization >::operator()( IndexType row, IndexType column ) const
 {
    TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
    TNL_ASSERT_LT( row, this->getRows(), "Row index is out of bounds." );
@@ -369,9 +369,7 @@ DenseMatrixView< Real, Device, Index, Organization >::operator()( const IndexTyp
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-DenseMatrixView< Real, Device, Index, Organization >::setElement( const IndexType row,
-                                                                  const IndexType column,
-                                                                  const RealType& value )
+DenseMatrixView< Real, Device, Index, Organization >::setElement( IndexType row, IndexType column, const RealType& value )
 {
    this->values.setElement( this->getElementIndex( row, column ), value );
 }
@@ -379,8 +377,8 @@ DenseMatrixView< Real, Device, Index, Organization >::setElement( const IndexTyp
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-DenseMatrixView< Real, Device, Index, Organization >::addElement( const IndexType row,
-                                                                  const IndexType column,
+DenseMatrixView< Real, Device, Index, Organization >::addElement( IndexType row,
+                                                                  IndexType column,
                                                                   const RealType& value,
                                                                   const RealType& thisElementMultiplicator )
 {
@@ -394,7 +392,7 @@ DenseMatrixView< Real, Device, Index, Organization >::addElement( const IndexTyp
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 Real
-DenseMatrixView< Real, Device, Index, Organization >::getElement( const IndexType row, const IndexType column ) const
+DenseMatrixView< Real, Device, Index, Organization >::getElement( IndexType row, IndexType column ) const
 {
    return this->values.getElement( this->getElementIndex( row, column ) );
 }
@@ -592,7 +590,7 @@ DenseMatrixView< Real, Device, Index, Organization >::vectorProduct( const InVec
                                                                      OutVector& outVector,
                                                                      const RealType& matrixMultiplicator,
                                                                      const RealType& outVectorMultiplicator,
-                                                                     const IndexType begin,
+                                                                     IndexType begin,
                                                                      IndexType end ) const
 {
    TNL_ASSERT_EQ( this->getColumns(), inVector.getSize(), "Matrix columns count differs with input vector size." );
@@ -907,7 +905,7 @@ DenseMatrixView< Real, Device, Index, Organization >::operator==( const Matrix& 
 {
    const auto& view1 = *this;
    const auto view2 = m.getConstView();
-   auto fetch = [ = ] __cuda_callable__( const IndexType i ) -> bool
+   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> bool
    {
       return view1.getRow( i ) == view2.getRow( i );
    };
@@ -957,7 +955,7 @@ DenseMatrixView< Real, Device, Index, Organization >::print( std::ostream& str )
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 Index
-DenseMatrixView< Real, Device, Index, Organization >::getElementIndex( const IndexType row, const IndexType column ) const
+DenseMatrixView< Real, Device, Index, Organization >::getElementIndex( IndexType row, IndexType column ) const
 {
    return this->segments.getGlobalIndex( row, column );
 }

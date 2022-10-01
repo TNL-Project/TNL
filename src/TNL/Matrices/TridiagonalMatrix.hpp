@@ -18,8 +18,7 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::TridiagonalMatrix() = default;
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::TridiagonalMatrix( const IndexType rows,
-                                                                                          const IndexType columns )
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::TridiagonalMatrix( IndexType rows, IndexType columns )
 {
    this->setDimensions( rows, columns );
 }
@@ -27,7 +26,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::Tridiagon
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename ListReal >
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::TridiagonalMatrix(
-   const IndexType columns,
+   IndexType columns,
    const std::initializer_list< std::initializer_list< ListReal > >& data )
 {
    this->setDimensions( data.size(), columns );
@@ -59,8 +58,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getSerial
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setDimensions( const IndexType rows,
-                                                                                      const IndexType columns )
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setDimensions( IndexType rows, IndexType columns )
 {
    Matrix< Real, Device, Index >::setDimensions( rows, columns );
    this->indexer.setDimensions( rows, columns );
@@ -186,8 +184,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setValue(
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 __cuda_callable__
 auto
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( const IndexType& rowIdx ) const
-   -> const ConstRowView
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( IndexType rowIdx ) const -> ConstRowView
 {
    return this->view.getRow( rowIdx );
 }
@@ -195,15 +192,15 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( c
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 __cuda_callable__
 auto
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( const IndexType& rowIdx ) -> RowView
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( IndexType rowIdx ) -> RowView
 {
    return this->view.getRow( rowIdx );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setElement( const IndexType row,
-                                                                                   const IndexType column,
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setElement( IndexType row,
+                                                                                   IndexType column,
                                                                                    const RealType& value )
 {
    this->view.setElement( row, column, value );
@@ -211,8 +208,8 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setElemen
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::addElement( const IndexType row,
-                                                                                   const IndexType column,
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::addElement( IndexType row,
+                                                                                   IndexType column,
                                                                                    const RealType& value,
                                                                                    const RealType& thisElementMultiplicator )
 {
@@ -221,8 +218,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::addElemen
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 Real
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getElement( const IndexType row,
-                                                                                   const IndexType column ) const
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getElement( IndexType row, IndexType column ) const
 {
    return this->view.getElement( row, column );
 }
@@ -230,27 +226,27 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getElemen
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reduceRows( IndexType first,
-                                                                                   IndexType last,
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reduceRows( IndexType begin,
+                                                                                   IndexType end,
                                                                                    Fetch& fetch,
                                                                                    Reduce& reduce,
                                                                                    Keep& keep,
                                                                                    const FetchReal& identity ) const
 {
-   this->view.reduceRows( first, last, fetch, reduce, keep, identity );
+   this->view.reduceRows( begin, end, fetch, reduce, keep, identity );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reduceRows( IndexType first,
-                                                                                   IndexType last,
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reduceRows( IndexType begin,
+                                                                                   IndexType end,
                                                                                    Fetch& fetch,
                                                                                    Reduce& reduce,
                                                                                    Keep& keep,
                                                                                    const FetchReal& identity )
 {
-   this->view.reduceRows( first, last, fetch, reduce, keep, identity );
+   this->view.reduceRows( begin, end, fetch, reduce, keep, identity );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -278,21 +274,21 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reduceAll
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Function >
 void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forElements( IndexType first,
-                                                                                    IndexType last,
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forElements( IndexType begin,
+                                                                                    IndexType end,
                                                                                     Function& function ) const
 {
-   this->view.forElements( first, last, function );
+   this->view.forElements( begin, end, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Function >
 void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forElements( IndexType first,
-                                                                                    IndexType last,
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forElements( IndexType begin,
+                                                                                    IndexType end,
                                                                                     Function& function )
 {
-   this->view.forElements( first, last, function );
+   this->view.forElements( begin, end, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -360,11 +356,11 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::sequentia
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Function >
 void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::sequentialForRows( IndexType first,
-                                                                                          IndexType last,
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::sequentialForRows( IndexType begin,
+                                                                                          IndexType end,
                                                                                           Function& function )
 {
-   this->view.sequentialForRows( first, last, function );
+   this->view.sequentialForRows( begin, end, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -413,8 +409,8 @@ __global__
 void
 TridiagonalMatrixTranspositionCudaKernel( const TridiagonalMatrix< Real2, Devices::Cuda, Index2 >* inMatrix,
                                           TridiagonalMatrix< Real, Devices::Cuda, Index >* outMatrix,
-                                          const Real matrixMultiplicator,
-                                          const Index gridIdx )
+                                          Real matrixMultiplicator,
+                                          Index gridIdx )
 {
    const Index rowIdx = ( gridIdx * Cuda::getMaxGridSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( rowIdx < inMatrix->getRows() ) {
@@ -571,8 +567,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getIndexe
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 __cuda_callable__
 Index
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getElementIndex( const IndexType row,
-                                                                                        const IndexType column ) const
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getElementIndex( IndexType row, IndexType column ) const
 {
    IndexType localIdx = column - row + 1;
 

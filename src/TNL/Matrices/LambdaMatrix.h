@@ -110,14 +110,14 @@ public:
     * \e LambdaMatrix you may use \ref LambdaMatrixFactory.
     *
     * \param matrixElements is a lambda function giving matrix elements position and value.
-    * \param compressedRowLentghs is a lambda function returning how many non-zero matrix elements are in given row.
+    * \param compressedRowLengths is a lambda function returning how many non-zero matrix elements are in given row.
     *
     * \par Example
     * \include Matrices/LambdaMatrix/LambdaMatrixExample_Constructor.cpp
     * \par Output
     * \include LambdaMatrixExample_Constructor.out
     */
-   LambdaMatrix( MatrixElementsLambda& matrixElements, CompressedRowLengthsLambda& compressedRowLentghs );
+   LambdaMatrix( MatrixElementsLambda& matrixElements, CompressedRowLengthsLambda& compressedRowLengths );
 
    /**
     * \brief Constructor with matrix dimensions and lambda functions defining the matrix elements.
@@ -128,17 +128,17 @@ public:
     * \param rows is a number of the matrix rows.
     * \param columns is a number of the matrix columns.
     * \param matrixElements is a lambda function giving matrix elements position and value.
-    * \param compressedRowLentghs is a lambda function returning how many non-zero matrix elements are in given row.
+    * \param compressedRowLengths is a lambda function returning how many non-zero matrix elements are in given row.
     *
     * \par Example
     * \include Matrices/LambdaMatrix/LambdaMatrixExample_Constructor.cpp
     * \par Output
     * \include LambdaMatrixExample_Constructor.out
     */
-   LambdaMatrix( const IndexType& rows,
-                 const IndexType& columns,
+   LambdaMatrix( IndexType rows,
+                 IndexType columns,
                  MatrixElementsLambda& matrixElements,
-                 CompressedRowLengthsLambda& compressedRowLentghs );
+                 CompressedRowLengthsLambda& compressedRowLengths );
 
    /**
     * \brief Copy constructor.
@@ -152,7 +152,7 @@ public:
     *
     * \param matrix is input matrix.
     */
-   LambdaMatrix( LambdaMatrix&& matrix ) = default;
+   LambdaMatrix( LambdaMatrix&& matrix ) noexcept = default;
 
    /**
     * \brief Set number of rows and columns of this matrix.
@@ -161,7 +161,7 @@ public:
     * \param columns is the number of matrix columns.
     */
    void
-   setDimensions( const IndexType& rows, const IndexType& columns );
+   setDimensions( IndexType rows, IndexType columns );
 
    /**
     * \brief Returns a number of matrix rows.
@@ -221,9 +221,9 @@ public:
     * \par Output
     * \include LambdaMatrixExample_getCompressedRowLengths.out
     */
-   template< typename RowLentghsVector >
+   template< typename RowLengthsVector >
    void
-   getCompressedRowLengths( RowLentghsVector& rowLengths ) const;
+   getCompressedRowLengths( RowLengthsVector& rowLengths ) const;
 
    /**
     * \brief Returns number of non-zero matrix elements.
@@ -253,8 +253,8 @@ public:
     * See \ref LambdaMatrixRowView.
     */
    __cuda_callable__
-   const RowView
-   getRow( const IndexType& rowIdx ) const;
+   RowView
+   getRow( IndexType rowIdx ) const;
 
    /**
     * \brief Returns value of matrix element at position given by its row and column index.
@@ -265,7 +265,7 @@ public:
     * \return value of given matrix element.
     */
    RealType
-   getElement( const IndexType row, const IndexType column ) const;
+   getElement( IndexType row, IndexType column ) const;
 
    /**
     * \brief Method for iteration over all matrix rows for constant instances.
@@ -414,7 +414,7 @@ public:
     *    It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value )
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value )
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -458,7 +458,7 @@ public:
     *   It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value )
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value )
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -513,7 +513,7 @@ public:
                   OutVector& outVector,
                   const RealType& matrixMultiplicator = 1.0,
                   const RealType& outVectorMultiplicator = 0.0,
-                  const IndexType begin = 0,
+                  IndexType begin = 0,
                   IndexType end = 0 ) const;
 
    /**
@@ -610,8 +610,8 @@ struct LambdaMatrixFactory
     */
    template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda >
    static auto
-   create( const IndexType& rows,
-           const IndexType& columns,
+   create( IndexType rows,
+           IndexType columns,
            MatrixElementsLambda& matrixElementsLambda,
            CompressedRowLengthsLambda& compressedRowLengthsLambda )
       -> LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >

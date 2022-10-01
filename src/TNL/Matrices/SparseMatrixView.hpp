@@ -36,8 +36,8 @@ template< typename Real,
           typename ComputeReal >
 __cuda_callable__
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::SparseMatrixView(
-   const IndexType rows,
-   const IndexType columns,
+   IndexType rows,
+   IndexType columns,
    const ValuesViewType& values,
    const ColumnsIndexesViewType& columnIndexes,
    const SegmentsViewType& segments )
@@ -127,7 +127,7 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    {
       return ( value != 0.0 );
    };
-   auto keep = [ = ] __cuda_callable__( const IndexType rowIdx, const IndexType value ) mutable
+   auto keep = [ = ] __cuda_callable__( IndexType rowIdx, IndexType value ) mutable
    {
       rowLengths_view[ rowIdx ] = value;
    };
@@ -152,7 +152,7 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    {
       return 1;
    };
-   auto keep = [ = ] __cuda_callable__( const IndexType rowIdx, const IndexType value ) mutable
+   auto keep = [ = ] __cuda_callable__( IndexType rowIdx, IndexType value ) mutable
    {
       rowCapacities_view[ rowIdx ] = value;
    };
@@ -168,7 +168,7 @@ template< typename Real,
           typename ComputeReal >
 __cuda_callable__
 Index
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getRowCapacity( const IndexType row ) const
+SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getRowCapacity( IndexType row ) const
 {
    return this->segments.getSegmentSize( row );
 }
@@ -186,7 +186,7 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    const auto columns_view = this->columnIndexes.getConstView();
    const IndexType paddingIndex = this->getPaddingIndex();
    if( ! isSymmetric() ) {
-      auto fetch = [ = ] __cuda_callable__( const IndexType i ) -> IndexType
+      auto fetch = [ = ] __cuda_callable__( IndexType i ) -> IndexType
       {
          return ( columns_view[ i ] != paddingIndex );
       };
@@ -224,8 +224,7 @@ template< typename Real,
           typename ComputeReal >
 __cuda_callable__
 auto
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getRow( const IndexType& rowIdx ) const
-   -> ConstRowView
+SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getRow( IndexType rowIdx ) const -> ConstRowView
 {
    TNL_ASSERT_LT( rowIdx, this->getRows(), "Row index is larger than number of matrix rows." );
    return ConstRowView( this->segments.getSegmentView( rowIdx ), this->values, this->columnIndexes );
@@ -240,7 +239,7 @@ template< typename Real,
           typename ComputeReal >
 __cuda_callable__
 auto
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getRow( const IndexType& rowIdx ) -> RowView
+SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getRow( IndexType rowIdx ) -> RowView
 {
    TNL_ASSERT_LT( rowIdx, this->getRows(), "Row index is larger than number of matrix rows." );
    return RowView( this->segments.getSegmentView( rowIdx ), this->values, this->columnIndexes );
@@ -255,8 +254,8 @@ template< typename Real,
           typename ComputeReal >
 __cuda_callable__
 void
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::setElement( const IndexType row,
-                                                                                            const IndexType column,
+SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::setElement( IndexType row,
+                                                                                            IndexType column,
                                                                                             const RealType& value )
 {
    this->addElement( row, column, value, 0.0 );
@@ -850,7 +849,7 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    const auto& view1 = *this;
    const auto view2 = m.getConstView();
-   auto fetch = [ = ] __cuda_callable__( const IndexType i ) -> bool
+   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> bool
    {
       return view1.getRow( i ) == view2.getRow( i );
    };

@@ -32,7 +32,7 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getSize() co
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
 auto
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getRowIndex() const -> const IndexType&
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getRowIndex() const -> IndexType
 {
    return segmentView.getSegmentIndex();
 }

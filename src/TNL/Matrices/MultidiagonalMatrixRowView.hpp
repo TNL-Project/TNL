@@ -32,7 +32,7 @@ MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::getSize
 template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >
 __cuda_callable__
 auto
-MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::getRowIndex() const -> const IndexType&
+MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::getRowIndex() const -> IndexType
 {
    return this->rowIdx;
 }
@@ -41,7 +41,7 @@ template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >
 __cuda_callable__
 auto
 MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::getColumnIndex( const IndexType localIdx ) const
-   -> const IndexType
+   -> IndexType
 {
    TNL_ASSERT_GE( localIdx, 0, "" );
    TNL_ASSERT_LT( localIdx, indexer.getDiagonals(), "" );

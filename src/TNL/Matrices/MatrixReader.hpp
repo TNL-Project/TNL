@@ -53,8 +53,9 @@ template< typename Matrix >
 void
 MatrixReader< Matrix, TNL::Devices::Host >::readMtx( std::istream& file, Matrix& matrix, bool verbose )
 {
-   IndexType rows, columns;
-   bool symmetricSourceMatrix( false );
+   IndexType rows = 0;
+   IndexType columns = 0;
+   bool symmetricSourceMatrix = false;
 
    readMtxHeader( file, rows, columns, symmetricSourceMatrix, verbose );
 
@@ -79,8 +80,10 @@ void
 MatrixReader< Matrix, TNL::Devices::Host >::verifyMtxFile( std::istream& file, const Matrix& matrix, bool verbose )
 {
    bool symmetricSourceMatrix( false );
-   IndexType rows, columns;
+   IndexType rows = 0;
+   IndexType columns = 0;
    readMtxHeader( file, rows, columns, symmetricSourceMatrix, false );
+
    file.clear();
    file.seekg( 0, std::ios::beg );
    String line;
@@ -95,7 +98,8 @@ MatrixReader< Matrix, TNL::Devices::Host >::verifyMtxFile( std::istream& file, c
          dimensionsLine = true;
          continue;
       }
-      IndexType row( 1 ), column( 1 );
+      IndexType row = 1;
+      IndexType column = 1;
       RealType value;
       parseMtxLineWithElement( line, row, column, value );
       if( value != matrix.getElement( row - 1, column - 1 )
@@ -145,7 +149,8 @@ MatrixReader< Matrix, TNL::Devices::Host >::findLineByElement( std::istream& fil
          dimensionsLine = true;
          continue;
       }
-      IndexType currentRow( 1 ), currentColumn( 1 );
+      IndexType currentRow = 1;
+      IndexType currentColumn = 1;
       RealType value;
       parseMtxLineWithElement( line, currentRow, currentColumn, value );
       if( ( currentRow == row + 1 && currentColumn == column + 1 )
@@ -238,13 +243,14 @@ MatrixReader< Matrix, TNL::Devices::Host >::computeCompressedRowLengthsFromMtxFi
    Timer timer;
    timer.start();
    while( std::getline( file, line ) ) {
-      if( ! line.getSize() || line[ 0 ] == '%' )
+      if( line.empty() || line[ 0 ] == '%' )
          continue;
       if( ! dimensionsLine ) {
          dimensionsLine = true;
          continue;
       }
-      IndexType row( 1 ), column( 1 );
+      IndexType row = 1;
+      IndexType column = 1;
       RealType value;
       parseMtxLineWithElement( line, row, column, value );
       numberOfElements++;
@@ -293,7 +299,7 @@ template< typename Matrix >
 void
 MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::istream& file,
                                                                            Matrix& matrix,
-                                                                           bool symmetricSourceMatrix,
+                                                                           bool symmetricMatrix,
                                                                            bool verbose )
 {
    file.clear();
@@ -305,13 +311,14 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::
    timer.start();
 
    while( std::getline( file, line ) ) {
-      if( ! line.getSize() || line[ 0 ] == '%' )
+      if( line.empty() || line[ 0 ] == '%' )
          continue;
       if( ! dimensionsLine ) {
          dimensionsLine = true;
          continue;
       }
-      IndexType row( 1 ), column( 1 );
+      IndexType row = 1;
+      IndexType column = 1;
       RealType value;
       parseMtxLineWithElement( line, row, column, value );
 
@@ -321,9 +328,9 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::
          matrix.setElement( column - 1, row - 1, value );
 
       processedElements++;
-      if( symmetricSourceMatrix && row != column && Matrix::isSymmetric() )
+      if( symmetricMatrix && row != column && Matrix::isSymmetric() )
          continue;
-      else if( symmetricSourceMatrix && row != column && ! Matrix::isSymmetric() ) {
+      else if( symmetricMatrix && row != column && ! Matrix::isSymmetric() ) {
          matrix.setElement( column - 1, row - 1, value );
          processedElements++;
       }

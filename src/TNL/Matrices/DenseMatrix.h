@@ -334,7 +334,7 @@ public:
     * See \ref DenseMatrixRowView.
     */
    __cuda_callable__
-   const RowView
+   RowView
    getRow( const IndexType& rowIdx ) const;
 
    /**

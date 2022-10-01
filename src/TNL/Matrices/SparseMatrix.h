@@ -538,8 +538,8 @@ public:
     * See \ref SparseMatrixRowView.
     */
    __cuda_callable__
-   const ConstRowView
-   getRow( const IndexType& rowIdx ) const;
+   ConstRowView
+   getRow( IndexType rowIdx ) const;
 
    /**
     * \brief Non-constant getter of simple structure for accessing given matrix row.
@@ -557,7 +557,7 @@ public:
     */
    __cuda_callable__
    RowView
-   getRow( const IndexType& rowIdx );
+   getRow( IndexType rowIdx );
 
    /**
     * \brief Sets element at given \e row and \e column to given \e value.
@@ -655,7 +655,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -698,7 +698,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -742,7 +742,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -783,7 +783,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value )
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value )
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.

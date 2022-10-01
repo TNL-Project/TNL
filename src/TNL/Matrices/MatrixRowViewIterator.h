@@ -49,7 +49,7 @@ public:
    }
 
    __cuda_callable__
-   MatrixRowViewIterator( RowViewType& rowView, const IndexType& localIdx );
+   MatrixRowViewIterator( RowViewType& rowView, IndexType localIdx );
 
    /**
     * \brief Comparison of two matrix row iterators.
@@ -96,7 +96,7 @@ public:
     * \brief Dereference operator for constant instances.
     */
    __cuda_callable__
-   const MatrixElementType
+   MatrixElementType
    operator*() const;
 
 protected:

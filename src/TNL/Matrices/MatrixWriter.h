@@ -124,8 +124,8 @@ template< typename Matrix >
 class MatrixWriter< Matrix, TNL::Devices::Host >
 {
 public:
-   typedef typename Matrix::IndexType IndexType;
-   typedef typename Matrix::RealType RealType;
+   using IndexType = typename Matrix::IndexType;
+   using RealType = typename Matrix::RealType;
 
    static void
    writeGnuplot( const TNL::String& fileName, const Matrix& matrix, bool verbose = false );
@@ -147,10 +147,10 @@ public:
 
 protected:
    static void
-   writeEpsHeader( std::ostream& str, const Matrix& matrix, const int elementSize );
+   writeEpsHeader( std::ostream& str, const Matrix& matrix, int elementSize );
 
    static void
-   writeEpsBody( std::ostream& str, const Matrix& matrix, const int elementSize, bool verbose );
+   writeEpsBody( std::ostream& str, const Matrix& matrix, int elementSize, bool verbose );
 };
 /// \endcond
 

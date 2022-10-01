@@ -73,11 +73,11 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::getCompressedRowLeng
    {
       return ( value != 0.0 );
    };
-   auto reduce = [] __cuda_callable__( const IndexType& aux, const IndexType a ) -> IndexType
+   auto reduce = [] __cuda_callable__( IndexType aux, IndexType a ) -> IndexType
    {
       return aux + a;
    };
-   auto keep = [ = ] __cuda_callable__( const IndexType rowIdx, const IndexType value ) mutable
+   auto keep = [ = ] __cuda_callable__( IndexType rowIdx, IndexType value ) mutable
    {
       rowLengths_view[ rowIdx ] = value;
    };
@@ -89,7 +89,7 @@ Index
 TridiagonalMatrixView< Real, Device, Index, Organization >::getNonzeroElementsCount() const
 {
    const auto values_view = this->values.getConstView();
-   auto fetch = [ = ] __cuda_callable__( const IndexType i ) -> IndexType
+   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> IndexType
    {
       return ( values_view[ i ] != 0.0 );
    };
@@ -128,7 +128,7 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::setValue( const Real
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-TridiagonalMatrixView< Real, Device, Index, Organization >::getRow( const IndexType& rowIdx ) const -> const ConstRowView
+TridiagonalMatrixView< Real, Device, Index, Organization >::getRow( IndexType rowIdx ) const -> ConstRowView
 {
    return ConstRowView( rowIdx, this->values.getView(), this->indexer );
 }
@@ -136,7 +136,7 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::getRow( const IndexT
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-TridiagonalMatrixView< Real, Device, Index, Organization >::getRow( const IndexType& rowIdx ) -> RowView
+TridiagonalMatrixView< Real, Device, Index, Organization >::getRow( IndexType rowIdx ) -> RowView
 {
    return RowView( rowIdx, this->values.getView(), this->indexer );
 }
@@ -144,9 +144,7 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::getRow( const IndexT
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-TridiagonalMatrixView< Real, Device, Index, Organization >::setElement( const IndexType row,
-                                                                        const IndexType column,
-                                                                        const RealType& value )
+TridiagonalMatrixView< Real, Device, Index, Organization >::setElement( IndexType row, IndexType column, const RealType& value )
 {
    TNL_ASSERT_GE( row, 0, "" );
    TNL_ASSERT_LT( row, this->getRows(), "" );
@@ -167,8 +165,8 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::setElement( const In
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-TridiagonalMatrixView< Real, Device, Index, Organization >::addElement( const IndexType row,
-                                                                        const IndexType column,
+TridiagonalMatrixView< Real, Device, Index, Organization >::addElement( IndexType row,
+                                                                        IndexType column,
                                                                         const RealType& value,
                                                                         const RealType& thisElementMultiplicator )
 {
@@ -192,7 +190,7 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::addElement( const In
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 Real
-TridiagonalMatrixView< Real, Device, Index, Organization >::getElement( const IndexType row, const IndexType column ) const
+TridiagonalMatrixView< Real, Device, Index, Organization >::getElement( IndexType row, IndexType column ) const
 {
    TNL_ASSERT_GE( row, 0, "" );
    TNL_ASSERT_LT( row, this->getRows(), "" );
@@ -207,8 +205,8 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::getElement( const In
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-TridiagonalMatrixView< Real, Device, Index, Organization >::reduceRows( IndexType first,
-                                                                        IndexType last,
+TridiagonalMatrixView< Real, Device, Index, Organization >::reduceRows( IndexType begin,
+                                                                        IndexType end,
                                                                         Fetch& fetch,
                                                                         Reduce& reduce,
                                                                         Keep& keep,
@@ -242,14 +240,14 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::reduceRows( IndexTyp
          keep( rowIdx, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
       }
    };
-   Algorithms::ParallelFor< DeviceType >::exec( first, last, f );
+   Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-TridiagonalMatrixView< Real, Device, Index, Organization >::reduceRows( IndexType first,
-                                                                        IndexType last,
+TridiagonalMatrixView< Real, Device, Index, Organization >::reduceRows( IndexType begin,
+                                                                        IndexType end,
                                                                         Fetch& fetch,
                                                                         Reduce& reduce,
                                                                         Keep& keep,
@@ -283,7 +281,7 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::reduceRows( IndexTyp
          keep( rowIdx, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
       }
    };
-   Algorithms::ParallelFor< DeviceType >::exec( first, last, f );
+   Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -311,8 +309,8 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::reduceAllRows( Fetch
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-TridiagonalMatrixView< Real, Device, Index, Organization >::forElements( IndexType first,
-                                                                         IndexType last,
+TridiagonalMatrixView< Real, Device, Index, Organization >::forElements( IndexType begin,
+                                                                         IndexType end,
                                                                          Function& function ) const
 {
    const auto values_view = this->values.getConstView();
@@ -335,13 +333,13 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::forElements( IndexTy
       else
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
    };
-   Algorithms::ParallelFor< DeviceType >::exec( first, last, f );
+   Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-TridiagonalMatrixView< Real, Device, Index, Organization >::forElements( IndexType first, IndexType last, Function& function )
+TridiagonalMatrixView< Real, Device, Index, Organization >::forElements( IndexType begin, IndexType end, Function& function )
 {
    auto values_view = this->values.getView();
    const auto indexer = this->indexer;
@@ -363,7 +361,7 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::forElements( IndexTy
       else
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
    };
-   Algorithms::ParallelFor< DeviceType >::exec( first, last, f );
+   Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -388,7 +386,7 @@ void
 TridiagonalMatrixView< Real, Device, Index, Organization >::forRows( IndexType begin, IndexType end, Function&& function )
 {
    auto view = *this;
-   auto f = [ = ] __cuda_callable__( const IndexType rowIdx ) mutable
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
    {
       auto rowView = view.getRow( rowIdx );
       function( rowView );
@@ -402,7 +400,7 @@ void
 TridiagonalMatrixView< Real, Device, Index, Organization >::forRows( IndexType begin, IndexType end, Function&& function ) const
 {
    auto view = *this;
-   auto f = [ = ] __cuda_callable__( const IndexType rowIdx ) mutable
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
    {
       auto rowView = view.getRow( rowIdx );
       function( rowView );
@@ -680,7 +678,7 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::getIndexer() -> Inde
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 Index
-TridiagonalMatrixView< Real, Device, Index, Organization >::getElementIndex( const IndexType row, const IndexType column ) const
+TridiagonalMatrixView< Real, Device, Index, Organization >::getElementIndex( IndexType row, IndexType column ) const
 {
    IndexType localIdx = column - row + 1;
 
