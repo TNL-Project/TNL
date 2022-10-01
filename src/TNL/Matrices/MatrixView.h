@@ -26,7 +26,7 @@ namespace Matrices {
  * \tparam Index is a type for indexing of the matrix elements.
  */
 template< typename Real = double, typename Device = Devices::Host, typename Index = int >
-class MatrixView : public Object
+class MatrixView
 {
 public:
    using RowsCapacitiesType = Containers::Vector< Index, Device, Index >;
@@ -190,13 +190,32 @@ public:
    bool
    operator!=( const Matrix& matrix ) const;
 
+   /***
+    * \brief Virtual serialization type getter.
+    *
+    * Objects in TNL are saved as in a device independent manner. This method
+    * is supposed to return the object type but with the device type replaced
+    * by Devices::Host. For example \c Array< double, Devices::Cuda > is
+    * saved as \c Array< double, Devices::Host >.
+    */
+   virtual std::string
+   getSerializationTypeVirtual() const = 0;
+
    /**
     * \brief Method for saving the matrix view to a file.
     *
     * \param file is the output file.
     */
+   virtual void
+   save( File& file ) const;
+
+   /**
+    * \brief Method for saving the matrix view to a file.
+    *
+    * \param fileName String defining the name of a file.
+    */
    void
-   save( File& file ) const override;
+   save( const String& fileName ) const;
 
    /**
     * \brief Method for printing the matrix view to output stream.

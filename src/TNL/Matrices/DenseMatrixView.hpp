@@ -926,7 +926,7 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 void
 DenseMatrixView< Real, Device, Index, Organization >::save( const String& fileName ) const
 {
-   Object::save( fileName );
+   MatrixView< Real, Device, Index >::save( fileName );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

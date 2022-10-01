@@ -114,10 +114,20 @@ template< typename Real, typename Device, typename Index >
 void
 MatrixView< Real, Device, Index >::save( File& file ) const
 {
-   Object::save( file );
+   file.save( magic_number, strlen( magic_number ) );
+   file << this->getSerializationTypeVirtual();
    file.save( &this->rows );
    file.save( &this->columns );
    file << this->values;
+}
+
+template< typename Real, typename Device, typename Index >
+void
+MatrixView< Real, Device, Index >::save( const String& fileName ) const
+{
+   File file;
+   file.open( fileName, std::ios_base::out );
+   this->save( file );
 }
 
 template< typename Real, typename Device, typename Index >

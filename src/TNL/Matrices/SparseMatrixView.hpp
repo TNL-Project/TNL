@@ -896,7 +896,7 @@ template< typename Real,
 void
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::save( const String& fileName ) const
 {
-   Object::save( fileName );
+   MatrixView< Real, Device, Index >::save( fileName );
 }
 
 template< typename Real,

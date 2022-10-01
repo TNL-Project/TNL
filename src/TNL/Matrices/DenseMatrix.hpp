@@ -1031,7 +1031,7 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::save( const String& fileName ) const
 {
-   this->view.save( fileName );
+   Object::save( fileName );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
