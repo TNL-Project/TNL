@@ -67,7 +67,7 @@ public:
    /**
     * \brief Matrix view type for constant instances.
     */
-   using ConstViewType = MultidiagonalMatrixView< typename std::add_const< Real >::type, Device, Index, Organization >;
+   using ConstViewType = MultidiagonalMatrixView< std::add_const_t< Real >, Device, Index, Organization >;
 
    /**
     * \brief Type for accessing matrix rows.

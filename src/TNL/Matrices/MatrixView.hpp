@@ -23,8 +23,8 @@ MatrixView< Real, Device, Index >::MatrixView() : rows( 0 ), columns( 0 ) {}
 
 template< typename Real, typename Device, typename Index >
 __cuda_callable__
-MatrixView< Real, Device, Index >::MatrixView( const IndexType rows_, const IndexType columns_, ValuesView values_ )
-: rows( rows_ ), columns( columns_ ), values( std::move( values_ ) )
+MatrixView< Real, Device, Index >::MatrixView( IndexType rows, IndexType columns, ValuesView values )
+: rows( rows ), columns( columns ), values( std::move( values ) )
 {}
 
 template< typename Real, typename Device, typename Index >

@@ -57,7 +57,7 @@ struct ChooseSparseMatrixComputeReal< bool, Index >
  *         \ref Algorithms::Segments::ChunkedEllpack, and
  *         \ref Algorithms::Segments::BiEllpack.
  * \tparam ComputeReal is the same as \e Real mostly but for binary matrices it
- *         is set to \e Index type. This can be changed bu the user, of course.
+ *         is set to \e Index type. This can be changed by the user, of course.
  */
 template< typename Real,
           typename Device = Devices::Host,

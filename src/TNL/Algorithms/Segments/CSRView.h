@@ -28,7 +28,7 @@ public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
    using KernelType = Kernel;
-   using OffsetsView = typename Containers::VectorView< Index, DeviceType, IndexType >;
+   using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
    using ConstOffsetsView = typename OffsetsView::ConstViewType;
    using KernelView = typename Kernel::ViewType;
    using ViewType = CSRView;
@@ -69,7 +69,7 @@ public:
    getView();
 
    __cuda_callable__
-   const ConstViewType
+   ConstViewType
    getConstView() const;
 
    /**
