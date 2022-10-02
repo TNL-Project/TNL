@@ -223,8 +223,7 @@ public:
    ConstViewType
    getConstView() const
    {
-      // FIXME: remove const_cast
-      return { getRows(), getColumns(), getValues(), getColumnIndexes(), const_cast< HypreCSRMatrix* >( this )->getSegments() };
+      return { getRows(), getColumns(), getValues(), getColumnIndexes(), getSegments() };
    }
 
    ViewType

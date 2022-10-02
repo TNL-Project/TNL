@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <TNL/Matrices/Matrix.h>
 #include <TNL/Matrices/MatrixType.h>
 #include <TNL/Allocators/Default.h>
@@ -69,8 +71,9 @@ class SparseMatrixView : public MatrixView< Real, Device, Index >
 {
    static_assert(
       ! MatrixType::isSymmetric() || ! std::is_same< Device, Devices::Cuda >::value
-         || ( std::is_same< Real, float >::value || std::is_same< Real, double >::value || std::is_same< Real, int >::value
-              || std::is_same< Real, long long int >::value || std::is_same< Real, bool >::value ),
+         || ( std::is_same< std::decay_t< Real >, float >::value || std::is_same< std::decay_t< Real >, double >::value
+              || std::is_same< std::decay_t< Real >, int >::value || std::is_same< std::decay_t< Real >, long long int >::value
+              || std::is_same< std::decay_t< Real >, bool >::value ),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
 public:
@@ -103,7 +106,7 @@ public:
    static constexpr bool
    isBinary()
    {
-      return std::is_same< Real, bool >::value;
+      return std::is_same< std::decay_t< Real >, bool >::value;
    }
 
    /**
@@ -132,7 +135,9 @@ public:
    /**
     * \brief Type of segments view used by this matrix. It represents the sparse matrix format.
     */
-   using SegmentsViewType = SegmentsView< Device, Index >;
+   using SegmentsViewType = std::conditional_t< std::is_const< Real >::value,
+                                                typename SegmentsView< Device, Index >::ConstViewType,
+                                                SegmentsView< Device, Index > >;
 
    /**
     * \brief Type of related matrix view.

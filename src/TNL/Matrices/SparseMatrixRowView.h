@@ -45,7 +45,7 @@ public:
    static constexpr bool
    isBinary()
    {
-      return std::is_same< std::remove_const_t< RealType >, bool >::value;
+      return std::is_same< std::decay_t< RealType >, bool >::value;
    }
 
    /**

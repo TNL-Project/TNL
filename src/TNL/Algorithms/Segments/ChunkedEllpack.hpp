@@ -50,32 +50,32 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 typename ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ViewType
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getView()
 {
-   return ViewType( size,
-                    storageSize,
-                    chunksInSlice,
-                    desiredChunkSize,
-                    rowToChunkMapping.getView(),
-                    rowToSliceMapping.getView(),
-                    chunksToSegmentsMapping.getView(),
-                    rowPointers.getView(),
-                    slices.getView(),
-                    numberOfSlices );
+   return { size,
+            storageSize,
+            chunksInSlice,
+            desiredChunkSize,
+            rowToChunkMapping.getView(),
+            rowToSliceMapping.getView(),
+            chunksToSegmentsMapping.getView(),
+            rowPointers.getView(),
+            slices.getView(),
+            numberOfSlices };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
 auto
-ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getConstView() const -> const ConstViewType
+ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getConstView() const -> ConstViewType
 {
-   return ConstViewType( size,
-                         storageSize,
-                         chunksInSlice,
-                         desiredChunkSize,
-                         rowToChunkMapping.getConstView(),
-                         rowToSliceMapping.getConstView(),
-                         chunksToSegmentsMapping.getConstView(),
-                         rowPointers.getConstView(),
-                         slices.getConstView(),
-                         numberOfSlices );
+   return { size,
+            storageSize,
+            chunksInSlice,
+            desiredChunkSize,
+            rowToChunkMapping.getConstView(),
+            rowToSliceMapping.getConstView(),
+            chunksToSegmentsMapping.getConstView(),
+            rowPointers.getConstView(),
+            slices.getConstView(),
+            numberOfSlices };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >

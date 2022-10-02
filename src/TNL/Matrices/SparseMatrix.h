@@ -100,7 +100,7 @@ public:
    /**
     * \brief The type of matrix elements.
     */
-   using RealType = std::remove_const_t< Real >;
+   using RealType = Real;
 
    using ComputeRealType = ComputeReal;
 
@@ -330,7 +330,7 @@ public:
     * \return sparse matrix view.
     */
    ViewType
-   getView() const;  // TODO: remove const
+   getView();
 
    /**
     * \brief Returns a non-modifiable view of the sparse matrix.

@@ -31,18 +31,14 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 auto
 MultidiagonalMatrixView< Real, Device, Index, Organization >::getView() -> ViewType
 {
-   return ViewType( const_cast< MultidiagonalMatrixView* >( this )->values.getView(),
-                    const_cast< MultidiagonalMatrixView* >( this )->diagonalsOffsets.getView(),
-                    const_cast< MultidiagonalMatrixView* >( this )->hostDiagonalsOffsets.getView(),
-                    indexer );
+   return { this->getValues().getView(), diagonalsOffsets.getView(), hostDiagonalsOffsets.getView(), indexer };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 auto
 MultidiagonalMatrixView< Real, Device, Index, Organization >::getConstView() const -> ConstViewType
 {
-   return ConstViewType(
-      this->values.getConstView(), this->diagonalsOffsets.getConstView(), this->hostDiagonalsOffsets.getConstView(), indexer );
+   return { this->getValues.getConstView(), diagonalsOffsets.getConstView(), hostDiagonalsOffsets.getConstView(), indexer };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

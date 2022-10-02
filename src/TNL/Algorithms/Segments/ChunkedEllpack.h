@@ -68,7 +68,7 @@ public:
    ViewType
    getView();
 
-   const ConstViewType
+   ConstViewType
    getConstView() const;
 
    /**

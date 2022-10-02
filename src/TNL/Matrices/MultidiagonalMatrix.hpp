@@ -80,13 +80,21 @@ template< typename Real,
           typename RealAllocator,
           typename IndexAllocator >
 auto
-MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::getView() const -> ViewType
+MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::getView() -> ViewType
 {
-   // TODO: fix when getConstView works
-   return ViewType( const_cast< MultidiagonalMatrix* >( this )->values.getView(),
-                    const_cast< MultidiagonalMatrix* >( this )->diagonalsOffsets.getView(),
-                    const_cast< MultidiagonalMatrix* >( this )->hostDiagonalsOffsets.getView(),
-                    indexer );
+   return { this->getValues().getView(), diagonalsOffsets.getView(), hostDiagonalsOffsets.getView(), indexer };
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          ElementsOrganization Organization,
+          typename RealAllocator,
+          typename IndexAllocator >
+auto
+MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::getConstView() const -> ConstViewType
+{
+   return { this->getValues().getConstView(), diagonalsOffsets.getConstView(), hostDiagonalsOffsets.getConstView(), indexer };
 }
 
 template< typename Real,
@@ -851,7 +859,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
       this->values = matrix.getValues();
    else {
       if( std::is_same< Device, Device_ >::value ) {
-         const auto matrix_view = matrix.getView();
+         const auto matrix_view = matrix.getConstView();
          auto f = [ = ] __cuda_callable__(
                      const IndexType& rowIdx, const IndexType& localIdx, const IndexType& column, Real& value ) mutable
          {

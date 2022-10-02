@@ -153,14 +153,11 @@ template< typename Real,
           typename RealAllocator,
           typename IndexAllocator >
 auto
-SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::getView() const
-   -> ViewType
+SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::getView() -> ViewType
 {
-   return ViewType( this->getRows(),
-                    this->getColumns(),
-                    const_cast< SparseMatrix* >( this )->getValues().getView(),  // TODO: remove const_cast
-                    const_cast< SparseMatrix* >( this )->columnIndexes.getView(),
-                    const_cast< SparseMatrix* >( this )->segments.getView() );
+   return {
+      this->getRows(), this->getColumns(), this->getValues().getView(), getColumnIndexes().getView(), getSegments().getView()
+   };
 }
 
 template< typename Real,
@@ -176,11 +173,11 @@ auto
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::getConstView() const
    -> ConstViewType
 {
-   return ConstViewType( this->getRows(),
-                         this->getColumns(),
-                         this->getValues().getConstView(),
-                         this->columnIndexes.getConstView(),
-                         const_cast< SparseMatrix* >( this )->segments.getView() );
+   return { this->getRows(),
+            this->getColumns(),
+            this->getValues().getConstView(),
+            getColumnIndexes().getConstView(),
+            getSegments().getConstView() };
 }
 
 template< typename Real,
@@ -567,7 +564,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    IndexType begin,
    IndexType end ) const
 {
-   this->getView().vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, begin, end );
+   this->getConstView().vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, begin, end );
 }
 
 template< typename Real,

@@ -37,11 +37,11 @@ __cuda_callable__
 auto
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::getView() -> ViewType
 {
-   return ViewType( this->getRows(),
-                    this->getColumns(),
-                    this->getValues().getView(),
-                    this->columnIndexes.getView(),
-                    this->segments.getView() );
+   return { this->getRows(),
+            this->getColumns(),
+            this->getValues().getView(),
+            this->getColumnIndexes().getView(),
+            this->getSegments().getView() };
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -49,11 +49,11 @@ __cuda_callable__
 auto
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::getConstView() const -> ConstViewType
 {
-   return ConstViewType( this->getRows(),
-                         this->getColumns(),
-                         this->getValues().getConstView(),
-                         this->getColumnsIndexes().getConstView(),
-                         this->segments.getConstView() );
+   return { this->getRows(),
+            this->getColumns(),
+            this->getValues().getConstView(),
+            this->getColumnsIndexes().getConstView(),
+            this->getSegments().getConstView() };
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -832,7 +832,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::print( std::ostream&
             const IndexType column = this->columnIndexes.getElement( globalIdx );
             if( column == this->getPaddingIndex() )
                break;
-            RealType value;
+            std::decay_t< RealType > value;
             if( isBinary() )
                value = (RealType) 1.0;
             else

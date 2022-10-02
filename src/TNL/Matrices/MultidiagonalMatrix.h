@@ -250,7 +250,7 @@ public:
     * \return multidiagonal matrix view.
     */
    ViewType
-   getView() const;  // TODO: remove const
+   getView();
 
    /**
     * \brief Returns a non-modifiable view of the multidiagonal matrix.

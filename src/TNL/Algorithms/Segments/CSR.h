@@ -229,7 +229,7 @@ public:
     * \return View for this instance of CSR segments which can by used for
     * example in lambda functions running in GPU kernels.
     */
-   const ConstViewType
+   ConstViewType
    getConstView() const;
 
    /**

@@ -51,14 +51,14 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 typename BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::ViewType
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getView()
 {
-   return ViewType( size, storageSize, virtualRows, rowPermArray.getView(), groupPointers.getView() );
+   return { size, storageSize, virtualRows, rowPermArray.getView(), groupPointers.getView() };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 auto
-BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getConstView() const -> const ConstViewType
+BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getConstView() const -> ConstViewType
 {
-   return ConstViewType( size, storageSize, virtualRows, rowPermArray.getConstView(), groupPointers.getConstView() );
+   return { size, storageSize, virtualRows, rowPermArray.getConstView(), groupPointers.getConstView() };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >

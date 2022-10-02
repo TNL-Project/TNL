@@ -67,14 +67,14 @@ template< typename Device, typename Index, typename Kernel, typename IndexAlloca
 typename CSR< Device, Index, Kernel, IndexAllocator >::ViewType
 CSR< Device, Index, Kernel, IndexAllocator >::getView()
 {
-   return ViewType( this->offsets.getView(), this->kernel.getView() );
+   return { this->offsets.getView(), this->kernel.getView() };
 }
 
 template< typename Device, typename Index, typename Kernel, typename IndexAllocator >
 auto
-CSR< Device, Index, Kernel, IndexAllocator >::getConstView() const -> const ConstViewType
+CSR< Device, Index, Kernel, IndexAllocator >::getConstView() const -> ConstViewType
 {
-   return ConstViewType( this->offsets.getConstView(), this->kernel.getConstView() );
+   return { this->offsets.getConstView(), this->kernel.getConstView() };
 }
 
 template< typename Device, typename Index, typename Kernel, typename IndexAllocator >

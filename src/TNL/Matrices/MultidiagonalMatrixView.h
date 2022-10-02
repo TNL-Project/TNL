@@ -41,8 +41,10 @@ public:
    using BaseType = MatrixView< Real, Device, Index >;
    using ValuesViewType = typename BaseType::ValuesView;
    using IndexerType = details::MultidiagonalMatrixIndexer< Index, Organization == Algorithms::Segments::RowMajorOrder >;
-   using DiagonalsOffsetsView = Containers::VectorView< Index, Device, Index >;
-   using HostDiagonalsOffsetsView = Containers::VectorView< Index, Devices::Host, Index >;
+   using DiagonalsOffsetsView = Containers::
+      VectorView< std::conditional_t< std::is_const< Real >::value, std::add_const_t< Index >, Index >, Device, Index >;
+   using HostDiagonalsOffsetsView = Containers::
+      VectorView< std::conditional_t< std::is_const< Real >::value, std::add_const_t< Index >, Index >, Devices::Host, Index >;
 
    /**
     * \brief The type of matrix elements.

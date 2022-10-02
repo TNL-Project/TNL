@@ -29,6 +29,13 @@ CSRView< Device, Index, Kernel >::CSRView( OffsetsView&& offsets, KernelView&& k
 {}
 
 template< typename Device, typename Index, typename Kernel >
+template< typename Index2 >
+__cuda_callable__
+CSRView< Device, Index, Kernel >::CSRView( const CSRView< Device, Index2, Kernel >& csr_view )
+: offsets( csr_view.getOffsets() ), kernel( csr_view.getKernel() )
+{}
+
+template< typename Device, typename Index, typename Kernel >
 std::string
 CSRView< Device, Index, Kernel >::getSerializationType()
 {
@@ -49,7 +56,7 @@ __cuda_callable__
 typename CSRView< Device, Index, Kernel >::ViewType
 CSRView< Device, Index, Kernel >::getView()
 {
-   return ViewType( this->offsets, this->kernel );
+   return { this->offsets, this->kernel };
 }
 
 template< typename Device, typename Index, typename Kernel >
@@ -57,7 +64,7 @@ __cuda_callable__
 auto
 CSRView< Device, Index, Kernel >::getConstView() const -> ConstViewType
 {
-   return ConstViewType( this->offsets.getConstView(), this->kernel.getConstView() );
+   return { this->offsets.getConstView(), this->kernel.getConstView() };
 }
 
 template< typename Device, typename Index, typename Kernel >

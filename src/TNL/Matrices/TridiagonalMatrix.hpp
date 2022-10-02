@@ -35,10 +35,16 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::Tridiagon
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 auto
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getView() const -> ViewType
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getView() -> ViewType
 {
-   // TODO: fix when getConstView works
-   return ViewType( const_cast< TridiagonalMatrix* >( this )->values.getView(), indexer );
+   return { this->getValues().getView(), indexer };
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+auto
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getConstView() const -> ConstViewType
+{
+   return { this->getValues().getConstView(), indexer };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -400,7 +406,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::addMatrix
    const RealType& matrixMultiplicator,
    const RealType& thisMatrixMultiplicator )
 {
-   this->view.addMatrix( matrix.getView(), matrixMultiplicator, thisMatrixMultiplicator );
+   this->view.addMatrix( matrix.getConstView(), matrixMultiplicator, thisMatrixMultiplicator );
 }
 
 #ifdef HAVE_CUDA
@@ -490,7 +496,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::operator=
       this->values = matrix.getValues();
    else {
       if( std::is_same< Device, Device_ >::value ) {
-         const auto matrix_view = matrix.getView();
+         const auto matrix_view = matrix.getConstView();
          auto f = [ = ] __cuda_callable__(
                      const IndexType& rowIdx, const IndexType& localIdx, const IndexType& column, Real& value ) mutable
          {

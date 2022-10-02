@@ -27,14 +27,14 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 auto
 TridiagonalMatrixView< Real, Device, Index, Organization >::getView() -> ViewType
 {
-   return ViewType( this->values.getView(), indexer );
+   return { this->getValues().getView(), indexer };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 auto
 TridiagonalMatrixView< Real, Device, Index, Organization >::getConstView() const -> ConstViewType
 {
-   return ConstViewType( this->values.getConstView(), indexer );
+   return { this->getValues().getConstView(), indexer };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

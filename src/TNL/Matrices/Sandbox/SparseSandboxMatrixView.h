@@ -84,13 +84,13 @@ public:
    static constexpr bool
    isBinary()
    {
-      return std::is_same< Real, bool >::value;
+      return std::is_same< std::decay_t< Real >, bool >::value;
    }
 
    /**
     * \brief The type of matrix elements.
     */
-   using RealType = std::remove_const_t< Real >;
+   using RealType = Real;
 
    // using ComputeRealType = ComputeReal;
 
@@ -146,7 +146,10 @@ public:
     *
     * SANDBOX_TODO: You may replace it with containers views for metadata of your format.
     */
-   using RowPointersView = TNL::Containers::VectorView< IndexType, DeviceType, IndexType >;
+   using RowPointersView =
+      TNL::Containers::VectorView< std::conditional_t< std::is_const< Real >::value, std::add_const_t< IndexType >, IndexType >,
+                                   DeviceType,
+                                   IndexType >;
 
    /**
     * \brief Constructor with no parameters.

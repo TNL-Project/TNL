@@ -197,15 +197,15 @@ __cuda_callable__
 typename EllpackView< Device, Index, Organization, Alignment >::ViewType
 EllpackView< Device, Index, Organization, Alignment >::getView()
 {
-   return ViewType( segmentsCount, segmentSize, alignedSize );
+   return { segmentsCount, segmentSize, alignedSize };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 __cuda_callable__
 auto
-EllpackView< Device, Index, Organization, Alignment >::getConstView() const -> const ConstViewType
+EllpackView< Device, Index, Organization, Alignment >::getConstView() const -> ConstViewType
 {
-   return ConstViewType( segmentsCount, segmentSize, alignedSize );
+   return { segmentsCount, segmentSize, alignedSize };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
