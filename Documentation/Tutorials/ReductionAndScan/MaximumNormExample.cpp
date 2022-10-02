@@ -12,7 +12,7 @@ double maximumNorm( const Vector< double, Device >& v )
 {
    auto view = v.getConstView();
    auto fetch = [=] __cuda_callable__ ( int i ) { return abs( view[ i ] ); };
-   auto reduction = [] __cuda_callable__ ( const double& a, const double& b ) { return max( a, b ); };
+   auto reduction = [] __cuda_callable__ ( const double& a, const double& b ) { return TNL::max( a, b ); };
    return reduce< Device >( 0, view.getSize(), fetch, reduction, 0.0 );
 }
 

@@ -211,15 +211,16 @@ class NdGrid {
          dimensionsProducts = getDimensionProducts(dimensions);
          traverseRectDimensionsProducts = getDimensionProducts(traverseRectDimensions);
 
+         auto& grid = *this;
          auto outerFunction = [=] __cuda_callable__(Index offset,
                                                     const Container<Dimension, Index>& traverseRectOrigin,
                                                     const Container<Dimension, Index>& traverseRectDimensions,
                                                     const Container<Dimension, Index>& traverseRectDimensionsProducts,
                                                     const Container<Dimension, Index>& dimensionsProducts,
                                                     FunctionArgs... args) mutable {
-            auto entity = this -> makeEntitity(offset,
-                                               traverseRectOrigin, traverseRectDimensions,
-                                               traverseRectDimensionsProducts, dimensionsProducts);
+            auto entity = grid.makeEntitity(offset,
+                                            traverseRectOrigin, traverseRectDimensions,
+                                            traverseRectDimensionsProducts, dimensionsProducts);
 
             function(entity, args...);
          };
