@@ -293,6 +293,11 @@ if( TNL_USE_CUDA )
       set( CMAKE_CUDA_FLAGS_DEBUG "-g" )
       set( CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG" )
       set( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELEASE} ${CMAKE_CUDA_FLAGS_DEBUG} --generate-line-info" )
+
+      # disable some unimportant warnings
+      if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
+         set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-unused-local-typedefs -Wno-unknown-pragmas" )
+      endif()
    endif()
    set( CMAKE_EXECUTABLE_SUFFIX "${executable_suffix_backup}" )
    unset( executable_suffix_backup )
