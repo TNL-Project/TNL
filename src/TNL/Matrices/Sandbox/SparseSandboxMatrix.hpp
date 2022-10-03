@@ -295,7 +295,7 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 __cuda_callable__
 auto
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getRow( const IndexType& rowIdx ) const
-   -> const ConstRowView
+   -> ConstRowView
 {
    return this->view.getRow( rowIdx );
 }

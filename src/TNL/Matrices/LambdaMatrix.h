@@ -253,7 +253,7 @@ public:
     * See \ref LambdaMatrixRowView.
     */
    __cuda_callable__
-   RowView
+   ConstRowView
    getRow( IndexType rowIdx ) const;
 
    /**

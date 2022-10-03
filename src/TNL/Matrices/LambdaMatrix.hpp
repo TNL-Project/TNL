@@ -145,7 +145,7 @@ template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, ty
 __cuda_callable__
 auto
 LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::getRow( IndexType rowIdx ) const
-   -> RowView
+   -> ConstRowView
 {
    return RowView(
       this->getMatrixElementsLambda(), this->getCompressedRowLengthsLambda(), this->getRows(), this->getColumns(), rowIdx );

@@ -169,7 +169,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setValue( const
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 __cuda_callable__
 auto
-DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( const IndexType& rowIdx ) const -> RowView
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( const IndexType& rowIdx ) const -> ConstRowView
 {
    return this->view.getRow( rowIdx );
 }

@@ -86,12 +86,12 @@ public:
    /**
     * \brief Type of sparse matrix row view.
     */
-   using RowView = SparseMatrixRowView< SegmentView, ValuesViewType, ColumnsIndexesViewType >;
+   using RowView = SparseMatrixRowView< SegmentViewType, ValuesViewType, ColumnsIndexesViewType >;
 
    /**
     * \brief Type of constant sparse matrix row view.
     */
-   using ConstView = SparseMatrixRowView< SegmentView, ConstValuesViewType, ConstColumnsIndexesViewType >;
+   using ConstRowView = SparseMatrixRowView< SegmentViewType, ConstValuesViewType, ConstColumnsIndexesViewType >;
 
    /**
     * \brief The type of related matrix element.

@@ -587,7 +587,7 @@ public:
     * See \ref SparseMatrixRowView.
     */
    __cuda_callable__
-   const ConstRowView
+   ConstRowView
    getRow( const IndexType& rowIdx ) const;
 
    /**

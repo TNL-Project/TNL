@@ -106,6 +106,11 @@ public:
    using RowView = DenseMatrixRowView< SegmentViewType, ValuesViewType >;
 
    /**
+    * \brief Type for accessing immutable matrix row.
+    */
+   using ConstRowView = typename RowView::ConstRowView;
+
+   /**
     * \brief Helper type for getting self type or its modifications.
     */
    template< typename _Real = Real, typename _Device = Device, typename _Index = Index >
@@ -269,7 +274,7 @@ public:
     * See \ref DenseMatrixRowView.
     */
    __cuda_callable__
-   RowView
+   ConstRowView
    getRow( IndexType rowIdx ) const;
 
    /**

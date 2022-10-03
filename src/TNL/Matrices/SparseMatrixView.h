@@ -157,8 +157,7 @@ public:
    /**
     * \brief Type for accessing constant matrix rows.
     */
-   using ConstRowView =
-      SparseMatrixRowView< typename SegmentsViewType::SegmentViewType, ConstValuesViewType, ConstColumnsIndexesViewType >;
+   using ConstRowView = typename RowView::ConstRowView;
 
    /**
     * \brief Helper type for getting self type or its modifications.

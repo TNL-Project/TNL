@@ -138,7 +138,7 @@ public:
    /**
     * \brief Type for accessing constant matrix rows.
     */
-   using ConstRowView = typename ViewType::ConstViewType;
+   using ConstRowView = typename ViewType::ConstRowView;
 
    /**
     * \brief Helper type for getting self type or its modifications.

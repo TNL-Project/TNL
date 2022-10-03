@@ -325,7 +325,7 @@ DenseMatrixView< Real, Device, Index, Organization >::setValue( const Real& valu
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-DenseMatrixView< Real, Device, Index, Organization >::getRow( IndexType rowIdx ) const -> RowView
+DenseMatrixView< Real, Device, Index, Organization >::getRow( IndexType rowIdx ) const -> ConstRowView
 {
    TNL_ASSERT_LT( rowIdx, this->getRows(), "Row index is larger than number of matrix rows." );
    return RowView( this->segments.getSegmentView( rowIdx ), this->values.getConstView() );
