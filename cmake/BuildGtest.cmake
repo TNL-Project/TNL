@@ -28,7 +28,7 @@ set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
 # Add googletest directly to our build. This defines
 # the gtest and gtest_main targets.
 add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
-                ${CMAKE_BINARY_DIR}/googletest-build)
+                 ${CMAKE_BINARY_DIR}/googletest-build)
 
 # The gtest/gtest_main targets carry header search path
 # dependencies automatically when using CMake 2.8.11 or
