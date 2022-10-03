@@ -522,6 +522,7 @@ CSRLightKernel< Index, Device >::reset()
 }
 
 template< typename Index, typename Device >
+__cuda_callable__
 auto
 CSRLightKernel< Index, Device >::getView() -> ViewType
 {
@@ -536,6 +537,7 @@ CSRLightKernel< Index, Device >::getKernelType()
 }
 
 template< typename Index, typename Device >
+__cuda_callable__
 auto
 CSRLightKernel< Index, Device >::getConstView() const -> ConstViewType
 {

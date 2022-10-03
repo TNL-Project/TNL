@@ -95,7 +95,7 @@ public:
     * \brief Constructor with no parameters.
     */
    __cuda_callable__
-   MultidiagonalMatrixView();
+   MultidiagonalMatrixView() = default;
 
    /**
     * \brief Constructor with all necessary data and views.

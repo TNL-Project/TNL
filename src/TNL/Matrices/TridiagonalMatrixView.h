@@ -89,7 +89,7 @@ public:
     * \brief Constructor with no parameters.
     */
    __cuda_callable__
-   TridiagonalMatrixView();
+   TridiagonalMatrixView() = default;
 
    /**
     * \brief Constructor with all necessary data and views.

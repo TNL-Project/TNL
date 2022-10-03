@@ -586,6 +586,7 @@ Grid< Dimension, Real, Device, Index >::getEntity( const CoordinatesType& coordi
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< typename EntityType_ >
+__cuda_callable__
 EntityType_
 Grid< Dimension, Real, Device, Index >::getEntity( IndexType entityIdx ) const
 {
@@ -596,6 +597,7 @@ Grid< Dimension, Real, Device, Index >::getEntity( IndexType entityIdx ) const
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension >
+__cuda_callable__
 auto
 Grid< Dimension, Real, Device, Index >::getEntity( IndexType entityIdx ) const -> EntityType< EntityDimension >
 {

@@ -15,9 +15,7 @@ namespace TNL {
 namespace Matrices {
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-MultidiagonalMatrixView< Real, Device, Index, Organization >::MultidiagonalMatrixView() = default;
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
 MultidiagonalMatrixView< Real, Device, Index, Organization >::MultidiagonalMatrixView(
    const ValuesViewType& values,
    const DiagonalsOffsetsView& diagonalsOffsets,

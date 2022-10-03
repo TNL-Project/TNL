@@ -15,9 +15,7 @@ namespace TNL {
 namespace Matrices {
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-TridiagonalMatrixView< Real, Device, Index, Organization >::TridiagonalMatrixView() = default;
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
 TridiagonalMatrixView< Real, Device, Index, Organization >::TridiagonalMatrixView( const ValuesViewType& values,
                                                                                    const IndexerType& indexer )
 : MatrixView< Real, Device, Index >( indexer.getRows(), indexer.getColumns(), values ), indexer( indexer )

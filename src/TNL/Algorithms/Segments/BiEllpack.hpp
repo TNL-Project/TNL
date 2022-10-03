@@ -62,6 +62,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getConstView
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
+__cuda_callable__
 auto
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getSegmentsCount() const -> IndexType
 {

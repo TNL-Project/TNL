@@ -248,6 +248,7 @@ CSRAdaptiveKernelView< Index, Device >::setBlocks( BlocksType& blocks, const int
 }
 
 template< typename Index, typename Device >
+__cuda_callable__
 auto
 CSRAdaptiveKernelView< Index, Device >::getView() -> ViewType
 {
@@ -255,6 +256,7 @@ CSRAdaptiveKernelView< Index, Device >::getView() -> ViewType
 }
 
 template< typename Index, typename Device >
+__cuda_callable__
 auto
 CSRAdaptiveKernelView< Index, Device >::getConstView() const -> ConstViewType
 {

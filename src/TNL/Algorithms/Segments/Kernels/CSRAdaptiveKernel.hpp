@@ -59,6 +59,7 @@ CSRAdaptiveKernel< Index, Device >::reset()
 }
 
 template< typename Index, typename Device >
+__cuda_callable__
 auto
 CSRAdaptiveKernel< Index, Device >::getView() -> ViewType
 {
@@ -66,6 +67,7 @@ CSRAdaptiveKernel< Index, Device >::getView() -> ViewType
 }
 
 template< typename Index, typename Device >
+__cuda_callable__
 auto
 CSRAdaptiveKernel< Index, Device >::getConstView() const -> ConstViewType
 {

@@ -8,6 +8,8 @@
 
 #include <limits>
 
+#include <TNL/Solvers/ODE/StaticExplicitSolver.h>
+
 namespace TNL {
 namespace Solvers {
 namespace ODE {
@@ -95,7 +97,8 @@ StaticExplicitSolver< Real, Index >::setStopTime( const RealType& stopTime )
 }
 
 template< typename Real, typename Index >
-bool __cuda_callable__
+__cuda_callable__
+bool
 StaticExplicitSolver< Real, Index >::checkNextIteration()
 {
    if( std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
@@ -107,6 +110,7 @@ StaticExplicitSolver< Real, Index >::checkNextIteration()
 }
 
 template< typename Real, typename Index >
+__cuda_callable__
 void
 StaticExplicitSolver< Real, Index >::setTestingMode( bool testingMode )
 {
