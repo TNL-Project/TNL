@@ -141,7 +141,7 @@ CSRAdaptiveKernelParameters< SizeOfValue, StreamedSharedMemory_ >::getSizeValueL
    if( i <= 32 )
       return 5;
    return 6;
-};
+}
 
 }  // namespace detail
 }  // namespace Segments

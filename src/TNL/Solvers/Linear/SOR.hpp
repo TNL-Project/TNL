@@ -96,7 +96,7 @@ SOR< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
    }
    this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
    return this->checkConvergence();
-};
+}
 
 template< typename Matrix >
 void

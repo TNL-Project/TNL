@@ -94,7 +94,7 @@ auto
 CSRVectorKernel< Index, Device >::getConstView() const -> ConstViewType
 {
    return *this;
-};
+}
 
 template< typename Index, typename Device >
 TNL::String

@@ -592,7 +592,7 @@ Grid< Dimension, Real, Device, Index >::getEntity( IndexType entityIdx ) const
    static_assert( EntityType_::getEntityDimension() <= getMeshDimension(),
                   "Entity dimension must be lower or equal to grid dimension." );
    return EntityType_( *this, entityIdx );
-};
+}
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension >
@@ -601,7 +601,7 @@ Grid< Dimension, Real, Device, Index >::getEntity( IndexType entityIdx ) const -
 {
    static_assert( EntityDimension <= getMeshDimension(), "Entity dimension must be lower or equal to grid dimension." );
    return EntityType< EntityDimension >( *this, entityIdx );
-};
+}
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void

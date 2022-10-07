@@ -274,7 +274,7 @@ TEST( MeshOrderingTest, OrderingOnHost )
 
    mesh.template reorderEntities< 1 >( edgePermutation, edgeInversePermutation );
    testMesh( mesh, vertexInversePermutation, edgeInversePermutation, cellInversePermutation );
-};
+}
 
 #ifdef HAVE_CUDA
 TEST( MeshOrderingTest, OrderingOnCuda )

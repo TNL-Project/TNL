@@ -254,7 +254,7 @@ const Grid&
 GridEntity< Grid, EntityDimension >::getGrid() const
 {
    return this->grid;
-};
+}
 
 template< class Grid, int EntityDimension >
 std::ostream&
