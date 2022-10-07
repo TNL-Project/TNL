@@ -90,6 +90,14 @@ if( TNL_USE_CI_FLAGS )
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=uninitialized" )
 endif()
 
+# warn about redundant semicolons
+if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra-semi" )
+   if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
+      set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra-semi -Wextra-semi-stmt" )
+   endif()
+endif()
+
 # set additional Debug/Release options using generator expressions
 # (that way we can exclude some options for specific targets, see https://stackoverflow.com/a/59734798 for details)
 if( CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15.0 )
