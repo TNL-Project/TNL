@@ -41,6 +41,7 @@
 
 #ifndef _INIPARSER_H
 #define _INIPARSER_H
+// NOLINTBEGIN
 
 /*---------------------------------------------------------------------------------------------------------------/
 / Includes
@@ -1505,4 +1506,5 @@ static inline std::istream& operator>> (std::istream& stream, INI::File& file)
 #undef SYSTEM_PATH_DELIM
 // Note: error definitions are left
 
+// NOLINTEND
 #endif

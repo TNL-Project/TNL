@@ -5,6 +5,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 /////////////////////////////////////////////////////////////////////
 #pragma once
+// NOLINTBEGIN
+
 #include "utility.h"
 #include <array>
 #include <atomic>
@@ -409,7 +411,7 @@ private:       // internal data structures
       }
     }
   }
- 
+
   using L1container = nestedcontainer<basecontainer, L1Mask>;
   using L2container = nestedcontainer<L1container, L2Mask>;
   nestedcontainer<L2container, L3Mask> container;
@@ -427,3 +429,5 @@ private:       // internal data structures
   alignas(cacheline_alignment) char cacheline_padding6[cacheline_size];
 };
 } // namespace async
+
+// NOLINTEND

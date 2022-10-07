@@ -5,6 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 /////////////////////////////////////////////////////////////////////
 #pragma once
+// NOLINTBEGIN
 
 #if ((defined(__clang__) || defined(__GNUC__)) && __cplusplus < 201103L) ||    \
     (defined(_MSC_VER) && _MSC_VER < 1800)
@@ -64,3 +65,5 @@ std::unique_ptr<T> make_unique(Args &&... args) {
 #else
 #error This library needs at least a C++11 compliant compiler
 #endif
+
+// NOLINTEND
