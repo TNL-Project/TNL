@@ -158,6 +158,34 @@ public:
       return result;
    }
 
+   template< typename BeginsHolder, typename EndsHolder >
+   __cuda_callable__
+   bool
+   isContiguousBlock( const BeginsHolder& begins, const EndsHolder& ends )
+   {
+      static_assert( BeginsHolder::getDimension() == getDimension(), "invalid dimension of the begins parameter" );
+      static_assert( EndsHolder::getDimension() == getDimension(), "invalid dimension of the ends parameter" );
+
+      bool check = false;
+      bool contiguous = true;
+
+      Algorithms::staticFor< std::size_t, 0, getDimension() >(
+         [ & ]( auto i )
+         {
+            constexpr int dim = TNL::Containers::detail::get< i >( Permutation{} );
+            const auto size = getSize< dim >();
+            const auto blockSize = ends.template getSize< dim >() - begins.template getSize< dim >();
+            // blockSize can be different from size only in the first dimension,
+            // then the sizes must match in all following dimensions
+            if( check && blockSize != size )
+               contiguous = false;
+            if( blockSize > 1 )
+               check = true;
+         } );
+
+      return contiguous;
+   }
+
 protected:
    /**
     * \brief Returns a non-constant reference to the underlying \ref sizes.

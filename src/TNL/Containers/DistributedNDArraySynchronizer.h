@@ -122,10 +122,7 @@ operator-=( SyncDirection& a, SyncDirection b )
  *
  * \ingroup ndarray
  */
-template< typename DistributedNDArray,
-          // This can be set to false to optimize out buffering when it is not needed
-          // (e.g. for LBM with 1D distribution and specific orientation of the ndarray)
-          bool buffered = true >
+template< typename DistributedNDArray >
 class DistributedNDArraySynchronizer
 {
 private:
@@ -141,6 +138,8 @@ private:
    async::threadpool tp;
 
    int gpu_id = 0;
+   cudaStream_t stream_id_left = 0;
+   cudaStream_t stream_id_right = 0;
 
    int tag_offset = 0;
 
@@ -157,8 +156,16 @@ private:
       return offset += count;
    }
 
+   using DistributedNDArrayView = typename DistributedNDArray::ViewType;
+   using Buffers = detail::SynchronizerBuffers< DistributedNDArray >;
+
+   DistributedNDArrayView array_view;
+   SyncDirection mask = SyncDirection::All;
+   Buffers buffers;
+
 public:
    using RequestsVector = std::vector< MPI_Request >;
+   RequestsVector requests;
 
    enum class AsyncPolicy
    {
@@ -201,7 +208,7 @@ public:
    {
       auto& dim_buffers = buffers.template getDimBuffers< dim >();
 
-      constexpr std::size_t overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
+      constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
       if( overlap == 0 ) {
          dim_buffers.reset();
          return;
@@ -212,21 +219,23 @@ public:
       const LocalBegins& localBegins = array_view.getLocalBegins();
       const SizesHolder& localEnds = array_view.getLocalEnds();
 
-      // offsets for left-send
-      dim_buffers.left_send_offsets = localBegins;
-      dim_buffers.left_send_offsets.template setSize< dim >( localBegins.template getSize< dim >() - shift );
+      // offsets for left-send (local indexing for the local array)
+      dim_buffers.left_send_offsets = LocalBegins{};
+      dim_buffers.left_send_offsets.template setSize< dim >( -shift );
 
-      // offsets for left-receive
-      dim_buffers.left_recv_offsets = localBegins;
-      dim_buffers.left_recv_offsets.template setSize< dim >( localBegins.template getSize< dim >() - overlap + shift );
+      // offsets for left-receive (local indexing for the local array)
+      dim_buffers.left_recv_offsets = LocalBegins{};
+      dim_buffers.left_recv_offsets.template setSize< dim >( -overlap + shift );
 
-      // offsets for right-send
-      dim_buffers.right_send_offsets = localBegins;
-      dim_buffers.right_send_offsets.template setSize< dim >( localEnds.template getSize< dim >() - overlap + shift );
+      // offsets for right-send (local indexing for the local array)
+      dim_buffers.right_send_offsets = LocalBegins{};
+      dim_buffers.right_send_offsets.template setSize< dim >( localEnds.template getSize< dim >()
+                                                              - localBegins.template getSize< dim >() - overlap + shift );
 
-      // offsets for right-receive
-      dim_buffers.right_recv_offsets = localBegins;
-      dim_buffers.right_recv_offsets.template setSize< dim >( localEnds.template getSize< dim >() - shift );
+      // offsets for right-receive (local indexing for the local array)
+      dim_buffers.right_recv_offsets = LocalBegins{};
+      dim_buffers.right_recv_offsets.template setSize< dim >( localEnds.template getSize< dim >()
+                                                              - localBegins.template getSize< dim >() - shift );
    }
 
    template< std::size_t dim >
@@ -239,15 +248,22 @@ public:
    }
 
    void
+   setCudaStreams( cudaStream_t stream_id_left, cudaStream_t stream_id_right )
+   {
+      this->stream_id_left = stream_id_left;
+      this->stream_id_right = stream_id_right;
+   }
+
+   void
    synchronize( DistributedNDArray& array )
    {
       synchronizeAsync( array, AsyncPolicy::synchronous );
    }
 
-   // This method is not thread-safe - only the thread which created and "owns" the
-   // instance of this object can call this method.
-   // Also note that if (buffered == true), this method must not be called again until
-   // the previous asynchronous operation has finished.
+   // This method is not thread-safe - only the thread which created and "owns"
+   // the instance of this object can call this method.
+   // Also note that this method must not be called again until the previous
+   // asynchronous operation has finished.
    void
    synchronizeAsync( DistributedNDArray& array,
                      AsyncPolicy policy = AsyncPolicy::synchronous,
@@ -259,45 +275,28 @@ public:
 
       async_start_timer.start();
 
-// GOTCHA: https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
-#ifdef HAVE_CUDA
-      if( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
-         cudaGetDevice( &this->gpu_id );
-#endif
+      // stage 0: set inputs, allocate buffers
+      stage_0( array, mask );
 
-      // skip allocation on repeated calls - compare only sizes, not the actual data
-      if( array_view.getCommunicator() != array.getCommunicator() || array_view.getSizes() != array.getSizes()
-          || array_view.getLocalBegins() != array.getLocalBegins() || array_view.getLocalEnds() != array.getLocalEnds() )
-      {
-         array_view.bind( array.getView() );
-         this->mask = mask;
-
-         // allocate buffers
-         Algorithms::staticFor< std::size_t, 0, DistributedNDArray::getDimension() >(
-            [ & ]( auto dim )
-            {
-               allocateHelper< dim >( buffers, array_view );
-            } );
-      }
-      else {
-         // only bind to the actual data
-         array_view.bind( array.getView() );
-         this->mask = mask;
-      }
-
+      // everything offloaded to a separate thread
       if( policy == AsyncPolicy::threadpool || policy == AsyncPolicy::async ) {
-         // everything offloaded to a separate thread
          auto worker = [ this ]()
          {
-// GOTCHA: https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
 #ifdef HAVE_CUDA
+            // set the GPU id, see this gotcha:
+            // GOTCHA: https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
             if( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
                cudaSetDevice( this->gpu_id );
 #endif
 
-            auto requests = this->worker_init();
-            MPI::Waitall( requests.data(), requests.size() );
-            this->worker_finish();
+            // stage 1: fill send buffers
+            this->stage_1();
+            // stage 2: issue all send and receive async operations
+            this->stage_2();
+            // stage 3: copy data from receive buffers
+            this->stage_3();
+            // stage 4: ensure everything has finished
+            this->stage_4();
          };
 
          if( policy == AsyncPolicy::threadpool )
@@ -305,21 +304,31 @@ public:
          else
             async_op = std::async( std::launch::async, worker );
       }
+      // immediate start, deferred synchronization (but still in the same thread)
       else if( policy == AsyncPolicy::deferred ) {
-         // immediate start, deferred synchronization (but still in the same thread)
-         auto requests = worker_init();
-         auto worker = [ this, requests ]() mutable
+         // stage 1: fill send buffers
+         this->stage_1();
+         // stage 2: issue all send and receive async operations
+         this->stage_2();
+         auto worker = [ this ]() mutable
          {
-            MPI::Waitall( requests.data(), requests.size() );
-            this->worker_finish();
+            // stage 3: copy data from receive buffers
+            this->stage_3();
+            // stage 4: ensure everything has finished
+            this->stage_4();
          };
          this->async_op = std::async( std::launch::deferred, worker );
       }
+      // synchronous
       else {
-         // synchronous
-         auto requests = this->worker_init();
-         MPI::Waitall( requests.data(), requests.size() );
-         this->worker_finish();
+         // stage 1: fill send buffers
+         this->stage_1();
+         // stage 2: issue all send and receive async operations
+         this->stage_2();
+         // stage 3: copy data from receive buffers
+         this->stage_3();
+         // stage 4: ensure everything has finished
+         this->stage_4();
       }
 
       async_ops_count++;
@@ -352,23 +361,61 @@ public:
    Timer async_start_timer, async_wait_timer;
    std::size_t async_ops_count = 0;
 
-protected:
-   using DistributedNDArrayView = typename DistributedNDArray::ViewType;
-   using Buffers = detail::SynchronizerBuffers< DistributedNDArray >;
-
-   DistributedNDArrayView array_view;
-   SyncDirection mask = SyncDirection::All;
-   Buffers buffers;
-
-   RequestsVector
-   worker_init()
+   // stage 0: set inputs, allocate buffers
+   void
+   stage_0( DistributedNDArray& array, SyncDirection mask )
    {
-      // fill send buffers
+#ifdef HAVE_CUDA
+      // save the GPU id to be restored in async threads, see this gotcha:
+      // https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
+      if( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
+         cudaGetDevice( &this->gpu_id );
+#endif
+
+      // skip allocation on repeated calls - compare only sizes, not the actual data
+      if( array_view.getCommunicator() != array.getCommunicator() || array_view.getSizes() != array.getSizes()
+          || array_view.getLocalBegins() != array.getLocalBegins() || array_view.getLocalEnds() != array.getLocalEnds() )
+      {
+         array_view.bind( array.getView() );
+         this->mask = mask;
+
+         // allocate buffers
+         Algorithms::staticFor< std::size_t, 0, DistributedNDArray::getDimension() >(
+            [ & ]( auto dim )
+            {
+               allocateHelper< dim >( buffers, array_view );
+            } );
+      }
+      else {
+         // only bind to the actual data
+         array_view.bind( array.getView() );
+         this->mask = mask;
+      }
+   }
+
+   // stage 1: fill send buffers
+   void
+   stage_1()
+   {
       Algorithms::staticFor< std::size_t, 0, DistributedNDArray::getDimension() >(
          [ & ]( auto dim )
          {
-            copyHelper< dim >( buffers, array_view, true, mask );
+            copyHelper< dim >( buffers, array_view, true, mask, stream_id_left, stream_id_right );
          } );
+   }
+
+   // stage 2: issue all send and receive async operations
+   void
+   stage_2()
+   {
+#ifdef HAVE_CUDA
+      // synchronize all CUDA streams to ensure the previous stage is finished
+      if( std::is_same< typename DistributedNDArrayView::DeviceType, Devices::Cuda >::value ) {
+         cudaStreamSynchronize( stream_id_left );
+         cudaStreamSynchronize( stream_id_right );
+         TNL_CHECK_CUDA_DEVICE;
+      }
+#endif
 
       // set default tags from tag_offset
       if( tag_from_left < 0 && tag_to_left < 0 && tag_from_right < 0 && tag_to_right < 0 ) {
@@ -379,36 +426,53 @@ protected:
       }
 
       // issue all send and receive async operations
-      RequestsVector requests;
+      requests.clear();
       const MPI::Comm& communicator = array_view.getCommunicator();
       Algorithms::staticFor< std::size_t, 0, DistributedNDArray::getDimension() >(
          [ & ]( auto dim )
          {
             sendHelper< dim >(
-               buffers, requests, communicator, tag_from_left, tag_to_left, tag_from_right, tag_to_right, mask );
+               buffers, this->requests, communicator, tag_from_left, tag_to_left, tag_from_right, tag_to_right, mask );
          } );
-
-      return requests;
    }
 
+   // stage 3: copy data from receive buffers
    void
-   worker_finish()
+   stage_3()
    {
+      // wait for all data to arrive
+      MPI::Waitall( requests.data(), requests.size() );
+
       // copy data from receive buffers
       Algorithms::staticFor< std::size_t, 0, DistributedNDArray::getDimension() >(
          [ & ]( auto dim )
          {
-            copyHelper< dim >( buffers, array_view, false, mask );
+            copyHelper< dim >( buffers, array_view, false, mask, stream_id_left, stream_id_right );
          } );
    }
 
+   // stage 4: ensure everything has finished
+   void
+   stage_4()
+   {
+#ifdef HAVE_CUDA
+      // synchronize all CUDA streams
+      if( std::is_same< typename DistributedNDArrayView::DeviceType, Devices::Cuda >::value ) {
+         cudaStreamSynchronize( stream_id_left );
+         cudaStreamSynchronize( stream_id_right );
+         TNL_CHECK_CUDA_DEVICE;
+      }
+#endif
+   }
+
+protected:
    template< std::size_t dim >
    static void
    allocateHelper( Buffers& buffers, const DistributedNDArrayView& array_view )
    {
       auto& dim_buffers = buffers.template getDimBuffers< dim >();
 
-      constexpr std::size_t overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
+      constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
       if( overlap == 0 ) {
          dim_buffers.reset();
          return;
@@ -437,21 +501,22 @@ protected:
       // TODO: check overlap offsets for 2D and 3D distributions (watch out for the corners - maybe use
       // SetSizesSubtractOverlapsHelper?)
 
-      // offsets for left-send
-      dim_buffers.left_send_offsets = localBegins;
-      dim_buffers.left_send_offsets.template setSize< dim >( localBegins.template getSize< dim >() );
+      // offsets for left-send (local indexing for the local array)
+      dim_buffers.left_send_offsets = LocalBegins{};
 
-      // offsets for left-receive
-      dim_buffers.left_recv_offsets = localBegins;
-      dim_buffers.left_recv_offsets.template setSize< dim >( localBegins.template getSize< dim >() - overlap );
+      // offsets for left-receive (local indexing for the local array)
+      dim_buffers.left_recv_offsets = LocalBegins{};
+      dim_buffers.left_recv_offsets.template setSize< dim >( -overlap );
 
-      // offsets for right-send
-      dim_buffers.right_send_offsets = localBegins;
-      dim_buffers.right_send_offsets.template setSize< dim >( localEnds.template getSize< dim >() - overlap );
+      // offsets for right-send (local indexing for the local array)
+      dim_buffers.right_send_offsets = LocalBegins{};
+      dim_buffers.right_send_offsets.template setSize< dim >( localEnds.template getSize< dim >()
+                                                              - localBegins.template getSize< dim >() - overlap );
 
-      // offsets for right-receive
-      dim_buffers.right_recv_offsets = localBegins;
-      dim_buffers.right_recv_offsets.template setSize< dim >( localEnds.template getSize< dim >() );
+      // offsets for right-receive (local indexing for the local array)
+      dim_buffers.right_recv_offsets = LocalBegins{};
+      dim_buffers.right_recv_offsets.template setSize< dim >( localEnds.template getSize< dim >()
+                                                              - localBegins.template getSize< dim >() );
 
       // set default neighbor IDs
       const MPI::Comm& communicator = array_view.getCommunicator();
@@ -463,9 +528,26 @@ protected:
          dim_buffers.right_neighbor = ( rank + 1 ) % nproc;
    }
 
+   template< typename LaunchConfiguration >
+   static void
+   setCudaStream( LaunchConfiguration& launch_config, cudaStream_t stream )
+   {}
+
+   static void
+   setCudaStream( Devices::Cuda::LaunchConfiguration& launch_config, cudaStream_t stream )
+   {
+      launch_config.stream = stream;
+      launch_config.blockHostUntilFinished = false;
+   }
+
    template< std::size_t dim >
    static void
-   copyHelper( Buffers& buffers, DistributedNDArrayView& array_view, bool to_buffer, SyncDirection mask )
+   copyHelper( Buffers& buffers,
+               DistributedNDArrayView& array_view,
+               bool to_buffer,
+               SyncDirection mask,
+               cudaStream_t stream_id_left,
+               cudaStream_t stream_id_right )
    {
       // skip if there are no overlaps
       constexpr std::size_t overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
@@ -474,45 +556,58 @@ protected:
 
       auto& dim_buffers = buffers.template getDimBuffers< dim >();
 
-      if( buffered ) {
-         // TODO: specify CUDA stream for the copy, otherwise async won't work !!!
+      // check if buffering is needed at runtime
+      // GOTCHA: dim_buffers.left_send_buffer.getSizes() may have a static size in some dimension,
+      // which the LocalBegins does not have
+      typename DistributedNDArray::SizesHolderType ends =
+         dim_buffers.left_send_buffer.getSizes() + dim_buffers.left_send_offsets;
+      const bool is_contiguous = array_view.getLocalView().isContiguousBlock( dim_buffers.left_send_offsets, ends );
+
+      if( is_contiguous ) {
+         // avoid buffering - bind buffer views directly to the array
+         dim_buffers.left_send_view.bind( &call_with_offsets( dim_buffers.left_send_offsets, array_view.getLocalView() ) );
+         dim_buffers.left_recv_view.bind( &call_with_offsets( dim_buffers.left_recv_offsets, array_view.getLocalView() ) );
+         dim_buffers.right_send_view.bind( &call_with_offsets( dim_buffers.right_send_offsets, array_view.getLocalView() ) );
+         dim_buffers.right_recv_view.bind( &call_with_offsets( dim_buffers.right_recv_offsets, array_view.getLocalView() ) );
+      }
+      else {
          CopyKernel< decltype( dim_buffers.left_send_view ) > copy_kernel;
          copy_kernel.local_array_view.bind( array_view.getLocalView() );
          copy_kernel.to_buffer = to_buffer;
 
+         // create launch configuration to specify the CUDA stream
+         typename DistributedNDArray::DeviceType::LaunchConfiguration launch_config;
+
          if( to_buffer ) {
             if( ( mask & SyncDirection::Left ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.left_send_view );
-               copy_kernel.local_array_offsets = dim_buffers.left_send_offsets - array_view.getLocalBegins();
-               dim_buffers.left_send_view.forAll( copy_kernel );
+               copy_kernel.local_array_offsets = dim_buffers.left_send_offsets;
+               setCudaStream( launch_config, stream_id_left );
+               dim_buffers.left_send_view.forAll( copy_kernel, launch_config );
             }
 
             if( ( mask & SyncDirection::Right ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.right_send_view );
-               copy_kernel.local_array_offsets = dim_buffers.right_send_offsets - array_view.getLocalBegins();
-               dim_buffers.right_send_view.forAll( copy_kernel );
+               copy_kernel.local_array_offsets = dim_buffers.right_send_offsets;
+               setCudaStream( launch_config, stream_id_right );
+               dim_buffers.right_send_view.forAll( copy_kernel, launch_config );
             }
          }
          else {
             if( ( mask & SyncDirection::Right ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.left_recv_view );
-               copy_kernel.local_array_offsets = dim_buffers.left_recv_offsets - array_view.getLocalBegins();
-               dim_buffers.left_recv_view.forAll( copy_kernel );
+               copy_kernel.local_array_offsets = dim_buffers.left_recv_offsets;
+               setCudaStream( launch_config, stream_id_left );
+               dim_buffers.left_recv_view.forAll( copy_kernel, launch_config );
             }
 
             if( ( mask & SyncDirection::Left ) != SyncDirection::None ) {
                copy_kernel.buffer_view.bind( dim_buffers.right_recv_view );
-               copy_kernel.local_array_offsets = dim_buffers.right_recv_offsets - array_view.getLocalBegins();
-               dim_buffers.right_recv_view.forAll( copy_kernel );
+               copy_kernel.local_array_offsets = dim_buffers.right_recv_offsets;
+               setCudaStream( launch_config, stream_id_right );
+               dim_buffers.right_recv_view.forAll( copy_kernel, launch_config );
             }
          }
-      }
-      else {
-         // avoid buffering - bind buffer views directly to the array
-         dim_buffers.left_send_view.bind( &call_with_offsets( dim_buffers.left_send_offsets, array_view ) );
-         dim_buffers.left_recv_view.bind( &call_with_offsets( dim_buffers.left_recv_offsets, array_view ) );
-         dim_buffers.right_send_view.bind( &call_with_offsets( dim_buffers.right_send_offsets, array_view ) );
-         dim_buffers.right_recv_view.bind( &call_with_offsets( dim_buffers.right_recv_offsets, array_view ) );
       }
    }
 

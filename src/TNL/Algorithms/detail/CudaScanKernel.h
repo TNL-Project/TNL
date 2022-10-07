@@ -654,7 +654,6 @@ struct CudaScanKernelLauncher
                                                             typename OutputArray::ViewType,
                                                             Reduction >;
             Cuda::launchKernelSync( kernel,
-                                    0,
                                     Cuda::LaunchConfiguration( 1, blockSize ),
                                     input.getConstView(),
                                     output.getView(),
@@ -674,7 +673,6 @@ struct CudaScanKernelLauncher
                                                             typename OutputArray::ViewType,
                                                             Reduction >;
             Cuda::launchKernelSync( kernel,
-                                    0,
                                     Cuda::LaunchConfiguration( 1, blockSize ),
                                     input.getConstView(),
                                     output.getView(),
@@ -694,7 +692,6 @@ struct CudaScanKernelLauncher
                                                             typename OutputArray::ViewType,
                                                             Reduction >;
             Cuda::launchKernelSync( kernel,
-                                    0,
                                     Cuda::LaunchConfiguration( 1, blockSize ),
                                     input.getConstView(),
                                     output.getView(),
@@ -714,7 +711,6 @@ struct CudaScanKernelLauncher
                                                             typename OutputArray::ViewType,
                                                             Reduction >;
             Cuda::launchKernelSync( kernel,
-                                    0,
                                     Cuda::LaunchConfiguration( 1, blockSize ),
                                     input.getConstView(),
                                     output.getView(),
@@ -766,7 +762,6 @@ struct CudaScanKernelLauncher
                                                                      typename OutputArray::ViewType,
                                                                      Reduction >;
                      Cuda::launchKernelAsync( kernel,
-                                              0,
                                               launch_config,
                                               input.getConstView(),
                                               output.getView(),
@@ -787,7 +782,6 @@ struct CudaScanKernelLauncher
                                                                     Reduction,
                                                                     typename OutputArray::ValueType >;
                      Cuda::launchKernelAsync( kernel,
-                                              0,
                                               launch_config,
                                               input.getConstView(),
                                               begin + gridOffset,
@@ -858,7 +852,6 @@ struct CudaScanKernelLauncher
          constexpr auto kernel =
             CudaScanKernelUniformShift< blockSize, valuesPerThread, typename OutputArray::ViewType, Reduction >;
          Cuda::launchKernelSync( kernel,
-                                 0,
                                  Cuda::LaunchConfiguration( 1, blockSize ),
                                  output.getView(),
                                  outputBegin,
@@ -891,7 +884,6 @@ struct CudaScanKernelLauncher
                      constexpr auto kernel =
                         CudaScanKernelUniformShift< blockSize, valuesPerThread, typename OutputArray::ViewType, Reduction >;
                      Cuda::launchKernelAsync( kernel,
-                                              0,
                                               launch_config,
                                               output.getView(),
                                               outputBegin + gridOffset,
@@ -911,7 +903,6 @@ struct CudaScanKernelLauncher
                                                                       typename OutputArray::ViewType,
                                                                       Reduction >;
                      Cuda::launchKernelAsync( kernel,
-                                              0,
                                               launch_config,
                                               input.getConstView(),
                                               output.getView(),

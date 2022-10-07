@@ -11,7 +11,11 @@ namespace TNL {
 namespace Devices {
 
 struct Sequential
-{};
+{
+   //! Not used by any sequential algorithm, only for compatibility with parallel execution models.
+   struct LaunchConfiguration
+   {};
+};
 
 }  // namespace Devices
 }  // namespace TNL

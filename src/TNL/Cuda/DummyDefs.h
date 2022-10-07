@@ -25,10 +25,12 @@ struct dim3
    constexpr dim3( unsigned int x, unsigned int y = 1, unsigned int z = 1 ) : x( x ), y( y ), z( z ) {}
 };
 
-struct cudaStream_t
+using cudaStream_t = int;
+
+enum
 {
-   cudaStream_t() = default;
-   cudaStream_t( int /*dummy*/ ) {}
+   cudaStreamDefault,
+   cudaStreamNonBlocking,
 };
 
 #endif
