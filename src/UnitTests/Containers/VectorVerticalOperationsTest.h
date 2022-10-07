@@ -96,6 +96,7 @@ protected:
    using VectorOrView = typename TestFixture::VectorOrView; \
    VectorOrView& V1 = this->V1;                             \
    const int size = V1.getSize();                           \
+   (void) 0  // dummy statement here enforces ';' after the macro use
 
 // types for which VectorVerticalOperationsTest is instantiated
 #if defined(DISTRIBUTED_VECTOR)

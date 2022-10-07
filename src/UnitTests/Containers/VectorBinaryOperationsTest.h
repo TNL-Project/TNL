@@ -149,6 +149,7 @@ protected:
    MAYBE_UNUSED(L2);                                        \
    MAYBE_UNUSED(R1);                                        \
    MAYBE_UNUSED(R2);                                        \
+   (void) 0  // dummy statement here enforces ';' after the macro use
 
 // types for which VectorBinaryOperationsTest is instantiated
 #if defined(DISTRIBUTED_VECTOR)
