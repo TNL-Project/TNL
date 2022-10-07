@@ -47,10 +47,10 @@ class GridEntity {
                                  const Container<Dimension, bool>& direction) :
                                  vertexIndex(vertexIndex),
                                  coordinates(coordinates),
-                                 direction(direction) {};
+                                 direction(direction) {}
 
       __cuda_callable__
-      ~GridEntity() {};
+      ~GridEntity() {}
 
       __cuda_callable__
       inline Container<Dimension, Index> getCoordinates() const noexcept {
@@ -400,5 +400,5 @@ struct HeatEquationSolverBenchmarkNdGrid : public HeatEquationSolverBenchmark< R
          start += timestep;
          iterations++;
       }
-   };
+   }
 };

@@ -32,7 +32,7 @@ public:
    hasAllParameters()
    {
       return value;
-   };
+   }
 };
 
 }  // namespace detail

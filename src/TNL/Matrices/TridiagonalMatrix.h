@@ -92,7 +92,7 @@ public:
    isSymmetric()
    {
       return false;
-   };
+   }
 
    /**
     * \brief The allocator for matrix elements values.
@@ -138,7 +138,7 @@ public:
    getOrganization()
    {
       return Organization;
-   };
+   }
 
    /**
     * \brief Constructor with no parameters.

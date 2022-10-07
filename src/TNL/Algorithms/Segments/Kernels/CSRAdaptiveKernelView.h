@@ -30,7 +30,7 @@ struct CSRAdaptiveKernelView
    getSizeValueLog( const int& i )
    {
       return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
-   };
+   }
 
    CSRAdaptiveKernelView() = default;
 

@@ -21,7 +21,7 @@ public:
    getWarpSize()
    {
       return WarpSize;
-   };
+   }
 
    static constexpr int
    getLogWarpSize()
@@ -34,7 +34,7 @@ public:
    getGroupsCount()
    {
       return getLogWarpSize() + 1;
-   };
+   }
 
    using IndexType = Index;
    using GroupsWidthType = Containers::StaticVector< getGroupsCount(), IndexType >;
@@ -53,14 +53,15 @@ public:
                          const IndexType inStripIdx,
                          const GroupsWidthType& groupsWidth )
    : segmentIdx( segmentIdx ), groupOffset( offset ), inStripIdx( inStripIdx ), segmentSize( TNL::sum( groupsWidth ) ),
-     groupsWidth( groupsWidth ){};
+     groupsWidth( groupsWidth )
+   {}
 
    __cuda_callable__
    IndexType
    getSize() const
    {
       return this->segmentSize;
-   };
+   }
 
    __cuda_callable__
    IndexType
@@ -83,14 +84,14 @@ public:
       }
       else
          return offset + inStripIdx + localIdx * groupHeight;
-   };
+   }
 
    __cuda_callable__
    const IndexType&
    getSegmentIndex() const
    {
       return this->segmentIdx;
-   };
+   }
 
 protected:
    IndexType segmentIdx, groupOffset, inStripIdx, segmentSize;

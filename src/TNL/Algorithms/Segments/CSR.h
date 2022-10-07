@@ -98,7 +98,7 @@ public:
    havePadding()
    {
       return false;
-   };
+   }
 
    /**
     * \brief Construct with no parameters to create empty segments.

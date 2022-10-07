@@ -68,7 +68,6 @@ ArrayView< Value, Device, Index >::getView( IndexType begin, IndexType end )
    if( end == 0 )
       end = this->getSize();
    return ViewType( getData() + begin, end - begin );
-   ;
 }
 
 template< typename Value, typename Device, typename Index >

@@ -46,7 +46,7 @@ public:
    isBinary()
    {
       return RowViewType::isBinary();
-   };
+   }
 
    __cuda_callable__
    MatrixRowViewIterator( RowViewType& rowView, const IndexType& localIdx );

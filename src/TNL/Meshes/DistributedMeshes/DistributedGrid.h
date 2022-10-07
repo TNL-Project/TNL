@@ -32,7 +32,7 @@ public:
    getMeshDimension()
    {
       return Dimension;
-   };
+   }
 
    static constexpr int
    getNeighborsCount()

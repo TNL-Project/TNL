@@ -44,5 +44,5 @@ struct HeatEquationSolverBenchmarkParallelFor : public HeatEquationSolverBenchma
          start += timestep;
          iterations++;
       }
-   };
+   }
 };

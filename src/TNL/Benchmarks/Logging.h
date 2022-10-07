@@ -57,7 +57,7 @@ public:
    size() const noexcept
    {
       return elements.size();
-   };
+   }
 
    // iterators
    auto

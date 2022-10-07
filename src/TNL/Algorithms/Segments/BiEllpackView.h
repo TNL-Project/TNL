@@ -39,7 +39,7 @@ public:
    havePadding()
    {
       return true;
-   };
+   }
 
    __cuda_callable__
    BiEllpackView() = default;
@@ -173,13 +173,13 @@ protected:
    getWarpSize()
    {
       return WarpSize;
-   };
+   }
 
    static constexpr int
    getLogWarpSize()
    {
       return std::log2( WarpSize );
-   };
+   }
 
    IndexType size = 0, storageSize = 0;
 

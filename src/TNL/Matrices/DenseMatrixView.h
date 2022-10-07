@@ -70,7 +70,7 @@ public:
    getOrganization()
    {
       return Organization;
-   };
+   }
 
    /**
     * \brief Matrix elements container view type.

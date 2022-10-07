@@ -55,5 +55,5 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
          start += timestep;
          iterations++;
       }
-   };
+   }
 };

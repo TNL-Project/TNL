@@ -452,7 +452,7 @@ public:
    getCellMeasure() const
    {
       return this->getSpaceStepsProducts( CoordinatesType( 1 ) );
-   };
+   }
 
    /**
     * \brief Returns product of space step powers given as template parameters.

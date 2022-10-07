@@ -96,12 +96,12 @@ public:
    isSymmetric()
    {
       return false;
-   };
+   }
    static constexpr bool
    isBinary()
    {
       return false;
-   };
+   }
 
    /**
     * \brief Constructor with lambda functions defining the matrix elements.
@@ -591,7 +591,7 @@ struct LambdaMatrixFactory
                      "Index rowIdx )" );
       return LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >(
          matrixElementsLambda, compressedRowLengthsLambda );
-   };
+   }
 
    /**
     * \brief Creates lambda matrix with given dimensions and lambda functions.
@@ -632,7 +632,7 @@ struct LambdaMatrixFactory
 
       return LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >(
          rows, columns, matrixElementsLambda, compressedRowLengthsLambda );
-   };
+   }
 };
 
 }  // namespace Matrices

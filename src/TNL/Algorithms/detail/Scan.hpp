@@ -89,7 +89,7 @@ Scan< Devices::Sequential, Type, PhaseType >::performFirstPhase( const InputArra
             block_results[ 1 ] = reduce< Devices::Sequential >( begin, end, input, reduction, identity );
             return block_results;
          }
-   };
+   }
 }
 
 template< ScanType Type, ScanPhaseType PhaseType >

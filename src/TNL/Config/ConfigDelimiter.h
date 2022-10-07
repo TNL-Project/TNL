@@ -22,13 +22,13 @@ public:
    isDelimiter() const override
    {
       return true;
-   };
+   }
 
    std::string
    getUIEntryType() const override
    {
       return "";
-   };
+   }
 };
 
 }  // namespace Config

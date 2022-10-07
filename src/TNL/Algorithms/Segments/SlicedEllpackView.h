@@ -47,7 +47,7 @@ public:
    havePadding()
    {
       return true;
-   };
+   }
 
    __cuda_callable__
    SlicedEllpackView() = default;

@@ -40,19 +40,19 @@ public:
    getWarpSize()
    {
       return WarpSize;
-   };
+   }
 
    static constexpr int
    getLogWarpSize()
    {
       return std::log2( WarpSize );
-   };
+   }
 
    static constexpr int
    getGroupsCount()
    {
       return getLogWarpSize() + 1;
-   };
+   }
 
    __cuda_callable__
    static IndexType

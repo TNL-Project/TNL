@@ -74,7 +74,7 @@ public:
    isSymmetric()
    {
       return MatrixType::isSymmetric();
-   };
+   }
 
    /**
     * \brief Test of binary matrix type.
@@ -85,7 +85,7 @@ public:
    isBinary()
    {
       return std::is_same< Real, bool >::value;
-   };
+   }
 
    /**
     * \brief The type of matrix elements.
@@ -134,7 +134,6 @@ public:
     * \brief Type for accessing constant matrix rows.
     */
    using ConstRowView = SparseSandboxMatrixRowView< ConstValuesViewType, ConstColumnsIndexesViewType, isBinary() >;
-   ;
 
    /**
     * \brief Helper type for getting self type or its modifications.

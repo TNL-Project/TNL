@@ -37,7 +37,8 @@ public:
     */
    __cuda_callable__
    SegmentElement( const IndexType& segmentIdx, const IndexType& localIdx, const IndexType globalIdx )
-   : segmentIdx( segmentIdx ), localIdx( localIdx ), globalIdx( globalIdx ){};
+   : segmentIdx( segmentIdx ), localIdx( localIdx ), globalIdx( globalIdx )
+   {}
 
    /**
     * \brief Returns index of the parent segment.
@@ -49,7 +50,7 @@ public:
    segmentIndex() const
    {
       return segmentIdx;
-   };
+   }
 
    /**
     * \brief Returns rank of the element in the segment.
@@ -61,7 +62,7 @@ public:
    localIndex() const
    {
       return localIdx;
-   };
+   }
 
    /**
     * \brief Returns index of the element in the related container.
@@ -73,7 +74,7 @@ public:
    globalIndex() const
    {
       return globalIdx;
-   };
+   }
 
 protected:
    const IndexType& segmentIdx;

@@ -20,7 +20,7 @@ class TestMovedMeshfunction
 {
 	public:
 		static void Test(MeshFunctionType &meshFunction)
-		{};
+		{}
 };
 
 template <typename MeshFunctionType>
@@ -51,7 +51,7 @@ class TestMovedMeshfunction<MeshFunctionType,2>
 				    entity.refresh();
 					EXPECT_EQ( meshFunction.getData()[entity.getIndex()], 10*(j+1)+(i+1)) << "Copy entities Failed for: "<< i;
 				}
-		};
+		}
 };
 
 template <typename MeshFunctionType>
@@ -72,7 +72,7 @@ class TestMovedMeshfunction<MeshFunctionType,3>
 				    	entity.refresh();
 						EXPECT_EQ( meshFunction.getData()[entity.getIndex()], 100*(k+1)+10*(j+1)+(i+1)) << "Copy entities Failed for: "<< i;
 					}
-		};
+		}
 };
 
 //================================SET INPUT============================================
@@ -83,7 +83,7 @@ class EvalMeshFunction
 {
 	public:
 		static void Eval(MeshFunctionType &meshFunction)
-		{};
+		{}
 };
 
 template <typename MeshFunctionType>
@@ -113,7 +113,7 @@ class EvalMeshFunction<MeshFunctionType,2>
 				    entity.refresh();
 					meshFunction.getData()[entity.getIndex()]= 10*j+i;
 				}
-		};
+		}
 };
 
 template <typename MeshFunctionType>
@@ -134,7 +134,7 @@ class EvalMeshFunction<MeshFunctionType,3>
 				    	entity.refresh();
 						meshFunction.getData()[entity.getIndex()]=100*k+10*j+i;
 					}
-		};
+		}
 };
 
 
@@ -195,7 +195,7 @@ class TestCopyEntities
 			CopyEntitiesHelper< MeshFunctionType >::Copy(inputMeshFunction,outputMeshFunction, begin,zero, size);
 
 			TestMovedMeshfunction<MeshFunctionType>::Test(outputMeshFunction);
-		};
+		}
 };
 
 TEST( CopyEntitiesTest, 1D )

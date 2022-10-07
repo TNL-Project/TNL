@@ -37,7 +37,7 @@ public:
    {
       this->multiplicator = parameters.getParameter< double >( prefix + "multiplicator" );
       return true;
-   };
+   }
 
    template< typename Function >
    __cuda_callable__

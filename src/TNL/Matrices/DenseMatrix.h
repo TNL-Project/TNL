@@ -66,7 +66,7 @@ public:
    getOrganization()
    {
       return Organization;
-   };
+   }
 
    /**
     * \brief This is only for compatibility with sparse matrices.
@@ -77,7 +77,7 @@ public:
    isSymmetric()
    {
       return false;
-   };
+   }
 
    /**
     * \brief The allocator for matrix elements.

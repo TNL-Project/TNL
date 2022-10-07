@@ -30,7 +30,7 @@ struct DefaultElementsOrganization
          return RowMajorOrder;
       else
          return ColumnMajorOrder;
-   };
+   }
 };
 
 }  // namespace Segments

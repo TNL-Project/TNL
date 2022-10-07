@@ -424,7 +424,7 @@ public:
          if( globalOffsets[ i ] <= global_idx && global_idx < globalOffsets[ i + 1 ] )
             return i;
       return nproc - 1;
-   };
+   }
 
    // public const accessors for the communication pattern matrix and index arrays which were
    // created in the `initialize` method

@@ -46,7 +46,7 @@ public:
    havePadding()
    {
       return true;
-   };
+   }
 
    SlicedEllpack() = default;
 

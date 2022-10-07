@@ -52,7 +52,7 @@ struct HeatEquationSolverBenchmark
       config.addEntry<double>("final-time", "Final time of the simulation.", 0.01);
       config.addEntry<int>("max-iterations", "Maximum time iterations.", 0 );
 
-   };
+   }
 
    void init( const Index xSize, const Index ySize )
    {
@@ -81,7 +81,7 @@ struct HeatEquationSolverBenchmark
          uxView[index] = TNL::max( ( ( ( x*x / alpha_ )  + ( y*y / beta_ ) ) + gamma_ ) * 0.2, 0.0 );
       };
       TNL::Algorithms::ParallelFor2D<Device>::exec( 1, 1, xSize - 1, ySize - 1, init );
-   };
+   }
 
    bool writeGnuplot( const std::string &filename,
                       const Index xSize, const Index ySize ) const
@@ -187,7 +187,7 @@ struct HeatEquationSolverBenchmark
          }
       }
       return true;
-   };
+   }
 
 protected:
 

@@ -18,7 +18,7 @@ class Image
 public:
    using IndexType = Index;
 
-   Image() : width( 0 ), height( 0 ){};
+   Image() : width( 0 ), height( 0 ) {}
 
    IndexType
    getWidth() const

@@ -48,7 +48,7 @@ public:
    havePadding()
    {
       return true;
-   };
+   }
 
    __cuda_callable__
    ChunkedEllpackView() = default;

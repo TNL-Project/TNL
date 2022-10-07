@@ -10,7 +10,7 @@ using ArrayCuda = Containers::Array< int, Devices::Cuda >;
 struct Tuple
 {
    Tuple( ArrayCuda& _a1, ArrayCuda& _a2 ):
-   a1( _a1 ), a2( _a2 ){};
+   a1( _a1 ), a2( _a2 ){}
 
    Pointers::DevicePointer< ArrayCuda > a1, a2;
 };

@@ -84,7 +84,7 @@ public:
    isSymmetric()
    {
       return MatrixType::isSymmetric();
-   };
+   }
 
    /**
     * \brief Test of binary matrix type.
@@ -95,7 +95,7 @@ public:
    isBinary()
    {
       return std::is_same< Real, bool >::value;
-   };
+   }
 
    /**
     * \brief The type of matrix elements.

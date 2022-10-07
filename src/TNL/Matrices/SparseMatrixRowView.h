@@ -46,7 +46,7 @@ public:
    isBinary()
    {
       return std::is_same< std::remove_const_t< RealType >, bool >::value;
-   };
+   }
 
    /**
     * \brief The type of matrix elements.
@@ -264,7 +264,7 @@ public:
    getPaddingIndex() const
    {
       return -1;
-   };
+   }
 
 protected:
    SegmentViewType segmentView;
