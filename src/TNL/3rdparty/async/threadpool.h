@@ -5,6 +5,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 /////////////////////////////////////////////////////////////////////
 #pragma once
+// NOLINTBEGIN
+
 #include "queue.h"
 #include <atomic>
 #include <functional>
@@ -190,3 +192,5 @@ private:
   bool conflag; // continue flag for cv
 };
 } // namespace async
+
+// NOLINTEND

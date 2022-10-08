@@ -32,7 +32,7 @@ public:
    isBinary()
    {
       return std::is_same< std::remove_const_t< Real >, bool >::value;
-   };
+   }
 
    /**
     * \brief Type of matrix elements values.
@@ -54,7 +54,8 @@ public:
     */
    __cuda_callable__
    SparseMatrixElement( RealType& value, const IndexType& rowIdx, IndexType& columnIdx, const IndexType& localIdx )
-   : value_( value ), rowIdx( rowIdx ), columnIdx( columnIdx ), localIdx( localIdx ){};
+   : value_( value ), rowIdx( rowIdx ), columnIdx( columnIdx ), localIdx( localIdx )
+   {}
 
    /**
     * \brief Returns reference on matrix element value.
@@ -66,7 +67,7 @@ public:
    value()
    {
       return value_;
-   };
+   }
 
    /**
     * \brief Returns constant reference on matrix element value.
@@ -78,7 +79,7 @@ public:
    value() const
    {
       return value_;
-   };
+   }
 
    /**
     * \brief Returns constant reference on matrix element column index.
@@ -90,7 +91,7 @@ public:
    rowIndex() const
    {
       return rowIdx;
-   };
+   }
 
    /**
     * \brief Returns reference on matrix element column index.
@@ -102,7 +103,7 @@ public:
    columnIndex()
    {
       return columnIdx;
-   };
+   }
 
    /**
     * \brief Returns constant reference on matrix element column index.
@@ -114,7 +115,7 @@ public:
    columnIndex() const
    {
       return columnIdx;
-   };
+   }
 
    /**
     * \brief Returns constant reference on the rank of the non-zero matrix element in the row.
@@ -126,7 +127,7 @@ public:
    localIndex() const
    {
       return localIdx;
-   };
+   }
 
 protected:
    RealType& value_;

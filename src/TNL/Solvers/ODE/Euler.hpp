@@ -17,7 +17,7 @@ void
 Euler< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
    config.addEntry< double >( prefix + "euler-cfl", "Coefficient C in the Courant–Friedrichs–Lewy condition.", 0.0 );
-};
+}
 
 template< typename Vector, typename SolverMonitor >
 bool
@@ -114,7 +114,7 @@ Euler< Vector, SolverMonitor >::solve( VectorType& _u, RHSFunction&& rhsFunction
       }
    }
    return false;  // just to avoid warnings
-};
+}
 
 }  // namespace ODE
 }  // namespace Solvers

@@ -150,6 +150,7 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
                                                                \
       V1 = 1;                                                  \
       V2 = 2;                                                  \
+      (void) 0  // dummy statement here enforces ';' after the macro use
 
    #define SETUP_UNARY_VECTOR_TEST_FUNCTION( _, begin, end, function ) \
       using VectorOrView = typename TestFixture::VectorOrView; \
@@ -167,6 +168,7 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
          V1[ i ] = x;                                          \
          expected[ i ] = function(x);                          \
       }                                                        \
+      (void) 0  // dummy statement here enforces ';' after the macro use
 
 #elif defined(DISTRIBUTED_VECTOR)
    #define SETUP_UNARY_VECTOR_TEST( size ) \
@@ -188,6 +190,7 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       _V2 = 2;                                                 \
                                                                \
       VectorOrView V1( _V1 ), V2( _V2 );                       \
+      (void) 0  // dummy statement here enforces ';' after the macro use
 
    #define SETUP_UNARY_VECTOR_TEST_FUNCTION( size, begin, end, function ) \
       using VectorType = typename TestFixture::VectorType;     \
@@ -223,6 +226,7 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       _V1.setSynchronizer( _synchronizer );                    \
       expected.setSynchronizer( _synchronizer );               \
       expected.startSynchronization();                         \
+      (void) 0  // dummy statement here enforces ';' after the macro use
 
 #else
    #define SETUP_UNARY_VECTOR_TEST( size ) \
@@ -236,6 +240,7 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       _V2 = ValueType( 2 );                                    \
                                                                \
       VectorOrView V1( _V1 ), V2( _V2 );                       \
+      (void) 0  // dummy statement here enforces ';' after the macro use
 
    #define SETUP_UNARY_VECTOR_TEST_FUNCTION( size, begin, end, function ) \
       using VectorType = typename TestFixture::VectorType;     \
@@ -259,6 +264,7 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       VectorType _V1; _V1 = _V1h;                              \
       VectorOrView V1( _V1 );                                  \
       ExpectedVector expected; expected = expected_h;          \
+      (void) 0  // dummy statement here enforces ';' after the macro use
 
 #endif
 

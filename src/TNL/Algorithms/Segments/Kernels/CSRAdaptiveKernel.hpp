@@ -23,7 +23,7 @@ TNL::String
 CSRAdaptiveKernel< Index, Device >::getKernelType()
 {
    return ViewType::getKernelType();
-};
+}
 
 template< typename Index, typename Device >
 template< typename Offsets >
@@ -70,7 +70,7 @@ auto
 CSRAdaptiveKernel< Index, Device >::getConstView() const -> ConstViewType
 {
    return this->view;
-};
+}
 
 template< typename Index, typename Device >
 template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real, typename... Args >

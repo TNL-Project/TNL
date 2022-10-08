@@ -25,7 +25,7 @@ public:
    setup( const Config::ParameterContainer& parameters, const String& prefix = "" )
    {
       return true;
-   };
+   }
 
    template< typename Function >
    __cuda_callable__

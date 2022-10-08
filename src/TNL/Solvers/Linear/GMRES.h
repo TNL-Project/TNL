@@ -123,7 +123,6 @@ protected:
    using DeviceVector = typename Traits::LocalVectorType;
    using HostView = typename DeviceView::template Self< RealType, Devices::Host >;
    using HostVector = typename DeviceVector::template Self< RealType, Devices::Host >;
-   ;
 
    enum class Variant
    {

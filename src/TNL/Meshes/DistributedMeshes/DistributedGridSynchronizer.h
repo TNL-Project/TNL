@@ -32,12 +32,12 @@ public:
    getMeshDimension()
    {
       return DistributedGridType::getMeshDimension();
-   };
+   }
    static constexpr int
    getNeighborsCount()
    {
       return DistributedGridType::getNeighborsCount();
-   };
+   }
 
    enum PeriodicBoundariesCopyDirection
    {
@@ -48,13 +48,13 @@ public:
    DistributedMeshSynchronizer()
    {
       isSet = false;
-   };
+   }
 
    DistributedMeshSynchronizer( const DistributedGridType* distributedGrid )
    {
       isSet = false;
       setDistributedGrid( distributedGrid );
-   };
+   }
 
    void
    setPeriodicBoundariesCopyDirection( const PeriodicBoundariesCopyDirection dir )

@@ -64,7 +64,7 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariab
    getSize()
    {
       return T1::getSize();
-   };
+   }
 
    __cuda_callable__
    StaticBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b ) {}
@@ -119,7 +119,7 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariab
    getSize()
    {
       return T1::getSize();
-   };
+   }
 
    __cuda_callable__
    StaticBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b ) {}
@@ -174,7 +174,7 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariable, Ve
    getSize()
    {
       return T2::getSize();
-   };
+   }
 
    __cuda_callable__
    StaticBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b ) {}
@@ -231,7 +231,7 @@ struct StaticUnaryExpressionTemplate
    getSize()
    {
       return T1::getSize();
-   };
+   }
 
    __cuda_callable__
    StaticUnaryExpressionTemplate( const T1& a ) : operand( a ) {}

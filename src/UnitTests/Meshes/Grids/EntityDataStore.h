@@ -195,7 +195,7 @@ struct EntityDataStore {
                                                                              NewRealContainer(this -> measure));
 
          return newContainer;
-      };
+      }
 
       typename Container<Index>::ViewType getCallsView() { return calls.getView(); }
    private:

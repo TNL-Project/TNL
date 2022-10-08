@@ -540,7 +540,7 @@ auto
 CSRLightKernel< Index, Device >::getConstView() const -> ConstViewType
 {
    return *this;
-};
+}
 
 template< typename Index, typename Device >
 template< typename OffsetsView, typename Fetch, typename Reduce, typename Keep, typename Real >

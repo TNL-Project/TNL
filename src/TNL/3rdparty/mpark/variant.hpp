@@ -7,6 +7,7 @@
 
 #ifndef MPARK_VARIANT_HPP
 #define MPARK_VARIANT_HPP
+// NOLINTBEGIN
 
 /*
    variant synopsis
@@ -2812,4 +2813,5 @@ namespace std {
 
 }  // namespace std
 
+// NOLINTEND
 #endif  // MPARK_VARIANT_HPP

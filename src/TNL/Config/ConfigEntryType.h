@@ -103,69 +103,69 @@ std::string
 getUIEntryType()
 {
    throw std::logic_error( "getUIEntryType called with unknown type." );
-};
+}
 
 template<>
 inline std::string
 getUIEntryType< bool >()
 {
    return "bool";
-};
+}
 template<>
 inline std::string
 getUIEntryType< Integer >()
 {
    return "integer";
-};
+}
 template<>
 inline std::string
 getUIEntryType< UnsignedInteger >()
 {
    return "unsigned integer";
-};
+}
 template<>
 inline std::string
 getUIEntryType< double >()
 {
    return "real";
-};
+}
 template<>
 inline std::string
 getUIEntryType< std::string >()
 {
    return "string";
-};
+}
 
 template<>
 inline std::string
 getUIEntryType< std::vector< bool > >()
 {
    return "list of bool";
-};
+}
 template<>
 inline std::string
 getUIEntryType< std::vector< Integer > >()
 {
    return "list of integer";
-};
+}
 template<>
 inline std::string
 getUIEntryType< std::vector< UnsignedInteger > >()
 {
    return "list of unsigned integer";
-};
+}
 template<>
 inline std::string
 getUIEntryType< std::vector< double > >()
 {
    return "list of real";
-};
+}
 template<>
 inline std::string
 getUIEntryType< std::vector< std::string > >()
 {
    return "list of string";
-};
+}
 
 }  // namespace Config
 }  // namespace TNL

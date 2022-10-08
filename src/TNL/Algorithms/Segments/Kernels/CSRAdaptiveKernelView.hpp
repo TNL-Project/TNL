@@ -252,7 +252,7 @@ auto
 CSRAdaptiveKernelView< Index, Device >::getView() -> ViewType
 {
    return *this;
-};
+}
 
 template< typename Index, typename Device >
 auto

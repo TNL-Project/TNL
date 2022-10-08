@@ -1,6 +1,6 @@
 # Documentation: https://clang.llvm.org/extra/clang-tidy/
 ---
-HeaderFilterRegex: '^(?!.*3rdparty).*$'
+HeaderFilterRegex: '.*'
 AnalyzeTemporaryDtors: false
 FormatStyle:      file
 User:             user
@@ -16,8 +16,14 @@ Checks:           'readability-*,
                   -modernize-use-trailing-return-type,
                   -modernize-raw-string-literal,
                   performance-*,
-                  mpi-*'
-WarningsAsErrors: 'performance-*,mpi-*'
+                  mpi-*,
+                  clang-diagnostic-extra-semi,
+                  clang-diagnostic-extra-semi-stmt,
+                  bugprone-suspicious-semicolon'
+WarningsAsErrors: 'performance-*,
+                  mpi-*,
+                  clang-diagnostic-extra-semi*,
+                  bubprone-suspicious-semicolon'
 CheckOptions:
   - key:             readability-braces-around-statements.ShortStatementLines
     value:           99

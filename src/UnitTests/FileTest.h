@@ -43,7 +43,7 @@ TEST( FileTest, WriteAndRead )
    EXPECT_EQ( newConstDoubleData, constDoubleData );
 
    EXPECT_EQ( std::remove( TEST_FILE_NAME ), 0 );
-};
+}
 
 TEST( FileTest, WriteAndReadWithConversion )
 {

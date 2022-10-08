@@ -356,22 +356,22 @@ cmpHelperFalse( const char* assertion,
 
 // Implements the helper function for TNL_ASSERT_EQ
 TNL_NVCC_HD_WARNING_DISABLE
-TNL_IMPL_CMP_HELPER_( EQ, == );
+TNL_IMPL_CMP_HELPER_( EQ, == )
 // Implements the helper function for TNL_ASSERT_NE
 TNL_NVCC_HD_WARNING_DISABLE
-TNL_IMPL_CMP_HELPER_( NE, != );
+TNL_IMPL_CMP_HELPER_( NE, != )
 // Implements the helper function for TNL_ASSERT_LE
 TNL_NVCC_HD_WARNING_DISABLE
-TNL_IMPL_CMP_HELPER_( LE, <= );
+TNL_IMPL_CMP_HELPER_( LE, <= )
 // Implements the helper function for TNL_ASSERT_LT
 TNL_NVCC_HD_WARNING_DISABLE
-TNL_IMPL_CMP_HELPER_( LT, < );
+TNL_IMPL_CMP_HELPER_( LT, < )
 // Implements the helper function for TNL_ASSERT_GE
 TNL_NVCC_HD_WARNING_DISABLE
-TNL_IMPL_CMP_HELPER_( GE, >= );
+TNL_IMPL_CMP_HELPER_( GE, >= )
 // Implements the helper function for TNL_ASSERT_GT
 TNL_NVCC_HD_WARNING_DISABLE
-TNL_IMPL_CMP_HELPER_( GT, > );
+TNL_IMPL_CMP_HELPER_( GT, > )
 
    #undef TNL_IMPL_CMP_HELPER_
 
@@ -426,7 +426,8 @@ TNL_IMPL_CMP_HELPER_( GT, > );
                          __FILE__,                                                                                       \
                          __LINE__ );                                                                                     \
             asm( "trap;" );                                                                                              \
-         }
+         }                                                                                                               \
+         (void) 0  // dummy statement here enforces ';' after the macro: TNL_ASSERT( ... );
 
    #else  // #ifdef __CUDA_ARCH__
       #ifdef TNL_THROW_ASSERTION_ERROR
@@ -448,7 +449,8 @@ TNL_IMPL_CMP_HELPER_( GT, > );
                std::string msg = buffer.str();                                                                   \
                std::cerr.rdbuf( old );                                                                           \
                throw ::TNL::Assert::AssertionError( msg );                                                       \
-            }
+            }                                                                                                    \
+            (void) 0  // dummy statement here enforces ';' after the macro: TNL_ASSERT( ... );
 
       #else  // #ifdef TNL_THROW_ASSERTION_ERROR
 
@@ -462,7 +464,8 @@ TNL_IMPL_CMP_HELPER_( GT, > );
                          << "Diagnostics: ";                                                                     \
                ___tnl__assert_command;                                                                           \
                throw EXIT_FAILURE;                                                                               \
-            }
+            }                                                                                                    \
+            (void) 0  // dummy statement here enforces ';' after the macro: TNL_ASSERT( ... );
 
       #endif  // #ifdef TNL_THROW_ASSERTION_ERROR
    #endif     // #ifdef __CUDA_ARCH__

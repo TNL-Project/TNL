@@ -45,7 +45,7 @@ public:
    havePadding()
    {
       return true;
-   };
+   }
 
    ChunkedEllpack() = default;
 

@@ -96,7 +96,7 @@ public:
    isBinary()
    {
       return isBinary_;
-   };
+   }
 
    /**
     * \brief Constructor with \e segmentView, \e values and \e columnIndexes.

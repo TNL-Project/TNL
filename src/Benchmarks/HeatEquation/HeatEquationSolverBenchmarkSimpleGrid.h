@@ -117,5 +117,5 @@ struct HeatEquationSolverBenchmarkSimpleGrid : public HeatEquationSolverBenchmar
          start += timestep;
          iterations++;
       }
-   };
+   }
 };

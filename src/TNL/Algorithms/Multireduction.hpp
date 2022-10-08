@@ -227,7 +227,7 @@ Multireduction< Devices::Cuda >::reduce( Result identity,
    timer.stop();
    std::cout << "   Multireduction of small data set on CPU took " << timer.getRealTime() << " sec. " << std::endl;
 #endif
-};
+}
 
 }  // namespace Algorithms
 }  // namespace TNL

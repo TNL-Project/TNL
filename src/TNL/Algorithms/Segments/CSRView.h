@@ -41,7 +41,7 @@ public:
    havePadding()
    {
       return false;
-   };
+   }
 
    __cuda_callable__
    CSRView() = default;

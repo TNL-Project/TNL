@@ -35,13 +35,13 @@ struct MatrixInfo< DenseMatrixView< Real, Device, Index, Organization > >
    getDensity()
    {
       return String( "dense" );
-   };
+   }
 
    static String
    getFormat()
    {
       return "Dense";
-   };
+   }
 };
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -61,7 +61,7 @@ struct MatrixInfo< SparseMatrixView< Real, Device, Index, MatrixType, SegmentsVi
    getDensity()
    {
       return "sparse";
-   };
+   }
 
    static String
    getFormat()
@@ -76,7 +76,7 @@ struct MatrixInfo< SparseMatrixView< Real, Device, Index, MatrixType, SegmentsVi
       else if( std::is_same< Real, bool >::value )
          prefix = "Binary ";
       return prefix + SegmentsView< Device, Index >::getSegmentsType();
-   };
+   }
 };
 
 template< typename Real,
@@ -99,7 +99,7 @@ struct MatrixInfo< Sandbox::SparseSandboxMatrixView< Real, Device, Index, Matrix
    getDensity()
    {
       return "sparse";
-   };
+   }
 
    static String
    getFormat()
@@ -108,7 +108,7 @@ struct MatrixInfo< Sandbox::SparseSandboxMatrixView< Real, Device, Index, Matrix
          return "Symmetric Sandbox";
       else
          return "Sandbox";
-   };
+   }
 };
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >

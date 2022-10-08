@@ -58,7 +58,7 @@ public:
    havePadding()
    {
       return true;
-   };
+   }
 
    __cuda_callable__
    EllpackView() = default;

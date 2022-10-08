@@ -195,7 +195,7 @@ auto
 CSRHybridKernel< Index, Device, ThreadsInBlock >::getConstView() const -> ConstViewType
 {
    return *this;
-};
+}
 
 template< typename Index, typename Device, int ThreadsInBlock >
 template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >

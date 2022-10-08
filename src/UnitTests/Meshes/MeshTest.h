@@ -287,7 +287,7 @@ TEST( MeshTest, TwoTrianglesTest )
    EXPECT_EQ( mesh.getCellNeighborIndex( 1, 0 ), 0 );
 
    testFinishedMesh( mesh );
-};
+}
 
 TEST( MeshTest, TwoTrianglesTest_ReturnedPair )
 {
@@ -367,7 +367,7 @@ TEST( MeshTest, TwoTrianglesTest_ReturnedPair )
    EXPECT_EQ( mesh.getCellNeighborIndex( 1, 0 ), 0 );
 
    testFinishedMesh( mesh );
-};
+}
 
 TEST( MeshTest, TetrahedronsTest )
 {
@@ -1284,7 +1284,7 @@ TEST( MeshTest, TwoPolygonsTest )
    EXPECT_EQ( mesh.getCellNeighborIndex( 1, 0 ), 0 );
 
    testFinishedMesh( mesh );
-};
+}
 
 TEST( MeshTest, SevenPolygonsTest )
 {
@@ -1750,7 +1750,7 @@ TEST( MeshTest, SevenPolygonsTest )
    EXPECT_EQ( mesh.template getEntity< 2 >( 6 ).getTag() & TNL::Meshes::EntityTags::BoundaryEntity, 1 );
 
    testFinishedMesh( mesh );
-};
+}
 
 TEST( MeshTest, TwoWedgesTest )
 {

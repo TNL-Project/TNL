@@ -36,7 +36,7 @@ void
 StaticExplicitSolver< Real, Index >::setTime( const RealType& time )
 {
    this->time = time;
-};
+}
 
 template< typename Real, typename Index >
 __cuda_callable__
@@ -44,7 +44,7 @@ const Real&
 StaticExplicitSolver< Real, Index >::getTime() const
 {
    return this->time;
-};
+}
 
 template< typename Real, typename Index >
 __cuda_callable__
@@ -52,7 +52,7 @@ void
 StaticExplicitSolver< Real, Index >::setTau( const RealType& tau )
 {
    this->tau = tau;
-};
+}
 
 template< typename Real, typename Index >
 __cuda_callable__
@@ -60,7 +60,7 @@ const Real&
 StaticExplicitSolver< Real, Index >::getTau() const
 {
    return this->tau;
-};
+}
 
 template< typename Real, typename Index >
 __cuda_callable__
@@ -68,7 +68,7 @@ void
 StaticExplicitSolver< Real, Index >::setMaxTau( const RealType& maxTau )
 {
    this->maxTau = maxTau;
-};
+}
 
 template< typename Real, typename Index >
 __cuda_callable__
@@ -76,7 +76,7 @@ const Real&
 StaticExplicitSolver< Real, Index >::getMaxTau() const
 {
    return this->maxTau;
-};
+}
 
 template< typename Real, typename Index >
 __cuda_callable__

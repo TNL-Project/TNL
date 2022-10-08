@@ -41,7 +41,7 @@ public:
    havePadding()
    {
       return true;
-   };
+   }
 
    BiEllpack() = default;
 
@@ -179,13 +179,13 @@ protected:
    getWarpSize()
    {
       return WarpSize;
-   };
+   }
 
    static constexpr int
    getLogWarpSize()
    {
       return std::log2( WarpSize );
-   };
+   }
 
    template< typename SizesHolder = OffsetsContainer >
    void
@@ -221,7 +221,7 @@ protected:
          return result;
       }
       return 0;
-   };
+   }
 
    template< typename Device_, typename Index_, typename IndexAllocator_, ElementsOrganization Organization_, int WarpSize_ >
    friend class BiEllpack;

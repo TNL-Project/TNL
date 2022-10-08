@@ -14,7 +14,8 @@ namespace Meshes {
 namespace Writers {
 
 template< typename Mesh >
-GnuplotWriter< Mesh >::GnuplotWriter( std::ostream& str ) : str( str ){};
+GnuplotWriter< Mesh >::GnuplotWriter( std::ostream& str ) : str( str )
+{}
 
 template< typename Mesh >
 template< int EntityDimension >
@@ -81,7 +82,7 @@ void
 GnuplotWriter< Mesh >::writeHeader( const Mesh& mesh )
 {
    str << "# File generater by TNL" << std::endl;
-};
+}
 
 template< typename Mesh >
 template< typename Element >

@@ -62,13 +62,13 @@ struct CSRAdaptiveKernel
    MaxValueSizeLog()
    {
       return ViewType::MaxValueSizeLog;
-   };
+   }
 
    static int
    getSizeValueLog( const int& i )
    {
       return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
-   };
+   }
 
    static TNL::String
    getKernelType();

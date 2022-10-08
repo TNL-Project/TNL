@@ -1159,7 +1159,7 @@ TEST( MeshGeometryTest, TriangleGetRefinedMeshTest )
    EXPECT_EQ( refinedMesh.getEntitiesCount< 2 >(),  8 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 1 >(), 16 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 0 >(),  9 );
-};
+}
 
 TEST( MeshGeometryTest, QuadrangleGetRefinedMeshTest )
 {
@@ -1199,7 +1199,7 @@ TEST( MeshGeometryTest, QuadrangleGetRefinedMeshTest )
    EXPECT_EQ( refinedMesh.getEntitiesCount< 2 >(),  8 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 1 >(), 22 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 0 >(), 15 );
-};
+}
 
 TEST( MeshGeometryTest, TetrahedronGetRefinedMeshTest )
 {
@@ -1238,7 +1238,7 @@ TEST( MeshGeometryTest, TetrahedronGetRefinedMeshTest )
    EXPECT_EQ( refinedMesh.getEntitiesCount< 2 >(), 44 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 1 >(), 41 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 0 >(), 14 );
-};
+}
 
 TEST( MeshGeometryTest, HexahedronGetRefinedMeshTest )
 {
@@ -1299,7 +1299,7 @@ TEST( MeshGeometryTest, HexahedronGetRefinedMeshTest )
    EXPECT_EQ( refinedMesh.getEntitiesCount< 2 >(), 68 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 1 >(), 96 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 0 >(), 45 );
-};
+}
 
 } // namespace MeshTest
 

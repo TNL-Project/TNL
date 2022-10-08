@@ -184,7 +184,7 @@ operator<<( std::ostream& str, const EntitySeed< MeshConfig, EntityTopology >& e
 {
    str << e.getCornerIds();
    return str;
-};
+}
 
 template< typename EntitySeed >
 struct EntitySeedHash

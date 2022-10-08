@@ -39,7 +39,7 @@ struct SparseMatrixRowViewValueGetter< SegmentView, ValuesView, ColumnsIndexesVi
              const IndexType& paddingIndex )
    {
       return columnIndexes[ globalIdx ] != paddingIndex;
-   };
+   }
 };
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView, typename Real >
@@ -61,14 +61,14 @@ struct SparseMatrixRowViewValueGetter< SegmentView, ValuesView, ColumnsIndexesVi
              const IndexType& paddingIndex )
    {
       return values[ globalIdx ];
-   };
+   }
 
    __cuda_callable__
    static RealType&
    getValue( const IndexType& globalIdx, ValuesView& values, ColumnsIndexesView& columnIndexes, const IndexType& paddingIndex )
    {
       return values[ globalIdx ];
-   };
+   }
 };
 
 }  // namespace details
