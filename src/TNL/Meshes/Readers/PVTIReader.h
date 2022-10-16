@@ -270,7 +270,7 @@ public:
       /*
       if( ghostLevels > 0 ) {
          // assign point ghost tags
-         using mpark::get;
+         using std::get;
          const std::vector< std::uint8_t > pointTags = get< std::vector< std::uint8_t > >( this->pointTags );
          if( (Index) pointTags.size() != pointsCount )
             throw MeshReaderError(
@@ -281,7 +281,7 @@ public:
                localMesh.template addEntityTag< 0 >( i, EntityTags::GhostEntity );
 
          // assign cell ghost tags
-         using mpark::get;
+         using std::get;
          const std::vector< std::uint8_t > cellTags = get< std::vector< std::uint8_t > >( this->cellTags );
          if( (Index) cellTags.size() != cellsCount )
             throw MeshReaderError( "PVTIReader",

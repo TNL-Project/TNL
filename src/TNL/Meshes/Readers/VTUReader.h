@@ -60,7 +60,7 @@ class VTUReader : public XMLVTK
       if( typesType != "std::uint8_t" )
          throw MeshReaderError( "VTUReader", "unsupported data type for the Name=\"types\" array" );
 
-      using mpark::visit;
+      using std::visit;
       // validate points
       visit(
          [ this ]( auto&& array )
@@ -186,7 +186,7 @@ class VTUReader : public XMLVTK
                if( vtk_faces.size() != max_offset )
                   throw MeshReaderError( "VTUReader", "size of the faces data array does not match the faceoffsets array" );
                // let's just assume that the connectivity and offsets arrays have the same type...
-               using mpark::get;
+               using std::get;
                const auto& vtk_faceOffsets = get< std::decay_t< decltype( vtk_faces ) > >( vtk_faceOffsetsArray );
 
                // We need to translate the VTK faces and faceoffsets arrays
