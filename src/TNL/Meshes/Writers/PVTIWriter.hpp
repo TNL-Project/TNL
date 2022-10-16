@@ -7,11 +7,7 @@
 #pragma once
 
 #include <memory>  // std::unique_ptr
-#ifdef __APPLE__
-   #include <filesystem>
-#else
-   #include <experimental/filesystem>
-#endif
+#include <filesystem>
 
 #include <TNL/Meshes/Writers/PVTIWriter.h>
 
@@ -163,11 +159,7 @@ PVTIWriter< Grid >::addPiece( const std::string& mainFileName,
                               const typename Grid::CoordinatesType& globalBegin,
                               const typename Grid::CoordinatesType& globalEnd )
 {
-#ifdef __APPLE__
-   namespace fs = std::__fs::filesystem;
-#else
-   namespace fs = std::experimental::filesystem;
-#endif
+   namespace fs = std::filesystem;
 
    // get the basename of the main file (filename without extension)
    const fs::path mainPath = mainFileName;

@@ -6,11 +6,7 @@
 
 #pragma once
 
-#ifdef __APPLE__
-   #include <filesystem>
-#else
-   #include <experimental/filesystem>
-#endif
+#include <filesystem>
 
 #include <TNL/Functions/Domain.h>
 #include <TNL/Devices/Cuda.h>
@@ -228,11 +224,7 @@ public:
          return false;
       }
 
-#ifdef __APPLE__
-      namespace fs = std::__fs::filesystem;
-#else
-      namespace fs = std::experimental::filesystem;
-#endif
+      namespace fs = std::filesystem;
 
       std::string format = fileFormat;
       if( format == "auto" ) {
@@ -485,11 +477,7 @@ public:
          return false;
       }
 
-#ifdef __APPLE__
-      namespace fs = std::__fs::filesystem;
-#else
-      namespace fs = std::experimental::filesystem;
-#endif
+      namespace fs = std::filesystem;
 
       std::string format = fileFormat;
       if( format == "auto" ) {

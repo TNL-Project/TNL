@@ -8,12 +8,7 @@
 
 #include <map>
 #include <set>
-
-#ifdef __APPLE__
-   #include <filesystem>
-#else
-   #include <experimental/filesystem>
-#endif
+#include <filesystem>
 
 #include <TNL/Meshes/Readers/MeshReader.h>
 #include <TNL/base64.h>
@@ -358,12 +353,7 @@ public:
    {
 #ifdef HAVE_TINYXML2
       using namespace tinyxml2;
-
-   #ifdef __APPLE__
-      namespace fs = std::__fs::filesystem;
-   #else
-      namespace fs = std::experimental::filesystem;
-   #endif
+      namespace fs = std::filesystem;
 
       if( ! fs::exists( fileName ) )
          throw MeshReaderError( "XMLVTK", "file '" + fileName + "' does not exist" );

@@ -6,11 +6,7 @@
 
 #pragma once
 
-#ifdef __APPLE__
-   #include <filesystem>
-#else
-   #include <experimental/filesystem>
-#endif
+#include <filesystem>
 
 #include <TNL/Meshes/Writers/PVTUWriter.h>
 
@@ -101,11 +97,7 @@ template< typename Mesh >
 std::string
 PVTUWriter< Mesh >::addPiece( const std::string& mainFileName, const unsigned subdomainIndex )
 {
-#ifdef __APPLE__
-   namespace fs = std::__fs::filesystem;
-#else
-   namespace fs = std::experimental::filesystem;
-#endif
+   namespace fs = std::filesystem;
 
    // get the basename of the main file (filename without extension)
    const fs::path mainPath = mainFileName;

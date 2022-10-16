@@ -54,6 +54,8 @@ find_package( OpenMP COMPONENTS CXX )
 find_package( MPI COMPONENTS CXX )
 # workaround for https://github.com/ginkgo-project/ginkgo/issues/1096
 find_package( Ginkgo QUIET )
+# find the std::filesystem library
+find_package( Filesystem REQUIRED COMPONENTS Final )
 
 # Settings for debug build
 if( CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -173,11 +175,8 @@ target_compile_features( TNL INTERFACE cxx_std_17 )
 target_compile_options( TNL INTERFACE
                         ${TNL_COLOR_DIAGNOSTICS_FLAG} )
 
-# add the filesystem library to the interface if are not running on macOS
-# https://en.cppreference.com/w/cpp/filesystem
-if ( NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-   target_link_libraries( TNL INTERFACE stdc++fs )
-endif()
+# add the std::filesystem library to the interface
+target_link_libraries( TNL INTERFACE std::filesystem )
 
 # gtest has to be built before we add the MPI flags
 if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )

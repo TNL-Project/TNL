@@ -4,11 +4,7 @@
 
 #ifdef HAVE_MPI
 
-#ifdef __APPLE__
 #include <filesystem>
-#else
-#include <experimental/filesystem>
-#endif
 
 #include <TNL/Functions/MeshFunctionView.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
@@ -19,11 +15,7 @@
 
 #include "../../Functions/Functions.h"
 
-#ifdef __APPLE__
-namespace fs = std::__fs::filesystem;
-#else
-namespace fs = std::experimental::filesystem;
-#endif
+namespace fs = std::filesystem;
 
 using namespace TNL;
 using namespace TNL::Containers;
