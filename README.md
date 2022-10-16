@@ -136,7 +136,7 @@ your publications:
   https://ojs.cvut.cz/ojs/index.php/ap/article/view/6075), Acta Polytechnica 61.SI (2021), 122-134.
 - J. Klinkovský, T. Oberhuber, R. Fučík, V. Žabka, [Configurable open-source data structure for
   distributed conforming unstructured homogeneous meshes with GPU support](
-  https://doi.org/10.1145/3536164), Just Accepted in ACM Transactions on Mathematical Software.
+  https://doi.org/10.1145/3536164), ACM Transactions on Mathematical Software, 2022, 48(3), 1-33.
 
 ## Authors
 
