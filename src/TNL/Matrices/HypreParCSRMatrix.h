@@ -510,11 +510,19 @@ public:
    {
       if( owns_handle && m != nullptr ) {
          if( ! owns_diag )
+   #if HYPRE_RELEASE_NUMBER >= 22600
+            hypre_ParCSRMatrixDiag( m ) = nullptr;
+   #else
             // hypreParCSRMatrixDestroy does not work when diag is a nullptr
             hypre_ParCSRMatrixDiag( m ) = hypre_CSRMatrixCreate( 0, 0, 0 );
+   #endif
          if( ! owns_offd )
+   #if HYPRE_RELEASE_NUMBER >= 22600
+            hypre_ParCSRMatrixOffd( m ) = nullptr;
+   #else
             // hypreParCSRMatrixDestroy does not work when offd is a nullptr
             hypre_ParCSRMatrixOffd( m ) = hypre_CSRMatrixCreate( 0, 0, 0 );
+   #endif
          if( ! owns_col_map_offd )
             hypre_ParCSRMatrixColMapOffd( m ) = nullptr;
          hypre_ParCSRMatrixDestroy( m );
