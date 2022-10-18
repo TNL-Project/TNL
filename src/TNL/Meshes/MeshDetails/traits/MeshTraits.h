@@ -42,11 +42,7 @@ struct EntityTopologyGetter< MeshConfig, DimensionTag< MeshConfig::CellTopology:
    using Topology = typename MeshConfig::CellTopology;
 };
 
-template< typename MeshConfig,
-          typename Device,
-          int Dimension,
-          bool IsDynamicTopology = Topologies::IsDynamicTopology<
-             typename EntityTopologyGetter< MeshConfig, DimensionTag< Dimension > >::Topology >::value >
+template< typename MeshConfig, typename Device, int Dimension >
 class MeshEntityTraits;
 
 template< typename MeshConfig,
