@@ -366,8 +366,7 @@ struct Cast
    struct Operation
    {
       template< typename T >
-      __cuda_callable__
-      auto
+      constexpr auto
       operator()( const T& a ) const -> ResultType
       {
          return static_cast< ResultType >( a );
