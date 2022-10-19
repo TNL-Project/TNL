@@ -247,10 +247,9 @@ public:
    createSeeds( InitializerType& initializer, MeshType& mesh )
    {
       this->seedsIndexedSet.reserve( mesh.template getEntitiesCount< MeshTraitsType::meshDimension >() );
-      using SubentitySeedsCreator = SubentitySeedsCreator< MeshConfig, typename MeshTraitsType::CellTopology, DimensionTag >;
+      using SubentitySeedsCreator = SubentitySeedsCreator< MeshType, typename MeshTraitsType::CellTopology, DimensionTag >;
       for( GlobalIndexType i = 0; i < mesh.template getEntitiesCount< MeshType::getMeshDimension() >(); i++ ) {
-         SubentitySeedsCreator::iterate( initializer,
-                                         mesh,
+         SubentitySeedsCreator::iterate( mesh,
                                          i,
                                          [ & ]( SeedType& seed )
                                          {

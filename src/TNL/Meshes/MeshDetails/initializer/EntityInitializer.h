@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Meshes/MeshDetails/initializer/EntitySeed.h>
+#include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
 #include <TNL/Meshes/MeshDetails/initializer/SubentitySeedsCreator.h>
 #include <TNL/Atomic.h>
 #include <TNL/Algorithms/AtomicOperations.h>
@@ -123,7 +123,7 @@ class EntityInitializerLayer< MeshConfig, SubdimensionTag, SuperdimensionTag, Su
    using SubentityTraitsType = typename MeshTraitsType::template EntityTraits< SubdimensionTag::value >;
    using SubentityTopology = typename SubentityTraitsType::EntityTopology;
    using SuperentityTraitsType = typename MeshTraitsType::template EntityTraits< SuperdimensionTag::value >;
-   using SubentitySeedsCreatorType = SubentitySeedsCreator< MeshConfig, SuperentityTopology, SubdimensionTag >;
+   using SubentitySeedsCreatorType = SubentitySeedsCreator< MeshType, SuperentityTopology, SubdimensionTag >;
    using SuperentityMatrixType = typename MeshTraitsType::SuperentityMatrixType;
    using NeighborCountsArray = typename MeshTraitsType::NeighborCountsArray;
    using SeedType = EntitySeed< MeshConfig, SubentityTopology >;
@@ -141,14 +141,13 @@ public:
       if( SubdimensionTag::value > 0 || std::is_same< SuperentityTopology, Topologies::Polyhedron >::value ) {
          NeighborCountsArray capacities( superentitiesCount );
 
-         Algorithms::ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 },
-                                                         superentitiesCount,
-                                                         [ & ]( GlobalIndexType superentityIndex )
-                                                         {
-                                                            capacities[ superentityIndex ] =
-                                                               SubentitySeedsCreatorType::getSubentitiesCount(
-                                                                  meshInitializer, mesh, superentityIndex );
-                                                         } );
+         Algorithms::ParallelFor< Devices::Host >::exec(
+            GlobalIndexType{ 0 },
+            superentitiesCount,
+            [ & ]( GlobalIndexType superentityIndex )
+            {
+               capacities[ superentityIndex ] = SubentitySeedsCreatorType::getSubentitiesCount( mesh, superentityIndex );
+            } );
 
          meshInitializer.template initSubentityMatrix< SuperdimensionTag::value, SubdimensionTag::value >( capacities,
                                                                                                            subentitiesCount );
@@ -167,7 +166,6 @@ public:
          {
             LocalIndexType i = 0;
             SubentitySeedsCreatorType::iterate(
-               meshInitializer,
                mesh,
                superentityIndex,
                [ & ]( SeedType& seed )
@@ -310,7 +308,7 @@ class EntityInitializerLayer< MeshConfig, SubdimensionTag, SuperdimensionTag, Su
    using SubentityTraitsType = typename MeshTraitsType::template EntityTraits< SubdimensionTag::value >;
    using SubentityTopology = typename SubentityTraitsType::EntityTopology;
    using SuperentityTraitsType = typename MeshTraitsType::template EntityTraits< SuperdimensionTag::value >;
-   using SubentitySeedsCreatorType = SubentitySeedsCreator< MeshConfig, SuperentityTopology, SubdimensionTag >;
+   using SubentitySeedsCreatorType = SubentitySeedsCreator< MeshType, SuperentityTopology, SubdimensionTag >;
    using NeighborCountsArray = typename MeshTraitsType::NeighborCountsArray;
    using SeedType = EntitySeed< MeshConfig, SubentityTopology >;
 
@@ -326,14 +324,13 @@ public:
       if( SubdimensionTag::value > 0 || std::is_same< SuperentityTopology, Topologies::Polyhedron >::value ) {
          NeighborCountsArray capacities( superentitiesCount );
 
-         Algorithms::ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 },
-                                                         superentitiesCount,
-                                                         [ & ]( GlobalIndexType superentityIndex )
-                                                         {
-                                                            capacities[ superentityIndex ] =
-                                                               SubentitySeedsCreatorType::getSubentitiesCount(
-                                                                  meshInitializer, mesh, superentityIndex );
-                                                         } );
+         Algorithms::ParallelFor< Devices::Host >::exec(
+            GlobalIndexType{ 0 },
+            superentitiesCount,
+            [ & ]( GlobalIndexType superentityIndex )
+            {
+               capacities[ superentityIndex ] = SubentitySeedsCreatorType::getSubentitiesCount( mesh, superentityIndex );
+            } );
 
          meshInitializer.template initSubentityMatrix< SuperdimensionTag::value, SubdimensionTag::value >( capacities,
                                                                                                            subentitiesCount );
@@ -345,7 +342,6 @@ public:
             {
                LocalIndexType i = 0;
                SubentitySeedsCreatorType::iterate(
-                  meshInitializer,
                   mesh,
                   superentityIndex,
                   [ & ]( SeedType& seed )
@@ -424,7 +420,7 @@ class EntityInitializerLayer< MeshConfig, SubdimensionTag, SuperdimensionTag, Su
    using SubentityTraitsType = typename MeshTraitsType::template EntityTraits< SubdimensionTag::value >;
    using SubentityTopology = typename SubentityTraitsType::EntityTopology;
    using SuperentityTraitsType = typename MeshTraitsType::template EntityTraits< SuperdimensionTag::value >;
-   using SubentitySeedsCreatorType = SubentitySeedsCreator< MeshConfig, SuperentityTopology, SubdimensionTag >;
+   using SubentitySeedsCreatorType = SubentitySeedsCreator< MeshType, SuperentityTopology, SubdimensionTag >;
    using SuperentityMatrixType = typename MeshTraitsType::SuperentityMatrixType;
    using SeedType = EntitySeed< MeshConfig, SubentityTopology >;
 
@@ -449,7 +445,6 @@ public:
                                                       [ & ]( GlobalIndexType superentityIndex )
                                                       {
                                                          SubentitySeedsCreatorType::iterate(
-                                                            meshInitializer,
                                                             mesh,
                                                             superentityIndex,
                                                             [ & ]( SeedType& seed )
@@ -471,7 +466,6 @@ public:
       // initialize superentities storage
       for( GlobalIndexType superentityIndex = 0; superentityIndex < superentitiesCount; superentityIndex++ ) {
          SubentitySeedsCreatorType::iterate(
-            meshInitializer,
             mesh,
             superentityIndex,
             [ & ]( SeedType& seed )
@@ -486,7 +480,7 @@ public:
       /*Algorithms::ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, superentitiesCount, [&] ( GlobalIndexType
       superentityIndex )
       {
-         SubentitySeedsCreatorType::iterate( meshInitializer, mesh, superentityIndex, [&] ( SeedType& seed ) {
+         SubentitySeedsCreatorType::iterate( mesh, superentityIndex, [&] ( SeedType& seed ) {
             const GlobalIndexType subentityIndex = meshInitializer.findEntitySeedIndex( seed );
             auto row = matrix.getRow( subentityIndex );
 
