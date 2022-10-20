@@ -14,27 +14,12 @@ namespace Algorithms {
 
 namespace detail {
 
-// special dispatch for `begin >= end` (i.e. empty loop)
-template< typename Index, Index begin, Index end, typename Func >
-constexpr std::enable_if_t< ( begin >= end ) >
-static_for_dispatch( Func&& f )
-{}
-
 template< typename Index, Index begin, typename Func, Index... idx, typename... ArgTypes >
 constexpr void
 static_for_impl( Func&& f, std::integer_sequence< Index, idx... >, ArgTypes&&... args )
 {
    // C++17 fold expression using the comma operator
    ( f( std::integral_constant< Index, begin + idx >{}, std::forward< ArgTypes >( args )... ), ... );
-}
-
-// general dispatch for `begin < end`
-template< typename Index, Index begin, Index end, typename Func, typename... ArgTypes >
-constexpr std::enable_if_t< ( begin < end ) >
-static_for_dispatch( Func&& f, ArgTypes&&... args )
-{
-   static_for_impl< Index, begin >(
-      std::forward< Func >( f ), std::make_integer_sequence< Index, end - begin >{}, std::forward< ArgTypes >( args )... );
 }
 
 }  // namespace detail
@@ -78,7 +63,10 @@ template< typename Index, Index begin, Index end, typename Func, typename... Arg
 constexpr void
 staticFor( Func&& f, ArgTypes&&... args )
 {
-   detail::static_for_dispatch< Index, begin, end >( std::forward< Func >( f ), std::forward< ArgTypes >( args )... );
+   if constexpr( begin < end ) {
+      detail::static_for_impl< Index, begin >(
+         std::forward< Func >( f ), std::make_integer_sequence< Index, end - begin >{}, std::forward< ArgTypes >( args )... );
+   }
 }
 
 }  // namespace Algorithms
