@@ -188,12 +188,11 @@ protected:
 
    using MeshType = Mesh< MeshConfig >;
    using EntityTraitsType = typename MeshTraitsType::template EntityTraits< DimensionTag::value >;
-   using EntityTopology = typename EntityTraitsType::EntityTopology;
    using GlobalIndexType = typename MeshTraitsType::GlobalIndexType;
    using LocalIndexType = typename MeshTraitsType::LocalIndexType;
 
    using InitializerType = Initializer< MeshConfig >;
-   using EntityInitializerType = EntityInitializer< MeshConfig, EntityTopology >;
+   using EntityInitializerType = EntityInitializer< MeshConfig, DimensionTag::value >;
    using CellSeedMatrixType = typename MeshTraitsType::CellSeedMatrixType;
    using FaceSeedMatrixType = typename MeshTraitsType::FaceSeedMatrixType;
    using NeighborCountsArray = typename MeshTraitsType::NeighborCountsArray;
@@ -236,7 +235,7 @@ protected:
    using LocalIndexType = typename MeshTraitsType::LocalIndexType;
 
    using InitializerType = Initializer< MeshConfig >;
-   using EntityInitializerType = EntityInitializer< MeshConfig, EntityTopology >;
+   using EntityInitializerType = EntityInitializer< MeshConfig, DimensionTag::value >;
    using SeedType = EntitySeed< MeshConfig, EntityTopology >;
    using SeedIndexedSet = typename MeshTraits< MeshConfig >::template EntityTraits< DimensionTag::value >::SeedIndexedSetType;
    using SeedMatrixType = typename EntityTraitsType::SeedMatrixType;
@@ -340,7 +339,7 @@ class InitializerLayer< MeshConfig, DimensionTag< 0 > >
    using LocalIndexType = typename MeshTraitsType::LocalIndexType;
 
    using InitializerType = Initializer< MeshConfig >;
-   using EntityInitializerType = EntityInitializer< MeshConfig, EntityTopology >;
+   using EntityInitializerType = EntityInitializer< MeshConfig, DimensionTag::value >;
    using SeedType = EntitySeed< MeshConfig, EntityTopology >;
    using SeedMatrixType = typename EntityTraitsType::SeedMatrixType;
 
