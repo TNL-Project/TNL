@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include <TNL/String.h>
+#include <array>
+
 #include <TNL/File.h>
 
 namespace TNL {
@@ -35,7 +36,6 @@ public:
    /**
     * \brief Gets size of this array.
     */
-   __cuda_callable__
    static constexpr int
    getSize();
 
@@ -43,7 +43,7 @@ public:
     * \brief Default constructor.
     */
    __cuda_callable__
-   StaticArray() = default;
+   constexpr StaticArray() = default;
 
    /**
     * \brief Constructor from static array.
@@ -53,14 +53,16 @@ public:
    // Note: the template avoids ambiguity of overloaded functions with literal 0 and pointer
    // reference: https://stackoverflow.com/q/4610503
    template< typename _unused = void >
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
    __cuda_callable__
-   StaticArray( const Value v[ Size ] );
+   constexpr StaticArray( const Value v[ Size ] );
 
    /**
     * \brief Constructor that sets all array components to value \e v.
     *
     * \param v Reference to a value.
     */
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
    __cuda_callable__
    constexpr StaticArray( const Value& v );
 
@@ -69,8 +71,32 @@ public:
     *
     * Constructs a copy of another static array \e v.
     */
+   // NOTE: as of nvcc 11.8, the default/implicit copy-constructor for std::array (which is based on aggregate initialization)
+   // does not work correctly in device code, so we must defaine our own copy-constructor
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
    __cuda_callable__
-   StaticArray( const StaticArray< Size, Value >& v );
+   constexpr StaticArray( const StaticArray& v );
+
+   /**
+    * \brief Move constructor.
+    */
+   constexpr StaticArray( StaticArray&& ) noexcept = default;
+
+   /**
+    * \brief Constructor which initializes the array element-by-element using
+    * the supplied values.
+    *
+    * It behaves like the aggregate-initialization in \ref std::array, e.g.
+    * `StaticArray< 3, int > a = {1, 2, 3};`. The number of supplied arguments
+    * must be equal to \e Size.
+    *
+    * @param values The elements forwarded to the constructor of the underlying
+    *               \ref std::array.
+    */
+   template< typename... Values, std::enable_if_t< ( Size > 1 ) && sizeof...( Values ) == Size, bool > = true >
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
+   __cuda_callable__
+   constexpr StaticArray( Values&&... values );
 
    /**
     * \brief Constructor which initializes the array by copying elements from
@@ -80,51 +106,20 @@ public:
     *
     * @param elems input initializer list
     */
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
    __cuda_callable__
-   StaticArray( const std::initializer_list< Value >& elems );
-
-   /**
-    * \brief Constructor that sets components of arrays with Size = 2.
-    *
-    * \param v1 Value of the first array component.
-    * \param v2 Value of the second array component.
-    */
-   __cuda_callable__
-   constexpr StaticArray( const Value& v1, const Value& v2 );
-
-   /**
-    * \brief Constructor that sets components of arrays with Size = 3.
-    *
-    * \param v1 Value of the first array component.
-    * \param v2 Value of the second array component.
-    * \param v3 Value of the third array component.
-    */
-   __cuda_callable__
-   constexpr StaticArray( const Value& v1, const Value& v2, const Value& v3 );
-
-   /**
-    * \brief Constructor that sets components of arrays with Size = 4.
-    *
-    * \param v1 Value of the first array component.
-    * \param v2 Value of the second array component.
-    * \param v3 Value of the third array component.
-    * \param v4 Value of the forth array component.
-    */
-   __cuda_callable__
-   constexpr StaticArray( const Value& v1, const Value& v2, const Value& v3, const Value& v4 );
+   constexpr StaticArray( const std::initializer_list< Value >& elems );
 
    /**
     * \brief Gets pointer to data of this static array.
     */
-   __cuda_callable__
-   Value*
+   constexpr Value*
    getData();
 
    /**
     * \brief Gets constant pointer to data of this static array.
     */
-   __cuda_callable__
-   const Value*
+   constexpr const Value*
    getData() const;
 
    /**
@@ -132,7 +127,6 @@ public:
     *
     * \param i Index position of an element.
     */
-   __cuda_callable__
    constexpr const Value&
    operator[]( int i ) const;
 
@@ -141,7 +135,6 @@ public:
     *
     * \param i Index position of an element.
     */
-   __cuda_callable__
    constexpr Value&
    operator[]( int i );
 
@@ -150,7 +143,6 @@ public:
     *
     * Equivalent to \ref operator[].
     */
-   __cuda_callable__
    constexpr const Value&
    operator()( int i ) const;
 
@@ -159,58 +151,58 @@ public:
     *
     * Equivalent to \ref operator[].
     */
-   __cuda_callable__
    constexpr Value&
    operator()( int i );
 
    /**
     * \brief Returns reference to the first coordinate.
     */
-   __cuda_callable__
    constexpr Value&
    x();
 
    /**
     * \brief Returns constant reference to the first coordinate.
     */
-   __cuda_callable__
    constexpr const Value&
    x() const;
 
    /**
     * \brief Returns reference to the second coordinate for arrays with Size >= 2.
     */
-   __cuda_callable__
    constexpr Value&
    y();
 
    /**
     * \brief Returns constant reference to the second coordinate for arrays with Size >= 2.
     */
-   __cuda_callable__
    constexpr const Value&
    y() const;
 
    /**
     * \brief Returns reference to the third coordinate for arrays with Size >= 3.
     */
-   __cuda_callable__
    constexpr Value&
    z();
 
    /**
     * \brief Returns constant reference to the third coordinate for arrays with Size >= 3.
     */
-   __cuda_callable__
    constexpr const Value&
    z() const;
 
    /**
-    * \brief Assigns another static \e array to this array.
+    * \brief Copy-assignment operator.
     */
-   __cuda_callable__
-   StaticArray< Size, Value >&
-   operator=( const StaticArray< Size, Value >& array );
+   // NOTE: as of nvcc 11.8, the default/implicit copy-assignment operator for std::array (which is based on aggregate
+   // initialization) does not work correctly in device code, so we must defaine our own copy-constructor
+   constexpr StaticArray&
+   operator=( const StaticArray& v );
+
+   /**
+    * \brief Move-assignment operator.
+    */
+   constexpr StaticArray&
+   operator=( StaticArray&& ) noexcept = default;
 
    /**
     * \brief Assigns an object \e v of type \e T.
@@ -223,8 +215,7 @@ public:
     * are set to \e v.
     */
    template< typename T >
-   __cuda_callable__
-   StaticArray< Size, Value >&
+   constexpr StaticArray< Size, Value >&
    operator=( const T& v );
 
    /**
@@ -233,7 +224,6 @@ public:
     * Return \e true if the arrays are equal in size. Otherwise returns \e false.
     */
    template< typename Array >
-   __cuda_callable__
    constexpr bool
    operator==( const Array& array ) const;
 
@@ -243,7 +233,6 @@ public:
     * Return \e true if the arrays are not equal in size. Otherwise returns \e false.
     */
    template< typename Array >
-   __cuda_callable__
    constexpr bool
    operator!=( const Array& array ) const;
 
@@ -259,14 +248,12 @@ public:
     * \return instance of StaticArray< Size, OtherValue >
     */
    template< typename OtherValue >
-   __cuda_callable__
-   operator StaticArray< Size, OtherValue >() const;
+   constexpr operator StaticArray< Size, OtherValue >() const;
 
    /**
     * \brief Sets all values of this static array to \e val.
     */
-   __cuda_callable__
-   void
+   constexpr void
    setValue( const ValueType& val );
 
    /**
@@ -286,7 +273,7 @@ public:
    /**
     * \brief Sorts the elements in this static array in ascending order.
     */
-   void
+   constexpr void
    sort();
 
    /**
@@ -300,7 +287,7 @@ public:
    write( std::ostream& str, const char* separator = " " ) const;
 
 protected:
-   Value data[ Size ];
+   std::array< Value, Size > data;
 };
 
 template< int Size, typename Value >
