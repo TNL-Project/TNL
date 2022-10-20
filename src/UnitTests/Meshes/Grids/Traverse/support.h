@@ -5,43 +5,12 @@
 #include <gtest/gtest.h>
 #include <functional>
 
+#include <TNL/Algorithms/staticFor.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Meshes/GridDetails/NormalsGetter.h>
 
 #include "../CoordinateIterator.h"
 #include "../EntityDataStore.h"
-
-namespace Templates {
-/*
- * A compiler-friendly implementation of the templated for-cycle, because
- * the template specializations count is O(Value) bounded.
- */
-template <int>
-struct DescendingFor;
-
-template <int Value>
-struct DescendingFor {
-  public:
-   template <typename Func, typename... FuncArgs>
-   static void exec(Func func, FuncArgs&&... args) {
-      static_assert(Value > 0, "Couldn't descend for negative values");
-
-      func(std::integral_constant<int, Value>(), std::forward<FuncArgs>(args)...);
-
-      DescendingFor<Value - 1>::exec(std::forward<Func>(func), std::forward<FuncArgs>(args)...);
-   }
-};
-
-template <>
-struct DescendingFor<0> {
-  public:
-   template <typename Func, typename... FuncArgs>
-   static void exec(Func func, FuncArgs&&... args) {
-      func(std::integral_constant<int, 0>(), std::forward<FuncArgs>(args)...);
-   }
-};
-
-}  // namespace Templates
 
 template< typename Grid, int EntityDimension, int Orientation >
 class GridCoordinateIterator : public CoordinateIterator< typename Grid::IndexType, Grid::getMeshDimension() >
@@ -262,7 +231,7 @@ class GridTraverseTestCase {
             } while (!iterator.next());
          };
 
-         Templates::DescendingFor<orientationsCount - 1>::exec(verify);
+         TNL::Algorithms::staticFor< int, 0, orientationsCount >(verify);
       }
       void verifyBoundary(const Grid& grid, const DataStore& store) const {
          auto hostStore = store.template move<TNL::Devices::Host>();
@@ -289,7 +258,7 @@ class GridTraverseTestCase {
             } while (!iterator.next());
          };
 
-         Templates::DescendingFor<orientationsCount - 1>::exec(verify);
+         TNL::Algorithms::staticFor< int, 0, orientationsCount >(verify);
       }
       void verifyInterior(const Grid& grid, const DataStore& store) const {
          auto hostStore = store.template move<TNL::Devices::Host>();
@@ -316,7 +285,7 @@ class GridTraverseTestCase {
             } while (!iterator.next());
          };
 
-         Templates::DescendingFor<orientationsCount - 1>::exec(verify);
+         TNL::Algorithms::staticFor< int, 0, orientationsCount >(verify);
       }
    private:
       template<int Orientation>

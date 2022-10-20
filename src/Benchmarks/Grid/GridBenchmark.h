@@ -100,7 +100,7 @@ class GridBenchmark {
             timeTraverse<entityDimension, Grid, GetOriginOperation>(benchmark, grid);
             timeTraverse<entityDimension, Grid, GetEntitiesCountsOperation>(benchmark, grid);
          };
-         TNL::Meshes::Templates::DescendingFor< GridDimension >::exec(forEachEntityDimension);
+         TNL::Algorithms::staticFor< int, 0, GridDimension + 1 >(forEachEntityDimension);
       }
 
       template<int EntityDimension, typename Grid, typename Operation>

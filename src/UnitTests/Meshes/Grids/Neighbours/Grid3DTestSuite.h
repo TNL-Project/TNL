@@ -53,42 +53,38 @@ template<typename Grid, int EntityDimension, int NeighbourEntityDimension>
 void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension) {
    testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, -1, -1, -1>(grid, dimension);
 
-   // Uncomment, if you want to test for all instances. Note, that it may take a lot of time to compile.
-   //
-   // auto firstLoop = [&](const auto i){
-   //    auto secondLoop = [&](const auto i, const auto j) {
-   //       auto thirdLoop = [&](const auto i, const auto j, const auto k) {
-   //          testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, i - 1, j - 1, k - 1>(grid, dimension);
-   //       };
+    auto firstLoop = [&](auto i){
+       auto secondLoop = [&](auto i, auto j) {
+          auto thirdLoop = [&](auto i, auto j, auto k) {
+             testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, i - 1, j - 1, k - 1>(grid, dimension);
+          };
 
-   //       TNL::Meshes::Templates::DescendingFor<2>::exec(thirdLoop, i, j);
-   //    };
+          TNL::Algorithms::staticFor< int, 0, 3 >(thirdLoop, i, j);
+       };
 
-   //    TNL::Meshes::Templates::DescendingFor<2>::exec(secondLoop, i);
-   // };
+       TNL::Algorithms::staticFor< int, 0, 3 >(secondLoop, i);
+    };
 
-   // TNL::Meshes::Templates::DescendingFor<2>::exec(firstLoop);
+    TNL::Algorithms::staticFor< int, 0, 3 >(firstLoop);
 }
 
 template<typename Grid, int EntityDimension, int NeighbourEntityDimension, int NeighbourEntityOrientation>
 void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension) {
    testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, NeighbourEntityOrientation, -1, -1, -1>(grid, dimension);
 
-   // Uncomment, if you want to test for all instances. Note, that it may take a lot of time to compile.
-   //
-   // auto firstLoop = [&](const auto i){
-   //    auto secondLoop = [&](const auto i, const auto j) {
-   //       auto thirdLoop = [&](const auto i, const auto j, const auto k) {
-   //          testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, NeighbourEntityOrientation, i - 1, j - 1, k - 1>(grid, dimension);
-   //       };
+    auto firstLoop = [&](auto i){
+       auto secondLoop = [&](auto i, auto j) {
+          auto thirdLoop = [&](auto i, auto j, auto k) {
+             testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, NeighbourEntityOrientation, i - 1, j - 1, k - 1>(grid, dimension);
+          };
 
-   //       TNL::Meshes::Templates::DescendingFor<2>::exec(thirdLoop, i, j);
-   //    };
+          TNL::Algorithms::staticFor< int, 0, 3 >(thirdLoop, i, j);
+       };
 
-   //    TNL::Meshes::Templates::DescendingFor<2>::exec(secondLoop, i);
-   // };
+       TNL::Algorithms::staticFor< int, 0, 3 >(secondLoop, i);
+    };
 
-   // TNL::Meshes::Templates::DescendingFor<2>::exec(firstLoop);
+    TNL::Algorithms::staticFor< int, 0, 3 >(firstLoop);
 }
 
 template<typename Grid, int EntityDimension, int NeighbourEntityDimension>

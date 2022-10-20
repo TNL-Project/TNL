@@ -7,7 +7,6 @@
 #pragma once
 
 #include <TNL/Meshes/GridDetails/Templates/Permutations.h>
-#include <TNL/Meshes/GridDetails/Templates/DescendingFor.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
 
 namespace TNL {
