@@ -6,8 +6,11 @@
 
 #pragma once
 
+#include <stdexcept>
+
 #include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
 #include <TNL/Meshes/MeshDetails/initializer/SubentitySeedsCreator.h>
+#include <TNL/Meshes/MeshDetails/initializer/EntitySeed.h>
 #include <TNL/Atomic.h>
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Algorithms/ParallelFor.h>
@@ -19,9 +22,11 @@ namespace Meshes {
 template< typename MeshConfig >
 class Initializer;
 
-template< int subdimension, int superdimension, typename MeshConfig >
+template< int subdimension, int superdimension, typename MeshConfig, typename SeedIndexGetter >
 void
-initializeSuperentities( Initializer< MeshConfig >& meshInitializer, typename Initializer< MeshConfig >::MeshType& mesh )
+initializeSuperentities( Initializer< MeshConfig >& meshInitializer,
+                         typename Initializer< MeshConfig >::MeshType& mesh,
+                         SeedIndexGetter&& getEntitySeedIndex )
 {
    using MeshType = typename Initializer< MeshConfig >::MeshType;
    using GlobalIndexType = typename MeshType::GlobalIndexType;
@@ -77,10 +82,9 @@ initializeSuperentities( Initializer< MeshConfig >& meshInitializer, typename In
                superentityIndex,
                [ & ]( SeedType& seed )
                {
-                  const GlobalIndexType subentityIndex = meshInitializer.findEntitySeedIndex( seed );
+                  const GlobalIndexType subentityIndex = getEntitySeedIndex( seed );
 
-                  // Subentity indices for SubdimensionTag::value == 0 of non-polyhedral meshes were already set up from
-                  // seeds
+                  // Subentity indices for subdimension == 0 of non-polyhedral meshes were already set up from seeds
                   if constexpr( subentityStorage
                                 && (subdimension > 0 || std::is_same_v< SuperentityTopology, Topologies::Polyhedron >) )
                      meshInitializer.template setSubentityIndex< superdimension, subdimension >(
@@ -116,15 +120,15 @@ initializeSuperentities( Initializer< MeshConfig >& meshInitializer, typename In
       }
       else {
          for( GlobalIndexType superentityIndex = 0; superentityIndex < superentitiesCount; superentityIndex++ ) {
-            SubentitySeedsCreatorType::iterate(
-               mesh,
-               superentityIndex,
-               [ & ]( SeedType& seed )
-               {
-                  const GlobalIndexType subentityIndex = meshInitializer.findEntitySeedIndex( seed );
-                  auto row = matrix.getRow( subentityIndex );
-                  row.setElement( superentitiesCountsView[ subentityIndex ]++, superentityIndex, true );
-               } );
+            SubentitySeedsCreatorType::iterate( mesh,
+                                                superentityIndex,
+                                                [ & ]( SeedType& seed )
+                                                {
+                                                   const GlobalIndexType subentityIndex = getEntitySeedIndex( seed );
+                                                   auto row = matrix.getRow( subentityIndex );
+                                                   row.setElement(
+                                                      superentitiesCountsView[ subentityIndex ]++, superentityIndex, true );
+                                                } );
          }
       }
    }
@@ -132,7 +136,9 @@ initializeSuperentities( Initializer< MeshConfig >& meshInitializer, typename In
 
 template< typename MeshConfig >
 void
-initializeFacesOfPolyhedrons( Initializer< MeshConfig >& meshInitializer, typename Initializer< MeshConfig >::MeshType& mesh )
+initializeFacesOfPolyhedrons( Initializer< MeshConfig >& meshInitializer,
+                              typename Initializer< MeshConfig >::MeshType::MeshTraitsType::CellSeedMatrixType& cellSeeds,
+                              typename Initializer< MeshConfig >::MeshType& mesh )
 {
    using MeshType = typename Initializer< MeshConfig >::MeshType;
    using GlobalIndexType = typename MeshType::GlobalIndexType;
@@ -149,10 +155,10 @@ initializeFacesOfPolyhedrons( Initializer< MeshConfig >& meshInitializer, typena
    // std::cout << "   Initiating superentities with dimension " << superdimension << " for subentities with
    // dimension " << subdimension << " ... " << std::endl;
 
+   meshInitializer.template setEntitiesCount< superdimension >( cellSeeds.getEntitiesCount() );
+
    const GlobalIndexType subentitiesCount = mesh.template getEntitiesCount< subdimension >();
    const GlobalIndexType superentitiesCount = mesh.template getEntitiesCount< superdimension >();
-
-   auto& cellSeeds = meshInitializer.getCellSeeds();
 
    typename NeighborCountsArray::ViewType superentitiesCountsView;
    if constexpr( superentityStorage ) {
@@ -199,49 +205,23 @@ initializeFacesOfPolyhedrons( Initializer< MeshConfig >& meshInitializer, typena
 template< typename MeshConfig, int EntityDimension >
 class EntityInitializer
 {
-   using MeshTraitsType = MeshTraits< MeshConfig >;
+   using InitializerType = Initializer< MeshConfig >;
+   using MeshType = typename InitializerType::MeshType;
+   using MeshTraitsType = typename MeshType::MeshTraitsType;
    using EntityTraitsType = typename MeshTraitsType::template EntityTraits< EntityDimension >;
    using GlobalIndexType = typename MeshTraitsType::GlobalIndexType;
    using LocalIndexType = typename MeshTraitsType::LocalIndexType;
 
    using SeedType = EntitySeed< MeshConfig, typename EntityTraitsType::EntityTopology >;
-   using InitializerType = Initializer< MeshConfig >;
-   using MeshType = typename InitializerType::MeshType;
    using NeighborCountsArray = typename MeshTraitsType::NeighborCountsArray;
-   using SeedMatrixType = typename EntityTraitsType::SeedMatrixType;
+   using SeedIndexedSet = typename MeshTraits< MeshConfig >::template EntityTraits< EntityDimension >::SeedIndexedSetType;
 
    static constexpr bool subvertexStorage = MeshConfig::subentityStorage( EntityDimension, 0 );
 
 public:
+   template< typename SeedIndexGetter >
    static void
-   initSubvertexMatrix( NeighborCountsArray& capacities, InitializerType& initializer )
-   {
-      if constexpr( subvertexStorage )
-         initializer.template initSubentityMatrix< EntityDimension, 0 >( capacities );
-   }
-
-   static void
-   initSubvertexMatrix( SeedMatrixType& seeds, InitializerType& initializer )
-   {
-      if constexpr( subvertexStorage ) {
-         auto& subvertexMatrix = initializer.template getSubentitiesMatrix< EntityDimension, 0 >();
-         subvertexMatrix = std::move( seeds.getMatrix() );
-         initializer.template initSubentitiesCounts< EntityDimension, 0 >( seeds.getEntityCornerCounts() );
-      }
-   }
-
-   static void
-   initEntity( const GlobalIndexType entityIndex, const SeedType& entitySeed, InitializerType& initializer )
-   {
-      if constexpr( subvertexStorage ) {
-         // this is necessary if we want to use existing entities instead of intermediate seeds to create subentity seeds
-         for( LocalIndexType i = 0; i < entitySeed.getCornerIds().getSize(); i++ )
-            initializer.template setSubentityIndex< EntityDimension, 0 >( entityIndex, i, entitySeed.getCornerIds()[ i ] );
-      }
-   }
-
-   static void
-   initSuperentities( InitializerType& meshInitializer, MeshType& mesh )
+   initSuperentities( InitializerType& meshInitializer, MeshType& mesh, SeedIndexGetter&& getEntitySeedIndex )
    {
       Algorithms::staticFor< int, EntityDimension + 1, MeshType::getMeshDimension() + 1 >(
          [ & ]( auto dim )
@@ -249,15 +229,60 @@ public:
             // transform dim to ensure decrementing steps in the loop
             constexpr int superdimension = MeshType::getMeshDimension() + EntityDimension + 1 - dim;
 
-            using SuperentityTopology =
-               typename MeshType::MeshTraitsType::template EntityTraits< superdimension >::EntityTopology;
-
-            if constexpr( EntityDimension == 2 && superdimension == 3
-                          && std::is_same_v< SuperentityTopology, Topologies::Polyhedron > )
-               initializeFacesOfPolyhedrons( meshInitializer, mesh );
-            else
-               initializeSuperentities< EntityDimension, superdimension >( meshInitializer, mesh );
+            initializeSuperentities< EntityDimension, superdimension >( meshInitializer, mesh, getEntitySeedIndex );
          } );
+   }
+
+   static void
+   createEntities( InitializerType& meshInitializer, MeshType& mesh )
+   {
+      // std::cout << " Creating entities with dimension " << EntityDimension << " ... " << std::endl;
+
+      // create seeds
+      SeedIndexedSet seedsIndexedSet;
+      seedsIndexedSet.reserve( mesh.template getEntitiesCount< MeshTraitsType::meshDimension >() );
+      using SubentitySeedsCreator =
+         SubentitySeedsCreator< MeshType, typename MeshTraitsType::CellTopology, DimensionTag< EntityDimension > >;
+      for( GlobalIndexType i = 0; i < mesh.template getEntitiesCount< MeshType::getMeshDimension() >(); i++ ) {
+         SubentitySeedsCreator::iterate( mesh,
+                                         i,
+                                         [ &seedsIndexedSet ]( SeedType& seed )
+                                         {
+                                            seedsIndexedSet.insert( std::move( seed ) );
+                                         } );
+      }
+
+      // set entities count
+      const GlobalIndexType numberOfEntities = seedsIndexedSet.size();
+      meshInitializer.template setEntitiesCount< EntityDimension >( numberOfEntities );
+
+      auto getEntitySeedIndex = [ &seedsIndexedSet ]( const SeedType& seed )
+      {
+         GlobalIndexType index = -1;
+         if( ! seedsIndexedSet.find( seed, index ) )
+            throw std::domain_error( "given seed was not found in the indexed set" );
+         return index;
+      };
+
+      // allocate the subvertex matrix
+      NeighborCountsArray capacities( numberOfEntities );
+      for( auto& pair : seedsIndexedSet ) {
+         const auto& seed = pair.first;
+         const auto& entityIndex = pair.second;
+         capacities.setElement( entityIndex, seed.getCornersCount() );
+      }
+      meshInitializer.template initSubentityMatrix< EntityDimension, 0 >( capacities );
+
+      // initialize the entities (this allows us to create subentity seeds from existing entities instead of intermediate seeds)
+      for( auto& pair : seedsIndexedSet ) {
+         const auto& seed = pair.first;
+         const auto& entityIndex = pair.second;
+         for( LocalIndexType i = 0; i < seed.getCornerIds().getSize(); i++ )
+            meshInitializer.template setSubentityIndex< EntityDimension, 0 >( entityIndex, i, seed.getCornerIds()[ i ] );
+      }
+
+      // initialize links between the entities and all superentities
+      initSuperentities( meshInitializer, mesh, getEntitySeedIndex );
    }
 };
 
