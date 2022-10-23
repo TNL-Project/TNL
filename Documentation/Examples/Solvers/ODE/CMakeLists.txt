@@ -39,57 +39,78 @@ else()
    endforeach()
 endif()
 
-ADD_CUSTOM_COMMAND(
-   COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-SineExample.py
-      ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.out
+# check if the system has python3 and matplotlib
+find_package( Python3 COMPONENTS Interpreter QUIET )
+set( TNL_PYTHON3_MATPLOTLIB_FOUND FALSE )
+if( Python3_FOUND )
+   execute_process(
+      COMMAND ${Python3_EXECUTABLE} -c "import matplotlib"
+      RESULT_VARIABLE TNL_MATPLOTLIB_CHECK_EXIT_CODE
+      OUTPUT_QUIET
+   )
+   if( TNL_MATPLOTLIB_CHECK_EXIT_CODE EQUAL 0 )
+      set( TNL_PYTHON3_MATPLOTLIB_FOUND TRUE )
+   else()
+      message( WARNING "The Python3 interpreter does not have the matplotlib package, some examples will not be post-processed.")
+   endif()
+else()
+   message( WARNING "The Python3 interpreter was not found, some examples will not be post-processed.")
+endif()
+
+if( TNL_PYTHON3_MATPLOTLIB_FOUND )
+   ADD_CUSTOM_COMMAND(
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-SineExample.py
+         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.out
+         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
+      OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
+      DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.out
+      VERBATIM )
+
+   ADD_CUSTOM_COMMAND(
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-SineParallelExample.py
+         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample-result.out
+         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
+      OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
+      DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.out
+      VERBATIM )
+
+   ADD_CUSTOM_COMMAND(
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-LorenzExample.py
+         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.out
+         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
+      OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
+      DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.out
+      VERBATIM )
+
+   ADD_CUSTOM_COMMAND(
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-LorenzParallelExample.py
+         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-result.out
+         # NOTE: the script appends "-{sigma_idx}.png"
+         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample
+      OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-1.png
+      DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample.out
+      VERBATIM )
+
+   ADD_CUSTOM_COMMAND(
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ODESolver-HeatEquationExample.py
+         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample-result.out
+         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
+      OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
+      DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.out
+      VERBATIM )
+
+
+
+   set( DOC_OUTPUTS ${DOC_OUTPUTS}
       ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
-   OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
-   DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.out
-   VERBATIM )
-
-ADD_CUSTOM_COMMAND(
-   COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-SineParallelExample.py
-      ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample-result.out
       ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
-   OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
-   DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.out
-   VERBATIM )
-
-ADD_CUSTOM_COMMAND(
-   COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-LorenzExample.py
-      ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.out
       ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
-   OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
-   DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.out
-   VERBATIM )
-
-ADD_CUSTOM_COMMAND(
-   COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-LorenzParallelExample.py
-      ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-result.out
-      # NOTE: the script appends "-{sigma_idx}.png"
-      ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample
-   OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-1.png
-   DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample.out
-   VERBATIM )
-
-ADD_CUSTOM_COMMAND(
-   COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/ODESolver-HeatEquationExample.py
-      ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample-result.out
+      ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-1.png
       ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
-   OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
-   DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.out
-   VERBATIM )
+   )
 
+   add_custom_target( RunODESolversExamples ALL DEPENDS ${DOC_OUTPUTS} )
 
-set( DOC_OUTPUTS ${DOC_OUTPUTS}
-   ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
-   ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
-   ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
-   ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-1.png
-   ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
-)
-
-add_custom_target( RunODESolversExamples ALL DEPENDS ${DOC_OUTPUTS} )
-
-# add the dependency to the main target
-add_dependencies( run-doc-examples RunODESolversExamples )
+   # add the dependency to the main target
+   add_dependencies( run-doc-examples RunODESolversExamples )
+endif()
