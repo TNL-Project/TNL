@@ -37,9 +37,13 @@ public:
    using ConstViewType = typename ViewType::ConstViewType;
    using SegmentViewType = typename ViewType::SegmentViewType;
    using ChunkedEllpackSliceInfoType = typename ViewType::ChunkedEllpackSliceInfoType;
-   // TODO: using ChunkedEllpackSliceInfoAllocator = typename IndexAllocatorType::retype< ChunkedEllpackSliceInfoType >;
-   using ChunkedEllpackSliceInfoAllocator = typename ViewType::ChunkedEllpackSliceInfoAllocator;
-   using ChunkedEllpackSliceInfoContainer = typename ViewType::ChunkedEllpackSliceInfoContainer;
+   using ChunkedEllpackSliceInfoAllocator =
+      typename Allocators::Default< Device >::template Allocator< ChunkedEllpackSliceInfoType >;
+   using ChunkedEllpackSliceInfoContainer =
+      Containers::Array< typename TNL::copy_const< ChunkedEllpackSliceInfoType >::template from< Index >::type,
+                         DeviceType,
+                         IndexType,
+                         ChunkedEllpackSliceInfoAllocator >;
 
    static constexpr bool
    havePadding()
