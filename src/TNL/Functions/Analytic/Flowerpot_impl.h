@@ -51,7 +51,7 @@ Flowerpot< 1, Real >::getPartialDerivative( const Point& v, const Real& time ) c
    if( YDiffOrder != 0 || ZDiffOrder != 0 )
       return 0.0;
    if( XDiffOrder == 0 )
-      return ::sin( M_PI * ::tanh( 5 * ( x * x - this->diameter ) ) );
+      return ::sin( TNL::pi * ::tanh( 5 * ( x * x - this->diameter ) ) );
    return 0.0;
 }
 
@@ -80,7 +80,7 @@ Flowerpot< 2, Real >::getPartialDerivative( const Point& v, const Real& time ) c
    if( ZDiffOrder != 0 )
       return 0.0;
    if( XDiffOrder == 0 && YDiffOrder == 0 )
-      return ::sin( M_PI * ::tanh( 5 * ( x * x + y * y - this->diameter ) ) );
+      return ::sin( TNL::pi * ::tanh( 5 * ( x * x + y * y - this->diameter ) ) );
    return 0.0;
 }
 
@@ -109,7 +109,7 @@ Flowerpot< 3, Real >::getPartialDerivative( const Point& v, const Real& time ) c
    const RealType& y = v.y();
    const RealType& z = v.z();
    if( XDiffOrder == 0 && YDiffOrder == 0 && ZDiffOrder == 0 )
-      return ::sin( M_PI * ::tanh( 5 * ( x * x + y * y + z * z - 0.25 ) ) );
+      return ::sin( TNL::pi * ::tanh( 5 * ( x * x + y * y + z * z - 0.25 ) ) );
    return 0.0;
 }
 
