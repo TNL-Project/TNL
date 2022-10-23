@@ -23,7 +23,6 @@
    #include <dcmtk/dcmimgle/dcmimage.h>
 #endif
 
-#include <dirent.h>
 #include <string>
 
 namespace TNL {
