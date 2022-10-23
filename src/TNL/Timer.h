@@ -139,7 +139,7 @@ protected:
     *
     * Only for x86 compatible CPUs.
     */
-#ifndef __APPLE__
+#if ! defined( __APPLE__ ) && ! defined( _MSC_VER )
    static inline unsigned long long
    rdtsc();
 #endif
