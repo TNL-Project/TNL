@@ -13,6 +13,14 @@
 /.vscode/
 /.cache/
 
+# Visual Studio
+/.vs/
+/out/
+/CMakeSettings.json
+
+# CTest creates this
+/Testing
+
 # Editors
 *.orig
 *.bak
@@ -26,7 +34,6 @@
 /Debug
 /Release
 /RelWithDebInfo
-/Testing
 /Build
 /Documentation/output_snippets/
 /Documentation/html/
