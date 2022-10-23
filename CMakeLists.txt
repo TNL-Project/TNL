@@ -1,5 +1,10 @@
-# cmake 3.24 is required for CUDA with "native" architecture selection
-cmake_minimum_required( VERSION 3.24 )
+if( WIN32 )
+   # we don't support CUDA on Windows, so we can lower the requirement
+   cmake_minimum_required( VERSION 3.23 )
+else()
+   # cmake 3.24 is required for CUDA with "native" architecture selection
+   cmake_minimum_required( VERSION 3.24 )
+endif()
 
 project( TNL )
 
@@ -69,9 +74,11 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
 # set default build options
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wall -Werror=vla" )
-set( CMAKE_CXX_FLAGS_DEBUG "-g" )
-set( CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" )
+if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror=vla" )
+   set( CMAKE_CXX_FLAGS_DEBUG "-g" )
+   set( CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" )
+endif()
 set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 if( TNL_USE_CI_FLAGS )
@@ -96,6 +103,24 @@ if( TNL_USE_MARCH_NATIVE_FLAG )
    else()
       set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -mtune=native" )
    endif()
+endif()
+
+# hack needed to avoid "file too big" errors on a 32-bit cross-compiler
+# https://stackoverflow.com/questions/71875002/file-too-big-with-mingw-w64-and-cmake
+if( MINGW )
+   if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
+      set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
+   endif()
+   if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+       OR ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC" )
+      )
+      set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O2" )
+   endif()
+endif()
+if( MSVC )
+   # "/bigobj" avoids problems with large object files due to heavily templated code
+   # "/permissive-" enables two-phase name lookup according to the standard, see https://stackoverflow.com/q/74238513
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-" )
 endif()
 
 if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
@@ -132,7 +157,8 @@ if( NOT DEFINED ENV{GITLAB_CI} )
       # LTO with GCC 9.1.0 and Debug build = internal compiler error
       # LTO with GCC 9.1.0 and nvcc 10.1 and Release build = fatal error: bytecode stream in file `blabla` generated with LTO version 7.1 instead of the expected 8.0
 #      set( CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE )
-   elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+   elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT MINGW )
+      # LTO with clang from MSYS2 leads to 'file format not recognized' linker errors
       set( CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE )
    endif()
 endif()
@@ -210,6 +236,14 @@ if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
       set( TESTS_LINKER_FLAGS ${TESTS_LINKER_FLAGS} --coverage )
    endif()
 endif()
+
+####
+# Check for threads library
+#
+set( CMAKE_THREAD_PREFER_PTHREAD TRUE )
+set( THREADS_PREFER_PTHREAD_FLAG TRUE )
+find_package( Threads REQUIRED )
+target_link_libraries( TNL_CXX INTERFACE Threads::Threads )
 
 ####
 # Check for OpenMP
