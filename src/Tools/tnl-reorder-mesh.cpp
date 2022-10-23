@@ -93,7 +93,7 @@ reorder( Mesh&& mesh, const std::string& ordering, const std::string& outputFile
 
    namespace fs = std::filesystem;
    if( outputFileFormat == "auto" ) {
-      outputFileFormat = fs::path( outputFileName ).extension();
+      outputFileFormat = fs::path( outputFileName ).extension().string();
       if( outputFileFormat.length() > 0 )
          // remove dot from the extension
          outputFileFormat = outputFileFormat.substr( 1 );
