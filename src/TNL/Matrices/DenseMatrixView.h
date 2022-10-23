@@ -38,8 +38,7 @@ template< typename Real = double,
 class DenseMatrixView : public MatrixView< Real, Device, Index >
 {
 protected:
-   using BaseType = Matrix< Real, Device, Index >;
-   using ValuesType = typename BaseType::ValuesType;
+   using BaseType = MatrixView< Real, Device, Index >;
    using SegmentsType = Algorithms::Segments::
       Ellpack< Device, Index, typename Allocators::Default< Device >::template Allocator< Index >, Organization, 1 >;
    using SegmentsViewType = typename SegmentsType::ViewType;
@@ -77,14 +76,14 @@ public:
     *
     * Use this for embedding of the matrix elements values.
     */
-   using ValuesViewType = typename ValuesType::ViewType;
+   using ValuesViewType = typename BaseType::ValuesView;
 
    /**
     * \brief Matrix elements container view type.
     *
     * Use this for embedding of the matrix elements values.
     */
-   using ConstValuesViewType = typename ValuesType::ConstViewType;
+   using ConstValuesViewType = typename ValuesViewType::ConstViewType;
 
    /**
     * \brief Matrix view type.
