@@ -95,7 +95,10 @@ trackFloatingPointExceptions()
 #else
    signal( SIGSEGV, printStackBacktraceAndAbort );
    signal( SIGFPE, printStackBacktraceAndAbort );
+   // TODO: find a workaround for Windows, e.g. https://stackoverflow.com/a/30175525
+   #ifndef _WIN32
    feenableexcept( FE_ALL_EXCEPT & ~FE_INEXACT );
+   #endif
 #endif
 }
 
