@@ -28,7 +28,7 @@ getMeshReader( const std::string& fileName, const std::string& fileFormat )
 
    std::string format = fileFormat;
    if( format == "auto" ) {
-      format = fs::path( fileName ).extension();
+      format = fs::path( fileName ).extension().string();
       if( format.length() > 0 )
          // remove dot from the extension
          format = format.substr( 1 );

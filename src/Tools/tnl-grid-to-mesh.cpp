@@ -176,7 +176,7 @@ bool convertGrid( Grid& grid, const std::string& outputFileName, const std::stri
    std::string format = outputFormat;
    if( outputFormat == "auto" ) {
       namespace fs = std::filesystem;
-      format = fs::path( outputFileName ).extension();
+      format = fs::path( outputFileName ).extension().string();
       if( format.length() > 0 )
          // remove dot from the extension
          format = format.substr(1);
