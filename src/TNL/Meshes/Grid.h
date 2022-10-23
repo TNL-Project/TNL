@@ -35,9 +35,6 @@ template< int Dimension, typename Real = double, typename Device = Devices::Host
 class Grid
 {
 public:
-   template< int ContainerDimension, typename ContainerValue, std::enable_if_t< ( ContainerDimension > 0 ), bool > = true >
-   using Container = TNL::Containers::StaticVector< ContainerDimension, ContainerValue >;
-
    /**
     * \brief Type of the floating point numbers.
     */
@@ -63,14 +60,14 @@ public:
    /**
     * \brief Type for grid entities cordinates.
     */
-   using CoordinatesType = Container< Dimension, Index >;
+   using CoordinatesType = Containers::StaticVector< Dimension, Index >;
 
    /**
     * \brief Type for world coordinates.
     */
-   using PointType = Container< Dimension, Real >;
+   using PointType = Containers::StaticVector< Dimension, Real >;
 
-   using EntitiesCounts = Container< Dimension + 1, Index >;
+   using EntitiesCounts = Containers::StaticVector< Dimension + 1, Index >;
 
    /**
     * \brief Alias for grid entities with given dimension.
@@ -80,7 +77,7 @@ public:
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
 
-   using OrientationNormalsContainer = Container< 1 << Dimension, CoordinatesType >;
+   using OrientationNormalsContainer = Containers::StaticVector< 1 << Dimension, CoordinatesType >;
 
    /**
     * \brief Type of grid entity expressing vertexes, i.e. grid entity with dimension equal to zero.
@@ -117,7 +114,8 @@ public:
    static constexpr int spaceStepsPowersSize = 5;
 
    using SpaceProductsContainer =
-      Container< std::integral_constant< Index, Templates::pow( spaceStepsPowersSize, Dimension ) >::value, Real >;
+      Containers::StaticVector< std::integral_constant< Index, Templates::pow( spaceStepsPowersSize, Dimension ) >::value,
+                                Real >;
 
    /**
     * \brief Grid constructor with no parameters.
@@ -231,7 +229,7 @@ public:
              std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool > = true,
              std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > = true >
    __cuda_callable__
-   Container< sizeof...( DimensionIndex ), Index >
+   Containers::StaticVector< sizeof...( DimensionIndex ), Index >
    getEntitiesCounts( DimensionIndex... indices ) const;
 
    /**
@@ -836,12 +834,12 @@ protected:
     *
     * \warning The ordering of is lexigraphical.
     */
-   Container< 1 << Dimension, Index > entitiesCountAlongNormals;
+   Containers::StaticVector< 1 << Dimension, Index > entitiesCountAlongNormals;
 
    /**
     * \brief A cumulative map over dimensions.
     */
-   Container< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals;
+   Containers::StaticVector< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals;
 
    /**
     * \brief Container with normals defining grid entity orientations.
