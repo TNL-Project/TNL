@@ -153,10 +153,10 @@ template< typename... DimensionIndex,
           std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool >,
           std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > >
 __cuda_callable__
-typename Grid< Dimension, Real, Device, Index >::template Container< sizeof...( DimensionIndex ), Index >
+Containers::StaticVector< sizeof...( DimensionIndex ), Index >
 Grid< Dimension, Real, Device, Index >::getEntitiesCounts( DimensionIndex... indices ) const
 {
-   Container< sizeof...( DimensionIndex ), Index > result{ indices... };
+   Containers::StaticVector< sizeof...( DimensionIndex ), Index > result{ indices... };
 
    for( std::size_t i = 0; i < sizeof...( DimensionIndex ); i++ )
       result[ i ] = this->cumulativeEntitiesCountAlongNormals( result[ i ] );
@@ -490,7 +490,7 @@ Grid< Dimension, Real, Device, Index >::traverseBoundary( const CoordinatesType&
    constexpr bool isDirectedEntity = EntityDimension != 0 && EntityDimension != Dimension;
    constexpr bool isAnyBoundaryIntersects = EntityDimension != Dimension - 1;
 
-   Container< orientationsCount, Index > isBoundaryTraversed( 0 );
+   Containers::StaticVector< orientationsCount, Index > isBoundaryTraversed( 0 );
 
    auto forBoundary = [ & ]( const auto orthogonalOrientation, const auto orientation, const CoordinatesType& normals )
    {
@@ -758,7 +758,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 void
 Grid< Dimension, Real, Device, Index >::fillSpaceStepsPowers()
 {
-   Container< spaceStepsPowersSize * Dimension, Real > powers;
+   Containers::StaticVector< spaceStepsPowersSize * Dimension, Real > powers;
 
    for( Index i = 0; i < Dimension; i++ ) {
       Index power = -( this->spaceStepsPowersSize >> 1 );
