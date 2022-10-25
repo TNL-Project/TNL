@@ -21,6 +21,8 @@ option( TNL_USE_OPENMP "Build with OpenMP support" ON )
 option( TNL_USE_MPI "Build with MPI support" ON )
 option( TNL_USE_GMP "Build with GMP support" OFF )
 option( TNL_USE_SYSTEM_GTEST "Use GTest installed in the local system and do not download the latest version" OFF )
+option( TNL_USE_CI_FLAGS "Add additional compiler flags like -Werror that are enforced in CI builds" OFF )
+option( TNL_USE_MARCH_NATIVE_FLAG "Add -march=native and -mtune=native to the list of compiler flags for the Release configuration" ON )
 option( TNL_BUILD_BENCHMARKS "Compile the 'src/Benchmarks' directory" OFF )
 option( TNL_BUILD_EXAMPLES "Compile the 'src/Examples' directory" OFF )
 option( TNL_BUILD_TOOLS "Compile the 'src/Tools' directory" OFF )
@@ -98,19 +100,15 @@ if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
    endif()
 endif()
 
-# set additional Debug/Release options using generator expressions
-# (that way we can exclude some options for specific targets, see https://stackoverflow.com/a/59734798 for details)
-if( CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15.0 )
-   # -march=native does not work on macOS with clang less than 15.0
-   # https://stackoverflow.com/questions/65966969/why-does-march-native-not-work-on-apple-m1
-   add_compile_options(
-      "$<$<AND:$<CONFIG:RELEASE>,$<COMPILE_LANGUAGE:CXX,CUDA>>:-mcpu=apple-m1>"
-   )
-else()
-   add_compile_options(
-      # GOTCHA: CMake uses semicolons as list item separator, spaces would lead to a single argument inside double-quotes on the command line
-      "$<$<AND:$<CONFIG:RELEASE>,$<COMPILE_LANGUAGE:CXX,CUDA>>:-march=native;-mtune=native>"
-   )
+# optimize Release builds for the native CPU arch, unless explicitly disabled
+if( TNL_USE_MARCH_NATIVE_FLAG )
+   if( CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15.0 )
+      # -march=native does not work on macOS with clang less than 15.0
+      # https://stackoverflow.com/questions/65966969/why-does-march-native-not-work-on-apple-m1
+      set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mcpu=apple-m1" )
+   else()
+      set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -mtune=native" )
+   endif()
 endif()
 
 if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
