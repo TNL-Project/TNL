@@ -36,6 +36,7 @@ TEST( FileTest, WriteAndRead )
    ASSERT_NO_THROW( file.load( newDoubleData, 3 ) );
    ASSERT_NO_THROW( file.ignore< decltype(ignoredValue) >( 1 ) );
    ASSERT_NO_THROW( file.load( &newConstDoubleData, 1 ) );
+   ASSERT_NO_THROW( file.close() );
 
    EXPECT_EQ( newIntData, intData );
    for( int i = 0; i < 3; i ++ )
@@ -120,9 +121,12 @@ TEST( FileTest, WriteAndReadCUDA )
    cudaMalloc( ( void** ) &newCudaIntData, sizeof( int ) );
    cudaMalloc( ( void** ) &newCudaFloatData, 3 * sizeof( float ) );
    cudaMalloc( ( void** ) &newCudaDoubleData, sizeof( double ) );
+
    file.load< int, int, Allocators::Cuda<int> >( newCudaIntData, 1 );
    file.load< float, float, Allocators::Cuda<float> >( newCudaFloatData, 3 );
    file.load< double, double, Allocators::Cuda<double> >( newCudaDoubleData, 1 );
+   ASSERT_NO_THROW( file.close() );
+
    cudaMemcpy( &newIntData,
                newCudaIntData,
                sizeof( int ),

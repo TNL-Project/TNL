@@ -691,6 +691,7 @@ TYPED_TEST( ArrayTest, SaveAndLoadSubrangeWithCast )
       EXPECT_EQ( array.getElement( i ), offset + i );
    }
 
+   ASSERT_NO_THROW( file.close() );
    EXPECT_EQ( std::remove( TEST_FILE_NAME ), 0 );
 }
 
@@ -715,6 +716,7 @@ TYPED_TEST( ArrayTest, LoadViaView )
    ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::in ) );
    EXPECT_THROW( file >> z.getView(), Exceptions::FileDeserializationError );
 
+   ASSERT_NO_THROW( file.close() );
    EXPECT_EQ( std::remove( TEST_FILE_NAME ), 0 );
 }
 
