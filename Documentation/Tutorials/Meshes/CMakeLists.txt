@@ -16,9 +16,8 @@ foreach( target IN ITEMS ${CPP_EXAMPLES} )
    add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                        DEPENDS ${target} )
-   set( CPP_OUTPUTS ${CPP_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
+   set( DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
 endforeach()
-add_custom_target( RunTutorialsMeshesExamples ALL DEPENDS ${CPP_OUTPUTS} )
 
 if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${CUDA_EXAMPLES} )
@@ -27,9 +26,8 @@ if( TNL_BUILD_CUDA )
       add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                           OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                           DEPENDS ${target} )
-      set( CUDA_OUTPUTS ${CUDA_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
+      set( DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
    endforeach()
-   add_custom_target( RunTutorialsMeshesCudaExamples ALL DEPENDS ${CUDA_OUTPUTS} )
    set( ALL_EXAMPLES ${ALL_EXAMPLES} ${CUDA_EXAMPLES} )
 endif()
 
@@ -49,6 +47,11 @@ if( tinyxml2_FOUND )
       target_link_libraries(${target} PUBLIC tinyxml2::tinyxml2)
    endforeach()
 endif()
+
+add_custom_target( RunTutorialsMeshesExamples ALL DEPENDS ${DOC_OUTPUTS} )
+
+# add the dependency to the main target
+add_dependencies( run-doc-examples RunTutorialsMeshesExamples )
 
 
 set( DATA_FILES

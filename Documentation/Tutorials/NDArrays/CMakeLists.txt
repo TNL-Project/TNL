@@ -11,6 +11,10 @@ foreach( target IN ITEMS ${CPP_EXAMPLES} )
    add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
                        DEPENDS ${target} )
-   set( CPP_OUTPUTS ${CPP_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
+   set( DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
 endforeach()
-add_custom_target( RunTutorialsNDArraysExamples ALL DEPENDS ${CPP_OUTPUTS} )
+
+add_custom_target( RunTutorialsNDArraysExamples ALL DEPENDS ${DOC_OUTPUTS} )
+
+# add the dependency to the main target
+add_dependencies( run-doc-examples RunTutorialsNDArraysExamples )

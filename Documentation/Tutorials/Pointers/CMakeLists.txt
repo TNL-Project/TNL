@@ -4,6 +4,9 @@ ADD_CUSTOM_COMMAND( COMMAND UniquePointerHostExample > ${TNL_DOCUMENTATION_OUTPU
                     OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/UniquePointerHostExample.out
                     DEPENDS UniquePointerHostExample )
 
-ADD_CUSTOM_TARGET( RunTutorialsPointersExamples ALL DEPENDS
+add_custom_target( RunTutorialsPointersExamples ALL DEPENDS
    ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/UniquePointerHostExample.out
 )
+
+# add the dependency to the main target
+add_dependencies( run-doc-examples RunTutorialsPointersExamples )

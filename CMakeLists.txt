@@ -28,7 +28,7 @@ option( TNL_BUILD_TOOLS "Compile the 'src/Tools' directory" OFF )
 option( TNL_BUILD_TESTS "Build tests" OFF )
 option( TNL_BUILD_MATRIX_TESTS "Build tests for matrix formats" OFF )
 option( TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF )
-option( TNL_BUILD_DOC "Build examples included in the documentation" OFF )
+option( TNL_BUILD_DOC "Build examples included in the documentation and generate the documentation with Doxygen" OFF )
 option( TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF )
 
 # make cache variables for install destinations
@@ -388,14 +388,7 @@ endif()
 
 # Add all subdirectories
 add_subdirectory( src )
-
-# Add subdirectories for examples included in the documentation
-if( TNL_BUILD_DOC )
-   set( TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH "${PROJECT_BINARY_DIR}/output_snippets" )
-   file(MAKE_DIRECTORY ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH})
-   add_subdirectory( Documentation/Examples )
-   add_subdirectory( Documentation/Tutorials )
-endif()
+add_subdirectory( Documentation )
 
 # export compile_commands.json so it can be used by Clang tools
 # https://clang.llvm.org/docs/JSONCompilationDatabase.html

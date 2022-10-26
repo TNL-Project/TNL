@@ -72,11 +72,6 @@ cmake --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target "all"
 # install the targets
 cmake --install "$BUILD_DIR" $VERBOSE
 
-# build and install the documentation
-if [[ " ${CONFIGURE_OPTIONS[*]} " =~ " all " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " == " doc " ]]; then
-    "$ROOT_DIR/Documentation/build" --prefix="$PREFIX" --install="yes" --output-snippets-path="$BUILD_DIR/output_snippets/"
-fi
-
 # run the tests
 if [[ " ${CONFIGURE_OPTIONS[*]} " =~ " all " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " =~ " tests " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " =~ " matrix-tests " ]]; then
     export OMP_NUM_THREADS="$TESTS_JOBS"
