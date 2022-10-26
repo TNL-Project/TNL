@@ -8,7 +8,7 @@ set( COMMON_TESTS
          Grid3DTest_Neighbours_1D
          Grid3DTest_Neighbours_2D
          Grid3DTest_Neighbours_3D
- )
+)
 
 set( CPU_TESTS
 )
