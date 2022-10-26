@@ -1,5 +1,5 @@
 # build/output directories
-/builddir
+/build/
 /Documentation/html/
 
 # Netbeans project stuff
@@ -30,3 +30,4 @@
 /Build
 /Documentation/output_snippets/
 /build-tinyxml2/
+/builddir
