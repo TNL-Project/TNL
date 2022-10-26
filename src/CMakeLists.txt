@@ -1,10 +1,8 @@
-if( TNL_INSTALL_HEADERS )
-   install( DIRECTORY TNL TYPE INCLUDE
-            MESSAGE_NEVER
-            FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" )
+install( DIRECTORY TNL TYPE INCLUDE
+         MESSAGE_NEVER
+         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" )
 
-   add_subdirectory( Python )
-endif()
+add_subdirectory( Python )
 
 if( TNL_BUILD_BENCHMARKS )
    add_subdirectory( Benchmarks )

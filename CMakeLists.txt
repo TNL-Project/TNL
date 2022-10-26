@@ -15,7 +15,6 @@ else()
 endif()
 
 # declare all custom build options
-option( TNL_INSTALL_HEADERS "Install TNL header files" ${TNL_TOP_LEVEL_PROJECT} )
 option( TNL_USE_CUDA "Build with CUDA support" ON )
 option( TNL_USE_OPENMP "Build with OpenMP support" ON )
 option( TNL_USE_MPI "Build with MPI support" ON )
@@ -371,7 +370,7 @@ if( TNL_USE_GMP )
    endif()
 endif()
 
-if( TNL_INSTALL_HEADERS )
+if( TNL_TOP_LEVEL_PROJECT )
    # export the interface targets
    install( TARGETS TNL TNL_CXX TNL_CUDA EXPORT TNLTargets )
    # install a CMake file for the interface target
@@ -405,7 +404,6 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "" )
 if( TNL_TOP_LEVEL_PROJECT )
    # Print custom build options
    message( "-- Build options:" )
-   message( "   TNL_INSTALL_HEADERS = ${TNL_INSTALL_HEADERS}" )
    message( "   TNL_USE_CUDA = ${TNL_USE_CUDA}" )
    message( "   CMAKE_CUDA_ARCHITECTURES = ${CMAKE_CUDA_ARCHITECTURES}" )
    message( "   TNL_USE_OPENMP = ${TNL_USE_OPENMP}" )
