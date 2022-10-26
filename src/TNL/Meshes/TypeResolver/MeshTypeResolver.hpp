@@ -108,16 +108,15 @@ bool
 MeshTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveGlobalIndex( Reader& reader, Functor&& functor )
 {
    if constexpr( BuildConfigTags::MeshRealTag< ConfigTag, Real >::enabled ) {
-      if( reader.getGlobalIndexType() == "short" || reader.getGlobalIndexType() == "short int"
-          || reader.getGlobalIndexType() == "std::int16_t" || reader.getGlobalIndexType() == "std::uint16_t" )
-         return resolveLocalIndex< CellTopology, SpaceDimension, Real, short int >( reader,
-                                                                                    std::forward< Functor >( functor ) );
-      if( reader.getGlobalIndexType() == "int" || reader.getGlobalIndexType() == "std::int32_t"
-          || reader.getGlobalIndexType() == "std::uint32_t" )
-         return resolveLocalIndex< CellTopology, SpaceDimension, Real, int >( reader, std::forward< Functor >( functor ) );
-      if( reader.getGlobalIndexType() == "long" || reader.getGlobalIndexType() == "long int"
-          || reader.getGlobalIndexType() == "std::int64_t" || reader.getGlobalIndexType() == "std::uint64_t" )
-         return resolveLocalIndex< CellTopology, SpaceDimension, Real, long int >( reader, std::forward< Functor >( functor ) );
+      if( reader.getGlobalIndexType() == "std::int16_t" || reader.getGlobalIndexType() == "std::uint16_t" )
+         return resolveLocalIndex< CellTopology, SpaceDimension, Real, std::int16_t >( reader,
+                                                                                       std::forward< Functor >( functor ) );
+      if( reader.getGlobalIndexType() == "std::int32_t" || reader.getGlobalIndexType() == "std::uint32_t" )
+         return resolveLocalIndex< CellTopology, SpaceDimension, Real, std::int32_t >( reader,
+                                                                                       std::forward< Functor >( functor ) );
+      if( reader.getGlobalIndexType() == "std::int64_t" || reader.getGlobalIndexType() == "std::uint64_t" )
+         return resolveLocalIndex< CellTopology, SpaceDimension, Real, std::int64_t >( reader,
+                                                                                       std::forward< Functor >( functor ) );
       std::cerr << "Unsupported global index type: " << reader.getGlobalIndexType() << std::endl;
       return false;
    }
@@ -134,17 +133,14 @@ bool
 MeshTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveLocalIndex( Reader& reader, Functor&& functor )
 {
    if constexpr( BuildConfigTags::MeshGlobalIndexTag< ConfigTag, GlobalIndex >::enabled ) {
-      if( reader.getLocalIndexType() == "short" || reader.getLocalIndexType() == "short int"
-          || reader.getLocalIndexType() == "std::int16_t" || reader.getLocalIndexType() == "std::uint16_t" )
-         return resolveMeshType< CellTopology, SpaceDimension, Real, GlobalIndex, short int >(
+      if( reader.getLocalIndexType() == "std::int16_t" || reader.getLocalIndexType() == "std::uint16_t" )
+         return resolveMeshType< CellTopology, SpaceDimension, Real, GlobalIndex, std::int16_t >(
             reader, std::forward< Functor >( functor ) );
-      if( reader.getLocalIndexType() == "int" || reader.getLocalIndexType() == "std::int32_t"
-          || reader.getLocalIndexType() == "std::uint32_t" )
-         return resolveMeshType< CellTopology, SpaceDimension, Real, GlobalIndex, int >( reader,
-                                                                                         std::forward< Functor >( functor ) );
-      if( reader.getLocalIndexType() == "long" || reader.getLocalIndexType() == "long int"
-          || reader.getLocalIndexType() == "std::int64_t" || reader.getLocalIndexType() == "std::uint64_t" )
-         return resolveMeshType< CellTopology, SpaceDimension, Real, GlobalIndex, long int >(
+      if( reader.getLocalIndexType() == "std::int32_t" || reader.getLocalIndexType() == "std::uint32_t" )
+         return resolveMeshType< CellTopology, SpaceDimension, Real, GlobalIndex, std::int32_t >(
+            reader, std::forward< Functor >( functor ) );
+      if( reader.getLocalIndexType() == "std::int64_t" || reader.getLocalIndexType() == "std::uint64_t" )
+         return resolveMeshType< CellTopology, SpaceDimension, Real, GlobalIndex, std::int64_t >(
             reader, std::forward< Functor >( functor ) );
       std::cerr << "Unsupported local index type: " << reader.getLocalIndexType() << std::endl;
       return false;
