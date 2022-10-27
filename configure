@@ -8,10 +8,16 @@ set -o nounset
 # get the root directory (i.e. the directory where this script is located)
 ROOT_DIR="$( builtin cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+# default build directory is set later
+BUILD_DIR=""
+
 PREFIX="$HOME/.local"
 BUILD_TYPE="Release"
 OFFLINE_BUILD="no"
 COMPILER="gcc"
+
+# array of options that are passed directly to cmake
+CMAKE_OPTIONS=()
 
 USE_MPI="yes"
 USE_CUDA="yes"
@@ -29,11 +35,6 @@ BUILD_TESTS="no"
 BUILD_MATRIX_TESTS="no"
 BUILD_COVERAGE="no"
 BUILD_DOC="no"
-
-# external dependencies
-DCMTK_DIR="/usr/include/dcmtk"
-# set default value to "none"
-CUDA_SAMPLES_DIR="${CUDA_SAMPLES_DIR:-none}"
 
 function print_usage()
 {
@@ -57,6 +58,10 @@ General options:
     --help                              Write this help list and exit.
     --prefix=PATH                       Prefix for the installation directory. '$PREFIX' by default.
     --build-type=TYPE                   Build type. Options: 'Debug', 'Release', 'RelWithDebInfo'. '$BUILD_TYPE' by default.
+    -B PATH                             Path to the build directory. Passed to cmake's -B option. By default, it is
+                                        'build/<build-type>' in the directory where this script is located.
+    -D...                               All options starting with "-D" are passed directly to cmake. This is useful, for example, to define
+                                        custom paths where CMake modules are looked up. For example: -DCUDA_SAMPLES_DIR=/usr/local
 
 Options affecting all targets:
     --offline-build=yes/no              Disables online updates during the build. '$OFFLINE_BUILD' by default.
@@ -70,10 +75,6 @@ Options affecting all targets:
 Options for the 'tests' and 'matrix-tests' targets:
     --build-coverage=yes/no             Enables code coverage reports for unit tests (lcov is required). '$BUILD_COVERAGE' by default.
     --use-system-gtest=yes/no           Use GTest installed in the local system and do not download the latest version. '$USE_SYSTEM_GTEST' by default.
-
-External dependencies:
-    --dcmtk-dir=PATH                    Path to the DCMTK (Dicom Toolkit) root dir. '$DCMTK_DIR' by default.
-    --cuda-samples-dir=PATH             CUDA samples are used by some reference algorithms used in benchmarks. '$CUDA_SAMPLES_DIR' by default.
 EOF
 }
 
@@ -100,9 +101,25 @@ for option in "$@"; do
         --build-coverage=*    ) BUILD_COVERAGE="${option#*=}" ;;
         --use-ci-flags=*      ) USE_CI_FLAGS="${option#*=}" ;;
         --use-system-gtest=*  ) USE_SYSTEM_GTEST="${option#*=}" ;;
-        --dcmtk-dir=*         ) DCMTK_DIR="${option#*=}" ;;
-        --cuda-samples-dir=*  ) CUDA_SAMPLES_DIR="${option#*=}" ;;
-        -*                    )
+        # -B dir
+        -B)
+            shift
+            BUILD_DIR="$1"
+            ;;
+        # -Bdir
+        -B*)
+            BUILD_DIR="${option#"-B"}"
+            ;;
+        # -D something
+        -D)
+            shift
+            CMAKE_OPTIONS+=(-D "$1")
+            ;;
+        # -Dsomething
+        -D*)
+            CMAKE_OPTIONS+=("$option")
+            ;;
+        -*)
             echo "Unknown option $option. Use --help for more information." >&2
             exit 1
             ;;
@@ -110,10 +127,6 @@ for option in "$@"; do
     esac
     shift
 done
-
-# handle CUDA_SAMPLES_DIR - only used for one benchmark, the CMakeLists.txt
-# expects it in the environment
-export CUDA_SAMPLES_DIR
 
 # check the build type
 if [[ ! "Release Debug RelWithDebInfo" =~ "$BUILD_TYPE" ]]; then
@@ -186,13 +199,15 @@ else
     check_file="Makefile"
 fi
 
-BUILD_DIR="$ROOT_DIR/build/$BUILD_TYPE"
+# set default build directory
+if [[ "$BUILD_DIR" == "" ]]; then
+    BUILD_DIR="$ROOT_DIR/build/$BUILD_TYPE"
+fi
 
 echo "Configuring TNL for $BUILD_TYPE build ..."
 cmake -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator" \
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-    -DDCMTK_DIR="$DCMTK_DIR" \
     -DTNL_OFFLINE_BUILD="$OFFLINE_BUILD" \
     -DTNL_USE_CUDA="$USE_CUDA" \
     -DCMAKE_CUDA_ARCHITECTURES="$CUDA_ARCH" \
@@ -207,4 +222,5 @@ cmake -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator" \
     -DTNL_BUILD_TESTS="$BUILD_TESTS" \
     -DTNL_BUILD_MATRIX_TESTS="$BUILD_MATRIX_TESTS" \
     -DTNL_BUILD_COVERAGE="$BUILD_COVERAGE" \
-    -DTNL_BUILD_DOC="$BUILD_DOC"
+    -DTNL_BUILD_DOC="$BUILD_DOC" \
+    "${CMAKE_OPTIONS[@]}"

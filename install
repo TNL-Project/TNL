@@ -8,6 +8,9 @@ set -o nounset
 # get the root directory (i.e. the directory where this script is located)
 ROOT_DIR="$( builtin cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+# default build directory is set later
+BUILD_DIR=""
+
 # options shared with the configure script
 PREFIX="$HOME/.local"
 BUILD_TYPE="Release"
@@ -34,8 +37,17 @@ for option in "$@"; do
         --build-jobs=*        ) BUILD_JOBS="${option#*=}" ;;
         --tests-jobs=*        ) TESTS_JOBS="${option#*=}" ;;
         --verbose             ) VERBOSE="--verbose" ;;
+        # -B dir
+        -B)
+            shift
+            BUILD_DIR="$1"
+            ;;
+        # -Bdir
+        -B*)
+            BUILD_DIR="${option#"-B"}"
+            ;;
         *)
-            CONFIGURE_OPTIONS+=("${option}")
+            CONFIGURE_OPTIONS+=("$option")
             ;;
     esac
 done
@@ -46,8 +58,10 @@ pkg-config --exists tinyxml2 || "$ROOT_DIR/scripts/install_tinyxml2" --prefix "$
 # configure the build
 ./configure --prefix="$PREFIX" --build-type="$BUILD_TYPE" "${CONFIGURE_OPTIONS[@]}"
 
-# set build directory (same as in the configure script)
-BUILD_DIR="$ROOT_DIR/build/$BUILD_TYPE"
+# set default build directory
+if [[ "$BUILD_DIR" == "" ]]; then
+    BUILD_DIR="$ROOT_DIR/build/$BUILD_TYPE"
+fi
 
 # temporary command to remove the old build directory tree ("builddir")
 # TODO: this command can be removed later

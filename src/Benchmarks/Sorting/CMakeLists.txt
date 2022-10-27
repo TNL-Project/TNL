@@ -1,7 +1,8 @@
-set( CUDA_SAMPLES_DIR $ENV{CUDA_SAMPLES_DIR} )
-if( NOT CUDA_SAMPLES_DIR STREQUAL "none" )
+if( DEFINED CUDA_SAMPLES_DIR )
    set( CUDA_SAMPLES_FLAGS "-I${CUDA_SAMPLES_DIR} -DHAVE_CUDA_SAMPLES")
    message( "   CUDA_SAMPLES_FLAGS = ${CUDA_SAMPLES_FLAGS}" )
+else()
+   message( WARNING "The CUDA_SAMPLES_DIR variable was not set, the sorting benchmark will be built without some reference algorithms.")
 endif()
 
 if( TNL_BUILD_CUDA )
