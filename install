@@ -23,12 +23,34 @@ VERBOSE=""
 # other options to be passed to the configure script
 CONFIGURE_OPTIONS=()
 
-# TODO: doc for --help
-#The selected targets will be installed into the directory
-#specified by the --prefix option.
-#    --build-jobs=NUM                      Number of processes to be used for the build. It is set to the number of available CPU cores by default.
-#    --tests-jobs=NUM                      Number of processes to be used for the unit tests. It is $TESTS_JOBS by default.
-#    --verbose                             Enables verbose build.
+function print_usage()
+{
+    cat << EOF
+usage: $0 [options] [target ...]
+
+Configures, builds and installs selected targets into the directory specified
+by the --prefix option.
+
+Most of the options are shared with the configure script (see below). The
+options specific to the install script are:
+    --build-jobs=NUM                      Number of processes to be used for the build. It is set to the number of available CPU cores by default.
+    --tests-jobs=NUM                      Number of processes to be used for the unit tests. It is $TESTS_JOBS by default.
+    --verbose                             Enables verbose build.
+
+The usage instructions for the configure script are printed below. Its options
+are automatically usable in this script too.
+
+EOF
+    ./configure --help
+}
+
+# handle --help first
+for option in "$@"; do
+    if [[ "$option" == "--help" ]]; then
+        print_usage
+        exit 1
+    fi
+done
 
 for option in "$@"; do
     case $option in
