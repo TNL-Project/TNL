@@ -1,6 +1,6 @@
 # workaround for https://github.com/ginkgo-project/ginkgo/issues/1096
 if( NOT Ginkgo_FOUND )
-   find_package( Ginkgo )
+   find_package( Ginkgo QUIET )
 endif()
 
 set( CPP_EXAMPLES

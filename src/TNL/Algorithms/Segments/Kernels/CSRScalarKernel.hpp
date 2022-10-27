@@ -118,6 +118,7 @@ CSRScalarKernel< Index, Device >::reset()
 {}
 
 template< typename Index, typename Device >
+__cuda_callable__
 auto
 CSRScalarKernel< Index, Device >::getView() -> ViewType
 {
@@ -125,6 +126,7 @@ CSRScalarKernel< Index, Device >::getView() -> ViewType
 }
 
 template< typename Index, typename Device >
+__cuda_callable__
 auto
 CSRScalarKernel< Index, Device >::getConstView() const -> ConstViewType
 {

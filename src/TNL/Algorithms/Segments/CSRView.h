@@ -21,14 +21,14 @@ namespace TNL {
 namespace Algorithms {
 namespace Segments {
 
-template< typename Device, typename Index, typename Kernel = CSRScalarKernel< Index, Device > >
+template< typename Device, typename Index, typename Kernel = CSRScalarKernel< std::remove_const_t< Index >, Device > >
 class CSRView
 {
 public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
    using KernelType = Kernel;
-   using OffsetsView = typename Containers::VectorView< Index, DeviceType, IndexType >;
+   using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
    using ConstOffsetsView = typename OffsetsView::ConstViewType;
    using KernelView = typename Kernel::ViewType;
    using ViewType = CSRView;
@@ -55,6 +55,10 @@ public:
    __cuda_callable__
    CSRView( const CSRView& csr_view ) = default;
 
+   template< typename Index2 >
+   __cuda_callable__
+   CSRView( const CSRView< Device, Index2, Kernel >& csr_view );
+
    __cuda_callable__
    CSRView( CSRView&& csr_view ) noexcept = default;
 
@@ -69,7 +73,7 @@ public:
    getView();
 
    __cuda_callable__
-   const ConstViewType
+   ConstViewType
    getConstView() const;
 
    /**
@@ -205,19 +209,19 @@ operator<<( std::ostream& str, const CSRView< Device, Index, Kernel >& segments 
 }
 
 template< typename Device, typename Index >
-using CSRViewScalar = CSRView< Device, Index, CSRScalarKernel< Index, Device > >;
+using CSRViewScalar = CSRView< Device, Index, CSRScalarKernel< std::remove_const_t< Index >, Device > >;
 
 template< typename Device, typename Index >
-using CSRViewVector = CSRView< Device, Index, CSRVectorKernel< Index, Device > >;
+using CSRViewVector = CSRView< Device, Index, CSRVectorKernel< std::remove_const_t< Index >, Device > >;
 
 template< typename Device, typename Index, int ThreadsInBlock = 256 >
-using CSRViewHybrid = CSRView< Device, Index, CSRHybridKernel< Index, Device, ThreadsInBlock > >;
+using CSRViewHybrid = CSRView< Device, Index, CSRHybridKernel< std::remove_const_t< Index >, Device, ThreadsInBlock > >;
 
 template< typename Device, typename Index >
-using CSRViewLight = CSRView< Device, Index, CSRLightKernel< Index, Device > >;
+using CSRViewLight = CSRView< Device, Index, CSRLightKernel< std::remove_const_t< Index >, Device > >;
 
 template< typename Device, typename Index >
-using CSRViewAdaptive = CSRView< Device, Index, CSRAdaptiveKernel< Index, Device > >;
+using CSRViewAdaptive = CSRView< Device, Index, CSRAdaptiveKernel< std::remove_const_t< Index >, Device > >;
 
 template< typename Device, typename Index >
 using CSRViewDefault = CSRViewScalar< Device, Index >;

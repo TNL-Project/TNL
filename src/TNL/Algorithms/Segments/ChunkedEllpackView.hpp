@@ -72,34 +72,33 @@ __cuda_callable__
 typename ChunkedEllpackView< Device, Index, Organization >::ViewType
 ChunkedEllpackView< Device, Index, Organization >::getView()
 {
-   return ViewType( size,
-                    storageSize,
-                    chunksInSlice,
-                    desiredChunkSize,
-                    rowToChunkMapping.getView(),
-                    rowToSliceMapping.getView(),
-                    chunksToSegmentsMapping.getView(),
-                    rowPointers.getView(),
-                    slices.getView(),
-                    numberOfSlices );
+   return { size,
+            storageSize,
+            chunksInSlice,
+            desiredChunkSize,
+            rowToChunkMapping.getView(),
+            rowToSliceMapping.getView(),
+            chunksToSegmentsMapping.getView(),
+            rowPointers.getView(),
+            slices.getView(),
+            numberOfSlices };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-ChunkedEllpackView< Device, Index, Organization >::getConstView() const -> const ConstViewType
+ChunkedEllpackView< Device, Index, Organization >::getConstView() const -> ConstViewType
 {
-   ChunkedEllpackView* this_ptr = const_cast< ChunkedEllpackView* >( this );
-   return ConstViewType( size,
-                         storageSize,
-                         chunksInSlice,
-                         desiredChunkSize,
-                         this_ptr->rowToChunkMapping.getView(),
-                         this_ptr->rowToSliceMapping.getView(),
-                         this_ptr->chunksToSegmentsMapping.getView(),
-                         this_ptr->rowPointers.getView(),
-                         this_ptr->slices.getView(),
-                         numberOfSlices );
+   return { size,
+            storageSize,
+            chunksInSlice,
+            desiredChunkSize,
+            rowToChunkMapping.getConstView(),
+            rowToSliceMapping.getConstView(),
+            chunksToSegmentsMapping.getConstView(),
+            rowPointers.getConstView(),
+            slices.getConstView(),
+            numberOfSlices };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >

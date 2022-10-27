@@ -83,6 +83,7 @@ CSRVectorKernel< Index, Device >::reset()
 {}
 
 template< typename Index, typename Device >
+__cuda_callable__
 auto
 CSRVectorKernel< Index, Device >::getView() -> ViewType
 {
@@ -90,6 +91,7 @@ CSRVectorKernel< Index, Device >::getView() -> ViewType
 }
 
 template< typename Index, typename Device >
+__cuda_callable__
 auto
 CSRVectorKernel< Index, Device >::getConstView() const -> ConstViewType
 {

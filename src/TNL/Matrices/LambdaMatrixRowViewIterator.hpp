@@ -23,9 +23,7 @@ __cuda_callable__
 bool
 LambdaMatrixRowViewIterator< RowView >::operator==( const LambdaMatrixRowViewIterator& other ) const
 {
-   if( &this->rowView == &other.rowView && localIdx == other.localIdx )
-      return true;
-   return false;
+   return &this->rowView == &other.rowView && localIdx == other.localIdx;
 }
 
 template< typename RowView >
@@ -70,7 +68,7 @@ LambdaMatrixRowViewIterator< RowView >::operator*() -> MatrixElementType
 template< typename RowView >
 __cuda_callable__
 auto
-LambdaMatrixRowViewIterator< RowView >::operator*() const -> const MatrixElementType
+LambdaMatrixRowViewIterator< RowView >::operator*() const -> MatrixElementType
 {
    return MatrixElementType( this->rowView.getValue( this->localIdx ),
                              this->rowView.getRowIndex(),

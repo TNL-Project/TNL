@@ -229,20 +229,8 @@ public:
    virtual void
    print( std::ostream& str ) const;
 
-   // TODO: method for symmetric matrices, should not be in general Matrix interface
-   //[[deprecated]]
-   //__cuda_callable__
-   // const IndexType& getNumberOfColors() const;
-
-   // TODO: method for symmetric matrices, should not be in general Matrix interface
-   //[[deprecated]]
-   // void computeColorsVector(Containers::Vector<Index, Device, Index> &colorsVector);
-
 protected:
    IndexType rows, columns;
-
-   // TODO: remove
-   // IndexType numberOfColors;
 
    //! \brief Array containing the allocated matrix elements.
    ValuesType values;

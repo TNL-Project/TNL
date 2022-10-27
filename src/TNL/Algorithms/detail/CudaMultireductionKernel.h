@@ -12,6 +12,7 @@
 #include <TNL/Math.h>
 #include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Cuda/KernelLaunch.h>
+#include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Cuda/SharedMemory.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>

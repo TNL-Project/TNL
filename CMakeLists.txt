@@ -54,7 +54,7 @@ set( CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
 find_package( OpenMP COMPONENTS CXX )
 find_package( MPI COMPONENTS CXX )
 # workaround for https://github.com/ginkgo-project/ginkgo/issues/1096
-find_package( Ginkgo )
+find_package( Ginkgo QUIET )
 
 # Settings for debug build
 if( CMAKE_BUILD_TYPE STREQUAL "Debug")

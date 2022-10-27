@@ -391,7 +391,7 @@ public:
     * \return sparse matrix view.
     */
    ViewType
-   getView() const;  // TODO: remove const
+   getView();
 
    /**
     * \brief Returns a non-modifiable view of the sparse matrix.
@@ -587,7 +587,7 @@ public:
     * See \ref SparseMatrixRowView.
     */
    __cuda_callable__
-   const ConstRowView
+   ConstRowView
    getRow( const IndexType& rowIdx ) const;
 
    /**

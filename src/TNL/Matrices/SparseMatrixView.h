@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <TNL/Matrices/Matrix.h>
 #include <TNL/Matrices/MatrixType.h>
 #include <TNL/Allocators/Default.h>
@@ -57,7 +59,7 @@ struct ChooseSparseMatrixComputeReal< bool, Index >
  *         \ref Algorithms::Segments::ChunkedEllpack, and
  *         \ref Algorithms::Segments::BiEllpack.
  * \tparam ComputeReal is the same as \e Real mostly but for binary matrices it
- *         is set to \e Index type. This can be changed bu the user, of course.
+ *         is set to \e Index type. This can be changed by the user, of course.
  */
 template< typename Real,
           typename Device = Devices::Host,
@@ -69,8 +71,9 @@ class SparseMatrixView : public MatrixView< Real, Device, Index >
 {
    static_assert(
       ! MatrixType::isSymmetric() || ! std::is_same< Device, Devices::Cuda >::value
-         || ( std::is_same< Real, float >::value || std::is_same< Real, double >::value || std::is_same< Real, int >::value
-              || std::is_same< Real, long long int >::value || std::is_same< Real, bool >::value ),
+         || ( std::is_same< std::decay_t< Real >, float >::value || std::is_same< std::decay_t< Real >, double >::value
+              || std::is_same< std::decay_t< Real >, int >::value || std::is_same< std::decay_t< Real >, long long int >::value
+              || std::is_same< std::decay_t< Real >, bool >::value ),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
 public:
@@ -103,7 +106,7 @@ public:
    static constexpr bool
    isBinary()
    {
-      return std::is_same< Real, bool >::value;
+      return std::is_same< std::decay_t< Real >, bool >::value;
    }
 
    /**
@@ -132,7 +135,9 @@ public:
    /**
     * \brief Type of segments view used by this matrix. It represents the sparse matrix format.
     */
-   using SegmentsViewType = SegmentsView< Device, Index >;
+   using SegmentsViewType = std::conditional_t< std::is_const< Real >::value,
+                                                typename SegmentsView< Device, Index >::ConstViewType,
+                                                SegmentsView< Device, Index > >;
 
    /**
     * \brief Type of related matrix view.
@@ -152,8 +157,7 @@ public:
    /**
     * \brief Type for accessing constant matrix rows.
     */
-   using ConstRowView =
-      SparseMatrixRowView< typename SegmentsViewType::SegmentViewType, ConstValuesViewType, ConstColumnsIndexesViewType >;
+   using ConstRowView = typename RowView::ConstRowView;
 
    /**
     * \brief Helper type for getting self type or its modifications.
@@ -316,7 +320,7 @@ public:
     */
    __cuda_callable__
    ConstRowView
-   getRow( const IndexType& rowIdx ) const;
+   getRow( IndexType rowIdx ) const;
 
    /**
     * \brief Non-constant getter of simple structure for accessing given matrix row.
@@ -334,7 +338,7 @@ public:
     */
    __cuda_callable__
    RowView
-   getRow( const IndexType& rowIdx );
+   getRow( IndexType rowIdx );
 
    /**
     * \brief Sets element at given \e row and \e column to given \e value.
@@ -430,7 +434,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -472,7 +476,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const RealType& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -516,7 +520,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -557,7 +561,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.

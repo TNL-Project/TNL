@@ -60,16 +60,15 @@ __cuda_callable__
 typename BiEllpackView< Device, Index, Organization, WarpSize >::ViewType
 BiEllpackView< Device, Index, Organization, WarpSize >::getView()
 {
-   return ViewType( size, storageSize, virtualRows, rowPermArray.getView(), groupPointers.getView() );
+   return { size, storageSize, virtualRows, rowPermArray.getView(), groupPointers.getView() };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
 auto
-BiEllpackView< Device, Index, Organization, WarpSize >::getConstView() const -> const ConstViewType
+BiEllpackView< Device, Index, Organization, WarpSize >::getConstView() const -> ConstViewType
 {
-   BiEllpackView* this_ptr = const_cast< BiEllpackView* >( this );
-   return ConstViewType( size, storageSize, virtualRows, this_ptr->rowPermArray.getView(), this_ptr->groupPointers.getView() );
+   return { size, storageSize, virtualRows, rowPermArray.getConstView(), groupPointers.getConstView() };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >

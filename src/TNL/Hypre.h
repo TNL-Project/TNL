@@ -67,7 +67,7 @@ struct Hypre
    }
 
    //! \brief Sets the default Hypre global options (mostly GPU-relevant).
-   void
+   static void
    setDefaultOptions()
    {
       // Global Hypre options, see

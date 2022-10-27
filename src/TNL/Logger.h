@@ -94,4 +94,4 @@ protected:
 
 }  // namespace TNL
 
-#include <TNL/Logger_impl.h>
+#include <TNL/Logger.hpp>

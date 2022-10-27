@@ -6,6 +6,10 @@
 
 #pragma once
 
+#include <type_traits>
+
+#include <TNL/Cuda/CudaCallable.h>
+
 namespace TNL {
 namespace Matrices {
 namespace details {
@@ -101,6 +105,7 @@ public:
 protected:
    IndexType rows, columns, diagonals, nonemptyRows;
 };
+
 }  // namespace details
 }  // namespace Matrices
 }  // namespace TNL

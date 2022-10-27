@@ -106,6 +106,11 @@ public:
    using RowView = DenseMatrixRowView< SegmentViewType, ValuesViewType >;
 
    /**
+    * \brief Type for accessing immutable matrix row.
+    */
+   using ConstRowView = typename RowView::ConstRowView;
+
+   /**
     * \brief Helper type for getting self type or its modifications.
     */
    template< typename _Real = Real, typename _Device = Device, typename _Index = Index >
@@ -269,8 +274,8 @@ public:
     * See \ref DenseMatrixRowView.
     */
    __cuda_callable__
-   const RowView
-   getRow( const IndexType& rowIdx ) const;
+   ConstRowView
+   getRow( IndexType rowIdx ) const;
 
    /**
     * \brief Non-constant getter of simple structure for accessing given matrix row.
@@ -288,7 +293,7 @@ public:
     */
    __cuda_callable__
    RowView
-   getRow( const IndexType& rowIdx );
+   getRow( IndexType rowIdx );
 
    /**
     * \brief Sets all matrix elements to value \e v.
@@ -422,7 +427,7 @@ public:
     *          It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -465,7 +470,7 @@ public:
     *          It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -509,7 +514,7 @@ public:
     *   It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -550,7 +555,7 @@ public:
     *  It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.

@@ -53,7 +53,7 @@ public:
     * \param localIdx is the rank of the non-zero elements in the matrix row.
     */
    __cuda_callable__
-   SparseMatrixElement( RealType& value, const IndexType& rowIdx, IndexType& columnIdx, const IndexType& localIdx )
+   SparseMatrixElement( RealType& value, IndexType rowIdx, IndexType& columnIdx, IndexType localIdx )
    : value_( value ), rowIdx( rowIdx ), columnIdx( columnIdx ), localIdx( localIdx )
    {}
 
@@ -132,11 +132,13 @@ public:
 protected:
    RealType& value_;
 
-   const IndexType& rowIdx;
+   // NOTE: this cannot be a reference to avoid binding to temporary objects
+   IndexType rowIdx;
 
    IndexType& columnIdx;
 
-   const IndexType& localIdx;
+   // NOTE: this cannot be a reference to avoid binding to temporary objects
+   IndexType localIdx;
 };
 
 }  // namespace Matrices

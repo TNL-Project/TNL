@@ -68,7 +68,7 @@ public:
    /**
     * \brief Type of constant sparse matrix row view.
     */
-   using ConstView = DenseMatrixRowView< SegmentView, ConstValuesViewType >;
+   using ConstRowView = DenseMatrixRowView< SegmentView, ConstValuesViewType >;
 
    /**
     * \brief The type of related matrix element.

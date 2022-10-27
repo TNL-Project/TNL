@@ -76,7 +76,7 @@ public:
    /**
     * \brief Type of constant sparse matrix row view.
     */
-   using ConstView = SparseSandboxMatrixRowView< ConstValuesViewType, ConstColumnsIndexesViewType, isBinary_ >;
+   using ConstRowView = SparseSandboxMatrixRowView< ConstValuesViewType, ConstColumnsIndexesViewType, isBinary_ >;
 
    /**
     * \brief The type of related matrix element.

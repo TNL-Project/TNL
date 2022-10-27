@@ -80,9 +80,11 @@ struct CSRAdaptiveKernel
    void
    reset();
 
+   __cuda_callable__
    ViewType
    getView();
 
+   __cuda_callable__
    ConstViewType
    getConstView() const;
 

@@ -74,7 +74,7 @@ public:
    using BaseType = Matrix< Real, Device, Index, RealAllocator >;
    using ValuesType = typename BaseType::ValuesType;
    using ValuesView = typename ValuesType::ViewType;
-   using IndexerType = details::MultidiagonalMatrixIndexer< Index, Organization >;
+   using IndexerType = details::MultidiagonalMatrixIndexer< Index, Organization == Algorithms::Segments::RowMajorOrder >;
    using DiagonalsOffsetsType = Containers::Vector< Index, Device, Index, IndexAllocator >;
    using DiagonalsOffsetsView = typename DiagonalsOffsetsType::ViewType;
    using HostDiagonalsOffsetsType = Containers::Vector< Index, Devices::Host, Index >;
@@ -128,7 +128,7 @@ public:
     *
     * See \ref MultidiagonalMatrixView.
     */
-   using ConstViewType = MultidiagonalMatrixView< typename std::add_const< Real >::type, Device, Index, Organization >;
+   using ConstViewType = MultidiagonalMatrixView< std::add_const_t< Real >, Device, Index, Organization >;
 
    /**
     * \brief Type for accessing matrix rows.
@@ -138,7 +138,7 @@ public:
    /**
     * \brief Type for accessing constant matrix rows.
     */
-   using ConstRowView = typename ViewType::ConstViewType;
+   using ConstRowView = typename ViewType::ConstRowView;
 
    /**
     * \brief Helper type for getting self type or its modifications.
@@ -250,7 +250,7 @@ public:
     * \return multidiagonal matrix view.
     */
    ViewType
-   getView() const;  // TODO: remove const
+   getView();
 
    /**
     * \brief Returns a non-modifiable view of the multidiagonal matrix.
@@ -351,7 +351,7 @@ public:
     *
     * \return Number of diagonals.
     */
-   const IndexType
+   IndexType
    getDiagonalsCount() const;
 
    /**
@@ -510,7 +510,7 @@ public:
     */
    __cuda_callable__
    RowView
-   getRow( const IndexType& rowIdx );
+   getRow( IndexType rowIdx );
 
    /**
     * \brief Constant getter of simple structure for accessing given matrix row.
@@ -527,8 +527,8 @@ public:
     * See \ref MultidiagonalMatrixRowView.
     */
    __cuda_callable__
-   const ConstRowView
-   getRow( const IndexType& rowIdx ) const;
+   ConstRowView
+   getRow( IndexType rowIdx ) const;
 
    /**
     * \brief Set all matrix elements to given value.
@@ -634,7 +634,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -677,7 +677,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep =[=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep =[=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -720,7 +720,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
@@ -761,7 +761,7 @@ public:
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     *  ```
-    * auto keep = [=] __cuda_callable__ ( const IndexType rowIdx, const double& value ) { ... };
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
     * ```
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.

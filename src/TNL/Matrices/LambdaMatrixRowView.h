@@ -135,7 +135,7 @@ public:
     */
    __cuda_callable__
    IndexType
-   getColumnIndex( const IndexType localIdx ) const;
+   getColumnIndex( IndexType localIdx ) const;
 
    /**
     * \brief Returns constants reference to value of an element with given rank in the row.
@@ -146,7 +146,7 @@ public:
     */
    __cuda_callable__
    RealType
-   getValue( const IndexType localIdx ) const;
+   getValue( IndexType localIdx ) const;
 
    /**
     * \brief Comparison of two matrix rows.

@@ -84,7 +84,7 @@ public:
    operator*();
 
    __cuda_callable__
-   const MatrixElementType
+   MatrixElementType
    operator*() const;
 
 protected:

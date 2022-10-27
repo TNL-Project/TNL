@@ -26,7 +26,7 @@ class SlicedEllpackView
 public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
-   using OffsetsView = typename Containers::VectorView< Index, DeviceType, IndexType >;
+   using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
    static constexpr int
    getSliceSize()
    {
@@ -76,7 +76,7 @@ public:
    getView();
 
    __cuda_callable__
-   const ConstViewType
+   ConstViewType
    getConstView() const;
 
    __cuda_callable__

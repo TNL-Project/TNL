@@ -169,7 +169,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setValue( const
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 __cuda_callable__
 auto
-DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( const IndexType& rowIdx ) const -> const RowView
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( const IndexType& rowIdx ) const -> ConstRowView
 {
    return this->view.getRow( rowIdx );
 }
@@ -900,8 +900,6 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=( cons
    matrix.getCompressedRowLengths( rowLengths );
    this->setDimensions( matrix.getRows(), matrix.getColumns() );
 
-   // TODO: use getConstView when it works
-   const auto matrixView = const_cast< RHSMatrix& >( matrix ).getView();
    auto values_view = this->values.getView();
    RHSIndexType padding_index = matrix.getPaddingIndex();
    this->values = 0.0;
@@ -1031,7 +1029,7 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::save( const String& fileName ) const
 {
-   this->view.save( fileName );
+   Object::save( fileName );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >

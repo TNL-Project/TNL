@@ -95,24 +95,20 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
 auto
-SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getView() const -> ViewType
+SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getView() -> ViewType
 {
-   return ViewType( this->getRows(),
-                    this->getColumns(),
-                    const_cast< SparseSandboxMatrix* >( this )->getValues().getView(),  // TODO: remove const_cast
-                    const_cast< SparseSandboxMatrix* >( this )->columnIndexes.getView(),
-                    const_cast< SparseSandboxMatrix* >( this )->rowPointers.getView() );
+   return { this->getRows(), this->getColumns(), this->getValues().getView(), columnIndexes.getView(), rowPointers.getView() };
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
 auto
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getConstView() const -> ConstViewType
 {
-   return ConstViewType( this->getRows(),
-                         this->getColumns(),
-                         this->getValues().getConstView(),
-                         this->columnIndexes.getConstView(),
-                         const_cast< SparseSandboxMatrix* >( this )->rowPointers.getView() );
+   return { this->getRows(),
+            this->getColumns(),
+            this->getValues().getConstView(),
+            columnIndexes.getConstView(),
+            rowPointers.getConstView() };
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
@@ -299,7 +295,7 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 __cuda_callable__
 auto
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getRow( const IndexType& rowIdx ) const
-   -> const ConstRowView
+   -> ConstRowView
 {
    return this->view.getRow( rowIdx );
 }
@@ -654,8 +650,6 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    Containers::Vector< IndexType, DeviceType, IndexType > rowLocalIndexes( matrix.getRows() );
    rowLocalIndexes = 0;
 
-   // TODO: use getConstView when it works
-   const auto matrixView = const_cast< RHSMatrix& >( matrix ).getView();
    const IndexType paddingIndex = this->getPaddingIndex();
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
@@ -755,8 +749,6 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    Containers::Vector< IndexType, DeviceType, IndexType > rowLocalIndexes( matrix.getRows() );
    rowLocalIndexes = 0;
 
-   // TODO: use getConstView when it works
-   const auto matrixView = const_cast< RHSMatrix& >( matrix ).getView();
    const IndexType paddingIndex = this->getPaddingIndex();
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();

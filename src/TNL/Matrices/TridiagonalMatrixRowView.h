@@ -111,7 +111,7 @@ public:
     * \return matrix row index.
     */
    __cuda_callable__
-   const IndexType&
+   IndexType
    getRowIndex() const;
 
    /**
@@ -122,7 +122,7 @@ public:
     * \return column index of matrix element on given subdiagonal.
     */
    __cuda_callable__
-   const IndexType
+   IndexType
    getColumnIndex( IndexType localIdx ) const;
 
    /**

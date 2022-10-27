@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <TNL/Matrices/TridiagonalMatrixRowView.h>
+
 namespace TNL {
 namespace Matrices {
 
@@ -28,7 +30,7 @@ TridiagonalMatrixRowView< ValuesView, Indexer >::getSize() const -> IndexType
 template< typename ValuesView, typename Indexer >
 __cuda_callable__
 auto
-TridiagonalMatrixRowView< ValuesView, Indexer >::getRowIndex() const -> const IndexType&
+TridiagonalMatrixRowView< ValuesView, Indexer >::getRowIndex() const -> IndexType
 {
    return rowIdx;
 }
@@ -36,7 +38,7 @@ TridiagonalMatrixRowView< ValuesView, Indexer >::getRowIndex() const -> const In
 template< typename ValuesView, typename Indexer >
 __cuda_callable__
 auto
-TridiagonalMatrixRowView< ValuesView, Indexer >::getColumnIndex( const IndexType localIdx ) const -> const IndexType
+TridiagonalMatrixRowView< ValuesView, Indexer >::getColumnIndex( const IndexType localIdx ) const -> IndexType
 {
    TNL_ASSERT_GE( localIdx, 0, "" );
    TNL_ASSERT_LT( localIdx, 3, "" );

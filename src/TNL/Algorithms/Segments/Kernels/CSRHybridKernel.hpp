@@ -177,6 +177,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reset()
 }
 
 template< typename Index, typename Device, int ThreadsInBlock >
+__cuda_callable__
 auto
 CSRHybridKernel< Index, Device, ThreadsInBlock >::getView() -> ViewType
 {
@@ -191,6 +192,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::getKernelType()
 }
 
 template< typename Index, typename Device, int ThreadsInBlock >
+__cuda_callable__
 auto
 CSRHybridKernel< Index, Device, ThreadsInBlock >::getConstView() const -> ConstViewType
 {
