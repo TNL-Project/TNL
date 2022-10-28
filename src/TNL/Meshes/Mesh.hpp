@@ -76,7 +76,7 @@ Mesh< MeshConfig, Device >::getEntity( GlobalIndexType entityIndex ) const
 template< typename MeshConfig, typename Device >
 template< int Dimension >
 void
-Mesh< MeshConfig, Device >::setEntitiesCount( const typename MeshTraitsType::GlobalIndexType& entitiesCount )
+Mesh< MeshConfig, Device >::setEntitiesCount( GlobalIndexType entitiesCount )
 {
    StorageBaseType::setEntitiesCount( DimensionTag< Dimension >(), entitiesCount );
    if( Dimension == 0 )

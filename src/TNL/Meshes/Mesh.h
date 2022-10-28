@@ -125,7 +125,7 @@ public:
 
    template< int Dimension >
    void
-   setEntitiesCount( const typename MeshTraitsType::GlobalIndexType& entitiesCount );
+   setEntitiesCount( GlobalIndexType entitiesCount );
 
    // duplicated for compatibility with grids
    template< typename EntityType >
