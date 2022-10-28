@@ -269,37 +269,6 @@ public:
     * \brief Returns the neighbour grid entity.
     *
     * \tparam Dimension is a dimension of the neighbour grid entity.
-    * \tparam Steps is a offset of coordinates of the neighbour entity relative to this grid entity.
-    * \warning In case the parent entity orientation is greater than possible orientations of neighbour entity,
-    *            then orientation is reduced. For example, 3-D cell neighbour of edge with orientaiton 1, will have
-    *            orientation 0.
-    * \return neighbour grid entity.
-    */
-   template< int Dimension, int... Steps, std::enable_if_t< sizeof...( Steps ) == Grid::getMeshDimension(), bool > = true >
-   __cuda_callable__
-   GridEntity< Grid, Dimension >
-   getNeighbourEntity() const;
-
-   /**
-    * \brief Returns the neighbour grid entity.
-    *
-    * \tparam Dimension is a dimension of the neighbour grid entity.
-    * \tparam Orientation is an orientatio index of the grid entity.
-    * \tparam Steps is a offset of coordinates of the neighbour entity relative to this grid entity.
-    * \return neighbour grid entity.
-    */
-   template< int Dimension,
-             int Orientation,
-             int... Steps,
-             std::enable_if_t< sizeof...( Steps ) == Grid::getMeshDimension(), bool > = true >
-   __cuda_callable__
-   GridEntity< Grid, Dimension >
-   getNeighbourEntity() const;
-
-   /**
-    * \brief Returns the neighbour grid entity.
-    *
-    * \tparam Dimension is a dimension of the neighbour grid entity.
     * \param offset is a offset of coordinates of the neighbour entity relative to this grid entity.
     * \warning In case the parent entity orientation is greater than possible orientations of neighbour entity,
     *            then orientation is reduces. For example, 3-D cell neighbour of edge with orientaiton 1, will have
