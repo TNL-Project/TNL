@@ -9,7 +9,7 @@ void traverseGrid()
    /***
     * Define grid dimension and size.
     */
-   constexpr int Dimension = 2;
+   static constexpr int Dimension = 2;
    const int grid_size = 5;
 
    /***
