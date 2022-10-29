@@ -850,7 +850,7 @@ TEST( MeshGeometryTest, Polygon3DGetPlanarMeshTest )
       using VTKWriter = Meshes::Writers::VTKWriter< decltype( mesh ) >;
       std::ofstream file( "polygon_planarTest_orig.vtk" );
       VTKWriter writer( file, VTK::FileFormat::ascii );
-      writer.template writeEntities( mesh );
+      writer.writeEntities( mesh );
    }
 
    // Test for the 1st version

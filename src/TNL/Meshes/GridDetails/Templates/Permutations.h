@@ -16,7 +16,7 @@ namespace Templates {
 /*
  * A pack of type and its count
  */
-template< class, size_t >
+template< class, std::size_t >
 struct counted_pack
 {};
 
@@ -102,7 +102,7 @@ using prepend = typename Prepend< Type, Pack >::type;
 template< class, class >
 struct Push;
 
-template< class Type, class... Types, size_t... Counts >
+template< class Type, class... Types, std::size_t... Counts >
 struct Push< Type, pack< counted_pack< Types, Counts >... > >
 {
 public:
