@@ -1,0 +1,226 @@
+#!/bin/bash
+
+# exit as soon as there is an error
+set -o errexit
+# abort when an unset variable is used
+set -o nounset
+
+# get the root directory (i.e. the directory where this script is located)
+ROOT_DIR="$( builtin cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+# default build directory is set later
+BUILD_DIR=""
+
+PREFIX="$HOME/.local"
+BUILD_TYPE="Release"
+OFFLINE_BUILD="no"
+COMPILER="gcc"
+
+# array of options that are passed directly to cmake
+CMAKE_OPTIONS=()
+
+USE_MPI="yes"
+USE_CUDA="yes"
+CUDA_ARCH="native"
+USE_OPENMP="yes"
+USE_GMP="no"
+USE_CI_FLAGS="no"
+USE_SYSTEM_GTEST="no"
+
+# targets
+BUILD_BENCHMARKS="no"
+BUILD_EXAMPLES="no"
+BUILD_TOOLS="no"
+BUILD_TESTS="no"
+BUILD_MATRIX_TESTS="no"
+BUILD_COVERAGE="no"
+BUILD_DOC="no"
+
+function print_usage()
+{
+    cat << EOF
+usage: $0 [options] [target ...]
+
+By default, the script does not select any target. Build targets available for
+selection are listed below.
+
+Targets:
+    all             Special target which includes all other targets.
+    benchmarks      Compile the 'src/Benchmarks' directory.
+    examples        Compile the 'src/Examples' directory.
+    tools           Compile the 'src/Tools' directory.
+    tests           Compile unit tests in the 'src/UnitTests' directory (except
+                    tests for matrix formats, which have a separate target).
+    matrix-tests    Compile unit tests for matrix formats.
+    doc             Generate the documentation.
+
+General options:
+    --help                              Write this help list and exit.
+    --prefix=PATH                       Prefix for the installation directory. '$PREFIX' by default.
+    --build-type=TYPE                   Build type. Options: 'Debug', 'Release', 'RelWithDebInfo'. '$BUILD_TYPE' by default.
+    -B PATH                             Path to the build directory. Passed to cmake's -B option. By default, it is
+                                        'build/<build-type>' in the directory where this script is located.
+    -D...                               All options starting with "-D" are passed directly to cmake. This is useful, for example, to define
+                                        custom paths where CMake modules are looked up. For example: -DCUDA_SAMPLES_DIR=/usr/local
+
+Options affecting all targets:
+    --offline-build=yes/no              Disables online updates during the build. '$OFFLINE_BUILD' by default.
+    --compiler=gcc/clang/icc            Selects the compiler to use. '$COMPILER' by default.
+    --use-mpi=yes/no                    Enables MPI. '$USE_MPI' by default (OpenMPI required).
+    --use-cuda=yes/no                   Enables CUDA. '$USE_CUDA' by default (CUDA Toolkit is required).
+    --cuda-arch=all/native/70/75/...    Chooses CUDA architecture. '$CUDA_ARCH' by default.
+    --use-openmp=yes/no                 Enables OpenMP. '$USE_OPENMP' by default.
+    --use-gmp=yes/no                    Enables the wrapper for GNU Multiple Precision Arithmetic Library. '$USE_GMP' by default.
+
+Options for the 'tests' and 'matrix-tests' targets:
+    --build-coverage=yes/no             Enables code coverage reports for unit tests (lcov is required). '$BUILD_COVERAGE' by default.
+    --use-system-gtest=yes/no           Use GTest installed in the local system and do not download the latest version. '$USE_SYSTEM_GTEST' by default.
+EOF
+}
+
+# handle --help first
+for option in "$@"; do
+    if [[ "$option" == "--help" ]]; then
+        print_usage
+        exit 1
+    fi
+done
+
+# handle options
+for option in "$@"; do
+    case "$option" in
+        --prefix=*            ) PREFIX="${option#*=}" ;;
+        --build-type=*        ) BUILD_TYPE="${option#*=}" ;;
+        --offline-build       ) OFFLINE_BUILD="yes" ;;
+        --compiler=*          ) COMPILER="${option#*=}" ;;
+        --use-mpi=*           ) USE_MPI="${option#*=}" ;;
+        --use-cuda=*          ) USE_CUDA="${option#*=}" ;;
+        --cuda-arch=*         ) CUDA_ARCH="${option#*=}";;
+        --use-openmp=*        ) USE_OPENMP="${option#*=}" ;;
+        --use-gmp=*           ) USE_GMP="${option#*=}" ;;
+        --build-coverage=*    ) BUILD_COVERAGE="${option#*=}" ;;
+        --use-ci-flags=*      ) USE_CI_FLAGS="${option#*=}" ;;
+        --use-system-gtest=*  ) USE_SYSTEM_GTEST="${option#*=}" ;;
+        # -B dir
+        -B)
+            shift
+            BUILD_DIR="$1"
+            ;;
+        # -Bdir
+        -B*)
+            BUILD_DIR="${option#"-B"}"
+            ;;
+        # -D something
+        -D)
+            shift
+            CMAKE_OPTIONS+=(-D "$1")
+            ;;
+        # -Dsomething
+        -D*)
+            CMAKE_OPTIONS+=("$option")
+            ;;
+        -*)
+            echo "Unknown option $option. Use --help for more information." >&2
+            exit 1
+            ;;
+        *) break ;;
+    esac
+    shift
+done
+
+# check the build type
+if [[ ! "Release Debug RelWithDebInfo" =~ "$BUILD_TYPE" ]]; then
+    echo "Unknown build type: $BUILD_TYPE. The available build types are: Release, Debug, RelWithDebInfo." >&2
+    exit 1
+fi
+
+# handle targets
+for target in "$@"; do
+    case "$target" in
+        all)
+            BUILD_BENCHMARKS="yes"
+            BUILD_EXAMPLES="yes"
+            BUILD_TOOLS="yes"
+            BUILD_TESTS="yes"
+            BUILD_MATRIX_TESTS="yes"
+            BUILD_DOC="yes"
+            ;;
+        benchmarks)     BUILD_BENCHMARKS="yes" ;;
+        examples)       BUILD_EXAMPLES="yes" ;;
+        tools)          BUILD_TOOLS="yes" ;;
+        tests)          BUILD_TESTS="yes" ;;
+        matrix-tests)   BUILD_MATRIX_TESTS="yes" ;;
+        doc)            BUILD_DOC="yes" ;;
+        *)
+            echo "Unknown target $target. The available targets are: all, benchmarks, examples, tools, tests, matrix-tests, doc." >&2
+            echo "Use --help for more information." >&2
+            exit 1
+    esac
+    shift
+done
+
+if [[ "$COMPILER" == "gcc" ]]; then
+    export CXX=g++
+    export CC=gcc
+    # check if the system has a preferred CUDA host compiler via a symlink
+    if command -v nvcc > /dev/null; then
+        CUDAHOSTCXX="$(dirname "$(command -v nvcc)")"/g++
+        if [[ -e "$CUDAHOSTCXX" ]]; then
+            export CUDAHOSTCXX
+        else
+            export CUDAHOSTCXX=g++
+        fi
+    else
+        export CUDAHOSTCXX=g++
+    fi
+elif [[ "$COMPILER" == "clang" ]]; then
+    export CXX=clang++
+    export CC=clang
+    export CUDAHOSTCXX=clang++
+elif [[ "$COMPILER" == "icc" ]]; then
+    export CXX=icpc
+    export CC=icc
+    export CUDAHOSTCXX=icpc
+else
+    echo "Error: the compiler '$COMPILER' is not supported. The only options are 'gcc', 'clang' and 'icc'." >&2
+    exit 1
+fi
+
+if [[ ! $(command -v cmake) ]]; then
+    echo "Error: cmake is not installed. See http://www.cmake.org/download/" >&2
+    exit 1
+fi
+
+if [[ $(command -v ninja) ]]; then
+    generator=Ninja
+    check_file="build.ninja"
+else
+    generator="Unix Makefiles"
+    check_file="Makefile"
+fi
+
+# set default build directory
+if [[ "$BUILD_DIR" == "" ]]; then
+    BUILD_DIR="$ROOT_DIR/build/$BUILD_TYPE"
+fi
+
+echo "Configuring TNL for $BUILD_TYPE build ..."
+cmake -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator" \
+    -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+    -DCMAKE_INSTALL_PREFIX="$PREFIX" \
+    -DTNL_OFFLINE_BUILD="$OFFLINE_BUILD" \
+    -DTNL_USE_CUDA="$USE_CUDA" \
+    -DCMAKE_CUDA_ARCHITECTURES="$CUDA_ARCH" \
+    -DTNL_USE_OPENMP="$USE_OPENMP" \
+    -DTNL_USE_MPI="$USE_MPI" \
+    -DTNL_USE_GMP="$USE_GMP" \
+    -DTNL_USE_CI_FLAGS="$USE_CI_FLAGS" \
+    -DTNL_USE_SYSTEM_GTEST="$USE_SYSTEM_GTEST" \
+    -DTNL_BUILD_BENCHMARKS="$BUILD_BENCHMARKS" \
+    -DTNL_BUILD_EXAMPLES="$BUILD_EXAMPLES" \
+    -DTNL_BUILD_TOOLS="$BUILD_TOOLS" \
+    -DTNL_BUILD_TESTS="$BUILD_TESTS" \
+    -DTNL_BUILD_MATRIX_TESTS="$BUILD_MATRIX_TESTS" \
+    -DTNL_BUILD_COVERAGE="$BUILD_COVERAGE" \
+    -DTNL_BUILD_DOC="$BUILD_DOC" \
+    "${CMAKE_OPTIONS[@]}"

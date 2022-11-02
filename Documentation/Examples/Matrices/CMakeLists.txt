@@ -17,7 +17,9 @@ ELSE()
                        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out
                        DEPENDS MatrixWriterReaderExample )
 ENDIF()
+set( DOC_OUTPUTS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out )
 
-ADD_CUSTOM_TARGET( RunMatricesExamples ALL DEPENDS
-   ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out
-)
+add_custom_target( RunMatricesExamples ALL DEPENDS ${DOC_OUTPUTS} )
+
+# add the dependency to the main target
+add_dependencies( run-doc-examples RunMatricesExamples )

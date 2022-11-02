@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -e
+
+# run from the directory where this script is located
+builtin cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1
+
+# Check if we are in a git repository
+if [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
+    if [[ "$CI_COMMIT_REF_NAME" == "" ]]; then
+       # The following works only with newer versions of git, not in 2.19.1 for example
+       #_branch=$(git branch --show-current)
+       _branch=$(git rev-parse --abbrev-ref HEAD)
+    else
+       _branch="$CI_COMMIT_REF_NAME"
+    fi
+    #echo "$_branch:$(git log -1 --format="%h (%cd)")"
+    echo "$_branch:$(git rev-parse --short HEAD)"
+else
+    echo "UNKNOWN"
+fi

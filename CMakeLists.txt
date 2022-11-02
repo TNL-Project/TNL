@@ -15,7 +15,6 @@ else()
 endif()
 
 # declare all custom build options
-option( TNL_INSTALL_HEADERS "Install TNL header files" ${TNL_TOP_LEVEL_PROJECT} )
 option( TNL_USE_CUDA "Build with CUDA support" ON )
 option( TNL_USE_OPENMP "Build with OpenMP support" ON )
 option( TNL_USE_MPI "Build with MPI support" ON )
@@ -29,7 +28,7 @@ option( TNL_BUILD_TOOLS "Compile the 'src/Tools' directory" OFF )
 option( TNL_BUILD_TESTS "Build tests" OFF )
 option( TNL_BUILD_MATRIX_TESTS "Build tests for matrix formats" OFF )
 option( TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF )
-option( TNL_BUILD_DOC "Build examples included in the documentation" OFF )
+option( TNL_BUILD_DOC "Build examples included in the documentation and generate the documentation with Doxygen" OFF )
 option( TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF )
 
 # make cache variables for install destinations
@@ -371,7 +370,7 @@ if( TNL_USE_GMP )
    endif()
 endif()
 
-if( TNL_INSTALL_HEADERS )
+if( TNL_TOP_LEVEL_PROJECT )
    # export the interface targets
    install( TARGETS TNL TNL_CXX TNL_CUDA EXPORT TNLTargets )
    # install a CMake file for the interface target
@@ -389,14 +388,7 @@ endif()
 
 # Add all subdirectories
 add_subdirectory( src )
-
-# Add subdirectories for examples included in the documentation
-if( TNL_BUILD_DOC )
-   set( TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH "${PROJECT_BINARY_DIR}/output_snippets" )
-   file(MAKE_DIRECTORY ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH})
-   add_subdirectory( Documentation/Examples )
-   add_subdirectory( Documentation/Tutorials )
-endif()
+add_subdirectory( Documentation )
 
 # export compile_commands.json so it can be used by Clang tools
 # https://clang.llvm.org/docs/JSONCompilationDatabase.html
@@ -405,7 +397,6 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "" )
 if( TNL_TOP_LEVEL_PROJECT )
    # Print custom build options
    message( "-- Build options:" )
-   message( "   TNL_INSTALL_HEADERS = ${TNL_INSTALL_HEADERS}" )
    message( "   TNL_USE_CUDA = ${TNL_USE_CUDA}" )
    message( "   CMAKE_CUDA_ARCHITECTURES = ${CMAKE_CUDA_ARCHITECTURES}" )
    message( "   TNL_USE_OPENMP = ${TNL_USE_OPENMP}" )

@@ -1,48 +1,120 @@
 #!/bin/bash
 
-set -e
+# exit as soon as there is an error
+set -o errexit
+# abort when an unset variable is used
+set -o nounset
 
-BUILDS=(Debug Release)
-OPTIONS=""
+# get the root directory (i.e. the directory where this script is located)
+ROOT_DIR="$( builtin cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+# default build directory is set later
+BUILD_DIR=""
+
+# options shared with the configure script
+PREFIX="$HOME/.local"
+BUILD_TYPE="Release"
+
+# options specific to this script
+BUILD_JOBS=""
+TESTS_JOBS="4"
+VERBOSE=""
+
+# other options to be passed to the configure script
+CONFIGURE_OPTIONS=()
+
+function print_usage()
+{
+    cat << EOF
+usage: $0 [options] [target ...]
+
+Configures, builds and installs selected targets into the directory specified
+by the --prefix option.
+
+Most of the options are shared with the configure script (see below). The
+options specific to the install script are:
+    --build-jobs=NUM                      Number of processes to be used for the build. It is set to the number of available CPU cores by default.
+    --tests-jobs=NUM                      Number of processes to be used for the unit tests. It is $TESTS_JOBS by default.
+    --verbose                             Enables verbose build.
+
+The usage instructions for the configure script are printed below. Its options
+are automatically usable in this script too.
+
+EOF
+    ./configure --help
+}
+
+# handle --help first
 for option in "$@"; do
-    case $option in
-        --no-debug)
-            # remove Debug from builds
-            BUILDS=("${BUILDS[@]/Debug}")
-            ;;
-        --no-release)
-            # remove Release from builds
-            BUILDS=("${BUILDS[@]/Release}")
-            ;;
-        --build=*)
-            # replace builds with the supplied argument
-            BUILDS=("${option#*=}")
-            ;;
-        *)
-            OPTIONS="${OPTIONS} ${option}"
-            ;;
-    esac
-done
-
-for build in "${BUILDS[@]}"; do
-    # skip empty strings that were left in the array after deleting prefixes
-    if [[ -z "$build" ]]; then
-        continue
-    fi
-    if ! ./build --build="$build" --install=yes ${OPTIONS}; then
-        echo "$build build failed."
+    if [[ "$option" == "--help" ]]; then
+        print_usage
         exit 1
     fi
 done
 
-
-PREFIX=${HOME}/.local
 for option in "$@"; do
     case $option in
-        --prefix=*) PREFIX="${option#*=}" ;;
+        --prefix=*            ) PREFIX="${option#*=}" ;;
+        --build-type=*        ) BUILD_TYPE="${option#*=}" ;;
+        --build-jobs=*        ) BUILD_JOBS="${option#*=}" ;;
+        --tests-jobs=*        ) TESTS_JOBS="${option#*=}" ;;
+        --verbose             ) VERBOSE="--verbose" ;;
+        # -B dir
+        -B)
+            shift
+            BUILD_DIR="$1"
+            ;;
+        # -Bdir
+        -B*)
+            BUILD_DIR="${option#"-B"}"
+            ;;
+        *)
+            CONFIGURE_OPTIONS+=("$option")
+            ;;
     esac
 done
+
+# install dependencies into $PREFIX if they are not found system-wide
+pkg-config --exists tinyxml2 || "$ROOT_DIR/scripts/install_tinyxml2" --prefix "$PREFIX"
+
+# configure the build
+./configure --prefix="$PREFIX" --build-type="$BUILD_TYPE" "${CONFIGURE_OPTIONS[@]}"
+
+# set default build directory
+if [[ "$BUILD_DIR" == "" ]]; then
+    BUILD_DIR="$ROOT_DIR/build/$BUILD_TYPE"
+fi
+
+# temporary command to remove the old build directory tree ("builddir")
+# TODO: this command can be removed later
+rm -rf "$ROOT_DIR/builddir"
+
+# set the default number of build jobs
+if [[ -z ${BUILD_JOBS} ]]; then
+   if [[ $(command -v lscpu) ]]; then
+      # get the number of physical cores present on the system, even with multiple NUMA nodes
+      # see https://unix.stackexchange.com/a/279354
+      BUILD_JOBS=$(lscpu --all --parse=CORE,SOCKET | grep -Ev "^#" | sort -u | wc -l)
+   elif [[ $(command -v sysctl) && $OSTYPE == 'darwin'* ]]; then
+      # get the number of physical cores present on the system for MacOS
+      BUILD_JOBS=$(sysctl -n hw.ncpu)
+   fi
+fi
+
+# build the targets
+echo "Building TNL in $BUILD_TYPE configuration using $BUILD_JOBS parallel jobs ..."
+cmake --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target "all"
+
+# install the targets
+cmake --install "$BUILD_DIR" $VERBOSE
+
+# run the tests
+if [[ " ${CONFIGURE_OPTIONS[*]} " =~ " all " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " =~ " tests " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " =~ " matrix-tests " ]]; then
+    export OMP_NUM_THREADS="$TESTS_JOBS"
+    export CTEST_PARALLEL_LEVEL="$TESTS_JOBS"
+    export CTEST_OUTPUT_ON_FAILURE=1
+    cmake --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target "test"
+fi
 
 
 if [[ ! "$PATH" =~ "$PREFIX/bin" ]]; then
@@ -51,10 +123,10 @@ if [[ ! "$PATH" =~ "$PREFIX/bin" ]]; then
 WARNING !!!
 
 Your system does not see TNL which was installed right now.
-You need to add it to your system variables PATH and LD_LIBRARY_PATH.
-Add the following to your .bashrc file:
+You need to add it to your environment variables \$PATH and \$LD_LIBRARY_PATH.
+Add the following to your shell configuration file (e.g. .bashrc):
 
-export PATH="\${PATH}:${PREFIX}/bin"
-export LD_LIBRARY_PATH="\${LD_LIBRARY_PATH}:${PREFIX}/lib"
+export PATH="\$PATH:$PREFIX/bin"
+export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:$PREFIX/lib"
 EOF
 fi
