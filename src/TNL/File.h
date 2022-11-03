@@ -192,16 +192,6 @@ protected:
 };
 
 /**
- * \brief Returns true if the file exists and false otherwise.
- *
- * Finds out if the file \e fileName exists.
- * \param fileName Name of the file to check.
- * \return returns true if the file exists and false othervise
- */
-bool
-fileExists( const String& fileName );
-
-/**
  * \brief Serialization of strings
  */
 File&

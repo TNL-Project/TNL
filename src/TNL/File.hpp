@@ -241,14 +241,6 @@ File::ignore( std::streamsize elements )
    file.seekg( sizeof( SourceType ) * elements, std::ios_base::cur );
 }
 
-inline bool
-fileExists( const String& fileName )
-{
-   std::fstream file;
-   file.open( fileName.getString(), std::ios::in );
-   return ! file.fail();
-}
-
 // serialization of strings
 inline File&
 operator<<( File& file, const std::string& str )
