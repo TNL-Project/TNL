@@ -4,12 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <unordered_map>
-
-#ifdef __APPLE__
 #include <filesystem>
-#else
-#include <experimental/filesystem>
-#endif
 
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/Mesh.h>
@@ -27,11 +22,7 @@
 
 namespace DistributedMeshTest {
 
-#ifdef __APPLE__
-namespace fs = std::__fs::filesystem;
-#else
-namespace fs = std::experimental::filesystem;
-#endif
+namespace fs = std::filesystem;
 
 using namespace TNL;
 using namespace TNL::Meshes;

@@ -12,17 +12,15 @@
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
-#include <string>
-#include <stdexcept>
-#include <TNL/3rdparty/mpark/variant.hpp>  // backport of std::variant from C++17
+#include <variant>
 
 namespace TNL {
 namespace Config {
 
-using mpark::get;
-using mpark::holds_alternative;
-using mpark::monostate;
-using mpark::variant;
+using std::get;
+using std::holds_alternative;
+using std::monostate;
+using std::variant;
 
 // aliases for integer types
 using UnsignedInteger = std::size_t;

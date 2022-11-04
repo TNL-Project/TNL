@@ -52,10 +52,10 @@ void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Gr
          testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, i - 1, j - 1>(grid, dimension);
       };
 
-      TNL::Meshes::Templates::DescendingFor<2>::exec(secondLoop, i);
+      TNL::Algorithms::staticFor< int, 0, 3 >(secondLoop, i);
    };
 
-   TNL::Meshes::Templates::DescendingFor<2>::exec(firstLoop);
+   TNL::Algorithms::staticFor< int, 0, 3 >(firstLoop);
 }
 
 template<typename Grid, int EntityDimension, int NeighbourEntityDimension, int NeighbourEntityOrientation>
@@ -65,10 +65,10 @@ void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Gr
          testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, i - 1, j - 1>(grid, dimension);
       };
 
-      TNL::Meshes::Templates::DescendingFor<2>::exec(secondLoop, i);
+      TNL::Algorithms::staticFor< int, 0, 3 >(secondLoop, i);
    };
 
-   TNL::Meshes::Templates::DescendingFor<2>::exec(firstLoop);
+   TNL::Algorithms::staticFor< int, 0, 3 >(firstLoop);
 }
 
 template<typename Grid, int EntityDimension, int NeighbourEntityDimension>

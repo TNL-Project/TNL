@@ -151,7 +151,7 @@ class NeighbourGridEntityGetterTestCase {
             } while (!iterator.next());
          };
 
-         TNL::Meshes::Templates::DescendingFor<orientationsCount - 1>::exec(verify);
+         TNL::Algorithms::staticFor< int, 0, orientationsCount >(verify);
       }
    protected:
       template<int Orientation>

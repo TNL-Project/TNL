@@ -22,8 +22,8 @@ MeshInitializableBase< MeshConfig, Device, MeshType >::init( typename MeshTraits
    MeshType* mesh = static_cast< MeshType* >( this );
    Initializer< typename MeshType::Config > initializer;
    initializer.createMesh( points, faceSeeds, cellSeeds, *mesh );
-   // init boundary tags
-   static_cast< EntityTags::LayerFamily< MeshConfig, Device, MeshType >* >( mesh )->initLayer();
+   // init entity tags
+   EntityTags::initializeEntityTags( *mesh );
    // init dual graph
    mesh->initializeDualGraph( *mesh );
 }

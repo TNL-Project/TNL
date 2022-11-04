@@ -137,16 +137,16 @@ In order to use TNL, you need to install a compatible compiler, a parallel
 computing platform, and (optionally) some libraries.
 
 - __Supported compilers:__
-  You need a compiler which supports the [C++14](
-  https://en.wikipedia.org/wiki/C%2B%2B14) standard, for example [GCC](
-  https://gcc.gnu.org/) 5.0 or later or [Clang](http://clang.llvm.org/) 3.4 or
+  You need a compiler which supports the [C++17](
+  https://en.wikipedia.org/wiki/C%2B%2B17) standard, for example [GCC](
+  https://gcc.gnu.org/) 8.0 or later or [Clang](http://clang.llvm.org/) 7 or
   later.
 
 - __Parallel computing platforms:__
   TNL can be used with one or more of the following platforms:
     - [OpenMP](https://en.wikipedia.org/wiki/OpenMP) -- for computations on
       shared-memory multiprocessor platforms.
-    - [CUDA](https://docs.nvidia.com/cuda/index.html) 9.0 or later -- for
+    - [CUDA](https://docs.nvidia.com/cuda/index.html) 11.0 or later -- for
       computations on Nvidia GPUs.
     - [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface) -- TNL can
       a library implementing the MPI-3 standard for distributed computing (e.g.
@@ -252,15 +252,14 @@ to find TNL installed on the system or in your user home directory.
 
 ### C++ compiler flags
 
-- Enable the C++14 standard: `-std=c++14`
+- Enable the C++17 standard: `-std=c++17`
 - Configure the include path: `-I /path/to/include`
     - If you installed TNL with the install script, the include path is
       `<prefix>/include`, where `<prefix>` is the installation path (it is
       `~/.local` by default).
     - If you want to include from the git repository directly, you need to
-      specify two include paths: `<git_repo>/src` and `<git_repo/src/3rdparty`,
-      where `<git_repo>` is the path where you have cloned the TNL git
-      repository.
+      specify `<git_repo>/src` as an include paths, where `<git_repo>` is the
+      path where you have cloned the TNL git repository.
     - Instead of using the `-I` flag, you can set the `CPATH` environment
       variable to a colon-delimited list of include paths. Note that this may
       affect the build systems of other projects as well. For example:

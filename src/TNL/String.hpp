@@ -52,8 +52,7 @@ String::getData() const
 inline char*
 String::getData()
 {
-   // NOTE: std::string::data is non-const only since C++17
-   return const_cast< char* >( data() );
+   return data();
 }
 
 inline const char&

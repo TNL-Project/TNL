@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <TNL/3rdparty/mpark/variant.hpp>  // backport of std::variant from C++17
+#include <variant>
 
 #include <TNL/Meshes/MeshBuilder.h>
 #include <TNL/Meshes/VTKTraits.h>
@@ -30,16 +30,16 @@ struct MeshReaderError : public std::runtime_error
 class MeshReader
 {
 public:
-   using VariantVector = mpark::variant< std::vector< std::int8_t >,
-                                         std::vector< std::uint8_t >,
-                                         std::vector< std::int16_t >,
-                                         std::vector< std::uint16_t >,
-                                         std::vector< std::int32_t >,
-                                         std::vector< std::uint32_t >,
-                                         std::vector< std::int64_t >,
-                                         std::vector< std::uint64_t >,
-                                         std::vector< float >,
-                                         std::vector< double > >;
+   using VariantVector = std::variant< std::vector< std::int8_t >,
+                                       std::vector< std::uint8_t >,
+                                       std::vector< std::int16_t >,
+                                       std::vector< std::uint16_t >,
+                                       std::vector< std::int32_t >,
+                                       std::vector< std::uint32_t >,
+                                       std::vector< std::int64_t >,
+                                       std::vector< std::uint64_t >,
+                                       std::vector< float >,
+                                       std::vector< double > >;
 
    MeshReader() = default;
 
@@ -202,7 +202,7 @@ public:
          [ this, &meshBuilder ]( auto&& connectivity )
          {
             // let's just assume that the connectivity and offsets arrays have the same type...
-            using mpark::get;
+            using std::get;
             const auto& offsets = get< std::decay_t< decltype( connectivity ) > >( faceOffsetsArray );
 
             // Set corners counts
@@ -232,7 +232,7 @@ public:
          [ this, &meshBuilder ]( auto&& connectivity )
          {
             // let's just assume that the connectivity and offsets arrays have the same type...
-            using mpark::get;
+            using std::get;
             const auto& offsets = get< std::decay_t< decltype( connectivity ) > >( cellOffsetsArray );
 
             // Set corners counts

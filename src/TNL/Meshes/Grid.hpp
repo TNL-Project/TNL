@@ -15,7 +15,6 @@
 #include <TNL/Meshes/GridDetails/NormalsGetter.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
 #include <TNL/Meshes/GridDetails/Templates/ParallelFor.h>
-#include <TNL/Meshes/GridDetails/Templates/DescendingFor.h>
 #include <TNL/Meshes/GridDetails/Templates/ForEachOrientation.h>
 #include <TNL/Algorithms/staticFor.h>
 
@@ -548,7 +547,7 @@ Grid< Dimension, Real, Device, Index >::traverseBoundary( const CoordinatesType&
       isBoundaryTraversed[ orthogonalOrientation ] = 1;
    };
 
-   Templates::DescendingFor< orientationsCount - 1 >::exec( exec );
+   Algorithms::staticFor< int, 0, orientationsCount >( exec );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -795,21 +794,20 @@ Grid< Dimension, Real, Device, Index >::fillNormals()
       for( int j = 0; j < OrientationNormalsContainer::ValueType::getSize(); j++ )
          container[ i ][ j ] = 0;
 
-   int index = container.getSize() - 1;
+   int index = 0;
 
    auto forEachEntityDimension = [ & ]( const auto entityDimension )
    {
-      constexpr Index dimension = entityDimension();
-      constexpr Index combinationsCount = getEntityOrientationsCount( dimension );
+      constexpr Index combinationsCount = getEntityOrientationsCount( entityDimension );
 
       auto forEachOrientation = [ & ]( const auto orientation, const auto entityDimension )
       {
-         container[ index-- ] = NormalsGetter< Index, entityDimension, Dimension >::template getNormals< orientation >();
+         container[ index++ ] = NormalsGetter< Index, entityDimension, Dimension >::template getNormals< orientation >();
       };
-      Templates::DescendingFor< combinationsCount - 1 >::exec( forEachOrientation, entityDimension );
+      Algorithms::staticFor< int, 0, combinationsCount >( forEachOrientation, entityDimension );
    };
 
-   Templates::DescendingFor< Dimension >::exec( forEachEntityDimension );
+   Algorithms::staticFor< int, 0, Dimension + 1 >( forEachEntityDimension );
    this->normals = container;
 }
 

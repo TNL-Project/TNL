@@ -6,11 +6,7 @@
 
 #pragma once
 
-#ifdef __APPLE__
-   #include <filesystem>
-#else
-   #include <experimental/filesystem>
-#endif
+#include <filesystem>
 
 #include <TNL/Meshes/TypeResolver/resolveDistributedMeshType.h>
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
@@ -75,11 +71,7 @@ loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh
                      const std::string& fileFormat,
                      const MPI::Comm& communicator )
 {
-#ifdef __APPLE__
-   namespace fs = std::__fs::filesystem;
-#else
-   namespace fs = std::experimental::filesystem;
-#endif
+   namespace fs = std::filesystem;
    std::string format = fileFormat;
    if( format == "auto" ) {
       format = fs::path( fileName ).extension();

@@ -1,7 +1,7 @@
 # Documentation: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 ---
 Language: Cpp
-Standard: c++14
+Standard: c++17
 #BasedOnStyle: Mozilla
 
 # max line length

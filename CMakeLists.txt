@@ -54,6 +54,8 @@ find_package( OpenMP COMPONENTS CXX )
 find_package( MPI COMPONENTS CXX )
 # workaround for https://github.com/ginkgo-project/ginkgo/issues/1096
 find_package( Ginkgo QUIET )
+# find the std::filesystem library
+find_package( Filesystem REQUIRED COMPONENTS Final )
 
 # Settings for debug build
 if( CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -61,22 +63,8 @@ if( CMAKE_BUILD_TYPE STREQUAL "Debug")
     set( CMAKE_DEBUG_POSTFIX "-dbg" )  # suffix for libraries
 endif()
 
-# check if the compiler is good enough
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-   # GCC 5.0 is the first release with full C++11 support (due to libstdc++) as
-   # well as full C++14 support: https://gcc.gnu.org/gcc-5/changes.html
-   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.0")
-      message(FATAL_ERROR "Insufficient GCC version")
-   endif()
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-   # Clang 3.4 has full C++14 support: http://clang.llvm.org/cxx_status.html
-   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.4")
-      message(FATAL_ERROR "Insufficient Clang version")
-   endif()
-endif()
-
 # set C++ standard
-set( CMAKE_CXX_STANDARD 14 )
+set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
@@ -182,16 +170,13 @@ target_include_directories( TNL ${TNL_SYSTEM}
                             INTERFACE $<BUILD_INTERFACE:${TNL_INCLUDE_DIRS}>
                                       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> )
 # add compiler features to the interface
-target_compile_features( TNL INTERFACE cxx_std_14 )
+target_compile_features( TNL INTERFACE cxx_std_17 )
 # add some compiler flags to the interface
 target_compile_options( TNL INTERFACE
                         ${TNL_COLOR_DIAGNOSTICS_FLAG} )
 
-# add the filesystem library to the interface if are not running on macOS
-# https://en.cppreference.com/w/cpp/filesystem
-if ( NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-   target_link_libraries( TNL INTERFACE stdc++fs )
-endif()
+# add the std::filesystem library to the interface
+target_link_libraries( TNL INTERFACE std::filesystem )
 
 # gtest has to be built before we add the MPI flags
 if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
@@ -260,7 +245,7 @@ if( TNL_USE_CUDA )
       set( TNL_BUILD_CUDA TRUE)
 
       # set C++ standard
-      set( CMAKE_CUDA_STANDARD 14 )
+      set( CMAKE_CUDA_STANDARD 17 )
       set( CMAKE_CUDA_STANDARD_REQUIRED ON )
       set( CMAKE_CUDA_EXTENSIONS OFF )
 
