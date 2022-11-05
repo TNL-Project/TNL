@@ -25,12 +25,21 @@ if( TNL_BUILD_DOC )
          ${CMAKE_SOURCE_DIR}/Documentation/Tutorials/*
    )
 
+   # the documentation cannot be built without warnings when CUDA is disabled
+   # (e.g. output of some examples will be missing)
+   if( DEFINED ENV{GITLAB_CI} OR TNL_BUILD_CUDA )
+      set( DOXYGEN_WARN_AS_ERROR "YES" )
+   else()
+      set( DOXYGEN_WARN_AS_ERROR "NO" )
+   endif()
+
    # add custom target to generate the documentation during the build
    set( DOXYGEN_STAMP_FILE ${CMAKE_CURRENT_BINARY_DIR}/doxygen.stamp )
    add_custom_command(
       COMMAND ${CMAKE_COMMAND} -E env PROJECT_NUMBER="version ${TNL_DOC_VERSION}"
                                       OUTPUT_SNIPPETS_PATH="${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}"
                                       OUTPUT_DIRECTORY="${CMAKE_CURRENT_BINARY_DIR}"
+                                      WARN_AS_ERROR="${DOXYGEN_WARN_AS_ERROR}"
               ${DOXYGEN_EXECUTABLE}
       COMMAND cmake -E touch "${DOXYGEN_STAMP_FILE}"
       OUTPUT ${DOXYGEN_STAMP_FILE}
