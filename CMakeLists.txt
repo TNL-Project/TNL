@@ -44,7 +44,7 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib )
 
 # set cmake's include path so that we can include modules from
 # the cmake directory in the TNL repository
-set( CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
+list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
 
 # Note that in cmake 3.10 the FindOpenMP and FindMPI modules are broken - they do not work when
 # CMAKE_EXECUTABLE_SUFFIX is not empty, see https://www.mail-archive.com/cmake@cmake.org/msg56886.html
