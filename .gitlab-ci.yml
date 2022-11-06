@@ -36,6 +36,9 @@ stages:
     BUILD_BENCHMARKS: "no"
     BUILD_EXAMPLES: "no"
     BUILD_TOOLS: "no"
+    CMAKE_CXX_FLAGS: ""
+    CMAKE_EXE_LINKER_FLAGS: ""
+    CMAKE_SHARED_LINKER_FLAGS: ""
 
 # base for Clang builds
 .clang:
@@ -44,6 +47,11 @@ stages:
         CXX: clang++
         CC: clang
         CUDA_HOST_COMPILER: clang++
+        # also use LLVM's libc++ instead of GCC's libstdc++ (which is used by default)
+        CMAKE_CXX_FLAGS: "-stdlib=libc++"
+        # use the LLVM linker
+        CMAKE_EXE_LINKER_FLAGS: "-fuse-ld=lld"
+        CMAKE_SHARED_LINKER_FLAGS: "-fuse-ld=lld"
 
 # template for environment setup before build
 .env_setup:
@@ -79,6 +87,9 @@ stages:
         - cmake -B "./build/$CI_JOB_NAME" -S . -G Ninja
                 -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
                 -DCMAKE_INSTALL_PREFIX="$(pwd)/install_prefix/$CI_JOB_NAME"
+                -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+                -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}
+                -DCMAKE_SHARED_LINKER_FLAGS=${CMAKE_SHARED_LINKER_FLAGS}
                 -DTNL_USE_OPENMP=${USE_OPENMP}
                 -DTNL_USE_MPI=${USE_MPI}
                 -DTNL_USE_CUDA=${USE_CUDA}
