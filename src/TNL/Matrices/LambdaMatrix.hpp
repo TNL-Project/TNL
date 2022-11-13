@@ -333,13 +333,6 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    }
 }
 
-/**
- * \brief Insertion operator for dense matrix and output stream.
- *
- * \param str is the output stream.
- * \param matrix is the lambda matrix.
- * \return reference to the stream.
- */
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
 std::ostream&
 operator<<( std::ostream& str,
