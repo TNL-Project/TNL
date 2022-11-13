@@ -38,7 +38,9 @@ public:
    using SynchronizerType = typename ViewType::SynchronizerType;
 
    /**
-    * \brief A template which allows to quickly obtain a \ref DistributedArray type with changed template parameters.
+    * \brief A template which allows to quickly obtain a
+    * \ref TNL::Containers::DistributedArray "DistributedArray" type with
+    * changed template parameters.
     */
    template< typename _Value,
              typename _Device = Device,

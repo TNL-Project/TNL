@@ -533,7 +533,7 @@ protected:
 };
 
 /**
- * \brief Insertion operator for dense matrix and output stream.
+ * \brief Insertion operator for lambda matrix and output stream.
  *
  * \param str is the output stream.
  * \param matrix is the lambda matrix.

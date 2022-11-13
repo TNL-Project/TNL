@@ -104,7 +104,9 @@ public:
    using ConstViewType = ArrayView< std::add_const_t< Value >, Device, Index >;
 
    /**
-    * \brief A template which allows to quickly obtain an \ref Array type with changed template parameters.
+    * \brief A template which allows to quickly obtain an
+    * \ref TNL::Containers::Array "Array" type with changed template
+    * parameters.
     */
    template< typename _Value,
              typename _Device = Device,
@@ -768,8 +770,8 @@ protected:
    void
    releaseData();
 
-   /** \brief Internal method for reallocating array elements. Used only
-    * from the two overloads of \ref resize.
+   /** \brief Internal method for reallocating array elements. Used only from
+    * the two overloads of \ref TNL::Containers::Array::resize "resize".
     */
    void
    reallocate( IndexType size );

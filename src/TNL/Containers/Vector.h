@@ -74,7 +74,9 @@ public:
    using ConstViewType = VectorView< std::add_const_t< Real >, Device, Index >;
 
    /**
-    * \brief A template which allows to quickly obtain a \ref Vector type with changed template parameters.
+    * \brief A template which allows to quickly obtain a
+    * \ref TNL::Containers::Vector "Vector" type with changed template
+    * parameters.
     */
    template< typename _Real,
              typename _Device = Device,
