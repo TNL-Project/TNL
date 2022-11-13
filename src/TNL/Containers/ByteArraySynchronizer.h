@@ -63,7 +63,8 @@ public:
    synchronizeByteArrayAsyncWorker( ByteArrayView array, int bytesPerValue ) = 0;
 
    /**
-    * \brief An asynchronous version of \ref synchronizeByteArray.
+    * \brief An asynchronous version of \ref TNL::Containers::ByteArraySynchronizer::synchronizeByteArray
+    * "synchronizeByteArray".
     *
     * Note that this method is not thread-safe - only the thread which created
     * and "owns" the instance of this object can call this method.

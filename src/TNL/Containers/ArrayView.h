@@ -87,7 +87,9 @@ public:
    using ConstViewType = ArrayView< std::add_const_t< Value >, Device, Index >;
 
    /**
-    * \brief A template which allows to quickly obtain an \ref ArrayView type with changed template parameters.
+    * \brief A template which allows to quickly obtain an
+    * \ref TNL::Containers::ArrayView "ArrayView" type with changed template
+    * parameters.
     */
    template< typename _Value, typename _Device = Device, typename _Index = Index >
    using Self = ArrayView< _Value, _Device, _Index >;

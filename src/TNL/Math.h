@@ -36,7 +36,8 @@ min( const T1& a, const T2& b )
 /**
  * \brief This function returns minimum of a variadic number of inputs.
  *
- * The inputs are folded with the \ref min function from the left to the right.
+ * The inputs are folded with the binary \e min function from the left to the
+ * right.
  */
 template< typename T1, typename T2, typename T3, typename... Ts >
 constexpr typename std::common_type< T1, T2, T3, Ts... >::type
@@ -67,7 +68,8 @@ max( const T1& a, const T2& b )
 /**
  * \brief This function returns minimum of a variadic number of inputs.
  *
- * The inputs are folded with the \ref max function from the left to the right.
+ * The inputs are folded with the binary \e max function from the left to the
+ * right.
  */
 template< typename T1, typename T2, typename T3, typename... Ts >
 constexpr typename std::common_type< T1, T2, T3, Ts... >::type
