@@ -217,8 +217,8 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::reduceRows( IndexTyp
    {
       Real_ sum = identity;
       if( rowIdx == 0 ) {
-         sum = reduce( sum, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
-         sum = reduce( sum, fetch( 0, 2, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
+         sum = reduce( sum, fetch( 0, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
+         sum = reduce( sum, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
          keep( 0, sum );
          return;
       }
@@ -258,8 +258,8 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::reduceRows( IndexTyp
    {
       Real_ sum = identity;
       if( rowIdx == 0 ) {
-         sum = reduce( sum, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
-         sum = reduce( sum, fetch( 0, 2, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
+         sum = reduce( sum, fetch( 0, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
+         sum = reduce( sum, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
          keep( 0, sum );
          return;
       }

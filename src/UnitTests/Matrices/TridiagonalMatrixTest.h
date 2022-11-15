@@ -831,19 +831,18 @@ void test_VectorProduct()
 
    using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
-   VectorType inVector( 4 );
-   inVector = 2;
+   VectorType inVector = { 1, 2, 3, 4 };
 
    VectorType outVector( 5 );
    outVector = 0;
 
    m.vectorProduct( inVector, outVector);
 
-   EXPECT_EQ( outVector.getElement( 0 ),  6 );
-   EXPECT_EQ( outVector.getElement( 1 ), 36 );
-   EXPECT_EQ( outVector.getElement( 2 ), 66 );
-   EXPECT_EQ( outVector.getElement( 3 ), 62 );
-   EXPECT_EQ( outVector.getElement( 4 ), 40 );
+   EXPECT_EQ( outVector.getElement( 0 ),   5 );
+   EXPECT_EQ( outVector.getElement( 1 ),  38 );
+   EXPECT_EQ( outVector.getElement( 2 ), 101 );
+   EXPECT_EQ( outVector.getElement( 3 ), 109 );
+   EXPECT_EQ( outVector.getElement( 4 ),  80 );
 }
 
 template< typename Matrix1, typename Matrix2 = Matrix1 >
