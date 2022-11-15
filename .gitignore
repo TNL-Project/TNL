@@ -10,7 +10,8 @@
 /.pydevproject
 
 # VSCode
-/.vscode
+/.vscode/
+/.cache/
 
 # Editors
 *.orig
