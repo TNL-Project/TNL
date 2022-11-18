@@ -185,6 +185,20 @@ exp( const T& value ) -> decltype( std::exp( value ) )
 }
 
 /**
+ * \brief This function returns the square the given \e value.
+ */
+template< typename T >
+__cuda_callable__
+std::enable_if_t< IsScalarType< T >::value, T >
+sqr( const T& value )
+{
+   if constexpr( std::is_same_v< T, bool > )
+      return value;
+   else
+      return value * value;
+}
+
+/**
  * \brief This function returns square root of the given \e value.
  */
 template< typename T >
