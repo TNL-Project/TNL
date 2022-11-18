@@ -23,7 +23,7 @@ namespace TNL {
  */
 template< typename T1,
           typename T2,
-          typename ResultType = typename std::common_type< T1, T2 >::type,
+          typename ResultType = std::common_type_t< T1, T2 >,
           // enable_if is necessary to avoid ambiguity in vector expressions
           std::enable_if_t< std::is_arithmetic< T1 >::value && std::is_arithmetic< T2 >::value, bool > = true >
 constexpr ResultType
@@ -55,7 +55,7 @@ min( T1&& val1, T2&& val2, T3&& val3, Ts&&... vs )
  */
 template< typename T1,
           typename T2,
-          typename ResultType = typename std::common_type< T1, T2 >::type,
+          typename ResultType = std::common_type_t< T1, T2 >,
           // enable_if is necessary to avoid ambiguity in vector expressions
           std::enable_if_t< std::is_arithmetic< T1 >::value && std::is_arithmetic< T2 >::value, bool > = true >
 constexpr ResultType
@@ -111,7 +111,7 @@ abs( const T& n )
 /***
  * \brief This function returns argument of minimum of two numbers.
  */
-template< typename T1, typename T2, typename ResultType = typename std::common_type< T1, T2 >::type >
+template< typename T1, typename T2, typename ResultType = std::common_type_t< T1, T2 > >
 constexpr ResultType
 argMin( const T1& a, const T2& b )
 {
@@ -121,7 +121,7 @@ argMin( const T1& a, const T2& b )
 /***
  * \brief This function returns argument of maximum of two numbers.
  */
-template< typename T1, typename T2, typename ResultType = typename std::common_type< T1, T2 >::type >
+template< typename T1, typename T2, typename ResultType = std::common_type_t< T1, T2 > >
 constexpr ResultType
 argMax( const T1& a, const T2& b )
 {
@@ -131,7 +131,7 @@ argMax( const T1& a, const T2& b )
 /***
  * \brief This function returns argument of minimum of absolute values of two numbers.
  */
-template< typename T1, typename T2, typename ResultType = typename std::common_type< T1, T2 >::type >
+template< typename T1, typename T2, typename ResultType = std::common_type_t< T1, T2 > >
 __cuda_callable__
 ResultType
 argAbsMin( const T1& a, const T2& b )
@@ -142,7 +142,7 @@ argAbsMin( const T1& a, const T2& b )
 /***
  * \brief This function returns argument of maximum of absolute values of two numbers.
  */
-template< typename T1, typename T2, typename ResultType = typename std::common_type< T1, T2 >::type >
+template< typename T1, typename T2, typename ResultType = std::common_type_t< T1, T2 > >
 __cuda_callable__
 ResultType
 argAbsMax( const T1& a, const T2& b )
@@ -155,7 +155,7 @@ argAbsMax( const T1& a, const T2& b )
  */
 template< typename T1,
           typename T2,
-          typename ResultType = typename std::common_type< T1, T2 >::type,
+          typename ResultType = std::common_type_t< T1, T2 >,
           // enable_if is necessary to avoid ambiguity in vector expressions
           std::enable_if_t< std::is_arithmetic< T1 >::value && std::is_arithmetic< T2 >::value, bool > = true >
 __cuda_callable__
@@ -163,9 +163,9 @@ ResultType
 pow( const T1& base, const T2& exp )
 {
 #if defined( __CUDA_ARCH__ )
-   return ::pow( (ResultType) base, (ResultType) exp );
+   return ::pow( base, exp );
 #else
-   return std::pow( (ResultType) base, (ResultType) exp );
+   return std::pow( base, exp );
 #endif
 }
 
