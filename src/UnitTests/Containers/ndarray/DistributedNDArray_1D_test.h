@@ -25,10 +25,7 @@ protected:
    using DeviceType = typename DistributedNDArray::DeviceType;
    using IndexType = typename DistributedNDArray::IndexType;
    using DistributedNDArrayType = DistributedNDArray;
-
-   // TODO: use ndarray
-   using LocalArrayType = Array< ValueType, DeviceType, IndexType >;
-   using LocalArrayViewType = ArrayView< ValueType, DeviceType, IndexType >;
+   using LocalArrayType = NDArray< ValueType, typename DistributedNDArrayType::SizesHolderType, typename DistributedNDArrayType::PermutationType, DeviceType, IndexType >;
 
    const int globalSize = 97;  // prime number to force non-uniform distribution
 
@@ -99,52 +96,29 @@ TYPED_TEST( DistributedNDArray_1D_test, reset )
    EXPECT_EQ( this->distributedNDArray.getLocalStorageSize(), 0 );
 }
 
-// separate function because nvcc does not allow __cuda_callable__ lambdas inside
-// private or protected methods (which are created by TYPED_TEST macro)
-template< typename DistributedArray, typename BufferView >
-void test_helper_setValue( DistributedArray& array, BufferView& buffer_view )
-{
-   using DeviceType = typename DistributedArray::DeviceType;
-   using IndexType = typename DistributedArray::IndexType;
-
-   const auto localRange = array.template getLocalRange< 0 >();
-   auto array_view = array.getConstView();
-   auto kernel = [=] __cuda_callable__ ( IndexType i ) mutable
-   {
-      buffer_view[ i - localRange.getBegin() ] = array_view( i );
-   };
-   Algorithms::ParallelFor< DeviceType >::exec( localRange.getBegin(), localRange.getEnd(), kernel );
-}
-
 TYPED_TEST( DistributedNDArray_1D_test, setValue )
 {
-   using LocalArrayType = typename TestFixture::LocalArrayType;
-   using LocalArrayViewType = typename TestFixture::LocalArrayViewType;
-
    this->distributedNDArray.setValue( 1.0 );
-
+   const auto localArrayView = this->distributedNDArray.getConstLocalView();
    const auto localRange = this->distributedNDArray.template getLocalRange< 0 >();
-   LocalArrayType buffer( localRange.getEnd() - localRange.getBegin() );
-   LocalArrayViewType buffer_view( buffer );
-   test_helper_setValue( this->distributedNDArray, buffer_view );
 
-   LocalArrayType expected( localRange.getEnd() - localRange.getBegin() );
+   using LocalArrayType = typename TestFixture::LocalArrayType;
+   LocalArrayType expected;
+   expected.setSizes( localRange.getEnd() - localRange.getBegin() );
    expected.setValue( 1.0 );
-   EXPECT_EQ( buffer, expected );
+
+   EXPECT_EQ( localArrayView, expected.getConstView() );
 }
 
 TYPED_TEST( DistributedNDArray_1D_test, elementwiseAccess )
 {
-//   using ArrayViewType = typename TestFixture::ArrayViewType;
    using IndexType = typename TestFixture::IndexType;
 
    this->distributedNDArray.setValue( 0 );
-//   ArrayViewType localArrayView = this->distributedNDArray.getLocalArrayView();
    const auto localRange = this->distributedNDArray.template getLocalRange< 0 >();
 
    // check initial value
    for( IndexType gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ ) {
-//      EXPECT_EQ( localArrayView.getElement( i ), 0 );
       EXPECT_EQ( this->distributedNDArray.getElement( gi ), 0 );
       if( std::is_same< typename TestFixture::DeviceType, Devices::Host >::value ) {
          EXPECT_EQ( this->distributedNDArray[ gi ], 0 );
@@ -159,7 +133,6 @@ TYPED_TEST( DistributedNDArray_1D_test, elementwiseAccess )
 
       // check set value
       for( IndexType gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ ) {
-//         EXPECT_EQ( localArrayView.getElement( i ), gi + 1 );
          EXPECT_EQ( this->distributedNDArray.getElement( gi ), gi + 1 );
          EXPECT_EQ( this->distributedNDArray( gi ), gi + 1 );
          EXPECT_EQ( this->distributedNDArray[ gi ], gi + 1 );
@@ -175,8 +148,8 @@ TYPED_TEST( DistributedNDArray_1D_test, copyAssignment )
    DistributedNDArrayType copy;
    copy = this->distributedNDArray;
    // no binding, but deep copy
-//   EXPECT_NE( copy.getLocalArrayView().getData(), this->distributedNDArray.getLocalArrayView().getData() );
-//   EXPECT_EQ( copy.getLocalArrayView(), this->distributedNDArray.getLocalArrayView() );
+   EXPECT_NE( copy.getLocalView().getData(), this->distributedNDArray.getLocalView().getData() );
+   EXPECT_EQ( copy.getLocalView(), this->distributedNDArray.getLocalView() );
 }
 
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
@@ -188,15 +161,15 @@ void test_helper_comparisonOperators( DistributedArray& u, DistributedArray& v, 
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = u.template getLocalRange< 0 >();
-   auto u_view = u.getView();
-   auto v_view = v.getView();
-   auto w_view = w.getView();
+   auto u_view = u.getLocalView();
+   auto v_view = v.getLocalView();
+   auto w_view = w.getLocalView();
 
    auto kernel = [=] __cuda_callable__ ( IndexType gi ) mutable
    {
-      u_view( gi ) = gi;
-      v_view( gi ) = gi;
-      w_view( gi ) = 2 * gi;
+      u_view( gi - localRange.getBegin() ) = gi;
+      v_view( gi - localRange.getBegin() ) = gi;
+      w_view( gi - localRange.getBegin() ) = 2 * gi;
    };
    Algorithms::ParallelFor< DeviceType >::exec( localRange.getBegin(), localRange.getEnd(), kernel );
 }
@@ -236,11 +209,11 @@ void test_helper_forAll( DistributedArray& a )
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
    auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      a_view( i ) += 1;
+      a_view( i - localRange.getBegin() ) += 1;
    };
 
    a.setValue( 0 );
@@ -250,7 +223,7 @@ void test_helper_forAll( DistributedArray& a )
       EXPECT_EQ( a.getElement( gi ), 1 );
 
    a.setValue( 0 );
-   a_view.forAll( setter );
+   a.getView().forAll( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
       EXPECT_EQ( a.getElement( gi ), 1 );
@@ -269,11 +242,11 @@ void test_helper_forInterior( DistributedArray& a )
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
    auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      a_view( i ) += 1;
+      a_view( i - localRange.getBegin() ) += 1;
    };
 
    a.setValue( 0 );
@@ -290,7 +263,7 @@ void test_helper_forInterior( DistributedArray& a )
    }
 
    a.setValue( 0 );
-   a_view.forInterior( setter );
+   a.getView().forInterior( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
    {
@@ -316,11 +289,11 @@ void test_helper_forLocalInterior( DistributedArray& a )
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
    auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      a_view( i ) += 1;
+      a_view( i - localRange.getBegin() ) += 1;
    };
 
    a.setValue( 0 );
@@ -333,7 +306,7 @@ void test_helper_forLocalInterior( DistributedArray& a )
 
    a.setValue( 0 );
    // equivalent to forAll because all overlaps are 0
-   a_view.forLocalInterior( setter );
+   a.getView().forLocalInterior( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
       EXPECT_EQ( a.getElement( gi ), 1 )
@@ -353,11 +326,11 @@ void test_helper_forBoundary( DistributedArray& a )
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
    auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      a_view( i ) += 1;
+      a_view( i - localRange.getBegin() ) += 1;
    };
 
    a.setValue( 0 );
@@ -374,7 +347,7 @@ void test_helper_forBoundary( DistributedArray& a )
    }
 
    a.setValue( 0 );
-   a_view.forBoundary( setter );
+   a.getView().forBoundary( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
    {
@@ -400,11 +373,11 @@ void test_helper_forLocalBoundary( DistributedArray& a )
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
    auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      a_view( i ) += 1;
+      a_view( i - localRange.getBegin() ) += 1;
    };
 
    a.setValue( 0 );
@@ -417,7 +390,7 @@ void test_helper_forLocalBoundary( DistributedArray& a )
 
    a.setValue( 0 );
    // empty set because all overlaps are 0
-   a_view.forLocalBoundary( setter );
+   a.getView().forLocalBoundary( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
       EXPECT_EQ( a.getElement( gi ), 0 )
@@ -437,11 +410,11 @@ void test_helper_forGhosts( DistributedArray& a )
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
    auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      a_view( i ) += 1;
+      a_view( i - localRange.getBegin() ) += 1;
    };
 
    a.setValue( 0 );
@@ -454,7 +427,7 @@ void test_helper_forGhosts( DistributedArray& a )
 
    a.setValue( 0 );
    // empty set because all overlaps are 0
-   a_view.forGhosts( setter );
+   a.getView().forGhosts( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
       EXPECT_EQ( a.getElement( gi ), 0 )

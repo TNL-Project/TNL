@@ -279,7 +279,6 @@ public:
     * \returns Reference to the array element.
     */
    template< typename... IndexTypes >
-   __cuda_callable__
    ValueType&
    operator()( IndexTypes&&... indices )
    {
@@ -301,7 +300,6 @@ public:
     * \returns Constant reference to the array element.
     */
    template< typename... IndexTypes >
-   __cuda_callable__
    const ValueType&
    operator()( IndexTypes&&... indices ) const
    {
@@ -323,7 +321,6 @@ public:
     * \param index Global index of the element in the one-dimensional array.
     * \returns Reference to the array element.
     */
-   __cuda_callable__
    ValueType&
    operator[]( IndexType index )
    {
@@ -344,7 +341,6 @@ public:
     * \param index Global index of the element in the one-dimensional array.
     * \returns Reference to the array element.
     */
-   __cuda_callable__
    const ValueType&
    operator[]( IndexType index ) const
    {
