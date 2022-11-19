@@ -79,7 +79,6 @@ stages:
 
 # template for build jobs
 .build_template:
-    stage: build:gcc
     # don't wait for jobs in previous stages to complete before starting this job
     needs: []
     script:
@@ -259,44 +258,49 @@ cuda_nontests_Release:
 
 
 
-default_tests_Debug:
+gcc_tests_Debug:
     extends:
         - .build_template
         - .coverage_template
+    stage: build:gcc
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Debug
         BUILD_TESTS: "yes"
 
-default_tests_Release:
+gcc_tests_Release:
     extends:
         - .build_template
         - .tests_report_template
+    stage: build:gcc
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Release
         BUILD_TESTS: "yes"
 
-default_matrix_tests_Debug:
+gcc_matrix_tests_Debug:
     extends:
         - .build_template
         - .coverage_template
+    stage: build:gcc
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Debug
         BUILD_MATRIX_TESTS: "yes"
 
-default_matrix_tests_Release:
+gcc_matrix_tests_Release:
     extends:
         - .build_template
         - .tests_report_template
+    stage: build:gcc
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Release
         BUILD_MATRIX_TESTS: "yes"
 
-default_nontests_Debug:
+gcc_nontests_Debug:
     extends: .build_template
+    stage: build:gcc
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Debug
@@ -304,8 +308,9 @@ default_nontests_Debug:
         BUILD_BENCHMARKS: "yes"
         BUILD_TOOLS: "yes"
 
-default_nontests_Release:
+gcc_nontests_Release:
     extends: .build_template
+    stage: build:gcc
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Release
@@ -317,32 +322,32 @@ default_nontests_Release:
 
 clang_tests_Debug:
     extends:
-        - default_tests_Debug
+        - gcc_tests_Debug
         - .clang
 
 clang_tests_Release:
     extends:
-        - default_tests_Release
+        - gcc_tests_Release
         - .clang
 
 clang_matrix_tests_Debug:
     extends:
-        - default_matrix_tests_Debug
+        - gcc_matrix_tests_Debug
         - .clang
 
 clang_matrix_tests_Release:
     extends:
-        - default_matrix_tests_Release
+        - gcc_matrix_tests_Release
         - .clang
 
 clang_nontests_Debug:
     extends:
-        - default_nontests_Debug
+        - gcc_nontests_Debug
         - .clang
 
 clang_nontests_Release:
     extends:
-        - default_nontests_Release
+        - gcc_nontests_Release
         - .clang
 
 
