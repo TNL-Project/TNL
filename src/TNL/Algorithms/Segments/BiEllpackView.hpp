@@ -296,16 +296,16 @@ BiEllpackView< Device, Index, Organization, WarpSize >::reduceSegments( IndexTyp
       dim3 cudaBlockSize = BlockDim;
       const IndexType stripsCount = roundUpDivision( last - first, getWarpSize() );
       const IndexType cudaBlocks = roundUpDivision( stripsCount * getWarpSize(), cudaBlockSize.x );
-      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridSize() );
+      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
       IndexType sharedMemory = 0;
       if( Organization == ColumnMajorOrder )
          sharedMemory = cudaBlockSize.x * sizeof( RealType );
 
       // printStructure( std::cerr );
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         dim3 cudaGridSize = Cuda::getMaxGridSize();
+         dim3 cudaGridSize = Cuda::getMaxGridXSize();
          if( gridIdx == cudaGrids - 1 )
-            cudaGridSize.x = cudaBlocks % Cuda::getMaxGridSize();
+            cudaGridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
          detail::BiEllpackreduceSegmentsKernel< ViewType, IndexType, Fetch, Reduction, ResultKeeper, Real, BlockDim >
             <<< cudaGridSize, cudaBlockSize,
             sharedMemory >>>( *this, gridIdx, first, last, fetch, reduction, keeper, zero );
@@ -391,7 +391,7 @@ BiEllpackView< Device, Index, Organization, WarpSize >::reduceSegmentsKernelWith
                                                                                                Real zero ) const
 {
    using RealType = decltype( fetch( IndexType(), IndexType(), IndexType(), std::declval< bool& >() ) );
-   const IndexType segmentIdx = ( gridIdx * Cuda::getMaxGridSize() + blockIdx.x ) * blockDim.x + threadIdx.x + first;
+   const IndexType segmentIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + first;
    if( segmentIdx >= last )
       return;
 
@@ -438,7 +438,7 @@ BiEllpackView< Device, Index, Organization, WarpSize >::reduceSegmentsKernel( In
                                                                               Real zero ) const
 {
    using RealType = decltype( fetch( IndexType(), std::declval< bool& >() ) );
-   Index segmentIdx = ( gridIdx * Cuda::getMaxGridSize() + blockIdx.x ) * blockDim.x + threadIdx.x + first;
+   Index segmentIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + first;
 
    const IndexType strip = segmentIdx >> getLogWarpSize();
    const IndexType warpStart = strip << getLogWarpSize();

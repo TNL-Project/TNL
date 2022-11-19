@@ -318,13 +318,13 @@ ChunkedEllpackView< Device, Index, Organization >::reduceSegments( IndexType fir
       // const IndexType chunksCount = this->numberOfSlices * this->chunksInSlice;
       //  TODO: This ignores parameters first and last
       const IndexType cudaBlocks = this->numberOfSlices;
-      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridSize() );
+      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
       dim3 cudaBlockSize( this->chunksInSlice ), cudaGridSize;
       const IndexType sharedMemory = cudaBlockSize.x * sizeof( RealType );
 
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          if( gridIdx == cudaGrids - 1 )
-            cudaGridSize.x = cudaBlocks % Cuda::getMaxGridSize();
+            cudaGridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
          detail::ChunkedEllpackreduceSegmentsKernel< ViewType, IndexType, Fetch, Reduction, ResultKeeper, Real >
             <<< cudaGridSize, cudaBlockSize,
             sharedMemory >>>( *this, gridIdx, first, last, fetch, reduction, keeper, zero );
@@ -418,7 +418,7 @@ ChunkedEllpackView< Device, Index, Organization >::reduceSegmentsKernelWithAllPa
    const IndexType firstSlice = rowToSliceMapping[ first ];
    const IndexType lastSlice = rowToSliceMapping[ last - 1 ];
 
-   const IndexType sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridSize() + blockIdx.x;
+   const IndexType sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridXSize() + blockIdx.x;
    if( sliceIdx > lastSlice )
       return;
 
@@ -483,7 +483,7 @@ ChunkedEllpackView< Device, Index, Organization >::reduceSegmentsKernel( IndexTy
    const IndexType firstSlice = rowToSliceMapping[ first ];
    const IndexType lastSlice = rowToSliceMapping[ last - 1 ];
 
-   const IndexType sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridSize() + blockIdx.x;
+   const IndexType sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridXSize() + blockIdx.x;
    if( sliceIdx > lastSlice )
       return;
 

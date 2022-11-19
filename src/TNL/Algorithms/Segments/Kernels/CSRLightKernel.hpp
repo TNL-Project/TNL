@@ -282,7 +282,7 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
                                          ResultKeeper keep,
                                          const Real zero )
 {
-   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx( gridIdx ) / ThreadsPerSegment + first;
+   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + first;
    if( segmentIdx >= last )
       return;
 

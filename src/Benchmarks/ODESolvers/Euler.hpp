@@ -158,9 +158,9 @@ void Euler< Problem, SolverMonitor >::computeNewTimeLevel( DofVectorPointer& u,
 #ifdef HAVE_CUDA
       dim3 cudaBlockSize( 512 );
       const IndexType cudaBlocks = Cuda::getNumberOfBlocks( size, cudaBlockSize.x );
-      const IndexType cudaGrids = Cuda::getNumberOfGrids( cudaBlocks );
-      this->cudaBlockResidue.setSize( min( cudaBlocks, Cuda::getMaxGridSize() ) );
-      const IndexType threadsPerGrid = Cuda::getMaxGridSize() * cudaBlockSize.x;
+      const IndexType cudaGrids = Cuda::getNumberOfGrids( cudaBlocks, Cuda::getMaxGridXSize() );
+      this->cudaBlockResidue.setSize( min( cudaBlocks, Cuda::getMaxGridXSize() ) );
+      const IndexType threadsPerGrid = Cuda::getMaxGridXSize() * cudaBlockSize.x;
 
       localResidue = 0.0;
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx ++ )

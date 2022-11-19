@@ -272,9 +272,9 @@ void Merson< Problem, SolverMonitor >::computeKFunctions( DofVectorPointer& u,
 #ifdef HAVE_CUDA
       dim3 cudaBlockSize( 512 );
       const IndexType cudaBlocks = Cuda::getNumberOfBlocks( size, cudaBlockSize.x );
-      const IndexType cudaGrids = Cuda::getNumberOfGrids( cudaBlocks );
-      this->cudaBlockResidue.setSize( min( cudaBlocks, Cuda::getMaxGridSize() ) );
-      const IndexType threadsPerGrid = Cuda::getMaxGridSize() * cudaBlockSize.x;
+      const IndexType cudaGrids = Cuda::getNumberOfGrids( cudaBlocks, Cuda::getMaxGridXSize() );
+      this->cudaBlockResidue.setSize( min( cudaBlocks, Cuda::getMaxGridXSize() ) );
+      const IndexType threadsPerGrid = Cuda::getMaxGridXSize() * cudaBlockSize.x;
 
       this->problem->getExplicitUpdate( time, tau, u, k1 );
       cudaDeviceSynchronize();
@@ -366,9 +366,9 @@ typename Problem :: RealType Merson< Problem, SolverMonitor >::computeError( con
       RealType* _kAux = kAux->getData();
       dim3 cudaBlockSize( 512 );
       const IndexType cudaBlocks = Cuda::getNumberOfBlocks( size, cudaBlockSize.x );
-      const IndexType cudaGrids = Cuda::getNumberOfGrids( cudaBlocks );
-      this->cudaBlockResidue.setSize( min( cudaBlocks, Cuda::getMaxGridSize() ) );
-      const IndexType threadsPerGrid = Cuda::getMaxGridSize() * cudaBlockSize.x;
+      const IndexType cudaGrids = Cuda::getNumberOfGrids( cudaBlocks, Cuda::getMaxGridXSize() );
+      this->cudaBlockResidue.setSize( min( cudaBlocks, Cuda::getMaxGridXSize() ) );
+      const IndexType threadsPerGrid = Cuda::getMaxGridXSize() * cudaBlockSize.x;
 
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx ++ )
       {
@@ -421,9 +421,9 @@ void Merson< Problem, SolverMonitor >::computeNewTimeLevel( const RealType time,
 #ifdef HAVE_CUDA
       dim3 cudaBlockSize( 512 );
       const IndexType cudaBlocks = Cuda::getNumberOfBlocks( size, cudaBlockSize.x );
-      const IndexType cudaGrids = Cuda::getNumberOfGrids( cudaBlocks );
-      this->cudaBlockResidue.setSize( min( cudaBlocks, Cuda::getMaxGridSize() ) );
-      const IndexType threadsPerGrid = Cuda::getMaxGridSize() * cudaBlockSize.x;
+      const IndexType cudaGrids = Cuda::getNumberOfGrids( cudaBlocks, Cuda::getMaxGridXSize() );
+      this->cudaBlockResidue.setSize( min( cudaBlocks, Cuda::getMaxGridXSize() ) );
+      const IndexType threadsPerGrid = Cuda::getMaxGridXSize() * cudaBlockSize.x;
 
       localResidue = 0.0;
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx ++ )

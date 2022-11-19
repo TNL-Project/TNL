@@ -40,7 +40,7 @@ reduceSegmentsCSRKernelVector( int gridIdx,
    /***
     * We map one warp to each segment
     */
-   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx( gridIdx ) / TNL::Cuda::getWarpSize() + first;
+   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / TNL::Cuda::getWarpSize() + first;
    if( segmentIdx >= last )
       return;
 

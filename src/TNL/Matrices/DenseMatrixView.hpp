@@ -36,7 +36,7 @@ VectorColumnMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
    __shared__ Real result_[ BlockSize ];
 
    constexpr Index rowsPerBlock = 256 / ThreadsPerRow;
-   const Index rowIdx = ( ( gridIdx * Cuda::getMaxGridSize() + blockIdx.x ) * 256 + threadIdx.x ) / ThreadsPerRow + begin;
+   const Index rowIdx = ( ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x ) / ThreadsPerRow + begin;
    const Index localColIdx = threadIdx.x / rowsPerBlock;
    const Index localRowIdx = threadIdx.x % rowsPerBlock;
 
@@ -102,7 +102,7 @@ ColumnMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );
    __shared__ Real inVectorCache[ inVectorCacheSize ];
 
-   const int rowIdx = ( gridIdx * Cuda::getMaxGridSize() + blockIdx.x ) * 256 + threadIdx.x + begin;
+   const int rowIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x + begin;
 
    Real result( 0.0 );
    Index columnIdx( 0 );
@@ -154,7 +154,7 @@ RowMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
    constexpr int threadsPerRow = 32;
    // const Index rowIdx = begin + ((gridIdx * TNL::Cuda::getMaxGridXSize() ) + (blockIdx.x * blockDim.x) + threadIdx.x) /
    // threadsPerRow;
-   const Index rowIdx = first + ( ( gridIdx * Cuda::getMaxGridSize() + blockIdx.x ) * 256 + threadIdx.x ) / threadsPerRow;
+   const Index rowIdx = first + ( ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x ) / threadsPerRow;
 
    Real result = 0.0;
    const Index laneID = threadIdx.x & 31;  // & is cheaper than %
@@ -609,12 +609,12 @@ DenseMatrixView< Real, Device, Index, Organization >::vectorProduct( const InVec
          constexpr int ThreadsPerRow = 1;
          const size_t threadsCount = ( end - begin ) * ThreadsPerRow;
          const size_t blocksCount = roundUpDivision( threadsCount, BlockSize );
-         const size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridSize() );
+         const size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
          const size_t sharedMemSize = 20480;
          for( size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
-            dim3 blocks( Cuda::getMaxGridSize() );
+            dim3 blocks( Cuda::getMaxGridXSize() );
             if( gridIdx == gridsCount - 1 )
-               blocks = blocksCount % Cuda::getMaxGridSize();
+               blocks = blocksCount % Cuda::getMaxGridXSize();
             ColumnMajorDenseMatrixViewVectorMultiplicationKernel<<< blocks, BlockSize,
                sharedMemSize >>>( *this, inVectorView, outVectorView, begin, end, gridIdx );
          }
@@ -626,12 +626,12 @@ DenseMatrixView< Real, Device, Index, Organization >::vectorProduct( const InVec
          constexpr int ThreadsPerRow = 32;
          const size_t threadsCount = ( end - begin ) * ThreadsPerRow;
          const size_t blocksCount = roundUpDivision( threadsCount, BlockSize );
-         const size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridSize() );
+         const size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
          const size_t sharedMemSize = 20480;
          for( size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
-            dim3 blocks( Cuda::getMaxGridSize() );
+            dim3 blocks( Cuda::getMaxGridXSize() );
             if( gridIdx == gridsCount - 1 )
-               blocks = blocksCount % Cuda::getMaxGridSize();
+               blocks = blocksCount % Cuda::getMaxGridXSize();
             RowMajorDenseMatrixViewVectorMultiplicationKernel<<< blocks, BlockSize,
                sharedMemSize >>>( *this, inVectorView, outVectorView, begin, end, gridIdx );
          }

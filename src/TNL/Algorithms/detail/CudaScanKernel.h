@@ -929,14 +929,14 @@ struct CudaScanKernelLauncher
    static int&
    maxGridSize()
    {
-      static int maxGridSize = Cuda::getMaxGridSize();
+      static int maxGridSize = Cuda::getMaxGridXSize();
       return maxGridSize;
    }
 
    static void
    resetMaxGridSize()
    {
-      maxGridSize() = Cuda::getMaxGridSize();
+      maxGridSize() = Cuda::getMaxGridXSize();
       gridsCount() = -1;
    }
 
