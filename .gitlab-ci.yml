@@ -14,7 +14,8 @@ default:
 stages:
     - lint
     - build
-    - build:cuda
+    - build:cuda-nvcc
+    - build:cuda-clang
     - build:gcc
     - build:clang
     - build:doc
@@ -37,6 +38,7 @@ stages:
     BUILD_EXAMPLES: "no"
     BUILD_TOOLS: "no"
     CMAKE_CXX_FLAGS: ""
+    CMAKE_CUDA_FLAGS: ""
     CMAKE_EXE_LINKER_FLAGS: ""
     CMAKE_SHARED_LINKER_FLAGS: ""
 
@@ -49,9 +51,20 @@ stages:
         CUDA_HOST_COMPILER: clang++
         # also use LLVM's libc++ instead of GCC's libstdc++ (which is used by default)
         CMAKE_CXX_FLAGS: "-stdlib=libc++"
-        # use the LLVM linker
-        CMAKE_EXE_LINKER_FLAGS: "-fuse-ld=lld"
-        CMAKE_SHARED_LINKER_FLAGS: "-fuse-ld=lld"
+        # use the LLVM linker and link to libc++
+        CMAKE_EXE_LINKER_FLAGS: "-fuse-ld=lld -lc++ -lc++abi"
+        CMAKE_SHARED_LINKER_FLAGS: "-fuse-ld=lld -lc++ -lc++abi"
+
+# base for Clang CUDA builds
+.clang_cuda:
+    stage: build:cuda-clang
+    extends: .clang
+    variables:
+        CUDACXX: clang++
+        CUDAHOSTCXX: clang++
+        CMAKE_CUDA_FLAGS: "-stdlib=libc++"
+        # FIXME: this is just a fallback since cmake can't detect the native architecture when using clang
+        CUDA_ARCH: 61
 
 # template for environment setup before build
 .env_setup:
@@ -86,9 +99,10 @@ stages:
         - cmake -B "./build/$CI_JOB_NAME" -S . -G Ninja
                 -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
                 -DCMAKE_INSTALL_PREFIX="$(pwd)/install_prefix/$CI_JOB_NAME"
-                -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-                -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}
-                -DCMAKE_SHARED_LINKER_FLAGS=${CMAKE_SHARED_LINKER_FLAGS}
+                -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}"
+                -DCMAKE_CUDA_FLAGS="${CMAKE_CUDA_FLAGS}"
+                -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}"
+                -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}"
                 -DTNL_USE_OPENMP=${USE_OPENMP}
                 -DTNL_USE_MPI=${USE_MPI}
                 -DTNL_USE_CUDA=${USE_CUDA}
@@ -173,11 +187,11 @@ dummy build job:
 # Similarly, release builds are launched first to avoid the tail effect (they take
 # significantly more time than debug builds).
 
-cuda_tests_Debug:
+cuda-nvcc_tests_Debug:
     extends:
         - .build_template
         - .coverage_template
-    stage: build:cuda
+    stage: build:cuda-nvcc
     tags:
         - docker
         - nvidia
@@ -187,11 +201,11 @@ cuda_tests_Debug:
         BUILD_TYPE: Debug
         BUILD_TESTS: "yes"
 
-cuda_tests_Release:
+cuda-nvcc_tests_Release:
     extends:
         - .build_template
         - .tests_report_template
-    stage: build:cuda
+    stage: build:cuda-nvcc
     tags:
         - docker
         - nvidia
@@ -202,11 +216,11 @@ cuda_tests_Release:
         BUILD_TESTS: "yes"
 
 
-cuda_matrix_tests_Debug:
+cuda-nvcc_matrix_tests_Debug:
     extends:
         - .build_template
         - .coverage_template
-    stage: build:cuda
+    stage: build:cuda-nvcc
     tags:
         - docker
         - nvidia
@@ -216,11 +230,11 @@ cuda_matrix_tests_Debug:
         BUILD_TYPE: Debug
         BUILD_MATRIX_TESTS: "yes"
 
-cuda_matrix_tests_Release:
+cuda-nvcc_matrix_tests_Release:
     extends:
         - .build_template
         - .tests_report_template
-    stage: build:cuda
+    stage: build:cuda-nvcc
     tags:
         - docker
         - nvidia
@@ -231,9 +245,9 @@ cuda_matrix_tests_Release:
         BUILD_MATRIX_TESTS: "yes"
 
 
-cuda_nontests_Debug:
+cuda-nvcc_nontests_Debug:
     extends: .build_template
-    stage: build:cuda
+    stage: build:cuda-nvcc
     variables:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
@@ -242,9 +256,9 @@ cuda_nontests_Debug:
         BUILD_BENCHMARKS: "yes"
         BUILD_TOOLS: "yes"
 
-cuda_nontests_Release:
+cuda-nvcc_nontests_Release:
     extends: .build_template
-    stage: build:cuda
+    stage: build:cuda-nvcc
     variables:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
@@ -252,6 +266,38 @@ cuda_nontests_Release:
         BUILD_EXAMPLES: "yes"
         BUILD_BENCHMARKS: "yes"
         BUILD_TOOLS: "yes"
+
+
+
+cuda-clang_tests_Debug:
+    extends:
+        - cuda-nvcc_tests_Debug
+        - .clang_cuda
+
+cuda-clang_tests_Release:
+    extends:
+        - cuda-nvcc_tests_Release
+        - .clang_cuda
+
+cuda-clang_matrix_tests_Debug:
+    extends:
+        - cuda-nvcc_matrix_tests_Debug
+        - .clang_cuda
+
+cuda-clang_matrix_tests_Release:
+    extends:
+        - cuda-nvcc_matrix_tests_Release
+        - .clang_cuda
+
+cuda-clang_nontests_Debug:
+    extends:
+        - cuda-nvcc_nontests_Debug
+        - .clang_cuda
+
+cuda-clang_nontests_Release:
+    extends:
+        - cuda-nvcc_nontests_Release
+        - .clang_cuda
 
 
 
@@ -356,7 +402,7 @@ clang_nontests_Release:
 
 Ginkgo examples:
     extends: .build_template
-    stage: build:cuda
+    stage: build:cuda-nvcc
     tags:
         - docker
         - nvidia
@@ -383,7 +429,7 @@ Ginkgo examples:
 
 documentation:
     extends: .build_template
-    stage: build:cuda
+    stage: build:cuda-nvcc
     tags:
         - docker
         - nvidia
