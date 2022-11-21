@@ -1,5 +1,3 @@
-add_subdirectory(tnl-quickstart)
-
 # Mesh tools: will link to zlib and tinyxml2
 set( MESH_TOOLS
          tnl-init
