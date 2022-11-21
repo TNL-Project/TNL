@@ -190,10 +190,10 @@ CudaMultireductionKernelLauncher( const Result identity,
    launch_config.gridSize.x = TNL::min( Cuda::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSizeX );
    launch_config.gridSize.y = Cuda::getNumberOfBlocks( n, launch_config.blockSize.y );
 
-   if( launch_config.gridSize.y > (unsigned) Cuda::getMaxGridSize() ) {
-      std::cerr << "Maximum launch_config.gridSize.y limit exceeded (limit is 65535, attempted " << launch_config.gridSize.y
-                << ")." << std::endl;
-      throw 1;
+   if( launch_config.gridSize.y > (unsigned) Cuda::getMaxGridYSize() ) {
+      throw std::logic_error( "Maximum launch_config.gridSize.y limit exceeded (limit is "
+                              + std::to_string( Cuda::getMaxGridYSize() ) + ", attempted "
+                              + std::to_string( launch_config.gridSize.y ) + ")." );
    }
 
    // create reference to the reduction buffer singleton and set size

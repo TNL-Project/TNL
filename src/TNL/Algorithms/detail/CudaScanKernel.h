@@ -926,17 +926,17 @@ struct CudaScanKernelLauncher
 
    // The following serves for setting smaller maxGridSize so that we can force
    // the scan in CUDA to run with more than one grid in unit tests.
-   static int&
+   static std::size_t&
    maxGridSize()
    {
-      static int maxGridSize = Cuda::getMaxGridSize();
+      static std::size_t maxGridSize = Cuda::getMaxGridXSize();
       return maxGridSize;
    }
 
    static void
    resetMaxGridSize()
    {
-      maxGridSize() = Cuda::getMaxGridSize();
+      maxGridSize() = Cuda::getMaxGridXSize();
       gridsCount() = -1;
    }
 
