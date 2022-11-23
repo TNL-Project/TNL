@@ -50,44 +50,6 @@ class GridTestSuite: public ::testing::Test {
 };
 
 template<typename Grid, int EntityDimension, int NeighbourEntityDimension>
-void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension) {
-   testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, -1, -1, -1>(grid, dimension);
-
-    auto firstLoop = [&](auto i){
-       auto secondLoop = [&](auto i, auto j) {
-          auto thirdLoop = [&](auto i, auto j, auto k) {
-             testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, i - 1, j - 1, k - 1>(grid, dimension);
-          };
-
-          TNL::Algorithms::staticFor< int, 0, 3 >(thirdLoop, i, j);
-       };
-
-       TNL::Algorithms::staticFor< int, 0, 3 >(secondLoop, i);
-    };
-
-    TNL::Algorithms::staticFor< int, 0, 3 >(firstLoop);
-}
-
-template<typename Grid, int EntityDimension, int NeighbourEntityDimension, int NeighbourEntityOrientation>
-void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension) {
-   testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, NeighbourEntityOrientation, -1, -1, -1>(grid, dimension);
-
-    auto firstLoop = [&](auto i){
-       auto secondLoop = [&](auto i, auto j) {
-          auto thirdLoop = [&](auto i, auto j, auto k) {
-             testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, NeighbourEntityOrientation, i - 1, j - 1, k - 1>(grid, dimension);
-          };
-
-          TNL::Algorithms::staticFor< int, 0, 3 >(thirdLoop, i, j);
-       };
-
-       TNL::Algorithms::staticFor< int, 0, 3 >(secondLoop, i);
-    };
-
-    TNL::Algorithms::staticFor< int, 0, 3 >(firstLoop);
-}
-
-template<typename Grid, int EntityDimension, int NeighbourEntityDimension>
 void testDynamicNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension, const int scale = 1) {
    for (int i = -1 * scale; i < 1 * scale; i++)
       for (int j = -1 * scale; j < 1 * scale; j++)

@@ -44,24 +44,6 @@ class GridTestSuite: public ::testing::Test {
 };
 
 template<typename Grid, int EntityDimension, int NeighbourEntityDimension>
-void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension) {
-   auto loop = [&](const auto i){
-      testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, i - 1>(grid, dimension);
-   };
-
-   TNL::Algorithms::staticFor< int, 0, 3 >(loop);
-}
-
-template<typename Grid, int EntityDimension, int NeighbourEntityDimension, int NeighbourEntityOrientation>
-void testStaticNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension) {
-   auto loop = [&](const auto i){
-      testStaticNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension, i - 1>(grid, dimension);
-   };
-
-   TNL::Algorithms::staticFor< int, 0, 3 >(loop);
-}
-
-template<typename Grid, int EntityDimension, int NeighbourEntityDimension>
 void testDynamicNeighbourEntityGetterForAllStencils(Grid& grid, const typename Grid::CoordinatesType& dimension, const int scale = 1) {
    for (int i = -1 * scale; i < 1 * scale; i++)
       testDynamicNeighbourEntityGetter<Grid, EntityDimension, NeighbourEntityDimension>(grid, dimension, typename Grid::CoordinatesType(i));

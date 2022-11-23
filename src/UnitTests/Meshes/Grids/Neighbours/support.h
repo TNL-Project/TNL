@@ -15,51 +15,6 @@ class NeighbourGridEntityGetterTestCase {
       using DataStore = EntityDataStore<Index, Real, typename Grid::DeviceType, Grid::getMeshDimension()>;
       using HostDataStore = EntityDataStore<Index, Real, TNL::Devices::Host, Grid::getMeshDimension()>;
 
-      template<int... Steps>
-      void storeByStaticAccessor(const Grid& grid, DataStore& store) {
-         SCOPED_TRACE("Store using static accessor without");
-
-         constexpr int neighbourOrientationsCount = Grid::getEntityOrientationsCount(NeighbourEntityDimension);
-
-         auto view = store.getView();
-         auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
-            int neighbourEntityOrientation = TNL::min(entity.getOrientation(), neighbourOrientationsCount - 1);
-            Coordinate alignedCoordinate = entity.getCoordinates() + Coordinate(Steps...);
-            Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(neighbourEntityOrientation);
-
-            if (alignedCoordinate >= 0 && alignedCoordinate < boundary) {
-               auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension, Steps...>();
-
-               neighbour.refresh();
-
-               view.store(neighbour, entity.getIndex());
-            }
-         };
-
-         grid.template forAllEntities<EntityDimension>(update);
-      }
-
-      template<int NeighbourEntityOrientation, int... Steps>
-      void storeByStaticAccessorWithOrientation(const Grid& grid, DataStore& store) {
-         SCOPED_TRACE("Store using static accessor with orientation");
-
-         auto view = store.getView();
-         auto update = [=] __cuda_callable__ (const typename Grid::template EntityType<EntityDimension>& entity) mutable {
-            Coordinate alignedCoordinate = entity.getCoordinates() + Coordinate(Steps...);
-            Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(NeighbourEntityOrientation);
-
-            if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
-               auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension, NeighbourEntityOrientation, Steps...>();
-
-               neighbour.refresh();
-
-               view.store(neighbour, entity.getIndex());
-            }
-         };
-
-         grid.template forAllEntities<EntityDimension>(update);
-      }
-
       void storeByDynamicAccessor(const Grid& grid, DataStore& store, const Coordinate& offset) {
          SCOPED_TRACE("Store using dynamic accessor without orientation");
 
@@ -192,52 +147,6 @@ class NeighbourGridEntityGetterTestCase {
             }
       };
 };
-
-template<typename Grid,
-         int EntityDimension,
-         int NeighbourEntityDimension,
-         int... Steps,
-         std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool> = true>
-void testStaticNeighbourEntityGetter(Grid& grid, const typename Grid::CoordinatesType& dimensions) {
-   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
-   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
-   SCOPED_TRACE("Neighbour Entity Dimension: " + TNL::convertToString(NeighbourEntityDimension));
-   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
-
-   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
-
-   using Test = NeighbourGridEntityGetterTestCase<Grid, EntityDimension, NeighbourEntityDimension>;
-
-   Test test;
-   typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
-
-   test.template storeByStaticAccessor<Steps...>(grid, store);
-   test.verify(grid, store, typename Grid::CoordinatesType(Steps...), -1);
-}
-
-template<typename Grid,
-         int EntityDimension,
-         int NeighbourEntityDimension,
-         int NeighbourEntityOrientation,
-         int... Steps,
-         std::enable_if_t<sizeof...(Steps) == Grid::getMeshDimension(), bool> = true>
-void testStaticNeighbourEntityGetter(Grid& grid, const typename Grid::CoordinatesType& dimensions) {
-   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
-   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
-   SCOPED_TRACE("Neighbour Entity Dimension: " + TNL::convertToString(NeighbourEntityDimension));
-   SCOPED_TRACE("Neighbour Entity Orientation: " + TNL::convertToString(NeighbourEntityOrientation));
-   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
-
-   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
-
-   using Test = NeighbourGridEntityGetterTestCase<Grid, EntityDimension, NeighbourEntityDimension>;
-
-   Test test;
-   typename Test::DataStore store(grid.getEntitiesCount(EntityDimension));
-
-   test.template storeByStaticAccessorWithOrientation<NeighbourEntityOrientation, Steps...>(grid, store);
-   test.verify(grid, store, typename Grid::CoordinatesType(Steps...), NeighbourEntityOrientation);
-}
 
 
 template<typename Grid,

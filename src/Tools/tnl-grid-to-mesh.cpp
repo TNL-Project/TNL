@@ -75,8 +75,8 @@ struct MeshCreator< Meshes::Grid< 1, Real, Device, Index > >
       for( Index i = 0; i < numberOfCells; i++ ) {
          auto cell = grid.template getEntity< typename GridType::Cell >( i );
          cell.refresh();
-         meshBuilder.getCellSeed( i ).setCornerId( 0, cell.template getNeighbourEntity< 0, 0 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 1, cell.template getNeighbourEntity< 0, 1 >().getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 0, cell.template getNeighbourEntity< 0 >( { 0 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 1, cell.template getNeighbourEntity< 0 >( { 1 } ).getIndex() );
       }
 
       return meshBuilder.build( mesh );
@@ -110,10 +110,10 @@ struct MeshCreator< Meshes::Grid< 2, Real, Device, Index > >
 
       for( Index i = 0; i < numberOfCells; i++ ) {
          const auto cell = grid.template getEntity< typename GridType::Cell >( i );
-         meshBuilder.getCellSeed( i ).setCornerId( 0, cell.template getNeighbourEntity< 0, 0, 0 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 1, cell.template getNeighbourEntity< 0, 1, 0 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 2, cell.template getNeighbourEntity< 0, 1, 1 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 3, cell.template getNeighbourEntity< 0, 0, 1 >().getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 0, cell.template getNeighbourEntity< 0 >( { 0, 0 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 1, cell.template getNeighbourEntity< 0 >( { 1, 0 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 2, cell.template getNeighbourEntity< 0 >( { 1, 1 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 3, cell.template getNeighbourEntity< 0 >( { 0, 1 } ).getIndex() );
       }
 
       return meshBuilder.build( mesh );
@@ -147,14 +147,14 @@ struct MeshCreator< Meshes::Grid< 3, Real, Device, Index > >
 
       for( Index i = 0; i < numberOfCells; i++ ) {
          const auto cell = grid.template getEntity< typename GridType::Cell >( i );
-         meshBuilder.getCellSeed( i ).setCornerId( 0, cell.template getNeighbourEntity< 0, 0, 0, 0 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 1, cell.template getNeighbourEntity< 0, 1, 0, 0 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 2, cell.template getNeighbourEntity< 0, 1, 1, 0 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 3, cell.template getNeighbourEntity< 0, 0, 1, 0 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 4, cell.template getNeighbourEntity< 0, 0, 0, 1 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 5, cell.template getNeighbourEntity< 0, 1, 0, 1 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 6, cell.template getNeighbourEntity< 0, 1, 1, 1 >().getIndex() );
-         meshBuilder.getCellSeed( i ).setCornerId( 7, cell.template getNeighbourEntity< 0, 0, 1, 1 >().getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 0, cell.template getNeighbourEntity< 0 >( { 0, 0, 0 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 1, cell.template getNeighbourEntity< 0 >( { 1, 0, 0 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 2, cell.template getNeighbourEntity< 0 >( { 1, 1, 0 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 3, cell.template getNeighbourEntity< 0 >( { 0, 1, 0 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 4, cell.template getNeighbourEntity< 0 >( { 0, 0, 1 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 5, cell.template getNeighbourEntity< 0 >( { 1, 0, 1 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 6, cell.template getNeighbourEntity< 0 >( { 1, 1, 1 } ).getIndex() );
+         meshBuilder.getCellSeed( i ).setCornerId( 7, cell.template getNeighbourEntity< 0 >( { 0, 1, 1 } ).getIndex() );
       }
 
       return meshBuilder.build( mesh );

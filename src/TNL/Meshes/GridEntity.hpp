@@ -195,31 +195,6 @@ GridEntity< Grid, EntityDimension >::setOrientation( const IndexType orientation
 }
 
 template< class Grid, int EntityDimension >
-template< int Dimension, int... Steps, std::enable_if_t< sizeof...( Steps ) == Grid::getMeshDimension(), bool > >
-__cuda_callable__
-GridEntity< Grid, Dimension >
-GridEntity< Grid, EntityDimension >::getNeighbourEntity() const
-{
-   using Getter = NeighbourGridEntityGetter< getMeshDimension(), EntityDimension, Dimension >;
-
-   return Getter::template getEntity< Grid, Steps... >( *this );
-}
-
-template< class Grid, int EntityDimension >
-template< int Dimension,
-          int Orientation,
-          int... Steps,
-          std::enable_if_t< sizeof...( Steps ) == Grid::getMeshDimension(), bool > >
-__cuda_callable__
-GridEntity< Grid, Dimension >
-GridEntity< Grid, EntityDimension >::getNeighbourEntity() const
-{
-   using Getter = NeighbourGridEntityGetter< getMeshDimension(), EntityDimension, Dimension >;
-
-   return Getter::template getEntity< Grid, Orientation, Steps... >( *this );
-}
-
-template< class Grid, int EntityDimension >
 template< int Dimension >
 __cuda_callable__
 GridEntity< Grid, Dimension >
