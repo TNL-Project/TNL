@@ -24,36 +24,36 @@ find_library( SATLAS_LIBRARY NAMES satlas
 
 find_package( BLAS )
 
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-   find_path(BLAS_INCLUDE_DIRS cblas.h
+find_path(BLAS_INCLUDE_DIRS cblas.h
    /usr/include
    /usr/local/include
    $ENV{BLAS_HOME}/include
    /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Accelerate.framework/Versions/Current/Frameworks/vecLib.framework/Headers )
+
+if(BLAS_INCLUDE_DIRS)
+   foreach( target IN ITEMS ${BENCHMARKS} )
+      target_include_directories( ${target} PUBLIC "${BLAS_INCLUDE_DIRS}" )
+      if( CBLAS_LIBRARY )
+            target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
+            target_link_libraries( ${target} PUBLIC ${CBLAS_LIBRARY} )
+      elseif( TATLAS_LIBRARY )
+         target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
+         target_link_libraries( ${target} PUBLIC ${TATLAS_LIBRARY} )
+      elseif( SATLAS_LIBRARY )
+         target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
+         target_link_libraries( ${target} PUBLIC ${SATLAS_LIBRARY} )
+      else()
+         # FIXME: We require the CBLAS interface, but CMake's FindBLAS cannot detect that,
+         #        so this fails unless the BLAS implementation includes it in the same
+         #        shared library file as the Fortran implementation (e.g. OpenBLAS does that).
+         if( BLAS_FOUND )
+            target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
+            target_link_libraries( ${target} PUBLIC ${BLAS_LIBRARIES} )
+         endif()
+      endif()
+      install( TARGETS ${target} RUNTIME DESTINATION bin )
+   endforeach()
+else()
+   message( WARNING "Could not find BLAS headers (cblas.h) - benchmarks with BLAS will not be built.")
 endif()
 
-foreach( target IN ITEMS ${BENCHMARKS} )
-   if( CBLAS_LIBRARY )
-      target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
-      target_link_libraries( ${target} PUBLIC ${CBLAS_LIBRARY} )
-      if( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-         target_include_directories( ${target} PUBLIC "${BLAS_INCLUDE_DIRS}" )
-      endif()
-   elseif( TATLAS_LIBRARY )
-      target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
-      target_link_libraries( ${target} PUBLIC ${TATLAS_LIBRARY} )
-   elseif( SATLAS_LIBRARY )
-      target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
-      target_link_libraries( ${target} PUBLIC ${SATLAS_LIBRARY} )
-   else()
-      # FIXME: We require the CBLAS interface, but CMake's FindBLAS cannot detect that,
-      #        so this fails unless the BLAS implementation includes it in the same
-      #        shared library file as the Fortran implementation (e.g. OpenBLAS does that).
-      if( BLAS_FOUND )
-         target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
-         target_link_libraries( ${target} PUBLIC ${BLAS_LIBRARIES} )
-      endif()
-   endif()
-
-   install( TARGETS ${target} RUNTIME DESTINATION bin )
-endforeach()
