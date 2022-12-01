@@ -223,4 +223,5 @@ cmake -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator" \
     -DTNL_BUILD_MATRIX_TESTS="$BUILD_MATRIX_TESTS" \
     -DTNL_BUILD_COVERAGE="$BUILD_COVERAGE" \
     -DTNL_BUILD_DOC="$BUILD_DOC" \
-    "${CMAKE_OPTIONS[@]}"
+    ${CMAKE_OPTIONS[@]+"${CMAKE_OPTIONS[@]}"}
+    # NOTE: empty array expansion with `set -u` gotcha: https://stackoverflow.com/a/61551944
