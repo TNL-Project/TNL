@@ -369,6 +369,9 @@ if( TNL_TOP_LEVEL_PROJECT )
                                   INSTALL_DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} )
    install( FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
             DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} )
+   # install necessary modules
+   install( FILES cmake/FindFilesystem.cmake
+            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}/Modules )
 endif()
 
 # Add all subdirectories
