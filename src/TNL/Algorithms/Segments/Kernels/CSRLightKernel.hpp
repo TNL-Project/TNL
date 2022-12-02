@@ -394,7 +394,7 @@ struct CSRLightKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduce, Kee
          return;
 
       const size_t threads = 128;
-      Index blocks, groupSize;
+      Index blocks;
 
       size_t neededThreads = threadsPerSegment * ( last - first );
 

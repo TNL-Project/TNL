@@ -71,6 +71,12 @@ public:
    using ArrayView< Real, Device, Index >::ArrayView;
    using ArrayView< Real, Device, Index >::operator=;
 
+// HACK: clang does not properly inherit the constructor (it is inherited as __host__ only)
+#if defined( __clang__ ) && defined( __CUDA__ )
+   __cuda_callable__
+   VectorView( RealType* data, IndexType size ) : ArrayView< Real, Device, Index >::ArrayView( data, size ) {}
+#endif
+
    // In C++14, default constructors cannot be inherited, although Clang
    // and GCC since version 7.0 inherit them.
    // https://stackoverflow.com/a/51854172

@@ -30,10 +30,6 @@ protected:
    using IndexType = typename DistributedNDArray::IndexType;
    using DistributedNDArrayType = DistributedNDArray;
 
-   // TODO: use ndarray
-   using LocalArrayType = Array< ValueType, DeviceType, IndexType >;
-   using LocalArrayViewType = ArrayView< ValueType, DeviceType, IndexType >;
-
    const int globalSize = 97;  // prime number to force non-uniform distribution
    const int overlaps = get< 1 >( typename DistributedNDArray::OverlapsType{} );
 
@@ -111,11 +107,11 @@ void test_helper_forLocalInterior( DistributedArray& a )
 
    const int overlaps = get< 1 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 1 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType q, IndexType i, IndexType j ) mutable
+   auto setter = [=] __cuda_callable__ ( IndexType q, IndexType gi, IndexType j ) mutable
    {
-      a_view( q, i, j ) += 1;
+      a_view( q, gi - localRange.getBegin(), j ) += 1;
    };
 
    a.setValue( 0 );
@@ -138,7 +134,7 @@ void test_helper_forLocalInterior( DistributedArray& a )
             << "q = " << q << ", gi = " << gi << ", j = " << j;
 
    a.setValue( 0 );
-   a_view.forLocalInterior( setter );
+   a.getView().forLocalInterior( setter );
 
    for( int q = 0; q < Q; q++ )
    for( int gi = localRange.getBegin(); gi < localRange.getBegin() + overlaps; gi++ )
@@ -171,11 +167,11 @@ void test_helper_forLocalBoundary( DistributedArray& a )
 
    const int overlaps = get< 1 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 1 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType q, IndexType i, IndexType j ) mutable
+   auto setter = [=] __cuda_callable__ ( IndexType q, IndexType gi, IndexType j ) mutable
    {
-      a_view( q, i, j ) += 1;
+      a_view( q, gi - localRange.getBegin(), j ) += 1;
    };
 
    a.setValue( 0 );
@@ -198,7 +194,7 @@ void test_helper_forLocalBoundary( DistributedArray& a )
             << "q = " << q << ", gi = " << gi << ", j = " << j;
 
    a.setValue( 0 );
-   a_view.forLocalBoundary( setter );
+   a.getView().forLocalBoundary( setter );
 
    for( int q = 0; q < Q; q++ )
    for( int gi = localRange.getBegin(); gi < localRange.getBegin() + overlaps; gi++ )
@@ -231,11 +227,11 @@ void test_helper_forGhosts( DistributedArray& a )
 
    const int overlaps = get< 1 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 1 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType q, IndexType i, IndexType j ) mutable
+   auto setter = [=] __cuda_callable__ ( IndexType q, IndexType gi, IndexType j ) mutable
    {
-      a_view( q, i, j ) += 1;
+      a_view( q, gi - localRange.getBegin(), j ) += 1;
    };
 
    a.setValue( 0 );
@@ -258,7 +254,7 @@ void test_helper_forGhosts( DistributedArray& a )
             << "q = " << q << ", gi = " << gi << ", j = " << j;
 
    a.setValue( 0 );
-   a_view.forGhosts( setter );
+   a.getView().forGhosts( setter );
 
    for( int q = 0; q < Q; q++ )
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )
@@ -291,11 +287,11 @@ void test_helper_synchronize( DistributedArray& a, int globalSize, int rank, int
 
    const int overlaps = get< 1 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 1 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType q, IndexType i, IndexType j ) mutable
+   auto setter = [=] __cuda_callable__ ( IndexType q, IndexType gi, IndexType j ) mutable
    {
-      a_view( q, i, j ) = i;
+      a_view( q, gi - localRange.getBegin(), j ) = gi;
    };
 
    a.setValue( -1 );
@@ -320,9 +316,10 @@ void test_helper_synchronize( DistributedArray& a, int globalSize, int rank, int
             << "q = " << q << ", gi = " << gi << ", j = " << j;
 
    a.setValue( -1 );
-   a_view.forAll( setter );
-   DistributedNDArraySynchronizer< decltype(a_view) > s2;
-   s2.synchronize( a_view );
+   a.getView().forAll( setter );
+   DistributedNDArraySynchronizer< typename DistributedArray::ViewType > s2;
+   auto view = a.getView();
+   s2.synchronize( view );
 
    for( int q = 0; q < Q; q++ )
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )

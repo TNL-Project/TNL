@@ -85,7 +85,7 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    };
    benchmark.time< Devices::Cuda >( reset, "GPU row", rowMajorMvCuda );
 
-   auto diff = TNL::max( abs( outCudaVector2 - outCudaVector1 ) );
+   //auto diff = TNL::max( abs( outCudaVector2 - outCudaVector1 ) );
    //std::cerr << outCudaVector1 << std::endl << outCudaVector2 << std::endl;
 
    rowMajorCudaMatrix.reset();

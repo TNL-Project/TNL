@@ -40,7 +40,9 @@
 //             function "isinf(float)"
 //             function "std::isinf(float)"
 //             argument types are: (float)
-#if defined(HAVE_CUDA) && !defined(__NVCC__)
+//#if defined(HAVE_CUDA) && !defined(__NVCC__)
+// FIXME: CuSolverWrapper does not work at all now
+#if 0
    #include "CuSolverWrapper.h"
    #define HAVE_CUSOLVER
 #endif

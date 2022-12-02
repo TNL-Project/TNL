@@ -29,6 +29,14 @@ void kernel_##suffix( int* output )                               \
    const double* data_null = nullptr;                             \
    const double** data_full = &data_null;                         \
                                                                   \
+   /* ignore warnings due to potentially unused variables */      \
+   (void) tr;                                                     \
+   (void) fa;                                                     \
+   (void) two;                                                    \
+   (void) ten;                                                    \
+   (void) data_null;                                              \
+   (void) data_full;                                              \
+                                                                  \
    statement                                                      \
                                                                   \
    /* actually do something to test if the execution control gets here */ \

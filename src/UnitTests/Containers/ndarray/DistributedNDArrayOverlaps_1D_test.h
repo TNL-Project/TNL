@@ -28,10 +28,6 @@ protected:
    using IndexType = typename DistributedNDArray::IndexType;
    using DistributedNDArrayType = DistributedNDArray;
 
-   // TODO: use ndarray
-   using LocalArrayType = Array< ValueType, DeviceType, IndexType >;
-   using LocalArrayViewType = ArrayView< ValueType, DeviceType, IndexType >;
-
    const int globalSize = 97;  // prime number to force non-uniform distribution
    const int overlaps = get< 0 >( typename DistributedNDArray::OverlapsType{} );
 
@@ -97,11 +93,11 @@ void test_helper_forLocalInterior( DistributedArray& a )
 
    const int overlaps = get< 0 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 0 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
    auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      a_view( i ) += 1;
+      a_view( i - localRange.getBegin() ) += 1;
    };
 
    a.setValue( 0 );
@@ -118,7 +114,7 @@ void test_helper_forLocalInterior( DistributedArray& a )
             << "gi = " << gi;
 
    a.setValue( 0 );
-   a_view.forLocalInterior( setter );
+   a.getView().forLocalInterior( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getBegin() + overlaps; gi++ )
       EXPECT_EQ( a.getElement( gi ), 0 )
@@ -145,11 +141,11 @@ void test_helper_forLocalBoundary( DistributedArray& a )
 
    const int overlaps = get< 0 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 0 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
    auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      a_view( i ) += 1;
+      a_view( i - localRange.getBegin() ) += 1;
    };
 
    a.setValue( 0 );
@@ -166,7 +162,7 @@ void test_helper_forLocalBoundary( DistributedArray& a )
             << "gi = " << gi;
 
    a.setValue( 0 );
-   a_view.forLocalBoundary( setter );
+   a.getView().forLocalBoundary( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getBegin() + overlaps; gi++ )
       EXPECT_EQ( a.getElement( gi ), 1 )
@@ -193,11 +189,11 @@ void test_helper_forGhosts( DistributedArray& a )
 
    const int overlaps = get< 0 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 0 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
    auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      a_view( i ) += 1;
+      a_view( i - localRange.getBegin() ) += 1;
    };
 
    a.setValue( 0 );
@@ -214,7 +210,7 @@ void test_helper_forGhosts( DistributedArray& a )
             << "gi = " << gi;
 
    a.setValue( 0 );
-   a_view.forGhosts( setter );
+   a.getView().forGhosts( setter );
 
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )
       EXPECT_EQ( a.getElement( gi ), 1 )
@@ -241,11 +237,11 @@ void test_helper_synchronize( DistributedArray& a, const int rank, const int npr
 
    const int overlaps = get< 0 >( typename DistributedArray::OverlapsType{} );
    const auto localRange = a.template getLocalRange< 0 >();
-   auto a_view = a.getView();
+   auto a_view = a.getLocalView();
 
    auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
    {
-      a_view( i ) = i;
+      a_view( i - localRange.getBegin() ) = i;
    };
 
    a.setValue( -1 );
@@ -261,9 +257,10 @@ void test_helper_synchronize( DistributedArray& a, const int rank, const int npr
       EXPECT_EQ( a.getElement( gi ), gi - ((rank == nproc-1) ? 97 : 0) );
 
    a.setValue( -1 );
-   a_view.forAll( setter );
-   DistributedNDArraySynchronizer< decltype(a_view) > s2;
-   s2.synchronize( a_view );
+   a.getView().forAll( setter );
+   DistributedNDArraySynchronizer< typename DistributedArray::ViewType > s2;
+   auto view = a.getView();
+   s2.synchronize( view );
 
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )
       EXPECT_EQ( a.getElement( gi ), gi + ((rank == 0) ? 97 : 0) );

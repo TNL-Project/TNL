@@ -148,8 +148,8 @@ RowMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
 {
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
-   constexpr int inVectorCacheSize = 20480 / sizeof( Real );
-   __shared__ Real inVectorCache[ inVectorCacheSize ];
+   // constexpr int inVectorCacheSize = 20480 / sizeof( Real );
+   //__shared__ Real inVectorCache[ inVectorCacheSize ];
 
    constexpr int threadsPerRow = 32;
    // const Index rowIdx = begin + ((gridIdx * TNL::Cuda::getMaxGridXSize() ) + (blockIdx.x * blockDim.x) + threadIdx.x) /
