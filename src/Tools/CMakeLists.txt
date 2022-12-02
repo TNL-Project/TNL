@@ -13,6 +13,7 @@ set( MESH_TOOLS
          tnl-reorder-mesh
          tnl-plot-mesh-ordering
          tnl-test-distributed-mesh
+	 tnl-dual-mesh
 )
 set( CUDA_MESH_TOOLS )
 if( TNL_BUILD_CUDA )
