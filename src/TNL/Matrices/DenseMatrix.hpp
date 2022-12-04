@@ -420,8 +420,7 @@ void
 DenseMatrixProductKernel( ResultMatrix resultMatrix,
                           const Matrix1 matrixA,
                           const Matrix2 matrixB,
-                          const typename ResultMatrix::RealType matrixAMultiplicator,
-                          const typename ResultMatrix::RealType matrixBMultiplicator,
+                          const typename ResultMatrix::RealType matrixMultiplicator,
                           const typename ResultMatrix::IndexType gridIdx_x,
                           const typename ResultMatrix::IndexType gridIdx_y )
 {
@@ -461,14 +460,12 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
          const IndexType matrixARow = resultTileRow + threadIdx.y + row;
          const IndexType matrixAColumn = i + threadIdx.x;
          if( matrixARow < matrixARows && matrixAColumn < matrixAColumns )
-            tileA[ ( threadIdx.y + row ) * tileDim + threadIdx.x ] =
-               matrixAMultiplicator * matrixA( matrixARow, matrixAColumn );
+            tileA[ ( threadIdx.y + row ) * tileDim + threadIdx.x ] = matrixA( matrixARow, matrixAColumn );
 
          const IndexType matrixBRow = i + threadIdx.y + row;
          const IndexType matrixBColumn = resultTileColumn + threadIdx.x;
          if( matrixBRow < matrixBRows && matrixBColumn < matrixBColumns )
-            tileB[ ( threadIdx.y + row ) * tileDim + threadIdx.x ] =
-               matrixBMultiplicator * matrixB( matrixBRow, matrixBColumn );
+            tileB[ ( threadIdx.y + row ) * tileDim + threadIdx.x ] = matrixB( matrixBRow, matrixBColumn );
       }
       __syncthreads();
 
@@ -480,7 +477,7 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
       for( IndexType row = 0; row < tileALastRow; row += tileRowBlockSize ) {
          RealType sum( 0.0 );
          for( IndexType j = 0; j < tileALastColumn; j++ )
-            sum += tileA[ ( threadIdx.y + row ) * tileDim + j ] * tileB[ j * tileDim + threadIdx.x ];
+            sum += matrixMultiplicator * tileA[ ( threadIdx.y + row ) * tileDim + j ] * tileB[ j * tileDim + threadIdx.x ];
          tileC[ ( row + threadIdx.y ) * tileDim + threadIdx.x ] += sum;
       }
       __syncthreads();
@@ -505,8 +502,7 @@ template< typename Matrix1, typename Matrix2, int tileDim >
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduct( const Matrix1& matrix1,
                                                                                    const Matrix2& matrix2,
-                                                                                   const RealType& matrix1Multiplicator,
-                                                                                   const RealType& matrix2Multiplicator )
+                                                                                   const RealType& matrixMultiplicator )
 {
    TNL_ASSERT_EQ( matrix1.getColumns(), matrix2.getRows(), "invalid dimensions of input matrices" );
    setDimensions( matrix1.getRows(), matrix2.getColumns() );
@@ -525,7 +521,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
                for( IndexType i1 = 0; i1 < tileRows; i1++ )
                   for( IndexType j1 = 0; j1 < tileColumns; j1++ )
                      for( IndexType k1 = k; k1 < lastK; k1++ )
-                        operator()( i + i1, j + j1 ) += matrix1( i + i1, k1 ) * matrix2( k1, j + j1 );
+                        operator()( i + i1, j + j1 ) += matrixMultiplicator * matrix1( i + i1, k1 ) * matrix2( k1, j + j1 );
             }
          }
    if( std::is_same< Device, Devices::Cuda >::value ) {
@@ -550,13 +546,8 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
                cudaGridSize.y = rowTiles % Cuda::getMaxGridSize();
             const IndexType sharedMemorySize = 3 * tileDim * tileDim;
             DenseMatrixProductKernel< tileDim, cudaBlockRows > <<< cudaGridSize, cudaBlockSize,
-               sharedMemorySize >>>( getView(),
-                                                    matrix1.getConstView(),
-                                                    matrix2.getConstView(),
-                                                    matrix1Multiplicator,
-                                                    matrix2Multiplicator,
-                                                    gridIdx_x,
-                                                    gridIdx_y );
+               sharedMemorySize >>>(
+                  getView(), matrix1.getConstView(), matrix2.getConstView(), matrixMultiplicator, gridIdx_x, gridIdx_y );
          }
 #endif
    }

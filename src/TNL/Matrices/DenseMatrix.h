@@ -944,10 +944,7 @@ public:
 
    template< typename Matrix1, typename Matrix2, int tileDim = 32 >
    void
-   getMatrixProduct( const Matrix1& matrix1,
-                     const Matrix2& matrix2,
-                     const RealType& matrix1Multiplicator = 1.0,
-                     const RealType& matrix2Multiplicator = 1.0 );
+   getMatrixProduct( const Matrix1& matrix1, const Matrix2& matrix2, const RealType& matrixMultiplicator = 1.0 );
 
    template< typename Matrix, int tileDim = 32 >
    void

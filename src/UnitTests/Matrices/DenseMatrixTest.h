@@ -1194,17 +1194,16 @@ void test_GetMatrixProduct()
 /*
  * Perform the matrix multiplication:
  *
- *      /  1  2  3  4 \                            /  220  240  260  280  300 \
- *      |  5  6  7  8 |       /  1  2  3  4  5 \   |  492  544  596  648  700 |
- *  1 * |  9 10 11 12 | * 2 * |  6  7  8  9 10 | = |  764  848  932 1016 1100 |
- *      | 13 14 15 16 |       | 11 12 13 14 15 |   | 1036 1152 1268 1384 1500 |
- *      \ 17 18 19 20 /       \ 16 17 18 19 20 /   \ 1308 1456 1604 1752 1900 /
+ *      /  1  2  3  4 \                        /  220  240  260  280  300 \
+ *      |  5  6  7  8 |   /  1  2  3  4  5 \   |  492  544  596  648  700 |
+ *  2 * |  9 10 11 12 | * |  6  7  8  9 10 | = |  764  848  932 1016 1100 |
+ *      | 13 14 15 16 |   | 11 12 13 14 15 |   | 1036 1152 1268 1384 1500 |
+ *      \ 17 18 19 20 /   \ 16 17 18 19 20 /   \ 1308 1456 1604 1752 1900 /
  */
     Matrix mResult;
     mResult.setValue( 0 );
-    RealType leftMatrixMultiplicator = 1;
-    RealType rightMatrixMultiplicator = 2;
-    mResult.getMatrixProduct( leftMatrix, rightMatrix, leftMatrixMultiplicator, rightMatrixMultiplicator );
+    RealType matrixMultiplicator = 2;
+    mResult.getMatrixProduct( leftMatrix, rightMatrix, matrixMultiplicator );
 
     EXPECT_EQ( mResult.getElement( 0, 0 ),  220 );
     EXPECT_EQ( mResult.getElement( 0, 1 ),  240 );
