@@ -1019,109 +1019,6 @@ void test_AddMatrix()
 }
 
 template< typename Matrix >
-void test_GetMatrixProduct()
-{
-    using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
-    using IndexType = typename Matrix::IndexType;
-    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
-/*
- * Sets up the following 5x4 matrix:
- *
- *    /  1  2  3  4 \
- *    |  5  6  7  8 |
- *    |  9 10 11 12 |
- *    | 13 14 15 16 |
- *    \ 17 18 19 20 /
- */
-    const IndexType leftRows = 5;
-    const IndexType leftCols = 4;
-    DiagonalsOffsetsType diagonalsOffsets( { 0, 1, 2 } );
-
-    Matrix leftMatrix( leftRows, leftCols, diagonalsOffsets );
-
-    RealType value = 1;
-    for( IndexType i = 0; i < leftRows; i++ )
-        for( IndexType j = 0; j < leftCols; j++)
-            leftMatrix.setElement( i, j, value++ );
-
-/*
- * Sets up the following 4x5 matrix:
- *
- *    /  1  2  3  4  5 \
- *    |  6  7  8  9 10 |
- *    | 11 12 13 14 15 |
- *    \ 16 17 18 19 20 /
- */
-    const IndexType rightRows = 4;
-    const IndexType rightCols = 5;
-
-    Matrix rightMatrix;
-    rightMatrix.reset();
-    rightMatrix.setDimensions( rightRows, rightCols );
-
-    RealType newValue = 1;
-    for( IndexType i = 0; i < rightRows; i++ )
-        for( IndexType j = 0; j < rightCols; j++)
-            rightMatrix.setElement( i, j, newValue++ );
-
-/*
- * Sets up the following 5x5 resulting matrix:
- *
- *    /  0  0  0  0 \
- *    |  0  0  0  0 |
- *    |  0  0  0  0 |
- *    |  0  0  0  0 |
- *    \  0  0  0  0 /
- */
-
-    Matrix mResult( leftRows, rightCols, diagonalsOffsets );
-    mResult.setValue( 0 );
-
-    RealType leftMatrixMultiplicator = 1;
-    RealType rightMatrixMultiplicator = 2;
-/*
- *      /  1  2  3  4 \                            /  220  240  260  280  300 \
- *      |  5  6  7  8 |       /  1  2  3  4  5 \   |  492  544  596  648  700 |
- *  1 * |  9 10 11 12 | * 2 * |  6  7  8  9 10 | = |  764  848  932 1016 1100 |
- *      | 13 14 15 16 |       | 11 12 13 14 15 |   | 1036 1152 1268 1384 1500 |
- *      \ 17 18 19 20 /       \ 16 17 18 19 20 /   \ 1308 1456 1604 1752 1900 /
- */
-
-    mResult.getMatrixProduct( leftMatrix, rightMatrix, leftMatrixMultiplicator, rightMatrixMultiplicator );
-
-    EXPECT_EQ( mResult.getElement( 0, 0 ),  220 );
-    EXPECT_EQ( mResult.getElement( 0, 1 ),  240 );
-    EXPECT_EQ( mResult.getElement( 0, 2 ),  260 );
-    EXPECT_EQ( mResult.getElement( 0, 3 ),  280 );
-    EXPECT_EQ( mResult.getElement( 0, 4 ),  300 );
-
-    EXPECT_EQ( mResult.getElement( 1, 0 ),  492 );
-    EXPECT_EQ( mResult.getElement( 1, 1 ),  544 );
-    EXPECT_EQ( mResult.getElement( 1, 2 ),  596 );
-    EXPECT_EQ( mResult.getElement( 1, 3 ),  648 );
-    EXPECT_EQ( mResult.getElement( 1, 4 ),  700 );
-
-    EXPECT_EQ( mResult.getElement( 2, 0 ),  764 );
-    EXPECT_EQ( mResult.getElement( 2, 1 ),  848 );
-    EXPECT_EQ( mResult.getElement( 2, 2 ),  932 );
-    EXPECT_EQ( mResult.getElement( 2, 3 ), 1016 );
-    EXPECT_EQ( mResult.getElement( 2, 4 ), 1100 );
-
-    EXPECT_EQ( mResult.getElement( 3, 0 ), 1036 );
-    EXPECT_EQ( mResult.getElement( 3, 1 ), 1152 );
-    EXPECT_EQ( mResult.getElement( 3, 2 ), 1268 );
-    EXPECT_EQ( mResult.getElement( 3, 3 ), 1384 );
-    EXPECT_EQ( mResult.getElement( 3, 4 ), 1500 );
-
-    EXPECT_EQ( mResult.getElement( 4, 0 ), 1308 );
-    EXPECT_EQ( mResult.getElement( 4, 1 ), 1456 );
-    EXPECT_EQ( mResult.getElement( 4, 2 ), 1604 );
-    EXPECT_EQ( mResult.getElement( 4, 3 ), 1752 );
-    EXPECT_EQ( mResult.getElement( 4, 4 ), 1900 );
-}
-
-template< typename Matrix >
 void test_GetTransposition()
 {
     using RealType = typename Matrix::RealType;
@@ -1475,38 +1372,7 @@ TYPED_TEST( MatrixTest, saveAndLoadTest )
     test_SaveAndLoad< MatrixType >();
 }
 
-/*TEST( MultidiagonalMatrixTest, Multidiagonal_getMatrixProductTest_Host )
-{
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on CPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h(609): error: no instance of function template \"TNL::Matrices::MultidiagonalMatrixProductKernel\" matches the argument list\n";
-    std::cout << "              argument types are: (TNL::Matrices::Multidiagonal<int, TNL::Devices::Host, int> *, Multidiagonal_host_int *, Multidiagonal_host_int *, const int, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Multidiagonal<Real, Device, Index>::getMatrixProduct(const Matrix1 &, const Matrix2 &, const TNL::Matrices::Multidiagonal<Real, Device, Index>::RealType &, const TNL::Matrices::Multidiagonal<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host, Index=int, Matrix1=Multidiagonal_host_int, Matrix2=Multidiagonal_host_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(901): here\n";
-    std::cout << "                  instantiation of \"void test_GetMatrixProduct<Matrix>() [with Matrix=Multidiagonal_host_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(1315): here\n\n";
-}
-
-#ifdef HAVE_CUDA
-TEST( MultidiagonalMatrixTest, Multidiagonal_getMatrixProductTest_Cuda )
-{
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on GPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h(510): error: identifier \"tnlCudaMin\" is undefined\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::MultidiagonalMatrixProductKernel<Real,Index,Matrix1,Matrix2,tileDim,tileRowBlockSize>(TNL::Matrices::Multidiagonal<Real, TNL::Devices::Cuda, Index> *, const Matrix1 *, const Matrix2 *, Real, Real, Index, Index) [with Real=int, Index=int, Matrix1=Multidiagonal_cuda_int, Matrix2=Multidiagonal_cuda_int, tileDim=32, tileRowBlockSize=8]\"\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Multidiagonal<Real, Device, Index>::getMatrixProduct(const Matrix1 &, const Matrix2 &, const TNL::Matrices::Multidiagonal<Real, Device, Index>::RealType &, const TNL::Matrices::Multidiagonal<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Cuda, Index=int, Matrix1=Multidiagonal_cuda_int, Matrix2=Multidiagonal_cuda_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(901): here\n";
-    std::cout << "                  instantiation of \"void test_GetMatrixProduct<Matrix>() [with Matrix=Multidiagonal_cuda_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(1332): here\n\n";
-}
-#endif
-
+/*
 TEST( MultidiagonalMatrixTest, Multidiagonal_getTranspositionTest_Host )
 {
 //    test_GetTransposition< Multidiagonal_host_int >();
