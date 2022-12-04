@@ -94,7 +94,7 @@ SystemInfo::getNumberOfProcessors()
 inline String
 SystemInfo::getOnlineCPUs()
 {
-#if ! defined( _WIN32 )
+#if ! defined( _WIN32 ) && ! defined( __APPLE__ )
    std::string online = readFile< std::string >( "/sys/devices/system/cpu/online" );
    return online;
 #else
@@ -144,7 +144,7 @@ SystemInfo::getCPUModelName( int cpu_id )
 inline int
 SystemInfo::getCPUMaxFrequency( int cpu_id )
 {
-#if ! defined( _WIN32 )
+#if ! defined( _WIN32 ) && ! defined( __APPLE__ )
    String fileName( "/sys/devices/system/cpu/cpu" );
    fileName += convertToString( cpu_id ) + "/cpufreq/cpuinfo_max_freq";
    return readFile< int >( fileName );
@@ -156,7 +156,7 @@ SystemInfo::getCPUMaxFrequency( int cpu_id )
 inline CacheSizes
 SystemInfo::getCPUCacheSizes( int cpu_id )
 {
-#if ! defined( _WIN32 )
+#if ! defined( _WIN32 ) && ! defined( __APPLE__ )
    String directory( "/sys/devices/system/cpu/cpu" );
    directory += convertToString( cpu_id ) + "/cache";
 
@@ -203,7 +203,7 @@ SystemInfo::getFreeMemory()
 inline SystemInfo::CPUInfo
 SystemInfo::parseCPUInfo()
 {
-#if ! defined( _WIN32 )
+#if ! defined( _WIN32 ) && ! defined( __APPLE__ )
    CPUInfo info;
    std::ifstream file( "/proc/cpuinfo" );
    if( ! file ) {
