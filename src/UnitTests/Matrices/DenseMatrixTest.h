@@ -1312,83 +1312,6 @@ void test_GetTransposition()
     EXPECT_EQ( mTransposed.getElement( 1, 2 ), 6 );
 }
 
-
-template< typename Matrix >
-void test_PerformSORIteration()
-{
-    using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
-    using IndexType = typename Matrix::IndexType;
-/*
- * Sets up the following 4x4 dense matrix:
- *
- *    /  4  1  1  1 \
- *    |  1  4  1  1 |
- *    |  1  1  4  1 |
- *    \  1  1  1  4 /
- */
-    const IndexType rows = 4;
-    const IndexType cols = 4;
-
-    Matrix m;
-    m.reset();
-    m.setDimensions( rows, cols );
-
-    m.setElement( 0, 0, 4.0 );        // 0th row
-    m.setElement( 0, 1, 1.0 );
-    m.setElement( 0, 2, 1.0 );
-    m.setElement( 0, 3, 1.0 );
-
-    m.setElement( 1, 0, 1.0 );        // 1st row
-    m.setElement( 1, 1, 4.0 );
-    m.setElement( 1, 2, 1.0 );
-    m.setElement( 1, 3, 1.0 );
-
-    m.setElement( 2, 0, 1.0 );
-    m.setElement( 2, 1, 1.0 );        // 2nd row
-    m.setElement( 2, 2, 4.0 );
-    m.setElement( 2, 3, 1.0 );
-
-    m.setElement( 3, 0, 1.0 );        // 3rd row
-    m.setElement( 3, 1, 1.0 );
-    m.setElement( 3, 2, 1.0 );
-    m.setElement( 3, 3, 4.0 );
-
-    RealType bVector [ 4 ] = { 1.0, 1.0, 1.0, 1.0 };
-    RealType xVector [ 4 ] = { 1.0, 1.0, 1.0, 1.0 };
-
-    IndexType row = 0;
-    RealType omega = 1;
-
-    m.performSORIteration( bVector, row++, xVector, omega);
-
-    EXPECT_EQ( xVector[ 0 ], -0.5 );
-    EXPECT_EQ( xVector[ 1 ],  1.0 );
-    EXPECT_EQ( xVector[ 2 ],  1.0 );
-    EXPECT_EQ( xVector[ 3 ],  1.0 );
-
-    m.performSORIteration( bVector, row++, xVector, omega);
-
-    EXPECT_EQ( xVector[ 0 ], -0.5 );
-    EXPECT_EQ( xVector[ 1 ], -0.125 );
-    EXPECT_EQ( xVector[ 2 ],  1.0 );
-    EXPECT_EQ( xVector[ 3 ],  1.0 );
-
-    m.performSORIteration( bVector, row++, xVector, omega);
-
-    EXPECT_EQ( xVector[ 0 ], -0.5 );
-    EXPECT_EQ( xVector[ 1 ], -0.125 );
-    EXPECT_EQ( xVector[ 2 ],  0.15625 );
-    EXPECT_EQ( xVector[ 3 ],  1.0 );
-
-    m.performSORIteration( bVector, row++, xVector, omega);
-
-    EXPECT_EQ( xVector[ 0 ], -0.5 );
-    EXPECT_EQ( xVector[ 1 ], -0.125 );
-    EXPECT_EQ( xVector[ 2 ], 0.15625 );
-    EXPECT_EQ( xVector[ 3 ], 0.3671875 );
-}
-
 template< typename Matrix >
 void test_AssignmentOperator()
 {
@@ -1783,23 +1706,6 @@ TEST( DenseMatrixTest, Dense_getTranspositionTest_Cuda )
 }
 #endif
 
-TEST( DenseMatrixTest, Dense_performSORIterationTest_Host )
-{
-    test_PerformSORIteration< Dense_host_float >();
-}
-
-#ifdef HAVE_CUDA
-TEST( DenseMatrixTest, Dense_performSORIterationTest_Cuda )
-{
-//    test_PerformSORIteration< Dense_cuda_float >();
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched, this test throws the following message: \n";
-    std::cout << "      [1]    6992 segmentation fault (core dumped)  ./SparseMatrixTest-dbg\n\n";
-    std::cout << "\n THIS IS NOT IMPLEMENTED FOR CUDA YET!!\n\n";
-}
-#endif
  * */
 
 #endif // HAVE_GTEST

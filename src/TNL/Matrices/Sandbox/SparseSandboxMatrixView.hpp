@@ -742,17 +742,6 @@ getTransposition( const SparseSandboxMatrixView< Real2, Device, Index2 >& matrix
 }*/
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
-template< typename Vector1, typename Vector2 >
-bool
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::performSORIteration( const Vector1& b,
-                                                                                 const IndexType row,
-                                                                                 Vector2& x,
-                                                                                 const RealType& omega ) const
-{
-   return false;
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >&
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::operator=(
    const SparseSandboxMatrixView< Real, Device, Index, MatrixType >& matrix )
