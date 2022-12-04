@@ -526,25 +526,28 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
          }
    if( std::is_same< Device, Devices::Cuda >::value ) {
 #ifdef HAVE_CUDA
-      dim3 cudaBlockSize( 0 ), cudaGridSize( 0 );
-      const IndexType matrixProductCudaBlockSize( 256 );
+      constexpr IndexType matrixProductCudaBlockSize = 256;
+      constexpr IndexType cudaBlockRows = matrixProductCudaBlockSize / tileDim;
+      dim3 cudaBlockSize;
+      cudaBlockSize.x = tileDim;
+      cudaBlockSize.y = cudaBlockRows;
+      constexpr IndexType sharedMemorySize = 3 * tileDim * tileDim;
+
       const IndexType rowTiles = roundUpDivision( this->getRows(), tileDim );
       const IndexType columnTiles = roundUpDivision( this->getColumns(), tileDim );
-      const IndexType cudaBlockColumns( tileDim );
-      const IndexType cudaBlockRows( matrixProductCudaBlockSize / tileDim );
-      cudaBlockSize.x = cudaBlockColumns;
-      cudaBlockSize.y = cudaBlockRows;
-      const IndexType rowGrids = roundUpDivision( rowTiles, Cuda::getMaxGridSize() );
-      const IndexType columnGrids = roundUpDivision( columnTiles, Cuda::getMaxGridSize() );
+      const IndexType rowGrids = roundUpDivision( rowTiles, Cuda::getMaxGridYSize() );
+      const IndexType columnGrids = roundUpDivision( columnTiles, Cuda::getMaxGridXSize() );
 
       for( IndexType gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( IndexType gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            cudaGridSize.x = cudaGridSize.y = Cuda::getMaxGridSize();
+            dim3 cudaGridSize;
+            cudaGridSize.x = Cuda::getMaxGridXSize();
+            cudaGridSize.y = Cuda::getMaxGridYSize();
             if( gridIdx_x == columnGrids - 1 )
-               cudaGridSize.x = columnTiles % Cuda::getMaxGridSize();
+               cudaGridSize.x = columnTiles % Cuda::getMaxGridXSize();
             if( gridIdx_y == rowGrids - 1 )
-               cudaGridSize.y = rowTiles % Cuda::getMaxGridSize();
-            const IndexType sharedMemorySize = 3 * tileDim * tileDim;
+               cudaGridSize.y = rowTiles % Cuda::getMaxGridYSize();
+
             DenseMatrixProductKernel< tileDim, cudaBlockRows > <<< cudaGridSize, cudaBlockSize,
                sharedMemorySize >>>(
                   getView(), matrix1.getConstView(), matrix2.getConstView(), matrixMultiplicator, gridIdx_x, gridIdx_y );
@@ -683,25 +686,28 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTranspositio
    }
    if( std::is_same< Device, Devices::Cuda >::value ) {
 #ifdef HAVE_CUDA
-      dim3 cudaBlockSize( 0 ), cudaGridSize( 0 );
-      const IndexType matrixProductCudaBlockSize( 256 );
+      constexpr IndexType matrixProductCudaBlockSize = 256;
+      constexpr IndexType cudaBlockRows = matrixProductCudaBlockSize / tileDim;
+      dim3 cudaBlockSize;
+      cudaBlockSize.x = tileDim;
+      cudaBlockSize.y = cudaBlockRows;
+      constexpr IndexType sharedMemorySize = tileDim * tileDim + tileDim * tileDim / Cuda::getNumberOfSharedMemoryBanks();
+
       const IndexType rowTiles = roundUpDivision( this->getRows(), tileDim );
       const IndexType columnTiles = roundUpDivision( this->getColumns(), tileDim );
-      const IndexType cudaBlockColumns( tileDim );
-      const IndexType cudaBlockRows( matrixProductCudaBlockSize / tileDim );
-      cudaBlockSize.x = cudaBlockColumns;
-      cudaBlockSize.y = cudaBlockRows;
-      const IndexType rowGrids = roundUpDivision( rowTiles, Cuda::getMaxGridSize() );
-      const IndexType columnGrids = roundUpDivision( columnTiles, Cuda::getMaxGridSize() );
-      const IndexType sharedMemorySize = tileDim * tileDim + tileDim * tileDim / Cuda::getNumberOfSharedMemoryBanks();
+      const IndexType rowGrids = roundUpDivision( rowTiles, Cuda::getMaxGridYSize() );
+      const IndexType columnGrids = roundUpDivision( columnTiles, Cuda::getMaxGridXSize() );
 
       for( IndexType gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( IndexType gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            cudaGridSize.x = cudaGridSize.y = Cuda::getMaxGridSize();
+            dim3 cudaGridSize;
+            cudaGridSize.x = Cuda::getMaxGridXSize();
+            cudaGridSize.y = Cuda::getMaxGridYSize();
             if( gridIdx_x == columnGrids - 1 )
-               cudaGridSize.x = columnTiles % Cuda::getMaxGridSize();
+               cudaGridSize.x = columnTiles % Cuda::getMaxGridXSize();
             if( gridIdx_y == rowGrids - 1 )
-               cudaGridSize.y = rowTiles % Cuda::getMaxGridSize();
+               cudaGridSize.y = rowTiles % Cuda::getMaxGridYSize();
+
             if( ( gridIdx_x < columnGrids - 1 || matrix.getColumns() % tileDim == 0 )
                 && ( gridIdx_y < rowGrids - 1 || matrix.getRows() % tileDim == 0 ) )
             {
