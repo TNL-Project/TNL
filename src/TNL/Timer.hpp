@@ -108,7 +108,7 @@ Timer::readCPUTime()
 inline unsigned long long int
 Timer::readCPUCycles()
 {
-#ifdef __APPLE__
+#if defined( __APPLE__ ) || defined( _MSC_VER )
    return 0;  // TODO: fix https://lemire.me/blog/2021/03/24/counting-cycles-and-instructions-on-the-apple-m1-processor/
 #else
    return rdtsc();
@@ -122,7 +122,7 @@ Timer::durationToDouble( const Duration& duration )
    return dur.count();
 }
 
-#ifndef __APPLE__
+#if ! defined( __APPLE__ ) && ! defined( _MSC_VER )
 inline unsigned long long
 Timer::rdtsc()
 {

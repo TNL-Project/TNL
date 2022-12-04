@@ -82,7 +82,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
 #endif
       // A relatively harmless call to keep the compiler from realizing we
       // don't actually do any useful work with the result of the reduction.
-      srand48(resultHost);
+      srand( static_cast< unsigned int >( resultHost ) );
       resultHost = resultDevice = 0.0;
    };
    auto reset2 = [&]() {

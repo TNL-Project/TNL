@@ -381,6 +381,8 @@ TNL_IMPL_CMP_HELPER_( GT, > )
    // Internal macro wrapping the __PRETTY_FUNCTION__ "magic".
    #if defined( __NVCC__ ) && ( __CUDACC_VER_MAJOR__ < 8 )
       #define __TNL_PRETTY_FUNCTION "(not known in CUDA 7.5 or older)"
+   #elif defined( _MSC_VER )
+      #define __TNL_PRETTY_FUNCTION __FUNCSIG__
    #else
       #define __TNL_PRETTY_FUNCTION __PRETTY_FUNCTION__
    #endif

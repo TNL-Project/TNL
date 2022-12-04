@@ -352,7 +352,8 @@ template< typename Value, typename Device, typename Index >
 File&
 operator<<( File& file, const ArrayView< Value, Device, Index > view )
 {
-   using IO = detail::ArrayIO< Value, Index, typename Allocators::Default< Device >::template Allocator< Value > >;
+   using IO = detail::
+      ArrayIO< Value, Index, typename Allocators::Default< Device >::template Allocator< std::remove_const_t< Value > > >;
    saveObjectType( file, IO::getSerializationType() );
    const std::size_t size = view.getSize();
    file.save( &size );

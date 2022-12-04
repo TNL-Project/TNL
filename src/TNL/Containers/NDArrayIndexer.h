@@ -15,6 +15,16 @@
 namespace TNL {
 namespace Containers {
 
+// HACK for https://stackoverflow.com/q/74240374
+#ifdef _MSC_VER
+template< typename T >
+constexpr std::size_t
+getDimension()
+{
+   return T::getDimension();
+}
+#endif
+
 /**
  * \brief Indexer for N-dimensional arrays. It does not store any data, only
  * the sizes of each dimension.
@@ -59,12 +69,22 @@ public:
    //! \brief Type of indices used for addressing the array elements.
    using IndexType = typename SizesHolder::IndexType;
 
+// HACK for https://stackoverflow.com/q/74240374
+#ifdef _MSC_VER
+   static_assert( Containers::getDimension< StridesHolder >() == Containers::getDimension< SizesHolder >(),
+                  "Dimension of strides does not match the dimension of sizes." );
+   static_assert( Permutation::size() == Containers::getDimension< SizesHolder >(),
+                  "Dimension of permutation does not match the dimension of sizes." );
+   static_assert( Overlaps::size() == Containers::getDimension< SizesHolder >(),
+                  "Dimension of overlaps does not match the dimension of sizes." );
+#else
    static_assert( StridesHolder::getDimension() == SizesHolder::getDimension(),
                   "Dimension of strides does not match the dimension of sizes." );
    static_assert( Permutation::size() == SizesHolder::getDimension(),
                   "Dimension of permutation does not match the dimension of sizes." );
    static_assert( Overlaps::size() == SizesHolder::getDimension(),
                   "Dimension of overlaps does not match the dimension of sizes." );
+#endif
 
    //! \brief Constructs an empty indexer with zero sizes and strides.
    __cuda_callable__
@@ -78,7 +98,12 @@ public:
    static constexpr std::size_t
    getDimension()
    {
+// HACK for https://stackoverflow.com/q/74240374
+#ifdef _MSC_VER
+      return Containers::getDimension< SizesHolder >();
+#else
       return SizesHolder::getDimension();
+#endif
    }
 
    //! \brief Returns the N-dimensional array sizes held by the indexer.
@@ -146,7 +171,7 @@ public:
    IndexType
    getStorageIndex( IndexTypes&&... indices ) const
    {
-      static_assert( sizeof...( indices ) == SizesHolder::getDimension(), "got wrong number of indices" );
+      static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
       detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexTypes >( indices )... );
       const IndexType result = Base::template getStorageIndex< Permutation, Overlaps >(
          sizes, static_cast< const StridesHolder& >( *this ), std::forward< IndexTypes >( indices )... );

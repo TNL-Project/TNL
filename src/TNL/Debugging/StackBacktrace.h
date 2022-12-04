@@ -8,7 +8,10 @@
 
 #include <iostream>
 #include <memory>
-#include <execinfo.h>
+
+#ifndef _WIN32
+   #include <execinfo.h>
+#endif
 
 #include <TNL/TypeInfo.h>  // TNL::detail::demangle
 
@@ -26,6 +29,7 @@ namespace Debugging {
 static void
 printStackBacktrace( std::ostream& out = std::cout, unsigned int max_frames = 64 )
 {
+#ifndef _WIN32
    out << "stack trace:\n";
 
    // storage array for stack trace address data
@@ -78,6 +82,9 @@ printStackBacktrace( std::ostream& out = std::cout, unsigned int max_frames = 64
          std::cout << "  " << i << " " << symbollist.get()[ i ] << "\n";
       }
    }
+#else
+   out << "stack trace: [not supported on Windows]\n";
+#endif
 }
 
 }  // namespace Debugging

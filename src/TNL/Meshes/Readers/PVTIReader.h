@@ -23,7 +23,8 @@ class PVTIReader : public XMLVTK
    getSourcePath( const std::string& source )
    {
       namespace fs = std::filesystem;
-      return fs::path( fileName ).parent_path() / source;
+      const fs::path path = fs::path( fileName ).parent_path() / source;
+      return path.string();
    }
 
 #ifdef HAVE_TINYXML2

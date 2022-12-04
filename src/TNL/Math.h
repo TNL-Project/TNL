@@ -15,6 +15,9 @@
 
 namespace TNL {
 
+//! \brief Value of the pi constant
+static constexpr double pi = 3.14159265358979323846;
+
 /**
  * \brief This function returns minimum of two numbers.
  *

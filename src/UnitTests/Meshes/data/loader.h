@@ -16,7 +16,7 @@ MeshType loadMeshFromFile( std::string relative_path )
    std::cout << "Reading a mesh from file " << full_path << std::endl;
 
    MeshType mesh;
-   ReaderType reader( full_path );
+   ReaderType reader( full_path.string() );
    reader.loadMesh( mesh );
    return mesh;
 }

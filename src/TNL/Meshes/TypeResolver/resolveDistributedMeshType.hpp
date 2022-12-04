@@ -74,7 +74,7 @@ loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh
    namespace fs = std::filesystem;
    std::string format = fileFormat;
    if( format == "auto" ) {
-      format = fs::path( fileName ).extension();
+      format = fs::path( fileName ).extension().string();
       if( format.length() > 0 )
          // remove dot from the extension
          format = format.substr( 1 );

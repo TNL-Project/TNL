@@ -158,10 +158,10 @@ struct TurbulenceGenerator
       const Real dissipationRate = TNL::pow( kineticEnergy, 1.5 ) / lengthScale;
 
       // highest wave number
-      const Real k_max = 2 * M_PI / minSpaceStep;
+      const Real k_max = 2 * TNL::pi / minSpaceStep;
 
       // k_e (related to peak energy wave number)
-      const Real k_e = 9 * M_PI * c_E / ( 55 * lengthScale );
+      const Real k_e = 9 * TNL::pi * c_E / ( 55 * lengthScale );
 
       // wave number used in the viscous expression (high wave numbers) in the von Karman spectrum
       const Real k_eta = TNL::pow( dissipationRate / TNL::pow( viscosity, 3 ), 0.25 );
@@ -350,9 +350,9 @@ private:
    {
       using Value = typename Array::ValueType;
 
-      std::uniform_real_distribution< Value > dis_phi( 0, 2 * M_PI );
-      std::uniform_real_distribution< Value > dis_psi( 0, 2 * M_PI );
-      std::uniform_real_distribution< Value > dis_alpha( 0, 2 * M_PI );
+      std::uniform_real_distribution< Value > dis_phi( 0, 2 * TNL::pi );
+      std::uniform_real_distribution< Value > dis_psi( 0, 2 * TNL::pi );
+      std::uniform_real_distribution< Value > dis_alpha( 0, 2 * TNL::pi );
       std::uniform_real_distribution< Value > dis_ang( 0, 1 );
 
       // TODO: assert that all arrays have equal sizes

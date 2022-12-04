@@ -363,7 +363,7 @@ protected:
    // the type detected by detectMesh takes precedence)
    std::string forcedRealType;
    std::string forcedGlobalIndexType;
-   std::string forcedLocalIndexType = "short int";  // not stored in any file format
+   std::string forcedLocalIndexType = "std::int16_t";  // not stored in any file format
 
    // intermediate representation of a grid (this is relevant only for TNL::Meshes::Grid)
    std::vector< std::int64_t > gridExtent;
