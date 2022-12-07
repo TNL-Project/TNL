@@ -248,6 +248,8 @@ public:
     * \return instance of StaticArray< Size, OtherValue >
     */
    template< typename OtherValue >
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
+   __cuda_callable__
    constexpr operator StaticArray< Size, OtherValue >() const;
 
    /**
