@@ -254,6 +254,8 @@ StaticArray< Size, Value >::operator!=( const Array& array ) const
 
 template< int Size, typename Value >
 template< typename OtherValue >
+// NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
+__cuda_callable__
 constexpr StaticArray< Size, Value >::operator StaticArray< Size, OtherValue >() const
 {
    StaticArray< Size, OtherValue > aux;
