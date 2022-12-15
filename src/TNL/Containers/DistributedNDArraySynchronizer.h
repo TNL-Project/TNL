@@ -360,6 +360,10 @@ public:
    // attributes for profiling
    Timer async_start_timer, async_wait_timer;
    std::size_t async_ops_count = 0;
+   std::size_t sent_bytes = 0;
+   std::size_t recv_bytes = 0;
+   std::size_t sent_messages = 0;
+   std::size_t recv_messages = 0;
 
    // stage 0: set inputs, allocate buffers
    void
@@ -391,6 +395,10 @@ public:
          array_view.bind( array.getView() );
          this->mask = mask;
       }
+
+      // clear profiling counters
+      sent_bytes = recv_bytes = 0;
+      sent_messages = recv_messages = 0;
    }
 
    // stage 1: fill send buffers
@@ -431,8 +439,18 @@ public:
       Algorithms::staticFor< std::size_t, 0, DistributedNDArray::getDimension() >(
          [ & ]( auto dim )
          {
-            sendHelper< dim >(
-               buffers, this->requests, communicator, tag_from_left, tag_to_left, tag_from_right, tag_to_right, mask );
+            sendHelper< dim >( buffers,
+                               this->requests,
+                               communicator,
+                               tag_from_left,
+                               tag_to_left,
+                               tag_from_right,
+                               tag_to_right,
+                               mask,
+                               sent_bytes,
+                               recv_bytes,
+                               sent_messages,
+                               recv_messages );
          } );
    }
 
@@ -620,7 +638,11 @@ protected:
                int tag_to_left,
                int tag_from_right,
                int tag_to_right,
-               SyncDirection mask )
+               SyncDirection mask,
+               std::size_t& sent_bytes,
+               std::size_t& recv_bytes,
+               std::size_t& sent_messages,
+               std::size_t& recv_messages )
    {
       constexpr std::size_t overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
       if( overlap == 0 )
@@ -637,6 +659,8 @@ protected:
                                             dim_buffers.left_neighbor,
                                             tag_to_left,
                                             communicator ) );
+            sent_bytes += dim_buffers.left_send_view.getStorageSize() * sizeof( typename DistributedNDArray::ValueType );
+            ++sent_messages;
          }
          if( tag_from_right >= 0 ) {
             requests.push_back( MPI::Irecv( dim_buffers.right_recv_view.getData(),
@@ -644,6 +668,8 @@ protected:
                                             dim_buffers.right_neighbor,
                                             tag_from_right,
                                             communicator ) );
+            recv_bytes += dim_buffers.right_recv_view.getStorageSize() * sizeof( typename DistributedNDArray::ValueType );
+            ++recv_messages;
          }
       }
       if( ( mask & SyncDirection::Right ) != SyncDirection::None ) {
@@ -655,6 +681,8 @@ protected:
                                             dim_buffers.right_neighbor,
                                             tag_to_right,
                                             communicator ) );
+            sent_bytes += dim_buffers.right_send_view.getStorageSize() * sizeof( typename DistributedNDArray::ValueType );
+            ++sent_messages;
          }
          if( tag_from_left >= 0 ) {
             requests.push_back( MPI::Irecv( dim_buffers.left_recv_view.getData(),
@@ -662,6 +690,8 @@ protected:
                                             dim_buffers.left_neighbor,
                                             tag_from_left,
                                             communicator ) );
+            recv_bytes += dim_buffers.left_recv_view.getStorageSize() * sizeof( typename DistributedNDArray::ValueType );
+            ++recv_messages;
          }
       }
    }
