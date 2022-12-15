@@ -367,6 +367,22 @@ atan( const T& value ) -> decltype( std::atan( value ) )
 }
 
 /**
+ * \brief This function returns the arc tangent of \e y/x using the signs of
+ * arguments to determine the correct quadrant.
+ */
+template< typename T >
+__cuda_callable__
+auto
+atan2( const T& y, const T& x ) -> decltype( std::atan2( y, x ) )
+{
+#if defined( __CUDA_ARCH__ )
+   return ::atan2( y, x );
+#else
+   return std::atan2( y, x );
+#endif
+}
+
+/**
  * \brief This function returns the hyperbolic sine of the given \e value.
  */
 template< typename T >

@@ -407,82 +407,86 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    const auto valuesView = this->values.getConstView();
    const auto columnIndexesView = this->columnIndexes.getConstView();
    const IndexType paddingIndex = this->getPaddingIndex();
-   if( isSymmetric() && outVectorMultiplicator != 1.0 )
-      outVector *= outVectorMultiplicator;
-   auto symmetricFetch = [ = ] __cuda_callable__(
-                            IndexType row, IndexType localIdx, IndexType globalIdx, bool& compute ) mutable -> ComputeRealType
-   {
-      const IndexType column = columnIndexesView[ globalIdx ];
-      compute = ( column != paddingIndex );
-      if( ! compute )
-         return 0.0;
-      if( isSymmetric() && column < row ) {
-         if( isBinary() )
-            Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
-                                                             (OutVectorReal) matrixMultiplicator * inVectorView[ row ] );
-         else
-            Algorithms::AtomicOperations< DeviceType >::add(
-               outVectorView[ column ], (OutVectorReal) matrixMultiplicator * valuesView[ globalIdx ] * inVectorView[ row ] );
-      }
-      if( isBinary() )
-         return inVectorView[ column ];
-      return valuesView[ globalIdx ] * inVectorView[ column ];
-   };
-   auto fetch = [ = ] __cuda_callable__( IndexType globalIdx, bool& compute ) mutable -> ComputeRealType
-   {
-      const IndexType column = columnIndexesView[ globalIdx ];
-      if( SegmentsViewType::havePadding() ) {
-         compute = ( column != paddingIndex );
-         if( ! compute )
-            return 0.0;
-      }
-      if( isBinary() )
-         return inVectorView[ column ];
-      return valuesView[ globalIdx ] * inVectorView[ column ];
-   };
-
-   auto keeperGeneral = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
-   {
-      if( isSymmetric() ) {
-         typename OutVector::RealType aux = matrixMultiplicator * value;
-         Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ row ], aux );
-      }
-      else {
-         if( outVectorMultiplicator == 0.0 )
-            outVectorView[ row ] = matrixMultiplicator * value;
-         else
-            outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
-      }
-   };
-   auto keeperDirect = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
-   {
-      outVectorView[ row ] = value;
-   };
-   auto keeperMatrixMult = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
-   {
-      outVectorView[ row ] = matrixMultiplicator * value;
-   };
-   auto keeperVectorMult = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
-   {
-      outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
-   };
 
    if( end == 0 )
       end = this->getRows();
-   if( isSymmetric() )
-      this->segments.reduceSegments( begin, end, symmetricFetch, std::plus<>{}, keeperGeneral, (ComputeRealType) 0.0 );
+
+   if constexpr( isSymmetric() ) {
+      if( outVectorMultiplicator != 1.0 )
+         outVector *= outVectorMultiplicator;
+      auto fetch =
+         [ valuesView, columnIndexesView, inVectorView, outVectorView, matrixMultiplicator, paddingIndex ] __cuda_callable__(
+            IndexType row, IndexType localIdx, IndexType globalIdx, bool& compute ) mutable -> ComputeRealType
+      {
+         const IndexType column = columnIndexesView[ globalIdx ];
+         compute = ( column != paddingIndex );
+         if( ! compute )
+            return 0.0;
+         if( column < row ) {
+            if constexpr( isBinary() )
+               Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
+                                                                (OutVectorReal) matrixMultiplicator * inVectorView[ row ] );
+            else
+               Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
+                                                                (OutVectorReal) matrixMultiplicator * valuesView[ globalIdx ]
+                                                                   * inVectorView[ row ] );
+         }
+         if constexpr( isBinary() )
+            return inVectorView[ column ];
+         return valuesView[ globalIdx ] * inVectorView[ column ];
+      };
+      auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
+      {
+         typename OutVector::RealType aux = matrixMultiplicator * value;
+         Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ row ], aux );
+      };
+      this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+   }
    else {
+      auto fetch = [ inVectorView, valuesView, columnIndexesView, paddingIndex ] __cuda_callable__(
+                      IndexType globalIdx, bool& compute ) mutable -> ComputeRealType
+      {
+         const IndexType column = columnIndexesView[ globalIdx ];
+         if( SegmentsViewType::havePadding() ) {
+            compute = ( column != paddingIndex );
+            if( ! compute )
+               return 0.0;
+         }
+         if constexpr( isBinary() )
+            return inVectorView[ column ];
+         return valuesView[ globalIdx ] * inVectorView[ column ];
+      };
       if( outVectorMultiplicator == 0.0 ) {
-         if( matrixMultiplicator == 1.0 )
-            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperDirect, (ComputeRealType) 0.0 );
-         else
-            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperMatrixMult, (ComputeRealType) 0.0 );
+         if( matrixMultiplicator == 1.0 ) {
+            auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
+            {
+               outVectorView[ row ] = value;
+            };
+            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+         }
+         else {
+            auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
+            {
+               outVectorView[ row ] = matrixMultiplicator * value;
+            };
+            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+         }
       }
       else {
-         if( matrixMultiplicator == 1.0 )
-            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperVectorMult, (ComputeRealType) 0.0 );
-         else
-            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperGeneral, (ComputeRealType) 0.0 );
+         if( matrixMultiplicator == 1.0 ) {
+            auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
+            {
+               outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
+            };
+            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+         }
+         else {
+            auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
+            {
+               outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
+            };
+            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+         }
       }
    }
 }
