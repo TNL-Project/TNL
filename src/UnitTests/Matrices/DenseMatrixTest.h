@@ -1165,7 +1165,6 @@ void test_GetMatrixProduct()
     const IndexType leftCols = 4;
 
     Matrix leftMatrix;
-    leftMatrix.reset();
     leftMatrix.setDimensions( leftRows, leftCols );
 
     RealType value = 1;
@@ -1185,7 +1184,6 @@ void test_GetMatrixProduct()
     const IndexType rightCols = 5;
 
     Matrix rightMatrix;
-    rightMatrix.reset();
     rightMatrix.setDimensions( rightRows, rightCols );
 
     RealType newValue = 1;
@@ -1194,31 +1192,18 @@ void test_GetMatrixProduct()
             rightMatrix.setElement( i, j, newValue++ );
 
 /*
- * Sets up the following 5x5 resulting dense matrix:
+ * Perform the matrix multiplication:
  *
- *    /  0  0  0  0 \
- *    |  0  0  0  0 |
- *    |  0  0  0  0 |
- *    |  0  0  0  0 |
- *    \  0  0  0  0 /
+ *      /  1  2  3  4 \                        /  220  240  260  280  300 \
+ *      |  5  6  7  8 |   /  1  2  3  4  5 \   |  492  544  596  648  700 |
+ *  2 * |  9 10 11 12 | * |  6  7  8  9 10 | = |  764  848  932 1016 1100 |
+ *      | 13 14 15 16 |   | 11 12 13 14 15 |   | 1036 1152 1268 1384 1500 |
+ *      \ 17 18 19 20 /   \ 16 17 18 19 20 /   \ 1308 1456 1604 1752 1900 /
  */
-
     Matrix mResult;
-    mResult.reset();
-    mResult.setDimensions( leftRows, rightCols );
     mResult.setValue( 0 );
-
-    RealType leftMatrixMultiplicator = 1;
-    RealType rightMatrixMultiplicator = 2;
-/*
- *      /  1  2  3  4 \                            /  220  240  260  280  300 \
- *      |  5  6  7  8 |       /  1  2  3  4  5 \   |  492  544  596  648  700 |
- *  1 * |  9 10 11 12 | * 2 * |  6  7  8  9 10 | = |  764  848  932 1016 1100 |
- *      | 13 14 15 16 |       | 11 12 13 14 15 |   | 1036 1152 1268 1384 1500 |
- *      \ 17 18 19 20 /       \ 16 17 18 19 20 /   \ 1308 1456 1604 1752 1900 /
- */
-
-    mResult.getMatrixProduct( leftMatrix, rightMatrix, leftMatrixMultiplicator, rightMatrixMultiplicator );
+    RealType matrixMultiplicator = 2;
+    mResult.getMatrixProduct( leftMatrix, rightMatrix, matrixMultiplicator );
 
     EXPECT_EQ( mResult.getElement( 0, 0 ),  220 );
     EXPECT_EQ( mResult.getElement( 0, 1 ),  240 );
@@ -1268,7 +1253,6 @@ void test_GetTransposition()
     const IndexType cols = 2;
 
     Matrix m;
-    m.reset();
     m.setDimensions( rows, cols );
 
     RealType value = 1;
@@ -1276,25 +1260,10 @@ void test_GetTransposition()
         for( IndexType j = 0; j < cols; j++ )
             m.setElement( i, j, value++ );
 
-    m.print( std::cout );
-
-/*
- * Sets up the following 2x3 dense matrix:
- *
- *    /  0  0  0 \
- *    \  0  0  0 /
- */
+    // Compute the transposition
     Matrix mTransposed;
-    mTransposed.reset();
-    mTransposed.setDimensions( cols, rows );
-
-    mTransposed.print( std::cout );
-
     RealType matrixMultiplicator = 1;
-
     mTransposed.getTransposition( m, matrixMultiplicator );
-
-    mTransposed.print( std::cout );
 
 /*
  * Should result in the following 2x3 dense matrix:
@@ -1310,83 +1279,6 @@ void test_GetTransposition()
     EXPECT_EQ( mTransposed.getElement( 1, 0 ), 2 );
     EXPECT_EQ( mTransposed.getElement( 1, 1 ), 4 );
     EXPECT_EQ( mTransposed.getElement( 1, 2 ), 6 );
-}
-
-
-template< typename Matrix >
-void test_PerformSORIteration()
-{
-    using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
-    using IndexType = typename Matrix::IndexType;
-/*
- * Sets up the following 4x4 dense matrix:
- *
- *    /  4  1  1  1 \
- *    |  1  4  1  1 |
- *    |  1  1  4  1 |
- *    \  1  1  1  4 /
- */
-    const IndexType rows = 4;
-    const IndexType cols = 4;
-
-    Matrix m;
-    m.reset();
-    m.setDimensions( rows, cols );
-
-    m.setElement( 0, 0, 4.0 );        // 0th row
-    m.setElement( 0, 1, 1.0 );
-    m.setElement( 0, 2, 1.0 );
-    m.setElement( 0, 3, 1.0 );
-
-    m.setElement( 1, 0, 1.0 );        // 1st row
-    m.setElement( 1, 1, 4.0 );
-    m.setElement( 1, 2, 1.0 );
-    m.setElement( 1, 3, 1.0 );
-
-    m.setElement( 2, 0, 1.0 );
-    m.setElement( 2, 1, 1.0 );        // 2nd row
-    m.setElement( 2, 2, 4.0 );
-    m.setElement( 2, 3, 1.0 );
-
-    m.setElement( 3, 0, 1.0 );        // 3rd row
-    m.setElement( 3, 1, 1.0 );
-    m.setElement( 3, 2, 1.0 );
-    m.setElement( 3, 3, 4.0 );
-
-    RealType bVector [ 4 ] = { 1.0, 1.0, 1.0, 1.0 };
-    RealType xVector [ 4 ] = { 1.0, 1.0, 1.0, 1.0 };
-
-    IndexType row = 0;
-    RealType omega = 1;
-
-    m.performSORIteration( bVector, row++, xVector, omega);
-
-    EXPECT_EQ( xVector[ 0 ], -0.5 );
-    EXPECT_EQ( xVector[ 1 ],  1.0 );
-    EXPECT_EQ( xVector[ 2 ],  1.0 );
-    EXPECT_EQ( xVector[ 3 ],  1.0 );
-
-    m.performSORIteration( bVector, row++, xVector, omega);
-
-    EXPECT_EQ( xVector[ 0 ], -0.5 );
-    EXPECT_EQ( xVector[ 1 ], -0.125 );
-    EXPECT_EQ( xVector[ 2 ],  1.0 );
-    EXPECT_EQ( xVector[ 3 ],  1.0 );
-
-    m.performSORIteration( bVector, row++, xVector, omega);
-
-    EXPECT_EQ( xVector[ 0 ], -0.5 );
-    EXPECT_EQ( xVector[ 1 ], -0.125 );
-    EXPECT_EQ( xVector[ 2 ],  0.15625 );
-    EXPECT_EQ( xVector[ 3 ],  1.0 );
-
-    m.performSORIteration( bVector, row++, xVector, omega);
-
-    EXPECT_EQ( xVector[ 0 ], -0.5 );
-    EXPECT_EQ( xVector[ 1 ], -0.125 );
-    EXPECT_EQ( xVector[ 2 ], 0.15625 );
-    EXPECT_EQ( xVector[ 3 ], 0.3671875 );
 }
 
 template< typename Matrix >
@@ -1668,6 +1560,20 @@ TYPED_TEST( MatrixTest, addMatrixTest )
     test_AddMatrix< MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, getMatrixProductTest )
+{
+    using MatrixType = typename TestFixture::MatrixType;
+
+    test_GetMatrixProduct< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, getTranspositionTest )
+{
+    using MatrixType = typename TestFixture::MatrixType;
+
+    test_GetTransposition< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, assignmentOperatorTest )
 {
     using MatrixType = typename TestFixture::MatrixType;
@@ -1681,126 +1587,6 @@ TYPED_TEST( MatrixTest, saveAndLoadTest )
 
     test_SaveAndLoad< MatrixType >();
 }
-
-//// test_getType is not general enough yet. DO NOT TEST IT YET.
-
-//TEST( DenseMatrixTest, Dense_GetTypeTest_Host )
-//{
-//    host_test_GetType< Dense_host_float, Dense_host_int >();
-//}
-//
-//#ifdef HAVE_CUDA
-//TEST( DenseMatrixTest, Dense_GetTypeTest_Cuda )
-//{
-//    cuda_test_GetType< Dense_cuda_float, Dense_cuda_int >();
-//}
-//#endif
-
-/*TEST( DenseMatrixTest, Dense_getMatrixProductTest_Host )
-{
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on CPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h(609): error: no instance of function template \"TNL::Matrices::DenseMatrixProductKernel\" matches the argument list\n";
-    std::cout << "              argument types are: (TNL::Matrices::Dense<int, TNL::Devices::Host, int> *, Dense_host_int *, Dense_host_int *, const int, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Dense<Real, Device, Index>::getMatrixProduct(const Matrix1 &, const Matrix2 &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host, Index=int, Matrix1=Dense_host_int, Matrix2=Dense_host_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(901): here\n";
-    std::cout << "                  instantiation of \"void test_GetMatrixProduct<Matrix>() [with Matrix=Dense_host_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(1315): here\n\n";
-}
-
-#ifdef HAVE_CUDA
-TEST( DenseMatrixTest, Dense_getMatrixProductTest_Cuda )
-{
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on GPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h(510): error: identifier \"tnlCudaMin\" is undefined\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::DenseMatrixProductKernel<Real,Index,Matrix1,Matrix2,tileDim,tileRowBlockSize>(TNL::Matrices::Dense<Real, TNL::Devices::Cuda, Index> *, const Matrix1 *, const Matrix2 *, Real, Real, Index, Index) [with Real=int, Index=int, Matrix1=Dense_cuda_int, Matrix2=Dense_cuda_int, tileDim=32, tileRowBlockSize=8]\"\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Dense<Real, Device, Index>::getMatrixProduct(const Matrix1 &, const Matrix2 &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Cuda, Index=int, Matrix1=Dense_cuda_int, Matrix2=Dense_cuda_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(901): here\n";
-    std::cout << "                  instantiation of \"void test_GetMatrixProduct<Matrix>() [with Matrix=Dense_cuda_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(1332): here\n\n";
-}
-#endif
-
-TEST( DenseMatrixTest, Dense_getTranspositionTest_Host )
-{
-//    test_GetTransposition< Dense_host_int >();
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on CPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h(836): error: no instance of function template \"TNL::Matrices::DenseTranspositionAlignedKernel\" matches the argument list\n";
-    std::cout << "              argument types are: (TNL::Matrices::Dense<int, TNL::Devices::Host, int> *, Dense_host_int *, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Dense<Real, Device, Index>::getTransposition(const Matrix &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host, Index=int, Matrix=Dense_host_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(977): here\n";
-    std::cout << "                  instantiation of \"void test_GetTransposition<Matrix>() [with Matrix=Dense_host_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(1420): here\n\n";
-    std::cout << "AND this message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h(852): error: no instance of function template \"TNL::Matrices::DenseTranspositionNonAlignedKernel\" matches the argument list\n";
-    std::cout << "              argument types are: (TNL::Matrices::Dense<int, TNL::Devices::Host, int> *, Dense_host_int *, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Dense<Real, Device, Index>::getTransposition(const Matrix &, const TNL::Matrices::Dense<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host, Index=int, Matrix=Dense_host_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(977): here\n";
-    std::cout << "                  instantiation of \"void test_GetTransposition<Matrix>() [with Matrix=Dense_host_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/DenseMatrixTest.h(1420): here\n\n";
-}
-
-#ifdef HAVE_CUDA
-TEST( DenseMatrixTest, Dense_getTranspositionTest_Cuda )
-{
-//    test_GetTransposition< Dense_cuda_int >();
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on GPU, this test throws the following message: \n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!!\n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Dense_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  terminate called after throwing an instance of 'TNL::Exceptions::CudaRuntimeError'\n";
-    std::cout << "          what():  CUDA ERROR 4 (cudaErrorLaunchFailure): unspecified launch failure.\n";
-    std::cout << "  Source: line 57 in /home/lukas/tnl-dev/src/TNL/Containers/Algorithms/ArrayOperationsCuda_impl.h: unspecified launch failure\n";
-    std::cout << "  [1]    4003 abort (core dumped)  ./DenseMatrixTest-dbg\n";
-}
-#endif
-
-TEST( DenseMatrixTest, Dense_performSORIterationTest_Host )
-{
-    test_PerformSORIteration< Dense_host_float >();
-}
-
-#ifdef HAVE_CUDA
-TEST( DenseMatrixTest, Dense_performSORIterationTest_Cuda )
-{
-//    test_PerformSORIteration< Dense_cuda_float >();
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched, this test throws the following message: \n";
-    std::cout << "      [1]    6992 segmentation fault (core dumped)  ./SparseMatrixTest-dbg\n\n";
-    std::cout << "\n THIS IS NOT IMPLEMENTED FOR CUDA YET!!\n\n";
-}
-#endif
- * */
 
 #endif // HAVE_GTEST
 

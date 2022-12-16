@@ -921,68 +921,6 @@ void test_reduceRows()
 }
 
 template< typename Matrix >
-void test_PerformSORIteration()
-{
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
-   using IndexType = typename Matrix::IndexType;
-
-   /*
-    * Sets up the following 4x4 sparse matrix:
-    *
-    *    /  4  1  0  0 \
-    *    |  1  4  1  0 |
-    *    |  0  1  4  1 |
-    *    \  0  0  1  4 /
-    */
-
-   const IndexType m_rows = 4;
-   const IndexType m_cols = 4;
-
-   Matrix m( m_rows, m_cols, {
-      { 0, 0, 4 }, { 0, 1, 1 },
-      { 1, 0, 1 }, { 1, 1, 4 }, { 1, 2, 1 },
-                   { 2, 1, 1 }, { 2, 2, 4 }, { 2, 3, 1 },
-                                { 3, 2, 1 }, { 3, 3, 4 }, { 3, 4, 1 },
-                                             { 4, 3, 1 }, { 4, 4, 4 }
-   } );
-
-   RealType bVector [ 4 ] = { 1, 1, 1, 1 };
-   RealType xVector [ 4 ] = { 1, 1, 1, 1 };
-
-   IndexType row = 0;
-   RealType omega = 1;
-
-   m.performSORIteration( bVector, row++, xVector, omega);
-
-   EXPECT_EQ( xVector[ 0 ], 0.0 );
-   EXPECT_EQ( xVector[ 1 ], 1.0 );
-   EXPECT_EQ( xVector[ 2 ], 1.0 );
-   EXPECT_EQ( xVector[ 3 ], 1.0 );
-
-   m.performSORIteration( bVector, row++, xVector, omega);
-
-   EXPECT_EQ( xVector[ 0 ], 0.0 );
-   EXPECT_EQ( xVector[ 1 ], 0.0 );
-   EXPECT_EQ( xVector[ 2 ], 1.0 );
-   EXPECT_EQ( xVector[ 3 ], 1.0 );
-
-   m.performSORIteration( bVector, row++, xVector, omega);
-
-   EXPECT_EQ( xVector[ 0 ], 0.0 );
-   EXPECT_EQ( xVector[ 1 ], 0.0 );
-   EXPECT_EQ( xVector[ 2 ], 0.0 );
-   EXPECT_EQ( xVector[ 3 ], 1.0 );
-
-   m.performSORIteration( bVector, row++, xVector, omega);
-
-   EXPECT_EQ( xVector[ 0 ], 0.0 );
-   EXPECT_EQ( xVector[ 1 ], 0.0 );
-   EXPECT_EQ( xVector[ 2 ], 0.0 );
-   EXPECT_EQ( xVector[ 3 ], 0.25 );
-}
-
-template< typename Matrix >
 void test_SaveAndLoad( const char* filename )
 {
    using RealType = typename Matrix::RealType;

@@ -1,5 +1,4 @@
 set( COMMON_TESTS
-            Legacy_SparseMatrixTest
             # TODO: Uncomment the following when AdEllpack works
             #SparseMatrixTest_AdEllpack
             Legacy_SparseMatrixTest_BiEllpack

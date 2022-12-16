@@ -591,18 +591,6 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
       } );
 }
 
-template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
-template< typename Vector1, typename Vector2 >
-bool
-SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::performSORIteration(
-   const Vector1& b,
-   const IndexType row,
-   Vector2& x,
-   const RealType& omega ) const
-{
-   return false;
-}
-
 // copy assignment
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >&
