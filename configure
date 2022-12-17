@@ -192,11 +192,9 @@ if [[ ! $(command -v cmake) ]]; then
 fi
 
 if [[ $(command -v ninja) ]]; then
-    generator=Ninja
-    check_file="build.ninja"
+    generator="Ninja"
 else
     generator="Unix Makefiles"
-    check_file="Makefile"
 fi
 
 # set default build directory
