@@ -6,6 +6,7 @@ set( COMMON_TESTS
          MemoryOperationsTest
          MultireductionTest
          parallelForTest
+         ParallelForNDTest
          staticForTest
          unrolledForTest
 )
