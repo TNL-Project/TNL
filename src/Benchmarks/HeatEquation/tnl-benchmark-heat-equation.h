@@ -11,6 +11,7 @@
 #include <TNL/Devices/Cuda.h>
 
 #include "HeatEquationSolverBenchmarkParallelFor.h"
+#include "HeatEquationSolverBenchmarkParallelForTest.h"
 #include "HeatEquationSolverBenchmarkSimpleGrid.h"
 #include "HeatEquationSolverBenchmarkGrid.h"
 #include "HeatEquationSolverBenchmarkNdGrid.h"
@@ -23,6 +24,7 @@ void configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum< TNL::String >( "simple-grid" );
    config.addEntryEnum< TNL::String >( "grid" );
    config.addEntryEnum< TNL::String >( "nd-grid" );
+   config.addEntryEnum< TNL::String >( "test" );
 
    config.addDelimiter( "Device settings:" );
    config.addEntry<TNL::String>( "device", "Device the computation will run on.", "cuda" );
@@ -65,6 +67,12 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
       HeatEquationSolverBenchmarkNdGrid< Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
+   if( implementation == "test" )
+   {
+      HeatEquationSolverBenchmarkParallelForTest< Real, Device > benchmark;
+      return benchmark.runBenchmark( parameters );
+   }
+
    return false;
 }
 
