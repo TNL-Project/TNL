@@ -78,7 +78,7 @@ public:
    static Real
    getMeasure( const GridType& grid, const EntityType& entity )
    {
-      if( entity.getOrientation() == 0 )
+      if( entity.getOrientation().getIndex() == 0 )
          return grid.template getSpaceStepsProducts< 1, 0 >();
 
       return grid.template getSpaceStepsProducts< 0, 1 >();
@@ -114,10 +114,10 @@ public:
    static Real
    getMeasure( const GridType& grid, const EntityType& entity )
    {
-      if( entity.getOrientation() == 0 )
+      if( entity.getOrientation().getIndex() == 0 )
          return grid.template getSpaceStepsProducts< 1, 1, 0 >();
 
-      if( entity.getOrientation() == 1 )
+      if( entity.getOrientation().getIndex() == 1 )
          return grid.template getSpaceStepsProducts< 1, 0, 1 >();
 
       return grid.template getSpaceStepsProducts< 0, 1, 1 >();
@@ -135,10 +135,10 @@ public:
    static Real
    getMeasure( const GridType& grid, const EntityType& entity )
    {
-      if( entity.getOrientation() == 0 )
+      if( entity.getOrientation().getIndex() == 0 )
          return grid.template getSpaceStepsProducts< 1, 0, 0 >();
 
-      if( entity.getOrientation() == 1 )
+      if( entity.getOrientation().getIndex() == 1 )
          return grid.template getSpaceStepsProducts< 0, 1, 0 >();
 
       return grid.template getSpaceStepsProducts< 0, 0, 1 >();

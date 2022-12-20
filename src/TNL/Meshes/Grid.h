@@ -7,6 +7,8 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
+#include <TNL/Meshes/GridDetails/GridTraits.h>
+#include <TNL/Meshes/GridDetails/GridEntityOrientation.h>
 
 namespace TNL::Meshes {
 
@@ -51,15 +53,19 @@ public:
     */
    using GlobalIndexType = Index;
 
+   using GridTraitsType = GridTraits< Dimension, Real, Index >;
+
    /**
     * \brief Type for grid entities coordinates.
     */
-   using CoordinatesType = Containers::StaticVector< Dimension, Index >;
+   using CoordinatesType = typename GridTraitsType::CoordinatesType;
 
    /**
     * \brief Type for world coordinates.
     */
-   using PointType = Containers::StaticVector< Dimension, Real >;
+   using PointType = typename GridTraitsType::PointType;
+
+   using NormalsType = typename GridTraitsType::NormalsType;
 
    using EntitiesCounts = Containers::StaticVector< Dimension + 1, Index >;
 
@@ -70,6 +76,9 @@ public:
     */
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
+
+   template< int EntityDimension >
+   using EntityOrientation = GridEntityOrientation< Grid, Dimension, EntityDimension >;
 
    using OrientationNormalsContainer = Containers::StaticVector< 1 << Dimension, CoordinatesType >;
 
@@ -283,7 +292,7 @@ public:
     */
    template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
-   CoordinatesType
+   NormalsType
    getNormals( Index orientation ) const noexcept;
 
    /**
@@ -322,7 +331,7 @@ public:
    template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
    IndexType
-   getOrientation( const CoordinatesType& normals ) const noexcept;
+   getOrientation( const NormalsType& normals ) const noexcept;
 
    /**
     * \brief Computes coordinates of a grid entity based on an index of the entity.
@@ -339,7 +348,7 @@ public:
    template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
    CoordinatesType
-   getEntityCoordinates( IndexType entityIdx, CoordinatesType& normals, Index& orientation ) const noexcept;
+   getEntityCoordinates( IndexType entityIdx, EntityOrientation< EntityDimension >& orientation ) const noexcept;
 
    /**
     * \brief Sets the origin and proportions of this grid.
@@ -829,10 +838,12 @@ protected:
     */
    Containers::StaticVector< 1 << Dimension, Index > entitiesCountAlongNormals;
 
+   Containers::StaticVector< 1 << Dimension, Index > entitiesAlongNormalsIndexOffsets;
    /**
     * \brief A cumulative map over dimensions.
     */
    Containers::StaticVector< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals;
+
 
    /**
     * \brief Container with normals defining grid entity orientations.

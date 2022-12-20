@@ -98,6 +98,7 @@ public:
          for( entity.getCoordinates().x() = 0; entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
               entity.getCoordinates().x()++ )
          {
+            entity.setGrid( f1.getMesh() );
             entity.refresh();
             if( f1.getValue( entity ) != f2.getValue( entity ) ) {
                outputFile << f1Name << " and " << f2Name << " differs at " << entity.getCoordinates() << " "
@@ -140,6 +141,7 @@ public:
             for( entity.getCoordinates().x() = 0; entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
                  entity.getCoordinates().x()++ )
             {
+               entity.setGrid( f1.getMesh() );
                entity.refresh();
                if( f1.getValue( entity ) != f2.getValue( entity ) ) {
                   outputFile << f1Name << " and " << f2Name << " differs at " << entity.getCoordinates() << " "
