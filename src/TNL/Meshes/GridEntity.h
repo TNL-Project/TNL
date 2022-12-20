@@ -9,6 +9,7 @@
 #pragma once
 
 #include <TNL/Meshes/Grid.h>
+#include <TNL/Meshes/GridDetails/GridEntityOrientation.h>
 
 namespace TNL {
 namespace Meshes {
@@ -25,11 +26,11 @@ class GridEntityCenterGetter;
 /**
  * \brief Structure describing a grid entity i.e., grid cells, faces, edges, vertexes and so on.
  *
- * \tparam Grid is a typa of grid the entity belongs to.
+ * \tparam Grid is a type of grid the entity belongs to.
  * \tparam EntityDimension is a dimensions of the grid entity.
  */
 template< class Grid, int EntityDimension >
-class GridEntity
+class GridEntity : public Grid::CoordinatesType
 {
 public:
    /**
@@ -63,6 +64,10 @@ public:
     */
    using PointType = typename Grid::PointType;
 
+   using GridEntityOrientationType = GridEntityOrientation< Grid, Grid::getMeshDimension(), EntityDimension >;
+
+   using NormalsType = typename GridEntityOrientationType::NormalsType;
+
    /**
     * \brief Getter of the dimension of the grid.
     *
@@ -79,13 +84,20 @@ public:
    constexpr static int
    getEntityDimension();
 
+   GridEntity();
+
+   GridEntity( const CoordinatesType& c );
+
    /**
-    * \brief Constructore with a grid reference.
+    * \brief Constructor with a grid reference.
     *
     * \param grid is a reference on a grid the entity belongs to.
     */
+
+   template< typename... Indexes, std::enable_if_t< ( Grid::getMeshDimension() > 1 ) && sizeof...( Indexes ) == Grid::getMeshDimension(), bool > = true >
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
    __cuda_callable__
-   GridEntity( const Grid& grid );
+   GridEntity( Indexes&&... indexes );
 
    /**
     * \brief Constructor with a grid reference and grid entity coordinates.
@@ -106,7 +118,7 @@ public:
     * \param normals is a vector of packed normal vectors to the grid entity.
     */
    __cuda_callable__
-   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals );
+   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const NormalsType& normals );
 
    /**
     * \brief Constructor with a grid reference, grid entity coordinates, entity normals and index of entity orientation.
@@ -121,7 +133,7 @@ public:
     * \param orientation is an index of the grid entity orientation.
     */
    __cuda_callable__
-   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const CoordinatesType& normals, IndexType orientation );
+   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const NormalsType& normals, IndexType orientation );
 
    /**
     * \brief Constructor with a grid reference and grid entity index.
@@ -174,7 +186,7 @@ public:
     * \return the grid entity index in the grid.
     */
    __cuda_callable__
-   IndexType
+   const IndexType&
    getIndex() const;
 
    /**
@@ -213,6 +225,12 @@ public:
    const Grid&
    getMesh() const;
 
+   __cuda_callable__
+   GridEntityOrientationType& getOrientation();
+
+   __cuda_callable__
+   const GridEntityOrientationType& getOrientation() const;
+
    /**
     * \brief Setter for the packed normals vector of the grid entity.
     *
@@ -222,13 +240,13 @@ public:
     */
    __cuda_callable__
    void
-   setNormals( const CoordinatesType& normals );
+   setNormals( const NormalsType& normals );
 
    /**
     * \brief Returns the packed normals vector of the grid entity.
     */
    __cuda_callable__
-   const CoordinatesType&
+   const NormalsType
    getNormals() const;
 
    /**
@@ -241,7 +259,7 @@ public:
     * \return basis vector.
     */
    __cuda_callable__
-   CoordinatesType
+   NormalsType
    getBasis() const;
 
    /**
@@ -250,9 +268,9 @@ public:
     * Orientation is always paired with the normals. In other words, if orientations, entity dimensions and dimensions are
     * equal, then normals are equal also.
     */
-   __cuda_callable__
-   IndexType
-   getOrientation() const;
+   //__cuda_callable__
+   //IndexType
+   //getOrientation() const;
 
    /**
     * \brief Setter of the grid entity orientation index.
@@ -261,9 +279,9 @@ public:
     *
     * \param orientation is a index of the grid entity orientation.
     */
-   __cuda_callable__
-   void
-   setOrientation( IndexType orientation );
+   //__cuda_callable__
+   //void
+   //setOrientation( IndexType orientation );
 
    /**
     * \brief Returns the neighbour grid entity.
@@ -271,7 +289,7 @@ public:
     * \tparam Dimension is a dimension of the neighbour grid entity.
     * \param offset is a offset of coordinates of the neighbour entity relative to this grid entity.
     * \warning In case the parent entity orientation is greater than possible orientations of neighbour entity,
-    *            then orientation is reduces. For example, 3-D cell neighbour of edge with orientaiton 1, will have
+    *            then orientation is reduces. For example, 3-D cell neighbour of edge with orientation 1, will have
     *            orientation 0.
     * \return neighbour grid entity.
     */
@@ -280,11 +298,17 @@ public:
    GridEntity< Grid, Dimension >
    getNeighbourEntity( const CoordinatesType& offset ) const;
 
+   template< int Dimension >
+   __cuda_callable__
+   IndexType
+   getNeighbourEntityIndex( const CoordinatesType& offset ) const;
+
+
    /**
     * \brief Returns the neighbour grid entity.
     *
     * \tparam Dimension is a dimension of the neighbour grid entity.
-    * \tparam Orientation is an orientatio index of the grid entity.
+    * \tparam Orientation is an orientation index of the grid entity.
     * \param offset is a offset of coordinates of the neighbour entity relative to this grid entity.
     * \return neighbour grid entity.
     */
@@ -301,6 +325,15 @@ public:
    PointType
    getPoint() const;
 
+   __cuda_callable__
+   void
+   setGrid( const Grid& );
+
+   __cuda_callable__
+   void
+   setMesh( const Grid& );
+
+
    /**
     * \brief Returns a reference on the grid the grid entity belongs to.
     *
@@ -311,12 +344,10 @@ public:
    getGrid() const;
 
 protected:
-   const Grid& grid;
+   const Grid* grid;
 
    IndexType index;
-   CoordinatesType coordinates;
-   CoordinatesType normals;
-   IndexType orientation;
+   GridEntityOrientationType orientation;
 };
 
 /**

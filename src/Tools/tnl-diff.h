@@ -53,11 +53,12 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 1, Real, Device, Index >, 1 >
                std::cout << f1Name << " and " << f2Name << " are defined on different meshes. "  << std::endl;
          }
 
-         Entity entity( f1.getMesh() );
+         Entity entity;
          for( entity.getCoordinates().x() = 0;
               entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
               entity.getCoordinates().x()++ )
          {
+            entity.setGrid( f1.getMesh() );
             entity.refresh();
             if( f1.getValue( entity ) != f2.getValue( entity ) )
             {
@@ -96,7 +97,7 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 2, Real, Device, Index >, 2 >
                std::cout << f1Name << " and " << f2Name << " are defined on different meshes. "  << std::endl;
          }
 
-         Entity entity( f1.getMesh() );
+         Entity entity;
          for( entity.getCoordinates().y() = 0;
               entity.getCoordinates().y() < f1.getMesh().getDimensions().y();
               entity.getCoordinates().y()++ )
@@ -104,6 +105,7 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 2, Real, Device, Index >, 2 >
                  entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
                  entity.getCoordinates().x()++ )
             {
+               entity.setGrid( f1.getMesh() );
                entity.refresh();
                if( f1.getValue( entity ) != f2.getValue( entity ) )
                {
@@ -142,7 +144,7 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 3, Real, Device, Index >, 3 >
                std::cout << f1Name << " and " << f2Name << " are defined on different meshes. "  << std::endl;
          }
 
-         Entity entity( f1.getMesh() );
+         Entity entity;
          for( entity.getCoordinates().z() = 0;
               entity.getCoordinates().z() < f1.getMesh().getDimensions().z();
               entity.getCoordinates().z()++ )
@@ -153,6 +155,7 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 3, Real, Device, Index >, 3 >
                     entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
                     entity.getCoordinates().x()++ )
                {
+                  entity.setGrid( f1.getMesh() );
                   entity.refresh();
                   if( f1.getValue( entity ) != f2.getValue( entity ) )
                   {

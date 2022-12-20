@@ -19,5 +19,6 @@ void testGetEntityFromIndex( Grid& grid,
       auto new_entity = TNL::Meshes::GridEntity< Grid, EntityDimension >( entity.getGrid(), entity.getIndex() );
       EXPECT_EQ( new_entity.getCoordinates(), entity.getCoordinates() );
       EXPECT_EQ( new_entity.getNormals(), entity.getNormals() );
+      EXPECT_EQ( new_entity.getOrientation().getIndex(), entity.getOrientation().getIndex() );
    } );
 }

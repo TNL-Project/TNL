@@ -22,7 +22,7 @@ class NeighbourGridEntityGetterTestCase {
 
          auto view = store.getView();
          auto update = [=] __cuda_callable__(const typename Grid::template EntityType<EntityDimension>& entity) mutable {
-            int neighbourEntityOrientation = TNL::min(entity.getOrientation(), neighbourOrientationsCount - 1);
+            int neighbourEntityOrientation = TNL::min(entity.getOrientation().getIndex(), neighbourOrientationsCount - 1);
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
             Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(neighbourEntityOrientation);
 

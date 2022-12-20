@@ -34,11 +34,13 @@ public:
       auto* toMesh = &to.getMeshPointer().template getData< typename MeshFunctionType::MeshType::DeviceType >();
       auto kernel = [ fromData, toData, fromMesh, toMesh, fromBegin, toBegin ] __cuda_callable__( Index i )
       {
-         Cell fromEntity( *fromMesh );
-         Cell toEntity( *toMesh );
+         Cell fromEntity;
+         Cell toEntity;
          toEntity.getCoordinates().x() = toBegin.x() + i;
+         toEntity.setMesh( *toMesh );
          toEntity.refresh();
          fromEntity.getCoordinates().x() = fromBegin.x() + i;
+         fromEntity.setMesh( *fromMesh );
          fromEntity.refresh();
          toData[ toEntity.getIndex() ] = fromData[ fromEntity.getIndex() ];
       };

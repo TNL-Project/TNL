@@ -75,7 +75,7 @@ struct EntityDataStore {
             calls[index] += 1;
             indices[index] = entity.getIndex();
             isBoundary[index] = entity.isBoundary();
-            orientations[index] = entity.getOrientation();
+            orientations[index] = entity.getOrientation().getIndex();
             measure[index] = entity.getMeasure();
 
             auto coordinates = entity.getCoordinates();
