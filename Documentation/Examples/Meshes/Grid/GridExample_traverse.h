@@ -78,13 +78,11 @@ void traverseGrid()
       double sum = 0.0;
       double count = 0.0;
       if( face.getCoordinates() - normal >= CoordinatesType( 0, 0 ) ) {
-         auto neighbour = face.template getNeighbourEntity< Dimension >( -normal );
-         sum += cells_view[ neighbour.getIndex() ];
+         sum += cells_view[ face.template getNeighbourEntityIndex< Dimension >( -normal, 0 ) ];
          count++;
       }
       if( face.getCoordinates() < face.getGrid().getDimensions() ) {
-         auto neighbour = face.template getNeighbourEntity< Dimension >( { 0, 0 } );
-         sum += cells_view[ neighbour.getIndex() ];
+         sum += cells_view[ face.template getNeighbourEntityIndex< Dimension >( { 0, 0 }, 0 ) ];
          count++;
       }
       faces_view[ face.getIndex() ] = sum / count;
@@ -112,30 +110,26 @@ void traverseGrid()
    }
 
    /***
-    * Setup values of all vertexes to an average value of its neighbouring cells.
+    * Setup values of all vertexes to an average value of its neighbour cells.
     */
    grid.template forAllEntities< 0 >( [=] __cuda_callable__ ( const GridVertex& vertex ) mutable {
       double sum = 0.0;
       double count = 0.0;
       auto grid_dimensions = vertex.getGrid().getDimensions();
       if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() > 0 ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1,-1 } );
-         sum += cells_view[ neighbour.getIndex() ];
+         sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { -1,-1 }, 0 ) ];
          count++;
       }
       if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() < grid_dimensions.y() ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1,0 } );
-         sum += cells_view[ neighbour.getIndex() ];
+         sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { -1,0 }, 0 ) ];
          count++;
       }
       if( vertex.getCoordinates().x() < grid_dimensions.x() && vertex.getCoordinates().y() > 0 ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( { 0,-1 } );
-         sum += cells_view[ neighbour.getIndex() ];
+         sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { 0,-1 }, 0 ) ];
          count++;
       }
       if( vertex.getCoordinates() < vertex.getGrid().getDimensions() ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( {0,0} );
-         sum += cells_view[ neighbour.getIndex() ];
+         sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( {0,0}, 0 ) ];
          count++;
       }
       vertexes_view[ vertex.getIndex() ] = sum / count;

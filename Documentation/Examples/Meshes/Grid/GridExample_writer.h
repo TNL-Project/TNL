@@ -96,23 +96,19 @@ void writeGrid()
       double count = 0.0;
       auto grid_dimensions = vertex.getGrid().getDimensions();
       if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() > 0 ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1,-1 } );
-         sum += cells_view[ neighbour.getIndex() ];
+         sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { -1,-1 }, 0 ) ];
          count++;
       }
       if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() < grid_dimensions.y() ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1,0 } );
-         sum += cells_view[ neighbour.getIndex() ];
+         sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { -1,0 }, 0 ) ];
          count++;
       }
       if( vertex.getCoordinates().x() < grid_dimensions.x() && vertex.getCoordinates().y() > 0 ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( { 0,-1 } );
-         sum += cells_view[ neighbour.getIndex() ];
+         sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { 0,-1 }, 0 ) ];
          count++;
       }
       if( vertex.getCoordinates() < vertex.getGrid().getDimensions() ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( {0,0} );
-         sum += cells_view[ neighbour.getIndex() ];
+         sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { 0,0 }, 0 ) ];
          count++;
       }
       vertexes_view[ vertex.getIndex() ] = sum / count;
