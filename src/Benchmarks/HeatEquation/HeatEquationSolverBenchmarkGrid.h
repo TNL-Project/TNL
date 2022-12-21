@@ -12,7 +12,8 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
    void
    exec( const Index xSize, const Index ySize ) override
    {
-      using Grid2D = TNL::Meshes::Grid< 2, Real, Device, int >;
+      using Grid2D = TNL::Meshes::Grid<2, Real, Device, int>;
+      using Coordinates = typename Grid2D::CoordinatesType;
 
       Grid2D grid;
 
@@ -34,16 +35,16 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
          auto width = grid.getDimensions().x();
-         auto next = [ = ] __cuda_callable__( const typename Grid2D::template EntityType< 2 >& entity ) mutable
-         {
-            auto index = entity.getIndex();
-            auto element = uxView[ index ];
-            auto center = 2 * element;
+         auto next = [=] __cuda_callable__(const typename Grid2D::template EntityType<2>&entity) mutable {
+            const Index centerIdx = entity.getIndex();
+            const Real& center = uxView[ centerIdx ];
 
-            auxView[ index ] = element
-                             + ( ( uxView[ index - 1 ] - center + uxView[ index + 1 ] ) * hx_inv
-                                 + ( uxView[ index - width ] - center + uxView[ index + width ] ) * hy_inv )
-                                  * timestep;
+            auxView[ centerIdx ] = center + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1,  0 ) ) ] -
+                                                2.0 * center +
+                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  1,  0 ) ) ] ) * hx_inv +
+                                              ( uxView[ entity.getNeighbourEntityIndex( Coordinates(  0, -1 ) ) ] -
+                                                2.0 * center +
+                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  0, -1 ) ) ] ) * hy_inv ) * timestep;
          };
 
          grid.template forInteriorEntities< 2 >( next );
