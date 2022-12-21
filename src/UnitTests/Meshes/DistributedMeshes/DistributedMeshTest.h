@@ -132,15 +132,11 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
          cell.setCoordinates( { x, y } );
          cell.refresh();
          if( cell_global_to_local.count( cell.getIndex() ) == 0 ) {
-            meshBuilder.getCellSeed( idx ).setCornerId(
-               0, vert_global_to_local[ cell.template getNeighbourEntity< 0 >( { 0, 0 } ).getIndex() ] );
-            meshBuilder.getCellSeed( idx ).setCornerId(
-               1, vert_global_to_local[ cell.template getNeighbourEntity< 0 >( { 1, 0 } ).getIndex() ] );
-            meshBuilder.getCellSeed( idx ).setCornerId(
-               2, vert_global_to_local[ cell.template getNeighbourEntity< 0 >( { 1, 1 } ).getIndex() ] );
-            meshBuilder.getCellSeed( idx ).setCornerId(
-               3, vert_global_to_local[ cell.template getNeighbourEntity< 0 >( { 0, 1 } ).getIndex() ] );
-            cell_global_to_local.insert( { cell.getIndex(), idx } );
+            meshBuilder.getCellSeed( idx ).setCornerId( 0, vert_global_to_local[ cell.template getNeighbourEntityIndex< 0 >( { 0, 0 }, 0 ) ] );
+            meshBuilder.getCellSeed( idx ).setCornerId( 1, vert_global_to_local[ cell.template getNeighbourEntityIndex< 0 >( { 1, 0 }, 0 ) ] );
+            meshBuilder.getCellSeed( idx ).setCornerId( 2, vert_global_to_local[ cell.template getNeighbourEntityIndex< 0 >( { 1, 1 }, 0 ) ] );
+            meshBuilder.getCellSeed( idx ).setCornerId( 3, vert_global_to_local[ cell.template getNeighbourEntityIndex< 0 >( { 0, 1 }, 0 ) ] );
+            cell_global_to_local.insert( {cell.getIndex(), idx} );
             idx++;
          }
       };

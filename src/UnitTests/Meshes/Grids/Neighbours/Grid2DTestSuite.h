@@ -6,22 +6,14 @@
 
 #include "support.h"
 
-using Implementations = ::testing::Types<
-#if defined( __CUDACC__ )
-   TNL::Meshes::Grid< 2, double, TNL::Devices::Host, int >,
-   TNL::Meshes::Grid< 2, float, TNL::Devices::Host, int >,
-   TNL::Meshes::Grid< 2, double, TNL::Devices::Cuda, int >,
-   TNL::Meshes::Grid< 2, float, TNL::Devices::Cuda, int >
-#elif defined( __HIP__ )
-   TNL::Meshes::Grid< 2, double, TNL::Devices::Host, int >,
-   TNL::Meshes::Grid< 2, float, TNL::Devices::Host, int >,
-   TNL::Meshes::Grid< 2, double, TNL::Devices::Hip, int >,
-   TNL::Meshes::Grid< 2, float, TNL::Devices::Hip, int >
-#else
-   TNL::Meshes::Grid< 2, double, TNL::Devices::Host, int >,
-   TNL::Meshes::Grid< 2, float, TNL::Devices::Host, int >
+using Implementations = ::testing::Types< TNL::Meshes::Grid< 2, double, TNL::Devices::Sequential, int >,
+                                          TNL::Meshes::Grid< 2, float, TNL::Devices::Sequential, int >
+#ifdef HAVE_CUDA
+                                          ,
+                                          TNL::Meshes::Grid< 2, double, TNL::Devices::Cuda, int >,
+                                          TNL::Meshes::Grid< 2, float, TNL::Devices::Cuda, int >
 #endif
-   >;
+                                          >;
 
 template< class GridType >
 class GridTestSuite : public ::testing::Test
@@ -29,19 +21,18 @@ class GridTestSuite : public ::testing::Test
 protected:
    GridType grid;
 
-   std::vector< typename GridType::CoordinatesType > dimensions = { { 1, 1 },
-                                                                    { 2, 1 },
-                                                                    { 1, 2 },
-                                                                    { 2, 2 },
-                                                                    { 3, 3 }
-#if defined( __CUDACC__ ) || defined( __HIP__ ) || defined( HAVE_OPENMP )
-                                                                    ,
-                                                                    { 100, 1 },
-                                                                    { 1, 100 },
-                                                                    { 100, 100 }
-#endif
-   };
+   std::vector< typename GridType::CoordinatesType > dimensions = { { 1, 1 }, { 2, 1 }, { 1, 2 }, { 2, 2 }, { 3, 3 }, { 1, 7 },
+                                                                    { 7, 1 }, { 7, 7 }, { 3, 8 }, { 8, 3 }, { 8, 8 } };
 };
+
+template< typename Grid, int EntityDimension, int NeighbourEntityDimension >
+void
+testNeighbourEntityIndexes( Grid& grid, const typename Grid::CoordinatesType& dimension, const int scale = 1 )
+{
+   for( int i = -1 * scale; i < 1 * scale; i++ )
+      testNeighbourEntityIndexes< Grid, EntityDimension, NeighbourEntityDimension >(
+         grid, dimension, typename Grid::CoordinatesType( i ) );
+}
 
 template< typename Grid, int EntityDimension, int NeighbourEntityDimension >
 void

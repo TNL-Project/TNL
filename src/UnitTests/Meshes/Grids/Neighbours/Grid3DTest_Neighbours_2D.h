@@ -5,20 +5,30 @@
 
 TYPED_TEST_SUITE( GridTestSuite, Implementations );
 
-TYPED_TEST( GridTestSuite, TestNeighbour_OF_2D_Entity_TO_0D_By_DynamicGetter )
+TYPED_TEST(GridTestSuite, Test_0D_Neighbours_Of_2D_Entities_EntityIndexes )
 {
-   // EntityDimension | NeighbourEntityDimension | Orientationation
-   for( const auto& dimension : this->dimensions ) {
-      testDynamicNeighbourEntityGetterForAllStencils< TypeParam, 2, 0 >( this->grid, dimension );
-      testDynamicNeighbourEntityGetterForAllStencils< TypeParam, 2, 0, 0 >( this->grid, dimension );
+   for (const auto& dimension : this->dimensions) {
+      testNeighbourEntityIndexes<TypeParam, 2, 0>( this->grid, dimension );
    }
 }
 
-TYPED_TEST( GridTestSuite, TestNeighbour_OF_2D_Entity_TO_1D_By_DynamicGetter )
+TYPED_TEST(GridTestSuite, Test_0D_Neighbours_Of_2D_Entities_DynamicGetter) {
+   for (const auto& dimension : this->dimensions) {
+      testDynamicNeighbourEntityGetterForAllStencils<TypeParam, 2, 0>(this -> grid, dimension);
+      testDynamicNeighbourEntityGetterForAllStencils<TypeParam, 2, 0, 0>(this -> grid, dimension);
+   }
+}
+
+TYPED_TEST(GridTestSuite, Test_1D_Neighbours_Of_2D_Entities_EntityIndexes )
 {
-   // EntityDimension | NeighbourEntityDimension | Orientationation
-   for( const auto& dimension : this->dimensions ) {
-      testDynamicNeighbourEntityGetterForAllStencils< TypeParam, 2, 1 >( this->grid, dimension );
+   for (const auto& dimension : this->dimensions) {
+      testNeighbourEntityIndexes<TypeParam, 2, 1>( this->grid, dimension );
+   }
+}
+
+TYPED_TEST(GridTestSuite, Test_1D_Neighbours_Of_2D_Entities_DynamicGetter) {
+   for (const auto& dimension : this->dimensions) {
+      testDynamicNeighbourEntityGetterForAllStencils<TypeParam, 2, 1>(this -> grid, dimension);
 
       testDynamicNeighbourEntityGetterForAllStencils< TypeParam, 2, 1, 0 >( this->grid, dimension );
       testDynamicNeighbourEntityGetterForAllStencils< TypeParam, 2, 1, 1 >( this->grid, dimension );
@@ -26,11 +36,16 @@ TYPED_TEST( GridTestSuite, TestNeighbour_OF_2D_Entity_TO_1D_By_DynamicGetter )
    }
 }
 
-TYPED_TEST( GridTestSuite, TestNeighbour_OF_2D_Entity_TO_2D_By_DynamicGetter )
+TYPED_TEST(GridTestSuite, Test_2D_Neighbours_Of_2D_Entities_EntityIndexes )
 {
-   // EntityDimension | NeighbourEntityDimension | Orientation
-   for( const auto& dimension : this->dimensions ) {
-      testDynamicNeighbourEntityGetterForAllStencils< TypeParam, 2, 2 >( this->grid, dimension );
+   for (const auto& dimension : this->dimensions) {
+      testNeighbourEntityIndexes<TypeParam, 2, 2>( this->grid, dimension );
+   }
+}
+
+TYPED_TEST(GridTestSuite, Test_2D_Neighbours_Of_2D_Entities_DynamicGetter) {
+   for (const auto& dimension : this->dimensions) {
+      testDynamicNeighbourEntityGetterForAllStencils<TypeParam, 2, 2>(this -> grid, dimension);
 
       testDynamicNeighbourEntityGetterForAllStencils< TypeParam, 2, 2, 0 >( this->grid, dimension );
       testDynamicNeighbourEntityGetterForAllStencils< TypeParam, 2, 2, 1 >( this->grid, dimension );
@@ -38,12 +53,17 @@ TYPED_TEST( GridTestSuite, TestNeighbour_OF_2D_Entity_TO_2D_By_DynamicGetter )
    }
 }
 
-TYPED_TEST( GridTestSuite, TestNeighbour_OF_2D_Entity_TO_3D_By_DynamicGetter )
+TYPED_TEST(GridTestSuite, Test_3D_Neighbours_Of_2D_Entities_EntityIndexes )
 {
-   // EntityDimension | NeighbourEntityDimension | Orientation
-   for( const auto& dimension : this->dimensions ) {
-      testDynamicNeighbourEntityGetterForAllStencils< TypeParam, 2, 3 >( this->grid, dimension );
-      testDynamicNeighbourEntityGetterForAllStencils< TypeParam, 2, 3, 0 >( this->grid, dimension );
+   for (const auto& dimension : this->dimensions) {
+      testNeighbourEntityIndexes<TypeParam, 2, 3>( this->grid, dimension );
+   }
+}
+
+TYPED_TEST(GridTestSuite, Test_3D_Neighbours_Of_2D_Entities_DynamicGetter) {
+   for (const auto& dimension : this->dimensions) {
+      testDynamicNeighbourEntityGetterForAllStencils<TypeParam, 2, 3>(this -> grid, dimension);
+      testDynamicNeighbourEntityGetterForAllStencils<TypeParam, 2, 3, 0>(this -> grid, dimension);
    }
 }
 
