@@ -15,6 +15,64 @@ class NeighbourGridEntityGetterTestCase {
       using DataStore = EntityDataStore<Index, Real, typename Grid::DeviceType, Grid::getMeshDimension()>;
       using HostDataStore = EntityDataStore<Index, Real, TNL::Devices::Host, Grid::getMeshDimension()>;
 
+      void checkIndexes(const Grid& grid, const Coordinate& offset) {
+         SCOPED_TRACE("Check indexes of neighbour entities");
+
+         constexpr int neighbourEntitiesOrientationsCount = Grid::getEntityOrientationsCount(NeighbourEntityDimension);
+
+         auto check = [=] __cuda_callable__(const typename Grid::template EntityType<EntityDimension>& entity) mutable {
+
+            /////
+            // First test neighbour entities with the same dimension and orientation
+            if constexpr( EntityDimension == NeighbourEntityDimension )
+               if( entity.getCoordinates() + offset > typename Grid::CoordinatesType( 0 ) &&
+                  entity.getCoordinates() + offset < entity.getGrid().getDimensions() + entity.getNormals()  )
+                  {
+                     auto neighbourEntity = entity.template getNeighbourEntity( offset );
+                     auto neighbourEntityIndex = entity.getNeighbourEntityIndex( offset );
+                     EXPECT_EQ( neighbourEntity.getIndex(), neighbourEntityIndex )
+                                 << "Wrong index of neighbour entity: " << std::endl
+                                 << " Grid dimension: " << Grid::getMeshDimension() << std::endl
+                                 << " Grid dimensions: " << grid.getDimensions() << std::endl
+                                 << " Entity dimension: " << EntityDimension << std::endl
+                                 << " Entity coordinates: " << entity.getCoordinates() << std::endl
+                                 << " Entity index: " << entity.getIndex() << std::endl
+                                 << " Entity orientation normals: " << entity.getNormals() << std::endl
+                                 << " Offset: " << offset << std::endl
+                                 << " Neighbour entity coordinates: " << neighbourEntity.getCoordinates() << std::endl
+                                 << " Neighbour entity index: " << neighbourEntity.getIndex() << std::endl
+                                 << " Neighbour entity orientation normals: " << neighbourEntity.getNormals() << std::endl;
+                  }
+
+            /////
+            // Next check neighbour entities with different orientation
+            for( Index orientationIdx = 0; orientationIdx < neighbourEntitiesOrientationsCount; orientationIdx++ ) {
+               auto normals = grid. template getNormals< NeighbourEntityDimension >( orientationIdx );
+               if( entity.getCoordinates() + offset > typename Grid::CoordinatesType( 0 ) &&
+                   entity.getCoordinates() + offset < entity.getGrid().getDimensions() + normals  )
+                  {
+                     auto neighbourEntity = entity.template getNeighbourEntity< NeighbourEntityDimension >( offset, normals );
+                     auto neighbourEntityIndex = entity.template getNeighbourEntityIndex< NeighbourEntityDimension >( offset, orientationIdx );
+                     EXPECT_EQ( neighbourEntity.getIndex(), neighbourEntityIndex )
+                                << "Wrong index of neighbour entity: " << std::endl
+                                << " Grid dimension: " << Grid::getMeshDimension() << std::endl
+                                << " Grid dimensions: " << grid.getDimensions() << std::endl
+                                << " Entity dimension: " << EntityDimension << std::endl
+                                << " Entity coordinates: " << entity.getCoordinates() << std::endl
+                                << " Entity index: " << entity.getIndex() << std::endl
+                                << " Entity orientation normals: " << entity.getNormals() << std::endl
+                                << " Offset: " << offset << std::endl
+                                << " Normals: " << normals << std::endl
+                                << " Neighbour entity dimension: " << NeighbourEntityDimension << std::endl
+                                << " Neighbour entity coordinates: " << neighbourEntity.getCoordinates() << std::endl
+                                << " Neighbour entity index: " << neighbourEntity.getIndex() << std::endl
+                                << " Neighbour entity orientation normals: " << neighbourEntity.getNormals() << std::endl;
+                  }
+            }
+         };
+         grid.template forAllEntities<EntityDimension>( check );
+      }
+
       void storeByDynamicAccessor(const Grid& grid, DataStore& store, const Coordinate& offset) {
          SCOPED_TRACE("Store using dynamic accessor without orientation");
 
@@ -24,10 +82,11 @@ class NeighbourGridEntityGetterTestCase {
          auto update = [=] __cuda_callable__(const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             int neighbourEntityOrientation = TNL::min(entity.getOrientation().getIndex(), neighbourOrientationsCount - 1);
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
-            Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(neighbourEntityOrientation);
+            auto normals = grid.template getNormals<NeighbourEntityDimension>(neighbourEntityOrientation);
+            Coordinate boundary = grid.getDimensions() + normals;
 
             if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
-               auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension>(offset);
+               auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension>(offset, normals);
 
                neighbour.refresh();
 
@@ -45,17 +104,17 @@ class NeighbourGridEntityGetterTestCase {
          auto view = store.getView();
          auto update = [=] __cuda_callable__(const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
-            Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(NeighbourEntityOrientation);
+            auto normals = grid.template getNormals<NeighbourEntityDimension>(NeighbourEntityOrientation);
+            Coordinate boundary = grid.getDimensions() + normals;
 
             if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
-               auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension, NeighbourEntityOrientation>(offset);
+               auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension>(offset,normals);
 
                neighbour.refresh();
 
                view.store(neighbour, entity.getIndex());
             }
          };
-
          grid.template forAllEntities<EntityDimension>(update);
       }
 
@@ -148,6 +207,22 @@ class NeighbourGridEntityGetterTestCase {
       };
 };
 
+template<typename Grid,
+         int EntityDimension,
+         int NeighbourEntityDimension>
+void testNeighbourEntityIndexes(Grid& grid, const typename Grid::CoordinatesType& dimensions, const typename Grid::CoordinatesType& offset) {
+   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
+   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
+   SCOPED_TRACE("Neighbour Entity Dimension: " + TNL::convertToString(NeighbourEntityDimension));
+   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+
+   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+
+   using Test = NeighbourGridEntityGetterTestCase<Grid, EntityDimension, NeighbourEntityDimension>;
+
+   Test test;
+   test.checkIndexes( grid, offset );
+}
 
 template<typename Grid,
          int EntityDimension,
@@ -190,6 +265,5 @@ void testDynamicNeighbourEntityGetter(Grid& grid, const typename Grid::Coordinat
    test.template storeByDynamicAccessorWithOrientation<NeighbourEntityOrientation>(grid, store, offset);
    test.verify(grid, store, offset, NeighbourEntityOrientation);
 }
-
 
 #endif
