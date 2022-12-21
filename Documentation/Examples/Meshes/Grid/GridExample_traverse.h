@@ -75,17 +75,15 @@ traverseGrid()
    grid.template forAllEntities< Dimension - 1 >(
       [ = ] __cuda_callable__( const GridFace& face ) mutable
       {
-         const CoordinatesType& normal = face.getNormals();
+         const CoordinatesType normal = face.getNormals();
          double sum = 0.0;
          double count = 0.0;
          if( TNL::all( greaterEqual( face.getCoordinates() - normal, 0 ) ) ) {
-            auto neighbour = face.template getNeighbourEntity< Dimension >( -normal );
-            sum += cells_view[ neighbour.getIndex() ];
+            sum += cells_view[ face.template getNeighbourEntityIndex< Dimension >( -normal, 0 ) ];
             count++;
          }
          if( TNL::all( less( face.getCoordinates(), face.getGrid().getDimensions() ) ) ) {
-            auto neighbour = face.template getNeighbourEntity< Dimension >( { 0, 0 } );
-            sum += cells_view[ neighbour.getIndex() ];
+            sum += cells_view[ face.template getNeighbourEntityIndex< Dimension >( { 0, 0 }, 0 ) ];
             count++;
          }
          faces_view[ face.getIndex() ] = sum / count;
@@ -113,8 +111,8 @@ traverseGrid()
    }
    //! [print faces]
 
-   //! [initialize vertices]
-   // Setup values of all vertices to an average value of its neighboring cells
+   //! [initialize vertexes]
+   // Setup values of all vertexes to an average value of its neighboring cells
    grid.template forAllEntities< 0 >(
       [ = ] __cuda_callable__( const GridVertex& vertex ) mutable
       {
@@ -122,28 +120,24 @@ traverseGrid()
          double count = 0.0;
          auto grid_dimensions = vertex.getGrid().getDimensions();
          if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() > 0 ) {
-            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1, -1 } );
-            sum += cells_view[ neighbour.getIndex() ];
+            sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { -1, -1 }, 0 ) ];
             count++;
          }
          if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() < grid_dimensions.y() ) {
-            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1, 0 } );
-            sum += cells_view[ neighbour.getIndex() ];
+            sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { -1, 0 }, 0 ) ];
             count++;
          }
          if( vertex.getCoordinates().x() < grid_dimensions.x() && vertex.getCoordinates().y() > 0 ) {
-            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { 0, -1 } );
-            sum += cells_view[ neighbour.getIndex() ];
+            sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { 0, -1 }, 0 ) ];
             count++;
          }
          if( TNL::all( less( vertex.getCoordinates(), vertex.getGrid().getDimensions() ) ) ) {
-            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { 0, 0 } );
-            sum += cells_view[ neighbour.getIndex() ];
+            sum += cells_view[ vertex.template getNeighbourEntityIndex< Dimension >( { 0, 0 }, 0 ) ];
             count++;
          }
-         vertices_view[ vertex.getIndex() ] = sum / count;
+         vertexes_view[ vertex.getIndex() ] = sum / count;
       } );
-   //! [initialize vertices]
+   //! [initialize vertexes]
 
    //! [print vertices]
    // Print values of all vertices in the grid.
