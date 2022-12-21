@@ -559,6 +559,29 @@ public:
    Index
    getEntityIndex( const Entity& entity ) const;
 
+   template< typename Entity >
+   __cuda_callable__
+   Index
+   getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset ) const;
+
+   template< int NeighbourEntityDimension, typename Entity >
+   __cuda_callable__
+   Index
+   getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset,
+                            Index neighbourEntityOrientation ) const;
+
+   template< typename Entity >
+   __cuda_callable__
+   Entity
+   getNeighbourEntity( const Entity& entity, const CoordinatesType& offset ) const;
+
+   template< int NeighbourEntityDimension, typename Entity >
+   __cuda_callable__
+   EntityType< NeighbourEntityDimension >
+   getNeighbourEntity( const Entity& entity, const CoordinatesType& offset,
+                       const NormalsType& neighbourEntityOrientation ) const;
+
+
    /**
     * \brief Sets the subdomain of distributed grid.
     *

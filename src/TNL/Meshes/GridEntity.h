@@ -88,10 +88,13 @@ public:
     * \param grid is a reference on a grid the entity belongs to.
     */
 
-   template< typename... Indexes, std::enable_if_t< ( Grid::getMeshDimension() > 1 ) && sizeof...( Indexes ) == Grid::getMeshDimension(), bool > = true >
+   /*template< typename... Indexes, std::enable_if_t< ( Grid::getMeshDimension() > 1 ) && sizeof...( Indexes ) == Grid::getMeshDimension(), bool > = true >
    // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
    __cuda_callable__
-   GridEntity( Indexes&&... indexes );
+   GridEntity( Indexes&&... indexes );*/
+   template< typename Value >
+   __cuda_callable__ // TODO: This is only temporary
+   GridEntity( const std::initializer_list< Value >& elems );
 
    /**
     * \brief Constructor with a grid reference and grid entity coordinates.
@@ -278,7 +281,7 @@ public:
    //setOrientation( IndexType orientation );
 
    /**
-    * \brief Returns the neighbour grid entity.
+    * \brief Returns the neighbour grid entity. TODO: FIX - CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
     *
     * \tparam Dimension is a dimension of the neighbour grid entity.
     * \param offset is a offset of coordinates of the neighbour entity relative to this grid entity.
@@ -287,29 +290,46 @@ public:
     *            orientation 0.
     * \return neighbour grid entity.
     */
-   template< int Dimension >
+   template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
-   GridEntity< Grid, Dimension >
+   GridEntity< Grid, EntityDimension >
    getNeighbourEntity( const CoordinatesType& offset ) const;
 
-   template< int Dimension >
    __cuda_callable__
    IndexType
    getNeighbourEntityIndex( const CoordinatesType& offset ) const;
 
 
    /**
-    * \brief Returns the neighbour grid entity.
+    * \brief Returns the neighbour grid entity. TODO: FIX - CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
     *
     * \tparam Dimension is a dimension of the neighbour grid entity.
     * \tparam Orientation is an orientation index of the grid entity.
     * \param offset is a offset of coordinates of the neighbour entity relative to this grid entity.
     * \return neighbour grid entity.
     */
-   template< int Dimension, int Orientation >
+   template< int NeighbourEntityDimension >
    [[nodiscard]] __cuda_callable__
-   GridEntity< Grid, Dimension >
-   getNeighbourEntity( const CoordinatesType& offset ) const;
+   GridEntity< Grid, NeighbourEntityDimension >
+   getNeighbourEntity( const CoordinatesType& offset,
+                       const NormalsType& neighbourEntityOrientation ) const;
+
+   /**
+    * \brief
+    *
+    * Note: Entity orientation is given by its index for performance reason.
+    *
+    * \tparam NeighbourEntityDimension
+    * \param offset
+    * \param neighbourEntityOrientation
+    * \return __cuda_callable__
+    */
+   template< int NeighbourEntityDimension >
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getNeighbourEntityIndex( const CoordinatesType& offset,
+                            IndexType neighbourEntityOrientation ) const;
+
 
    /**
     * \brief Returns the point at the origin of the grid entity.

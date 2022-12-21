@@ -566,6 +566,9 @@ Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) c
 {
    static_assert( Entity::getEntityDimension() <= Dimension && Entity::getEntityDimension() >= 0,
                   "Wrong grid entity dimensions." );
+   TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0 ), "Wrong entity coordinates" );
+   TNL_ASSERT_LT( entity.getCoordinates(), this->getDimensions() + entity.getNormals(), "Wrong entity coordinates" );
+
 
    IndexType idx{ 0 }, aux{ 1 };
    Algorithms::staticFor< IndexType, 0, Dimension >(
@@ -647,6 +650,64 @@ Grid< Dimension, Real, Device, Index >::getEntity( IndexType entityIdx ) const -
 {
    static_assert( EntityDimension <= getMeshDimension(), "Entity dimension must be lower or equal to grid dimension." );
    return EntityType< EntityDimension >( *this, entityIdx );
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+   template< typename Entity >
+__cuda_callable__
+auto
+Grid< Dimension, Real, Device, Index >::
+getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset ) const -> Index
+{
+   IndexType idx{ 0 }, aux{ 1 };
+   Algorithms::staticFor< IndexType, 0, Dimension >(
+      [&] ( Index i ) mutable {
+         idx += aux * offset[ i ];
+         aux *= this->getDimensions()[ i ] + entity.getNormals()[ i ];
+   } );
+   return entity.getIndex() + idx;
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+   template< int NeighbourEntityDimension, typename Entity  >
+   __cuda_callable__
+auto
+Grid< Dimension, Real, Device, Index >::
+getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset,
+                         Index neighbourEntityOrientation ) const -> Index
+{
+   const Index normalsOffset = Templates::firstKCombinationSum( NeighbourEntityDimension, Dimension );
+   const NormalsType& neighbourEntityNormals = this->normals( normalsOffset + neighbourEntityOrientation );
+   IndexType idx{ 0 }, aux{ 1 };
+   Algorithms::staticFor< IndexType, 0, Dimension >(
+      [&] ( Index i ) mutable {
+         idx += aux * ( entity.getCoordinates()[ i ] + offset[ i ] );
+         aux *= this->getDimensions()[ i ] + neighbourEntityNormals[ i ];
+   } );
+   if constexpr( NeighbourEntityDimension == 0 || NeighbourEntityDimension == getMeshDimension() )
+      return idx;
+   return this->entitiesAlongNormalsIndexOffsets[ normalsOffset + neighbourEntityOrientation ] + idx;
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+   template< typename Entity >
+__cuda_callable__
+Entity
+Grid< Dimension, Real, Device, Index >::
+getNeighbourEntity( const Entity& entity, const CoordinatesType& offset ) const
+{
+   return Entity( *this, entity.getCoordinates() + offset, entity.getOrientation().getNormals() );
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+   template< int NeighbourEntityDimension, typename Entity >
+__cuda_callable__
+auto
+Grid< Dimension, Real, Device, Index >::
+getNeighbourEntity( const Entity& entity, const CoordinatesType& offset,
+                    const NormalsType& neighbourEntityOrientation ) const -> EntityType< NeighbourEntityDimension >
+{
+   return EntityType< NeighbourEntityDimension >( *this, CoordinatesType( entity.getCoordinates() + offset ), neighbourEntityOrientation );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -879,6 +940,7 @@ Grid< Dimension, Real, Device, Index >::forAllEntities( Func func, FuncArgs... a
                                            const Grid& grid,
                                            FuncArgs... args ) mutable
       {
+         TNL_ASSERT_EQ( normals, grid.template getNormals< EntityDimension >( orientation ), "Wrong index of entity orientation." );
          EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
 
          func( entity, args... );
