@@ -6,15 +6,38 @@
 #include "../CoordinateIterator.h"
 #include <TNL/String.h>
 
-template< int Size >
-using Coordinate = TNL::Containers::StaticVector< Size, int >;
 
-template< int Size >
-void
-testIndexCollapse( const int base )
-{
-   SCOPED_TRACE( "Coordinate size: " + TNL::convertToString( Size ) );
-   SCOPED_TRACE( "Base: " + TNL::convertToString( base ) );
+void testCombinationSum(const int k, const int n, const int expectation) {
+   EXPECT_EQ(TNL::Meshes::Templates::firstKCombinationSum(k, n), expectation) << k << " " << n;
+}
+
+TEST(TemplatesTestSuite, FirstKCombinationsTest) {
+  testCombinationSum(0, 1, 0);
+  testCombinationSum(1, 1, 1);
+
+  testCombinationSum(0, 2, 0);
+  testCombinationSum(1, 2, 1);
+  testCombinationSum(2, 2, 3);
+
+  testCombinationSum(0, 3, 0);
+  testCombinationSum(1, 3, 1);
+  testCombinationSum(2, 3, 4);
+  testCombinationSum(3, 3, 7);
+
+  testCombinationSum(0, 4, 0);
+  testCombinationSum(1, 4, 1);
+  testCombinationSum(2, 4, 5);
+  testCombinationSum(3, 4, 11);
+  testCombinationSum(4, 4, 15);
+}
+
+template<int Size>
+using Coordinate = TNL::Containers::StaticVector<Size, int>;
+
+template<int Size>
+void testIndexCollapse(const int base) {
+   SCOPED_TRACE("Coordinate size: " + TNL::convertToString(Size));
+   SCOPED_TRACE("Base: " + TNL::convertToString(base));
 
    const int halfBase = base >> 1;
    Coordinate< Size > start;

@@ -55,7 +55,7 @@ public:
          using NormalsGetterType = NormalsGetter< typename Grid::IndexType, NeighbourEntityDimension, GridDimension >;
          using CoordinatesType = typename Grid::CoordinatesType;
 
-         constexpr int orientationsCount = Templates::combination( NeighbourEntityDimension, GridDimension );
+         constexpr int orientationsCount = combinationsCount( NeighbourEntityDimension, GridDimension );
 
          const CoordinatesType coordinate = entity.getCoordinates() + offset;
          const int orientation = TNL::min( orientationsCount - 1, entity.getOrientation().getIndex() );

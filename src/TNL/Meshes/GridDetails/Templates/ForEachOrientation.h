@@ -59,10 +59,7 @@ struct _ForEachOrientationMain
 {};
 
 template< typename Index, int EntityDimension, int Dimension, int skipOrientation = -1 >
-struct ForEachOrientation : _ForEachOrientationMain< Index,
-                                                     combinationsCount( EntityDimension, Dimension ) - 1,
-                                                     EntityDimension,
-                                                     Dimension,
-                                                     skipOrientation >
+struct ForEachOrientation
+: _ForEachOrientationMain< Index, combinationsCount( EntityDimension, Dimension ) - 1, EntityDimension, Dimension, skipOrientation >
 {};
 }  // namespace TNL::Meshes::Templates

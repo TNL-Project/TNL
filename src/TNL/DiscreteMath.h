@@ -129,32 +129,23 @@ combinationsCount( Index k, Index n )
 {
    if( k < 0 )
       return 0;
-   return discreteProduct< Index >( k + 1, n ) / discreteProduct< Index >( 1, n - k );
+   return product< Index >( k + 1, n ) / product< Index >( 1, n - k );
 }
 
 /**
- * \brief Computes the sum of all i-combinations in set of n elements for i from 0 up to k-1.
+ * \brief Compute number of all i-combinations in set of n elements for all i lower or equal to k.
  *
- * \tparam Index is an integral type used for the evaluation of the sum.
- * \param k denotes the number of terms in the sum.
- * \param n denotes the number of elements in the set.
- * \return Sum of all i-combinations in set of n elements for i from 0 up to k-1.
+ * \tparam Index is a discrete type used for evaluation of the cumulative number of combinations.
+ * \param k denotes maximal number of elements in combination.
+ * \param n denotes number of all elements in the set.
+ * \return constexpr Index is number of all i-combinations in set of n elements for all i lower or equal to k.
  */
 template< typename Index >
 constexpr Index
-firstKCombinationsSum( Index k, Index n )
+cumulativeCombinationsCount( Index k, Index n )
 {
-   if( k == 0 )
-      return 0;
-
-   if( k == n )
-      return ( 1 << n ) - 1;
-
-   if( k == n + 1 )
-      return 1 << n;
-
    Index result = 0;
-   for( Index i = 0; i < k; i++ )
+   for( Index i = 0; i <=k; i++ )
       result += combinationsCount( i, n );
    return result;
 }

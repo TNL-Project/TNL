@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/DiscreteMath.h>
 #include <TNL/Containers/StaticVector.h>
 
 namespace TNL::Meshes::Templates {
@@ -46,6 +47,25 @@ makeCollapsedIndex( const int base )
    }
 
    return index;
+}
+
+template< typename Index >
+constexpr Index
+firstKCombinationSum( Index k, Index n )
+{
+   if( k == 0 )
+      return 0;
+
+   if( k == n )
+      return ( 1 << n ) - 1;
+
+   Index result = 0;
+
+   // Fraction simplification of k-combination
+   for( Index i = 0; i < k; i++ )
+      result += combinationsCount( i, n );
+
+   return result;
 }
 
 constexpr bool
