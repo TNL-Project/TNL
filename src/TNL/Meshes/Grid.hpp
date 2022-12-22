@@ -70,7 +70,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 constexpr Index
 Grid< Dimension, Real, Device, Index >::getEntityOrientationsCount( IndexType entityDimension )
 {
-   return Templates::combination< Index >( entityDimension, Dimension );
+   return combinationsCount< Index >( entityDimension, Dimension );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >

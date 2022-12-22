@@ -1,11 +1,11 @@
 set( COMMON_TESTS
          CoordinateIteratorTest
          EntityDataStoreTest
-         GridNormalsTest
          GridTemplatesTest
  )
 
-set( CPU_TESTS )
+set( CPU_TESTS
+         GridEntitiesOrientationsTest )
 
 set( CUDA_TESTS )
 

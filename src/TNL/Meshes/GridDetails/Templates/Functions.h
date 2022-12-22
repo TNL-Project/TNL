@@ -6,43 +6,13 @@
 
 #pragma once
 
+#include <TNL/DiscreteMath.h>
 #include <TNL/Containers/StaticVector.h>
 #include <type_traits>
 
 namespace TNL {
 namespace Meshes {
 namespace Templates {
-
-constexpr size_t
-pow( size_t Value, size_t Power )
-{
-   size_t result = 1;
-
-   for( size_t i = 0; i < Power; i++ )
-      result *= Value;
-
-   return result;
-}
-
-template< typename Index >
-constexpr Index
-product( Index from, Index to )
-{
-   Index result = 1;
-
-   if( from <= to )
-      for( Index i = from; i <= to; i++ )
-         result *= i;
-
-   return result;
-}
-
-template< typename Index >
-constexpr Index
-combination( Index k, Index n )
-{
-   return product< Index >( k + 1, n ) / product< Index >( 1, n - k );
-}
 
 /**
  * @brief A help method to calculate collapsed index the next way:
@@ -99,7 +69,7 @@ firstKCombinationSum( Index k, Index n )
 
    // Fraction simplification of k-combination
    for( Index i = 0; i < k; i++ )
-      result += combination( i, n );
+      result += combinationsCount( i, n );
 
    return result;
 }

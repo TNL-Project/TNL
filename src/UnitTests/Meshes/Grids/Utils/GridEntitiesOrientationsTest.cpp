@@ -1,0 +1,441 @@
+#ifdef HAVE_GTEST
+
+#include <gtest/gtest.h>
+
+#include <TNL/Containers/StaticVector.h>
+#include <TNL/Meshes/GridDetails/GridEntitiesOrientations.h>
+
+template<int GridDimension, int TotalOrientation >
+void checkEntityDimension( int expectation) {
+   auto entityDimension = TNL::Meshes::GridEntitiesOrientations<GridDimension>::template getEntityDimension< TotalOrientation >();
+
+   EXPECT_EQ( entityDimension, expectation) << "Grid Dimension: " << GridDimension
+                                   << "Total orientation: " << TotalOrientation
+                                   << "Entity Dimension: " << entityDimension;
+}
+
+TEST(GridEntitiesOrientationSuite, CheckEntityDimensionTest_1D ) {
+   checkEntityDimension< 1, 0 >( 0 );
+   checkEntityDimension< 1, 1 >( 1 );
+}
+
+TEST(GridEntitiesOrientationSuite, CheckEntityDimensionTest_2D ) {
+   checkEntityDimension< 2, 0 >( 0 );
+
+   checkEntityDimension< 2, 1 >( 1 );
+   checkEntityDimension< 2, 2 >( 1 );
+
+   checkEntityDimension< 2, 3 >( 2 );
+}
+
+TEST(GridEntitiesOrientationSuite, CheckEntityDimensionTest_3D ) {
+   checkEntityDimension< 3, 0 >( 0 );
+
+   checkEntityDimension< 3, 1 >( 1 );
+   checkEntityDimension< 3, 2 >( 1 );
+   checkEntityDimension< 3, 3 >( 1 );
+
+   checkEntityDimension< 3, 4 >( 2 );
+   checkEntityDimension< 3, 5 >( 2 );
+   checkEntityDimension< 3, 6 >( 2 );
+
+   checkEntityDimension< 3, 7 >( 3 );
+}
+
+TEST(GridEntitiesOrientationSuite, CheckEntityDimensionTest_4D ) {
+   checkEntityDimension< 4,  0 >( 0 );
+
+   checkEntityDimension< 4,  1 >( 1 );
+   checkEntityDimension< 4,  2 >( 1 );
+   checkEntityDimension< 4,  3 >( 1 );
+   checkEntityDimension< 4,  4 >( 1 );
+
+   checkEntityDimension< 4,  5 >( 2 );
+   checkEntityDimension< 4,  6 >( 2 );
+   checkEntityDimension< 4,  7 >( 2 );
+   checkEntityDimension< 4,  8 >( 2 );
+   checkEntityDimension< 4,  9 >( 2 );
+   checkEntityDimension< 4, 10 >( 2 );
+
+   checkEntityDimension< 4, 11 >( 3 );
+   checkEntityDimension< 4, 12 >( 3 );
+   checkEntityDimension< 4, 13 >( 3 );
+   checkEntityDimension< 4, 14 >( 3 );
+
+   checkEntityDimension< 4, 15 >( 4 );
+}
+
+template<int GridDimension, int EntityDimension, int EntityOrientation >
+void compareNormals(const TNL::Containers::StaticVector<GridDimension, int>& expectation) {
+   auto normals = TNL::Meshes::GridEntitiesOrientations<GridDimension>::template getNormals<EntityDimension, EntityOrientation>();
+
+   EXPECT_EQ(normals, expectation) << "Grid Dimension: " << GridDimension
+                                   << "Entity Orientation: " << EntityOrientation
+                                   << "Entity Dimension: " << EntityDimension;
+}
+
+TEST( GridEntitiesOrientationSuite, NormalsTest_1D ) {
+   compareNormals<1, 0, 0>({ 1 });
+   compareNormals<1, 1, 0>({ 0 });
+}
+
+TEST( GridEntitiesOrientationSuite, NormalsTest_2D ) {
+   compareNormals<2, 0, 0>({ 1, 1 });
+
+   compareNormals<2, 1, 0>({ 0, 1 });
+   compareNormals<2, 1, 1>({ 1, 0 });
+
+   compareNormals<2, 2, 0>({ 0, 0 });
+}
+
+TEST( GridEntitiesOrientationSuite, NormalsTest_3D ) {
+   compareNormals<3, 0, 0>({ 1, 1, 1 });
+
+   compareNormals<3, 1, 0>({ 0, 1, 1 });
+   compareNormals<3, 1, 1>({ 1, 0, 1 });
+   compareNormals<3, 1, 2>({ 1, 1, 0 });
+
+   compareNormals<3, 2, 0>({ 0, 0, 1 });
+   compareNormals<3, 2, 1>({ 0, 1, 0 });
+   compareNormals<3, 2, 2>({ 1, 0, 0 });
+
+   compareNormals<3, 3, 0>({ 0, 0, 0 });
+}
+
+TEST( GridEntitiesOrientationSuite, NormalsTest_4D ) {
+   compareNormals<4, 0, 0>({ 1, 1, 1, 1 });
+
+   compareNormals<4, 1, 0>({ 0, 1, 1, 1 });
+   compareNormals<4, 1, 1>({ 1, 0, 1, 1 });
+   compareNormals<4, 1, 2>({ 1, 1, 0, 1 });
+   compareNormals<4, 1, 3>({ 1, 1, 1, 0 });
+
+   compareNormals<4, 2, 0>({ 0, 0, 1, 1 });
+   compareNormals<4, 2, 1>({ 0, 1, 0, 1 });
+   compareNormals<4, 2, 2>({ 0, 1, 1, 0 });
+   compareNormals<4, 2, 3>({ 1, 0, 0, 1 });
+   compareNormals<4, 2, 4>({ 1, 0, 1, 0 });
+   compareNormals<4, 2, 5>({ 1, 1, 0, 0 });
+
+   compareNormals<4, 3, 0>({ 0, 0, 0, 1 });
+   compareNormals<4, 3, 1>({ 0, 0, 1, 0 });
+   compareNormals<4, 3, 2>({ 0, 1, 0, 0 });
+   compareNormals<4, 3, 3>({ 1, 0, 0, 0 });
+
+   compareNormals<4, 4, 0>({ 0, 0, 0, 0 });
+}
+
+template<int GridDimension, int EntityDimension >
+void compareNormalsRuntime( int entityOrientation, const TNL::Containers::StaticVector<GridDimension, int>& expectation) {
+   TNL::Meshes::GridEntitiesOrientations<GridDimension> entitiesOrientations;
+   auto normals = entitiesOrientations.template getNormals<EntityDimension >( entityOrientation );
+
+   EXPECT_EQ(normals, expectation) << "Grid Dimension: " << GridDimension
+                                   << "Entity Orientation: " << entityOrientation
+                                   << "Entity Dimension: " << EntityDimension;
+}
+
+TEST( GridEntitiesOrientationSuite, NormalsRuntimeTest_1D ) {
+   compareNormalsRuntime< 1, 0 >( 0, { 1 });
+   compareNormalsRuntime< 1, 1 >( 0, { 0 });
+}
+
+TEST( GridEntitiesOrientationSuite, NormalsRuntimeTest_2D) {
+   compareNormalsRuntime< 2, 0 >( 0, { 1, 1 } );
+
+   compareNormalsRuntime< 2, 1 >( 0, { 0, 1 } );
+   compareNormalsRuntime< 2, 1 >( 1, { 1, 0 } );
+
+   compareNormalsRuntime< 2, 2 >( 0, { 0, 0 } );
+}
+
+TEST(GridEntitiesOrientationSuite, NormalsRuntimeTest_3D ) {
+   compareNormalsRuntime< 3, 0 >( 0, { 1, 1, 1 } );
+
+   compareNormalsRuntime< 3, 1 >( 0, { 0, 1, 1 } );
+   compareNormalsRuntime< 3, 1 >( 1, { 1, 0, 1 } );
+   compareNormalsRuntime< 3, 1 >( 2, { 1, 1, 0 } );
+
+   compareNormalsRuntime< 3, 2 >( 0, { 0, 0, 1 } );
+   compareNormalsRuntime< 3, 2 >( 1, { 0, 1, 0 } );
+   compareNormalsRuntime< 3, 2 >( 2, { 1, 0, 0 } );
+
+   compareNormalsRuntime< 3, 3 >( 0, { 0, 0, 0 } );
+}
+
+TEST(GridEntitiesOrientationSuite, NormalsRuntimeTest_4D ) {
+   compareNormalsRuntime< 4, 0 >( 0, { 1, 1, 1, 1 } );
+
+   compareNormalsRuntime< 4, 1 >( 0, { 0, 1, 1, 1 } );
+   compareNormalsRuntime< 4, 1 >( 1, { 1, 0, 1, 1 } );
+   compareNormalsRuntime< 4, 1 >( 2, { 1, 1, 0, 1 } );
+   compareNormalsRuntime< 4, 1 >( 3, { 1, 1, 1, 0 } );
+
+   compareNormalsRuntime< 4, 2 >( 0, { 0, 0, 1, 1 } );
+   compareNormalsRuntime< 4, 2 >( 1, { 0, 1, 0, 1 } );
+   compareNormalsRuntime< 4, 2 >( 2, { 0, 1, 1, 0 } );
+   compareNormalsRuntime< 4, 2 >( 3, { 1, 0, 0, 1 } );
+   compareNormalsRuntime< 4, 2 >( 4, { 1, 0, 1, 0 } );
+   compareNormalsRuntime< 4, 2 >( 5, { 1, 1, 0, 0 } );
+
+   compareNormalsRuntime< 4, 3 >( 0, { 0, 0, 0, 1 } );
+   compareNormalsRuntime< 4, 3 >( 1, { 0, 0, 1, 0 } );
+   compareNormalsRuntime< 4, 3 >( 2, { 0, 1, 0, 0 } );
+   compareNormalsRuntime< 4, 3 >( 3, { 1, 0, 0, 0 } );
+
+   compareNormalsRuntime< 4, 4 >( 0, { 0, 0, 0, 0 } );
+}
+
+template<int GridDimension, int EntityDimension, int... Normals >
+void compareOrientationIndex( int expectation) {
+   using NormalsGetterType = TNL::Meshes::NormalsGetter<int, EntityDimension, GridDimension>;
+   using NormalsType = typename NormalsGetterType::NormalsType;
+   auto index = TNL::Meshes::GridEntitiesOrientations<GridDimension>::template getOrientationIndex< EntityDimension, Normals... >();
+
+   EXPECT_EQ(index, expectation) << "Grid Dimension: " << GridDimension << std::endl
+                                 << "Entity Dimension: " << EntityDimension << std::endl
+                                 << "Normals: " << NormalsType( Normals... ) << std::endl;
+}
+
+TEST( GridEntitiesOrientationSuite, OrientationIndexesTest_1D ) {
+   //                       Grid. dim. | Entity. dim.  | Normals | Index
+   compareOrientationIndex< 1,           0,              1         >( 0 );
+   compareOrientationIndex< 1,           1,              0         >( 0 );
+}
+
+TEST( GridEntitiesOrientationSuite, OrientationIndexesTest_2D ) {
+   //                       Grid. dim. | Entity. dim.  | Normals | Index
+   compareOrientationIndex< 2,           0,              1, 1      >( 0 );
+
+   compareOrientationIndex< 2,           1,              0, 1      >( 0 );
+   compareOrientationIndex< 2,           1,              1, 0      >( 1 );
+
+   compareOrientationIndex< 2,           2,              0, 0      >( 0 );
+}
+
+TEST( GridEntitiesOrientationSuite, OrientationIndexesTest_3D ) {
+   //                       Grid. dim. | Entity. dim.  | Normals   | Index
+   compareOrientationIndex< 3,           0,              1, 1, 1 >( 0 );
+
+   compareOrientationIndex< 3,           1,              0, 1, 1 >( 0 );
+   compareOrientationIndex< 3,           1,              1, 0, 1 >( 1 );
+   compareOrientationIndex< 3,           1,              1, 1, 0 >( 2 );
+
+   compareOrientationIndex< 3,           2,              0, 0, 1 >( 0 );
+   compareOrientationIndex< 3,           2,              0, 1, 0 >( 1 );
+   compareOrientationIndex< 3,           2,              1, 0, 0 >( 2 );
+
+   compareOrientationIndex< 3,           3,              0, 0, 0 >( 0 );
+}
+
+TEST( GridEntitiesOrientationSuite, OrientationIndexesTest_4D ) {
+   //                      Grid. dim. | Entity. dim.  | Normals     | Index
+   compareOrientationIndex< 4,           0,             1, 1, 1, 1 >( 0 );
+
+   compareOrientationIndex< 4,           1,             0, 1, 1, 1 >( 0 );
+   compareOrientationIndex< 4,           1,             1, 0, 1, 1 >( 1 );
+   compareOrientationIndex< 4,           1,             1, 1, 0, 1 >( 2 );
+   compareOrientationIndex< 4,           1,             1, 1, 1, 0 >( 3 );
+
+   compareOrientationIndex< 4,           2,             0, 0, 1, 1 >( 0 );
+   compareOrientationIndex< 4,           2,             0, 1, 0, 1 >( 1 );
+   compareOrientationIndex< 4,           2,             0, 1, 1, 0 >( 2 );
+   compareOrientationIndex< 4,           2,             1, 0, 0, 1 >( 3 );
+   compareOrientationIndex< 4,           2,             1, 0, 1, 0 >( 4 );
+   compareOrientationIndex< 4,           2,             1, 1, 0, 0 >( 5 );
+
+   compareOrientationIndex< 4,           3,             0, 0, 0, 1 >( 0 );
+   compareOrientationIndex< 4,           3,             0, 0, 1, 0 >( 1 );
+   compareOrientationIndex< 4,           3,             0, 1, 0, 0 >( 2 );
+   compareOrientationIndex< 4,           3,             1, 0, 0, 0 >( 3 );
+
+   compareOrientationIndex< 4,           4,             0, 0, 0, 0 >( 0 );
+}
+
+template<int GridDimension, int... Normals >
+void compareTotalOrientationIndex( int expectation) {
+   using NormalsGetterType = TNL::Meshes::NormalsGetter<int, 0, GridDimension>;
+   using NormalsType = typename NormalsGetterType::NormalsType;
+   auto index = TNL::Meshes::GridEntitiesOrientations<GridDimension>::template getTotalOrientationIndex< Normals... >();
+
+   EXPECT_EQ(index, expectation) << "Grid Dimension: " << GridDimension << std::endl
+                                 << "Normals: " << NormalsType( Normals... ) << std::endl;
+}
+
+TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesTest_1D ) {
+   //                            Grid. dim.  | Normals | Index
+   compareTotalOrientationIndex< 1,           1         >( 0 );
+   compareTotalOrientationIndex< 1,           0         >( 1 );
+}
+
+TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesTest_2D ) {
+   //                            Grid. dim. | Normals | Index
+   compareTotalOrientationIndex< 2,           1, 1      >( 0 );
+
+   compareTotalOrientationIndex< 2,           0, 1      >( 1 );
+   compareTotalOrientationIndex< 2,           1, 0      >( 2 );
+
+   compareTotalOrientationIndex< 2,           0, 0      >( 3 );
+}
+
+TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesTest_3D ) {
+   //                            Grid. dim. | Normals   | Index
+   compareTotalOrientationIndex< 3,           1, 1, 1 >( 0 );
+
+   compareTotalOrientationIndex< 3,           0, 1, 1 >( 1 );
+   compareTotalOrientationIndex< 3,           1, 0, 1 >( 2 );
+   compareTotalOrientationIndex< 3,           1, 1, 0 >( 3 );
+
+   compareTotalOrientationIndex< 3,           0, 0, 1 >( 4 );
+   compareTotalOrientationIndex< 3,           0, 1, 0 >( 5 );
+   compareTotalOrientationIndex< 3,           1, 0, 0 >( 6 );
+
+   compareTotalOrientationIndex< 3,           0, 0, 0 >( 7 );
+}
+
+TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesTest_4D ) {
+   //                            Grid. dim. | Normals     | Index
+   compareTotalOrientationIndex< 4,           1, 1, 1, 1 >(  0 );
+
+   compareTotalOrientationIndex< 4,           0, 1, 1, 1 >(  1 );
+   compareTotalOrientationIndex< 4,           1, 0, 1, 1 >(  2 );
+   compareTotalOrientationIndex< 4,           1, 1, 0, 1 >(  3 );
+   compareTotalOrientationIndex< 4,           1, 1, 1, 0 >(  4 );
+
+   compareTotalOrientationIndex< 4,           0, 0, 1, 1 >(  5 );
+   compareTotalOrientationIndex< 4,           0, 1, 0, 1 >(  6 );
+   compareTotalOrientationIndex< 4,           0, 1, 1, 0 >(  7 );
+   compareTotalOrientationIndex< 4,           1, 0, 0, 1 >(  8 );
+   compareTotalOrientationIndex< 4,           1, 0, 1, 0 >(  9 );
+   compareTotalOrientationIndex< 4,           1, 1, 0, 0 >( 10 );
+
+   compareTotalOrientationIndex< 4,           0, 0, 0, 1 >( 11 );
+   compareTotalOrientationIndex< 4,           0, 0, 1, 0 >( 12 );
+   compareTotalOrientationIndex< 4,           0, 1, 0, 0 >( 13 );
+   compareTotalOrientationIndex< 4,           1, 0, 0, 0 >( 14 );
+
+   compareTotalOrientationIndex< 4,           0, 0, 0, 0 >( 15 );
+}
+
+template<int GridDimension >
+void compareNormalsTable( int totalOrientation, const TNL::Containers::StaticVector<GridDimension, int>& expectation) {
+   TNL::Meshes::GridEntitiesOrientations< GridDimension > entitiesOrientations;
+   auto normals = entitiesOrientations.getNormals( totalOrientation );
+
+   EXPECT_EQ(normals, expectation) << " Grid Dimension: " << GridDimension
+                                   << " Total orientation: " << totalOrientation;
+}
+
+TEST(GridEntitiesOrientationSuite, NormalsTableTest_1D ) {
+   compareNormalsTable< 1 >( 0, { 1 } );
+   compareNormalsTable< 1 >( 1, { 0 } );
+}
+
+TEST(GridEntitiesOrientationSuite, NormalsTableTest_2D ) {
+   compareNormalsTable< 2 >( 0, { 1, 1 } );
+
+   compareNormalsTable< 2 >( 1, { 0, 1 } );
+   compareNormalsTable< 2 >( 2, { 1, 0 } );
+
+   compareNormalsTable< 2 >( 3, { 0, 0 } );
+}
+
+TEST(GridEntitiesOrientationSuite, NormalsTableTest_3D ) {
+   compareNormalsTable< 3 >( 0, { 1, 1, 1 } );
+
+   compareNormalsTable< 3 >( 1, { 0, 1, 1 } );
+   compareNormalsTable< 3 >( 2, { 1, 0, 1 } );
+   compareNormalsTable< 3 >( 3, { 1, 1, 0 } );
+
+   compareNormalsTable< 3 >( 4, { 0, 0, 1 } );
+   compareNormalsTable< 3 >( 5, { 0, 1, 0 } );
+   compareNormalsTable< 3 >( 6, { 1, 0, 0 } );
+
+   compareNormalsTable< 3 >( 7, { 0, 0, 0 } );
+}
+
+TEST(GridEntitiesOrientationSuite, NormalsTableTest_4D ) {
+   compareNormalsTable< 4 >( 0, { 1, 1, 1, 1 } );
+
+   compareNormalsTable< 4 >( 1, { 0, 1, 1, 1 } );
+   compareNormalsTable< 4 >( 2, { 1, 0, 1, 1 } );
+   compareNormalsTable< 4 >( 3, { 1, 1, 0, 1 } );
+   compareNormalsTable< 4 >( 4, { 1, 1, 1, 0 } );
+
+   compareNormalsTable< 4 >(  5, { 0, 0, 1, 1 } );
+   compareNormalsTable< 4 >(  6, { 0, 1, 0, 1 } );
+   compareNormalsTable< 4 >(  7, { 0, 1, 1, 0 } );
+   compareNormalsTable< 4 >(  8, { 1, 0, 0, 1 } );
+   compareNormalsTable< 4 >(  9, { 1, 0, 1, 0 } );
+   compareNormalsTable< 4 >( 10, { 1, 1, 0, 0 } );
+
+   compareNormalsTable< 4 >( 11, { 0, 0, 0, 1 } );
+   compareNormalsTable< 4 >( 12, { 0, 0, 1, 0 } );
+   compareNormalsTable< 4 >( 13, { 0, 1, 0, 0 } );
+   compareNormalsTable< 4 >( 14, { 1, 0, 0, 0 } );
+
+   compareNormalsTable< 4 >( 15, { 0, 0, 0, 0 } );
+}
+
+template<int GridDimension, int TotalOrientation >
+void compareNormalsByTotalOrientation(const TNL::Containers::StaticVector<GridDimension, int>& expectation) {
+   auto normals = TNL::Meshes::GridEntitiesOrientations<GridDimension>::template getNormals< TotalOrientation >();
+
+   EXPECT_EQ(normals, expectation) << " Grid Dimension: " << GridDimension
+                                   << " Total orientation: " << TotalOrientation;
+}
+
+TEST(GridEntitiesOrientationSuite, NormalsByTotalOrientationTest_1D) {
+   compareNormalsByTotalOrientation< 1, 0 >({ 1 });
+   compareNormalsByTotalOrientation< 1, 1 >({ 0 });
+}
+
+TEST(GridEntitiesOrientationSuite, NormalsByTotalOrientationTest_2D ) {
+   compareNormalsByTotalOrientation< 2, 0 >({ 1, 1 });
+
+   compareNormalsByTotalOrientation< 2, 1 >({ 0, 1 });
+   compareNormalsByTotalOrientation< 2, 2 >({ 1, 0 });
+
+   compareNormalsByTotalOrientation< 2, 3 >({ 0, 0 });
+}
+
+TEST(GridEntitiesOrientationSuite, NormalsByTotalOrientationTest_3D ) {
+   compareNormalsByTotalOrientation< 3, 0 >({ 1, 1, 1 });
+
+   compareNormalsByTotalOrientation< 3, 1 >({ 0, 1, 1 });
+   compareNormalsByTotalOrientation< 3, 2 >({ 1, 0, 1 });
+   compareNormalsByTotalOrientation< 3, 3 >({ 1, 1, 0 });
+
+   compareNormalsByTotalOrientation< 3, 4 >({ 0, 0, 1 });
+   compareNormalsByTotalOrientation< 3, 5 >({ 0, 1, 0 });
+   compareNormalsByTotalOrientation< 3, 6 >({ 1, 0, 0 });
+
+   compareNormalsByTotalOrientation< 3, 7 >({ 0, 0, 0 });
+}
+
+TEST(GridEntitiesOrientationSuite, NormalsByTotalOrientationTest_4D) {
+   compareNormalsByTotalOrientation< 4, 0 >({ 1, 1, 1, 1 });
+
+   compareNormalsByTotalOrientation< 4,  1 >({ 0, 1, 1, 1 });
+   compareNormalsByTotalOrientation< 4,  2 >({ 1, 0, 1, 1 });
+   compareNormalsByTotalOrientation< 4,  3 >({ 1, 1, 0, 1 });
+   compareNormalsByTotalOrientation< 4,  4 >({ 1, 1, 1, 0 });
+
+   compareNormalsByTotalOrientation< 4,  5 >({ 0, 0, 1, 1 });
+   compareNormalsByTotalOrientation< 4,  6 >({ 0, 1, 0, 1 });
+   compareNormalsByTotalOrientation< 4,  7 >({ 0, 1, 1, 0 });
+   compareNormalsByTotalOrientation< 4,  8 >({ 1, 0, 0, 1 });
+   compareNormalsByTotalOrientation< 4,  9 >({ 1, 0, 1, 0 });
+   compareNormalsByTotalOrientation< 4, 10 >({ 1, 1, 0, 0 });
+
+   compareNormalsByTotalOrientation< 4, 11 >({ 0, 0, 0, 1 });
+   compareNormalsByTotalOrientation< 4, 12 >({ 0, 0, 1, 0 });
+   compareNormalsByTotalOrientation< 4, 13 >({ 0, 1, 0, 0 });
+   compareNormalsByTotalOrientation< 4, 14 >({ 1, 0, 0, 0 });
+
+   compareNormalsByTotalOrientation< 4, 15 >({ 0, 0, 0, 0 });
+}
+
+#include "../../../main.h"
+
+#endif
