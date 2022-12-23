@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <TNL/Containers/StaticVector.h>
-#include <TNL/Meshes/GridDetails/GridEntitiesOrientations.h>
+#include <TNL/Meshes/GridEntitiesOrientations.h>
 
 template<int GridDimension, int TotalOrientation >
 void checkEntityDimension( int expectation) {
@@ -253,7 +253,7 @@ TEST( GridEntitiesOrientationSuite, OrientationIndexesTest_4D ) {
 }
 
 template<int GridDimension, int... Normals >
-void compareTotalOrientationIndex( int expectation) {
+void compareTotalOrientationIndexFromNormals( int expectation) {
    using NormalsGetterType = TNL::Meshes::NormalsGetter<int, 0, GridDimension>;
    using NormalsType = typename NormalsGetterType::NormalsType;
    auto index = TNL::Meshes::GridEntitiesOrientations<GridDimension>::template getTotalOrientationIndex< Normals... >();
@@ -262,59 +262,125 @@ void compareTotalOrientationIndex( int expectation) {
                                  << "Normals: " << NormalsType( Normals... ) << std::endl;
 }
 
-TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesTest_1D ) {
+TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesFromNormalsTest_1D ) {
    //                            Grid. dim.  | Normals | Index
-   compareTotalOrientationIndex< 1,           1         >( 0 );
-   compareTotalOrientationIndex< 1,           0         >( 1 );
+   compareTotalOrientationIndexFromNormals< 1,           1         >( 0 );
+   compareTotalOrientationIndexFromNormals< 1,           0         >( 1 );
+}
+
+TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesFromNormalsTest_2D ) {
+   //                            Grid. dim. | Normals | Index
+   compareTotalOrientationIndexFromNormals< 2,           1, 1      >( 0 );
+
+   compareTotalOrientationIndexFromNormals< 2,           0, 1      >( 1 );
+   compareTotalOrientationIndexFromNormals< 2,           1, 0      >( 2 );
+
+   compareTotalOrientationIndexFromNormals< 2,           0, 0      >( 3 );
+}
+
+TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesFromNormalsTest_3D ) {
+   //                            Grid. dim. | Normals   | Index
+   compareTotalOrientationIndexFromNormals< 3,           1, 1, 1 >( 0 );
+
+   compareTotalOrientationIndexFromNormals< 3,           0, 1, 1 >( 1 );
+   compareTotalOrientationIndexFromNormals< 3,           1, 0, 1 >( 2 );
+   compareTotalOrientationIndexFromNormals< 3,           1, 1, 0 >( 3 );
+
+   compareTotalOrientationIndexFromNormals< 3,           0, 0, 1 >( 4 );
+   compareTotalOrientationIndexFromNormals< 3,           0, 1, 0 >( 5 );
+   compareTotalOrientationIndexFromNormals< 3,           1, 0, 0 >( 6 );
+
+   compareTotalOrientationIndexFromNormals< 3,           0, 0, 0 >( 7 );
+}
+
+TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesFromNormalsTest_4D ) {
+   //                            Grid. dim. | Normals     | Index
+   compareTotalOrientationIndexFromNormals< 4,           1, 1, 1, 1 >(  0 );
+
+   compareTotalOrientationIndexFromNormals< 4,           0, 1, 1, 1 >(  1 );
+   compareTotalOrientationIndexFromNormals< 4,           1, 0, 1, 1 >(  2 );
+   compareTotalOrientationIndexFromNormals< 4,           1, 1, 0, 1 >(  3 );
+   compareTotalOrientationIndexFromNormals< 4,           1, 1, 1, 0 >(  4 );
+
+   compareTotalOrientationIndexFromNormals< 4,           0, 0, 1, 1 >(  5 );
+   compareTotalOrientationIndexFromNormals< 4,           0, 1, 0, 1 >(  6 );
+   compareTotalOrientationIndexFromNormals< 4,           0, 1, 1, 0 >(  7 );
+   compareTotalOrientationIndexFromNormals< 4,           1, 0, 0, 1 >(  8 );
+   compareTotalOrientationIndexFromNormals< 4,           1, 0, 1, 0 >(  9 );
+   compareTotalOrientationIndexFromNormals< 4,           1, 1, 0, 0 >( 10 );
+
+   compareTotalOrientationIndexFromNormals< 4,           0, 0, 0, 1 >( 11 );
+   compareTotalOrientationIndexFromNormals< 4,           0, 0, 1, 0 >( 12 );
+   compareTotalOrientationIndexFromNormals< 4,           0, 1, 0, 0 >( 13 );
+   compareTotalOrientationIndexFromNormals< 4,           1, 0, 0, 0 >( 14 );
+
+   compareTotalOrientationIndexFromNormals< 4,           0, 0, 0, 0 >( 15 );
+}
+
+template<int GridDimension, int EntityDimension >
+void compareTotalOrientationIndex( int orientation, int expectation) {
+   using NormalsGetterType = TNL::Meshes::NormalsGetter<int, 0, GridDimension>;
+   using NormalsType = typename NormalsGetterType::NormalsType;
+   auto index = TNL::Meshes::GridEntitiesOrientations<GridDimension>::template getTotalOrientationIndex< EntityDimension >( orientation );
+
+   EXPECT_EQ(index, expectation) << "Grid Dimension: " << GridDimension << std::endl
+                                 << "EntityDimension: " << EntityDimension << std::endl
+                                 << "Orientation idx.: " << orientation << std::endl;
+}
+
+TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesTest_1D ) {
+   //                            Grid. dim.  | Entity dim. | Indexes
+   compareTotalOrientationIndex< 1,           0            >( 0, 0 );
+   compareTotalOrientationIndex< 1,           1            >( 0, 1 );
 }
 
 TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesTest_2D ) {
-   //                            Grid. dim. | Normals | Index
-   compareTotalOrientationIndex< 2,           1, 1      >( 0 );
+   //                            Grid. dim.  | Entity dim. | Indexes
+   compareTotalOrientationIndex< 2,           0            >( 0, 0 );
 
-   compareTotalOrientationIndex< 2,           0, 1      >( 1 );
-   compareTotalOrientationIndex< 2,           1, 0      >( 2 );
+   compareTotalOrientationIndex< 2,           1            >( 0, 1 );
+   compareTotalOrientationIndex< 2,           1            >( 1, 2 );
 
-   compareTotalOrientationIndex< 2,           0, 0      >( 3 );
+   compareTotalOrientationIndex< 2,           2            >( 0, 3 );
 }
 
 TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesTest_3D ) {
-   //                            Grid. dim. | Normals   | Index
-   compareTotalOrientationIndex< 3,           1, 1, 1 >( 0 );
+   //                            Grid. dim.  | Entity dim. | Indexes
+   compareTotalOrientationIndex< 3,           0            >( 0, 0 );
 
-   compareTotalOrientationIndex< 3,           0, 1, 1 >( 1 );
-   compareTotalOrientationIndex< 3,           1, 0, 1 >( 2 );
-   compareTotalOrientationIndex< 3,           1, 1, 0 >( 3 );
+   compareTotalOrientationIndex< 3,           1            >( 0, 1 );
+   compareTotalOrientationIndex< 3,           1            >( 1, 2 );
+   compareTotalOrientationIndex< 3,           1            >( 2, 3 );
 
-   compareTotalOrientationIndex< 3,           0, 0, 1 >( 4 );
-   compareTotalOrientationIndex< 3,           0, 1, 0 >( 5 );
-   compareTotalOrientationIndex< 3,           1, 0, 0 >( 6 );
+   compareTotalOrientationIndex< 3,           2            >( 0, 4 );
+   compareTotalOrientationIndex< 3,           2            >( 1, 5 );
+   compareTotalOrientationIndex< 3,           2            >( 2, 6 );
 
-   compareTotalOrientationIndex< 3,           0, 0, 0 >( 7 );
+   compareTotalOrientationIndex< 3,           3            >( 0, 7 );
 }
 
 TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesTest_4D ) {
-   //                            Grid. dim. | Normals     | Index
-   compareTotalOrientationIndex< 4,           1, 1, 1, 1 >(  0 );
+   //                            Grid. dim.  | Entity dim. | Indexes
+   compareTotalOrientationIndex< 4,           0            >( 0, 0 );
 
-   compareTotalOrientationIndex< 4,           0, 1, 1, 1 >(  1 );
-   compareTotalOrientationIndex< 4,           1, 0, 1, 1 >(  2 );
-   compareTotalOrientationIndex< 4,           1, 1, 0, 1 >(  3 );
-   compareTotalOrientationIndex< 4,           1, 1, 1, 0 >(  4 );
+   compareTotalOrientationIndex< 4,           1            >( 0, 1 );
+   compareTotalOrientationIndex< 4,           1            >( 1, 2 );
+   compareTotalOrientationIndex< 4,           1            >( 2, 3 );
+   compareTotalOrientationIndex< 4,           1            >( 3, 4 );
 
-   compareTotalOrientationIndex< 4,           0, 0, 1, 1 >(  5 );
-   compareTotalOrientationIndex< 4,           0, 1, 0, 1 >(  6 );
-   compareTotalOrientationIndex< 4,           0, 1, 1, 0 >(  7 );
-   compareTotalOrientationIndex< 4,           1, 0, 0, 1 >(  8 );
-   compareTotalOrientationIndex< 4,           1, 0, 1, 0 >(  9 );
-   compareTotalOrientationIndex< 4,           1, 1, 0, 0 >( 10 );
+   compareTotalOrientationIndex< 4,           2            >( 0,  5 );
+   compareTotalOrientationIndex< 4,           2            >( 1,  6 );
+   compareTotalOrientationIndex< 4,           2            >( 2,  7 );
+   compareTotalOrientationIndex< 4,           2            >( 3,  8 );
+   compareTotalOrientationIndex< 4,           2            >( 4,  9 );
+   compareTotalOrientationIndex< 4,           2            >( 5, 10 );
 
-   compareTotalOrientationIndex< 4,           0, 0, 0, 1 >( 11 );
-   compareTotalOrientationIndex< 4,           0, 0, 1, 0 >( 12 );
-   compareTotalOrientationIndex< 4,           0, 1, 0, 0 >( 13 );
-   compareTotalOrientationIndex< 4,           1, 0, 0, 0 >( 14 );
+   compareTotalOrientationIndex< 4,           3            >( 0, 11 );
+   compareTotalOrientationIndex< 4,           3            >( 1, 12 );
+   compareTotalOrientationIndex< 4,           3            >( 2, 13 );
+   compareTotalOrientationIndex< 4,           3            >( 3, 14 );
 
-   compareTotalOrientationIndex< 4,           0, 0, 0, 0 >( 15 );
+   compareTotalOrientationIndex< 4,           4            >( 0, 15 );
 }
 
 template<int GridDimension >
