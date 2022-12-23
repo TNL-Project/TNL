@@ -87,63 +87,159 @@ namespace Meshes {
  *
  * While the basis vectors generating the grid entity are useful for computing the center of the grid entity, for example, the normal
  * vectors are more suitable for computations of grid entities indexes - see \ref TNL::Meshes::Grid for more details.
+ *
+ * For these reasons, the packed normal vectors are preferred and the basis vectors generating the grid entity are easily deduced.
+ * TODO: We may try to switch to basis vectors and deduce normals as !basis.
+ *
+ * To make the encoding more efficient we assign orientation indexes to each grid entity orientation. There are two of them:
+ *
+ *  1. Orientation index - is the index of orientation within all orientations of entities with given dimension.
+ *  2. Total orientation index - is the index of orientation within all orientations of all grid entities.
+ *
+ * See the following table for examples:
+ *
+ * | Grid dimension | Entity type              | Entity dimension  | Packed  normal vectors  | Orientation idx. | Total orientation idx. |
+ * |---------------:|-------------------------:|------------------:|------------------------:|-----------------:|-----------------------:|
+ * | 1              | Vertex                   | 0                 | ( 1 )                   | 0                | 0                      |
+ * | 1              | Cell                     | 1                 | ( 0 )                   | 1                | 1                      |
+ * |---------------:|-------------------------:|------------------:|------------------------:|-----------------:|-----------------------:|
+ * | 2              | Vertex                   | 0                 | ( 1, 1 )                | 0                | 2                      |
+ * | 2              | Face along x axis        | 1                 | ( 0, 1 )                | 0                | 3                      |
+ * | 2              | Face along x axis        | 1                 | ( 1, 0 )                | 1                | 4                      |
+ * | 2              | Cell                     | 2                 | ( 0, 0 )                | 0                | 5                      |
+ * |---------------:|-------------------------:|------------------:|------------------------:|-----------------:|-----------------------:|
+ * | 3              | Vertexes                 | 0                 | ( 1, 1, 1 )             | 0                | 6                      |
+ * | 3              | Edges along x axis       | 1                 | ( 0, 1, 1 )             | 0                | 7                      |
+ * | 3              | Edges along y axis       | 1                 | ( 1, 0, 1 )             | 1                | 8                      |
+ * | 3              | Edges along z axis       | 1                 | ( 1, 1, 0 )             | 2                | 9                      |
+ * | 3              | Faces along x and y axes | 2                 | ( 0, 0, 1 )             | 0                | 10                     |
+ * | 3              | Faces along x and z axes | 2                 | ( 0, 1, 0 )             | 1                | 11                     |
+ * | 3              | Faces along y and z axes | 2                 | ( 1, 0, 0 )             | 2                | 12                     |
+ * | 3              | Cells                    | 3                 | ( 0, 0, 0 )             | 0                | 13                     |
  */
 template< int GridDimension >
 struct GridEntitiesOrientations
 {
+   /**
+    * \brief Type for storing of packed normals defining the entity orientation.
+    */
    using NormalsType = Containers::StaticVector< GridDimension, short int >;
 
-   using OrientationNormalsContainer = Containers::StaticVector< 1 << GridDimension, NormalsType >;
+   /**
+    * \brief Gives number of all orientations for all grid entities.
+    */
+   constexpr static int getTotalOrientationsCount();
 
-   GridEntitiesOrientations() { addNormalsToTable< 0, 0 >( 0 ); }
-
+   /**
+    * \brief Gives number of all orientations for grid entities with given dimension.
+    *
+    * \tparam EntityDimension is the grid entity dimension.
+    */
    template< int EntityDimension >
-   constexpr static int getOrientationsCount() { return combinationsCount( EntityDimension, GridDimension ); }
+   constexpr static int getOrientationsCount();
 
-   template< int EntityDimension >
-   constexpr static int getTotalOrientationsCount() { return cumulativeCombinationsCount( EntityDimension, GridDimension ); }
+   /**
+    * \brief Gives dimension of entity based on the total orientation index.
+    *
+    * \tparam TotalOrientationIndex is total orientation index.
+    */
+   template< int TotalOrientationIndex >
+   constexpr static int getEntityDimension();
 
-   template< int TotalOrientation >
-   constexpr static int getEntityDimension() { return NormalsGetter< int, 0, GridDimension >::template getEntityDimension< TotalOrientation >(); }
-
+   /**
+    * \brief Gives dimension specific orientation index based on grid entity dimension and packed normal vectors.
+    *
+    * The index is evaluated at compile time.
+    *
+    * \tparam EntityDimension is the entity dimension.
+    * \tparam Normals is a vector with packed normals given as a template parameter pack.
+    * \return constexpr int is the dimension specific orientation index.
+    */
    template< int EntityDimension, int... Normals >
-   constexpr static int getOrientationIndex() { return NormalsGetter< int, EntityDimension, GridDimension >::template getOrientationIndex< Normals... >(); }
+   constexpr static int getOrientationIndex();
 
+   /**
+    * \brief Gives total orientation index based on packed normal vectors.
+    *
+    * The index is evaluated at compile time.
+    *
+    * \tparam Normals is a vector with packed normals given as a template parameter pack.
+    * \return constexpr int is the dimension specific orientation index.
+    */
    template< int... Normals >
-   constexpr static int getTotalOrientationIndex() { return NormalsGetter< int, 0, GridDimension >::template getTotalOrientationIndex< Normals... >(); }
+   constexpr static int getTotalOrientationIndex();
 
+   /**
+    * \brief Gives total orientation index based on entity dimension and dimension specific orientation index.
+    *
+    * \tparam EntityDimension is the entity dimension.
+    * \param orientation is the dimension specific index of entity orientation.
+    * \return constexpr int is the total orientation index.
+    */
    template< int EntityDimension >
-   constexpr static int getTotalOrientationIndex( int orientation ) { return getTotalOrientationsCount< EntityDimension - 1 >() + orientation; }
+   constexpr static int getTotalOrientationIndex( int orientation );
 
+   /**
+    * \brief Gives packed normal vectors based on entity dimension and dimension specific orientation index.
+    *
+    * The packed normal vectors are evaluated at the compile time.
+    *
+    * \tparam EntityDimension is the dimension of the entity.
+    * \tparam Orientation is the dimension specific orientation index.
+    * \return NormalsType are packed normal vectors.
+    */
    template< int EntityDimension, int Orientation >
-   static NormalsType getNormals() { return NormalsGetter< int, EntityDimension, GridDimension >::template getNormals< Orientation >(); }
+   static NormalsType getNormals();
 
+   /**
+    * \brief Gives packed normal vectors based on total orientation index.
+    *
+    * The packed normal vectors are evaluated at the compile time.
+    *
+    * \tparam TotalOrientation is the dimension specific orientation index.
+    * \return NormalsType are packed normal vectors.
+    */
    template< int TotalOrientation >
-   static NormalsType getNormals() {
-      static_assert( TotalOrientation >= 0 && TotalOrientation < ( 1 << GridDimension ), "Wrong index of total orientation." );
-      return NormalsGetter< int, 0, GridDimension >::template getNormalsByTotalOrientation< TotalOrientation >();
-   };
+   static NormalsType getNormals();
 
+   /**
+    * \brief Constructor with no parameters.
+    */
+   GridEntitiesOrientations();
+
+   /**
+    * \brief Gives packed normal vectors based on entity dimension and dimension specific orientation index.
+    *
+    * The packed normal vectors are obtained at the run-time from precomputed table.
+    *
+    * \tparam EntityDimension is the grid entity dimension.
+    * \param orientation is the dimension specific orientation index.
+    * \return NormalsType are packed normal vectors.
+    */
    template< int EntityDimension >
-   NormalsType getNormals( int orientation ) { return normalsTable[ getTotalOrientationIndex< EntityDimension >( orientation ) ]; }
+   NormalsType getNormals( int orientation );
 
-
-   NormalsType getNormals( int totalOrientation ) { return normalsTable[ totalOrientation ]; }
+   /**
+    * \brief Gives packed normal vectors based on total orientation index.
+    *
+    * The packed normal vectors are obtained at the run-time from precomputed table.
+    *
+    * \param totalOrientation is the total orientation index.
+    * \return NormalsType are packed normal vectors.
+    */
+   NormalsType getNormals( int totalOrientation );
 
 protected:
 
+   using OrientationNormalsContainer = Containers::StaticVector< getTotalOrientationsCount(), NormalsType >;
+
    template< int EntityDimension, int Orientation >
-   void addNormalsToTable( int offset ) {
-      normalsTable[ offset ] = getNormals< EntityDimension, Orientation >();
-      if constexpr( Orientation < getOrientationsCount< EntityDimension >() - 1 )
-         addNormalsToTable< EntityDimension, Orientation + 1 >( offset + 1 );
-      else if constexpr( EntityDimension < GridDimension )
-         addNormalsToTable< EntityDimension + 1, 0 >( offset + 1 );
-   }
+   void addNormalsToTable( int offset );
 
    OrientationNormalsContainer normalsTable;
-
 };
 
 } //namespace Meshes
 } //namespace TNL
+
+#include <TNL/Meshes/GridEntitiesOrientations.hpp>
