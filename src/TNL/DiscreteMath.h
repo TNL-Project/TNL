@@ -36,10 +36,10 @@ discretePow( Index value, Index power )
  */
 template< typename Index >
 constexpr Index
-product( Index begin, Index end )
+product( Index first, Index last )
 {
    Index result = 1;
-   for( Index i = begin; i <= end; i++ )
+   for( Index i = first; i <= last; i++ )
       result *= i;
    return result;
 }
