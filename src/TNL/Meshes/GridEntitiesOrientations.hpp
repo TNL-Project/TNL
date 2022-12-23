@@ -98,6 +98,45 @@ getNormals( int totalOrientation ) -> NormalsType {
 }
 
 template< int GridDimension >
+int
+GridEntitiesOrientations< GridDimension >::
+getEntityDimension( const NormalsType& normals )
+{
+   TNL_ASSERT_GE( sum( normals ), 0, "Wrong normals for entity orientation." );
+   TNL_ASSERT_LE( sum( normals ), GridDimension, "Wrong normals for entity orientation." );
+   return GridDimension - sum( normals );
+}
+
+template< int GridDimension >
+int
+GridEntitiesOrientations< GridDimension >::
+getOrientation( const NormalsType& normals )
+{
+   const int entityDimension = getEntityDimension( normals );
+   const int begin = cumulativeCombinationsCount( entityDimension, GridDimension );
+   const int end = cumulativeCombinationsCount( entityDimension + 1, GridDimension );
+   int orientationIdx = 0;
+   for( int i = begin; i < end; i++, orientationIdx++ )
+      if( normalsTable[ i ] == normals )
+         return orientationIdx;
+   return -1;
+}
+
+template< int GridDimension >
+int
+GridEntitiesOrientations< GridDimension >::
+getTotalOrientation( const NormalsType& normals )
+{
+   const int entityDimension = getEntityDimension( normals );
+   const int begin = cumulativeCombinationsCount( entityDimension, GridDimension );
+   const int end = cumulativeCombinationsCount( entityDimension + 1, GridDimension );
+   for( int i = begin; i < end; i++ )
+      if( normalsTable[ i ] == normals )
+         return i;
+   return -1;
+}
+
+template< int GridDimension >
    template< int EntityDimension, int Orientation >
 void
 GridEntitiesOrientations< GridDimension >::

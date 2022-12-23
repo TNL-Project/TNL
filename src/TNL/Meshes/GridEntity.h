@@ -83,15 +83,16 @@ public:
    GridEntity( const CoordinatesType& c );
 
    /**
-    * \brief Constructor with a grid reference.
+    * brief Constructor with a grid reference.
     *
-    * \param grid is a reference on a grid the entity belongs to.
+    * param grid is a reference on a grid the entity belongs to.
     */
 
    /*template< typename... Indexes, std::enable_if_t< ( Grid::getMeshDimension() > 1 ) && sizeof...( Indexes ) == Grid::getMeshDimension(), bool > = true >
    // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
    __cuda_callable__
    GridEntity( Indexes&&... indexes );*/
+
    template< typename Value >
    __cuda_callable__ // TODO: This is only temporary
    GridEntity( const std::initializer_list< Value >& elems );
@@ -270,11 +271,11 @@ public:
    //getOrientation() const;
 
    /**
-    * \brief Setter of the grid entity orientation index.
+    * brief Setter of the grid entity orientation index.
     *
     * This is rather internal information. The index can be computed using the method \ref TNL::Meshes::Grid::getOrientation.
     *
-    * \param orientation is a index of the grid entity orientation.
+    * param orientation is a index of the grid entity orientation.
     */
    //__cuda_callable__
    //void
@@ -301,12 +302,12 @@ public:
 
 
    /**
-    * \brief Returns the neighbour grid entity. TODO: FIX - CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    * brief Returns the neighbour grid entity. TODO: FIX - CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
     *
-    * \tparam Dimension is a dimension of the neighbour grid entity.
-    * \tparam Orientation is an orientation index of the grid entity.
-    * \param offset is a offset of coordinates of the neighbour entity relative to this grid entity.
-    * \return neighbour grid entity.
+    * tparam Dimension is a dimension of the neighbour grid entity.
+    * tparam Orientation is an orientation index of the grid entity.
+    * param offset is a offset of coordinates of the neighbour entity relative to this grid entity.
+    * return neighbour grid entity.
     */
    template< int NeighbourEntityDimension >
    [[nodiscard]] __cuda_callable__
