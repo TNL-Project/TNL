@@ -207,6 +207,12 @@ struct GridEntitiesOrientations
     */
    GridEntitiesOrientations();
 
+   int getEntityDimension( const NormalsType& normals ); // TODO: tests
+
+   int getOrientation( const NormalsType& normals ); // TODO: tests
+
+   int getTotalOrientation( const NormalsType& normals ); // TODO: tests
+
    /**
     * \brief Gives packed normal vectors based on entity dimension and dimension specific orientation index.
     *
@@ -217,6 +223,7 @@ struct GridEntitiesOrientations
     * \return NormalsType are packed normal vectors.
     */
    template< int EntityDimension >
+   __cuda_callable__
    NormalsType getNormals( int orientation );
 
    /**
@@ -227,6 +234,7 @@ struct GridEntitiesOrientations
     * \param totalOrientation is the total orientation index.
     * \return NormalsType are packed normal vectors.
     */
+   __cuda_callable__
    NormalsType getNormals( int totalOrientation );
 
 protected:

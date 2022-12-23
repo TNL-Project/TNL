@@ -39,7 +39,7 @@ Grid< Dimension, Real, Device, Index >::Grid()
    this->proportions = 0;
    this->spaceSteps = 0;
    this->origin = 0;
-   fillNormals();
+   //fillNormals();
    fillEntitiesCount();
 }
 
@@ -84,7 +84,7 @@ Grid< Dimension, Real, Device, Index >::setDimensions( Dimensions... dimensions 
 
    TNL_ASSERT_GE( this->dimensions, CoordinatesType( 0 ), "Dimension must be positive" );
 
-   fillNormals();
+   //fillNormals();
    fillEntitiesCount();
    fillSpaceSteps();
    this->localBegin = 0;
@@ -102,7 +102,7 @@ Grid< Dimension, Real, Device, Index >::setDimensions(
 
    TNL_ASSERT_GE( this->dimensions, CoordinatesType( 0 ), "Dimension must be positive" );
 
-   fillNormals();
+   //fillNormals();
    fillEntitiesCount();
    fillSpaceSteps();
    this->localBegin = 0;
@@ -223,26 +223,36 @@ Grid< Dimension, Real, Device, Index >::getOrientedEntitiesCount() const noexcep
    return this->entitiesCountAlongNormals[ index ];
 }
 
-
 template< int Dimension, typename Real, typename Device, typename Index >
-template< int EntityDimension >
+   template< int EntityDimension >
 __cuda_callable__
 auto
-Grid< Dimension, Real, Device, Index >::getNormals( Index orientation ) const noexcept -> NormalsType
+Grid< Dimension, Real, Device, Index >::getNormals( Index orientationIdx ) const noexcept -> NormalsType
 {
-   constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   //constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   //return this->normals( index + orientation );
+   return this->entitiesOrientations.template getNormals< EntityDimension >( orientationIdx );
+}
 
-   return this->normals( index + orientation );
+template< int Dimension, typename Real, typename Device, typename Index >
+__cuda_callable__
+auto
+Grid< Dimension, Real, Device, Index >::getNormals( Index totalOrientationIdx ) const noexcept -> NormalsType
+{
+   //constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   //return this->normals( index + orientation );
+   return this->entitiesOrientations.getNormals( totalOrientationIdx );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension >
 __cuda_callable__
 typename Grid< Dimension, Real, Device, Index >::CoordinatesType
-Grid< Dimension, Real, Device, Index >::getBasis( Index orientation ) const noexcept
+Grid< Dimension, Real, Device, Index >::getBasis( Index totalOrientationIdx ) const noexcept
 {
-   constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
-   return 1 - this->normals( index + orientation );
+   //constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   //return 1 - this->normals( index + orientation );
+   return 1 - this->getNormals( totalOrientationIdx );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -251,12 +261,13 @@ __cuda_callable__
 Index
 Grid< Dimension, Real, Device, Index >::getOrientation( const NormalsType& normals ) const noexcept
 {
-   constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   /*constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
    const Index count = this->getEntityOrientationsCount( EntityDimension );
    for( IndexType orientation = 0; orientation < count; orientation++ )
       if( this->normals( index + orientation ) == normals )
          return orientation;
-   return -1;
+   return -1;*/
+   return entitiesOrientations.getOrientation( normals );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -277,7 +288,8 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
          orientationIdx++;
       }
       orientation.setIndex( orientationIdx );
-      orientation.setNormals( this->normals[ totalOrientationIdx ] );
+      //orientation.setNormals( this->normals[ totalOrientationIdx ] );
+      orientation.setNormals( entitiesOrientations.getNormals( totalOrientationIdx ) );
       TNL_ASSERT_EQ( orientation.getIndex(), this->template getOrientation< EntityDimension >( orientation.getNormals() ), "Wrong index of entity orientation." );
    }
    const CoordinatesType dims = this->getDimensions() + orientation.getNormals();
@@ -684,7 +696,8 @@ getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset,
                          Index neighbourEntityOrientation ) const -> Index
 {
    const Index normalsOffset = Templates::firstKCombinationSum( NeighbourEntityDimension, Dimension );
-   const NormalsType& neighbourEntityNormals = this->normals( normalsOffset + neighbourEntityOrientation );
+   //const NormalsType& neighbourEntityNormals = this->normals( normalsOffset + neighbourEntityOrientation );
+   const NormalsType& neighbourEntityNormals = this->getNormals( normalsOffset + neighbourEntityOrientation );
    IndexType idx{ 0 }, aux{ 1 };
    Algorithms::staticFor< IndexType, 0, Dimension >(
       [&] ( Index i ) mutable {
@@ -825,7 +838,8 @@ Grid< Dimension, Real, Device, Index >::fillEntitiesCount()
       IndexType lastResult = 0;
       for( Index n = 0; n < this->getEntityOrientationsCount( i ); n++, j++ ) {
          int result = 1;
-         auto normals = this->normals[ j ];
+         //auto normals = this->normals[ j ];
+         const auto& normals = this->getNormals( j );
 
          for( Index k = 0; k < (Index) normals.getSize(); k++ )
             result *= dimensions[ k ] + normals[ k ];
@@ -903,7 +917,7 @@ Grid< Dimension, Real, Device, Index >::fillSpaceStepsPowers()
    }
 }
 
-template< int Dimension, typename Real, typename Device, typename Index >
+/*template< int Dimension, typename Real, typename Device, typename Index >
 void
 Grid< Dimension, Real, Device, Index >::fillNormals()
 {
@@ -927,7 +941,7 @@ Grid< Dimension, Real, Device, Index >::fillNormals()
 
    Algorithms::staticFor< int, 0, Dimension + 1 >( forEachEntityDimension );
    this->normals = container;
-}
+}*/
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >

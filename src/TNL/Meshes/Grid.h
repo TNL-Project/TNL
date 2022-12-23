@@ -10,6 +10,7 @@
 
 #include <TNL/Logger.h>
 #include <TNL/Containers/StaticVector.h>
+#include <TNL/Meshes/GridEntitiesOrientations.h>
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
 #include <TNL/Meshes/GridDetails/GridTraits.h>
@@ -74,6 +75,8 @@ public:
    using NormalsType = typename GridTraitsType::NormalsType;
 
    using EntitiesCounts = Containers::StaticVector< Dimension + 1, Index >;
+
+   using EntitiesOrientations = GridEntitiesOrientations< Dimension >;
 
    /**
     * \brief Alias for grid entities with given dimension.
@@ -301,6 +304,11 @@ public:
    __cuda_callable__
    NormalsType
    getNormals( Index orientation ) const noexcept;
+
+   __cuda_callable__
+   NormalsType
+   getNormals( Index totalOrientation ) const noexcept;
+
 
    /**
     * \brief Returns basis of the entity with the specific orientation.
@@ -811,8 +819,8 @@ protected:
    void
    fillProportions();
 
-   void
-   fillNormals();
+   //void
+   //fillNormals();
 
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
@@ -879,7 +887,10 @@ protected:
     *
     * `normals[ orientationIdx ]` gives normals for given orientation index.
     */
-   OrientationNormalsContainer normals;
+   //OrientationNormalsContainer normals;
+
+   __cuda_callable__
+   inline static EntitiesOrientations entitiesOrientations;
 
    SpaceProductsContainer spaceStepsProducts;
 };
