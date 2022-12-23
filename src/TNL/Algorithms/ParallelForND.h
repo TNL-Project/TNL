@@ -33,7 +33,7 @@ struct ParallelForND
     * \tparam FunctionArgs is a variadic pack of types for additional parameters
     *    that are forwarded to the functor in every iteration.
     *
-    * \param start is the left bound of the iteration range `[begin, end)`.
+    * \param begin is the left bound of the iteration range `[begin, end)`.
     * \param end is the right bound of the iteration range `[begin, end)`.
     * \param f is the function to be called in each iteration.
     * \param args are additional parameters to be passed to the function f.
