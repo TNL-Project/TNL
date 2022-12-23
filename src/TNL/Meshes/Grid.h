@@ -280,9 +280,9 @@ public:
     * \brief Returns normals of the entity with the specific orientation.
     *
     * Normals is integer vector having ones for axis along which the entity has zero length.
-    * For example in 3D grid we have the following posibilities:
+    * For example in 3D grid we have the following possibilities:
     *
-    * | Entity                     | Normals        |
+    * | Entity                     | Normals      |
     * |---------------------------:|-------------:|
     * | Cells                      | ( 0, 0, 0 )  |
     * | Faces along x- and y- axes | ( 0, 0, 1 )  |
@@ -306,7 +306,7 @@ public:
     * \brief Returns basis of the entity with the specific orientation.
     *
     * Basis is integer vector having ones for axis along which the entity has non-zero lengths.
-    * For example in 3D grid we have the following posibilities:
+    * For example in 3D grid we have the following possibilities:
     *
     * | Entity                     | Basis       |
     * |---------------------------:|-------------:|
@@ -348,7 +348,6 @@ public:
     *
     * \tparam EntityDimension is dimension of an entity.
     * \param entityIdx is an index of the entity.
-    * \param normals this parameter is filled with the grid entity orientation in a form of normals.
     * \param orientation is an index of the grid entity orientation.
     * \return coordinates of the grid entity.
     */
