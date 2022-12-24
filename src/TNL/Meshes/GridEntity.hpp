@@ -78,7 +78,7 @@ GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
                                                  const NormalsType& normals )
 : CoordinatesType( coordinates ),
   grid( &grid ),
-  orientation( normals, grid.template getOrientation< EntityDimension >( normals ) )
+  orientation( normals, grid.getOrientationIndex( normals ) )
 {
    TNL_ASSERT_EQ( getNormals(),
                   grid.template getNormals< EntityDimension >( orientation.getIndex() ),
@@ -109,8 +109,7 @@ GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
   grid( &grid ),
   orientation( normals, orientation )
 {
-   TNL_ASSERT_EQ(
-      orientation, grid.template getOrientation< EntityDimension >( normals ), "Wrong index of entity orientation." );
+   TNL_ASSERT_EQ( orientation, grid.getOrientationIndex( normals ), "Wrong index of entity orientation." );
    this->refresh();
 }
 

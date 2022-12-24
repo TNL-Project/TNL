@@ -339,7 +339,7 @@ public:
    template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
    IndexType
-   getOrientation( const NormalsType& normals ) const noexcept;
+   getOrientationIndex( const NormalsType& normals ) const noexcept;
 
    /**
     * \brief Computes coordinates of a grid entity based on an index of the entity.
