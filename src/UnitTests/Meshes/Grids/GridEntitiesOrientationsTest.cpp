@@ -502,6 +502,191 @@ TEST(GridEntitiesOrientationSuite, NormalsByTotalOrientationTest_4D) {
    compareNormalsByTotalOrientation< 4, 15 >({ 0, 0, 0, 0 });
 }
 
-#include "../../../main.h"
+template<int GridDimension >
+void testEntityDimensionFromNormals( const typename TNL::Meshes::GridEntitiesOrientations<GridDimension>::NormalsType& normals,
+                                     int expectation ) {
+   auto dimension = TNL::Meshes::GridEntitiesOrientations<GridDimension>::getEntityDimension( normals );
+
+   EXPECT_EQ( dimension, expectation ) << " Grid Dimension: " << GridDimension
+                                       << " Normals:" << normals;
+}
+
+TEST(GridEntitiesOrientationSuite, EntityDimensionFromNormalsTest_1D) {
+   testEntityDimensionFromNormals< 1 >( { 1 }, 0 );
+
+   testEntityDimensionFromNormals< 1 >( { 0 }, 1 );
+}
+
+TEST(GridEntitiesOrientationSuite, EntityDimensionFromNormalsTest_2D ) {
+   testEntityDimensionFromNormals< 2 >( { 1, 1 }, 0 );
+
+   testEntityDimensionFromNormals< 2 >( { 0, 1 }, 1 );
+   testEntityDimensionFromNormals< 2 >( { 1, 0 }, 1 );
+
+   testEntityDimensionFromNormals< 2 >( { 0, 0 }, 2 );
+}
+
+TEST(GridEntitiesOrientationSuite, EntityDimensionFromNormalsTest_3D ) {
+   testEntityDimensionFromNormals< 3 >( { 1, 1, 1 }, 0 );
+
+   testEntityDimensionFromNormals< 3 >( { 0, 1, 1 }, 1 );
+   testEntityDimensionFromNormals< 3 >( { 1, 0, 1 }, 1 );
+   testEntityDimensionFromNormals< 3 >( { 1, 1, 0 }, 1 );
+
+   testEntityDimensionFromNormals< 3 >( { 0, 0, 1 }, 2 );
+   testEntityDimensionFromNormals< 3 >( { 0, 1, 0 }, 2 );
+   testEntityDimensionFromNormals< 3 >( { 1, 0, 0 }, 2 );
+
+   testEntityDimensionFromNormals< 3 >( { 0, 0, 0 }, 3 );
+}
+
+TEST(GridEntitiesOrientationSuite, EntityDimensionFromNormalsTest_4D) {
+   testEntityDimensionFromNormals< 4 >( { 1, 1, 1, 1 }, 0 );
+
+   testEntityDimensionFromNormals< 4 >( { 0, 1, 1, 1 }, 1 );
+   testEntityDimensionFromNormals< 4 >( { 1, 0, 1, 1 }, 1 );
+   testEntityDimensionFromNormals< 4 >( { 1, 1, 0, 1 }, 1 );
+   testEntityDimensionFromNormals< 4 >( { 1, 1, 1, 0 }, 1 );
+
+   testEntityDimensionFromNormals< 4 >( { 0, 0, 1, 1 }, 2 );
+   testEntityDimensionFromNormals< 4 >( { 0, 1, 0, 1 }, 2 );
+   testEntityDimensionFromNormals< 4 >( { 0, 1, 1, 0 }, 2 );
+   testEntityDimensionFromNormals< 4 >( { 1, 0, 0, 1 }, 2 );
+   testEntityDimensionFromNormals< 4 >( { 1, 0, 1, 0 }, 2 );
+   testEntityDimensionFromNormals< 4 >( { 1, 1, 0, 0 }, 2 );
+
+   testEntityDimensionFromNormals< 4 >( { 0, 0, 0, 1 }, 3 );
+   testEntityDimensionFromNormals< 4 >( { 0, 0, 1, 0 }, 3 );
+   testEntityDimensionFromNormals< 4 >( { 0, 1, 0, 0 }, 3 );
+   testEntityDimensionFromNormals< 4 >( { 1, 0, 0, 0 }, 3 );
+
+   testEntityDimensionFromNormals< 4 >( { 0, 0, 0, 0 }, 4 );
+}
+
+template<int GridDimension >
+void testGetOrientationIndex( const typename TNL::Meshes::GridEntitiesOrientations<GridDimension>::NormalsType& normals,
+                              int expectation ) {
+   TNL::Meshes::GridEntitiesOrientations<GridDimension> entitiesOrientations;
+   auto orientationIdx = entitiesOrientations.getOrientationIndex( normals );
+
+   EXPECT_EQ( orientationIdx, expectation ) << " Grid Dimension: " << GridDimension
+                                            << " Normals:" << normals;
+}
+
+TEST(GridEntitiesOrientationSuite, GetOrientationIndexTest_1D) {
+   testGetOrientationIndex< 1 >( { 1 }, 0 );
+
+   testGetOrientationIndex< 1 >( { 0 }, 0 );
+}
+
+TEST(GridEntitiesOrientationSuite, GetOrientationIndexTest_2D ) {
+   testGetOrientationIndex< 2 >( { 1, 1 }, 0 );
+
+   testGetOrientationIndex< 2 >( { 0, 1 }, 0 );
+   testGetOrientationIndex< 2 >( { 1, 0 }, 1 );
+
+   testGetOrientationIndex< 2 >( { 0, 0 }, 0 );
+}
+
+TEST(GridEntitiesOrientationSuite, GetOrientationIndexTest_3D ) {
+   testGetOrientationIndex< 3 >( { 1, 1, 1 }, 0 );
+
+   testGetOrientationIndex< 3 >( { 0, 1, 1 }, 0 );
+   testGetOrientationIndex< 3 >( { 1, 0, 1 }, 1 );
+   testGetOrientationIndex< 3 >( { 1, 1, 0 }, 2 );
+
+   testGetOrientationIndex< 3 >( { 0, 0, 1 }, 0 );
+   testGetOrientationIndex< 3 >( { 0, 1, 0 }, 1 );
+   testGetOrientationIndex< 3 >( { 1, 0, 0 }, 2 );
+
+   testGetOrientationIndex< 3 >( { 0, 0, 0 }, 0 );
+}
+
+TEST(GridEntitiesOrientationSuite, GetOrientationIndexTest_4D) {
+   testGetOrientationIndex< 4 >( { 1, 1, 1, 1 }, 0 );
+
+   testGetOrientationIndex< 4 >( { 0, 1, 1, 1 }, 0 );
+   testGetOrientationIndex< 4 >( { 1, 0, 1, 1 }, 1 );
+   testGetOrientationIndex< 4 >( { 1, 1, 0, 1 }, 2 );
+   testGetOrientationIndex< 4 >( { 1, 1, 1, 0 }, 3 );
+
+   testGetOrientationIndex< 4 >( { 0, 0, 1, 1 }, 0 );
+   testGetOrientationIndex< 4 >( { 0, 1, 0, 1 }, 1 );
+   testGetOrientationIndex< 4 >( { 0, 1, 1, 0 }, 2 );
+   testGetOrientationIndex< 4 >( { 1, 0, 0, 1 }, 3 );
+   testGetOrientationIndex< 4 >( { 1, 0, 1, 0 }, 4 );
+   testGetOrientationIndex< 4 >( { 1, 1, 0, 0 }, 5 );
+
+   testGetOrientationIndex< 4 >( { 0, 0, 0, 1 }, 0 );
+   testGetOrientationIndex< 4 >( { 0, 0, 1, 0 }, 1 );
+   testGetOrientationIndex< 4 >( { 0, 1, 0, 0 }, 2 );
+   testGetOrientationIndex< 4 >( { 1, 0, 0, 0 }, 3 );
+
+   testGetOrientationIndex< 4 >( { 0, 0, 0, 0 }, 0 );
+}
+
+template<int GridDimension >
+void testGetTotalOrientationIndex( const typename TNL::Meshes::GridEntitiesOrientations<GridDimension>::NormalsType& normals,
+                                   int expectation ) {
+   TNL::Meshes::GridEntitiesOrientations<GridDimension> entitiesOrientations;
+   auto totalOrientationIdx = entitiesOrientations.getTotalOrientationIndex( normals );
+
+   EXPECT_EQ( totalOrientationIdx, expectation ) << " Grid Dimension: " << GridDimension
+                                            << " Normals:" << normals;
+}
+
+TEST(GridEntitiesOrientationSuite, GetTotalOrientationIndexTest_1D) {
+   testGetTotalOrientationIndex< 1 >( { 1 }, 0 );
+
+   testGetTotalOrientationIndex< 1 >( { 0 }, 1 );
+}
+
+TEST(GridEntitiesOrientationSuite, GetTotalOrientationIndexTest_2D ) {
+   testGetTotalOrientationIndex< 2 >( { 1, 1 }, 0 );
+
+   testGetTotalOrientationIndex< 2 >( { 0, 1 }, 1 );
+   testGetTotalOrientationIndex< 2 >( { 1, 0 }, 2 );
+
+   testGetTotalOrientationIndex< 2 >( { 0, 0 }, 3 );
+}
+
+TEST(GridEntitiesOrientationSuite, GetTotalOrientationIndexTest_3D ) {
+   testGetTotalOrientationIndex< 3 >( { 1, 1, 1 }, 0 );
+
+   testGetTotalOrientationIndex< 3 >( { 0, 1, 1 }, 1 );
+   testGetTotalOrientationIndex< 3 >( { 1, 0, 1 }, 2 );
+   testGetTotalOrientationIndex< 3 >( { 1, 1, 0 }, 3 );
+
+   testGetTotalOrientationIndex< 3 >( { 0, 0, 1 }, 4 );
+   testGetTotalOrientationIndex< 3 >( { 0, 1, 0 }, 5 );
+   testGetTotalOrientationIndex< 3 >( { 1, 0, 0 }, 6 );
+
+   testGetTotalOrientationIndex< 3 >( { 0, 0, 0 }, 7 );
+}
+
+TEST(GridEntitiesOrientationSuite, GetTotalOrientationIndexTest_4D) {
+   testGetTotalOrientationIndex< 4 >( { 1, 1, 1, 1 }, 0 );
+
+   testGetTotalOrientationIndex< 4 >( { 0, 1, 1, 1 },  1 );
+   testGetTotalOrientationIndex< 4 >( { 1, 0, 1, 1 },  2 );
+   testGetTotalOrientationIndex< 4 >( { 1, 1, 0, 1 },  3 );
+   testGetTotalOrientationIndex< 4 >( { 1, 1, 1, 0 },  4 );
+
+   testGetTotalOrientationIndex< 4 >( { 0, 0, 1, 1 },  5 );
+   testGetTotalOrientationIndex< 4 >( { 0, 1, 0, 1 },  6 );
+   testGetTotalOrientationIndex< 4 >( { 0, 1, 1, 0 },  7 );
+   testGetTotalOrientationIndex< 4 >( { 1, 0, 0, 1 },  8 );
+   testGetTotalOrientationIndex< 4 >( { 1, 0, 1, 0 },  9 );
+   testGetTotalOrientationIndex< 4 >( { 1, 1, 0, 0 }, 10 );
+
+   testGetTotalOrientationIndex< 4 >( { 0, 0, 0, 1 }, 11 );
+   testGetTotalOrientationIndex< 4 >( { 0, 0, 1, 0 }, 12 );
+   testGetTotalOrientationIndex< 4 >( { 0, 1, 0, 0 }, 13 );
+   testGetTotalOrientationIndex< 4 >( { 1, 0, 0, 0 }, 14 );
+
+   testGetTotalOrientationIndex< 4 >( { 0, 0, 0, 0 }, 15 );
+}
+
+#include "../../main.h"
 
 #endif
