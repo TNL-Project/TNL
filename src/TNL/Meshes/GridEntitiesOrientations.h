@@ -207,11 +207,11 @@ struct GridEntitiesOrientations
     */
    GridEntitiesOrientations();
 
-   int getEntityDimension( const NormalsType& normals ); // TODO: tests
+   static int getEntityDimension( const NormalsType& normals );
 
-   int getOrientation( const NormalsType& normals ); // TODO: tests
+   int getOrientationIndex( const NormalsType& normals );
 
-   int getTotalOrientation( const NormalsType& normals ); // TODO: tests
+   int getTotalOrientationIndex( const NormalsType& normals ); // TODO: tests
 
    /**
     * \brief Gives packed normal vectors based on entity dimension and dimension specific orientation index.

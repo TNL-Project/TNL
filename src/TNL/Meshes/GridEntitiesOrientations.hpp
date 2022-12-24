@@ -80,7 +80,7 @@ GridEntitiesOrientations< GridDimension >::
 getNormals() -> NormalsType {
    static_assert( TotalOrientation >= 0 && TotalOrientation < ( 1 << GridDimension ), "Wrong index of total orientation." );
    return NormalsGetter< int, 0, GridDimension >::template getNormalsByTotalOrientation< TotalOrientation >();
-};
+}
 
 template< int GridDimension >
    template< int EntityDimension >
@@ -110,26 +110,28 @@ getEntityDimension( const NormalsType& normals )
 template< int GridDimension >
 int
 GridEntitiesOrientations< GridDimension >::
-getOrientation( const NormalsType& normals )
+getOrientationIndex( const NormalsType& normals )
 {
    const int entityDimension = getEntityDimension( normals );
-   const int begin = cumulativeCombinationsCount( entityDimension, GridDimension );
-   const int end = cumulativeCombinationsCount( entityDimension + 1, GridDimension );
+   const int begin = cumulativeCombinationsCount( entityDimension - 1, GridDimension );
+   const int end = cumulativeCombinationsCount( entityDimension, GridDimension );
    int orientationIdx = 0;
    for( int i = begin; i < end; i++, orientationIdx++ )
+   {
       if( normalsTable[ i ] == normals )
          return orientationIdx;
+   }
    return -1;
 }
 
 template< int GridDimension >
 int
 GridEntitiesOrientations< GridDimension >::
-getTotalOrientation( const NormalsType& normals )
+getTotalOrientationIndex( const NormalsType& normals )
 {
    const int entityDimension = getEntityDimension( normals );
-   const int begin = cumulativeCombinationsCount( entityDimension, GridDimension );
-   const int end = cumulativeCombinationsCount( entityDimension + 1, GridDimension );
+   const int begin = cumulativeCombinationsCount( entityDimension - 1, GridDimension );
+   const int end = cumulativeCombinationsCount( entityDimension, GridDimension );
    for( int i = begin; i < end; i++ )
       if( normalsTable[ i ] == normals )
          return i;

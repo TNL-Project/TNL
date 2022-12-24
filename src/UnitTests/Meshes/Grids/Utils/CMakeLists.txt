@@ -4,8 +4,7 @@ set( COMMON_TESTS
          GridTemplatesTest
  )
 
-set( CPU_TESTS
-         GridEntitiesOrientationsTest )
+set( CPU_TESTS )
 
 set( CUDA_TESTS )
 
