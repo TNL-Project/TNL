@@ -28,7 +28,7 @@ class NeighbourGridEntityGetterTestCase {
                if( entity.getCoordinates() + offset > typename Grid::CoordinatesType( 0 ) &&
                   entity.getCoordinates() + offset < entity.getGrid().getDimensions() + entity.getNormals()  )
                   {
-                     auto neighbourEntity = entity.template getNeighbourEntity( offset );
+                     auto neighbourEntity = entity.getNeighbourEntity( offset );
                      auto neighbourEntityIndex = entity.getNeighbourEntityIndex( offset );
                      EXPECT_EQ( neighbourEntity.getIndex(), neighbourEntityIndex )
                                  << "Wrong index of neighbour entity: " << std::endl

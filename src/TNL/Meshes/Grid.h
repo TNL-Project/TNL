@@ -343,10 +343,9 @@ public:
     * \param normals defines the orientation of an entity.
     * \return index of grid entity orientation.
     */
-   template< int EntityDimension >
    __cuda_callable__
    IndexType
-   getOrientation( const NormalsType& normals ) const noexcept;
+   getOrientationIndex( const NormalsType& normals ) const noexcept;
 
    /**
     * \brief Computes coordinates of a grid entity based on an index of the entity.
