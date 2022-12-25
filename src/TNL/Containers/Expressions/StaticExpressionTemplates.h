@@ -274,6 +274,8 @@ TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, max, TNL::Max )
 
 TNL_MAKE_STATIC_UNARY_EXPRESSION( constexpr, operator+, TNL::UnaryPlus )
 TNL_MAKE_STATIC_UNARY_EXPRESSION( constexpr, operator-, TNL::UnaryMinus )
+TNL_MAKE_STATIC_UNARY_EXPRESSION( constexpr, operator!, TNL::LogicalNot )
+TNL_MAKE_STATIC_UNARY_EXPRESSION( constexpr, operator~, TNL::BitNot )
 TNL_MAKE_STATIC_UNARY_EXPRESSION( __cuda_callable__, abs, TNL::Abs )
 TNL_MAKE_STATIC_UNARY_EXPRESSION( __cuda_callable__, exp, TNL::Exp )
 TNL_MAKE_STATIC_UNARY_EXPRESSION( __cuda_callable__, sqrt, TNL::Sqrt )
@@ -570,6 +572,8 @@ operator<<( std::ostream& str, const StaticUnaryExpressionTemplate< T, Operation
 
 // Make all operators visible in the TNL::Containers namespace to be considered
 // even for StaticVector
+using Expressions::operator!;
+using Expressions::operator~;
 using Expressions::operator+;
 using Expressions::operator-;
 using Expressions::operator*;

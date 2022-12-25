@@ -286,6 +286,8 @@ TNL_MAKE_BINARY_EXPRESSION( max, TNL::Max )
 
 TNL_MAKE_UNARY_EXPRESSION( operator+, TNL::UnaryPlus )
 TNL_MAKE_UNARY_EXPRESSION( operator-, TNL::UnaryMinus )
+TNL_MAKE_UNARY_EXPRESSION( operator!, TNL::LogicalNot )
+TNL_MAKE_UNARY_EXPRESSION( operator~, TNL::BitNot )
 TNL_MAKE_UNARY_EXPRESSION( abs, TNL::Abs )
 TNL_MAKE_UNARY_EXPRESSION( exp, TNL::Exp )
 TNL_MAKE_UNARY_EXPRESSION( sqr, TNL::Sqr )
@@ -548,6 +550,8 @@ operator<<( std::ostream& str, const UnaryExpressionTemplate< T, Operation >& ex
 
 // Make all operators visible in the TNL::Containers namespace to be considered
 // even for Vector and VectorView
+using Expressions::operator!;
+using Expressions::operator~;
 using Expressions::operator+;
 using Expressions::operator-;
 using Expressions::operator*;
