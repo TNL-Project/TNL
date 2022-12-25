@@ -154,12 +154,13 @@ endif()
 # enable link time optimizations (but not in continuous integration)
 if( NOT DEFINED ENV{GITLAB_CI} )
    if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
-      # LTO with GCC 9.1.0 and Debug build = internal compiler error
-      # LTO with GCC 9.1.0 and nvcc 10.1 and Release build = fatal error: bytecode stream in file `blabla` generated with LTO version 7.1 instead of the expected 8.0
-#      set( CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE )
-   elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT MINGW )
-      # LTO with clang from MSYS2 leads to 'file format not recognized' linker errors
-      set( CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE )
+      # FIXME: IPO with GCC 9.1.0 and Debug build = internal compiler error
+      # FIXME: IPO with GCC 9.1.0 and nvcc 10.1 and Release build = fatal error: bytecode stream in file `blabla` generated with LTO version 7.1 instead of the expected 8.0
+      #set( CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE )
+   elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+      # FIXME: IPO with clang from MSYS2 leads to 'file format not recognized' linker errors
+      # FIXME: clang does not support IPO for CUDA
+      #set( CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE )
    endif()
 endif()
 
