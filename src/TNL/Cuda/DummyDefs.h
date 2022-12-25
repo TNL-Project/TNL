@@ -34,6 +34,9 @@ enum
    cudaStreamNonBlocking,
 };
 
+extern cudaError_t
+cudaStreamSynchronize( cudaStream_t stream );
+
 enum cudaFuncCache
 {
    cudaFuncCachePreferNone = 0,

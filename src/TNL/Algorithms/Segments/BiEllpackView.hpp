@@ -240,7 +240,7 @@ BiEllpackView< Device, Index, Organization, WarpSize >::reduceSegments( IndexTyp
    using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if( this->getStorageSize() == 0 )
       return;
-   if( std::is_same< DeviceType, Devices::Host >::value )
+   if constexpr( std::is_same< DeviceType, Devices::Host >::value )
       for( IndexType segmentIdx = 0; segmentIdx < this->getSize(); segmentIdx++ ) {
          const IndexType stripIdx = segmentIdx / getWarpSize();
          const IndexType groupIdx = stripIdx * ( getLogWarpSize() + 1 );
@@ -290,29 +290,26 @@ BiEllpackView< Device, Index, Organization, WarpSize >::reduceSegments( IndexTyp
          }
          keeper( segmentIdx, aux );
       }
-   if( std::is_same< DeviceType, Devices::Cuda >::value ) {
-#ifdef HAVE_CUDA
+   if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
+      Devices::Cuda::LaunchConfiguration launch_config;
       constexpr int BlockDim = 256;
-      dim3 cudaBlockSize = BlockDim;
+      launch_config.blockSize.x = BlockDim;
       const IndexType stripsCount = roundUpDivision( last - first, getWarpSize() );
-      const IndexType cudaBlocks = roundUpDivision( stripsCount * getWarpSize(), cudaBlockSize.x );
+      const IndexType cudaBlocks = roundUpDivision( stripsCount * getWarpSize(), launch_config.blockSize.x );
       const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
-      IndexType sharedMemory = 0;
       if( Organization == ColumnMajorOrder )
-         sharedMemory = cudaBlockSize.x * sizeof( RealType );
+         launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( RealType );
 
-      // printStructure( std::cerr );
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         dim3 cudaGridSize = Cuda::getMaxGridXSize();
+         launch_config.gridSize.x = Cuda::getMaxGridXSize();
          if( gridIdx == cudaGrids - 1 )
-            cudaGridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
-         detail::BiEllpackreduceSegmentsKernel< ViewType, IndexType, Fetch, Reduction, ResultKeeper, Real, BlockDim >
-            <<< cudaGridSize, cudaBlockSize,
-            sharedMemory >>>( *this, gridIdx, first, last, fetch, reduction, keeper, zero );
+            launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
+         constexpr auto kernel =
+            detail::BiEllpackreduceSegmentsKernel< ViewType, IndexType, Fetch, Reduction, ResultKeeper, Real, BlockDim >;
+         Cuda::launchKernelAsync( kernel, launch_config, *this, gridIdx, first, last, fetch, reduction, keeper, zero );
       }
-      cudaStreamSynchronize( 0 );
+      cudaStreamSynchronize( launch_config.stream );
       TNL_CHECK_CUDA_DEVICE;
-#endif
    }
 }
 

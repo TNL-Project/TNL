@@ -20,8 +20,6 @@ namespace TNL {
 namespace Algorithms {
 namespace Segments {
 
-#ifdef HAVE_CUDA
-
 template< typename BlocksView,
           typename Offsets,
           typename Index,
@@ -43,6 +41,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
                                  Real zero,
                                  Args... args )
 {
+#ifdef HAVE_CUDA
    using BlockType = detail::CSRAdaptiveKernelBlockDescriptor< Index >;
    constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( Real ) >::CudaBlockSize();
    constexpr int WarpSize = Cuda::getWarpSize();
@@ -163,82 +162,8 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
          }
       }
    }
+#endif
 }
-#endif
-
-template< typename Index,
-          typename Device,
-          typename Fetch,
-          typename Reduction,
-          typename ResultKeeper,
-          bool DispatchScalarCSR =
-             detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same< Device, Devices::Host >::value >
-struct CSRAdaptiveKernelreduceSegmentsDispatcher;
-
-template< typename Index, typename Device, typename Fetch, typename Reduction, typename ResultKeeper >
-struct CSRAdaptiveKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, ResultKeeper, true >
-{
-   template< typename BlocksView, typename Offsets, typename Real, typename... Args >
-   static void
-   reduce( const Offsets& offsets,
-           const BlocksView& blocks,
-           Index first,
-           Index last,
-           Fetch& fetch,
-           const Reduction& reduction,
-           ResultKeeper& keeper,
-           const Real& zero,
-           Args... args )
-   {
-      TNL::Algorithms::Segments::CSRScalarKernel< Index, Device >::reduceSegments(
-         offsets, first, last, fetch, reduction, keeper, zero, args... );
-   }
-};
-
-template< typename Index, typename Device, typename Fetch, typename Reduction, typename ResultKeeper >
-struct CSRAdaptiveKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, ResultKeeper, false >
-{
-   template< typename BlocksView, typename Offsets, typename Real, typename... Args >
-   static void
-   reduce( const Offsets& offsets,
-           const BlocksView& blocks,
-           Index first,
-           Index last,
-           Fetch& fetch,
-           const Reduction& reduction,
-           ResultKeeper& keeper,
-           const Real& zero,
-           Args... args )
-   {
-#ifdef HAVE_CUDA
-
-      Index blocksCount;
-
-      const Index threads = detail::CSRAdaptiveKernelParameters< sizeof( Real ) >::CudaBlockSize();
-      constexpr size_t maxGridSize = TNL::Cuda::getMaxGridXSize();
-
-      // Fill blocks
-      size_t neededThreads = blocks.getSize() * TNL::Cuda::getWarpSize();  // one warp per block
-      // Execute kernels on device
-      for( Index gridIdx = 0; neededThreads != 0; gridIdx++ ) {
-         if( maxGridSize * threads >= neededThreads ) {
-            blocksCount = roundUpDivision( neededThreads, threads );
-            neededThreads = 0;
-         }
-         else {
-            blocksCount = maxGridSize;
-            neededThreads -= maxGridSize * threads;
-         }
-
-         reduceSegmentsCSRAdaptiveKernel< BlocksView, Offsets, Index, Fetch, Reduction, ResultKeeper, Real, Args... >
-            <<<blocksCount,
-            threads>>>( blocks, gridIdx, offsets, first, last, fetch, reduction, keeper, zero, args... );
-      }
-      cudaStreamSynchronize( 0 );
-      TNL_CHECK_CUDA_DEVICE;
-#endif
-   }
-};
 
 template< typename Index, typename Device >
 void
@@ -290,9 +215,40 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const OffsetsView& offse
       return;
    }
 
-   CSRAdaptiveKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, ResultKeeper >::
-      template reduce< BlocksView, OffsetsView, Real, Args... >(
-         offsets, this->blocksArray[ valueSizeLog ], first, last, fetch, reduction, keeper, zero, args... );
+   constexpr bool DispatchScalarCSR =
+      detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same< Device, Devices::Host >::value;
+   if constexpr( DispatchScalarCSR ) {
+      TNL::Algorithms::Segments::CSRScalarKernel< Index, Device >::reduceSegments(
+         offsets, first, last, fetch, reduction, keeper, zero, args... );
+   }
+   else {
+      Devices::Cuda::LaunchConfiguration launch_config;
+      launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( Real ) >::CudaBlockSize();
+      constexpr std::size_t maxGridSize = TNL::Cuda::getMaxGridXSize();
+
+      // Fill blocks
+      const auto& blocks = this->blocksArray[ valueSizeLog ];
+      std::size_t neededThreads = blocks.getSize() * TNL::Cuda::getWarpSize();  // one warp per block
+
+      // Execute kernels on device
+      for( Index gridIdx = 0; neededThreads != 0; gridIdx++ ) {
+         if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
+            launch_config.gridSize.x = roundUpDivision( neededThreads, launch_config.blockSize.x );
+            neededThreads = 0;
+         }
+         else {
+            launch_config.gridSize.x = maxGridSize;
+            neededThreads -= maxGridSize * launch_config.blockSize.x;
+         }
+
+         constexpr auto kernel =
+            reduceSegmentsCSRAdaptiveKernel< BlocksView, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Real, Args... >;
+         Cuda::launchKernelAsync(
+            kernel, launch_config, blocks, gridIdx, offsets, first, last, fetch, reduction, keeper, zero, args... );
+      }
+      cudaStreamSynchronize( launch_config.stream );
+      TNL_CHECK_CUDA_DEVICE;
+   }
 }
 
 template< typename Index, typename Device >

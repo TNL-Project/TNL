@@ -6,7 +6,10 @@
 
 #pragma once
 
+#include <iostream>
+
 #include <TNL/Math.h>
+#include <TNL/Cuda/DummyDefs.h>
 
 namespace TNL {
 namespace Cuda {
@@ -104,7 +107,6 @@ getNumberOfGrids( const int blocks, const int gridSize )
    return roundUpDivision( blocks, gridSize );
 }
 
-#ifdef HAVE_CUDA
 inline void
 setupThreads( const dim3& blockSize,
               dim3& blocksCount,
@@ -196,7 +198,6 @@ printThreadsSetup( const dim3& blockSize,
        << " Grid size: " << gridSize << std::endl
        << " Grids count: " << gridsCount << std::endl;
 }
-#endif
 
 }  // namespace Cuda
 }  // namespace TNL
