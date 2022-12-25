@@ -310,6 +310,18 @@ void expect_vectors_near( const Left& _v1, const Right& _v2 )
 #endif
 }
 
+TYPED_TEST( VectorUnaryOperationsTest, plus )
+{
+   SETUP_UNARY_VECTOR_TEST( VECTOR_TEST_SIZE );
+
+   // vector or view
+   EXPECT_EQ( +V1, 1 );
+   // unary expression
+   EXPECT_EQ( +(+V2), 2 );
+   // binary expression
+   EXPECT_EQ( +(V1 + V1), 2 );
+}
+
 TYPED_TEST( VectorUnaryOperationsTest, minus )
 {
    SETUP_UNARY_VECTOR_TEST( VECTOR_TEST_SIZE );
@@ -317,9 +329,37 @@ TYPED_TEST( VectorUnaryOperationsTest, minus )
    // vector or view
    EXPECT_EQ( -V1, -1 );
    // unary expression
-   EXPECT_EQ( V2 * (-V1), -2 );
+   EXPECT_EQ( -(-V2), 2 );
    // binary expression
    EXPECT_EQ( -(V1 + V1), -2 );
+}
+
+TYPED_TEST( VectorUnaryOperationsTest, logicalNot )
+{
+   SETUP_UNARY_VECTOR_TEST( VECTOR_TEST_SIZE );
+
+   // vector or view
+   EXPECT_EQ( !V1, 0 );
+   // unary expression
+   EXPECT_EQ( !(!V2), 1 );
+   // binary expression
+   EXPECT_EQ( !(V1 + V1), 0 );
+}
+
+TYPED_TEST( VectorUnaryOperationsTest, bitNot )
+{
+   // binary negation is defined only for integral types
+   using ValueType = typename TestFixture::VectorOrView::ValueType;
+   if constexpr( std::is_integral_v< ValueType > ) {
+      SETUP_UNARY_VECTOR_TEST( VECTOR_TEST_SIZE );
+
+      // vector or view
+      EXPECT_EQ( ~V1, ~static_cast< ValueType >( 1 ) );
+      // unary expression
+      EXPECT_EQ( ~(~V2), 2 );
+      // binary expression
+      EXPECT_EQ( ~(V1 + V1), ~static_cast< ValueType >( 2 ) );
+   }
 }
 
 TYPED_TEST( VectorUnaryOperationsTest, abs )
