@@ -35,13 +35,12 @@
  * using template class specializations.
  */
 
-#ifdef HAVE_CUDA
-
-   #include <stdint.h>
+#include <stdint.h>
 
 namespace TNL {
 namespace Cuda {
 
+#ifdef HAVE_CUDA
 template< typename T, std::size_t _alignment = CHAR_BIT * sizeof( T ) >
 struct SharedMemory;
 
@@ -130,6 +129,7 @@ getSharedMemory()
                   "Requested type has unsupported size." );
    return SharedMemory< T >{};
 }
+#endif
 
 // helper functions for indexing shared memory
 inline constexpr int
@@ -148,5 +148,3 @@ getInterleaving( const Index index )
 
 }  // namespace Cuda
 }  // namespace TNL
-
-#endif

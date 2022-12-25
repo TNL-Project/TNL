@@ -15,7 +15,6 @@
 namespace TNL {
 namespace Matrices {
 
-#ifdef HAVE_CUDA
 /**
  * The following kernel is an attempt to map more CUDA threads to one matrix row.
  */
@@ -29,6 +28,7 @@ VectorColumnMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
                                                             const int end,
                                                             int gridIdx )
 {
+#ifdef HAVE_CUDA
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );
@@ -85,6 +85,7 @@ VectorColumnMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
 
    if( rowIdx < end && localColIdx == 0 )
       outVector[ rowIdx ] = result_[ idx ];
+#endif
 }
 
 template< typename Matrix, typename InVector, typename OutVector >
@@ -97,6 +98,7 @@ ColumnMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
                                                       const int end,
                                                       int gridIdx )
 {
+#ifdef HAVE_CUDA
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );
@@ -134,6 +136,7 @@ ColumnMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
    }
    if( rowIdx < end )
       outVector[ rowIdx ] = result;
+#endif
 }
 
 template< typename Matrix, typename InVector, typename OutVector >
@@ -146,6 +149,7 @@ RowMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
                                                    const int last,
                                                    int gridIdx )
 {
+#ifdef HAVE_CUDA
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
    // constexpr int inVectorCacheSize = 20480 / sizeof( Real );
@@ -211,8 +215,8 @@ RowMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
       if( laneID == 0 )
          outVector[ rowIdx ] = result;
    }
-}
 #endif
+}
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
@@ -602,44 +606,51 @@ DenseMatrixView< Real, Device, Index, Organization >::vectorProduct( const InVec
    if( end == 0 )
       end = this->getRows();
 
-   if( std::is_same< DeviceType, Devices::Cuda >::value && matrixMultiplicator == 1.0 && outVectorMultiplicator == 0.0 ) {
-#ifdef HAVE_CUDA
-      if( Organization == Algorithms::Segments::ColumnMajorOrder ) {
-         constexpr int BlockSize = 256;
-         constexpr int ThreadsPerRow = 1;
-         const size_t threadsCount = ( end - begin ) * ThreadsPerRow;
-         const size_t blocksCount = roundUpDivision( threadsCount, BlockSize );
-         const size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
-         const size_t sharedMemSize = 20480;
-         for( size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
-            dim3 blocks( Cuda::getMaxGridXSize() );
-            if( gridIdx == gridsCount - 1 )
-               blocks = blocksCount % Cuda::getMaxGridXSize();
-            ColumnMajorDenseMatrixViewVectorMultiplicationKernel<<< blocks, BlockSize,
-               sharedMemSize >>>( *this, inVectorView, outVectorView, begin, end, gridIdx );
+   if( matrixMultiplicator == 1.0 && outVectorMultiplicator == 0.0 ) {
+      if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
+         if constexpr( Organization == Algorithms::Segments::ColumnMajorOrder ) {
+            Cuda::LaunchConfiguration launch_config;
+            launch_config.blockSize.x = 256;
+            constexpr int ThreadsPerRow = 1;
+            const std::size_t threadsCount = ( end - begin ) * ThreadsPerRow;
+            const std::size_t blocksCount = roundUpDivision( threadsCount, launch_config.blockSize.x );
+            const std::size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
+            launch_config.dynamicSharedMemorySize = 20480;
+            for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+               launch_config.gridSize.x = Cuda::getMaxGridXSize();
+               if( gridIdx == gridsCount - 1 )
+                  launch_config.gridSize.x = blocksCount % Cuda::getMaxGridXSize();
+               constexpr auto kernel = ColumnMajorDenseMatrixViewVectorMultiplicationKernel< DenseMatrixView,
+                                                                                             decltype( inVectorView ),
+                                                                                             decltype( outVectorView ) >;
+               Cuda::launchKernelAsync( kernel, launch_config, *this, inVectorView, outVectorView, begin, end, gridIdx );
+            }
+            cudaStreamSynchronize( launch_config.stream );
+            TNL_CHECK_CUDA_DEVICE;
+            return;
          }
-         TNL_CHECK_CUDA_DEVICE;
-         return;
-      }
-      if( Organization == Algorithms::Segments::RowMajorOrder ) {
-         constexpr int BlockSize = 256;
-         constexpr int ThreadsPerRow = 32;
-         const size_t threadsCount = ( end - begin ) * ThreadsPerRow;
-         const size_t blocksCount = roundUpDivision( threadsCount, BlockSize );
-         const size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
-         const size_t sharedMemSize = 20480;
-         for( size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
-            dim3 blocks( Cuda::getMaxGridXSize() );
-            if( gridIdx == gridsCount - 1 )
-               blocks = blocksCount % Cuda::getMaxGridXSize();
-            RowMajorDenseMatrixViewVectorMultiplicationKernel<<< blocks, BlockSize,
-               sharedMemSize >>>( *this, inVectorView, outVectorView, begin, end, gridIdx );
+         if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
+            Cuda::LaunchConfiguration launch_config;
+            launch_config.blockSize.x = 256;
+            constexpr int ThreadsPerRow = 32;
+            const std::size_t threadsCount = ( end - begin ) * ThreadsPerRow;
+            const std::size_t blocksCount = roundUpDivision( threadsCount, launch_config.blockSize.x );
+            const std::size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
+            launch_config.dynamicSharedMemorySize = 20480;
+            for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+               launch_config.gridSize.x = Cuda::getMaxGridXSize();
+               if( gridIdx == gridsCount - 1 )
+                  launch_config.gridSize.x = blocksCount % Cuda::getMaxGridXSize();
+               constexpr auto kernel = RowMajorDenseMatrixViewVectorMultiplicationKernel< DenseMatrixView,
+                                                                                          decltype( inVectorView ),
+                                                                                          decltype( outVectorView ) >;
+               Cuda::launchKernelAsync( kernel, launch_config, *this, inVectorView, outVectorView, begin, end, gridIdx );
+            }
+            cudaStreamSynchronize( launch_config.stream );
+            TNL_CHECK_CUDA_DEVICE;
+            return;
          }
-         TNL_CHECK_CUDA_DEVICE;
-         return;
       }
-
-#endif
    }
 
    /***
