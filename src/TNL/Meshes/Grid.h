@@ -237,12 +237,12 @@ public:
     * \param[in] indices is a list of dimensions of grid entities to be counted.
     * \return count of entities of specific dimensions.
     */
-   template< typename... DimensionIndex,
+   /*template< typename... DimensionIndex,
              std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool > = true,
              std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > = true >
    __cuda_callable__
    Containers::StaticVector< sizeof...( DimensionIndex ), Index >
-   getEntitiesCounts( DimensionIndex... indices ) const;
+   getEntitiesCounts( DimensionIndex... indices ) const;*/
 
    /**
     * \brief Returns count of entities for all dimensions.
@@ -806,6 +806,10 @@ public:
    forLocalEntities( Func func, FuncArgs... args ) const;
 
 protected:
+
+   void
+   setEntitiesIndexesOffsets();
+
    void
    fillEntitiesCount();
 
@@ -817,9 +821,6 @@ protected:
 
    void
    fillProportions();
-
-   //void
-   //fillNormals();
 
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
@@ -872,26 +873,20 @@ protected:
     *
     * \warning The ordering of is lexigraphical.
     */
-   Containers::StaticVector< 1 << Dimension, Index > entitiesCountAlongNormals;
+   Containers::StaticVector< 1 << Dimension, Index > entitiesCountAlongNormals; // TODO: remove
 
-   Containers::StaticVector< 1 << Dimension, Index > entitiesAlongNormalsIndexOffsets;
+   Containers::StaticVector< 1 << Dimension, Index > entitiesAlongNormalsIndexOffsets; // TODO: remove
    /**
     * \brief A cumulative map over dimensions.
     */
-   Containers::StaticVector< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals;
-
-
-   /**
-    * \brief Container with normals defining grid entity orientations.
-    *
-    * `normals[ orientationIdx ]` gives normals for given orientation index.
-    */
-   //OrientationNormalsContainer normals;
+   Containers::StaticVector< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals; // TODO: remove
 
    __cuda_callable__
    inline static EntitiesOrientations entitiesOrientations;
 
-   SpaceProductsContainer spaceStepsProducts;
+   Containers::StaticVector< 1 << Dimension, Index > entitiesIndexesOffsets;
+
+   SpaceProductsContainer spaceStepsProducts; // TODO: remove
 };
 
 /**

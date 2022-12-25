@@ -146,7 +146,7 @@ Grid< Dimension, Real, Device, Index >::getEntitiesCount() const noexcept
    return this->template getEntitiesCount< EntityType_::getEntityDimension() >();
 }
 
-template< int Dimension, typename Real, typename Device, typename Index >
+/*template< int Dimension, typename Real, typename Device, typename Index >
 template< typename... DimensionIndex,
           std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool >,
           std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > >
@@ -160,7 +160,7 @@ Grid< Dimension, Real, Device, Index >::getEntitiesCounts( DimensionIndex... ind
       result[ i ] = this->cumulativeEntitiesCountAlongNormals( result[ i ] );
 
    return result;
-}
+}*/
 
 template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
@@ -796,6 +796,27 @@ Grid< Dimension, Real, Device, Index >::writeProlog( TNL::Logger& logger ) const
             logger.writeParameter( tmp, this->getOrientedEntitiesCount( entityDim, entityOrientation ) );
          }
       } );
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+void
+Grid< Dimension, Real, Device, Index >::
+setEntitiesIndexesOffsets()
+{
+   this->entitiesIndexesOffsets[ 0 ] = 0;
+   for( Index totalOrientationIdx = 1; totalOrientationIdx <= 1 << Dimensions; totalOrientationIdx++ )
+   {
+      const auto& normals = entitiesOrientations.getNormals( totalOrientationIdx );
+      IndexType aux = 1, entitiesCount = 0;
+      Algorithms::staticFor< IndexType, 0, Dimension >(
+      [&] ( Index i ) mutable {
+         const auto entities = this->getDimensions()[ i ] + normals[ i ]
+         entitiesCount += aux * entities;
+         aux *= entities;
+      } );
+      this->entitiesIndexesOffsets[ totalOrientationIdx ] =
+         this->entitiesIndexesOffsets[ totalOrientationIdx - 1 ] + entitiesCount;
+   }
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
