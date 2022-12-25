@@ -25,6 +25,7 @@ struct dim3
    constexpr dim3( unsigned int x, unsigned int y = 1, unsigned int z = 1 ) : x( x ), y( y ), z( z ) {}
 };
 
+using cudaError_t = int;
 using cudaStream_t = int;
 
 enum
@@ -32,5 +33,20 @@ enum
    cudaStreamDefault,
    cudaStreamNonBlocking,
 };
+
+enum cudaFuncCache
+{
+   cudaFuncCachePreferNone = 0,
+   cudaFuncCachePreferShared = 1,
+   cudaFuncCachePreferL1 = 2,
+   cudaFuncCachePreferEqual = 3
+};
+
+template< class T >
+static cudaError_t
+cudaFuncSetCacheConfig( T* func, enum cudaFuncCache cacheConfig )
+{
+   return 0;
+}
 
 #endif
