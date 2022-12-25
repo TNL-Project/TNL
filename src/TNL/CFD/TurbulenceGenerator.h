@@ -220,9 +220,7 @@ struct TurbulenceGenerator
          sz = -TNL::sin( theta ) * TNL::cos( alpha );
 
          // extract views for capturing in the lambda function
-         const auto _kx = kx.getConstView();
-         const auto _ky = ky.getConstView();
-         const auto _kz = kz.getConstView();
+         const auto _k = k.getConstView();
          auto _sx = sx.getView();
          auto _sy = sy.getView();
          auto _sz = sz.getView();
@@ -231,9 +229,9 @@ struct TurbulenceGenerator
          TNL::Algorithms::ParallelFor< Device >::exec(
             unsigned( 0 ),
             nmodes,
-            [ velocityScale, dk, k_e, k_eta, _kx, _ky, _kz, _sx, _sy, _sz ] __cuda_callable__( unsigned m ) mutable
+            [ velocityScale, dk, k_e, k_eta, _k, _sx, _sy, _sz ] __cuda_callable__( unsigned m ) mutable
             {
-               const Real kappa = TNL::sqrt( _kx[ m ] * _kx[ m ] + _ky[ m ] * _ky[ m ] + _kz[ m ] * _kz[ m ] );
+               const Real kappa = _k[ m ];
 
                // von Karman spectrum
                const Real E =
@@ -254,6 +252,9 @@ struct TurbulenceGenerator
          const auto _xc = xc.getConstView();
          const auto _yc = yc.getConstView();
          const auto _zc = zc.getConstView();
+         const auto _kx = kx.getConstView();
+         const auto _ky = ky.getConstView();
+         const auto _kz = kz.getConstView();
          auto _u = u.getView();
          auto _v = v.getView();
          auto _w = w.getView();
