@@ -409,25 +409,25 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::addMatrix
    this->view.addMatrix( matrix.getConstView(), matrixMultiplicator, thisMatrixMultiplicator );
 }
 
-#ifdef HAVE_CUDA
-template< typename Real, typename Real2, typename Index, typename Index2 >
+template< typename InMatrixView, typename OutMatrixView, typename Real, typename Index >
 __global__
 void
-TridiagonalMatrixTranspositionCudaKernel( const TridiagonalMatrix< Real2, Devices::Cuda, Index2 >* inMatrix,
-                                          TridiagonalMatrix< Real, Devices::Cuda, Index >* outMatrix,
+TridiagonalMatrixTranspositionCudaKernel( const InMatrixView inMatrix,
+                                          OutMatrixView outMatrix,
                                           Real matrixMultiplicator,
                                           Index gridIdx )
 {
+#ifdef HAVE_CUDA
    const Index rowIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
-   if( rowIdx < inMatrix->getRows() ) {
+   if( rowIdx < inMatrix.getRows() ) {
       if( rowIdx > 0 )
-         outMatrix->setElementFast( rowIdx - 1, rowIdx, matrixMultiplicator * inMatrix->getElementFast( rowIdx, rowIdx - 1 ) );
-      outMatrix->setElementFast( rowIdx, rowIdx, matrixMultiplicator * inMatrix->getElementFast( rowIdx, rowIdx ) );
-      if( rowIdx < inMatrix->getRows() - 1 )
-         outMatrix->setElementFast( rowIdx + 1, rowIdx, matrixMultiplicator * inMatrix->getElementFast( rowIdx, rowIdx + 1 ) );
+         outMatrix.setElementFast( rowIdx - 1, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx - 1 ) );
+      outMatrix.setElementFast( rowIdx, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx ) );
+      if( rowIdx < inMatrix.getRows() - 1 )
+         outMatrix.setElementFast( rowIdx + 1, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx + 1 ) );
    }
-}
 #endif
+}
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Real2, typename Index2 >
@@ -439,7 +439,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getTransp
    TNL_ASSERT( this->getRows() == matrix.getRows(),
                std::cerr << "This matrix rows: " << this->getRows() << std::endl
                          << "That matrix rows: " << matrix.getRows() << std::endl );
-   if( std::is_same< Device, Devices::Host >::value ) {
+   if constexpr( std::is_same< Device, Devices::Host >::value ) {
       const IndexType& rows = matrix.getRows();
       for( IndexType i = 1; i < rows; i++ ) {
          RealType aux = matrix.getElement( i, i - 1 );
@@ -448,24 +448,21 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getTransp
          this->setElement( i - 1, i, aux );
       }
    }
-   if( std::is_same< Device, Devices::Cuda >::value ) {
-#ifdef HAVE_CUDA
-      TridiagonalMatrix* kernel_this = Cuda::passToDevice( *this );
-      typedef TridiagonalMatrix< Real2, Device, Index2 > InMatrixType;
-      InMatrixType* kernel_inMatrix = Cuda::passToDevice( matrix );
-      dim3 cudaBlockSize( 256 ), cudaGridSize( Cuda::getMaxGridXSize() );
-      const IndexType cudaBlocks = roundUpDivision( matrix.getRows(), cudaBlockSize.x );
-      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
+   if constexpr( std::is_same< Device, Devices::Cuda >::value ) {
+      Cuda::LaunchConfiguration launch_config;
+      launch_config.blockSize.x = 256;
+      launch_config.gridSize.x = Cuda::getMaxGridXSize();
+      const IndexType cudaBlocks = roundUpDivision( matrix.getRows(), launch_config.blockSize.x );
+      const IndexType cudaGrids = roundUpDivision( cudaBlocks, launch_config.gridSize.x );
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          if( gridIdx == cudaGrids - 1 )
-            cudaGridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
-         TridiagonalMatrixTranspositionCudaKernel<<< cudaGridSize,
-            cudaBlockSize >>>( kernel_inMatrix, kernel_this, matrixMultiplicator, gridIdx );
+            launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
+         constexpr auto kernel =
+            TridiagonalMatrixTranspositionCudaKernel< decltype( matrix.getConstView() ), ViewType, RealType, IndexType >;
+         Cuda::launchKernelAsync( kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, gridIdx );
       }
-      Cuda::freeFromDevice( kernel_this );
-      Cuda::freeFromDevice( kernel_inMatrix );
+      cudaStreamSynchronize( launch_config.stream );
       TNL_CHECK_CUDA_DEVICE;
-#endif
    }
 }
 
