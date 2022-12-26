@@ -471,8 +471,8 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
 
       const IndexType tileALastRow = TNL::min( tileDim, matrixARows - resultTileRow );
       const IndexType tileALastColumn = TNL::min( tileDim, matrixAColumns - i );
-      const IndexType tileBLastRow = TNL::min( tileDim, matrixBRows - i );
-      const IndexType tileBLastColumn = TNL::min( tileDim, matrixBColumns - resultTileColumn );
+      // const IndexType tileBLastRow = TNL::min( tileDim, matrixBRows - i );
+      // const IndexType tileBLastColumn = TNL::min( tileDim, matrixBColumns - resultTileColumn );
 
       for( IndexType row = 0; row < tileALastRow; row += tileRowBlockSize ) {
          RealType sum( 0.0 );
@@ -652,7 +652,7 @@ DenseTranspositionNonAlignedKernel( OutputMatrix resultMatrix,
    const Index readRowPosition = ( gridIdx_y * gridDim.y + blockIdx_y ) * tileDim + threadIdx.y;
    const Index readColumnPosition = ( gridIdx_x * gridDim.x + blockIdx_x ) * tileDim + threadIdx.x;
    if( readColumnPosition < columns ) {
-      const Index readOffset = readRowPosition * columns + readColumnPosition;
+      // const Index readOffset = readRowPosition * columns + readColumnPosition;
       for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize ) {
          if( readRowPosition + rowBlock < rows )
             tile[ Cuda::getInterleaving( threadIdx.x * tileDim + threadIdx.y + rowBlock ) ] =
@@ -667,7 +667,7 @@ DenseTranspositionNonAlignedKernel( OutputMatrix resultMatrix,
    const Index writeRowPosition = ( gridIdx_x * gridDim.x + blockIdx_x ) * tileDim + threadIdx.y;
    const Index writeColumnPosition = ( gridIdx_y * gridDim.y + blockIdx_y ) * tileDim + threadIdx.x;
    if( writeColumnPosition < rows ) {
-      const Index writeOffset = writeRowPosition * rows + writeColumnPosition;
+      // const Index writeOffset = writeRowPosition * rows + writeColumnPosition;
       for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize ) {
          if( writeRowPosition + rowBlock < columns )
             resultMatrix( writeRowPosition + rowBlock, writeColumnPosition ) =
