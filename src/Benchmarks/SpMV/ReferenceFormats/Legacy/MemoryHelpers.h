@@ -16,7 +16,8 @@ namespace TNL {
 namespace Cuda {
 
 template< typename ObjectType >
-[[deprecated( "Allocators::Cuda and MultiDeviceMemoryOperations should be used instead." )]] ObjectType*
+//[[deprecated( "Allocators::Cuda and MultiDeviceMemoryOperations should be used instead." )]]
+ObjectType*
 passToDevice( const ObjectType& object )
 {
 #ifdef __CUDACC__
@@ -36,7 +37,8 @@ passToDevice( const ObjectType& object )
 }
 
 template< typename ObjectType >
-[[deprecated( "Allocators::Cuda should be used instead." )]] void
+//[[deprecated( "Allocators::Cuda should be used instead." )]]
+void
 freeFromDevice( ObjectType* deviceObject )
 {
 #ifdef __CUDACC__
