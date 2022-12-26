@@ -1266,7 +1266,6 @@ void test_AssignmentOperator()
    using IndexType = typename Matrix::IndexType;
 
    using DenseHost = TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Host, IndexType >;
-   using DenseCuda = TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Cuda, IndexType >;
 
    const IndexType rows( 10 ), columns( 10 );
    DenseHost hostMatrix( rows, columns );
@@ -1287,6 +1286,7 @@ void test_AssignmentOperator()
       }
 
 #ifdef __CUDACC__
+   using DenseCuda = TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Cuda, IndexType >;
    DenseCuda cudaMatrix( rows, columns );
    for( IndexType i = 0; i < columns; i++ )
       for( IndexType j = 0; j <= i; j++ )

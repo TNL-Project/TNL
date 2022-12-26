@@ -1056,8 +1056,6 @@ void test_AssignmentOperator()
    constexpr TNL::Algorithms::Segments::ElementsOrganization organization = Matrix::getOrganization();
 
    using MultidiagonalHost = TNL::Matrices::MultidiagonalMatrix< RealType, TNL::Devices::Host, IndexType, organization >;
-   using MultidiagonalCuda = TNL::Matrices::MultidiagonalMatrix< RealType, TNL::Devices::Cuda, IndexType,
-      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder : TNL::Algorithms::Segments::RowMajorOrder >;
 
    const IndexType rows( 10 ), columns( 10 );
    DiagonalsOffsetsType diagonalsOffsets( { -4, -2, 0, 2, 3, 5 } );
@@ -1078,6 +1076,8 @@ void test_AssignmentOperator()
                EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
 #ifdef __CUDACC__
+   using MultidiagonalCuda = TNL::Matrices::MultidiagonalMatrix< RealType, TNL::Devices::Cuda, IndexType,
+      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder : TNL::Algorithms::Segments::RowMajorOrder >;
    MultidiagonalCuda cudaMatrix( rows, columns, diagonalsOffsets );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )

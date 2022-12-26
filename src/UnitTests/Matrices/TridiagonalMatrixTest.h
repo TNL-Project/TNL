@@ -1016,8 +1016,6 @@ void test_AssignmentOperator()
    constexpr TNL::Algorithms::Segments::ElementsOrganization organization = Matrix::getOrganization();
 
    using TridiagonalHost = TNL::Matrices::TridiagonalMatrix< RealType, TNL::Devices::Host, IndexType, organization >;
-   using TridiagonalCuda = TNL::Matrices::TridiagonalMatrix< RealType, TNL::Devices::Cuda, IndexType,
-      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder : TNL::Algorithms::Segments::RowMajorOrder >;
 
    const IndexType rows( 10 ), columns( 10 );
    TridiagonalHost hostMatrix( rows, columns );
@@ -1037,6 +1035,8 @@ void test_AssignmentOperator()
                EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
 #ifdef __CUDACC__
+   using TridiagonalCuda = TNL::Matrices::TridiagonalMatrix< RealType, TNL::Devices::Cuda, IndexType,
+      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder : TNL::Algorithms::Segments::RowMajorOrder >;
    TridiagonalCuda cudaMatrix( rows, columns );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )
