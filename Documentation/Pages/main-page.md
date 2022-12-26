@@ -276,18 +276,20 @@ system, there are two options:
 
 ### Compiler flags for parallel computing
 
-To enable parallel computing platforms in TNL, additional compiler flags are
-needed. They can be enabled by defining a corresponding C preprocessor macro
-which has the form `HAVE_<PLATFORM>`, i.e.:
+Parallel computing platforms in TNL may be enabled automatically when using the
+appropriate compiler, or additional compiler flags may be needed.
 
-- `-D HAVE_OPENMP` enables OpenMP (also `-fopenmp` is usually needed to enable
-  OpenMP support in the compiler)
-- `-D HAVE_CUDA` enables CUDA (the compiler must actually support CUDA, use e.g.
-  `nvcc` or `clang++`)
-    - For `nvcc`, the following experimental flags are also required:
-      `--expt-relaxed-constexpr --expt-extended-lambda`
-- `-D HAVE_MPI` enables MPI (use a compiler wrapper such as `mpicxx` or link
-  manually against the MPI libraries)
+- CUDA support is automatically enabled when the `nvcc` or `clang++` compiler
+  is used to compile a `.cu` file. This is detected by the `__CUDACC__`
+  proprocessor macro.
+    - For `nvcc`, the following flags are also required:
+      `--expt-relaxed-constexpr --extended-lambda`
+- OpenMP support must be enabled by defining the `HAVE_OPENMP` preprocessor
+  macro (e.g. with `-D HAVE_OPENMP`). Also `-fopenmp` is usually needed to
+  enable OpenMP support in the compiler.
+- MPI support must be enabled by defining the `HAVE_MPI` preprocessor macro
+  (e.g. with `-D HAVE_MPI`). Use a compiler wrapper such as `mpicxx` or link
+  manually against the MPI libraries.
 
 ### Environment variables   {#environment-variables}
 
