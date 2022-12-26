@@ -59,19 +59,15 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
       reset();
 
       // Explicit synchronization of the CUDA device
-#ifdef HAVE_CUDA
-      if( std::is_same< Device, Devices::Cuda >::value )
+      if constexpr( std::is_same< Device, Devices::Cuda >::value )
          cudaDeviceSynchronize();
-#endif
 
       // reset timer before each computation
       timer.reset();
       timer.start();
       compute();
-#ifdef HAVE_CUDA
-      if( std::is_same< Device, Devices::Cuda >::value )
+      if constexpr( std::is_same< Device, Devices::Cuda >::value )
          cudaDeviceSynchronize();
-#endif
       timer.stop();
 
       results[ loops ] = timer.getRealTime();

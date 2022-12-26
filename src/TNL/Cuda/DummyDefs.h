@@ -28,6 +28,13 @@ struct dim3
 using cudaError_t = int;
 using cudaStream_t = int;
 
+extern cudaError_t
+cudaGetDevice( int* device );
+extern cudaError_t
+cudaSetDevice( int device );
+extern cudaError_t
+cudaDeviceSynchronize();
+
 enum
 {
    cudaStreamDefault,

@@ -248,7 +248,6 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 3 > >
          skipBegin2, skipBegin1, skipEnd0, skipEnd2, skipEnd1, end0, launch_configuration, kernel, f );
 
       if( blockHostUntilFinished ) {
-#ifdef HAVE_CUDA
          // synchronize all streams
          cudaStreamSynchronize( stream_1 );
          cudaStreamSynchronize( stream_2 );
@@ -257,7 +256,6 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 3 > >
          cudaStreamSynchronize( stream_5 );
          cudaStreamSynchronize( stream_6 );
          TNL_CHECK_CUDA_DEVICE;
-#endif
       }
    }
 };
@@ -342,14 +340,12 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 2 > >
       Algorithms::ParallelFor2D< Devices::Cuda >::exec( skipBegin1, skipEnd0, skipEnd1, end0, launch_configuration, kernel, f );
 
       if( blockHostUntilFinished ) {
-#ifdef HAVE_CUDA
          // synchronize all streams
          cudaStreamSynchronize( stream_1 );
          cudaStreamSynchronize( stream_2 );
          cudaStreamSynchronize( stream_3 );
          cudaStreamSynchronize( stream_4 );
          TNL_CHECK_CUDA_DEVICE;
-#endif
       }
    }
 };
@@ -411,12 +407,10 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 1 > >
       Algorithms::ParallelFor< Devices::Cuda >::exec( skipEnd, end, launch_configuration, f );
 
       if( blockHostUntilFinished ) {
-#ifdef HAVE_CUDA
          // synchronize all streams
          cudaStreamSynchronize( stream_1 );
          cudaStreamSynchronize( stream_2 );
          TNL_CHECK_CUDA_DEVICE;
-#endif
       }
    }
 };

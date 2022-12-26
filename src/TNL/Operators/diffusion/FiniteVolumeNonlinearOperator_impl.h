@@ -165,9 +165,7 @@ FiniteVolumeNonlinearOperator< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, O
 
 template< typename MeshReal, typename Device, typename MeshIndex, typename Real, typename Index, typename OperatorQ >
 template< typename MeshEntity, typename MeshFunction, typename Vector, typename Matrix >
-#ifdef HAVE_CUDA
 __cuda_callable__
-#endif
 void
 FiniteVolumeNonlinearOperator< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, OperatorQ, Real, Index >::setMatrixElements(
    const RealType& time,
