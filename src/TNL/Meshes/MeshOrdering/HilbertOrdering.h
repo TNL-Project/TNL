@@ -57,10 +57,14 @@ struct HilbertOrdering
       };
       struct SortingTraits
       {
-         using Point_d = pair;
-         using Compute_coordinate_d = Compute_d;
-         using Less_coordinate_d = Less_d;
-         using Point_dimension_d = Point_dim_d;
+         using Point_d [[maybe_unused]]  // FIXME: workaround for https://github.com/llvm/llvm-project/issues/59706
+         = pair;
+         using Compute_coordinate_d [[maybe_unused]]  // FIXME: workaround for https://github.com/llvm/llvm-project/issues/59706
+         = Compute_d;
+         using Less_coordinate_d [[maybe_unused]]  // FIXME: workaround for https://github.com/llvm/llvm-project/issues/59706
+         = Less_d;
+         using Point_dimension_d [[maybe_unused]]  // FIXME: workaround for https://github.com/llvm/llvm-project/issues/59706
+         = Point_dim_d;
          Compute_coordinate_d
          compute_coordinate_d_object() const
          {
