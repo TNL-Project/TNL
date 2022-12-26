@@ -14,7 +14,6 @@ void arrayExample()
 {
    const int size = 10;
    using ArrayType = Containers::Array< int, Device >;
-   using IndexType = typename ArrayType::IndexType;
    ArrayType a1( size ), a2( size );
 
    /***

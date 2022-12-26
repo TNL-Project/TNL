@@ -61,7 +61,6 @@ void getRowExample()
    };
    auto matrix = TNL::Matrices::LambdaMatrixFactory< double, Device, int >::create(
       matrixSize, matrixSize, matrixElements, rowLengths );
-   using MatrixType = decltype( matrix );
 
    TNL::Matrices::DenseMatrix< double, Device > denseMatrix( matrixSize, matrixSize );
    denseMatrix.setValue( 0.0 );

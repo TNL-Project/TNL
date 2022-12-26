@@ -139,8 +139,8 @@ protected:
 #define SETUP_BINARY_TEST_ALIASES \
    using Left = typename TestFixture::Left;                 \
    using Right = typename TestFixture::Right;               \
-   using LeftReal = typename TestFixture::LeftReal;         \
-   using RightReal = typename TestFixture::RightReal;       \
+   using LeftReal [[maybe_unused]] = typename TestFixture::LeftReal; \
+   using RightReal [[maybe_unused]] = typename TestFixture::RightReal; \
    Left& L1 = this->L1;                                     \
    Left& L2 = this->L2;                                     \
    Right& R1 = this->R1;                                    \

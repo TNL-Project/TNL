@@ -33,7 +33,9 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    using CudaVector =  Containers::Vector< Real, Devices::Cuda, Index >;
    using SequentialView = Containers::VectorView< Real, Devices::Sequential, Index >;
    using HostView = Containers::VectorView< Real, Devices::Host, Index >;
+#ifdef __CUDACC__
    using CudaView =  Containers::VectorView< Real, Devices::Cuda, Index >;
+#endif
 
    using namespace std;
 

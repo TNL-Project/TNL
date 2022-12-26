@@ -13,7 +13,6 @@ template< typename Device >
 void distributedArrayExample()
 {
    using ArrayType = Containers::DistributedArray< int, Device >;
-   using LocalArrayType = Containers::Array< int, Device >;
    using IndexType = typename ArrayType::IndexType;
    using LocalRangeType = typename ArrayType::LocalRangeType;
 

@@ -10,7 +10,6 @@ template< typename Device >
 void SegmentsExample()
 {
    using SegmentsType = typename TNL::Algorithms::Segments::CSR< Device, int >;
-   using SegmentView = typename SegmentsType::SegmentViewType;
 
    /***
     * Create segments with given segments sizes.

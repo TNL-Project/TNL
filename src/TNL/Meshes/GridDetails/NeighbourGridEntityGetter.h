@@ -24,7 +24,6 @@ public:
    inline GridEntity< Grid, NeighbourEntityDimension >
    getEntity( const GridEntity< Grid, ParentEntityDimension >& entity, const typename Grid::CoordinatesType& offset )
    {
-      using NormalsGetterType = NormalsGetter< typename Grid::IndexType, NeighbourEntityDimension, GridDimension >;
       using CoordinatesType = typename Grid::CoordinatesType;
 
       constexpr int orientationsCount = Templates::combination( NeighbourEntityDimension, GridDimension );

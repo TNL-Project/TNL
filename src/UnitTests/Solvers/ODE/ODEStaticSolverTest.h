@@ -144,7 +144,6 @@ TYPED_TEST( ODEStaticSolverTest, LinearFunctionTest )
 {
    using DofContainerType = typename TestFixture::DofContainerType;
    using SolverType = ODETestSolver< DofContainerType >;
-   using Real = typename DofContainerType::RealType;
 
    ODEStaticSolverTest_LinearFunctionTest< DofContainerType, SolverType >();
 }

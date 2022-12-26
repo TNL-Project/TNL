@@ -335,7 +335,6 @@ TEST( MeshGeometryTest, Polygon3DIsPlanarTest )
    using PolygonMeshEntityType = MeshEntity< TestPolygon3DMeshConfig, Devices::Host, Topologies::Polygon >;
    using VertexMeshEntityType = typename PolygonMeshEntityType::SubentityTraits< 0 >::SubentityType;
    using PointType = typename VertexMeshEntityType::PointType;
-   using RealType = typename PolygonTestMesh::RealType;
 
    const PointType offset( 0.100, 0.125, 0.150 );
 
@@ -802,7 +801,6 @@ TEST( MeshGeometryTest, Polygon3DGetPlanarMeshTest )
    using PolygonMeshEntityType = MeshEntity< TestPolygon3DMeshConfig, Devices::Host, Topologies::Polygon >;
    using VertexMeshEntityType = typename PolygonMeshEntityType::SubentityTraits< 0 >::SubentityType;
    using PointType = typename VertexMeshEntityType::PointType;
-   using RealType = typename PolygonTestMesh::RealType;
 
    const PointType offset( 0.100, 0.125, 0.150 );
 
