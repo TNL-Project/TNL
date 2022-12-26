@@ -49,10 +49,15 @@ restoreRedirection()
 inline void
 selectGPU()
 {
-#ifdef HAVE_MPI
-   #ifdef HAVE_CUDA
+#ifdef HAVE_CUDA
    int gpuCount;
    cudaGetDeviceCount( &gpuCount );
+
+   // avoid division by zero
+   if( gpuCount == 0 ) {
+      std::cout << "Rank " << GetRank() << " detected 0 GPUs." << std::endl;
+      return;
+   }
 
    const int local_rank = getRankOnNode();
    const int gpuNumber = local_rank % gpuCount;
@@ -66,7 +71,6 @@ selectGPU()
 
    cudaSetDevice( gpuNumber );
    TNL_CHECK_CUDA_DEVICE;
-   #endif
 #endif
 }
 
