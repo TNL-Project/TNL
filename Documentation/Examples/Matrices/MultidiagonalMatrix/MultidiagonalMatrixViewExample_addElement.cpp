@@ -33,7 +33,7 @@ int main( int argc, char* argv[] )
    std::cout << "Add elements on host:" << std::endl;
    addElements< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Add elements on CUDA device:" << std::endl;
    addElements< TNL::Devices::Cuda >();
 #endif

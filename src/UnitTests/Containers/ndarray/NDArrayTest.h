@@ -220,7 +220,7 @@ TEST( NDArrayTest, CopySemantics )
     // TODO
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( NDArrayTest, CopySemanticsCrossDevice )
 {
     constexpr int I = 3, J = 4;

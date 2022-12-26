@@ -423,7 +423,7 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
                           const typename ResultMatrix::IndexType gridIdx_x,
                           const typename ResultMatrix::IndexType gridIdx_y )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    /****
     * Here we compute product C = A * B. To profit from the fast
     * shared memory we do it by tiles.
@@ -574,7 +574,7 @@ DenseTranspositionAlignedKernel( OutputMatrix resultMatrix,
                                  const Index gridIdx_x,
                                  const Index gridIdx_y )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    __shared__ Real tile[ tileDim * tileDim ];
 
    const Index columns = inputMatrix.getColumns();
@@ -626,7 +626,7 @@ DenseTranspositionNonAlignedKernel( OutputMatrix resultMatrix,
                                     const Index gridIdx_x,
                                     const Index gridIdx_y )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    __shared__ Real tile[ tileDim * tileDim ];
 
    const Index columns = inputMatrix.getColumns();

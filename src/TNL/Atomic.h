@@ -14,7 +14,7 @@
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Cuda.h>
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 namespace {
 
 // double-precision atomicAdd function for Maxwell and older GPUs

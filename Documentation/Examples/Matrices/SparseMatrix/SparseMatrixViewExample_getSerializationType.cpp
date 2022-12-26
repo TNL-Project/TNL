@@ -17,7 +17,7 @@ int main( int argc, char* argv[] )
    std::cout << "Get serialization type on CPU ... " << std::endl;
    getSerializationTypeExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Get serialization type on CUDA GPU ... " << std::endl;
    getSerializationTypeExample< TNL::Devices::Cuda >();
 #endif

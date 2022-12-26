@@ -26,7 +26,7 @@ EllpackCudaReductionKernelFull( Index first,
                                 const Real zero,
                                 Index segmentSize )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const int warpSize = 32;
    const int gridID = 0;
    const Index segmentIdx =
@@ -68,7 +68,7 @@ EllpackCudaReductionKernelCompact( Index first,
                                    const Real zero,
                                    Index segmentSize )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const int warpSize = 32;
    const int gridID = 0;
    const Index segmentIdx =

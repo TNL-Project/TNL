@@ -24,7 +24,7 @@ int main( int argc, char* argv[] )
    double result = mapReduce( host_u );
    std::cout << "host_u = " << host_u << std::endl;
    std::cout << "Sum of the positive numbers is:" << result << std::endl;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_u( 10 );
    cuda_u = host_u;
    result = mapReduce( cuda_u );

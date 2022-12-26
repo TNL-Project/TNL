@@ -30,7 +30,7 @@ int main( int argc, char* argv[] )
    std::cout << "Get elements on host:" << std::endl;
    getElements< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Get elements on CUDA device:" << std::endl;
    getElements< TNL::Devices::Cuda >();
 #endif

@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 {
    if(argc == 1)
    {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       std::cout << "Quicksort on GPU ... " << std::endl;
       start< Quicksort >(cout, "\t");
       std::cout << "Bitonic sort on GPU ... " << std::endl;
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
    else
    {
       std::ofstream out(argv[1]);
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       std::cout << "Quicksort on GPU ... " << std::endl;
       start< Quicksort >(out, ",");
       std::cout << "Bitonic sort on GPU ... " << std::endl;

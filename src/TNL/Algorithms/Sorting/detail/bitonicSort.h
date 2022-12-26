@@ -23,7 +23,7 @@ __global__
 void
 bitonicMergeGlobal( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr, CMP Cmp, int monotonicSeqLen, int bitonicLen )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
    int part = i / ( bitonicLen / 2 );  // computes which sorting block this thread belongs to
@@ -63,7 +63,7 @@ bitonicMergeSharedMemory( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda 
                           int monotonicSeqLen,
                           int bitonicLen )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    extern __shared__ int externMem[];
    Value* sharedMem = (Value*) externMem;
 
@@ -124,7 +124,7 @@ __global__
 void
 bitoniSort1stStepSharedMemory( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr, CMP Cmp )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    extern __shared__ int externMem[];
 
    Value* sharedMem = (Value*) externMem;
@@ -240,7 +240,7 @@ template< typename Value, typename CMP >
 void
 bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src, int begin, int end, const CMP& Cmp )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto view = src.getView( begin, end );
 
    int threadsNeeded = view.getSize() / 2 + ( view.getSize() % 2 != 0 );
@@ -368,7 +368,7 @@ __global__
 void
 bitonicMergeGlobalWithSwap( int size, CMP Cmp, SWAP Swap, int monotonicSeqLen, int bitonicLen )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
    int part = i / ( bitonicLen / 2 );  // computes which sorting block this thread belongs to

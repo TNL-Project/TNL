@@ -160,7 +160,7 @@ int main( int argc, char* argv[] )
    std::cout << "Traversing grid on CPU..." << std::endl;
    traverseGrid< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Traversing grid on CUDA GPU..." << std::endl;
    traverseGrid< TNL::Devices::Cuda >();
 #endif

@@ -9,7 +9,7 @@
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
 #include <TNL/Algorithms/sort.h>
 
-#if defined HAVE_GTEST && defined HAVE_CUDA
+#if defined HAVE_GTEST && defined __CUDACC__
 #include <gtest/gtest.h>
 
 

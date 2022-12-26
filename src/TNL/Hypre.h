@@ -27,8 +27,8 @@
    #if defined( HYPRE_USING_GPU ) && ! ( defined( HYPRE_USING_CUDA ) || defined( HYPRE_USING_HIP ) )
       #error "Unsupported GPU build of HYPRE! Only CUDA and HIP builds are supported."
    #endif
-   #if defined( HYPRE_USING_CUDA ) && ! defined( HAVE_CUDA )
-      #error "HAVE_CUDA is required when HYPRE is built with CUDA!"
+   #if defined( HYPRE_USING_CUDA ) && ! defined( __CUDACC__ )
+      #error "__CUDACC__ is required when HYPRE is built with CUDA!"
    #endif
    #if defined( HYPRE_USING_HIP ) && ! defined( HAVE_HIP )
       #error "HAVE_HIP is required when HYPRE is built with HIP!"

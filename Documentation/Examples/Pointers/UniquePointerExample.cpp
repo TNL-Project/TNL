@@ -7,7 +7,7 @@ using namespace TNL;
 
 using ArrayCuda = Containers::Array< int, Devices::Cuda >;
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 __global__ void printArray( const ArrayCuda* ptr )
 {
    printf( "Array size is: %d\n", ptr->getSize() );
@@ -21,7 +21,7 @@ int main( int argc, char* argv[] )
    /***
     * Create an array and print its elements in CUDA kernel
     */
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Pointers::UniquePointer< ArrayCuda > array_ptr( 10 );
    array_ptr.modifyData< Devices::Host >() = 1;
    Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();

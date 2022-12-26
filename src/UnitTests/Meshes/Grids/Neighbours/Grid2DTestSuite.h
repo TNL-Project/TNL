@@ -27,7 +27,7 @@ class GridTestSuite: public ::testing::Test {
          { 1, 2 },
          { 2, 2 },
          { 3, 3 }
-#if HAVE_CUDA || HAVE_OPENMP
+#if __CUDACC__ || HAVE_OPENMP
          ,
          { 100, 1 },
          { 1, 100 },
@@ -35,7 +35,7 @@ class GridTestSuite: public ::testing::Test {
 #endif
       };
 
-#ifndef HAVE_CUDA
+#ifndef __CUDACC__
       void SetUp() override {
          if (std::is_same<typename GridType::DeviceType, TNL::Devices::Cuda>::value) {
             GTEST_SKIP() << "No CUDA available on host. Try to compile with CUDA instead";

@@ -11,7 +11,7 @@ int
 main( int argc, char* argv[] )
 {
    using ValueType = double;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    using DeviceType = TNL::Devices::Cuda;
 #else
    using DeviceType = TNL::Devices::Host;

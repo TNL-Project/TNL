@@ -1309,7 +1309,7 @@ void test_AssignmentOperator()
             EXPECT_EQ( matrix.getElement( i, j ), i + j );
       }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    DenseCuda cudaMatrix( rows, columns );
    for( IndexType i = 0; i < columns; i++ )
       for( IndexType j = 0; j <= i; j++ )
@@ -1425,7 +1425,7 @@ using MatrixTypes = ::testing::Types
     TNL::Matrices::DenseMatrix< long,   TNL::Devices::Host, long >,
     TNL::Matrices::DenseMatrix< float,  TNL::Devices::Host, long >,
     TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, long >
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
     ,TNL::Matrices::DenseMatrix< int,    TNL::Devices::Cuda, short >,
     TNL::Matrices::DenseMatrix< long,   TNL::Devices::Cuda, short >,
     TNL::Matrices::DenseMatrix< float,  TNL::Devices::Cuda, short >,

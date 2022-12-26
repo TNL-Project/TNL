@@ -40,7 +40,7 @@
 namespace TNL {
 namespace Cuda {
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 template< typename T, std::size_t _alignment = CHAR_BIT * sizeof( T ) >
 struct SharedMemory;
 

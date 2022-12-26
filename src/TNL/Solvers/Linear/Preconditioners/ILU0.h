@@ -15,7 +15,7 @@
 #include <TNL/Pointers/UniquePointer.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-#if defined( HAVE_CUDA ) && defined( HAVE_CUSPARSE )
+#if defined( __CUDACC__ ) && defined( HAVE_CUSPARSE )
    #include <cusparse.h>
 #endif
 
@@ -161,7 +161,7 @@ public:
 
    ILU0_impl()
    {
-#if defined( HAVE_CUDA ) && defined( HAVE_CUSPARSE )
+#if defined( __CUDACC__ ) && defined( HAVE_CUSPARSE )
       cusparseCreate( &handle );
 #endif
    }
@@ -174,7 +174,7 @@ public:
 
    ~ILU0_impl()
    {
-#if defined( HAVE_CUDA ) && defined( HAVE_CUSPARSE )
+#if defined( __CUDACC__ ) && defined( HAVE_CUSPARSE )
       resetMatrices();
       cusparseDestroy( handle );
 #endif
@@ -187,7 +187,7 @@ public:
    copy_triangular_factors();
 
 protected:
-#if defined( HAVE_CUDA ) && defined( HAVE_CUSPARSE )
+#if defined( __CUDACC__ ) && defined( HAVE_CUSPARSE )
    using CSR =
       Matrices::SparseMatrix< RealType, DeviceType, IndexType, Matrices::GeneralMatrix, Algorithms::Segments::CSRScalar >;
    Pointers::UniquePointer< CSR > A, L, U;

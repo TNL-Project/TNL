@@ -45,7 +45,7 @@ struct SolverConfig
       config.addEntry< String >( "device", "Device to use for the computations.", "host" );
       if( ConfigTagDevice< ConfigTag, Devices::Host >::enabled )
          config.addEntryEnum( "host" );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       if( ConfigTagDevice< ConfigTag, Devices::Cuda >::enabled )
          config.addEntryEnum( "cuda" );
 #endif

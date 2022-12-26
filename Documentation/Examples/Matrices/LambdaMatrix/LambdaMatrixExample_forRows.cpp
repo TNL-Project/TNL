@@ -97,7 +97,7 @@ int main( int argc, char* argv[] )
    std::cout << "Running example on CPU ... " << std::endl;
    forRowsExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Running example on CUDA GPU ... " << std::endl;
    forRowsExample< TNL::Devices::Cuda >();
 #endif

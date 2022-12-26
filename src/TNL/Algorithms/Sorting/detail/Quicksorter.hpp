@@ -25,7 +25,7 @@ template< typename Array, typename Compare >
 void
 Quicksorter< Value, Devices::Cuda >::sort( Array& arr, const Compare& cmp )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    cudaDeviceProp deviceProp;
    cudaGetDeviceProperties( &deviceProp, 0 );
 

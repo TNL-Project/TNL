@@ -21,7 +21,7 @@ namespace TNL {
 namespace Algorithms {
 namespace detail {
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 template< int blockSizeX, typename Result, typename DataFetcher, typename Reduction, typename Index >
 __global__
 void
@@ -128,7 +128,7 @@ CudaMultireductionKernelLauncher( const Result identity,
                                   const int n,
                                   Result*& output )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    // must be a power of 2
    static constexpr int maxThreadsPerBlock = 256;
 

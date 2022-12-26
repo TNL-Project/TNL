@@ -15,7 +15,7 @@ struct Tuple
    Pointers::DevicePointer< ArrayCuda > a1, a2;
 };
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 __global__ void printTuple( const Tuple t )
 {
    printf( "Tuple size is: %d\n", t.a1->getSize() );
@@ -32,7 +32,7 @@ int main( int argc, char* argv[] )
    /***
     * Create a tuple of arrays and print them in CUDA kernel
     */
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    ArrayCuda a1( 3 ), a2( 3 );
    Tuple t( a1, a2 );
    a1 = 1;

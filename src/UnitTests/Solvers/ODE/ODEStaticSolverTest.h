@@ -111,7 +111,7 @@ TYPED_TEST( ODENumericSolverTest, ParallelLinearFunctionTest )
    using DofContainerType = typename TestFixture::DofContainerType;
    using SolverType = ODETestSolver< DofContainerType >;
 
-#ifndef HAVE_CUDA
+#ifndef __CUDACC__
    ODENumericSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Host >();
 #else
    ODENumericSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Cuda >();
@@ -188,7 +188,7 @@ TYPED_TEST( ODEStaticSolverTest, ParallelLinearFunctionTest )
    using DofContainerType = typename TestFixture::DofContainerType;
    using SolverType = ODETestSolver< DofContainerType >;
 
-#ifndef HAVE_CUDA
+#ifndef __CUDACC__
    ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Host >();
 #else
    ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Cuda >();

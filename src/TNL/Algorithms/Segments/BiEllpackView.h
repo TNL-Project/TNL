@@ -189,7 +189,7 @@ protected:
 
    OffsetsView groupPointers;
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    // these methods must be public so they can be called from the __global__ function
 public:
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real, int BlockDim >

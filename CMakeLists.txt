@@ -288,7 +288,6 @@ if( TNL_USE_CUDA )
       set( CMAKE_CUDA_SEPARABLE_COMPILATION ON )
 
       # set necessary CUDA compiler flags on the interface
-      target_compile_definitions( TNL_CUDA INTERFACE HAVE_CUDA )
       target_compile_options( TNL_CUDA INTERFACE
             $<$<CUDA_COMPILER_ID:NVIDIA>:
                   --expt-relaxed-constexpr ;

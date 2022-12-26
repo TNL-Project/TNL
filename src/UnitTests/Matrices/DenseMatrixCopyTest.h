@@ -416,7 +416,7 @@ void tridiagonalMatrixAssignment()
             EXPECT_EQ( matrix.getElement( i, j ), i + j );
       }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    TridiagonalCuda cudaMatrix( rows, columns );
    cudaMatrix = hostMatrix;
    matrix = cudaMatrix;
@@ -468,7 +468,7 @@ void multidiagonalMatrixAssignment()
             EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
       }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    MultidiagonalCuda cudaMatrix( rows, columns, diagonals );
    cudaMatrix = hostMatrix;
    matrix = cudaMatrix;
@@ -517,7 +517,7 @@ void denseMatrixAssignment()
             EXPECT_EQ( matrix.getElement( i, j ), i + j );
       }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    DenseCuda cudaMatrix( rows, columns );
    cudaMatrix = hostMatrix;
    matrix = cudaMatrix;
@@ -542,7 +542,7 @@ TEST( DenseMatrixCopyTest, Dense_HostToDense_Host )
    testCopyAssignment< Dense_host_RowMajorOrder, Dense_host_RowMajorOrder >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( DenseMatrixCopyTest, Dense_HostToDense_Cuda )
 {
    testCopyAssignment< Dense_host,               Dense_cuda >();
@@ -566,7 +566,7 @@ TEST( DenseMatrixCopyTest, Dense_CudaToDense_Cuda )
    testCopyAssignment< Dense_cuda,               Dense_cuda_RowMajorOrder >();
    testCopyAssignment< Dense_cuda_RowMajorOrder, Dense_cuda_RowMajorOrder >();
 }
-#endif // HAVE_CUDA
+#endif // __CUDACC__
 
 
 TEST( DenseMatrixCopyTest, CSR_HostToDense_Host )
@@ -575,7 +575,7 @@ TEST( DenseMatrixCopyTest, CSR_HostToDense_Host )
    testCopyAssignment< CSR_host, Dense_host_RowMajorOrder >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( DenseMatrixCopyTest, CSR_HostToDense_cuda )
 {
    testCopyAssignment< CSR_host, Dense_cuda >();
@@ -603,13 +603,13 @@ TEST( DenseMatrixCopyTest, TridiagonalMatrixAssignment_to_Dense_host )
    tridiagonalMatrixAssignment< Dense_host_RowMajorOrder >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( DenseMatrixCopyTest, TridiagonalMatrixAssignment_to_Dense_cuda )
 {
    tridiagonalMatrixAssignment< Dense_cuda >();
    tridiagonalMatrixAssignment< Dense_cuda_RowMajorOrder >();
 }
-#endif // HAVE_CUDA
+#endif // __CUDACC__
 
 ////
 // Multidiagonal matrix assignment test
@@ -619,13 +619,13 @@ TEST( DenseMatrixCopyTest, MultidiagonalMatrixAssignment_to_Dense_host )
    multidiagonalMatrixAssignment< Dense_host_RowMajorOrder >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( DenseMatrixCopyTest, MultidiagonalMatrixAssignment_to_Dense_cuda )
 {
    multidiagonalMatrixAssignment< Dense_cuda >();
    multidiagonalMatrixAssignment< Dense_cuda_RowMajorOrder >();
 }
-#endif // HAVE_CUDA
+#endif // __CUDACC__
 
 ////
 // Dense matrix assignment test
@@ -635,13 +635,13 @@ TEST( DenseMatrixCopyTest, DenseMatrixAssignment_to_Dense_host )
    denseMatrixAssignment< Dense_host_RowMajorOrder >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( DenseMatrixCopyTest, DenseMatrixAssignment_to_Dense_cuda )
 {
    denseMatrixAssignment< Dense_cuda >();
    denseMatrixAssignment< Dense_cuda_RowMajorOrder >();
 }
-#endif // HAVE_CUDA
+#endif // __CUDACC__
 
 #endif //HAVE_GTEST
 

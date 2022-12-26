@@ -51,7 +51,7 @@ int main( int argc, char* argv[] )
    std::cout << "Creating tridiagonal matrix on CPU ... " << std::endl;
    createTridiagonalMatrix< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Creating tridiagonal matrix on CUDA GPU ... " << std::endl;
    createTridiagonalMatrix< TNL::Devices::Cuda >();
 #endif

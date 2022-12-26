@@ -112,7 +112,7 @@ template< typename Type, typename SourceType, typename Allocator, typename, type
 void
 File::load_impl( Type* buffer, std::streamsize elements )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const std::streamsize host_buffer_size =
       std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
    using BaseType = typename std::remove_cv< Type >::type;
@@ -192,7 +192,7 @@ template< typename Type, typename TargetType, typename Allocator, typename, type
 void
 File::save_impl( const Type* buffer, std::streamsize elements )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const std::streamsize host_buffer_size =
       std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
    using BaseType = typename std::remove_cv< Type >::type;

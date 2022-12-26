@@ -6,7 +6,7 @@
 
 #pragma once
 
-#ifndef HAVE_CUDA
+#ifndef __CUDACC__
 
    #define __host__
    #define __device__

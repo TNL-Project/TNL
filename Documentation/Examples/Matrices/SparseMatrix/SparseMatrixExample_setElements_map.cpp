@@ -32,7 +32,7 @@ int main( int argc, char* argv[] )
    std::cout << "Creating matrices on CPU ... " << std::endl;
    setElementsExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Creating matrices on CUDA GPU ... " << std::endl;
    setElementsExample< TNL::Devices::Cuda >();
 #endif

@@ -11,7 +11,7 @@
 
 using namespace TNL;
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 
 // ignore useless nvcc warning: https://stackoverflow.com/a/49997636
 #pragma push

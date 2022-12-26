@@ -1108,7 +1108,7 @@ void test_AssignmentOperator()
             else
                EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    MultidiagonalCuda cudaMatrix( rows, columns, diagonalsOffsets );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )
@@ -1230,7 +1230,7 @@ using MatrixTypes = ::testing::Types
     TNL::Matrices::MultidiagonalMatrix< long,   TNL::Devices::Host, long >,
     TNL::Matrices::MultidiagonalMatrix< float,  TNL::Devices::Host, long >,
     TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, long >
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
     ,TNL::Matrices::MultidiagonalMatrix< int,    TNL::Devices::Cuda, short >,
     TNL::Matrices::MultidiagonalMatrix< long,   TNL::Devices::Cuda, short >,
     TNL::Matrices::MultidiagonalMatrix< float,  TNL::Devices::Cuda, short >,
@@ -1397,7 +1397,7 @@ TEST( MultidiagonalMatrixTest, Multidiagonal_getTranspositionTest_Host )
     std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(1420): here\n\n";
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( MultidiagonalMatrixTest, Multidiagonal_getTranspositionTest_Cuda )
 {
 //    test_GetTransposition< Multidiagonal_cuda_int >();

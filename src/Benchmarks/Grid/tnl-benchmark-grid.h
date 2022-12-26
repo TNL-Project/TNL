@@ -58,7 +58,7 @@ bool resolveDevice( TNL::Config::ParameterContainer& parameters )
    if( device == "host" )
       return startBenchmark< Real, TNL::Devices::Host >( parameters );
    if( device == "cuda" ) {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       return startBenchmark< Real, TNL::Devices::Cuda >( parameters );
 #else
       std::cerr << "The benchmark was not built with CUDA support." << std::endl;

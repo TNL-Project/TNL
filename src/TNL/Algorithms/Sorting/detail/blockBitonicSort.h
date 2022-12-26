@@ -12,7 +12,7 @@ namespace TNL {
 namespace Algorithms {
 namespace Sorting {
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 
 /**
  * IMPORTANT: all threads in block have to call this function to work properly

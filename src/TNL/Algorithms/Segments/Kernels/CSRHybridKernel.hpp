@@ -35,7 +35,7 @@ reduceSegmentsCSRHybridVectorKernel( int gridIdx,
                                      ResultKeeper keep,
                                      const Real zero )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + first;
    if( segmentIdx >= last )
       return;
@@ -89,7 +89,7 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
                                           ResultKeeper keep,
                                           const Real zero )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + first;
    if( segmentIdx >= last )
       return;

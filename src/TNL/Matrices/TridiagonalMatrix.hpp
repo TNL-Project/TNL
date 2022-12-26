@@ -417,7 +417,7 @@ TridiagonalMatrixTranspositionCudaKernel( const InMatrixView inMatrix,
                                           Real matrixMultiplicator,
                                           Index gridIdx )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const Index rowIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( rowIdx < inMatrix.getRows() ) {
       if( rowIdx > 0 )

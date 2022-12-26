@@ -374,7 +374,7 @@ BiEllpackView< Device, Index, Organization, WarpSize >::printStructure( std::ost
    }
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real, int BlockDim >
 __device__

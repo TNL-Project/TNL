@@ -14,7 +14,7 @@ namespace TNL {
 namespace Algorithms {
 namespace Sorting {
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 
 // Inline PTX call to return index of highest non-zero bit in a word
 static __device__

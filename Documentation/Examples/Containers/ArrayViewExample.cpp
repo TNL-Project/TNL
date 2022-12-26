@@ -64,7 +64,7 @@ int main()
 {
    std::cout << "The first test runs on CPU ..." << std::endl;
    arrayViewExample< Devices::Host >();
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "The second test runs on GPU ..." << std::endl;
    arrayViewExample< Devices::Cuda >();
 #endif

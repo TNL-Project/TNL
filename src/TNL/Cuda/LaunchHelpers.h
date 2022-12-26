@@ -72,7 +72,7 @@ getTransferBufferSize()
    return 1 << 20;
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 __device__
 inline int
 getGlobalThreadIdx_x( const dim3& gridIdx )

@@ -49,7 +49,7 @@ restoreRedirection()
 inline void
 selectGPU()
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    int gpuCount;
    cudaGetDeviceCount( &gpuCount );
 

@@ -38,7 +38,7 @@ int main( int argc, char* argv[] )
    /***
     * And then also on GPU.
     */
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_v( size );
    initMeshFunction( xSize, ySize, zSize, cuda_v, 1.0 );
 #endif

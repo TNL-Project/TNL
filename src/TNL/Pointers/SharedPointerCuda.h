@@ -181,7 +181,7 @@ public:
           */
          this->pd->data.~Object();
          new( &this->pd->data ) Object( args... );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
          cudaMemcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), cudaMemcpyHostToDevice );
 #endif
          this->set_last_sync_state();
@@ -456,7 +456,7 @@ public:
    {
       if( ! this->pd )
          return true;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       if( this->modified() ) {
    #ifdef TNL_DEBUG_SHARED_POINTERS
          std::cerr << "Synchronizing shared pointer: counter = " << this->pd->counter << ", type: " << getType< ObjectType >()

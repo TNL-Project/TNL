@@ -453,7 +453,7 @@ void tridiagonalMatrixAssignment()
             EXPECT_EQ( matrix.getElement( i, j ), i + j );
       }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    TridiagonalCuda cudaMatrix( rows, columns );
    cudaMatrix = hostMatrix;
    matrix = cudaMatrix;
@@ -509,7 +509,7 @@ void multidiagonalMatrixAssignment()
             EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
       }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    MultidiagonalCuda cudaMatrix( rows, columns, diagonals );
    cudaMatrix = hostMatrix;
    matrix = cudaMatrix;
@@ -558,7 +558,7 @@ void denseMatrixAssignment()
             EXPECT_EQ( matrix.getElement( i, j ), i + j );
       }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    DenseCuda cudaMatrix( rows, columns );
    cudaMatrix = hostMatrix;
    matrix = cudaMatrix;
@@ -580,7 +580,7 @@ TEST( SparseMatrixCopyTest, CSR_HostToHost )
    testCopyAssignment< CSR_host, CSR_host >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( SparseMatrixCopyTest, CSR_HostToCuda )
 {
    testCopyAssignment< CSR_host, CSR_cuda >();
@@ -603,7 +603,7 @@ TEST( SparseMatrixCopyTest, Ellpack_HostToHost )
    testCopyAssignment< E_host, E_host >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( SparseMatrixCopyTest, Ellpack_HostToCuda )
 {
    testCopyAssignment< E_host, E_cuda >();
@@ -626,7 +626,7 @@ TEST( SparseMatrixCopyTest, SlicedEllpack_HostToHost )
    testCopyAssignment< SE_host, SE_host >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( SparseMatrixCopyTest, SlicedEllpack_HostToCuda )
 {
    testCopyAssignment< SE_host, SE_cuda >();
@@ -675,7 +675,7 @@ TEST( SparseMatrixCopyTest, SlicedEllpack_to_Ellpack_host )
    testConversion< SE_host, E_host >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( SparseMatrixCopyTest, CSR_to_Ellpack_cuda )
 {
    testConversion< CSR_cuda, E_cuda >();
@@ -724,7 +724,7 @@ TEST( SparseMatrixCopyTest, TridiagonalMatrixAssignment_to_SlicedEllpack_host )
    tridiagonalMatrixAssignment< SE_host >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( SparseMatrixCopyTest, TridiagonalMatrixAssignment_to_CSR_cuda )
 {
    tridiagonalMatrixAssignment< CSR_cuda >();
@@ -739,7 +739,7 @@ TEST( SparseMatrixCopyTest, TridiagonalMatrixAssignment_to_SlicedEllpack_cuda )
 {
    tridiagonalMatrixAssignment< SE_cuda >();
 }
-#endif // HAVE_CUDA
+#endif // __CUDACC__
 
 ////
 // Multidiagonal matrix assignment test
@@ -758,7 +758,7 @@ TEST( SparseMatrixCopyTest, MultidiagonalMatrixAssignment_to_SlicedEllpack_host 
    multidiagonalMatrixAssignment< SE_host >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( SparseMatrixCopyTest, MultidiagonalMatrixAssignment_to_CSR_cuda )
 {
    multidiagonalMatrixAssignment< CSR_cuda >();
@@ -773,7 +773,7 @@ TEST( SparseMatrixCopyTest, MultidiagonalMatrixAssignment_to_SlicedEllpack_cuda 
 {
    multidiagonalMatrixAssignment< SE_cuda >();
 }
-#endif // HAVE_CUDA
+#endif // __CUDACC__
 
 ////
 // Dense matrix assignment test
@@ -792,7 +792,7 @@ TEST( SparseMatrixCopyTest, DenseMatrixAssignment_to_SlicedEllpack_host )
    denseMatrixAssignment< SE_host >();
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( SparseMatrixCopyTest, DenseMatrixAssignment_to_CSR_cuda )
 {
    denseMatrixAssignment< CSR_cuda >();
@@ -807,7 +807,7 @@ TEST( SparseMatrixCopyTest, DenseMatrixAssignment_to_SlicedEllpack_cuda )
 {
    denseMatrixAssignment< SE_cuda >();
 }
-#endif // HAVE_CUDA
+#endif // __CUDACC__
 
 #endif //HAVE_GTEST
 

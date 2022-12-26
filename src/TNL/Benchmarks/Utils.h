@@ -89,7 +89,7 @@ getHardwareMetadata()
    const CacheSizes cacheSizes = SystemInfo::getCPUCacheSizes( cpu_id );
    const std::string cacheInfo = std::to_string( cacheSizes.L1data ) + ", " + std::to_string( cacheSizes.L1instruction ) + ", "
                                + std::to_string( cacheSizes.L2 ) + ", " + std::to_string( cacheSizes.L3 );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const int activeGPU = Cuda::DeviceInfo::getActiveDevice();
    const std::string deviceArch = std::to_string( Cuda::DeviceInfo::getArchitectureMajor( activeGPU ) ) + "."
                                 + std::to_string( Cuda::DeviceInfo::getArchitectureMinor( activeGPU ) );
@@ -120,7 +120,7 @@ getHardwareMetadata()
         std::to_string( SystemInfo::getNumberOfThreads( cpu_id ) / SystemInfo::getNumberOfCores( cpu_id ) ) },
       { "CPU max frequency (MHz)", std::to_string( SystemInfo::getCPUMaxFrequency( cpu_id ) / 1e3 ) },
       { "CPU cache sizes (L1d, L1i, L2, L3) (kiB)", cacheInfo },
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       { "GPU name", Cuda::DeviceInfo::getDeviceName( activeGPU ) },
       { "GPU architecture", deviceArch },
       { "GPU CUDA cores", std::to_string( Cuda::DeviceInfo::getCudaCores( activeGPU ) ) },

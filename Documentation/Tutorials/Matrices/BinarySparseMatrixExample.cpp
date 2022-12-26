@@ -34,7 +34,7 @@ int main( int argc, char* argv[] )
    std::cout << "Creating matrix on CPU ... " << std::endl;
    binarySparseMatrixExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Creating matrix on CUDA GPU ... " << std::endl;
    binarySparseMatrixExample< TNL::Devices::Cuda >();
 #endif

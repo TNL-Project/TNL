@@ -38,7 +38,7 @@ cudaCalcBlocksNeeded( Containers::ArrayView< TASK, Devices::Cuda > cuda_tasks,
                       Index elemPerBlock,
                       Containers::ArrayView< Index, Devices::Cuda > blocksNeeded )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Index i = blockIdx.x * blockDim.x + threadIdx.x;
    if( i >= cuda_tasks.getSize() )
       return;
@@ -60,7 +60,7 @@ cudaInitTask( Containers::ArrayView< TASK, Devices::Cuda > cuda_tasks,
               Containers::ArrayView< Value, Devices::Cuda > src,
               CMP Cmp )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    if( blockIdx.x >= cuda_tasks.getSize() )
       return;
 
@@ -89,7 +89,7 @@ cudaQuickSort1stPhase( Containers::ArrayView< Value, Devices::Cuda > arr,
                        Containers::ArrayView< TASK, Devices::Cuda > tasks,
                        Containers::ArrayView< int, Devices::Cuda > taskMapping )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    extern __shared__ int externMem[];
    Value* piv = (Value*) externMem;
    Value* sharedMem = piv + 1;
@@ -127,7 +127,7 @@ cudaWritePivot( Containers::ArrayView< Value, Devices::Cuda > arr,
                 Containers::ArrayView< TASK, Devices::Cuda > secondPhaseTasks,
                 int* secondPhaseTasksCnt )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    extern __shared__ int externMem[];
    Value* piv = (Value*) externMem;
 
@@ -191,7 +191,7 @@ writeNewTask( Index begin,
               Containers::ArrayView< TASK, Devices::Cuda > secondPhaseTasks,
               int* secondPhaseTasksCnt )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    int size = end - begin;
    if( size < 0 ) {
       printf( "negative size, something went really wrong\n" );
@@ -244,7 +244,7 @@ cudaQuickSort2ndPhase( Containers::ArrayView< Value, Devices::Cuda > arr,
                        int elemInShared,
                        int maxBitonicSize )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    extern __shared__ int externMem[];
    Value* sharedMem = (Value*) externMem;
 
@@ -279,7 +279,7 @@ cudaQuickSort2ndPhase2( Containers::ArrayView< Value, Devices::Cuda > arr,
                         int elemInShared,
                         int maxBitonicSize )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    extern __shared__ int externMem[];
    Value* sharedMem = (Value*) externMem;
 

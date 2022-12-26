@@ -31,7 +31,7 @@ int main( int argc, char* argv[] )
    double residue = updateAndResidue( host_u, host_delta_u, tau );
    std::cout << "New host_u is: " << host_u << "." << std::endl;
    std::cout << "Residue is:" << residue << std::endl;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_u( 10 ), cuda_delta_u( 10 );
    cuda_u = 0.0;
    cuda_delta_u = 1.0;

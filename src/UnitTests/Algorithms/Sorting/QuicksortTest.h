@@ -9,7 +9,7 @@
 #include <TNL/Algorithms/sort.h>
 #include <TNL/Algorithms/Sorting/Quicksort.h>
 
-#if defined HAVE_CUDA && defined HAVE_GTEST
+#if defined __CUDACC__ && defined HAVE_GTEST
 // FIXME: clang 14 fails due to compile errors in thrust or cub
 #if defined(__CUDA__) && !defined(__clang__)
 #include <thrust/sort.h>

@@ -121,7 +121,7 @@ void testCopyAssignment( const Object& obj )
 template< typename Mesh >
 void testMeshOnCuda( const Mesh& mesh )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    using DeviceMesh = Meshes::Mesh< typename Mesh::Config, Devices::Cuda >;
 
    // test host->CUDA copy

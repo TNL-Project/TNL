@@ -17,7 +17,7 @@ namespace TNL {
 namespace Algorithms {
 namespace detail {
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 /* Template for cooperative scan across the CUDA block of threads.
  * It is a *cooperative* operation - all threads must call the operation,
  * otherwise it will deadlock!

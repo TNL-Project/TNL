@@ -1054,7 +1054,7 @@ void test_AssignmentOperator()
             else
                EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    TridiagonalCuda cudaMatrix( rows, columns );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )
@@ -1174,7 +1174,7 @@ using MatrixTypes = ::testing::Types
     TNL::Matrices::TridiagonalMatrix< long,   TNL::Devices::Host, long >,
     TNL::Matrices::TridiagonalMatrix< float,  TNL::Devices::Host, long >,
     TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, long >
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
     ,TNL::Matrices::TridiagonalMatrix< int,    TNL::Devices::Cuda, short >,
     TNL::Matrices::TridiagonalMatrix< long,   TNL::Devices::Cuda, short >,
     TNL::Matrices::TridiagonalMatrix< float,  TNL::Devices::Cuda, short >,
@@ -1331,7 +1331,7 @@ TYPED_TEST( MatrixTest, saveAndLoadTest )
 //    host_test_GetType< Tridiagonal_host_float, Tridiagonal_host_int >();
 //}
 //
-//#ifdef HAVE_CUDA
+//#ifdef __CUDACC__
 //TEST( TridiagonalMatrixTest, Tridiagonal_GetTypeTest_Cuda )
 //{
 //    cuda_test_GetType< Tridiagonal_cuda_float, Tridiagonal_cuda_int >();
@@ -1363,7 +1363,7 @@ TEST( TridiagonalMatrixTest, Tridiagonal_getTranspositionTest_Host )
     std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/TridiagonalMatrixTest.h(1420): here\n\n";
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( TridiagonalMatrixTest, Tridiagonal_getTranspositionTest_Cuda )
 {
 //    test_GetTransposition< Tridiagonal_cuda_int >();

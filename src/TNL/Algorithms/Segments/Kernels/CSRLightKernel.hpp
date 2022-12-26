@@ -29,7 +29,7 @@ SpMVCSRLight2( OffsetsView offsets,
                const Real zero,
                const Index gridID )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const Index segmentIdx =
       first + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 2;
    if( segmentIdx >= last )
@@ -64,7 +64,7 @@ SpMVCSRLight4( OffsetsView offsets,
                const Real zero,
                const Index gridID )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const Index segmentIdx =
       first + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 4;
    if( segmentIdx >= last )
@@ -100,7 +100,7 @@ SpMVCSRLight8( OffsetsView offsets,
                const Real zero,
                const Index gridID )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const Index segmentIdx =
       first + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 8;
    if( segmentIdx >= last )
@@ -138,7 +138,7 @@ SpMVCSRLight16( OffsetsView offsets,
                 const Real zero,
                 const Index gridID )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const Index segmentIdx =
       first + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 16;
    if( segmentIdx >= last )
@@ -181,7 +181,7 @@ void SpMVCSRVector( OffsetsView offsets,
                     const Real zero,
                     const Index gridID )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const int warpSize = 32;
    const Index warpID = first + ((gridID * TNL::Cuda::getMaxGridXSize() ) + (blockIdx.x * blockDim.x) + threadIdx.x) / warpSize;
    if (warpID >= last)
@@ -226,7 +226,7 @@ SpMVCSRVector( OffsetsView offsets,
                const Real zero,
                const Index gridID )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    // const int warpSize = 32;
    const Index warpID =
       first + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
@@ -293,7 +293,7 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
                                          ResultKeeper keep,
                                          const Real zero )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + first;
    if( segmentIdx >= last )
       return;

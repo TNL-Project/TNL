@@ -16,7 +16,7 @@
 #include "blasWrappers.h"
 #endif
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 #include "cublasWrappers.h"
 #endif
 
@@ -47,7 +47,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    CudaVector deviceVector2;
    CudaVector deviceVector3;
    CudaVector deviceVector4;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    deviceVector.setSize( size );
    deviceVector2.setSize( size );
    deviceVector3.setSize( size );
@@ -58,14 +58,14 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    HostView hostView2( hostVector2 );
    HostView hostView3( hostVector3 );
    HostView hostView4( hostVector4 );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    CudaView deviceView( deviceVector ), deviceView2( deviceVector2 ), deviceView3( deviceVector3 ), deviceView4( deviceVector4 );
 #endif
 
    Real resultHost;
    Real resultDevice;
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    cublasHandle_t cublasHandle;
    cublasCreate( &cublasHandle );
 #endif
@@ -77,7 +77,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    // of the benchmark loop.)
    auto reset1 = [&]() {
       hostVector.setValue( 1.0 );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       deviceVector.setValue( 1.0 );
 #endif
       // A relatively harmless call to keep the compiler from realizing we
@@ -87,19 +87,19 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    };
    auto reset2 = [&]() {
       hostVector2.setValue( 1.0 );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       deviceVector2.setValue( 1.0 );
 #endif
    };
    auto reset3 = [&]() {
       hostVector3.setValue( 1.0 );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       deviceVector3.setValue( 1.0 );
 #endif
    };
    auto reset4 = [&]() {
       hostVector4.setValue( 1.0 );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       deviceVector4.setValue( 1.0 );
 #endif
    };
@@ -125,7 +125,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.setOperation( "max", datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU legacy", maxHost );
    benchmark.time< Devices::Host >( reset1, "CPU ET", maxHostET );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto maxCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorMax( deviceVector );
    };
@@ -147,7 +147,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.setOperation( "min", datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU legacy", minHost );
    benchmark.time< Devices::Host >( reset1, "CPU ET", minHostET );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto minCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorMin( deviceVector );
    };
@@ -178,7 +178,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( reset1, "CPU BLAS", absMaxBlas );
 #endif
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto absMaxCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorAbsMax( deviceVector );
    };
@@ -215,7 +215,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.time< Devices::Host >( reset1, "CPU legacy", absMinHost );
    benchmark.time< Devices::Host >( reset1, "CPU ET", absMinHostET );
    //benchmark.time< Devices::Host >( reset1, "CPU BLAS", absMinBlas );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto absMinCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorAbsMin( deviceVector );
    };
@@ -245,7 +245,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.setOperation( "sum", datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU legacy", sumHost );
    benchmark.time< Devices::Host >( reset1, "CPU ET", sumHostET );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto sumCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorSum( deviceVector );
    };
@@ -275,7 +275,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( reset1, "CPU BLAS", l1normBlas );
 #endif
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto l1normCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 1.0 );
    };
@@ -311,7 +311,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( reset1, "CPU BLAS", l2normBlas );
 #endif
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto l2normCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 2.0 );
    };
@@ -339,7 +339,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.setOperation( "l3 norm", datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU legacy", l3normHost );
    benchmark.time< Devices::Host >( reset1, "CPU ET", l3normHostET );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto l3normCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 3.0 );
    };
@@ -369,7 +369,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( reset1, "CPU BLAS", scalarProductBlas );
 #endif
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto scalarProductCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getScalarProduct( deviceVector, deviceVector2 );
    };
@@ -402,7 +402,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( reset1, "CPU BLAS", multiplyBlas );
 #endif
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto multiplyCuda = [&]() {
       deviceVector *= 0.5;
    };
@@ -438,7 +438,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( resetAll, "CPU BLAS", addVectorBlas );
 #endif
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto addVectorCuda = [&]() {
       Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector2, (Real) 1.0, (Real) 1.0 );
    };
@@ -483,7 +483,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( resetAll, "CPU BLAS", addTwoVectorsBlas );
 #endif
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto addTwoVectorsCuda = [&]() {
       Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector2, (Real) 1.0, (Real) 1.0 );
       Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector3, (Real) 1.0, (Real) 1.0 );
@@ -537,7 +537,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( resetAll, "CPU BLAS", addThreeVectorsBlas );
 #endif
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto addThreeVectorsCuda = [&]() {
       Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector2, (Real) 1.0, (Real) 1.0 );
       Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector3, (Real) 1.0, (Real) 1.0 );
@@ -585,7 +585,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.time< Devices::Sequential >( reset1, "CPU std::partial_sum", inplaceInclusiveScanSTL );
    // TODO: there are also `std::inclusive_scan` and `std::exclusive_scan` since C++17 which are parallel,
    // add them to the benchmark when we use C++17
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto inplaceInclusiveScanCuda = [&]() {
       Algorithms::inplaceInclusiveScan( deviceVector );
    };
@@ -599,7 +599,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    };
    benchmark.setOperation( "inclusive scan (1 vector)", 2 * datasetSize );
    benchmark.time< Devices::Host >( resetAll, "CPU ET", inclusiveScanOneVectorHost );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto inclusiveScanOneVectorCuda = [&]() {
       Algorithms::inclusiveScan( deviceVector, deviceVector2 );
    };
@@ -613,7 +613,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    };
    benchmark.setOperation( "inclusive scan (2 vectors)", 3 * datasetSize );
    benchmark.time< Devices::Host >( resetAll, "CPU ET", inclusiveScanTwoVectorsHost );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto inclusiveScanTwoVectorsCuda = [&]() {
       Algorithms::inclusiveScan( deviceVector + deviceVector2, deviceVector3 );
    };
@@ -627,7 +627,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    };
    benchmark.setOperation( "inclusive scan (3 vectors)", 4 * datasetSize );
    benchmark.time< Devices::Host >( resetAll, "CPU ET", inclusiveScanThreeVectorsHost );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto inclusiveScanThreeVectorsCuda = [&]() {
       Algorithms::inclusiveScan( deviceVector + deviceVector2 + deviceVector3, deviceVector4 );
    };
@@ -647,7 +647,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.setOperation( "exclusive scan (inplace)", 2 * datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU ET", inplaceExclusiveScanHost );
    benchmark.time< Devices::Sequential >( reset1, "CPU sequential", inplaceExclusiveScanSequential );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto inplaceExclusiveScanCuda = [&]() {
       Algorithms::inplaceExclusiveScan( deviceVector );
    };
@@ -661,7 +661,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    };
    benchmark.setOperation( "exclusive scan (1 vector)", 2 * datasetSize );
    benchmark.time< Devices::Host >( resetAll, "CPU ET", exclusiveScanOneVectorHost );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto exclusiveScanOneVectorCuda = [&]() {
       Algorithms::exclusiveScan( deviceVector, deviceVector2 );
    };
@@ -675,7 +675,7 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    };
    benchmark.setOperation( "exclusive scan (2 vectors)", 3 * datasetSize );
    benchmark.time< Devices::Host >( resetAll, "CPU ET", exclusiveScanTwoVectorsHost );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto exclusiveScanTwoVectorsCuda = [&]() {
       Algorithms::exclusiveScan( deviceVector + deviceVector2, deviceVector3 );
    };
@@ -689,14 +689,14 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    };
    benchmark.setOperation( "exclusive scan (3 vectors)", 4 * datasetSize );
    benchmark.time< Devices::Host >( resetAll, "CPU ET", exclusiveScanThreeVectorsHost );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    auto exclusiveScanThreeVectorsCuda = [&]() {
       Algorithms::exclusiveScan( deviceVector + deviceVector2 + deviceVector3, deviceVector4 );
    };
    benchmark.time< Devices::Cuda >( resetAll, "GPU ET", exclusiveScanThreeVectorsCuda );
 #endif
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    cublasDestroy( cublasHandle );
 #endif
 }

@@ -36,7 +36,7 @@ reduceSegmentsCSRKernelVector( int gridIdx,
                                const Real zero,
                                Args... args )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    /***
     * We map one warp to each segment
     */

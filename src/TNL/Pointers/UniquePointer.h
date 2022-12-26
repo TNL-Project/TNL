@@ -518,7 +518,7 @@ public:
    {
       if( ! this->pd )
          return true;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       if( this->modified() ) {
          cudaMemcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), cudaMemcpyHostToDevice );
          TNL_CHECK_CUDA_DEVICE;

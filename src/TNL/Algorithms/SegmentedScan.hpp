@@ -76,7 +76,7 @@ SegmentedScan< Devices::Cuda, Type >::perform( Vector& v,
                                                const Reduction& reduction,
                                                typename Vector::ValueType identity )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    using ValueType = typename Vector::ValueType;
    using IndexType = typename Vector::IndexType;
 

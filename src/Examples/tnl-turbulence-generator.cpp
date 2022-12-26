@@ -4,7 +4,7 @@
 #include <TNL/Meshes/Writers/VTIWriter.h>
 
 using Real = double;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 using Device = TNL::Devices::Cuda;
 #else
 using Device = TNL::Devices::Host;

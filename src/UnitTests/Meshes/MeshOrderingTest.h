@@ -276,7 +276,7 @@ TEST( MeshOrderingTest, OrderingOnHost )
    testMesh( mesh, vertexInversePermutation, edgeInversePermutation, cellInversePermutation );
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( MeshOrderingTest, OrderingOnCuda )
 {
    using MeshHost = Mesh< TestTriangleMeshConfig, Devices::Host >;

@@ -24,7 +24,7 @@ struct ConfigTagDevice
 {
    static constexpr bool enabled = true;
 };
-#ifndef HAVE_CUDA
+#ifndef __CUDACC__
 template< typename ConfigTag >
 struct ConfigTagDevice< ConfigTag, Devices::Cuda >
 {

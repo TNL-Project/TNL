@@ -28,7 +28,7 @@ VectorColumnMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
                                                             const int end,
                                                             int gridIdx )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );
@@ -98,7 +98,7 @@ ColumnMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
                                                       const int end,
                                                       int gridIdx )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );
@@ -149,7 +149,7 @@ RowMajorDenseMatrixViewVectorMultiplicationKernel( const Matrix matrix,
                                                    const int last,
                                                    int gridIdx )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
    // constexpr int inVectorCacheSize = 20480 / sizeof( Real );

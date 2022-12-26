@@ -400,7 +400,7 @@ ChunkedEllpackView< Device, Index, Organization >::printStructure( std::ostream&
           << " chunk = " << this->rowToChunkMapping.getElement( i ) << std::endl;
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 template< typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 __device__

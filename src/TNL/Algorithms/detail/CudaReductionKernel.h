@@ -20,7 +20,7 @@ namespace TNL {
 namespace Algorithms {
 namespace detail {
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 /* Template for cooperative reduction across the CUDA block of threads.
  * It is a *cooperative* operation - all threads must call the operation,
  * otherwise it will deadlock!
@@ -330,7 +330,7 @@ CudaReductionKernel( DataFetcher dataFetcher,
                      Index end,
                      Result* output )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaReductionKernel" );
 
    // allocate shared memory
@@ -392,7 +392,7 @@ CudaReductionWithArgumentKernel( DataFetcher dataFetcher,
                                  Index* idxOutput,
                                  const Index* idxInput = nullptr )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaReductionKernel" );
 
    // allocate shared memory

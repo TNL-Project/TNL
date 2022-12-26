@@ -53,7 +53,7 @@ int main( int argc, char* argv[] )
    Array< int, Devices::Host > host_array;
    sort( host_array );
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    /***
     * And then also on GPU.
     */

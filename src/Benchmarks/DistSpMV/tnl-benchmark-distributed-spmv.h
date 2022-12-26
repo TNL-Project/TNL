@@ -201,7 +201,7 @@ struct SpmvBenchmark
                       VectorType& vector )
    {
       benchmarkSpmv( benchmark, matrix, vector );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       benchmarkSpmvCuda( benchmark, matrix, vector );
 #endif
    }
@@ -243,7 +243,7 @@ struct SpmvBenchmark
       }
 
       benchmarkDistributedSpmv( benchmark, distributedMatrix, distributedVector );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       benchmarkDistributedSpmvCuda( benchmark, distributedMatrix, distributedVector );
 #endif
 

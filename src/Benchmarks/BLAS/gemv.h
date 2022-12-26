@@ -50,7 +50,7 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    auto reset = [&]() {
       inHostVector = 1.0;
       outHostVector = 0.0;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       inCudaVector = 1.0;
       //outCudaVector1 = 0.0;
       //outCudaVector2 = 0.0;
@@ -63,7 +63,7 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    };
    benchmark.time< Devices::Host >( reset, "CPU", spmvHost );
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    columnMajorCudaMatrix.setDimensions( rows, columns );
    inCudaVector.setSize( columns );
    outCudaVector1.setSize( rows );

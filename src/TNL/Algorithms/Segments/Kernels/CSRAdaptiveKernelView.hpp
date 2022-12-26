@@ -41,7 +41,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
                                  Real zero,
                                  Args... args )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    using BlockType = detail::CSRAdaptiveKernelBlockDescriptor< Index >;
    constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( Real ) >::CudaBlockSize();
    constexpr int WarpSize = Cuda::getWarpSize();
