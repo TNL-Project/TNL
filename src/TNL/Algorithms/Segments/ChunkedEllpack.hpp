@@ -193,7 +193,7 @@ template< typename SizesHolder >
 void
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSegmentsSizes( const SizesHolder& segmentsSizes )
 {
-   if( std::is_same< DeviceType, Devices::Host >::value ) {
+   if constexpr( std::is_same< DeviceType, Devices::Host >::value ) {
       this->size = segmentsSizes.getSize();
       this->slices.setSize( this->size );
       this->rowToChunkMapping.setSize( this->size );

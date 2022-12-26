@@ -139,7 +139,7 @@ public:
       boundaryIndices.setSize( boundaryEntities );
       ghostsOffset = tags.getSize() - ghostEntities;
 
-      if( ! std::is_same< Device, Devices::Cuda >::value ) {
+      if constexpr( ! std::is_same< Device, Devices::Cuda >::value ) {
          GlobalIndexType i = 0;
          GlobalIndexType b = 0;
          for( GlobalIndexType e = 0; e < tags.getSize(); e++ ) {

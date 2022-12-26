@@ -48,7 +48,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
    for( auto row : data )
       columns = max( columns, row.size() );
    this->setDimensions( rows, columns );
-   if( ! std::is_same< DeviceType, Devices::Host >::value ) {
+   if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
       DenseMatrix< RealType, Devices::Host, IndexType > hostDense( rows, columns );
       IndexType rowIdx( 0 );
       for( auto row : data ) {
@@ -803,7 +803,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=(
    }
 
    auto this_view = this->view;
-   if( std::is_same< DeviceType, RHSDeviceType >::value ) {
+   if constexpr( std::is_same< DeviceType, RHSDeviceType >::value ) {
       auto f = [ = ] __cuda_callable__(
                   RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIdx, const RHSRealType& value ) mutable
       {
@@ -873,7 +873,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=( cons
    RHSIndexType padding_index = matrix.getPaddingIndex();
    this->values = 0.0;
 
-   if( std::is_same< DeviceType, RHSDeviceType >::value ) {
+   if constexpr( std::is_same< DeviceType, RHSDeviceType >::value ) {
       const auto segments_view = this->segments.getView();
       auto f = [ = ] __cuda_callable__(
                   RHSIndexType rowIdx, RHSIndexType localIdx_, RHSIndexType columnIdx, const RHSRealType& value ) mutable

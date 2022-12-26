@@ -80,7 +80,7 @@ public:
          mesh.getLocalMesh().template forGhost< EntityDimension, Devices::Sequential >(
             [ & ]( GlobalIndexType local_idx )
             {
-               if( ! std::is_same< DeviceType, Devices::Cuda >::value )
+               if constexpr( ! std::is_same< DeviceType, Devices::Cuda >::value )
                   if( ! mesh.getLocalMesh().template isGhostEntity< EntityDimension >( local_idx ) )
                      throw std::runtime_error( "encountered local entity while iterating over ghost entities - the mesh is "
                                                "probably inconsistent or there is a bug in the DistributedMeshSynchronizer" );

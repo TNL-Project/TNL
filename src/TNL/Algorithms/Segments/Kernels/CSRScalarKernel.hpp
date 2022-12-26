@@ -50,11 +50,11 @@ struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction,
          keep( segmentIdx, aux );
       };
 
-      if( std::is_same< Device, TNL::Devices::Sequential >::value ) {
+      if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value ) {
          for( Index segmentIdx = first; segmentIdx < last; segmentIdx++ )
             l( segmentIdx );
       }
-      else if( std::is_same< Device, TNL::Devices::Host >::value ) {
+      else if constexpr( std::is_same< Device, TNL::Devices::Host >::value ) {
 #ifdef HAVE_OPENMP
          #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
 #endif
@@ -90,11 +90,11 @@ struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduce, Ke
          keep( segmentIdx, aux );
       };
 
-      if( std::is_same< Device, TNL::Devices::Sequential >::value ) {
+      if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value ) {
          for( Index segmentIdx = first; segmentIdx < last; segmentIdx++ )
             l( segmentIdx );
       }
-      else if( std::is_same< Device, TNL::Devices::Host >::value ) {
+      else if constexpr( std::is_same< Device, TNL::Devices::Host >::value ) {
 #ifdef HAVE_OPENMP
          #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
 #endif
@@ -166,7 +166,7 @@ CSRScalarKernel< Index, Device >::reduceSegments( const OffsetsView& offsets,
 globalIdx, compute ) ); keeper( segmentIdx, aux );
     };
 
-     if( std::is_same< DeviceType, TNL::Devices::Host >::value )
+    if constexpr( std::is_same< DeviceType, TNL::Devices::Host >::value )
     {
 #ifdef HAVE_OPENMP
         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )

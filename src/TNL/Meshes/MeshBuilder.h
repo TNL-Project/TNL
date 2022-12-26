@@ -40,12 +40,12 @@ public:
       this->pointsSet.setSize( points );
       pointsSet.setValue( false );
 
-      if( std::is_same< CellTopology, Topologies::Polyhedron >::value ) {
+      if constexpr( std::is_same< CellTopology, Topologies::Polyhedron >::value ) {
          this->faceSeeds.setDimensions( faces, points );
          this->cellSeeds.setDimensions( cells, faces );
       }
-      else  // Topologies other than polyhedrons don't use face seeds
-      {
+      else {
+         // Topologies other than polyhedrons don't use face seeds
          this->cellSeeds.setDimensions( cells, points );
       }
    }
