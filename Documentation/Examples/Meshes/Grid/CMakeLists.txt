@@ -5,6 +5,10 @@ set( COMMON_EXAMPLES
    GridExample_writer
 )
 
+set( CPU_EXAMPLES
+   GridEntitiesOrientationsExample
+)
+
 if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${COMMON_EXAMPLES} )
       add_executable( ${target} ${target}.cu )
@@ -15,7 +19,7 @@ if( TNL_BUILD_CUDA )
       set( DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
    endforeach()
 else()
-   foreach( target IN ITEMS ${COMMON_EXAMPLES} )
+   foreach( target IN ITEMS ${COMMON_EXAMPLES} ${CPU_EXAMPLES} )
       add_executable( ${target} ${target}.cpp )
       target_link_libraries( ${target} PUBLIC TNL::TNL_CXX )
       add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
