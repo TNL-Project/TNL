@@ -27,15 +27,6 @@ Grid< Dimension, Real, Device, Index >::getMeshDimension()
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-Grid< Dimension, Real, Device, Index >::Grid()
-{
-   this->proportions = 0;
-   this->spaceSteps = 0;
-   this->origin = 0;
-   fillEntitiesCount();
-}
-
-template< int Dimension, typename Real, typename Device, typename Index >
 template< typename... Dimensions,
           std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool >,
           std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > >
@@ -78,7 +69,7 @@ Grid< Dimension, Real, Device, Index >::setDimensions( Dimensions... dimensions 
 
    TNL_ASSERT_ALL_GE( this->dimensions, 0, "Dimension must be positive" );
 
-   fillEntitiesCount();
+   setEntitiesIndexesOffsets();
    fillSpaceSteps();
    this->localBegin = 0;
    this->localEnd = this->getDimensions();
@@ -91,11 +82,9 @@ void
 Grid< Dimension, Real, Device, Index >::setDimensions(
    const typename Grid< Dimension, Real, Device, Index >::CoordinatesType& dimensions )
 {
+   TNL_ASSERT_GE( this->dimensions, CoordinatesType( 0 ), "Dimension must be positive" );
    this->dimensions = dimensions;
-
-   TNL_ASSERT_ALL_GE( this->dimensions, 0, "Dimension must be positive" );
-
-   fillEntitiesCount();
+   setEntitiesIndexesOffsets();
    fillSpaceSteps();
    this->localBegin = 0;
    this->localEnd = this->getDimensions();
@@ -114,55 +103,44 @@ Grid< Dimension, Real, Device, Index >::getDimensions() const noexcept
 template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
 Index
-Grid< Dimension, Real, Device, Index >::getEntitiesCount( IndexType dimension ) const
+Grid< Dimension, Real, Device, Index >::getEntitiesCount( IndexType entityDimension ) const
 {
-   TNL_ASSERT_GE( dimension, 0, "dimension must be greater than or equal to 0" );
-   TNL_ASSERT_LE( dimension, Dimension, "dimension must be less than or equal to Dimension" );
+   TNL_ASSERT_GE( entityDimension, 0, "Entity dimension must be greater than or equal to 0" );
+   TNL_ASSERT_LE( entityDimension, Dimension, "Entity dimension must be less than or equal to Dimension" );
 
-   return this->cumulativeEntitiesCountAlongNormals( dimension );
+   return this->entitiesCounts[ entityDimension ];
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< int EntityDimension, std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > >
+template< int EntityDimension >
 __cuda_callable__
 Index
 Grid< Dimension, Real, Device, Index >::getEntitiesCount() const noexcept
 {
-   return this->cumulativeEntitiesCountAlongNormals( EntityDimension );
+   static_assert( EntityDimension >= 0, "Entity dimension must be greater than or equal to 0" );
+   static_assert( EntityDimension <= Dimension, "Entity dimension must be less than or equal to Dimension" );
+
+   return this->entitiesCounts[ EntityDimension ];
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename EntityType_,
-          std::enable_if_t< Templates::isInClosedInterval( 0, EntityType_::getEntityDimension(), Dimension ), bool > >
+template< typename EntityType >
 __cuda_callable__
 Index
-Grid< Dimension, Real, Device, Index >::getEntitiesCount() const noexcept
+Grid< Dimension, Real, Device, Index >::getEntitiesCount() const
 {
-   return this->template getEntitiesCount< EntityType_::getEntityDimension() >();
+   static_assert( EntityType::getEntityDimension() >= 0, "Entity dimension must be greater than or equal to 0" );
+   static_assert( EntityType::getEntityDimension() <= Dimension, "Entity dimension must be less than or equal to Dimension" );
+
+   return this->entitiesCounts[ EntityType::getEntityDimension() ];
 }
-
-/*template< int Dimension, typename Real, typename Device, typename Index >
-template< typename... DimensionIndex,
-          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool >,
-          std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > >
-__cuda_callable__
-Containers::StaticVector< sizeof...( DimensionIndex ), Index >
-Grid< Dimension, Real, Device, Index >::getEntitiesCounts( DimensionIndex... indices ) const
-{
-   Containers::StaticVector< sizeof...( DimensionIndex ), Index > result{ indices... };
-
-   for( std::size_t i = 0; i < sizeof...( DimensionIndex ); i++ )
-      result[ i ] = this->cumulativeEntitiesCountAlongNormals( result[ i ] );
-
-   return result;
-}*/
 
 template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
-const typename Grid< Dimension, Real, Device, Index >::EntitiesCounts&
-Grid< Dimension, Real, Device, Index >::getEntitiesCounts() const noexcept
+auto
+Grid< Dimension, Real, Device, Index >::getEntitiesCounts() const noexcept -> const EntitiesCounts&
 {
-   return this->cumulativeEntitiesCountAlongNormals;
+   return this->entitiesCounts;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -186,17 +164,16 @@ Grid< Dimension, Real, Device, Index >::setOrigin( Coordinates... coordinates ) 
 template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
 Index
-Grid< Dimension, Real, Device, Index >::getOrientedEntitiesCount( IndexType dimension, IndexType orientation ) const
+Grid< Dimension, Real, Device, Index >::getOrientedEntitiesCount( IndexType entityDimension, IndexType orientation ) const
 {
-   TNL_ASSERT_GE( dimension, 0, "dimension must be greater than or equal to 0" );
-   TNL_ASSERT_LE( dimension, Dimension, "dimension must be less than or equal to Dimension" );
+   TNL_ASSERT_GE( entityDimension, 0, "dimension must be greater than or equal to 0" );
+   TNL_ASSERT_LE( entityDimension, Dimension, "dimension must be less than or equal to Dimension" );
 
-   //if( dimension == 0 || dimension == Dimension )
-   //   return this->getEntitiesCount( dimension );
+   if( entityDimension == 0 || entityDimension == Dimension )
+      return this->getEntitiesCount( entityDimension );
 
-   Index index = firstKCombinationsSum( dimension, (Index) Dimension ) + orientation;
-
-   return this->entitiesCountAlongNormals[ index ];
+   const Index index = EntitiesOrientations::getTotalOrientationIndex( entityDimension, orientation ) + entityDimension;
+   return this->entitiesIndexesOffsets[ index + 1 ] - this->entitiesIndexesOffsets[ index ];
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -208,11 +185,12 @@ __cuda_callable__
 Index
 Grid< Dimension, Real, Device, Index >::getOrientedEntitiesCount() const noexcept
 {
-   //if( EntityDimension == 0 || EntityDimension == Dimension )
-   //   return this->getEntitiesCount( EntityDimension );
+   if constexpr( EntityDimension == 0 || EntityDimension == Dimension )
+      return this->getEntitiesCount( EntityDimension );
 
-   const Index index = cumulativeCombinationsCount( EntityDimension, Dimension ) + EntityOrientationIdx;
-   return this->entitiesCountAlongNormals[ index ];
+   const Index index =
+      EntitiesOrientations::getTotalOrientationIndex( EntityDimension, EntityOrientationIdx ) + EntityDimension;
+   return this->entitiesIndexesOffsets[ index + 1 ] - this->entitiesIndexesOffsets[ index ];
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -258,17 +236,16 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
    -> CoordinatesType
 {
    if constexpr( EntityDimension != 0 && EntityDimension != getMeshDimension() ) {
-      IndexType totalOrientationIdx = Templates::firstKCombinationSum( EntityDimension, Dimension );
-      const Index end = totalOrientationIdx + this->getEntityOrientationsCount( EntityDimension );
-      auto entityIdx_( entityIdx );
+      IndexType i = EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( 0 ) + EntityDimension + 1;
+      const Index end = i + this->getEntityOrientationsCount( EntityDimension ) + EntityDimension;
       IndexType orientationIdx = 0;
-      while( totalOrientationIdx < end && entityIdx_ >= this->entitiesCountAlongNormals[ totalOrientationIdx ] ) {
-         entityIdx_ -= this->entitiesCountAlongNormals[ totalOrientationIdx ];
-         totalOrientationIdx++;
+      while( i < end && entityIdx >= this->entitiesIndexesOffsets[ i ] ) {
+         i++;
          orientationIdx++;
       }
+      entityIdx -= this->entitiesIndexesOffsets[ i - 1 ];
       orientation.setIndex( orientationIdx );
-      orientation.setNormals( entitiesOrientations.getNormals( totalOrientationIdx ) );
+      orientation.setNormals( entitiesOrientations.template getNormals< EntityDimension >( orientationIdx ) );
       TNL_ASSERT_EQ(
          orientation.getIndex(), this->getOrientationIndex( orientation.getNormals() ), "Wrong index of entity orientation." );
    }
@@ -281,10 +258,6 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
    }
    entityCoordinates[ idx ] = entityIdx % dims[ idx ];
    return entityCoordinates;
-
-   constexpr Index index = firstKCombinationsSum( EntityDimension, Dimension ) + EntityOrientation;
-
-   return this->entitiesCountAlongNormals[ index ];
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -583,30 +556,10 @@ Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) c
       return idx;
    }
    else {
-      /*std::cerr << "=====================================================================================" << std::endl;
-      std::cerr << " dims = " << getDimensions() << " coords. " << entity.getCoordinates() << " orientation "
-                << entity.getNormals() << " or.idx. " << entity.getOrientation().getIndex() << std::endl;
-      std::cerr << " this->entitiesAlongNormalsIndexOffsets " << this->entitiesAlongNormalsIndexOffsets << std::endl;
-      std::cerr << " Templates::firstKCombinationSum( Entity::getEntityDimension(), Dimension ) = " <<
-         Templates::firstKCombinationSum( Entity::getEntityDimension(), Dimension ) << std::endl;
-      std::cerr << " entity.getOrientation().getIndex() = " << entity.getOrientation().getIndex() << std::endl;
-      std::cerr << " template getOrientation< EntityDimension >( normals ) = " << this->template getOrientation<
-      Entity::getEntityDimension() >( entity.getNormals() )
-         << std::endl;
-      const Index index = Templates::firstKCombinationSum( Entity::getEntityDimension(), Dimension ) +
-      entity.getOrientation().getIndex(); std::cerr << " index = " << index << std::endl; std::cerr << "
-      this->entitiesAlongNormalsIndexOffsets[ index ] = " << this->entitiesAlongNormalsIndexOffsets[ index ] << std::endl;
-      std::cerr << " idx = " << idx << std::endl;
-      IndexType correct = GridEntityGetter< Grid, Entity::getEntityDimension() >::getEntityIndex( *this, entity );
-      std::cerr << " getOrientedEntitiesCount( Entity::getEntityDimension(), entity.getOrientation().getIndex() ) = "
-                << getOrientedEntitiesCount( Entity::getEntityDimension(), entity.getOrientation().getIndex() ) << std::endl;
-         */
-      //IndexType correct = GridEntityGetter< Grid, Entity::getEntityDimension() >::getEntityIndex( *this, entity );
-      const Index index =
-         Templates::firstKCombinationSum( Entity::getEntityDimension(), Dimension ) + entity.getOrientation().getIndex();
-      idx += this->entitiesAlongNormalsIndexOffsets[ index ];
-      //TNL_ASSERT_EQ( idx, correct, "" );
-      return idx;
+      const IndexType offset = EntitiesOrientations::template getTotalOrientationIndex< Entity::getEntityDimension() >(
+                                  entity.getOrientation().getIndex() )
+                             + Entity::getEntityDimension();
+      return idx + this->entitiesIndexesOffsets[ offset ];
    }
    //return GridEntityGetter< Grid, Entity::getEntityDimension() >::getEntityIndex( *this, entity );
 }
@@ -678,8 +631,9 @@ Grid< Dimension, Real, Device, Index >::getNeighbourEntityIndex( const Entity& e
                                                                  const CoordinatesType& offset,
                                                                  Index neighbourEntityOrientation ) const -> Index
 {
-   const Index normalsOffset = Templates::firstKCombinationSum( NeighbourEntityDimension, Dimension );
-   const NormalsType& neighbourEntityNormals = this->getNormals( normalsOffset + neighbourEntityOrientation );
+   const IndexType totalOrientationIndex =
+      EntitiesOrientations::getTotalOrientationIndex( NeighbourEntityDimension, neighbourEntityOrientation );
+   const NormalsType& neighbourEntityNormals = this->getNormals( totalOrientationIndex );
    IndexType idx{ 0 }, aux{ 1 };
    Algorithms::staticFor< IndexType, 0, Dimension >(
       [ & ]( Index i ) mutable
@@ -689,7 +643,7 @@ Grid< Dimension, Real, Device, Index >::getNeighbourEntityIndex( const Entity& e
       } );
    if constexpr( NeighbourEntityDimension == 0 || NeighbourEntityDimension == getMeshDimension() )
       return idx;
-   return this->entitiesAlongNormalsIndexOffsets[ normalsOffset + neighbourEntityOrientation ] + idx;
+   return this->entitiesIndexesOffsets[ totalOrientationIndex + NeighbourEntityDimension ] + idx;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -802,58 +756,31 @@ Grid< Dimension, Real, Device, Index >::writeProlog( TNL::Logger& logger ) const
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void
-Grid< Dimension, Real, Device, Index >::
-setEntitiesIndexesOffsets()
+Grid< Dimension, Real, Device, Index >::setEntitiesIndexesOffsets()
 {
-   this->entitiesIndexesOffsets[ 0 ] = 0;
-   for( Index totalOrientationIdx = 1; totalOrientationIdx <= 1 << Dimensions; totalOrientationIdx++ )
-   {
-      const auto& normals = entitiesOrientations.getNormals( totalOrientationIdx );
-      IndexType aux = 1, entitiesCount = 0;
-      Algorithms::staticFor< IndexType, 0, Dimension >(
-      [&] ( Index i ) mutable {
-         const auto entities = this->getDimensions()[ i ] + normals[ i ]
-         entitiesCount += aux * entities;
-         aux *= entities;
-      } );
-      this->entitiesIndexesOffsets[ totalOrientationIdx ] =
-         this->entitiesIndexesOffsets[ totalOrientationIdx - 1 ] + entitiesCount;
-   }
-}
-
-template< int Dimension, typename Real, typename Device, typename Index >
-void
-Grid< Dimension, Real, Device, Index >::fillEntitiesCount()
-{
-   for( Index i = 0; i < Dimension + 1; i++ )
-      cumulativeEntitiesCountAlongNormals[ i ] = 0;
-
-   entitiesAlongNormalsIndexOffsets = 0;
-
-   // In case, if some dimension is zero. Clear all counts -- ?????
-   for( Index i = 0; i < Dimension; i++ ) {
-      if( dimensions[ i ] == 0 ) {
-         for( Index k = 0; k < (Index) entitiesCountAlongNormals.getSize(); k++ )
-            entitiesCountAlongNormals[ k ] = 0;
-         return;
-      }
+   if( getDimensions() == 0 ) {
+      this->entitiesIndexesOffsets = 0;
+      this->entitiesCounts = 0;
+      return;
    }
 
-   for( Index i = 0, j = 0; i <= Dimension; i++ ) {
-      IndexType lastResult = 0;
-      for( Index n = 0; n < this->getEntityOrientationsCount( i ); n++, j++ ) {
-         int result = 1;
-         const auto& normals = this->getNormals( j );
-
-         for( Index k = 0; k < (Index) normals.getSize(); k++ )
-            result *= dimensions[ k ] + normals[ k ];
-
-         entitiesCountAlongNormals[ j ] = result;
-         if( n > 0 )
-            entitiesAlongNormalsIndexOffsets[ j ] = entitiesAlongNormalsIndexOffsets[ j - 1 ] + lastResult;
-         cumulativeEntitiesCountAlongNormals[ i ] += result;
-         lastResult = result;
+   Index totalOrientationIdx = 0;
+   for( int entityDimension = 0; entityDimension <= Dimension; entityDimension++ ) {
+      this->entitiesIndexesOffsets[ totalOrientationIdx + entityDimension ] = 0;
+      for( Index entityOrientation = 0; entityOrientation < EntitiesOrientations::getOrientationsCount( entityDimension );
+           entityOrientation++, totalOrientationIdx++ )
+      {
+         const auto& normals = entitiesOrientations.getNormals( totalOrientationIdx );
+         IndexType entitiesCount = 1;
+         Algorithms::staticFor< IndexType, 0, Dimension >(
+            [ & ]( Index i ) mutable
+            {
+               entitiesCount *= this->getDimensions()[ i ] + normals[ i ];
+            } );
+         this->entitiesIndexesOffsets[ totalOrientationIdx + entityDimension + 1 ] =
+            this->entitiesIndexesOffsets[ totalOrientationIdx + entityDimension ] + entitiesCount;
       }
+      this->entitiesCounts[ entityDimension ] = this->entitiesIndexesOffsets[ totalOrientationIdx + entityDimension ];
    }
 }
 

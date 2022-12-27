@@ -29,6 +29,14 @@ getOrientationsCount() {
 template< int GridDimension >
 constexpr int
 GridEntitiesOrientations< GridDimension >::
+getOrientationsCount( int entityDimension ) {
+   return combinationsCount( entityDimension, GridDimension );
+}
+
+
+template< int GridDimension >
+constexpr int
+GridEntitiesOrientations< GridDimension >::
 getTotalOrientationsCount() {
    return cumulativeCombinationsCount( GridDimension, GridDimension );
 }
@@ -66,6 +74,14 @@ getTotalOrientationIndex( int orientation ) {
 }
 
 template< int GridDimension >
+constexpr int
+GridEntitiesOrientations< GridDimension >::
+getTotalOrientationIndex( int entityDimension, int orientation ) {
+   return cumulativeCombinationsCount( entityDimension - 1, GridDimension ) + orientation;
+}
+
+
+template< int GridDimension >
    template< int EntityDimension, int Orientation >
 auto
 GridEntitiesOrientations< GridDimension >::
@@ -86,14 +102,21 @@ template< int GridDimension >
    template< int EntityDimension >
 auto
 GridEntitiesOrientations< GridDimension >::
-getNormals( int orientation ) -> NormalsType {
+getNormals( int orientation ) const -> const NormalsType& {
    return normalsTable[ getTotalOrientationIndex< EntityDimension >( orientation ) ];
 }
 
 template< int GridDimension >
 auto
 GridEntitiesOrientations< GridDimension >::
-getNormals( int totalOrientation ) -> NormalsType {
+getNormals( int entityDimension, int orientation ) const -> const NormalsType& {
+   return normalsTable[ getTotalOrientationIndex( entityDimension, orientation ) ];
+}
+
+template< int GridDimension >
+auto
+GridEntitiesOrientations< GridDimension >::
+getNormals( int totalOrientation ) const -> const NormalsType& {
    return normalsTable[ totalOrientation ];
 }
 
@@ -110,7 +133,7 @@ getEntityDimension( const NormalsType& normals )
 template< int GridDimension >
 int
 GridEntitiesOrientations< GridDimension >::
-getOrientationIndex( const NormalsType& normals )
+getOrientationIndex( const NormalsType& normals ) const
 {
    const int entityDimension = getEntityDimension( normals );
    const int begin = cumulativeCombinationsCount( entityDimension - 1, GridDimension );
@@ -127,7 +150,7 @@ getOrientationIndex( const NormalsType& normals )
 template< int GridDimension >
 int
 GridEntitiesOrientations< GridDimension >::
-getTotalOrientationIndex( const NormalsType& normals )
+getTotalOrientationIndex( const NormalsType& normals ) const
 {
    const int entityDimension = getEntityDimension( normals );
    const int begin = cumulativeCombinationsCount( entityDimension - 1, GridDimension );

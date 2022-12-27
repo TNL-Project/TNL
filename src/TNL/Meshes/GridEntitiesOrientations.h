@@ -139,6 +139,13 @@ struct GridEntitiesOrientations
    constexpr static int getOrientationsCount();
 
    /**
+    * \brief Gives number of all orientations for grid entities with given dimension.
+    *
+    * \tparam EntityDimension is the grid entity dimension.
+    */
+   constexpr static int getOrientationsCount( int entityDimension );
+
+   /**
     * \brief Gives dimension of entity based on the total orientation index.
     *
     * \tparam TotalOrientationIndex is total orientation index.
@@ -180,6 +187,15 @@ struct GridEntitiesOrientations
    constexpr static int getTotalOrientationIndex( int orientation );
 
    /**
+    * \brief Gives total orientation index based on entity dimension and dimension specific orientation index.
+    *
+    * \param entityDimension is the entity dimension.
+    * \param orientation is the dimension specific index of entity orientation.
+    * \return constexpr int is the total orientation index.
+    */
+   constexpr static int getTotalOrientationIndex( int entityDimension, int orientation );
+
+   /**
     * \brief Gives packed normal vectors based on entity dimension and dimension specific orientation index.
     *
     * The packed normal vectors are evaluated at the compile time.
@@ -209,9 +225,9 @@ struct GridEntitiesOrientations
 
    static int getEntityDimension( const NormalsType& normals );
 
-   int getOrientationIndex( const NormalsType& normals );
+   int getOrientationIndex( const NormalsType& normals ) const;
 
-   int getTotalOrientationIndex( const NormalsType& normals ); // TODO: tests
+   int getTotalOrientationIndex( const NormalsType& normals ) const;
 
    /**
     * \brief Gives packed normal vectors based on entity dimension and dimension specific orientation index.
@@ -224,7 +240,19 @@ struct GridEntitiesOrientations
     */
    template< int EntityDimension >
    __cuda_callable__
-   NormalsType getNormals( int orientation );
+   const NormalsType& getNormals( int orientation ) const;
+
+   /**
+    * \brief Gives packed normal vectors based on entity dimension and orientation index.
+    *
+    * The packed normal vectors are obtained at the run-time from precomputed table.
+    *
+    * \param[in] entityDimension is dimension of grid entity.
+    * \param[in] orientation is the orientation index of grid entity.
+    * \return NormalsType are packed normal vectors.
+    */
+   __cuda_callable__
+   const NormalsType& getNormals( int entityDimension, int orientation ) const;
 
    /**
     * \brief Gives packed normal vectors based on total orientation index.
@@ -235,7 +263,7 @@ struct GridEntitiesOrientations
     * \return NormalsType are packed normal vectors.
     */
    __cuda_callable__
-   NormalsType getNormals( int totalOrientation );
+   const NormalsType& getNormals( int totalOrientation ) const;
 
 protected:
 

@@ -125,7 +125,7 @@ public:
    /**
     * \brief Grid constructor with no parameters.
     */
-   Grid();
+   Grid() = default;
 
    /**
     * \brief Grid constructor with grid dimensions parameters.
@@ -208,7 +208,7 @@ public:
              std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true >
    [[nodiscard]] __cuda_callable__
    Index
-   getEntitiesCount() const noexcept;
+   getEntitiesCount() const noexcept;  // TODO: remove this if it not necessary for compatibility with Mesh
 
    /**
     * \brief Returns number of entities of specific entity type as a template parameter.
@@ -301,7 +301,6 @@ public:
    __cuda_callable__
    NormalsType
    getNormals( Index totalOrientation ) const noexcept;
-
 
    /**
     * \brief Returns basis of the entity with the specific orientation.
@@ -574,8 +573,7 @@ public:
    template< int NeighbourEntityDimension, typename Entity >
    __cuda_callable__
    Index
-   getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset,
-                            Index neighbourEntityOrientation ) const;
+   getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset, Index neighbourEntityOrientation ) const;
 
    template< typename Entity >
    __cuda_callable__
@@ -585,9 +583,9 @@ public:
    template< int NeighbourEntityDimension, typename Entity >
    __cuda_callable__
    EntityType< NeighbourEntityDimension >
-   getNeighbourEntity( const Entity& entity, const CoordinatesType& offset,
+   getNeighbourEntity( const Entity& entity,
+                       const CoordinatesType& offset,
                        const NormalsType& neighbourEntityOrientation ) const;
-
 
    /**
     * \brief Sets the subdomain of distributed grid.
@@ -800,12 +798,11 @@ public:
    forLocalEntities( Func func, FuncArgs... args ) const;
 
 protected:
-
    void
    setEntitiesIndexesOffsets();
 
-   void
-   fillEntitiesCount();
+   //void
+   //fillEntitiesCount();
 
    void
    fillSpaceSteps();
@@ -843,44 +840,25 @@ protected:
    /**
     * \brief Grid dimensions.
     */
-   CoordinatesType dimensions;
+   CoordinatesType dimensions = 0;
 
-   PointType origin, proportions, spaceSteps;
+   PointType origin = 0, proportions = 0, spaceSteps = 0;
 
    /**
     * \brief Region of subdomain if this grid represents one sudbdomain of distributed grid.
     */
-   CoordinatesType localBegin, localEnd;
+   CoordinatesType localBegin = 0, localEnd = 0;
 
-   CoordinatesType interiorBegin, interiorEnd;  // TODO: Why we needt it?
+   CoordinatesType interiorBegin = 0, interiorEnd = 0;  // TODO: Why we need it?
 
-   /**
-    * \brief A list of elements count along specific directions.
-    *
-    * First, elements will contain the count of 0 dimension elements.
-    * Second, elements will contain the count of 1-dimension elements and so on.
-    *
-    * For example, let's have a 3-d grid, then the map indexing will
-    * be the next: 0 - 0 - count of vertices 1, 2, 3 - count of edges in x, y,
-    * z plane 4, 5, 6 - count of faces in xy, yz, zy plane 7 - count of cells
-    * in z y x plane
-    *
-    * \warning The ordering of is lexicographical.
-    */
-   Containers::StaticVector< 1 << Dimension, Index > entitiesCountAlongNormals; // TODO: remove
+   EntitiesCounts entitiesCounts = 0;
 
-   Containers::StaticVector< 1 << Dimension, Index > entitiesAlongNormalsIndexOffsets; // TODO: remove
-   /**
-    * \brief A cumulative map over dimensions.
-    */
-   Containers::StaticVector< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals; // TODO: remove
+   Containers::StaticVector< ( 1 << Dimension ) + Dimension + 1, Index > entitiesIndexesOffsets = 0;
 
-   __cuda_callable__
-   inline static EntitiesOrientations entitiesOrientations;
+   SpaceProductsContainer spaceStepsProducts = 0;  // TODO: remove
 
-   Containers::StaticVector< 1 << Dimension, Index > entitiesIndexesOffsets;
-
-   SpaceProductsContainer spaceStepsProducts; // TODO: remove
+   //__cuda_callable__ inline static
+   EntitiesOrientations entitiesOrientations;  // TODO: make this static - I do not know any good solution working with CUDA
 };
 
 /**

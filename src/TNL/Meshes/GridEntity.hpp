@@ -153,7 +153,7 @@ auto
 GridEntity< Grid, EntityDimension >::getIndex() const -> const IndexType&
 {
    TNL_ASSERT_GE( this->index, 0, "Entity index is not non-negative." );
-   TNL_ASSERT_LT( this->index, grid->template getEntitiesCount< EntityDimension >(), "Entity index is out of bounds." );
+   TNL_ASSERT_LT( this->index, grid->getEntitiesCount( EntityDimension ), "Entity index is out of bounds." );
    TNL_ASSERT_EQ( this->index, grid->getEntityIndex( *this ), "Wrong value of stored index." );
 
    return this->index;
