@@ -544,24 +544,36 @@ Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) c
    TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0 ), "Wrong entity coordinates" );
    TNL_ASSERT_LT( entity.getCoordinates(), this->getDimensions() + entity.getNormals(), "Wrong entity coordinates" );
 
-   IndexType idx{ 0 }, aux{ 1 };
-   Algorithms::staticFor< IndexType, 0, Dimension >(
-      [ & ]( Index i ) mutable
-      {
-         idx += aux * entity.getCoordinates()[ i ];
-         aux *= this->getDimensions()[ i ] + entity.getNormals()[ i ];
+   IndexType idx{ 0 };
+   if constexpr( Entity::getEntityDimension() == Dimension )
+   {
+      Algorithms::staticFor< IndexType, 1, Dimension >(
+         [&] ( Index i ) mutable {
+            idx += entity.getCoordinates()[ Dimension - i ];
+            idx *= this->getDimensions()[ Dimension - i - 1 ] + entity.getNormals()[ Dimension - i - 1 ];
       } );
-   if constexpr( Entity::getEntityDimension() == 0 || Entity::getEntityDimension() == getMeshDimension() ) {
-      TNL_ASSERT_EQ( idx, ( GridEntityGetter< Grid, Entity::getEntityDimension() >::getEntityIndex( *this, entity ) ), "" );
-      return idx;
+      return idx + entity.getCoordinates()[ 0 ];
    }
-   else {
-      const IndexType offset = EntitiesOrientations::template getTotalOrientationIndex< Entity::getEntityDimension() >(
-                                  entity.getOrientation().getIndex() )
-                             + Entity::getEntityDimension();
+   if constexpr( Entity::getEntityDimension() == 0  )
+   {
+      Algorithms::staticFor< IndexType, 1, Dimension >(
+         [&] ( Index i ) mutable {
+            idx += entity.getCoordinates()[ Dimension - i ];
+            idx *= this->getDimensions()[ Dimension - i - 1 ] + 1;
+      } );
+      return idx + entity.getCoordinates()[ 0 ];
+   }
+   else
+   {
+      Algorithms::staticFor< IndexType, 1, Dimension >(
+         [&] ( Index i ) mutable {
+            idx += entity.getCoordinates()[ Dimension - i ];
+            idx *= this->getDimensions()[ Dimension - i - 1 ] + entity.getNormals()[ Dimension - i - 1 ];
+      } );
+      idx += entity.getCoordinates()[ 0 ];
+      const IndexType offset = EntitiesOrientations::template getTotalOrientationIndex< Entity::getEntityDimension() >( entity.getOrientation().getIndex() ) + Entity::getEntityDimension();
       return idx + this->entitiesIndexesOffsets[ offset ];
    }
-   //return GridEntityGetter< Grid, Entity::getEntityDimension() >::getEntityIndex( *this, entity );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -613,14 +625,14 @@ auto
 Grid< Dimension, Real, Device, Index >::getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset ) const
    -> Index
 {
-   IndexType idx{ 0 }, aux{ 1 };
-   Algorithms::staticFor< IndexType, 0, Dimension >(
-      [ & ]( Index i ) mutable
-      {
-         idx += aux * offset[ i ];
-         aux *= this->getDimensions()[ i ] + entity.getNormals()[ i ];
-      } );
-   return entity.getIndex() + idx;
+   IndexType idx{ 0 };
+   Algorithms::staticFor< IndexType, 1, Dimension >(
+      [&] ( Index i ) mutable {
+         idx += offset[ Dimension - i ]; //entity.getCoordinates()[ Dimension - i ] + offset[ Dimension - i ];
+         idx *= this->getDimensions()[ Dimension - i - 1 ] + entity.getNormals()[ Dimension - i - 1 ];
+   } );
+   //return idx + entity.getCoordinates()[ 0 ] + offset[ 0 ];
+   return idx + offset[ 0 ] + entity.getIndex();
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -631,18 +643,31 @@ Grid< Dimension, Real, Device, Index >::getNeighbourEntityIndex( const Entity& e
                                                                  const CoordinatesType& offset,
                                                                  Index neighbourEntityOrientation ) const -> Index
 {
-   const IndexType totalOrientationIndex =
-      EntitiesOrientations::getTotalOrientationIndex( NeighbourEntityDimension, neighbourEntityOrientation );
-   const NormalsType& neighbourEntityNormals = this->getNormals( totalOrientationIndex );
-   IndexType idx{ 0 }, aux{ 1 };
-   Algorithms::staticFor< IndexType, 0, Dimension >(
-      [ & ]( Index i ) mutable
-      {
-         idx += aux * ( entity.getCoordinates()[ i ] + offset[ i ] );
-         aux *= this->getDimensions()[ i ] + neighbourEntityNormals[ i ];
+   IndexType idx{ 0 };
+   if constexpr( NeighbourEntityDimension == getMeshDimension() ) {
+      Algorithms::staticFor< IndexType, 1, Dimension >(
+         [&] ( Index i ) mutable {
+            idx += entity.getCoordinates()[ Dimension - i ] + offset[ Dimension - i ];
+            idx *= this->getDimensions()[ Dimension - i - 1 ];
       } );
-   if constexpr( NeighbourEntityDimension == 0 || NeighbourEntityDimension == getMeshDimension() )
-      return idx;
+      return idx + entity.getCoordinates()[ 0 ] + offset[ 0 ];
+   }
+   if constexpr( NeighbourEntityDimension == 0 ) {
+      Algorithms::staticFor< IndexType, 1, Dimension >(
+         [&] ( Index i ) mutable {
+            idx += entity.getCoordinates()[ Dimension - i ] + offset[ Dimension - i ];
+            idx *= this->getDimensions()[ Dimension - i - 1 ] + 1;
+      } );
+      return idx + entity.getCoordinates()[ 0 ] + offset[ 0 ];
+   }
+   const IndexType totalOrientationIndex = EntitiesOrientations::getTotalOrientationIndex( NeighbourEntityDimension, neighbourEntityOrientation );
+   const NormalsType& neighbourEntityNormals = this->getNormals( totalOrientationIndex );
+   Algorithms::staticFor< IndexType, 1, Dimension >(
+      [&] ( Index i ) mutable {
+         idx += entity.getCoordinates()[ Dimension - i ] + offset[ Dimension - i ];
+         idx *= this->getDimensions()[ Dimension - i - 1 ] + neighbourEntityNormals[ Dimension - i - 1 ];
+      } );
+   idx += entity.getCoordinates()[ 0 ] + offset[ 0 ];
    return this->entitiesIndexesOffsets[ totalOrientationIndex + NeighbourEntityDimension ] + idx;
 }
 
