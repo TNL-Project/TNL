@@ -162,6 +162,37 @@ public:
 #endif
    }
 
+   // verifying the results is useful to ensure that we compute the same thing
+   // even with the 3rdparty libraries, where the compute functions may be more
+   // complicated than just one function call
+   void
+   verify( const std::string& performer, Real result, Real expected, Real tolerance = 1e-6 )
+   {
+      if( TNL::abs( result - expected ) > tolerance ) {
+         std::cerr << "ERROR: result " << result << " computed by " << performer << " is not equal to the expected value "
+                   << expected << std::endl;
+      }
+   }
+
+   void
+   verify( const std::string& performer, const HostVector& result, Real expected, Real tolerance = 1e-6 )
+   {
+      for( Index i = 0; i < size; i++ ) {
+         if( TNL::abs( result[ i ] - expected ) > tolerance ) {
+            std::cerr << "ERROR: " << i << "-th value of the result vector " << result[ i ] << " computed by " << performer
+                      << " is not equal to the expected value " << expected << std::endl;
+         }
+      }
+   }
+
+   void
+   verify( const std::string& performer, const CudaVector& result, Real expected, Real tolerance = 1e-6 )
+   {
+      hostVector = result;
+      verify( performer, hostVector, expected, tolerance );
+      reset1();
+   }
+
    void
    max()
    {
@@ -172,6 +203,7 @@ public:
          resultHost = Benchmarks::CommonVectorOperations< Devices::Host >::getVectorMax( hostVector );
       };
       benchmark.time< Devices::Host >( reset1, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", resultHost, 1.0 );
 
       auto computeET = [ & ]()
       {
@@ -179,12 +211,14 @@ public:
          resultHost = max( hostView );
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", resultHost, 1.0 );
 
       auto computeSTL = [ & ]()
       {
          resultHost = *std::max_element( STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize() );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::max_element", computeSTL );
+      verify( "CPU std::max_element", resultHost, 1.0 );
 
 #ifdef __CUDACC__
       auto computeCudaLegacy = [ & ]()
@@ -192,6 +226,7 @@ public:
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorMax( deviceVector );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", resultDevice, 1.0 );
 
       auto computeCudaET = [ & ]()
       {
@@ -199,6 +234,7 @@ public:
          resultDevice = max( deviceView );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "GPU ET", resultDevice, 1.0 );
 #endif
    }
 
@@ -212,6 +248,7 @@ public:
          resultHost = Benchmarks::CommonVectorOperations< Devices::Host >::getVectorMin( hostVector );
       };
       benchmark.time< Devices::Host >( reset1, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", resultHost, 1.0 );
 
       auto computeET = [ & ]()
       {
@@ -226,6 +263,7 @@ public:
          resultHost = *std::min_element( STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize() );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::min_element", computeSTL );
+      verify( "CPU std::min_element", resultHost, 1.0 );
 
 #ifdef __CUDACC__
       auto computeCudaLegacy = [ & ]()
@@ -233,6 +271,7 @@ public:
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorMin( deviceVector );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", resultDevice, 1.0 );
 
       auto computeCudaET = [ & ]()
       {
@@ -240,6 +279,7 @@ public:
          resultDevice = min( deviceView );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "GPU ET", resultDevice, 1.0 );
 #endif
    }
 
@@ -253,6 +293,7 @@ public:
          resultHost = Benchmarks::CommonVectorOperations< Devices::Host >::getVectorAbsMax( hostVector );
       };
       benchmark.time< Devices::Host >( reset1, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", resultHost, 1.0 );
 
       auto computeET = [ & ]()
       {
@@ -260,6 +301,7 @@ public:
          resultHost = max( abs( hostView ) );
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", resultHost, 1.0 );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -268,6 +310,7 @@ public:
          resultHost = hostVector.getElement( index );
       };
       benchmark.time< Devices::Host >( reset1, "CPU BLAS", computeBLAS );
+      verify( "CPU BLAS", resultHost, 1.0 );
 #endif
 
       auto computeSTL = [ & ]()
@@ -280,6 +323,7 @@ public:
                                          } );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::max_element", computeSTL );
+      verify( "CPU std::max_element", resultHost, 1.0 );
 
 #ifdef __CUDACC__
       auto computeCudaLegacy = [ & ]()
@@ -287,6 +331,7 @@ public:
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorAbsMax( deviceVector );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", resultDevice, 1.0 );
 
       auto computeCudaET = [ & ]()
       {
@@ -294,6 +339,7 @@ public:
          resultDevice = max( abs( deviceView ) );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "GPU ET", resultDevice, 1.0 );
 
       auto computeCudaCUBLAS = [ & ]()
       {
@@ -302,6 +348,7 @@ public:
          resultDevice = deviceVector.getElement( index );
       };
       benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
+      verify( "cuBLAS", resultDevice, 1.0 );
 #endif
    }
 
@@ -315,6 +362,7 @@ public:
          resultHost = Benchmarks::CommonVectorOperations< Devices::Host >::getVectorAbsMin( hostVector );
       };
       benchmark.time< Devices::Host >( reset1, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", resultHost, 1.0 );
 
       auto computeET = [ & ]()
       {
@@ -322,6 +370,7 @@ public:
          resultHost = min( abs( hostView ) );
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", resultHost, 1.0 );
 
 #if 0
    #ifdef HAVE_BLAS
@@ -331,6 +380,7 @@ public:
          resultHost = hostVector.getElement( index );
       };
       benchmark.time< Devices::Host >( reset1, "CPU BLAS", computeBLAS );
+      verify( "CPU BLAS", resultHost, 1.0 );
    #endif
 #endif
 
@@ -344,6 +394,7 @@ public:
                                          } );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::min_element", computeSTL );
+      verify( "CPU std::min_element", resultHost, 1.0 );
 
 #ifdef __CUDACC__
       auto computeCudaLegacy = [ & ]()
@@ -351,6 +402,7 @@ public:
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorAbsMin( deviceVector );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", resultDevice, 1.0 );
 
       auto computeCudaET = [ & ]()
       {
@@ -358,6 +410,7 @@ public:
          resultDevice = min( abs( deviceView ) );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "GPU ET", resultDevice, 1.0 );
 
       auto computeCudaCUBLAS = [ & ]()
       {
@@ -366,6 +419,7 @@ public:
          resultDevice = deviceVector.getElement( index );
       };
       benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
+      verify( "cuBLAS", resultDevice, 1.0 );
 #endif
    }
 
@@ -379,6 +433,7 @@ public:
          resultHost = Benchmarks::CommonVectorOperations< Devices::Host >::getVectorSum( hostVector );
       };
       benchmark.time< Devices::Host >( reset1, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", resultHost, size );
 
       auto computeET = [ & ]()
       {
@@ -386,12 +441,14 @@ public:
          resultHost = sum( hostView );
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", resultHost, size );
 
       auto computeSTL = [ & ]()
       {
          resultHost = std::reduce( STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize() );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::reduce", computeSTL );
+      verify( "CPU std::reduce", resultHost, size );
 
 #ifdef __CUDACC__
       auto computeCudaLegacy = [ & ]()
@@ -399,6 +456,7 @@ public:
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorSum( deviceVector );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", resultDevice, size );
 
       auto copmuteCudaET = [ & ]()
       {
@@ -406,6 +464,7 @@ public:
          resultDevice = sum( deviceView );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", copmuteCudaET );
+      verify( "GPU ET", resultDevice, size );
 #endif
    }
 
@@ -419,12 +478,14 @@ public:
          resultHost = Benchmarks::CommonVectorOperations< Devices::Host >::getVectorLpNorm( hostVector, 1.0 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", resultHost, size );
 
       auto computeET = [ & ]()
       {
          resultHost = lpNorm( hostView, 1.0 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", resultHost, size );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -432,6 +493,7 @@ public:
          resultHost = blasGasum( size, hostVector.getData(), 1 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU BLAS", computeBLAS );
+      verify( "CPU BLAS", resultHost, size );
 #endif
 
       auto computeSTL = [ & ]()
@@ -446,6 +508,7 @@ public:
                                              } );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
+      verify( "CPU std::transform_reduce", resultHost, size );
 
 #ifdef __CUDACC__
       auto computeCudaLegacy = [ & ]()
@@ -453,18 +516,21 @@ public:
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 1.0 );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", resultDevice, size );
 
       auto computeCudaET = [ & ]()
       {
          resultDevice = lpNorm( deviceView, 1.0 );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "GPU ET", resultDevice, size );
 
       auto computeCudaCUBLAS = [ & ]()
       {
          cublasGasum( cublasHandle, size, deviceVector.getData(), 1, &resultDevice );
       };
       benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
+      verify( "cuBLAS", resultDevice, size );
 #endif
    }
 
@@ -478,12 +544,14 @@ public:
          resultHost = Benchmarks::CommonVectorOperations< Devices::Host >::getVectorLpNorm( hostVector, 2.0 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", resultHost, std::sqrt( size ) );
 
       auto computeET = [ & ]()
       {
          resultHost = lpNorm( hostView, 2.0 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", resultHost, std::sqrt( size ) );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -491,6 +559,7 @@ public:
          resultHost = blasGnrm2( size, hostVector.getData(), 1 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU BLAS", computeBLAS );
+      verify( "CPU BLAS", resultHost, std::sqrt( size ) );
 #endif
 
       auto computeSTL = [ & ]()
@@ -506,6 +575,7 @@ public:
          resultHost = std::sqrt( sum );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
+      verify( "CPU std::transform_reduce", resultHost, std::sqrt( size ) );
 
 #ifdef __CUDACC__
       auto computeCudaLegacy = [ & ]()
@@ -513,18 +583,21 @@ public:
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 2.0 );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", resultDevice, std::sqrt( size ) );
 
       auto computeCudaET = [ & ]()
       {
          resultDevice = lpNorm( deviceView, 2.0 );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "GPU ET", resultDevice, std::sqrt( size ) );
 
       auto computeCudaCUBLAS = [ & ]()
       {
          cublasGnrm2( cublasHandle, size, deviceVector.getData(), 1, &resultDevice );
       };
       benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
+      verify( "cuBLAS", resultDevice, std::sqrt( size ) );
 #endif
    }
 
@@ -538,12 +611,14 @@ public:
          resultHost = Benchmarks::CommonVectorOperations< Devices::Host >::getVectorLpNorm( hostVector, 3.0 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", resultHost, std::cbrt( size ) );
 
       auto computeET = [ & ]()
       {
          resultHost = lpNorm( hostView, 3.0 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", resultHost, std::cbrt( size ) );
 
       auto computeSTL = [ & ]()
       {
@@ -558,6 +633,7 @@ public:
          resultHost = std::cbrt( sum );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
+      verify( "CPU std::transform_reduce", resultHost, std::cbrt( size ) );
 
 #ifdef __CUDACC__
       auto computeCudaLegacy = [ & ]()
@@ -565,12 +641,14 @@ public:
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 3.0 );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", resultDevice, std::cbrt( size ) );
 
       auto computeCudaET = [ & ]()
       {
          resultDevice = lpNorm( deviceView, 3.0 );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "GPU ET", resultDevice, std::cbrt( size ) );
 #endif
    }
 
@@ -584,12 +662,14 @@ public:
          resultHost = Benchmarks::CommonVectorOperations< Devices::Host >::getScalarProduct( hostVector, hostVector2 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", resultHost, size );
 
       auto computeET = [ & ]()
       {
          resultHost = ( hostVector, hostVector2 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", resultHost, size );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -597,6 +677,7 @@ public:
          resultHost = blasGdot( size, hostVector.getData(), 1, hostVector2.getData(), 1 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU BLAS", computeBLAS );
+      verify( "CPU BLAS", resultHost, size );
 #endif
 
       auto computeSTL = [ & ]()
@@ -609,6 +690,7 @@ public:
                                              std::multiplies<>{} );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
+      verify( "CPU std::transform_reduce", resultHost, size );
 
 #ifdef __CUDACC__
       auto computeCudaLegacy = [ & ]()
@@ -616,18 +698,21 @@ public:
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getScalarProduct( deviceVector, deviceVector2 );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", resultDevice, size );
 
       auto computeCudaET = [ & ]()
       {
          resultDevice = ( deviceView, deviceView2 );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "GPU ET", resultDevice, size );
 
       auto computeCudaCUBLAS = [ & ]()
       {
          cublasGdot( cublasHandle, size, deviceVector.getData(), 1, deviceVector2.getData(), 1, &resultDevice );
       };
       benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
+      verify( "cuBLAS", resultDevice, size );
 #endif
    }
 
@@ -641,6 +726,7 @@ public:
          hostVector *= 0.5;
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", hostVector, 0.5 );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -648,6 +734,7 @@ public:
          blasGscal( hostVector.getSize(), (Real) 0.5, hostVector.getData(), 1 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU BLAS", computeBLAS );
+      verify( "CPU BLAS", hostVector, 0.5 );
 #endif
 
 #ifdef __CUDACC__
@@ -656,6 +743,7 @@ public:
          deviceVector *= 0.5;
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "GPU ET", deviceVector, 0.5 );
 
       auto computeCudaCUBLAS = [ & ]()
       {
@@ -663,6 +751,7 @@ public:
          cublasGscal( cublasHandle, size, &alpha, deviceVector.getData(), 1 );
       };
       benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
+      verify( "cuBLAS", deviceVector, 0.5 );
 #endif
    }
 
@@ -676,12 +765,14 @@ public:
          Benchmarks::VectorOperations< Devices::Host >::addVector( hostVector, hostVector2, (Real) 1.0, (Real) 1.0 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", hostVector, 2.0 );
 
       auto computeET = [ & ]()
       {
          hostView += hostView2;
       };
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
+      verify( "CPU ET", hostVector, 2.0 );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -690,6 +781,7 @@ public:
          blasGaxpy( size, alpha, hostVector2.getData(), 1, hostVector.getData(), 1 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU BLAS", computeBLAS );
+      verify( "CPU BLAS", hostVector, 2.0 );
 #endif
 
 #ifdef __CUDACC__
@@ -698,12 +790,14 @@ public:
          Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector2, (Real) 1.0, (Real) 1.0 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", deviceVector, 2.0 );
 
       auto computeCudaET = [ & ]()
       {
          deviceView += deviceView2;
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
+      verify( "GPU ET", deviceVector, 2.0 );
 
       auto computeCudaCUBLAS = [ & ]()
       {
@@ -711,6 +805,7 @@ public:
          cublasGaxpy( cublasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "cuBLAS", computeCudaCUBLAS );
+      verify( "cuBLAS", deviceVector, 2.0 );
 #endif
    }
 
@@ -725,12 +820,14 @@ public:
          Benchmarks::VectorOperations< Devices::Host >::addVector( hostVector, hostVector3, (Real) 1.0, (Real) 1.0 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", hostVector, 3.0 );
 
       auto computeET = [ & ]()
       {
          hostView += hostView2 + hostView3;
       };
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
+      verify( "CPU ET", hostVector, 3.0 );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -740,6 +837,7 @@ public:
          blasGaxpy( size, alpha, hostVector3.getData(), 1, hostVector.getData(), 1 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU BLAS", computeBLAS );
+      verify( "CPU BLAS", hostVector, 3.0 );
 #endif
 
 #ifdef __CUDACC__
@@ -749,12 +847,14 @@ public:
          Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector3, (Real) 1.0, (Real) 1.0 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", deviceVector, 3.0 );
 
       auto computeCudaET = [ & ]()
       {
          deviceView += deviceView2 + deviceView3;
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
+      verify( "GPU ET", deviceVector, 3.0 );
 
       auto computeCudaCUBLAS = [ & ]()
       {
@@ -763,6 +863,7 @@ public:
          cublasGaxpy( cublasHandle, size, &alpha, deviceVector3.getData(), 1, deviceVector.getData(), 1 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "cuBLAS", computeCudaCUBLAS );
+      verify( "cuBLAS", deviceVector, 3.0 );
 #endif
    }
 
@@ -778,12 +879,14 @@ public:
          Benchmarks::VectorOperations< Devices::Host >::addVector( hostVector, hostVector4, (Real) 1.0, (Real) 1.0 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU legacy", computeLegacy );
+      verify( "CPU legacy", hostVector, 4.0 );
 
       auto computeET = [ & ]()
       {
          hostView += hostView2 + hostView3 + hostView4;
       };
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
+      verify( "CPU ET", hostVector, 4.0 );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -794,6 +897,7 @@ public:
          blasGaxpy( size, alpha, hostVector4.getData(), 1, hostVector.getData(), 1 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU BLAS", computeBLAS );
+      verify( "CPU BLAS", hostVector, 4.0 );
 #endif
 
 #ifdef __CUDACC__
@@ -804,12 +908,14 @@ public:
          Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector4, (Real) 1.0, (Real) 1.0 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU legacy", computeCudaLegacy );
+      verify( "GPU legacy", deviceVector, 4.0 );
 
       auto computeCudaET = [ & ]()
       {
          deviceView += deviceView2 + deviceView3 + deviceView4;
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
+      verify( "GPU ET", deviceVector, 4.0 );
 
       auto computeCudaCUBLAS = [ & ]()
       {
@@ -819,6 +925,7 @@ public:
          cublasGaxpy( cublasHandle, size, &alpha, deviceVector4.getData(), 1, deviceVector.getData(), 1 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "cuBLAS", computeCudaCUBLAS );
+      verify( "cuBLAS", deviceVector, 4.0 );
 #endif
    }
 
@@ -832,6 +939,8 @@ public:
          Algorithms::inplaceInclusiveScan( hostVector );
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", hostVector[ 0 ], 1 );
+      verify( "CPU ET", hostVector[ size - 1 ], size );
 
       auto computeSequential = [ & ]()
       {
@@ -840,18 +949,24 @@ public:
          Algorithms::inplaceInclusiveScan( view );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU sequential", computeSequential );
+      verify( "CPU sequential", hostVector[ 0 ], 1 );
+      verify( "CPU sequential", hostVector[ size - 1 ], size );
 
       auto computeSTL_partial_sum = [ & ]()
       {
          std::partial_sum( hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::partial_sum", computeSTL_partial_sum );
+      verify( "CPU std::partial_sum", hostVector[ 0 ], 1 );
+      verify( "CPU std::partial_sum", hostVector[ size - 1 ], size );
 
       auto computeSTL = [ & ]()
       {
          std::inclusive_scan( STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::inclusive_scan", computeSTL );
+      verify( "CPU std::inclusive_scan", hostVector[ 0 ], 1 );
+      verify( "CPU std::inclusive_scan", hostVector[ size - 1 ], size );
 
 #ifdef __CUDACC__
       auto computeCudaET = [ & ]()
@@ -859,6 +974,8 @@ public:
          Algorithms::inplaceInclusiveScan( deviceVector );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "GPU ET", deviceVector.getElement( 0 ), 1 );
+      verify( "GPU ET", deviceVector.getElement( size - 1 ), size );
 #endif
    }
 
@@ -872,12 +989,16 @@ public:
          Algorithms::inclusiveScan( hostVector, hostVector2 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
+      verify( "CPU ET", hostVector2[ 0 ], 1 );
+      verify( "CPU ET", hostVector2[ size - 1 ], size );
 
       auto computeSTL_partial_sum = [ & ]()
       {
          std::partial_sum( hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
       };
       benchmark.time< Devices::Sequential >( resetAll, "CPU std::partial_sum", computeSTL_partial_sum );
+      verify( "CPU ET", hostVector2[ 0 ], 1 );
+      verify( "CPU ET", hostVector2[ size - 1 ], size );
 
       auto computeSTL = [ & ]()
       {
@@ -885,6 +1006,8 @@ public:
             STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
       };
       benchmark.time< Devices::Sequential >( resetAll, "CPU std::inclusive_scan", computeSTL );
+      verify( "CPU ET", hostVector2[ 0 ], 1 );
+      verify( "CPU ET", hostVector2[ size - 1 ], size );
 
 #ifdef __CUDACC__
       auto computeCudaET = [ & ]()
@@ -892,6 +1015,8 @@ public:
          Algorithms::inclusiveScan( deviceVector, deviceVector2 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
+      verify( "GPU ET", deviceVector2.getElement( 0 ), 1 );
+      verify( "GPU ET", deviceVector2.getElement( size - 1 ), size );
 #endif
    }
 
@@ -905,6 +1030,8 @@ public:
          Algorithms::inclusiveScan( hostVector + hostVector2, hostVector3 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
+      verify( "CPU ET", hostVector3[ 0 ], 2 );
+      verify( "CPU ET", hostVector3[ size - 1 ], 2 * size );
 
 #ifdef __CUDACC__
       auto computeCudaET = [ & ]()
@@ -912,6 +1039,8 @@ public:
          Algorithms::inclusiveScan( deviceVector + deviceVector2, deviceVector3 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
+      verify( "GPU ET", deviceVector3.getElement( 0 ), 2 );
+      verify( "GPU ET", deviceVector3.getElement( size - 1 ), 2 * size );
 #endif
    }
 
@@ -924,6 +1053,8 @@ public:
       };
       benchmark.setOperation( "inclusive scan (3 vectors)", 4 * datasetSize );
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
+      verify( "CPU ET", hostVector4[ 0 ], 3 );
+      verify( "CPU ET", hostVector4[ size - 1 ], 3 * size );
 
 #ifdef __CUDACC__
       auto computeCudaET = [ & ]()
@@ -931,6 +1062,8 @@ public:
          Algorithms::inclusiveScan( deviceVector + deviceVector2 + deviceVector3, deviceVector4 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
+      verify( "GPU ET", deviceVector4.getElement( 0 ), 3 );
+      verify( "GPU ET", deviceVector4.getElement( size - 1 ), 3 * size );
 #endif
    }
 
@@ -944,6 +1077,8 @@ public:
          Algorithms::inplaceExclusiveScan( hostVector );
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
+      verify( "CPU ET", hostVector[ 0 ], 0 );
+      verify( "CPU ET", hostVector[ size - 1 ], size - 1 );
 
       auto computeSequential = [ & ]()
       {
@@ -952,6 +1087,8 @@ public:
          Algorithms::inplaceExclusiveScan( view );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU sequential", computeSequential );
+      verify( "CPU sequential", hostVector[ 0 ], 0 );
+      verify( "CPU sequential", hostVector[ size - 1 ], size - 1 );
 
       auto computeSTL = [ & ]()
       {
@@ -959,6 +1096,9 @@ public:
             STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData(), 0 );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::exclusive_scan", computeSTL );
+      verify( "CPU std::exclusive_scan", hostVector[ 0 ], 0 );
+      // NOTE: this fails due to https://stackoverflow.com/q/74932677
+      verify( "CPU std::exclusive_scan", hostVector[ size - 1 ], size - 1 );
 
 #ifdef __CUDACC__
       auto computeCudaET = [ & ]()
@@ -966,6 +1106,8 @@ public:
          Algorithms::inplaceExclusiveScan( deviceVector );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
+      verify( "CPU ET", deviceVector.getElement( 0 ), 0 );
+      verify( "GPU ET", deviceVector.getElement( size - 1 ), size - 1 );
 #endif
    }
 
@@ -979,6 +1121,8 @@ public:
          Algorithms::exclusiveScan( hostVector, hostVector2 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
+      verify( "CPU ET", hostVector2[ 0 ], 0 );
+      verify( "CPU ET", hostVector2[ size - 1 ], size - 1 );
 
       auto computeSTL = [ & ]()
       {
@@ -986,6 +1130,8 @@ public:
             STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData(), 0 );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::exclusive_scan", computeSTL );
+      verify( "CPU std::exclusive_scan", hostVector2[ 0 ], 0 );
+      verify( "CPU std::exclusive_scan", hostVector2[ size - 1 ], size - 1 );
 
 #ifdef __CUDACC__
       auto computeCudaET = [ & ]()
@@ -993,6 +1139,8 @@ public:
          Algorithms::exclusiveScan( deviceVector, deviceVector2 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
+      verify( "CPU ET", deviceVector2.getElement( 0 ), 0 );
+      verify( "GPU ET", deviceVector2.getElement( size - 1 ), size - 1 );
 #endif
    }
 
@@ -1006,6 +1154,8 @@ public:
          Algorithms::exclusiveScan( hostVector + hostVector2, hostVector3 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
+      verify( "CPU ET", hostVector3[ 0 ], 0 );
+      verify( "CPU ET", hostVector3[ size - 1 ], 2 * ( size - 1 ) );
 
 #ifdef __CUDACC__
       auto computeCudaET = [ & ]()
@@ -1013,6 +1163,8 @@ public:
          Algorithms::exclusiveScan( deviceVector + deviceVector2, deviceVector3 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
+      verify( "CPU ET", deviceVector3.getElement( 0 ), 0 );
+      verify( "GPU ET", deviceVector3.getElement( size - 1 ), 2 * ( size - 1 ) );
 #endif
    }
 
@@ -1026,6 +1178,8 @@ public:
          Algorithms::exclusiveScan( hostVector + hostVector2 + hostVector3, hostVector4 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
+      verify( "CPU ET", hostVector4[ 0 ], 0 );
+      verify( "CPU ET", hostVector4[ size - 1 ], 3 * ( size - 1 ) );
 
 #ifdef __CUDACC__
       auto computeCudaET = [ & ]()
@@ -1033,6 +1187,8 @@ public:
          Algorithms::exclusiveScan( deviceVector + deviceVector2 + deviceVector3, deviceVector4 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
+      verify( "CPU ET", deviceVector4.getElement( 0 ), 0 );
+      verify( "GPU ET", deviceVector4.getElement( size - 1 ), 3 * ( size - 1 ) );
 #endif
    }
 };
