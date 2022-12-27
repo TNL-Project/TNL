@@ -3,7 +3,9 @@
 #pragma once
 
 #include <cstdlib>  // srand48
-#include <numeric>  // std::partial_sum
+#include <algorithm>  // std::max_element, std::min_element, std::transform, etc.
+#include <numeric>  // std::reduce, std::transform_reduce, std::partial_sum, std::inclusive_scan, std::exclusive_scan
+#include <execution>  // std::execution policies
 
 #include <TNL/Benchmarks/Benchmarks.h>
 
@@ -127,6 +129,12 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.setOperation( "max", datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU legacy", maxHost );
    benchmark.time< Devices::Host >( reset1, "CPU ET", maxHostET );
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto maxSTL = [&]() {
+      resultHost = *std::max_element( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize() );
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::max_element", maxSTL );
+#endif
 #ifdef __CUDACC__
    auto maxCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorMax( deviceVector );
@@ -149,6 +157,12 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.setOperation( "min", datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU legacy", minHost );
    benchmark.time< Devices::Host >( reset1, "CPU ET", minHostET );
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto minSTL = [&]() {
+      resultHost = *std::min_element( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize() );
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::max_element", minSTL );
+#endif
 #ifdef __CUDACC__
    auto minCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorMin( deviceVector );
@@ -179,6 +193,14 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.time< Devices::Host >( reset1, "CPU ET", absMaxHostET );
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( reset1, "CPU BLAS", absMaxBlas );
+#endif
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto absMaxSTL = [&]() {
+      resultHost = *std::max_element( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize(),
+                                     [](auto a, auto b) { return std::abs(a) < std::abs(b); }
+                                    );
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::max_element", absMaxSTL );
 #endif
 #ifdef __CUDACC__
    auto absMaxCuda = [&]() {
@@ -217,6 +239,14 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.time< Devices::Host >( reset1, "CPU legacy", absMinHost );
    benchmark.time< Devices::Host >( reset1, "CPU ET", absMinHostET );
    //benchmark.time< Devices::Host >( reset1, "CPU BLAS", absMinBlas );
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto absMinSTL = [&]() {
+      resultHost = *std::min_element( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize(),
+                                     [](auto a, auto b) { return std::abs(a) < std::abs(b); }
+                                    );
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::min_element", absMinSTL );
+#endif
 #ifdef __CUDACC__
    auto absMinCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorAbsMin( deviceVector );
@@ -247,6 +277,12 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.setOperation( "sum", datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU legacy", sumHost );
    benchmark.time< Devices::Host >( reset1, "CPU ET", sumHostET );
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto sumSTL = [&]() {
+      resultHost = std::reduce( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize() );
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::reduce", sumSTL );
+#endif
 #ifdef __CUDACC__
    auto sumCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorSum( deviceVector );
@@ -276,6 +312,14 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.time< Devices::Host >( reset1, "CPU ET", l1normHostET );
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( reset1, "CPU BLAS", l1normBlas );
+#endif
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto l1normSTL = [&]() {
+      resultHost = std::transform_reduce( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize(),
+                                          0, std::plus<>{}, [](auto v) { return std::abs(v); }
+                                        );
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", l1normSTL );
 #endif
 #ifdef __CUDACC__
    auto l1normCuda = [&]() {
@@ -313,6 +357,15 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( reset1, "CPU BLAS", l2normBlas );
 #endif
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto l2normSTL = [&]() {
+      const auto sum = std::transform_reduce( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize(),
+                                              0, std::plus<>{}, [](auto v) { return v * v; }
+                                             );
+      resultHost = std::sqrt(sum);
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", l2normSTL );
+#endif
 #ifdef __CUDACC__
    auto l2normCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 2.0 );
@@ -341,6 +394,15 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.setOperation( "l3 norm", datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU legacy", l3normHost );
    benchmark.time< Devices::Host >( reset1, "CPU ET", l3normHostET );
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto l3normSTL = [&]() {
+      const auto sum = std::transform_reduce( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize(),
+                                              0, std::plus<>{}, [](auto v) { return v * v * v; }
+                                             );
+      resultHost = std::cbrt(sum);
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", l3normSTL );
+#endif
 #ifdef __CUDACC__
    auto l3normCuda = [&]() {
       resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 3.0 );
@@ -370,6 +432,14 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.time< Devices::Host >( reset1, "CPU ET", scalarProductHostET );
 #ifdef HAVE_BLAS
    benchmark.time< Devices::Host >( reset1, "CPU BLAS", scalarProductBlas );
+#endif
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto scalarProductSTL = [&]() {
+      resultHost = std::transform_reduce( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData(),
+                                          0, std::plus<>{}, std::multiplies<>{}
+                                         );
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", scalarProductSTL );
 #endif
 #ifdef __CUDACC__
    auto scalarProductCuda = [&]() {
@@ -578,15 +648,19 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
       view.bind( hostVector.getData(), hostVector.getSize() );
       Algorithms::inplaceInclusiveScan( view );
    };
-   auto inplaceInclusiveScanSTL = [&]() {
+   auto inplaceInclusiveScanStdPartialSum = [&]() {
       std::partial_sum( hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
    };
    benchmark.setOperation( "inclusive scan (inplace)", 2 * datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU ET", inplaceInclusiveScanHost );
    benchmark.time< Devices::Sequential >( reset1, "CPU sequential", inplaceInclusiveScanSequential );
-   benchmark.time< Devices::Sequential >( reset1, "CPU std::partial_sum", inplaceInclusiveScanSTL );
-   // TODO: there are also `std::inclusive_scan` and `std::exclusive_scan` since C++17 which are parallel,
-   // add them to the benchmark when we use C++17
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::partial_sum", inplaceInclusiveScanStdPartialSum );
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto inplaceInclusiveScanStdInclusiveScan = [&]() {
+      std::inclusive_scan( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::inclusive_scan", inplaceInclusiveScanStdInclusiveScan );
+#endif
 #ifdef __CUDACC__
    auto inplaceInclusiveScanCuda = [&]() {
       Algorithms::inplaceInclusiveScan( deviceVector );
@@ -601,6 +675,16 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    };
    benchmark.setOperation( "inclusive scan (1 vector)", 2 * datasetSize );
    benchmark.time< Devices::Host >( resetAll, "CPU ET", inclusiveScanOneVectorHost );
+   auto inclusiveScanOneVectorStdPartialSum = [&]() {
+      std::partial_sum( hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
+   };
+   benchmark.time< Devices::Sequential >( resetAll, "CPU std::partial_sum", inclusiveScanOneVectorStdPartialSum );
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto inclusiveScanOneVectorStdInclusiveScan = [&]() {
+      std::inclusive_scan( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
+   };
+   benchmark.time< Devices::Sequential >( resetAll, "CPU std::inclusive_scan", inclusiveScanOneVectorStdInclusiveScan );
+#endif
 #ifdef __CUDACC__
    auto inclusiveScanOneVectorCuda = [&]() {
       Algorithms::inclusiveScan( deviceVector, deviceVector2 );
@@ -649,6 +733,12 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    benchmark.setOperation( "exclusive scan (inplace)", 2 * datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU ET", inplaceExclusiveScanHost );
    benchmark.time< Devices::Sequential >( reset1, "CPU sequential", inplaceExclusiveScanSequential );
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto inplaceExclusiveScanStdExclusiveScan = [&]() {
+      std::exclusive_scan( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData(), 0 );
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::exclusive_scan", inplaceExclusiveScanStdExclusiveScan );
+#endif
 #ifdef __CUDACC__
    auto inplaceExclusiveScanCuda = [&]() {
       Algorithms::inplaceExclusiveScan( deviceVector );
@@ -663,6 +753,12 @@ benchmarkVectorOperations( Benchmark<> & benchmark,
    };
    benchmark.setOperation( "exclusive scan (1 vector)", 2 * datasetSize );
    benchmark.time< Devices::Host >( resetAll, "CPU ET", exclusiveScanOneVectorHost );
+#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   auto exclusiveScanOneVectorStdExclusiveScan = [&]() {
+      std::exclusive_scan( std::execution::par_unseq, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData(), 0 );
+   };
+   benchmark.time< Devices::Sequential >( reset1, "CPU std::exclusive_scan", exclusiveScanOneVectorStdExclusiveScan );
+#endif
 #ifdef __CUDACC__
    auto exclusiveScanOneVectorCuda = [&]() {
       Algorithms::exclusiveScan( deviceVector, deviceVector2 );

@@ -57,3 +57,11 @@ else()
    message( WARNING "Could not find BLAS headers (cblas.h) - benchmarks with BLAS will not be built.")
 endif()
 
+# find TBB (for C++17 parallel algorithms) https://stackoverflow.com/a/55989883
+find_package( TBB )
+if( TBB_FOUND )
+   foreach( target IN ITEMS ${BENCHMARKS} )
+      target_compile_definitions( ${target} PUBLIC -DHAVE_TBB )
+      target_link_libraries( ${target} PUBLIC TBB::tbb )
+   endforeach()
+endif()
