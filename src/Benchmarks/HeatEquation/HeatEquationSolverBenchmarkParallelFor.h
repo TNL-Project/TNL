@@ -29,7 +29,7 @@ struct HeatEquationSolverBenchmarkParallelFor : public HeatEquationSolverBenchma
          {
             auto index = i.y() * xSize + i.x();
             auto element = uxView[ index ];
-            auto center = 2 * element;
+            auto center = (Real) 2.0 * element;
 
             auxView[ index ] = element
                              + ( ( uxView[ index - 1 ] - center + uxView[ index + 1 ] ) * hx_inv

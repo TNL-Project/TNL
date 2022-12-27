@@ -35,16 +35,23 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
          auto width = grid.getDimensions().x();
-         auto next = [=] __cuda_callable__(const typename Grid2D::template EntityType<2>&entity) mutable {
+         auto next = [=] __cuda_callable__( const typename Grid2D::template EntityType<2>&entity ) mutable {
             const Index centerIdx = entity.getIndex();
-            const Real& center = uxView[ centerIdx ];
+            const Real& center = ( Real ) 2.0 * uxView[ centerIdx ];
+
 
             auxView[ centerIdx ] = center + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1,  0 ) ) ] -
-                                                2.0 * center +
+                                                center +
                                                 uxView[ entity.getNeighbourEntityIndex( Coordinates(  1,  0 ) ) ] ) * hx_inv +
                                               ( uxView[ entity.getNeighbourEntityIndex( Coordinates(  0, -1 ) ) ] -
+                                                center +
+                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  0,  1 ) ) ] ) * hy_inv ) * timestep;
+            /*auxView[ centerIdx ] = center + ( ( uxView[ centerIdx - 1 ] -
                                                 2.0 * center +
-                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  0, -1 ) ) ] ) * hy_inv ) * timestep;
+                                                uxView[ centerIdx + 1 ] ) * hx_inv +
+                                                ( uxView[ centerIdx - width ] -
+                                                2.0 * center +
+                                                uxView[ centerIdx + width ] ) * hy_inv ) * timestep;*/
          };
 
          grid.template forInteriorEntities< 2 >( next );
