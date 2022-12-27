@@ -45,7 +45,7 @@ public:
    const NormalsType& getNormals() const { return this->normals; }
 
    __cuda_callable__
-   void setIndex( IndexType& idx ) { this->orientationIdx = idx; }
+   void setIndex( IndexType idx ) { this->orientationIdx = idx; }
 
    __cuda_callable__
    IndexType getIndex() const { return this->orientationIdx; }

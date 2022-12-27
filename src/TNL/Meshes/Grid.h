@@ -132,7 +132,7 @@ public:
    /**
     * \brief Grid constructor with no parameters.
     */
-   Grid();
+   Grid() = default;
 
    /**
     * \brief Grid constructor with grid dimensions parameters.
@@ -204,18 +204,17 @@ public:
    Index
    getEntitiesCount( IndexType dimension ) const;
 
-   /**
+    /**
     * \brief Returns number of entities of specific dimension given as a template parameter.
     *
     * \tparam EntityDimension is dimension of grid entities to be counted.
     *
     * \return Number of grid entities with given dimension.
     */
-   template< int EntityDimension,
-             std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true >
+   template< int EntityDimension >
    __cuda_callable__
    Index
-   getEntitiesCount() const noexcept;
+   getEntitiesCount() const noexcept; // TODO: remove this if it not necessary for compatibility with Mesh
 
    /**
     * \brief Returns number of entities of specific entity type as a template parameter.
@@ -224,25 +223,10 @@ public:
     *
     * \return Number of grid entities with given dimension.
     */
-   template< typename Entity,
-             std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension ), bool > = true >
+   template< typename Entity >
    __cuda_callable__
    Index
-   getEntitiesCount() const noexcept;
-
-   /**
-    * \brief Returns count of entities of specific dimensions.
-    *
-    * \tparam DimensionsIndex variadic template parameter for a list of dimensions.
-    * \param[in] indices is a list of dimensions of grid entities to be counted.
-    * \return count of entities of specific dimensions.
-    */
-   /*template< typename... DimensionIndex,
-             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool > = true,
-             std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > = true >
-   __cuda_callable__
-   Containers::StaticVector< sizeof...( DimensionIndex ), Index >
-   getEntitiesCounts( DimensionIndex... indices ) const;*/
+   getEntitiesCount() const; // TODO: remove this if it not necessary for compatibility with Mesh
 
    /**
     * \brief Returns count of entities for all dimensions.
@@ -810,8 +794,8 @@ protected:
    void
    setEntitiesIndexesOffsets();
 
-   void
-   fillEntitiesCount();
+   //void
+   //fillEntitiesCount();
 
    void
    fillSpaceSteps();
@@ -849,44 +833,26 @@ protected:
    /**
     * \brief Grid dimensions.
     */
-   CoordinatesType dimensions;
+   CoordinatesType dimensions = 0;
 
-   PointType origin, proportions, spaceSteps;
+   PointType origin = 0, proportions = 0, spaceSteps = 0;
 
    /**
     * \brief Region of subdomain if this grid represents one sudbdomain of distributed grid.
     */
-   CoordinatesType localBegin, localEnd;
+   CoordinatesType localBegin = 0, localEnd = 0;
 
-   CoordinatesType interiorBegin, interiorEnd;  // TODO: Why we needt it?
+   CoordinatesType interiorBegin = 0 , interiorEnd = 0;  // TODO: Why we need it?
 
-   /**
-    * \brief A list of elements count along specific directions.
-    *
-    * First, elements will contain the count of 0 dimension elements.
-    * Second, elements will contain the count of 1-dimension elements and so on.
-    *
-    * For example, let's have a 3-d grid, then the map indexing will
-    * be the next: 0 - 0 - count of vertices 1, 2, 3 - count of edges in x, y,
-    * z plane 4, 5, 6 - count of faces in xy, yz, zy plane 7 - count of cells
-    * in z y x plane
-    *
-    * \warning The ordering of is lexigraphical.
-    */
-   Containers::StaticVector< 1 << Dimension, Index > entitiesCountAlongNormals; // TODO: remove
+   EntitiesCounts entitiesCounts = 0;
 
-   Containers::StaticVector< 1 << Dimension, Index > entitiesAlongNormalsIndexOffsets; // TODO: remove
-   /**
-    * \brief A cumulative map over dimensions.
-    */
-   Containers::StaticVector< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals; // TODO: remove
+   Containers::StaticVector< ( 1 << Dimension ) + Dimension + 1, Index > entitiesIndexesOffsets = 0;
 
-   __cuda_callable__
-   inline static EntitiesOrientations entitiesOrientations;
+   SpaceProductsContainer spaceStepsProducts = 0; // TODO: remove
 
-   Containers::StaticVector< 1 << Dimension, Index > entitiesIndexesOffsets;
+   //__cuda_callable__ inline static
+   EntitiesOrientations entitiesOrientations; // TODO: make this static - I do not know any good solution working with CUDA
 
-   SpaceProductsContainer spaceStepsProducts; // TODO: remove
 };
 
 /**
