@@ -7,11 +7,6 @@ set( CPU_TESTS
 )
 
 set( CUDA_TESTS )
-if( BUILD_CUDA )
-   set( CUDA_TESTS  ${CUDA_TESTS} ${COMMON_TESTS} )
-else()
-   set( CPU_TESTS  ${CPU_TESTS} ${COMMON_TESTS} )
-endif()
 
 foreach( target IN ITEMS ${CPU_TESTS} )
    add_executable( ${target} ${target}.cpp )

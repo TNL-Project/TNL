@@ -155,7 +155,9 @@ class NeighbourGridEntityGetterTestCase {
                bool expectCall = alignedCoordinate >= Coordinate(0) && alignedCoordinate < grid.getDimensions() + neighbourEntityNormals;
 
                EXPECT_EQ(expectCall, neighbourEntity.calls == 1) <<
-                         "Expect, that the parent entity was called";
+                         "Expect, that the parent entity was called. " << std::endl
+                         << "  neighbourEntity.calls = " << neighbourEntity.calls << std::endl
+                         << "  neighbourEntity.coordinates = " << neighbourEntity.coordinate << std::endl;
                EXPECT_EQ(expectCall ? alignedCoordinate : Coordinate(0), neighbourEntity.coordinate) <<
                          "Expect, that the coordinate is updated";
                EXPECT_EQ(expectCall ? neighbourEntityNormals : Coordinate(0), neighbourEntity.normals) <<

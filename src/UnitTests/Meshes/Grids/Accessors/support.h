@@ -9,32 +9,6 @@
 template<typename Device>
 class GridAccessorsTestCaseInterface {
    public:
-      template<typename Grid>
-      void verifyDimensionGetters(const Grid& grid, const typename Grid::CoordinatesType& coordinates) const { FAIL() << "Expect to be specialized"; }
-
-      template<typename Grid>
-      void verifyEntitiesCountGetters(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCount) const { FAIL() << "Expect to be specialized"; }
-
-      template<typename Grid>
-      void verifyOriginGetters(const Grid& grid, const typename Grid::Point& coordinates) const { FAIL() << "Expect to be specialized"; }
-
-      template<typename Grid>
-      void verifySpaceStepsGetter(const Grid& grid, const typename Grid::Point& spaceSteps) const { FAIL() << "Expect to be specialized"; }
-
-
-      template<typename Grid>
-      void verifyDimensionByCoordinateGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const { FAIL() << "Expect to be specialized"; }
-
-
-      template<typename Grid>
-      void verifyEntitiesCountByContainerGetter(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
-
-      template<typename Grid>
-      void verifyEntitiesCountByIndexGetter(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
-
-      template<typename Grid>
-      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const { FAIL() << "Expect to be specialized"; }
-
 
       template <typename Grid>
       void verifySpaceStepsValues(const Grid& grid, const int spaceStepsSize, const typename Grid::PointType& spaceSteps) {
@@ -76,7 +50,7 @@ template<typename Device>
 class GridAccessorsTestCase: public GridAccessorsTestCaseInterface<Device> {};
 
 template<>
-class GridAccessorsTestCase<TNL::Devices::Host>: public GridAccessorsTestCaseInterface<TNL::Devices::Host> {
+class GridAccessorsTestCase<TNL::Devices::Sequential>: public GridAccessorsTestCaseInterface<TNL::Devices::Sequential> {
    public:
       template<typename Grid>
       void verifyDimensionGetters(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
@@ -87,7 +61,6 @@ class GridAccessorsTestCase<TNL::Devices::Host>: public GridAccessorsTestCaseInt
       void verifyEntitiesCountGetters(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
          this->verifyEntitiesCountByContainerGetter<Grid>(grid, entitiesCounts);
          this->verifyEntitiesCountByIndexGetter<Grid>(grid, entitiesCounts);
-         this->verifyEntitiesCountByIndiciesGetter<Grid>(grid, entitiesCounts);
       }
 
       template<typename Grid>
@@ -121,143 +94,9 @@ class GridAccessorsTestCase<TNL::Devices::Host>: public GridAccessorsTestCaseInt
       template<typename Grid>
       void verifyEntitiesCountByIndexGetter(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
          for (typename Grid::IndexType i = 0; i < entitiesCounts.getSize(); i++)
-            EXPECT_EQ(grid.getEntitiesCount(i), entitiesCounts[i]) << "Verify, that index access is correct";
-      }
-
-      template<typename Grid>
-      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
-         for (typename Grid::IndexType i = 0; i < entitiesCounts.getSize(); i++) {
-            auto repeated = grid.getEntitiesCounts(i, i, i, i, i, i, i, i, i, i);
-
-            EXPECT_EQ(repeated.getSize(), 10) << "Verify, that all dimension indices are returned";
-
-            for (typename Grid::IndexType j = 0; j < repeated.getSize(); j++)
-               EXPECT_EQ(repeated[j], entitiesCounts[i]) << "Verify, that it is possible to request the same dimension multiple times";
-         }
+            EXPECT_EQ(grid.getEntitiesCount(i), entitiesCounts[i]) << "Verify, that index access is correct.";
       }
 };
-#ifdef __CUDACC__
-
-template<>
-class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInterface<TNL::Devices::Cuda> {
-   public:
-      template<typename Grid>
-      void verifyDimensionGetters(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
-         this->verifyDimensionByCoordinateGetter<Grid>(grid, dimensions);
-      }
-
-      template<typename Grid>
-      void verifyEntitiesCountGetters(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCount) const {
-         this->verifyEntitiesCountByContainerGetter<Grid>(grid, entitiesCount);
-         this->verifyEntitiesCountByIndexGetter<Grid>(grid, entitiesCount);
-         this->verifyEntitiesCountByIndiciesGetter<Grid>(grid, entitiesCount);
-      }
-
-      template<typename Grid>
-      void verifyOriginGetter(const Grid& grid, const typename Grid::PointType& coordinates) const {
-         auto gridDimension = grid.getMeshDimension();
-
-         auto update = [=] __device__ (const int index, typename Grid::RealType& reference) mutable {
-            reference = grid.getOrigin()[index % gridDimension];
-         };
-
-         auto verify = [=] __cuda_callable__ (const int index, const typename Grid::RealType& reference) mutable {
-            EXPECT_EQ(reference, coordinates[index % gridDimension]);
-         };
-
-         this->executeFromDevice<typename Grid::RealType>(update, verify);
-      }
-
-      template<typename Grid>
-      void verifySpaceStepsGetter(const Grid& grid, const typename Grid::PointType& spaceSteps) const {
-         auto gridDimension = grid.getMeshDimension();
-
-         auto update = [=] __device__ (const int index, typename Grid::RealType& reference) mutable {
-            reference = grid.getSpaceSteps()[index % gridDimension];
-         };
-
-         auto verify = [=] __cuda_callable__ (const int index, const typename Grid::RealType& reference) mutable {
-            EXPECT_EQ(reference, spaceSteps[index % gridDimension]);
-         };
-
-         this->executeFromDevice<typename Grid::RealType>(update, verify);
-      }
-
-      template<typename ContainerElementType, typename Updater, typename Verifier>
-      void executeFromDevice(Updater&& updater, Verifier&& verifier) const {
-         TNL::Containers::Array<ContainerElementType, TNL::Devices::Cuda> container(100 * 100);
-
-         container.forAllElements(updater);
-
-         TNL::Containers::Array<ContainerElementType, TNL::Devices::Host> result(container);
-
-         result.forAllElements(verifier);
-      }
-
-
-      template<typename Grid>
-      void verifyDimensionByCoordinateGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
-         auto gridDimension = grid.getMeshDimension();
-
-         auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
-            reference = grid.getDimensions()[index % gridDimension];
-         };
-
-         auto verify = [=] __cuda_callable__ (const int index, const typename Grid::IndexType& reference) mutable {
-            EXPECT_EQ(reference, dimensions[index % gridDimension]);
-         };
-
-         this->executeFromDevice<typename Grid::IndexType>(update, verify);
-      }
-
-
-      template<typename Grid>
-      void verifyEntitiesCountByContainerGetter(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
-         auto size = entitiesCounts.getSize();
-
-         auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
-            reference = grid.getEntitiesCounts()[index % size];
-         };
-
-         auto verify = [=] __cuda_callable__ (const int index, const typename Grid::IndexType& reference) mutable {
-            EXPECT_EQ(reference, entitiesCounts[index % size]);
-         };
-
-         this -> executeFromDevice<typename Grid::IndexType>(update, verify);
-      }
-
-      template<typename Grid>
-      void verifyEntitiesCountByIndexGetter(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
-         auto size = entitiesCounts.getSize();
-
-         auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
-            reference = grid.getEntitiesCount(index % size);
-         };
-
-         auto verify = [=] __cuda_callable__ (const int index, const typename Grid::IndexType& reference) mutable {
-            EXPECT_EQ(reference, entitiesCounts[index % size]);
-         };
-
-         this -> executeFromDevice<typename Grid::IndexType>(update, verify);
-      }
-
-      template<typename Grid>
-      void verifyEntitiesCountByIndiciesGetter(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
-          auto size = entitiesCounts.getSize();
-
-         auto update = [=] __device__ (const int index, typename Grid::IndexType& reference) mutable {
-            reference = grid.getEntitiesCounts(index % size)[0];
-         };
-
-         auto verify = [=] __cuda_callable__ (const int index, const typename Grid::IndexType& reference) mutable {
-            EXPECT_EQ(reference, entitiesCounts[index % size]);
-         };
-
-         this -> executeFromDevice<typename Grid::IndexType>(update, verify);
-      }
-};
-
-#endif
 
 template<typename... Parameters>
 std::string makeString(Parameters... parameters) {
