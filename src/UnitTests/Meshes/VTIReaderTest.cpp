@@ -104,8 +104,8 @@ TEST( VTIReaderTest, Grid2D_vti )
    const GridType mesh = loadMeshFromFile< GridType, Readers::VTIReader >( "quadrangles/grid_2x3.vti" );
 
    // test that the mesh was actually loaded
-   const auto vertices = mesh.template getEntitiesCount< 0 >();
-   const auto cells = mesh.template getEntitiesCount< GridType::getMeshDimension() >();
+   const auto vertices = mesh.getEntitiesCount( 0 );
+   const auto cells = mesh.getEntitiesCount( GridType::getMeshDimension() );
    EXPECT_EQ( vertices, 12 );
    EXPECT_EQ( cells, 6 );
 
@@ -122,8 +122,8 @@ TEST( VTIReaderTest, Grid3D_vti )
    const GridType mesh = loadMeshFromFile< GridType, Readers::VTIReader >( "hexahedrons/grid_2x3x4.vti" );
 
    // test that the mesh was actually loaded
-   const auto vertices = mesh.template getEntitiesCount< 0 >();
-   const auto cells = mesh.template getEntitiesCount< GridType::getMeshDimension() >();
+   const auto vertices = mesh.getEntitiesCount( 0 ); 
+   const auto cells = mesh.getEntitiesCount( GridType::getMeshDimension() );
    EXPECT_EQ( vertices, 60 );
    EXPECT_EQ( cells, 24 );
 
