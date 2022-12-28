@@ -11,20 +11,20 @@
 #include <TNL/Devices/Cuda.h>
 
 #include "HeatEquationSolverBenchmarkParallelFor.h"
-#include "HeatEquationSolverBenchmarkParallelForTest.h"
-#include "HeatEquationSolverBenchmarkSimpleGrid.h"
+//#include "HeatEquationSolverBenchmarkParallelForTest.h"
+//#include "HeatEquationSolverBenchmarkSimpleGrid.h"
 #include "HeatEquationSolverBenchmarkGrid.h"
-#include "HeatEquationSolverBenchmarkNdGrid.h"
+//#include "HeatEquationSolverBenchmarkNdGrid.h"
 
 void configSetup( TNL::Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addEntry< TNL::String >( "implementation", "Implementation of the heat equation solver.", "grid" );
    config.addEntryEnum< TNL::String >( "parallel-for" );
-   config.addEntryEnum< TNL::String >( "simple-grid" );
+   //config.addEntryEnum< TNL::String >( "simple-grid" );
    config.addEntryEnum< TNL::String >( "grid" );
-   config.addEntryEnum< TNL::String >( "nd-grid" );
-   config.addEntryEnum< TNL::String >( "test" );
+   //config.addEntryEnum< TNL::String >( "nd-grid" );
+   //config.addEntryEnum< TNL::String >( "test" );
 
    config.addDelimiter( "Device settings:" );
    config.addEntry<TNL::String>( "device", "Device the computation will run on.", "cuda" );
@@ -52,27 +52,26 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
       HeatEquationSolverBenchmarkParallelFor< Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
-   if( implementation == "simple-grid" )
-   {
-      HeatEquationSolverBenchmarkSimpleGrid< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
+   //if( implementation == "simple-grid" )
+   //{
+   //   HeatEquationSolverBenchmarkSimpleGrid< Real, Device > benchmark;
+   //   return benchmark.runBenchmark( parameters );
+   //}
    if( implementation == "grid" )
    {
       HeatEquationSolverBenchmarkGrid< Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
-   if( implementation == "nd-grid" )
-   {
-      HeatEquationSolverBenchmarkNdGrid< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-   if( implementation == "test" )
-   {
-      HeatEquationSolverBenchmarkParallelForTest< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
-
+   //if( implementation == "nd-grid" )
+   //{
+   //   HeatEquationSolverBenchmarkNdGrid< Real, Device > benchmark;
+   //   return benchmark.runBenchmark( parameters );
+   //}
+   //if( implementation == "test" )
+   //{
+   //   HeatEquationSolverBenchmarkParallelForTest< Real, Device > benchmark;
+   //  return benchmark.runBenchmark( parameters );
+   //}
    return false;
 }
 
