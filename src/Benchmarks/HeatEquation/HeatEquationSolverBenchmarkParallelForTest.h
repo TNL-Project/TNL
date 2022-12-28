@@ -27,7 +27,7 @@ struct HeatEquationSolverBenchmarkParallelForTest : public HeatEquationSolverBen
       using GridType = TNL::Meshes::Grid< 2, Real, Device, Index >;
       using Coordinates = typename GridType::CoordinatesType;
       GridType grid;
-      grid.setDomain( {0.0,0.0 }, {1.0,1.0} );
+      grid.setDomain( {0.0,0.0 }, { this->xDomainSize, this->yDomainSize, this->zDomainSize } );
       grid.setDimensions( xSize, ySize );
       Real start = 0;
       Index iterations = 0;
