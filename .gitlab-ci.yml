@@ -452,6 +452,7 @@ documentation:
     artifacts:
         paths:
             - ./html/
+        expire_in: 7 days
 
 pages:
     stage: deploy

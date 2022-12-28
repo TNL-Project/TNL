@@ -64,6 +64,11 @@ list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Modules" )
 # find the std::filesystem library
 find_package( Filesystem REQUIRED COMPONENTS Final )
 
+# find the thread library
+set( CMAKE_THREAD_PREFER_PTHREAD TRUE )
+set( THREADS_PREFER_PTHREAD_FLAG TRUE )
+find_package( Threads REQUIRED )
+
 # Check for OpenMP if it is enabled
 if( TNL_BUILD_OPENMP )
    find_package( OpenMP COMPONENTS CXX )
