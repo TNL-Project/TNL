@@ -89,12 +89,95 @@ public:
         measure( std::move( measure ) )
       {}
 
-      template< typename Entity >
-      __cuda_callable__
-      void
-      store( const Entity& entity )
-      {
-         this->store( entity, entity.getIndex() );
+         template <typename Entity>
+         __cuda_callable__ void store(const Entity entity) {
+            this -> store(entity, entity.getIndex());
+         }
+
+         template <typename Entity>
+         __cuda_callable__ void store(const Entity entity, const Index index) {
+            calls[index] += 1;
+            indices[index] = entity.getIndex();
+            isBoundary[index] = entity.isBoundary();
+            orientations[index] = entity.getOrientation().getOrientationIndex();
+            measure[index] = entity.getMeasure();
+
+            auto coordinates = entity.getCoordinates();
+            auto normals = entity.getNormals();
+            auto center = entity.getCenter();
+
+            for (Index i = 0; i < GridDimension; i++) {
+               Index containerIndex = index * GridDimension + i;
+
+               this->coordinates[containerIndex] = coordinates[i];
+               this->normals[containerIndex] = normals[i];
+               this->center[containerIndex] = center[i];
+            }
+         }
+
+         template <typename Entity>
+         __cuda_callable__ void clear(const Entity entity) {
+            auto index = entity.getIndex();
+
+            clear(index);
+         }
+
+         __cuda_callable__ void clear(const Index index) {
+            calls[index] = 0;
+            indices[index] = 0;
+            isBoundary[index] = 0;
+            orientations[index] = 0;
+            measure[index] = 0;
+
+            for (Index i = 0; i < GridDimension; i++) {
+               Index containerIndex = index * GridDimension + i;
+
+               coordinates[containerIndex] = 0;
+               normals[containerIndex] = 0;
+               center[containerIndex] = 0;
+            }
+         }
+
+         EntityPrototype<Index, Real, GridDimension> getEntity(const Index index) {
+            Coordinate coordinates, normals;
+            Point center;
+
+            for (Index i = 0; i < GridDimension; i++) {
+               Index containerIndex = index * GridDimension + i;
+
+               coordinates[i] = this -> coordinates[containerIndex];
+               normals[i] = this -> normals[containerIndex];
+               center[i] = this -> center[containerIndex];
+            }
+
+            return { coordinates, normals, indices[index], calls[index], orientations[index], isBoundary[index] > 0, center, measure[index] };
+         }
+
+         protected:
+            typename Container<Index>::ViewType calls, indices, coordinates, normals, orientations, isBoundary;
+            typename Container<Real>::ViewType center, measure;
+      };
+
+      EntityDataStore(const Index& entitiesCount): entitiesCount(entitiesCount) {
+         calls.resize(entitiesCount);
+         indices.resize(entitiesCount);
+         isBoundary.resize(entitiesCount);
+         orientations.resize(entitiesCount);
+
+         measure.resize(entitiesCount);
+
+         coordinates.resize(GridDimension * entitiesCount);
+         normals.resize(GridDimension * entitiesCount);
+         center.resize(GridDimension * entitiesCount);
+
+         calls = 0;
+         indices = 0;
+         isBoundary = 0;
+         orientations = 0;
+         coordinates = 0;
+         normals = 0;
+         center = 0;
+         measure = 0;
       }
 
       template< typename Entity >

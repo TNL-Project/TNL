@@ -263,13 +263,13 @@ void compareTotalOrientationIndexFromNormals( int expectation) {
 }
 
 TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesFromNormalsTest_1D ) {
-   //                            Grid. dim.  | Normals | Index
+   //                                       Grid. dim.  | Normals | Index
    compareTotalOrientationIndexFromNormals< 1,           1         >( 0 );
    compareTotalOrientationIndexFromNormals< 1,           0         >( 1 );
 }
 
 TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesFromNormalsTest_2D ) {
-   //                            Grid. dim. | Normals | Index
+   //                                       Grid. dim. | Normals | Index
    compareTotalOrientationIndexFromNormals< 2,           1, 1      >( 0 );
 
    compareTotalOrientationIndexFromNormals< 2,           0, 1      >( 1 );
@@ -279,7 +279,7 @@ TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesFromNormalsTest_2D ) 
 }
 
 TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesFromNormalsTest_3D ) {
-   //                            Grid. dim. | Normals   | Index
+   //                                       Grid. dim. | Normals   | Index
    compareTotalOrientationIndexFromNormals< 3,           1, 1, 1 >( 0 );
 
    compareTotalOrientationIndexFromNormals< 3,           0, 1, 1 >( 1 );
@@ -294,7 +294,7 @@ TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesFromNormalsTest_3D ) 
 }
 
 TEST( GridEntitiesOrientationSuite, TotalOrientationIndexesFromNormalsTest_4D ) {
-   //                            Grid. dim. | Normals     | Index
+   //                                       Grid. dim. | Normals     | Index
    compareTotalOrientationIndexFromNormals< 4,           1, 1, 1, 1 >(  0 );
 
    compareTotalOrientationIndexFromNormals< 4,           0, 1, 1, 1 >(  1 );

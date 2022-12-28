@@ -52,6 +52,14 @@ Grid< Dimension, Real, Device, Index >::Grid( const CoordinatesType& dimensions 
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
+auto
+Grid< Dimension, Real, Device, Index >::
+getEntitiesOrientations() const -> const EntitiesOrientations&
+{
+   return this->entitiesOrientations;
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
 constexpr Index
 Grid< Dimension, Real, Device, Index >::getEntityOrientationsCount( IndexType entityDimension )
 {
@@ -243,13 +251,10 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
          i++;
          orientationIdx++;
       }
-      entityIdx -= this->entitiesIndexesOffsets[ i - 1 ];
-      orientation.setIndex( orientationIdx );
-      orientation.setNormals( entitiesOrientations.template getNormals< EntityDimension >( orientationIdx ) );
-      TNL_ASSERT_EQ(
-         orientation.getIndex(), this->getOrientationIndex( orientation.getNormals() ), "Wrong index of entity orientation." );
+      entityIdx -= this->entitiesIndexesOffsets[ i-1 ];
+      orientation.setTotalOrientationIndex( EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >(orientationIdx) ); // TODO: compute directly total orientation index
    }
-   const CoordinatesType dims = this->getDimensions() + orientation.getNormals();
+   const CoordinatesType dims = this->getDimensions() + getNormals( orientation.getTotalOrientationIndex() );
    CoordinatesType entityCoordinates( 0 );
    int idx = 0;
    while( idx < getMeshDimension() - 1 ) {
@@ -550,11 +555,11 @@ Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) c
       Algorithms::staticFor< IndexType, 1, Dimension >(
          [&] ( Index i ) mutable {
             idx += entity.getCoordinates()[ Dimension - i ];
-            idx *= this->getDimensions()[ Dimension - i - 1 ] + entity.getNormals()[ Dimension - i - 1 ];
+            idx *= this->getDimensions()[ Dimension - i - 1 ];
       } );
       return idx + entity.getCoordinates()[ 0 ];
    }
-   if constexpr( Entity::getEntityDimension() == 0  )
+   else if constexpr( Entity::getEntityDimension() == 0  )
    {
       Algorithms::staticFor< IndexType, 1, Dimension >(
          [&] ( Index i ) mutable {
@@ -565,14 +570,14 @@ Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) c
    }
    else
    {
+      const auto& normals = entity.getNormals();
       Algorithms::staticFor< IndexType, 1, Dimension >(
          [&] ( Index i ) mutable {
             idx += entity.getCoordinates()[ Dimension - i ];
-            idx *= this->getDimensions()[ Dimension - i - 1 ] + entity.getNormals()[ Dimension - i - 1 ];
+            idx *= this->getDimensions()[ Dimension - i - 1 ] + normals[ Dimension - i - 1 ];
       } );
       idx += entity.getCoordinates()[ 0 ];
-      const IndexType offset = EntitiesOrientations::template getTotalOrientationIndex< Entity::getEntityDimension() >( entity.getOrientation().getIndex() ) + Entity::getEntityDimension();
-      return idx + this->entitiesIndexesOffsets[ offset ];
+      return idx + this->entitiesIndexesOffsets[ entity.getOrientation().getTotalOrientationIndex() + Entity::getEntityDimension() ];
    }
 }
 
@@ -626,13 +631,36 @@ Grid< Dimension, Real, Device, Index >::getNeighbourEntityIndex( const Entity& e
    -> Index
 {
    IndexType idx{ 0 };
-   Algorithms::staticFor< IndexType, 1, Dimension >(
-      [&] ( Index i ) mutable {
-         idx += offset[ Dimension - i ]; //entity.getCoordinates()[ Dimension - i ] + offset[ Dimension - i ];
-         idx *= this->getDimensions()[ Dimension - i - 1 ] + entity.getNormals()[ Dimension - i - 1 ];
-   } );
-   //return idx + entity.getCoordinates()[ 0 ] + offset[ 0 ];
-   return idx + offset[ 0 ] + entity.getIndex();
+   if constexpr( Entity::getEntityDimension() == getMeshDimension() )
+   {
+      Algorithms::staticFor< IndexType, 1, Dimension >(
+         [&] ( Index i ) mutable {
+            idx += offset[ Dimension - i ]; //entity.getCoordinates()[ Dimension - i ] + offset[ Dimension - i ];
+            idx *= this->getDimensions()[ Dimension - i - 1 ];
+      } );
+      //return idx + entity.getCoordinates()[ 0 ] + offset[ 0 ];
+      return idx + offset[ 0 ] + entity.getIndex();
+   }
+   else if constexpr( Entity::getEntityDimension() == 0 )
+   {
+      Algorithms::staticFor< IndexType, 1, Dimension >(
+         [&] ( Index i ) mutable {
+            idx += offset[ Dimension - i ]; //entity.getCoordinates()[ Dimension - i ] + offset[ Dimension - i ];
+            idx *= this->getDimensions()[ Dimension - i - 1 ] + 1;
+      } );
+      //return idx + entity.getCoordinates()[ 0 ] + offset[ 0 ];
+      return idx + offset[ 0 ] + entity.getIndex();
+   }
+   else {
+      const auto& normals = entity.getNormals();
+      Algorithms::staticFor< IndexType, 1, Dimension >(
+         [&] ( Index i ) mutable {
+            idx += offset[ Dimension - i ]; //entity.getCoordinates()[ Dimension - i ] + offset[ Dimension - i ];
+            idx *= this->getDimensions()[ Dimension - i - 1 ] + normals[ Dimension - i - 1 ];
+      } );
+      //return idx + entity.getCoordinates()[ 0 ] + offset[ 0 ];
+      return idx + offset[ 0 ] + entity.getIndex();
+   }
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -677,7 +705,7 @@ __cuda_callable__
 Entity
 Grid< Dimension, Real, Device, Index >::getNeighbourEntity( const Entity& entity, const CoordinatesType& offset ) const
 {
-   return Entity( *this, entity.getCoordinates() + offset, entity.getOrientation().getNormals() );
+   return Entity( *this, entity.getCoordinates() + offset, entity.getOrientation().getOrientationIndex() );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -891,9 +919,8 @@ Grid< Dimension, Real, Device, Index >::forAllEntities( Func func, FuncArgs... a
                                            const Grid& grid,
                                            FuncArgs... args ) mutable
       {
-         TNL_ASSERT_EQ(
-            normals, grid.template getNormals< EntityDimension >( orientation ), "Wrong index of entity orientation." );
-         EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
+         TNL_ASSERT_EQ( normals, grid.template getNormals< EntityDimension >( orientation ), "Wrong index of entity orientation." );
+         EntityType< EntityDimension > entity( grid, coordinate, orientation );
 
          func( entity, args... );
       };
@@ -915,7 +942,7 @@ Grid< Dimension, Real, Device, Index >::forEntities( const CoordinatesType& begi
                                         const Grid& grid,
                                         FuncArgs... args ) mutable
    {
-      EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
+      EntityType< EntityDimension > entity( grid, coordinate, orientation );
 
       func( entity, args... );
    };
@@ -934,7 +961,7 @@ Grid< Dimension, Real, Device, Index >::forBoundaryEntities( Func func, FuncArgs
                                         const Grid& grid,
                                         FuncArgs... args ) mutable
    {
-      EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
+      EntityType< EntityDimension > entity( grid, coordinate, orientation );
 
       func( entity, args... );
    };
@@ -956,7 +983,7 @@ Grid< Dimension, Real, Device, Index >::forBoundaryEntities( const CoordinatesTy
                                         const Grid& grid,
                                         FuncArgs... args ) mutable
    {
-      EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
+      EntityType< EntityDimension > entity( grid, coordinate, orientation );
 
       func( entity, args... );
    };
@@ -986,12 +1013,12 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
    }
    else {
       auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                           const NormalsType& normals,
+                                          const NormalsType& normals,
                                            const Index orientation,
                                            const Grid& grid,
                                            FuncArgs... args ) mutable
       {
-         EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
+         EntityType< EntityDimension > entity( grid, coordinate, orientation );
 
          func( entity, args... );
       };
@@ -1010,7 +1037,7 @@ Grid< Dimension, Real, Device, Index >::forLocalEntities( Func func, FuncArgs...
                                         const Grid& grid,
                                         FuncArgs... args ) mutable
    {
-      EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
+      EntityType< EntityDimension > entity( grid, coordinate, orientation );
 
       func( entity, args... );
    };

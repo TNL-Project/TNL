@@ -5,6 +5,7 @@
 
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/GridDetails/GridEntityOrientation.h>
+#include <TNL/Meshes/GridEntitiesOrientations.h>
 
 namespace TNL::Meshes {
 
@@ -58,9 +59,11 @@ public:
     */
    using PointType = typename Grid::PointType;
 
+   using EntitiesOrientations = GridEntitiesOrientations< Grid::getMeshDimension() >;
+
    using GridEntityOrientationType = GridEntityOrientation< Grid, Grid::getMeshDimension(), EntityDimension >;
 
-   using NormalsType = typename GridEntityOrientationType::NormalsType;
+   using NormalsType = typename GridType::NormalsType;
 
    /**
     * \brief Getter of the dimension of the grid.
@@ -127,11 +130,10 @@ public:
     *
     * \param grid is a reference on a grid the entity belongs to.
     * \param coordinates are coordinates of the grid entity.
-    * \param normals is a vector of packed normal vectors to the grid entity.
-    * \param orientation is an index of the grid entity orientation.
+    * \param orientation is total ori index of the grid entity orientation.
     */
    __cuda_callable__
-   GridEntity( const Grid& grid, const CoordinatesType& coordinates, const NormalsType& normals, IndexType orientation );
+   GridEntity( const Grid& grid, const CoordinatesType& coordinates, IndexType orientationIndex );
 
    /**
     * \brief Constructor with a grid reference and grid entity index.
@@ -330,7 +332,6 @@ public:
    IndexType
    getNeighbourEntityIndex( const CoordinatesType& offset,
                             IndexType neighbourEntityOrientation ) const;
-
 
    /**
     * \brief Returns the point at the origin of the grid entity.

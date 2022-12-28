@@ -10,6 +10,7 @@
 
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/GridDetails/GridTraits.h>
+#include <TNL/Meshes/GridEntitiesOrientations.h>
 
 namespace TNL {
    namespace Meshes {
@@ -26,35 +27,28 @@ public:
 
    using IndexType = typename Grid::IndexType;
 
-   using GridTraitsType = GridTraits< getDimension(), RealType, IndexType >;
-
-   using NormalsType = typename GridTraitsType::NormalsType;
+   using EntitiesOrientations = GridEntitiesOrientations< getDimension() >;
 
    __cuda_callable__
    GridEntityOrientation() = default;
 
    __cuda_callable__
-   GridEntityOrientation( const NormalsType& normals,
-                          IndexType orientationIdx )
-      : normals( normals ), orientationIdx( orientationIdx ) {}
+   GridEntityOrientation( IndexType totalOrientationIdx )
+      : totalOrientationIdx( totalOrientationIdx ) {}
 
    __cuda_callable__
-   void setNormals( const NormalsType& normals ) { this->normals = normals; }
+   void setTotalOrientationIndex( IndexType idx ) { this->totalOrientationIdx = idx; }
 
    __cuda_callable__
-   const NormalsType& getNormals() const { return this->normals; }
+   IndexType getTotalOrientationIndex() const { return this->totalOrientationIdx; }
 
    __cuda_callable__
-   void setIndex( IndexType idx ) { this->orientationIdx = idx; }
-
-   __cuda_callable__
-   IndexType getIndex() const { return this->orientationIdx; }
+   IndexType getOrientationIndex() const {
+      return EntitiesOrientations::template getOrientationIndex< EntityDimension >( this->totalOrientationIdx ); }
 
 protected:
 
-   NormalsType normals;
-
-   IndexType orientationIdx = 0;
+   IndexType totalOrientationIdx = 0;
 };
 
 template< typename Grid, int GridDimension >
@@ -69,22 +63,19 @@ public:
 
    using IndexType = typename Grid::IndexType;
 
-   using GridTraitsType = GridTraits< getDimension(), RealType, IndexType >;
-
-   using NormalsType = typename GridTraitsType::NormalsType;
+   using EntitiesOrientations = GridEntitiesOrientations< getDimension() >;
 
    __cuda_callable__
    GridEntityOrientation() = default;
 
    __cuda_callable__
-   GridEntityOrientation( const NormalsType& normals,
-                          IndexType orientationIdx ) {}
+   GridEntityOrientation( IndexType orientationIdx ) {}
+
+      __cuda_callable__
+   IndexType getTotalOrientationIndex() const { return 0; }
 
    __cuda_callable__
-   NormalsType getNormals() const { NormalsType n; n = 1; return n; }
-
-     __cuda_callable__
-   IndexType getIndex() const { return 0; }
+   IndexType getOrientationIndex() const { return 0; }
 };
 
 template< typename Grid, int GridDimension >
@@ -99,22 +90,19 @@ public:
 
    using IndexType = typename Grid::IndexType;
 
-   using GridTraitsType = GridTraits< getDimension(), RealType, IndexType >;
-
-   using NormalsType = typename GridTraitsType::NormalsType;
+   using EntitiesOrientations = GridEntitiesOrientations< getDimension() >;
 
    __cuda_callable__
    GridEntityOrientation() = default;
 
    __cuda_callable__
-   GridEntityOrientation( const NormalsType& normals,
-                          IndexType orientationIdx ) {}
+   GridEntityOrientation( IndexType orientationIdx ) {}
+
+      __cuda_callable__
+   IndexType getTotalOrientationIndex() const { return ( 1 << getDimension() ) - 1; }
 
    __cuda_callable__
-   const NormalsType getNormals() const { NormalsType n; n = 0; return n; }
-
-   __cuda_callable__
-   IndexType getIndex() const { return 0; }
+   IndexType getOrientationIndex() const { return 0; }
 };
 
    } // namespace Meshes

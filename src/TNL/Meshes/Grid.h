@@ -146,6 +146,8 @@ public:
     */
    Grid( const CoordinatesType& dimensions );
 
+   const EntitiesOrientations& getEntitiesOrientations() const;
+
    /**
     * \brief Returns the number of orientations for entity dimension.
     *        For example in 2-D Grid the edge can be vertical or horizontal.
