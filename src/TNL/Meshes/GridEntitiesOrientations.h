@@ -165,6 +165,9 @@ struct GridEntitiesOrientations
    template< int EntityDimension, int... Normals >
    constexpr static int getOrientationIndex();
 
+   template< int EntityDimension >
+   constexpr static int getOrientationIndex( int totalOrientationIndex );
+
    /**
     * \brief Gives total orientation index based on packed normal vectors.
     *

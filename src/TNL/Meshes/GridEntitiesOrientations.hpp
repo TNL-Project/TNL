@@ -50,6 +50,15 @@ getEntityDimension() {
 }
 
 template< int GridDimension >
+   template< int EntityDimension >
+constexpr int
+GridEntitiesOrientations< GridDimension >::
+getOrientationIndex( int totalOrientationIndex )
+{
+   return totalOrientationIndex - cumulativeCombinationsCount( EntityDimension - 1, GridDimension );
+}
+
+template< int GridDimension >
    template< int EntityDimension, int... Normals >
 constexpr int
 GridEntitiesOrientations< GridDimension >::
@@ -69,8 +78,8 @@ template< int GridDimension >
    template< int EntityDimension >
 constexpr int
 GridEntitiesOrientations< GridDimension >::
-getTotalOrientationIndex( int orientation ) {
-   return cumulativeCombinationsCount( EntityDimension - 1, GridDimension ) + orientation;
+getTotalOrientationIndex( int orientationIndex ) {
+   return cumulativeCombinationsCount( EntityDimension - 1, GridDimension ) + orientationIndex;
 }
 
 template< int GridDimension >

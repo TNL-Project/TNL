@@ -22,6 +22,6 @@ void testGetEntityFromIndex( Grid& grid,
          EXPECT_EQ( new_entity.getNormals(), entity.getNormals() )
             << " Entity normals: " << entity.getNormals() << std::endl
             << " New entity normals: " << new_entity.getNormals();
-         EXPECT_EQ( new_entity.getOrientation().getIndex(), entity.getOrientation().getIndex() );
+         EXPECT_EQ( new_entity.getOrientation().getOrientationIndex(), entity.getOrientation().getOrientationIndex() );
    } );
 }
