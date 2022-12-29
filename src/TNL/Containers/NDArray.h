@@ -145,6 +145,14 @@ public:
       return array.getData();
    }
 
+   /**
+    * \brief Swaps data with another array of the same type.
+    */
+   void swap( NDArrayStorage& storage )
+   {
+      array.swap( storage.array );
+   }
+
    // methods from the base class
    using IndexerType::getDimension;
    using IndexerType::getOverlap;
