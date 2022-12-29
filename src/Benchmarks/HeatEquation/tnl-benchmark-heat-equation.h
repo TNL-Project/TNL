@@ -6,10 +6,8 @@
 #include <TNL/Devices/Cuda.h>
 
 #include "HeatEquationSolverBenchmarkParallelFor.h"
-//#include "HeatEquationSolverBenchmarkParallelForTest.h"
-//#include "HeatEquationSolverBenchmarkSimpleGrid.h"
+#include "HeatEquationSolverBenchmarkNDArray.h"
 #include "HeatEquationSolverBenchmarkGrid.h"
-//#include "HeatEquationSolverBenchmarkNdGrid.h"
 
 void
 configSetup( TNL::Config::ConfigDescription& config )
@@ -17,10 +15,8 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addDelimiter( "General settings:" );
    config.addEntry< TNL::String >( "implementation", "Implementation of the heat equation solver.", "grid" );
    config.addEntryEnum< TNL::String >( "parallel-for" );
-   //config.addEntryEnum< TNL::String >( "simple-grid" );
+   config.addEntryEnum< TNL::String >( "nd-array" );
    config.addEntryEnum< TNL::String >( "grid" );
-   //config.addEntryEnum< TNL::String >( "nd-grid" );
-   //config.addEntryEnum< TNL::String >( "test" );
 
    config.addDelimiter( "Device settings:" );
    config.addEntry< TNL::String >( "device", "Device the computation will run on.", "cuda" );
@@ -36,36 +32,43 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
+
+   config.addDelimiter( "Problem settings:" );
+   config.addEntry< int >( "dimension", "Dimension of the benchmark problem.", 2 );
 }
 
-template< typename Real, typename Device >
+template< int Dimension, typename Real, typename Device >
 bool
 startBenchmark( TNL::Config::ParameterContainer& parameters )
 {
    auto implementation = parameters.getParameter< TNL::String >( "implementation" );
    if( implementation == "parallel-for" ) {
-      HeatEquationSolverBenchmarkParallelFor< Real, Device > benchmark;
+      HeatEquationSolverBenchmarkParallelFor< Dimension, Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
-   //if( implementation == "simple-grid" )
-   //{
-   //   HeatEquationSolverBenchmarkSimpleGrid< Real, Device > benchmark;
-   //   return benchmark.runBenchmark( parameters );
-   //}
+   if( implementation == "nd-array" ) {
+      HeatEquationSolverBenchmarkNDArray< Dimension, Real, Device > benchmark;
+      return benchmark.runBenchmark( parameters );
+   }
    if( implementation == "grid" ) {
-      HeatEquationSolverBenchmarkGrid< Real, Device > benchmark;
+      HeatEquationSolverBenchmarkGrid< Dimension, Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
-   //if( implementation == "nd-grid" )
-   //{
-   //   HeatEquationSolverBenchmarkNdGrid< Real, Device > benchmark;
-   //   return benchmark.runBenchmark( parameters );
-   //}
-   //if( implementation == "test" )
-   //{
-   //   HeatEquationSolverBenchmarkParallelForTest< Real, Device > benchmark;
-   //  return benchmark.runBenchmark( parameters );
-   //}
+   return false;
+}
+
+template< typename Real, typename Device >
+bool
+resolveDimension( TNL::Config::ParameterContainer& parameters )
+{
+   const int dimension = parameters.getParameter< int >( "dimension" );
+   if( dimension == 1 )
+      return startBenchmark< 1, Real, Device >( parameters );
+   if( dimension == 2 )
+      return startBenchmark< 2, Real, Device >( parameters );
+   if( dimension == 3 )
+      return startBenchmark< 3, Real, Device >( parameters );
+   std::cerr << "Wrong dimension " << dimension << " only 1D, 2D and 3D problems are allowed." << std::endl;
    return false;
 }
 
@@ -75,12 +78,12 @@ resolveDevice( TNL::Config::ParameterContainer& parameters )
 {
    auto device = parameters.getParameter< TNL::String >( "device" );
    if( device == "sequential" )
-      return startBenchmark< Real, TNL::Devices::Sequential >( parameters );
+      return resolveDimension< Real, TNL::Devices::Sequential >( parameters );
    if( device == "host" )
-      return startBenchmark< Real, TNL::Devices::Host >( parameters );
+      return resolveDimension< Real, TNL::Devices::Host >( parameters );
    if( device == "cuda" ) {
-#ifdef __CUDACC__
-      return startBenchmark< Real, TNL::Devices::Cuda >( parameters );
+#ifdef HAVE_CUDA
+      return resolveDimension< Real, TNL::Devices::Cuda >( parameters );
 #else
       std::cerr << "The benchmark was not built with CUDA support." << std::endl;
       return false;
