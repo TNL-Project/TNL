@@ -7,10 +7,6 @@
 #pragma once
 
 #include <TNL/Meshes/GridEntity.h>
-#include <TNL/Meshes/GridDetails/BoundaryGridEntityChecker.h>
-#include <TNL/Meshes/GridDetails/GridEntityCenterGetter.h>
-#include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.h>
-#include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.h>
 
 namespace TNL {
 namespace Meshes {
@@ -146,7 +142,8 @@ __cuda_callable__
 bool
 GridEntity< Grid, EntityDimension >::isBoundary() const
 {
-   return BoundaryGridEntityChecker< GridEntity >::isBoundaryEntity( *this );
+   TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer." );
+   return grid->isBoundaryEntity( *this );
 }
 
 template< class Grid, int EntityDimension >
@@ -154,7 +151,8 @@ __cuda_callable__
 typename GridEntity< Grid, EntityDimension >::PointType
 GridEntity< Grid, EntityDimension >::getCenter() const
 {
-   return GridEntityCenterGetter< GridEntity >::getEntityCenter( *this );
+   TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer." );
+   return grid->getEntityCenter( *this );
 }
 
 template< class Grid, int EntityDimension >
@@ -162,7 +160,8 @@ __cuda_callable__
 typename GridEntity< Grid, EntityDimension >::RealType
 GridEntity< Grid, EntityDimension >::getMeasure() const
 {
-   return GridEntityMeasureGetter< Grid, EntityDimension >::getMeasure( this->getMesh(), *this );
+   TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer." );
+   return grid->getEntityMeasure( *this );
 }
 
 template< class Grid, int EntityDimension >

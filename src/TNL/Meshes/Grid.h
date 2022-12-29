@@ -216,7 +216,7 @@ public:
    template< int EntityDimension >
    __cuda_callable__
    Index
-   getEntitiesCount() const noexcept; // TODO: remove this if it not necessary for compatibility with Mesh
+   getEntitiesCount() const noexcept; // TODO: remove this if it is not necessary for compatibility with Mesh
 
    /**
     * \brief Returns number of entities of specific entity type as a template parameter.
@@ -228,7 +228,7 @@ public:
    template< typename Entity >
    __cuda_callable__
    Index
-   getEntitiesCount() const; // TODO: remove this if it not necessary for compatibility with Mesh
+   getEntitiesCount() const; // TODO: remove this if it is not necessary for compatibility with Mesh
 
    /**
     * \brief Returns count of entities for all dimensions.
@@ -580,6 +580,21 @@ public:
    getNeighbourEntity( const Entity& entity, const CoordinatesType& offset,
                        const NormalsType& neighbourEntityOrientation ) const;
 
+   template< typename Entity >
+   __cuda_callable__
+   PointType getEntityOrigin( const Entity& entity ) const;
+
+   template< typename Entity >
+   __cuda_callable__
+   PointType getEntityCenter( const Entity& entity ) const;
+
+   template< typename Entity >
+   __cuda_callable__
+   RealType getEntityMeasure( const Entity& entity ) const;
+
+   template< typename Entity >
+   __cuda_callable__
+   bool isBoundaryEntity( const Entity& entity ) const;
 
    /**
     * \brief Sets the subdomain of distributed grid.
