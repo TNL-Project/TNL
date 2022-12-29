@@ -192,6 +192,7 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
       auto mode = std::ios::out;
       if( this->outputMode == "append" )
          mode |= std::ios::app;
+
       std::ofstream logFile( this->logFileName.getString(), mode );
       TNL::Benchmarks::Benchmark<> benchmark(logFile, this->loops, this->verbose);
 
@@ -214,7 +215,10 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
       for( Index xSize = this->minXDimension; xSize <= this->maxXDimension; xSize *= this->xSizeStepFactor ) {
          benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
             { "precision", precision },
+            { "dimension", TNL::convertToString( 1 ) },
             { "xSize", TNL::convertToString( xSize ) },
+            { "ySize", TNL::convertToString(     1 ) },
+            { "zSize", TNL::convertToString(     1 ) },
             { "implementation", this->implementation }
          }));
 
@@ -330,8 +334,10 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
          for( Index ySize = this->minYDimension; ySize <= this->maxYDimension; ySize *= this->ySizeStepFactor ) {
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
                { "precision", precision },
+               { "dimension", TNL::convertToString( 2 ) },
                { "xSize", TNL::convertToString( xSize ) },
                { "ySize", TNL::convertToString( ySize ) },
+               { "zSize", TNL::convertToString(     1 ) },
                { "implementation", this->implementation }
             }));
 
@@ -432,6 +438,7 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
             for( Index zSize = this->minZDimension; zSize <= this->maxZDimension; zSize *= this->zSizeStepFactor ) {
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
                   { "precision", precision },
+                  { "dimension", TNL::convertToString( 3 ) },
                   { "xSize", TNL::convertToString( xSize ) },
                   { "ySize", TNL::convertToString( ySize ) },
                   { "zSize", TNL::convertToString( zSize ) },

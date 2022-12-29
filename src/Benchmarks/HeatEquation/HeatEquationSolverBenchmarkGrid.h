@@ -25,10 +25,16 @@ struct HeatEquationSolverBenchmarkGrid< 1, Real, Device, Index >: public HeatEqu
    static constexpr int Dimension = 1;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
+   using Grid = TNL::Meshes::Grid<1, Real, Device, int>;
+   using Coordinates = typename Grid::CoordinatesType;
+
 
    void init( const Index xSize )
    {
       BaseBenchmarkType::init( xSize, ux, aux );
+      this->grid.setDimensions( xSize );
+      this->grid.setDomain( { 0.0 }, { this->xDomainSize } );
+
    }
 
    bool writeGnuplot( const std::string &filename, const Index xSize ) const
@@ -38,16 +44,8 @@ struct HeatEquationSolverBenchmarkGrid< 1, Real, Device, Index >: public HeatEqu
 
    void exec( const Index xSize )
    {
-      using Grid = TNL::Meshes::Grid<1, Real, Device, int>;
-      using Coordinates = typename Grid::CoordinatesType;
-
-      Grid grid;
-
-      grid.setDimensions( xSize );
-      grid.setDomain( { 0.0 }, { this->xDomainSize } );
-
-      const Real hx = grid.template getSpaceStepsProducts< 1 >();
-      const Real hx_inv = grid.template getSpaceStepsProducts< -2 >();
+      const Real hx = this->grid.template getSpaceStepsProducts< 1 >();
+      const Real hx_inv = this->grid.template getSpaceStepsProducts< -2 >();
 
       TNL_ASSERT_EQ( hx, this->xDomainSize / (Real) xSize, "computed wrong hx on the grid" );
 
@@ -71,7 +69,7 @@ struct HeatEquationSolverBenchmarkGrid< 1, Real, Device, Index >: public HeatEqu
                                                 uxView[ centerIdx + 1 ] ) * hx_inv ) * timestep;*/
          };
 
-         grid.template forInteriorEntities<1>( next );
+         this->grid.template forInteriorEntities<1>( next );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -81,6 +79,7 @@ struct HeatEquationSolverBenchmarkGrid< 1, Real, Device, Index >: public HeatEqu
 protected:
 
    VectorType ux, aux;
+   Grid grid;
 };
 
 template< typename Real,
@@ -91,10 +90,15 @@ struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index >: public HeatEqu
    static constexpr int Dimension = 2;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
+   using Grid = TNL::Meshes::Grid<2, Real, Device, int>;
+   using Coordinates = typename Grid::CoordinatesType;
 
    void init( const Index xSize, const Index ySize )
    {
       BaseBenchmarkType::init( xSize, ySize, ux, aux );
+      this->grid.setDimensions( xSize, ySize );
+      this->grid.setDomain( { 0.0, 0.0}, { this->xDomainSize, this->yDomainSize } );
+
    }
 
    bool writeGnuplot( const std::string &filename, const Index xSize, const Index ySize ) const
@@ -104,14 +108,6 @@ struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index >: public HeatEqu
 
    void exec( const Index xSize, const Index ySize )
    {
-      using Grid = TNL::Meshes::Grid<2, Real, Device, int>;
-      using Coordinates = typename Grid::CoordinatesType;
-
-      Grid grid;
-
-      grid.setDimensions( xSize, ySize );
-      grid.setDomain( { 0.0, 0.0}, { this->xDomainSize, this->yDomainSize } );
-
       const Real hx = grid.template getSpaceStepsProducts<1, 0>();
       const Real hy = grid.template getSpaceStepsProducts<0, 1>();
       const Real hx_inv = grid.template getSpaceStepsProducts<-2, 0>();
@@ -146,7 +142,7 @@ struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index >: public HeatEqu
                                                 2.0 * center +
                                                 uxView[ centerIdx + xSize ] ) * hy_inv ) * timestep;*/
          };
-         grid.template forInteriorEntities<2>( next );
+         this->grid.template forInteriorEntities<2>( next );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -156,6 +152,7 @@ struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index >: public HeatEqu
 protected:
 
    VectorType ux, aux;
+   Grid grid;
 };
 
 template< typename Real,
@@ -166,22 +163,18 @@ struct HeatEquationSolverBenchmarkGrid< 3, Real, Device, Index >: public HeatEqu
    static constexpr int Dimension = 3;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
+   using Grid = TNL::Meshes::Grid<3, Real, Device, int>;
+   using Coordinates = typename Grid::CoordinatesType;
 
    void init( const Index xSize, const Index ySize, const Index zSize )
    {
       BaseBenchmarkType::init( xSize, ySize, zSize, ux, aux );
+      grid.setDimensions( xSize, ySize, zSize );
+      grid.setDomain( { 0.0, 0.0, 0.0}, { this->xDomainSize, this->yDomainSize, this->zDomainSize } );
    }
 
    void exec( const Index xSize, const Index ySize, const Index zSize )
    {
-      using Grid = TNL::Meshes::Grid<3, Real, Device, int>;
-      using Coordinates = typename Grid::CoordinatesType;
-
-      Grid grid;
-
-      grid.setDimensions( xSize, ySize, zSize );
-      grid.setDomain( { 0.0, 0.0, 0.0}, { this->xDomainSize, this->yDomainSize, this->zDomainSize } );
-
       const Real hx = grid.template getSpaceStepsProducts< 1, 0, 0 >();
       const Real hy = grid.template getSpaceStepsProducts< 0, 1, 0 >();
       const Real hz = grid.template getSpaceStepsProducts< 0, 0, 1 >();
@@ -197,7 +190,7 @@ struct HeatEquationSolverBenchmarkGrid< 3, Real, Device, Index >: public HeatEqu
       Index iterations = 0;
       auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx*hx, std::min( hy*hy, hz*hz ) );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
-     {
+      {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
          //auto xSize = grid.getDimensions().x();
@@ -233,4 +226,5 @@ struct HeatEquationSolverBenchmarkGrid< 3, Real, Device, Index >: public HeatEqu
 protected:
 
    VectorType ux, aux;
+   Grid grid;
 };
