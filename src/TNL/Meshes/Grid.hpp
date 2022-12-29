@@ -6,7 +6,6 @@
 
 #include <TNL/String.h>
 #include <TNL/Meshes/Grid.h>
-#include <TNL/Meshes/GridDetails/GridEntityGetter.h>
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/NormalsGetter.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
@@ -719,6 +718,80 @@ Grid< Dimension, Real, Device, Index >::getNeighbourEntity( const Entity& entity
 {
    return EntityType< NeighbourEntityDimension >(
       *this, CoordinatesType( entity.getCoordinates() + offset ), neighbourEntityOrientation );
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+   template< typename Entity >
+__cuda_callable__
+auto
+Grid< Dimension, Real, Device, Index >::
+getEntityOrigin( const Entity& entity ) const -> PointType
+{
+   return this->getOrigin() + entity.getCoordinates() * this->getSpaceSteps();
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+   template< typename Entity >
+__cuda_callable__
+auto
+Grid< Dimension, Real, Device, Index >::
+getEntityCenter( const Entity& entity ) const -> PointType
+{
+   return this->getOrigin() + ( entity.getCoordinates() + 0.5 * entity.getBasis() ) * this->getSpaceSteps();
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+   template< typename Entity >
+__cuda_callable__
+Real
+Grid< Dimension, Real, Device, Index >::
+getEntityMeasure( const Entity& entity ) const
+{
+   if constexpr( Entity::getEntityDimension() != 0 ) {
+      const auto& basis = entity.getBasis();
+      RealType measure = ( Real ) 1.0;
+      Algorithms::staticFor< IndexType, 0, Dimension >(
+         [&] ( Index i ) mutable {
+            if( basis[ i ] )
+               measure *= this->getSpaceSteps()[ i ];
+      } );
+      return measure;
+   }
+   return 0.0;
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+   template< typename Entity >
+__cuda_callable__
+bool
+Grid< Dimension, Real, Device, Index >::
+isBoundaryEntity( const Entity& entity ) const
+{
+   bool result( false );
+   const auto& coordinates = entity.getCoordinates();
+   if constexpr( Entity::getEntityDimension() == Dimension ) {
+      Algorithms::staticFor< IndexType, 0, Dimension >(
+      [&] ( Index i ) mutable {
+         if( coordinates[ i ] == 0 ||
+             coordinates[ i ] == this->getDimensions()[ i ] - 1 )
+             result = true; // return true does not work here
+      } );
+   } else if constexpr( Entity::getEntityDimension() == 0 ) {
+      Algorithms::staticFor< IndexType, 0, Dimension >(
+      [&] ( Index i ) mutable {
+         if( coordinates[ i ] == 0 ||
+             coordinates[ i ] == ( this->getDimensions()[ i ] ) )
+             result = true; // return true does not work here
+      } );
+   } else {
+      const auto& normals = entity.getNormals();
+      Algorithms::staticFor< IndexType, 0, Dimension >(
+         [&] ( Index i ) mutable {
+            if( normals[ i ] && ( coordinates[ i ] == 0 || coordinates[ i ] == this->getDimensions()[ i ] ) )
+                result = true; // return true does not work here
+         } );
+   }
+   return result;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >

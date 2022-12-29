@@ -210,7 +210,7 @@ public:
              std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true >
    [[nodiscard]] __cuda_callable__
    Index
-   getEntitiesCount() const noexcept;  // TODO: remove this if it not necessary for compatibility with Mesh
+   getEntitiesCount() const noexcept; // TODO: remove this if it is not necessary for compatibility with Mesh
 
    /**
     * \brief Returns number of entities of specific entity type as a template parameter.
@@ -223,21 +223,7 @@ public:
              std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension ), bool > = true >
    [[nodiscard]] __cuda_callable__
    Index
-   getEntitiesCount() const noexcept;
-
-   /**
-    * \brief Returns count of entities of specific dimensions.
-    *
-    * \tparam DimensionsIndex variadic template parameter for a list of dimensions.
-    * \param[in] indices is a list of dimensions of grid entities to be counted.
-    * \return count of entities of specific dimensions.
-    */
-   /*template< typename... DimensionIndex,
-             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool > = true,
-             std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > = true >
-   [[nodiscard]] __cuda_callable__
-   Containers::StaticVector< sizeof...( DimensionIndex ), Index >
-   getEntitiesCounts( DimensionIndex... indices ) const;*/
+   getEntitiesCount() const noexcept; // TODO: remove this if it is not necessary for compatibility with Mesh
 
    /**
     * \brief Returns count of entities for all dimensions.
@@ -588,6 +574,22 @@ public:
    getNeighbourEntity( const Entity& entity,
                        const CoordinatesType& offset,
                        const NormalsType& neighbourEntityOrientation ) const;
+
+   template< typename Entity >
+   __cuda_callable__
+   PointType getEntityOrigin( const Entity& entity ) const;
+
+   template< typename Entity >
+   __cuda_callable__
+   PointType getEntityCenter( const Entity& entity ) const;
+
+   template< typename Entity >
+   __cuda_callable__
+   RealType getEntityMeasure( const Entity& entity ) const;
+
+   template< typename Entity >
+   __cuda_callable__
+   bool isBoundaryEntity( const Entity& entity ) const;
 
    /**
     * \brief Sets the subdomain of distributed grid.

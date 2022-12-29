@@ -344,8 +344,8 @@ private:
       EXPECT_EQ( entity.normals, normals ) << "Expect the normals are the same on the same index. ";
 
       // CUDA calculates floating points differently.
-      EXPECT_NEAR( expectCall ? iterator.getMeasure( grid ) : 0.0, entity.measure, precision )
-         << "Expect the measure was correctly calculated. ";
+      EXPECT_NEAR(expectCall ? iterator.getMeasure(grid) : 0.0, entity.measure, precision)
+            << "Expect the measure was correctly calculated. Grid space steps: " << grid.getSpaceSteps();
 
       for( Index i = 0; i < Grid::getMeshDimension(); i++ )
          EXPECT_NEAR( entity.center[ i ], center[ i ], precision )
