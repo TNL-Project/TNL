@@ -1,0 +1,43 @@
+#/bin/bash
+
+#devices="sequential host"
+devices="cuda"
+precisions="float double"
+tests="parallel-for nd-array grid"
+min_x_dimension="50"
+min_y_dimension="50"
+min_z_dimension="50"
+max_x_dimension="100"
+max_y_dimension="100"
+max_z_dimension="100"
+base="tnl-benchmark-heat-equation"
+
+for device in ${devices}
+do
+   for precision in ${precisions}
+   do
+      for test in ${tests}
+      do
+         command="${base}
+            --id ${test}
+            --implementation ${test}
+            --precision ${precision}
+            --dimension 3
+            --min-x-dimension ${min_x_dimension}
+            --min-y-dimension ${min_y_dimension}
+            --min-z-dimension ${min_z_dimension}
+            --max-x-dimension ${max_x_dimension}
+            --max-y-dimension ${max_y_dimension}
+            --max-z-dimension ${max_z_dimension}
+            --max-iterations 100
+            --loops 10
+            --final-time 0.1
+            --device ${device}
+            --log-file ${base}-${test}-${device}-${precision}-3d.json
+            --output-mode append
+            --write-data no"
+         echo $command
+         $command
+      done
+   done
+done
