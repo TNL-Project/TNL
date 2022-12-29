@@ -1,12 +1,13 @@
 #/bin/bash
 
-devices="sequential host cuda"
+#devices="sequential host"
+devices="cuda"
 precisions="float double"
-# FIXME: nd-grid does not give correct results
-#tests="parallel-for simple-grid grid nd-grid"
-tests="parallel-for simple-grid grid"
-max_x_dimension="800"
-max_y_dimension="800"
+tests="parallel-for nd-array grid"
+min_x_dimension="50"
+min_y_dimension="50"
+max_x_dimension="200"
+max_y_dimension="200"
 base="tnl-benchmark-heat-equation"
 
 for device in ${devices}
@@ -15,19 +16,24 @@ do
    do
       for test in ${tests}
       do
-         tnl-benchmark-heat-equation                                  \
-            --id "${test}"                                            \
-            --implementation "${test}"                                \
-            --precision ${precision}                                  \
-            --max-x-dimension ${max_x_dimension}                      \
-            --max-y-dimension ${max_y_dimension}                      \
-            --max-iterations 500                                      \
-            --loops 1                                                 \
-            --final-time 0.1                                          \
-            --device ${device}                                        \
-            --log-file "${base}-${test}-${device}-${precision}.json"  \
-            --output-mode append                                      \
-            --write-data no
+         command="${base}
+            --id ${test}
+            --implementation ${test}
+            --precision ${precision}
+            --dimension 2
+            --min-x-dimension ${min_x_dimension}
+            --min-y-dimension ${min_y_dimension}
+            --max-x-dimension ${max_x_dimension}
+            --max-y-dimension ${max_y_dimension}
+            --max-iterations 500
+            --loops 100
+            --final-time 0.1
+            --device ${device}
+            --log-file ${base}-${test}-${device}-${precision}-2d.json
+            --output-mode append
+            --write-data no"
+         echo $command
+         $command
       done
    done
 done
