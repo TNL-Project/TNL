@@ -49,14 +49,15 @@ struct HeatEquationSolverBenchmarkGrid< 1, Real, Device, Index > : public HeatEq
          auto next = [ = ] __cuda_callable__( const typename Grid::Cell& entity ) mutable
          {
             const Index centerIdx = entity.getIndex();
-            const Real& center = (Real) 2.0 * uxView[ centerIdx ];
+            const Real& element = uxView[ centerIdx ];
+            auto center = (Real) 2.0 * element;
 
-            auxView[ centerIdx ] = center
+            auxView[ centerIdx ] = element
                                  + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1 ) ) ] - center
                                        + uxView[ entity.getNeighbourEntityIndex( Coordinates( 1 ) ) ] )
                                      * hx_inv )
                                       * timestep;
-            /*auxView[ centerIdx ] = center + ( ( uxView[ centerIdx - 1 ] -
+            /*auxView[ centerIdx ] = element + ( ( uxView[ centerIdx - 1 ] -
                                                 2.0 * center +
                                                 uxView[ centerIdx + 1 ] ) * hx_inv ) * timestep;*/
          };
@@ -117,9 +118,10 @@ struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index > : public HeatEq
          auto next = [ = ] __cuda_callable__( const typename Grid::Cell& entity ) mutable
          {
             const Index centerIdx = entity.getIndex();
-            const Real& center = (Real) 2.0 * uxView[ centerIdx ];
+            const Real& element = uxView[ centerIdx ];
+            auto center = (Real) 2.0 * element;
 
-            auxView[ centerIdx ] = center
+            auxView[ centerIdx ] = element
                                  + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1, 0 ) ) ] - center
                                        + uxView[ entity.getNeighbourEntityIndex( Coordinates( 1, 0 ) ) ] )
                                         * hx_inv
@@ -127,7 +129,7 @@ struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index > : public HeatEq
                                          + uxView[ entity.getNeighbourEntityIndex( Coordinates( 0, 1 ) ) ] )
                                           * hy_inv )
                                       * timestep;
-            /*auxView[ centerIdx ] = center + ( ( uxView[ centerIdx - 1 ] -
+            /*auxView[ centerIdx ] = element + ( ( uxView[ centerIdx - 1 ] -
                                                 2.0 * center +
                                                 uxView[ centerIdx + 1 ] ) * hx_inv +
                                                 ( uxView[ centerIdx - xSize ] -
@@ -190,9 +192,10 @@ struct HeatEquationSolverBenchmarkGrid< 3, Real, Device, Index > : public HeatEq
          auto next = [ = ] __cuda_callable__( const typename Grid::Cell& entity ) mutable
          {
             const Index centerIdx = entity.getIndex();
-            const Real& center = (Real) 2.0 * uxView[ centerIdx ];
+            const Real& element = uxView[ centerIdx ];
+            auto center = (Real) 2.0 * element;
 
-            auxView[ centerIdx ] = center
+            auxView[ centerIdx ] = element
                                  + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1, 0, 0 ) ) ] - center
                                        + uxView[ entity.getNeighbourEntityIndex( Coordinates( 1, 0, 0 ) ) ] )
                                         * hx_inv
@@ -203,7 +206,7 @@ struct HeatEquationSolverBenchmarkGrid< 3, Real, Device, Index > : public HeatEq
                                          + uxView[ entity.getNeighbourEntityIndex( Coordinates( 0, 0, 1 ) ) ] )
                                           * hz_inv )
                                       * timestep;
-            /*auxView[ centerIdx ] = center + ( ( uxView[ centerIdx - 1 ] -         2.0 * center + uxView[ centerIdx + 1 ] ) *
+            /*auxView[ centerIdx ] = element + ( ( uxView[ centerIdx - 1 ] -         2.0 * center + uxView[ centerIdx + 1 ] ) *
                hx_inv + ( uxView[ centerIdx - xSize ] -     2.0 * center + uxView[ centerIdx + xSize ] ) * hy_inv + ( uxView[
                centerIdx - xySize ] -     2.0 * center + uxView[ centerIdx + xySize ] ) * hy_inv ) * timestep;*/
          };
