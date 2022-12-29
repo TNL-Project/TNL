@@ -11,11 +11,31 @@
 #include <TNL/Meshes/Grid.h>
 #include "HeatEquationSolverBenchmark.h"
 
-template< typename Real = double,
+template< int Dimension,
+          typename Real = double,
           typename Device = TNL::Devices::Host,
           typename Index = int >
-struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Real, Device, Index >
+struct HeatEquationSolverBenchmarkGrid;
+
+template< typename Real,
+          typename Device,
+          typename Index >
+struct HeatEquationSolverBenchmarkGrid< 1, Real, Device, Index >: public HeatEquationSolverBenchmark< 1, Real, Device, Index >
 {
+   static constexpr int Dimension = 1;
+   using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
+   using VectorType = typename BaseBenchmarkType::VectorType;
+
+   void init( const Index xSize )
+   {
+      BaseBenchmarkType::init( xSize, ux, aux );
+   }
+
+   bool writeGnuplot( const std::string &filename, const Index xSize ) const
+   {
+      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize );
+   }
+
    void exec( const Index xSize )
    {
       using Grid = TNL::Meshes::Grid<1, Real, Device, int>;
@@ -56,6 +76,30 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
          start += timestep;
          iterations++;
       }
+   }
+
+protected:
+
+   VectorType ux, aux;
+};
+
+template< typename Real,
+          typename Device,
+          typename Index >
+struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index >: public HeatEquationSolverBenchmark< 2, Real, Device, Index >
+{
+   static constexpr int Dimension = 2;
+   using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
+   using VectorType = typename BaseBenchmarkType::VectorType;
+
+   void init( const Index xSize, const Index ySize )
+   {
+      BaseBenchmarkType::init( xSize, ySize, ux, aux );
+   }
+
+   bool writeGnuplot( const std::string &filename, const Index xSize, const Index ySize ) const
+   {
+      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize );
    }
 
    void exec( const Index xSize, const Index ySize )
@@ -107,6 +151,25 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
          start += timestep;
          iterations++;
       }
+   }
+
+protected:
+
+   VectorType ux, aux;
+};
+
+template< typename Real,
+          typename Device,
+          typename Index >
+struct HeatEquationSolverBenchmarkGrid< 3, Real, Device, Index >: public HeatEquationSolverBenchmark< 3, Real, Device, Index >
+{
+   static constexpr int Dimension = 3;
+   using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
+   using VectorType = typename BaseBenchmarkType::VectorType;
+
+   void init( const Index xSize, const Index ySize, const Index zSize )
+   {
+      BaseBenchmarkType::init( xSize, ySize, zSize, ux, aux );
    }
 
    void exec( const Index xSize, const Index ySize, const Index zSize )
@@ -166,4 +229,8 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
          iterations++;
       }
    }
+
+protected:
+
+   VectorType ux, aux;
 };
