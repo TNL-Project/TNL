@@ -131,15 +131,15 @@ Grid< Dimension, Real, Device, Index >::getEntitiesCount() const noexcept
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename EntityType >
+   template< typename EntityType_ >
 __cuda_callable__
 Index
 Grid< Dimension, Real, Device, Index >::getEntitiesCount() const
 {
-   static_assert( EntityType::getEntityDimension() >= 0, "Entity dimension must be greater than or equal to 0" );
-   static_assert( EntityType::getEntityDimension() <= Dimension, "Entity dimension must be less than or equal to Dimension" );
+   static_assert( EntityType_::getEntityDimension() >= 0, "Entity dimension must be greater than or equal to 0" );
+   static_assert( EntityType_::getEntityDimension() <= Dimension, "Entity dimension must be less than or equal to Dimension" );
 
-   return this->entitiesCounts[ EntityType::getEntityDimension() ];
+   return this->entitiesCounts[ EntityType_::getEntityDimension() ];
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >

@@ -81,8 +81,10 @@ public:
    constexpr static int
    getEntityDimension();
 
+   __cuda_callable__
    GridEntity();
 
+   __cuda_callable__
    GridEntity( const CoordinatesType& c );
 
    /**

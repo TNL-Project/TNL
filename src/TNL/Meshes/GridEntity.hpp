@@ -23,21 +23,16 @@ GridEntity< Grid, EntityDimension >::getEntityDimension()
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity()
-: CoordinatesType( 0 ),
-  grid( nullptr )
+GridEntity< Grid, EntityDimension >::GridEntity() : CoordinatesType( 0 ),  grid( nullptr )
 {}
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity( const CoordinatesType& c )
-: CoordinatesType( c ),
-  grid( nullptr )
+GridEntity< Grid, EntityDimension >::GridEntity( const CoordinatesType& c ) : CoordinatesType( c ),  grid( nullptr )
 {}
 
 /*template< class Grid, int EntityDimension >
-template< typename... Indexes, std::enable_if_t< ( Grid::getMeshDimension() > 1 ) && sizeof...( Indexes ) ==
-Grid::getMeshDimension(), bool > >
+template< typename... Indexes, std::enable_if_t< ( Grid::getMeshDimension() > 1 ) && sizeof...( Indexes ) == Grid::getMeshDimension(), bool > >
 __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( Indexes&&... indexes )
 : CoordinatesType( { IndexType( std::forward< Indexes >( indexes ) )... } )
@@ -46,39 +41,39 @@ GridEntity< Grid, EntityDimension >::GridEntity( Indexes&&... indexes )
 }*/
 
 template< class Grid, int EntityDimension >
-template< typename Value >
+   template< typename Value >
 __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const std::initializer_list< Value >& elems )
-: CoordinatesType( elems ),
-  grid( 0 )
-{}
+   : CoordinatesType( elems ), grid( 0 )
+{
+}
 
-   template< class Grid, int EntityDimension >
-   __cuda_callable__
-   GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, const CoordinatesType& coordinates )
-   : CoordinatesType( coordinates ), grid( &grid )
-   {
-      this->refresh();
-   }
+template< class Grid, int EntityDimension >
+__cuda_callable__
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, const CoordinatesType& coordinates )
+: CoordinatesType( coordinates ), grid( &grid )
+{
+   this->refresh();
+}
 
-   template< class Grid, int EntityDimension >
-   __cuda_callable__
-   GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
-                                                    const CoordinatesType& coordinates,
-                                                    const NormalsType& normals )
-   : CoordinatesType( coordinates ),
-     grid( &grid ), orientation( grid.getEntitiesOrientations().getTotalOrientationIndex( normals ) )
-   {
-      this->refresh();
-   }
+template< class Grid, int EntityDimension >
+__cuda_callable__
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
+                                                   const CoordinatesType& coordinates,
+                                                   const NormalsType& normals )
+: CoordinatesType( coordinates ),
+   grid( &grid ), orientation( grid.getEntitiesOrientations().getTotalOrientationIndex( normals ) )
+{
+   this->refresh();
+}
 
-   template< class Grid, int EntityDimension >
-   __cuda_callable__
-   GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, IndexType entityIdx ) : grid( &grid ), index( entityIdx )
-   {
-      TNL_ASSERT_NE( this->grid, nullptr, "Grid pointer cannot be initialized with null pointer." );
-      this->setCoordinates( grid.template getEntityCoordinates< EntityDimension >( entityIdx, this->getOrientation() ) );
-      TNL_ASSERT_EQ( getNormals(), grid.getNormals( orientation.getTotalOrientationIndex() ), "Wrong index of entity orientation." );
+template< class Grid, int EntityDimension >
+__cuda_callable__
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, IndexType entityIdx ) : grid( &grid ), index( entityIdx )
+{
+   TNL_ASSERT_NE( this->grid, nullptr, "Grid pointer cannot be initialized with null pointer." );
+   this->setCoordinates( grid.template getEntityCoordinates< EntityDimension >( entityIdx, this->getOrientation() ) );
+   TNL_ASSERT_EQ( getNormals(), grid.getNormals( orientation.getTotalOrientationIndex() ), "Wrong index of entity orientation." );
 }
 
 template< class Grid, int EntityDimension >

@@ -110,6 +110,7 @@ getNormals() -> NormalsType {
 template< int GridDimension >
    template< int EntityDimension >
 auto
+__cuda_callable__
 GridEntitiesOrientations< GridDimension >::
 getNormals( int orientation ) const -> const NormalsType& {
    return normalsTable[ getTotalOrientationIndex< EntityDimension >( orientation ) ];
@@ -117,6 +118,7 @@ getNormals( int orientation ) const -> const NormalsType& {
 
 template< int GridDimension >
 auto
+__cuda_callable__
 GridEntitiesOrientations< GridDimension >::
 getNormals( int entityDimension, int orientation ) const -> const NormalsType& {
    return normalsTable[ getTotalOrientationIndex( entityDimension, orientation ) ];
@@ -124,6 +126,7 @@ getNormals( int entityDimension, int orientation ) const -> const NormalsType& {
 
 template< int GridDimension >
 auto
+__cuda_callable__
 GridEntitiesOrientations< GridDimension >::
 getNormals( int totalOrientation ) const -> const NormalsType& {
    return normalsTable[ totalOrientation ];
@@ -131,6 +134,7 @@ getNormals( int totalOrientation ) const -> const NormalsType& {
 
 template< int GridDimension >
 int
+__cuda_callable__
 GridEntitiesOrientations< GridDimension >::
 getEntityDimension( const NormalsType& normals )
 {
@@ -141,6 +145,7 @@ getEntityDimension( const NormalsType& normals )
 
 template< int GridDimension >
 int
+__cuda_callable__
 GridEntitiesOrientations< GridDimension >::
 getOrientationIndex( const NormalsType& normals ) const
 {
@@ -158,6 +163,7 @@ getOrientationIndex( const NormalsType& normals ) const
 
 template< int GridDimension >
 int
+__cuda_callable__
 GridEntitiesOrientations< GridDimension >::
 getTotalOrientationIndex( const NormalsType& normals ) const
 {
@@ -173,6 +179,7 @@ getTotalOrientationIndex( const NormalsType& normals ) const
 template< int GridDimension >
    template< int EntityDimension, int Orientation >
 void
+__cuda_callable__
 GridEntitiesOrientations< GridDimension >::
 addNormalsToTable( int offset ) {
    normalsTable[ offset ] = getNormals< EntityDimension, Orientation >();

@@ -225,10 +225,13 @@ struct GridEntitiesOrientations
     */
    GridEntitiesOrientations();
 
+   __cuda_callable__
    static int getEntityDimension( const NormalsType& normals );
 
+   __cuda_callable__
    int getOrientationIndex( const NormalsType& normals ) const;
 
+   __cuda_callable__
    int getTotalOrientationIndex( const NormalsType& normals ) const;
 
    /**
@@ -272,6 +275,7 @@ protected:
    using OrientationNormalsContainer = Containers::StaticVector< getTotalOrientationsCount(), NormalsType >;
 
    template< int EntityDimension, int Orientation >
+   __cuda_callable__
    void addNormalsToTable( int offset );
 
    OrientationNormalsContainer normalsTable;
