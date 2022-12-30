@@ -6,8 +6,8 @@ precisions="float double"
 tests="parallel-for nd-array grid"
 min_x_dimension="50"
 min_y_dimension="50"
-max_x_dimension="200"
-max_y_dimension="200"
+max_x_dimension="1600"
+max_y_dimension="1600"
 base="tnl-benchmark-heat-equation"
 
 for device in ${devices}
