@@ -4,8 +4,8 @@
 devices="cuda"
 precisions="float double"
 tests="parallel-for nd-array grid"
-min_x_dimension="100"
-max_x_dimension="100000"
+min_x_dimension="50"
+max_x_dimension="102400"
 base="tnl-benchmark-heat-equation"
 
 for device in ${devices}
