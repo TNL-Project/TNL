@@ -17,7 +17,6 @@ namespace TNL {
 namespace Algorithms {
 namespace Segments {
 
-#ifdef HAVE_CUDA
 template< typename Offsets,
           typename Index,
           typename Fetch,
@@ -37,6 +36,7 @@ reduceSegmentsCSRKernelVector( int gridIdx,
                                const Real zero,
                                Args... args )
 {
+#ifdef __CUDACC__
    /***
     * We map one warp to each segment
     */
@@ -68,8 +68,8 @@ reduceSegmentsCSRKernelVector( int gridIdx,
 
    if( laneIdx == 0 )
       keep( segmentIdx, aux );
-}
 #endif
+}
 
 template< typename Index, typename Device >
 template< typename Offsets >
@@ -117,25 +117,23 @@ CSRVectorKernel< Index, Device >::reduceSegments( const OffsetsView& offsets,
                                                   const Real& zero,
                                                   Args... args )
 {
-#ifdef HAVE_CUDA
    if( last <= first )
       return;
 
    const Index warpsCount = last - first;
-   const size_t threadsCount = warpsCount * TNL::Cuda::getWarpSize();
-   dim3 blocksCount, gridsCount, blockSize( 256 );
-   TNL::Cuda::setupThreads( blockSize, blocksCount, gridsCount, threadsCount );
-   dim3 gridIdx;
-   for( gridIdx.x = 0; gridIdx.x < gridsCount.x; gridIdx.x++ ) {
-      dim3 gridSize;
-      TNL::Cuda::setupGrid( blocksCount, gridsCount, gridIdx, gridSize );
-      reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Real, Args... > <<<
-         gridSize,
-         blockSize >>>( gridIdx.x, offsets, first, last, fetch, reduction, keeper, zero, args... );
+   const std::size_t threadsCount = warpsCount * TNL::Cuda::getWarpSize();
+   Devices::Cuda::LaunchConfiguration launch_config;
+   launch_config.blockSize.x = 256;
+   dim3 blocksCount, gridsCount;
+   TNL::Cuda::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+   for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+      TNL::Cuda::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+      constexpr auto kernel =
+         reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Real, Args... >;
+      Cuda::launchKernelAsync( kernel, launch_config, gridIdx, offsets, first, last, fetch, reduction, keeper, zero, args... );
    }
-   cudaStreamSynchronize( 0 );
+   cudaStreamSynchronize( launch_config.stream );
    TNL_CHECK_CUDA_DEVICE;
-#endif
 }
 
 }  // namespace Segments

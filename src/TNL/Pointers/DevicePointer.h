@@ -705,7 +705,7 @@ public:
    {
       if( ! this->pd )
          return true;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       if( this->modified() ) {
          TNL_ASSERT( this->pointer, );
          TNL_ASSERT( this->cuda_pointer, );

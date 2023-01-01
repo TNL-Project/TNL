@@ -271,7 +271,7 @@ ChunkedEllpackView< Device, Index, Organization >::reduceSegments( IndexType fir
                                                                    const Real& zero ) const
 {
    using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   if( std::is_same< DeviceType, Devices::Host >::value ) {
+   if constexpr( std::is_same< DeviceType, Devices::Host >::value ) {
       // reduceSegmentsKernel( 0, first, last, fetch, reduction, keeper, zero );
       // return;
 
@@ -313,25 +313,25 @@ ChunkedEllpackView< Device, Index, Organization >::reduceSegments( IndexType fir
          keeper( segmentIdx, aux );
       }
    }
-   if( std::is_same< DeviceType, Devices::Cuda >::value ) {
-#ifdef HAVE_CUDA
+   if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
+      Devices::Cuda::LaunchConfiguration launch_config;
       // const IndexType chunksCount = this->numberOfSlices * this->chunksInSlice;
       //  TODO: This ignores parameters first and last
       const IndexType cudaBlocks = this->numberOfSlices;
       const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
-      dim3 cudaBlockSize( this->chunksInSlice ), cudaGridSize;
-      const IndexType sharedMemory = cudaBlockSize.x * sizeof( RealType );
+      launch_config.blockSize.x = this->chunksInSlice;
+      launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( RealType );
 
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+         launch_config.gridSize.x = Cuda::getMaxGridXSize();
          if( gridIdx == cudaGrids - 1 )
-            cudaGridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
-         detail::ChunkedEllpackreduceSegmentsKernel< ViewType, IndexType, Fetch, Reduction, ResultKeeper, Real >
-            <<< cudaGridSize, cudaBlockSize,
-            sharedMemory >>>( *this, gridIdx, first, last, fetch, reduction, keeper, zero );
+            launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
+         constexpr auto kernel =
+            detail::ChunkedEllpackreduceSegmentsKernel< ViewType, IndexType, Fetch, Reduction, ResultKeeper, Real >;
+         Cuda::launchKernelAsync( kernel, launch_config, *this, gridIdx, first, last, fetch, reduction, keeper, zero );
       }
-      cudaStreamSynchronize( 0 );
+      cudaStreamSynchronize( launch_config.stream );
       TNL_CHECK_CUDA_DEVICE;
-#endif
    }
 }
 
@@ -400,7 +400,7 @@ ChunkedEllpackView< Device, Index, Organization >::printStructure( std::ostream&
           << " chunk = " << this->rowToChunkMapping.getElement( i ) << std::endl;
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 template< typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 __device__

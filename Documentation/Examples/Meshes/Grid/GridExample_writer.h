@@ -19,7 +19,6 @@ void writeGrid()
     * Setup necessary type.
     */
    using GridType = TNL::Meshes::Grid< Dimension, double, Device >;
-   using CoordinatesType = typename GridType::CoordinatesType;
    using PointType = typename GridType::PointType;
    using VectorType = TNL::Containers::Vector< double, Device >;
 
@@ -27,7 +26,6 @@ void writeGrid()
     * Setup types of grid entities.
     */
    using GridCell = typename GridType::Cell;
-   using GridFace = typename GridType::Face;
    using GridVertex = typename GridType::Vertex;
 
    /***
@@ -159,7 +157,7 @@ int main( int argc, char* argv[] )
    std::cout << "Traversing grid on CPU..." << std::endl;
    writeGrid< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Traversing grid on CUDA GPU..." << std::endl;
    writeGrid< TNL::Devices::Cuda >();
 #endif

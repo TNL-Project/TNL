@@ -4,6 +4,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Math.h>
 #include <TNL/TypeInfo.h>
+#include "MemoryHelpers.h"
 
 namespace TNL {
     namespace Benchmarks {
@@ -1016,7 +1017,7 @@ public:
 
 };
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 template< typename Real,
           typename Device,
           typename Index >
@@ -1369,7 +1370,7 @@ void AdEllpack< Real, Device, Index >::spmvCuda32( const InVector& inVector,
 }
 #endif
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 template< typename Real,
           typename Index,
           typename InVector,
@@ -1451,7 +1452,7 @@ public:
                                const InVector& inVector,
                                OutVector& outVector )
     {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       typedef AdEllpack< Real, Devices::Cuda, Index > Matrix;
       typedef typename Matrix::IndexType IndexType;
 	   Matrix* kernel_this = Cuda::passToDevice( matrix );
@@ -1574,7 +1575,7 @@ public:
 	    Cuda::freeFromDevice( kernel_outVector );
 	    TNL_CHECK_CUDA_DEVICE;
 	}
-#endif // HAVE_CUDA
+#endif // __CUDACC__
    }
 };
 

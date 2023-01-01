@@ -86,8 +86,6 @@ class GridBenchmark {
          grid.setDimensions(dimensions);
 
          auto forEachEntityDimension = [&](const auto entityDimension) {
-            using Entity = TNL::Meshes::GridEntity<Grid, entityDimension>;
-
             timeTraverse<entityDimension, Grid, VoidOperation>(benchmark, grid);
 
             timeTraverse<entityDimension, Grid, GetEntityIsBoundaryOperation>(benchmark, grid);

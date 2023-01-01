@@ -72,7 +72,7 @@ int main( int argc, char* argv[] )
    std::cout << "Example of Ellpack segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > >();
 

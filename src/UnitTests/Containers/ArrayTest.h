@@ -12,7 +12,7 @@
 using namespace TNL;
 using namespace TNL::Containers;
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 static const char* TEST_FILE_NAME = "test_ArrayTestCuda.tnl";
 #else
 static const char* TEST_FILE_NAME = "test_ArrayTest.tnl";
@@ -59,7 +59,7 @@ protected:
 
 // types for which ArrayTest is instantiated
 using ArrayTypes = ::testing::Types<
-#ifndef HAVE_CUDA
+#ifndef __CUDACC__
    // we can't test all types because the argument list would be too long...
 //   Array< int,    Devices::Sequential, short >,
 //   Array< long,   Devices::Sequential, short >,
@@ -93,7 +93,7 @@ using ArrayTypes = ::testing::Types<
    Array< double, Devices::Host, long >,
    Array< MyData, Devices::Host, long >
 #endif
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Array< int,    Devices::Cuda, short >,
    Array< long,   Devices::Cuda, short >,
    Array< float,  Devices::Cuda, short >,
@@ -113,14 +113,14 @@ using ArrayTypes = ::testing::Types<
 
    // all array tests should also work with Vector
    // (but we can't test all types because the argument list would be too long...)
-#ifndef HAVE_CUDA
+#ifndef __CUDACC__
    ,
    Vector< float,  Devices::Sequential, long >,
    Vector< double, Devices::Sequential, long >,
    Vector< float,  Devices::Host, long >,
    Vector< double, Devices::Host, long >
 #endif
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    ,
    Vector< float,  Devices::Cuda, long >,
    Vector< double, Devices::Cuda, long >
@@ -399,7 +399,7 @@ void testArrayElementwiseAccess( Array< Value, Devices::Host, Index >&& u )
    }
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 template< typename ValueType, typename IndexType >
 __global__ void testSetGetElementKernel( Array< ValueType, Devices::Cuda, IndexType >* u,
                                          Array< ValueType, Devices::Cuda, IndexType >* v )
@@ -407,12 +407,12 @@ __global__ void testSetGetElementKernel( Array< ValueType, Devices::Cuda, IndexT
    if( threadIdx.x < u->getSize() )
       ( *u )[ threadIdx.x ] = ( *v )( threadIdx.x ) = threadIdx.x;
 }
-#endif /* HAVE_CUDA */
+#endif /* __CUDACC__ */
 
 template< typename Value, typename Index >
 void testArrayElementwiseAccess( Array< Value, Devices::Cuda, Index >&& u )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    using ArrayType = Array< Value, Devices::Cuda, Index >;
    u.setSize( 10 );
    ArrayType v( 10 );
@@ -444,7 +444,7 @@ void test_setElement_on_device( const Array< Value, Devices::Host, Index >& )
 {
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 template< typename ValueType, typename IndexType >
 __global__ void test_setElement_on_device_kernel( Array< ValueType, Devices::Cuda, IndexType >* a,
                                                   Array< ValueType, Devices::Cuda, IndexType >* b )
@@ -454,12 +454,12 @@ __global__ void test_setElement_on_device_kernel( Array< ValueType, Devices::Cud
       b->setElement( threadIdx.x, a->getElement( threadIdx.x ) );
    }
 }
-#endif /* HAVE_CUDA */
+#endif /* __CUDACC__ */
 
 template< typename Value, typename Index >
 void test_setElement_on_device( const Array< Value, Devices::Cuda, Index >& )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    using ArrayType = Array< Value, Devices::Cuda, Index >;
    ArrayType a( 10, 0 ), b( 10, 0 );
    Pointers::DevicePointer< ArrayType > kernel_a( a );

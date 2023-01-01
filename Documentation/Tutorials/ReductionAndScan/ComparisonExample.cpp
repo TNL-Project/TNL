@@ -34,7 +34,7 @@ int main( int argc, char* argv[] )
    std::cout << "host_v = " << host_v << std::endl;
    std::cout << "Comparison of host_u and host_v is: " << ( comparison( host_u, host_v ) ? "'true'" : "'false'" ) << "." << std::endl;
    std::cout << "Comparison of host_u and host_u is: " << ( comparison( host_u, host_u ) ? "'true'" : "'false'" ) << "." << std::endl;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_u( 10 ), cuda_v( 10 );
    cuda_u = 1.0;
    cuda_v.forAllElements( [] __cuda_callable__ ( int i, double& value ) { value = 2 * ( i % 2 ) - 1; } );

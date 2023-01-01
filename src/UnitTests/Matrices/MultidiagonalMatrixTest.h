@@ -38,8 +38,6 @@ void test_GetSerializationType()
 template< typename Matrix >
 void test_SetDimensions()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
@@ -57,8 +55,6 @@ void test_SetDimensions()
 template< typename Matrix >
 void test_SetDiagonalsOffsets()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
@@ -77,10 +73,7 @@ void test_SetDiagonalsOffsets()
 template< typename Matrix >
 void test_SetDiagonalsOffsets_initalizer_list()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
    const IndexType rows = 9;
    const IndexType cols = 8;
@@ -96,8 +89,6 @@ void test_SetDiagonalsOffsets_initalizer_list()
 template< typename Matrix1, typename Matrix2 >
 void test_SetLike()
 {
-   using RealType = typename Matrix1::RealType;
-   using DeviceType = typename Matrix1::DeviceType;
    using IndexType = typename Matrix1::IndexType;
    using DiagonalsOffsetsType = typename Matrix1::DiagonalsOffsetsType;
 
@@ -120,10 +111,6 @@ void test_SetLike()
 template< typename Matrix >
 void test_SetElements()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
-   using IndexType = typename Matrix::IndexType;
-
    const int gridSize( 4 );
    const int matrixSize( gridSize * gridSize );
    Matrix matrix( matrixSize, matrixSize, { - gridSize, -1, 0, 1, gridSize } );
@@ -181,8 +168,6 @@ void test_SetElements()
 template< typename Matrix >
 void test_GetCompressedRowLengths()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
@@ -217,9 +202,6 @@ void test_GetCompressedRowLengths()
 template< typename Matrix >
 void test_GetAllocatedElementsCount()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
-   using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
    //const IndexType rows = 7;
@@ -238,8 +220,6 @@ void test_GetAllocatedElementsCount()
 template< typename Matrix >
 void test_GetNonzeroElementsCount()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
@@ -269,8 +249,6 @@ void test_GetNonzeroElementsCount()
 template< typename Matrix >
 void test_Reset()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
@@ -296,8 +274,6 @@ void test_Reset()
 template< typename Matrix >
 void test_SetValue()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
@@ -372,7 +348,6 @@ template< typename Matrix >
 void test_SetElement()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
@@ -435,7 +410,6 @@ template< typename Matrix >
 void test_AddElement()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
@@ -771,8 +745,6 @@ void test_AddRow()
 template< typename Matrix >
 void test_ForRows()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /**
@@ -899,7 +871,6 @@ template< typename Matrix1, typename Matrix2 = Matrix1 >
 void test_AddMatrix()
 {
    using RealType = typename Matrix1::RealType;
-   using DeviceType = typename Matrix1::DeviceType;
    using IndexType = typename Matrix1::IndexType;
    using DiagonalsOffsetsType1 = typename Matrix1::DiagonalsOffsetsType;
    using DiagonalsOffsetsType2 = typename Matrix2::DiagonalsOffsetsType;
@@ -1022,7 +993,6 @@ template< typename Matrix >
 void test_GetTransposition()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
     using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 /*
@@ -1081,14 +1051,11 @@ template< typename Matrix >
 void test_AssignmentOperator()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
    constexpr TNL::Algorithms::Segments::ElementsOrganization organization = Matrix::getOrganization();
 
    using MultidiagonalHost = TNL::Matrices::MultidiagonalMatrix< RealType, TNL::Devices::Host, IndexType, organization >;
-   using MultidiagonalCuda = TNL::Matrices::MultidiagonalMatrix< RealType, TNL::Devices::Cuda, IndexType,
-      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder : TNL::Algorithms::Segments::RowMajorOrder >;
 
    const IndexType rows( 10 ), columns( 10 );
    DiagonalsOffsetsType diagonalsOffsets( { -4, -2, 0, 2, 3, 5 } );
@@ -1108,7 +1075,9 @@ void test_AssignmentOperator()
             else
                EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
+   using MultidiagonalCuda = TNL::Matrices::MultidiagonalMatrix< RealType, TNL::Devices::Cuda, IndexType,
+      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder : TNL::Algorithms::Segments::RowMajorOrder >;
    MultidiagonalCuda cudaMatrix( rows, columns, diagonalsOffsets );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )
@@ -1133,7 +1102,6 @@ template< typename Matrix >
 void test_SaveAndLoad()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
 
@@ -1230,7 +1198,7 @@ using MatrixTypes = ::testing::Types
     TNL::Matrices::MultidiagonalMatrix< long,   TNL::Devices::Host, long >,
     TNL::Matrices::MultidiagonalMatrix< float,  TNL::Devices::Host, long >,
     TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, long >
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
     ,TNL::Matrices::MultidiagonalMatrix< int,    TNL::Devices::Cuda, short >,
     TNL::Matrices::MultidiagonalMatrix< long,   TNL::Devices::Cuda, short >,
     TNL::Matrices::MultidiagonalMatrix< float,  TNL::Devices::Cuda, short >,
@@ -1397,7 +1365,7 @@ TEST( MultidiagonalMatrixTest, Multidiagonal_getTranspositionTest_Host )
     std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(1420): here\n\n";
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( MultidiagonalMatrixTest, Multidiagonal_getTranspositionTest_Cuda )
 {
 //    test_GetTransposition< Multidiagonal_cuda_int >();

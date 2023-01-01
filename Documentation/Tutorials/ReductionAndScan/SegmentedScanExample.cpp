@@ -37,7 +37,7 @@ int main( int argc, char* argv[] )
    /***
     * And then also on GPU.
     */
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    //Array< bool, Devices::Cuda > cuda_flags{ 1,0,0,1,0,0,0,1,0,1,0,0, 0, 0 };
    //Array< double, Devices::Cuda > cuda_v { 1,3,5,2,4,6,9,3,5,3,6,9,12,15 };
    //std::cout << "cuda_flags = " << cuda_flags << std::endl;

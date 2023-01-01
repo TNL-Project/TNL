@@ -19,7 +19,7 @@ namespace TNL {
 namespace Algorithms {
 namespace Segments {
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 
 template< int CudaBlockSize,
           int warpSize,

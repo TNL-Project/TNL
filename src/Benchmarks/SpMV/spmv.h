@@ -194,7 +194,6 @@ benchmarkSpMVLegacy( BenchmarkType& benchmark,
    using HostMatrix = Matrix< Real, TNL::Devices::Host, int >;
    using CudaMatrix = Matrix< Real, TNL::Devices::Cuda, int >;
    using HostVector = Containers::Vector< Real, Devices::Host, int >;
-   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
 
    bool allCpuTests = parameters.getParameter< bool >( "with-all-cpu-tests" );
    benchmark.setMetadataElement({ "format", MatrixInfo< HostMatrix >::getFormat() });
@@ -239,7 +238,7 @@ benchmarkSpMVLegacy( BenchmarkType& benchmark,
    /////
    // Benchmark SpMV on CUDA
    //
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    try
    {
       cudaMatrix = hostMatrix;
@@ -250,6 +249,7 @@ benchmarkSpMVLegacy( BenchmarkType& benchmark,
       return;
    }
 
+   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
    CudaVector cudaInVector( hostMatrix.getColumns() ), cudaOutVector( hostMatrix.getRows() );
 
    auto resetCudaVectors = [&]() {
@@ -277,9 +277,7 @@ benchmarkSpMV( BenchmarkType& benchmark,
                bool verboseMR )
 {
    using HostMatrix = Matrix< Real, TNL::Devices::Host, int >;
-   using CudaMatrix = Matrix< Real, TNL::Devices::Cuda, int >;
    using HostVector = Containers::Vector< Real, Devices::Host, int >;
-   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
 
    bool allCpuTests = parameters.getParameter< bool >( "with-all-cpu-tests" );
    benchmark.setMetadataElement({ "format", MatrixInfo< HostMatrix >::getFormat() });
@@ -322,7 +320,10 @@ benchmarkSpMV( BenchmarkType& benchmark,
    /////
    // Benchmark SpMV on CUDA
    //
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
+   using CudaMatrix = Matrix< Real, TNL::Devices::Cuda, int >;
+   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
+
    CudaMatrix cudaMatrix;
    try
    {
@@ -362,9 +363,7 @@ benchmarkSpMVCSRLight( BenchmarkType& benchmark,
                        bool verboseMR )
 {
    using HostMatrix = Matrix< TestReal, TNL::Devices::Host, int >;
-   using CudaMatrix = Matrix< TestReal, TNL::Devices::Cuda, int >;
    using HostVector = Containers::Vector< Real, Devices::Host, int >;
-   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
 
    bool allCpuTests = parameters.getParameter< bool >( "with-all-cpu-tests" );
    benchmark.setMetadataElement({ "format", MatrixInfo< HostMatrix >::getFormat() });
@@ -407,7 +406,10 @@ benchmarkSpMVCSRLight( BenchmarkType& benchmark,
    /////
    // Benchmark SpMV on CUDA
    //
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
+   using CudaMatrix = Matrix< TestReal, TNL::Devices::Cuda, int >;
+   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
+
    CudaMatrix cudaMatrix;
    try
    {
@@ -473,9 +475,7 @@ benchmarkBinarySpMV( BenchmarkType& benchmark,
                      bool verboseMR )
 {
    using HostMatrix = Matrix< bool, TNL::Devices::Host, int >;
-   using CudaMatrix = Matrix< bool, TNL::Devices::Cuda, int >;
    using HostVector = Containers::Vector< Real, Devices::Host, int >;
-   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
 
    bool allCpuTests = parameters.getParameter< bool >( "with-all-cpu-tests" );
    benchmark.setMetadataElement({ "format", MatrixInfo< HostMatrix >::getFormat() });
@@ -518,7 +518,10 @@ benchmarkBinarySpMV( BenchmarkType& benchmark,
    /////
    // Benchmark SpMV on CUDA
    //
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
+   using CudaMatrix = Matrix< bool, TNL::Devices::Cuda, int >;
+   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
+
    CudaMatrix cudaMatrix;
    try
    {
@@ -717,19 +720,21 @@ benchmarkSpmv( BenchmarkType& benchmark,
 #ifdef USE_LEGACY_FORMATS
    // Here we use 'int' instead of 'Index' because of compatibility with cusparse.
    using CSRHostMatrix = SpMV::ReferenceFormats::Legacy::CSR< Real, Devices::Host, int >;
+#  ifdef __CUDACC__
    using CSRCudaMatrix = SpMV::ReferenceFormats::Legacy::CSR< Real, Devices::Cuda, int >;
    using CusparseMatrix = TNL::CusparseCSRLegacy< Real >;
    using LightSpMVCSRHostMatrix = SpMV::ReferenceFormats::Legacy::CSR< Real, Devices::Host, uint32_t >;
+   #endif
 #else
    // Here we use 'int' instead of 'Index' because of compatibility with cusparse.
    using CSRHostMatrix = TNL::Matrices::SparseMatrix< Real, TNL::Devices::Host, int >;
+   #ifdef __CUDACC__
    using CSRCudaMatrix = TNL::Matrices::SparseMatrix< Real, TNL::Devices::Cuda, int >;
    using CusparseMatrix = TNL::CusparseCSR< Real >;
+   #endif
 #endif
 
    using HostVector = Containers::Vector< Real, Devices::Host, int >;
-   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
-   using BinaryHostVector = Containers::Vector< int, Devices::Host, int >;
 
    CSRHostMatrix csrHostMatrix;
 
@@ -822,7 +827,8 @@ benchmarkSpmv( BenchmarkType& benchmark,
 #endif
 
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
+   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
    ////
    // Perform benchmark on CUDA device with cuSparse as a reference GPU format
    //

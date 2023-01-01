@@ -21,7 +21,7 @@ struct Tuple
    Pointers::SharedPointer< ArrayCuda > a1, a2;
 };
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 __global__ void printTuple( const Tuple t )
 {
    printf( "Tuple size is: %d\n", t.a1->getSize() );
@@ -38,7 +38,7 @@ int main( int argc, char* argv[] )
    /***
     * Create a tuple of arrays and print them in CUDA kernel
     */
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Tuple t( 3 );
    *t.a1 = 1;
    *t.a2 = 2;

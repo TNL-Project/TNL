@@ -179,30 +179,6 @@ public:
    printStructure( std::ostream& str ) const;
 
 protected:
-#ifdef HAVE_CUDA
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   __device__
-   void
-   reduceSegmentsKernelWithAllParameters( IndexType gridIdx,
-                                          IndexType first,
-                                          IndexType last,
-                                          Fetch fetch,
-                                          Reduction reduction,
-                                          ResultKeeper keeper,
-                                          Real zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   __device__
-   void
-   reduceSegmentsKernel( IndexType gridIdx,
-                         IndexType first,
-                         IndexType last,
-                         Fetch fetch,
-                         Reduction reduction,
-                         ResultKeeper keeper,
-                         Real zero ) const;
-#endif
-
    IndexType size = 0, storageSize = 0, numberOfSlices = 0;
 
    IndexType chunksInSlice = 256, desiredChunkSize = 16;
@@ -227,23 +203,33 @@ protected:
 
    ChunkedEllpackSliceInfoContainerView slices;
 
-#ifdef HAVE_CUDA
-   template< typename View_, typename Index_, typename Fetch_, typename Reduction_, typename ResultKeeper_, typename Real_ >
-   friend __global__
+#ifdef __CUDACC__
+   // these methods must be public so they can be called from the __global__ function
+public:
+   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   __device__
    void
-   ChunkedEllpackreduceSegmentsKernel( View_ chunkedEllpack,
-                                       Index_ gridIdx,
-                                       Index_ first,
-                                       Index_ last,
-                                       Fetch_ fetch,
-                                       Reduction_ reduction,
-                                       ResultKeeper_ keeper,
-                                       Real_ zero );
+   reduceSegmentsKernelWithAllParameters( IndexType gridIdx,
+                                          IndexType first,
+                                          IndexType last,
+                                          Fetch fetch,
+                                          Reduction reduction,
+                                          ResultKeeper keeper,
+                                          Real zero ) const;
 
-   template< typename Index_, typename Fetch_, bool B_ >
-   friend struct detail::ChunkedEllpackreduceSegmentsDispatcher;
+   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   __device__
+   void
+   reduceSegmentsKernel( IndexType gridIdx,
+                         IndexType first,
+                         IndexType last,
+                         Fetch fetch,
+                         Reduction reduction,
+                         ResultKeeper keeper,
+                         Real zero ) const;
 #endif
 };
+
 }  // namespace Segments
 }  // namespace Algorithms
 }  // namespace TNL

@@ -57,9 +57,6 @@ int main( int argc, char* argv[] )
 {
    using HostCSR = TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int >;
    using HostEllpack = TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int >;
-   using CudaCSR = TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int >;
-   using CudaEllpack = TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int >;
-
 
    std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< HostCSR >();
@@ -67,7 +64,10 @@ int main( int argc, char* argv[] )
    std::cout << "Example of Ellpack segments on host: " << std::endl;
    SegmentsExample< HostEllpack >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
+   using CudaCSR = TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int >;
+   using CudaEllpack = TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int >;
+
    std::cout << "Example of CSR segments on CUDA GPU: " << std::endl;
    SegmentsExample< CudaCSR >();
 

@@ -55,7 +55,7 @@ using DistributedNDArrayTypes = ::testing::Types<
                                 SizesHolder< int, 0 >,
                                 std::index_sequence< 0 >,
                                 Devices::Host > >
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    ,
    DistributedNDArray< NDArray< double,
                                 SizesHolder< int, 0 >,

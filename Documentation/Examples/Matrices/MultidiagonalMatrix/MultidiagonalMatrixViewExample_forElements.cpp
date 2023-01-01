@@ -50,7 +50,7 @@ int main( int argc, char* argv[] )
    std::cout << "Creating matrix on host: " << std::endl;
    forElementsExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Creating matrix on CUDA device: " << std::endl;
    forElementsExample< TNL::Devices::Cuda >();
 #endif

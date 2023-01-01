@@ -24,7 +24,7 @@ int main( int argc, char* argv[] )
    std::cout << "Computing matrix elements on host: " << std::endl;
    getElementsCountExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Computing matrix elements on CUDA device: " << std::endl;
    getElementsCountExample< TNL::Devices::Cuda >();
 #endif

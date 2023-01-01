@@ -22,7 +22,7 @@ int main( int argc, char* argv[] )
    std::cout << "Creating matrix on host: " << std::endl;
    forAllElementsExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Creating matrix on CUDA device: " << std::endl;
    forAllElementsExample< TNL::Devices::Cuda >();
 #endif

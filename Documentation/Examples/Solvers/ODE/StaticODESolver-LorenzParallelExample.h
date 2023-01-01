@@ -80,7 +80,7 @@ int main( int argc, char* argv[] )
    file_name += "/StaticODESolver-LorenzParallelExample-result.out";
 
    solveParallelODEs< TNL::Devices::Host >( file_name.getString() );
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    solveParallelODEs< TNL::Devices::Cuda >( file_name.getString() );
 #endif
 }

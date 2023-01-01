@@ -13,7 +13,6 @@ template< typename Device >
 void distributedArrayExample()
 {
    using ArrayType = Containers::DistributedArray< int, Device >;
-   using LocalArrayType = Containers::Array< int, Device >;
    using IndexType = typename ArrayType::IndexType;
    using LocalRangeType = typename ArrayType::LocalRangeType;
 
@@ -41,7 +40,7 @@ int main( int argc, char* argv[] )
 
    std::cout << "The first test runs on CPU ..." << std::endl;
    distributedArrayExample< Devices::Host >();
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "The second test runs on GPU ..." << std::endl;
    distributedArrayExample< Devices::Cuda >();
 #endif

@@ -36,7 +36,7 @@ using LambdaMatrixTypes = ::testing::Types
    LambdaMatrixParameters< long,   TNL::Devices::Host, long >,
    LambdaMatrixParameters< float,  TNL::Devices::Host, long >,
    LambdaMatrixParameters< double, TNL::Devices::Host, long >
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    ,LambdaMatrixParameters< int,    TNL::Devices::Cuda, int >,
    LambdaMatrixParameters< long,   TNL::Devices::Cuda, int >,
    LambdaMatrixParameters< float,  TNL::Devices::Cuda, int >,

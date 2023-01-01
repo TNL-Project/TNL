@@ -32,7 +32,7 @@ int main( int argc, char* argv[] )
    std::cout << "Creating matrix view on host: " << std::endl;
    createMatrixView< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Creating matrix view on CUDA device: " << std::endl;
    createMatrixView< TNL::Devices::Cuda >();
 #endif

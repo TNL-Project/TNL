@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
    std::cout << "Create multidiagonal matrix on CPU ... " << std::endl;
    createMultidiagonalMatrix< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Creating multidiagonal matrix on CUDA GPU ... " << std::endl;
    createMultidiagonalMatrix< TNL::Devices::Cuda >();
 #endif

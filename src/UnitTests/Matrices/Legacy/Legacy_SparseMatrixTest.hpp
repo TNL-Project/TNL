@@ -33,8 +33,6 @@ void cuda_test_GetType()
 template< typename Matrix >
 void test_SetDimensions()
 {
-    using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 
     const IndexType rows = 9;
@@ -51,7 +49,6 @@ template< typename Matrix >
 void test_SetCompressedRowLengths()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 
     const IndexType rows = 10;
@@ -119,8 +116,6 @@ void test_SetCompressedRowLengths()
 template< typename Matrix1, typename Matrix2 >
 void test_SetLike()
 {
-    using RealType = typename Matrix1::RealType;
-    using DeviceType = typename Matrix1::DeviceType;
     using IndexType = typename Matrix1::IndexType;
 
     const IndexType rows = 8;
@@ -145,7 +140,6 @@ template< typename Matrix >
 void test_GetNumberOfNonzeroMatrixElements()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*
@@ -213,8 +207,6 @@ void test_GetNumberOfNonzeroMatrixElements()
 template< typename Matrix >
 void test_Reset()
 {
-    using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 
 /*
@@ -470,7 +462,6 @@ template< typename Matrix >
 void test_SetElement()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 
 /*
@@ -647,7 +638,6 @@ template< typename Matrix >
 void test_AddElement()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 
 /*
@@ -811,7 +801,6 @@ template< typename Matrix >
 void test_SetRow()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 
 /*
@@ -1827,7 +1816,6 @@ template< typename Matrix >
 void test_SaveAndLoad( const char* filename )
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*
@@ -1924,7 +1912,6 @@ template< typename Matrix >
 void test_Print()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 
 /*

@@ -282,12 +282,10 @@ public:
       if( policy == AsyncPolicy::threadpool || policy == AsyncPolicy::async ) {
          auto worker = [ this ]()
          {
-#ifdef HAVE_CUDA
             // set the GPU id, see this gotcha:
             // GOTCHA: https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
-            if( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
+            if constexpr( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
                cudaSetDevice( this->gpu_id );
-#endif
 
             // stage 1: fill send buffers
             this->stage_1();
@@ -369,12 +367,10 @@ public:
    void
    stage_0( DistributedNDArray& array, SyncDirection mask )
    {
-#ifdef HAVE_CUDA
       // save the GPU id to be restored in async threads, see this gotcha:
       // https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
-      if( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
+      if constexpr( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
          cudaGetDevice( &this->gpu_id );
-#endif
 
       // skip allocation on repeated calls - compare only sizes, not the actual data
       if( array_view.getCommunicator() != array.getCommunicator() || array_view.getSizes() != array.getSizes()
@@ -416,14 +412,12 @@ public:
    void
    stage_2()
    {
-#ifdef HAVE_CUDA
       // synchronize all CUDA streams to ensure the previous stage is finished
-      if( std::is_same< typename DistributedNDArrayView::DeviceType, Devices::Cuda >::value ) {
+      if constexpr( std::is_same< typename DistributedNDArrayView::DeviceType, Devices::Cuda >::value ) {
          cudaStreamSynchronize( stream_id_left );
          cudaStreamSynchronize( stream_id_right );
          TNL_CHECK_CUDA_DEVICE;
       }
-#endif
 
       // set default tags from tag_offset
       if( tag_from_left < 0 && tag_to_left < 0 && tag_from_right < 0 && tag_to_right < 0 ) {
@@ -473,14 +467,12 @@ public:
    void
    stage_4()
    {
-#ifdef HAVE_CUDA
       // synchronize all CUDA streams
-      if( std::is_same< typename DistributedNDArrayView::DeviceType, Devices::Cuda >::value ) {
+      if constexpr( std::is_same< typename DistributedNDArrayView::DeviceType, Devices::Cuda >::value ) {
          cudaStreamSynchronize( stream_id_left );
          cudaStreamSynchronize( stream_id_right );
          TNL_CHECK_CUDA_DEVICE;
       }
-#endif
    }
 
 protected:

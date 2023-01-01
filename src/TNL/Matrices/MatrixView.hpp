@@ -9,7 +9,6 @@
 #include <TNL/Matrices/Matrix.h>
 #include <TNL/Assert.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Cuda/MemoryHelpers.h>
 #include <TNL/Cuda/SharedMemory.h>
 
 #include <utility>

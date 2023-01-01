@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
    /***
     * And then also on GPU.
     */
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_v( 10 );
    cuda_v = 1.0;
    std::cout << "cuda_v = " << cuda_v << std::endl;

@@ -77,7 +77,7 @@ TEST( FileTest, WriteAndReadWithConversion )
    EXPECT_EQ( std::remove( TEST_FILE_NAME ), 0 );
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( FileTest, WriteAndReadCUDA )
 {
    int intData( 5 );

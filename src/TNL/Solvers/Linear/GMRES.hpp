@@ -551,16 +551,16 @@ GMRES< Matrix >::hauseholder_apply_trunc( HostView out, const int i, VectorViewT
    //   const RealType aux = T[ i + i * (restarting_max + 1) ] * (y_i, z);
    constexpr RealType aux = 1.0;
    if( localOffset == 0 ) {
-      if( std::is_same< DeviceType, Devices::Host >::value ) {
-         for( int k = 0; k <= i; k++ )
-            out[ k ] = z[ k ] - y_i[ k ] * aux;
-      }
-      if( std::is_same< DeviceType, Devices::Cuda >::value ) {
+      if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
          std::unique_ptr< RealType[] > host_z{ new RealType[ i + 1 ] };
          Algorithms::MultiDeviceMemoryOperations< Devices::Host, Devices::Cuda >::copy(
             host_z.get(), Traits::getConstLocalView( z ).getData(), i + 1 );
          for( int k = 0; k <= i; k++ )
             out[ k ] = host_z[ k ] - YL_i[ k ] * aux;
+      }
+      else {
+         for( int k = 0; k <= i; k++ )
+            out[ k ] = z[ k ] - y_i[ k ] * aux;
       }
    }
 
@@ -769,7 +769,7 @@ void
 GMRES< Matrix >::setSize( const VectorViewType& x )
 {
    this->size = Traits::getConstLocalViewWithGhosts( x ).getSize();
-   if( std::is_same< DeviceType, Devices::Cuda >::value )
+   if constexpr( std::is_same< DeviceType, Devices::Cuda >::value )
       // align each column to 256 bytes - optimal for CUDA
       ldSize = roundToMultiple( size, 256 / sizeof( RealType ) );
    else

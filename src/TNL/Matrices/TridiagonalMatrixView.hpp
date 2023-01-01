@@ -552,7 +552,7 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::addMatrix(
    }
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 /*template< typename Real,
           typename Real2,
           typename Index,
@@ -600,7 +600,7 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::getTransposition(
       }
    }
    if( std::is_same< Device, Devices::Cuda >::value ) {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       /*Tridiagonal* kernel_this = Cuda::passToDevice( *this );
       typedef  Tridiagonal< Real2, Device, Index2 > InMatrixType;
       InMatrixType* kernel_inMatrix = Cuda::passToDevice( matrix );

@@ -14,7 +14,6 @@ void arrayExample()
 {
    const int size = 10;
    using ArrayType = Containers::Array< int, Device >;
-   using IndexType = typename ArrayType::IndexType;
    ArrayType a1( size ), a2( size );
 
    /***
@@ -63,7 +62,7 @@ int main()
 {
    std::cout << "The first test runs on CPU ..." << std::endl;
    arrayExample< Devices::Host >();
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "The second test runs on GPU ..." << std::endl;
    arrayExample< Devices::Cuda >();
 #endif

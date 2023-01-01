@@ -39,8 +39,6 @@ void test_GetSerializationType()
 template< typename Matrix >
 void test_SetDimensions()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    const IndexType rows = 9;
@@ -56,8 +54,6 @@ void test_SetDimensions()
 template< typename Matrix1, typename Matrix2 >
 void test_SetLike()
 {
-   using RealType = typename Matrix1::RealType;
-   using DeviceType = typename Matrix1::DeviceType;
    using IndexType = typename Matrix1::IndexType;
 
    const IndexType rows = 8;
@@ -80,10 +76,6 @@ void test_SetLike()
 template< typename Matrix >
 void test_SetElements()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
-   using IndexType = typename Matrix::IndexType;
-
    Matrix m( {
       { 1, 2, 3 },
       { 4, 5, 6 },
@@ -107,7 +99,6 @@ template< typename Matrix >
 void test_GetCompressedRowLengths()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    const IndexType rows = 10;
@@ -158,8 +149,6 @@ void test_GetCompressedRowLengths()
 template< typename Matrix >
 void test_GetAllocatedElementsCount()
 {
-    using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 
     const IndexType rows = 7;
@@ -176,7 +165,6 @@ template< typename Matrix >
 void test_GetNonzeroElementsCount()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 
 /*
@@ -211,8 +199,6 @@ void test_GetNonzeroElementsCount()
 template< typename Matrix >
 void test_Reset()
 {
-    using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 
 /*
@@ -240,7 +226,6 @@ template< typename Matrix >
 void test_SetValue()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 /*
  * Sets up the following 7x6 dense matrix:
@@ -444,7 +429,6 @@ template< typename Matrix >
 void test_AddElement()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*
@@ -761,7 +745,6 @@ template< typename Matrix >
 void test_ForElements()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*
@@ -793,8 +776,6 @@ void test_ForElements()
 template< typename Matrix >
 void test_ForRows()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /////
@@ -1032,7 +1013,6 @@ template< typename Matrix >
 void test_AddMatrix()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 /*
  * Sets up the following 5x4 dense matrix:
@@ -1150,7 +1130,6 @@ template< typename Matrix >
 void test_GetMatrixProduct()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 /*
  * Sets up the following 5x4 dense matrix:
@@ -1240,7 +1219,6 @@ template< typename Matrix >
 void test_GetTransposition()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 /*
  * Sets up the following 3x2 dense matrix:
@@ -1285,11 +1263,9 @@ template< typename Matrix >
 void test_AssignmentOperator()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    using DenseHost = TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Host, IndexType >;
-   using DenseCuda = TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Cuda, IndexType >;
 
    const IndexType rows( 10 ), columns( 10 );
    DenseHost hostMatrix( rows, columns );
@@ -1309,7 +1285,8 @@ void test_AssignmentOperator()
             EXPECT_EQ( matrix.getElement( i, j ), i + j );
       }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
+   using DenseCuda = TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Cuda, IndexType >;
    DenseCuda cudaMatrix( rows, columns );
    for( IndexType i = 0; i < columns; i++ )
       for( IndexType j = 0; j <= i; j++ )
@@ -1333,7 +1310,6 @@ template< typename Matrix >
 void test_SaveAndLoad()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 /*
  * Sets up the following 4x4 dense matrix:
@@ -1425,7 +1401,7 @@ using MatrixTypes = ::testing::Types
     TNL::Matrices::DenseMatrix< long,   TNL::Devices::Host, long >,
     TNL::Matrices::DenseMatrix< float,  TNL::Devices::Host, long >,
     TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, long >
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
     ,TNL::Matrices::DenseMatrix< int,    TNL::Devices::Cuda, short >,
     TNL::Matrices::DenseMatrix< long,   TNL::Devices::Cuda, short >,
     TNL::Matrices::DenseMatrix< float,  TNL::Devices::Cuda, short >,

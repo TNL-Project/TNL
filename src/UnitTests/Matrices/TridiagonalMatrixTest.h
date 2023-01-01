@@ -39,8 +39,6 @@ void test_GetSerializationType()
 template< typename Matrix >
 void test_SetDimensions()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    const IndexType rows = 9;
@@ -56,8 +54,6 @@ void test_SetDimensions()
 template< typename Matrix1, typename Matrix2 >
 void test_SetLike()
 {
-   using RealType = typename Matrix1::RealType;
-   using DeviceType = typename Matrix1::DeviceType;
    using IndexType = typename Matrix1::IndexType;
 
    const IndexType rows = 8;
@@ -81,7 +77,6 @@ template< typename Matrix >
 void test_GetCompressedRowLengths()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    const IndexType rows = 10;
@@ -132,8 +127,6 @@ void test_GetCompressedRowLengths()
 template< typename Matrix >
 void test_GetAllocatedElementsCount()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    const IndexType rows = 7;
@@ -148,7 +141,6 @@ template< typename Matrix >
 void test_GetNonzeroElementsCount()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*
@@ -180,8 +172,6 @@ void test_GetNonzeroElementsCount()
 template< typename Matrix >
 void test_Reset()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*
@@ -208,7 +198,6 @@ template< typename Matrix >
 void test_SetValue()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*
@@ -340,7 +329,6 @@ template< typename Matrix >
 void test_SetElement()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*
@@ -404,7 +392,6 @@ template< typename Matrix >
 void test_AddElement()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*
@@ -722,8 +709,6 @@ void test_AddRow()
 template< typename Matrix >
 void test_forRows()
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /**
@@ -849,7 +834,6 @@ template< typename Matrix1, typename Matrix2 = Matrix1 >
 void test_AddMatrix()
 {
    using RealType = typename Matrix1::RealType;
-   using DeviceType = typename Matrix1::DeviceType;
    using IndexType = typename Matrix1::IndexType;
 
    /*
@@ -968,7 +952,6 @@ template< typename Matrix >
 void test_GetTransposition()
 {
     using RealType = typename Matrix::RealType;
-    using DeviceType = typename Matrix::DeviceType;
     using IndexType = typename Matrix::IndexType;
 /*
  * Sets up the following 3x2 matrix:
@@ -1029,13 +1012,10 @@ template< typename Matrix >
 void test_AssignmentOperator()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    constexpr TNL::Algorithms::Segments::ElementsOrganization organization = Matrix::getOrganization();
 
    using TridiagonalHost = TNL::Matrices::TridiagonalMatrix< RealType, TNL::Devices::Host, IndexType, organization >;
-   using TridiagonalCuda = TNL::Matrices::TridiagonalMatrix< RealType, TNL::Devices::Cuda, IndexType,
-      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder : TNL::Algorithms::Segments::RowMajorOrder >;
 
    const IndexType rows( 10 ), columns( 10 );
    TridiagonalHost hostMatrix( rows, columns );
@@ -1054,7 +1034,9 @@ void test_AssignmentOperator()
             else
                EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
+   using TridiagonalCuda = TNL::Matrices::TridiagonalMatrix< RealType, TNL::Devices::Cuda, IndexType,
+      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder : TNL::Algorithms::Segments::RowMajorOrder >;
    TridiagonalCuda cudaMatrix( rows, columns );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )
@@ -1079,7 +1061,6 @@ template< typename Matrix >
 void test_SaveAndLoad()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*
@@ -1174,7 +1155,7 @@ using MatrixTypes = ::testing::Types
     TNL::Matrices::TridiagonalMatrix< long,   TNL::Devices::Host, long >,
     TNL::Matrices::TridiagonalMatrix< float,  TNL::Devices::Host, long >,
     TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, long >
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
     ,TNL::Matrices::TridiagonalMatrix< int,    TNL::Devices::Cuda, short >,
     TNL::Matrices::TridiagonalMatrix< long,   TNL::Devices::Cuda, short >,
     TNL::Matrices::TridiagonalMatrix< float,  TNL::Devices::Cuda, short >,
@@ -1331,7 +1312,7 @@ TYPED_TEST( MatrixTest, saveAndLoadTest )
 //    host_test_GetType< Tridiagonal_host_float, Tridiagonal_host_int >();
 //}
 //
-//#ifdef HAVE_CUDA
+//#ifdef __CUDACC__
 //TEST( TridiagonalMatrixTest, Tridiagonal_GetTypeTest_Cuda )
 //{
 //    cuda_test_GetType< Tridiagonal_cuda_float, Tridiagonal_cuda_int >();
@@ -1363,7 +1344,7 @@ TEST( TridiagonalMatrixTest, Tridiagonal_getTranspositionTest_Host )
     std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/TridiagonalMatrixTest.h(1420): here\n\n";
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 TEST( TridiagonalMatrixTest, Tridiagonal_getTranspositionTest_Cuda )
 {
 //    test_GetTransposition< Tridiagonal_cuda_int >();

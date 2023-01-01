@@ -125,7 +125,7 @@ endif()
 
 if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
    # disable some unimportant warnings
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs -Wno-unknown-pragmas" )
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas" )
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Intel" )
    # Intel's -Wall is very minimalistic, so add -w3 and disable some specific warnings
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w3 -diag-disable:remark" )
@@ -288,7 +288,6 @@ if( TNL_USE_CUDA )
       set( CMAKE_CUDA_SEPARABLE_COMPILATION ON )
 
       # set necessary CUDA compiler flags on the interface
-      target_compile_definitions( TNL_CUDA INTERFACE HAVE_CUDA )
       target_compile_options( TNL_CUDA INTERFACE
             $<$<CUDA_COMPILER_ID:NVIDIA>:
                   --expt-relaxed-constexpr ;
@@ -329,9 +328,13 @@ if( TNL_USE_CUDA )
       set( CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG" )
       set( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELEASE} ${CMAKE_CUDA_FLAGS_DEBUG} --generate-line-info" )
 
-      # disable some unimportant warnings
       if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
-         set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-unused-local-typedefs -Wno-unknown-pragmas" )
+         # disable some unimportant warnings
+         set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-unknown-pragmas" )
+         if( TNL_USE_CI_FLAGS )
+            # enforce (more or less) warning-free builds
+            set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=unknown-cuda-version" )
+         endif()
       endif()
    endif()
    set( CMAKE_EXECUTABLE_SUFFIX "${executable_suffix_backup}" )

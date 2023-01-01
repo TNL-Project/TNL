@@ -29,7 +29,7 @@ public:
    void
    setSize( std::size_t size )  // NOLINT(readability-convert-member-functions-to-static)
    {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       if( size > this->size ) {
          this->reset();
          if( cudaMalloc( (void**) &this->data, size ) != cudaSuccess ) {
@@ -46,7 +46,7 @@ public:
    void
    reset()
    {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       if( data ) {
          cudaFree( data );
          data = nullptr;
@@ -82,7 +82,7 @@ private:
 
    void* data = nullptr;
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::size_t size = 0;
 #endif
 };

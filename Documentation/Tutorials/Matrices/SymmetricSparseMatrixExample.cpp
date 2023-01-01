@@ -28,7 +28,7 @@ int main( int argc, char* argv[] )
    std::cout << "Creating matrix on CPU ... " << std::endl;
    symmetricSparseMatrixExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Creating matrix on CUDA GPU ... " << std::endl;
    symmetricSparseMatrixExample< TNL::Devices::Cuda >();
 #endif

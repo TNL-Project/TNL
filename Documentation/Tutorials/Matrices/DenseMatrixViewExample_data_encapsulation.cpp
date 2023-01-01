@@ -1,5 +1,5 @@
 #include <iostream>
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 #include <cuda.h>
 #endif
 #include <TNL/Containers/VectorView.h>
@@ -25,7 +25,7 @@ void encapsulation()
       data = new double[ size * size ];
       memcpy( data, host_data, sizeof( double ) * size * size );
    }
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    else if( std::is_same< Device, TNL::Devices::Cuda >::value )
    {
       cudaMalloc( ( void**) &data, sizeof( double ) * size * size );
@@ -56,7 +56,7 @@ void encapsulation()
    delete[] host_data;
    if( std::is_same< Device, TNL::Devices::Host >::value )
       delete[] data;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    else if( std::is_same< Device, TNL::Devices::Cuda >::value )
       cudaFree( data );
 #endif
@@ -67,7 +67,7 @@ int main( int argc, char* argv[] )
    std::cout << "Dense matrix encapsulation on host:" << std::endl;
    encapsulation< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Dense matrix encapsulation on CUDA device:" << std::endl;
    encapsulation< TNL::Devices::Cuda >();
 #endif

@@ -277,57 +277,6 @@ public:
    }
 };
 
-#ifdef HAVE_CUDA
-template< typename Index,
-          typename Fetch,
-          int BlockDim = 256,
-          int WarpSize = 32,
-          bool HasAllParameters = detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() >
-struct BiEllpackreduceSegmentsDispatcher
-{};
-
-template< typename Index, typename Fetch, int BlockDim, int WarpSize >
-struct BiEllpackreduceSegmentsDispatcher< Index, Fetch, BlockDim, WarpSize, true >
-{
-   template< typename View, typename Reduction, typename ResultKeeper, typename Real, typename... Args >
-   __device__
-   static void
-   exec( View biEllpack,
-         Index gridIdx,
-         Index first,
-         Index last,
-         Fetch fetch,
-         Reduction reduction,
-         ResultKeeper keeper,
-         Real zero,
-         Args... args )
-   {
-      biEllpack.template reduceSegmentsKernelWithAllParameters< Fetch, Reduction, ResultKeeper, Real, BlockDim, Args... >(
-         gridIdx, first, last, fetch, reduction, keeper, zero, args... );
-   }
-};
-
-template< typename Index, typename Fetch, int BlockDim, int WarpSize >
-struct BiEllpackreduceSegmentsDispatcher< Index, Fetch, BlockDim, WarpSize, false >
-{
-   template< typename View, typename Reduction, typename ResultKeeper, typename Real, typename... Args >
-   __device__
-   static void
-   exec( View biEllpack,
-         Index gridIdx,
-         Index first,
-         Index last,
-         Fetch fetch,
-         Reduction reduction,
-         ResultKeeper keeper,
-         Real zero,
-         Args... args )
-   {
-      biEllpack.template reduceSegmentsKernel< Fetch, Reduction, ResultKeeper, Real, BlockDim, Args... >(
-         gridIdx, first, last, fetch, reduction, keeper, zero, args... );
-   }
-};
-
 template< typename View,
           typename Index,
           typename Fetch,
@@ -348,10 +297,14 @@ BiEllpackreduceSegmentsKernel( View biEllpack,
                                Real zero,
                                Args... args )
 {
-   BiEllpackreduceSegmentsDispatcher< Index, Fetch, BlockDim >::exec(
-      biEllpack, gridIdx, first, last, fetch, reduction, keeper, zero, args... );
+   constexpr bool HasAllParameters = detail::CheckFetchLambda< Index, Fetch >::hasAllParameters();
+   if constexpr( HasAllParameters )
+      biEllpack.template reduceSegmentsKernelWithAllParameters< Fetch, Reduction, ResultKeeper, Real, BlockDim, Args... >(
+         gridIdx, first, last, fetch, reduction, keeper, zero, args... );
+   else
+      biEllpack.template reduceSegmentsKernel< Fetch, Reduction, ResultKeeper, Real, BlockDim, Args... >(
+         gridIdx, first, last, fetch, reduction, keeper, zero, args... );
 }
-#endif
 
 }  // namespace detail
 }  // namespace Segments

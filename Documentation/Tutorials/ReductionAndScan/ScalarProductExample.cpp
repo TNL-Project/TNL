@@ -37,7 +37,7 @@ int main( int argc, char* argv[] )
    /***
     * ... the second test on GPU.
     */
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_u( 10 ), cuda_v( 10 );
    cuda_u = 1.0;
    cuda_v.forAllElements( [] __cuda_callable__ ( int i, double& value ) { value = 2 * ( i % 2 ) - 1; } );

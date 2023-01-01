@@ -61,7 +61,6 @@ void getRowExample()
    };
    auto matrix = TNL::Matrices::LambdaMatrixFactory< double, Device, int >::create(
       matrixSize, matrixSize, matrixElements, rowLengths );
-   using MatrixType = decltype( matrix );
 
    TNL::Matrices::DenseMatrix< double, Device > denseMatrix( matrixSize, matrixSize );
    denseMatrix.setValue( 0.0 );
@@ -83,7 +82,7 @@ int main( int argc, char* argv[] )
    std::cout << "Running example on CPU ... " << std::endl;
    getRowExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Running example on CUDA GPU ... " << std::endl;
    getRowExample< TNL::Devices::Cuda >();
 #endif

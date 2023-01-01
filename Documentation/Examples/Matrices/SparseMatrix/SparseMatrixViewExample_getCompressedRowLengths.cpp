@@ -28,7 +28,7 @@ int main( int argc, char* argv[] )
    std::cout << "Getting compressed row lengths on host: " << std::endl;
    getCompressedRowLengthsExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Getting compressed row lengths on CUDA device: " << std::endl;
    getCompressedRowLengthsExample< TNL::Devices::Cuda >();
 #endif

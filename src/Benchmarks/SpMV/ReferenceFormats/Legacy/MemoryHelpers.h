@@ -16,10 +16,11 @@ namespace TNL {
 namespace Cuda {
 
 template< typename ObjectType >
-[[deprecated( "Allocators::Cuda and MultiDeviceMemoryOperations should be used instead." )]] ObjectType*
+//[[deprecated( "Allocators::Cuda and MultiDeviceMemoryOperations should be used instead." )]]
+ObjectType*
 passToDevice( const ObjectType& object )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    ObjectType* deviceObject;
    if( cudaMalloc( (void**) &deviceObject, (size_t) sizeof( ObjectType ) ) != cudaSuccess )
       throw Exceptions::CudaBadAlloc();
@@ -36,10 +37,11 @@ passToDevice( const ObjectType& object )
 }
 
 template< typename ObjectType >
-[[deprecated( "Allocators::Cuda should be used instead." )]] void
+//[[deprecated( "Allocators::Cuda should be used instead." )]]
+void
 freeFromDevice( ObjectType* deviceObject )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    cudaFree( (void*) deviceObject );
    TNL_CHECK_CUDA_DEVICE;
 #else

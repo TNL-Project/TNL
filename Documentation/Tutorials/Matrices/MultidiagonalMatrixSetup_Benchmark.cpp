@@ -256,7 +256,7 @@ int main( int argc, char* argv[] )
    std::cout << "Creating Laplace operator matrix on CPU ... " << std::endl;
    laplaceOperatorMultidiagonalMatrix< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Creating Laplace operator matrix on CUDA GPU ... " << std::endl;
    laplaceOperatorMultidiagonalMatrix< TNL::Devices::Cuda >();
 #endif

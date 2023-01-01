@@ -26,6 +26,25 @@
  * Implemented by: Jakub Klinkovsky
  */
 
+// check the minimum version of the C++ standard required by TNL, otherwise
+// provide a useful error message for each supported compiler/platform
+#if __cplusplus < 201703L
+   #if defined( __clang__ ) || defined( __GNUC__ ) || defined( __GNUG__ )
+      #error "TNL requires the C++17 standard or later. Did you forget to specify the -std=c++17 compiler option?"
+   #elif defined( _MSC_VER )
+      #error "TNL requires the C++17 standard or later. Did you forget to specify the /std:c++17 compiler option?"
+   #else
+      #error "TNL requires the C++17 standard or later. Make sure it is enabled in your compiler options."
+   #endif
+#endif
+
+#if defined( __NVCC__ )
+   // check for required compiler features and provide a useful error message
+   #if ! defined( __CUDACC_RELAXED_CONSTEXPR__ ) || ! defined( __CUDACC_EXTENDED_LAMBDA__ )
+      #error "TNL requires the following flags to be specified for nvcc: --expt-relaxed-constexpr --extended-lambda"
+   #endif
+#endif
+
 // wrapper for nvcc pragma which disables warnings about __host__ __device__
 // functions: https://stackoverflow.com/q/55481202
 #ifdef __NVCC__

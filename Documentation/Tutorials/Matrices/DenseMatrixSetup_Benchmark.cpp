@@ -144,7 +144,7 @@ int main( int argc, char* argv[] )
    setupDenseMatrix< TNL::Devices::Host >();
 
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Creating dense matrix on CUDA GPU ... " << std::endl;
    setupDenseMatrix< TNL::Devices::Cuda >();
 #endif

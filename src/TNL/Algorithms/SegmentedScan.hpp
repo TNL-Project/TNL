@@ -76,10 +76,7 @@ SegmentedScan< Devices::Cuda, Type >::perform( Vector& v,
                                                const Reduction& reduction,
                                                typename Vector::ValueType identity )
 {
-#ifdef HAVE_CUDA
-   using ValueType = typename Vector::ValueType;
-   using IndexType = typename Vector::IndexType;
-
+#ifdef __CUDACC__
    throw Exceptions::NotImplementedError( "Segmented scan (prefix sum) is not implemented for CUDA." );
 #else
    throw Exceptions::CudaSupportMissing();

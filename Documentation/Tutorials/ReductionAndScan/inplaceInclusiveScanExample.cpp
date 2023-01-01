@@ -20,7 +20,7 @@ int main( int argc, char* argv[] )
    /***
     * And then also on GPU.
     */
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Array< double, Devices::Cuda > cuda_a( 10 );
    cuda_a = 1.0;
    std::cout << "cuda_a = " << cuda_a << std::endl;

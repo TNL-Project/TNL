@@ -9,7 +9,7 @@
 
 #include "support.h"
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 using Implementations = ::testing::Types<
    TNL::Meshes::Grid<3, double, TNL::Devices::Host, int>,
    TNL::Meshes::Grid<3, float, TNL::Devices::Host, int>,
@@ -28,7 +28,7 @@ class GridTestSuite: public ::testing::Test {
    protected:
       GridType grid;
 
-#ifndef HAVE_CUDA
+#ifndef __CUDACC__
       void SetUp() override {
          if (std::is_same<typename GridType::DeviceType, TNL::Devices::Cuda>::value) {
             GTEST_SKIP() << "No CUDA available on host. Try to compile with CUDA instead";

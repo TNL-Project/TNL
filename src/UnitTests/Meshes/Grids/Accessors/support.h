@@ -136,7 +136,7 @@ class GridAccessorsTestCase<TNL::Devices::Host>: public GridAccessorsTestCaseInt
          }
       }
 };
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 
 template<>
 class GridAccessorsTestCase<TNL::Devices::Cuda>: public GridAccessorsTestCaseInterface<TNL::Devices::Cuda> {

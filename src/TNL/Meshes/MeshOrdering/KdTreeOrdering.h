@@ -43,15 +43,15 @@ struct KdTreeOrdering
       struct Construct_coord_iterator
       {
          using result_type = const RealType*;
-         const RealType*
+         result_type
          operator()( const PointType& p ) const
          {
-            return static_cast< const RealType* >( &p[ 0 ] );
+            return static_cast< result_type >( &p[ 0 ] );
          }
-         const RealType*
+         result_type
          operator()( const PointType& p, int ) const
          {
-            return static_cast< const RealType* >( &p[ 0 ] + p.getSize() );
+            return static_cast< result_type >( &p[ 0 ] + p.getSize() );
          }
       };
 

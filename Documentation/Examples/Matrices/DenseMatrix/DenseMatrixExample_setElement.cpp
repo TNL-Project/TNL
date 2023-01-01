@@ -37,7 +37,7 @@ int main( int argc, char* argv[] )
    std::cout << "Set elements on host:" << std::endl;
    setElements< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Set elements on CUDA device:" << std::endl;
    setElements< TNL::Devices::Cuda >();
 #endif

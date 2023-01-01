@@ -90,7 +90,7 @@ template< typename Type, typename SourceType, typename Allocator, typename >
 void
 File::load_impl( Type* buffer, std::streamsize elements )
 {
-   if( std::is_same< Type, SourceType >::value )
+   if constexpr( std::is_same< Type, SourceType >::value )
       file.read( reinterpret_cast< char* >( buffer ), sizeof( Type ) * elements );
    else {
       const std::streamsize cast_buffer_size =
@@ -112,14 +112,14 @@ template< typename Type, typename SourceType, typename Allocator, typename, type
 void
 File::load_impl( Type* buffer, std::streamsize elements )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const std::streamsize host_buffer_size =
       std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
    using BaseType = typename std::remove_cv< Type >::type;
    std::unique_ptr< BaseType[] > host_buffer{ new BaseType[ host_buffer_size ] };
 
    std::streamsize readElements = 0;
-   if( std::is_same< Type, SourceType >::value ) {
+   if constexpr( std::is_same< Type, SourceType >::value ) {
       while( readElements < elements ) {
          const std::streamsize transfer = std::min( elements - readElements, host_buffer_size );
          file.read( reinterpret_cast< char* >( host_buffer.get() ), sizeof( Type ) * transfer );
@@ -170,7 +170,7 @@ template< typename Type, typename TargetType, typename Allocator, typename >
 void
 File::save_impl( const Type* buffer, std::streamsize elements )
 {
-   if( std::is_same< Type, TargetType >::value )
+   if constexpr( std::is_same< Type, TargetType >::value )
       file.write( reinterpret_cast< const char* >( buffer ), sizeof( Type ) * elements );
    else {
       const std::streamsize cast_buffer_size =
@@ -192,14 +192,14 @@ template< typename Type, typename TargetType, typename Allocator, typename, type
 void
 File::save_impl( const Type* buffer, std::streamsize elements )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    const std::streamsize host_buffer_size =
       std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
    using BaseType = typename std::remove_cv< Type >::type;
    std::unique_ptr< BaseType[] > host_buffer{ new BaseType[ host_buffer_size ] };
 
    std::streamsize writtenElements = 0;
-   if( std::is_same< Type, TargetType >::value ) {
+   if constexpr( std::is_same< Type, TargetType >::value ) {
       while( writtenElements < elements ) {
          const std::streamsize transfer = std::min( elements - writtenElements, host_buffer_size );
          cudaMemcpy(

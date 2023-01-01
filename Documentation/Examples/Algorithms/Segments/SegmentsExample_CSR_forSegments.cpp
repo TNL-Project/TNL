@@ -44,7 +44,7 @@ int main( int argc, char* argv[] )
    std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Example of CSR segments on CUDA GPU: " << std::endl;
    SegmentsExample< TNL::Devices::Cuda >();
 #endif

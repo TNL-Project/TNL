@@ -149,7 +149,7 @@ template< typename Matrix >
 void
 ILU0_impl< Matrix, double, Devices::Cuda, int >::update( const MatrixPointer& matrixPointer )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    #ifdef HAVE_CUSPARSE
    // TODO: only numerical factorization has to be done every time, split the rest into separate "setup" method which is called
    // less often
@@ -320,7 +320,7 @@ template< typename Matrix >
 void
 ILU0_impl< Matrix, double, Devices::Cuda, int >::allocate_LU()
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    #ifdef HAVE_CUSPARSE
    const int N = A->getRows();
    L->setDimensions( N, N );
@@ -370,7 +370,7 @@ template< typename Matrix >
 void
 ILU0_impl< Matrix, double, Devices::Cuda, int >::copy_triangular_factors()
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    #ifdef HAVE_CUSPARSE
    const int N = A->getRows();
 
@@ -408,7 +408,7 @@ template< typename Matrix >
 void
 ILU0_impl< Matrix, double, Devices::Cuda, int >::solve( ConstVectorViewType b, VectorViewType x ) const
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    #ifdef HAVE_CUSPARSE
    const int N = A->getRows();
    const int nnz_L = L->getValues().getSize();

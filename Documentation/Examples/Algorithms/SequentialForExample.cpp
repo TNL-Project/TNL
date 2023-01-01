@@ -29,7 +29,7 @@ int main( int argc, char* argv[] )
    std::cout << "Example on the host:" << std::endl;
    printVector< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Example on CUDA GPU:" << std::endl;
    printVector< TNL::Devices::Cuda >();
 #endif

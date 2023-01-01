@@ -56,7 +56,7 @@ using DistributedNDArrayTypes = ::testing::Types<
                                 SizesHolder< int, Q, 0, 0 >,  // Q, X, Y, Z
                                 std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
                                 Devices::Host > >
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    ,
    DistributedNDArray< NDArray< double,
                                 SizesHolder< int, Q, 0, 0 >,  // Q, X, Y, Z

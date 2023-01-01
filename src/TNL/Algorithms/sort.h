@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include <TNL/Algorithms/Sorting/DefaultSorter.h>
 
 namespace TNL {
@@ -40,12 +42,7 @@ template< typename Array, typename Sorter = typename Sorting::DefaultSorter< typ
 void
 ascendingSort( Array& array, const Sorter& sorter = Sorter{} )
 {
-   using ValueType = typename Array::ValueType;
-   sorter.sort( array,
-                [] __cuda_callable__( const ValueType& a, const ValueType& b )
-                {
-                   return a < b;
-                } );
+   sorter.sort( array, std::less{} );
 }
 
 /**
@@ -75,12 +72,7 @@ template< typename Array, typename Sorter = typename Sorting::DefaultSorter< typ
 void
 descendingSort( Array& array, const Sorter& sorter = Sorter{} )
 {
-   using ValueType = typename Array::ValueType;
-   sorter.sort( array,
-                [] __cuda_callable__( const ValueType& a, const ValueType& b )
-                {
-                   return a < b;
-                } );
+   sorter.sort( array, std::greater<>{} );
 }
 
 /**
@@ -203,11 +195,7 @@ isSorted( const Array& arr, const Compare& compare )
    {
       return ! compare( view[ i ], view[ i - 1 ] );
    };
-   auto reduction = [] __cuda_callable__( bool a, bool b )
-   {
-      return a && b;
-   };
-   return TNL::Algorithms::reduce< Device >( 1, arr.getSize(), fetch, reduction, true );
+   return TNL::Algorithms::reduce< Device >( 1, arr.getSize(), fetch, std::logical_and<>{}, true );
 }
 
 /**
@@ -226,12 +214,7 @@ template< typename Array >
 bool
 isAscending( const Array& arr )
 {
-   using Value = typename Array::ValueType;
-   return isSorted( arr,
-                    [] __cuda_callable__( const Value& a, const Value& b )
-                    {
-                       return a < b;
-                    } );
+   return isSorted( arr, std::less<>{} );
 }
 
 /**
@@ -250,12 +233,7 @@ template< typename Array >
 bool
 isDescending( const Array& arr )
 {
-   using Value = typename Array::ValueType;
-   return isSorted( arr,
-                    [] __cuda_callable__( const Value& a, const Value& b )
-                    {
-                       return a > b;
-                    } );
+   return isSorted( arr, std::greater<>{} );
 }
 
 }  // namespace Algorithms

@@ -7,13 +7,14 @@
 // Implemented by: Xuan Thang Nguyen
 
 #pragma once
+
 #include <TNL/Math.h>
 
 namespace TNL {
 namespace Algorithms {
 namespace Sorting {
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 
 // Inline PTX call to return index of highest non-zero bit in a word
 static __device__
@@ -31,9 +32,9 @@ closestPow2_ptx( int bitonicLen )
 {
    return 1 << ( __btflo( (unsigned) bitonicLen - 1U ) + 1 );
 }
+#endif
 
-__host__
-__device__
+__cuda_callable__
 inline int
 closestPow2( int x )
 {
@@ -56,7 +57,6 @@ cmpSwap( Value& a, Value& b, bool ascending, const CMP& Cmp )
       TNL::swap( a, b );
 }
 
-#endif
 }  // namespace Sorting
 }  // namespace Algorithms
 }  // namespace TNL

@@ -196,7 +196,7 @@ CSRView< Device, Index, Kernel >::reduceSegments( IndexType first,
                                                   ResultKeeper& keeper,
                                                   const Real& zero ) const
 {
-   if( std::is_same< DeviceType, TNL::Devices::Host >::value )
+   if constexpr( ! std::is_same< DeviceType, Devices::Cuda >::value )
       TNL::Algorithms::Segments::CSRScalarKernel< IndexType, DeviceType >::reduceSegments(
          offsets, first, last, fetch, reduction, keeper, zero );
    else

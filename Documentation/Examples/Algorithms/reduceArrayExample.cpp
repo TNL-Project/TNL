@@ -40,7 +40,7 @@ int main( int argc, char* argv[] )
    std::cout << "Running example on the host system: " << std::endl;
    reduceArrayExample< Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Running example on the CUDA device: " << std::endl;
    reduceArrayExample< Devices::Cuda >();
 #endif

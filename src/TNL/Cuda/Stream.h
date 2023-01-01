@@ -32,7 +32,7 @@ private:
 
       ~Wrapper()  // NOLINT
       {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
          // cannot free a 0 stream
          if( handle != 0 )
             cudaStreamDestroy( handle );
@@ -83,7 +83,7 @@ public:
    create( unsigned int flags = cudaStreamDefault, int priority = 0 )
    {
       cudaStream_t stream;
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       cudaStreamCreateWithPriority( &stream, flags, priority );
 #else
       stream = 0;

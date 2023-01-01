@@ -189,7 +189,9 @@ protected:
 
    OffsetsView groupPointers;
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
+   // these methods must be public so they can be called from the __global__ function
+public:
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real, int BlockDim >
    __device__
    void
@@ -211,27 +213,6 @@ protected:
                          Reduction reduction,
                          ResultKeeper keeper,
                          Real_ zero ) const;
-
-   template< typename View_,
-             typename Index_,
-             typename Fetch_,
-             typename Reduction_,
-             typename ResultKeeper_,
-             typename Real_,
-             int BlockDim >
-   friend __global__
-   void
-   BiEllpackreduceSegmentsKernel( View_ chunkedEllpack,
-                                  Index_ gridIdx,
-                                  Index_ first,
-                                  Index_ last,
-                                  Fetch_ fetch,
-                                  Reduction_ reduction,
-                                  ResultKeeper_ keeper,
-                                  Real_ zero );
-
-   template< typename Index_, typename Fetch_, int BlockDim_, int WarpSize_, bool B_ >
-   friend struct detail::BiEllpackreduceSegmentsDispatcher;
 #endif
 };
 

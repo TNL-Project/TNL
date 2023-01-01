@@ -11,7 +11,7 @@
 namespace TNL {
 namespace Cuda {
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 /****
  * I do not know why, but it is more reliable to pass the error code instead
  * of calling cudaGetLastError() inside the function.
@@ -32,7 +32,7 @@ checkDevice()
 }  // namespace Cuda
 }  // namespace TNL
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    #define TNL_CHECK_CUDA_DEVICE ::TNL::Cuda::checkDevice( __FILE__, __LINE__, cudaGetLastError() )
 #else
    #define TNL_CHECK_CUDA_DEVICE ::TNL::Cuda::checkDevice()

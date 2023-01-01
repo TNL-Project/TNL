@@ -339,7 +339,7 @@ __global__
 void
 ParallelForKernel( Index start, Index end, Function f, FunctionArgs... args )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Index i = start + blockIdx.x * blockDim.x + threadIdx.x;
    while( i < end ) {
       f( i, args... );
@@ -356,7 +356,7 @@ __global__
 void
 ParallelFor2DKernel( Index startX, Index startY, Index endX, Index endY, Function f, FunctionArgs... args )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Index j = startY + blockIdx.y * blockDim.y + threadIdx.y;
    Index i = startX + blockIdx.x * blockDim.x + threadIdx.x;
    while( j < endY ) {
@@ -392,7 +392,7 @@ ParallelFor3DKernel( Index startX,
                      Function f,
                      FunctionArgs... args )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    Index k = startZ + blockIdx.z * blockDim.z + threadIdx.z;
    Index j = startY + blockIdx.y * blockDim.y + threadIdx.y;
    Index i = startX + blockIdx.x * blockDim.x + threadIdx.x;

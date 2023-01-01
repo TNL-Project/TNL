@@ -38,7 +38,7 @@ int main()
     std::cout << "Running vector example on the host system: " << std::endl;
     VectorExample< Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
     std::cout << "Running vector example on the CUDA device: " << std::endl;
     VectorExample< Devices::Cuda >();
 #endif

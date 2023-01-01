@@ -23,7 +23,7 @@ public:
    static inline void
    configSetup( Config::ConfigDescription& config, const String& prefix = "" )
    {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       config.addEntry< int >( prefix + "cuda-device", "Choose CUDA device to run the computation.", 0 );
 #else
       config.addEntry< int >(
@@ -34,7 +34,7 @@ public:
    static inline bool
    setup( const Config::ParameterContainer& parameters, const String& prefix = "" )
    {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       int cudaDevice = parameters.getParameter< int >( prefix + "cuda-device" );
       if( cudaSetDevice( cudaDevice ) != cudaSuccess ) {
          std::cerr << "I cannot activate CUDA device number " << cudaDevice << "." << std::endl;

@@ -74,7 +74,7 @@ int main( int argc, char* argv[] )
    std::cout << "Rows reduction on host:" << std::endl;
    reduceRows< TNL::Devices::Host >();
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    std::cout << "Rows reduction on CUDA device:" << std::endl;
    reduceRows< TNL::Devices::Cuda >();
 #endif

@@ -78,7 +78,7 @@ struct AtomicOperations< Devices::Cuda >
    static short int
    add( short int& v, const short int& a )
    {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       TNL_ASSERT_TRUE( false, "Atomic add for short int is not supported on CUDA." );
 #endif
       return 0;

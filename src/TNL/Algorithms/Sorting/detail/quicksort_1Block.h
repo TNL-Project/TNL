@@ -17,7 +17,7 @@ namespace TNL {
 namespace Algorithms {
 namespace Sorting {
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 
 template< typename Value, typename CMP >
 __device__

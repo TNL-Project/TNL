@@ -17,7 +17,7 @@ struct CudaBadAlloc : public std::bad_alloc
 {
    CudaBadAlloc()
    {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
       // Make sure to clear the CUDA error, otherwise the exception handler
       // might throw another exception with the same error.
       cudaGetLastError();
