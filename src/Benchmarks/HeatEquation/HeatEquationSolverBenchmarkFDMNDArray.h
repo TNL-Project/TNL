@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber, Yury Hayeu
+// Implemented by: Tomáš Oberhuber
 
 #pragma once
 
@@ -15,17 +15,19 @@ template< int Dimension,
           typename Real = double,
           typename Device = TNL::Devices::Host,
           typename Index = int >
-struct HeatEquationSolverBenchmarkNDArray;
+struct HeatEquationSolverBenchmarkFDMNDArray;
 
 template< typename Real,
           typename Device,
           typename Index >
-struct HeatEquationSolverBenchmarkNDArray< 1, Real, Device, Index >: public HeatEquationSolverBenchmark< 1, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFDMNDArray< 1, Real, Device, Index >: public HeatEquationSolverBenchmark< 1, Real, Device, Index >
 {
    static constexpr int Dimension = 1;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
    using NDArrayType = TNL::Containers::NDArray< Real, TNL::Containers::SizesHolder< Index, 0 >, std::index_sequence< 0 >, Device >;
+
+   TNL::String scheme() { return "fdm"; }
 
    void init( const Index xSize )
    {
@@ -38,13 +40,10 @@ struct HeatEquationSolverBenchmarkNDArray< 1, Real, Device, Index >: public Heat
       const Real hx = this->xDomainSize / (Real) xSize;
 
       auto uxView = ux.getView();
-      auto xDomainSize_ = this->xDomainSize;
-      auto alpha_ = this->alpha;
-      auto delta_ = this->delta;
       auto init = [=] __cuda_callable__( Index i ) mutable
       {
-         auto x = i * hx - xDomainSize_ / 2.;
-         uxView( i ) = TNL::max( ( ( x*x / alpha_ ) + delta_ ) * 0.2, 0.0 );
+         auto x = i * hx - this->xDomainSize / 2.0;
+         uxView( i ) = this->delta * ( 1.0 - TNL::sign( x*x / this->alpha - 1.0 ) );
       };
       TNL::Algorithms::ParallelFor<Device>::exec( 1, xSize - 1, init );
    }
@@ -96,12 +95,14 @@ protected:
 template< typename Real,
           typename Device,
           typename Index >
-struct HeatEquationSolverBenchmarkNDArray< 2, Real, Device, Index >: public HeatEquationSolverBenchmark< 2, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFDMNDArray< 2, Real, Device, Index >: public HeatEquationSolverBenchmark< 2, Real, Device, Index >
 {
    static constexpr int Dimension = 2;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
    using NDArrayType = TNL::Containers::NDArray< Real, TNL::Containers::SizesHolder< Index, 0, 0 >, std::index_sequence< 0, 1 >, Device >;
+
+   TNL::String scheme() { return "fdm"; }
 
    void init( const Index xSize, const Index ySize )
    {
@@ -115,16 +116,11 @@ struct HeatEquationSolverBenchmarkNDArray< 2, Real, Device, Index >: public Heat
       const Real hy = this->yDomainSize / (Real) ySize;
 
       auto uxView = ux.getView();
-      auto xDomainSize_ = this->xDomainSize;
-      auto yDomainSize_ = this->yDomainSize;
-      auto alpha_ = this->alpha;
-      auto beta_ = this->beta;
-      auto delta_ = this->delta;
       auto init = [=] __cuda_callable__( Index i, Index j) mutable
       {
-         auto x = i * hx - xDomainSize_ / 2.;
-         auto y = j * hy - yDomainSize_ / 2.;
-         uxView( i, j ) = TNL::max( ( ( ( x*x / alpha_ )  + ( y*y / beta_ ) ) + delta_ ) * 0.2, 0.0 );
+         auto x = i * hx - this->xDomainSize / 2.0;
+         auto y = j * hy - this->yDomainSize / 2.0;
+         uxView( i, j ) = this->delta * ( 1.0 - TNL::sign( x*x / this->alpha + y*y / this->beta - 1.0 ) );
       };
       TNL::Algorithms::ParallelFor2D<Device>::exec( 1, 1, xSize - 1, ySize - 1, init );
    }
@@ -183,12 +179,14 @@ protected:
 template< typename Real,
           typename Device,
           typename Index >
-struct HeatEquationSolverBenchmarkNDArray< 3, Real, Device, Index >: public HeatEquationSolverBenchmark< 3, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >: public HeatEquationSolverBenchmark< 3, Real, Device, Index >
 {
    static constexpr int Dimension = 3;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
    using NDArrayType = TNL::Containers::NDArray< Real, TNL::Containers::SizesHolder< Index, 0, 0, 0 >, std::index_sequence< 0, 1, 2 >, Device >;
+
+   TNL::String scheme() { return "fdm"; }
 
    void init( const Index xSize, const Index ySize, const Index zSize )
    {
@@ -203,20 +201,12 @@ struct HeatEquationSolverBenchmarkNDArray< 3, Real, Device, Index >: public Heat
       const Real hz = this->zDomainSize / (Real) zSize;
 
       auto uxView = ux.getView();
-      auto xDomainSize_ = this->xDomainSize;
-      auto yDomainSize_ = this->yDomainSize;
-      auto zDomainSize_ = this->zDomainSize;
-      auto alpha_ = this->alpha;
-      auto beta_ = this->beta;
-      auto gamma_ = this->gamma;
-      auto delta_ = this->delta;
       auto init = [=] __cuda_callable__( Index i, Index j, Index k) mutable
       {
-         auto x = i * hx - xDomainSize_ / 2.;
-         auto y = j * hy - yDomainSize_ / 2.;
-         auto z = k * hz - zDomainSize_ / 2.;
-
-         uxView( i, j, k ) = TNL::max( ( ( ( x*x / alpha_ ) + ( y*y / beta_ ) + ( z*z / gamma_ ) ) + delta_ ) * 0.2, 0.0 );
+         auto x = i * hx - this->xDomainSize / 2.0;
+         auto y = j * hy - this->yDomainSize / 2.0;
+         auto z = k * hz - this->zDomainSize / 2.0;
+         uxView( i, j, k ) = this->delta * ( 1.0 - TNL::sign( x*x / this->alpha + y*y / this->beta + z*z / this->gamma - 1.0 ) );
       };
       TNL::Algorithms::ParallelFor3D<Device>::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, init );
    }

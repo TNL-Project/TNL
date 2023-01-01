@@ -17,16 +17,18 @@ template< int Dimension,
           typename Real = double,
           typename Device = TNL::Devices::Host,
           typename Index = int >
-struct HeatEquationSolverBenchmarkParallelFor;
+struct HeatEquationSolverBenchmarkFDMParallelFor;
 
 template< typename Real,
           typename Device,
           typename Index >
-struct HeatEquationSolverBenchmarkParallelFor< 1, Real, Device, Index > : public HeatEquationSolverBenchmark< 1, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFDMParallelFor< 1, Real, Device, Index > : public HeatEquationSolverBenchmark< 1, Real, Device, Index >
 {
    static constexpr int Dimension = 1;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
+
+   TNL::String scheme() { return "fdm"; }
 
    void init( const Index xSize )
    {
@@ -73,11 +75,13 @@ protected:
 template< typename Real,
           typename Device,
           typename Index >
-struct HeatEquationSolverBenchmarkParallelFor< 2, Real, Device, Index > : public HeatEquationSolverBenchmark< 2, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFDMParallelFor< 2, Real, Device, Index > : public HeatEquationSolverBenchmark< 2, Real, Device, Index >
 {
    static constexpr int Dimension = 2;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
+
+   TNL::String scheme() { return "fdm"; }
 
    void init( const Index xSize, const Index ySize )
    {
@@ -131,11 +135,13 @@ protected:
 template< typename Real,
           typename Device,
           typename Index >
-struct HeatEquationSolverBenchmarkParallelFor< 3, Real, Device, Index > : public HeatEquationSolverBenchmark< 3, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFDMParallelFor< 3, Real, Device, Index > : public HeatEquationSolverBenchmark< 3, Real, Device, Index >
 {
    static constexpr int Dimension = 3;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
+
+   TNL::String scheme() { return "fdm"; }
 
    void init( const Index xSize, const Index ySize, const Index zSize )
    {

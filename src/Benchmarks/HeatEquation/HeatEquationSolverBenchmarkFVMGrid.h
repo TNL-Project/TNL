@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber, Yury Hayeu
+// Implemented by: Tomáš Oberhuber
 
 #pragma once
 
@@ -15,12 +15,12 @@ template< int Dimension,
           typename Real = double,
           typename Device = TNL::Devices::Host,
           typename Index = int >
-struct HeatEquationSolverBenchmarkGrid;
+struct HeatEquationSolverBenchmarkFVMGrid;
 
 template< typename Real,
           typename Device,
           typename Index >
-struct HeatEquationSolverBenchmarkGrid< 1, Real, Device, Index >: public HeatEquationSolverBenchmark< 1, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >: public HeatEquationSolverBenchmark< 1, Real, Device, Index >
 {
    static constexpr int Dimension = 1;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
@@ -28,6 +28,7 @@ struct HeatEquationSolverBenchmarkGrid< 1, Real, Device, Index >: public HeatEqu
    using Grid = TNL::Meshes::Grid<1, Real, Device, int>;
    using Coordinates = typename Grid::CoordinatesType;
 
+   TNL::String scheme() { return "fvm"; }
 
    void init( const Index xSize )
    {
@@ -66,9 +67,6 @@ struct HeatEquationSolverBenchmarkGrid< 1, Real, Device, Index >: public HeatEqu
             auxView[ centerIdx ] = element + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1 ) ) ] -
                                                 center +
                                                 uxView[ entity.getNeighbourEntityIndex( Coordinates(  1 ) ) ] ) * hx_inv  ) * timestep;
-            /*auxView[ centerIdx ] = element + ( ( uxView[ centerIdx - 1 ] -
-                                                2.0 * center +
-                                                uxView[ centerIdx + 1 ] ) * hx_inv ) * timestep;*/
          };
 
          this->grid.template forInteriorEntities<1>( next );
@@ -87,7 +85,7 @@ protected:
 template< typename Real,
           typename Device,
           typename Index >
-struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index >: public HeatEquationSolverBenchmark< 2, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFVMGrid< 2, Real, Device, Index >: public HeatEquationSolverBenchmark< 2, Real, Device, Index >
 {
    static constexpr int Dimension = 2;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
@@ -95,12 +93,14 @@ struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index >: public HeatEqu
    using Grid = TNL::Meshes::Grid<2, Real, Device, int>;
    using Coordinates = typename Grid::CoordinatesType;
 
+   TNL::String scheme() { return "fvm"; }
+
    void init( const Index xSize, const Index ySize )
    {
       BaseBenchmarkType::init( xSize, ySize, ux, aux );
       this->grid.setDimensions( xSize, ySize );
       this->grid.setDomain( { 0.0, 0.0}, { this->xDomainSize, this->yDomainSize } );
-
+      faces.setSize( this->grid.template getEntitiesCount< 1 >() );
    }
 
    bool writeGnuplot( const std::string &filename, const Index xSize, const Index ySize ) const
@@ -110,39 +110,38 @@ struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index >: public HeatEqu
 
    void exec( const Index xSize, const Index ySize )
    {
-      const Real hx = grid.template getSpaceStepsProducts<1, 0>();
-      const Real hy = grid.template getSpaceStepsProducts<0, 1>();
-      const Real hx_inv = grid.template getSpaceStepsProducts<-2, 0>();
-      const Real hy_inv = grid.template getSpaceStepsProducts<0, -2>();
-
-      TNL_ASSERT_EQ( hx, this->xDomainSize / (Real) xSize, "computed wrong hx on the grid" );
-      TNL_ASSERT_EQ( hy, this->yDomainSize / (Real) ySize, "computed wrong hy on the grid" );
+      const Real& hx = grid.template getSpaceSteps()[ 0 ];
+      const Real& hy = grid.template getSpaceSteps()[ 1 ];
+      const auto h_inv = 1.0 / grid.getSpaceSteps();
 
       Real start = 0;
       Index iterations = 0;
       auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min(hx * hx, hy * hy);
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
      {
-         auto uxView = this->ux.getView();
-         auto auxView = this->aux.getView();
-         //auto xSize = grid.getDimensions().x();
-         auto next = [=] __cuda_callable__( const typename Grid::Cell& entity ) mutable {
-            const Index centerIdx = entity.getIndex();
-            const Real& element = uxView[ centerIdx ];
-            auto center = ( Real ) 2.0 * element;
+         auto ux_view = this->ux.getView();
+         auto aux_view = this->aux.getView();
+         auto faces_view = this->faces.getView();
+         auto gradient = [=] __cuda_callable__( const typename Grid::Face& face ) mutable {
+            faces[ face.getIndex() ] = ( ux_view[ face.template getNeighbourEntityIndex< Dimension >( { 0, 0 }, 0 ) ] -
+                                         ux_view[ face.template getNeighbourEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
+                                       * h_inv[ face.getOrientation().getOrientationIndex() ] ;
+         };
+         this->grid.template forInteriorEntities<1>( gradient );
 
-            auxView[ centerIdx ] = element + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1,  0 ) ) ] -
-                                                center +
-                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  1,  0 ) ) ] ) * hx_inv +
-                                              ( uxView[ entity.getNeighbourEntityIndex( Coordinates(  0, -1 ) ) ] -
-                                                center +
-                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  0,  1 ) ) ] ) * hy_inv ) * timestep;
-            /*auxView[ centerIdx ] = element + ( ( uxView[ centerIdx - 1 ] -
-                                                2.0 * center +
-                                                uxView[ centerIdx + 1 ] ) * hx_inv +
-                                                ( uxView[ centerIdx - xSize ] -
-                                                2.0 * center +
-                                                uxView[ centerIdx + xSize ] ) * hy_inv ) * timestep;*/
+         auto next = [=] __cuda_callable__( const typename Grid::Cell& cell ) mutable {
+            using Face = typename Grid::Face;
+            const auto& grid = cell.getMesh();
+            const auto& entitiesOrientations = grid.getEntitiesOrientations();
+            const Index cellIdx = cell.getIndex();
+            const Real& element = ux_view[ cellIdx ];
+            auto center = ( Real ) 2.0 * element;
+            constexpr Index x_faces = entitiesOrientations.template getOrientationIndex< 1, 0, 1 >();
+            constexpr Index y_faces = entitiesOrientations.template getOrientationIndex< 1, 1, 0 >();
+            aux_view[ cellIdx ] = element + ( ( faces[ cell.template getNeighbourEntityIndex< 1 >( { 1, 0 }, y_faces ) ] -
+                                                faces[ cell.template getNeighbourEntityIndex< 1 >( { 0, 0 }, y_faces ) ] ) * h_inv.x() +
+                                              ( faces[ cell.template getNeighbourEntityIndex< 1 >( { 0, 1 }, x_faces ) ] -
+                                                faces[ cell.template getNeighbourEntityIndex< 1 >( { 0, 0 }, x_faces ) ] ) * h_inv.y() ) * timestep;
          };
          this->grid.template forInteriorEntities<2>( next );
          this->ux.swap( this->aux );
@@ -153,20 +152,22 @@ struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index >: public HeatEqu
 
 protected:
 
-   VectorType ux, aux;
+   VectorType ux, aux, faces;
    Grid grid;
 };
 
 template< typename Real,
           typename Device,
           typename Index >
-struct HeatEquationSolverBenchmarkGrid< 3, Real, Device, Index >: public HeatEquationSolverBenchmark< 3, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFVMGrid< 3, Real, Device, Index >: public HeatEquationSolverBenchmark< 3, Real, Device, Index >
 {
    static constexpr int Dimension = 3;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
    using Grid = TNL::Meshes::Grid<3, Real, Device, int>;
    using Coordinates = typename Grid::CoordinatesType;
+
+   TNL::String scheme() { return "fvm"; }
 
    void init( const Index xSize, const Index ySize, const Index zSize )
    {

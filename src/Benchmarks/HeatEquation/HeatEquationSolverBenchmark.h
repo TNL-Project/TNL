@@ -46,11 +46,11 @@ struct HeatEquationSolverBenchmarkBase
       config.addEntry<double>("domain-x-size", "Domain size along x-axis.", 2.0);
       config.addEntry<double>("domain-y-size", "Domain size along y-axis.", 2.0);
 
-      config.addDelimiter( "Initial condition settings ( (x^2/alpha + y^2/beta + z^2/beta) + delta)):" );
-      config.addEntry< double >( "alpha", "Alpha value in initial condition", -0.05 );
-      config.addEntry< double >( "beta", "Beta value in initial condition", -0.05 );
-      config.addEntry< double >( "gamma", "Gamma value in initial condition", -0.05 );
-      config.addEntry< double >( "delta", "Delta value in initial condition", 5 );
+      config.addDelimiter( "Initial condition settings delta * ( 1-sign( x^2/alpha + y^2/beta + z^2/gamma - 1)):" );
+      config.addEntry< double >( "alpha", "Alpha value in initial condition", 0.25 );
+      config.addEntry< double >( "beta",  "Beta value in initial condition",  0.25 );
+      config.addEntry< double >( "gamma", "Gamma value in initial condition", 0.25 );
+      config.addEntry< double >( "delta", "Delta value in initial condition", 0.25 );
 
       config.addEntry<double>("sigma", "Sigma in exponential initial condition.", 1.0);
 
@@ -98,6 +98,7 @@ struct HeatEquationSolverBenchmarkBase
       this->alpha = parameters.getParameter<Real>( "alpha" );
       this->beta = parameters.getParameter<Real>( "beta" );
       this->gamma = parameters.getParameter<Real>( "gamma" );
+      this->delta = parameters.getParameter<Real>( "delta" );
       this->timeStep = parameters.getParameter<Real>( "time-step" );
       this->finalTime = parameters.getParameter<Real>( "final-time" );
       this->maxIterations = parameters.getParameter< int >( "max-iterations" );
@@ -142,6 +143,8 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
    static constexpr int Dimension = 1;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
 
+   virtual TNL::String scheme() = 0;
+
    virtual void init( const Index xSize ) = 0;
 
    virtual void exec( const Index xSize ) = 0;
@@ -157,15 +160,11 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
       aux = 0;
 
       const Real hx = this->xDomainSize / (Real) xSize;
-
       auto uxView = ux.getView();
-      auto xDomainSize_ = this->xDomainSize;
-      auto alpha_ = this->alpha;
-      auto delta_ = this->delta;
       auto init = [=] __cuda_callable__( Index i ) mutable
       {
-         auto x = i * hx - xDomainSize_ / 2.;
-         uxView[i] = TNL::max( ( ( x*x / alpha_ ) + delta_ ) * 0.2, 0.0 );
+         auto x = i * hx - this->xDomainSize / 2.0;
+         uxView[i] = this->delta * ( 1.0 - TNL::sign( x*x / this->alpha  - 1.0 ) );
       };
       TNL::Algorithms::ParallelFor<Device>::exec( 1, xSize - 1, init );
    }
@@ -225,15 +224,21 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
          benchmark.setDatasetSize( xSize );
          this->init( xSize );
          if( this->writeData ) {
-            TNL::String fileName = TNL::String( "initial-" ) + this->implementation +
-               "-" + TNL::convertToString( xSize) + ".gplt";
+               TNL::String fileName = TNL::String( "initial-" )
+                  + this->scheme() + "-"
+                  + precision + "-"
+                  + this->implementation + "-"
+                  + TNL::convertToString( xSize) + ".gplt";
             writeGnuplot( fileName.data(), xSize );
          }
          auto lambda = [&]() { this->exec( xSize ); };
          benchmark.time<Device>(device, lambda );
          if( this->writeData ) {
-            TNL::String fileName = TNL::String( "final-" ) + this->implementation +
-               "-" + TNL::convertToString( xSize) + ".gplt";
+               TNL::String fileName = TNL::String( "final-" )
+                  + this->scheme() + "-"
+                  + precision + "-"
+                  + this->implementation + "-"
+                  + TNL::convertToString( xSize) + ".gplt";
             writeGnuplot( fileName.data(), xSize );
          }
       }
@@ -248,6 +253,8 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
 {
    static constexpr int Dimension = 2;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
+
+   virtual TNL::String scheme() = 0;
 
    virtual void init( const Index xSize, const Index ySize ) = 0;
 
@@ -295,11 +302,13 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
          return false;
       const Real hx = this->xDomainSize / (Real) xSize;
       const Real hy = this->yDomainSize / (Real) ySize;
-      for( Index j = 0; j < ySize; j++)
+      for( Index j = 0; j < ySize; j++) {
          for( Index i = 0; i < xSize; i++)
             out << i * hx - this->xDomainSize / 2. << " "
                << j * hy - this->yDomainSize / 2. << " "
                << u.getElement( j * xSize + i ) << std::endl;
+         out << std::endl;
+      }
       return out.good();
    }
 
@@ -328,7 +337,7 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
       if( std::is_same< Device, TNL::Devices::Cuda >::value )
          device = "cuda";
 
-      std::cout << "Heat equation benchmark  with (" << precision << ", " << device << ")" << std::endl;
+      std::cout << "Heat equation benchmark in " << Dimension << "D : scheme = " << this->scheme() << ", precision = " << precision << ", device = " << device << std::endl;
 
       for( Index xSize = this->minXDimension; xSize <= this->maxXDimension; xSize *= this->xSizeStepFactor ) {
          for( Index ySize = this->minYDimension; ySize <= this->maxYDimension; ySize *= this->ySizeStepFactor ) {
@@ -344,15 +353,21 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
             benchmark.setDatasetSize( xSize * ySize );
             this->init( xSize, ySize );
             if( this->writeData ) {
-               TNL::String fileName = TNL::String( "initial-" ) + this->implementation +
-                  "-" + TNL::convertToString( xSize) + "-" + TNL::convertToString( ySize ) + ".gplt";
+               TNL::String fileName = TNL::String( "initial-" )
+                  + this->scheme() + "-"
+                  + precision + "-"
+                  + this->implementation + "-"
+                  + TNL::convertToString( xSize) + "-" + TNL::convertToString( ySize ) + ".gplt";
                writeGnuplot( fileName.data(), xSize, ySize );
             }
             auto lambda = [&]() { this->exec( xSize, ySize ); };
             benchmark.time<Device>(device, lambda );
             if( this->writeData ) {
-               TNL::String fileName = TNL::String( "final-" ) + this->implementation +
-                  "-" + TNL::convertToString( xSize) + "-" + TNL::convertToString( ySize ) + ".gplt";
+               TNL::String fileName = TNL::String( "final-" )
+                  + this->scheme() + "-"
+                  + precision + "-"
+                  + this->implementation + "-"
+                  + TNL::convertToString( xSize) + "-" + TNL::convertToString( ySize ) + ".gplt";
                writeGnuplot( fileName.data(), xSize, ySize );
             }
          }
@@ -368,6 +383,8 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
 {
    static constexpr int Dimension = 3;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
+
+   virtual TNL::String scheme() = 0;
 
    virtual void init( const Index xSize, const Index ySize, const Index zSize ) = 0;
 
@@ -386,22 +403,14 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
       const Real hz = this->zDomainSize / (Real) zSize;
 
       auto uxView = ux.getView();
-      auto xDomainSize_ = this->xDomainSize;
-      auto yDomainSize_ = this->yDomainSize;
-      auto zDomainSize_ = this->zDomainSize;
-      auto alpha_ = this->alpha;
-      auto beta_ = this->beta;
-      auto gamma_ = this->gamma;
-      auto delta_ = this->delta;
       auto init = [=] __cuda_callable__( Index i, Index j, Index k) mutable
       {
          auto index = ( k * ySize + j ) * xSize + i;
 
-         auto x = i * hx - xDomainSize_ / 2.;
-         auto y = j * hy - yDomainSize_ / 2.;
-         auto z = k * hz - zDomainSize_ / 2.;
-
-         uxView[index] = TNL::max( ( ( ( x*x / alpha_ ) + ( y*y / beta_ ) + ( z*z / gamma_ ) ) + delta_ ) * 0.2, 0.0 );
+         auto x = i * hx - this->xDomainSize / 2.0;
+         auto y = j * hy - this->yDomainSize / 2.0;
+         auto z = k * hz - this->zDomainSize / 2.0;
+         uxView[index] = this->delta * ( 1.0 - TNL::sign( x*x / this->alpha + y*y / this->beta + z*z / this->gamma - 1.0 ) );
       };
       TNL::Algorithms::ParallelFor3D<Device>::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, init );
    }
