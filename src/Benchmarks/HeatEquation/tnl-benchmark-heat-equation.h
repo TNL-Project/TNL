@@ -5,9 +5,11 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
-#include "HeatEquationSolverBenchmarkParallelFor.h"
-#include "HeatEquationSolverBenchmarkNDArray.h"
-#include "HeatEquationSolverBenchmarkGrid.h"
+#include "HeatEquationSolverBenchmarkFDMParallelFor.h"
+#include "HeatEquationSolverBenchmarkFDMNDArray.h"
+#include "HeatEquationSolverBenchmarkFDMGrid.h"
+#include "HeatEquationSolverBenchmarkFVMParallelFor.h"
+#include "HeatEquationSolverBenchmarkFVMGrid.h"
 
 void
 configSetup( TNL::Config::ConfigDescription& config )
@@ -35,25 +37,49 @@ configSetup( TNL::Config::ConfigDescription& config )
 
    config.addDelimiter( "Problem settings:" );
    config.addEntry< int >( "dimension", "Dimension of the benchmark problem.", 2 );
+   config.addEntry< TNL::String >( "scheme", "Numerical scheme used for the discretization.", "fdm" );
+   config.addEntryEnum< TNL::String >( "fdm" );
+   config.addEntryEnum< TNL::String >( "fvm" );
 }
 
 template< int Dimension, typename Real, typename Device >
 bool
 startBenchmark( TNL::Config::ParameterContainer& parameters )
 {
+   auto scheme = parameters.getParameter< TNL::String >( "scheme" );
    auto implementation = parameters.getParameter< TNL::String >( "implementation" );
-   if( implementation == "parallel-for" ) {
-      HeatEquationSolverBenchmarkParallelFor< Dimension, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
+   if( scheme == "fdm" ) {
+      if( implementation == "parallel-for" ) {
+         HeatEquationSolverBenchmarkFDMParallelFor< Dimension, Real, Device > benchmark;
+         return benchmark.runBenchmark( parameters );
+      }
+      if( implementation == "nd-array" ) {
+         HeatEquationSolverBenchmarkFDMNDArray< Dimension, Real, Device > benchmark;
+         return benchmark.runBenchmark( parameters );
+      }
+      if( implementation == "grid" ) {
+         HeatEquationSolverBenchmarkFDMGrid< Dimension, Real, Device > benchmark;
+         return benchmark.runBenchmark( parameters );
+      }
+      std::cerr << "Unknown implementation " << implementation << " for " << scheme << " numerical scheme." << std::endl;
+      return false;
    }
-   if( implementation == "nd-array" ) {
-      HeatEquationSolverBenchmarkNDArray< Dimension, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
+   if( scheme == "fvm" ) {
+      if( implementation == "parallel-for" ) {
+         HeatEquationSolverBenchmarkFVMParallelFor< Dimension, Real, Device > benchmark;
+         return benchmark.runBenchmark( parameters );
+      }
+      if( implementation == "grid" ) {
+         HeatEquationSolverBenchmarkFVMGrid< Dimension, Real, Device > benchmark;
+         return benchmark.runBenchmark( parameters );
+      }
+      if( implementation == "nd-array" )
+         std::cerr << "\"nd-array\" implementation cannot be used for \"fvm\" numerical scheme." << std::endl;
+      else
+         std::cerr << "Unknown implementation " << implementation << " for " << scheme << " numerical scheme." << std::endl;
+      return false;
    }
-   if( implementation == "grid" ) {
-      HeatEquationSolverBenchmarkGrid< Dimension, Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters );
-   }
+   std::cerr << "Unknown numerical scheme " << scheme << std::endl;
    return false;
 }
 

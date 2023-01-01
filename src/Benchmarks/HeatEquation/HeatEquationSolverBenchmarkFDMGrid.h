@@ -7,16 +7,23 @@
 #include "HeatEquationSolverBenchmark.h"
 
 template< int Dimension, typename Real = double, typename Device = TNL::Devices::Host, typename Index = int >
-struct HeatEquationSolverBenchmarkGrid;
+struct HeatEquationSolverBenchmarkFDMGrid;
 
 template< typename Real, typename Device, typename Index >
-struct HeatEquationSolverBenchmarkGrid< 1, Real, Device, Index > : public HeatEquationSolverBenchmark< 1, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFDMGrid< 1, Real, Device, Index >
+: public HeatEquationSolverBenchmark< 1, Real, Device, Index >
 {
    static constexpr int Dimension = 1;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
    using Grid = TNL::Meshes::Grid< 1, Real, Device, int >;
    using Coordinates = typename Grid::CoordinatesType;
+
+   TNL::String
+   scheme()
+   {
+      return "fdm";
+   }
 
    void
    init( const Index xSize )
@@ -75,13 +82,20 @@ protected:
 };
 
 template< typename Real, typename Device, typename Index >
-struct HeatEquationSolverBenchmarkGrid< 2, Real, Device, Index > : public HeatEquationSolverBenchmark< 2, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >
+: public HeatEquationSolverBenchmark< 2, Real, Device, Index >
 {
    static constexpr int Dimension = 2;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
    using Grid = TNL::Meshes::Grid< 2, Real, Device, int >;
    using Coordinates = typename Grid::CoordinatesType;
+
+   TNL::String
+   scheme()
+   {
+      return "fdm";
+   }
 
    void
    init( const Index xSize, const Index ySize )
@@ -149,13 +163,20 @@ protected:
 };
 
 template< typename Real, typename Device, typename Index >
-struct HeatEquationSolverBenchmarkGrid< 3, Real, Device, Index > : public HeatEquationSolverBenchmark< 3, Real, Device, Index >
+struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >
+: public HeatEquationSolverBenchmark< 3, Real, Device, Index >
 {
    static constexpr int Dimension = 3;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
    using Grid = TNL::Meshes::Grid< 3, Real, Device, int >;
    using Coordinates = typename Grid::CoordinatesType;
+
+   TNL::String
+   scheme()
+   {
+      return "fdm";
+   }
 
    void
    init( const Index xSize, const Index ySize, const Index zSize )

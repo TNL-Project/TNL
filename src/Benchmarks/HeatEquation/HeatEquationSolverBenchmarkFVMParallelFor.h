@@ -1,0 +1,295 @@
+// Copyright (c) 2004-2022 Tomáš Oberhuber et al.
+//
+// This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+//
+// SPDX-License-Identifier: MIT
+
+// Implemented by: Tomáš Oberhuber
+
+#pragma once
+
+#include "HeatEquationSolverBenchmark.h"
+
+template< int Dimension,
+          typename Real = double,
+          typename Device = TNL::Devices::Host,
+          typename Index = int >
+struct HeatEquationSolverBenchmarkFVMParallelFor;
+
+template< typename Real,
+          typename Device,
+          typename Index >
+struct HeatEquationSolverBenchmarkFVMParallelFor< 1, Real, Device, Index > : public HeatEquationSolverBenchmark< 1, Real, Device, Index >
+{
+   static constexpr int Dimension = 1;
+   using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
+   using VectorType = typename BaseBenchmarkType::VectorType;
+
+   TNL::String scheme() { return "fvm"; }
+
+   void init( const Index xSize )
+   {
+      BaseBenchmarkType::init( xSize, ux, aux );
+   }
+
+   bool writeGnuplot( const std::string &filename, const Index xSize ) const
+   {
+      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize );
+   }
+
+   void exec( const Index xSize )
+   {
+      const Real hx = this->xDomainSize / (Real) xSize;
+      const Real hx_inv = 1.0 / (hx * hx);
+
+      Real start = 0;
+      Index iterations = 0;
+      auto timestep = this->timeStep ? this->timeStep : 0.1 * hx*hx;
+      while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
+      {
+         auto uxView = this->ux.getView();
+         auto auxView = this->aux.getView();
+         auto next = [=] __cuda_callable__( Index i ) mutable
+         {
+            auto element = uxView[i];
+            auto center = ( Real ) 2.0 * element;
+
+            auxView[ i ] = element + ( (uxView[ i-1 ] - center + uxView[ i+1 ] ) * hx_inv ) * timestep;
+         };
+
+         TNL::Algorithms::ParallelFor< Device >::exec( 1, xSize - 1, next );
+         this->ux.swap( this->aux );
+         start += timestep;
+         iterations++;
+      }
+   }
+
+protected:
+
+   VectorType ux, aux;
+};
+
+template< typename Real,
+          typename Device,
+          typename Index >
+struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index > : public HeatEquationSolverBenchmark< 2, Real, Device, Index >
+{
+   static constexpr int Dimension = 2;
+   using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
+   using VectorType = typename BaseBenchmarkType::VectorType;
+
+   TNL::String scheme() { return "fvm"; }
+
+   void init( const Index xSize, const Index ySize )
+   {
+      BaseBenchmarkType::init( xSize, ySize, ux, aux );
+      x_faces.setSize( xSize * ( ySize + 1 ) );
+      y_faces.setSize( ( xSize + 1 ) * ySize );
+      x_faces = 0.0;
+      y_faces = 0.0;
+   }
+
+   bool writeGnuplot( const std::string &filename, const Index xSize, const Index ySize ) const
+   {
+      return BaseBenchmarkType::writeGnuplot( filename, this->ux, xSize, ySize );
+   }
+
+   bool writeGnuplot( const std::string &filename, const Index xSize, const Index ySize, const VectorType& u ) const
+   {
+      return BaseBenchmarkType::writeGnuplot( filename, u, xSize, ySize );
+   }
+
+   void exec( const Index xSize, const Index ySize )
+   {
+      const Real hx = this->xDomainSize / (Real) xSize;
+      const Real hy = this->yDomainSize / (Real) ySize;
+      const Real hx_inv = 1.0 / hx;
+      const Real hy_inv = 1.0 / hy;
+
+      Real start = 0;
+      Index iterations = 0;
+      auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min(hx * hx, hy * hy);
+      while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
+      {
+         auto ux_view = this->ux.getView();
+         auto aux_view = this->aux.getView();
+         auto x_faces_view = this->x_faces.getView();
+         auto y_faces_view = this->y_faces.getView();
+
+         /////
+         // First we iterate over vertical faces of interior cells. Their coordinates and
+         // indexes in case of 2D 4x4 mesh are depicted on the following figure:
+         //
+         //   +-------+-------+-------+-------+       +-------+-------+-------+-------+
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   +-------+-------+-------+-------+       +-------+-------+-------+-------+
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |     (1,2)   (2,2)   (3,2)     |       |     (11)    (12)    (13)      |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   +-------+-------+-------+-------+       +-------+-------+-------+-------+
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |     (1,1)   (2,1)   (3,1)     |       |     ( 6)    ( 7)    ( 8)      |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   +-------+-------+-------+-------+       +-------+-------+-------+-------+
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   +-------+-------+-------+-------+       +-------+-------+-------+-------+
+         //
+         // Their indexes are given as:
+         //
+         //    face_idx =  row * ( xSize + 1 ) + column
+         //
+         // where column = 1 ... xSize-1 and row = 1 ... ySize-2 and
+         auto x_gradients = [=] __cuda_callable__ ( Index column, Index row ) mutable {
+            const Index face_idx = row * ( xSize + 1 ) + column;
+            const Index cell_idx = row * xSize + column;
+            y_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - 1 ] ) * hx_inv;
+         };
+         TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize, ySize - 1, x_gradients );
+
+         /////
+         // Next we iterate over horizontal faces of interior cells. Their coordinates and
+         // indexes in case of 2D 4x4 mesh are depicted on the following figure:
+         //
+         //   +-------+-------+-------+-------+       +-------+-------+-------+-------+
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   +-------+-(1,3)-+-(2,3)-+-------+       +-------+-( 13)-+-( 14)-+-------+
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   +-------+-(1,2)-+-(2,2)-+-------+       +-------+-(  9)-+-( 10)-+-------+
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   +-------+-(1,1)-+-(2,1)-+-------+       +-------+-(  5)-+-(  6)-+-------+
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   |       |       |       |       |       |       |       |       |       |
+         //   +-------+-------+-------+-------+       +-------+-------+-------+-------+
+         //
+         // Their indexes are given as:
+         //
+         //    face_idx =  row * xSize + column
+         // where column = 1 ... xSize-2 and row = 1 ... ySize-1
+         auto y_gradients = [=] __cuda_callable__ ( Index column, Index row ) mutable {
+            //const Index face_idx = row * xSize + column;
+            //const Index cell_idx = row * xSize + column;
+            const Index idx = row * xSize + column;
+            x_faces_view[ idx ] = ( ux_view[ idx ] - ux_view[ idx - xSize ] ) * hy_inv;
+         };
+         TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize - 1, ySize, y_gradients );
+
+         ////
+         // From the first derivatives stored on the faces, we will now compute the laplacian:
+         //
+         //   +-----------+-----------+-----------+-----------+
+         //   |           |           |           |           |
+         //   |           |           |           |           |
+         //   |    BC     |    BC     |   BC      |    BC     |
+         //   |           |           |           |           |
+         //   |           |           |           |           |
+         //   +-----------+---(1,3)---+---(2,3)---+-----------+
+         //   |           |           |           |           |
+         //   |           |           |           |           |
+         //   |    BC   (1,2) [1,2] (2,2) [2,2] (3,2)  BC     |
+         //   |           |           |           |           |
+         //   |           |           |           |           |
+         //   +-----------+---(1,2)---+---(2,2)---+-----------+
+         //   |           |           |           |           |
+         //   |           |           |           |           |
+         //   |    BC   (1,1) [1,1] (2,1) [2,1] (3,1)  BC     |
+         //   |           |           |           |           |
+         //   |           |           |           |           |
+         //   +-----------+---(1,1)---+---(2,1)---+-----------+
+         //   |           |           |           |           |
+         //   |           |           |           |           |
+         //   |    BC     |    BC     |    BC     |    BC     |
+         //   |           |           |           |           |
+         //   |           |           |           |           |
+         //   +-----------+-----------+-----------+-----------+
+         //
+         // BC denotes cells where we set boundary conditions and therefore we iterate only over the
+         // interior cells for which column = 1 ... xSize-2 and row = 1 ... ySize-2.
+         auto update = [=] __cuda_callable__( Index column, Index row ) mutable
+         {
+            const Index y_face_idx = row * ( xSize + 1 ) + column;
+            auto index = row * xSize + column;
+            auto element = ux_view[index];
+            auto center = ( Real ) 2.0 * element;
+
+            aux_view[index] = element + ( ( x_faces_view[ index + xSize ] - x_faces_view[ index ]        ) * hx_inv +
+                                          ( y_faces_view[ y_face_idx + 1 ]  - y_faces_view[ y_face_idx ] ) * hy_inv ) * timestep;
+         };
+         TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize - 1, ySize - 1, update );
+         this->ux.swap( this->aux );
+         start += timestep;
+         iterations++;
+      }
+   }
+
+protected:
+
+   VectorType ux, aux, x_faces, y_faces;
+};
+
+template< typename Real,
+          typename Device,
+          typename Index >
+struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index > : public HeatEquationSolverBenchmark< 3, Real, Device, Index >
+{
+   static constexpr int Dimension = 3;
+   using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
+   using VectorType = typename BaseBenchmarkType::VectorType;
+
+   TNL::String scheme() { return "fvm"; }
+
+   void init( const Index xSize, const Index ySize, const Index zSize )
+   {
+      BaseBenchmarkType::init( xSize, ySize, zSize, ux, aux );
+   }
+
+   void exec( const Index xSize, const Index ySize, const Index zSize )
+   {
+      const Real hx = this->xDomainSize / (Real) xSize;
+      const Real hy = this->yDomainSize / (Real) ySize;
+      const Real hz = this->zDomainSize / (Real) zSize;
+      const Real hx_inv = 1.0 / (hx * hx);
+      const Real hy_inv = 1.0 / (hy * hy);
+      const Real hz_inv = 1.0 / (hz * hz);
+      const auto xySize = xSize * ySize;
+
+      Real start = 0;
+      Index iterations = 0;
+      auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx*hx, std::min( hy*hy, hz*hz ) );
+      while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
+      {
+         auto uxView = this->ux.getView();
+         auto auxView = this->aux.getView();
+         auto next = [=] __cuda_callable__( Index i, Index j, Index k ) mutable
+         {
+            auto index = ( k * ySize + j ) * xSize + i;
+            auto element = uxView[index];
+            auto center = ( Real ) 2.0 * element;
+
+            auxView[index] = element + ( ( uxView[ index-1 ] -      center + uxView[ index+1 ]      ) * hx_inv +
+                                         ( uxView[ index-xSize ] -  center + uxView[ index+xSize ]  ) * hy_inv +
+                                         ( uxView[ index-xySize ] - center + uxView[ index+xySize ] ) * hz_inv
+                                       ) * timestep;
+         };
+
+         TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, next );
+         this->ux.swap( this->aux );
+         start += timestep;
+         iterations++;
+      }
+   }
+
+protected:
+
+   VectorType ux, aux;
+};
