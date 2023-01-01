@@ -262,8 +262,8 @@ struct BuildOnesPack;
 template< int OnesCount, int Size, int... Values >
 struct BuildOnesPack< OnesCount, Size, int_pack< Values... > >
 : std::conditional_t< OnesCount == 0,
-                      BuildOnesPack< 0, Size - 1, int_pack< 0, Values... > >,
-                      BuildOnesPack< OnesCount - 1, Size - 1, int_pack< 1, Values... > > >
+                      BuildOnesPack< 0, Size - 1, int_pack< Values..., 0 > >,
+                      BuildOnesPack< OnesCount - 1, Size - 1, int_pack< Values..., 1 > > >
 {};
 
 template< int Value, int... Values >
