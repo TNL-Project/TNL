@@ -49,17 +49,17 @@ namespace Meshes {
  * | 1              | Cell                     | 1                 | ( 1 )                                 | ( 1 )                            |
  * |---------------:|-------------------------:|------------------:|--------------------------------------:|---------------------------------:|
  * | 2              | Vertex                   | 0                 | none or ( 0, 0 )                      | ( 0, 0 )                         |
+ * | 2              | Face along y axis        | 1                 | ( 0, 1 )                              | ( 0, 1 )                         |
  * | 2              | Face along x axis        | 1                 | ( 1, 0 )                              | ( 1, 0 )                         |
- * | 2              | Face along x axis        | 1                 | ( 0, 1 )                              | ( 0, 1 )                         |
  * | 2              | Cell                     | 2                 | ( 1, 0 ), ( 0, 1 )                    | ( 1, 1 )                         |
  * |---------------:|-------------------------:|------------------:|--------------------------------------:|---------------------------------:|
  * | 3              | Vertexes                 | 0                 | none or ( 0, 0, 0 )                   | ( 0, 0, 0 )                      |
- * | 3              | Edges along x axis       | 1                 | ( 1, 0, 0 )                           | ( 1, 0, 0 )                      |
- * | 3              | Edges along y axis       | 1                 | ( 0, 1, 0 )                           | ( 0, 1, 0 )                      |
  * | 3              | Edges along z axis       | 1                 | ( 0, 0, 1 )                           | ( 0, 0, 1 )                      |
- * | 3              | Faces along x and y axes | 2                 | ( 1, 0, 0 ), ( 0, 1, 0 )              | ( 1, 1, 0 )                      |
- * | 3              | Faces along x and z axes | 2                 | ( 1, 0, 0 ), ( 0, 0, 1 )              | ( 1, 0, 1 )                      |
+ * | 3              | Edges along y axis       | 1                 | ( 0, 1, 0 )                           | ( 0, 1, 0 )                      |
+ * | 3              | Edges along x axis       | 1                 | ( 1, 0, 0 )                           | ( 1, 0, 0 )                      |
  * | 3              | Faces along y and z axes | 2                 | ( 0, 1, 0 ), ( 0, 0, 1 )              | ( 0, 1, 1 )                      |
+ * | 3              | Faces along x and z axes | 2                 | ( 1, 0, 0 ), ( 0, 0, 1 )              | ( 1, 0, 1 )                      |
+ * | 3              | Faces along x and y axes | 2                 | ( 1, 0, 0 ), ( 0, 1, 0 )              | ( 1, 1, 0 )                      |
  * | 3              | Cells                    | 3                 | ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ) | ( 1, 1, 1 )                      |
  *
  * Another way to encode the orientation is by vectors of the standard basis which are normal (or orthogonal) to standard basis vectors which the
@@ -72,17 +72,17 @@ namespace Meshes {
  * | 1              | Cell                     | 1                 | none or ( 0 )                         | ( 0 )                   |
  * |---------------:|-------------------------:|------------------:|--------------------------------------:|------------------------:|
  * | 2              | Vertex                   | 0                 | ( 1, 0 ), ( 0, 1 )                    | ( 1, 1 )                |
+ * | 2              | Face along y axis        | 1                 | ( 1, 0 )                              | ( 1, 0 )                |
  * | 2              | Face along x axis        | 1                 | ( 0, 1 )                              | ( 0, 1 )                |
- * | 2              | Face along x axis        | 1                 | ( 1, 0 )                              | ( 1, 0 )                |
  * | 2              | Cell                     | 2                 | none or ( 0, 0 )                      | ( 0, 0 )                |
  * |---------------:|-------------------------:|------------------:|--------------------------------------:|------------------------:|
  * | 3              | Vertexes                 | 0                 | ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ) | ( 1, 1, 1 )             |
- * | 3              | Edges along x axis       | 1                 | ( 0, 1, 0 ), ( 0, 0, 1 )              | ( 0, 1, 1 )             |
- * | 3              | Edges along y axis       | 1                 | ( 1, 0, 0 ), ( 0, 0, 1 )              | ( 1, 0, 1 )             |
  * | 3              | Edges along z axis       | 1                 | ( 1, 0, 0 ), ( 0, 1, 0 )              | ( 1, 1, 0 )             |
- * | 3              | Faces along x and y axes | 2                 | ( 0, 0, 1 )                           | ( 0, 0, 1 )             |
- * | 3              | Faces along x and z axes | 2                 | ( 0, 1, 0 )                           | ( 0, 1, 0 )             |
+ * | 3              | Edges along y axis       | 1                 | ( 1, 0, 0 ), ( 0, 0, 1 )              | ( 1, 0, 1 )             |
+ * | 3              | Edges along x axis       | 1                 | ( 0, 1, 0 ), ( 0, 0, 1 )              | ( 0, 1, 1 )             |
  * | 3              | Faces along y and z axes | 2                 | ( 1, 0, 0 )                           | ( 1, 0, 0 )             |
+ * | 3              | Faces along x and z axes | 2                 | ( 0, 1, 0 )                           | ( 0, 1, 0 )             |
+ * | 3              | Faces along x and y axes | 2                 | ( 0, 0, 1 )                           | ( 0, 0, 1 )             |
  * | 3              | Cells                    | 3                 | none or ( 0, 0, 0 )                   | ( 0, 0, 0 )             |
  *
  * While the basis vectors generating the grid entity are useful for computing the center of the grid entity, for example, the normal
@@ -103,17 +103,17 @@ namespace Meshes {
  * | 1              | Cell                     | 1                 | ( 0 )                   | 1                | 1                      |
  * |---------------:|-------------------------:|------------------:|------------------------:|-----------------:|-----------------------:|
  * | 2              | Vertex                   | 0                 | ( 1, 1 )                | 0                | 0                      |
- * | 2              | Face along x axis        | 1                 | ( 0, 1 )                | 0                | 1                      |
- * | 2              | Face along x axis        | 1                 | ( 1, 0 )                | 1                | 2                      |
+ * | 2              | Face along x axis        | 1                 | ( 1, 0 )                | 0                | 1                      |
+ * | 2              | Face along x axis        | 1                 | ( 0, 1 )                | 1                | 2                      |
  * | 2              | Cell                     | 2                 | ( 0, 0 )                | 0                | 3                      |
  * |---------------:|-------------------------:|------------------:|------------------------:|-----------------:|-----------------------:|
  * | 3              | Vertexes                 | 0                 | ( 1, 1, 1 )             | 0                | 0                      |
- * | 3              | Edges along x axis       | 1                 | ( 0, 1, 1 )             | 0                | 1                      |
+ * | 3              | Edges along z axis       | 1                 | ( 1, 1, 0 )             | 0                | 1                      |
  * | 3              | Edges along y axis       | 1                 | ( 1, 0, 1 )             | 1                | 2                      |
- * | 3              | Edges along z axis       | 1                 | ( 1, 1, 0 )             | 2                | 3                      |
- * | 3              | Faces along x and y axes | 2                 | ( 0, 0, 1 )             | 0                | 4                      |
+ * | 3              | Edges along x axis       | 1                 | ( 0, 1, 1 )             | 2                | 3                      |
+ * | 3              | Faces along y and z axes | 2                 | ( 1, 0, 0 )             | 0                | 4                      |
  * | 3              | Faces along x and z axes | 2                 | ( 0, 1, 0 )             | 1                | 5                      |
- * | 3              | Faces along y and z axes | 2                 | ( 1, 0, 0 )             | 2                | 6                      |
+ * | 3              | Faces along x and y axes | 2                 | ( 0, 0, 1 )             | 2                | 6                      |
  * | 3              | Cells                    | 3                 | ( 0, 0, 0 )             | 0                | 7                      |
  */
 template< int GridDimension >
