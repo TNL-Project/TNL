@@ -16,6 +16,11 @@ namespace Containers {
 
 /**
  * \brief \e DistributedVector extends \ref DistributedArray with algebraic operations.
+ *
+ * \par Example
+ * \include Containers/DistributedVectorExample.cpp
+ * \par Output
+ * \include DistributedVectorExample.out
  */
 template< typename Real,
           typename Device = Devices::Host,
