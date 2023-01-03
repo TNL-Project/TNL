@@ -154,6 +154,13 @@ struct HeatEquationSolverBenchmarkFDMParallelFor< 3, Real, Device, Index >
       BaseBenchmarkType::init( xSize, ySize, zSize, ux, aux );
    }
 
+   bool
+   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice )
+      const
+   {
+      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize, zSize, zSlice );
+   }
+
    void
    exec( const Index xSize, const Index ySize, const Index zSize )
    {

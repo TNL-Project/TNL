@@ -49,6 +49,7 @@ struct HeatEquationSolverBenchmarkBase
 
       config.addEntry< double >( "domain-x-size", "Domain size along x-axis.", 2.0 );
       config.addEntry< double >( "domain-y-size", "Domain size along y-axis.", 2.0 );
+      config.addEntry< double >( "domain-z-size", "Domain size along z-axis.", 2.0 );
 
       config.addDelimiter( "Initial condition settings delta * ( 1-sign( x^2/alpha + y^2/beta + z^2/gamma - 1)):" );
       config.addEntry< double >( "alpha", "Alpha value in initial condition", 0.25 );
@@ -100,6 +101,7 @@ struct HeatEquationSolverBenchmarkBase
 
       this->xDomainSize = parameters.getParameter< Real >( "domain-x-size" );
       this->yDomainSize = parameters.getParameter< Real >( "domain-y-size" );
+      this->zDomainSize = parameters.getParameter< Real >( "domain-z-size" );
       this->alpha = parameters.getParameter< Real >( "alpha" );
       this->beta = parameters.getParameter< Real >( "beta" );
       this->gamma = parameters.getParameter< Real >( "gamma" );
@@ -173,8 +175,9 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
       TNL::Algorithms::ParallelFor< Device >::exec( 1, xSize - 1, init );
    }
 
+   template< typename Vector >
    bool
-   writeGnuplot( const std::string& filename, const VectorType& u, const Index xSize ) const
+   writeGnuplot( const std::string& filename, const Vector& u, const Index xSize ) const
    {
       std::ofstream out( filename, std::ios::out );
       if( ! out.is_open() )
@@ -211,7 +214,8 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
       if( std::is_same< Device, TNL::Devices::Cuda >::value )
          device = "cuda";
 
-      std::cout << "Heat equation benchmark  with (" << precision << ", " << device << ")" << std::endl;
+      std::cout << "Heat equation benchmark in " << Dimension << "D : scheme = " << this->scheme()
+                << ", precision = " << precision << ", device = " << device << std::endl;
 
       for( Index xSize = this->minXDimension; xSize <= this->maxXDimension; xSize *= this->xSizeStepFactor ) {
          benchmark.setMetadataColumns(
@@ -294,8 +298,9 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
       TNL::Algorithms::parallelFor< Device >( begin, end, init );
    }
 
+   template< typename Vector >
    bool
-   writeGnuplot( const std::string& filename, const VectorType& u, const Index xSize, const Index ySize ) const
+   writeGnuplot( const std::string& filename, const Vector& u, const Index xSize, const Index ySize ) const
    {
       std::ofstream out( filename, std::ios::out );
       if( ! out.is_open() )
@@ -387,6 +392,10 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
    virtual void
    exec( const Index xSize, const Index ySize, const Index zSize ) = 0;
 
+   virtual bool
+   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice )
+      const = 0;
+
    void
    init( const Index xSize, const Index ySize, const Index zSize, VectorType& ux, VectorType& aux )
    {
@@ -414,6 +423,29 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
       TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, init );
    }
 
+   template< typename Vector >
+   bool
+   writeGnuplot( const std::string& filename,
+                 const Vector& u,
+                 const Index xSize,
+                 const Index ySize,
+                 const Index zSize,
+                 const Index zSlice ) const
+   {
+      std::ofstream out( filename, std::ios::out );
+      if( ! out.is_open() )
+         return false;
+      const Real hx = this->xDomainSize / (Real) xSize;
+      const Real hy = this->yDomainSize / (Real) ySize;
+      for( Index j = 0; j < ySize; j++ ) {
+         for( Index i = 0; i < xSize; i++ )
+            out << i * hx - this->xDomainSize / 2. << " " << j * hy - this->yDomainSize / 2. << " "
+                << u.getElement( ( zSlice * ySize + j ) * xSize + i ) << std::endl;
+         out << std::endl;
+      }
+      return out.good();
+   }
+
    bool
    runBenchmark( const TNL::Config::ParameterContainer& parameters )
    {
@@ -439,7 +471,8 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
       if( std::is_same< Device, TNL::Devices::Cuda >::value )
          device = "cuda";
 
-      std::cout << "Heat equation benchmark  with (" << precision << ", " << device << ")" << std::endl;
+      std::cout << "Heat equation benchmark in " << Dimension << "D : scheme = " << this->scheme()
+                << ", precision = " << precision << ", device = " << device << std::endl;
 
       for( Index xSize = this->minXDimension; xSize <= this->maxXDimension; xSize *= this->xSizeStepFactor ) {
          for( Index ySize = this->minYDimension; ySize <= this->maxYDimension; ySize *= this->ySizeStepFactor ) {
@@ -454,11 +487,23 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
 
                benchmark.setDatasetSize( xSize * ySize * zSize );
                this->init( xSize, ySize, zSize );
+               if( this->writeData ) {
+                  TNL::String fileName = TNL::String( "initial-" ) + this->scheme() + "-" + precision + "-"
+                                       + this->implementation + "-" + TNL::convertToString( xSize ) + "-"
+                                       + TNL::convertToString( ySize ) + "-" + TNL::convertToString( zSize ) + ".gplt";
+                  writeGnuplot( fileName.data(), xSize, ySize, zSize, zSize / 2 );
+               }
                auto lambda = [ & ]()
                {
                   this->exec( xSize, ySize, zSize );
                };
                benchmark.time< Device >( device, lambda );
+               if( this->writeData ) {
+                  TNL::String fileName = TNL::String( "final-" ) + this->scheme() + "-" + precision + "-" + this->implementation
+                                       + "-" + TNL::convertToString( xSize ) + "-" + TNL::convertToString( ySize ) + "-"
+                                       + TNL::convertToString( zSize ) + ".gplt";
+                  writeGnuplot( fileName.data(), xSize, ySize, zSize, zSize / 2 );
+               }
             }
          }
       }
