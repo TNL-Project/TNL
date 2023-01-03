@@ -7,8 +7,8 @@ schemes="fdm fvm"
 tests="parallel-for nd-array grid"
 min_x_dimension="50"
 min_y_dimension="50"
-max_x_dimension="1600"
-max_y_dimension="1600"
+max_x_dimension="800"
+max_y_dimension="800"
 
 solver="tnl-benchmark-heat-equation"
 base="tnl-benchmark-heat-equation"
@@ -32,7 +32,7 @@ do
                --max-x-dimension ${max_x_dimension}
                --max-y-dimension ${max_y_dimension}
                --max-iterations 500
-               --loops 10
+               --loops 25
                --final-time 0.1
                --device ${device}
                --log-file ${base}-${test}-${device}-${precision}-2d.json

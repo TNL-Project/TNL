@@ -1,8 +1,9 @@
 #/bin/bash
 
-#devices="sequential host"
-devices="cuda"
+devices="sequential host"
+#devices="cuda"
 precisions="float double"
+schemes="fdm fvm"
 tests="parallel-for nd-array grid"
 min_x_dimension="50"
 max_x_dimension="102400"
@@ -12,24 +13,28 @@ for device in ${devices}
 do
    for precision in ${precisions}
    do
-      for test in ${tests}
+      for scheme in ${schemes}
       do
-         command="${base}
-            --id ${test}
-            --implementation ${test}
-            --precision ${precision}
-            --dimension 1
-            --min-x-dimension ${min_x_dimension}
-            --max-x-dimension ${max_x_dimension}
-            --max-iterations 500
-            --loops 500
-            --final-time 0.1
-            --device ${device}
-            --log-file ${base}-${test}-${device}-${precision}-1d.json
-            --output-mode append
+         for test in ${tests}
+         do
+            command="${base}
+               --id ${test}
+               --implementation ${test}
+               --precision ${precision}
+               --scheme ${scheme}
+               --dimension 1
+               --min-x-dimension ${min_x_dimension}
+               --max-x-dimension ${max_x_dimension}
+               --max-iterations 500
+               --loops 500
+               --final-time 0.1
+               --device ${device}
+               --log-file ${base}-${test}-${device}-${precision}-1d.json
+               --output-mode append
             --write-data no"
-         echo $command
-         $command
+            echo $command
+            $command
+         done
       done
    done
 done
