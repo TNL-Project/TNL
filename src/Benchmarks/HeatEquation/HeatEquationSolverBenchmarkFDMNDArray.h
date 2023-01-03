@@ -211,6 +211,21 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >: public H
       TNL::Algorithms::ParallelFor3D<Device>::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, init );
    }
 
+   bool writeGnuplot( const std::string &filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice ) const
+   {
+      std::ofstream out(filename, std::ios::out);
+      if( !out.is_open() )
+         return false;
+      const Real hx = this->xDomainSize / (Real) xSize;
+      const Real hy = this->yDomainSize / (Real) ySize;
+      for( Index j = 0; j < ySize; j++)
+         for( Index i = 0; i < xSize; i++)
+            out << i * hx - this->xDomainSize / 2. << " "
+               << j * hy - this->yDomainSize / 2. << " "
+               << ux( i, j, zSlice ) << std::endl;
+      return out.good();
+   }
+
    void exec( const Index xSize, const Index ySize, const Index zSize )
    {
       const Real hx = this->xDomainSize / (Real) xSize;

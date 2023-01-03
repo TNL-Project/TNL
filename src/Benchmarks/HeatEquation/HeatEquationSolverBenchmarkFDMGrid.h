@@ -180,6 +180,11 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >: public Heat
       grid.setDomain( { 0.0, 0.0, 0.0}, { this->xDomainSize, this->yDomainSize, this->zDomainSize } );
    }
 
+   bool writeGnuplot( const std::string &filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice ) const
+   {
+      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize, zSize, zSlice );
+   }
+
    void exec( const Index xSize, const Index ySize, const Index zSize )
    {
       const Real hx = grid.template getSpaceStepsProducts< 1, 0, 0 >();

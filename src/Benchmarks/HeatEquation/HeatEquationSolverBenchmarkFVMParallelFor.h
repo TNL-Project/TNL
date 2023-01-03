@@ -219,11 +219,9 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index > : pub
          {
             const Index y_face_idx = row * ( xSize + 1 ) + column;
             auto index = row * xSize + column;
-            auto element = ux_view[index];
-            auto center = ( Real ) 2.0 * element;
-
-            aux_view[index] = element + ( ( x_faces_view[ index + xSize ] - x_faces_view[ index ]        ) * hx_inv +
-                                          ( y_faces_view[ y_face_idx + 1 ]  - y_faces_view[ y_face_idx ] ) * hy_inv ) * timestep;
+            aux_view[index] = ux_view[ index ] + timestep * (
+               ( y_faces_view[ y_face_idx + 1 ] - y_faces_view[ y_face_idx ] ) * hx_inv +
+               ( x_faces_view[ index + xSize ]  - x_faces_view[ index ]      ) * hy_inv );
          };
          TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize - 1, ySize - 1, update );
          this->ux.swap( this->aux );
@@ -251,6 +249,17 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index > : pub
    void init( const Index xSize, const Index ySize, const Index zSize )
    {
       BaseBenchmarkType::init( xSize, ySize, zSize, ux, aux );
+      yz_faces.setSize( ( xSize + 1 ) * ySize * zSize );
+      xz_faces.setSize( xSize * ( ySize + 1 ) * zSize );
+      xy_faces.setSize( xSize * ySize * ( zSize + 1 ) );
+      yz_faces = 0.0;
+      xz_faces = 0.0;
+      xy_faces = 0.0;
+   }
+
+   bool writeGnuplot( const std::string &filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice ) const
+   {
+      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize, zSize, zSlice );
    }
 
    void exec( const Index xSize, const Index ySize, const Index zSize )
@@ -258,9 +267,9 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index > : pub
       const Real hx = this->xDomainSize / (Real) xSize;
       const Real hy = this->yDomainSize / (Real) ySize;
       const Real hz = this->zDomainSize / (Real) zSize;
-      const Real hx_inv = 1.0 / (hx * hx);
-      const Real hy_inv = 1.0 / (hy * hy);
-      const Real hz_inv = 1.0 / (hz * hz);
+      const Real hx_inv = 1.0 / hx;
+      const Real hy_inv = 1.0 / hy;
+      const Real hz_inv = 1.0 / hz;
       const auto xySize = xSize * ySize;
 
       Real start = 0;
@@ -268,21 +277,46 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index > : pub
       auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx*hx, std::min( hy*hy, hz*hz ) );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
       {
-         auto uxView = this->ux.getView();
-         auto auxView = this->aux.getView();
-         auto next = [=] __cuda_callable__( Index i, Index j, Index k ) mutable
-         {
-            auto index = ( k * ySize + j ) * xSize + i;
-            auto element = uxView[index];
-            auto center = ( Real ) 2.0 * element;
+         auto ux_view = this->ux.getView();
+         auto aux_view = this->aux.getView();
+         auto yz_faces_view = this->yz_faces.getView();
+         auto xz_faces_view = this->xz_faces.getView();
+         auto xy_faces_view = this->xy_faces.getView();
 
-            auxView[index] = element + ( ( uxView[ index-1 ] -      center + uxView[ index+1 ]      ) * hx_inv +
-                                         ( uxView[ index-xSize ] -  center + uxView[ index+xSize ]  ) * hy_inv +
-                                         ( uxView[ index-xySize ] - center + uxView[ index+xySize ] ) * hz_inv
-                                       ) * timestep;
+         auto x_gradients = [=] __cuda_callable__ ( Index i, Index j, Index k ) mutable {
+            const Index face_idx = ( k * ySize + j ) * ( xSize + 1 ) + i;
+            const Index cell_idx = ( k * ySize + j ) * xSize + i;
+            yz_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - 1 ] ) * hx_inv;
          };
+         TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize, ySize - 1, zSize - 1, x_gradients );
 
-         TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, next );
+         auto y_gradients = [=] __cuda_callable__ ( Index i, Index j, Index k ) mutable {
+            const Index face_idx = ( k * ( ySize+1 ) + j ) * xSize + i;
+            const Index cell_idx = ( k * ySize + j ) * xSize + i;
+            xz_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - xSize ] ) * hy_inv;
+         };
+         TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize, zSize - 1, y_gradients );
+
+         auto z_gradients = [=] __cuda_callable__ ( Index i, Index j, Index k ) mutable {
+            const Index face_idx = ( k * ySize + j ) * xSize + i;
+            const Index cell_idx = ( k * ySize + j ) * xSize + i;
+            xy_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - xySize ] ) * hz_inv;
+         };
+         TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize, z_gradients );
+
+         auto update = [=] __cuda_callable__( Index i, Index j, Index k ) mutable
+         {
+            const Index yz_face_idx = ( k * ySize + j ) * ( xSize + 1 ) + i;
+            const Index xz_face_idx = ( k * ( ySize+1 ) + j ) * xSize + i;
+            const Index xy_face_idx = ( k * ySize + j ) * xSize + i;
+            const Index cell_idx = ( k * ySize + j ) * xSize + i;
+
+            aux_view[ cell_idx ] = ux_view[ cell_idx ] + timestep * (
+               ( yz_faces_view[ yz_face_idx + 1 ]       - yz_faces_view[ yz_face_idx ] ) * hx_inv +
+               ( xz_faces_view[ xz_face_idx + xSize ] - xz_faces_view[ xz_face_idx ] ) * hy_inv +
+               ( xy_faces_view[ xy_face_idx + xySize ] - xy_faces_view[ xy_face_idx ] ) * hz_inv );
+         };
+         TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, update );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -291,5 +325,5 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index > : pub
 
 protected:
 
-   VectorType ux, aux;
+   VectorType ux, aux, yz_faces, xz_faces, xy_faces;
 };
