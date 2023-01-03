@@ -9,6 +9,7 @@ set( COMMON_EXAMPLES
 set( MPI_COMMON_EXAMPLES
          DistributedArrayExample
          DistributedVectorExample
+         DistributedNDArrayExample
 )
 
 SET( mpirun_parameters -np 4 -H localhost:4 )

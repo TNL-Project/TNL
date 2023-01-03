@@ -20,6 +20,11 @@ namespace Containers {
  * \tparam NDArray Type of the N-dimensional array which is used to store the local
  *                 elements. It can be \ref NDArray or \ref SlicedNDArray.
  *
+ * \par Example:
+ * \include Containers/DistributedNDArrayExample.cpp
+ * \par Possible output:
+ * \include DistributedNDArrayExample.out
+ *
  * \ingroup ndarray
  */
 template< typename NDArray >

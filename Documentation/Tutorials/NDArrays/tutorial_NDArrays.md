@@ -186,4 +186,14 @@ with the same sizes.
 
 ## Distributed N-dimensional array
 
-TODO
+\ref TNL::Containers::DistributedNDArray "DistributedNDArray" extends \ref TNL::Containers::NDArray "NDArray" in a similar way that \ref TNL::Containers::DistributedArray "DistributedArray" extends \ref TNL::Containers::Array "Array".
+Because it is N-dimensional, there is more freedom in the way it can be decomposed.
+The following example creates a 2D array oriented in a column-major layout and decomposed along the vertical axis (y-axis) with one layer of overlaps (ghost regions).
+The elements in ghost regions get initialized to `-1` and later they are synchronized using \ref TNL::Containers::DistributedNDArraySynchronizer.
+Note that the synchronization is periodic by default (i.e., the first rank synchronizes values with the last rank).
+
+\include Containers/DistributedNDArrayExample.cpp
+
+Possible output:
+
+\include DistributedNDArrayExample.out
