@@ -55,16 +55,16 @@ public:
    //! of a distributed N-dimensional array.
    using OverlapsType = typename NDArray::OverlapsType;
 
-   //! Compatible \ref DistributedNDArrayView type.
+   //! \brief Compatible \ref DistributedNDArrayView type.
    using ViewType = DistributedNDArrayView< typename NDArray::ViewType >;
 
-   //! Compatible constant \ref DistributedNDArrayView type.
+   //! \brief Compatible constant \ref DistributedNDArrayView type.
    using ConstViewType = DistributedNDArrayView< typename NDArray::ConstViewType >;
 
-   //! Compatible \ref NDArrayView of the local array.
+   //! \brief Compatible \ref NDArrayView of the local array.
    using LocalViewType = typename NDArray::ViewType;
 
-   //! Compatible constant \ref NDArrayView of the local array.
+   //! \brief Compatible constant \ref NDArrayView of the local array.
    using ConstLocalViewType = typename NDArray::ConstViewType;
 
    //! \brief Constructs an empty array with zero size.

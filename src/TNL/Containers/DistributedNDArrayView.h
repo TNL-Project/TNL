@@ -55,16 +55,16 @@ public:
    //! of a distributed N-dimensional array.
    using OverlapsType = typename NDArrayView::OverlapsType;
 
-   //! Compatible \ref DistributedNDArrayView type.
+   //! \brief Compatible \ref DistributedNDArrayView type.
    using ViewType = DistributedNDArrayView< NDArrayView >;
 
-   //! Compatible constant \ref DistributedNDArrayView type.
+   //! \brief Compatible constant \ref DistributedNDArrayView type.
    using ConstViewType = DistributedNDArrayView< typename NDArrayView::ConstViewType >;
 
-   //! Compatible \ref NDArrayView of the local array.
+   //! \brief Compatible \ref NDArrayView of the local array.
    using LocalViewType = NDArrayView;
 
-   //! Compatible constant \ref NDArrayView of the local array.
+   //! \brief Compatible constant \ref NDArrayView of the local array.
    using ConstLocalViewType = typename NDArrayView::ConstViewType;
 
    //! \brief Constructs an empty array view with zero size.
@@ -164,14 +164,18 @@ public:
       return communicator;
    }
 
-   // Returns the *global* sizes
+   //! \brief Returns the N-dimensional sizes of the **global** array.
    const SizesHolderType&
    getSizes() const
    {
       return globalSizes;
    }
 
-   //! \brief Returns the N-dimensional sizes of the **global** array.
+   /**
+    * \brief Returns a specific component of the N-dimensional **global** sizes.
+    *
+    * \tparam level Integer specifying the component of the sizes to be returned.
+    */
    template< std::size_t level >
    IndexType
    getSize() const
