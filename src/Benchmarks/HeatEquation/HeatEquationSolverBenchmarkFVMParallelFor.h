@@ -30,6 +30,7 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 1, Real, Device, Index > : pub
    void init( const Index xSize )
    {
       BaseBenchmarkType::init( xSize, ux, aux );
+      faces.setSize( xSize+1 );
    }
 
    bool writeGnuplot( const std::string &filename, const Index xSize ) const
@@ -40,24 +41,27 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 1, Real, Device, Index > : pub
    void exec( const Index xSize )
    {
       const Real hx = this->xDomainSize / (Real) xSize;
-      const Real hx_inv = 1.0 / (hx * hx);
+      const Real hx_inv = 1.0 / hx;
 
       Real start = 0;
       Index iterations = 0;
       auto timestep = this->timeStep ? this->timeStep : 0.1 * hx*hx;
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
       {
-         auto uxView = this->ux.getView();
-         auto auxView = this->aux.getView();
-         auto next = [=] __cuda_callable__( Index i ) mutable
-         {
-            auto element = uxView[i];
-            auto center = ( Real ) 2.0 * element;
+         auto ux_view = this->ux.getView();
+         auto aux_view = this->aux.getView();
+         auto faces_view = this->faces.getView();
 
-            auxView[ i ] = element + ( (uxView[ i-1 ] - center + uxView[ i+1 ] ) * hx_inv ) * timestep;
+         auto gradients = [=] __cuda_callable__ ( Index i ) mutable {
+            faces_view[ i ] = ( ux_view[ i ] - ux_view[ i-1 ] ) * hx_inv;
          };
+         TNL::Algorithms::ParallelFor< Device >::exec( 1, xSize, gradients );
 
-         TNL::Algorithms::ParallelFor< Device >::exec( 1, xSize - 1, next );
+         auto update = [=] __cuda_callable__( Index i ) mutable
+         {
+            aux_view[ i ] = ux_view[ i ] + timestep * ( faces_view[ i+1 ] - faces_view[ i ] ) * hx_inv;
+         };
+         TNL::Algorithms::ParallelFor< Device >::exec( 1, xSize - 1, update );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -66,7 +70,7 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 1, Real, Device, Index > : pub
 
 protected:
 
-   VectorType ux, aux;
+   VectorType ux, aux, faces;
 };
 
 template< typename Real,

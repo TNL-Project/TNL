@@ -35,6 +35,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >: public Heat
       BaseBenchmarkType::init( xSize, ux, aux );
       this->grid.setDimensions( xSize );
       this->grid.setDomain( { 0.0 }, { this->xDomainSize } );
+      faces.setSize( this->grid.template getEntitiesCount< 0 >() );
    }
 
    bool writeGnuplot( const std::string &filename, const Index xSize ) const
@@ -45,30 +46,33 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >: public Heat
    void exec( const Index xSize )
    {
       const Real hx = this->grid.template getSpaceStepsProducts< 1 >();
-      const Real hx_inv = this->grid.template getSpaceStepsProducts< -2 >();
-
-      TNL_ASSERT_EQ( hx, this->xDomainSize / (Real) xSize, "computed wrong hx on the grid" );
+      const auto h_inv = 1.0 / grid.getSpaceSteps();
 
       Real start = 0;
       Index iterations = 0;
       auto timestep = this->timeStep ? this->timeStep : 0.1 * hx * hx;
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
      {
-         auto uxView = this->ux.getView();
-         auto auxView = this->aux.getView();
-         auto next = [=] __cuda_callable__( const typename Grid::Cell& entity ) mutable {
-            const Index centerIdx = entity.getIndex();
-            const Real& element = uxView[ centerIdx ];
-            auto center = ( Real ) 2.0 * element;
-
-
-
-            auxView[ centerIdx ] = element + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1 ) ) ] -
-                                                center +
-                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  1 ) ) ] ) * hx_inv  ) * timestep;
+         auto ux_view = this->ux.getView();
+         auto aux_view = this->aux.getView();
+         auto faces_view = this->faces.getView();
+         auto gradient = [=] __cuda_callable__( const typename Grid::Face& face ) mutable {
+            faces_view[ face.getIndex() ] = ( ux_view[ face.template getNeighbourEntityIndex< Dimension >( { 0, 0 }, 0 ) ] -
+                                              ux_view[ face.template getNeighbourEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
+                                            * h_inv[ face.getOrientation().getOrientationIndex() ] ;
          };
+         this->grid.template forInteriorEntities<0>( gradient );
 
-         this->grid.template forInteriorEntities<1>( next );
+         auto update = [=] __cuda_callable__( const typename Grid::Cell& cell ) mutable {
+            using Face = typename Grid::Face;
+            const auto& grid = cell.getMesh();
+            const Index cellIdx = cell.getIndex();
+            const Real& element = ux_view[ cellIdx ];
+            aux_view[ cellIdx ] = element + timestep * (
+               ( faces_view[ cell.template getNeighbourEntityIndex< 0 >( { 1 }, 0 ) ] -
+                 faces_view[ cell.template getNeighbourEntityIndex< 0 >( { 0 }, 0 ) ] ) * h_inv.x() );
+         };
+         this->grid.template forInteriorEntities<1>( update );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -77,7 +81,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >: public Heat
 
 protected:
 
-   VectorType ux, aux;
+   VectorType ux, aux, faces;
    Grid grid;
 };
 
