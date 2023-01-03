@@ -295,7 +295,6 @@ public:
    NormalsType
    getNormals( Index totalOrientation ) const noexcept;
 
-
    /**
     * \brief Returns basis of the entity with the specific orientation.
     *
@@ -806,6 +805,10 @@ public:
    void
    forLocalEntities( Func func, FuncArgs... args ) const;
 
+   template< typename Vector >
+   typename Vector::ConstViewType
+   partitionEntities( const Vector& allEntities, int entitiesDimension, int entitiesOrientation ) const;
+
 protected:
 
    void
@@ -863,8 +866,10 @@ protected:
 
    EntitiesCounts entitiesCounts = 0;
 
+   // TODO: Explain meaning of this container
    Containers::StaticVector< ( 1 << Dimension ) + Dimension + 1, Index > entitiesIndexesOffsets = 0;
 
+   // TODO: remove this container
    SpaceProductsContainer spaceStepsProducts = 0; // TODO: remove
 
    //__cuda_callable__ inline static
