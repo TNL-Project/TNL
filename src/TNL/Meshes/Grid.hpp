@@ -1118,6 +1118,17 @@ Grid< Dimension, Real, Device, Index >::forLocalEntities( Func func, FuncArgs...
    this->template traverseAll< EntityDimension >( this->localBegin, this->localEnd, exec, *this, args... );
 }
 
+template< int Dimension, typename Real, typename Device, typename Index >
+   template< typename Vector >
+auto
+Grid< Dimension, Real, Device, Index >::
+partitionEntities( const Vector& allEntities, int entitiesDimension, int entitiesOrientation ) const -> typename Vector::ConstViewType
+{
+   const IndexType totalOrientationIdx = EntitiesOrientations::getTotalOrientationIndex( entitiesDimension, entitiesOrientation );
+   return allEntities.getConstView( this->entitiesIndexesOffsets[ totalOrientationIdx+entitiesDimension ],
+                                    this->entitiesIndexesOffsets[ totalOrientationIdx+entitiesDimension+1 ] );
+}
+
 }  // namespace TNL::Meshes
 
 #endif

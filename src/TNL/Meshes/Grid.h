@@ -801,6 +801,10 @@ public:
    void
    forLocalEntities( Func func, FuncArgs... args ) const;
 
+   template< typename Vector >
+   typename Vector::ConstViewType
+   partitionEntities( const Vector& allEntities, int entitiesDimension, int entitiesOrientation ) const;
+
 protected:
    void
    setEntitiesIndexesOffsets();
@@ -857,9 +861,11 @@ protected:
 
    EntitiesCounts entitiesCounts = 0;
 
+   // TODO: Explain meaning of this container
    Containers::StaticVector< ( 1 << Dimension ) + Dimension + 1, Index > entitiesIndexesOffsets = 0;
 
-   SpaceProductsContainer spaceStepsProducts = 0;  // TODO: remove
+   // TODO: remove this container
+   SpaceProductsContainer spaceStepsProducts = 0; // TODO: remove
 
    //__cuda_callable__ inline static
    EntitiesOrientations entitiesOrientations;  // TODO: make this static - I do not know any good solution working with CUDA
