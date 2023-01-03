@@ -1,8 +1,9 @@
 #/bin/bash
 
-#devices="sequential host"
-devices="cuda"
+devices="sequential host"
+#devices="cuda"
 precisions="float double"
+schemes="fdm fvm"
 tests="parallel-for nd-array grid"
 min_x_dimension="50"
 min_y_dimension="50"
@@ -16,28 +17,32 @@ for device in ${devices}
 do
    for precision in ${precisions}
    do
-      for test in ${tests}
+      for scheme in ${schemes}
       do
-         command="${base}
-            --id ${test}
-            --implementation ${test}
-            --precision ${precision}
-            --dimension 3
-            --min-x-dimension ${min_x_dimension}
-            --min-y-dimension ${min_y_dimension}
-            --min-z-dimension ${min_z_dimension}
-            --max-x-dimension ${max_x_dimension}
-            --max-y-dimension ${max_y_dimension}
-            --max-z-dimension ${max_z_dimension}
-            --max-iterations 100
-            --loops 10
-            --final-time 0.1
-            --device ${device}
-            --log-file ${base}-${test}-${device}-${precision}-3d.json
-            --output-mode append
-            --write-data no"
-         echo $command
-         $command
+         for test in ${tests}
+         do
+            command="${base}
+               --id ${test}
+               --implementation ${test}
+               --precision ${precision}
+               --scheme ${scheme}
+               --dimension 3
+               --min-x-dimension ${min_x_dimension}
+               --min-y-dimension ${min_y_dimension}
+               --min-z-dimension ${min_z_dimension}
+               --max-x-dimension ${max_x_dimension}
+               --max-y-dimension ${max_y_dimension}
+               --max-z-dimension ${max_z_dimension}
+               --max-iterations 100
+               --loops 10
+               --final-time 0.1
+               --device ${device}
+               --log-file ${base}-${test}-${device}-${precision}-3d.json
+               --output-mode append
+               --write-data yes"
+            echo $command
+            $command
+         done
       done
    done
 done
