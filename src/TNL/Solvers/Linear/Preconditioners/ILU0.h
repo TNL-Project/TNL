@@ -26,28 +26,7 @@ namespace Preconditioners {
 
 // implementation template
 template< typename Matrix, typename Real, typename Device, typename Index >
-class ILU0_impl : public Preconditioner< Matrix >
-{
-public:
-   using RealType = Real;
-   using DeviceType = Device;
-   using IndexType = Index;
-   using typename Preconditioner< Matrix >::VectorViewType;
-   using typename Preconditioner< Matrix >::ConstVectorViewType;
-   using typename Preconditioner< Matrix >::MatrixPointer;
-
-   virtual void
-   update( const MatrixPointer& matrixPointer ) override
-   {
-      throw Exceptions::NotImplementedError( "ILU0 is not implemented yet for the matrix type " + getType< Matrix >() );
-   }
-
-   virtual void
-   solve( ConstVectorViewType b, VectorViewType x ) const override
-   {
-      throw Exceptions::NotImplementedError( "ILU0 is not implemented yet for the matrix type " + getType< Matrix >() );
-   }
-};
+class ILU0_impl;
 
 /**
  * \brief Implementation of a preconditioner based on Incomplete LU.
@@ -108,7 +87,7 @@ public:
     *
     * \param matrixPointer smart pointer (\ref std::shared_ptr) to matrix the preconditioner is related to.
     */
-   virtual void
+   void
    update( const MatrixPointer& matrixPointer ) override;
 
    /**
@@ -117,7 +96,7 @@ public:
     * \param b is the input vector the preconditioner is applied on.
     * \param x is the result of the preconditioning.
     */
-   virtual void
+   void
    solve( ConstVectorViewType b, VectorViewType x ) const override;
 
 protected:
@@ -147,6 +126,10 @@ protected:
          return 0;
    }
 };
+
+template< typename Matrix, typename Real, typename Index >
+class ILU0_impl< Matrix, Real, Devices::Sequential, Index > : public ILU0_impl< Matrix, Real, Devices::Host, Index >
+{};
 
 template< typename Matrix >
 class ILU0_impl< Matrix, double, Devices::Cuda, int > : public Preconditioner< Matrix >
