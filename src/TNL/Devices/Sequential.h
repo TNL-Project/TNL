@@ -13,4 +13,10 @@ struct Sequential
    {};
 };
 
+/***
+ * \brief Returns true if the device type is Sequential.
+ */
+template< typename Device >
+constexpr bool isSequential() { return std::is_same< Device, Sequential >::value; }
+
 }  // namespace TNL::Devices
