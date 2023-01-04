@@ -78,6 +78,22 @@ struct ParallelForND
                   else
                      f( i, args... );
       }
+      if constexpr( Dimension > 3 )
+      {
+         i = begin;
+         while( i[ Dimension-1 ] < end[ Dimension-1 ] ) {
+            for( i.z() = begin.z(); i.z() < end.z(); i.z()++ )
+               for( i.y() = begin.y(); i.y() < end.y(); i.y()++ )
+                  for( i.x() = begin.x(); i.x() < end.x(); i.x()++ )
+                     f( i, args... ); // TODO: implement expanded variant
+            int idx = 3;
+            i[ idx ]++;
+            while( i[ idx ] == end[ idx ] && idx < Dimension-1 ) {
+               i[ idx ] = begin[ idx ];
+               i[ ++idx ]++;
+            }
+         }
+      }
    }
 
    /**
@@ -156,7 +172,32 @@ struct ParallelForND< Devices::Host, expand >
                      }
          }
       }
-
+      if constexpr( Dimension > 3 )
+      {
+         // Benchmarks show that this is significantly faster compared
+         // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() )'
+         if( Devices::Host::isOMPEnabled() ) {
+            #pragma omp parallel for
+            for( Index k = begin[ Dimension-1 ]; k < end[ Dimension-1 ]; k++ )
+               for( Index j = begin[ Dimension-2 ]; j < end[ Dimension-2 ]; j++ )
+                  for( Index i = begin[ Dimension-3 ]; i < end[ Dimension-3 ]; i++ )
+                  {
+                     Coordinates c( begin );
+                     c[ Dimension-1 ] = k;
+                     c[ Dimension-2 ] = j;
+                     c[ Dimension-3 ] = i;
+                     while( c[ Dimension-4] < end[ Dimension-4 ] ) {
+                        f( c, args... );
+                        int idx = 0;
+                        c[ idx ]++;
+                        while( c[ idx ] == end[ idx ] && idx < Dimension-4 ) {
+                           c[ idx ] = begin[ idx ];
+                           c[ ++idx ]++;
+                        }
+                     }
+                  } // TODO: implement expanded variant
+         }
+      }
 #else
       ParallelForND< Devices::Sequential, expand >::exec( begin, end, f, args... );
 #endif
@@ -182,7 +223,7 @@ ParallelForNDKernel( const Coordinates begin, const Coordinates end, Function f,
 {
 #ifdef HAVE_CUDA
    constexpr int Dimension = Coordinates::getSize();
-   Coordinates i;
+   Coordinates i( begin );
    if constexpr( Dimension == 1 )
    {
       i.x() = begin.x() + blockIdx.x * blockDim.x + threadIdx.x;
@@ -244,6 +285,40 @@ ParallelForNDKernel( const Coordinates begin, const Coordinates end, Function f,
             i.z() += blockDim.z * gridDim.z;
          else
             break;
+      }
+   }
+   if constexpr( Dimension > 3 )
+   {
+      while( i[Dimension-1] < end[Dimension-1])
+      {
+         i.z() = begin.z() + blockIdx.z * blockDim.z + threadIdx.z;
+         i.y() = begin.y() + blockIdx.y * blockDim.y + threadIdx.y;
+         i.x() = begin.x() + blockIdx.x * blockDim.x + threadIdx.x;
+         while( i.z() < end.z() ) {
+            while( i.y() < end.y() ) {
+               while( i.x() < end.x() ) {
+                  f( i, args... );
+                  if( gridStrideX )
+                     i.x() += blockDim.x * gridDim.x;
+                  else
+                     break;
+               }
+               if( gridStrideY )
+                  i.y() += blockDim.y * gridDim.y;
+               else
+                  break;
+            }
+            if( gridStrideZ )
+               i.z() += blockDim.z * gridDim.z;
+            else
+               break;
+         }
+         int idx = 3;
+         i[ idx ]++;
+         while( i[ idx ] == end[ idx ] && idx < Dimension-1 ) {
+            i[ idx ] = begin[ idx ];
+            i[ ++idx ]++;
+         }
       }
    }
 #endif
@@ -333,9 +408,9 @@ struct ParallelForND< Devices::Cuda, expand >
             Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
          }
       }
-      if constexpr( Dimension == 3 ) {
-         if( end.x() <= begin.x() || end.y() <= begin.y() || end.z() <= begin.z() )
-         return;
+      if constexpr( Dimension >= 3 ) {
+         if( ! ( end > begin ) )
+            return;
 
          const Index sizeX = end.x() - begin.x();
          const Index sizeY = end.y() - begin.y();
