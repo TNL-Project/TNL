@@ -45,5 +45,11 @@ public:
    }
 };
 
+/***
+ * \brief Returns true if the device type is Cuda.
+ */
+template< typename Device >
+constexpr bool isCuda() { return std::is_same< Device, Cuda >::value; }
+
 }  // namespace Devices
 }  // namespace TNL
