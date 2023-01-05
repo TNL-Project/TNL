@@ -153,6 +153,7 @@ public:
     */
    Grid( const CoordinatesType& dimensions );
 
+   __cuda_callable__
    const EntitiesOrientations& getEntitiesOrientations() const;
 
    /**

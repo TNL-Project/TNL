@@ -15,6 +15,7 @@ namespace Meshes {
 
 
 template< int GridDimension >
+__cuda_callable__
 GridEntitiesOrientations< GridDimension >::
    GridEntitiesOrientations() { addNormalsToTable< 0, 0 >( 0 ); }
 
@@ -93,6 +94,7 @@ getTotalOrientationIndex( int entityDimension, int orientation ) {
 template< int GridDimension >
    template< int EntityDimension, int Orientation >
 auto
+__cuda_callable__
 GridEntitiesOrientations< GridDimension >::
 getNormals() -> NormalsType {
    return NormalsGetter< int, EntityDimension, GridDimension >::template getNormals< Orientation >();
@@ -101,6 +103,7 @@ getNormals() -> NormalsType {
 template< int GridDimension >
    template< int TotalOrientation >
 auto
+__cuda_callable__
 GridEntitiesOrientations< GridDimension >::
 getNormals() -> NormalsType {
    static_assert( TotalOrientation >= 0 && TotalOrientation < ( 1 << GridDimension ), "Wrong index of total orientation." );
