@@ -8,9 +8,9 @@ tests="parallel-for nd-array grid"
 min_x_dimension="50"
 min_y_dimension="50"
 min_z_dimension="50"
-max_x_dimension="400"
-max_y_dimension="400"
-max_z_dimension="400"
+max_x_dimension="200"
+max_y_dimension="200"
+max_z_dimension="200"
 base="tnl-benchmark-heat-equation"
 
 for device in ${devices}
@@ -37,9 +37,9 @@ do
                --loops 10
                --final-time 0.1
                --device ${device}
-               --log-file ${base}-${test}-${device}-${precision}-3d.json
+               --log-file ${base}-${test}-${device}-${precision}-${scheme}-3d.json
                --output-mode append
-               --write-data yes"
+               --write-data no"
             echo $command
             $command
          done

@@ -167,10 +167,13 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
 
       const Real hx = this->xDomainSize / (Real) xSize;
       auto uxView = ux.getView();
+      auto xDomainSize_ = this->xDomainSize;
+      auto delta_ = this->delta;
+      auto alpha_ = this->alpha;
       auto init = [ = ] __cuda_callable__( Index i ) mutable
       {
-         auto x = i * hx - this->xDomainSize / 2.0;
-         uxView[ i ] = this->delta * ( 1.0 - TNL::sign( x * x / this->alpha - 1.0 ) );
+         auto x = i * hx - xDomainSize_ / 2.0;
+         uxView[ i ] = delta_ * ( 1.0 - TNL::sign( x * x / alpha_ - 1.0 ) );
       };
       TNL::Algorithms::ParallelFor< Device >::exec( 1, xSize - 1, init );
    }
@@ -206,6 +209,7 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
       TNL::Benchmarks::writeMapAsJson( metadata, this->logFileName, ".metadata.json" );
 
       auto precision = TNL::getType< Real >();
+      auto scheme = parameters.getParameter< TNL::String >( "scheme" );
       TNL::String device;
       if( std::is_same< Device, TNL::Devices::Sequential >::value )
          device = "sequential";
@@ -220,6 +224,7 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
       for( Index xSize = this->minXDimension; xSize <= this->maxXDimension; xSize *= this->xSizeStepFactor ) {
          benchmark.setMetadataColumns(
             TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
+                                                             { "scheme", scheme },
                                                              { "dimension", TNL::convertToString( 1 ) },
                                                              { "xSize", TNL::convertToString( xSize ) },
                                                              { "ySize", TNL::convertToString( 1 ) },
@@ -333,6 +338,7 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
       TNL::Benchmarks::writeMapAsJson( metadata, this->logFileName, ".metadata.json" );
 
       auto precision = TNL::getType< Real >();
+      auto scheme = parameters.getParameter< TNL::String >( "scheme" );
       TNL::String device;
       if( std::is_same< Device, TNL::Devices::Sequential >::value )
          device = "sequential";
@@ -348,6 +354,7 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
          for( Index ySize = this->minYDimension; ySize <= this->maxYDimension; ySize *= this->ySizeStepFactor ) {
             benchmark.setMetadataColumns(
                TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
+                                                                { "scheme", scheme },
                                                                 { "dimension", TNL::convertToString( 2 ) },
                                                                 { "xSize", TNL::convertToString( xSize ) },
                                                                 { "ySize", TNL::convertToString( ySize ) },
@@ -410,15 +417,21 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
       const Real hz = this->zDomainSize / (Real) zSize;
 
       auto uxView = ux.getView();
+      auto xDomainSize_ = this->xDomainSize;
+      auto yDomainSize_ = this->yDomainSize;
+      auto zDomainSize_ = this->zDomainSize;
+      auto delta_ = this->delta;
+      auto alpha_ = this->alpha;
+      auto beta_ = this->beta;
+      auto gamma_ = this->gamma;
       auto init = [ = ] __cuda_callable__( Index i, Index j, Index k ) mutable
       {
          auto index = ( k * ySize + j ) * xSize + i;
 
-         auto x = i * hx - this->xDomainSize / 2.0;
-         auto y = j * hy - this->yDomainSize / 2.0;
-         auto z = k * hz - this->zDomainSize / 2.0;
-         uxView[ index ] =
-            this->delta * ( 1.0 - TNL::sign( x * x / this->alpha + y * y / this->beta + z * z / this->gamma - 1.0 ) );
+         auto x = i * hx - xDomainSize_ / 2.0;
+         auto y = j * hy - yDomainSize_ / 2.0;
+         auto z = k * hz - zDomainSize_ / 2.0;
+         uxView[ index ] = delta_ * ( 1.0 - TNL::sign( x * x / alpha_ + y * y / beta_ + z * z / gamma_ - 1.0 ) );
       };
       TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, init );
    }
@@ -463,6 +476,7 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
       TNL::Benchmarks::writeMapAsJson( metadata, this->logFileName, ".metadata.json" );
 
       auto precision = TNL::getType< Real >();
+      auto scheme = parameters.getParameter< TNL::String >( "scheme" );
       TNL::String device;
       if( std::is_same< Device, TNL::Devices::Sequential >::value )
          device = "sequential";
@@ -479,6 +493,7 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
             for( Index zSize = this->minZDimension; zSize <= this->maxZDimension; zSize *= this->zSizeStepFactor ) {
                benchmark.setMetadataColumns(
                   TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
+                                                                   { "scheme", scheme },
                                                                    { "dimension", TNL::convertToString( 3 ) },
                                                                    { "xSize", TNL::convertToString( xSize ) },
                                                                    { "ySize", TNL::convertToString( ySize ) },

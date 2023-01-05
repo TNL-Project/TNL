@@ -361,6 +361,10 @@ public:
    const Grid&
    getGrid() const;
 
+   bool operator>( const GridEntity& e ) const {
+      return Containers::Expressions::StaticComparison< GridEntity, GridEntity >::GT( *this, e );
+   }
+
 protected:
    const Grid* grid;
 

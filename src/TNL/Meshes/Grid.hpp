@@ -52,6 +52,7 @@ Grid< Dimension, Real, Device, Index >::Grid( const CoordinatesType& dimensions 
 
 template< int Dimension, typename Real, typename Device, typename Index >
 auto
+__cuda_callable__
 Grid< Dimension, Real, Device, Index >::
 getEntitiesOrientations() const -> const EntitiesOrientations&
 {

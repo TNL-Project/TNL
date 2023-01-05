@@ -35,7 +35,7 @@ do
                --loops 25
                --final-time 0.1
                --device ${device}
-               --log-file ${base}-${test}-${device}-${precision}-2d.json
+               --log-file ${base}-${test}-${device}-${precision}-${scheme}-2d.json
                --output-mode append
                --write-data no"
             echo $command

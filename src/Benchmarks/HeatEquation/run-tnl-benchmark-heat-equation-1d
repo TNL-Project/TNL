@@ -26,12 +26,12 @@ do
                --min-x-dimension ${min_x_dimension}
                --max-x-dimension ${max_x_dimension}
                --max-iterations 500
-               --loops 500
+               --loops 100
                --final-time 0.1
                --device ${device}
-               --log-file ${base}-${test}-${device}-${precision}-1d.json
+               --log-file ${base}-${test}-${device}-${precision}-${scheme}-1d.json
                --output-mode append
-            --write-data no"
+               --write-data no"
             echo $command
             $command
          done

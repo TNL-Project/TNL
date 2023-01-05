@@ -207,6 +207,7 @@ struct GridEntitiesOrientations
     * \return NormalsType are packed normal vectors.
     */
    template< int EntityDimension, int Orientation >
+   __cuda_callable__
    static NormalsType getNormals();
 
    /**
@@ -218,11 +219,13 @@ struct GridEntitiesOrientations
     * \return NormalsType are packed normal vectors.
     */
    template< int TotalOrientation >
+   __cuda_callable__
    static NormalsType getNormals();
 
    /**
     * \brief Constructor with no parameters.
     */
+   __cuda_callable__
    GridEntitiesOrientations();
 
    __cuda_callable__
