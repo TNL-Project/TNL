@@ -219,6 +219,7 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
       for( Index xSize = this->minXDimension; xSize <= this->maxXDimension; xSize *= this->xSizeStepFactor ) {
          benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
             { "precision", precision },
+            { "scheme", scheme },
             { "dimension", TNL::convertToString( 1 ) },
             { "xSize", TNL::convertToString( xSize ) },
             { "ySize", TNL::convertToString(     1 ) },
@@ -349,6 +350,7 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
          for( Index ySize = this->minYDimension; ySize <= this->maxYDimension; ySize *= this->ySizeStepFactor ) {
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
                { "precision", precision },
+               { "scheme", scheme },
                { "dimension", TNL::convertToString( 2 ) },
                { "xSize", TNL::convertToString( xSize ) },
                { "ySize", TNL::convertToString( ySize ) },

@@ -12,6 +12,7 @@ from os.path import exists
 dimensions = [ "1", "2", "3" ]
 devices = [ "sequential", "host", "cuda" ]
 precisions = [ "float", "double" ]
+schemes = [ "fdm", "fvm" ]
 tests = [
     "parallel-for", "nd-array", "grid"
 ]
@@ -100,17 +101,18 @@ parsed_lines = []
 for dimension in dimensions:
     for device in devices:
         for precision in precisions:
-            for test in tests:
-                filename = f"tnl-benchmark-heat-equation-{test}-{device}-{precision}-{dimension}d.json"
-                if not exists( filename ):
-                    print( f"Skipping non-existing input file {filename} ...." )
-                    continue
-                print( f"Parsing input file {filename} ...." )
-                with open( filename ) as f:
-                    lines = f.readlines()
-                    for line in lines:
-                        parsed_line = json.loads(line)
-                        parsed_lines.append( parsed_line )
+            for scheme in schemes:
+                for test in tests:
+                    filename = f"tnl-benchmark-heat-equation-{test}-{device}-{precision}-{scheme}-{dimension}d.json"
+                    if not exists( filename ):
+                        print( f"Skipping non-existing input file {filename} ...." )
+                        continue
+                    print( f"Parsing input file {filename} ...." )
+                    with open( filename ) as f:
+                        lines = f.readlines()
+                        for line in lines:
+                            parsed_line = json.loads(line)
+                            parsed_lines.append( parsed_line )
 
 df = pd.DataFrame(parsed_lines)
 

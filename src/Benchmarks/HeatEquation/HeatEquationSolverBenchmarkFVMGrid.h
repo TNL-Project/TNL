@@ -66,7 +66,6 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >: public Heat
 
          auto update = [=] __cuda_callable__( const typename Grid::Cell& cell ) mutable {
             using Face = typename Grid::Face;
-            const auto& grid = cell.getMesh();
             const Index cellIdx = cell.getIndex();
             const Real& element = ux_view[ cellIdx ];
             aux_view[ cellIdx ] = element + timestep * (
@@ -139,7 +138,6 @@ struct HeatEquationSolverBenchmarkFVMGrid< 2, Real, Device, Index >: public Heat
          constexpr Index y_faces = EntitiesOrientations::template getOrientationIndex< 1, 1, 0 >();
          auto update = [=] __cuda_callable__( const typename Grid::Cell& cell ) mutable {
             using Face = typename Grid::Face;
-            const auto& grid = cell.getMesh();
             const Index cellIdx = cell.getIndex();
             const Real& element = ux_view[ cellIdx ];
             aux_view[ cellIdx ] = element + ( ( faces_view[ cell.template getNeighbourEntityIndex< 1 >( { 1, 0 }, y_faces ) ] -
@@ -215,7 +213,6 @@ struct HeatEquationSolverBenchmarkFVMGrid< 3, Real, Device, Index >: public Heat
          constexpr Index xy_faces = EntitiesOrientations::template getOrientationIndex< 2, 0, 0, 1 >();
          auto update = [=] __cuda_callable__( const typename Grid::Cell& cell ) mutable {
             using Face = typename Grid::Face;
-            const auto& grid = cell.getMesh();
             const Index cell_idx = cell.getIndex();
             aux_view[ cell_idx ] = ux_view[ cell_idx ] + timestep * (
                ( faces_view[ cell.template getNeighbourEntityIndex< 2 >( { 1, 0, 0 }, yz_faces ) ] -
