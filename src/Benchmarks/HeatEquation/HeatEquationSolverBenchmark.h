@@ -206,6 +206,7 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
       TNL::Benchmarks::writeMapAsJson( metadata, this->logFileName, ".metadata.json" );
 
       auto precision = TNL::getType<Real>();
+      auto scheme = parameters.getParameter< TNL::String >( "scheme" );
       TNL::String device;
       if( std::is_same< Device, TNL::Devices::Sequential >::value )
          device = "sequential";
@@ -336,6 +337,7 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
 
 
       auto precision = TNL::getType<Real>();
+      auto scheme = parameters.getParameter< TNL::String >( "scheme" );
       TNL::String device;
       if( std::is_same< Device, TNL::Devices::Sequential >::value )
          device = "sequential";
