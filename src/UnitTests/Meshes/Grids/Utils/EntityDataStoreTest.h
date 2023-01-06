@@ -30,14 +30,14 @@ testTraverse( const Grid& grid, DataStore& dataStore, int entitiesCount )
 
          SCOPED_TRACE( "Prototype: " + TNL::convertToString( prototype ) );
 
-         EXPECT_EQ(1, prototype.calls);
-         EXPECT_EQ(entity.getCoordinates(), prototype.coordinate);
-         EXPECT_EQ(entity.getNormals(), prototype.normals);
-         EXPECT_EQ(entity.getIndex(), prototype.index);
-         EXPECT_EQ(entity.getOrientation().getOrientationIndex(), prototype.orientation);
-         EXPECT_EQ(entity.isBoundary(), prototype.isBoundary);
-         EXPECT_EQ(entity.getCenter(), prototype.center);
-         EXPECT_EQ(entity.getMeasure(), prototype.measure);
+      EXPECT_EQ(1, prototype.calls);
+      EXPECT_EQ(entity.getCoordinates(), prototype.coordinate);
+      EXPECT_EQ(entity.getNormals(), prototype.normals);
+      EXPECT_EQ(entity.getIndex(), prototype.index);
+      EXPECT_EQ(entity.getOrientationIndex(), prototype.orientation);
+      EXPECT_EQ(entity.isBoundary(), prototype.isBoundary);
+      EXPECT_EQ(entity.getCenter(), prototype.center);
+      EXPECT_EQ(entity.getMeasure(), prototype.measure);
 
          view.clear( i );
 

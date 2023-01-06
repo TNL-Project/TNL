@@ -240,8 +240,7 @@ template< int EntityDimension >
 __cuda_callable__
 auto
 Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityIdx,
-                                                              EntityOrientation< EntityDimension >& orientation ) const noexcept
-   -> CoordinatesType
+                                                              IndexType& totalOrientationIndex ) const noexcept -> CoordinatesType
 {
    if constexpr( EntityDimension != 0 && EntityDimension != getMeshDimension() ) {
       IndexType i = EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( 0 ) + EntityDimension + 1;
@@ -252,9 +251,9 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
          orientationIdx++;
       }
       entityIdx -= this->entitiesIndexesOffsets[ i-1 ];
-      orientation.setTotalOrientationIndex( EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >(orientationIdx) ); // TODO: compute directly total orientation index
+      totalOrientationIndex = EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >(orientationIdx); // TODO: compute directly total orientation index
    }
-   const CoordinatesType dims = this->getDimensions() + getNormals( orientation.getTotalOrientationIndex() );
+   const CoordinatesType dims = this->getDimensions() + getNormals( totalOrientationIndex );
    CoordinatesType entityCoordinates( 0 );
    int idx = 0;
    while( idx < getMeshDimension() - 1 ) {
@@ -577,7 +576,7 @@ Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) c
             idx *= this->getDimensions()[ Dimension - i - 1 ] + normals[ Dimension - i - 1 ];
       } );
       idx += entity.getCoordinates()[ 0 ];
-      return idx + this->entitiesIndexesOffsets[ entity.getOrientation().getTotalOrientationIndex() + Entity::getEntityDimension() ];
+      return idx + this->entitiesIndexesOffsets[ entity.getTotalOrientationIndex() + Entity::getEntityDimension() ];
    }
 }
 
@@ -705,7 +704,7 @@ __cuda_callable__
 Entity
 Grid< Dimension, Real, Device, Index >::getNeighbourEntity( const Entity& entity, const CoordinatesType& offset ) const
 {
-   return Entity( *this, entity.getCoordinates() + offset, entity.getOrientation().getOrientationIndex() );
+   return Entity( *this, entity.getCoordinates() + offset, entity.getOrientationIndex() );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >

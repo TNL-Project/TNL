@@ -99,7 +99,7 @@ public:
             calls[index] += 1;
             indices[index] = entity.getIndex();
             isBoundary[index] = entity.isBoundary();
-            orientations[index] = entity.getOrientation().getOrientationIndex();
+            orientations[index] = entity.getOrientationIndex();
             measure[index] = entity.getMeasure();
 
             auto coordinates = entity.getCoordinates();
