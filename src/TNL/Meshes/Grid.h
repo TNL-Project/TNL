@@ -347,7 +347,7 @@ public:
    template< int EntityDimension >
    __cuda_callable__
    CoordinatesType
-   getEntityCoordinates( IndexType entityIdx, EntityOrientation< EntityDimension >& orientation ) const noexcept;
+   getEntityCoordinates( IndexType entityIdx, IndexType& totalOrientationIndex ) const noexcept;
 
    /**
     * \brief Sets the origin and proportions of this grid.

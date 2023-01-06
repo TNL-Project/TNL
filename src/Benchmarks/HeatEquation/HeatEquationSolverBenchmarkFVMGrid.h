@@ -60,7 +60,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >: public Heat
          auto gradient = [=] __cuda_callable__( const typename Grid::Face& face ) mutable {
             faces_view[ face.getIndex() ] = ( ux_view[ face.template getNeighbourEntityIndex< Dimension >( { 0, 0 }, 0 ) ] -
                                               ux_view[ face.template getNeighbourEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
-                                            * h_inv[ face.getOrientation().getOrientationIndex() ] ;
+                                            * h_inv[ face.getOrientationIndex() ] ;
          };
          this->grid.template forInteriorEntities<0>( gradient );
 
@@ -130,7 +130,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 2, Real, Device, Index >: public Heat
          auto gradient = [=] __cuda_callable__( const typename Grid::Face& face ) mutable {
             faces_view[ face.getIndex() ] = ( ux_view[ face.template getNeighbourEntityIndex< Dimension >( { 0, 0 }, 0 ) ] -
                                               ux_view[ face.template getNeighbourEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
-                                            * h_inv[ face.getOrientation().getOrientationIndex() ] ;
+                                            * h_inv[ face.getOrientationIndex() ] ;
          };
          this->grid.template forInteriorEntities<1>( gradient );
 
@@ -204,7 +204,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 3, Real, Device, Index >: public Heat
          auto gradient = [=] __cuda_callable__( const typename Grid::Face& face ) mutable {
             faces_view[ face.getIndex() ] = ( ux_view[ face.template getNeighbourEntityIndex< Dimension >( { 0, 0, 0 }, 0 ) ] -
                                               ux_view[ face.template getNeighbourEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
-                                            * h_inv[ face.getOrientation().getOrientationIndex() ] ;
+                                            * h_inv[ face.getOrientationIndex() ] ;
          };
          this->grid.template forInteriorEntities<2>( gradient );
 

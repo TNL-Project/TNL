@@ -9,7 +9,7 @@
 #pragma once
 
 #include <TNL/Meshes/Grid.h>
-#include <TNL/Meshes/GridDetails/GridEntityOrientation.h>
+#include <TNL/Meshes/GridDetails/GridEntityBase.h>
 #include <TNL/Meshes/GridEntitiesOrientations.h>
 
 namespace TNL {
@@ -31,9 +31,11 @@ class GridEntityCenterGetter;
  * \tparam EntityDimension is a dimensions of the grid entity.
  */
 template< class Grid, int EntityDimension >
-class GridEntity : public Grid::CoordinatesType
+class GridEntity : public Grid::CoordinatesType, GridEntityBase< Grid, Grid::getMeshDimension(), EntityDimension >
 {
 public:
+   using GridEntityBaseType = GridEntityBase< Grid, Grid::getMeshDimension(), EntityDimension >;
+
    /**
     * \brief Type of grid the entity belongs to.
     */
@@ -66,8 +68,6 @@ public:
    using PointType = typename Grid::PointType;
 
    using EntitiesOrientations = GridEntitiesOrientations< Grid::getMeshDimension() >;
-
-   using GridEntityOrientationType = GridEntityOrientation< Grid, Grid::getMeshDimension(), EntityDimension >;
 
    using NormalsType = typename GridType::NormalsType;
 
@@ -233,11 +233,11 @@ public:
    const Grid&
    getMesh() const;
 
-   __cuda_callable__
-   GridEntityOrientationType& getOrientation();
+   //__cuda_callable__
+   //GridEntityOrientationType& getOrientation();
 
-   __cuda_callable__
-   const GridEntityOrientationType& getOrientation() const;
+   //__cuda_callable__
+   //const GridEntityOrientationType& getOrientation() const;
 
    /**
     * \brief Setter for the packed normals vector of the grid entity.
@@ -276,9 +276,9 @@ public:
     * Orientation is always paired with the normals. In other words, if orientations, entity dimensions and dimensions are
     * equal, then normals are equal also.
     */
-   //__cuda_callable__
-   //IndexType
-   //getOrientation() const;
+   __cuda_callable__
+   IndexType
+   getOrientationIndex() const;
 
    /**
     * brief Setter of the grid entity orientation index.
@@ -287,9 +287,15 @@ public:
     *
     * param orientation is a index of the grid entity orientation.
     */
-   //__cuda_callable__
-   //void
-   //setOrientation( IndexType orientation );
+   __cuda_callable__
+   void setOrientationIndex( IndexType orientationIndex );
+
+   __cuda_callable__
+   IndexType getTotalOrientationIndex() const;
+
+   __cuda_callable__
+   void setTotalOrientationIndex( IndexType totalOrientationIndex );
+
 
    /**
     * \brief Returns the neighbour grid entity. TODO: FIX - CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -374,7 +380,7 @@ protected:
    const Grid* grid;
 
    IndexType index;
-   GridEntityOrientationType orientation;
+   //GridEntityOrientationType orientation;
 };
 
 /**

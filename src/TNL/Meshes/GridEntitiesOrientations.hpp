@@ -33,7 +33,17 @@ GridEntitiesOrientations< GridDimension >::
 getOrientationsCount( int entityDimension ) {
    return combinationsCount( entityDimension, GridDimension );
 }
-
+template< int GridDimension >
+int
+GridEntitiesOrientations< GridDimension >::
+getEntityDimension( int totalOrientationIndex )
+{
+   TNL_ASSERT_LT( totalOrientationIndex, GridEntitiesOrientations< GridDimension >::getTotalOrientationsCount(), "Wrong total orientation index." );
+   int dim = 0;
+   while( totalOrientationIndex > getOrientationsCount( dim ) && dim < GridDimension )
+      dim++;
+   return dim;
+}
 
 template< int GridDimension >
 constexpr int

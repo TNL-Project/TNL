@@ -16,7 +16,7 @@ namespace TNL {
    namespace Meshes {
 
 template< typename Grid, int GridDimension, int EntityDimension >
-class GridEntityOrientation
+class GridEntityBase
 {
 public:
 
@@ -30,10 +30,10 @@ public:
    using EntitiesOrientations = GridEntitiesOrientations< getDimension() >;
 
    __cuda_callable__
-   GridEntityOrientation() = default;
+   GridEntityBase() = default;
 
    __cuda_callable__
-   GridEntityOrientation( IndexType totalOrientationIdx )
+   GridEntityBase( IndexType totalOrientationIdx )
       : totalOrientationIdx( totalOrientationIdx ) {}
 
    __cuda_callable__
@@ -52,7 +52,7 @@ protected:
 };
 
 template< typename Grid, int GridDimension >
-class GridEntityOrientation< Grid, GridDimension, 0 >
+class GridEntityBase< Grid, GridDimension, 0 >
 {
 public:
 
@@ -66,10 +66,10 @@ public:
    using EntitiesOrientations = GridEntitiesOrientations< getDimension() >;
 
    __cuda_callable__
-   GridEntityOrientation() = default;
+   GridEntityBase() = default;
 
    __cuda_callable__
-   GridEntityOrientation( IndexType orientationIdx ) {}
+   GridEntityBase( IndexType orientationIdx ) {}
 
       __cuda_callable__
    IndexType getTotalOrientationIndex() const { return 0; }
@@ -79,7 +79,7 @@ public:
 };
 
 template< typename Grid, int GridDimension >
-class GridEntityOrientation< Grid, GridDimension, GridDimension >
+class GridEntityBase< Grid, GridDimension, GridDimension >
 {
 public:
 
@@ -93,10 +93,10 @@ public:
    using EntitiesOrientations = GridEntitiesOrientations< getDimension() >;
 
    __cuda_callable__
-   GridEntityOrientation() = default;
+   GridEntityBase() = default;
 
    __cuda_callable__
-   GridEntityOrientation( IndexType orientationIdx ) {}
+   GridEntityBase( IndexType orientationIdx ) {}
 
       __cuda_callable__
    IndexType getTotalOrientationIndex() const { return ( 1 << getDimension() ) - 1; }

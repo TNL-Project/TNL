@@ -63,10 +63,11 @@ GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, const Coordin
 template< class Grid, int EntityDimension >
 __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
-                                                   const CoordinatesType& coordinates,
-                                                   const NormalsType& normals )
+                                                 const CoordinatesType& coordinates,
+                                                 const NormalsType& normals )
 : CoordinatesType( coordinates ),
-   grid( &grid ), orientation( grid.getEntitiesOrientations().getTotalOrientationIndex( normals ) )
+  GridEntityBaseType( grid.getEntitiesOrientations().getTotalOrientationIndex( normals ) ),
+  grid( &grid )
 {
    this->refresh();
 }
@@ -76,8 +77,10 @@ __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, IndexType entityIdx ) : grid( &grid ), index( entityIdx )
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Grid pointer cannot be initialized with null pointer." );
-   this->setCoordinates( grid.template getEntityCoordinates< EntityDimension >( entityIdx, this->getOrientation() ) );
-   TNL_ASSERT_EQ( getNormals(), grid.getNormals( orientation.getTotalOrientationIndex() ), "Wrong index of entity orientation." );
+   IndexType totalOrientationIndex;
+   this->setCoordinates( grid.template getEntityCoordinates< EntityDimension >( entityIdx, totalOrientationIndex ) );
+   this->setTotalOrientationIndex( totalOrientationIndex );
+   TNL_ASSERT_EQ( getNormals(), grid.getNormals( getTotalOrientationIndex() ), "Wrong index of entity orientation." );
 }
 
 template< class Grid, int EntityDimension >
@@ -86,7 +89,8 @@ GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
                                                  const CoordinatesType& coordinates,
                                                  const IndexType orientationIndex )
 : CoordinatesType( coordinates ),
-  grid( &grid ), orientation( EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) )
+  GridEntityBaseType( EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) ),
+  grid( &grid )
 {
    this->refresh();
 }
@@ -176,17 +180,42 @@ GridEntity< Grid, EntityDimension >::getMesh() const
 template< class Grid, int EntityDimension >
 __cuda_callable__
 auto
-GridEntity< Grid, EntityDimension >::getOrientation() const -> const GridEntityOrientationType&
+GridEntity< Grid, EntityDimension >::
+getOrientationIndex() const -> IndexType
 {
-   return this->orientation;
+   return GridEntityBaseType::getOrientationIndex();
+}
+
+template< class Grid, int EntityDimension >
+__cuda_callable__
+void
+GridEntity< Grid, EntityDimension >::
+setOrientationIndex( IndexType orientationIndex )
+{
+   TNL_ASSERT_LT( orientationIndex, EntitiesOrientations::template getOrientationsCount< EntityDimension >(),
+      "Wrong orientation index for grid entity with given dimension." );
+   GridEntityBaseType::setOrientationIndex( orientationIndex );
 }
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
 auto
-GridEntity< Grid, EntityDimension >::getOrientation() -> GridEntityOrientationType&
+GridEntity< Grid, EntityDimension >::
+getTotalOrientationIndex() const -> IndexType
 {
-   return this->orientation;
+   return GridEntityBaseType::getTotalOrientationIndex();
+}
+
+template< class Grid, int EntityDimension >
+__cuda_callable__
+void
+GridEntity< Grid, EntityDimension >::
+setTotalOrientationIndex( IndexType totalOrientationIndex )
+{
+   TNL_ASSERT_LT( totalOrientationIndex, EntitiesOrientations::getTotalOrientationsCount(), "Wrong total orientation index." );
+   TNL_ASSERT_EQ( EntityDimension, Grid::getMeshDimension() - sum( EntitiesOrientations::getNormals( totalOrientationIndex ) ),
+      "Total orientation index does not agree with entity dimension." );
+   GridEntityBaseType::setTotalOrientationIndex( totalOrientationIndex );
 }
 
 template< class Grid, int EntityDimension >
@@ -195,7 +224,7 @@ auto
 GridEntity< Grid, EntityDimension >::getNormals() const -> const NormalsType
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Attempt to dereference null pointer." );
-   return this->grid->getNormals( orientation.getTotalOrientationIndex() );
+   return this->grid->getNormals( this->getTotalOrientationIndex() );
 }
 
 template< class Grid, int EntityDimension >
@@ -288,7 +317,7 @@ operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity
 {
    str << "Entity dimension = " << EntityDimension << " coordinates = " << entity.getCoordinates()
        << " normals = " << entity.getNormals() << " index = " << entity.getIndex()
-       << " orientation = " << entity.getOrientation();
+       << " orientationIndex = " << entity.getOrientationIndex();
    return str;
 }
 
