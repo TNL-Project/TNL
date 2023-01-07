@@ -192,7 +192,7 @@ void
 GridEntity< Grid, EntityDimension >::
 setOrientationIndex( IndexType orientationIndex )
 {
-   TNL_ASSERT_LT( orientationIndex, EntitiesOrientations::template getOrientationsCount< EntityDimension >(),
+   TNL_ASSERT_LT( orientationIndex, ( EntitiesOrientations::template getOrientationsCount< EntityDimension >() ),
       "Wrong orientation index for grid entity with given dimension." );
    GridEntityBaseType::setOrientationIndex( orientationIndex );
 }
@@ -212,8 +212,9 @@ void
 GridEntity< Grid, EntityDimension >::
 setTotalOrientationIndex( IndexType totalOrientationIndex )
 {
-   TNL_ASSERT_LT( totalOrientationIndex, EntitiesOrientations::getTotalOrientationsCount(), "Wrong total orientation index." );
-   TNL_ASSERT_EQ( EntityDimension, Grid::getMeshDimension() - sum( EntitiesOrientations::getNormals( totalOrientationIndex ) ),
+   TNL_ASSERT_LT( totalOrientationIndex, EntitiesOrientations::getTotalOrientationsCount(),
+      "Wrong total orientation index." );
+   TNL_ASSERT_EQ( EntityDimension, EntitiesOrientations::getEntityDimension( totalOrientationIndex ),
       "Total orientation index does not agree with entity dimension." );
    GridEntityBaseType::setTotalOrientationIndex( totalOrientationIndex );
 }

@@ -21,13 +21,13 @@ class GridEntityBase
 public:
 
    static constexpr int
-   getDimension() { return GridDimension; }
+   getMeshDimension() { return GridDimension; }
 
    using RealType = typename Grid::RealType;
 
    using IndexType = typename Grid::IndexType;
 
-   using EntitiesOrientations = GridEntitiesOrientations< getDimension() >;
+   using EntitiesOrientations = GridEntitiesOrientations< getMeshDimension() >;
 
    __cuda_callable__
    GridEntityBase() = default;
@@ -57,19 +57,24 @@ class GridEntityBase< Grid, GridDimension, 0 >
 public:
 
    static constexpr int
-   getDimension() { return Grid::getMeshDimension(); }
+   getMeshDimension() { return Grid::getMeshDimension(); }
 
    using RealType = typename Grid::RealType;
 
    using IndexType = typename Grid::IndexType;
 
-   using EntitiesOrientations = GridEntitiesOrientations< getDimension() >;
+   using EntitiesOrientations = GridEntitiesOrientations< getMeshDimension() >;
 
    __cuda_callable__
    GridEntityBase() = default;
 
    __cuda_callable__
    GridEntityBase( IndexType orientationIdx ) {}
+
+   __cuda_callable__
+   void setTotalOrientationIndex( IndexType idx ) {
+      TNL_ASSERT_EQ( idx, 0, "Wrong total orientation index. Only zero value is allowed for vertexes.");
+    }
 
       __cuda_callable__
    IndexType getTotalOrientationIndex() const { return 0; }
@@ -84,13 +89,13 @@ class GridEntityBase< Grid, GridDimension, GridDimension >
 public:
 
    static constexpr int
-   getDimension() { return Grid::getMeshDimension(); }
+   getMeshDimension() { return Grid::getMeshDimension(); }
 
    using RealType = typename Grid::RealType;
 
    using IndexType = typename Grid::IndexType;
 
-   using EntitiesOrientations = GridEntitiesOrientations< getDimension() >;
+   using EntitiesOrientations = GridEntitiesOrientations< getMeshDimension() >;
 
    __cuda_callable__
    GridEntityBase() = default;
@@ -98,8 +103,14 @@ public:
    __cuda_callable__
    GridEntityBase( IndexType orientationIdx ) {}
 
+   __cuda_callable__
+   void setTotalOrientationIndex( IndexType idx ) {
+      TNL_ASSERT_EQ( idx, ( 1<<getMeshDimension())-1,
+         "Wrong total orientation index. Only 2^GridDimension-1 value is allowed for cells.");
+    }
+
       __cuda_callable__
-   IndexType getTotalOrientationIndex() const { return ( 1 << getDimension() ) - 1; }
+   IndexType getTotalOrientationIndex() const { return ( 1 << getMeshDimension() ) - 1; }
 
    __cuda_callable__
    IndexType getOrientationIndex() const { return 0; }

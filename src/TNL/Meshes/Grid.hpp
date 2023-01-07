@@ -705,7 +705,7 @@ Entity
 Grid< Dimension, Real, Device, Index >::
 getNeighbourEntity( const Entity& entity, const CoordinatesType& offset ) const
 {
-   return Entity( *this, entity.getCoordinates() + offset, entity.getOrientation().getOrientationIndex() );
+   return Entity( *this, entity.getCoordinates() + offset, entity.getOrientationIndex() );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >

@@ -14,7 +14,7 @@
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
 #include <TNL/Meshes/GridDetails/GridTraits.h>
-#include <TNL/Meshes/GridDetails/GridEntityOrientation.h>
+#include <TNL/Meshes/GridDetails/GridEntityBase.h>
 
 namespace TNL {
 namespace Meshes {
@@ -85,9 +85,6 @@ public:
     */
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
-
-   template< int EntityDimension >
-   using EntityOrientation = GridEntityOrientation< Grid, Dimension, EntityDimension >;
 
    using OrientationNormalsContainer = Containers::StaticVector< 1 << Dimension, CoordinatesType >;
 

@@ -40,8 +40,8 @@ getEntityDimension( int totalOrientationIndex )
 {
    TNL_ASSERT_LT( totalOrientationIndex, GridEntitiesOrientations< GridDimension >::getTotalOrientationsCount(), "Wrong total orientation index." );
    int dim = 0;
-   while( totalOrientationIndex > getOrientationsCount( dim ) && dim < GridDimension )
-      dim++;
+   while( totalOrientationIndex >= getOrientationsCount( dim ) && dim < GridDimension )
+      totalOrientationIndex -= getOrientationsCount( dim++ );
    return dim;
 }
 
