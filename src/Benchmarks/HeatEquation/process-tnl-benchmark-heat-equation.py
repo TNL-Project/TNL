@@ -44,7 +44,7 @@ def get_multiindex():
 
 ####
 # Process dataframe for given precision - float or double
-def processDf(df, dimension, precision):
+def processDf(df, scheme, precision, dimension):
     multicolumns, df_data = get_multiindex()
 
     frames = []
@@ -82,7 +82,12 @@ def processDf(df, dimension, precision):
                     performers.append(row["performer"])
                 # print( new_df )
                 frames.append(new_df)
-    result = pd.concat(frames)
+    try:
+        result = pd.concat(frames)
+    except ValueError:
+        print(f"No data for processing for {dimension}D in {precision} precision.")
+        return
+
     idx = 0
     have_cuda = performers.count("cuda") > 0
     for index, row in result.iterrows():
@@ -95,12 +100,20 @@ def processDf(df, dimension, precision):
                 for device in devices:
                     if device == "cuda" and not have_cuda:
                         continue
-                    result.iloc[idx][(test, device, "parallel-for speed-up")] = float(
-                        row[("parallel-for", device, "time")]
-                    ) / float(row[(test, device, "time")])
+                    try:
+                        result.iloc[idx][(test, device, "parallel-for speed-up")] = (
+                            float(row[("parallel-for", device, "time")])
+                            / float(row[(test, device, "time")])
+                        )
+                    except ValueError:
+                        print(
+                            f"Cannot compute speed-up for {test} on {device} device: {row[('parallel-for', device, 'time')]} , {row[ (test, device, 'time')]}"
+                        )
         idx += 1
 
-    result.to_html(f"tnl-benchmark-heat-equation-{precision}-{dimension}d.html")
+    result.to_html(
+        f"tnl-benchmark-heat-equation-{scheme}-{precision}-{dimension}d.html"
+    )
 
 
 #####
@@ -132,5 +145,10 @@ for key in keys:
         df[key] = pd.to_numeric(df[key])
 for dimension in dimensions:
     for precision in precisions:
-        aux_df = df.loc[(df["precision"] == precision) & (df["dimension"] == dimension)]
-        processDf(aux_df, dimension, precision)
+        for scheme in schemes:
+            aux_df = df.loc[
+                (df["scheme"] == scheme)
+                & (df["precision"] == precision)
+                & (df["dimension"] == dimension)
+            ]
+            processDf(aux_df, scheme, precision, dimension)
