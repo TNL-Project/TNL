@@ -251,8 +251,10 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
          orientationIdx++;
       }
       entityIdx -= this->entitiesIndexesOffsets[ i-1 ];
-      totalOrientationIndex = EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >(orientationIdx); // TODO: compute directly total orientation index
-   }
+      totalOrientationIndex = EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIdx ); // TODO: compute directly total orientation index
+   } else
+      totalOrientationIndex = EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( 0 );
+
    const CoordinatesType dims = this->getDimensions() + getNormals( totalOrientationIndex );
    CoordinatesType entityCoordinates( 0 );
    int idx = 0;
@@ -1091,7 +1093,7 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
    else
    {
       auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                          const NormalsType& normals,
+                                           const NormalsType& normals,
                                            const Index orientation,
                                            const Grid& grid,
                                            FuncArgs... args ) mutable

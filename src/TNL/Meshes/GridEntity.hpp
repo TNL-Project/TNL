@@ -27,12 +27,12 @@ GridEntity< Grid, EntityDimension >::getEntityDimension()
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity() : CoordinatesType( 0 ),  grid( nullptr )
+GridEntity< Grid, EntityDimension >::GridEntity() : GridEntityBaseType( 0 ),  grid( nullptr )
 {}
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity( const CoordinatesType& c ) : CoordinatesType( c ),  grid( nullptr )
+GridEntity< Grid, EntityDimension >::GridEntity( const CoordinatesType& c ) : GridEntityBaseType( c ),  grid( nullptr )
 {}
 
 /*template< class Grid, int EntityDimension >
@@ -48,14 +48,14 @@ template< class Grid, int EntityDimension >
    template< typename Value >
 __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const std::initializer_list< Value >& elems )
-   : CoordinatesType( elems ), grid( 0 )
+   : GridEntityBaseType( elems ), grid( 0 )
 {
 }
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, const CoordinatesType& coordinates )
-: CoordinatesType( coordinates ), grid( &grid )
+: GridEntityBaseType( coordinates ), grid( &grid )
 {
    this->refresh();
 }
@@ -65,8 +65,7 @@ __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
                                                  const CoordinatesType& coordinates,
                                                  const NormalsType& normals )
-: CoordinatesType( coordinates ),
-  GridEntityBaseType( grid.getEntitiesOrientations().getTotalOrientationIndex( normals ) ),
+: GridEntityBaseType( coordinates, grid.getEntitiesOrientations().getTotalOrientationIndex( normals ) ),
   grid( &grid )
 {
    this->refresh();
@@ -88,8 +87,7 @@ __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
                                                  const CoordinatesType& coordinates,
                                                  const IndexType orientationIndex )
-: CoordinatesType( coordinates ),
-  GridEntityBaseType( EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) ),
+: GridEntityBaseType( coordinates, EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) ),
   grid( &grid )
 {
    this->refresh();
@@ -100,7 +98,7 @@ __cuda_callable__
 const typename GridEntity< Grid, EntityDimension >::CoordinatesType&
 GridEntity< Grid, EntityDimension >::getCoordinates() const
 {
-   return *this;
+   return GridEntityBaseType::getCoordinates();
 }
 
 template< class Grid, int EntityDimension >
@@ -108,7 +106,7 @@ __cuda_callable__
 typename GridEntity< Grid, EntityDimension >::CoordinatesType&
 GridEntity< Grid, EntityDimension >::getCoordinates()
 {
-   return *this;
+   return GridEntityBaseType::getCoordinates();
 }
 
 template< class Grid, int EntityDimension >
@@ -116,7 +114,7 @@ __cuda_callable__
 void
 GridEntity< Grid, EntityDimension >::setCoordinates( const CoordinatesType& coordinates )
 {
-   Grid::CoordinatesType::operator=( coordinates );
+   GridEntityBaseType::setCoordinates( coordinates );
    this->refresh();
 }
 
