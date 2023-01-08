@@ -25,7 +25,8 @@ class GridEntityCenterGetter;
  * \tparam EntityDimension is a dimensions of the grid entity.
  */
 template< class Grid, int EntityDimension >
-class GridEntity : public Grid::CoordinatesType, GridEntityBase< Grid, Grid::getMeshDimension(), EntityDimension >
+class GridEntity : public //Grid::CoordinatesType,
+   GridEntityBase< Grid, Grid::getMeshDimension(), EntityDimension >
 {
 public:
    using GridEntityBaseType = GridEntityBase< Grid, Grid::getMeshDimension(), EntityDimension >;
