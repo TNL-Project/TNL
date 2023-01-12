@@ -215,7 +215,7 @@ class GridTraverseTestCase {
          auto callsView = hostStore.getCallsView();
 
          for (Index i = 0; i < callsView.getSize(); i++)
-            EXPECT_EQ(callsView[i], 1) << "Expect each index to be called only once";
+            EXPECT_EQ(callsView[i], 1) << "Expect each index to be called only once. Failed at index " << i;
 
          auto verify = [&](const auto orientation) {
             Iterator<orientation> iterator(grid.getDimensions());
@@ -273,18 +273,15 @@ class GridTraverseTestCase {
 
          auto verify = [&](const auto orientation) {
             Iterator<orientation> iterator(grid.getDimensions());
-
             if (!iterator.canIterate()) {
                SCOPED_TRACE("Skip iteration");
                EXPECT_EQ(hostStore.getCallsView().getSize(), 0) << "Expect, that we can't iterate, when grid is empty";
                return;
             }
-
             do {
-               verifyEntity(grid, iterator, hostStoreView, !iterator.isBoundary(grid));
+               verifyEntity(grid, iterator, hostStoreView, !(iterator.isBoundary(grid)));
             } while (!iterator.next());
          };
-
          TNL::Algorithms::staticFor< int, 0, orientationsCount >(verify);
       }
    private:
@@ -300,7 +297,7 @@ class GridTraverseTestCase {
 
          SCOPED_TRACE("Entity: " + TNL::convertToString(entity));
 
-         EXPECT_EQ(entity.calls, expectCall ? 1 : 0) << "Expect the index to be called once";
+         EXPECT_EQ(entity.calls, expectCall ? 1 : 0) << "Expect the index to be called once: expectCall = " << expectCall;
          EXPECT_EQ(entity.index, expectCall ? index : 0) << "Expect the index was correctly set";
          EXPECT_EQ(entity.isBoundary, expectCall ? iterator.isBoundary(grid) : 0) << "Expect the index was correctly set" ;
 
@@ -329,10 +326,10 @@ void testForAllTraverse(Grid& grid,
                         const typename Grid::PointType& origin = typename Grid::PointType(0),
                         const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
-   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
-   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Grid sizes: " + TNL::convertToString(dimensions));
    SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
    SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
+   SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
 
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
    EXPECT_NO_THROW(grid.setOrigin(origin)) << "Verify, that the set of" << origin << "doesn't cause assert";
@@ -354,7 +351,7 @@ void testForInteriorTraverse(Grid& grid,
                              const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
-   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Grid sizes: " + TNL::convertToString(dimensions));
    SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
    SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
 
@@ -378,7 +375,7 @@ void testForBoundaryTraverse(Grid& grid,
                              const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
-   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Grid sizes: " + TNL::convertToString(dimensions));
    SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
    SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
 
@@ -402,7 +399,7 @@ void testBoundaryUnionInteriorEqualAllProperty(Grid& grid,
                                                const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
-   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Grid sizes: " + TNL::convertToString(dimensions));
    SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
    SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
 
@@ -427,7 +424,7 @@ void testAllMinusBoundaryEqualInteriorProperty(Grid& grid,
                                                const typename Grid::PointType& spaceSteps = typename Grid::PointType(1)) {
    SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Entity Dimension: " + TNL::convertToString(EntityDimension));
-   SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
+   SCOPED_TRACE("Grid sizes: " + TNL::convertToString(dimensions));
    SCOPED_TRACE("Origin:" + TNL::convertToString(origin));
    SCOPED_TRACE("Space steps:" + TNL::convertToString(spaceSteps));
 
@@ -469,6 +466,5 @@ void testAllMinusInteriorEqualBoundaryProperty(Grid& grid,
    test.clearInterior(grid, store);
    test.verifyBoundary(grid, store);
 }
-
 
 #endif
