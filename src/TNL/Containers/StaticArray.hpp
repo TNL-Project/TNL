@@ -237,6 +237,15 @@ StaticArray< Size, Value >::operator=( const T& v )
 }
 
 template< int Size, typename Value >
+template< typename T >
+constexpr StaticArray< Size, Value >&
+StaticArray< Size, Value >::assignAt( const T& v, int position )
+{
+   detail::StaticArrayAssignment< StaticArray, T >::assignAt( *this, v, position );
+   return *this;
+}
+
+template< int Size, typename Value >
 template< typename Array >
 constexpr bool
 StaticArray< Size, Value >::operator==( const Array& array ) const

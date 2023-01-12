@@ -32,6 +32,17 @@ struct StaticArrayAssignment< StaticArray, T, true >
             a[ i ] = v[ i ];
          } );
    }
+
+   static constexpr void
+   assignAt( StaticArray& a, const T& v, int position )
+   {
+      TNL_ASSERT_GE( StaticArray::getSize() - position, T::getSize(), "Cannot assign array at given position." );
+      Algorithms::unrolledFor< int, 0, T::getSize() >(
+         [ & ]( int i ) mutable
+         {
+            a[ i + position ] = v[ i ];
+         } );
+   }
 };
 
 /**
