@@ -1113,9 +1113,9 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
          bool process_entity( true );
          const NormalsType& normals = entity.getNormals();
          const CoordinatesType& coordinates = entity.getCoordinates();
-         Algorithms::staticFor< IndexType, 0, Dimension >(
+         Algorithms::staticFor< IndexType, 0, getMeshDimension() >(
          [&] ( Index i ) mutable {
-            if( coordinates[ i ] == this->getDimensions()[ i ] || ( normals[ i ] && ( coordinates[ i ] == 0 ) ) )
+            if( coordinates[ i ] == grid.getDimensions()[ i ] || ( normals[ i ] && ( coordinates[ i ] == 0 ) ) )
                 process_entity = false;
          } );
 
