@@ -37,6 +37,10 @@ public:
    __cuda_callable__
    GridEntityBase() = default;
 
+   template< typename Value >
+   __cuda_callable__
+   GridEntityBase( const std::initializer_list< Value >& elems ) : BaseType( elems ){};
+
    __cuda_callable__
    GridEntityBase( IndexType totalOrientationIdx ) {
       BaseType::operator[]( getMeshDimension() ) = totalOrientationIdx;
@@ -44,15 +48,13 @@ public:
 
    __cuda_callable__
    GridEntityBase( const CoordinatesType& coordinates, IndexType totalOrientationIdx = 0 ) {
-      Algorithms::staticFor< int, 0, getMeshDimension() >( [&] ( int i ) {
-         BaseType::operator[]( i ) = coordinates[ i ]; } );
+      this->assignAt( coordinates );
       BaseType::operator[]( getMeshDimension() ) = totalOrientationIdx;
    }
 
    __cuda_callable__
    void setCoordinates( const CoordinatesType& coordinates ) {
-      Algorithms::staticFor< int, 0, getMeshDimension() >( [&] ( int i ) {
-         BaseType::operator[]( i ) = coordinates[ i ]; } );
+      this->assignAt( coordinates );
    }
 
    __cuda_callable__
@@ -69,7 +71,7 @@ public:
    void setTotalOrientationIndex( IndexType idx ) { BaseType::operator[]( getMeshDimension() ) = idx; }
 
    __cuda_callable__
-   IndexType getTotalOrientationIndex() const { return BaseType::operator[]( getMeshDimension() ); }
+   IndexType getTotalOrientationIndex() const { return this->operator[]( getMeshDimension() ); }
 
    __cuda_callable__
    IndexType getOrientationIndex() const {
@@ -95,6 +97,10 @@ public:
 
    __cuda_callable__
    GridEntityBase() = default;
+
+   template< typename Value >
+   __cuda_callable__
+   GridEntityBase( const std::initializer_list< Value >& elems ) : BaseType( elems ){};
 
    __cuda_callable__
    GridEntityBase( const CoordinatesType& coordinates, IndexType totalOrientationIdx = 0 ) {
@@ -151,6 +157,10 @@ public:
 
    __cuda_callable__
    GridEntityBase() = default;
+
+   template< typename Value >
+   __cuda_callable__
+   GridEntityBase( const std::initializer_list< Value >& elems ) : BaseType( elems ){};
 
    __cuda_callable__
    GridEntityBase( IndexType orientationIdx ) {}

@@ -236,8 +236,8 @@ public:
 
       auto callsView = hostStore.getCallsView();
 
-      for( Index i = 0; i < callsView.getSize(); i++ )
-         EXPECT_EQ( callsView[ i ], 1 ) << "Expect each index to be called only once";
+      for (Index i = 0; i < callsView.getSize(); i++)
+         EXPECT_EQ(callsView[i], 1) << "Expect each index to be called only once. Failed at index " << i;
 
       auto verify = [ & ]( const auto orientation )
       {
@@ -331,10 +331,9 @@ private:
       auto entity = dataStore.getEntity( index );
 
       SCOPED_TRACE( "Entity: " + TNL::convertToString( entity ) );
-
-      EXPECT_EQ( entity.calls, expectCall ? 1 : 0 ) << "Expect the index to be called once";
-      EXPECT_EQ( entity.index, expectCall ? index : 0 ) << "Expect the index was correctly set";
-      EXPECT_EQ( entity.isBoundary, expectCall ? iterator.isBoundary( grid ) : 0 ) << "Expect the index was correctly set";
+      EXPECT_EQ(entity.calls, expectCall ? 1 : 0) << "Expect the index to be called once: expectCall = " << expectCall;
+      EXPECT_EQ(entity.index, expectCall ? index : 0) << "Expect the index was correctly set";
+      EXPECT_EQ(entity.isBoundary, expectCall ? iterator.isBoundary(grid) : 0) << "Expect the index was correctly set" ;
 
       Coordinate coordinate = expectCall ? iterator.getCoordinate() : Coordinate( 0 );
       Coordinate normals = expectCall ? iterator.getNormals() : Coordinate( 0 );
@@ -365,6 +364,7 @@ testForAllTraverse( Grid& grid,
    SCOPED_TRACE( "Dimension: " + TNL::convertToString( dimensions ) );
    SCOPED_TRACE( "Origin:" + TNL::convertToString( origin ) );
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
+   SCOPED_TRACE( "Entity Dimension: " + TNL::convertToString( EntityDimension ) );
 
    EXPECT_NO_THROW( grid.setDimensions( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
    EXPECT_NO_THROW( grid.setOrigin( origin ) ) << "Verify, that the set of" << origin << "doesn't cause assert";
@@ -389,6 +389,7 @@ testForInteriorTraverse( Grid& grid,
    SCOPED_TRACE( "Grid Dimension: " + TNL::convertToString( Grid::getMeshDimension() ) );
    SCOPED_TRACE( "Entity Dimension: " + TNL::convertToString( EntityDimension ) );
    SCOPED_TRACE( "Dimension: " + TNL::convertToString( dimensions ) );
+   SCOPED_TRACE( "Grid sizes: " + TNL::convertToString( dimensions ) );
    SCOPED_TRACE( "Origin:" + TNL::convertToString( origin ) );
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
 
@@ -415,6 +416,7 @@ testForBoundaryTraverse( Grid& grid,
    SCOPED_TRACE( "Grid Dimension: " + TNL::convertToString( Grid::getMeshDimension() ) );
    SCOPED_TRACE( "Entity Dimension: " + TNL::convertToString( EntityDimension ) );
    SCOPED_TRACE( "Dimension: " + TNL::convertToString( dimensions ) );
+   SCOPED_TRACE( "Grid sizes: " + TNL::convertToString( dimensions ) );
    SCOPED_TRACE( "Origin:" + TNL::convertToString( origin ) );
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
 
@@ -441,6 +443,7 @@ testBoundaryUnionInteriorEqualAllProperty( Grid& grid,
    SCOPED_TRACE( "Grid Dimension: " + TNL::convertToString( Grid::getMeshDimension() ) );
    SCOPED_TRACE( "Entity Dimension: " + TNL::convertToString( EntityDimension ) );
    SCOPED_TRACE( "Dimension: " + TNL::convertToString( dimensions ) );
+   SCOPED_TRACE( "Grid sizes: " + TNL::convertToString( dimensions ) );
    SCOPED_TRACE( "Origin:" + TNL::convertToString( origin ) );
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
 
@@ -468,6 +471,7 @@ testAllMinusBoundaryEqualInteriorProperty( Grid& grid,
    SCOPED_TRACE( "Grid Dimension: " + TNL::convertToString( Grid::getMeshDimension() ) );
    SCOPED_TRACE( "Entity Dimension: " + TNL::convertToString( EntityDimension ) );
    SCOPED_TRACE( "Dimension: " + TNL::convertToString( dimensions ) );
+   SCOPED_TRACE( "Grid sizes: " + TNL::convertToString( dimensions ) );
    SCOPED_TRACE( "Origin:" + TNL::convertToString( origin ) );
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
 
