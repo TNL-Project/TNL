@@ -53,28 +53,28 @@ struct ParallelForND
       Coordinates i;
       if constexpr( Dimension == 1 )
       {
-         for( i.x() = begin.x(); i.x() < end.x(); i.x()++ )
+         for( i[ 0 ] = begin[ 0 ]; i[ 0 ] < end[ 0 ]; i[ 0 ]++ )
             if constexpr( expand )
-               f( i.x(), args... );
+               f( i[ 0 ], args... );
             else
                f( i, args... );
       }
       if constexpr( Dimension == 2 )
       {
-         for( i.y() = begin.y(); i.y() < end.y(); i.y()++ )
-           for( i.x() = begin.x(); i.x() < end.x(); i.x()++ )
+         for( i[ 1 ] = begin[ 1 ]; i[ 1 ] < end[ 1 ]; i[ 1 ]++ )
+           for( i[ 0 ] = begin[ 0 ]; i[ 0 ] < end[ 0 ]; i[ 0 ]++ )
                if constexpr( expand )
-                  f( i.x(), i.y(), args... );
+                  f( i[ 0 ], i[ 1 ], args... );
                else
                   f( i, args... );
       }
       if constexpr( Dimension == 3 )
       {
-         for( i.z() = begin.z(); i.z() < end.z(); i.z()++ )
-            for( i.y() = begin.y(); i.y() < end.y(); i.y()++ )
-               for( i.x() = begin.x(); i.x() < end.x(); i.x()++ )
+         for( i[ 2 ] = begin[ 2 ]; i[ 2 ] < end[ 2 ]; i[ 2 ]++ )
+            for( i[ 1 ] = begin[ 1 ]; i[ 1 ] < end[ 1 ]; i[ 1 ]++ )
+               for( i[ 0 ] = begin[ 0 ]; i[ 0 ] < end[ 0 ]; i[ 0 ]++ )
                   if constexpr( expand )
-                     f( i.x(), i.y(), i.z(), args... );
+                     f( i[ 0 ], i[ 1 ], i[ 2 ], args... );
                   else
                      f( i, args... );
       }
@@ -82,9 +82,9 @@ struct ParallelForND
       {
          i = begin;
          while( i[ Dimension-1 ] < end[ Dimension-1 ] ) {
-            for( i.z() = begin.z(); i.z() < end.z(); i.z()++ )
-               for( i.y() = begin.y(); i.y() < end.y(); i.y()++ )
-                  for( i.x() = begin.x(); i.x() < end.x(); i.x()++ )
+            for( i[ 2 ] = begin[ 2 ]; i[ 2 ] < end[ 2 ]; i[ 2 ]++ )
+               for( i[ 1 ] = begin[ 1 ]; i[ 1 ] < end[ 1 ]; i[ 1 ]++ )
+                  for( i[ 0 ] = begin[ 0 ]; i[ 0 ] < end[ 0 ]; i[ 0 ]++ )
                      f( i, args... ); // TODO: implement expanded variant
             int idx = 3;
             i[ idx ]++;
@@ -126,9 +126,9 @@ struct ParallelForND< Devices::Host, expand >
       {
          // Benchmarks show that this is significantly faster compared
          // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() && end - start > 512 )'
-         if( Devices::Host::isOMPEnabled() && end.x() - begin.x() > 512 ) {
+         if( Devices::Host::isOMPEnabled() && end[ 0 ] - begin[ 0 ] > 512 ) {
             #pragma omp parallel for
-            for( Index i = begin.x(); i < end.x(); i++ )
+            for( Index i = begin[ 0 ]; i < end[ 0 ]; i++ )
                if constexpr( expand )
                   f( i, args... );
                else {
@@ -145,14 +145,14 @@ struct ParallelForND< Devices::Host, expand >
          // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() )'
          if( Devices::Host::isOMPEnabled() ) {
             #pragma omp parallel for
-            for( Index j = begin.y(); j < end.y(); j++ )
-               for( Index i = begin.x(); i < end.x(); i++ )
+            for( Index j = begin[ 1 ]; j < end[ 1 ]; j++ ) {
+               Coordinates c{ 0, j }; // TODO: Move this outside the loop like in sequential version
+               for( c[ 0 ] = begin[ 0 ]; c[ 0 ] < end[ 0 ]; c[ 0 ]++ )
                   if constexpr( expand )
-                     f( i, j, args... );
-                  else {
-                     Coordinates coordinates{ i, j };  // TODO: Move this outside the loop like in sequential version
-                     f( coordinates, args... );
-                  }
+                     f( c[ 0 ], c[ 1 ], args... );
+                  else
+                     f( c, args... );
+            }
          }
       }
       if constexpr( Dimension == 3 )
@@ -161,15 +161,15 @@ struct ParallelForND< Devices::Host, expand >
          // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() )'
          if( Devices::Host::isOMPEnabled() ) {
             #pragma omp parallel for
-            for( Index k = begin.z(); k < end.z(); k++ )
-               for( Index j = begin.y(); j < end.y(); j++ )
-                  for( Index i = begin.x(); i < end.x(); i++ )
+            for( Index k = begin[ 2 ]; k < end[ 2 ]; k++ ) {
+               Coordinates c{ 0, 0, k };  // TODO: Move this outside the loop like in sequential version
+               for( c[ 1 ] = begin[ 1 ]; c[ 1 ] < end[ 1 ]; c[ 1 ]++ )
+                  for( c[ 0 ] = begin[ 0 ]; c[ 0 ] < end[ 0 ]; c[ 0 ]++ )
                      if constexpr( expand )
-                        f( i, j, k, args... );
-                     else {
-                        Coordinates coordinates{ i, j, k };  // TODO: Move this outside the loop like in sequential version
-                        f( coordinates, args... );
-                     }
+                        f( c[ 0 ], c[ 1 ], c[ 2 ], args... );
+                     else
+                        f( c, args... );
+            }
          }
       }
       if constexpr( Dimension > 3 )
@@ -177,25 +177,25 @@ struct ParallelForND< Devices::Host, expand >
          // Benchmarks show that this is significantly faster compared
          // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() )'
          if( Devices::Host::isOMPEnabled() ) {
-            #pragma omp parallel for
-            for( Index k = begin[ Dimension-1 ]; k < end[ Dimension-1 ]; k++ )
-               for( Index j = begin[ Dimension-2 ]; j < end[ Dimension-2 ]; j++ )
-                  for( Index i = begin[ Dimension-3 ]; i < end[ Dimension-3 ]; i++ )
-                  {
-                     Coordinates c( begin );
-                     c[ Dimension-1 ] = k;
-                     c[ Dimension-2 ] = j;
-                     c[ Dimension-3 ] = i;
-                     while( c[ Dimension-4] < end[ Dimension-4 ] ) {
-                        f( c, args... );
-                        int idx = 0;
-                        c[ idx ]++;
-                        while( c[ idx ] == end[ idx ] && idx < Dimension-4 ) {
-                           c[ idx ] = begin[ idx ];
-                           c[ ++idx ]++;
-                        }
+            Coordinates c = begin;
+            while( c[ Dimension-1 ] < end[ Dimension-1 ] ) {
+               #pragma omp parallel for firstprivate( c )
+               for( Index k = begin[ 2 ]; k < end[ 2 ]; k++ ) {
+                  Coordinates c1( c );
+                  c1[ 2 ] = k;
+                  for( c1[ 1 ] = begin[ 1 ]; c1[ 1 ] < end[ 1 ]; c1[ 1 ]++ )
+                     for( c1[ 0 ] = begin[ 0 ]; c1[ 0 ] < end[ 0 ]; c1[ 0 ]++ ){
+                        f( c1, args... ); // TODO: implement expanded variant
                      }
-                  } // TODO: implement expanded variant
+               }
+               int idx = 3;
+               c[ idx ]++;
+               while( c[ idx ] == end[ idx ] && idx < Dimension-1 ) {
+                  c[ idx ] = begin[ idx ];
+                  c[ ++idx ]++;
+               }
+            }
+
          }
       }
 #else
@@ -226,63 +226,63 @@ ParallelForNDKernel( const Coordinates begin, const Coordinates end, Function f,
    Coordinates i( begin );
    if constexpr( Dimension == 1 )
    {
-      i.x() = begin.x() + blockIdx.x * blockDim.x + threadIdx.x;
-      while( i.x() < end.x() ) {
+      i[ 0 ] = begin[ 0 ] + blockIdx.x * blockDim.x + threadIdx.x;
+      while( i[ 0 ] < end[ 0 ] ) {
          if constexpr( expand )
-            f( i.x(), args... );
+            f( i[ 0 ], args... );
          else
             f( i, args... );
          if( gridStrideX )
-            i.x() += blockDim.x * gridDim.x;
+            i[ 0 ] += blockDim.x * gridDim.x;
          else
             break;
       }
    }
    if constexpr( Dimension == 2 )
    {
-      i.y() = begin.y() + blockIdx.y * blockDim.y + threadIdx.y;
-      i.x() = begin.x() + blockIdx.x * blockDim.x + threadIdx.x;
-      while( i.y() < end.y() ) {
-         while( i.x() < end.x() ) {
+      i[ 1 ] = begin[ 1 ] + blockIdx.y * blockDim.y + threadIdx.y;
+      i[ 0 ] = begin[ 0 ] + blockIdx.x * blockDim.x + threadIdx.x;
+      while( i[ 1 ] < end[ 1 ] ) {
+         while( i[ 0 ] < end[ 0 ] ) {
             if constexpr( expand )
-               f( i.x(), i.y(), args... );
+               f( i[ 0 ], i[ 1 ], args... );
             else
                f( i, args... );
             if( gridStrideX )
-               i.x() += blockDim.x * gridDim.x;
+               i[ 0 ] += blockDim.x * gridDim.x;
             else
                break;
          }
          if( gridStrideY )
-            i.y() += blockDim.y * gridDim.y;
+            i[ 1 ] += blockDim.y * gridDim.y;
          else
             break;
       }
    }
    if constexpr( Dimension == 3 )
    {
-      i.z() = begin.z() + blockIdx.z * blockDim.z + threadIdx.z;
-      i.y() = begin.y() + blockIdx.y * blockDim.y + threadIdx.y;
-      i.x() = begin.x() + blockIdx.x * blockDim.x + threadIdx.x;
-      while( i.z() < end.z() ) {
-         while( i.y() < end.y() ) {
-            while( i.x() < end.x() ) {
+      i[ 2 ] = begin[ 2 ] + blockIdx.z * blockDim.z + threadIdx.z;
+      i[ 1 ] = begin[ 1 ] + blockIdx.y * blockDim.y + threadIdx.y;
+      i[ 0 ] = begin[ 0 ] + blockIdx.x * blockDim.x + threadIdx.x;
+      while( i[ 2 ] < end[ 2 ] ) {
+         while( i[ 1 ] < end[ 1 ] ) {
+            while( i[ 0 ] < end[ 0 ] ) {
                if constexpr( expand )
-                  f( i.x(), i.y(), i.z(), args... );
+                  f( i[ 0 ], i[ 1 ], i[ 2 ], args... );
                else
                   f( i, args... );
                if( gridStrideX )
-                  i.x() += blockDim.x * gridDim.x;
+                  i[ 0 ] += blockDim.x * gridDim.x;
                else
                   break;
             }
             if( gridStrideY )
-               i.y() += blockDim.y * gridDim.y;
+               i[ 1 ] += blockDim.y * gridDim.y;
             else
                break;
          }
          if( gridStrideZ )
-            i.z() += blockDim.z * gridDim.z;
+            i[ 2 ] += blockDim.z * gridDim.z;
          else
             break;
       }
@@ -291,25 +291,25 @@ ParallelForNDKernel( const Coordinates begin, const Coordinates end, Function f,
    {
       while( i[Dimension-1] < end[Dimension-1])
       {
-         i.z() = begin.z() + blockIdx.z * blockDim.z + threadIdx.z;
-         i.y() = begin.y() + blockIdx.y * blockDim.y + threadIdx.y;
-         i.x() = begin.x() + blockIdx.x * blockDim.x + threadIdx.x;
-         while( i.z() < end.z() ) {
-            while( i.y() < end.y() ) {
-               while( i.x() < end.x() ) {
+         i[ 2 ] = begin[ 2 ] + blockIdx.z * blockDim.z + threadIdx.z;
+         i[ 1 ] = begin[ 1 ] + blockIdx.y * blockDim.y + threadIdx.y;
+         i[ 0 ] = begin[ 0 ] + blockIdx.x * blockDim.x + threadIdx.x;
+         while( i[ 2 ] < end[ 2 ] ) {
+            while( i[ 1 ] < end[ 1 ] ) {
+               while( i[ 0 ] < end[ 0 ] ) {
                   f( i, args... );
                   if( gridStrideX )
-                     i.x() += blockDim.x * gridDim.x;
+                     i[ 0 ] += blockDim.x * gridDim.x;
                   else
                      break;
                }
                if( gridStrideY )
-                  i.y() += blockDim.y * gridDim.y;
+                  i[ 1 ] += blockDim.y * gridDim.y;
                else
                   break;
             }
             if( gridStrideZ )
-               i.z() += blockDim.z * gridDim.z;
+               i[ 2 ] += blockDim.z * gridDim.z;
             else
                break;
          }
@@ -338,35 +338,35 @@ struct ParallelForND< Devices::Cuda, expand >
       using Index = typename Coordinates::IndexType;
       constexpr int Dimension = Coordinates::getSize();
       if constexpr( Dimension == 1 ) {
-         if( end.x() <= begin.x() )
+         if( end[ 0 ] <= begin[ 0 ] )
             return;
 
          launch_config.blockSize.x = 256;
          launch_config.blockSize.y = 1;
          launch_config.blockSize.z = 1;
          launch_config.gridSize.x =
-            TNL::min( Cuda::getMaxGridXSize(), Cuda::getNumberOfBlocks( end.x() - begin.x(), launch_config.blockSize.x ) );
+            TNL::min( Cuda::getMaxGridXSize(), Cuda::getNumberOfBlocks( end[ 0 ] - begin[ 0 ], launch_config.blockSize.x ) );
          launch_config.gridSize.y = 1;
          launch_config.gridSize.z = 1;
 
-         if( (std::size_t) launch_config.blockSize.x * launch_config.gridSize.x >= (std::size_t) end.x() - begin.x() ) {
+         if( (std::size_t) launch_config.blockSize.x * launch_config.gridSize.x >= (std::size_t) end[ 0 ] - begin[ 0 ] ) {
             constexpr auto kernel = ParallelForNDKernel< false, false, false, expand, Coordinates, Function, FunctionArgs... >;
             Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
          }
          else {
             // decrease the grid size and align to the number of multiprocessors
             const int desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
-            launch_config.gridSize.x = TNL::min( desGridSize, Cuda::getNumberOfBlocks( end.x() - begin.x(), launch_config.blockSize.x ) );
+            launch_config.gridSize.x = TNL::min( desGridSize, Cuda::getNumberOfBlocks( end[ 0 ] - begin[ 0 ], launch_config.blockSize.x ) );
             constexpr auto kernel = ParallelForNDKernel< true, false, false, expand, Coordinates, Function, FunctionArgs... >;
             Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
          }
       }
       if constexpr( Dimension == 2 ) {
-         if( end.x() <= begin.x() || end.y() <= begin.y() )
+         if( end[ 0 ] <= begin[ 0 ] || end[ 1 ] <= begin[ 1 ] )
          return;
 
-         const Index sizeX = end.x() - begin.x();
-         const Index sizeY = end.y() - begin.y();
+         const Index sizeX = end[ 0 ] - begin[ 0 ];
+         const Index sizeY = end[ 1 ] - begin[ 1 ];
 
          if( sizeX >= sizeY * sizeY ) {
             launch_config.blockSize.x = TNL::min( 256, sizeX );
@@ -412,9 +412,9 @@ struct ParallelForND< Devices::Cuda, expand >
          if( ! ( end > begin ) )
             return;
 
-         const Index sizeX = end.x() - begin.x();
-         const Index sizeY = end.y() - begin.y();
-         const Index sizeZ = end.z() - begin.z();
+         const Index sizeX = end[ 0 ] - begin[ 0 ];
+         const Index sizeY = end[ 1 ] - begin[ 1 ];
+         const Index sizeZ = end[ 2 ] - begin[ 2 ];
 
          if( sizeX >= sizeY * sizeY * sizeZ * sizeZ ) {
             launch_config.blockSize.x = TNL::min( 256, sizeX );
