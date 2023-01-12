@@ -547,6 +547,8 @@ Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) c
 {
    static_assert( Entity::getEntityDimension() <= Dimension && Entity::getEntityDimension() >= 0,
                   "Wrong grid entity dimensions." );
+   TNL_ASSERT_GE( entity.getTotalOrientationIndex(), 0, "Wrong total orientation index." );
+   TNL_ASSERT_LT( entity.getTotalOrientationIndex(), EntitiesOrientations::getTotalOrientationsCount(), "Wrong total orientation index." );
    TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0 ), "Wrong entity coordinates" );
    TNL_ASSERT_LT( entity.getCoordinates(), this->getDimensions() + entity.getNormals(), "Wrong entity coordinates" );
 
@@ -978,57 +980,54 @@ Grid< Dimension, Real, Device, Index >::fillSpaceStepsPowers()
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
-Grid< Dimension, Real, Device, Index >::forAllEntities( Func func, FuncArgs... args ) const
+Grid< Dimension, Real, Device, Index >::forAllEntities( Func function, FuncArgs... args ) const
 {
-   if constexpr( EntityDimension == getMeshDimension() )
-   {
-      auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                           const Grid& grid,
-                                           FuncArgs... args ) mutable
-      {
-         EntityType< EntityDimension > entity( grid, coordinate );
-
-         func( entity, args... );
-      };
-      this->template traverseAll< EntityDimension >( exec, *this, args... );
-   }
-   else
-   {
-      auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                           const NormalsType& normals,
-                                           const Index orientation,
-                                           const Grid& grid,
-                                           FuncArgs... args ) mutable
-      {
-         TNL_ASSERT_EQ( normals, grid.template getNormals< EntityDimension >( orientation ), "Wrong index of entity orientation." );
-         EntityType< EntityDimension > entity( grid, coordinate, orientation );
-
-         func( entity, args... );
-      };
-      this->template traverseAll< EntityDimension >( exec, *this, args... );
-   }
+   this->forEntities< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), function, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
-Grid< Dimension, Real, Device, Index >::forEntities( const CoordinatesType& begin,
-                                                     const CoordinatesType& end,
-                                                     Func func,
+Grid< Dimension, Real, Device, Index >::forEntities( const CoordinatesType& begin_,
+                                                     const CoordinatesType& end_,
+                                                     Func function,
                                                      FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                        const NormalsType& normals,
-                                        const Index orientation,
-                                        const Grid& grid,
-                                        FuncArgs... args ) mutable
+   using GridEntityType = typename Grid::template EntityType<EntityDimension>;
+   if constexpr( EntityDimension == getMeshDimension() || EntityDimension == 0 )
    {
-      EntityType< EntityDimension > entity( grid, coordinate, orientation );
+      auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid, FuncArgs... args ) mutable
+      {
+         entity.setGrid( grid );
+         entity.refresh();
+         function( entity, args... );
+      };
+      Algorithms::ParallelForND< Device, false >::exec( GridEntityType( begin_ ),
+                                                        GridEntityType( end_ + CoordinatesType( EntityDimension == 0 ) ),
+                                                        exec, *this, args... );
+   }
+   else
+   {
+      auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid,
+                                           FuncArgs... args ) mutable
+      {
+         entity.setGrid( grid );
+         TNL_ASSERT_LT( entity.getTotalOrientationIndex(), EntitiesOrientations::getTotalOrientationsCount(), "" );
 
-      func( entity, args... );
-   };
-
-   this->template traverseAll< EntityDimension >( begin, end, exec, *this, args... );
+         if( entity.getCoordinates() < grid.getDimensions() + entity.getNormals() ) {
+            entity.refresh();
+            function( entity, args... );
+         }
+      };
+      const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension>();
+      const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
+      const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount );
+      GridEntityType begin( begin_ );
+      GridEntityType end( end_ + CoordinatesType( 1 ) );
+      begin[ Grid::getMeshDimension() ] = totalOrientationsBegin;
+      end[ Grid::getMeshDimension() ] = totalOrientationsEnd;
+      Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );
+   }
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -1036,40 +1035,53 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forBoundaryEntities( Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                        const NormalsType& normals,
-                                        const Index orientation,
-                                        const Grid& grid,
-                                        FuncArgs... args ) mutable
-   {
-      EntityType< EntityDimension > entity( grid, coordinate, orientation );
-
-      func( entity, args... );
-   };
-
-   this->template traverseBoundary< EntityDimension >( exec, *this, args... );
+   this->forBoundaryEntities< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
-Grid< Dimension, Real, Device, Index >::forBoundaryEntities( const CoordinatesType& begin,
-                                                             const CoordinatesType& end,
+Grid< Dimension, Real, Device, Index >::forBoundaryEntities( const CoordinatesType& begin_,
+                                                             const CoordinatesType& end_,
                                                              Func func,
                                                              FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                        const NormalsType& normals,
-                                        const Index orientation,
-                                        const Grid& grid,
-                                        FuncArgs... args ) mutable
+   using GridEntityType = typename Grid::template EntityType<EntityDimension>;
+   if constexpr( EntityDimension == getMeshDimension() || EntityDimension == 0 )
    {
-      EntityType< EntityDimension > entity( grid, coordinate, orientation );
+      auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid, FuncArgs... args ) mutable
+      {
+         entity.setGrid( grid );
+         if( entity.isBoundary() ) {
+            entity.refresh();
+            func( entity, args... );
+         }
+      };
+      Algorithms::ParallelForND< Device, false >::exec( GridEntityType( CoordinatesType( begin_ ) ),
+                                                        GridEntityType( CoordinatesType( end_ + CoordinatesType( EntityDimension == 0 ) ) ),
+                                                        exec, *this, args...);
+   }
+   else
+   {
+      auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid,
+                                           FuncArgs... args ) mutable
+      {
+         entity.setGrid( grid );
 
-      func( entity, args... );
-   };
-
-   this->template traverseBoundary< EntityDimension >( begin, end, exec, *this, args... );
+         if( entity.getCoordinates() < end_ + entity.getNormals() && entity.isBoundary() ) {
+            entity.refresh();
+            func( entity, args... );
+         }
+      };
+      const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension>();
+      const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
+      const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount );
+      GridEntityType begin( begin_ );
+      GridEntityType end( end_ + CoordinatesType( 1 ) );
+      begin[ Grid::getMeshDimension() ] = totalOrientationsBegin;
+      end[ Grid::getMeshDimension() ] = totalOrientationsEnd;
+      Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );
+   }
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -1077,9 +1089,9 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs... args ) const
 {
+   using GridEntityType = typename Grid::template EntityType<EntityDimension>;
    if constexpr( EntityDimension == getMeshDimension() || EntityDimension == 0 )
    {
-      using GridEntityType = typename Grid::template EntityType<EntityDimension>;
       auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid, FuncArgs... args ) mutable
       {
          entity.setGrid( grid );
@@ -1092,17 +1104,33 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
    }
    else
    {
-      auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                           const NormalsType& normals,
-                                           const Index orientation,
-                                           const Grid& grid,
+      auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid,
                                            FuncArgs... args ) mutable
       {
-         EntityType< EntityDimension > entity( grid, coordinate, orientation );
+         TNL_ASSERT_GE( entity.getOrientationIndex(), 0, "" );
+         entity.setGrid( grid );
+         bool process_entity( true );
+         const NormalsType& normals = entity.getNormals();
+         const CoordinatesType& coordinates = entity.getCoordinates();
+         Algorithms::staticFor< IndexType, 0, Dimension >(
+         [&] ( Index i ) mutable {
+            if( coordinates[ i ] == this->getDimensions()[ i ] || ( normals[ i ] && ( coordinates[ i ] == 0 ) ) )
+                process_entity = false;
+         } );
 
-         func( entity, args... );
+         if( process_entity ) {
+            entity.refresh();
+            func( entity, args... );
+         }
       };
-      this->template traverseInterior< EntityDimension >( exec, *this, args... );
+      const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension>();
+      const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
+      const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount );
+      GridEntityType begin( CoordinatesType( 0 ) );
+      GridEntityType end( CoordinatesType( this->getDimensions() ) );
+      begin[ Grid::getMeshDimension() ] = totalOrientationsBegin;
+      end[ Grid::getMeshDimension() ] = totalOrientationsEnd;
+      Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );
    }
 }
 

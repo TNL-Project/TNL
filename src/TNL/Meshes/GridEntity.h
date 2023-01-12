@@ -95,19 +95,13 @@ public:
    GridEntity( const CoordinatesType& c );
 
    /**
-    * brief Constructor with a grid reference.
+    * \brief Constructor with an initializer list.
     *
-    * param grid is a reference on a grid the entity belongs to.
+    * \param list is the initializer list.
     */
-
-   /*template< typename... Indexes, std::enable_if_t< ( Grid::getMeshDimension() > 1 ) && sizeof...( Indexes ) == Grid::getMeshDimension(), bool > = true >
-   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
-   __cuda_callable__
-   GridEntity( Indexes&&... indexes );*/
-
    template< typename Value >
-   __cuda_callable__ // TODO: This is only temporary
-   GridEntity( const std::initializer_list< Value >& elems );
+   __cuda_callable__
+   GridEntity( const std::initializer_list< Value >& list );
 
    /**
     * \brief Constructor with a grid reference and grid entity coordinates.
@@ -139,7 +133,7 @@ public:
     *
     * \param grid is a reference on a grid the entity belongs to.
     * \param coordinates are coordinates of the grid entity.
-    * \param orientation is total ori index of the grid entity orientation.
+    * \param orientation is orientation index of the grid entity orientation.
     */
    __cuda_callable__
    GridEntity( const Grid& grid, const CoordinatesType& coordinates, IndexType orientationIndex );
@@ -233,12 +227,6 @@ public:
    __cuda_callable__
    const Grid&
    getMesh() const;
-
-   //__cuda_callable__
-   //GridEntityOrientationType& getOrientation();
-
-   //__cuda_callable__
-   //const GridEntityOrientationType& getOrientation() const;
 
    /**
     * \brief Setter for the packed normals vector of the grid entity.
