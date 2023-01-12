@@ -278,6 +278,29 @@ TYPED_TEST( StaticArrayTest, AssignmentOperator )
       EXPECT_EQ( u3[ i ], 1 );
 }
 
+TYPED_TEST( StaticArrayTest, assignAt )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using ValueType = typename ArrayType::ValueType;
+   constexpr int size = ArrayType::getSize();
+   constexpr int larger_size = size + 5;
+   using LargerArray = StaticArray< larger_size, ValueType >;
+
+   ArrayType a( 1 );
+   LargerArray l( 0 );
+
+   for( int position = 0; position < 5; position++ ) {
+      l = 0;
+      l.assignAt( a, position );
+         for( int i = 0; i < position; i++ )
+            EXPECT_EQ( l[ i ], 0 );
+         for( int i = position; i < position+size; i++ )
+            EXPECT_EQ( l[ i ], 1 );
+         for( int i = position+size; i < larger_size; i++ )
+            EXPECT_EQ( l[ i ], 0 );
+   }
+}
+
 TYPED_TEST( StaticArrayTest, setValue )
 {
    using ArrayType = typename TestFixture::ArrayType;

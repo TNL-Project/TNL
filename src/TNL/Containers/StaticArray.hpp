@@ -283,6 +283,17 @@ StaticArray< Size, Value >::operator=( const T& v )
 }
 
 template< int Size, typename Value >
+template< typename T >
+constexpr StaticArray< Size, Value >&
+StaticArray< Size, Value >::assignAt( const T& v, int position )
+{
+   TNL_ASSERT_GE( StaticArray::getSize() - position, T::getSize(), "Cannot assign array at given position." );
+   for( int i = 0; i < T::getSize(); i++ )
+      data[ i + position ] = v[ i ];
+   return *this;
+}
+
+template< int Size, typename Value >
 template< typename Array >
 constexpr bool
 StaticArray< Size, Value >::operator==( const Array& array ) const
