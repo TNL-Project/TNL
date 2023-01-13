@@ -30,7 +30,6 @@ do
                --final-time 0.1
                --device ${device}
                --log-file ${base}-${test}-${device}-${precision}-${scheme}-1d.json
-               --output-mode append
                --write-data no"
             echo $command
             $command
