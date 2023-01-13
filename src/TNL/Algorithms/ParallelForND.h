@@ -338,7 +338,7 @@ struct ParallelForND< Devices::Cuda, expand >
       using Index = typename Coordinates::IndexType;
       constexpr int Dimension = Coordinates::getSize();
       if constexpr( Dimension == 1 ) {
-         if( end[ 0 ] <= begin[ 0 ] )
+         if( ! ( end > begin ) )
             return;
 
          launch_config.blockSize.x = 256;
@@ -362,8 +362,8 @@ struct ParallelForND< Devices::Cuda, expand >
          }
       }
       if constexpr( Dimension == 2 ) {
-         if( end[ 0 ] <= begin[ 0 ] || end[ 1 ] <= begin[ 1 ] )
-         return;
+         if( ! ( end > begin ) )
+            return;
 
          const Index sizeX = end[ 0 ] - begin[ 0 ];
          const Index sizeY = end[ 1 ] - begin[ 1 ];
