@@ -330,6 +330,18 @@ public:
    getNeighbourEntityIndex( const CoordinatesType& offset,
                             IndexType neighbourEntityOrientation ) const;
 
+   template< int Direction, int Step >
+   __cuda_callable__
+   IndexType
+   getAdjacentEntityIndex() const;
+
+   __cuda_callable__
+   void getAdjacentCells( IndexType& closer, IndexType& remoter ) const;
+
+   __cuda_callable__
+   void
+   getAdjacentFacesIndexes( CoordinatesType& closer, CoordinatesType& remoter ) const;
+
    /**
     * \brief Returns the point at the origin of the grid entity.
     *

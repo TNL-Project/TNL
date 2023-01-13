@@ -231,7 +231,7 @@ GridEntity< Grid, EntityDimension >
 GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& offset ) const
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
-   return grid->getNeighbourEntity( *this, offset );
+   return this->grid->getNeighbourEntity( *this, offset );
 }
 
 template< class Grid, int EntityDimension >
@@ -240,7 +240,7 @@ auto
 GridEntity< Grid, EntityDimension >::getNeighbourEntityIndex( const CoordinatesType& offset ) const -> IndexType
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
-   return grid->getNeighbourEntityIndex( *this, offset );
+   return this->grid->getNeighbourEntityIndex( *this, offset );
 }
 
 template< class Grid, int EntityDimension >
@@ -251,7 +251,7 @@ GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& 
                                                          const NormalsType& neighbourEntityOrientation ) const
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
-   return grid->template getNeighbourEntity< NeighbourEntityDimension >( *this, offset, neighbourEntityOrientation );
+   return this->grid->template getNeighbourEntity< NeighbourEntityDimension >( *this, offset, neighbourEntityOrientation );
 }
 
 template< class Grid, int EntityDimension >
@@ -262,7 +262,37 @@ GridEntity< Grid, EntityDimension >::getNeighbourEntityIndex( const CoordinatesT
                                                               IndexType neighbourEntityOrientation ) const -> IndexType
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
-   return grid->template getNeighbourEntityIndex< NeighbourEntityDimension >( *this, offset, neighbourEntityOrientation );
+   return this->grid->template getNeighbourEntityIndex< NeighbourEntityDimension >( *this, offset, neighbourEntityOrientation );
+}
+
+template< class Grid, int EntityDimension >
+__cuda_callable__
+void
+GridEntity< Grid, EntityDimension >::
+getAdjacentCells( IndexType& closer, IndexType& remoter ) const
+{
+   TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
+   this->grid->getAdjacentCells( *this, closer, remoter );
+}
+
+template< class Grid, int EntityDimension >
+__cuda_callable__
+void
+GridEntity< Grid, EntityDimension >::
+getAdjacentFacesIndexes( CoordinatesType& closer, CoordinatesType& remoter ) const
+{
+   TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
+   this->grid->getAdjacentFacesIndexes( *this, closer, remoter );
+}
+
+template< class Grid, int EntityDimension >
+   template< int Direction, int Step >
+__cuda_callable__
+auto
+GridEntity< Grid, EntityDimension >::
+getAdjacentEntityIndex() const -> IndexType
+{
+   return this->grid->template getAdjacentEntityIndex< Direction, Step >( *this );
 }
 
 template< class Grid, int EntityDimension >

@@ -136,13 +136,21 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >
             auto center = (Real) 2.0 * element;
 
             auxView[ centerIdx ] = element
-                                 + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1, 0 ) ) ] - center
-                                       + uxView[ entity.getNeighbourEntityIndex( Coordinates( 1, 0 ) ) ] )
+                                 + ( ( uxView[ entity.template getAdjacentEntityIndex< 0, -1 >() ] - center
+                                       + uxView[ entity.template getAdjacentEntityIndex< 0, 1 >() ] )
                                         * hx_inv
-                                     + ( uxView[ entity.getNeighbourEntityIndex( Coordinates( 0, -1 ) ) ] - center
-                                         + uxView[ entity.getNeighbourEntityIndex( Coordinates( 0, 1 ) ) ] )
+                                     + ( uxView[ entity.template getAdjacentEntityIndex< 1, -1 >() ] - center
+                                         + uxView[ entity.template getAdjacentEntityIndex< 1, 1 >() ] )
                                           * hy_inv )
                                       * timestep;
+
+            /*auxView[ centerIdx ] = element + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1,  0 ) ) ] -
+                                                center +
+                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  1,  0 ) ) ] ) * hx_inv +
+                                              ( uxView[ entity.getNeighbourEntityIndex( Coordinates(  0, -1 ) ) ] -
+                                                center +
+                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  0,  1 ) ) ] ) * hy_inv ) *
+               timestep;*/
             /*auxView[ centerIdx ] = element + ( ( uxView[ centerIdx - 1 ] -
                                                 2.0 * center +
                                                 uxView[ centerIdx + 1 ] ) * hx_inv +
