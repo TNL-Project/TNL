@@ -44,7 +44,7 @@ def get_multiindex():
 
 ####
 # Process dataframe for given precision - float or double
-def processDf(df, scheme, precision, dimension):
+def processDf(df, scheme, precision, dimension, tests):
     multicolumns, df_data = get_multiindex()
 
     frames = []
@@ -93,9 +93,13 @@ def processDf(df, scheme, precision, dimension):
     for index, row in result.iterrows():
         for test in tests:
             if have_cuda:
-                result.iloc[idx][(test, "cuda", "CPU speed-up")] = float(
-                    row[(test, "host", "time")]
-                ) / float(row[(test, "cuda", "time")])
+                try:
+                    result.iloc[idx][(test, "cuda", "CPU speed-up")] = float(
+                        row[(test, "host", "time")]
+                    ) / float(row[(test, "cuda", "time")])
+                except ValueError as v:
+                    print(f"{v}: test = {test}.")
+
             if test != "parallel-for":
                 for device in devices:
                     if device == "cuda" and not have_cuda:
@@ -151,4 +155,15 @@ for dimension in dimensions:
                 & (df["precision"] == precision)
                 & (df["dimension"] == dimension)
             ]
-            processDf(aux_df, scheme, precision, dimension)
+            if scheme == "fvm":
+                processDf(
+                    aux_df, scheme, precision, dimension, ["parallel-for", "grid"]
+                )
+            else:
+                processDf(
+                    aux_df,
+                    scheme,
+                    precision,
+                    dimension,
+                    ["parallel-for", "nd-array", "grid"],
+                )
