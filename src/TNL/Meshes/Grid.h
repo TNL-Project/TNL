@@ -86,7 +86,11 @@ public:
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
 
-   using OrientationNormalsContainer = Containers::StaticVector< 1 << Dimension, CoordinatesType >;
+   static constexpr IndexType getTotalOrientationsCount() { return EntitiesOrientations::getTotalOrientationsCount(); }
+
+   using OrientationNormalsContainer = Containers::StaticVector< getTotalOrientationsCount(), CoordinatesType >;
+
+   using CoordinatesMultiplicatorsContainer = Containers::StaticVector< getTotalOrientationsCount(),  CoordinatesType >;
 
    /**
     * \brief Type of grid entity expressing vertexes, i.e. grid entity with dimension equal to zero.
@@ -577,6 +581,24 @@ public:
    getNeighbourEntity( const Entity& entity, const CoordinatesType& offset,
                        const NormalsType& neighbourEntityOrientation ) const;
 
+   template< int Direction, int Step, typename Entity >
+   __cuda_callable__
+   IndexType
+   getAdjacentEntityIndex( const Entity& entity ) const;
+
+   template< typename Entity >
+   __cuda_callable__
+   void getAdjacentCells( const Entity& entity, IndexType& closer, IndexType& remoter ) const;
+
+   template< typename Entity >
+   __cuda_callable__
+   void
+   getAdjacentFacesIndexes( const Entity& entity, CoordinatesType& closer, CoordinatesType& remoter ) const;
+
+
+   //__cuda_callable__
+   //void getFacesIndexes( const Entity& entity, ??? ) const;
+
    template< typename Entity >
    __cuda_callable__
    PointType getEntityOrigin( const Entity& entity ) const;
@@ -807,10 +829,18 @@ public:
    typename Vector::ConstViewType
    partitionEntities( const Vector& allEntities, int entitiesDimension, int entitiesOrientation ) const;
 
+   template< typename Vector >
+   typename Vector::ViewType
+   partitionEntities( Vector& allEntities, int entitiesDimension, int entitiesOrientation ) const;
+
+
 protected:
 
    void
    setEntitiesIndexesOffsets();
+
+   void
+   setCoordinatesMultiplicators();
 
    //void
    //fillEntitiesCount();
@@ -866,6 +896,9 @@ protected:
 
    // TODO: Explain meaning of this container
    Containers::StaticVector< ( 1 << Dimension ) + Dimension + 1, Index > entitiesIndexesOffsets = 0;
+
+   // TODO: Explain meaning of this container
+   CoordinatesMultiplicatorsContainer coordinatesMultiplicators;
 
    // TODO: remove this container
    SpaceProductsContainer spaceStepsProducts = 0; // TODO: remove

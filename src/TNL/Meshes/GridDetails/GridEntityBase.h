@@ -17,11 +17,13 @@ namespace TNL {
    namespace Meshes {
 
 template< typename Grid, int GridDimension, int EntityDimension >
-class GridEntityBase : public Containers::StaticVector< Grid::getMeshDimension()+1, typename Grid::IndexType >
+class GridEntityBase : public Containers::StaticVector< Grid::getMeshDimension(), typename Grid::IndexType >
+//class GridEntityBase : public Containers::StaticVector< Grid::getMeshDimension()+1, typename Grid::IndexType >
                                                                              // +1 stands here for total orientation index
 {
 public:
-   using BaseType = Containers::StaticVector< Grid::getMeshDimension()+1, typename Grid::IndexType >;
+   //using BaseType = Containers::StaticVector< Grid::getMeshDimension()+1, typename Grid::IndexType >;
+   using BaseType = Containers::StaticVector< Grid::getMeshDimension(), typename Grid::IndexType >;
 
    static constexpr int
    getMeshDimension() { return GridDimension; }
@@ -43,13 +45,15 @@ public:
 
    __cuda_callable__
    GridEntityBase( IndexType totalOrientationIdx ) {
-      BaseType::operator[]( getMeshDimension() ) = totalOrientationIdx;
+      this->totalOrientationIndex = totalOrientationIdx;
+      //BaseType::operator[]( getMeshDimension() ) = totalOrientationIdx;
    }
 
    __cuda_callable__
    GridEntityBase( const CoordinatesType& coordinates, IndexType totalOrientationIdx = 0 ) {
       this->assignAt( coordinates );
-      BaseType::operator[]( getMeshDimension() ) = totalOrientationIdx;
+      //BaseType::operator[]( getMeshDimension() ) = totalOrientationIdx;
+      this->totalOrientationIndex = totalOrientationIdx;
    }
 
    __cuda_callable__
@@ -68,14 +72,23 @@ public:
    }
 
    __cuda_callable__
-   void setTotalOrientationIndex( IndexType idx ) { BaseType::operator[]( getMeshDimension() ) = idx; }
+   void setTotalOrientationIndex( IndexType idx ) {
+      //BaseType::operator[]( getMeshDimension() ) = idx;
+      this->totalOrientationIndex = idx;
+       }
 
    __cuda_callable__
-   IndexType getTotalOrientationIndex() const { return this->operator[]( getMeshDimension() ); }
+   IndexType getTotalOrientationIndex() const {
+      //return this->operator[]( getMeshDimension() );
+      return this->totalOrientationIndex;
+      }
 
    __cuda_callable__
    IndexType getOrientationIndex() const {
       return EntitiesOrientations::template getOrientationIndex< EntityDimension >( this->getTotalOrientationIndex() ); }
+
+   protected:
+   IndexType totalOrientationIndex;
 };
 
 template< typename Grid, int GridDimension >
