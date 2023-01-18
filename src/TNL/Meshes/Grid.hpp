@@ -708,6 +708,21 @@ getAdjacentCells( const Entity& entity, IndexType& closer, IndexType& remoter ) 
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
+   template< int SuperentitiesDimension, typename Entity >
+__cuda_callable__
+void
+Grid< Dimension, Real, Device, Index >::
+getSuperentitiesIndexes( const Entity& entity,
+   SuperentitiesContainer< SuperentitiesDimension, Entity::getDimension() >& closer,
+   SuperentitiesContainer< SuperentitiesDimension, Entity::getDimension() >& remoter ) const
+{
+   static_assert( Entity::getEntityDimension() < SuperentitiesDimension, "The superentities dimension must be higher the the entity dimension." );
+   IndexType i( 0 );
+   // TODO: implement
+}
+
+
+template< int Dimension, typename Real, typename Device, typename Index >
    template< typename Entity >
 __cuda_callable__
 void
