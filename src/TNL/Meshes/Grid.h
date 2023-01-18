@@ -86,6 +86,9 @@ public:
 
    using CoordinatesMultiplicatorsContainer = Containers::StaticVector< getTotalOrientationsCount(),  CoordinatesType >;
 
+   template< int EntityDimension, int SuperentityDimension  >
+   using SuperentitiesContainer = Containers::StaticVector< 1 << ( SuperentityDimension - Dimension - 1), IndexType >;
+
    /**
     * \brief Type of grid entity expressing vertices, i.e. grid entity with dimension equal to zero.
     */
@@ -270,14 +273,14 @@ public:
     *
     * | Entity                     | Normals      |
     * |---------------------------:|-------------:|
-    * | Cells                      | ( 0, 0, 0 )  |
-    * | Faces along x- and y- axes | ( 0, 0, 1 )  |
-    * | Faces along x- and z- axes | ( 0, 1, 0 )  |
-    * | Faces along y- and z- axes | ( 0, 1, 1 )  |
-    * | Edges along x-axis         | ( 0, 1, 1 )  |
-    * | Edges along y-axis         | ( 1, 0, 1 )  |
+    * | Vertexes                   | ( 1, 1, 1 )  |
     * | Edges along z-axis         | ( 1, 1, 0 )  |
-    * | Vertices                   | ( 1, 1, 1 )  |
+    * | Edges along y-axis         | ( 1, 0, 1 )  |
+    * | Edges along x-axis         | ( 0, 1, 1 )  |
+    * | Faces along y- and z- axes | ( 1, 0, 0 )  |
+    * | Faces along x- and z- axes | ( 0, 1, 0 )  |
+    * | Faces along x- and y- axes | ( 0, 0, 1 )  |
+    * | Cells                      | ( 0, 0, 0 )  |
     *
     * \tparam EntityDimension is dimensions of grid entity.
     * \param[in] orientation is orientation of the entity
@@ -298,16 +301,16 @@ public:
     * Basis is integer vector having ones for axis along which the entity has non-zero lengths.
     * For example in 3D grid we have the following possibilities:
     *
-    * | Entity                     | Basis       |
+    * | Entity                     | Basis        |
     * |---------------------------:|-------------:|
-    * | Cells                      | ( 1, 1, 1 )  |
-    * | Faces along x- and y- axes | ( 1, 1, 0 )  |
-    * | Faces along x- and z- axes | ( 1, 0, 1 )  |
-    * | Faces along y- and z- axes | ( 0, 1, 1 )  |
-    * | Edges along x-axis         | ( 1, 0, 0 )  |
-    * | Edges along y-axis         | ( 0, 1, 0 )  |
+    * | Vertexes                   | ( 0, 0, 0 )  |
     * | Edges along z-axis         | ( 0, 0, 1 )  |
-    * | Vertices                   | ( 0, 0, 0 )  |
+    * | Edges along y-axis         | ( 0, 1, 0 )  |
+    * | Edges along x-axis         | ( 1, 0, 0 )  |
+    * | Faces along y- and z- axes | ( 0, 1, 1 )  |
+    * | Faces along x- and z- axes | ( 1, 0, 1 )  |
+    * | Faces along x- and y- axes | ( 1, 1, 0 )  |
+    * | Cells                      | ( 1, 1, 1 )  |
     *
     * \tparam EntityDimension is dimensions of grid entity.
     * \param[in] orientation is orientation of the entity
@@ -584,7 +587,29 @@ public:
 
    template< typename Entity >
    __cuda_callable__
-   void getAdjacentCells( const Entity& entity, IndexType& closer, IndexType& remoter ) const;
+   void
+   getAdjacentCells( const Entity& entity, IndexType& closer, IndexType& remoter ) const;
+
+   /**
+    * \brief Gives indexes of all superentities of given entity.
+    *
+    * Super entity is entity with higher dimension containing the original entity. In terms
+    * of basis vectors the superentity must have ones everywhere where the entity has ones.
+    * In addition, the superentity must have more ones. For example
+    *
+    * entity with basis (0,1) is vertical face in 2D grid
+    * superentity with basis (1,1) is cell in 2D grid
+    *
+    * \tparam Entity
+    * \param entity
+    * \param closer
+    * \param remoter
+    */
+   template< int SuperentityDimension, typename Entity >
+   __cuda_callable__
+   void getSuperentitiesIndexes( const Entity& entity,
+      SuperentitiesContainer< SuperentityDimension, Entity::getDimension() >& closer,
+      SuperentitiesContainer< SuperentityDimension, Entity::getDimension() >& remoter ) const;
 
    template< typename Entity >
    __cuda_callable__
@@ -890,9 +915,139 @@ protected:
    EntitiesCounts entitiesCounts = 0;
 
    // TODO: Explain meaning of this container
+   /**
+    * \brief Container holding offsets of entities with various orientations.
+    *
+    * The grid is mapping all entities of the same dimension into one linear container. For
+    * entities other then cells and vertexes this includes entities with various orientations.
+    * The following figure shows the mapping on an example of faces in 2D grid having sizes 4x4:
+    *
+    *
+    * ```
+    *   +-( 36)-+-( 37)-+-( 38)-+-( 39)-+
+    *   |       |       |       |       |
+    * ( 15)   ( 16)   ( 17)   ( 18)   ( 19)
+    *   |       |       |       |       |
+    *   +-( 32)-+-( 33)-+-( 34)-+-( 35)-+
+    *   |       |       |       |       |
+    * ( 10)   ( 11)   ( 12)   ( 13)   ( 14)
+    *   |       |       |       |        |
+    *   +-( 28)-+-( 29)-+-( 30)-+-( 31)-+
+    *   |       |       |       |       |
+    * ( 5 )   ( 6 )   ( 7 )   ( 8 )   ( 9 )
+    *   |       |       |       |       |
+    *   +-( 24)-+-( 25)-+-( 26)-+-( 27)-+
+    *   |       |       |       |       |
+    * ( 0 )   ( 1 )   ( 2 )   ( 3 )   ( 4 )
+    *   |       |       |       |       |
+    *   +-( 20)-+-( 21)-+-( 22)-+-( 23)-+
+    *```
+    *
+    * We can see that there are 4*5=20 horizontal faces and 5*4=20 vertical faces.
+    * The horizontal faces are mapped to indexes 0..19 and the vertical to 20..39. When it comes
+    * to other entities of the 2D grid with sizes 4x4, we have:
+    *
+    * 1. 5*5 vertexes indexed as 0..24
+    * 2. 5*4 vertical faces going along y-axis indexed as 0..19
+    * 3. 4*5 horizontal faces going along x-axis indexed as 20..39
+    * 4. 4*4 cells indexed as 0..15
+    *
+    * We encode the indexing offsets of the entities depending on their dimension an orientation as follows:
+    *
+    * [0,25],       [0,20,40],  [0,16].
+    * ^-> vertexes  ^-> faces   ^-> cells
+    *
+    * Here each bracket is related to entities with the same dimension and within the bracket we have
+    * indexing offsets of entities with given orientation. Number of all different entities orientations
+    * is \e 2^grid-dimension and for each entity dimension there is one more index at the end of the
+    * bracket telling the total number of all entities with given dimension. Therefore the size of
+    * the container is \e 2^grid-dimension+(grid-dimension+1) where \e grid-dimension+1 is number of
+    * different entities dimensions. The container is therefore organized as follows:
+    *
+    * [0,25,0,20,40,0,16]
+    *
+    * The indexing offset of entity with dimension \e EntityDimensions and orientation given by
+    * \e totalOrientationIndex can be obtained as \e totalOrientationIndex+EntityDimension.
+    *
+    * We summarize with one more example with 3D grid having sizes 4x4x4. In this case we have
+    *
+    * 1. 5*5*5 vertexes indexed as 0..124
+    * 2. 5*4*4 faces along y and z axes indexed as 0..79
+    * 3. 4*5*4 faces along x and z axes indexed as 80..159
+    * 4. 4*4*5 faces along x and y axes indexed as 160..239
+    * 5. 5*5*4 edges along z axis indexed as 0..99
+    * 6. 5*4*5 edges along y axis indexed as 100..199
+    * 7. 4*5*5 edges along x axis indexed as 200..299
+    * 8. 4*4*4 cells indexed as 0..63
+    *
+    * The indexing offsets can be therefore encoded as:
+    *
+    * [0,125],[0,80,160,240],[0,100,200,300],[0,64].
+    */
    Containers::StaticVector< ( 1 << Dimension ) + Dimension + 1, Index > entitiesIndexesOffsets = 0;
 
-   // TODO: Explain meaning of this container
+   /**
+    * \brief This container helps with computation of entities indexes.
+    *
+    * We explain meaning of this container on an example. Consider again a 3D grid with sizes
+    * \e xSize , \e ySize and \e zSize. Consider cell with coordinates
+    *
+    * ```
+    * c = ( i, j, k )
+    * ```
+    *
+    * its index can be computed as
+    *
+    * ```
+    * cell_idx = k * ySize * xSize + j * xSize + i
+    * ```
+    *
+    * If we define a vector \e m as
+    *
+    * ```
+    * m = ( 1, xSize, xSize * ySize )
+    * ```
+    *
+    * we may write
+    *
+    * ```
+    * cell_idx = ( m, c)
+    * ```
+    *
+    * i.e. the index can be computed just as scalar product of the vector of cell coordinates and
+    * vector \e m which we refer as coordinates multiplicator.
+    *
+    * One more example. Consider a face along axes \e y and \e z. There are \e xSize+1 of such faces along
+    * x axis, \e ySize along y axis and \e zSize along z axis. The index of such a faces with coordinates
+    *
+    * ```
+    * c = ( i, j, k)
+    * ```
+    *
+    * can be computed as
+    *
+    * ```
+    * faces_idx = k * ( xSize + 1 ) * ySize + j * ( xSize + 1 ) + i
+    * ```
+    *
+    * or by defining the coordinates multiplicator vector \e m as
+    *
+    * ```
+    * m = ( 1, xSize+1,  (xSize+1) * ySize )
+    * ```
+    *
+    * we may write
+    *
+    * ```
+    * face_idx = ( c, m )
+    * ```
+    *
+    * The coordinates multiplicator vector therefore depends on the entity dimension and its orientation,
+    * or simply on the total orientation index. The following container holds appropriate coordinates
+    * multiplicator vector for each index of total orientation. The container is precomputed every time
+    * the when sizes of the grid change in method \ref TNL::Meshes::Grid::setCoordinatesMultiplicators.
+    * After that, it makes the evaluation if the grid entity index much simpler and more efficient.
+    */
    CoordinatesMultiplicatorsContainer coordinatesMultiplicators;
 
    // TODO: remove this container
