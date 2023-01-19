@@ -1080,8 +1080,8 @@ Grid< Dimension, Real, Device, Index >::forEntities( const CoordinatesType& begi
             function( entity, args... );
          };
          const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension>();
-         const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
-         const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount );
+         //const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
+         //const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount );
          GridEntityType begin( begin_ );
          GridEntityType end( end_ + entitiesOrientations.getNormals( totalOrientationIdx ) );
          Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );
