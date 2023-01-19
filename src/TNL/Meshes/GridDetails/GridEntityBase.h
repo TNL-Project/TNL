@@ -41,7 +41,7 @@ public:
 
    template< typename Value >
    __cuda_callable__
-   GridEntityBase( const std::initializer_list< Value >& elems ) : BaseType( elems ){};
+   GridEntityBase( const std::initializer_list< Value >& elems ) : BaseType( elems ){}
 
    __cuda_callable__
    GridEntityBase( IndexType totalOrientationIdx ) {
@@ -113,7 +113,7 @@ public:
 
    template< typename Value >
    __cuda_callable__
-   GridEntityBase( const std::initializer_list< Value >& elems ) : BaseType( elems ){};
+   GridEntityBase( const std::initializer_list< Value >& elems ) : BaseType( elems ){}
 
    __cuda_callable__
    GridEntityBase( const CoordinatesType& coordinates, IndexType totalOrientationIdx = 0 ) {
@@ -173,7 +173,7 @@ public:
 
    template< typename Value >
    __cuda_callable__
-   GridEntityBase( const std::initializer_list< Value >& elems ) : BaseType( elems ){};
+   GridEntityBase( const std::initializer_list< Value >& elems ) : BaseType( elems ){}
 
    __cuda_callable__
    GridEntityBase( IndexType orientationIdx ) {}
