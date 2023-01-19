@@ -128,8 +128,8 @@ struct HeatEquationSolverBenchmarkFVMGrid< 2, Real, Device, Index >: public Heat
          auto aux_view = this->aux.getView();
          auto faces_view = this->faces.getView();
 
-         constexpr Index x_faces = EntitiesOrientations::template getOrientationIndex< 1, 0, 1 >();
-         constexpr Index y_faces = EntitiesOrientations::template getOrientationIndex< 1, 1, 0 >();
+         //constexpr Index x_faces = EntitiesOrientations::template getOrientationIndex< 1, 0, 1 >();
+         //constexpr Index y_faces = EntitiesOrientations::template getOrientationIndex< 1, 1, 0 >();
          //auto x_faces_view = this->grid.partitionEntities( this->faces, 1, x_faces );
          //auto y_faces_view = this->grid.partitionEntities( this->faces, 1, y_faces );
 
