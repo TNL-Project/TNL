@@ -272,7 +272,7 @@ public:
    /**
     * brief Setter of the grid entity orientation index.
     *
-    * This is rather internal information. The index can be computed using the method \ref TNL::Meshes::Grid::getOrientation.
+    * This is rather internal information. The index can be computed using the method \ref TNL::Meshes::Grid::getOrientationIndex.
     *
     * param orientation is a index of the grid entity orientation.
     */
