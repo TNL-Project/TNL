@@ -157,7 +157,7 @@ struct GridEntitiesOrientations
     *
     * \param totalOrientationIndex is total orientation index.
     */
-   static int getEntityDimension( int totalOrientationIndex );
+   constexpr static int getEntityDimension( int totalOrientationIndex );
 
    /**
     * \brief Gives dimension specific orientation index based on grid entity dimension and packed normal vectors.

@@ -123,11 +123,11 @@ public:
     *
     * Entity normals define the grid entity orientation.
     * Index of entity orientation is rather internal information. Constructor without this parameter may be used preferably.
-    * The index can be computed using the method \ref TNL::Meshes::Grid::getOrientation.
+    * The index can be computed using the method \ref TNL::Meshes::Grid::getOrientationIndex.
     *
     * \param grid is a reference on a grid the entity belongs to.
     * \param coordinates are coordinates of the grid entity.
-    * \param orientation is orientation index of the grid entity orientation.
+    * \param orientationIndex is orientation index of the grid entity orientation.
     */
    __cuda_callable__
    GridEntity( const Grid& grid, const CoordinatesType& coordinates, IndexType orientationIndex );
@@ -266,7 +266,7 @@ public:
    /**
     * brief Setter of the grid entity orientation index.
     *
-    * This is rather internal information. The index can be computed using the method \ref TNL::Meshes::Grid::getOrientation.
+    * This is rather internal information. The index can be computed using the method \ref TNL::Meshes::Grid::getOrientationIndex.
     *
     * param orientation is a index of the grid entity orientation.
     */

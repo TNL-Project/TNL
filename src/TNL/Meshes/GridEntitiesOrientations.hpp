@@ -34,7 +34,7 @@ getOrientationsCount( int entityDimension ) {
    return combinationsCount( entityDimension, GridDimension );
 }
 template< int GridDimension >
-int
+constexpr int
 GridEntitiesOrientations< GridDimension >::
 getEntityDimension( int totalOrientationIndex )
 {
