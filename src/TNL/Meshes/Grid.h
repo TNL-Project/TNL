@@ -345,7 +345,7 @@ public:
     *
     * \tparam EntityDimension is dimension of an entity.
     * \param entityIdx is an index of the entity.
-    * \param orientation is an index of the grid entity orientation.
+    * \param totalOrientationIndex is an index of the grid entity orientation.
     * \return coordinates of the grid entity.
     */
    template< int EntityDimension >
@@ -864,6 +864,9 @@ protected:
    void
    setEntitiesIndexesOffsets();
 
+   /**
+    * \brief Precompute the coordinate multiplicators vectors.
+    */
    void
    setCoordinatesMultiplicators();
 
