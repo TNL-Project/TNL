@@ -110,11 +110,12 @@ public:
       }
 
       Coordinate normals = getNormals(), powers;
-
       for( Index i = 0; i < this->current.getSize(); i++ )
          powers[ i ] = ! normals[ i ];
 
-      return grid.getSpaceStepsProducts( powers );
+      return product( grid.getSpaceSteps() * powers );
+
+      //return grid.getSpaceStepsProducts( powers );*/
    }
 };
 

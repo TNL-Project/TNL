@@ -8,43 +8,7 @@
 
 template<typename Device>
 class GridAccessorsTestCaseInterface {
-   public:
-
-      template <typename Grid>
-      void verifySpaceStepsValues(const Grid& grid, const int spaceStepsSize, const typename Grid::PointType& spaceSteps) {
-         using Real = typename Grid::RealType;
-         using CoordinatesType = typename Grid::CoordinatesType;
-
-         CoordinatesType start, end;
-
-         for (int i = 0; i < start.getSize(); i++) {
-            start[i] = -(spaceStepsSize >> 1);
-            end[i] = (spaceStepsSize >> 1);
-         }
-
-         CoordinateIterator<int, Grid::getMeshDimension()> iterator(start, end);
-
-         do {
-            auto coordinate = iterator.getCoordinate();
-            Real product = 1.;
-
-            for (typename Grid::IndexType i = 0; i < start.getSize(); i++) product *= pow(spaceSteps[i], coordinate[i]);
-
-            if (std::is_same<Real, float>::value) {
-               EXPECT_FLOAT_EQ(grid.getSpaceStepsProducts(coordinate), product) << "Expect the step size products are the same";
-               continue;
-            }
-
-             if (std::is_same<Real, double>::value) {
-               EXPECT_DOUBLE_EQ(grid.getSpaceStepsProducts(coordinate), product) << "Expect the step size products are the same";
-               continue;
-            }
-
-            FAIL() << "Unknown type as real was provided for comparison: " << TNL::getType<Real>();
-         } while (!iterator.next());
-      }
 };
-
 
 template<typename Device>
 class GridAccessorsTestCase: public GridAccessorsTestCaseInterface<Device> {};
@@ -212,22 +176,6 @@ void testSpaceStepsSetByIndex(Grid& grid, const int spaceStepsSize, T... spaceSt
 
    support.template verifySpaceStepsGetter<Grid>(grid, spaceStepsContainer);
    support.template verifySpaceStepsValues<Grid>(grid, spaceStepsSize, spaceStepsContainer);
-}
-
-template<typename Grid>
-void testSpaceStepsPowerValues(Grid& grid, const int spaceStepsSize, const typename Grid::PointType& spaceSteps) {
-   if (spaceStepsSize <= 0)
-      GTEST_SKIP() << "Negative space steps sizes are not supported";
-
-   EXPECT_NO_THROW(grid.setSpaceSteps(spaceSteps)) << "Verify, that the set of " << spaceSteps << " doesn't cause assert";
-
-   SCOPED_TRACE("Test space steps set by index");
-   SCOPED_TRACE("Space steps: " + TNL::convertToString(spaceSteps));
-   SCOPED_TRACE("Grid space steps: " + TNL::convertToString(grid.getSpaceSteps()));
-
-   GridAccessorsTestCase<typename Grid::DeviceType> support;
-
-   support.template verifySpaceStepsValues<Grid>(grid, spaceStepsSize, spaceSteps);
 }
 
 #endif

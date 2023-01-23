@@ -125,24 +125,9 @@ struct GridEntitiesOrientations
    using NormalsType = Containers::StaticVector< GridDimension, short int >;
 
    /**
-    * \brief Gives number of all orientations for all grid entities.
+    * \brief Gives number of orientations of all grid entities.
     */
    constexpr static int getTotalOrientationsCount();
-
-   /**
-    * \brief Gives number of all orientations for grid entities with given dimension.
-    *
-    * \tparam EntityDimension is the grid entity dimension.
-    */
-   template< int EntityDimension >
-   constexpr static int getOrientationsCount();
-
-   /**
-    * \brief Gives number of all orientations for grid entities with given dimension.
-    *
-    * \tparam EntityDimension is the grid entity dimension.
-    */
-   constexpr static int getOrientationsCount( int entityDimension );
 
    /**
     * \brief Gives dimension of entity based on the total orientation index.
@@ -158,6 +143,21 @@ struct GridEntitiesOrientations
     * \param totalOrientationIndex is total orientation index.
     */
    constexpr static int getEntityDimension( int totalOrientationIndex );
+
+   /**
+    * \brief Gives number of orientations of grid entities with given dimension.
+    *
+    * \tparam EntityDimension is the grid entity dimension.
+    */
+   template< int EntityDimension >
+   constexpr static int getOrientationsCount();
+
+   /**
+    * \brief Gives number of orientations of grid entities with given dimension.
+    *
+    * \param entityDimension is the grid entity dimension.
+    */
+   constexpr static int getOrientationsCount( int entityDimension );
 
    /**
     * \brief Gives dimension specific orientation index based on grid entity dimension and packed normal vectors.
@@ -235,12 +235,30 @@ struct GridEntitiesOrientations
    __cuda_callable__
    GridEntitiesOrientations();
 
+   /**
+    * \brief Gives entity dimension based on a packed normal vectors.
+    *
+    * \param normals represents packed normal vectors.
+    * \return entity dimension.
+    */
    __cuda_callable__
    static int getEntityDimension( const NormalsType& normals );
 
+   /**
+    * \brief Gives entity orientation index based on the packed normal vectors.
+    *
+    * \param normals represents packed normal vectors.
+    * \return entity orientation index.
+    */
    __cuda_callable__
    int getOrientationIndex( const NormalsType& normals ) const;
 
+   /**
+    * \brief Gives entity total orientation index based on the packed normal vectors.
+    *
+    * \param normals represents packed normal vectors.
+    * \return entity total orientation index.
+    */
    __cuda_callable__
    int getTotalOrientationIndex( const NormalsType& normals ) const;
 

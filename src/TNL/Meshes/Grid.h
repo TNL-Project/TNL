@@ -27,7 +27,9 @@ class GridEntity;
  *
  * This data structure represents regular orthogonal numerical mesh. It provides indexing of mesh
  * entities like vertexes, edges, faces or cells together with parallel traversing of all, interior
- * or boundary mesh entities.
+ * or boundary mesh entities. The grid entities defined by their dimension but also their
+ * orientation. For example faces or edges in 2D grid can horizontal or vertical. The system
+ * of grid entities in TNL is described in \ref TNL::Meshes::GridEntitiesOrientations.
  *
  * \tparam Dimension is grid dimension.
  * \tparam Real is type of the floating point numbers.
@@ -60,23 +62,46 @@ public:
     */
    using GlobalIndexType = Index;
 
-   using GridTraitsType = GridTraits< Dimension, Real, Index >;
+   /**
+    * \brief Type for grid entities orientations.
+    *
+    * This structure provides functions related to grid entities orientations
+    * especially conversions between packed normals vectors, orientation and
+    * total orientation indexes.
+    *
+    * See. \ref TNL::Meshes::GridEntitiesOrientations.
+    */
+   using EntitiesOrientations = GridEntitiesOrientations< Dimension >;
 
    /**
     * \brief Type for grid entities coordinates.
     */
-   using CoordinatesType = typename GridTraitsType::CoordinatesType;
+   using CoordinatesType = Containers::StaticVector< Dimension, IndexType >;
 
    /**
     * \brief Type for world coordinates.
     */
-   using PointType = typename GridTraitsType::PointType;
+   using PointType = Containers::StaticVector< Dimension, Real >;
 
-   using NormalsType = typename GridTraitsType::NormalsType;
+   /**
+    * \brief Type for packed normal vectors.
+    */
+   using NormalsType = Containers::StaticVector< Dimension, short int >;
 
+   /**
+    * \brief Type of container holding number of grid entities with given dimension.
+    */
    using EntitiesCounts = Containers::StaticVector< Dimension + 1, Index >;
 
-   using EntitiesOrientations = GridEntitiesOrientations< Dimension >;
+   /**
+    * \brief Gives number of orientations of all grid entities.
+    *
+    *  See. \ref TNL::Meshes::GridEntitiesOrientations for details.
+    */
+   static constexpr IndexType getTotalOrientationsCount() { return EntitiesOrientations::getTotalOrientationsCount(); }
+
+   template< int EntityDimension, int SuperentityDimension  >
+   using SuperentitiesContainer = Containers::StaticVector< 1 << ( SuperentityDimension - Dimension - 1), IndexType >;
 
    /**
     * \brief Alias for grid entities with given dimension.
@@ -85,15 +110,6 @@ public:
     */
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
-
-   static constexpr IndexType getTotalOrientationsCount() { return EntitiesOrientations::getTotalOrientationsCount(); }
-
-   using OrientationNormalsContainer = Containers::StaticVector< getTotalOrientationsCount(), CoordinatesType >;
-
-   using CoordinatesMultiplicatorsContainer = Containers::StaticVector< getTotalOrientationsCount(),  CoordinatesType >;
-
-   template< int EntityDimension, int SuperentityDimension  >
-   using SuperentitiesContainer = Containers::StaticVector< 1 << ( SuperentityDimension - Dimension - 1), IndexType >;
 
    /**
     * \brief Type of grid entity expressing vertexes, i.e. grid entity with dimension equal to zero.
@@ -127,11 +143,11 @@ public:
     * \brief Returns the coefficient powers size.
     */
    // TODO: Move this to FDM = Finite Difference Method implementation
-   static constexpr int spaceStepsPowersSize = 5;
+   //static constexpr int spaceStepsPowersSize = 5;
 
-   using SpaceProductsContainer =
-      Containers::StaticVector< std::integral_constant< Index, discretePow( spaceStepsPowersSize, Dimension ) >::value,
-                                Real >;
+   //using SpaceProductsContainer =
+   //   Containers::StaticVector< std::integral_constant< Index, discretePow( spaceStepsPowersSize, Dimension ) >::value,
+   //                             Real >;
 
    /**
     * \brief Grid constructor with no parameters.
@@ -431,12 +447,12 @@ public:
     * \param[in] powers is a pack of numbers telling power of particular space steps.
     * \return product of given space steps powers.
     */
-   template< typename... Powers,
-             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool > = true,
-             std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
-   __cuda_callable__
-   Real
-   getSpaceStepsProducts( Powers... powers ) const;
+   //template< typename... Powers,
+   //          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool > = true,
+   //          std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
+   //__cuda_callable__
+   //Real
+   //getSpaceStepsProducts( Powers... powers ) const;
 
    /**
     * \brief Returns product of space steps powers.
@@ -446,15 +462,15 @@ public:
     * \param[in] powers is vector of numbers telling power of particular space steps.
     * \return product of given space steps powers.
     */
-   __cuda_callable__
-   Real
-   getSpaceStepsProducts( const CoordinatesType& powers ) const;
+   //__cuda_callable__
+   //Real
+   //getSpaceStepsProducts( const CoordinatesType& powers ) const;
 
    __cuda_callable__
    Real
    getCellMeasure() const
    {
-      return this->getSpaceStepsProducts( CoordinatesType( 1 ) );
+      return product( this->getSpaceSteps() );
    }
 
    /**
@@ -467,19 +483,19 @@ public:
     * \tparam Powers is a pack of indexes.
     * \return product of given space steps powers.
     */
-   template< Index... Powers, std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
-   __cuda_callable__
-   Real
-   getSpaceStepsProducts() const noexcept;
+   //template< Index... Powers, std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
+   //__cuda_callable__
+   //Real
+   //getSpaceStepsProducts() const noexcept;
 
    /**
     * \brief Get the smallest space step.
     *
     * \return the smallest space step.
     */
-   __cuda_callable__
-   Real
-   getSmallestSpaceStep() const noexcept;
+   //__cuda_callable__
+   //Real
+   //getSmallestSpaceStep() const noexcept;
 
    /**
     * \brief Get the proportions of the grid.
@@ -861,6 +877,8 @@ public:
 
 protected:
 
+   using CoordinatesMultiplicatorsContainer = Containers::StaticVector< getTotalOrientationsCount(),  CoordinatesType >;
+
    void
    setEntitiesIndexesOffsets();
 
@@ -876,8 +894,8 @@ protected:
    void
    fillSpaceSteps();
 
-   void
-   fillSpaceStepsPowers();
+   //void
+   //fillSpaceStepsPowers();
 
    void
    fillProportions();
@@ -1059,7 +1077,7 @@ protected:
    CoordinatesMultiplicatorsContainer coordinatesMultiplicators;
 
    // TODO: remove this container
-   SpaceProductsContainer spaceStepsProducts = 0; // TODO: remove
+   //SpaceProductsContainer spaceStepsProducts = 0; // TODO: remove
 
    //__cuda_callable__ inline static
    EntitiesOrientations entitiesOrientations; // TODO: make this static - I do not know any good solution working with CUDA

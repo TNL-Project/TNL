@@ -294,8 +294,6 @@ Grid< Dimension, Real, Device, Index >::setSpaceSteps(
    const typename Grid< Dimension, Real, Device, Index >::PointType& spaceSteps ) noexcept
 {
    this->spaceSteps = spaceSteps;
-
-   fillSpaceStepsPowers();
    fillProportions();
 }
 
@@ -307,8 +305,6 @@ void
 Grid< Dimension, Real, Device, Index >::setSpaceSteps( Steps... spaceSteps ) noexcept
 {
    this->spaceSteps = PointType( spaceSteps... );
-
-   fillSpaceStepsPowers();
    fillProportions();
 }
 
@@ -328,7 +324,7 @@ Grid< Dimension, Real, Device, Index >::getProportions() const noexcept
    return this->proportions;
 }
 
-template< int Dimension, typename Real, typename Device, typename Index >
+/*template< int Dimension, typename Real, typename Device, typename Index >
 template< typename... Powers,
           std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool >,
           std::enable_if_t< sizeof...( Powers ) == Dimension, bool > >
@@ -374,7 +370,7 @@ Grid< Dimension, Real, Device, Index >::getSmallestSpaceStep() const noexcept
       minStep = min( minStep, this->spaceSteps[ i++ ] );
 
    return minStep;
-}
+}*/
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
@@ -978,12 +974,10 @@ Grid< Dimension, Real, Device, Index >::fillSpaceSteps()
    if( ! hasAnyInvalidDimension ) {
       for( Index i = 0; i < Dimension; i++ )
          this->spaceSteps[ i ] = this->proportions[ i ] / this->dimensions[ i ];
-
-      fillSpaceStepsPowers();
    }
 }
 
-template< int Dimension, typename Real, typename Device, typename Index >
+/*template< int Dimension, typename Real, typename Device, typename Index >
 void
 Grid< Dimension, Real, Device, Index >::fillSpaceStepsPowers()
 {
@@ -1012,7 +1006,7 @@ Grid< Dimension, Real, Device, Index >::fillSpaceStepsPowers()
 
       spaceStepsProducts[ i ] = product;
    }
-}
+}*/
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >

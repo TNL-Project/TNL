@@ -19,15 +19,15 @@ template< int Dimension,
           typename Index >
 struct GridTraits
 {
-   using RealType = Real;
+   //using RealType = Real;
 
-   using IndexType = Index;
+   //using IndexType = Index;
 
    using PointType = Containers::StaticVector< Dimension, Real >;
 
-   using CoordinatesType = Containers::StaticVector< Dimension, IndexType >;
+   //using CoordinatesType = Containers::StaticVector< Dimension, IndexType >;
 
-   using NormalsType = Containers::StaticVector< Dimension, short int >;
+   //using NormalsType = Containers::StaticVector< Dimension, short int >;
 };
 
    } //namespace Meshes

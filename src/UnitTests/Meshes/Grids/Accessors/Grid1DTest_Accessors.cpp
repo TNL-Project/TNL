@@ -65,30 +65,6 @@ TYPED_TEST(GridTestSuite, TestOriginSet) {
    testOriginSetByIndex<TypeParam>(this -> grid, 3.);
 }
 
-TYPED_TEST(GridTestSuite, TestSpaceStepsGetter) {
-   const int spaceStepsPowersSize = TypeParam::spaceStepsPowersSize;
-
-   testSpaceStepsSetByCoordinate<TypeParam>(this -> grid, spaceStepsPowersSize, { 0.6 });
-   testSpaceStepsSetByCoordinate<TypeParam>(this -> grid, spaceStepsPowersSize, { 1 });
-   testSpaceStepsSetByCoordinate<TypeParam>(this -> grid, spaceStepsPowersSize, { 4 });
-   testSpaceStepsSetByCoordinate<TypeParam>(this -> grid, spaceStepsPowersSize, { 0.1 });
-   testSpaceStepsSetByCoordinate<TypeParam>(this -> grid, spaceStepsPowersSize, { 4 });
-
-   testSpaceStepsSetByIndex<TypeParam>(this -> grid, spaceStepsPowersSize, 0.6);
-   testSpaceStepsSetByIndex<TypeParam>(this -> grid, spaceStepsPowersSize, 1);
-   testSpaceStepsSetByIndex<TypeParam>(this -> grid, spaceStepsPowersSize, 4);
-   testSpaceStepsSetByIndex<TypeParam>(this -> grid, spaceStepsPowersSize, 0.1);
-   testSpaceStepsSetByIndex<TypeParam>(this -> grid, spaceStepsPowersSize, 4);
-}
-
-TYPED_TEST(GridTestSuite, TestSpaceStepsPowersValues) {
-   const int spaceStepsPowersSize = TypeParam::spaceStepsPowersSize;
-
-   testSpaceStepsPowerValues(this -> grid, spaceStepsPowersSize, { 0. });
-   testSpaceStepsPowerValues(this -> grid, spaceStepsPowersSize, { 1. });
-   testSpaceStepsPowerValues(this -> grid, spaceStepsPowersSize, { 2. });
-}
-
 #endif
 
 #include "../../../main.h"
