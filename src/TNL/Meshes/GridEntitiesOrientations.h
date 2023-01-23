@@ -15,7 +15,7 @@
 namespace TNL {
 namespace Meshes {
 
-/***
+/**
  * \brief Structure holding all grid entities orientations.
  *
  * Grid is a orthogonal regular numerical mesh consisting of various mesh entities having various orientations. For example:
@@ -47,12 +47,10 @@ namespace Meshes {
  * |---------------:|-------------------------:|------------------:|--------------------------------------:|---------------------------------:|
  * | 1              | Vertex                   | 0                 | none or ( 0 )                         | ( 0 )                            |
  * | 1              | Cell                     | 1                 | ( 1 )                                 | ( 1 )                            |
- * |---------------:|-------------------------:|------------------:|--------------------------------------:|---------------------------------:|
  * | 2              | Vertex                   | 0                 | none or ( 0, 0 )                      | ( 0, 0 )                         |
  * | 2              | Face along y axis        | 1                 | ( 0, 1 )                              | ( 0, 1 )                         |
  * | 2              | Face along x axis        | 1                 | ( 1, 0 )                              | ( 1, 0 )                         |
  * | 2              | Cell                     | 2                 | ( 1, 0 ), ( 0, 1 )                    | ( 1, 1 )                         |
- * |---------------:|-------------------------:|------------------:|--------------------------------------:|---------------------------------:|
  * | 3              | Vertexes                 | 0                 | none or ( 0, 0, 0 )                   | ( 0, 0, 0 )                      |
  * | 3              | Edges along z axis       | 1                 | ( 0, 0, 1 )                           | ( 0, 0, 1 )                      |
  * | 3              | Edges along y axis       | 1                 | ( 0, 1, 0 )                           | ( 0, 1, 0 )                      |
@@ -70,12 +68,10 @@ namespace Meshes {
  * |---------------:|-------------------------:|------------------:|--------------------------------------:|------------------------:|
  * | 1              | Vertex                   | 0                 | ( 1 )                                 | ( 1 )                   |
  * | 1              | Cell                     | 1                 | none or ( 0 )                         | ( 0 )                   |
- * |---------------:|-------------------------:|------------------:|--------------------------------------:|------------------------:|
  * | 2              | Vertex                   | 0                 | ( 1, 0 ), ( 0, 1 )                    | ( 1, 1 )                |
  * | 2              | Face along y axis        | 1                 | ( 1, 0 )                              | ( 1, 0 )                |
  * | 2              | Face along x axis        | 1                 | ( 0, 1 )                              | ( 0, 1 )                |
  * | 2              | Cell                     | 2                 | none or ( 0, 0 )                      | ( 0, 0 )                |
- * |---------------:|-------------------------:|------------------:|--------------------------------------:|------------------------:|
  * | 3              | Vertexes                 | 0                 | ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ) | ( 1, 1, 1 )             |
  * | 3              | Edges along z axis       | 1                 | ( 1, 0, 0 ), ( 0, 1, 0 )              | ( 1, 1, 0 )             |
  * | 3              | Edges along y axis       | 1                 | ( 1, 0, 0 ), ( 0, 0, 1 )              | ( 1, 0, 1 )             |
@@ -101,12 +97,10 @@ namespace Meshes {
  * |---------------:|-------------------------:|------------------:|------------------------:|-----------------:|-----------------------:|
  * | 1              | Vertex                   | 0                 | ( 1 )                   | 0                | 0                      |
  * | 1              | Cell                     | 1                 | ( 0 )                   | 1                | 1                      |
- * |---------------:|-------------------------:|------------------:|------------------------:|-----------------:|-----------------------:|
  * | 2              | Vertex                   | 0                 | ( 1, 1 )                | 0                | 0                      |
  * | 2              | Face along y axis        | 1                 | ( 1, 0 )                | 0                | 1                      |
  * | 2              | Face along x axis        | 1                 | ( 0, 1 )                | 1                | 2                      |
  * | 2              | Cell                     | 2                 | ( 0, 0 )                | 0                | 3                      |
- * |---------------:|-------------------------:|------------------:|------------------------:|-----------------:|-----------------------:|
  * | 3              | Vertexes                 | 0                 | ( 1, 1, 1 )             | 0                | 0                      |
  * | 3              | Edges along z axis       | 1                 | ( 1, 1, 0 )             | 0                | 1                      |
  * | 3              | Edges along y axis       | 1                 | ( 1, 0, 1 )             | 1                | 2                      |
@@ -115,6 +109,14 @@ namespace Meshes {
  * | 3              | Faces along x and z axes | 2                 | ( 0, 1, 0 )             | 1                | 5                      |
  * | 3              | Faces along x and y axes | 2                 | ( 0, 0, 1 )             | 2                | 6                      |
  * | 3              | Cells                    | 3                 | ( 0, 0, 0 )             | 0                | 7                      |
+ *
+ * The following example demonstrates the use of grid entities orientations in real code:
+ *
+ * \includelineno Meshes/Grid/GridEntitiesOrientationsExample.cpp
+ *
+ * The result looks as follows:
+ *
+ * \include GridEntitiesOrientationsExample.out
  */
 template< int GridDimension >
 struct GridEntitiesOrientations
@@ -125,24 +127,9 @@ struct GridEntitiesOrientations
    using NormalsType = Containers::StaticVector< GridDimension, short int >;
 
    /**
-    * \brief Gives number of all orientations for all grid entities.
+    * \brief Gives number of orientations of all grid entities.
     */
    constexpr static int getTotalOrientationsCount();
-
-   /**
-    * \brief Gives number of all orientations for grid entities with given dimension.
-    *
-    * \tparam EntityDimension is the grid entity dimension.
-    */
-   template< int EntityDimension >
-   constexpr static int getOrientationsCount();
-
-   /**
-    * \brief Gives number of all orientations for grid entities with given dimension.
-    *
-    * \tparam EntityDimension is the grid entity dimension.
-    */
-   constexpr static int getOrientationsCount( int entityDimension );
 
    /**
     * \brief Gives dimension of entity based on the total orientation index.
@@ -158,6 +145,21 @@ struct GridEntitiesOrientations
     * \param totalOrientationIndex is total orientation index.
     */
    constexpr static int getEntityDimension( int totalOrientationIndex );
+
+   /**
+    * \brief Gives number of orientations of grid entities with given dimension.
+    *
+    * \tparam EntityDimension is the grid entity dimension.
+    */
+   template< int EntityDimension >
+   constexpr static int getOrientationsCount();
+
+   /**
+    * \brief Gives number of orientations of grid entities with given dimension.
+    *
+    * \param entityDimension is the grid entity dimension.
+    */
+   constexpr static int getOrientationsCount( int entityDimension );
 
    /**
     * \brief Gives dimension specific orientation index based on grid entity dimension and packed normal vectors.
@@ -235,12 +237,30 @@ struct GridEntitiesOrientations
    __cuda_callable__
    GridEntitiesOrientations();
 
+   /**
+    * \brief Gives entity dimension based on a packed normal vectors.
+    *
+    * \param normals represents packed normal vectors.
+    * \return entity dimension.
+    */
    __cuda_callable__
    static int getEntityDimension( const NormalsType& normals );
 
+   /**
+    * \brief Gives entity orientation index based on the packed normal vectors.
+    *
+    * \param normals represents packed normal vectors.
+    * \return entity orientation index.
+    */
    __cuda_callable__
    int getOrientationIndex( const NormalsType& normals ) const;
 
+   /**
+    * \brief Gives entity total orientation index based on the packed normal vectors.
+    *
+    * \param normals represents packed normal vectors.
+    * \return entity total orientation index.
+    */
    __cuda_callable__
    int getTotalOrientationIndex( const NormalsType& normals ) const;
 

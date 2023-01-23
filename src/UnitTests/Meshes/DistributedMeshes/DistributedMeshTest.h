@@ -750,7 +750,7 @@ TEST( DistributedMeshTest, 2D_ghostLevel0 )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setDimensions( nproc, nproc );
+   grid.setDimensions( {nproc, nproc} );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 0;
@@ -767,7 +767,7 @@ TEST( DistributedMeshTest, 2D_ghostLevel1 )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setDimensions( nproc, nproc );
+   grid.setDimensions( {nproc, nproc} );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 1;
@@ -785,7 +785,7 @@ TEST( DistributedMeshTest, 2D_ghostLevel2 )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setDimensions( nproc, nproc );
+   grid.setDimensions( {nproc, nproc} );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 2;
@@ -803,7 +803,7 @@ TEST( DistributedMeshTest, PVTUWriterReader )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setDimensions( nproc, nproc );
+   grid.setDimensions( {nproc, nproc} );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 2;

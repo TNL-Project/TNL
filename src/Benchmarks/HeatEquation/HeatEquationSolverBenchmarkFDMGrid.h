@@ -42,10 +42,8 @@ struct HeatEquationSolverBenchmarkFDMGrid< 1, Real, Device, Index >
    void
    exec( const Index xSize )
    {
-      const Real hx = this->grid.template getSpaceStepsProducts< 1 >();
-      const Real hx_inv = this->grid.template getSpaceStepsProducts< -2 >();
-
-      TNL_ASSERT_EQ( hx, this->xDomainSize / (Real) xSize, "computed wrong hx on the grid" );
+      const Real hx = this->grid.getSpaceSteps()[ 0 ];
+      const Real hx_inv = (Real) 1.0 / ( hx * hx );
 
       Real start = 0;
       Index iterations = 0;
@@ -101,7 +99,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >
    init( const Index xSize, const Index ySize )
    {
       BaseBenchmarkType::init( xSize, ySize, ux, aux );
-      this->grid.setDimensions( xSize, ySize );
+      this->grid.setDimensions( { xSize, ySize } );
       this->grid.setDomain( { 0.0, 0.0 }, { this->xDomainSize, this->yDomainSize } );
    }
 
@@ -114,13 +112,10 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >
    void
    exec( const Index xSize, const Index ySize )
    {
-      const Real hx = grid.template getSpaceStepsProducts< 1, 0 >();
-      const Real hy = grid.template getSpaceStepsProducts< 0, 1 >();
-      const Real hx_inv = grid.template getSpaceStepsProducts< -2, 0 >();
-      const Real hy_inv = grid.template getSpaceStepsProducts< 0, -2 >();
-
-      TNL_ASSERT_EQ( hx, this->xDomainSize / (Real) xSize, "computed wrong hx on the grid" );
-      TNL_ASSERT_EQ( hy, this->yDomainSize / (Real) ySize, "computed wrong hy on the grid" );
+      const Real hx = grid.getSpaceSteps()[ 0 ];
+      const Real hy = grid.getSpaceSteps()[ 1 ];
+      const Real hx_inv = (Real) 1.0 / ( hx * hx );
+      const Real hy_inv = (Real) 1.0 / ( hy * hy );
 
       Real start = 0;
       Index iterations = 0;
@@ -190,7 +185,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >
    init( const Index xSize, const Index ySize, const Index zSize )
    {
       BaseBenchmarkType::init( xSize, ySize, zSize, ux, aux );
-      grid.setDimensions( xSize, ySize, zSize );
+      grid.setDimensions( { xSize, ySize, zSize } );
       grid.setDomain( { 0.0, 0.0, 0.0 }, { this->xDomainSize, this->yDomainSize, this->zDomainSize } );
    }
 
@@ -204,16 +199,12 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >
    void
    exec( const Index xSize, const Index ySize, const Index zSize )
    {
-      const Real hx = grid.template getSpaceStepsProducts< 1, 0, 0 >();
-      const Real hy = grid.template getSpaceStepsProducts< 0, 1, 0 >();
-      const Real hz = grid.template getSpaceStepsProducts< 0, 0, 1 >();
-      const Real hx_inv = grid.template getSpaceStepsProducts< -2, 0, 0 >();
-      const Real hy_inv = grid.template getSpaceStepsProducts< 0, -2, 0 >();
-      const Real hz_inv = grid.template getSpaceStepsProducts< 0, 0, -2 >();
-
-      TNL_ASSERT_EQ( hx, this->xDomainSize / (Real) xSize, "computed wrong hx on the grid" );
-      TNL_ASSERT_EQ( hy, this->yDomainSize / (Real) ySize, "computed wrong hy on the grid" );
-      TNL_ASSERT_EQ( hz, this->zDomainSize / (Real) zSize, "computed wrong hz on the grid" );
+      const Real hx = grid.getSpaceSteps()[ 0 ];
+      const Real hy = grid.getSpaceSteps()[ 1 ];
+      const Real hz = grid.getSpaceSteps()[ 2 ];
+      const Real hx_inv = (Real) 1.0 / ( hx * hx );
+      const Real hy_inv = (Real) 1.0 / ( hy * hy );
+      const Real hz_inv = (Real) 1.0 / ( hz * hz );
 
       Real start = 0;
       Index iterations = 0;

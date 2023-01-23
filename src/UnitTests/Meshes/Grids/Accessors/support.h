@@ -6,53 +6,12 @@
 
 #include "../CoordinateIterator.h"
 
-template< typename Device >
-class GridAccessorsTestCaseInterface
-{
-public:
-   CoordinateIterator< int, Grid::getMeshDimension() > iterator( start, end );
-
-   do {
-      auto coordinate = iterator.getCoordinate();
-      Real product = 1.;
-
-      for( typename Grid::IndexType i = 0; i < start.getSize(); i++ )
-         product *= pow( spaceSteps[ i ], coordinate[ i ] );
-
-      if( std::is_same_v< Real, float > ) {
-         EXPECT_FLOAT_EQ( grid.getSpaceStepsProducts( coordinate ), product ) << "Expect the step size products are the same";
-         continue;
-      }
-
-      CoordinateIterator< int, Grid::getMeshDimension() > iterator( start, end );
-
-      do {
-         auto coordinate = iterator.getCoordinate();
-         Real product = 1.;
-
-         for( typename Grid::IndexType i = 0; i < start.getSize(); i++ )
-            product *= pow( spaceSteps[ i ], coordinate[ i ] );
-
-         if( std::is_same< Real, float >::value ) {
-            EXPECT_FLOAT_EQ( grid.getSpaceStepsProducts( coordinate ), product )
-               << "Expect the step size products are the same";
-            continue;
-         }
-
-         if( std::is_same< Real, double >::value ) {
-            EXPECT_DOUBLE_EQ( grid.getSpaceStepsProducts( coordinate ), product )
-               << "Expect the step size products are the same";
-            continue;
-         }
-
-         FAIL() << "Unknown type as real was provided for comparison: " << TNL::getType< Real >();
-      } while( ! iterator.next() );
-   }
+template<typename Device>
+class GridAccessorsTestCaseInterface {
 };
 
-template< typename Device >
-class GridAccessorsTestCase : public GridAccessorsTestCaseInterface< Device >
-{};
+template<typename Device>
+class GridAccessorsTestCase: public GridAccessorsTestCaseInterface<Device> {};
 
 template<>
 class GridAccessorsTestCase< TNL::Devices::Sequential > : public GridAccessorsTestCaseInterface< TNL::Devices::Sequential >
@@ -282,29 +241,9 @@ makeString( Parameters... parameters )
    return s.str();
 }
 
-template< typename Grid, typename... T >
-void
-testDimensionSetByIndex( Grid& grid, T... dimensions )
-{
-   auto paramString = makeString( dimensions... );
-
-   EXPECT_NO_THROW( grid.setDimensions( dimensions... ) )
-      << "Verify, that the set of" << paramString << " doesn't cause assert";
-
-   SCOPED_TRACE( "Test dimension set by index" );
-   SCOPED_TRACE( "Dimension: " + TNL::convertToString( typename Grid::CoordinatesType( dimensions... ) ) );
-   SCOPED_TRACE( "Grid Dimension: " + TNL::convertToString( grid.getMeshDimension() ) );
-
-   GridAccessorsTestCase< typename Grid::DeviceType > support;
-
-   support.template verifyDimensionGetters< Grid >( grid, typename Grid::CoordinatesType( dimensions... ) );
-}
-
-template< typename Grid, typename... T >
-void
-testDimensionSetByCoordinate( Grid& grid, const typename Grid::CoordinatesType& dimensions )
-{
-   EXPECT_NO_THROW( grid.setDimensions( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+template<typename Grid, typename... T>
+void testDimensionSetByCoordinate(Grid& grid, const typename Grid::CoordinatesType& dimensions) {
+   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    SCOPED_TRACE( "Test dimension set by coordinate" );
    SCOPED_TRACE( "Dimension: " + TNL::convertToString( dimensions ) );
@@ -334,31 +273,9 @@ testEntitiesCounts(
    support.template verifyEntitiesCountGetters< Grid >( grid, entitiesCounts );
 }
 
-template< typename Grid,
-          typename... T,
-          std::enable_if_t< TNL::Meshes::Templates::conjunction_v< std::is_convertible< typename Grid::RealType, T >... >,
-                            bool > = true >
-void
-testOriginSetByIndex( Grid& grid, T... coordinates )
-{
-   auto paramString = makeString( coordinates... );
-
-   EXPECT_NO_THROW( grid.setOrigin( coordinates... ) ) << "Verify, that the set of" << paramString << " doesn't cause assert";
-
-   SCOPED_TRACE( "Test origin set by coordinate" );
-   SCOPED_TRACE( "Coordinates: " + TNL::convertToString( typename Grid::CoordinatesType( coordinates... ) ) );
-   SCOPED_TRACE( "Grid origin: " + TNL::convertToString( grid.getOrigin() ) );
-
-   GridAccessorsTestCase< typename Grid::DeviceType > support;
-
-   support.template verifyOriginGetter< Grid >( grid, typename Grid::PointType( coordinates... ) );
-}
-
-template< typename Grid >
-void
-testOriginSetByCoordinate( Grid& grid, const typename Grid::PointType& coordinates )
-{
-   EXPECT_NO_THROW( grid.setOrigin( coordinates ) ) << "Verify, that the set of " << coordinates << " doesn't cause assert";
+template<typename Grid>
+void testOriginSetByCoordinate(Grid& grid, const typename Grid::PointType& coordinates) {
+   EXPECT_NO_THROW(grid.setOrigin(coordinates)) << "Verify, that the set of " << coordinates << " doesn't cause assert";
 
    SCOPED_TRACE( "Test origin set by index" );
    SCOPED_TRACE( "Coordinates: " + TNL::convertToString( coordinates ) );
@@ -405,22 +322,4 @@ testSpaceStepsSetByIndex( Grid& grid, const int spaceStepsSize, T... spaceSteps 
 
    support.template verifySpaceStepsGetter< Grid >( grid, spaceStepsContainer );
    support.template verifySpaceStepsValues< Grid >( grid, spaceStepsSize, spaceStepsContainer );
-}
-
-template< typename Grid >
-void
-testSpaceStepsPowerValues( Grid& grid, const int spaceStepsSize, const typename Grid::PointType& spaceSteps )
-{
-   if( spaceStepsSize <= 0 )
-      GTEST_SKIP() << "Negative space steps sizes are not supported";
-
-   EXPECT_NO_THROW( grid.setSpaceSteps( spaceSteps ) ) << "Verify, that the set of " << spaceSteps << " doesn't cause assert";
-
-   SCOPED_TRACE( "Test space steps set by index" );
-   SCOPED_TRACE( "Space steps: " + TNL::convertToString( spaceSteps ) );
-   SCOPED_TRACE( "Grid space steps: " + TNL::convertToString( grid.getSpaceSteps() ) );
-
-   GridAccessorsTestCase< typename Grid::DeviceType > support;
-
-   support.template verifySpaceStepsValues< Grid >( grid, spaceStepsSize, spaceSteps );
 }

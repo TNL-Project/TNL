@@ -109,13 +109,13 @@ public:
          return 0.0;
       }
 
-      Coordinate normals = getNormals();
-      Coordinate powers;
-
+      Coordinate normals = getNormals(), powers;
       for( Index i = 0; i < this->current.getSize(); i++ )
          powers[ i ] = ! normals[ i ];
 
-      return grid.getSpaceStepsProducts( powers );
+      return product( grid.getSpaceSteps() * powers );
+
+      //return grid.getSpaceStepsProducts( powers );*/
    }
 };
 
@@ -236,8 +236,8 @@ public:
 
       auto callsView = hostStore.getCallsView();
 
-      for (Index i = 0; i < callsView.getSize(); i++)
-         EXPECT_EQ(callsView[i], 1) << "Expect each index to be called only once. Failed at index " << i;
+      for( Index i = 0; i < callsView.getSize(); i++ )
+         EXPECT_EQ( callsView[ i ], 1 ) << "Expect each index to be called only once. Failed at index " << i;
 
       auto verify = [ & ]( const auto orientation )
       {
@@ -331,9 +331,9 @@ private:
       auto entity = dataStore.getEntity( index );
 
       SCOPED_TRACE( "Entity: " + TNL::convertToString( entity ) );
-      EXPECT_EQ(entity.calls, expectCall ? 1 : 0) << "Expect the index to be called once: expectCall = " << expectCall;
-      EXPECT_EQ(entity.index, expectCall ? index : 0) << "Expect the index was correctly set";
-      EXPECT_EQ(entity.isBoundary, expectCall ? iterator.isBoundary(grid) : 0) << "Expect the index was correctly set" ;
+      EXPECT_EQ( entity.calls, expectCall ? 1 : 0 ) << "Expect the index to be called once: expectCall = " << expectCall;
+      EXPECT_EQ( entity.index, expectCall ? index : 0 ) << "Expect the index was correctly set";
+      EXPECT_EQ( entity.isBoundary, expectCall ? iterator.isBoundary( grid ) : 0 ) << "Expect the index was correctly set";
 
       Coordinate coordinate = expectCall ? iterator.getCoordinate() : Coordinate( 0 );
       Coordinate normals = expectCall ? iterator.getNormals() : Coordinate( 0 );
@@ -343,8 +343,8 @@ private:
       EXPECT_EQ( entity.normals, normals ) << "Expect the normals are the same on the same index. ";
 
       // CUDA calculates floating points differently.
-      EXPECT_NEAR(expectCall ? iterator.getMeasure(grid) : 0.0, entity.measure, precision)
-            << "Expect the measure was correctly calculated. Grid space steps: " << grid.getSpaceSteps();
+      EXPECT_NEAR( expectCall ? iterator.getMeasure( grid ) : 0.0, entity.measure, precision )
+         << "Expect the measure was correctly calculated. Grid space steps: " << grid.getSpaceSteps();
 
       for( Index i = 0; i < Grid::getMeshDimension(); i++ )
          EXPECT_NEAR( entity.center[ i ], center[ i ], precision )
