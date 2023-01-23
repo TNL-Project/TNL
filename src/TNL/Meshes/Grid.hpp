@@ -324,54 +324,6 @@ Grid< Dimension, Real, Device, Index >::getProportions() const noexcept
    return this->proportions;
 }
 
-/*template< int Dimension, typename Real, typename Device, typename Index >
-template< typename... Powers,
-          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool >,
-          std::enable_if_t< sizeof...( Powers ) == Dimension, bool > >
-__cuda_callable__
-Real
-Grid< Dimension, Real, Device, Index >::getSpaceStepsProducts( Powers... powers ) const
-{
-   int index = Templates::makeCollapsedIndex( this->spaceStepsPowersSize, CoordinatesType( powers... ) );
-
-   return this->spaceStepsProducts( index );
-}
-
-template< int Dimension, typename Real, typename Device, typename Index >
-__cuda_callable__
-Real
-Grid< Dimension, Real, Device, Index >::getSpaceStepsProducts( const CoordinatesType& powers ) const
-{
-   int index = Templates::makeCollapsedIndex( this->spaceStepsPowersSize, powers );
-
-   return this->spaceStepsProducts( index );
-}
-
-template< int Dimension, typename Real, typename Device, typename Index >
-template< Index... Powers, std::enable_if_t< sizeof...( Powers ) == Dimension, bool > >
-__cuda_callable__
-Real
-Grid< Dimension, Real, Device, Index >::getSpaceStepsProducts() const noexcept
-{
-   constexpr int index = Templates::makeCollapsedIndex< Index, Powers... >( spaceStepsPowersSize );
-
-   return this->spaceStepsProducts( index );
-}
-
-template< int Dimension, typename Real, typename Device, typename Index >
-__cuda_callable__
-Real
-Grid< Dimension, Real, Device, Index >::getSmallestSpaceStep() const noexcept
-{
-   Real minStep = this->spaceSteps[ 0 ];
-   Index i = 1;
-
-   while( i != Dimension )
-      minStep = min( minStep, this->spaceSteps[ i++ ] );
-
-   return minStep;
-}*/
-
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
@@ -550,43 +502,18 @@ Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) c
    TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0 ), "Wrong entity coordinates" );
    TNL_ASSERT_LT( entity.getCoordinates(), this->getDimensions() + entity.getNormals(), "Wrong entity coordinates" );
 
-   //IndexType idx{ 0 };
    if constexpr( Entity::getEntityDimension() == Dimension )
    {
-      //const IndexType totalOrientationIdx = EntitiesOrientations::template getTotalOrientationIndex< Entity::getEntityDimension() >( 0 );
       return ( entity.getCoordinates(), this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] );
-      /*Algorithms::staticFor< IndexType, 1, Dimension >(
-         [&] ( Index i ) mutable {
-            idx += entity.getCoordinates()[ Dimension - i ];
-            idx *= this->getDimensions()[ Dimension - i - 1 ];
-      } );
-      return idx + entity.getCoordinates()[ 0 ];*/
    }
    else if constexpr( Entity::getEntityDimension() == 0  )
    {
-      //const IndexType totalOrientationIdx = EntitiesOrientations::template getTotalOrientationIndex< Entity::getEntityDimension() >( 0 );
       return ( entity.getCoordinates(), this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] );
-      /*Algorithms::staticFor< IndexType, 1, Dimension >(
-         [&] ( Index i ) mutable {
-            idx += entity.getCoordinates()[ Dimension - i ];
-            idx *= this->getDimensions()[ Dimension - i - 1 ] + 1;
-      } );
-      return idx + entity.getCoordinates()[ 0 ];*/
    }
    else
    {
-      //const IndexType totalOrientationIdx = EntitiesOrientations::template getTotalOrientationIndex< Entity::getEntityDimension() >( 0 );
       return ( entity.getCoordinates(), this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] )
          + this->entitiesIndexesOffsets[ entity.getTotalOrientationIndex() + Entity::getEntityDimension() ];
-
-      /*const auto& normals = entity.getNormals();
-      Algorithms::staticFor< IndexType, 1, Dimension >(
-         [&] ( Index i ) mutable {
-            idx += entity.getCoordinates()[ Dimension - i ];
-            idx *= this->getDimensions()[ Dimension - i - 1 ] + normals[ Dimension - i - 1 ];
-      } );
-      idx += entity.getCoordinates()[ 0 ];*/
-      //return idx + this->entitiesIndexesOffsets[ entity.getTotalOrientationIndex() + Entity::getEntityDimension() ];
    }
 }
 
@@ -732,12 +659,6 @@ getAdjacentFacesIndexes( const Entity& entity, CoordinatesType& closer, Coordina
       closer[ i ] = ( entity.getCoordinates(), this->coordinatesMultiplicators[ totalOrientationIndex ] ) +
                   this->entitiesIndexesOffsets[ totalOrientationIndex + Dimension-1 ];
       remoter[ i ] = closer[ i ] + this->coordinatesMultiplicators[ totalOrientationIndex ][ i ];
-      /*std::cerr << "*** totalOrientationIndex = " << totalOrientationIndex
-                << " i = " << i
-                << " entity.getCoordinates() = " << entity.getCoordinates()
-                << " this->coordinatesMultiplicators[ totalOrientationIndex ] = " << this->coordinatesMultiplicators[ totalOrientationIndex ]
-                << " closer[ i ] = " << closer[ i ]
-                << " remoter[ i ] = " << remoter[ i ] << std::endl;*/
       } );
 }
 
@@ -769,14 +690,7 @@ Grid< Dimension, Real, Device, Index >::
 getEntityMeasure( const Entity& entity ) const
 {
    if constexpr( Entity::getEntityDimension() != 0 ) {
-      const auto& basis = entity.getBasis();
-      RealType measure = ( Real ) 1.0;
-      Algorithms::staticFor< IndexType, 0, Dimension >(
-         [&] ( Index i ) mutable {
-            if( basis[ i ] )
-               measure *= this->getSpaceSteps()[ i ];
-      } );
-      return measure;
+      return product( this->getSpaceSteps() * entity.getBasis() );
    }
    return 0.0;
 }
@@ -976,37 +890,6 @@ Grid< Dimension, Real, Device, Index >::fillSpaceSteps()
          this->spaceSteps[ i ] = this->proportions[ i ] / this->dimensions[ i ];
    }
 }
-
-/*template< int Dimension, typename Real, typename Device, typename Index >
-void
-Grid< Dimension, Real, Device, Index >::fillSpaceStepsPowers()
-{
-   Containers::StaticVector< spaceStepsPowersSize * Dimension, Real > powers;
-
-   for( Index i = 0; i < Dimension; i++ ) {
-      Index power = -( this->spaceStepsPowersSize >> 1 );
-
-      for( Index j = 0; j < spaceStepsPowersSize; j++ ) {
-         powers[ i * spaceStepsPowersSize + j ] = pow( this->spaceSteps[ i ], power );
-         power++;
-      }
-   }
-
-   for( Index i = 0; i < this->spaceStepsProducts.getSize(); i++ ) {
-      Real product = 1;
-      Index index = i;
-
-      for( Index j = 0; j < Dimension; j++ ) {
-         Index residual = index % this->spaceStepsPowersSize;
-
-         index /= this->spaceStepsPowersSize;
-
-         product *= powers[ j * spaceStepsPowersSize + residual ];
-      }
-
-      spaceStepsProducts[ i ] = product;
-   }
-}*/
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >

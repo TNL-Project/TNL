@@ -140,16 +140,6 @@ public:
    getMeshDimension();
 
    /**
-    * \brief Returns the coefficient powers size.
-    */
-   // TODO: Move this to FDM = Finite Difference Method implementation
-   //static constexpr int spaceStepsPowersSize = 5;
-
-   //using SpaceProductsContainer =
-   //   Containers::StaticVector< std::integral_constant< Index, discretePow( spaceStepsPowersSize, Dimension ) >::value,
-   //                             Real >;
-
-   /**
     * \brief Grid constructor with no parameters.
     */
    Grid() = default;
@@ -188,10 +178,10 @@ public:
    /**
     * \brief Set the dimensions (or resolution) of the grid.
     *    The resolution must be given in terms on grid cells not grid vertices. The
-    *    mthod accepts as many indexes for the dimensions as the dimension of the grid.
+    *    method accepts as many indexes for the dimensions as the dimension of the grid.
     *
-    * \tparam Dimensions variadic template accepting a serie of indexes.
-    * \param[in] dimensions serie of indexes defining resolution of the grid.
+    * \tparam Dimensions variadic template accepting a series of indexes.
+    * \param[in] dimensions series of indexes defining resolution of the grid.
     */
    template< typename... Dimensions,
              std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
@@ -438,64 +428,12 @@ public:
    const PointType&
    getSpaceSteps() const noexcept;
 
-   /**
-    * \brief Returns product of given space steps powers.
-    *
-    * For example in 3D grid if powers are \f$ 1, 2, 3 \f$ the methods returns \f$ h_x^1 \cdot h_y^2 \cdot h_z^3\f$.
-    *
-    * \tparam Powers is a pack of template types.
-    * \param[in] powers is a pack of numbers telling power of particular space steps.
-    * \return product of given space steps powers.
-    */
-   //template< typename... Powers,
-   //          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool > = true,
-   //          std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
-   //__cuda_callable__
-   //Real
-   //getSpaceStepsProducts( Powers... powers ) const;
-
-   /**
-    * \brief Returns product of space steps powers.
-    *
-    * For example in 3D grid if powers are \f$ 1, 2, 3 \f$ the methods returns \f$ h_x^1 \cdot h_y^2 \cdot h_z^3\f$.
-    *
-    * \param[in] powers is vector of numbers telling power of particular space steps.
-    * \return product of given space steps powers.
-    */
-   //__cuda_callable__
-   //Real
-   //getSpaceStepsProducts( const CoordinatesType& powers ) const;
-
    __cuda_callable__
    Real
    getCellMeasure() const
    {
       return product( this->getSpaceSteps() );
    }
-
-   /**
-    * \brief Returns product of space step powers given as template parameters.
-    *
-    * The powers can be only integers.
-    *
-    * For example in 3D grid if powers are \f$ 1, 2, 3 \f$ the methods returns \f$ h_x^1 \cdot h_y^2 \cdot h_z^3\f$.
-    *
-    * \tparam Powers is a pack of indexes.
-    * \return product of given space steps powers.
-    */
-   //template< Index... Powers, std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
-   //__cuda_callable__
-   //Real
-   //getSpaceStepsProducts() const noexcept;
-
-   /**
-    * \brief Get the smallest space step.
-    *
-    * \return the smallest space step.
-    */
-   //__cuda_callable__
-   //Real
-   //getSmallestSpaceStep() const noexcept;
 
    /**
     * \brief Get the proportions of the grid.
@@ -636,10 +574,6 @@ public:
    void
    getAdjacentFacesIndexes( const Entity& entity, CoordinatesType& closer, CoordinatesType& remoter ) const;
 
-
-   //__cuda_callable__
-   //void getFacesIndexes( const Entity& entity, ??? ) const;
-
    template< typename Entity >
    __cuda_callable__
    PointType getEntityOrigin( const Entity& entity ) const;
@@ -666,7 +600,7 @@ public:
    setLocalSubdomain( const CoordinatesType& begin, const CoordinatesType& end );
 
    /**
-    * \brief Sets the "lower left" corfner of subdomain of distributed grid.
+    * \brief Sets the "lower left" corner of subdomain of distributed grid.
     *
     * \param begin is "lower left" corner of the subdomain.
     */
@@ -674,7 +608,7 @@ public:
    setLocalBegin( const CoordinatesType& begin );
 
    /**
-    * \brief Sets the "upper right" corfner of subdomain of distributed grid.
+    * \brief Sets the "upper right" corner of subdomain of distributed grid.
     *
     * \param end is "upper right" corner of the subdomain.
     */
@@ -888,14 +822,8 @@ protected:
    void
    setCoordinatesMultiplicators();
 
-   //void
-   //fillEntitiesCount();
-
    void
    fillSpaceSteps();
-
-   //void
-   //fillSpaceStepsPowers();
 
    void
    fillProportions();
@@ -940,7 +868,6 @@ protected:
 
    EntitiesCounts entitiesCounts = 0;
 
-   // TODO: Explain meaning of this container
    /**
     * \brief Container holding offsets of entities with various orientations.
     *
@@ -1076,12 +1003,7 @@ protected:
     */
    CoordinatesMultiplicatorsContainer coordinatesMultiplicators;
 
-   // TODO: remove this container
-   //SpaceProductsContainer spaceStepsProducts = 0; // TODO: remove
-
-   //__cuda_callable__ inline static
    EntitiesOrientations entitiesOrientations; // TODO: make this static - I do not know any good solution working with CUDA
-
 };
 
 /**
