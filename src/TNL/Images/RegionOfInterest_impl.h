@@ -131,7 +131,7 @@ template< typename Grid >
 bool
 RegionOfInterest< Index >::setGrid( Grid& grid, bool verbose )
 {
-   grid.setDimensions( this->getWidth(), this->getHeight() );
+   grid.setDimensions( {this->getWidth(), this->getHeight()} );
    typename Grid::PointType origin, proportions;
    origin.x() = 0.0;
    origin.y() = 0.0;

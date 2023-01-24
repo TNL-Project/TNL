@@ -73,21 +73,6 @@ std::string makeString(Parameters... parameters) {
 }
 
 template<typename Grid, typename... T>
-void testDimensionSetByIndex(Grid& grid, T... dimensions) {
-   auto paramString = makeString(dimensions...);
-
-   EXPECT_NO_THROW(grid.setDimensions(dimensions...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
-
-   SCOPED_TRACE("Test dimension set by index");
-   SCOPED_TRACE("Dimension: " + TNL::convertToString(typename Grid::CoordinatesType(dimensions...)));
-   SCOPED_TRACE("Grid Dimension: " + TNL::convertToString(grid.getMeshDimension()));
-
-   GridAccessorsTestCase<typename Grid::DeviceType> support;
-
-   support.template verifyDimensionGetters<Grid>(grid, typename Grid::CoordinatesType(dimensions...));
-}
-
-template<typename Grid, typename... T>
 void testDimensionSetByCoordinate(Grid& grid, const typename Grid::CoordinatesType& dimensions) {
    EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
@@ -114,23 +99,6 @@ void testEntitiesCounts(Grid& grid,
    GridAccessorsTestCase<typename Grid::DeviceType> support;
 
    support.template verifyEntitiesCountGetters<Grid>(grid, entitiesCounts);
-}
-
-template<typename Grid,
-         typename... T,
-         std::enable_if_t<TNL::Meshes::Templates::conjunction_v<std::is_convertible<typename Grid::RealType, T>...>, bool> = true>
-void testOriginSetByIndex(Grid& grid, T... coordinates) {
-   auto paramString = makeString(coordinates...);
-
-   EXPECT_NO_THROW(grid.setOrigin(coordinates...)) << "Verify, that the set of" << paramString << " doesn't cause assert";
-
-   SCOPED_TRACE("Test origin set by coordinate");
-   SCOPED_TRACE("Coordinates: " + TNL::convertToString(typename Grid::CoordinatesType(coordinates...)));
-   SCOPED_TRACE("Grid origin: " + TNL::convertToString(grid.getOrigin()));
-
-   GridAccessorsTestCase<typename Grid::DeviceType> support;
-
-   support.template verifyOriginGetter<Grid>(grid, typename Grid::PointType(coordinates...));
 }
 
 template<typename Grid>

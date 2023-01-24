@@ -25,13 +25,6 @@ TYPED_TEST(GridTestSuite, TestMeshDimensionGetter) {
    EXPECT_EQ(TypeParam::getMeshDimension(), 2) << "All grids must have dimension 2";
 }
 
-TYPED_TEST(GridTestSuite, TestSetWithParameterPack) {
-   testDimensionSetByIndex<TypeParam>(this -> grid, 1, 1);
-   testDimensionSetByIndex<TypeParam>(this -> grid, 1, 2);
-   testDimensionSetByIndex<TypeParam>(this -> grid, 2, 1);
-}
-
-
 TYPED_TEST(GridTestSuite, TestSetWithCoordinates) {
    testDimensionSetByCoordinate<TypeParam>(this -> grid, { 1, 1 });
    testDimensionSetByCoordinate<TypeParam>(this -> grid, { 1, 2 });
@@ -61,12 +54,6 @@ TYPED_TEST(GridTestSuite, TestOriginSet) {
    testOriginSetByCoordinate<TypeParam>(this -> grid, { 100, -12132 });
    testOriginSetByCoordinate<TypeParam>(this -> grid, { -100000, 32112 });
    testOriginSetByCoordinate<TypeParam>(this -> grid, { 323121, -100312 });
-
-   testOriginSetByIndex<TypeParam>(this -> grid, 0.6, 1.2);
-   testOriginSetByIndex<TypeParam>(this -> grid, -1, 23232);
-   testOriginSetByIndex<TypeParam>(this -> grid, 100, -12132);
-   testOriginSetByIndex<TypeParam>(this -> grid, -100000, 32112);
-   testOriginSetByIndex<TypeParam>(this -> grid, 323121, -100312);
 }
 
 #endif
