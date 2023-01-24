@@ -938,7 +938,7 @@ protected:
 
    EntitiesCounts entitiesCounts = 0;
 
-   /**
+   /***
     * \brief Container holding offsets of entities with various orientations.
     *
     * The grid is mapping all entities of the same dimension into one linear container. For
@@ -1009,7 +1009,7 @@ protected:
     */
    Containers::StaticVector< ( 1 << Dimension ) + Dimension + 1, Index > entitiesIndexesOffsets = 0;
 
-   /**
+   /***
     * \brief This container helps with computation of entities indexes.
     *
     * We explain meaning of this container on an example. Consider again a 3D grid with sizes

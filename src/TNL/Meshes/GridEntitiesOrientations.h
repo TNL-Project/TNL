@@ -15,7 +15,7 @@
 namespace TNL {
 namespace Meshes {
 
-/***
+/**
  * \brief Structure holding all grid entities orientations.
  *
  * Grid is a orthogonal regular numerical mesh consisting of various mesh entities having various orientations. For example:
@@ -47,12 +47,10 @@ namespace Meshes {
  * |---------------:|-------------------------:|------------------:|--------------------------------------:|---------------------------------:|
  * | 1              | Vertex                   | 0                 | none or ( 0 )                         | ( 0 )                            |
  * | 1              | Cell                     | 1                 | ( 1 )                                 | ( 1 )                            |
- * |---------------:|-------------------------:|------------------:|--------------------------------------:|---------------------------------:|
  * | 2              | Vertex                   | 0                 | none or ( 0, 0 )                      | ( 0, 0 )                         |
  * | 2              | Face along y axis        | 1                 | ( 0, 1 )                              | ( 0, 1 )                         |
  * | 2              | Face along x axis        | 1                 | ( 1, 0 )                              | ( 1, 0 )                         |
  * | 2              | Cell                     | 2                 | ( 1, 0 ), ( 0, 1 )                    | ( 1, 1 )                         |
- * |---------------:|-------------------------:|------------------:|--------------------------------------:|---------------------------------:|
  * | 3              | Vertexes                 | 0                 | none or ( 0, 0, 0 )                   | ( 0, 0, 0 )                      |
  * | 3              | Edges along z axis       | 1                 | ( 0, 0, 1 )                           | ( 0, 0, 1 )                      |
  * | 3              | Edges along y axis       | 1                 | ( 0, 1, 0 )                           | ( 0, 1, 0 )                      |
