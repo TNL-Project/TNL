@@ -36,13 +36,13 @@ public:
       switch( EntityDimension ) {
          case Grid::getMeshDimension():
             for( Index i = 0; i < this->current.getSize(); i++ )
-               if( this->current[ i ] == 0 || this->current[ i ] == grid.getDimensions()[ i ] - 1 )
+               if( this->current[ i ] == 0 || this->current[ i ] == grid.getSizes()[ i ] - 1 )
                   return true;
 
             break;
          default:
             for( Index i = 0; i < this->current.getSize(); i++ )
-               if( getNormals()[ i ] && ( this->current[ i ] == 0 || this->current[ i ] == grid.getDimensions()[ i ] ) )
+               if( getNormals()[ i ] && ( this->current[ i ] == 0 || this->current[ i ] == grid.getSizes()[ i ] ) )
                   return true;
             break;
       }
@@ -241,7 +241,7 @@ public:
 
       auto verify = [ & ]( const auto orientation )
       {
-         Iterator< orientation > iterator( grid.getDimensions() );
+         Iterator< orientation > iterator( grid.getSizes() );
 
          if( ! iterator.canIterate() ) {
             SCOPED_TRACE( "Skip iteration" );
@@ -271,7 +271,7 @@ public:
 
       auto verify = [ & ]( const auto orientation )
       {
-         Iterator< orientation > iterator( grid.getDimensions() );
+         Iterator< orientation > iterator( grid.getSizes() );
 
          if( ! iterator.canIterate() ) {
             SCOPED_TRACE( "Skip iteration" );
@@ -299,9 +299,26 @@ public:
 
       ASSERT_GT( orientationsCount, 0 ) << "Every entity must have at least one orientation";
 
-      auto verify = [ & ]( const auto orientation )
-      {
-         Iterator< orientation > iterator( grid.getDimensions() );
+      auto verify = [&](const auto orientation) {
+         Iterator<orientation> iterator(grid.getSizes());
+         if (!iterator.canIterate()) {
+            SCOPED_TRACE("Skip iteration");
+            EXPECT_EQ(hostStore.getCallsView().getSize(), 0) << "Expect, that we can't iterate, when grid is empty";
+            return;
+         }
+         do {
+            verifyEntity(grid, iterator, hostStoreView, !(iterator.isBoundary(grid)));
+         } while (!iterator.next());
+      };
+      TNL::Algorithms::staticFor< int, 0, orientationsCount >(verify);
+   }
+   private:
+      template<int Orientation>
+      void verifyEntity(const Grid& grid,
+                        const Iterator<Orientation>& iterator,
+                        typename HostDataStore::View& dataStore,
+                        bool expectCall) const {
+         static Real precision = 9e-5;
 
          if( ! iterator.canIterate() ) {
             SCOPED_TRACE( "Skip iteration" );
@@ -366,7 +383,7 @@ testForAllTraverse( Grid& grid,
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
    SCOPED_TRACE( "Entity Dimension: " + TNL::convertToString( EntityDimension ) );
 
-   EXPECT_NO_THROW( grid.setDimensions( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW( grid.setSizes( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
    EXPECT_NO_THROW( grid.setOrigin( origin ) ) << "Verify, that the set of" << origin << "doesn't cause assert";
    EXPECT_NO_THROW( grid.setSpaceSteps( spaceSteps ) ) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
@@ -393,7 +410,7 @@ testForInteriorTraverse( Grid& grid,
    SCOPED_TRACE( "Origin:" + TNL::convertToString( origin ) );
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
 
-   EXPECT_NO_THROW( grid.setDimensions( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW( grid.setSizes( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
    EXPECT_NO_THROW( grid.setOrigin( origin ) ) << "Verify, that the set of" << origin << "doesn't cause assert";
    EXPECT_NO_THROW( grid.setSpaceSteps( spaceSteps ) ) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
@@ -420,7 +437,7 @@ testForBoundaryTraverse( Grid& grid,
    SCOPED_TRACE( "Origin:" + TNL::convertToString( origin ) );
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
 
-   EXPECT_NO_THROW( grid.setDimensions( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW( grid.setSizes( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
    EXPECT_NO_THROW( grid.setOrigin( origin ) ) << "Verify, that the set of" << origin << "doesn't cause assert";
    EXPECT_NO_THROW( grid.setSpaceSteps( spaceSteps ) ) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
@@ -447,7 +464,7 @@ testBoundaryUnionInteriorEqualAllProperty( Grid& grid,
    SCOPED_TRACE( "Origin:" + TNL::convertToString( origin ) );
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
 
-   EXPECT_NO_THROW( grid.setDimensions( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW( grid.setSizes( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
    EXPECT_NO_THROW( grid.setOrigin( origin ) ) << "Verify, that the set of" << origin << "doesn't cause assert";
    EXPECT_NO_THROW( grid.setSpaceSteps( spaceSteps ) ) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
@@ -475,7 +492,7 @@ testAllMinusBoundaryEqualInteriorProperty( Grid& grid,
    SCOPED_TRACE( "Origin:" + TNL::convertToString( origin ) );
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
 
-   EXPECT_NO_THROW( grid.setDimensions( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW( grid.setSizes( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
    EXPECT_NO_THROW( grid.setOrigin( origin ) ) << "Verify, that the set of" << origin << "doesn't cause assert";
    EXPECT_NO_THROW( grid.setSpaceSteps( spaceSteps ) ) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 
@@ -502,7 +519,7 @@ testAllMinusInteriorEqualBoundaryProperty( Grid& grid,
    SCOPED_TRACE( "Origin:" + TNL::convertToString( origin ) );
    SCOPED_TRACE( "Space steps:" + TNL::convertToString( spaceSteps ) );
 
-   EXPECT_NO_THROW( grid.setDimensions( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW( grid.setSizes( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
    EXPECT_NO_THROW( grid.setOrigin( origin ) ) << "Verify, that the set of" << origin << "doesn't cause assert";
    EXPECT_NO_THROW( grid.setSpaceSteps( spaceSteps ) ) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 

@@ -42,8 +42,8 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setGlobalGrid( const 
       this->subdomainCoordinates.setValue( 0 );
       this->domainDecomposition.setValue( 0 );
       localGrid.setOrigin( globalGrid.getOrigin() );
-      localGrid.setDimensions( globalGrid.getDimensions() );
-      this->localSize = globalGrid.getDimensions();
+      localGrid.setSizes( globalGrid.getSizes() );
+      this->localSize = globalGrid.getSizes();
       this->globalBegin = 0;
    }
    else {
@@ -65,9 +65,9 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setGlobalGrid( const 
       }
 
       for( int i = 0; i < Dimension; i++ ) {
-         numberOfLarger[ i ] = globalGrid.getDimensions()[ i ] % this->domainDecomposition[ i ];
+         numberOfLarger[ i ] = globalGrid.getSizes()[ i ] % this->domainDecomposition[ i ];
 
-         this->localSize[ i ] = globalGrid.getDimensions()[ i ] / this->domainDecomposition[ i ];
+         this->localSize[ i ] = globalGrid.getSizes()[ i ] / this->domainDecomposition[ i ];
 
          if( numberOfLarger[ i ] > this->subdomainCoordinates[ i ] )
             this->localSize[ i ] += 1;
@@ -79,7 +79,7 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setGlobalGrid( const 
                                    + ( this->subdomainCoordinates[ i ] - numberOfLarger[ i ] ) * this->localSize[ i ];
       }
 
-      localGrid.setDimensions( this->localSize );
+      localGrid.setSizes( this->localSize );
       this->setupNeighbors();
    }
 
@@ -96,17 +96,17 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setOverlaps( const Su
    this->upperOverlap = upper;
    localGrid.setOrigin( this->globalGrid.getOrigin()
                         + this->globalGrid.getSpaceSteps() * ( this->globalBegin - this->lowerOverlap ) );
-   localGrid.setDimensions( this->localSize + this->lowerOverlap + this->upperOverlap );
-   // setting space steps computes the grid proportions as a side effect
+   localGrid.setSizes( this->localSize + this->lowerOverlap + this->upperOverlap );
+   // setting space steps computes the grid proportions as a side efect
    localGrid.setSpaceSteps( globalGrid.getSpaceSteps() );
 
    // update local begin and end
    localGrid.setLocalBegin( this->lowerOverlap );
-   localGrid.setLocalEnd( localGrid.getDimensions() - this->upperOverlap );
+   localGrid.setLocalEnd( localGrid.getSizes() - this->upperOverlap );
 
    // update interior begin and end
    CoordinatesType interiorBegin = this->lowerOverlap;
-   CoordinatesType interiorEnd = localGrid.getDimensions() - this->upperOverlap;
+   CoordinatesType interiorEnd = localGrid.getSizes() - this->upperOverlap;
    const int* neighbors = getNeighbors();
    if( neighbors[ ZzYzXm ] == -1 )
       interiorBegin[ 0 ] += 1;
@@ -197,7 +197,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 const typename DistributedMesh< Grid< Dimension, Real, Device, Index > >::CoordinatesType&
 DistributedMesh< Grid< Dimension, Real, Device, Index > >::getGlobalSize() const
 {
-   return this->globalGrid.getDimensions();
+   return this->globalGrid.getSizes();
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -349,7 +349,7 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::SetupByCut(
       for( int i = 0; i < Dimension; i++ ) {
          outOrigin[ i ] = fromGlobalMesh.getOrigin()[ savedDimensions[ i ] ];
          outProportions[ i ] = fromGlobalMesh.getProportions()[ savedDimensions[ i ] ];
-         outDimensions[ i ] = fromGlobalMesh.getDimensions()[ savedDimensions[ i ] ];
+         outDimensions[ i ] = fromGlobalMesh.getSizes()[ savedDimensions[ i ] ];
 
          this->domainDecomposition[ i ] = inputDistributedGrid.getDomainDecomposition()[ savedDimensions[ i ] ];
          this->subdomainCoordinates[ i ] = inputDistributedGrid.getSubdomainCoordinates()[ savedDimensions[ i ] ];
@@ -358,18 +358,18 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::SetupByCut(
          this->upperOverlap[ i ] = inputDistributedGrid.getUpperOverlap()[ savedDimensions[ i ] ];
          this->localSize[ i ] = inputDistributedGrid.getLocalSize()[ savedDimensions[ i ] ];
          this->globalBegin[ i ] = inputDistributedGrid.getGlobalBegin()[ savedDimensions[ i ] ];
-         localGridSize[ i ] = inputDistributedGrid.getLocalMesh().getDimensions()[ savedDimensions[ i ] ];
+         localGridSize[ i ] = inputDistributedGrid.getLocalMesh().getSizes()[ savedDimensions[ i ] ];
          localBegin[ i ] = inputDistributedGrid.getLocalMesh().getLocalBegin()[ savedDimensions[ i ] ];
          localOrigin[ i ] = inputDistributedGrid.getLocalMesh().getOrigin()[ savedDimensions[ i ] ];
       }
 
-      this->globalGrid.setDimensions( outDimensions );
+      this->globalGrid.setSizes( outDimensions );
       this->globalGrid.setDomain( outOrigin, outProportions );
 
       // setOverlaps resets the local grid
       //      setOverlaps( this->lowerOverlap, this->upperOverlap );
 
-      localGrid.setDimensions( localGridSize );
+      localGrid.setSizes( localGridSize );
       localGrid.setOrigin( localOrigin );
       // setting space steps computes the grid proportions as a side effect
       localGrid.setSpaceSteps( globalGrid.getSpaceSteps() );

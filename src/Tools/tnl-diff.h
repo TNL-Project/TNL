@@ -48,14 +48,14 @@ public:
       const int EntityDimension = 1;
       using Grid = Meshes::Grid< Dimension, Real, Device, Index >;
       using Entity = typename Grid::template EntityType< EntityDimension >;
-      if( f1.getMesh().getDimensions() != f2.getMesh().getDimensions() ) {
+      if( f1.getMesh().getSizes() != f2.getMesh().getSizes() ) {
          outputFile << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
          if( verbose )
             std::cout << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
       }
 
       Entity entity( f1.getMesh() );
-      for( entity.getCoordinates().x() = 0; entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
+      for( entity.getCoordinates().x() = 0; entity.getCoordinates().x() < f1.getMesh().getSizes().x();
            entity.getCoordinates().x()++ )
       {
          entity.refresh();
@@ -86,16 +86,16 @@ public:
       const int EntityDimension = 2;
       using Grid = Meshes::Grid< Dimension, Real, Device, Index >;
       using Entity = typename Grid::template EntityType< EntityDimension >;
-      if( f1.getMesh().getDimensions() != f2.getMesh().getDimensions() ) {
+      if( f1.getMesh().getSizes() != f2.getMesh().getSizes() ) {
          outputFile << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
          if( verbose )
             std::cout << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
       }
 
       Entity entity( f1.getMesh() );
-      for( entity.getCoordinates().y() = 0; entity.getCoordinates().y() < f1.getMesh().getDimensions().y();
+      for( entity.getCoordinates().y() = 0; entity.getCoordinates().y() < f1.getMesh().getSizes().y();
            entity.getCoordinates().y()++ )
-         for( entity.getCoordinates().x() = 0; entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
+         for( entity.getCoordinates().x() = 0; entity.getCoordinates().x() < f1.getMesh().getSizes().x();
               entity.getCoordinates().x()++ )
          {
             entity.setGrid( f1.getMesh() );
@@ -127,18 +127,18 @@ public:
       const int EntityDimension = 3;
       using Grid = Meshes::Grid< Dimension, Real, Device, Index >;
       using Entity = typename Grid::template EntityType< EntityDimension >;
-      if( f1.getMesh().getDimensions() != f2.getMesh().getDimensions() ) {
+      if( f1.getMesh().getSizes() != f2.getMesh().getSizes() ) {
          outputFile << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
          if( verbose )
             std::cout << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
       }
 
       Entity entity( f1.getMesh() );
-      for( entity.getCoordinates().z() = 0; entity.getCoordinates().z() < f1.getMesh().getDimensions().z();
+      for( entity.getCoordinates().z() = 0; entity.getCoordinates().z() < f1.getMesh().getSizes().z();
            entity.getCoordinates().z()++ )
-         for( entity.getCoordinates().y() = 0; entity.getCoordinates().y() < f1.getMesh().getDimensions().y();
+         for( entity.getCoordinates().y() = 0; entity.getCoordinates().y() < f1.getMesh().getSizes().y();
               entity.getCoordinates().y()++ )
-            for( entity.getCoordinates().x() = 0; entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
+            for( entity.getCoordinates().x() = 0; entity.getCoordinates().x() < f1.getMesh().getSizes().x();
                  entity.getCoordinates().x()++ )
             {
                entity.setGrid( f1.getMesh() );

@@ -73,7 +73,7 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 1, MeshReal, Device, MeshIndex >,
          std::vector< typename Mesh::GlobalIndexType >& offsets,
          std::vector< std::uint8_t >& types )
    {
-      for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
+      for( MeshIndex i = 0; i < mesh.getSizes().x(); i++ ) {
          connectivity.push_back( i );
          connectivity.push_back( i + 1 );
          offsets.push_back( connectivity.size() );
@@ -95,7 +95,7 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 1, MeshReal, Device, MeshIndex >,
          std::vector< typename Mesh::GlobalIndexType >& offsets,
          std::vector< std::uint8_t >& types )
    {
-      for( MeshIndex i = 0; i < mesh.getDimensions().x() + 1; i++ ) {
+      for( MeshIndex i = 0; i < mesh.getSizes().x() + 1; i++ ) {
          connectivity.push_back( i );
          offsets.push_back( connectivity.size() );
          types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
@@ -116,12 +116,12 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 2, MeshReal, Device, MeshIndex >,
          std::vector< typename Mesh::GlobalIndexType >& offsets,
          std::vector< std::uint8_t >& types )
    {
-      for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
-         for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
-            connectivity.push_back( j * ( mesh.getDimensions().x() + 1 ) + i );
-            connectivity.push_back( j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-            connectivity.push_back( ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
-            connectivity.push_back( ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+      for( MeshIndex j = 0; j < mesh.getSizes().y(); j++ )
+         for( MeshIndex i = 0; i < mesh.getSizes().x(); i++ ) {
+            connectivity.push_back( j * ( mesh.getSizes().x() + 1 ) + i );
+            connectivity.push_back( j * ( mesh.getSizes().x() + 1 ) + i + 1 );
+            connectivity.push_back( ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i );
+            connectivity.push_back( ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i + 1 );
             offsets.push_back( connectivity.size() );
             types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
          }
@@ -141,18 +141,18 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 2, MeshReal, Device, MeshIndex >,
          std::vector< typename Mesh::GlobalIndexType >& offsets,
          std::vector< std::uint8_t >& types )
    {
-      for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
-         for( MeshIndex i = 0; i < ( mesh.getDimensions().x() + 1 ); i++ ) {
-            connectivity.push_back( j * ( mesh.getDimensions().x() + 1 ) + i );
-            connectivity.push_back( ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
+      for( MeshIndex j = 0; j < mesh.getSizes().y(); j++ )
+         for( MeshIndex i = 0; i < ( mesh.getSizes().x() + 1 ); i++ ) {
+            connectivity.push_back( j * ( mesh.getSizes().x() + 1 ) + i );
+            connectivity.push_back( ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i );
             offsets.push_back( connectivity.size() );
             types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
          }
 
-      for( MeshIndex j = 0; j < ( mesh.getDimensions().y() + 1 ); j++ )
-         for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
-            connectivity.push_back( j * ( mesh.getDimensions().x() + 1 ) + i );
-            connectivity.push_back( j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+      for( MeshIndex j = 0; j < ( mesh.getSizes().y() + 1 ); j++ )
+         for( MeshIndex i = 0; i < mesh.getSizes().x(); i++ ) {
+            connectivity.push_back( j * ( mesh.getSizes().x() + 1 ) + i );
+            connectivity.push_back( j * ( mesh.getSizes().x() + 1 ) + i + 1 );
             offsets.push_back( connectivity.size() );
             types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
          }
@@ -172,9 +172,9 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 2, MeshReal, Device, MeshIndex >,
          std::vector< typename Mesh::GlobalIndexType >& offsets,
          std::vector< std::uint8_t >& types )
    {
-      for( MeshIndex j = 0; j < ( mesh.getDimensions().y() + 1 ); j++ )
-         for( MeshIndex i = 0; i < ( mesh.getDimensions().x() + 1 ); i++ ) {
-            connectivity.push_back( j * mesh.getDimensions().x() + i );
+      for( MeshIndex j = 0; j < ( mesh.getSizes().y() + 1 ); j++ )
+         for( MeshIndex i = 0; i < ( mesh.getSizes().x() + 1 ); i++ ) {
+            connectivity.push_back( j * mesh.getSizes().x() + i );
             offsets.push_back( connectivity.size() );
             types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
          }
@@ -194,25 +194,25 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
          std::vector< typename Mesh::GlobalIndexType >& offsets,
          std::vector< std::uint8_t >& types )
    {
-      for( MeshIndex k = 0; k < mesh.getDimensions().z(); k++ )
-         for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
-            for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+      for( MeshIndex k = 0; k < mesh.getSizes().z(); k++ )
+         for( MeshIndex j = 0; j < mesh.getSizes().y(); j++ )
+            for( MeshIndex i = 0; i < mesh.getSizes().x(); i++ ) {
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i + 1 );
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i + 1 );
+               connectivity.push_back( ( k + 1 ) * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( ( k + 1 ) * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i + 1 );
+               connectivity.push_back( ( k + 1 ) * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( ( k + 1 ) * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i + 1 );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
@@ -232,47 +232,47 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
          std::vector< typename Mesh::GlobalIndexType >& offsets,
          std::vector< std::uint8_t >& types )
    {
-      for( MeshIndex k = 0; k < mesh.getDimensions().z(); k++ )
-         for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
-            for( MeshIndex i = 0; i <= mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
+      for( MeshIndex k = 0; k < mesh.getSizes().z(); k++ )
+         for( MeshIndex j = 0; j < mesh.getSizes().y(); j++ )
+            for( MeshIndex i = 0; i <= mesh.getSizes().x(); i++ ) {
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( ( k + 1 ) * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( ( k + 1 ) * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
 
-      for( MeshIndex k = 0; k < mesh.getDimensions().z(); k++ )
-         for( MeshIndex j = 0; j <= mesh.getDimensions().y(); j++ )
-            for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+      for( MeshIndex k = 0; k < mesh.getSizes().z(); k++ )
+         for( MeshIndex j = 0; j <= mesh.getSizes().y(); j++ )
+            for( MeshIndex i = 0; i < mesh.getSizes().x(); i++ ) {
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i + 1 );
+               connectivity.push_back( ( k + 1 ) * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( ( k + 1 ) * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i + 1 );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
 
-      for( MeshIndex k = 0; k <= mesh.getDimensions().z(); k++ )
-         for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
-            for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+      for( MeshIndex k = 0; k <= mesh.getSizes().z(); k++ )
+         for( MeshIndex j = 0; j < mesh.getSizes().y(); j++ )
+            for( MeshIndex i = 0; i < mesh.getSizes().x(); i++ ) {
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i + 1 );
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i + 1 );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
@@ -292,35 +292,35 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
          std::vector< typename Mesh::GlobalIndexType >& offsets,
          std::vector< std::uint8_t >& types )
    {
-      for( MeshIndex k = 0; k <= mesh.getDimensions().z(); k++ )
-         for( MeshIndex j = 0; j <= mesh.getDimensions().y(); j++ )
-            for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+      for( MeshIndex k = 0; k <= mesh.getSizes().z(); k++ )
+         for( MeshIndex j = 0; j <= mesh.getSizes().y(); j++ )
+            for( MeshIndex i = 0; i < mesh.getSizes().x(); i++ ) {
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i + 1 );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
 
-      for( MeshIndex k = 0; k <= mesh.getDimensions().z(); k++ )
-         for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
-            for( MeshIndex i = 0; i <= mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
+      for( MeshIndex k = 0; k <= mesh.getSizes().z(); k++ )
+         for( MeshIndex j = 0; j < mesh.getSizes().y(); j++ )
+            for( MeshIndex i = 0; i <= mesh.getSizes().x(); i++ ) {
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + ( j + 1 ) * ( mesh.getSizes().x() + 1 ) + i );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
 
-      for( MeshIndex k = 0; k < mesh.getDimensions().z(); k++ )
-         for( MeshIndex j = 0; j <= mesh.getDimensions().y(); j++ )
-            for( MeshIndex i = 0; i <= mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
+      for( MeshIndex k = 0; k < mesh.getSizes().z(); k++ )
+         for( MeshIndex j = 0; j <= mesh.getSizes().y(); j++ )
+            for( MeshIndex i = 0; i <= mesh.getSizes().x(); i++ ) {
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
+               connectivity.push_back( ( k + 1 ) * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
@@ -340,11 +340,11 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
          std::vector< typename Mesh::GlobalIndexType >& offsets,
          std::vector< std::uint8_t >& types )
    {
-      for( MeshIndex k = 0; k < ( mesh.getDimensions().z() + 1 ); k++ )
-         for( MeshIndex j = 0; j < ( mesh.getDimensions().y() + 1 ); j++ )
-            for( MeshIndex i = 0; i < ( mesh.getDimensions().x() + 1 ); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
+      for( MeshIndex k = 0; k < ( mesh.getSizes().z() + 1 ); k++ )
+         for( MeshIndex j = 0; j < ( mesh.getSizes().y() + 1 ); j++ )
+            for( MeshIndex i = 0; i < ( mesh.getSizes().x() + 1 ); i++ ) {
+               connectivity.push_back( k * ( mesh.getSizes().y() + 1 ) * ( mesh.getSizes().x() + 1 )
+                                       + j * ( mesh.getSizes().x() + 1 ) + i );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }

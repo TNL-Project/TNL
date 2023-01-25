@@ -83,15 +83,12 @@ public:
    }
 };
 
-struct GetMeshDimensionOperation
-{
-public:
-   template< typename Entity >
-   __cuda_callable__
-   inline static void
-   exec( Entity& entity )
-   {
-      typename Entity::GridType::CoordinatesType coordinate = entity.getMesh().getDimensions();
+struct GetMeshDimensionOperation {
+   public:
+      template<typename Entity>
+      __cuda_callable__ inline
+      static void exec(Entity& entity) {
+         typename Entity::GridType::CoordinatesType coordinate = entity.getMesh().getSizes();
 
       coordinate.x() += 1;
    }

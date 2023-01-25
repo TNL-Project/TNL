@@ -121,7 +121,7 @@ public:
          begin[ i ] = gridExtent[ 2 * i ];
          end[ i ] = gridExtent[ 2 * i + 1 ];
       }
-      mesh.setDimensions( end - begin );
+      mesh.setSizes( end - begin );
 
       // transform the origin and calculate proportions
       typename MeshType::PointType origin;

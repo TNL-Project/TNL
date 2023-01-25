@@ -29,7 +29,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 1, Real, Device, Index >
    init( const Index xSize )
    {
       BaseBenchmarkType::init( xSize, ux, aux );
-      this->grid.setDimensions( xSize );
+      this->grid.setSizes( xSize );
       this->grid.setDomain( { 0.0 }, { this->xDomainSize } );
    }
 
@@ -123,9 +123,8 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
-         //auto xSize = grid.getDimensions().x();
-         auto next = [ = ] __cuda_callable__( const typename Grid::Cell& entity ) mutable
-         {
+         //auto xSize = grid.getSizes().x();
+         auto next = [=] __cuda_callable__( const typename Grid::Cell& entity ) mutable {
             const Index centerIdx = entity.getIndex();
             const Real& element = uxView[ centerIdx ];
             auto center = (Real) 2.0 * element;
@@ -212,8 +211,8 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
-         //auto xSize = grid.getDimensions().x();
-         //auto ySize = grid.getDimensions().y();
+         //auto xSize = grid.getSizes().x();
+         //auto ySize = grid.getSizes().y();
          //auto xySize = xSize * ySize;
 
          auto next = [ = ] __cuda_callable__( const typename Grid::Cell& entity ) mutable

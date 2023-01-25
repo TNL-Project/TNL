@@ -29,7 +29,7 @@ setupGrid( const Config::ParameterContainer& parameters )
       using CoordinatesType = typename GridType::CoordinatesType;
       GridType grid;
       grid.setDomain( PointType( originX ), PointType( proportionsX ) );
-      grid.setDimensions( CoordinatesType( sizeX ) );
+      grid.setSizes( CoordinatesType( sizeX ) );
       std::cout << "Setting dimensions to  ... " << sizeX << std::endl;
       std::cout << "Writing the grid to the file " << outputFile << std::endl;
 
@@ -53,7 +53,7 @@ setupGrid( const Config::ParameterContainer& parameters )
       using CoordinatesType = typename GridType::CoordinatesType;
       GridType grid;
       grid.setDomain( PointType( originX, originY ), PointType( proportionsX, proportionsY ) );
-      grid.setDimensions( CoordinatesType( sizeX, sizeY ) );
+      grid.setSizes( CoordinatesType( sizeX, sizeY ) );
       if( parameters.getParameter< bool >( "equal-space-steps" ) ) {
          if( grid.getSpaceSteps().x() != grid.getSpaceSteps().y() ) {
             double h = min( grid.getSpaceSteps().x(), grid.getSpaceSteps().y() );
@@ -62,7 +62,7 @@ setupGrid( const Config::ParameterContainer& parameters )
                       << grid.getProportions() << "." << std::endl;
          }
       }
-      std::cout << "Setting dimensions to  ... " << grid.getDimensions() << std::endl;
+      std::cout << "Setting dimensions to  ... " << grid.getSizes() << std::endl;
       std::cout << "Writing the grid to the file " << outputFile << std::endl;
 
       std::ofstream file( outputFile );
@@ -89,7 +89,7 @@ setupGrid( const Config::ParameterContainer& parameters )
       using CoordinatesType = typename GridType::CoordinatesType;
       GridType grid;
       grid.setDomain( PointType( originX, originY, originZ ), PointType( proportionsX, proportionsY, proportionsZ ) );
-      grid.setDimensions( CoordinatesType( sizeX, sizeY, sizeZ ) );
+      grid.setSizes( CoordinatesType( sizeX, sizeY, sizeZ ) );
       if( parameters.getParameter< bool >( "equal-space-steps" ) ) {
          if( grid.getSpaceSteps().x() != grid.getSpaceSteps().y() || grid.getSpaceSteps().x() != grid.getSpaceSteps().z() ) {
             double h = min( grid.getSpaceSteps().x(), min( grid.getSpaceSteps().y(), grid.getSpaceSteps().z() ) );
@@ -98,7 +98,7 @@ setupGrid( const Config::ParameterContainer& parameters )
                       << grid.getProportions() << "." << std::endl;
          }
       }
-      std::cout << "Setting dimensions to  ... " << grid.getDimensions() << std::endl;
+      std::cout << "Setting dimensions to  ... " << grid.getSizes() << std::endl;
       std::cout << "Writing the grid to the file " << outputFile << std::endl;
 
       std::ofstream file( outputFile );

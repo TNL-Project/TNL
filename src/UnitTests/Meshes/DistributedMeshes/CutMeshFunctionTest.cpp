@@ -32,7 +32,7 @@ TEST( CutMeshFunction, 2D )
    origin.setValue( -0.5 );
    PointType proportions;
    proportions.setValue( 10 );
-   originalGrid->setDimensions( proportions );
+   originalGrid->setSizes( proportions );
    originalGrid->setDomain( origin, proportions );
 
    DofType dof( originalGrid->template getEntitiesCount< Cell >() );
@@ -93,7 +93,7 @@ TEST( CutMeshFunction, 3D_1 )
    origin.setValue( -0.5 );
    PointType proportions;
    proportions.setValue( 10 );
-   originalGrid->setDimensions( proportions );
+   originalGrid->setSizes( proportions );
    originalGrid->setDomain( origin, proportions );
 
    DofType dof( originalGrid->template getEntitiesCount< Cell >() );
@@ -155,7 +155,7 @@ TEST( CutMeshFunction, 3D_2 )
    origin.setValue( -0.5 );
    PointType proportions;
    proportions.setValue( 10 );
-   originalGrid->setDimensions( proportions );
+   originalGrid->setSizes( proportions );
    originalGrid->setDomain( origin, proportions );
 
    DofType dof( originalGrid->template getEntitiesCount< Cell >() );

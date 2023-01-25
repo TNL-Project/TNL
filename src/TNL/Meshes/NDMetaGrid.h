@@ -33,16 +33,16 @@ public:
 
    //! \brief Sets the grid dimensions/size.
    void
-   setDimensions( const CoordinatesType& dimensions )
+   setSizes( const CoordinatesType& sizes )
    {
-      this->dimensions = dimensions;
+      this->sizes = sizes;
    }
 
    //! \brief Returns the grid dimensions/size.
    [[nodiscard]] const CoordinatesType&
-   getDimensions() const
+   getSizes() const
    {
-      return dimensions;
+      return sizes;
    }
 
    //! \brief Sets the origin of the grid (coordinates of the left bottom front
@@ -68,7 +68,7 @@ public:
    setDomain( const PointType& origin, const PointType& proportions )
    {
       this->origin = origin;
-      this->spaceSteps = proportions / dimensions;
+      this->spaceSteps = proportions / sizes;
    }
 
    //! \brief Sets the space steps of the grid, i.e. the parameters usually
@@ -87,7 +87,7 @@ public:
    }
 
 protected:
-   CoordinatesType dimensions = 0;
+   CoordinatesType sizes = 0;
 
    PointType origin = 0;
 

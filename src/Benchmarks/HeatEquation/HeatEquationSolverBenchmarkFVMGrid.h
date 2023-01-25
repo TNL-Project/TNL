@@ -34,7 +34,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >: public Heat
    void init( const Index xSize )
    {
       BaseBenchmarkType::init( xSize, ux, aux );
-      this->grid.setDimensions( xSize );
+      this->grid.setSizes( xSize );
       this->grid.setDomain( { 0.0 }, { this->xDomainSize } );
       faces.setSize( this->grid.template getEntitiesCount< 0 >() );
    }
@@ -103,7 +103,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 2, Real, Device, Index >: public Heat
    void init( const Index xSize, const Index ySize )
    {
       BaseBenchmarkType::init( xSize, ySize, ux, aux );
-      this->grid.setDimensions( {xSize, ySize} );
+      this->grid.setSizes( {xSize, ySize} );
       this->grid.setDomain( { 0.0, 0.0}, { this->xDomainSize, this->yDomainSize } );
       faces.setSize( this->grid.template getEntitiesCount< 1 >() );
    }
@@ -190,7 +190,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 3, Real, Device, Index >: public Heat
    void init( const Index xSize, const Index ySize, const Index zSize )
    {
       BaseBenchmarkType::init( xSize, ySize, zSize, ux, aux );
-      grid.setDimensions( {xSize, ySize, zSize} );
+      grid.setSizes( {xSize, ySize, zSize} );
       grid.setDomain( { 0.0, 0.0, 0.0}, { this->xDomainSize, this->yDomainSize, this->zDomainSize } );
       faces.setSize( this->grid.template getEntitiesCount< 2 >() );
    }

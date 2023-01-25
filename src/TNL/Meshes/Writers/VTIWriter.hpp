@@ -106,7 +106,7 @@ template< typename Mesh >
 void
 VTIWriter< Mesh >::writeImageData( const Mesh& mesh )
 {
-   writeImageData( mesh.getOrigin(), 0, mesh.getDimensions(), mesh.getSpaceSteps() );
+   writeImageData( mesh.getOrigin(), 0, mesh.getSizes(), mesh.getSpaceSteps() );
 }
 
 template< typename Mesh >

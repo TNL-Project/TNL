@@ -46,10 +46,10 @@ TEST( GridCoordinateIteratorTest, Grid1DEntity0DOrientation0Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 3 );
+   grid.setSizes( 3 );
    grid.setSpaceSteps( 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0 }, { 1 }, { 0. }, true, 0, 0., false );
    test( iterator, grid, { 1 }, { 1 }, { 1. }, false, 1, 0., false );
@@ -66,10 +66,10 @@ TEST( GridCoordinateIteratorTest, Grid1DEntity1DOrientation0Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 3 );
+   grid.setSizes( 3 );
    grid.setSpaceSteps( 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0 }, { 0 }, { 0.5 }, true, 0, 1., false );
    test( iterator, grid, { 1 }, { 0 }, { 1.5 }, false, 1, 1., false );
@@ -85,11 +85,11 @@ TEST( GridCoordinateIteratorTest, Grid2DEntity0DOrientation0Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 3, 3 );
+   grid.setSizes( 3, 3 );
    grid.setSpaceSteps( 1., 1. );
    grid.setOrigin( 0., 0. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0 }, { 1, 1 }, { 0., 0. }, true, 0, 0., false );
    test( iterator, grid, { 1, 0 }, { 1, 1 }, { 1., 0. }, true, 1, 0., false );
@@ -121,10 +121,10 @@ TEST( GridCoordinateIteratorTest, Grid2DEntity1DOrientation0Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 3, 3 );
+   grid.setSizes( 3, 3 );
    grid.setSpaceSteps( 1., 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0 }, { 0, 1 }, { 0.5, 0. }, true, 0, 1., false );
    test( iterator, grid, { 1, 0 }, { 0, 1 }, { 1.5, 0. }, true, 1, 1., false );
@@ -152,10 +152,10 @@ TEST( GridCoordinateIteratorTest, Grid2DEntity1DOrientation1Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 3, 3 );
+   grid.setSizes( 3, 3 );
    grid.setSpaceSteps( 1., 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0 }, { 1, 0 }, { 0., 0.5 }, true, 12, 1., false );
    test( iterator, grid, { 1, 0 }, { 1, 0 }, { 1., 0.5 }, false, 13, 1., false );
@@ -182,10 +182,10 @@ TEST( GridCoordinateIteratorTest, Grid2DEntity2DOrientation0Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 3, 3 );
+   grid.setSizes( 3, 3 );
    grid.setSpaceSteps( 1., 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0 }, { 0, 0 }, { 0.5, 0.5 }, true, 0, 1., false );
    test( iterator, grid, { 1, 0 }, { 0, 0 }, { 1.5, 0.5 }, true, 1, 1., false );
@@ -209,11 +209,11 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity0DOrientation0Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 2, 2, 2 );
+   grid.setSizes( 2, 2, 2 );
    grid.setSpaceSteps( 1., 1., 1. );
    grid.setOrigin( 0., 0., 0. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0, 0 }, { 1, 1, 1 }, { 0., 0., 0. }, true, 0, 0., false );
    test( iterator, grid, { 1, 0, 0 }, { 1, 1, 1 }, { 1., 0., 0. }, true, 1, 0., false );
@@ -261,10 +261,10 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity1DOrientation0Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 2, 2, 2 );
+   grid.setSizes( 2, 2, 2 );
    grid.setSpaceSteps( 1., 1., 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0, 0 }, { 0, 1, 1 }, { 0.5, 0., 0. }, true, 0, 1., false );
    test( iterator, grid, { 1, 0, 0 }, { 0, 1, 1 }, { 1.5, 0., 0. }, true, 1, 1., false );
@@ -303,10 +303,10 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity1DOrientation1Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 2, 2, 2 );
+   grid.setSizes( 2, 2, 2 );
    grid.setSpaceSteps( 1., 1., 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0, 0 }, { 1, 0, 1 }, { 0., 0.5, 0. }, true, 18, 1., false );
    test( iterator, grid, { 1, 0, 0 }, { 1, 0, 1 }, { 1., 0.5, 0. }, true, 19, 1., false );
@@ -342,10 +342,10 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity1DOrientation2Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 2, 2, 2 );
+   grid.setSizes( 2, 2, 2 );
    grid.setSpaceSteps( 1., 1., 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0, 0 }, { 1, 1, 0 }, { 0., 0., 0.5 }, true, 36, 1., false );
    test( iterator, grid, { 1, 0, 0 }, { 1, 1, 0 }, { 1., 0., 0.5 }, true, 37, 1., false );
@@ -381,10 +381,10 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity2DOrientation0Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 2, 2, 2 );
+   grid.setSizes( 2, 2, 2 );
    grid.setSpaceSteps( 1., 1., 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0, 0 }, { 0, 0, 1 }, { 0.5, 0.5, 0. }, true, 0, 1., false );
    test( iterator, grid, { 1, 0, 0 }, { 0, 0, 1 }, { 1.5, 0.5, 0. }, true, 1, 1., false );
@@ -414,10 +414,10 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity2DOrientation1Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 2, 2, 2 );
+   grid.setSizes( 2, 2, 2 );
    grid.setSpaceSteps( 1., 1., 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0, 0 }, { 0, 1, 0 }, { 0.5, 0., 0.5 }, true, 12, 1., false );
    test( iterator, grid, { 1, 0, 0 }, { 0, 1, 0 }, { 1.5, 0., 0.5 }, true, 13, 1., false );
@@ -447,10 +447,10 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity2DOrientation2Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 2, 2, 2 );
+   grid.setSizes( 2, 2, 2 );
    grid.setSpaceSteps( 1., 1., 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0, 0 }, { 1, 0, 0 }, { 0., 0.5, 0.5 }, true, 24, 1., false );
    test( iterator, grid, { 1, 0, 0 }, { 1, 0, 0 }, { 1., 0.5, 0.5 }, false, 25, 1., false );
@@ -478,10 +478,10 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity3DOrientation0Test )
    using Iterator = GridCoordinateIterator< Grid, EntityDimension, Orientation >;
 
    Grid grid;
-   grid.setDimensions( 2, 2, 2 );
+   grid.setSizes( 2, 2, 2 );
    grid.setSpaceSteps( 1., 1., 1. );
 
-   Iterator iterator( grid.getDimensions() );
+   Iterator iterator( grid.getSizes() );
 
    test( iterator, grid, { 0, 0, 0 }, { 0, 0, 0 }, { 0.5, 0.5, 0.5 }, true, 0, 1., false );
    test( iterator, grid, { 1, 0, 0 }, { 0, 0, 0 }, { 1.5, 0.5, 0.5 }, true, 1, 1., false );

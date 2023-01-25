@@ -73,7 +73,7 @@ TEST( EntityDataStoreTest, DataStore1DTest )
    Index entitiesCount = 10;
 
    Grid grid;
-   grid.setDimensions( entitiesCount + 1 );
+   grid.setSizes( entitiesCount + 1 );
    grid.setSpaceSteps( 1. );
 
    DataStore store( entitiesCount );
@@ -96,7 +96,7 @@ TEST( EntityDataStoreTest, DataStore2DTest )
    Index entitiesCount = 10;
 
    Grid grid;
-   grid.setDimensions( entitiesCount + 1, entitiesCount + 1 );
+   grid.setSize( entitiesCount + 1, entitiesCount + 1 );
    grid.setSpaceSteps( 1., 1. );
 
    DataStore store( entitiesCount );
@@ -121,7 +121,7 @@ TEST( EntityDataStoreTest, DataStore3DTest )
    Index entitiesCount = 10;
 
    Grid grid;
-   grid.setDimensions( entitiesCount + 1, entitiesCount + 1, entitiesCount + 1 );
+   grid.setSizes( entitiesCount + 1, entitiesCount + 1, entitiesCount + 1 );
    grid.setSpaceSteps( 1., 1., 1. );
 
    DataStore store( entitiesCount );

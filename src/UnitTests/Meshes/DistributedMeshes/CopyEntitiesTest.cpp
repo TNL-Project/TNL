@@ -41,7 +41,7 @@ public:
    Test( MeshFunctionType& meshFunction )
    {
       typename MeshFunctionType::MeshType::Cell entity( meshFunction.getMesh() );
-      auto size = meshFunction.getMesh().getDimensions();
+      auto size = meshFunction.getMesh().getSizes();
       for( int j = 0; j < size.y(); j++ )
          for( int i = 0; i < size.x(); i++ ) {
             entity.getCoordinates().x() = i;
@@ -61,7 +61,7 @@ public:
    Test( MeshFunctionType& meshFunction )
    {
       typename MeshFunctionType::MeshType::Cell entity( meshFunction.getMesh() );
-      auto size = meshFunction.getMesh().getDimensions();
+      auto size = meshFunction.getMesh().getSizes();
       for( int k = 0; k < size.z(); k++ )
          for( int j = 0; j < size.y(); j++ )
             for( int i = 0; i < size.x(); i++ ) {
@@ -106,7 +106,7 @@ public:
    Eval( MeshFunctionType& meshFunction )
    {
       typename MeshFunctionType::MeshType::Cell entity( meshFunction.getMesh() );
-      auto size = meshFunction.getMesh().getDimensions();
+      auto size = meshFunction.getMesh().getSizes();
       for( int j = 0; j < size.y(); j++ )
          for( int i = 0; i < size.x(); i++ ) {
             entity.getCoordinates().x() = i;
@@ -125,7 +125,7 @@ public:
    Eval( MeshFunctionType& meshFunction )
    {
       typename MeshFunctionType::MeshType::Cell entity( meshFunction.getMesh() );
-      auto size = meshFunction.getMesh().getDimensions();
+      auto size = meshFunction.getMesh().getSizes();
       for( int k = 0; k < size.z(); k++ )
          for( int j = 0; j < size.y(); j++ )
             for( int i = 0; i < size.x(); i++ ) {
@@ -162,7 +162,7 @@ public:
       origin.setValue( -0.5 );
       proportions.setValue( 10 );
 
-      gridptr->setDimensions( proportions );
+      gridptr->setSizes( proportions );
       gridptr->setDomain( origin, proportions );
 
       DofType inputDof( gridptr->template getEntitiesCount< Cell >() );

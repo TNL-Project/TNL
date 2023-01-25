@@ -57,7 +57,7 @@ TEST( VTIReaderTest, Grid1D )
 
    GridType grid;
    grid.setDomain( PointType( 1 ), PointType( 2 ) );
-   grid.setDimensions( CoordinatesType( 10 ) );
+   grid.setSizes( CoordinatesType( 10 ) );
 
    test_reader< Readers::VTIReader, Writers::VTIWriter >( grid, TEST_FILE_NAME );
    test_resolveAndLoadMesh< Writers::VTIWriter, MyConfigTag >( grid, TEST_FILE_NAME );
@@ -73,7 +73,7 @@ TEST( VTIReaderTest, Grid2D )
 
    GridType grid;
    grid.setDomain( PointType( 1, 2 ), PointType( 3, 4 ) );
-   grid.setDimensions( CoordinatesType( 10, 20 ) );
+   grid.setSizes( CoordinatesType( 10, 20 ) );
 
    test_reader< Readers::VTIReader, Writers::VTIWriter >( grid, TEST_FILE_NAME );
    test_resolveAndLoadMesh< Writers::VTIWriter, MyConfigTag >( grid, TEST_FILE_NAME );
@@ -89,7 +89,7 @@ TEST( VTIReaderTest, Grid3D )
 
    GridType grid;
    grid.setDomain( PointType( 1, 2, 3 ), PointType( 4, 5, 6 ) );
-   grid.setDimensions( CoordinatesType( 10, 20, 30 ) );
+   grid.setSizes( CoordinatesType( 10, 20, 30 ) );
 
    test_reader< Readers::VTIReader, Writers::VTIWriter >( grid, TEST_FILE_NAME );
    test_resolveAndLoadMesh< Writers::VTIWriter, MyConfigTag >( grid, TEST_FILE_NAME );

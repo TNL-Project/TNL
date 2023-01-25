@@ -81,10 +81,10 @@ public:
          for( int i = 0; i < outDimension; i++ ) {
             outOrigin[ i ] = fromMesh.getOrigin()[ savedDimensions[ i ] ];
             outProportions[ i ] = fromMesh.getProportions()[ savedDimensions[ i ] ];
-            outDimensions[ i ] = fromMesh.getDimensions()[ savedDimensions[ i ] ];
+            outDimensions[ i ] = fromMesh.getSizes()[ savedDimensions[ i ] ];
          }
 
-         outMesh.setDimensions( outDimensions );
+         outMesh.setSizes( outDimensions );
          outMesh.setDomain( outOrigin, outProportions );
 
          inCut = true;
@@ -115,7 +115,7 @@ public:
 
          typename OutMesh::CoordinatesType starts;
          starts.setValue( 0 );
-         staticVectorFor( starts, outMesh.getDimensions(), kernel );
+         staticVectorFor( starts, outMesh.getSizes(), kernel );
       }
 
       return inCut;
