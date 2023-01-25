@@ -18,8 +18,8 @@ initInterface( const MeshFunctionPointer& _input,
     const MeshType& mesh = _input->getMesh();
     
     const int cudaBlockSize( 16 );
-    int numBlocksX = Cuda::getNumberOfBlocks( mesh.getDimensions().x(), cudaBlockSize );
-    int numBlocksY = Cuda::getNumberOfBlocks( mesh.getDimensions().y(), cudaBlockSize );
+    int numBlocksX = Cuda::getNumberOfBlocks( mesh.getSizes().x(), cudaBlockSize );
+    int numBlocksY = Cuda::getNumberOfBlocks( mesh.getSizes().y(), cudaBlockSize );
     dim3 blockSize( cudaBlockSize, cudaBlockSize );
     dim3 gridSize( numBlocksX, numBlocksY );
     Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
@@ -40,10 +40,10 @@ initInterface( const MeshFunctionPointer& _input,
     typedef typename MeshType::Cell Cell;
     Cell cell( mesh );
     for( cell.getCoordinates().y() = 0;
-            cell.getCoordinates().y() < mesh.getDimensions().y();
+            cell.getCoordinates().y() < mesh.getSizes().y();
             cell.getCoordinates().y() ++ )
       for( cell.getCoordinates().x() = 0;
-              cell.getCoordinates().x() < mesh.getDimensions().x();
+              cell.getCoordinates().x() < mesh.getSizes().x();
               cell.getCoordinates().x() ++ )
       {
         cell.refresh();
@@ -56,10 +56,10 @@ initInterface( const MeshFunctionPointer& _input,
     const RealType& hx = mesh.getSpaceSteps().x();
     const RealType& hy = mesh.getSpaceSteps().y();     
     for( cell.getCoordinates().y() = 0 + vecLowerOverlaps[1];
-            cell.getCoordinates().y() < mesh.getDimensions().y() - vecUpperOverlaps[1];
+            cell.getCoordinates().y() < mesh.getSizes().y() - vecUpperOverlaps[1];
             cell.getCoordinates().y() ++ )
       for( cell.getCoordinates().x() = 0 + vecLowerOverlaps[0];
-              cell.getCoordinates().x() < mesh.getDimensions().x() - vecUpperOverlaps[0];
+              cell.getCoordinates().x() < mesh.getSizes().x() - vecUpperOverlaps[0];
               cell.getCoordinates().x() ++ )
       {
         cell.refresh();
@@ -120,7 +120,7 @@ updateCell( MeshFunctionType& u,
   
   if( cell.getCoordinates().x() == 0 )
     a = u[ neighborEntities.template getEntityIndex< 1,  0 >() ];
-  else if( cell.getCoordinates().x() == mesh.getDimensions().x() - 1 )
+  else if( cell.getCoordinates().x() == mesh.getSizes().x() - 1 )
     a = u[ neighborEntities.template getEntityIndex< -1,  0 >() ];
   else
   {
@@ -130,7 +130,7 @@ updateCell( MeshFunctionType& u,
   
   if( cell.getCoordinates().y() == 0 )
     b = u[ neighborEntities.template getEntityIndex< 0,  1 >()];
-  else if( cell.getCoordinates().y() == mesh.getDimensions().y() - 1 )
+  else if( cell.getCoordinates().y() == mesh.getSizes().y() - 1 )
     b = u[ neighborEntities.template getEntityIndex< 0,  -1 >() ];
   else
   {
@@ -274,7 +274,7 @@ __global__ void CudaInitCaller( const Functions::MeshFunctionView< Meshes::Grid<
   int j = blockDim.y*blockIdx.y + threadIdx.y;
   const Meshes::Grid< 2, Real, Device, Index >& mesh = input.template getMesh< Devices::Cuda >();
   
-  if( i < mesh.getDimensions().x() && j < mesh.getDimensions().y() )
+  if( i < mesh.getSizes().x() && j < mesh.getSizes().y() )
   {
     typedef typename Meshes::Grid< 2, Real, Device, Index >::Cell Cell;
     Cell cell( mesh );
@@ -288,8 +288,8 @@ __global__ void CudaInitCaller( const Functions::MeshFunctionView< Meshes::Grid<
               - std::numeric_limits< Real >::max();
     interfaceMap[ cind ] = false; 
     
-    if( i < mesh.getDimensions().x() - vecUpperOverlaps[ 0 ] &&
-            j < mesh.getDimensions().y() - vecUpperOverlaps[ 1 ] &&
+    if( i < mesh.getSizes().x() - vecUpperOverlaps[ 0 ] &&
+            j < mesh.getSizes().y() - vecUpperOverlaps[ 1 ] &&
             i>vecLowerOverlaps[ 0 ] -1 && j> vecLowerOverlaps[ 1 ]-1 )
     {
       const Real& hx = mesh.getSpaceSteps().x();
@@ -403,7 +403,7 @@ __global__ void CudaUpdateCellCaller( tnlDirectEikonalMethodsBase< Meshes::Grid<
     __syncthreads();
 /**-----------------------------------------*/
     
-    const int dimX = mesh.getDimensions().x(); const int dimY = mesh.getDimensions().y();
+    const int dimX = mesh.getSizes().x(); const int dimY = mesh.getSizes().y();
     const Real hx = mesh.getSpaceSteps().x(); const Real hy = mesh.getSpaceSteps().y();
     if( thri==0 && thrj == 0)
     {
@@ -573,8 +573,8 @@ __global__ void CudaUpdateCellCaller( tnlDirectEikonalMethodsBase< Meshes::Grid<
   }
   else
   {
-    if( i < mesh.getDimensions().x() - vecUpperOverlaps[0] && j < mesh.getDimensions().y() - vecUpperOverlaps[1] )
-      helpFunc[ j * mesh.getDimensions().x() + i ] = aux[ j * mesh.getDimensions().x() + i ];
+    if( i < mesh.getSizes().x() - vecUpperOverlaps[0] && j < mesh.getSizes().y() - vecUpperOverlaps[1] )
+      helpFunc[ j * mesh.getSizes().x() + i ] = aux[ j * mesh.getSizes().x() + i ];
   }
 }
 #endif
@@ -600,7 +600,7 @@ updateBlocks( InterfaceMapType interfaceMap,
     {
       MeshType mesh = interfaceMap.template getMesh< Devices::Host >();
       
-      int dimX = mesh.getDimensions().x(); int dimY = mesh.getDimensions().y();
+      int dimX = mesh.getSizes().x(); int dimY = mesh.getSizes().y();
       //std::cout << "dimX = " << dimX << " ,dimY = " << dimY << std::endl;
       int numOfBlocky = dimY/numThreadsPerBlock + ((dimY%numThreadsPerBlock != 0) ? 1:0);
       int numOfBlockx = dimX/numThreadsPerBlock + ((dimX%numThreadsPerBlock != 0) ? 1:0);

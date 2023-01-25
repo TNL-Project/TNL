@@ -121,8 +121,8 @@ class Printer< GridType,DofType,2>
     public:
     void static print_dof(int rank,GridType grid, DofType dof)
     {
-    int maxx=grid.getDimensions().x();
-    int maxy=grid.getDimensions().y();
+    int maxx=grid.getSizes().x();
+    int maxy=grid.getSizes().y();
     std::stringstream sout;
         sout<< rank<<":" <<std::endl;
     for(int j=0;j<maxy;j++)
@@ -180,9 +180,9 @@ class Printer< GridType,DofType,3>
     static void print_dof(int rank,GridType grid, DofType dof)
     {
       //print local dof
-      int maxx=grid.getDimensions().x();
-      int maxy=grid.getDimensions().y();
-      int maxz=grid.getDimensions().z();
+      int maxx=grid.getSizes().x();
+      int maxy=grid.getSizes().y();
+      int maxz=grid.getSizes().z();
 
       std::stringstream sout;
       sout<< rank<<":"  <<std::endl;

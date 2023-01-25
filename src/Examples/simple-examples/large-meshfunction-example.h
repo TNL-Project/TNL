@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
   PointType proportions(size);
  
   Pointers::SharedPointer<MeshType> gridPtr;
-  gridPtr->setDimensions(proportions);
+  gridPtr->setSizes(proportions);
   gridPtr->setDomain(origin,proportions);
 
   Pointers::SharedPointer<MeshFunctionType> meshFunctionptr;

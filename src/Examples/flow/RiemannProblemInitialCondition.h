@@ -30,7 +30,7 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 1,MeshReal, Device, Me
       typedef Functions::MeshFunctionView< MeshType > MeshFunctionType;
       typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Functions::VectorField< Dimensions, MeshType > VectorFieldType;
-//       for cyklus i = 0 to mesh.getDimensions().x() j pro .y() a k pro .z()
+//       for cyklus i = 0 to mesh.getSizes().x() j pro .y() a k pro .z()
 //       typedef typename MeshType::Cell CellType
 //       typedef typename MeshType::CoordinatesType CoordinatesType
 //       Celltype cell(mesh, CoordinatesType(i,j))
@@ -108,8 +108,8 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 1,MeshReal, Device, Me
       typedef typename MeshType::Cell CellType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
       MeshType mesh = (* conservativeVariables.getDensity()).getMesh();
-         for( int i = 0; i < mesh.getDimensions().x(); i++)
-            if ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
+         for( int i = 0; i < mesh.getSizes().x(); i++)
+            if ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
                {
                   CellType cell(mesh, CoordinatesType(i));
                   cell.refresh();
@@ -128,8 +128,8 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 1,MeshReal, Device, Me
       typedef typename MeshType::Cell CellType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
       MeshType mesh = (* conservativeVariables.getDensity()).getMesh();
-         for( int i = 0; i < mesh.getDimensions().x(); i++)
-            if ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
+         for( int i = 0; i < mesh.getSizes().x(); i++)
+            if ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
                {
                   CellType cell(mesh, CoordinatesType(i));
                   cell.refresh();
@@ -148,8 +148,8 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 1,MeshReal, Device, Me
       typedef typename MeshType::Cell CellType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
       MeshType mesh = (* conservativeVariables.getDensity()).getMesh();
-         for( int i = 0; i < mesh.getDimensions().x(); i++)
-            if ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
+         for( int i = 0; i < mesh.getSizes().x(); i++)
+            if ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
                {
                   CellType cell(mesh, CoordinatesType(i));
                   cell.refresh();
@@ -187,7 +187,7 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 2, MeshReal, Device, M
       typedef Functions::MeshFunctionView< MeshType > MeshFunctionType;
       typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Functions::VectorField< Dimensions, MeshType > VectorFieldType;
-//       for cyklus i = 0 to mesh.getDimensions().x() j pro .y() a k pro .z()
+//       for cyklus i = 0 to mesh.getSizes().x() j pro .y() a k pro .z()
 //       typedef typename MeshType::Cell CellType
 //       typedef typename MeshType::CoordinatesType CoordinatesType
 //       Celltype cell(mesh, CoordinatesType(i,j))
@@ -265,34 +265,34 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 2, MeshReal, Device, M
       typedef typename MeshType::Cell CellType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
       MeshType mesh = (* conservativeVariables.getDensity()).getMesh();
-         for( int i = 0; i < mesh.getDimensions().x(); i++)
-            for( int j = 0; j < mesh.getDimensions().y(); j++)
-               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+         for( int i = 0; i < mesh.getSizes().x(); i++)
+            for( int j = 0; j < mesh.getSizes().y(); j++)
+               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
                      (* conservativeVariables.getDensity()).setValue(cell, this->SWDDensity);
                   }
                else
-               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
                      (* conservativeVariables.getDensity()).setValue(cell, this->SEDDensity);
                   }
                else
-               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
                      (* conservativeVariables.getDensity()).setValue(cell, this->NWDDensity);
                   }
                else
-               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
@@ -305,10 +305,10 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 2, MeshReal, Device, M
       typedef typename MeshType::Cell CellType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
       MeshType mesh = (* conservativeVariables.getDensity()).getMesh();
-         for( int i = 0; i < mesh.getDimensions().x(); i++)
-            for( int j = 0; j < mesh.getDimensions().y(); j++)
-               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+         for( int i = 0; i < mesh.getSizes().x(); i++)
+            for( int j = 0; j < mesh.getSizes().y(); j++)
+               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
@@ -316,8 +316,8 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 2, MeshReal, Device, M
                      (* (* conservativeVariables.getMomentum())[ 1 ]).setValue(cell, this->SWDMomentum[ 1 ]);
                   }
                else
-               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
@@ -325,8 +325,8 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 2, MeshReal, Device, M
                      (* (* conservativeVariables.getMomentum())[ 1 ]).setValue(cell, this->SEDMomentum[ 1 ]);
                   }
                else
-               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
@@ -334,8 +334,8 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 2, MeshReal, Device, M
                      (* (* conservativeVariables.getMomentum())[ 1 ]).setValue(cell, this->NWDMomentum[ 1 ]);
                   }
                else
-               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
@@ -349,34 +349,34 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 2, MeshReal, Device, M
       typedef typename MeshType::Cell CellType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
       MeshType mesh = (* conservativeVariables.getDensity()).getMesh();
-         for( int i = 0; i < mesh.getDimensions().x(); i++)
-            for( int j = 0; j < mesh.getDimensions().y(); j++)
-               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+         for( int i = 0; i < mesh.getSizes().x(); i++)
+            for( int j = 0; j < mesh.getSizes().y(); j++)
+               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
                      (* conservativeVariables.getEnergy()).setValue(cell, this->SWDEnergy);
                   }
                else
-               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
                      (* conservativeVariables.getEnergy()).setValue(cell, this->SEDEnergy);
                   }
                else
-               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+               if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
                      (* conservativeVariables.getEnergy()).setValue(cell, this->NWDEnergy);
                   }
                else
-               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() ) )
+               if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                 && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() ) )
                   {
                      CellType cell(mesh, CoordinatesType(i,j));
                      cell.refresh();
@@ -407,7 +407,7 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
       typedef Functions::MeshFunctionView< MeshType > MeshFunctionType;
       typedef Pointers::SharedPointer< MeshFunctionType > MeshFunctionPointer;
       typedef Functions::VectorField< Dimensions, MeshType > VectorFieldType;
-//       for cyklus i = 0 to mesh.getDimensions().x() j pro .y() a k pro .z()
+//       for cyklus i = 0 to mesh.getSizes().x() j pro .y() a k pro .z()
 //       typedef typename MeshType::Cell CellType
 //       typedef typename MeshType::CoordinatesType CoordinatesType
 //       Celltype cell(mesh, CoordinatesType(i,j))
@@ -485,75 +485,75 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
       typedef typename MeshType::Cell CellType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
       MeshType mesh = (* conservativeVariables.getDensity()).getMesh();
-         for( int i = 0; i < mesh.getDimensions().x(); i++)
-            for( int j = 0; j < mesh.getDimensions().y(); j++)
-               for ( int k = 0; k < mesh.getDimensions().z(); k++)
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+         for( int i = 0; i < mesh.getSizes().x(); i++)
+            for( int j = 0; j < mesh.getSizes().y(); j++)
+               for ( int k = 0; k < mesh.getSizes().z(); k++)
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getDensity()).setValue(cell, this->SWDDensity);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getDensity()).setValue(cell, this->SEDDensity);
                      }
                   else
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getDensity()).setValue(cell, this->NWDDensity);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getDensity()).setValue(cell, this->NEDDensity);
                      }
                   else
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getDensity()).setValue(cell, this->SWUDensity);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getDensity()).setValue(cell, this->SEUDensity);
                      }
                   else
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getDensity()).setValue(cell, this->SWUDensity);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
@@ -566,12 +566,12 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
       typedef typename MeshType::Cell CellType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
       MeshType mesh = (* conservativeVariables.getDensity()).getMesh();
-         for( int i = 0; i < mesh.getDimensions().x(); i++)
-            for( int j = 0; j < mesh.getDimensions().y(); j++)
-               for ( int k = 0; k < mesh.getDimensions().z(); k++)
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+         for( int i = 0; i < mesh.getSizes().x(); i++)
+            for( int j = 0; j < mesh.getSizes().y(); j++)
+               for ( int k = 0; k < mesh.getSizes().z(); k++)
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
@@ -580,9 +580,9 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
                         (* (* conservativeVariables.getMomentum())[ 2 ]).setValue(cell, this->SWDMomentum[ 2 ]);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
@@ -591,9 +591,9 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
                         (* (* conservativeVariables.getMomentum())[ 2 ]).setValue(cell, this->SEDMomentum[ 2 ]);
                      }
                   else
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
@@ -602,9 +602,9 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
                         (* (* conservativeVariables.getMomentum())[ 2 ]).setValue(cell, this->NWDMomentum[ 2 ]);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
@@ -613,9 +613,9 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
                         (* (* conservativeVariables.getMomentum())[ 2 ]).setValue(cell, this->NEDMomentum[ 2 ]);
                      }
                   else
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
@@ -624,9 +624,9 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
                         (* (* conservativeVariables.getMomentum())[ 2 ]).setValue(cell, this->SWUMomentum[ 2 ]);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
@@ -635,9 +635,9 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
                         (* (* conservativeVariables.getMomentum())[ 2 ]).setValue(cell, this->SEUMomentum[ 2 ]);
                      }
                   else
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
@@ -646,9 +646,9 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
                         (* (* conservativeVariables.getMomentum())[ 2 ]).setValue(cell, this->SWUMomentum[ 2 ]);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
@@ -663,75 +663,75 @@ class RiemannProblemInitialConditionSetter< Meshes::Grid< 3, MeshReal, Device, M
       typedef typename MeshType::Cell CellType;
       typedef typename MeshType::CoordinatesType CoordinatesType;
       MeshType mesh = (* conservativeVariables.getDensity()).getMesh();
-         for( int i = 0; i < mesh.getDimensions().x(); i++)
-            for( int j = 0; j < mesh.getDimensions().y(); j++)
-               for ( int k = 0; k < mesh.getDimensions().z(); k++)
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+         for( int i = 0; i < mesh.getSizes().x(); i++)
+            for( int j = 0; j < mesh.getSizes().y(); j++)
+               for ( int k = 0; k < mesh.getSizes().z(); k++)
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getEnergy()).setValue(cell, this->SWDEnergy);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getEnergy()).setValue(cell, this->SEDEnergy);
                      }
                   else
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getEnergy()).setValue(cell, this->NWDEnergy);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k <= this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getEnergy()).setValue(cell, this->NEDEnergy);
                      }
                   else
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getEnergy()).setValue(cell, this->SWUEnergy);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j <= this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getEnergy()).setValue(cell, this->SEUEnergy);
                      }
                   else
-                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i <= this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
                         (* conservativeVariables.getEnergy()).setValue(cell, this->SWUEnergy);
                      }
                   else
-                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getDimensions().x() )
-                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getDimensions().y() )
-                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getDimensions().z() ) )
+                  if ( ( i > this->discontinuityPlacement[ 0 ] * mesh.getSizes().x() )
+                    && ( j > this->discontinuityPlacement[ 1 ] * mesh.getSizes().y() )
+                    && ( k > this->discontinuityPlacement[ 2 ] * mesh.getSizes().z() ) )
                      {
                         CellType cell(mesh, CoordinatesType(i,j,k));
                         cell.refresh();
@@ -1317,7 +1317,7 @@ class RiemannProblemInitialCondition
          variablesSetter->placeMomentum(conservativeVariables);
          variablesSetter->placeEnergy(conservativeVariables);
 
-//       for cyklus i = 0 to mesh.getDimensions().x() j pro .y() a k pro .z()
+//       for cyklus i = 0 to mesh.getSizes().x() j pro .y() a k pro .z()
 //       typedef typename MeshType::Cell CellType
 //       typedef typename MeshType::CoordinatesType CoordinatesType
 //       Celltype cell(mesh, CoordinatesType(i,j))

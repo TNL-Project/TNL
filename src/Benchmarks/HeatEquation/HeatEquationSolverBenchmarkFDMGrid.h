@@ -33,7 +33,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 1, Real, Device, Index >: public Heat
    void init( const Index xSize )
    {
       BaseBenchmarkType::init( xSize, ux, aux );
-      this->grid.setDimensions( xSize );
+      this->grid.setSizes( xSize );
       this->grid.setDomain( { 0.0 }, { this->xDomainSize } );
 
    }
@@ -99,7 +99,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >: public Heat
    void init( const Index xSize, const Index ySize )
    {
       BaseBenchmarkType::init( xSize, ySize, ux, aux );
-      this->grid.setDimensions( {xSize, ySize} );
+      this->grid.setSizes( {xSize, ySize} );
       this->grid.setDomain( { 0.0, 0.0}, { this->xDomainSize, this->yDomainSize } );
 
    }
@@ -123,7 +123,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >: public Heat
      {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
-         //auto xSize = grid.getDimensions().x();
+         //auto xSize = grid.getSizes().x();
          auto next = [=] __cuda_callable__( const typename Grid::Cell& entity ) mutable {
             const Index centerIdx = entity.getIndex();
             const Real& element = uxView[ centerIdx ];
@@ -178,7 +178,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >: public Heat
    void init( const Index xSize, const Index ySize, const Index zSize )
    {
       BaseBenchmarkType::init( xSize, ySize, zSize, ux, aux );
-      grid.setDimensions( {xSize, ySize, zSize} );
+      grid.setSizes( {xSize, ySize, zSize} );
       grid.setDomain( { 0.0, 0.0, 0.0}, { this->xDomainSize, this->yDomainSize, this->zDomainSize } );
    }
 
@@ -203,8 +203,8 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >: public Heat
       {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
-         //auto xSize = grid.getDimensions().x();
-         //auto ySize = grid.getDimensions().y();
+         //auto xSize = grid.getSizes().x();
+         //auto ySize = grid.getSizes().y();
          //auto xySize = xSize * ySize;
 
          auto next = [=] __cuda_callable__( const typename Grid::Cell& entity ) mutable {

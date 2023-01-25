@@ -114,11 +114,11 @@ Real parallelGodunovEikonalScheme< tnlGrid< 3, MeshReal, Device, MeshIndex >, Re
           	  	          	  	  	  	  	  	  	  	  	  	                     const tnlNeighborGridEntityGetter<tnlGridEntity< MeshType, 3, tnlGridEntityNoStencilStorage >,3> neighborEntities  ) const
 {
 	if ( ((coordinates.x() == 0 && (boundaryCondition & 4)) or
-		 (coordinates.x() == mesh.getDimensions().x() - 1 && (boundaryCondition & 2)) or
+		 (coordinates.x() == mesh.getSizes().x() - 1 && (boundaryCondition & 2)) or
 		 (coordinates.y() == 0 && (boundaryCondition & 8)) or
-		 (coordinates.y() == mesh.getDimensions().y() - 1  && (boundaryCondition & 1)) or
+		 (coordinates.y() == mesh.getSizes().y() - 1  && (boundaryCondition & 1)) or
 		 (coordinates.z() == 0 && (boundaryCondition & 32)) or
-		 (coordinates.z() == mesh.getDimensions().y() - 1  && (boundaryCondition & 16)))
+		 (coordinates.z() == mesh.getSizes().y() - 1  && (boundaryCondition & 16)))
 
 		)
 	{
@@ -141,7 +141,7 @@ Real parallelGodunovEikonalScheme< tnlGrid< 3, MeshReal, Device, MeshIndex >, Re
 	RealType a,b,c,d;
 
 
-	   if(coordinates.x() == mesh.getDimensions().x() - 1)
+	   if(coordinates.x() == mesh.getSizes().x() - 1)
 		   xf += u[neighborEntities.template getEntityIndex< -1,  0,  0 >()];
 	   else
 		   xf += u[neighborEntities.template getEntityIndex< 1,  0,  0 >()];
@@ -151,7 +151,7 @@ Real parallelGodunovEikonalScheme< tnlGrid< 3, MeshReal, Device, MeshIndex >, Re
 	   else
 		   xb -= u[neighborEntities.template getEntityIndex< -1,  0,  0 >()];
 
-	   if(coordinates.y() == mesh.getDimensions().y() - 1)
+	   if(coordinates.y() == mesh.getSizes().y() - 1)
 		   yf += u[neighborEntities.template getEntityIndex< 0,  -1,  0 >()];
 	   else
 		   yf += u[neighborEntities.template getEntityIndex< 0,  1,  0 >()];
@@ -162,7 +162,7 @@ Real parallelGodunovEikonalScheme< tnlGrid< 3, MeshReal, Device, MeshIndex >, Re
 		   yb -= u[neighborEntities.template getEntityIndex< 0,  -1,  0 >()];
 
 
-	   if(coordinates.z() == mesh.getDimensions().z() - 1)
+	   if(coordinates.z() == mesh.getSizes().z() - 1)
 		   zf += u[neighborEntities.template getEntityIndex< 0,  0,  -1 >()];
 	   else
 		   zf += u[neighborEntities.template getEntityIndex< 0,  0,  1 >()];
@@ -262,7 +262,7 @@ Real parallelGodunovEikonalScheme< tnlGrid< 3, MeshReal, Device, MeshIndex >, Re
 		RealType a,b,c,d;
 
 
-		   if(coordinates.x() == mesh.getDimensions().x() - 1)
+		   if(coordinates.x() == mesh.getSizes().x() - 1)
 			   xf += u[neighborEntities.template getEntityIndex< -1,  0,  0 >()];
 		   else
 			   xf += u[neighborEntities.template getEntityIndex< 1,  0,  0 >()];
@@ -272,7 +272,7 @@ Real parallelGodunovEikonalScheme< tnlGrid< 3, MeshReal, Device, MeshIndex >, Re
 		   else
 			   xb -= u[neighborEntities.template getEntityIndex< -1,  0,  0 >()];
 
-		   if(coordinates.y() == mesh.getDimensions().y() - 1)
+		   if(coordinates.y() == mesh.getSizes().y() - 1)
 			   yf += u[neighborEntities.template getEntityIndex< 0,  -1,  0 >()];
 		   else
 			   yf += u[neighborEntities.template getEntityIndex< 0,  1,  0 >()];
@@ -283,7 +283,7 @@ Real parallelGodunovEikonalScheme< tnlGrid< 3, MeshReal, Device, MeshIndex >, Re
 			   yb -= u[neighborEntities.template getEntityIndex< 0,  -1,  0 >()];
 
 
-		   if(coordinates.z() == mesh.getDimensions().z() - 1)
+		   if(coordinates.z() == mesh.getSizes().z() - 1)
 			   zf += u[neighborEntities.template getEntityIndex< 0,  0,  -1 >()];
 		   else
 			   zf += u[neighborEntities.template getEntityIndex< 0,  0,  1 >()];

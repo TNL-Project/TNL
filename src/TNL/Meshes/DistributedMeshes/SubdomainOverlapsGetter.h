@@ -37,7 +37,7 @@ public:
    // Computes subdomain overlaps
    /* SubdomainOverlapsType is a touple of the same size as the mesh dimensions.
     * lower.x() is overlap of the subdomain at boundary where x = 0,
-    * upper.x() is overlap of the subdomain at boundary where x = grid.getDimensions().x() - 1,
+    * upper.x() is overlap of the subdomain at boundary where x = grid.getSizes().x() - 1,
     */
    static void
    getOverlaps( const DistributedMeshType* distributedMesh,
@@ -64,8 +64,8 @@ public:
    /* SubdomainOverlapsType is a touple of the same size as the mesh dimensions.
     * lower.x() is overlap of the subdomain at boundary where x = 0,
     * lower.y() is overlap of the subdomain at boundary where y = 0,
-    * upper.x() is overlap of the subdomain at boundary where x = grid.getDimensions().x() - 1,
-    * upper.y() is overlap of the subdomain at boundary where y = grid.getDimensions().y() - 1.
+    * upper.x() is overlap of the subdomain at boundary where x = grid.getSizes().x() - 1,
+    * upper.y() is overlap of the subdomain at boundary where y = grid.getSizes().y() - 1.
     */
    static void
    getOverlaps( const DistributedMeshType* distributedMesh,
@@ -93,9 +93,9 @@ public:
     * lower.x() is overlap of the subdomain at boundary where x = 0,
     * lower.y() is overlap of the subdomain at boundary where y = 0,
     * lower.z() is overlap of the subdomain at boundary where z = 0,
-    * upper.x() is overlap of the subdomain at boundary where x = grid.getDimensions().x() - 1,
-    * upper.y() is overlap of the subdomain at boundary where y = grid.getDimensions().y() - 1,
-    * upper.z() is overlap of the subdomain at boundary where z = grid.getDimensions().z() - 1,
+    * upper.x() is overlap of the subdomain at boundary where x = grid.getSizes().x() - 1,
+    * upper.y() is overlap of the subdomain at boundary where y = grid.getSizes().y() - 1,
+    * upper.z() is overlap of the subdomain at boundary where z = grid.getSizes().z() - 1,
     */
    static void
    getOverlaps( const DistributedMeshType* distributedMesh,

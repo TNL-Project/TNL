@@ -126,7 +126,7 @@ class DistributedGridTest_1D : public ::testing::Test
          globalOrigin.x()=-0.5;
          globalProportions.x()=size;
 
-         globalGrid.setDimensions(size);
+         globalGrid.setSizes(size);
          globalGrid.setDomain(globalOrigin,globalProportions);
 
          distributedGrid=new DistributedGridType();

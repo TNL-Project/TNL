@@ -15,7 +15,7 @@ initInterface( const MeshFunctionPointer& _input,
     const MeshType& mesh = _input->getMesh();
     
     const int cudaBlockSize( 16 );
-    int numBlocksX = Cuda::getNumberOfBlocks( mesh.getDimensions().x(), cudaBlockSize );
+    int numBlocksX = Cuda::getNumberOfBlocks( mesh.getSizes().x(), cudaBlockSize );
     dim3 blockSize( cudaBlockSize );
     dim3 gridSize( numBlocksX );
     Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
@@ -35,7 +35,7 @@ initInterface( const MeshFunctionPointer& _input,
     InterfaceMapType& interfaceMap = _interfaceMap.modifyData();
     Cell cell( mesh );
     for( cell.getCoordinates().x() = 0;
-            cell.getCoordinates().x() < mesh.getDimensions().x();
+            cell.getCoordinates().x() < mesh.getSizes().x();
             cell.getCoordinates().x() ++ )
     {
       cell.refresh();
@@ -48,7 +48,7 @@ initInterface( const MeshFunctionPointer& _input,
     
     const RealType& h = mesh.getSpaceSteps().x();
     for( cell.getCoordinates().x() = 0;
-            cell.getCoordinates().x() < mesh.getDimensions().x() - 1;
+            cell.getCoordinates().x() < mesh.getSizes().x() - 1;
             cell.getCoordinates().x() ++ )
     {
       cell.refresh();
@@ -95,7 +95,7 @@ updateCell( MeshFunctionType& u,
   
   if( cell.getCoordinates().x() == 0 )
     a = u[ neighborEntities.template getEntityIndex< 1 >() ];
-  else if( cell.getCoordinates().x() == mesh.getDimensions().x() - 1 )
+  else if( cell.getCoordinates().x() == mesh.getSizes().x() - 1 )
     a = u[ neighborEntities.template getEntityIndex< -1 >() ];
   else
   {
@@ -149,7 +149,7 @@ __global__ void CudaInitCaller( const Functions::MeshFunctionView< Meshes::Grid<
   int i = threadIdx.x + blockDim.x*blockIdx.x;
   const Meshes::Grid< 1, Real, Device, Index >& mesh = input.template getMesh< Devices::Cuda >();
   
-  if( i < mesh.getDimensions().x()  )
+  if( i < mesh.getSizes().x()  )
   {
     typedef typename Meshes::Grid< 1, Real, Device, Index >::Cell Cell;
     Cell cell( mesh );

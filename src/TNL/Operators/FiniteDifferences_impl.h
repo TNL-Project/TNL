@@ -30,9 +30,9 @@ FiniteDifferences< Meshes::Grid< 1, Real, Device, Index > >::getDifference( cons
    else
       iBegin = 1;
    if( XDifferenceDirection == 1 )
-      iEnd = grid.getDimensions().x() - 1;
+      iEnd = grid.getSizes().x() - 1;
    else
-      iEnd = grid.getDimensions().x();
+      iEnd = grid.getSizes().x();
 
    typename GridType::Cell cell( grid );
    for( cell.getCoordinates().x() = iBegin; cell.getCoordinates().x() < iEnd; cell.getCoordinates().x()++ ) {

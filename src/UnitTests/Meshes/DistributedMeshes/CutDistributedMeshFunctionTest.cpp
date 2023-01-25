@@ -40,7 +40,7 @@ TEST(CutDistributedMeshFunction, 2D_Data)
    origin.setValue(-0.5);
    PointType proportions;
    proportions.setValue(10);
-   globalOriginalGrid.setDimensions(proportions);
+   globalOriginalGrid.setSizes(proportions);
    globalOriginalGrid.setDomain(origin,proportions);
 
    typename DistributedMeshType::CoordinatesType overlap;
@@ -87,7 +87,7 @@ TEST(CutDistributedMeshFunction, 2D_Data)
        MeshFunctionView<CutMeshType> cutMeshFunction;
        cutMeshFunction.bind(cutGrid,cutDof);
 
-        for(int i=0;i<originalGrid->getDimensions().y();i++)
+        for(int i=0;i<originalGrid->getSizes().y();i++)
         {
                typename MeshType::Cell fromEntity(meshFunctionptr->getMesh());
                typename CutMeshType::Cell outEntity(*cutGrid);
@@ -125,7 +125,7 @@ TEST(CutDistributedMeshFunction, 3D_1_Data)
    origin.setValue(-0.5);
    PointType proportions;
    proportions.setValue(10);
-   globalOriginalGrid.setDimensions(proportions);
+   globalOriginalGrid.setSizes(proportions);
    globalOriginalGrid.setDomain(origin,proportions);
 
    DistributedMeshType distributedGrid;
@@ -170,7 +170,7 @@ TEST(CutDistributedMeshFunction, 3D_1_Data)
        MeshFunctionView<CutMeshType> cutMeshFunction;
        cutMeshFunction.bind(cutGrid,cutDof);
 
-        for(int i=0;i<originalGrid->getDimensions().z();i++)
+        for(int i=0;i<originalGrid->getSizes().z();i++)
         {
                typename MeshType::Cell fromEntity(meshFunctionptr->getMesh());
                typename CutMeshType::Cell outEntity(*cutGrid);
@@ -208,7 +208,7 @@ TEST(CutDistributedMeshFunction, 3D_2_Data)
    origin.setValue(-0.5);
    PointType proportions;
    proportions.setValue(10);
-   globalOriginalGrid.setDimensions(proportions);
+   globalOriginalGrid.setSizes(proportions);
    globalOriginalGrid.setDomain(origin,proportions);
 
    DistributedMeshType distributedGrid;
@@ -253,9 +253,9 @@ TEST(CutDistributedMeshFunction, 3D_2_Data)
        MeshFunctionView<CutMeshType> cutMeshFunction;
        cutMeshFunction.bind(cutGrid,cutDof);
 
-        for(int i=0;i<originalGrid->getDimensions().z();i++)
+        for(int i=0;i<originalGrid->getSizes().z();i++)
         {
-            for(int j=0;j<originalGrid->getDimensions().x();j++)
+            for(int j=0;j<originalGrid->getSizes().x();j++)
             {
                typename MeshType::Cell fromEntity(meshFunctionptr->getMesh());
                typename CutMeshType::Cell outEntity(*cutGrid);
@@ -297,7 +297,7 @@ TEST(CutDistributedMeshFunction, 2D_Synchronization)
    origin.setValue(-0.5);
    PointType proportions;
    proportions.setValue(10);
-   globalOriginalGrid.setDimensions(proportions);
+   globalOriginalGrid.setSizes(proportions);
    globalOriginalGrid.setDomain(origin,proportions);
 
    DistributedMeshType distributedGrid;
@@ -384,7 +384,7 @@ TEST(CutDistributedMeshFunction, 3D_1_Synchronization)
    origin.setValue(-0.5);
    PointType proportions;
    proportions.setValue(10);
-   globalOriginalGrid.setDimensions(proportions);
+   globalOriginalGrid.setSizes(proportions);
    globalOriginalGrid.setDomain(origin,proportions);
 
    DistributedMeshType distributedGrid;
@@ -473,7 +473,7 @@ TEST(CutDistributedMeshFunction, 3D_2_Synchronization)
    origin.setValue(-0.5);
    PointType proportions;
    proportions.setValue(10);
-   globalOriginalGrid.setDimensions(proportions);
+   globalOriginalGrid.setSizes(proportions);
    globalOriginalGrid.setDomain(origin,proportions);
 
    typename DistributedMeshType::CoordinatesType overlap;
@@ -562,7 +562,7 @@ TEST(CutDistributedMeshFunction, 3D_2_Save)
    origin.setValue(-0.5);
    PointType proportions;
    proportions.setValue(10);
-   globalOriginalGrid.setDimensions(proportions);
+   globalOriginalGrid.setSizes(proportions);
    globalOriginalGrid.setDomain(origin,proportions);
 
    typename DistributedMeshType::CoordinatesType overlap;
@@ -626,7 +626,7 @@ TEST(CutDistributedMeshFunction, 3D_2_Save)
        Pointers::SharedPointer<CutMeshType> globalCutGrid;
        MeshFunctionView<CutMeshType> loadMeshFunctionptr;
 
-       globalCutGrid->setDimensions(typename CutMeshType::CoordinatesType(10));
+       globalCutGrid->setSizes(typename CutMeshType::CoordinatesType(10));
        globalCutGrid->setDomain(typename CutMeshType::PointType(-0.5),typename CutMeshType::CoordinatesType(10));
 
        DofType loaddof(globalCutGrid->template getEntitiesCount< typename CutMeshType::Cell >());
@@ -641,8 +641,8 @@ TEST(CutDistributedMeshFunction, 3D_2_Save)
         typename MeshType::Cell fromEntity(globalOriginalGrid);
         typename CutMeshType::Cell outEntity(*globalCutGrid);
 
-        for(int i=0;i<globalOriginalGrid.getDimensions().x();i++)
-            for(int j=0;j<globalOriginalGrid.getDimensions().z();j++)
+        for(int i=0;i<globalOriginalGrid.getSizes().x();i++)
+            for(int j=0;j<globalOriginalGrid.getSizes().z();j++)
             {
                 fromEntity.getCoordinates().x()=i;
                 fromEntity.getCoordinates().z()=j;

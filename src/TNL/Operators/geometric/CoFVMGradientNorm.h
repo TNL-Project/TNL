@@ -156,14 +156,14 @@ public:
                             * hxDiv;
          RealType u_y;
          if( entity.getCoordinates().y() > 0 ) {
-            if( entity.getCoordinates().y() < entity.getMesh().getDimensions().y() - 1 )
+            if( entity.getCoordinates().y() < entity.getMesh().getSizes().y() - 1 )
                u_y = 0.25
                    * ( u[ neighborEntities.template getEntityIndex< 1, 1 >() ]
                        + u[ neighborEntities.template getEntityIndex< -1, 1 >() ]
                        - u[ neighborEntities.template getEntityIndex< 1, -1 >() ]
                        - u[ neighborEntities.template getEntityIndex< -1, -1 >() ] )
                    * hyDiv;
-            else  // if( entity.getCoordinates().y() < entity.getMesh().getDimensions().y() - 1 )
+            else  // if( entity.getCoordinates().y() < entity.getMesh().getSizes().y() - 1 )
                u_y = 0.5
                    * ( u[ neighborEntities.template getEntityIndex< 1, 0 >() ]
                        + u[ neighborEntities.template getEntityIndex< -1, 0 >() ]
@@ -184,14 +184,14 @@ public:
       }
       RealType u_x;
       if( entity.getCoordinates().x() > 0 ) {
-         if( entity.getCoordinates().x() < entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() < entity.getMesh().getSizes().x() - 1 )
             u_x = 0.25
                 * ( u[ neighborEntities.template getEntityIndex< 1, 1 >() ]
                     + u[ neighborEntities.template getEntityIndex< 1, -1 >() ]
                     - u[ neighborEntities.template getEntityIndex< -1, 1 >() ]
                     - u[ neighborEntities.template getEntityIndex< -1, -1 >() ] )
                 * hxDiv;
-         else  // if( entity.getCoordinates().x() < entity.getMesh().getDimensions().x() - 1 )
+         else  // if( entity.getCoordinates().x() < entity.getMesh().getSizes().x() - 1 )
             u_x = 0.5
                 * ( u[ neighborEntities.template getEntityIndex< 0, 1 >() ]
                     + u[ neighborEntities.template getEntityIndex< 0, -1 >() ]
@@ -267,7 +267,7 @@ public:
                             * hxDiv;
          RealType u_y;
          if( entity.getCoordinates().y() > 0 ) {
-            if( entity.getCoordinates().y() < entity.getMesh().getDimensions().y() - 1 ) {
+            if( entity.getCoordinates().y() < entity.getMesh().getSizes().y() - 1 ) {
                u_y = 0.25
                    * ( u[ neighborEntities.template getEntityIndex< 1, 1, 0 >() ]
                        + u[ neighborEntities.template getEntityIndex< -1, 1, 0 >() ]
@@ -275,7 +275,7 @@ public:
                        - u[ neighborEntities.template getEntityIndex< -1, -1, 0 >() ] )
                    * hyDiv;
             }
-            else  // if( entity.getCoordinates().y() < entity.getMesh().getDimensions().y() - 1 )
+            else  // if( entity.getCoordinates().y() < entity.getMesh().getSizes().y() - 1 )
             {
                u_y = 0.5
                    * ( u[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
@@ -296,7 +296,7 @@ public:
          }
          RealType u_z;
          if( entity.getCoordinates().z() > 0 ) {
-            if( entity.getCoordinates().z() < entity.getMesh().getDimensions().z() - 1 ) {
+            if( entity.getCoordinates().z() < entity.getMesh().getSizes().z() - 1 ) {
                u_z = 0.25
                    * ( u[ neighborEntities.template getEntityIndex< 1, 0, 1 >() ]
                        + u[ neighborEntities.template getEntityIndex< -1, 0, 1 >() ]
@@ -304,7 +304,7 @@ public:
                        - u[ neighborEntities.template getEntityIndex< -1, 0, -1 >() ] )
                    * hzDiv;
             }
-            else  // if( entity.getCoordinates().z() < entity.getMesh().getDimensions().z() - 1 )
+            else  // if( entity.getCoordinates().z() < entity.getMesh().getSizes().z() - 1 )
             {
                u_z = 0.5
                    * ( u[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ]
@@ -328,7 +328,7 @@ public:
       if( entity.getOrientation().y() != 0.0 ) {
          RealType u_x;
          if( entity.getCoordinates().x() > 0 ) {
-            if( entity.getCoordinates().x() < entity.getMesh().getDimensions().x() - 1 ) {
+            if( entity.getCoordinates().x() < entity.getMesh().getSizes().x() - 1 ) {
                u_x = 0.25
                    * ( u[ neighborEntities.template getEntityIndex< 1, 1, 0 >() ]
                        + u[ neighborEntities.template getEntityIndex< 1, -1, 0 >() ]
@@ -336,7 +336,7 @@ public:
                        - u[ neighborEntities.template getEntityIndex< -1, -1, 0 >() ] )
                    * hxDiv;
             }
-            else  // if( entity.getCoordinates().x() < entity.getMesh().getDimensions().x() - 1 )
+            else  // if( entity.getCoordinates().x() < entity.getMesh().getSizes().x() - 1 )
             {
                u_x = 0.5
                    * ( u[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ]
@@ -360,7 +360,7 @@ public:
                             * hyDiv;
          RealType u_z;
          if( entity.getCoordinates().z() > 0 ) {
-            if( entity.getCoordinates().z() < entity.getMesh().getDimensions().z() - 1 ) {
+            if( entity.getCoordinates().z() < entity.getMesh().getSizes().z() - 1 ) {
                u_z = 0.25
                    * ( u[ neighborEntities.template getEntityIndex< 0, 1, 1 >() ]
                        + u[ neighborEntities.template getEntityIndex< 0, -1, 1 >() ]
@@ -368,7 +368,7 @@ public:
                        - u[ neighborEntities.template getEntityIndex< 0, -1, -1 >() ] )
                    * hzDiv;
             }
-            else  // if( entity.getCoordinates().z() < entity.getMesh().getDimensions().z() - 1 )
+            else  // if( entity.getCoordinates().z() < entity.getMesh().getSizes().z() - 1 )
             {
                u_z = 0.5
                    * ( u[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ]
@@ -391,7 +391,7 @@ public:
       }
       RealType u_x;
       if( entity.getCoordinates().x() > 0 ) {
-         if( entity.getCoordinates().x() < entity.getMesh().getDimensions().x() - 1 ) {
+         if( entity.getCoordinates().x() < entity.getMesh().getSizes().x() - 1 ) {
             u_x = 0.25
                 * ( u[ neighborEntities.template getEntityIndex< 1, 0, 1 >() ]
                     + u[ neighborEntities.template getEntityIndex< 1, 0, -1 >() ]
@@ -399,7 +399,7 @@ public:
                     - u[ neighborEntities.template getEntityIndex< -1, 0, -1 >() ] )
                 * hxDiv;
          }
-         else  // if( entity.getCoordinates().x() < entity.getMesh().getDimensions().x() - 1 )
+         else  // if( entity.getCoordinates().x() < entity.getMesh().getSizes().x() - 1 )
          {
             u_x = 0.5
                 * ( u[ neighborEntities.template getEntityIndex< 0, 0, 1 >() ]
@@ -420,7 +420,7 @@ public:
       }
       RealType u_y;
       if( entity.getCoordinates().y() > 0 ) {
-         if( entity.getCoordinates().y() < entity.getMesh().getDimensions().y() - 1 ) {
+         if( entity.getCoordinates().y() < entity.getMesh().getSizes().y() - 1 ) {
             u_y = 0.25
                 * ( u[ neighborEntities.template getEntityIndex< 0, 1, 1 >() ]
                     + u[ neighborEntities.template getEntityIndex< 0, 1, -1 >() ]
@@ -428,7 +428,7 @@ public:
                     - u[ neighborEntities.template getEntityIndex< 0, -1, -1 >() ] )
                 * hyDiv;
          }
-         else  // if( entity.getCoordinates().y() < entity.getMesh().getDimensions().y() - 1 )
+         else  // if( entity.getCoordinates().y() < entity.getMesh().getSizes().y() - 1 )
          {
             u_y = 0.5
                 * ( u[ neighborEntities.template getEntityIndex< 0, 0, 1 >() ]

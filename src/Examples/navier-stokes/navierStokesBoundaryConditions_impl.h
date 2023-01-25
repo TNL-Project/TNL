@@ -53,8 +53,8 @@ void navierStokesBoundaryConditions< Mesh >::apply( const RealType& time,
      * Density: NBS on inlet, DBC on outlet, NBC on walls
      */
 
-   const IndexType& xSize = this->mesh->getDimensions().x();
-   const IndexType& ySize = this->mesh->getDimensions().y();
+   const IndexType& xSize = this->mesh->getSizes().x();
+   const IndexType& ySize = this->mesh->getSizes().y();
    const RealType hx = this->mesh->getParametricStep().x();
    const RealType hy = this->mesh->getParametricStep().y();
    RealType startUpCoefficient( 1.0 );

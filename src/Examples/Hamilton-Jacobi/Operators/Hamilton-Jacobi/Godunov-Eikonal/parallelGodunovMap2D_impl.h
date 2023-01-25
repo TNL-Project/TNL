@@ -135,13 +135,13 @@ Real parallelGodunovMapScheme< tnlGrid< 2, MeshReal, Device, MeshIndex >, Real, 
 
 
 	if ( ((coordinates.x() == 0 && (boundaryCondition & 4)) or
-		 (coordinates.x() == mesh.getDimensions().x() - 1 && (boundaryCondition & 2)) or
+		 (coordinates.x() == mesh.getSizes().x() - 1 && (boundaryCondition & 2)) or
 		 (coordinates.y() == 0 && (boundaryCondition & 8)) or
-		 (coordinates.y() == mesh.getDimensions().y() - 1  && (boundaryCondition & 1)))
+		 (coordinates.y() == mesh.getSizes().y() - 1  && (boundaryCondition & 1)))
 		 /*and
-		 !(		 (coordinates.y() == 0 or coordinates.y() == mesh.getDimensions().y() - 1)
+		 !(		 (coordinates.y() == 0 or coordinates.y() == mesh.getSizes().y() - 1)
 				 and
-				 ( coordinates.x() == 0 or coordinates.x() == mesh.getDimensions().x() - 1)
+				 ( coordinates.x() == 0 or coordinates.x() == mesh.getSizes().x() - 1)
 		  )*/
 		)
 	{
@@ -173,7 +173,7 @@ Real parallelGodunovMapScheme< tnlGrid< 2, MeshReal, Device, MeshIndex >, Real, 
 	RealType a,b,c;
 
 
-	   if(coordinates.x() == mesh.getDimensions().x() - 1)
+	   if(coordinates.x() == mesh.getSizes().x() - 1)
 		   xf += u[neighborEntities.template getEntityIndex< -1,  0 >()];
 	   else
 		   xf += u[neighborEntities.template getEntityIndex< 1,  0 >()];
@@ -183,7 +183,7 @@ Real parallelGodunovMapScheme< tnlGrid< 2, MeshReal, Device, MeshIndex >, Real, 
 	   else
 		   xb -= u[neighborEntities.template getEntityIndex< -1,  0 >()];
 
-	   if(coordinates.y() == mesh.getDimensions().y() - 1)
+	   if(coordinates.y() == mesh.getSizes().y() - 1)
 		   yf += u[neighborEntities.template getEntityIndex< 0,  -1 >()];
 	   else
 		   yf += u[neighborEntities.template getEntityIndex< 0,  1 >()];
@@ -299,7 +299,7 @@ Real parallelGodunovMapScheme< tnlGrid< 2, MeshReal, Device, MeshIndex >, Real, 
 	RealType a,b,c;
 
 
-	   if(coordinates.x() == mesh.getDimensions().x() - 1)
+	   if(coordinates.x() == mesh.getSizes().x() - 1)
 		   xf += u[neighborEntities.template getEntityIndex< -1,  0 >()];
 	   else
 		   xf += u[neighborEntities.template getEntityIndex< 1,  0 >()];
@@ -309,7 +309,7 @@ Real parallelGodunovMapScheme< tnlGrid< 2, MeshReal, Device, MeshIndex >, Real, 
 	   else
 		   xb -= u[neighborEntities.template getEntityIndex< -1,  0 >()];
 
-	   if(coordinates.y() == mesh.getDimensions().y() - 1)
+	   if(coordinates.y() == mesh.getSizes().y() - 1)
 		   yf += u[neighborEntities.template getEntityIndex< 0,  -1 >()];
 	   else
 		   yf += u[neighborEntities.template getEntityIndex< 0,  1 >()];

@@ -81,7 +81,7 @@ bool navierStokesSolver< Mesh, EulerScheme >::initMesh( Meshes::Grid< 2, Real, D
       std::cerr << "Error: y-size must be positive integer number! It is " << meshes. y() << " now." << std::endl;
       return false;
    }
-   mesh.setDimensions( meshes. x(), meshes. y() );
+   mesh.setSizes( meshes. x(), meshes. y() );
    return this->setMeshGeometry( mesh.getGeometry() );
 }
 
@@ -202,8 +202,8 @@ bool navierStokesSolver< Mesh, EulerScheme > :: setInitialCondition( const Confi
    dofs_rho_u2. setValue( 0.0 );
    dofs_e. setValue( p_0 / ( this->nsSolver.getHeatCapacityRatio() - 1.0 ) );
 
-   const IndexType& xSize = mesh. getDimensions(). x();
-   const IndexType& ySize = mesh. getDimensions(). y();
+   const IndexType& xSize = mesh. getSizes(). x();
+   const IndexType& ySize = mesh. getSizes(). y();
    const RealType hx = mesh. getParametricStep(). x();
    const RealType hy = mesh. getParametricStep(). y();
 
@@ -294,8 +294,8 @@ void navierStokesSolver< Mesh, EulerScheme > :: writeProlog( Logger& logger,
    logger. WriteParameter< double >( "Domain height:", mesh. getProportions(). y() - mesh. getOrigin(). y() );
    logger. WriteSeparator();
    logger. WriteParameter< String >( "Space discretisation:", "scheme", parameters );
-   logger. WriteParameter< int >( "Meshes along x:", mesh. getDimensions(). x() );
-   logger. WriteParameter< int >( "Meshes along y:", mesh. getDimensions(). y() );
+   logger. WriteParameter< int >( "Meshes along x:", mesh. getSizes(). x() );
+   logger. WriteParameter< int >( "Meshes along y:", mesh. getSizes(). y() );
    logger. WriteParameter< double >( "Space step along x:", mesh. getParametricStep(). x() );
    logger. WriteParameter< double >( "Space step along y:", mesh. getParametricStep(). y() );
 }

@@ -276,7 +276,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
                     )
                 );
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
             return //u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
                 ( (* this->pressure)[ neighborEntities.template getEntityIndex< -1, 0 >() ]
@@ -315,7 +315,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
                 );
          }
          // The following line is commented to avoid compiler warning
-         //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         //if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, -1 >() ]
                 / ( this->gamma - 1 )
@@ -325,15 +325,15 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
                 * (
                   this->cavitySpeed/*
                     * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
+                        entity.getMesh().getSizes().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getSizes().x() / 2 ) )
                       ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )*/
+                   / ( entity.getMesh().getSizes().x() / 2 )*/
                 * 
                   this->cavitySpeed/*
                     * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
+                        entity.getMesh().getSizes().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getSizes().x() / 2 ) )
                       ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )*/
+                   / ( entity.getMesh().getSizes().x() / 2 )*/
                 +
                   ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0 >()]
                   / (* this->compressibleConservativeVariables->getDensity())[neighborEntities.template getEntityIndex< 0, 0 >()]
@@ -378,7 +378,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
             b[ index ] = entity.getMesh().getSpaceSteps().x() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< -1, 0 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                 1.0 );
@@ -392,7 +392,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshInd
             b[ index ] = entity.getMesh().getSpaceSteps().y() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, -1 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                 1.0 );
@@ -482,7 +482,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
@@ -490,7 +490,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
-         if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
@@ -499,7 +499,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          // The following line is commented to avoid compiler warning
-         //if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
+         //if( entity.getCoordinates().z() == entity.getMesh().getSizes().z() - 1 )
          {
             return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
                 / ( this->gamma - 1 )
@@ -509,16 +509,16 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
                 * (
                   ( this->cavitySpeed 
                     * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
+                        entity.getMesh().getSizes().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getSizes().x() / 2 ) )
                       ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )
+                   / ( entity.getMesh().getSizes().x() / 2 )
                  )
                 * 
                  ( this->cavitySpeed 
                     * (
-                        entity.getMesh().getDimensions().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getDimensions().x() / 2 ) )
+                        entity.getMesh().getSizes().x() / 2 - std::abs( (entity.getCoordinates().x() - entity.getMesh().getSizes().x() / 2 ) )
                       ) 
-                   / ( entity.getMesh().getDimensions().x() / 2 )
+                   / ( entity.getMesh().getSizes().x() / 2 )
                  )
                 +
                   ( (* (* this->compressibleConservativeVariables->getMomentum())[ 1 ])[neighborEntities.template getEntityIndex< 0, 0, 0 >()]
@@ -574,7 +574,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
             b[ index ] = entity.getMesh().getSpaceSteps().x() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< -1, 0, 0 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                    1.0 );
@@ -588,7 +588,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
             b[ index ] = entity.getMesh().getSpaceSteps().y() * 
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, -1, 0 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                    1.0 );
@@ -602,7 +602,7 @@ class EnergyBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshInd
             b[ index ] = entity.getMesh().getSpaceSteps().z() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
+         if( entity.getCoordinates().z() == entity.getMesh().getSizes().z() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, 0, -1 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                    1.0 );

@@ -34,8 +34,8 @@ void setDof_2D( DofType &dof, typename DofType::RealType value )
 template<typename DofType,typename GridType>
 void checkLeftEdge( const GridType &grid, const DofType &dof, bool with_first, bool with_last, typename DofType::RealType expectedValue )
 {
-    int maxx = grid.getDimensions().x();
-    int maxy = grid.getDimensions().y();
+    int maxx = grid.getSizes().x();
+    int maxy = grid.getSizes().y();
     int begin = 0;
     int end = maxy;
     if( !with_first ) begin++;
@@ -48,8 +48,8 @@ void checkLeftEdge( const GridType &grid, const DofType &dof, bool with_first, b
 template<typename DofType,typename GridType>
 void checkRightEdge(const GridType &grid, const DofType &dof, bool with_first, bool with_last, typename DofType::RealType expectedValue)
 {
-    int maxx = grid.getDimensions().x();
-    int maxy = grid.getDimensions().y();
+    int maxx = grid.getSizes().x();
+    int maxy = grid.getSizes().y();
     int begin = 0;
     int end = maxy;
     if( !with_first ) begin++;
@@ -62,8 +62,8 @@ void checkRightEdge(const GridType &grid, const DofType &dof, bool with_first, b
 template<typename DofType,typename GridType>
 void checkUpEdge( const GridType &grid, const DofType &dof, bool with_first, bool with_last, typename DofType::RealType expectedValue )
 {
-    int maxx = grid.getDimensions().x();
-    int maxy = grid.getDimensions().y();
+    int maxx = grid.getSizes().x();
+    int maxy = grid.getSizes().y();
     int begin = 0;
     int end = maxx;
     if( !with_first ) begin++;
@@ -76,8 +76,8 @@ void checkUpEdge( const GridType &grid, const DofType &dof, bool with_first, boo
 template<typename DofType,typename GridType>
 void checkDownEdge( const GridType &grid, const DofType &dof, bool with_first, bool with_last, typename DofType::RealType expectedValue )
 {
-    int maxx = grid.getDimensions().x();
-    int maxy = grid.getDimensions().y();
+    int maxx = grid.getSizes().x();
+    int maxy = grid.getSizes().y();
     int begin = 0;
     int end = maxx;
     if( !with_first ) begin++;
@@ -90,8 +90,8 @@ void checkDownEdge( const GridType &grid, const DofType &dof, bool with_first, b
 template<typename DofType,typename GridType>
 void checkLeftBoundary( const GridType &grid, const DofType &dof, bool with_first, bool with_last, typename DofType::RealType expectedValue )
 {
-   int maxx = grid.getDimensions().x();
-   int maxy = grid.getDimensions().y();
+   int maxx = grid.getSizes().x();
+   int maxy = grid.getSizes().y();
    int begin = 1;
    int end = maxy - 1;
    if( !with_first ) begin++;
@@ -104,8 +104,8 @@ void checkLeftBoundary( const GridType &grid, const DofType &dof, bool with_firs
 template<typename DofType,typename GridType>
 void checkRightBoundary(const GridType &grid, const DofType &dof, bool with_first, bool with_last, typename DofType::RealType expectedValue)
 {
-   int maxx = grid.getDimensions().x();
-   int maxy = grid.getDimensions().y();
+   int maxx = grid.getSizes().x();
+   int maxy = grid.getSizes().y();
    int begin = 1;
    int end = maxy - 1;
    if( !with_first ) begin++;
@@ -118,8 +118,8 @@ void checkRightBoundary(const GridType &grid, const DofType &dof, bool with_firs
 template<typename DofType,typename GridType>
 void checkUpBoundary( const GridType &grid, const DofType &dof, bool with_first, bool with_last, typename DofType::RealType expectedValue )
 {
-   int maxx = grid.getDimensions().x();
-   int maxy = grid.getDimensions().y();
+   int maxx = grid.getSizes().x();
+   int maxy = grid.getSizes().y();
    int begin = 1;
    int end = maxx - 1;
    if( !with_first ) begin++;
@@ -132,8 +132,8 @@ void checkUpBoundary( const GridType &grid, const DofType &dof, bool with_first,
 template<typename DofType,typename GridType>
 void checkDownBoundary( const GridType &grid, const DofType &dof, bool with_first, bool with_last, typename DofType::RealType expectedValue )
 {
-   int maxx = grid.getDimensions().x();
-   int maxy = grid.getDimensions().y();
+   int maxx = grid.getSizes().x();
+   int maxy = grid.getSizes().y();
    int begin = 1;
    int end = maxx - 1;
    if( !with_first ) begin++;
@@ -146,8 +146,8 @@ void checkDownBoundary( const GridType &grid, const DofType &dof, bool with_firs
 template<typename DofType,typename GridType>
 void checkCorner(const GridType &grid, const DofType &dof, bool up, bool left, typename DofType::RealType expectedValue )
 {
-    int maxx=grid.getDimensions().x();
-    int maxy=grid.getDimensions().y();
+    int maxx=grid.getSizes().x();
+    int maxy=grid.getSizes().y();
     if(up&&left)
     {
         EXPECT_EQ( dof[0], expectedValue) << "Up Left Conner test failed ";
@@ -295,8 +295,8 @@ void check_Overlap_2D(int rank, const GridType &grid, const DofType &dof, typena
 template<typename DofType,typename GridType>
 void check_Inner_2D(int rank, const GridType& grid, const DofType& dof, typename DofType::RealType expectedValue)
 {
-    int maxx=grid.getDimensions().x();
-    int maxy=grid.getDimensions().y();
+    int maxx=grid.getSizes().x();
+    int maxy=grid.getSizes().y();
     for(int j=1;j<maxy-1;j++)//prvni a posledni jsou buď hranice, nebo overlap
         for(int i=1;i<maxx-1;i++) //buď je vlevo hranice, nebo overlap
             EXPECT_EQ( dof[j*maxx+i], expectedValue) << " "<< j<<" "<<i << " " << maxx << " " << maxy;
@@ -355,7 +355,7 @@ class DistributedGridTest_2D : public ::testing::Test
          globalProportions.x()=size;
          globalProportions.y()=size;
 
-         globalGrid.setDimensions(size,size);
+         globalGrid.setSizes(size,size);
          globalGrid.setDomain(globalOrigin,globalProportions);
 
          distributedGrid=new DistributedGridType();
@@ -429,7 +429,7 @@ TEST_F(DistributedGridTest_2D, LinearFunctionTest)
     {
             auto entity= localGrid->template getEntity< Cell >(i);
             entity.refresh();
-            EXPECT_EQ(meshFunctionPtr->getValue(entity), (*linearFunctionPtr)(entity)) << "Linear function doesnt fit recievd data. " << entity.getCoordinates().x() << " "<<entity.getCoordinates().y() << " "<< localGrid->getDimensions().x() <<" "<<localGrid->getDimensions().y();
+            EXPECT_EQ(meshFunctionPtr->getValue(entity), (*linearFunctionPtr)(entity)) << "Linear function doesnt fit recievd data. " << entity.getCoordinates().x() << " "<<entity.getCoordinates().y() << " "<< localGrid->getSizes().x() <<" "<<localGrid->getSizes().y();
     }
 }
 
@@ -704,7 +704,7 @@ TEST_F(DistributedGridTest_2D, SynchronizerNeighborPeriodicBoundariesWithInactiv
    maskDofs.setValue( true );
    if( distributedGrid->getNeighbors()[ ZzYzXm ] == -1 )
    {
-      for( IndexType i = 0; i < localGrid->getDimensions().y(); i++ )
+      for( IndexType i = 0; i < localGrid->getSizes().y(); i++ )
       {
          typename GridType::Cell cell( *localGrid );
          cell.getCoordinates() = CoordinatesType( 1, i );
@@ -793,10 +793,10 @@ TEST_F(DistributedGridTest_2D, SynchronizerNeighborPeriodicBoundariesWithInActiv
    maskDofs.setValue( true );
    if( distributedGrid->getNeighbors()[ ZzYzXp ] == -1 )
    {
-      for( IndexType i = 0; i < localGrid->getDimensions().y(); i++ )
+      for( IndexType i = 0; i < localGrid->getSizes().y(); i++ )
       {
          typename GridType::Cell cell( *localGrid );
-         cell.getCoordinates() = CoordinatesType( localGrid->getDimensions().x() - 2, i );
+         cell.getCoordinates() = CoordinatesType( localGrid->getSizes().x() - 2, i );
          cell.refresh();
          maskPointer->getData().setElement( cell.getIndex(), false );
       }
@@ -882,7 +882,7 @@ TEST_F(DistributedGridTest_2D, SynchronizerNeighborPeriodicBoundariesWithInActiv
    maskDofs.setValue( true );
    if( distributedGrid->getNeighbors()[ ZzYmXz ] == -1 )
    {
-      for( IndexType i = 0; i < localGrid->getDimensions().x(); i++ )
+      for( IndexType i = 0; i < localGrid->getSizes().x(); i++ )
       {
          typename GridType::Cell cell( *localGrid );
          cell.getCoordinates() = CoordinatesType( i, 1 );
@@ -971,10 +971,10 @@ TEST_F(DistributedGridTest_2D, SynchronizerNeighborPeriodicBoundariesWithInActiv
    maskDofs.setValue( true );
    if( distributedGrid->getNeighbors()[ ZzYpXz ] == -1 )
    {
-      for( IndexType i = 0; i < localGrid->getDimensions().x(); i++ )
+      for( IndexType i = 0; i < localGrid->getSizes().x(); i++ )
       {
          typename GridType::Cell cell( *localGrid );
-         cell.getCoordinates() = CoordinatesType( i, localGrid->getDimensions().y() - 2 );
+         cell.getCoordinates() = CoordinatesType( i, localGrid->getSizes().y() - 2 );
          cell.refresh();
          maskPointer->getData().setElement( cell.getIndex(), false );
       }

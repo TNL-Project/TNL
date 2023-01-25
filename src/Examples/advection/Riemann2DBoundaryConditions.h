@@ -92,7 +92,7 @@ class Riemann2DBoundaryConditions
        else 
          return 0;
          //tady se asi delaji okrajove podminky
-         //static_assert( EntityType::getDimensions() == MeshEntitiesDimensions, "Wrong mesh entity dimensions." );
+         //static_assert( EntityType::getSizes() == MeshEntitiesDimensions, "Wrong mesh entity sizes." );
       }
 
       template< typename EntityType >

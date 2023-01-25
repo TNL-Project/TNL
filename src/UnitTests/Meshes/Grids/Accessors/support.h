@@ -43,7 +43,7 @@ class GridAccessorsTestCase<TNL::Devices::Sequential>: public GridAccessorsTestC
 
       template<typename Grid>
       void verifyDimensionByCoordinateGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
-         auto result = grid.getDimensions();
+         auto result = grid.getSizes();
 
          EXPECT_EQ(dimensions, result) << "Verify, that dimension container accessor returns valid dimension";
       }
@@ -74,7 +74,7 @@ std::string makeString(Parameters... parameters) {
 
 template<typename Grid, typename... T>
 void testDimensionSetByCoordinate(Grid& grid, const typename Grid::CoordinatesType& dimensions) {
-   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSizes(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    SCOPED_TRACE("Test dimension set by coordinate");
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
@@ -89,7 +89,7 @@ template<typename Grid>
 void testEntitiesCounts(Grid& grid,
                         const typename Grid::CoordinatesType& dimensions,
                         const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) {
-   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSizes(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    SCOPED_TRACE("Test entities count");
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));

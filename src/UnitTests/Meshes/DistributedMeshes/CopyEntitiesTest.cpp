@@ -42,7 +42,7 @@ class TestMovedMeshfunction<MeshFunctionType,2>
 		static void Test(MeshFunctionType &meshFunction)
 		{
 			typename MeshFunctionType::MeshType::Cell entity(meshFunction.getMesh());
-			auto size=meshFunction.getMesh().getDimensions();
+			auto size=meshFunction.getMesh().getSizes();
 			for(int j=0;j<size.y();j++)
 				for(int i=0;i<size.x();i++)
 				{
@@ -61,7 +61,7 @@ class TestMovedMeshfunction<MeshFunctionType,3>
 		static void Test(MeshFunctionType &meshFunction)
 		{
 			typename MeshFunctionType::MeshType::Cell entity(meshFunction.getMesh());
-			auto size=meshFunction.getMesh().getDimensions();
+			auto size=meshFunction.getMesh().getSizes();
 			for(int k=0;k<size.z();k++)
 				for(int j=0;j<size.y();j++)
 					for(int i=0;i<size.x();i++)
@@ -104,7 +104,7 @@ class EvalMeshFunction<MeshFunctionType,2>
 		static void Eval(MeshFunctionType &meshFunction)
 		{
 			typename MeshFunctionType::MeshType::Cell entity(meshFunction.getMesh());
-			auto size=meshFunction.getMesh().getDimensions();
+			auto size=meshFunction.getMesh().getSizes();
 			for(int j=0;j<size.y();j++)
 				for(int i=0;i<size.x();i++)
 				{
@@ -123,7 +123,7 @@ class EvalMeshFunction<MeshFunctionType,3>
 		static void Eval(MeshFunctionType &meshFunction)
 		{
 			typename MeshFunctionType::MeshType::Cell entity(meshFunction.getMesh());
-			auto size=meshFunction.getMesh().getDimensions();
+			auto size=meshFunction.getMesh().getSizes();
 			for(int k=0;k<size.z();k++)
 				for(int j=0;j<size.y();j++)
 					for(int i=0;i<size.x();i++)
@@ -161,7 +161,7 @@ class TestCopyEntities
 			origin.setValue(-0.5);
 			proportions.setValue(10);
 
-			gridptr->setDimensions(proportions);
+			gridptr->setSizes(proportions);
 			gridptr->setDomain(origin,proportions);
 
 			DofType inputDof(gridptr-> template getEntitiesCount< Cell >());
@@ -178,7 +178,7 @@ class TestCopyEntities
 
 			originOut.setValue(0.5);
 			proportionsOut.setValue(8);
-			gridOutPtr->setDimensions(proportionsOut);
+			gridOutPtr->setSizes(proportionsOut);
 			gridOutPtr->setDomain(originOut,proportionsOut);
 			DofType outDof(gridOutPtr-> template getEntitiesCount< Cell >());
 

@@ -76,14 +76,14 @@ class GridBenchmark {
          using Grid = typename TNL::Meshes::Grid<GridDimension, Real, Device, int>;
          using CoordinatesType = typename Grid::CoordinatesType;
 
-         CoordinatesType dimensions;
+         CoordinatesType sizes;
 
          for (int i = 0; i < GridDimension; i++)
-            dimensions[i] = parameters.getParameter<int>(dimensionParameterIds[i]);
+            sizes[i] = parameters.getParameter<int>(dimensionParameterIds[i]);
 
          Grid grid;
 
-         grid.setDimensions(dimensions);
+         grid.setSizes(sizes);
 
          auto forEachEntityDimension = [&](const auto entityDimension) {
             timeTraverse<entityDimension, Grid, VoidOperation>(benchmark, grid);
@@ -118,7 +118,7 @@ class GridBenchmark {
          auto operation = TNL::getType<Operation>();
 
          const Benchmark::MetadataColumns columns = {
-            { "dimensions", TNL::convertToString(grid.getDimensions()) },
+            { "sizes", TNL::convertToString(grid.getSizes()) },
             { "entity_dimension", TNL::convertToString(EntityDimension) },
             { "entitiesCounts", TNL::convertToString(grid.getEntitiesCount(EntityDimension)) },
             { "operation_id", operation }

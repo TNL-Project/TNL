@@ -210,8 +210,8 @@ PNGImage< Index >::writeHeader( const Meshes::Grid< 2, Real, Device, Index >& gr
    // const int bitDepth( 8 );
    png_set_IHDR( this->png_ptr,
                  this->info_ptr,
-                 grid.getDimensions().x(),
-                 grid.getDimensions().y(),
+                 grid.getSizes().x(),
+                 grid.getSizes().y(),
                  8,  // bitDepth,
                  PNG_COLOR_TYPE_GRAY,
                  PNG_INTERLACE_NONE,
@@ -261,14 +261,14 @@ PNGImage< Index >::write( const Meshes::Grid< 2, Real, Device, Index >& grid, Ve
    }
 
    Index i, j;
-   png_bytep row = new png_byte[ 3 * grid.getDimensions().x() ];
-   for( i = 0; i < grid.getDimensions().y(); i++ ) {
-      for( j = 0; j < grid.getDimensions().x(); j++ ) {
+   png_bytep row = new png_byte[ 3 * grid.getSizes().x() ];
+   for( i = 0; i < grid.getSizes().y(); i++ ) {
+      for( j = 0; j < grid.getSizes().x(); j++ ) {
          cell.getCoordinates().x() = j;
-         cell.getCoordinates().y() = grid.getDimensions().y() - 1 - i;
+         cell.getCoordinates().y() = grid.getSizes().y() - 1 - i;
 
          // Index cellIndex = grid.getCellIndex( CoordinatesType( j,
-         //                                      grid.getDimensions().y() - 1 - i ) );
+         //                                      grid.getSizes().y() - 1 - i ) );
 
          row[ j ] = 255 * vector.getElement( cell.getIndex() );
       }
@@ -300,14 +300,14 @@ PNGImage< Index >::write( const Functions::MeshFunction< Meshes::Grid< 2, MeshRe
    }
 
    Index i, j;
-   png_bytep row = new png_byte[ 3 * grid.getDimensions().x() ];
-   for( i = 0; i < grid.getDimensions().y(); i++ ) {
-      for( j = 0; j < grid.getDimensions().x(); j++ ) {
+   png_bytep row = new png_byte[ 3 * grid.getSizes().x() ];
+   for( i = 0; i < grid.getSizes().y(); i++ ) {
+      for( j = 0; j < grid.getSizes().x(); j++ ) {
          cell.getCoordinates().x() = j;
-         cell.getCoordinates().y() = grid.getDimensions().y() - 1 - i;
+         cell.getCoordinates().y() = grid.getSizes().y() - 1 - i;
 
          // Index cellIndex = grid.getCellIndex( CoordinatesType( j,
-         //                                      grid.getDimensions().y() - 1 - i ) );
+         //                                      grid.getSizes().y() - 1 - i ) );
 
          row[ j ] = 255 * function.getData().getElement( cell.getIndex() );
       }

@@ -34,9 +34,9 @@ void setDof_3D(DofType &dof, typename DofType::RealType value)
 template<typename GridType>
 int getAdd(GridType &grid,bool bottom, bool north, bool west )
 {
-    int maxx=grid.getDimensions().x();
-    int maxy=grid.getDimensions().y();
-    int maxz=grid.getDimensions().z();
+    int maxx=grid.getSizes().x();
+    int maxy=grid.getSizes().y();
+    int maxz=grid.getSizes().z();
 
     int add=0;
     if(!west)
@@ -61,7 +61,7 @@ template<typename DofType,typename GridType>
 void checkXDirectionEdge(const GridType &grid, const DofType &dof, bool bottom, bool north, typename DofType::RealType expectedValue)
 {
     int add=getAdd(grid,bottom,north,true);
-    for(int i=1;i<grid.getDimensions().x()-1;i++)
+    for(int i=1;i<grid.getSizes().x()-1;i++)
             EXPECT_EQ( dof[i+add], expectedValue) << "X direction Edge test failed " << i;
 }
 
@@ -70,26 +70,26 @@ template<typename DofType,typename GridType>
 void checkYDirectionEdge(const GridType &grid, const DofType &dof, bool bottom, bool west, typename DofType::RealType expectedValue)
 {
     int add=getAdd(grid,bottom,true,west);
-    for(int i=1;i<grid.getDimensions().y()-1;i++)
-            EXPECT_EQ( dof[grid.getDimensions().x()*i+add], expectedValue) << "Y direction Edge test failed " << i;
+    for(int i=1;i<grid.getSizes().y()-1;i++)
+            EXPECT_EQ( dof[grid.getSizes().x()*i+add], expectedValue) << "Y direction Edge test failed " << i;
 }
 
 template<typename DofType,typename GridType>
 void checkZDirectionEdge(const GridType &grid, const DofType &dof, bool north, bool west, typename DofType::RealType expectedValue)
 {
     int add=getAdd(grid,true,north,west);
-    for(int i=1;i<grid.getDimensions().z()-1;i++)
-            EXPECT_EQ( dof[grid.getDimensions().y()*grid.getDimensions().x()*i+add], expectedValue) << "Z direction Edge test failed " << i;
+    for(int i=1;i<grid.getSizes().z()-1;i++)
+            EXPECT_EQ( dof[grid.getSizes().y()*grid.getSizes().x()*i+add], expectedValue) << "Z direction Edge test failed " << i;
 }
 
 template<typename DofType,typename GridType>
 void checkZFace(const GridType &grid, const DofType &dof, bool bottom, typename DofType::RealType expectedValue)
 {
     int add=getAdd(grid,bottom,true,true);
-    for(int i=1;i<grid.getDimensions().y()-1;i++)
-        for(int j=1; j<grid.getDimensions().x()-1;j++)
+    for(int i=1;i<grid.getSizes().y()-1;i++)
+        for(int j=1; j<grid.getSizes().x()-1;j++)
         {
-            EXPECT_EQ( dof[grid.getDimensions().x()*i+j+add], expectedValue) << "Z Face test failed "<<i<< " " << j;
+            EXPECT_EQ( dof[grid.getSizes().x()*i+j+add], expectedValue) << "Z Face test failed "<<i<< " " << j;
         }
 }
 
@@ -97,10 +97,10 @@ template<typename DofType,typename GridType>
 void checkYFace(const GridType &grid, const DofType &dof, bool north, typename DofType::RealType expectedValue)
 {
     int add=getAdd(grid,true,north,true);
-    for(int i=1;i<grid.getDimensions().z()-1;i++)
-        for(int j=1; j<grid.getDimensions().x()-1;j++)
+    for(int i=1;i<grid.getSizes().z()-1;i++)
+        for(int j=1; j<grid.getSizes().x()-1;j++)
         {
-            EXPECT_EQ( dof[grid.getDimensions().y()*grid.getDimensions().x()*i+j+add], expectedValue) << "Y Face test failed "<<i<< " " << j;
+            EXPECT_EQ( dof[grid.getSizes().y()*grid.getSizes().x()*i+j+add], expectedValue) << "Y Face test failed "<<i<< " " << j;
         }
 }
 
@@ -108,10 +108,10 @@ template<typename DofType,typename GridType>
 void checkXFace(const GridType &grid, const DofType &dof, bool west, typename DofType::RealType expectedValue)
 {
     int add=getAdd(grid,true,true,west);
-    for(int i=1;i<grid.getDimensions().z()-1;i++)
-        for(int j=1; j<grid.getDimensions().y()-1;j++)
+    for(int i=1;i<grid.getSizes().z()-1;i++)
+        for(int j=1; j<grid.getSizes().y()-1;j++)
         {
-            EXPECT_EQ( dof[grid.getDimensions().y()*grid.getDimensions().x()*i+grid.getDimensions().x()*j+add], expectedValue) << "X Face test failed "<<i<< " " << j;
+            EXPECT_EQ( dof[grid.getSizes().y()*grid.getSizes().x()*i+grid.getSizes().x()*j+add], expectedValue) << "X Face test failed "<<i<< " " << j;
         }
 }
 
@@ -584,9 +584,9 @@ void check_Overlap_3D(int rank, const GridType &grid, const DofType &dof, typena
 template<typename DofType,typename GridType>
 void check_Inner_3D(int rank, const GridType& grid, const DofType& dof, typename DofType::RealType expectedValue)
 {
-   int maxx=grid.getDimensions().x();
-   int maxy=grid.getDimensions().y();
-   int maxz=grid.getDimensions().z();
+   int maxx=grid.getSizes().x();
+   int maxy=grid.getSizes().y();
+   int maxz=grid.getSizes().z();
    for(int k=1;k<maxz-1;k++)
       for(int j=1;j<maxy-1;j++)//prvni a posledni jsou buď hranice, nebo overlap
          for(int i=1;i<maxx-1;i++) //buď je vlevo hranice, nebo overlap
@@ -644,7 +644,7 @@ class DistributedGridTest_3D : public ::testing::Test
          globalProportions.y()=size;
          globalProportions.z()=size;
 
-         globalGrid.setDimensions(size,size,size);
+         globalGrid.setSizes(size,size,size);
          globalGrid.setDomain(globalOrigin,globalProportions);
 
          distributedGrid=new DistributedGridType();
@@ -717,7 +717,7 @@ TEST_F(DistributedGridTest_3D, LinearFunctionTest)
     {
             auto entity= localGrid->template getEntity< Cell >(i);
             entity.refresh();
-            EXPECT_EQ(meshFunctionPtr->getValue(entity), (*linearFunctionPtr)(entity)) << "Linear function doesnt fit recievd data. " << entity.getCoordinates().x() << " "<<entity.getCoordinates().y() << " "<< localGrid->getDimensions().x() <<" "<<localGrid->getDimensions().y();
+            EXPECT_EQ(meshFunctionPtr->getValue(entity), (*linearFunctionPtr)(entity)) << "Linear function doesnt fit recievd data. " << entity.getCoordinates().x() << " "<<entity.getCoordinates().y() << " "<< localGrid->getSizes().x() <<" "<<localGrid->getSizes().y();
     }
 }
 

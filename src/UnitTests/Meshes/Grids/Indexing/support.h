@@ -8,7 +8,7 @@ void testGetEntityFromIndex( Grid& grid,
    SCOPED_TRACE("Grid dimension: " + TNL::convertToString(Grid::getMeshDimension()));
    SCOPED_TRACE("Grid dimensions: " + TNL::convertToString(dimensions));
 
-   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSizes(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
    EXPECT_NO_THROW(grid.setOrigin(origin)) << "Verify, that the set of" << origin << "doesn't cause assert";
    EXPECT_NO_THROW(grid.setSpaceSteps(spaceSteps)) << "Verify, that the set of" << spaceSteps << "doesn't cause assert";
 

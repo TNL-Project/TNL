@@ -90,7 +90,7 @@ class LaxFridrichsContinuity< Meshes::Grid< 1, MeshReal, Device, MeshIndex >, Re
                        const MeshEntity& entity,
                        const RealType& time = 0.0 ) const
       {
-         static_assert( MeshEntity::getEntityDimension() == 1, "Wrong mesh entity dimensions." ); 
+         static_assert( MeshEntity::getEntityDimension() == 1, "Wrong mesh entity sizes." ); 
          static_assert( MeshFunction::getEntitiesDimension() == 1, "Wrong preimage function" ); 
          const typename MeshEntity::template NeighborEntities< 1 >& neighborEntities = entity.getNeighborEntities(); 
 
@@ -151,7 +151,7 @@ class LaxFridrichsContinuity< Meshes::Grid< 2, MeshReal, Device, MeshIndex >, Re
                        const MeshEntity& entity,
                        const RealType& time = 0.0 ) const
       {
-         static_assert( MeshEntity::getEntityDimension() == 2, "Wrong mesh entity dimensions." ); 
+         static_assert( MeshEntity::getEntityDimension() == 2, "Wrong mesh entity sizes." ); 
          static_assert( MeshFunction::getEntitiesDimension() == 2, "Wrong preimage function" ); 
          const typename MeshEntity::template NeighborEntities< 2 >& neighborEntities = entity.getNeighborEntities(); 
 
@@ -218,7 +218,7 @@ class LaxFridrichsContinuity< Meshes::Grid< 3, MeshReal, Device, MeshIndex >, Re
                        const MeshEntity& entity,
                        const RealType& time = 0.0 ) const
       {
-         static_assert( MeshEntity::getEntityDimension() == 3, "Wrong mesh entity dimensions." ); 
+         static_assert( MeshEntity::getEntityDimension() == 3, "Wrong mesh entity sizes." ); 
          static_assert( MeshFunction::getEntitiesDimension() == 3, "Wrong preimage function" ); 
          const typename MeshEntity::template NeighborEntities< 3 >& neighborEntities = entity.getNeighborEntities(); 
 

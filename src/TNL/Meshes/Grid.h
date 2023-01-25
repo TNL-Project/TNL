@@ -164,22 +164,21 @@ public:
    getEntityOrientationsCount( IndexType entityDimension );
 
    /**
-    * \brief Set the dimensions (or resolution) of the grid.
-    *    This method accepts particular dimensions packed in a static vector.
+    * \brief Set the sizes of the grid.
     *
-    * \param dimensions grid dimensions given in a form of coordinate vector.
+    * \param sizes grid sizes given in a form of coordinate vector.
     */
    void
-   setDimensions( const CoordinatesType& dimensions );
+   setSizes( const CoordinatesType& sizes );
 
    /**
-    * \brief Returns dimensions as a number of edges along each axis in a form of coordinate vector.
+    * \brief Returns grid sizes in a form of coordinate vector.
     *
     *\return Coordinate vector with number of edges along each axis.
     */
    __cuda_callable__
    const CoordinatesType&
-   getDimensions() const noexcept;
+   getSizes() const noexcept;
 
    /**
     * \brief Returns number of entities of specific dimension.
@@ -925,7 +924,7 @@ protected:
    /**
     * \brief Grid dimensions.
     */
-   CoordinatesType dimensions = 0;
+   CoordinatesType sizes = 0;
 
    PointType origin = 0, proportions = 0, spaceSteps = 0;
 
@@ -1114,7 +1113,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 bool
 operator==( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimension, Real, Device, Index >& rhs )
 {
-   return lhs.getDimensions() == rhs.getDimensions() && lhs.getOrigin() == rhs.getOrigin()
+   return lhs.getSizes() == rhs.getSizes() && lhs.getOrigin() == rhs.getOrigin()
        && lhs.getProportions() == rhs.getProportions();
 }
 

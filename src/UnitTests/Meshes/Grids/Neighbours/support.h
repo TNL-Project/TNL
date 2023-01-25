@@ -26,14 +26,14 @@ class NeighbourGridEntityGetterTestCase {
             // First test neighbour entities with the same dimension and orientation
             if constexpr( EntityDimension == NeighbourEntityDimension )
                if( entity.getCoordinates() + offset > typename Grid::CoordinatesType( 0 ) &&
-                  entity.getCoordinates() + offset < entity.getGrid().getDimensions() + entity.getNormals()  )
+                  entity.getCoordinates() + offset < entity.getGrid().getSizes() + entity.getNormals()  )
                   {
                      auto neighbourEntity = entity.getEntity( offset );
                      auto neighbourEntityIndex = entity.getEntityIndex( offset );
                      EXPECT_EQ( neighbourEntity.getIndex(), neighbourEntityIndex )
                                  << "Wrong index of neighbour entity: " << std::endl
                                  << " Grid dimension: " << Grid::getMeshDimension() << std::endl
-                                 << " Grid dimensions: " << grid.getDimensions() << std::endl
+                                 << " Grid sizes: " << grid.getSizes() << std::endl
                                  << " Entity dimension: " << EntityDimension << std::endl
                                  << " Entity coordinates: " << entity.getCoordinates() << std::endl
                                  << " Entity index: " << entity.getIndex() << std::endl
@@ -49,14 +49,14 @@ class NeighbourGridEntityGetterTestCase {
             for( Index orientationIdx = 0; orientationIdx < neighbourEntitiesOrientationsCount; orientationIdx++ ) {
                auto normals = grid. template getNormals< NeighbourEntityDimension >( orientationIdx );
                if( entity.getCoordinates() + offset > typename Grid::CoordinatesType( 0 ) &&
-                   entity.getCoordinates() + offset < entity.getGrid().getDimensions() + normals  )
+                   entity.getCoordinates() + offset < entity.getGrid().getSizes() + normals  )
                   {
                      auto neighbourEntity = entity.template getEntity< NeighbourEntityDimension >( offset, normals );
                      auto neighbourEntityIndex = entity.template getEntityIndex< NeighbourEntityDimension >( offset, orientationIdx );
                      EXPECT_EQ( neighbourEntity.getIndex(), neighbourEntityIndex )
                                 << "Wrong index of neighbour entity: " << std::endl
                                 << " Grid dimension: " << Grid::getMeshDimension() << std::endl
-                                << " Grid dimensions: " << grid.getDimensions() << std::endl
+                                << " Grid dimensions: " << grid.getSizes() << std::endl
                                 << " Entity dimension: " << EntityDimension << std::endl
                                 << " Entity coordinates: " << entity.getCoordinates() << std::endl
                                 << " Entity index: " << entity.getIndex() << std::endl
@@ -83,7 +83,7 @@ class NeighbourGridEntityGetterTestCase {
             int neighbourEntityOrientation = TNL::min(entity.getOrientationIndex(), neighbourOrientationsCount - 1);
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
             auto normals = grid.template getNormals<NeighbourEntityDimension>(neighbourEntityOrientation);
-            Coordinate boundary = grid.getDimensions() + normals;
+            Coordinate boundary = grid.getSizes() + normals;
 
             if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
                auto neighbour = entity.template getEntity<NeighbourEntityDimension>(offset, normals);
@@ -105,7 +105,7 @@ class NeighbourGridEntityGetterTestCase {
          auto update = [=] __cuda_callable__(const typename Grid::template EntityType<EntityDimension>& entity) mutable {
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
             auto normals = grid.template getNormals<NeighbourEntityDimension>(NeighbourEntityOrientation);
-            Coordinate boundary = grid.getDimensions() + normals;
+            Coordinate boundary = grid.getSizes() + normals;
 
             if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
                auto neighbour = entity.template getEntity<NeighbourEntityDimension>(offset,normals);
@@ -126,7 +126,7 @@ class NeighbourGridEntityGetterTestCase {
          constexpr int neighbourEntityOrientationsCount = Grid::getEntityOrientationsCount(NeighbourEntityDimension);
 
          auto verify = [&](const auto orientation) {
-            GridCoordinateIterator<orientation> iterator(grid.getDimensions());
+            GridCoordinateIterator<orientation> iterator(grid.getSizes());
 
             if (!iterator.canIterate()) {
                SCOPED_TRACE("Skip iteration");
@@ -152,7 +152,7 @@ class NeighbourGridEntityGetterTestCase {
                Coordinate alignedCoordinate = iterator.getCoordinate() + offset;
 
                // Unable to get entity out of bounds
-               bool expectCall = alignedCoordinate >= Coordinate(0) && alignedCoordinate < grid.getDimensions() + neighbourEntityNormals;
+               bool expectCall = alignedCoordinate >= Coordinate(0) && alignedCoordinate < grid.getSizes() + neighbourEntityNormals;
 
                EXPECT_EQ(expectCall, neighbourEntity.calls == 1) <<
                          "Expect, that the parent entity was called. " << std::endl
@@ -218,7 +218,7 @@ void testNeighbourEntityIndexes(Grid& grid, const typename Grid::CoordinatesType
    SCOPED_TRACE("Neighbour Entity Dimension: " + TNL::convertToString(NeighbourEntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
 
-   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSizes(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    using Test = NeighbourGridEntityGetterTestCase<Grid, EntityDimension, NeighbourEntityDimension>;
 
@@ -235,7 +235,7 @@ void testDynamicNeighbourEntityGetter(Grid& grid, const typename Grid::Coordinat
    SCOPED_TRACE("Neighbour Entity Dimension: " + TNL::convertToString(NeighbourEntityDimension));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
 
-   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSizes(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    using Test = NeighbourGridEntityGetterTestCase<Grid, EntityDimension, NeighbourEntityDimension>;
 
@@ -257,7 +257,7 @@ void testDynamicNeighbourEntityGetter(Grid& grid, const typename Grid::Coordinat
    SCOPED_TRACE("Neighbour Entity Orientation: " + TNL::convertToString(NeighbourEntityOrientation));
    SCOPED_TRACE("Dimension: " + TNL::convertToString(dimensions));
 
-   EXPECT_NO_THROW(grid.setDimensions(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+   EXPECT_NO_THROW(grid.setSizes(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    using Test = NeighbourGridEntityGetterTestCase<Grid, EntityDimension, NeighbourEntityDimension>;
 

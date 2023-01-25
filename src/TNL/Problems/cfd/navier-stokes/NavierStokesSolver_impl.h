@@ -297,8 +297,8 @@ NavierStokesSolver< AdvectionScheme, DiffusionScheme, BoundaryConditions >::getE
 
    this->boundaryConditions->apply( time, tau, this->rho, this->u1, this->u2, this->energy );
 
-   const IndexType& xSize = this->mesh->getDimensions().x();
-   const IndexType& ySize = this->mesh->getDimensions().y();
+   const IndexType& xSize = this->mesh->getSizes().x();
+   const IndexType& ySize = this->mesh->getSizes().y();
 
    if( DeviceType::getDevice() == Devices::HostDevice ) {
       for( IndexType i = 0; i < xSize; i++ ) {

@@ -183,7 +183,7 @@ public:
               + entity.getMesh().getSpaceSteps().x()
                    * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
       }
-      if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 ) {
+      if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 ) {
          return u[ neighborEntities.template getEntityIndex< -1, 0 >() ]
               + entity.getMesh().getSpaceSteps().x()
                    * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
@@ -194,7 +194,7 @@ public:
                    * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
       }
       // The following line is commented to avoid compiler warning
-      // if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+      // if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
       {
          return u[ neighborEntities.template getEntityIndex< 0, -1 >() ]
               + entity.getMesh().getSpaceSteps().y()
@@ -229,7 +229,7 @@ public:
          b[ index ] = entity.getMesh().getSpaceSteps().x()
                     * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
       }
-      if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 ) {
+      if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 ) {
          matrixRow.setElement( 0, neighborEntities.template getEntityIndex< -1, 0 >(), -1.0 );
          matrixRow.setElement( 1, index, 1.0 );
          b[ index ] = entity.getMesh().getSpaceSteps().x()
@@ -241,7 +241,7 @@ public:
          b[ index ] = entity.getMesh().getSpaceSteps().y()
                     * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
       }
-      if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 ) {
+      if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 ) {
          matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, -1 >(), -1.0 );
          matrixRow.setElement( 1, index, 1.0 );
          b[ index ] = entity.getMesh().getSpaceSteps().y()
@@ -283,7 +283,7 @@ public:
               + entity.getMesh().getSpaceSteps().x()
                    * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
       }
-      if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 ) {
+      if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 ) {
          return u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ]
               + entity.getMesh().getSpaceSteps().x()
                    * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
@@ -293,7 +293,7 @@ public:
               + entity.getMesh().getSpaceSteps().y()
                    * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
       }
-      if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 ) {
+      if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 ) {
          return u[ neighborEntities.template getEntityIndex< 0, -1, 0 >() ]
               + entity.getMesh().getSpaceSteps().y()
                    * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
@@ -304,7 +304,7 @@ public:
                    * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
       }
       // The following line is commented to avoid compiler warning
-      // if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
+      // if( entity.getCoordinates().z() == entity.getMesh().getSizes().z() - 1 )
       {
          return u[ neighborEntities.template getEntityIndex< 0, 0, -1 >() ]
               + entity.getMesh().getSpaceSteps().z()
@@ -339,7 +339,7 @@ public:
          b[ index ] = entity.getMesh().getSpaceSteps().x()
                     * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
       }
-      if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 ) {
+      if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 ) {
          matrixRow.setElement( 0, neighborEntities.template getEntityIndex< -1, 0, 0 >(), -1.0 );
          matrixRow.setElement( 1, index, 1.0 );
          b[ index ] = entity.getMesh().getSpaceSteps().x()
@@ -351,7 +351,7 @@ public:
          b[ index ] = entity.getMesh().getSpaceSteps().y()
                     * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
       }
-      if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 ) {
+      if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 ) {
          matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, -1, 0 >(), -1.0 );
          matrixRow.setElement( 1, index, 1.0 );
          b[ index ] = entity.getMesh().getSpaceSteps().y()
@@ -363,7 +363,7 @@ public:
          b[ index ] = entity.getMesh().getSpaceSteps().z()
                     * Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
       }
-      if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 ) {
+      if( entity.getCoordinates().z() == entity.getMesh().getSizes().z() - 1 ) {
          matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, 0, -1 >(), -1.0 );
          matrixRow.setElement( 1, index, 1.0 );
          b[ index ] = entity.getMesh().getSpaceSteps().z()

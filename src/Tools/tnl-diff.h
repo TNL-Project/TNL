@@ -46,7 +46,7 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 1, Real, Device, Index >, 1 >
          const int EntityDimension = 1;
          using Grid = Meshes::Grid< Dimension, Real, Device, Index >;
          using Entity = typename Grid::template EntityType< EntityDimension >;
-         if( f1.getMesh().getDimensions() != f2.getMesh().getDimensions() )
+         if( f1.getMesh().getSizes() != f2.getMesh().getSizes() )
          {
             outputFile << f1Name << " and " << f2Name << " are defined on different meshes. "  << std::endl;
             if( verbose )
@@ -55,7 +55,7 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 1, Real, Device, Index >, 1 >
 
          Entity entity;
          for( entity.getCoordinates().x() = 0;
-              entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
+              entity.getCoordinates().x() < f1.getMesh().getSizes().x();
               entity.getCoordinates().x()++ )
          {
             entity.setGrid( f1.getMesh() );
@@ -90,7 +90,7 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 2, Real, Device, Index >, 2 >
          const int EntityDimension = 2;
          using Grid = Meshes::Grid< Dimension, Real, Device, Index >;
          using Entity = typename Grid::template EntityType< EntityDimension >;
-         if( f1.getMesh().getDimensions() != f2.getMesh().getDimensions() )
+         if( f1.getMesh().getSizes() != f2.getMesh().getSizes() )
          {
             outputFile << f1Name << " and " << f2Name << " are defined on different meshes. "  << std::endl;
             if( verbose )
@@ -99,10 +99,10 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 2, Real, Device, Index >, 2 >
 
          Entity entity;
          for( entity.getCoordinates().y() = 0;
-              entity.getCoordinates().y() < f1.getMesh().getDimensions().y();
+              entity.getCoordinates().y() < f1.getMesh().getSizes().y();
               entity.getCoordinates().y()++ )
             for( entity.getCoordinates().x() = 0;
-                 entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
+                 entity.getCoordinates().x() < f1.getMesh().getSizes().x();
                  entity.getCoordinates().x()++ )
             {
                entity.setGrid( f1.getMesh() );
@@ -137,7 +137,7 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 3, Real, Device, Index >, 3 >
          const int EntityDimension = 3;
          using Grid = Meshes::Grid< Dimension, Real, Device, Index >;
          using Entity = typename Grid::template EntityType< EntityDimension >;
-         if( f1.getMesh().getDimensions() != f2.getMesh().getDimensions() )
+         if( f1.getMesh().getSizes() != f2.getMesh().getSizes() )
          {
             outputFile << f1Name << " and " << f2Name << " are defined on different meshes. "  << std::endl;
             if( verbose )
@@ -146,13 +146,13 @@ class ExactMatchTest< MeshFunction, Meshes::Grid< 3, Real, Device, Index >, 3 >
 
          Entity entity;
          for( entity.getCoordinates().z() = 0;
-              entity.getCoordinates().z() < f1.getMesh().getDimensions().z();
+              entity.getCoordinates().z() < f1.getMesh().getSizes().z();
               entity.getCoordinates().z()++ )
             for( entity.getCoordinates().y() = 0;
-                 entity.getCoordinates().y() < f1.getMesh().getDimensions().y();
+                 entity.getCoordinates().y() < f1.getMesh().getSizes().y();
                  entity.getCoordinates().y()++ )
                for( entity.getCoordinates().x() = 0;
-                    entity.getCoordinates().x() < f1.getMesh().getDimensions().x();
+                    entity.getCoordinates().x() < f1.getMesh().getSizes().x();
                     entity.getCoordinates().x()++ )
                {
                   entity.setGrid( f1.getMesh() );

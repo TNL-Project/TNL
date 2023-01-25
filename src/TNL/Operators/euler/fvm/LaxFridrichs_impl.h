@@ -374,8 +374,8 @@ LaxFridrichs< Meshes::Grid< 2, Real, Device, Index, tnlIdenticalGridGeometry >, 
    TNL_ASSERT_TRUE( mesh, "No mesh has been binded with the Lax-Fridrichs scheme." );
    TNL_ASSERT_TRUE( pressureGradient, "No pressure gradient was set in the the Lax-Fridrichs scheme." )
 
-   const IndexType& xSize = this->mesh->getDimensions().x();
-   const IndexType& ySize = this->mesh->getDimensions().y();
+   const IndexType& xSize = this->mesh->getSizes().x();
+   const IndexType& ySize = this->mesh->getSizes().y();
    const RealType hx = this->mesh->getParametricStep().x();
    const RealType hy = this->mesh->getParametricStep().y();
 
@@ -430,8 +430,8 @@ LaxFridrichs< Meshes::Grid< 2, Real, Device, Index, tnlIdenticalGridGeometry >, 
    TNL_ASSERT_TRUE( mesh, "No mesh has been binded with the Lax-Fridrichs scheme." );
    TNL_ASSERT_TRUE( pressureGradient, "No pressure gradient was set in the the Lax-Fridrichs scheme." )
 
-   const IndexType& xSize = this->mesh->getDimensions().x();
-   const IndexType& ySize = this->mesh->getDimensions().y();
+   const IndexType& xSize = this->mesh->getSizes().x();
+   const IndexType& ySize = this->mesh->getSizes().y();
    const RealType hx = this->mesh->getParametricStep().x();
    const RealType hy = this->mesh->getParametricStep().y();
 

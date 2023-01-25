@@ -100,8 +100,8 @@ void run( const GridType& globalGrid, const Config::ParameterContainer& paramete
       CoordinatesType globalBegin;
       CoordinatesType localSize;
       for( int i = 0; i < GridType::getMeshDimension(); i++ ) {
-         const auto numberOfLarger = globalGrid.getDimensions()[ i ] % decomposition[ i ];
-         localSize[ i ] = globalGrid.getDimensions()[ i ] / decomposition[ i ];
+         const auto numberOfLarger = globalGrid.getSizes()[ i ] % decomposition[ i ];
+         localSize[ i ] = globalGrid.getSizes()[ i ] / decomposition[ i ];
          if( numberOfLarger > rank_coordinates[ i ] )
             ++localSize[ i ];
 

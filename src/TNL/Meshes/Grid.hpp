@@ -31,9 +31,9 @@ Grid< Dimension, Real, Device, Index >::getMeshDimension()
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-Grid< Dimension, Real, Device, Index >::Grid( const CoordinatesType& dimensions )
+Grid< Dimension, Real, Device, Index >::Grid( const CoordinatesType& sizes )
 {
-   setDimensions( dimensions );
+   setSizes( sizes );
 
    proportions = 0;
    spaceSteps = 0;
@@ -58,26 +58,26 @@ Grid< Dimension, Real, Device, Index >::getEntityOrientationsCount( IndexType en
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void
-Grid< Dimension, Real, Device, Index >::setDimensions(
-   const typename Grid< Dimension, Real, Device, Index >::CoordinatesType& dimensions )
+Grid< Dimension, Real, Device, Index >::setSizes(
+   const typename Grid< Dimension, Real, Device, Index >::CoordinatesType& sizes )
 {
-   TNL_ASSERT_GE( this->dimensions, CoordinatesType( 0 ), "Dimension must be positive" );
-   this->dimensions = dimensions;
+   TNL_ASSERT_GE( sizes, CoordinatesType( 0 ), "Sizes must be positive" );
+   this->sizes = sizes;
    setEntitiesIndexesOffsets();
    setCoordinatesMultiplicators();
    fillSpaceSteps();
    this->localBegin = 0;
-   this->localEnd = this->getDimensions();
+   this->localEnd = this->getSizes();
    this->interiorBegin = 1;
-   this->interiorEnd = this->getDimensions() - 1;
+   this->interiorEnd = this->getSizes() - 1;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
 const typename Grid< Dimension, Real, Device, Index >::CoordinatesType&
-Grid< Dimension, Real, Device, Index >::getDimensions() const noexcept
+Grid< Dimension, Real, Device, Index >::getSizes() const noexcept
 {
-   return this->dimensions;
+   return this->sizes;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -219,7 +219,7 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
    } else
       totalOrientationIndex = EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( 0 );
 
-   const CoordinatesType dims = this->getDimensions() + getNormals( totalOrientationIndex );
+   const CoordinatesType dims = this->getSizes() + getNormals( totalOrientationIndex );
    CoordinatesType entityCoordinates( 0 );
    int idx = 0;
    while( idx < this->getMeshDimension() - 1 ) {
@@ -280,7 +280,7 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::traverseAll( Func func, FuncArgs... args ) const
 {
-   this->traverseAll< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
+   this->traverseAll< EntityDimension >( CoordinatesType( 0 ), this->getSizes(), func, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -291,8 +291,8 @@ Grid< Dimension, Real, Device, Index >::traverseAll( const CoordinatesType& from
                                                      Func func,
                                                      FuncArgs... args ) const
 {
-   TNL_ASSERT_GE( from, CoordinatesType( 0 ), "Traverse rect must be in the grid dimensions" );
-   TNL_ASSERT_LE( to, this->getDimensions(), "Traverse rect be in the grid dimensions" );
+   TNL_ASSERT_GE( from, CoordinatesType( 0 ), "Traverse rect must be in the grid sizes" );
+   TNL_ASSERT_LE( to, this->getSizes(), "Traverse rect be in the grid sizes" );
    TNL_ASSERT_LE( from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor" );
 
    if constexpr( EntityDimension == getMeshDimension() )
@@ -315,7 +315,7 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::traverseInterior( Func func, FuncArgs... args ) const
 {
-   this->traverseInterior< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
+   this->traverseInterior< EntityDimension >( CoordinatesType( 0 ), this->getSizes(), func, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -326,8 +326,8 @@ Grid< Dimension, Real, Device, Index >::traverseInterior( const CoordinatesType&
                                                           Func func,
                                                           FuncArgs... args ) const
 {
-   TNL_ASSERT_GE( from, CoordinatesType( 0 ), "Traverse rect must be in the grid dimensions" );
-   TNL_ASSERT_LE( to, this->getDimensions(), "Traverse rect be in the grid dimensions" );
+   TNL_ASSERT_GE( from, CoordinatesType( 0 ), "Traverse rect must be in the grid sizes" );
+   TNL_ASSERT_LE( to, this->getSizes(), "Traverse rect be in the grid sizes" );
    TNL_ASSERT_LE( from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor" );
 
    auto exec = [ & ]( const Index orientation, const NormalsType& normals )
@@ -363,7 +363,7 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::traverseBoundary( Func func, FuncArgs... args ) const
 {
-   this->traverseBoundary< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
+   this->traverseBoundary< EntityDimension >( CoordinatesType( 0 ), this->getSizes(), func, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -447,11 +447,11 @@ Index
 Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) const
 {
    static_assert( Entity::getEntityDimension() <= Dimension && Entity::getEntityDimension() >= 0,
-                  "Wrong grid entity dimensions." );
+                  "Wrong grid entity sizes." );
    TNL_ASSERT_GE( entity.getTotalOrientationIndex(), 0, "Wrong total orientation index." );
    TNL_ASSERT_LT( entity.getTotalOrientationIndex(), EntitiesOrientations::getTotalOrientationsCount(), "Wrong total orientation index." );
    TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0 ), "Wrong entity coordinates" );
-   TNL_ASSERT_LT( entity.getCoordinates(), this->getDimensions() + entity.getNormals(), "Wrong entity coordinates" );
+   TNL_ASSERT_LT( entity.getCoordinates(), this->getSizes() + entity.getNormals(), "Wrong entity coordinates" );
 
    if constexpr( Entity::getEntityDimension() == Dimension )
    {
@@ -668,21 +668,21 @@ isBoundaryEntity( const Entity& entity ) const
       Algorithms::staticFor< IndexType, 0, Dimension >(
       [&] ( Index i ) mutable {
          if( coordinates[ i ] == 0 ||
-             coordinates[ i ] == this->getDimensions()[ i ] - 1 )
+             coordinates[ i ] == this->getSizes()[ i ] - 1 )
              result = true; // return true does not work here
       } );
    } else if constexpr( Entity::getEntityDimension() == 0 ) {
       Algorithms::staticFor< IndexType, 0, Dimension >(
       [&] ( Index i ) mutable {
          if( coordinates[ i ] == 0 ||
-             coordinates[ i ] == ( this->getDimensions()[ i ] ) )
+             coordinates[ i ] == ( this->getSizes()[ i ] ) )
              result = true; // return true does not work here
       } );
    } else {
       const auto& normals = entity.getNormals();
       Algorithms::staticFor< IndexType, 0, Dimension >(
          [&] ( Index i ) mutable {
-            if( normals[ i ] && ( coordinates[ i ] == 0 || coordinates[ i ] == this->getDimensions()[ i ] ) )
+            if( normals[ i ] && ( coordinates[ i ] == 0 || coordinates[ i ] == this->getSizes()[ i ] ) )
                 result = true; // return true does not work here
          } );
    }
@@ -757,7 +757,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 void
 Grid< Dimension, Real, Device, Index >::writeProlog( TNL::Logger& logger ) const noexcept
 {
-   logger.writeParameter( "Dimensions:", this->dimensions );
+   logger.writeParameter( "Sizes:", this->sizes );
 
    logger.writeParameter( "Origin:", this->origin );
    logger.writeParameter( "Proportions:", this->proportions );
@@ -780,7 +780,7 @@ void
 Grid< Dimension, Real, Device, Index >::
 setEntitiesIndexesOffsets()
 {
-   if( getDimensions() == 0 ) {
+   if( getSizes() == 0 ) {
       this->entitiesIndexesOffsets = 0;
       this->entitiesCounts = 0;
       return;
@@ -797,7 +797,7 @@ setEntitiesIndexesOffsets()
          const auto& normals = entitiesOrientations.getNormals( totalOrientationIdx );
          IndexType entitiesCount = 1;
          Algorithms::staticFor< IndexType, 0, Dimension >(
-            [&] ( Index i ) mutable { entitiesCount *= this->getDimensions()[ i ] + normals[ i ]; } );
+            [&] ( Index i ) mutable { entitiesCount *= this->getSizes()[ i ] + normals[ i ]; } );
          this->entitiesIndexesOffsets[ totalOrientationIdx + entityDimension + 1 ] =
             this->entitiesIndexesOffsets[ totalOrientationIdx + entityDimension ] + entitiesCount;
       }
@@ -815,7 +815,7 @@ setCoordinatesMultiplicators()
       const auto& normals = getNormals( totalOrientationIndex );
       multiplicators[ 0 ] = 1;
       for( IndexType i = 0; i < getMeshDimension()-1; i++ )
-         multiplicators[ i+1 ] = multiplicators[ i ] * ( this->getDimensions()[ i ] + normals[ i ] );
+         multiplicators[ i+1 ] = multiplicators[ i ] * ( this->getSizes()[ i ] + normals[ i ] );
    }
 }
 
@@ -827,7 +827,7 @@ Grid< Dimension, Real, Device, Index >::fillProportions()
    Index i = 0;
 
    while( i != Dimension ) {
-      this->proportions[ i ] = this->spaceSteps[ i ] * this->dimensions[ i ];
+      this->proportions[ i ] = this->spaceSteps[ i ] * this->sizes[ i ];
       i++;
    }
 }
@@ -839,7 +839,7 @@ Grid< Dimension, Real, Device, Index >::fillSpaceSteps()
    bool hasAnyInvalidDimension = false;
 
    for( Index i = 0; i < Dimension; i++ ) {
-      if( this->dimensions[ i ] <= 0 ) {
+      if( this->sizes[ i ] <= 0 ) {
          hasAnyInvalidDimension = true;
          break;
       }
@@ -847,7 +847,7 @@ Grid< Dimension, Real, Device, Index >::fillSpaceSteps()
 
    if( ! hasAnyInvalidDimension ) {
       for( Index i = 0; i < Dimension; i++ )
-         this->spaceSteps[ i ] = this->proportions[ i ] / this->dimensions[ i ];
+         this->spaceSteps[ i ] = this->proportions[ i ] / this->sizes[ i ];
    }
 }
 
@@ -856,7 +856,7 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forAllEntities( Func function, FuncArgs... args ) const
 {
-   this->forEntities< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), function, args... );
+   this->forEntities< EntityDimension >( CoordinatesType( 0 ), this->getSizes(), function, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -888,7 +888,7 @@ Grid< Dimension, Real, Device, Index >::forEntities( const CoordinatesType& begi
          entity.setGrid( grid );
          TNL_ASSERT_LT( entity.getTotalOrientationIndex(), EntitiesOrientations::getTotalOrientationsCount(), "" );
 
-         if( entity.getCoordinates() < grid.getDimensions() + entity.getNormals() ) {
+         if( entity.getCoordinates() < grid.getSizes() + entity.getNormals() ) {
             entity.refresh();
             function( entity, args... );
          }
@@ -931,7 +931,7 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forBoundaryEntities( Func func, FuncArgs... args ) const
 {
-   this->forBoundaryEntities< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
+   this->forBoundaryEntities< EntityDimension >( CoordinatesType( 0 ), this->getSizes(), func, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -1015,7 +1015,7 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
          func( entity, args... );
       };
       Algorithms::ParallelForND< Device, false >::exec( GridEntityType( CoordinatesType( 1 ) ),
-                                                        GridEntityType( CoordinatesType( this->getDimensions() - CoordinatesType( EntityDimension != 0 ) ) ),
+                                                        GridEntityType( CoordinatesType( this->getSizes() - CoordinatesType( EntityDimension != 0 ) ) ),
                                                         exec, *this, args...);
    }
    else
@@ -1030,7 +1030,7 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
          const CoordinatesType& coordinates = entity.getCoordinates();
          Algorithms::staticFor< IndexType, 0, getMeshDimension() >(
          [&] ( Index i ) mutable {
-            if( coordinates[ i ] == grid.getDimensions()[ i ] || ( normals[ i ] && ( coordinates[ i ] == 0 ) ) )
+            if( coordinates[ i ] == grid.getSizes()[ i ] || ( normals[ i ] && ( coordinates[ i ] == 0 ) ) )
                 process_entity = false;
          } );
 
@@ -1043,7 +1043,7 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
       const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
       const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount );
       GridEntityType begin( CoordinatesType( 0 ) );
-      GridEntityType end( CoordinatesType( this->getDimensions() ) );
+      GridEntityType end( CoordinatesType( this->getSizes() ) );
       begin[ Grid::getMeshDimension() ] = totalOrientationsBegin;
       end[ Grid::getMeshDimension() ] = totalOrientationsEnd;
       Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );*/
@@ -1062,7 +1062,7 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
             func( entity, args... );
          };
          GridEntityType begin( entitiesOrientations.getNormals( totalOrientationIdx ) );
-         GridEntityType end( CoordinatesType( this->getDimensions() ) );
+         GridEntityType end( CoordinatesType( this->getSizes() ) );
          /*if constexpr( Devices::isCuda< Device >() ) {
 #ifdef __CUDACC__
             cudaStream_t stream;

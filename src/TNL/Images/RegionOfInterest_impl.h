@@ -131,15 +131,15 @@ template< typename Grid >
 bool
 RegionOfInterest< Index >::setGrid( Grid& grid, bool verbose )
 {
-   grid.setDimensions( {this->getWidth(), this->getHeight()} );
+   grid.setSizes( {this->getWidth(), this->getHeight()} );
    typename Grid::PointType origin, proportions;
    origin.x() = 0.0;
    origin.y() = 0.0;
    proportions.x() = 1.0;
-   proportions.y() = (double) grid.getDimensions().y() / (double) grid.getDimensions().x();
+   proportions.y() = (double) grid.getSizes().y() / (double) grid.getSizes().x();
    grid.setDomain( origin, proportions );
    if( verbose ) {
-      std::cout << "Setting grid to dimensions " << grid.getDimensions() << " and proportions " << grid.getProportions()
+      std::cout << "Setting grid to dimensions " << grid.getSizes() << " and proportions " << grid.getProportions()
                 << std::endl;
    }
    return true;

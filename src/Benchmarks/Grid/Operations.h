@@ -79,7 +79,7 @@ struct GetMeshDimensionOperation {
       template<typename Entity>
       __cuda_callable__ inline
       static void exec(Entity& entity) {
-         typename Entity::GridType::CoordinatesType coordinate = entity.getMesh().getDimensions();
+         typename Entity::GridType::CoordinatesType coordinate = entity.getMesh().getSizes();
 
          coordinate.x() += 1;
       }

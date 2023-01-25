@@ -81,7 +81,7 @@ void traverseGrid()
          sum += cells_view[ face.template getEntityIndex< Dimension >( -normal, 0 ) ];
          count++;
       }
-      if( face.getCoordinates() < face.getGrid().getDimensions() ) {
+      if( face.getCoordinates() < face.getGrid().getSizes() ) {
          sum += cells_view[ face.template getEntityIndex< Dimension >( { 0, 0 }, 0 ) ];
          count++;
       }
@@ -115,7 +115,7 @@ void traverseGrid()
    grid.template forAllEntities< 0 >( [=] __cuda_callable__ ( const GridVertex& vertex ) mutable {
       double sum = 0.0;
       double count = 0.0;
-      auto grid_dimensions = vertex.getGrid().getDimensions();
+      auto grid_dimensions = vertex.getGrid().getSizes();
       if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() > 0 ) {
          sum += cells_view[ vertex.template getEntityIndex< Dimension >( { -1,-1 }, 0 ) ];
          count++;
@@ -128,7 +128,7 @@ void traverseGrid()
          sum += cells_view[ vertex.template getEntityIndex< Dimension >( { 0,-1 }, 0 ) ];
          count++;
       }
-      if( vertex.getCoordinates() < vertex.getGrid().getDimensions() ) {
+      if( vertex.getCoordinates() < vertex.getGrid().getSizes() ) {
          sum += cells_view[ vertex.template getEntityIndex< Dimension >( {0,0}, 0 ) ];
          count++;
       }

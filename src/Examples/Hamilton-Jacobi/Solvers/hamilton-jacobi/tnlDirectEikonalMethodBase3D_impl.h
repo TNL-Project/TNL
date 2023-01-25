@@ -16,9 +16,9 @@ initInterface( const MeshFunctionPointer& _input,
     const MeshType& mesh = _input->getMesh();
     
     const int cudaBlockSize( 8 );
-    int numBlocksX = Cuda::getNumberOfBlocks( mesh.getDimensions().x(), cudaBlockSize );
-    int numBlocksY = Cuda::getNumberOfBlocks( mesh.getDimensions().y(), cudaBlockSize );
-    int numBlocksZ = Cuda::getNumberOfBlocks( mesh.getDimensions().z(), cudaBlockSize );
+    int numBlocksX = Cuda::getNumberOfBlocks( mesh.getSizes().x(), cudaBlockSize );
+    int numBlocksY = Cuda::getNumberOfBlocks( mesh.getSizes().y(), cudaBlockSize );
+    int numBlocksZ = Cuda::getNumberOfBlocks( mesh.getSizes().z(), cudaBlockSize );
     if( cudaBlockSize * cudaBlockSize * cudaBlockSize > 1024 || numBlocksX > 1024 || numBlocksY > 1024 || numBlocksZ > 64 )
       std::cout << "Invalid kernel call. Dimensions of grid are max: [1024,1024,64], and maximum threads per block are 1024!" << std::endl;
     dim3 blockSize( cudaBlockSize, cudaBlockSize, cudaBlockSize );
@@ -42,13 +42,13 @@ initInterface( const MeshFunctionPointer& _input,
     
     Cell cell( mesh );
     for( cell.getCoordinates().z() = 0;
-            cell.getCoordinates().z() < mesh.getDimensions().z();
+            cell.getCoordinates().z() < mesh.getSizes().z();
             cell.getCoordinates().z() ++ )
       for( cell.getCoordinates().y() = 0;
-              cell.getCoordinates().y() < mesh.getDimensions().y();
+              cell.getCoordinates().y() < mesh.getSizes().y();
               cell.getCoordinates().y() ++ )
         for( cell.getCoordinates().x() = 0;
-                cell.getCoordinates().x() < mesh.getDimensions().x();
+                cell.getCoordinates().x() < mesh.getSizes().x();
                 cell.getCoordinates().x() ++ )
         {
           cell.refresh();
@@ -62,13 +62,13 @@ initInterface( const MeshFunctionPointer& _input,
     const RealType& hy = mesh.getSpaceSteps().y();
     const RealType& hz = mesh.getSpaceSteps().z();
     for( cell.getCoordinates().z() = 0 + vLower[2];
-            cell.getCoordinates().z() < mesh.getDimensions().z() - vUpper[2];
+            cell.getCoordinates().z() < mesh.getSizes().z() - vUpper[2];
             cell.getCoordinates().z() ++ )   
       for( cell.getCoordinates().y() = 0 + vLower[1];
-              cell.getCoordinates().y() < mesh.getDimensions().y() - vUpper[1];
+              cell.getCoordinates().y() < mesh.getSizes().y() - vUpper[1];
               cell.getCoordinates().y() ++ )
         for( cell.getCoordinates().x() = 0 + vLower[0];
-                cell.getCoordinates().x() < mesh.getDimensions().x() - vUpper[0];
+                cell.getCoordinates().x() < mesh.getSizes().x() - vUpper[0];
                 cell.getCoordinates().x() ++ )
         {
           cell.refresh();
@@ -149,7 +149,7 @@ updateCell( MeshFunctionType& u,
   
   if( cell.getCoordinates().x() == 0 )
     a = u[ neighborEntities.template getEntityIndex< 1, 0, 0 >() ];
-  else if( cell.getCoordinates().x() == mesh.getDimensions().x() - 1 )
+  else if( cell.getCoordinates().x() == mesh.getSizes().x() - 1 )
     a = u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ];
   else
   {
@@ -159,7 +159,7 @@ updateCell( MeshFunctionType& u,
   
   if( cell.getCoordinates().y() == 0 )
     b = u[ neighborEntities.template getEntityIndex< 0, 1, 0 >() ];
-  else if( cell.getCoordinates().y() == mesh.getDimensions().y() - 1 )
+  else if( cell.getCoordinates().y() == mesh.getSizes().y() - 1 )
     b = u[ neighborEntities.template getEntityIndex< 0, -1, 0 >() ];
   else
   {
@@ -169,7 +169,7 @@ updateCell( MeshFunctionType& u,
   
   if( cell.getCoordinates().z() == 0 )
     c = u[ neighborEntities.template getEntityIndex< 0, 0, 1 >() ];
-  else if( cell.getCoordinates().z() == mesh.getDimensions().z() - 1 )
+  else if( cell.getCoordinates().z() == mesh.getSizes().z() - 1 )
     c = u[ neighborEntities.template getEntityIndex< 0, 0, -1 >() ];
   else
   {
@@ -385,7 +385,7 @@ __global__ void CudaInitCaller3d( const Functions::MeshFunctionView< Meshes::Gri
   int k = blockDim.z*blockIdx.z + threadIdx.z;
   const Meshes::Grid< 3, Real, Device, Index >& mesh = input.template getMesh< Devices::Cuda >();
   
-  if( i < mesh.getDimensions().x() && j < mesh.getDimensions().y() && k < mesh.getDimensions().z() )
+  if( i < mesh.getSizes().x() && j < mesh.getSizes().y() && k < mesh.getSizes().z() )
   {
     typedef typename Meshes::Grid< 3, Real, Device, Index >::Cell Cell;
     Cell cell( mesh );
@@ -400,8 +400,8 @@ __global__ void CudaInitCaller3d( const Functions::MeshFunctionView< Meshes::Gri
     interfaceMap[ cind ] = false; 
     cell.refresh();
     
-    if( i < mesh.getDimensions().x() - vUpper[0] && j < mesh.getDimensions().y() - vUpper[1] &&
-            k < mesh.getDimensions().y() - vUpper[2] && i>vLower[0]-1 && j> vLower[1]-1 && k>vLower[2]-1 )
+    if( i < mesh.getSizes().x() - vUpper[0] && j < mesh.getSizes().y() - vUpper[1] &&
+            k < mesh.getSizes().y() - vUpper[2] && i>vLower[0]-1 && j> vLower[1]-1 && k>vLower[2]-1 )
     {
       const Real& hx = mesh.getSpaceSteps().x();
       const Real& hy = mesh.getSpaceSteps().y();
@@ -536,9 +536,9 @@ __global__ void CudaUpdateCellCaller( tnlDirectEikonalMethodsBase< Meshes::Grid<
       changed[ 0 ] = true; // first indicates weather we should calculate again (princip of parallel reduction)
     
     //getting stepps and size of mesh
-    const Real hx = mesh.getSpaceSteps().x(); const int dimX = mesh.getDimensions().x(); 
-    const Real hy = mesh.getSpaceSteps().y(); const int dimY = mesh.getDimensions().y();
-    const Real hz = mesh.getSpaceSteps().z(); const int dimZ  = mesh.getDimensions().z();
+    const Real hx = mesh.getSpaceSteps().x(); const int dimX = mesh.getSizes().x(); 
+    const Real hy = mesh.getSpaceSteps().y(); const int dimY = mesh.getSizes().y();
+    const Real hz = mesh.getSpaceSteps().z(); const int dimZ  = mesh.getSizes().z();
     
     if( thrj == 1 && thri == 1 && thrk == 1 )
     {
@@ -708,10 +708,10 @@ __global__ void CudaUpdateCellCaller( tnlDirectEikonalMethodsBase< Meshes::Grid<
   }
   else // if not, then it should at least copy the values from aux to helpFunc.
   {
-    if( i < mesh.getDimensions().x() - vecUpperOverlaps[0] && j < mesh.getDimensions().y() - vecUpperOverlaps[1]
-            && k < mesh.getDimensions().z() - vecUpperOverlaps[2])
-      helpFunc[ k * mesh.getDimensions().x() * mesh.getDimensions().y() + j * mesh.getDimensions().x() + i ] =
-              aux[ k * mesh.getDimensions().x() * mesh.getDimensions().y() + j * mesh.getDimensions().x() + i ];
+    if( i < mesh.getSizes().x() - vecUpperOverlaps[0] && j < mesh.getSizes().y() - vecUpperOverlaps[1]
+            && k < mesh.getSizes().z() - vecUpperOverlaps[2])
+      helpFunc[ k * mesh.getSizes().x() * mesh.getSizes().y() + j * mesh.getSizes().x() + i ] =
+              aux[ k * mesh.getSizes().x() * mesh.getSizes().y() + j * mesh.getSizes().x() + i ];
   }
 }  
 #endif
@@ -736,8 +736,8 @@ updateBlocks( const InterfaceMapType interfaceMap,
     {
       MeshType mesh = interfaceMap.template getMesh< Devices::Host >();
       
-      int dimX = mesh.getDimensions().x(); int dimY = mesh.getDimensions().y();
-      int dimZ = mesh.getDimensions().z();
+      int dimX = mesh.getSizes().x(); int dimY = mesh.getSizes().y();
+      int dimZ = mesh.getSizes().z();
       //std::cout << "dimX = " << dimX << " ,dimY = " << dimY << std::endl;
       int numOfBlocky = dimY/numThreadsPerBlock + ((dimY%numThreadsPerBlock != 0) ? 1:0);
       int numOfBlockx = dimX/numThreadsPerBlock + ((dimX%numThreadsPerBlock != 0) ? 1:0);

@@ -242,7 +242,7 @@ class DensityBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshIn
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
@@ -251,7 +251,7 @@ class DensityBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshIn
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }
          // The following line is commented to avoid compiler warning
-         //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         //if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
          }         
@@ -288,7 +288,7 @@ class DensityBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshIn
             b[ index ] = entity.getMesh().getSpaceSteps().x() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< -1, 0 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                 1.0 );
@@ -302,7 +302,7 @@ class DensityBoundaryConditionsCavity< Meshes::Grid< 2, MeshReal, Device, MeshIn
             b[ index ] = entity.getMesh().getSpaceSteps().y() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, -1 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                 1.0 );
@@ -387,7 +387,7 @@ class DensityBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshIn
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
@@ -395,7 +395,7 @@ class DensityBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshIn
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
-         if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
@@ -404,7 +404,7 @@ class DensityBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshIn
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          // The following line is commented to avoid compiler warning
-         //if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
+         //if( entity.getCoordinates().z() == entity.getMesh().getSizes().z() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }   
@@ -442,7 +442,7 @@ class DensityBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshIn
             b[ index ] = entity.getMesh().getSpaceSteps().x() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< -1, 0, 0 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                    1.0 );
@@ -456,7 +456,7 @@ class DensityBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshIn
             b[ index ] = entity.getMesh().getSpaceSteps().y() * 
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, -1, 0 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                    1.0 );
@@ -470,7 +470,7 @@ class DensityBoundaryConditionsCavity< Meshes::Grid< 3, MeshReal, Device, MeshIn
             b[ index ] = entity.getMesh().getSpaceSteps().z() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
+         if( entity.getCoordinates().z() == entity.getMesh().getSizes().z() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, 0, -1 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                    1.0 );

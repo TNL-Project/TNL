@@ -66,7 +66,7 @@ solve( const Meshes::DistributedMeshes::DistributedMesh< MeshType >& distributed
       if( std::is_same< DeviceType, Devices::Host >::value )
       {
           for( cell.getCoordinates().x() = 0;
-               cell.getCoordinates().x() < mesh->getDimensions().x();
+               cell.getCoordinates().x() < mesh->getSizes().x();
                cell.getCoordinates().x()++ )
              {
                 cell.refresh();
@@ -75,7 +75,7 @@ solve( const Meshes::DistributedMeshes::DistributedMesh< MeshType >& distributed
              }
 
 
-        for( cell.getCoordinates().x() = mesh->getDimensions().x() - 1;
+        for( cell.getCoordinates().x() = mesh->getSizes().x() - 1;
              cell.getCoordinates().x() >= 0 ;
              cell.getCoordinates().x()-- )
            {
@@ -89,7 +89,7 @@ solve( const Meshes::DistributedMeshes::DistributedMesh< MeshType >& distributed
          // TODO: CUDA code
 #ifdef __CUDACC__
           const int cudaBlockSize( 16 );
-          int numBlocksX = Cuda::getNumberOfBlocks( mesh->getDimensions().x(), cudaBlockSize );
+          int numBlocksX = Cuda::getNumberOfBlocks( mesh->getSizes().x(), cudaBlockSize );
           dim3 blockSize( cudaBlockSize );
           dim3 gridSize( numBlocksX );
 
@@ -162,7 +162,7 @@ __global__ void CudaUpdateCellCaller( tnlDirectEikonalMethodsBase< Meshes::Grid<
     sArray[thri] = std::numeric_limits<  Real >::max();
 
     //filling sArray edges
-    int dimX = mesh.getDimensions().x();
+    int dimX = mesh.getSizes().x();
     __shared__ volatile int numOfBlockx;
     __shared__ int xkolik;
     if( thri == 0 )
@@ -192,7 +192,7 @@ __global__ void CudaUpdateCellCaller( tnlDirectEikonalMethodsBase< Meshes::Grid<
     }
 
 
-    if( i < mesh.getDimensions().x() )
+    if( i < mesh.getSizes().x() )
     {
         sArray[thri+1] = aux[ i ];
     }
@@ -205,7 +205,7 @@ __global__ void CudaUpdateCellCaller( tnlDirectEikonalMethodsBase< Meshes::Grid<
         changed[ thri ] = false;
 
     //calculation of update cell
-        if( i < mesh.getDimensions().x() )
+        if( i < mesh.getSizes().x() )
         {
             if( ! interfaceMap[ i ] )
             {
@@ -228,7 +228,7 @@ __global__ void CudaUpdateCellCaller( tnlDirectEikonalMethodsBase< Meshes::Grid<
         __syncthreads();
     }
 
-    if( i < mesh.getDimensions().x()  && (!interfaceMap[ i ]) )
+    if( i < mesh.getSizes().x()  && (!interfaceMap[ i ]) )
         aux[ i ] = sArray[ thri + 1 ];
 }
 #endif

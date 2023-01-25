@@ -103,8 +103,8 @@ public:
       const MeshType& grid = function.getMesh();
       EntityType entity( grid, { 0, 0 } );
       auto& c = entity.getCoordinates();
-      for( c.y() = 0; c.y() < grid.getDimensions().y(); c.y()++ ) {
-         for( c.x() = 0; c.x() < grid.getDimensions().x(); c.x()++ ) {
+      for( c.y() = 0; c.y() < grid.getSizes().y(); c.y()++ ) {
+         for( c.x() = 0; c.x() < grid.getSizes().x(); c.x()++ ) {
             entity.refresh();
             typename MeshType::PointType v = center< EntityType >::get( entity );
             // std::cerr << entity.getCoordinates() << " -> " << v << std::endl;
@@ -133,9 +133,9 @@ public:
       const MeshType& grid = function.getMesh();
       EntityType entity( grid, { 0, 0 } );
       auto& c = entity.getCoordinates();
-      for( c.z() = 0; c.z() < grid.getDimensions().z(); c.z()++ )
-         for( c.y() = 0; c.y() < grid.getDimensions().y(); c.y()++ ) {
-            for( c.x() = 0; c.x() < grid.getDimensions().x(); c.x()++ ) {
+      for( c.z() = 0; c.z() < grid.getSizes().z(); c.z()++ )
+         for( c.y() = 0; c.y() < grid.getSizes().y(); c.y()++ ) {
+            for( c.x() = 0; c.x() < grid.getSizes().x(); c.x()++ ) {
                entity.refresh();
                typename MeshType::PointType v = center< EntityType >::get( entity );
                for( int j = 0; j < v.getSize(); j++ )

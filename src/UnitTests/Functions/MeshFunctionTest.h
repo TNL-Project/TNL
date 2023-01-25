@@ -20,7 +20,7 @@ TEST( MeshFunctionTest, OstreamOperatorTest )
    using CoordinatesType = typename GridType::CoordinatesType;
    using MeshFunctionType = TNL::Functions::MeshFunction< GridType >;
    GridPointer grid;
-   grid->setDimensions( CoordinatesType( 3, 3 ) );
+   grid->setSizes( CoordinatesType( 3, 3 ) );
    MeshFunctionType meshFunction( grid );
    meshFunction.getData().setValue( 1.0 );
 

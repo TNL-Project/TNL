@@ -99,7 +99,7 @@ solve( const Meshes::DistributedMeshes::DistributedMesh< MeshType >& distributed
 /** HERE IS FSM FOR OPENMP (NO MPI) - isnt worthy */
         /*int numThreadsPerBlock = -1;
 
-         numThreadsPerBlock = ( mesh->getDimensions().x()/2 + (mesh->getDimensions().x() % 2 != 0 ? 1:0));
+         numThreadsPerBlock = ( mesh->getSizes().x()/2 + (mesh->getSizes().x() % 2 != 0 ? 1:0));
          //printf("numThreadsPerBlock = %d\n", numThreadsPerBlock);
          if( numThreadsPerBlock <= 16 )
          numThreadsPerBlock = 16;
@@ -122,9 +122,9 @@ solve( const Meshes::DistributedMeshes::DistributedMesh< MeshType >& distributed
          break;
          }
 
-         int numBlocksX = mesh->getDimensions().x() / numThreadsPerBlock + (mesh->getDimensions().x() % numThreadsPerBlock != 0 ? 1:0);
-         int numBlocksY = mesh->getDimensions().y() / numThreadsPerBlock + (mesh->getDimensions().y() % numThreadsPerBlock != 0 ? 1:0);
-         int numBlocksZ = mesh->getDimensions().z() / numThreadsPerBlock + (mesh->getDimensions().z() % numThreadsPerBlock != 0 ? 1:0);
+         int numBlocksX = mesh->getSizes().x() / numThreadsPerBlock + (mesh->getSizes().x() % numThreadsPerBlock != 0 ? 1:0);
+         int numBlocksY = mesh->getSizes().y() / numThreadsPerBlock + (mesh->getSizes().y() % numThreadsPerBlock != 0 ? 1:0);
+         int numBlocksZ = mesh->getSizes().z() / numThreadsPerBlock + (mesh->getSizes().z() % numThreadsPerBlock != 0 ? 1:0);
          //std::cout << "numBlocksX = " << numBlocksX << std::endl;
 
          //Real **sArray = new Real*[numBlocksX*numBlocksY];
@@ -198,51 +198,51 @@ solve( const Meshes::DistributedMeshes::DistributedMesh< MeshType >& distributed
         StaticVector boundsFrom; StaticVector boundsTo;
 
     // TOP, NORTH and EAST
-        boundsFrom[2] = vecLowerOverlaps[2]; boundsTo[2] = mesh->getDimensions().z() - vecUpperOverlaps[2];
-        boundsFrom[1] = vecLowerOverlaps[1]; boundsTo[1] = mesh->getDimensions().y() - vecUpperOverlaps[1];
-        boundsFrom[0] = vecLowerOverlaps[0]; boundsTo[0] = mesh->getDimensions().x() - vecUpperOverlaps[0];
+        boundsFrom[2] = vecLowerOverlaps[2]; boundsTo[2] = mesh->getSizes().z() - vecUpperOverlaps[2];
+        boundsFrom[1] = vecLowerOverlaps[1]; boundsTo[1] = mesh->getSizes().y() - vecUpperOverlaps[1];
+        boundsFrom[0] = vecLowerOverlaps[0]; boundsTo[0] = mesh->getSizes().x() - vecUpperOverlaps[0];
         calculatedBefore = goThroughSweep( boundsFrom, boundsTo, aux, interfaceMap, anisotropy );
 
     // TOP, NORTH and WEST
-        boundsFrom[2] = vecLowerOverlaps[2]; boundsTo[2] = mesh->getDimensions().z() - vecUpperOverlaps[2];
-        boundsFrom[1] = vecLowerOverlaps[1]; boundsTo[1] = mesh->getDimensions().y() - vecUpperOverlaps[1];
-        boundsFrom[0] = mesh->getDimensions().x() - 1 - vecUpperOverlaps[0]; boundsTo[0] = - 1 + vecLowerOverlaps[0];
+        boundsFrom[2] = vecLowerOverlaps[2]; boundsTo[2] = mesh->getSizes().z() - vecUpperOverlaps[2];
+        boundsFrom[1] = vecLowerOverlaps[1]; boundsTo[1] = mesh->getSizes().y() - vecUpperOverlaps[1];
+        boundsFrom[0] = mesh->getSizes().x() - 1 - vecUpperOverlaps[0]; boundsTo[0] = - 1 + vecLowerOverlaps[0];
         goThroughSweep( boundsFrom, boundsTo, aux, interfaceMap, anisotropy );
 
     // TOP, SOUTH and EAST
-        boundsFrom[2] = vecLowerOverlaps[2]; boundsTo[2] = mesh->getDimensions().z() - vecUpperOverlaps[2];
-        boundsFrom[1] = mesh->getDimensions().y() - 1 - vecUpperOverlaps[1]; boundsTo[1] = - 1 + vecLowerOverlaps[1];
-        boundsFrom[0] = vecLowerOverlaps[0]; boundsTo[0] = mesh->getDimensions().x() - vecUpperOverlaps[0];
+        boundsFrom[2] = vecLowerOverlaps[2]; boundsTo[2] = mesh->getSizes().z() - vecUpperOverlaps[2];
+        boundsFrom[1] = mesh->getSizes().y() - 1 - vecUpperOverlaps[1]; boundsTo[1] = - 1 + vecLowerOverlaps[1];
+        boundsFrom[0] = vecLowerOverlaps[0]; boundsTo[0] = mesh->getSizes().x() - vecUpperOverlaps[0];
         goThroughSweep( boundsFrom, boundsTo, aux, interfaceMap, anisotropy );
 
     // TOP, SOUTH and WEST
-        boundsFrom[2] = vecLowerOverlaps[2]; boundsTo[2] = mesh->getDimensions().z() - vecUpperOverlaps[2];
-        boundsFrom[1] = mesh->getDimensions().y() - 1 - vecUpperOverlaps[1]; boundsTo[1] = - 1 + vecLowerOverlaps[1];
-        boundsFrom[0] = mesh->getDimensions().x() - 1 - vecUpperOverlaps[0]; boundsTo[0] = - 1 + vecLowerOverlaps[0];
+        boundsFrom[2] = vecLowerOverlaps[2]; boundsTo[2] = mesh->getSizes().z() - vecUpperOverlaps[2];
+        boundsFrom[1] = mesh->getSizes().y() - 1 - vecUpperOverlaps[1]; boundsTo[1] = - 1 + vecLowerOverlaps[1];
+        boundsFrom[0] = mesh->getSizes().x() - 1 - vecUpperOverlaps[0]; boundsTo[0] = - 1 + vecLowerOverlaps[0];
         goThroughSweep( boundsFrom, boundsTo, aux, interfaceMap, anisotropy );
 
     // BOTTOM, NOTH and EAST
-        boundsFrom[2] = mesh->getDimensions().z() - 1 - vecUpperOverlaps[2]; boundsTo[2] = - 1 + vecLowerOverlaps[2];
-        boundsFrom[1] = vecLowerOverlaps[1]; boundsTo[1] = mesh->getDimensions().y() - vecUpperOverlaps[1];
-        boundsFrom[0] = vecLowerOverlaps[0]; boundsTo[0] = mesh->getDimensions().x() - vecUpperOverlaps[0];
+        boundsFrom[2] = mesh->getSizes().z() - 1 - vecUpperOverlaps[2]; boundsTo[2] = - 1 + vecLowerOverlaps[2];
+        boundsFrom[1] = vecLowerOverlaps[1]; boundsTo[1] = mesh->getSizes().y() - vecUpperOverlaps[1];
+        boundsFrom[0] = vecLowerOverlaps[0]; boundsTo[0] = mesh->getSizes().x() - vecUpperOverlaps[0];
         goThroughSweep( boundsFrom, boundsTo, aux, interfaceMap, anisotropy );
 
     // BOTTOM, NOTH and WEST
-        boundsFrom[2] = mesh->getDimensions().z() - 1 - vecUpperOverlaps[2]; boundsTo[2] = - 1 + vecLowerOverlaps[2];
-        boundsFrom[1] = vecLowerOverlaps[1]; boundsTo[1] = mesh->getDimensions().y() - vecUpperOverlaps[1];
-        boundsFrom[0] = mesh->getDimensions().x() - 1 - vecUpperOverlaps[0]; boundsTo[0] = - 1 + vecLowerOverlaps[0];
+        boundsFrom[2] = mesh->getSizes().z() - 1 - vecUpperOverlaps[2]; boundsTo[2] = - 1 + vecLowerOverlaps[2];
+        boundsFrom[1] = vecLowerOverlaps[1]; boundsTo[1] = mesh->getSizes().y() - vecUpperOverlaps[1];
+        boundsFrom[0] = mesh->getSizes().x() - 1 - vecUpperOverlaps[0]; boundsTo[0] = - 1 + vecLowerOverlaps[0];
         goThroughSweep( boundsFrom, boundsTo, aux, interfaceMap, anisotropy );
 
     // BOTTOM, SOUTH and EAST
-        boundsFrom[2] = mesh->getDimensions().z() - 1 - vecUpperOverlaps[2]; boundsTo[2] = - 1 + vecLowerOverlaps[2];
-        boundsFrom[1] = mesh->getDimensions().y() - 1 - vecUpperOverlaps[1]; boundsTo[1] = - 1 + vecLowerOverlaps[1];
-        boundsFrom[0] = vecLowerOverlaps[0]; boundsTo[0] = mesh->getDimensions().x() - vecUpperOverlaps[0];
+        boundsFrom[2] = mesh->getSizes().z() - 1 - vecUpperOverlaps[2]; boundsTo[2] = - 1 + vecLowerOverlaps[2];
+        boundsFrom[1] = mesh->getSizes().y() - 1 - vecUpperOverlaps[1]; boundsTo[1] = - 1 + vecLowerOverlaps[1];
+        boundsFrom[0] = vecLowerOverlaps[0]; boundsTo[0] = mesh->getSizes().x() - vecUpperOverlaps[0];
         goThroughSweep( boundsFrom, boundsTo, aux, interfaceMap, anisotropy );
 
     // BOTTOM, SOUTH and WEST
-        boundsFrom[2] = mesh->getDimensions().z() - 1 - vecUpperOverlaps[2]; boundsTo[2] = - 1 + vecLowerOverlaps[2];
-        boundsFrom[1] = mesh->getDimensions().y() - 1 - vecUpperOverlaps[1]; boundsTo[1] = - 1 + vecLowerOverlaps[1];
-        boundsFrom[0] = mesh->getDimensions().x() - 1 - vecUpperOverlaps[0]; boundsTo[0] = - 1 + vecLowerOverlaps[0];
+        boundsFrom[2] = mesh->getSizes().z() - 1 - vecUpperOverlaps[2]; boundsTo[2] = - 1 + vecLowerOverlaps[2];
+        boundsFrom[1] = mesh->getSizes().y() - 1 - vecUpperOverlaps[1]; boundsTo[1] = - 1 + vecLowerOverlaps[1];
+        boundsFrom[0] = mesh->getSizes().x() - 1 - vecUpperOverlaps[0]; boundsTo[0] = - 1 + vecLowerOverlaps[0];
         goThroughSweep( boundsFrom, boundsTo, aux, interfaceMap, anisotropy );
 
 
@@ -257,9 +257,9 @@ solve( const Meshes::DistributedMeshes::DistributedMesh< MeshType >& distributed
         const int cudaBlockSize( 8 );
 
         // Getting the number of blocks in grid in each direction (without overlaps bcs we dont calculate on overlaps)
-        int numBlocksX = Cuda::getNumberOfBlocks( mesh->getDimensions().x() - vecLowerOverlaps[0] - vecUpperOverlaps[0], cudaBlockSize );
-        int numBlocksY = Cuda::getNumberOfBlocks( mesh->getDimensions().y() - vecLowerOverlaps[1] - vecUpperOverlaps[1], cudaBlockSize );
-        int numBlocksZ = Cuda::getNumberOfBlocks( mesh->getDimensions().z() - vecLowerOverlaps[2] - vecUpperOverlaps[2], cudaBlockSize );
+        int numBlocksX = Cuda::getNumberOfBlocks( mesh->getSizes().x() - vecLowerOverlaps[0] - vecUpperOverlaps[0], cudaBlockSize );
+        int numBlocksY = Cuda::getNumberOfBlocks( mesh->getSizes().y() - vecLowerOverlaps[1] - vecUpperOverlaps[1], cudaBlockSize );
+        int numBlocksZ = Cuda::getNumberOfBlocks( mesh->getSizes().z() - vecLowerOverlaps[2] - vecUpperOverlaps[2], cudaBlockSize );
         if( cudaBlockSize * cudaBlockSize * cudaBlockSize > 1024 || numBlocksX > 1024 || numBlocksY > 1024 || numBlocksZ > 64 )
           std::cout << "Invalid kernel call. Dimensions of grid are max: [1024,1024,64], and maximum threads per block are 1024!" << std::endl;
 

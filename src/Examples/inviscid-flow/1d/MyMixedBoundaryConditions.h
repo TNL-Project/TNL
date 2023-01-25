@@ -90,7 +90,7 @@ class MyMixedBoundaryConditions
       else
          return u[ neighbourEntities.template getEntityIndex< -1 >() ];  
          //tady se asi delaji okrajove podminky
-         //static_assert( EntityType::getDimensions() == MeshEntitiesDimensions, "Wrong mesh entity dimensions." );
+         //static_assert( EntityType::getSizes() == MeshEntitiesDimensions, "Wrong mesh entity dimensions." );
       }
 
       template< typename EntityType >

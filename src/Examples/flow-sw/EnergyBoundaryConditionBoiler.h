@@ -258,7 +258,7 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, MeshInd
          const IndexType& index = entity.getIndex();
          if( entity.getCoordinates().x() == 0 )
          {
-            if( ( entity.getCoordinates().y() < 0.20 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.19 * ( entity.getMesh().getDimensions().y() - 1 ) ) )
+            if( ( entity.getCoordinates().y() < 0.20 * ( entity.getMesh().getSizes().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.19 * ( entity.getMesh().getSizes().y() - 1 ) ) )
                return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
                 / ( this->gamma - 1 )
                 )
@@ -297,9 +297,9 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, MeshInd
                        )
                      );*/
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
-            if( ( entity.getCoordinates().y() < 0.20 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.19 * ( entity.getMesh().getDimensions().y() - 1 ) ) ) 
+            if( ( entity.getCoordinates().y() < 0.20 * ( entity.getMesh().getSizes().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.19 * ( entity.getMesh().getSizes().y() - 1 ) ) ) 
                return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
                 / ( this->gamma - 1 )
                 )
@@ -319,7 +319,7 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, MeshInd
                   + 0
                   )
                 );
-            else if( entity.getCoordinates().y() > 0.8 * ( entity.getMesh().getDimensions().y() - 1 ) && false )
+            else if( entity.getCoordinates().y() > 0.8 * ( entity.getMesh().getSizes().y() - 1 ) && false )
                return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
             else
                return u[ neighborEntities.template getEntityIndex< 0, 0 >() ];
@@ -341,7 +341,7 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, MeshInd
          }
          if( entity.getCoordinates().y() == 0 )
          {
-            if( ( entity.getCoordinates().x() < 0.6 * ( entity.getMesh().getDimensions().x() - 1 ) ) && ( entity.getCoordinates().x() > 0.4 * ( entity.getMesh().getDimensions().x() - 1 ) ) ) 
+            if( ( entity.getCoordinates().x() < 0.6 * ( entity.getMesh().getSizes().x() - 1 ) ) && ( entity.getCoordinates().x() > 0.4 * ( entity.getMesh().getSizes().x() - 1 ) ) ) 
                return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
                 / ( this->gamma - 1 )
                 )
@@ -382,7 +382,7 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, MeshInd
                 );*/
          }
          // The following line is commented to avoid compiler warning
-         //if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         //if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, -1 >() ];
             /*return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0 >() ]
@@ -434,7 +434,7 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, MeshInd
             b[ index ] = entity.getMesh().getSpaceSteps().x() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< -1, 0 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                 1.0 );
@@ -448,7 +448,7 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 2, MeshReal, Device, MeshInd
             b[ index ] = entity.getMesh().getSpaceSteps().y() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, -1 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                 1.0 );
@@ -536,8 +536,8 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, MeshInd
          const IndexType& index = entity.getIndex();
          if( entity.getCoordinates().x() == 0 )
          {
-            if( ( entity.getCoordinates().y() < 0.59 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.39 * ( entity.getMesh().getDimensions().y() - 1 ) )
-              &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
+            if( ( entity.getCoordinates().y() < 0.59 * ( entity.getMesh().getSizes().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.39 * ( entity.getMesh().getSizes().y() - 1 ) )
+              &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getSizes().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getSizes().z() - 1 ) ) )
                return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
                 / ( this->gamma - 1 )
                 )
@@ -569,10 +569,10 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, MeshInd
             else 
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
-            if( ( entity.getCoordinates().y() < 0.59 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.39 * ( entity.getMesh().getDimensions().y() - 1 ) )
-              &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
+            if( ( entity.getCoordinates().y() < 0.59 * ( entity.getMesh().getSizes().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.39 * ( entity.getMesh().getSizes().y() - 1 ) )
+              &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getSizes().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getSizes().z() - 1 ) ) )
                return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
                 / ( this->gamma - 1 )
                 )
@@ -601,15 +601,15 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, MeshInd
                   + 0
                   )
                 );
-            else if( entity.getCoordinates().y() >0.8 * ( entity.getMesh().getDimensions().y() - 1 ) )
+            else if( entity.getCoordinates().y() >0.8 * ( entity.getMesh().getSizes().y() - 1 ) )
                return u[ neighborEntities.template getEntityIndex< -1, 0, 0 >() ];
             else
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          if( entity.getCoordinates().y() == 0 )
          {
-            if( ( entity.getCoordinates().x() < 0.59 * ( entity.getMesh().getDimensions().x() - 1 ) ) && ( entity.getCoordinates().x() > 0.39 * ( entity.getMesh().getDimensions().x() - 1 ) )
-              &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
+            if( ( entity.getCoordinates().x() < 0.59 * ( entity.getMesh().getSizes().x() - 1 ) ) && ( entity.getCoordinates().x() > 0.39 * ( entity.getMesh().getSizes().x() - 1 ) )
+              &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getSizes().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getSizes().z() - 1 ) ) )
                return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
                 / ( this->gamma - 1 )
                 )
@@ -641,10 +641,10 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, MeshInd
             else 
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
-         if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
-            if( ( entity.getCoordinates().x() < 0.59 * ( entity.getMesh().getDimensions().x() - 1 ) ) && ( entity.getCoordinates().x() > 0.39 * ( entity.getMesh().getDimensions().x() - 1 ) )
-              &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
+            if( ( entity.getCoordinates().x() < 0.59 * ( entity.getMesh().getSizes().x() - 1 ) ) && ( entity.getCoordinates().x() > 0.39 * ( entity.getMesh().getSizes().x() - 1 ) )
+              &&( entity.getCoordinates().z() < 0.59 * ( entity.getMesh().getSizes().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.39 * ( entity.getMesh().getSizes().z() - 1 ) ) )
                return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
                 / ( this->gamma - 1 )
                 )
@@ -678,8 +678,8 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, MeshInd
          }
          if( entity.getCoordinates().z() == 0 )
 {
-            if( ( entity.getCoordinates().x() < 0.6 * ( entity.getMesh().getDimensions().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.4 * ( entity.getMesh().getDimensions().y() - 1 ) )
-              &&( entity.getCoordinates().y() < 0.6 * ( entity.getMesh().getDimensions().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.4 * ( entity.getMesh().getDimensions().z() - 1 ) ) )
+            if( ( entity.getCoordinates().x() < 0.6 * ( entity.getMesh().getSizes().y() - 1 ) ) && ( entity.getCoordinates().y() > 0.4 * ( entity.getMesh().getSizes().y() - 1 ) )
+              &&( entity.getCoordinates().y() < 0.6 * ( entity.getMesh().getSizes().z() - 1 ) ) && ( entity.getCoordinates().z() > 0.4 * ( entity.getMesh().getSizes().z() - 1 ) ) )
                return ( (* this->pressure)[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ]
                 / ( this->gamma - 1 )
                 )
@@ -717,7 +717,7 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, MeshInd
                return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }
          // The following line is commented to avoid compiler warning
-         //if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
+         //if( entity.getCoordinates().z() == entity.getMesh().getSizes().z() - 1 )
          {
             return u[ neighborEntities.template getEntityIndex< 0, 0, 0 >() ];
          }   
@@ -755,7 +755,7 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, MeshInd
             b[ index ] = entity.getMesh().getSpaceSteps().x() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 )
+         if( entity.getCoordinates().x() == entity.getMesh().getSizes().x() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< -1, 0, 0 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                    1.0 );
@@ -769,7 +769,7 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, MeshInd
             b[ index ] = entity.getMesh().getSpaceSteps().y() * 
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 )
+         if( entity.getCoordinates().y() == entity.getMesh().getSizes().y() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, -1, 0 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                    1.0 );
@@ -783,7 +783,7 @@ class EnergyBoundaryConditionsBoiler< Meshes::Grid< 3, MeshReal, Device, MeshInd
             b[ index ] = entity.getMesh().getSpaceSteps().z() *
                Functions::FunctionAdapter< MeshType, FunctionType >::getValue( this->function, entity, time );
          }
-         if( entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 )
+         if( entity.getCoordinates().z() == entity.getMesh().getSizes().z() - 1 )
          {
             matrixRow.setElement( 0, neighborEntities.template getEntityIndex< 0, 0, -1 >(), -1.0 );
             matrixRow.setElement( 1, index,                                                    1.0 );
