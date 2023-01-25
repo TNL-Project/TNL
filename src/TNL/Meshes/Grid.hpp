@@ -515,26 +515,26 @@ template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
 auto
 Grid< Dimension, Real, Device, Index >::
-getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset ) const -> Index
+getEntityIndex( const Entity& entity, const CoordinatesType& offset ) const -> Index
 {
    return ( offset, this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] ) + entity.getIndex();
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-   template< int NeighbourEntityDimension, typename Entity  >
+   template< int OtherEntityDimension, typename Entity  >
    __cuda_callable__
 auto
 Grid< Dimension, Real, Device, Index >::
-getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset,
-                         Index neighbourEntityOrientationIdx ) const -> Index
+getEntityIndex( const Entity& entity, const CoordinatesType& offset,
+                Index otherEntityOrientationIdx ) const -> Index
 {
-   const IndexType totalOrientationIndex = EntitiesOrientations::getTotalOrientationIndex( NeighbourEntityDimension, neighbourEntityOrientationIdx );
-   if constexpr( NeighbourEntityDimension == getMeshDimension() || NeighbourEntityDimension == 0 ) {
+   const IndexType totalOrientationIndex = EntitiesOrientations::getTotalOrientationIndex( OtherEntityDimension, otherEntityOrientationIdx );
+   if constexpr( OtherEntityDimension == getMeshDimension() || OtherEntityDimension == 0 ) {
       return ( entity.getCoordinates() + offset, this->coordinatesMultiplicators[ totalOrientationIndex ] );
    }
    else
       return ( entity.getCoordinates() + offset, this->coordinatesMultiplicators[ totalOrientationIndex ] ) +
-         this->entitiesIndexesOffsets[ totalOrientationIndex + NeighbourEntityDimension ];
+         this->entitiesIndexesOffsets[ totalOrientationIndex + OtherEntityDimension ];
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -542,20 +542,20 @@ template< int Dimension, typename Real, typename Device, typename Index >
 __cuda_callable__
 Entity
 Grid< Dimension, Real, Device, Index >::
-getNeighbourEntity( const Entity& entity, const CoordinatesType& offset ) const
+getEntity( const Entity& entity, const CoordinatesType& offset ) const
 {
    return Entity( *this, entity.getCoordinates() + offset, entity.getOrientationIndex() );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-   template< int NeighbourEntityDimension, typename Entity >
+   template< int OtherEntityDimension, typename Entity >
 __cuda_callable__
 auto
 Grid< Dimension, Real, Device, Index >::
-getNeighbourEntity( const Entity& entity, const CoordinatesType& offset,
-                    const NormalsType& neighbourEntityOrientation ) const -> EntityType< NeighbourEntityDimension >
+getEntity( const Entity& entity, const CoordinatesType& offset,
+           const NormalsType& otherEntityOrientation ) const -> EntityType< OtherEntityDimension >
 {
-   return EntityType< NeighbourEntityDimension >( *this, CoordinatesType( entity.getCoordinates() + offset ), neighbourEntityOrientation );
+   return EntityType< OtherEntityDimension >( *this, CoordinatesType( entity.getCoordinates() + offset ), otherEntityOrientation );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >

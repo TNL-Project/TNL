@@ -28,8 +28,8 @@ class NeighbourGridEntityGetterTestCase {
                if( entity.getCoordinates() + offset > typename Grid::CoordinatesType( 0 ) &&
                   entity.getCoordinates() + offset < entity.getGrid().getDimensions() + entity.getNormals()  )
                   {
-                     auto neighbourEntity = entity.getNeighbourEntity( offset );
-                     auto neighbourEntityIndex = entity.getNeighbourEntityIndex( offset );
+                     auto neighbourEntity = entity.getEntity( offset );
+                     auto neighbourEntityIndex = entity.getEntityIndex( offset );
                      EXPECT_EQ( neighbourEntity.getIndex(), neighbourEntityIndex )
                                  << "Wrong index of neighbour entity: " << std::endl
                                  << " Grid dimension: " << Grid::getMeshDimension() << std::endl
@@ -51,8 +51,8 @@ class NeighbourGridEntityGetterTestCase {
                if( entity.getCoordinates() + offset > typename Grid::CoordinatesType( 0 ) &&
                    entity.getCoordinates() + offset < entity.getGrid().getDimensions() + normals  )
                   {
-                     auto neighbourEntity = entity.template getNeighbourEntity< NeighbourEntityDimension >( offset, normals );
-                     auto neighbourEntityIndex = entity.template getNeighbourEntityIndex< NeighbourEntityDimension >( offset, orientationIdx );
+                     auto neighbourEntity = entity.template getEntity< NeighbourEntityDimension >( offset, normals );
+                     auto neighbourEntityIndex = entity.template getEntityIndex< NeighbourEntityDimension >( offset, orientationIdx );
                      EXPECT_EQ( neighbourEntity.getIndex(), neighbourEntityIndex )
                                 << "Wrong index of neighbour entity: " << std::endl
                                 << " Grid dimension: " << Grid::getMeshDimension() << std::endl
@@ -86,7 +86,7 @@ class NeighbourGridEntityGetterTestCase {
             Coordinate boundary = grid.getDimensions() + normals;
 
             if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
-               auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension>(offset, normals);
+               auto neighbour = entity.template getEntity<NeighbourEntityDimension>(offset, normals);
 
                neighbour.refresh();
 
@@ -108,7 +108,7 @@ class NeighbourGridEntityGetterTestCase {
             Coordinate boundary = grid.getDimensions() + normals;
 
             if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
-               auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension>(offset,normals);
+               auto neighbour = entity.template getEntity<NeighbourEntityDimension>(offset,normals);
 
                neighbour.refresh();
 

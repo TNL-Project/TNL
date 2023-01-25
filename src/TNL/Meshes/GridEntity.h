@@ -298,11 +298,11 @@ public:
     */
    __cuda_callable__
    GridEntity< Grid, EntityDimension >
-   getNeighbourEntity( const CoordinatesType& offset ) const;
+   getEntity( const CoordinatesType& offset ) const;
 
    __cuda_callable__
    IndexType
-   getNeighbourEntityIndex( const CoordinatesType& offset ) const;
+   getEntityIndex( const CoordinatesType& offset ) const;
 
 
    /**
@@ -316,8 +316,8 @@ public:
    template< int NeighbourEntityDimension >
    __cuda_callable__
    GridEntity< Grid, NeighbourEntityDimension >
-   getNeighbourEntity( const CoordinatesType& offset,
-                       const NormalsType& neighbourEntityOrientation ) const;
+   getEntity( const CoordinatesType& offset,
+              const NormalsType& neighbourEntityOrientation ) const;
 
    /**
     * \brief
@@ -332,8 +332,8 @@ public:
    template< int NeighbourEntityDimension >
    __cuda_callable__
    IndexType
-   getNeighbourEntityIndex( const CoordinatesType& offset,
-                            IndexType neighbourEntityOrientation ) const;
+   getEntityIndex( const CoordinatesType& offset,
+                   IndexType neighbourEntityOrientation ) const;
 
    template< int Direction, int Step >
    __cuda_callable__

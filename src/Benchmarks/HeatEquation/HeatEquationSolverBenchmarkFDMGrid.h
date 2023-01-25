@@ -62,9 +62,9 @@ struct HeatEquationSolverBenchmarkFDMGrid< 1, Real, Device, Index >: public Heat
 
 
 
-            auxView[ centerIdx ] = element + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1 ) ) ] -
+            auxView[ centerIdx ] = element + ( ( uxView[ entity.getEntityIndex( Coordinates( -1 ) ) ] -
                                                 center +
-                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  1 ) ) ] ) * hx_inv  ) * timestep;
+                                                uxView[ entity.getEntityIndex( Coordinates(  1 ) ) ] ) * hx_inv  ) * timestep;
             /*auxView[ centerIdx ] = element + ( ( uxView[ centerIdx - 1 ] -
                                                 2.0 * center +
                                                 uxView[ centerIdx + 1 ] ) * hx_inv ) * timestep;*/
@@ -214,15 +214,15 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >: public Heat
 
 
 
-            auxView[ centerIdx ] = element + ( ( uxView[ entity.getNeighbourEntityIndex( Coordinates( -1,  0,  0 ) ) ] -
+            auxView[ centerIdx ] = element + ( ( uxView[ entity.getEntityIndex( Coordinates( -1,  0,  0 ) ) ] -
                                                 center +
-                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  1,  0,  0 ) ) ] ) * hx_inv +
-                                              ( uxView[ entity.getNeighbourEntityIndex( Coordinates(  0, -1,  0 ) ) ] -
+                                                uxView[ entity.getEntityIndex( Coordinates(  1,  0,  0 ) ) ] ) * hx_inv +
+                                              ( uxView[ entity.getEntityIndex( Coordinates(  0, -1,  0 ) ) ] -
                                                 center +
-                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  0,  1,  0 ) ) ] ) * hy_inv  +
-                                              ( uxView[ entity.getNeighbourEntityIndex( Coordinates(  0,  0, -1 ) ) ] -
+                                                uxView[ entity.getEntityIndex( Coordinates(  0,  1,  0 ) ) ] ) * hy_inv  +
+                                              ( uxView[ entity.getEntityIndex( Coordinates(  0,  0, -1 ) ) ] -
                                                 center +
-                                                uxView[ entity.getNeighbourEntityIndex( Coordinates(  0,  0,  1 ) ) ] ) * hz_inv ) * timestep;
+                                                uxView[ entity.getEntityIndex( Coordinates(  0,  0,  1 ) ) ] ) * hz_inv ) * timestep;
             /*auxView[ centerIdx ] = element + ( ( uxView[ centerIdx - 1 ] -         2.0 * center + uxView[ centerIdx + 1 ] ) * hx_inv +
                                                 ( uxView[ centerIdx - xSize ] -     2.0 * center + uxView[ centerIdx + xSize ] ) * hy_inv +
                                                 ( uxView[ centerIdx - xySize ] -     2.0 * center + uxView[ centerIdx + xySize ] ) * hy_inv

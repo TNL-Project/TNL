@@ -456,28 +456,28 @@ public:
    template< typename Entity >
    __cuda_callable__
    Index
-   getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset ) const;
+   getEntityIndex( const Entity& entity, const CoordinatesType& offset ) const;
 
    /**
     * \brief Computes index of an entity shifted by \e offset from the original \e entity,
-    *  with dimension given by \e NeighbourEntityDimension and the orientation given by
-    *  orientation index \e neighbourEntityOrientationIndex.
+    *  with dimension given by \e OtherEntityDimension and the orientation given by
+    *  orientation index \e otherEntityOrientationIndex.
     *
     * The function returns index of an entity having the same dimension and orientation as the
     * original \e entity and with coordinates given as \e entity.getCoordinates()+offset.
     *
-    * \tparam NeighbourEntityDimension is dimension of the neighbour entity.
+    * \tparam OtherEntityDimension is dimension of the neighbour entity.
     * \tparam Entity is entity type.
     * \param entity instance of the original entity
     * \param offset offset of the entity index of which is returned.
-    * \param neighbourEntityOrientationIndex orientation index of the entity index of which is returned.
+    * \param otherEntityOrientationIndex orientation index of the entity index of which is returned.
     * \return index of entity shifted by \e offset from the original \e entity.
     */
-   template< int NeighbourEntityDimension, typename Entity >
+   template< int OtherEntityDimension, typename Entity >
    __cuda_callable__
    Index
-   getNeighbourEntityIndex( const Entity& entity, const CoordinatesType& offset,
-                            Index neighbourEntityOrientationIndex ) const;
+   getEntityIndex( const Entity& entity, const CoordinatesType& offset,
+                   Index otherEntityOrientationIndex ) const;
 
    /**
     * \brief Creates an entity shifted by \e offset from the original \e entity.
@@ -493,28 +493,28 @@ public:
    template< typename Entity >
    __cuda_callable__
    Entity
-   getNeighbourEntity( const Entity& entity, const CoordinatesType& offset ) const;
+   getEntity( const Entity& entity, const CoordinatesType& offset ) const;
 
    /**
     * \brief Creates an entity shifted by \e offset from the original \e entity,
-    *  with dimension given by \e NeighbourEntityDimension and the orientation given by
-    *  orientation index \e neighbourEntityOrientationIndex.
+    *  with dimension given by \e OtherEntityDimension and the orientation given by
+    *  orientation index \e otherEntityOrientationIndex.
     *
     * The function returns index of an entity having the same dimension and orientation as the
     * original \e entity and with coordinates given as \e entity.getCoordinates()+offset.
     *
-    * \tparam NeighbourEntityDimension is dimension of the neighbour entity.
+    * \tparam OtherEntityDimension is dimension of the neighbour entity.
     * \tparam Entity is entity type.
     * \param entity instance of the original entity
     * \param offset offset of the entity index of which is returned.
-    * \param neighbourEntityOrientation orientation index of the entity index of which is returned.
+    * \param otherEntityOrientation orientation index of the entity index of which is returned.
     * \return index of entity shifted by \e offset from the original \e entity.
     */
-   template< int NeighbourEntityDimension, typename Entity >
+   template< int OtherEntityDimension, typename Entity >
    __cuda_callable__
-   EntityType< NeighbourEntityDimension >
-   getNeighbourEntity( const Entity& entity, const CoordinatesType& offset,
-                       const NormalsType& neighbourEntityOrientation ) const;
+   EntityType< OtherEntityDimension >
+   getEntity( const Entity& entity, const CoordinatesType& offset,
+              const NormalsType& otherEntityOrientation ) const;
 
    /**
     * \brief Computes index of an entity shifted in a direction of one given axis from the

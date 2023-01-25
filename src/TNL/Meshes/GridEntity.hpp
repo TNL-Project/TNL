@@ -232,20 +232,21 @@ GridEntity< Grid, EntityDimension >::getBasis() const -> NormalsType
 template< class Grid, int EntityDimension >
 __cuda_callable__
 GridEntity< Grid, EntityDimension >
-GridEntity< Grid, EntityDimension >::getNeighbourEntity( const CoordinatesType& offset ) const
+GridEntity< Grid, EntityDimension >::
+getEntity( const CoordinatesType& offset ) const
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
-   return this->grid->getNeighbourEntity( *this, offset );
+   return this->grid->getEntity( *this, offset );
 }
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
 auto
 GridEntity< Grid, EntityDimension >::
-getNeighbourEntityIndex( const CoordinatesType& offset ) const -> IndexType
+getEntityIndex( const CoordinatesType& offset ) const -> IndexType
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
-   return this->grid->getNeighbourEntityIndex( *this, offset );
+   return this->grid->getEntityIndex( *this, offset );
 }
 
 template< class Grid, int EntityDimension >
@@ -253,11 +254,11 @@ template< class Grid, int EntityDimension >
 __cuda_callable__
 GridEntity< Grid, NeighbourEntityDimension >
 GridEntity< Grid, EntityDimension >::
-getNeighbourEntity( const CoordinatesType& offset,
-                    const NormalsType& neighbourEntityOrientation ) const
+getEntity( const CoordinatesType& offset,
+           const NormalsType& neighbourEntityOrientation ) const
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
-   return this->grid->template getNeighbourEntity< NeighbourEntityDimension >( *this, offset, neighbourEntityOrientation );
+   return this->grid->template getEntity< NeighbourEntityDimension >( *this, offset, neighbourEntityOrientation );
 }
 
 template< class Grid, int EntityDimension >
@@ -265,11 +266,11 @@ template< class Grid, int EntityDimension >
 __cuda_callable__
 auto
 GridEntity< Grid, EntityDimension >::
-getNeighbourEntityIndex( const CoordinatesType& offset,
-                         IndexType neighbourEntityOrientation ) const -> IndexType
+getEntityIndex( const CoordinatesType& offset,
+                IndexType neighbourEntityOrientation ) const -> IndexType
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
-   return this->grid->template getNeighbourEntityIndex< NeighbourEntityDimension >( *this, offset, neighbourEntityOrientation );
+   return this->grid->template getEntityIndex< NeighbourEntityDimension >( *this, offset, neighbourEntityOrientation );
 }
 
 template< class Grid, int EntityDimension >
