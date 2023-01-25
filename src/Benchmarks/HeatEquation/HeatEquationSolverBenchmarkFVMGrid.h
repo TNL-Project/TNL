@@ -58,8 +58,8 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >: public Heat
          auto aux_view = this->aux.getView();
          auto faces_view = this->faces.getView();
          auto gradient = [=] __cuda_callable__( const typename Grid::Face& face ) mutable {
-            faces_view[ face.getIndex() ] = ( ux_view[ face.template getNeighbourEntityIndex< Dimension >( { 0, 0 }, 0 ) ] -
-                                              ux_view[ face.template getNeighbourEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
+            faces_view[ face.getIndex() ] = ( ux_view[ face.template getEntityIndex< Dimension >( { 0, 0 }, 0 ) ] -
+                                              ux_view[ face.template getEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
                                             * h_inv[ face.getOrientationIndex() ] ;
          };
          this->grid.template forInteriorEntities<0>( gradient );
@@ -69,8 +69,8 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >: public Heat
             const Index cellIdx = cell.getIndex();
             const Real& element = ux_view[ cellIdx ];
             aux_view[ cellIdx ] = element + timestep * (
-               ( faces_view[ cell.template getNeighbourEntityIndex< 0 >( { 1 }, 0 ) ] -
-                 faces_view[ cell.template getNeighbourEntityIndex< 0 >( { 0 }, 0 ) ] ) * h_inv.x() );
+               ( faces_view[ cell.template getEntityIndex< 0 >( { 1 }, 0 ) ] -
+                 faces_view[ cell.template getEntityIndex< 0 >( { 0 }, 0 ) ] ) * h_inv.x() );
          };
          this->grid.template forInteriorEntities<1>( update );
          this->ux.swap( this->aux );
@@ -216,8 +216,8 @@ struct HeatEquationSolverBenchmarkFVMGrid< 3, Real, Device, Index >: public Heat
          auto aux_view = this->aux.getView();
          auto faces_view = this->faces.getView();
          auto gradient = [=] __cuda_callable__( const typename Grid::Face& face ) mutable {
-            faces_view[ face.getIndex() ] = ( ux_view[ face.template getNeighbourEntityIndex< Dimension >( { 0, 0, 0 }, 0 ) ] -
-                                              ux_view[ face.template getNeighbourEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
+            faces_view[ face.getIndex() ] = ( ux_view[ face.template getEntityIndex< Dimension >( { 0, 0, 0 }, 0 ) ] -
+                                              ux_view[ face.template getEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
                                             * h_inv[ face.getOrientationIndex() ] ;
          };
          this->grid.template forInteriorEntities<2>( gradient );
@@ -229,12 +229,12 @@ struct HeatEquationSolverBenchmarkFVMGrid< 3, Real, Device, Index >: public Heat
             using Face = typename Grid::Face;
             const Index cell_idx = cell.getIndex();
             aux_view[ cell_idx ] = ux_view[ cell_idx ] + timestep * (
-               ( faces_view[ cell.template getNeighbourEntityIndex< 2 >( { 1, 0, 0 }, yz_faces ) ] -
-                 faces_view[ cell.template getNeighbourEntityIndex< 2 >( { 0, 0, 0 }, yz_faces ) ] ) * h_inv.x() +
-               ( faces_view[ cell.template getNeighbourEntityIndex< 2 >( { 0, 1, 0 }, xz_faces ) ] -
-                 faces_view[ cell.template getNeighbourEntityIndex< 2 >( { 0, 0, 0 }, xz_faces ) ] ) * h_inv.y() +
-               ( faces_view[ cell.template getNeighbourEntityIndex< 2 >( { 0, 0, 1 }, xy_faces ) ] -
-                 faces_view[ cell.template getNeighbourEntityIndex< 2 >( { 0, 0, 0 }, xy_faces ) ] ) * h_inv.z() );
+               ( faces_view[ cell.template getEntityIndex< 2 >( { 1, 0, 0 }, yz_faces ) ] -
+                 faces_view[ cell.template getEntityIndex< 2 >( { 0, 0, 0 }, yz_faces ) ] ) * h_inv.x() +
+               ( faces_view[ cell.template getEntityIndex< 2 >( { 0, 1, 0 }, xz_faces ) ] -
+                 faces_view[ cell.template getEntityIndex< 2 >( { 0, 0, 0 }, xz_faces ) ] ) * h_inv.y() +
+               ( faces_view[ cell.template getEntityIndex< 2 >( { 0, 0, 1 }, xy_faces ) ] -
+                 faces_view[ cell.template getEntityIndex< 2 >( { 0, 0, 0 }, xy_faces ) ] ) * h_inv.z() );
          };
          grid.template forInteriorEntities<3>( update );
          this->ux.swap( this->aux );
