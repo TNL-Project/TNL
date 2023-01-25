@@ -4,42 +4,70 @@
 
 ## Introduction
 
-Grids are regular orthognal meshes. Similar to unstructured numerical meshes they provide indexing of mesh entites and express their adjacency. The difference, compared to the unstructured meshes, is that the adjacency of the mesh entities are not stored explicitly in the memory but the are computed on-the-fly. The interface of grids is as simillar as possible to the unstructured meshes but there are some differences. The main difference is that the mesh entities are given by their coordinates and orientation. The type and orientation of the entity is given by its *basis* and *normals*. Basis is a vector having one for axes, along which the entity has non-zero length, and zeros otherwise. Normals is a vector orthogonal to the basis vector, i.e. it has ones where basis vector has zeros and vice versa. The meaning of the normals vector is such that it is like a pack of all vectors of standart basis which are orthogonal to the grid entity. The following tables show all possible grid entities in 1D, 2D and 3D.
+Grids are regular orthogonal meshes. Similar to unstructured numerical meshes they provide indexing of mesh entities and express their adjacency. The difference, compared to the unstructured meshes, is that the adjacency of the mesh entities are not stored explicitly in the memory but the are computed on-the-fly. The interface of grids is as similar as possible to the unstructured meshes but there are some differences.
 
-### TODO: Bases and normals
+The grid entities can be described by their dimension, coordinates and orientation. For example in 2D grid we can have horizontal and vertical faces. The orientation can be represented by vectors of standard basis with the same direction as the grid entity. For more efficient representation we may merge or pack all these vector into one which we refer as *packed basis vector*. The following table shows examples for grids in 1D, 2D and 3D.
 
-Grid entities in 1D are as follows:
+ | Grid dimension | Entity type              | Entity dimension  | Vectors of standard basis             | Packed vectors of standard basis |
+ |---------------:|-------------------------:|------------------:|--------------------------------------:|---------------------------------:|
+ | 1              | Vertex                   | 0                 | none or ( 0 )                         | ( 0 )                            |
+ | 1              | Cell                     | 1                 | ( 1 )                                 | ( 1 )                            |
+ | 2              | Vertex                   | 0                 | none or ( 0, 0 )                      | ( 0, 0 )                         |
+ | 2              | Face along y axis        | 1                 | ( 0, 1 )                              | ( 0, 1 )                         |
+ | 2              | Face along x axis        | 1                 | ( 1, 0 )                              | ( 1, 0 )                         |
+ | 2              | Cell                     | 2                 | ( 1, 0 ), ( 0, 1 )                    | ( 1, 1 )                         |
+ | 3              | Vertexes                 | 0                 | none or ( 0, 0, 0 )                   | ( 0, 0, 0 )                      |
+ | 3              | Edges along z axis       | 1                 | ( 0, 0, 1 )                           | ( 0, 0, 1 )                      |
+ | 3              | Edges along y axis       | 1                 | ( 0, 1, 0 )                           | ( 0, 1, 0 )                      |
+ | 3              | Edges along x axis       | 1                 | ( 1, 0, 0 )                           | ( 1, 0, 0 )                      |
+ | 3              | Faces along y and z axes | 2                 | ( 0, 1, 0 ), ( 0, 0, 1 )              | ( 0, 1, 1 )                      |
+ | 3              | Faces along x and z axes | 2                 | ( 1, 0, 0 ), ( 0, 0, 1 )              | ( 1, 0, 1 )                      |
+ | 3              | Faces along x and y axes | 2                 | ( 1, 0, 0 ), ( 0, 1, 0 )              | ( 1, 1, 0 )                      |
+ | 3              | Cells                    | 3                 | ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ) | ( 1, 1, 1 )                      |
 
-| Entities in 1D             | Basis        | Normals     | Unpacked normal vectors |
-|---------------------------:|-------------:|:-----------:|:-----------------------:|
-| Cells                      | ( 1 )        | ( 0 )       |  N/a                    |
-| Vertexes                   | ( 0 )        | ( 1 )       |  ( 1 )                  |
+Another useful way to represent the grid entity orientation uses vectors of standard basis which are normal or orthogonal to the grid entity. These vector can be also packed into one which we refer as *packed normal vectors* or *vector of packed normals*. The following table shows examples for grids in 1D, 2D and 3D.
 
-Grid entities in 2D are as follows:
+| Grid dimension | Entity type              | Entity dimension  | Normal vectors of standard basis      | Packed  normal vectors  |
+|---------------:|-------------------------:|------------------:|--------------------------------------:|------------------------:|
+| 1              | Vertex                   | 0                 | ( 1 )                                 | ( 1 )                   |
+| 1              | Cell                     | 1                 | none or ( 0 )                         | ( 0 )                   |
+| 2              | Vertex                   | 0                 | ( 1, 0 ), ( 0, 1 )                    | ( 1, 1 )                |
+| 2              | Face along y axis        | 1                 | ( 1, 0 )                              | ( 1, 0 )                |
+| 2              | Face along x axis        | 1                 | ( 0, 1 )                              | ( 0, 1 )                |
+| 2              | Cell                     | 2                 | none or ( 0, 0 )                      | ( 0, 0 )                |
+| 3              | Vertexes                 | 0                 | ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ) | ( 1, 1, 1 )             |
+| 3              | Edges along z axis       | 1                 | ( 1, 0, 0 ), ( 0, 1, 0 )              | ( 1, 1, 0 )             |
+| 3              | Edges along y axis       | 1                 | ( 1, 0, 0 ), ( 0, 0, 1 )              | ( 1, 0, 1 )             |
+| 3              | Edges along x axis       | 1                 | ( 0, 1, 0 ), ( 0, 0, 1 )              | ( 0, 1, 1 )             |
+| 3              | Faces along y and z axes | 2                 | ( 1, 0, 0 )                           | ( 1, 0, 0 )             |
+| 3              | Faces along x and z axes | 2                 | ( 0, 1, 0 )                           | ( 0, 1, 0 )             |
+| 3              | Faces along x and y axes | 2                 | ( 0, 0, 1 )                           | ( 0, 0, 1 )             |
+| 3              | Cells                    | 3                 | none or ( 0, 0, 0 )                   | ( 0, 0, 0 )             |
 
-| Entities in 2D             | Basis        | Normals    | Unpacked normal vectors |
-|---------------------------:|-------------:|:----------:|:-----------------------:|
-| Cells                      | ( 1, 1 )     | ( 0, 0 )   | N/A                     |
-| Faces along x- axis        | ( 1, 0 )     | ( 0, 1 )   | ( 0, 1 )                |
-| Faces along y- axis        | ( 0, 1 )     | ( 1, 0 )   | ( 1, 0 )                |
-| Vertexes                   | ( 0, 0 )     | ( 1, 1 )   | ( 1, 0 ), ( 0, 1 )      |
+One can see that *packed normal vectors* make complement to *packed basis vectors*. Packed normals are, however, more useful for many operations with grid entities therefore they are preferred in many grid methods and functions.
 
-Grid entities in 3D are as follows:
+To make the representation of the grid entity even more efficient we assign two types of indexes to vectors of packed normals (and so even to packed basis vectors). The first one is *dimension specific orientation index* (or just *orientation index*) and it distinguishes grid entities with the same dimension but different orientation. The other is *total orientation index* which assign unique number to each vector of packed normals. In nD grid, each vector with n components filled with arbitrary combination of zeros and ones is a vector of packed normals, we see that in total there are \f[2^n \f] different grid entities. The following table shows examples for 1D, 2D and 3D grids:
 
-| Entities in 3D             | Basis        | Normals      | Unpacked normal vectors               |
-|---------------------------:|-------------:|:------------:|:-------------------------------------:|
-| Cells                      | ( 1, 1, 1 )  | ( 0, 0, 0 )  | N/A                                   |
-| Faces along x- and y- axes | ( 1, 1, 0 )  | ( 0, 0, 1 )  | ( 0, 0, 1 )                           |
-| Faces along x- and z- axes | ( 1, 0, 1 )  | ( 0, 1, 0 )  | ( 0, 1, 0 )                           |
-| Faces along y- and z- axes | ( 0, 1, 1 )  | ( 1, 0, 0 )  | ( 1, 0, 0 )                           |
-| Edges along x-axis         | ( 1, 0, 0 )  | ( 0, 1, 1 )  | ( 0, 1, 0 ), ( 0, 0, 1 )              |
-| Edges along y-axis         | ( 0, 1, 0 )  | ( 1, 0, 1 )  | ( 1, 0, 0 ), ( 0, 0, 1 )              |
-| Edges along z-axis         | ( 0, 0, 1 )  | ( 1, 1, 0 )  | ( 1, 0, 0 ), ( 0, 1, 0 )              |
-| Vertexes                   | ( 0, 0, 0 )  | ( 1, 1, 1 )  | ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ) |
+| Grid dimension | Entity type              | Entity dimension  | Packed  normal vectors  | Orientation idx. | Total orientation idx. |
+|---------------:|-------------------------:|------------------:|------------------------:|-----------------:|-----------------------:|
+| 1              | Vertex                   | 0                 | ( 1 )                   | 0                | 0                      |
+| 1              | Cell                     | 1                 | ( 0 )                   | 1                | 1                      |
+| 2              | Vertex                   | 0                 | ( 1, 1 )                | 0                | 0                      |
+| 2              | Face along y axis        | 1                 | ( 1, 0 )                | 0                | 1                      |
+| 2              | Face along x axis        | 1                 | ( 0, 1 )                | 1                | 2                      |
+| 2              | Cell                     | 2                 | ( 0, 0 )                | 0                | 3                      |
+| 3              | Vertexes                 | 0                 | ( 1, 1, 1 )             | 0                | 0                      |
+| 3              | Edges along z axis       | 1                 | ( 1, 1, 0 )             | 0                | 1                      |
+| 3              | Edges along y axis       | 1                 | ( 1, 0, 1 )             | 1                | 2                      |
+| 3              | Edges along x axis       | 1                 | ( 0, 1, 1 )             | 2                | 3                      |
+| 3              | Faces along y and z axes | 2                 | ( 1, 0, 0 )             | 0                | 4                      |
+| 3              | Faces along x and z axes | 2                 | ( 0, 1, 0 )             | 1                | 5                      |
+| 3              | Faces along x and y axes | 2                 | ( 0, 0, 1 )             | 2                | 6                      |
+| 3              | Cells                    | 3                 | ( 0, 0, 0 )             | 0                | 7                      |
 
-The grid entity stores the vector with packed normals, tha basis vector is always computed on the fly. So whenever it possible, using the the normals vector is preferred for better performance.
+Mapping between grid entity dimension, packed normal vectors, orientation index and total orientation index is available due to \ref TNL::Meshes::GridEntitiesOrientations.
 
-**Remark: The entity orientation given by the normals or basis vector should be encoded staticaly in the type of the entity. This would make the implementation of the grid entities more efficient. Such implementation, however, requires suppport of the generic lambda function by the compiler. Since the CUDA compiler `nvcc` is not able to compile a code with the generic lambda functions we stay with current implementation which is not optimal. Therefore, in the future, the implementation of the grid entities may change.**
+
 
 The following figures show coordinates and indexing of the grid entities in 2D for demonstration. Indexing of cells looks as follows:
 
