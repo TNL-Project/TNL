@@ -10,7 +10,6 @@
 
 #include <TNL/Algorithms/staticFor.h>
 #include <TNL/Meshes/Grid.h>
-#include <TNL/Meshes/GridDetails/GridTraits.h>
 #include <TNL/Meshes/GridEntitiesOrientations.h>
 
 namespace TNL {
