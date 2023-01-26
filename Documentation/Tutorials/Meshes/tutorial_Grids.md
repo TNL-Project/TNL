@@ -4,7 +4,15 @@
 
 ## Introduction
 
-Grids are regular orthogonal meshes. Similar to unstructured numerical meshes they provide indexing of mesh entities and express their adjacency. The difference, compared to the unstructured meshes, is that the adjacency of the mesh entities are not stored explicitly in the memory but the are computed on-the-fly. The interface of grids is as similar as possible to the unstructured meshes but there are some differences.
+Grids are regular orthogonal meshes. Similar to unstructured numerical meshes they provide indexing of mesh entities and express their adjacency. The difference, compared to the unstructured meshes, is that the adjacency of the mesh entities are not stored explicitly in the memory but the are computed on-the-fly. Grid may have arbitrary dimension i.e. even higher than 3D. It is represented by the templated class \ref TNL::Meshes::Grid which has the following template parameters:
+
+-  `Dimension` is dimension of the grid. This can be any integer value greater than zero.
+-  `Real` is a precision of the arithmetics used by the grid. It is `double` by default.
+-  `Device` is the device where the grid shall be allocated. Currently it can be either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::Cuda for CUDA supporting GPUs. It is \ref TNL::Devices::Host by default.
+-  `Index` is a type being used for indexing. It is `int` by default.
+
+
+## Grid entities orientations
 
 The grid entities can be described by their dimension, coordinates and orientation. For example in 2D grid we can have horizontal and vertical faces. The orientation can be represented by vectors of standard basis with the same direction as the grid entity. For more efficient representation we may merge or pack all these vector into one which we refer as *packed basis vector*. The following table shows examples for grids in 1D, 2D and 3D.
 
@@ -65,11 +73,21 @@ To make the representation of the grid entity even more efficient we assign two 
 | 3              | Faces along x and y axes | 2                 | ( 0, 0, 1 )             | 2                | 6                      |
 | 3              | Cells                    | 3                 | ( 0, 0, 0 )             | 0                | 7                      |
 
-Mapping between grid entity dimension, packed normal vectors, orientation index and total orientation index is available due to \ref TNL::Meshes::GridEntitiesOrientations.
+Mapping between grid entity dimension, packed normal vectors, orientation index and total orientation index is available due to \ref TNL::Meshes::GridEntitiesOrientations. The following example shows how to generate a table of grid entities orientations:
 
+\includelineno Meshes/Grid/GridEntitiesOrientationsExample.cpp
 
+The result looks as follows:
 
-The following figures show coordinates and indexing of the grid entities in 2D for demonstration. Indexing of cells looks as follows:
+\include GridEntitiesOrientationsExample.out
+
+## Indexing of grid entities
+
+The main functionality of the grids in TNL is providing of mapping between grid entities coordinates and their indexes. Grids do not store any data. Instead, the grid entities indexes can be used to store data linked with the grid entities on vectors or arrays.
+
+The following figures show coordinates and indexing of the grid entities in 2D grid for demonstration. Indexing of cells looks as follows:
+
+TODO: recreate the following figures in latex-tikz probably
 
 ```
 +-------+-------+-------+-------+-------+    +-------+-------+-------+-------+-------+
@@ -86,6 +104,8 @@ The following figures show coordinates and indexing of the grid entities in 2D f
 ```
 
 Indexing of faces looks as:
+
+TODO: recreate the following figures in latex-tikz probably
 
 ```
   +-(0,6)-+-(1,6)-+-(2,6)-+-(3,6)-+-(4,6)-+       +-( 30)-+-( 31)-+-( 32)-+-( 33)-+-( 34)-+
@@ -117,6 +137,8 @@ Indexing of faces looks as:
 
 And indexing of vertexes looks as follows:
 
+TODO: recreate the following figures in latex-tikz probably
+
 ```
 (0,5)--(1,5)--(2,5)--(3,5)--(4,5)--(5,5)      ( 30)--( 31)--( 32)--( 33)--( 34)--( 35)
   |      |      |      |      |      |          |      |      |      |      |      |
@@ -130,13 +152,6 @@ And indexing of vertexes looks as follows:
   |      |      |      |      |      |          |      |      |      |      |      |
 (0,0)--(1,0)--(2,0)--(3,0)--(4,0)--(5,0)      (  0)--(  1)--(  2)--(  3)--(  4)--(  5)
 ```
-
-Grid may have arbitrary dimension i.e. even higher than 3D. It is represented by the templated class \ref TNL::Meshes::Grid which has the wollowing template parameters:
-
--  `Dimension` is dimension of the grid. This can be any interger value greater than zero.
--  `Real` is a precision of the arithmetics used by the grid. It is `double` by default.
--  `Device` is the device where the grid shall be allocated. Currently it can be either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::Cuda for CUDA supporting GPUs. It is \ref TNL::Devices::Host by default.
--  `Index` is a type being used for indexing. It is `int` by default.
 
 ## Grid creation
 
