@@ -10,7 +10,6 @@
 
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Meshes/GridDetails/NormalsGetter.h>
-#include <TNL/Meshes/GridDetails/GridTraits.h>
 
 namespace TNL {
 namespace Meshes {

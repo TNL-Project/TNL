@@ -8,7 +8,6 @@
 #include <TNL/Meshes/GridEntitiesOrientations.h>
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
-#include <TNL/Meshes/GridDetails/GridTraits.h>
 #include <TNL/Meshes/GridDetails/GridEntityBase.h>
 
 namespace TNL::Meshes {
