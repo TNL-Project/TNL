@@ -1,0 +1,34 @@
+#!/bin/bash
+
+#element_sizes="1 2 4 8 16 32 64 128 256"
+element_sizes="1 2 4 8"
+devices="sequential host"
+access_types="sequential random"
+log_file="tnl-benchmark-memory-access.log"
+max_array_size="33554432"   # 32 MB
+#max_array_size="67108864"   # 64 MB
+#max_array_size="134217728"  # 128 MB
+#max_array_size="268435456"  # 256 MB
+#max_array_size="536870912"  # 512 MB
+#max_array_size="1073741824" # 1 GB
+
+if [[ -f ${log_file} ]]; then
+   echo "Deleting exisiting log file ${log_file}..."
+   rm ${log_file}
+fi
+
+for element_size in ${element_sizes}
+do
+   for device in ${devices}
+   do
+      for access_type in ${access_types}
+      do
+         tnl-benchmark-memory-access --device ${device}                  \
+                                     --access-type ${access_type}        \
+                                     --element-size ${element_size}      \
+                                     --max-array-size ${max_array_size}  \
+                                     --log-file ${log_file}              \
+                                     --output-mode append
+      done
+   done
+done
