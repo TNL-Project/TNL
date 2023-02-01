@@ -22,9 +22,9 @@ void configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum( "sequential" );
    config.addEntryEnum( "host" );
    config.addEntry< int >( "loops", "Number of iterations for every benchmark.", 10);
-   config.addEntry< int >( "element-size", "Benchmark element size." );
-   config.addEntry< int >( "min-array-size", "Minimal array size size." );
-   config.addEntry< int >( "max-array-size", "Maximal array size size." );
+   config.addEntry< int >( "element-size", "Benchmark element size.", 1 );
+   config.addEntry< int >( "min-array-size", "Minimal array size size. Zero means that minimal array size is set to the cache line size.", 0 );
+   config.addEntry< int >( "max-array-size", "Maximal array size size.", 1 << 30 );
    config.addEntry< TNL::String >( "access-type", "Type of memory accesses to be benchmarked.", "sequential" );
    config.addEntryEnum( "sequential" );
    config.addEntryEnum( "random" );
@@ -52,16 +52,20 @@ bool performBenchmark( const TNL::Config::ParameterContainer& parameters )
    auto access_type = parameters.getParameter< TNL::String >( "access-type" );
    size_t min_size = parameters.getParameter< int >( "min-array-size" );
    size_t max_size = parameters.getParameter< int >( "max-array-size" );
+   if( ! min_size )
+      min_size = TNL::SystemInfo::getCacheLineSize();
    for( size_t size = min_size; size <= max_size; size *= 2 ) {
       benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
          { "element size", TNL::convertToString( ElementSize ) },
          { "array size", TNL::convertToString( size ) },
          { "access type", access_type }
       }));
-      benchmark.setDatasetSize( size * ElementSize );
+      benchmark.setDatasetSize( size );
       TestArray< ElementSize > array( size );
       if( access_type == "sequential" )
          array.setupSequentialTest();
+      else if( access_type == "random" )
+         array.setupRandomTest();
       auto compute = [&] () {
          array.performTest();
       };

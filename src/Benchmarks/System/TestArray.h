@@ -76,8 +76,8 @@ class TestArray
       using ArrayView = typename ArrayType::ViewType;
       TestArray( unsigned long long int size );
 
-      bool setupRandomTest( int tlbTestBlockSize,
-                            const int numThreads );
+      bool setupRandomTest( int tlbTestBlockSize = 0,
+                            const int numThreads = 1 );
 
       void setupSequentialTest( const int numThreads = 1,
                                 bool interleaving = true );
@@ -88,8 +88,7 @@ class TestArray
 
       bool setupRandomTLBWorstTest();
 
-      bool setupRandomTestBlock( ElementType* a,
-                                 const unsigned long long int blockSize,
+      bool setupRandomTestBlock( const unsigned long long int blockSize,
                                  ElementType** blockLink,
                                  const int numThreads = 1 );
 
@@ -98,8 +97,8 @@ class TestArray
                 bool accessCentralData >
       unsigned long long int  testLoop();
 
-      TNL::Containers::Array< ElementType > array, allocation;
-      //ElementType* array;
+      ArrayType allocation;
+      ArrayView array;
 
       unsigned long long int numberOfElements;
 
@@ -117,9 +116,14 @@ TestArray< Size >::TestArray( unsigned long long int size )
 {
    this->numberOfElements = ceil( ( double ) size / ( double ) sizeof( ElementType ) );
    this->allocation.setSize( this->numberOfElements  + 4096 / sizeof( ElementType ) + 1 );
+   this->elementsPerTest = this->num_threads; // TODO:
 
    // Align the array to the memory page boundary
-   this->array = ArrayView( ( ElementType* ) ( ( ( ( ( long int ) &this->allocation[0] ) / 4096 ) + 1 ) * 4096 ), size );
+   long int ptr = ( long int ) &this->allocation[0];
+   long int aligned_ptr = ptr >> 12;
+   aligned_ptr++;
+   aligned_ptr <<= 12;
+   this->array.bind( (ElementType*) aligned_ptr, this->numberOfElements );
 };
 
 template< int Size >
@@ -130,13 +134,13 @@ bool TestArray< Size >::setupRandomTLBWorstTest()
       std::cerr << "Element size does not divide the page size" << std::endl;
       return false;
    }
-   const int elementsPerPage = 4096 / sizeof( ElementType );
-   const long long int numberOfPages = ceil( ( double ) this->numberOfElements * sizeof( ElementType ) / 4096.0 );
+   const unsigned int elementsPerPage = 4096 / sizeof( ElementType );
+   const unsigned long long int numberOfPages = ceil( ( double ) this->numberOfElements * sizeof( ElementType ) / 4096.0 );
 
    int* elementsOnPageLeft = new int[ numberOfPages ];
    char *usedElements = new char[ this->numberOfElements ];
    memset( usedElements, 0, this->numberOfElements * sizeof( char ) );
-   for( int i = 0; i < numberOfPages; i++ )
+   for( unsigned int i = 0; i < numberOfPages; i++ )
       elementsOnPageLeft[ i ] = elementsPerPage;
    if( this->numberOfElements % elementsPerPage != 0 )
       elementsOnPageLeft[ numberOfPages - 1 ] = this->numberOfElements % elementsPerPage;
@@ -149,9 +153,9 @@ bool TestArray< Size >::setupRandomTLBWorstTest()
 
    for( unsigned long long int i = 1; i < this->numberOfElements; i++)
    {
-      pageIndex = ++pageIndex % numberOfPages;
+      pageIndex = ( pageIndex + 1 ) % numberOfPages;
       while( ! elementsOnPageLeft[ pageIndex ] )
-         pageIndex = ++ pageIndex % numberOfPages;
+         pageIndex = ( pageIndex + 1 ) % numberOfPages;
       elementsOnPageLeft[ pageIndex ]--;
 
       int thisPageElements = elementsPerPage;
@@ -162,7 +166,7 @@ bool TestArray< Size >::setupRandomTLBWorstTest()
       if( pageIndex * elementsPerPage + newElement >= this->numberOfElements )
          newElement = rand() % ( this->numberOfElements % elementsPerPage );
       while( usedElements[ pageIndex * elementsPerPage + newElement ] )
-         newElement = ++ newElement % thisPageElements;
+         newElement = ( newElement + 1 ) % thisPageElements;
       newElement = pageIndex * elementsPerPage + newElement;
 
       this->array[ previousElement ].next = &this->array[ newElement ];
@@ -180,8 +184,7 @@ bool TestArray< Size >::setupRandomTLBWorstTest()
 }
 
 template< int Size >
-bool TestArray< Size >::setupRandomTestBlock( ElementType* a,
-                                              const unsigned long long int blockSize,
+bool TestArray< Size >::setupRandomTestBlock( const unsigned long long int blockSize,
                                               ElementType** blockLink,
                                               const int numThreads )
 {
@@ -192,11 +195,11 @@ bool TestArray< Size >::setupRandomTestBlock( ElementType* a,
    newElement = new unsigned long long int[ numThreads ];
 
    if( blockLink[ 0 ] != NULL )
-      for( int tid = 0; tid < numThreads && tid < blockSize; tid++ )
-      blockLink[ tid ]->next = &a[ tid ];
+      for( int tid = 0; tid < numThreads && tid < ( int ) blockSize; tid++ )
+      blockLink[ tid ]->next = &this->array[ tid ];
 
 
-   for( int tid = 0; tid < numThreads && tid < blockSize; tid ++ )
+   for( int tid = 0; tid < numThreads && tid < ( int ) blockSize; tid ++ )
    {
       newElement[ tid ] = previousElement[ tid ] = tid;
       usedElements[ tid ] = 1;
@@ -228,7 +231,7 @@ bool TestArray< Size >::setupRandomTestBlock( ElementType* a,
       }
    }
    //cout << "Setting the last element..." << std::endl;
-   for( int tid = 0; tid < numThreads && tid < blockSize; tid++ )
+   for( int tid = 0; tid < numThreads && tid < ( int ) blockSize; tid++ )
    {
       this->array[ newElement[ tid ] ].next = NULL;
       this->array[ newElement[ tid ] ][ 0 ] = newElement[ tid ];
@@ -254,14 +257,14 @@ bool TestArray< Size >::setupRandomTest( int tlbTestBlockSize,
    memset( blockLink, 0, numThreads * sizeof( ElementType* ) );
 
    if( tlbTestBlockSize == 0 )
-      return this->setupRandomTestBlock( this->array, this->numberOfElements, blockLink, numThreads );
+      return this->setupRandomTestBlock( this->numberOfElements, blockLink, numThreads );
 
    if( tlbTestBlockSize == -1 )
       return this->setupRandomTLBWorstTest();
 
    const unsigned long long int elementsPerBlock = tlbTestBlockSize * 4096 / sizeof( ElementType );
    for( unsigned long long int i = 0; i < this->numberOfElements; i += elementsPerBlock )
-      if( ! this->setupRandomTestBlock( this->array, this->numberOfElements, blockLink ) )
+      if( ! this->setupRandomTestBlock( this->numberOfElements, blockLink ) )
       {
          delete[] blockLink;
          return false;
