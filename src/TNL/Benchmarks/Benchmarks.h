@@ -21,20 +21,23 @@ struct BenchmarkResult
 
    int loops = 0;
    double time = std::numeric_limits< double >::quiet_NaN();
-   double stddev = std::numeric_limits< double >::quiet_NaN();
+   double time_stddev = std::numeric_limits< double >::quiet_NaN();
+   double cpu_cycles = std::numeric_limits< double >::quiet_NaN();
+   double cpu_cycles_stddev = std::numeric_limits< double >::quiet_NaN();
    double bandwidth = std::numeric_limits< double >::quiet_NaN();
    double speedup = std::numeric_limits< double >::quiet_NaN();
+   long long int cpu_cycles_per_operation = 0;
 
    [[nodiscard]] virtual HeaderElements
    getTableHeader() const
    {
-      return HeaderElements( { "time", "stddev", "stddev/time", "loops", "bandwidth", "speedup" } );
+      return HeaderElements( { "time", "tm.stddev", "(tm.stddev)/time", "CPU cycles", "cycles.stddev", "(cycles stddev)/cycles", "loops", "bandwidth", "cycles/op.", "speedup" } );
    }
 
    [[nodiscard]] virtual std::vector< int >
    getColumnWidthHints() const
    {
-      return std::vector< int >( { 14, 14, 14, 6, 14, 14 } );
+      return std::vector< int >( { 14, 14, 22, 15, 15, 23, 6, 14, 14, 14 } );
    }
 
    [[nodiscard]] virtual RowElements
@@ -42,7 +45,17 @@ struct BenchmarkResult
    {
       RowElements elements;
       // write in scientific format to avoid precision loss
-      elements << std::scientific << time << stddev << stddev / time << loops << bandwidth;
+      elements << std::scientific
+               << time << time_stddev << time_stddev / time;
+      if( cpu_cycles )
+         elements << cpu_cycles << cpu_cycles_stddev << cpu_cycles_stddev / cpu_cycles;
+      else
+         elements << "N/A" << "N/A" << "N/A";
+      elements << loops << bandwidth;
+      if( cpu_cycles_per_operation )
+         elements << cpu_cycles_per_operation;
+      else
+         elements << "N/A";
       if( speedup != 0 )
          elements << speedup;
       else
@@ -96,6 +109,9 @@ public:
    setDatasetSize( double datasetSize = 0.0,  // in GB
                    double baseTime = 0.0 );
 
+   void
+   setOperationsPerLoop( long int operationsPerLoop );
+
    // Sets current operation -- operations expand the table vertically
    //  - baseTime should be reset to 0.0 for most operations, but sometimes
    //    it is useful to override it
@@ -141,6 +157,8 @@ protected:
    Logger logger;
 
    int loops = 1;
+
+   long int operations_per_loop = 0;
 
    double minTime = 0.0;
 

@@ -29,7 +29,7 @@ template< typename Device,
           typename ComputeFunction,
           typename ResetFunction,
           typename Monitor = TNL::Solvers::IterativeSolverMonitor< double, int > >
-std::tuple< int, double, double >
+std::tuple< int, double, double, double, double >
 timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const double& minTime, Monitor&& monitor = Monitor() )
 {
    // the timer is constructed zero-initialized and stopped
@@ -42,11 +42,11 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
    reset();
    compute();
 
-   Containers::Vector< double > results( maxLoops );
-   results.setValue( 0.0 );
+   Containers::Vector< double > results_time( maxLoops, 0.0 );
+   Containers::Vector< long long int > results_cpu_cycles( maxLoops, 0.0 );
 
    int loops;
-   for( loops = 0; loops < maxLoops || sum( results ) < minTime; loops++ ) {
+   for( loops = 0; loops < maxLoops || sum( results_time ) < minTime; loops++ ) {
       // abuse the monitor's "time" for loops
       monitor.setTime( loops + 1 );
       reset();
@@ -63,16 +63,24 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
          Backend::deviceSynchronize();
       timer.stop();
 
-      results[ loops ] = timer.getRealTime();
+      results_time[ loops ] = timer.getRealTime();
+      if constexpr( std::is_same< Device, Devices::Sequential >::value ||
+         std::is_same< Device, Devices::Host >::value )
+         results_cpu_cycles[ loops ] = timer.getCPUCycles();
    }
 
-   const double mean = sum( results ) / (double) loops;
-   double stddev;
-   if( loops > 1 )
-      stddev = 1.0 / std::sqrt( loops - 1 ) * l2Norm( results - mean );
-   else
-      stddev = std::numeric_limits< double >::quiet_NaN();
-   return std::make_tuple( loops, mean, stddev );
+   const double mean_time = sum( results_time ) / (double) loops;
+   const double mean_cpu_cycles = sum( results_cpu_cycles ) / (double) loops;
+   double stddev_time, stddev_cpu_cycles;
+   if( loops > 1 ) {
+      stddev_time = 1.0 / std::sqrt( loops - 1 ) * l2Norm( results_time - mean_time );
+      stddev_cpu_cycles = 1.0 / std::sqrt( loops - 1 ) * l2Norm( results_cpu_cycles - mean_cpu_cycles );
+   }
+   else {
+      stddev_time = std::numeric_limits< double >::quiet_NaN();
+      stddev_cpu_cycles = std::numeric_limits< double >::quiet_NaN();
+   }
+   return std::make_tuple( loops, mean_time, stddev_time, mean_cpu_cycles, stddev_cpu_cycles );
 }
 
 inline std::map< std::string, std::string >

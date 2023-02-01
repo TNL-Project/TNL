@@ -88,6 +88,13 @@ Benchmark< Logger >::setDatasetSize( double datasetSize, double baseTime )
 
 template< typename Logger >
 void
+Benchmark< Logger >::setOperationsPerLoop( long int operationsPerLoop )
+{
+   this->operations_per_loop = operationsPerLoop;
+}
+
+template< typename Logger >
+void
 Benchmark< Logger >::setOperation( const std::string& operation, double datasetSize, double baseTime )
 {
    monitor.setStage( operation );
@@ -104,7 +111,9 @@ Benchmark< Logger >::time( ResetFunction reset,
                            BenchmarkResult& result )
 {
    result.time = std::numeric_limits< double >::quiet_NaN();
-   result.stddev = std::numeric_limits< double >::quiet_NaN();
+   result.time_stddev = std::numeric_limits< double >::quiet_NaN();
+   result.cpu_cycles = std::numeric_limits< double >::quiet_NaN();
+   result.cpu_cycles_stddev = std::numeric_limits< double >::quiet_NaN();
 
    // run the monitor main loop
    Solvers::SolverMonitorThread monitor_thread( monitor );
@@ -115,11 +124,11 @@ Benchmark< Logger >::time( ResetFunction reset,
    std::string errorMessage;
    try {
       if( this->reset )
-         std::tie( result.loops, result.time, result.stddev ) =
+         std::tie( result.loops, result.time, result.time_stddev, result.cpu_cycles, result.cpu_cycles_stddev ) =
             timeFunction< Device >( compute, reset, loops, minTime, monitor );
       else {
          auto noReset = []() {};
-         std::tie( result.loops, result.time, result.stddev ) =
+         std::tie( result.loops, result.time, result.time_stddev, result.cpu_cycles, result.cpu_cycles_stddev ) =
             timeFunction< Device >( compute, noReset, loops, minTime, monitor );
       }
    }
@@ -130,6 +139,9 @@ Benchmark< Logger >::time( ResetFunction reset,
 
    result.bandwidth = datasetSize / result.time;
    result.speedup = this->baseTime / result.time;
+   if( result.cpu_cycles && this->operations_per_loop )
+      result.cpu_cycles_per_operation = result.cpu_cycles / this->operations_per_loop;
+
    if( this->baseTime == 0.0 )
       this->baseTime = result.time;
 

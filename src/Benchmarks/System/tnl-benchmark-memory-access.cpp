@@ -52,6 +52,7 @@ bool performBenchmark( const TNL::Config::ParameterContainer& parameters )
    auto access_type = parameters.getParameter< TNL::String >( "access-type" );
    size_t min_size = parameters.getParameter< int >( "min-array-size" );
    size_t max_size = parameters.getParameter< int >( "max-array-size" );
+   const long long int elementsPerTest = max_size / sizeof( ElementSize );
    if( ! min_size )
       min_size = TNL::SystemInfo::getCacheLineSize();
    for( size_t size = min_size; size <= max_size; size *= 2 ) {
@@ -62,6 +63,9 @@ bool performBenchmark( const TNL::Config::ParameterContainer& parameters )
       }));
       benchmark.setDatasetSize( size );
       TestArray< ElementSize > array( size );
+      array.setElementsPerTest( elementsPerTest );
+      benchmark.setOperationsPerLoop( elementsPerTest );
+      std::cerr << "Operations per loop = " << array.getElementsCount() << std::endl;
       if( access_type == "sequential" )
          array.setupSequentialTest();
       else if( access_type == "random" )
