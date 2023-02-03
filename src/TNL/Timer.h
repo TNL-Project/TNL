@@ -4,6 +4,7 @@
 #pragma once
 
 #include <chrono>
+#include <TNL/PerformanceCounter.h>
 
 namespace TNL {
 
@@ -140,7 +141,11 @@ protected:
    unsigned long long int initialCPUCycles, totalCPUCycles;
 
    bool stopState;
+
+   static PerformanceCounter performanceCounter;
 };
+
+inline PerformanceCounter Timer::performanceCounter;
 
 }  // namespace TNL
 

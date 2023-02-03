@@ -36,7 +36,7 @@ Timer::stop()
    if( ! this->stopState ) {
       this->totalRealTime += readRealTime() - this->initialRealTime;
       this->totalCPUTime += readCPUTime() - this->initialCPUTime;
-      this->totalCPUCycles += readCPUCycles() - this->initialCPUCycles;
+      this->totalCPUCycles += performanceCounter.getCPUCycles() - this->initialCPUCycles;
       this->stopState = true;
    }
 }
@@ -46,7 +46,7 @@ Timer::start()
 {
    this->initialRealTime = readRealTime();
    this->initialCPUTime = readCPUTime();
-   this->initialCPUCycles = readCPUCycles();
+   this->initialCPUCycles = performanceCounter.getCPUCycles();
    this->stopState = false;
 }
 
@@ -70,7 +70,7 @@ inline unsigned long long int
 Timer::getCPUCycles() const
 {
    if( ! this->stopState )
-      return readCPUCycles() - this->initialCPUCycles;
+      return performanceCounter.getCPUCycles() - this->initialCPUCycles;
    return this->totalCPUCycles;
 }
 
@@ -104,16 +104,7 @@ Timer::readCPUTime()
 inline unsigned long long int
 Timer::readCPUCycles()
 {
-#ifdef SPY_OS_IS_LINUX
-   unsigned hi;
-   unsigned lo;
-   __asm__ __volatile__( "rdtsc" : "=a"( lo ), "=d"( hi ) );
-   return ( (unsigned long long) lo ) | ( ( (unsigned long long) hi ) << 32 );
-#else
-   // TODO: implement for Windows and macOS:
-   // https://lemire.me/blog/2021/03/24/counting-cycles-and-instructions-on-the-apple-m1-processor/
-   return 0;
-#endif
+   return performanceCounter.getCPUCycles();
 }
 
 inline double
