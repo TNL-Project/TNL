@@ -87,8 +87,11 @@ class TestArray
       void setupSequentialTest( const int numThreads = 1,
                                 bool interleaving = true );
 
-      unsigned long long int performTest();
+      void performTest();
 
+      unsigned long long int getTestedElementsCount();
+
+      unsigned long long int getTestedElementsCountPerThread();
    protected:
 
       bool setupRandomTLBWorstTest();
@@ -100,7 +103,7 @@ class TestArray
       template< bool readTest,
                 bool writeTest,
                 bool accessCentralData >
-      unsigned long long int  testLoop();
+      void testLoop();
 
       ArrayType allocation;
       ArrayView array;
@@ -111,7 +114,7 @@ class TestArray
 
       int num_threads = 1;
 
-      unsigned long long int elementsPerTest;
+      unsigned long long int elementsPerTest, testedElementsCount;
 
       unsigned long long int sum = 0;
 };
@@ -331,43 +334,48 @@ void TestArray< Size >::setupSequentialTest( const int numThreads,
 }
 
 template< int Size >
-unsigned long long int TestArray< Size >::performTest()
+void
+TestArray< Size >::
+performTest()
 {
    if( this->readTest ) {
       if( this->accessCentralData )
-         return testLoop< true, false, true >();
+         testLoop< true, false, true >();
       else
-         return testLoop< true, false, false >();
+         testLoop< true, false, false >();
+      return;
    }
 
    if( this->writeTest ) {
       if( this->accessCentralData )
-         return testLoop< false, true, true >();
+         testLoop< false, true, true >();
       else
-         return testLoop< false, true, false >();
+         testLoop< false, true, false >();
+      return;
    }
-
-   return testLoop< false, false, false >();
+   testLoop< false, false, false >();
 }
 
 template< int Size >
    template< bool readTest,
              bool writeTest,
              bool accessCentralData >
-unsigned long long int TestArray< Size >::testLoop()
+void
+TestArray< Size >::
+testLoop()
 {
    const unsigned long long int elementsPerTestPerThread = this->elementsPerTest / this->num_threads + 1;
-   unsigned long long int testedElements = 0;
-#pragma omp parallel num_threads( this->num_threads ), reduction( +:testedElements ), if( this->num_threads > 1 )
+   unsigned long long int testedElementsCount = 0;
+#pragma omp parallel num_threads( this->num_threads ), reduction( +:testedElementsCount ), if( this->num_threads > 1 )
    {
 #ifdef HAVE_OMP
       const int tid = omp_get_thread_num();
 #else
       const int tid = 0;
 #endif
-      testedElements = 0;
+      testedElementsCount = 0;
       if( tid < this->numberOfElements )
-        while( testedElements < elementsPerTestPerThread )
+        while( testedElementsCount < elementsPerTestPerThread )
         {
            ElementType* elementPtr = &this->array[ tid ];
            int elements( 0 );
@@ -391,10 +399,26 @@ unsigned long long int TestArray< Size >::testLoop()
                elementPtr = elementPtr->next;
                elements ++;
            }
-           testedElements += elements;
+           testedElementsCount += elements;
         }
    }
-   return testedElements;
+   this->testedElementsCount = testedElementsCount;
+}
+
+template< int Size >
+unsigned long long int
+TestArray< Size >::
+getTestedElementsCount()
+{
+   return this->testedElementsCount;
+}
+
+template< int Size >
+unsigned long long int
+TestArray< Size >::
+getTestedElementsCountPerThread()
+{
+   return this->testedElementsCount / this->num_threads;
 }
 
 #endif

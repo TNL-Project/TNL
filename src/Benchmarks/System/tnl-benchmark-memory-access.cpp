@@ -23,7 +23,7 @@ void configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum( "host" );
    config.addEntry< int >( "loops", "Number of iterations for every benchmark.", 10);
    config.addEntry< int >( "element-size", "Benchmark element size.", 1 );
-   config.addEntry< int >( "min-array-size", "Minimal array size size. Zero means that minimal array size is set to the cache line size.", 0 );
+   config.addEntry< int >( "min-array-size", "Minimal array size size.", 1 << 10 );
    config.addEntry< int >( "max-array-size", "Maximal array size size.", 1 << 30 );
    config.addEntry< TNL::String >( "access-type", "Type of memory accesses to be benchmarked.", "sequential" );
    config.addEntryEnum( "sequential" );
@@ -53,8 +53,6 @@ bool performBenchmark( const TNL::Config::ParameterContainer& parameters )
    size_t min_size = parameters.getParameter< int >( "min-array-size" );
    size_t max_size = parameters.getParameter< int >( "max-array-size" );
    const long long int elementsPerTest = max_size / sizeof( ElementSize );
-   if( ! min_size )
-      min_size = TNL::SystemInfo::getCacheLineSize();
    for( size_t size = min_size; size <= max_size; size *= 2 ) {
       benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
          { "element size", TNL::convertToString( ElementSize ) },
@@ -64,12 +62,13 @@ bool performBenchmark( const TNL::Config::ParameterContainer& parameters )
       benchmark.setDatasetSize( size );
       TestArray< ElementSize > array( size );
       array.setElementsPerTest( elementsPerTest );
-      benchmark.setOperationsPerLoop( elementsPerTest );
-      std::cerr << "Operations per loop = " << array.getElementsCount() << std::endl;
       if( access_type == "sequential" )
          array.setupSequentialTest();
       else if( access_type == "random" )
          array.setupRandomTest();
+      array.performTest();
+      benchmark.setOperationsPerLoop( array.getTestedElementsCountPerThread() );
+
       auto compute = [&] () {
          array.performTest();
       };
