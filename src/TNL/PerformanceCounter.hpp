@@ -94,7 +94,7 @@ inline PerformanceCounter::PerformanceCounter()
    }
    if( error )
    {
-      std::cerr << "Error occured during inicialization of kperf, administrative access might be required - use sudo command." << std::endl;
+      std::cerr << "Error occurred during initiation of kperf, administrative access might be required - use sudo command." << std::endl;
       std::cerr << "Measuring CPU cycles will not be possible." << std::endl;
    }
 #endif

@@ -35,7 +35,6 @@
 
 #include <TNL/Containers/Array.h>
 #include "ArrayElement.h"
-#include "MemoryAccessConfig.h"
 
 
 template< int Size >
@@ -75,7 +74,10 @@ class TestArray
       using ArrayType = TNL::Containers::Array< ElementType >;
       using PtrArrayType = TNL::Containers::Array< ElementType* >;
       using ArrayView = typename ArrayType::ViewType;
+
       TestArray( unsigned long long int size );
+
+      void setThreadsCount( int threads_coutn );
 
       unsigned long long int getElementsCount() const;
 
@@ -132,6 +134,14 @@ TestArray< Size >::TestArray( unsigned long long int size )
    aligned_ptr++;
    aligned_ptr <<= 12;
    this->array.bind( (ElementType*) aligned_ptr, this->numberOfElements );
+}
+
+template< int Size >
+void
+TestArray< Size >::
+setThreadsCount( int threads_count )
+{
+   this->num_threads = threads_count;
 }
 
 template< int Size >
