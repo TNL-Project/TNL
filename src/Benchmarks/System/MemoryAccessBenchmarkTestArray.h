@@ -1,30 +1,18 @@
-/***************************************************************************
-                          TestArray.h  -  description
-                             -------------------
-    begin                : 2015/02/04
-    copyright            : (C) 2015 by Tomáš Oberhuber,
-                         :             Milan Lang
-    email                : tomas.oberhuber@fjfi.cvut.cz
- ***************************************************************************/
+// Copyright (c) 2004-2023 Tomáš Oberhuber et al.
+//
+// This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+//
+// SPDX-License-Identifier: MIT
 
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+// Implemented by: Tomáš Oberhuber
 
-#ifndef TestArrayH
-#define TestArrayH
+#pragma once
 
 #include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
-#include <omp.h>
 #include <limits.h>
 #include <sys/time.h>
 #include <math.h>
@@ -430,5 +418,3 @@ getTestedElementsCountPerThread()
 {
    return this->testedElementsCount / this->num_threads;
 }
-
-#endif

@@ -11,7 +11,7 @@
 #include <TNL/Benchmarks/Benchmarks.h>
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/parseCommandLine.h>
-#include "TestArray.h"
+#include "MemoryAccessBenchmarkTestArray.h"
 #include "MemoryAccessBenchmark.h"
 
 void
@@ -21,23 +21,20 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addDelimiter("Benchmark settings:");
    config.addEntry<TNL::String>("log-file", "Log file name.", "tnl-benchmark-heat-equation.log");
    config.addEntry<TNL::String>("output-mode", "Mode for opening the log file.", "overwrite");
-   config.addEntryEnum("append");
    config.addEntryEnum("overwrite");
-   config.addEntry<TNL::String>( "device", "TNL device type used for benchmarking.", "sequential" );
-   config.addEntryEnum( "sequential" );
-   config.addEntryEnum( "host" );
+   config.addEntryEnum("append");
+   config.addEntry< int >( "threads-count", "Number of OpenMP threads for host device.", 1 );
    config.addEntry< int >( "loops", "Number of iterations for every benchmark.", 10);
    config.addEntry< int >( "element-size", "Benchmark element size.", 1 );
    config.addEntry< int >( "min-array-size", "Minimal array size size.", 1 << 10 );
    config.addEntry< int >( "max-array-size", "Maximal array size size.", 1 << 30 );
-   config.addEntry< int >( "threads-count", "Number of OpenMP threads for host device.", 1 );
    config.addEntry< TNL::String >( "access-type", "Type of memory accesses to be benchmarked.", "sequential" );
    config.addEntryEnum( "sequential" );
    config.addEntryEnum( "random" );
    config.addEntry< bool >( "verbose", "Verbose mode.", true );
 }
 
-template< typename Device, int ElementSize >
+template< int ElementSize >
 bool
 MemoryAccessBenchmark::
 performBenchmark( const TNL::Config::ParameterContainer& parameters )
@@ -56,7 +53,6 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
    std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
    TNL::Benchmarks::writeMapAsJson( metadata, log_file_name, ".metadata.json" );
 
-   auto device = std::is_same< Device, TNL::Devices::Sequential >::value ? "sequential" : "host";
    auto access_type = parameters.getParameter< TNL::String >( "access-type" );
    size_t min_size = parameters.getParameter< int >( "min-array-size" );
    size_t max_size = parameters.getParameter< int >( "max-array-size" );
@@ -64,9 +60,10 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
    const long long int elementsPerTest = max_size / sizeof( ElementSize );
    for( size_t size = min_size; size <= max_size; size *= 2 ) {
       benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
+         { "threads", TNL::convertToString( ElementSize ) },
+         { "access type", access_type }
          { "element size", TNL::convertToString( ElementSize ) },
          { "array size", TNL::convertToString( size ) },
-         { "access type", access_type }
       }));
       benchmark.setDatasetSize( size );
       TestArray< ElementSize > array( size );
@@ -82,7 +79,7 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
       auto compute = [&] () {
          array.performTest();
       };
-      benchmark.time< Device >( device, compute );
+      benchmark.time< TNL::Devices::Host >( "host", compute );
    }
    return true;
 }
