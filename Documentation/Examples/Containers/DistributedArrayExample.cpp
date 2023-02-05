@@ -3,45 +3,41 @@
 #include <TNL/Containers/DistributedArray.h>
 #include <TNL/MPI/ScopedInitializer.h>
 
-using namespace TNL;
-using namespace std;
-
 /***
  * The following works for any device (CPU, GPU ...).
  */
 template< typename Device >
 void distributedArrayExample()
 {
-   using ArrayType = Containers::DistributedArray< int, Device >;
+   using ArrayType = TNL::Containers::DistributedArray< int, Device >;
    using IndexType = typename ArrayType::IndexType;
    using LocalRangeType = typename ArrayType::LocalRangeType;
 
-   const MPI_Comm communicator = MPI_COMM_WORLD;
-   //const int rank = TNL::MPI::GetRank(communicator);
-   const int nproc = TNL::MPI::GetSize(communicator);
+   const TNL::MPI::Comm communicator = MPI_COMM_WORLD;
 
-   /***
-    * We set size to prime number to force non-uniform distribution of the distributed array.
-    */
+   // We set the global array size to a prime number to force non-uniform distribution.
    const int size = 97;
-   const int ghosts = (nproc > 1) ? 4 : 0;
+   const int ghosts = (communicator.size() > 1) ? 4 : 0;
 
-   const LocalRangeType localRange = Containers::Partitioner< IndexType >::splitRange( size, communicator );
+   const LocalRangeType localRange = TNL::Containers::Partitioner< IndexType >::splitRange( size, communicator );
    ArrayType a( localRange, ghosts, size, communicator );
    a.forElements( 0, size, [] __cuda_callable__ ( int idx, int& value ) { value = idx; } );
-   //LocalArrayType localArray = a;
-   //std::cout << a << std::endl;
-
+   std::cout << "Rank " << communicator.rank() << ": " << a.getLocalView() << std::endl;
 }
 
 int main( int argc, char* argv[] )
 {
    TNL::MPI::ScopedInitializer mpi(argc, argv);
 
-   std::cout << "The first test runs on CPU ..." << std::endl;
-   distributedArrayExample< Devices::Host >();
+   if( TNL::MPI::GetRank() == 0 )
+      std::cout << "The first test runs on CPU ..." << std::endl;
+   distributedArrayExample< TNL::Devices::Host >();
+
 #ifdef __CUDACC__
-   std::cout << "The second test runs on GPU ..." << std::endl;
-   distributedArrayExample< Devices::Cuda >();
+   TNL::MPI::Barrier();
+
+   if( TNL::MPI::GetRank() == 0 )
+      std::cout << "The second test runs on GPU ..." << std::endl;
+   distributedArrayExample< TNL::Devices::Cuda >();
 #endif
 }

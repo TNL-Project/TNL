@@ -20,6 +20,11 @@ namespace Containers {
  * \tparam NDArray Type of the N-dimensional array which is used to store the local
  *                 elements. It can be \ref NDArray or \ref SlicedNDArray.
  *
+ * \par Example:
+ * \include Containers/DistributedNDArrayExample.cpp
+ * \par Possible output:
+ * \include DistributedNDArrayExample.out
+ *
  * \ingroup ndarray
  */
 template< typename NDArray >
@@ -55,16 +60,16 @@ public:
    //! of a distributed N-dimensional array.
    using OverlapsType = typename NDArray::OverlapsType;
 
-   //! Compatible \ref DistributedNDArrayView type.
+   //! \brief Compatible \ref DistributedNDArrayView type.
    using ViewType = DistributedNDArrayView< typename NDArray::ViewType >;
 
-   //! Compatible constant \ref DistributedNDArrayView type.
+   //! \brief Compatible constant \ref DistributedNDArrayView type.
    using ConstViewType = DistributedNDArrayView< typename NDArray::ConstViewType >;
 
-   //! Compatible \ref NDArrayView of the local array.
+   //! \brief Compatible \ref NDArrayView of the local array.
    using LocalViewType = typename NDArray::ViewType;
 
-   //! Compatible constant \ref NDArrayView of the local array.
+   //! \brief Compatible constant \ref NDArrayView of the local array.
    using ConstLocalViewType = typename NDArray::ConstViewType;
 
    //! \brief Constructs an empty array with zero size.

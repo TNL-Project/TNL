@@ -104,4 +104,14 @@ The output looks as:
 
 ## Distributed vectors
 
-TODO
+\ref TNL::Containers::DistributedVector "DistributedVector" extends \ref TNL::Containers::DistributedArray "DistributedArray" with algebraic operations.
+The functionality is similar to how \ref TNL::Containers::Vector "Vector" extends \ref TNL::Containers::Array "Array".
+_DistributedVector_ also supports expression templates and other operations present in _Vector_.
+
+Example:
+
+\include DistributedVectorExample.cpp
+
+The output looks as:
+
+\include DistributedVectorExample.out

@@ -16,6 +16,11 @@ namespace Containers {
 
 /**
  * \brief Distributed array.
+ *
+ * \par Example
+ * \include Containers/DistributedArrayExample.cpp
+ * \par Output
+ * \include DistributedArrayExample.out
  */
 template< typename Value,
           typename Device = Devices::Host,
@@ -86,18 +91,35 @@ public:
                      const MPI::Comm& communicator,
                      const AllocatorType& allocator = AllocatorType() );
 
+   /**
+    * \brief Set new global size and distribution of the array.
+    *
+    * \param localRange The range of elements in the global array that is owned by this rank.
+    * \param ghosts Number of ghost elements allocated by this rank.
+    * \param globalSize The size of the global array.
+    * \param communicator Reference to the MPI communicator on which the array is distributed.
+    */
    void
    setDistribution( LocalRangeType localRange, Index ghosts, Index globalSize, const MPI::Comm& communicator );
 
+   /**
+    * \brief Returns the local range of the distributed array.
+    */
    const LocalRangeType&
    getLocalRange() const;
 
    IndexType
    getGhosts() const;
 
+   /**
+    * \brief Returns the MPI communicator associated to the array.
+    */
    const MPI::Comm&
    getCommunicator() const;
 
+   /**
+    * \brief Returns the allocator associated to the array.
+    */
    AllocatorType
    getAllocator() const;
 

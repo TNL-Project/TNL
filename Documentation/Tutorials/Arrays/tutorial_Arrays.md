@@ -144,4 +144,34 @@ The output looks as:
 
 ## Distributed arrays
 
-TODO
+Distributed arrays are managed by the \ref TNL::Containers::DistributedArray class.
+It is a wrapper around a \ref TNL::Containers::Array "local array", \ref TNL::MPI::Comm "MPI communicator" and global indexing information.
+When creating a distributed array, the global range must be partitioned into subranges (e.g. using \ref TNL::Containers::Partitioner) and passed to the constructor or the \ref TNL::Containers::DistributedArray::setDistribution "setDistribution" member function.
+For example:
+
+```cpp
+using ArrayType = TNL::Containers::DistributedArray< int >;
+using LocalRangeType = typename ArrayType::LocalRangeType;
+using Partitioner = TNL::Containers::Partitioner< typename ArrayType::IndexType >;
+
+const TNL::MPI::Comm communicator = MPI_COMM_WORLD;
+const int size = 97;
+const int ghosts = 0;
+const LocalRangeType localRange = Partitioner::splitRange( size, communicator );
+ArrayType a( localRange, ghosts, size, communicator );
+```
+
+The local arrays can be accessed via views returned by the following member functions:
+- \ref TNL::Containers::DistributedArray::getLocalView "getLocalView"
+- \ref TNL::Containers::DistributedArray::getConstLocalView "getConstLocalView"
+- \ref TNL::Containers::DistributedArray::getLocalViewWithGhosts "getLocalViewWithGhosts"
+- \ref TNL::Containers::DistributedArray::getConstLocalViewWithGhosts "getConstLocalViewWithGhosts"
+
+The reference manual for \ref TNL::Containers::DistributedArray lists all functionality of the data structure.
+The following shows a full example.
+
+\include Containers/DistributedArrayExample.cpp
+
+The output looks as:
+
+\include DistributedArrayExample.out
