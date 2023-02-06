@@ -65,7 +65,7 @@ class TestArray
 
       TestArray( unsigned long long int size );
 
-      void setThreadsCount( int threads_coutn );
+      void setThreadsCount( int threads_count );
 
       unsigned long long int getElementsCount() const;
 
@@ -241,8 +241,10 @@ bool TestArray< Size >::setupRandomTestBlock( const unsigned long long int block
          }
          //cout << "New element for TID " << tid << " is " << newElement[ tid ] << std::endl;
          this->array[ previousElement[ tid ] ].next = &this->array[ newElement[ tid ] ];
-         this->array[ previousElement[ tid ] ][ 0 ] = previousElement[ tid ];
-         this->array[ previousElement[ tid ] ][ ( Size - 1 ) / 2 ] = previousElement[ tid ];
+         if( Size > 1 ) {
+            this->array[ previousElement[ tid ] ][ 0 ] = previousElement[ tid ];
+            this->array[ previousElement[ tid ] ][ ( Size - 1 ) / 2 ] = previousElement[ tid ];
+         }
          usedElements[ newElement[ tid ] ] = 1;
          previousElement[ tid ] = newElement[ tid ];
       }
@@ -251,8 +253,10 @@ bool TestArray< Size >::setupRandomTestBlock( const unsigned long long int block
    for( int tid = 0; tid < numThreads && tid < ( int ) blockSize; tid++ )
    {
       this->array[ newElement[ tid ] ].next = NULL;
-      this->array[ newElement[ tid ] ][ 0 ] = newElement[ tid ];
-      this->array[ newElement[ tid ] ][ ( Size - 1 ) / 2 ] = newElement[ tid ];
+      if( Size > 1 ) {
+         this->array[ newElement[ tid ] ][ 0 ] = newElement[ tid ];
+         this->array[ newElement[ tid ] ][ ( Size - 1 ) / 2 ] = newElement[ tid ];
+      }
       blockLink[ tid ] = &( this->array[ newElement[ tid ] ] );
    }
    return true;
@@ -381,13 +385,13 @@ testLoop()
            {
                if( Size > 1 )
                {
-                  if( readTest ) {
+                  if( readTest && Size > 1 ) {
                      if( accessCentralData )
                         this->sum += ( *elementPtr )[ ( Size - 1 )/2 ];
                      else
                         this->sum += ( *elementPtr )[ 0 ];
                   }
-                  if( writeTest ) {
+                  if( writeTest && Size > 1 ) {
                      if( accessCentralData )
                         ( *elementPtr )[ ( Size - 1 )/2 ] = 1;
                      else
