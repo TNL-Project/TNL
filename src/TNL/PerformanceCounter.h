@@ -26,7 +26,13 @@ struct PerformanceCounter
    /**
     * \brief Function for counting the number of CPU cycles (machine cycles).
     */
-   unsigned long long int getCPUCycles();
+   unsigned long long int getCPUCycles() const;
+
+
+#ifdef __APPLE__
+   static constexpr int appleKpcCountersMaxCount = 10;
+   static constexpr int appleKpcConfigMaxCount = 8;
+#endif
 
 protected:
 
@@ -37,6 +43,7 @@ protected:
    rdtsc();
 
 #ifdef __APPLE__
+   // inspired by https://lemire.me/blog/2021/03/24/counting-cycles-and-instructions-on-the-apple-m1-processor/
    static void* kperf;
 
    const int CFGWORD_EL0A32EN_MASK = 0x10000;
@@ -67,7 +74,8 @@ protected:
    const int KPC_CLASS_RAWPMU_MASK = 1u << KPC_CLASS_RAWPMU;
    const int KPC_MASK = KPC_CLASS_CONFIGURABLE_MASK | KPC_CLASS_FIXED_MASK;
 
-   static TNL::Containers::Array< uint64_t > appleKperfCounters, appleKperfConfig;
+   static uint64_t g_counters[ appleKpcCountersMaxCount ];
+   static uint64_t g_config[ appleKpcConfigMaxCount ];
 
    static int ( *kpc_set_config )( uint32_t, void* );
    static int ( *kpc_force_all_ctrs_set )( int );
@@ -76,8 +84,17 @@ protected:
    static int ( *kpc_get_counter_count )( int );
    static int ( *kpc_get_config_count )( int );
    static int ( *kpc_get_thread_counters )( int, unsigned int, void * );
+
+   int appleKpcCountersCount = 0;
 #endif
 };
+
+#ifdef __APPLE__
+inline void* PerformanceCounter::kperf = nullptr;
+inline uint64_t PerformanceCounter::g_counters[PerformanceCounter::appleKpcCountersMaxCount];
+inline uint64_t PerformanceCounter::g_config[PerformanceCounter::appleKpcConfigMaxCount];
+#endif
+
 
 } // namespace TNL
 

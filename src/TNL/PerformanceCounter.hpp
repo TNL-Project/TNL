@@ -13,7 +13,6 @@ namespace TNL {
 #ifdef __APPLE__
 #include <dlfcn.h>
 
-inline void* PerformanceCounter::kperf = nullptr;
 inline int ( *PerformanceCounter::kpc_set_config )( uint32_t, void* ) = nullptr;
 inline int ( *PerformanceCounter::kpc_force_all_ctrs_set )( int ) = nullptr;
 inline int ( *PerformanceCounter::kpc_set_counting )( int ) = nullptr;
@@ -21,9 +20,6 @@ inline int ( *PerformanceCounter::kpc_set_thread_counting )( int ) = nullptr;
 inline int ( *PerformanceCounter::kpc_get_counter_count )( int ) = nullptr;
 inline int ( *PerformanceCounter::kpc_get_config_count )( int ) = nullptr;
 inline int ( *PerformanceCounter::kpc_get_thread_counters )( int, unsigned int, void * ) = nullptr;
-
-inline TNL::Containers::Array< uint64_t > PerformanceCounter::appleKperfCounters;
-inline TNL::Containers::Array< uint64_t > PerformanceCounter::appleKperfConfig;
 #endif
 
 inline PerformanceCounter::PerformanceCounter()
@@ -31,14 +27,11 @@ inline PerformanceCounter::PerformanceCounter()
 #ifdef __APPLE__
    bool error = false;
    if( ! kperf ) {
-      const char* kperf_file = "/System/Library/PrivateFrameworks/kperf.framework/kperf";
-      void *kperf = dlopen( kperf_file, RTLD_LAZY); // TODO: check the path in cmake
-      if( ! kperf ) {
-         std::cerr << "Unable to read kperf DLL " << kperf_file << std::endl;
-         error = true;
-      }
-      else
-      {
+      const char* kperf_file_name = "/System/Library/PrivateFrameworks/kperf.framework/kperf";
+      void *kperf = dlopen( kperf_file_name, RTLD_LAZY); // TODO: check the path in cmake
+      if( !kperf )
+         std::cerr << "Unable to read kperf DLL " << kperf_file_name << std::endl;
+      else {
          kpc_set_config          = ( int(*)( uint32_t, void* ) )           dlsym( kperf, "kpc_set_config" );
          kpc_force_all_ctrs_set  = ( int(*) ( int ) )                      dlsym( kperf, "kpc_force_all_ctrs_set" );
          kpc_set_counting        = ( int(*) ( int ) )                      dlsym( kperf, "kpc_set_counting" );
@@ -47,72 +40,46 @@ inline PerformanceCounter::PerformanceCounter()
          kpc_get_config_count    = ( int(*) ( int ) )                      dlsym( kperf, "kpc_get_config_count" );
          kpc_get_thread_counters = ( int(*) ( int, unsigned int, void* ) ) dlsym( kperf, "kpc_get_thread_counters" );
          if( !kpc_set_config || !kpc_force_all_ctrs_set || !kpc_set_counting || !kpc_set_thread_counting ||
-               !kpc_get_counter_count || !kpc_get_config_count || !kpc_get_thread_counters ) {
-            std::cerr << "Unable to get all kperf functions." << std::endl;
-            error = true;
-         }
-         int appleKperfCountersCount = kpc_get_counter_count(KPC_MASK);
-         if( appleKperfCountersCount < 2 ) {
-            std::cerr << "Wrong number of counters count " << appleKperfCountersCount << " for macOS kperf." <<std::endl;
-            error = true;
-         }
-         int appleKperfConfigCount = kpc_get_config_count(KPC_MASK);
-         if ( appleKperfConfigCount < 6 ) {
-            std::cerr << "Wrong number of config count " << appleKperfConfigCount << " for macOS kperf." << std::endl;
+             !kpc_get_counter_count || !kpc_get_config_count || !kpc_get_thread_counters ) {
+            std::cerr << "Unable to get all kperf functions for macOS." << std::endl;
             error = true;
          }
          else
          {
-            appleKperfCounters.setSize( appleKperfCountersCount );
-            appleKperfConfig.setSize( appleKperfConfigCount );
-            appleKperfConfig[0] = CPMU_CORE_CYCLE | CFGWORD_EL0A64EN_MASK;
-            appleKperfConfig[3] = CPMU_INST_BRANCH | CFGWORD_EL0A64EN_MASK;
-            appleKperfConfig[4] = CPMU_SYNC_BR_ANY_MISP | CFGWORD_EL0A64EN_MASK;
-            appleKperfConfig[5] = CPMU_INST_A64 | CFGWORD_EL0A64EN_MASK;
+            this->appleKpcCountersCount = kpc_get_counter_count(KPC_MASK);
+            TNL_ASSERT_LE( appleKpcCountersCount, appleKpcCountersMaxCount, "Wrong number of macOS kperf counters." );
+            TNL_ASSERT_LE( kpc_get_config_count(KPC_MASK), appleKpcConfigMaxCount, "Wrong config size of macOS kperf." );
+            g_config[0] = CPMU_CORE_CYCLE | CFGWORD_EL0A64EN_MASK;
+            g_config[3] = CPMU_INST_BRANCH | CFGWORD_EL0A64EN_MASK;
+            g_config[4] = CPMU_SYNC_BR_ANY_MISP | CFGWORD_EL0A64EN_MASK;
+            g_config[5] = CPMU_INST_A64 | CFGWORD_EL0A64EN_MASK;
 
-            if (kpc_set_config(KPC_MASK, appleKperfConfig.getData() )) {
-               std::cerr << "kpc_set_config failed" << std::endl;
+            if( kpc_set_config(KPC_MASK, g_config) ||
+                kpc_force_all_ctrs_set(1) ||
+                kpc_set_counting(KPC_MASK) ||
+                kpc_set_thread_counting(KPC_MASK) )
                error = true;
-            }
-
-            if (kpc_force_all_ctrs_set(1)) {
-               std::cerr << "kpc_force_all_ctrs_set failed" << std::endl;
-               error = true;
-            }
-
-            if (kpc_set_counting(KPC_MASK)) {
-               std::cerr << "kpc_set_counting failed" << std::endl;
-               error = true;
-            }
-
-            if (kpc_set_thread_counting(KPC_MASK)) {
-               std::cerr << "kpc_set_thread_counting failed" << std::endl;
-               error = true;
-            }
          }
       }
    }
    if( error )
-   {
-      std::cerr << "Error occurred during initiation of kperf, administrative access might be required - use sudo command." << std::endl;
-      std::cerr << "Measuring CPU cycles will not be possible." << std::endl;
-   }
+      std::cerr << "Initiation of kperf failed, measuring CPU cycles will not be possible." << std::endl
+                << "Note: Administrative access might be required. Try to run the program using sudo." << std::endl;
 #endif
 }
 
 inline unsigned long long int
-PerformanceCounter::getCPUCycles()
+PerformanceCounter::getCPUCycles() const
 {
 #ifdef _MSC_VER
    return 0;
 #elif defined ( __APPLE__ )
-
    if( kpc_get_thread_counters != nullptr )
    {
-      kpc_get_thread_counters(0, ( unsigned int ) appleKperfCounters.getSize(), ( void* ) appleKperfCounters.getData() );
-      //   std::cerr << "Cannot read kperf counters." << std::endl;
-      return appleKperfCounters[ 2 ];
+      kpc_get_thread_counters(0, appleKpcCountersCount, g_counters );
+      return g_counters[ 2 ];
    }
+   else return 0;
 #else
    return rdtsc();
 #endif
