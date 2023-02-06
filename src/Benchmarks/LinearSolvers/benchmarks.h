@@ -162,7 +162,7 @@ benchmarkSolver( Benchmark<>& benchmark,
          const double residue_true = lpNorm( r, 2.0 ) / lpNorm( b, 2.0 );
 
          RowElements elements;
-         elements << time << stddev << stddev/time;
+         elements << time << time_stddev << time_stddev/time;
          if( speedup != 0  )
             elements << speedup;
          else
