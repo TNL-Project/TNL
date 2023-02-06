@@ -18,7 +18,7 @@ struct MemoryAccessBenchmark
 {
    static void configSetup( TNL::Config::ConfigDescription& config );
 
-   template< typename Device, int ElementSize >
+   template< int ElementSize >
    static bool performBenchmark( const TNL::Config::ParameterContainer& parameters );
 };
 

@@ -9,8 +9,8 @@ import numpy as np
 import math
 from os.path import exists
 
-devices = [ "sequential", "host", 'cuda' ]
-precisions = [ "float", "double" ]
+threads = [ ]
+access = [ "sequential", "random" ]
 tests = [
     "parallel-for", "simple-grid", "grid", #"nd-grid",
 ]
@@ -41,7 +41,7 @@ def get_multiindex():
 
 ####
 # Process dataframe for given precision - float or double
-def processDf( df, precision ):
+def processDf( df ):
     multicolumns, df_data = get_multiindex()
 
     frames = []
@@ -84,36 +84,31 @@ def processDf( df, precision ):
                     result.iloc[idx][ (test, device, 'parallel-for speed-up') ] =  float( row[ ('parallel-for', device, 'time')] ) / float( row[ (test, device, 'time')] )
         idx += 1
 
-    result.to_html( f'tnl-benchmark-heat-equation-{precision}.html' )
+    result.to_html( f'tnl-benchmark-memory-access.html' )
 
 
 #####
 # Parse input files
 
 parsed_lines = []
-for device in devices:
-    for precision in precisions:
-        for test in tests:
-            filename = f"tnl-benchmark-heat-equation-{test}-{device}-{precision}.json"
-            if not exists( filename ):
-                print( f"Skipping non-existing input file {filename} ...." )
-                continue
-            print( f"Parsing input file {filename} ...." )
-            with open( filename ) as f:
-                lines = f.readlines()
-                for line in lines:
-                    parsed_line = json.loads(line)
-                    parsed_lines.append( parsed_line )
+filename = f"tnl-benchmark-memory-access.log"
+if not exists( filename ):
+    print( f"Skipping non-existing input file {filename} ...." )
+print( f"Parsing input file {filename} ...." )
+with open( filename ) as f:
+    lines = f.readlines()
+    for line in lines:
+        parsed_line = json.loads(line)
+        parsed_lines.append( parsed_line )
 
 df = pd.DataFrame(parsed_lines)
 
-keys = ['xSize', 'ySize', 'zSize', 'time', 'bandwidth' ]
+keys = ['time', 'bandwidth' ]
 
 for key in keys:
     if key in df.keys():
         df[key] = pd.to_numeric(df[key])
 
-for precision in precisions:
-    aux_df = df.loc[ ( df['precision'] == precision ) ]
-    processDf( aux_df, precision )
+df.to_html( 'tnl-benchmark-memory-access.html' )
+processDf( df )
 

@@ -61,9 +61,9 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
    for( size_t size = min_size; size <= max_size; size *= 2 ) {
       benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
          { "threads", TNL::convertToString( ElementSize ) },
-         { "access type", access_type }
+         { "access type", access_type },
          { "element size", TNL::convertToString( ElementSize ) },
-         { "array size", TNL::convertToString( size ) },
+         { "array size", TNL::convertToString( size ) }
       }));
       benchmark.setDatasetSize( size );
       TestArray< ElementSize > array( size );
