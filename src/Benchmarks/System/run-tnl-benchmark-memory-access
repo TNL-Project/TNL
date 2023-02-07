@@ -29,6 +29,36 @@ do
                                      --max-array-size ${max_array_size}  \
                                      --log-file ${log_file}              \
                                      --output-mode append
+
+         tnl-benchmark-memory-access --threads-count ${threads_num}      \
+                                     --access-type ${access_type}        \
+                                     --element-size ${element_size}      \
+                                     --write-test yes                    \
+                                     --read-test no                      \
+                                     --max-array-size ${max_array_size}  \
+                                     --log-file ${log_file}              \
+                                     --output-mode append
+
+         if [[ access_type == "sequential" ]];
+         then
+            tnl-benchmark-memory-access --threads-count ${threads_num}     \
+                                        --access-type ${access_type}       \
+                                        --element-size ${element_size}     \
+                                        --interleaving yes                 \
+                                        --max-array-size ${max_array_size} \
+                                        --log-file ${log_file}             \
+                                        --output-mode append
+
+            tnl-benchmark-memory-access --threads-count ${threads_num}     \
+                                        --access-type ${access_type}       \
+                                        --element-size ${element_size}     \
+                                        --interleaving yes                 \
+                                        --write-test yes                   \
+                                        --read-test no                     \
+                                        --max-array-size ${max_array_size} \
+                                        --log-file ${log_file}             \
+                                        --output-mode append
+         fi
       done
    done
 done

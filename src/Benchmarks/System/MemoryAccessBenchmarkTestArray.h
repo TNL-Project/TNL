@@ -54,7 +54,7 @@ template<>
 class TestArrayElement< 0 >{};
 
 template< int Size >
-class TestArray
+class MemoryAccessBenchmarkTestArray
 {
    public:
 
@@ -63,13 +63,21 @@ class TestArray
       using PtrArrayType = TNL::Containers::Array< ElementType* >;
       using ArrayView = typename ArrayType::ViewType;
 
-      TestArray( unsigned long long int size );
+      MemoryAccessBenchmarkTestArray( unsigned long long int size );
 
       void setThreadsCount( int threads_count );
 
       unsigned long long int getElementsCount() const;
 
       void setElementsPerTest( long long int elementsPerTest );
+
+      void setWriteTest( bool writeTest );
+
+      void setReadTest( bool readTest );
+
+      void setCentralDataAccess( bool centralDataAccess );
+
+      void setInterleaving( bool interleaving );
 
       bool setupRandomTest( int tlbTestBlockSize = 0,
                             const int numThreads = 1 );
@@ -110,7 +118,8 @@ class TestArray
 };
 
 template< int Size >
-TestArray< Size >::TestArray( unsigned long long int size )
+MemoryAccessBenchmarkTestArray< Size >::
+MemoryAccessBenchmarkTestArray( unsigned long long int size )
 {
    this->numberOfElements = ceil( ( double ) size / ( double ) sizeof( ElementType ) );
    this->allocation.setSize( this->numberOfElements  + 4096 / sizeof( ElementType ) + 1 );
@@ -126,7 +135,7 @@ TestArray< Size >::TestArray( unsigned long long int size )
 
 template< int Size >
 void
-TestArray< Size >::
+MemoryAccessBenchmarkTestArray< Size >::
 setThreadsCount( int threads_count )
 {
    this->num_threads = threads_count;
@@ -134,20 +143,56 @@ setThreadsCount( int threads_count )
 
 template< int Size >
 unsigned long long int
-TestArray< Size >::getElementsCount() const
+MemoryAccessBenchmarkTestArray< Size >::
+getElementsCount() const
 {
    return this->numberOfElements;
 }
 
 template< int Size >
 void
-TestArray< Size >::setElementsPerTest( long long int elementsPerTest )
+MemoryAccessBenchmarkTestArray< Size >::
+setElementsPerTest( long long int elementsPerTest )
 {
    this->elementsPerTest = elementsPerTest;
 }
 
 template< int Size >
-bool TestArray< Size >::setupRandomTLBWorstTest()
+void
+MemoryAccessBenchmarkTestArray< Size >::
+setWriteTest( bool writeTest )
+{
+   this->writeTest = writeTest;
+}
+
+template< int Size >
+void
+MemoryAccessBenchmarkTestArray< Size >::
+setReadTest( bool readTest )
+{
+   this->readTest = readTest;
+}
+
+template< int Size >
+void
+MemoryAccessBenchmarkTestArray< Size >::
+setCentralDataAccess( bool accessCentralData )
+{
+   this->accessCentralData = accessCentralData;
+}
+
+template< int Size >
+void
+MemoryAccessBenchmarkTestArray< Size >::
+setInterleaving( bool interleaving )
+{
+   this->interleaving = interleaving;
+}
+
+template< int Size >
+bool
+MemoryAccessBenchmarkTestArray< Size >::
+setupRandomTLBWorstTest()
 {
    if( 4096 % sizeof( ElementType ) )
    {
@@ -204,9 +249,11 @@ bool TestArray< Size >::setupRandomTLBWorstTest()
 }
 
 template< int Size >
-bool TestArray< Size >::setupRandomTestBlock( const unsigned long long int blockSize,
-                                              PtrArrayType& blockLink,
-                                              const int numThreads )
+bool
+MemoryAccessBenchmarkTestArray< Size >::
+setupRandomTestBlock( const unsigned long long int blockSize,
+                      PtrArrayType& blockLink,
+                      const int numThreads )
 {
    TNL::Containers::Array< char > usedElements( blockSize, 0 );
    TNL::Containers::Array< unsigned long long int > previousElement( numThreads, 0 ), newElement( numThreads, 0 );
@@ -263,8 +310,10 @@ bool TestArray< Size >::setupRandomTestBlock( const unsigned long long int block
 }
 
 template< int Size >
-bool TestArray< Size >::setupRandomTest( int tlbTestBlockSize,
-                                         const int numThreads )
+bool
+MemoryAccessBenchmarkTestArray< Size >::
+setupRandomTest( int tlbTestBlockSize,
+                 const int numThreads )
 {
    srand( time( NULL ) );
 
@@ -284,8 +333,10 @@ bool TestArray< Size >::setupRandomTest( int tlbTestBlockSize,
 }
 
 template< int Size >
-void TestArray< Size >::setupSequentialTest( const int numThreads,
-                                             bool interleaving )
+void
+MemoryAccessBenchmarkTestArray< Size >::
+setupSequentialTest( const int numThreads,
+                     bool interleaving )
 {
    if( interleaving )
    {
@@ -337,7 +388,7 @@ void TestArray< Size >::setupSequentialTest( const int numThreads,
 
 template< int Size >
 void
-TestArray< Size >::
+MemoryAccessBenchmarkTestArray< Size >::
 performTest()
 {
    if( this->readTest ) {
@@ -363,7 +414,7 @@ template< int Size >
              bool writeTest,
              bool accessCentralData >
 void
-TestArray< Size >::
+MemoryAccessBenchmarkTestArray< Size >::
 testLoop()
 {
    const unsigned long long int elementsPerTestPerThread = this->elementsPerTest / this->num_threads + 1;
@@ -409,7 +460,7 @@ testLoop()
 
 template< int Size >
 unsigned long long int
-TestArray< Size >::
+MemoryAccessBenchmarkTestArray< Size >::
 getTestedElementsCount()
 {
    return this->testedElementsCount;
@@ -417,7 +468,7 @@ getTestedElementsCount()
 
 template< int Size >
 unsigned long long int
-TestArray< Size >::
+MemoryAccessBenchmarkTestArray< Size >::
 getTestedElementsCountPerThread()
 {
    return this->testedElementsCount / this->num_threads;
