@@ -26,7 +26,7 @@ struct BenchmarkResult
    double cpu_cycles_stddev = std::numeric_limits< double >::quiet_NaN();
    double bandwidth = std::numeric_limits< double >::quiet_NaN();
    double speedup = std::numeric_limits< double >::quiet_NaN();
-   long long int cpu_cycles_per_operation = 0;
+   double cpu_cycles_per_operation = 0;
 
    [[nodiscard]] virtual HeaderElements
    getTableHeader() const

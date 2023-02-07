@@ -39,6 +39,9 @@ bool
 MemoryAccessBenchmark::
 performBenchmark( const TNL::Config::ParameterContainer& parameters )
 {
+   using TestArrayType = TestArray< ElementSize >;
+   using ElementType = typename TestArrayType::ElementType;
+
    auto output_mode = parameters.getParameter< TNL::String >( "output-mode" );
    auto log_file_name = parameters.getParameter< TNL::String >( "log-file" );
    auto loops = parameters.getParameter< int >( "loops" );
@@ -57,7 +60,7 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
    size_t min_size = parameters.getParameter< int >( "min-array-size" );
    size_t max_size = parameters.getParameter< int >( "max-array-size" );
    int threads_count = parameters.getParameter< int >( "threads-count" );
-   const long long int elementsPerTest = max_size / sizeof( ElementSize );
+   const long long int elementsPerTest = max_size / sizeof( ElementType );
    for( size_t size = min_size; size <= max_size; size *= 2 ) {
       benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
          { "threads", TNL::convertToString( threads_count ) },
@@ -65,8 +68,7 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
          { "element size", TNL::convertToString( ElementSize ) },
          { "array size", TNL::convertToString( size ) }
       }));
-      benchmark.setDatasetSize( size );
-      TestArray< ElementSize > array( size );
+      TestArrayType array( size );
       array.setThreadsCount( threads_count );
       array.setElementsPerTest( elementsPerTest );
       if( access_type == "sequential" )
@@ -75,7 +77,7 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
          array.setupRandomTest();
       array.performTest();
       benchmark.setOperationsPerLoop( array.getTestedElementsCountPerThread() );
-
+      benchmark.setDatasetSize( elementsPerTest * sizeof( ElementType ) );
       auto compute = [&] () {
          array.performTest();
       };
