@@ -1,10 +1,9 @@
 #!/bin/bash
 
 log_file="tnl-benchmark-memory-access.log"
-threads="1 2 4 8 10"
+threads="1 2 4 8"
 access_types="sequential random"
-#element_sizes="1 2 4 8 16 32 64 128 256"
-element_sizes="1 2 4 8"
+element_sizes="1 2 4 8 16 32 64 128 256"
 max_array_size="33554432"   # 32 MB
 #max_array_size="67108864"   # 64 MB
 #max_array_size="134217728"  # 128 MB
@@ -39,8 +38,7 @@ do
                                      --log-file ${log_file}              \
                                      --output-mode append
 
-         if [[ access_type == "sequential" ]];
-         then
+         if [[ "$access_type" == "sequential" ]]; then
             tnl-benchmark-memory-access --threads-count ${threads_num}     \
                                         --access-type ${access_type}       \
                                         --element-size ${element_size}     \
