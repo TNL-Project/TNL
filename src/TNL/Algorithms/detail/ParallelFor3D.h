@@ -21,57 +21,53 @@ namespace detail {
 template< typename Device = Devices::Sequential >
 struct ParallelFor3D
 {
-   template< typename Index, typename Function, typename... FunctionArgs >
+   template< typename MultiIndex, typename Function, typename... FunctionArgs >
    static void
-   exec( Index startX,
-         Index startY,
-         Index startZ,
-         Index endX,
-         Index endY,
-         Index endZ,
+   exec( MultiIndex begin,
+         MultiIndex end,
          typename Device::LaunchConfiguration launch_config,
          Function f,
          FunctionArgs... args )
    {
-      for( Index k = startZ; k < endZ; k++ )
-         for( Index j = startY; j < endY; j++ )
-            for( Index i = startX; i < endX; i++ )
-               f( i, j, k, args... );
+      static_assert( MultiIndex::getSize() == 3, "ParallelFor3D requires a multi-index of size 3" );
+
+      MultiIndex i;
+      for( i.z() = begin.z(); i.z() < end.z(); i.z()++ )
+         for( i.y() = begin.y(); i.y() < end.y(); i.y()++ )
+            for( i.x() = begin.x(); i.x() < end.x(); i.x()++ )
+               f( i, args... );
    }
 };
 
 template<>
 struct ParallelFor3D< Devices::Host >
 {
-   template< typename Index, typename Function, typename... FunctionArgs >
+   template< typename MultiIndex, typename Function, typename... FunctionArgs >
    static void
-   exec( Index startX,
-         Index startY,
-         Index startZ,
-         Index endX,
-         Index endY,
-         Index endZ,
-         Devices::Host::LaunchConfiguration launch_config,
-         Function f,
-         FunctionArgs... args )
+   exec( MultiIndex begin, MultiIndex end, Devices::Host::LaunchConfiguration launch_config, Function f, FunctionArgs... args )
    {
+      static_assert( MultiIndex::getSize() == 3, "ParallelFor3D requires a multi-index of size 3" );
+
 #ifdef HAVE_OPENMP
       // Benchmarks show that this is significantly faster compared
       // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() )'
       if( Devices::Host::isOMPEnabled() ) {
+         using Index = typename MultiIndex::ValueType;
          #pragma omp parallel for collapse( 2 )
-         for( Index k = startZ; k < endZ; k++ )
-            for( Index j = startY; j < endY; j++ )
-               for( Index i = startX; i < endX; i++ )
-                  f( i, j, k, args... );
+         for( Index z = begin.z(); z < end.z(); z++ )
+            for( Index y = begin.y(); y < end.y(); y++ ) {
+               MultiIndex i{ begin.x(), y, z };
+               for( ; i.x() < end.x(); i.x()++ )
+                  f( i, args... );
+            }
       }
       else {
          Devices::Sequential::LaunchConfiguration sequential_config;
-         ParallelFor3D< Devices::Sequential >::exec( startX, startY, startZ, endX, endY, endZ, sequential_config, f, args... );
+         ParallelFor3D< Devices::Sequential >::exec( begin, end, sequential_config, f, args... );
       }
 #else
       Devices::Sequential::LaunchConfiguration sequential_config;
-      ParallelFor3D< Devices::Sequential >::exec( startX, startY, startZ, endX, endY, endZ, sequential_config, f, args... );
+      ParallelFor3D< Devices::Sequential >::exec( begin, end, sequential_config, f, args... );
 #endif
    }
 };
@@ -79,40 +75,34 @@ struct ParallelFor3D< Devices::Host >
 template< bool gridStrideX = true,
           bool gridStrideY = true,
           bool gridStrideZ = true,
-          typename Index,
+          typename MultiIndex,
           typename Function,
           typename... FunctionArgs >
 __global__
 void
-ParallelFor3DKernel( Index startX,
-                     Index startY,
-                     Index startZ,
-                     Index endX,
-                     Index endY,
-                     Index endZ,
-                     Function f,
-                     FunctionArgs... args )
+ParallelFor3DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs... args )
 {
 #ifdef __CUDACC__
-   Index k = startZ + blockIdx.z * blockDim.z + threadIdx.z;
-   Index j = startY + blockIdx.y * blockDim.y + threadIdx.y;
-   Index i = startX + blockIdx.x * blockDim.x + threadIdx.x;
-   while( k < endZ ) {
-      while( j < endY ) {
-         while( i < endX ) {
-            f( i, j, k, args... );
+   MultiIndex i = begin;
+   i.x() += blockIdx.x * blockDim.x + threadIdx.x;
+   i.y() += blockIdx.y * blockDim.y + threadIdx.y;
+   i.z() += blockIdx.z * blockDim.z + threadIdx.z;
+   while( i.z() < end.z() ) {
+      while( i.y() < end.y() ) {
+         while( i.x() < end.x() ) {
+            f( i, args... );
             if( gridStrideX )
-               i += blockDim.x * gridDim.x;
+               i.x() += blockDim.x * gridDim.x;
             else
                break;
          }
          if( gridStrideY )
-            j += blockDim.y * gridDim.y;
+            i.y() += blockDim.y * gridDim.y;
          else
             break;
       }
       if( gridStrideZ )
-         k += blockDim.z * gridDim.z;
+         i.z() += blockDim.z * gridDim.z;
       else
          break;
    }
@@ -124,24 +114,18 @@ struct ParallelFor3D< Devices::Cuda >
 {
    // NOTE: launch_config must be passed by value so that the modifications of
    // blockSize and gridSize do not propagate to the caller
-   template< typename Index, typename Function, typename... FunctionArgs >
+   template< typename MultiIndex, typename Function, typename... FunctionArgs >
    static void
-   exec( Index startX,
-         Index startY,
-         Index startZ,
-         Index endX,
-         Index endY,
-         Index endZ,
-         Devices::Cuda::LaunchConfiguration launch_config,
-         Function f,
-         FunctionArgs... args )
+   exec( MultiIndex begin, MultiIndex end, Devices::Cuda::LaunchConfiguration launch_config, Function f, FunctionArgs... args )
    {
-      if( endX <= startX || endY <= startY || endZ <= startZ )
+      static_assert( MultiIndex::getSize() == 3, "ParallelFor3D requires a multi-index of size 3" );
+
+      if( end.x() <= begin.x() || end.y() <= begin.y() || end.z() <= begin.z() )
          return;
 
-      const Index sizeX = endX - startX;
-      const Index sizeY = endY - startY;
-      const Index sizeZ = endZ - startZ;
+      const auto sizeX = end.x() - begin.x();
+      const auto sizeY = end.y() - begin.y();
+      const auto sizeZ = end.z() - begin.z();
 
       if( sizeX >= sizeY * sizeY * sizeZ * sizeZ ) {
          launch_config.blockSize.x = TNL::min( 256, sizeX );
@@ -192,36 +176,36 @@ struct ParallelFor3D< Devices::Cuda >
       gridCount.z = roundUpDivision( sizeZ, launch_config.blockSize.z * launch_config.gridSize.z );
 
       if( gridCount.x == 1 && gridCount.y == 1 && gridCount.z == 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< false, false, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         constexpr auto kernel = ParallelFor3DKernel< false, false, false, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else if( gridCount.x == 1 && gridCount.y == 1 && gridCount.z > 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< false, false, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         constexpr auto kernel = ParallelFor3DKernel< false, false, true, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else if( gridCount.x == 1 && gridCount.y > 1 && gridCount.z == 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< false, true, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         constexpr auto kernel = ParallelFor3DKernel< false, true, false, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else if( gridCount.x > 1 && gridCount.y == 1 && gridCount.z == 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< true, false, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         constexpr auto kernel = ParallelFor3DKernel< true, false, false, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else if( gridCount.x == 1 && gridCount.y > 1 && gridCount.z > 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< false, true, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         constexpr auto kernel = ParallelFor3DKernel< false, true, true, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else if( gridCount.x > 1 && gridCount.y > 1 && gridCount.z == 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< true, true, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         constexpr auto kernel = ParallelFor3DKernel< true, true, false, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else if( gridCount.x > 1 && gridCount.y == 1 && gridCount.z > 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< true, false, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         constexpr auto kernel = ParallelFor3DKernel< true, false, true, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else {
-         constexpr auto kernel = ParallelFor3DKernel< true, true, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, startZ, endX, endY, endZ, f, args... );
+         constexpr auto kernel = ParallelFor3DKernel< true, true, true, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
    }
 };

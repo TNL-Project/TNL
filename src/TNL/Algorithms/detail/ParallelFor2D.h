@@ -21,73 +21,74 @@ namespace detail {
 template< typename Device = Devices::Sequential >
 struct ParallelFor2D
 {
-   template< typename Index, typename Function, typename... FunctionArgs >
+   template< typename MultiIndex, typename Function, typename... FunctionArgs >
    static void
-   exec( Index startX,
-         Index startY,
-         Index endX,
-         Index endY,
+   exec( MultiIndex begin,
+         MultiIndex end,
          typename Device::LaunchConfiguration launch_config,
          Function f,
          FunctionArgs... args )
    {
-      for( Index j = startY; j < endY; j++ )
-         for( Index i = startX; i < endX; i++ )
-            f( i, j, args... );
+      static_assert( MultiIndex::getSize() == 2, "ParallelFor2D requires a multi-index of size 2" );
+
+      MultiIndex i;
+      for( i.y() = begin.y(); i.y() < end.y(); i.y()++ )
+         for( i.x() = begin.x(); i.x() < end.x(); i.x()++ )
+            f( i, args... );
    }
 };
 
 template<>
 struct ParallelFor2D< Devices::Host >
 {
-   template< typename Index, typename Function, typename... FunctionArgs >
+   template< typename MultiIndex, typename Function, typename... FunctionArgs >
    static void
-   exec( Index startX,
-         Index startY,
-         Index endX,
-         Index endY,
-         Devices::Host::LaunchConfiguration launch_config,
-         Function f,
-         FunctionArgs... args )
+   exec( MultiIndex begin, MultiIndex end, Devices::Host::LaunchConfiguration launch_config, Function f, FunctionArgs... args )
    {
+      static_assert( MultiIndex::getSize() == 2, "ParallelFor2D requires a multi-index of size 2" );
+
 #ifdef HAVE_OPENMP
       // Benchmarks show that this is significantly faster compared
       // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() )'
       if( Devices::Host::isOMPEnabled() ) {
+         using Index = typename MultiIndex::ValueType;
          #pragma omp parallel for
-         for( Index j = startY; j < endY; j++ )
-            for( Index i = startX; i < endX; i++ )
-               f( i, j, args... );
+         for( Index y = begin.y(); y < end.y(); y++ ) {
+            MultiIndex i{ begin.x(), y };
+            for( ; i.x() < end.x(); i.x()++ )
+               f( i, args... );
+         }
       }
       else {
          Devices::Sequential::LaunchConfiguration sequential_config;
-         ParallelFor2D< Devices::Sequential >::exec( startX, startY, endX, endY, sequential_config, f, args... );
+         ParallelFor2D< Devices::Sequential >::exec( begin, end, sequential_config, f, args... );
       }
 #else
       Devices::Sequential::LaunchConfiguration sequential_config;
-      ParallelFor2D< Devices::Sequential >::exec( startX, startY, endX, endY, sequential_config, f, args... );
+      ParallelFor2D< Devices::Sequential >::exec( begin, end, sequential_config, f, args... );
 #endif
    }
 };
 
-template< bool gridStrideX = true, bool gridStrideY = true, typename Index, typename Function, typename... FunctionArgs >
+template< bool gridStrideX = true, bool gridStrideY = true, typename MultiIndex, typename Function, typename... FunctionArgs >
 __global__
 void
-ParallelFor2DKernel( Index startX, Index startY, Index endX, Index endY, Function f, FunctionArgs... args )
+ParallelFor2DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs... args )
 {
 #ifdef __CUDACC__
-   Index j = startY + blockIdx.y * blockDim.y + threadIdx.y;
-   Index i = startX + blockIdx.x * blockDim.x + threadIdx.x;
-   while( j < endY ) {
-      while( i < endX ) {
-         f( i, j, args... );
+   MultiIndex i = begin;
+   i.x() += blockIdx.x * blockDim.x + threadIdx.x;
+   i.y() += blockIdx.y * blockDim.y + threadIdx.y;
+   while( i.y() < end.y() ) {
+      while( i.x() < end.x() ) {
+         f( i, args... );
          if( gridStrideX )
-            i += blockDim.x * gridDim.x;
+            i.x() += blockDim.x * gridDim.x;
          else
             break;
       }
       if( gridStrideY )
-         j += blockDim.y * gridDim.y;
+         i.y() += blockDim.y * gridDim.y;
       else
          break;
    }
@@ -99,21 +100,17 @@ struct ParallelFor2D< Devices::Cuda >
 {
    // NOTE: launch_config must be passed by value so that the modifications of
    // blockSize and gridSize do not propagate to the caller
-   template< typename Index, typename Function, typename... FunctionArgs >
+   template< typename MultiIndex, typename Function, typename... FunctionArgs >
    static void
-   exec( Index startX,
-         Index startY,
-         Index endX,
-         Index endY,
-         Devices::Cuda::LaunchConfiguration launch_config,
-         Function f,
-         FunctionArgs... args )
+   exec( MultiIndex begin, MultiIndex end, Devices::Cuda::LaunchConfiguration launch_config, Function f, FunctionArgs... args )
    {
-      if( endX <= startX || endY <= startY )
+      static_assert( MultiIndex::getSize() == 2, "ParallelFor2D requires a multi-index of size 2" );
+
+      if( end.x() <= begin.x() || end.y() <= begin.y() )
          return;
 
-      const Index sizeX = endX - startX;
-      const Index sizeY = endY - startY;
+      const auto sizeX = end.x() - begin.x();
+      const auto sizeY = end.y() - begin.y();
 
       if( sizeX >= sizeY * sizeY ) {
          launch_config.blockSize.x = TNL::min( 256, sizeX );
@@ -139,20 +136,20 @@ struct ParallelFor2D< Devices::Cuda >
       gridCount.y = roundUpDivision( sizeY, launch_config.blockSize.y * launch_config.gridSize.y );
 
       if( gridCount.x == 1 && gridCount.y == 1 ) {
-         constexpr auto kernel = ParallelFor2DKernel< false, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, endX, endY, f, args... );
+         constexpr auto kernel = ParallelFor2DKernel< false, false, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else if( gridCount.x == 1 && gridCount.y > 1 ) {
-         constexpr auto kernel = ParallelFor2DKernel< false, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, endX, endY, f, args... );
+         constexpr auto kernel = ParallelFor2DKernel< false, true, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else if( gridCount.x > 1 && gridCount.y == 1 ) {
-         constexpr auto kernel = ParallelFor2DKernel< true, false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, endX, endY, f, args... );
+         constexpr auto kernel = ParallelFor2DKernel< true, false, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else {
-         constexpr auto kernel = ParallelFor2DKernel< true, true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, startX, startY, endX, endY, f, args... );
+         constexpr auto kernel = ParallelFor2DKernel< true, true, MultiIndex, Function, FunctionArgs... >;
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
    }
 };

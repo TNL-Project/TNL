@@ -23,9 +23,9 @@ struct ParallelFor1D
 {
    template< typename Index, typename Function, typename... FunctionArgs >
    static void
-   exec( Index start, Index end, typename Device::LaunchConfiguration launch_config, Function f, FunctionArgs... args )
+   exec( Index begin, Index end, typename Device::LaunchConfiguration launch_config, Function f, FunctionArgs... args )
    {
-      for( Index i = start; i < end; i++ )
+      for( Index i = begin; i < end; i++ )
          f( i, args... );
    }
 };
@@ -35,23 +35,23 @@ struct ParallelFor1D< Devices::Host >
 {
    template< typename Index, typename Function, typename... FunctionArgs >
    static void
-   exec( Index start, Index end, Devices::Host::LaunchConfiguration launch_config, Function f, FunctionArgs... args )
+   exec( Index begin, Index end, Devices::Host::LaunchConfiguration launch_config, Function f, FunctionArgs... args )
    {
 #ifdef HAVE_OPENMP
       // Benchmarks show that this is significantly faster compared
-      // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() && end - start > 512 )'
-      if( Devices::Host::isOMPEnabled() && end - start > 512 ) {
+      // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() && end - begin > 512 )'
+      if( Devices::Host::isOMPEnabled() && end - begin > 512 ) {
          #pragma omp parallel for
-         for( Index i = start; i < end; i++ )
+         for( Index i = begin; i < end; i++ )
             f( i, args... );
       }
       else {
          Devices::Sequential::LaunchConfiguration sequential_config;
-         ParallelFor1D< Devices::Sequential >::exec( start, end, sequential_config, f, args... );
+         ParallelFor1D< Devices::Sequential >::exec( begin, end, sequential_config, f, args... );
       }
 #else
       Devices::Sequential::LaunchConfiguration sequential_config;
-      ParallelFor1D< Devices::Sequential >::exec( start, end, sequential_config, f, args... );
+      ParallelFor1D< Devices::Sequential >::exec( begin, end, sequential_config, f, args... );
 #endif
    }
 };
@@ -59,10 +59,10 @@ struct ParallelFor1D< Devices::Host >
 template< bool gridStrideX = true, typename Index, typename Function, typename... FunctionArgs >
 __global__
 void
-ParallelFor1DKernel( Index start, Index end, Function f, FunctionArgs... args )
+ParallelFor1DKernel( Index begin, Index end, Function f, FunctionArgs... args )
 {
 #ifdef __CUDACC__
-   Index i = start + blockIdx.x * blockDim.x + threadIdx.x;
+   Index i = begin + blockIdx.x * blockDim.x + threadIdx.x;
    while( i < end ) {
       f( i, args... );
       if( gridStrideX )
@@ -80,29 +80,29 @@ struct ParallelFor1D< Devices::Cuda >
    // blockSize and gridSize do not propagate to the caller
    template< typename Index, typename Function, typename... FunctionArgs >
    static void
-   exec( Index start, Index end, Devices::Cuda::LaunchConfiguration launch_config, Function f, FunctionArgs... args )
+   exec( Index begin, Index end, Devices::Cuda::LaunchConfiguration launch_config, Function f, FunctionArgs... args )
    {
-      if( end <= start )
+      if( end <= begin )
          return;
 
       launch_config.blockSize.x = 256;
       launch_config.blockSize.y = 1;
       launch_config.blockSize.z = 1;
       launch_config.gridSize.x =
-         TNL::min( Cuda::getMaxGridXSize(), Cuda::getNumberOfBlocks( end - start, launch_config.blockSize.x ) );
+         TNL::min( Cuda::getMaxGridXSize(), Cuda::getNumberOfBlocks( end - begin, launch_config.blockSize.x ) );
       launch_config.gridSize.y = 1;
       launch_config.gridSize.z = 1;
 
-      if( (std::size_t) launch_config.blockSize.x * launch_config.gridSize.x >= (std::size_t) end - start ) {
+      if( (std::size_t) launch_config.blockSize.x * launch_config.gridSize.x >= (std::size_t) end - begin ) {
          constexpr auto kernel = ParallelFor1DKernel< false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, start, end, f, args... );
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else {
          // decrease the grid size and align to the number of multiprocessors
          const int desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
-         launch_config.gridSize.x = TNL::min( desGridSize, Cuda::getNumberOfBlocks( end - start, launch_config.blockSize.x ) );
+         launch_config.gridSize.x = TNL::min( desGridSize, Cuda::getNumberOfBlocks( end - begin, launch_config.blockSize.x ) );
          constexpr auto kernel = ParallelFor1DKernel< true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, start, end, f, args... );
+         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
    }
 };

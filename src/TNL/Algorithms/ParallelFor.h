@@ -9,6 +9,7 @@
 #include <TNL/Algorithms/detail/ParallelFor1D.h>
 #include <TNL/Algorithms/detail/ParallelFor2D.h>
 #include <TNL/Algorithms/detail/ParallelFor3D.h>
+#include <TNL/Containers/StaticArray.h>
 
 /****
  * The implementation of ParallelFor is not meant to provide maximum performance
@@ -29,6 +30,50 @@ namespace TNL {
  * multireduction, scan etc.
  */
 namespace Algorithms {
+
+// wrapper for expanding multi-index into multiple arguments
+namespace detail {
+template< typename Function, typename Device >
+struct ParallelForExpandWrapper
+{
+   Function f;
+
+   ParallelForExpandWrapper( Function f ) : f( f ) {}
+
+   template< typename MultiIndex, typename... FunctionArgs >
+   void
+   operator()( const MultiIndex& i, FunctionArgs... args )
+   {
+      static_assert( MultiIndex::getSize() == 2 || MultiIndex::getSize() == 3 );
+      if constexpr( MultiIndex::getSize() == 2 )
+         f( i.x(), i.y(), args... );
+      if constexpr( MultiIndex::getSize() == 3 )
+         f( i.x(), i.y(), i.z(), args... );
+   }
+};
+
+// stupid specialization to avoid a shitpile of nvcc warnings
+// (nvcc does not like nested __cuda_callable__ and normal lambdas...)
+template< typename Function >
+struct ParallelForExpandWrapper< Function, Devices::Cuda >
+{
+   Function f;
+
+   ParallelForExpandWrapper( Function f ) : f( f ) {}
+
+   template< typename MultiIndex, typename... FunctionArgs >
+   __cuda_callable__
+   void
+   operator()( const MultiIndex& i, FunctionArgs... args )
+   {
+      static_assert( MultiIndex::getSize() == 2 || MultiIndex::getSize() == 3 );
+      if constexpr( MultiIndex::getSize() == 2 )
+         f( i.x(), i.y(), args... );
+      if constexpr( MultiIndex::getSize() == 3 )
+         f( i.x(), i.y(), i.z(), args... );
+   }
+};
+}  // namespace detail
 
 /**
  * \brief Parallel for loop for one dimensional interval of indices.
@@ -142,7 +187,11 @@ struct ParallelFor2D
          Function f,
          FunctionArgs... args )
    {
-      detail::ParallelFor2D< Device >::exec( startX, startY, endX, endY, launch_config, f, args... );
+      using MultiIndex = Containers::StaticArray< 2, Index >;
+      const MultiIndex begin{ startX, startY };
+      const MultiIndex end{ endX, endY };
+      auto wrapper = detail::ParallelForExpandWrapper< Function, Device >( f );
+      detail::ParallelFor2D< Device >::exec( begin, end, launch_config, wrapper, args... );
    }
 };
 
@@ -212,7 +261,11 @@ struct ParallelFor3D
          Function f,
          FunctionArgs... args )
    {
-      detail::ParallelFor3D< Device >::exec( startX, startY, startZ, endX, endY, endZ, launch_config, f, args... );
+      using MultiIndex = Containers::StaticArray< 3, Index >;
+      const MultiIndex begin{ startX, startY, startZ };
+      const MultiIndex end{ endX, endY, endZ };
+      auto wrapper = detail::ParallelForExpandWrapper< Function, Device >( f );
+      detail::ParallelFor3D< Device >::exec( begin, end, launch_config, wrapper, args... );
    }
 };
 
