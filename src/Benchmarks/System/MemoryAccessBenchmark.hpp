@@ -23,6 +23,7 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addEntry<TNL::String>("output-mode", "Mode for opening the log file.", "overwrite");
    config.addEntryEnum("overwrite");
    config.addEntryEnum("append");
+   config.addEntry< int >( "loops", "Number of repetitions for every benchmark test.", 2 );
    config.addEntry< int >( "threads-count", "Number of OpenMP threads for host device.", 1 );
    config.addEntry< int >( "element-size", "Benchmark element size.", 1 );
    config.addEntry< bool >( "read-test", "Read data from the memory.", true );
@@ -52,7 +53,8 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
    if( output_mode == "append" )
       mode |= std::ios::app;
    std::ofstream log_file( log_file_name.getString(), mode );
-   TNL::Benchmarks::Benchmark<> benchmark(log_file, 10, verbose);
+   int loops = parameters.getParameter< int >( "loops" );
+   TNL::Benchmarks::Benchmark<> benchmark(log_file, loops, verbose);
 
    // write global metadata into a separate file
    std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
@@ -67,13 +69,8 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
    bool central_data_access = parameters.getParameter< bool >( "central-data-access" );
    bool interleaving = parameters.getParameter< bool >( "interleaving" );
 
-   const long long int elementsPerTest = max_size / sizeof( ElementType );
    for( size_t size = min_size; size <= max_size; size *= 2 ) {
-      if( access_type == "random" ) {
-         if( size < ( 1 << 20 ) )
-            benchmark.setLoops( 10 );
-         else benchmark.setLoops( 2 );
-      }
+      const long long int elementsPerTest = TNL::max( size, 1 << 26 ) / sizeof( ElementType );
       benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
          { "threads", TNL::convertToString( threads_count ) },
          { "access type", access_type },
