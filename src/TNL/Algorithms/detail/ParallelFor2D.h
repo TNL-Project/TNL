@@ -70,25 +70,31 @@ struct ParallelFor2D< Devices::Host >
    }
 };
 
-template< bool gridStrideX = true, bool gridStrideY = true, typename MultiIndex, typename Function, typename... FunctionArgs >
+template< bool gridStride = true, typename MultiIndex, typename Function, typename... FunctionArgs >
 __global__
 void
 ParallelFor2DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs... args )
 {
 #ifdef __CUDACC__
+   // shift begin to the thread's initial position
+   begin.x() += blockIdx.x * blockDim.x + threadIdx.x;
+   begin.y() += blockIdx.y * blockDim.y + threadIdx.y;
+
+   // initialize iteration index
    MultiIndex i = begin;
-   i.x() += blockIdx.x * blockDim.x + threadIdx.x;
-   i.y() += blockIdx.y * blockDim.y + threadIdx.y;
+
    while( i.y() < end.y() ) {
       while( i.x() < end.x() ) {
          f( i, args... );
-         if( gridStrideX )
+         if( gridStride )
             i.x() += blockDim.x * gridDim.x;
          else
             break;
       }
-      if( gridStrideY )
+      if( gridStride ) {
+         i.x() = begin.x();
          i.y() += blockDim.y * gridDim.y;
+      }
       else
          break;
    }
@@ -136,19 +142,11 @@ struct ParallelFor2D< Devices::Cuda >
       gridCount.y = roundUpDivision( sizeY, launch_config.blockSize.y * launch_config.gridSize.y );
 
       if( gridCount.x == 1 && gridCount.y == 1 ) {
-         constexpr auto kernel = ParallelFor2DKernel< false, false, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
-      }
-      else if( gridCount.x == 1 && gridCount.y > 1 ) {
-         constexpr auto kernel = ParallelFor2DKernel< false, true, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
-      }
-      else if( gridCount.x > 1 && gridCount.y == 1 ) {
-         constexpr auto kernel = ParallelFor2DKernel< true, false, MultiIndex, Function, FunctionArgs... >;
+         constexpr auto kernel = ParallelFor2DKernel< false, MultiIndex, Function, FunctionArgs... >;
          Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else {
-         constexpr auto kernel = ParallelFor2DKernel< true, true, MultiIndex, Function, FunctionArgs... >;
+         constexpr auto kernel = ParallelFor2DKernel< true, MultiIndex, Function, FunctionArgs... >;
          Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
    }

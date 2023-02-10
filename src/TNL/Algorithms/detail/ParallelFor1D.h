@@ -56,7 +56,7 @@ struct ParallelFor1D< Devices::Host >
    }
 };
 
-template< bool gridStrideX = true, typename Index, typename Function, typename... FunctionArgs >
+template< bool gridStride = true, typename Index, typename Function, typename... FunctionArgs >
 __global__
 void
 ParallelFor1DKernel( Index begin, Index end, Function f, FunctionArgs... args )
@@ -65,7 +65,7 @@ ParallelFor1DKernel( Index begin, Index end, Function f, FunctionArgs... args )
    Index i = begin + blockIdx.x * blockDim.x + threadIdx.x;
    while( i < end ) {
       f( i, args... );
-      if( gridStrideX )
+      if( gridStride )
          i += blockDim.x * gridDim.x;
       else
          break;

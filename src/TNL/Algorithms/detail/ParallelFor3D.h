@@ -72,37 +72,40 @@ struct ParallelFor3D< Devices::Host >
    }
 };
 
-template< bool gridStrideX = true,
-          bool gridStrideY = true,
-          bool gridStrideZ = true,
-          typename MultiIndex,
-          typename Function,
-          typename... FunctionArgs >
+template< bool gridStride = true, typename MultiIndex, typename Function, typename... FunctionArgs >
 __global__
 void
 ParallelFor3DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs... args )
 {
 #ifdef __CUDACC__
+   // shift begin to the thread's initial position
+   begin.x() += blockIdx.x * blockDim.x + threadIdx.x;
+   begin.y() += blockIdx.y * blockDim.y + threadIdx.y;
+   begin.z() += blockIdx.z * blockDim.z + threadIdx.z;
+
+   // initialize iteration index
    MultiIndex i = begin;
-   i.x() += blockIdx.x * blockDim.x + threadIdx.x;
-   i.y() += blockIdx.y * blockDim.y + threadIdx.y;
-   i.z() += blockIdx.z * blockDim.z + threadIdx.z;
+
    while( i.z() < end.z() ) {
       while( i.y() < end.y() ) {
          while( i.x() < end.x() ) {
             f( i, args... );
-            if( gridStrideX )
+            if( gridStride )
                i.x() += blockDim.x * gridDim.x;
             else
                break;
          }
-         if( gridStrideY )
+         if( gridStride ) {
+            i.x() = begin.x();
             i.y() += blockDim.y * gridDim.y;
+         }
          else
             break;
       }
-      if( gridStrideZ )
+      if( gridStride ) {
+         i.y() = begin.y();
          i.z() += blockDim.z * gridDim.z;
+      }
       else
          break;
    }
@@ -176,35 +179,11 @@ struct ParallelFor3D< Devices::Cuda >
       gridCount.z = roundUpDivision( sizeZ, launch_config.blockSize.z * launch_config.gridSize.z );
 
       if( gridCount.x == 1 && gridCount.y == 1 && gridCount.z == 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< false, false, false, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
-      }
-      else if( gridCount.x == 1 && gridCount.y == 1 && gridCount.z > 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< false, false, true, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
-      }
-      else if( gridCount.x == 1 && gridCount.y > 1 && gridCount.z == 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< false, true, false, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
-      }
-      else if( gridCount.x > 1 && gridCount.y == 1 && gridCount.z == 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< true, false, false, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
-      }
-      else if( gridCount.x == 1 && gridCount.y > 1 && gridCount.z > 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< false, true, true, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
-      }
-      else if( gridCount.x > 1 && gridCount.y > 1 && gridCount.z == 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< true, true, false, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
-      }
-      else if( gridCount.x > 1 && gridCount.y == 1 && gridCount.z > 1 ) {
-         constexpr auto kernel = ParallelFor3DKernel< true, false, true, MultiIndex, Function, FunctionArgs... >;
+         constexpr auto kernel = ParallelFor3DKernel< false, MultiIndex, Function, FunctionArgs... >;
          Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else {
-         constexpr auto kernel = ParallelFor3DKernel< true, true, true, MultiIndex, Function, FunctionArgs... >;
+         constexpr auto kernel = ParallelFor3DKernel< true, MultiIndex, Function, FunctionArgs... >;
          Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
    }
