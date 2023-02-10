@@ -23,12 +23,6 @@
  */
 
 namespace TNL {
-/**
- * \brief Namespace for fundamental TNL algorithms
- *
- * It contains algorithms like for-loops, memory operations, (parallel) reduction,
- * multireduction, scan etc.
- */
 namespace Algorithms {
 
 // wrapper for expanding multi-index into multiple arguments
@@ -75,6 +69,8 @@ struct ParallelForExpandWrapper< Function, Devices::Cuda >
 };
 }  // namespace detail
 
+// clang-format off
+
 /**
  * \brief Parallel for loop for one dimensional interval of indices.
  *
@@ -83,7 +79,7 @@ struct ParallelForExpandWrapper< Function, Devices::Cuda >
  *    \ref TNL::Devices::Sequential.
  */
 template< typename Device = Devices::Sequential >
-struct ParallelFor
+struct [[deprecated("Use the TNL::Algorithms::parallelFor function instead.")]] ParallelFor
 {
    /**
     * \brief Static method for the execution of the loop.
@@ -98,12 +94,6 @@ struct ParallelFor
     * \param end is the right bound of the iteration range `[begin, end)`.
     * \param f is the function to be called in each iteration.
     * \param args are additional parameters to be passed to the function f.
-    *
-    * \par Example
-    * \include Algorithms/ParallelForExample.cpp
-    * \par Output
-    * \include ParallelForExample.out
-    *
     */
    template< typename Index, typename Function, typename... FunctionArgs >
    static void
@@ -133,7 +123,7 @@ struct ParallelFor
  *    \ref TNL::Devices::Sequential.
  */
 template< typename Device = Devices::Sequential >
-struct ParallelFor2D
+struct [[deprecated("Use the TNL::Algorithms::parallelFor function instead.")]] ParallelFor2D
 {
    /**
     * \brief Static method for the execution of the loop.
@@ -158,12 +148,6 @@ struct ParallelFor2D
     * \endcode
     *
     * where the first parameter is changing more often than the second one.
-    *
-    * \par Example
-    * \include Algorithms/ParallelForExample-2D.cpp
-    * \par Output
-    * \include ParallelForExample-2D.out
-    *
     */
    template< typename Index, typename Function, typename... FunctionArgs >
    static void
@@ -203,7 +187,7 @@ struct ParallelFor2D
  *    \ref TNL::Devices::Sequential.
  */
 template< typename Device = Devices::Sequential >
-struct ParallelFor3D
+struct [[deprecated("Use the TNL::Algorithms::parallelFor function instead.")]] ParallelFor3D
 {
    /**
     * \brief Static method for the execution of the loop.
@@ -230,12 +214,6 @@ struct ParallelFor3D
     * \endcode
     *
     * where the first parameter is changing the most often.
-    *
-    * \par Example
-    * \include Algorithms/ParallelForExample-3D.cpp
-    * \par Output
-    * \include ParallelForExample-3D.out
-    *
     */
    template< typename Index, typename Function, typename... FunctionArgs >
    static void
@@ -268,6 +246,8 @@ struct ParallelFor3D
       detail::ParallelFor3D< Device >::exec( begin, end, launch_config, wrapper, args... );
    }
 };
+
+// clang-format on
 
 }  // namespace Algorithms
 }  // namespace TNL

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 using namespace TNL;
 using namespace TNL::Containers;
@@ -18,7 +18,7 @@ void initVector( Vector< double, Device >& v,
    {
       view[ i ] = c;
    };
-   ParallelFor< Device >::exec( 0, v.getSize(), init );
+   parallelFor< Device >( 0, v.getSize(), init );
 }
 
 int main( int argc, char* argv[] )

@@ -4,10 +4,9 @@ set( COMMON_EXAMPLES
    SortingExample
    SortingExample2
    SortingExample3
-   ParallelForExample
-   ParallelForExample-2D
-   ParallelForExample-3D
    SequentialForExample
+   parallelForScalarExample
+   parallelForMultiIndexExample
    reduceArrayExample
    reduceWithArgumentArrayExample
 )

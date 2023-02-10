@@ -1,6 +1,7 @@
 #include <iostream>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Containers/StaticArray.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 using namespace TNL;
 using namespace TNL::Containers;
@@ -14,11 +15,13 @@ void initMeshFunction( const int xSize,
                        const double& c )
 {
    auto view = v.getView();
-   auto init = [=] __cuda_callable__ ( int i, int j, int k ) mutable
+   auto init = [=] __cuda_callable__ ( const StaticArray< 3, int >& i ) mutable
    {
-      view[ ( k * ySize + j ) * xSize + i ] = c;
+      view[ ( i.z() * ySize + i.y() ) * xSize + i.x() ] = c;
    };
-   ParallelFor3D< Device >::exec( 0, 0, 0, xSize, ySize, zSize, init );
+   StaticArray< 3, int > begin{ 0, 0, 0 };
+   StaticArray< 3, int > end{ xSize, ySize, zSize };
+   parallelFor< Device >( begin, end, init );
 }
 
 int main( int argc, char* argv[] )
