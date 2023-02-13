@@ -144,6 +144,7 @@ def writeGeneralFigures( df ):
                         axs.set_xscale( 'log' )
                         axs.set_yscale( 'linear' )
                         axs.set_ylim( [0, 1.2*max_bandwidth ])
+                        axs.grid()
                         plt.rcParams.update({
                         "text.usetex": True,
                         "font.family": "sans-serif"})
@@ -157,6 +158,7 @@ def writeGeneralFigures( df ):
                         axs.set_xlabel( 'Array size in bytes' )
                         axs.set_xscale( 'log' )
                         axs.set_yscale( 'linear' )
+                        axs.grid()
                         plt.rcParams.update({
                         "text.usetex": True,
                         "font.family": "sans-serif"})
@@ -185,6 +187,7 @@ def writeSequentialRandomComparisonFigures( df ):
                 axs.set_xlabel( 'Array size in bytes' )
                 axs.set_xscale( 'log' )
                 axs.set_yscale( 'linear' )
+                axs.grid()
                 #axs.set_ylim( [0, 1.2*max_bandwidth ])
                 plt.rcParams.update({
                 "text.usetex": True,
@@ -201,6 +204,7 @@ def writeSequentialRandomComparisonFigures( df ):
                 axs.set_xlabel( 'Array size in bytes' )
                 axs.set_xscale( 'log' )
                 axs.set_yscale( 'linear' )
+                axs.grid()
                 plt.rcParams.update({
                 "text.usetex": True,
                 "font.family": "sans-serif"})
@@ -235,6 +239,7 @@ def writeThreadsCountComparisonFigures( df ):
                     axs.set_xlabel( 'Array size in bytes' )
                     axs.set_xscale( 'log' )
                     axs.set_yscale( 'linear' )
+                    axs.grid()
                     #axs.set_ylim( [0, 1.2*max_bandwidth ])
                     plt.rcParams.update({
                     "text.usetex": True,
@@ -253,6 +258,7 @@ def writeThreadsCountComparisonFigures( df ):
                     axs.set_xlabel( 'Array size in bytes' )
                     axs.set_xscale( 'log' )
                     axs.set_yscale( 'linear' )
+                    axs.grid()
                     plt.rcParams.update({
                     "text.usetex": True,
                     "font.family": "sans-serif"})
@@ -282,6 +288,7 @@ def writeReadWriteComparisonFigures( df ):
                 axs.set_xlabel( 'Array size in bytes' )
                 axs.set_xscale( 'log' )
                 axs.set_yscale( 'linear' )
+                axs.grid()
                 #axs.set_ylim( [0, 1.2*max_bandwidth ])
                 plt.rcParams.update({
                 "text.usetex": True,
@@ -298,6 +305,7 @@ def writeReadWriteComparisonFigures( df ):
                 axs.set_xlabel( 'Array size in bytes' )
                 axs.set_xscale( 'log' )
                 axs.set_yscale( 'linear' )
+                axs.grid()
                 plt.rcParams.update({
                 "text.usetex": True,
                 "font.family": "sans-serif"})
@@ -329,6 +337,7 @@ def writeBlocksInterleavingComparisonFigures( df ):
                 axs.set_xlabel( 'Array size in bytes' )
                 axs.set_xscale( 'log' )
                 axs.set_yscale( 'linear' )
+                axs.grid()
                 #axs.set_ylim( [0, 1.2*max_bandwidth ])
                 plt.rcParams.update({
                 "text.usetex": True,
@@ -345,6 +354,7 @@ def writeBlocksInterleavingComparisonFigures( df ):
                 axs.set_xlabel( 'Array size in bytes' )
                 axs.set_xscale( 'log' )
                 axs.set_yscale( 'linear' )
+                axs.grid()
                 plt.rcParams.update({
                 "text.usetex": True,
                 "font.family": "sans-serif"})
@@ -392,6 +402,7 @@ def writeElementSizeComparisonFigures( df ):
                     axs.set_xlabel( 'Array size in bytes' )
                     axs.set_xscale( 'log' )
                     axs.set_yscale( 'linear' )
+                    axs.grid()
                     plt.rcParams.update({
                     "text.usetex": True,
                     "font.family": "sans-serif"})

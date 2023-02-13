@@ -94,7 +94,7 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
          array.setupRandomTest();
       array.performTest();
       benchmark.setOperationsPerLoop( array.getTestedElementsCountPerThread() );
-      benchmark.setDatasetSize( elementsPerTest * sizeof( ElementType ) );
+      benchmark.setDatasetSize( ( double ) elementsPerTest * sizeof( ElementType ) / ( double ) ( 1 << 30 ) );
       auto compute = [&] () {
          array.performTest();
       };
