@@ -94,7 +94,10 @@ performBenchmark( const TNL::Config::ParameterContainer& parameters )
          array.setupRandomTest();
       array.performTest();
       benchmark.setOperationsPerLoop( array.getTestedElementsCountPerThread() );
-      benchmark.setDatasetSize( ( double ) elementsPerTest * sizeof( ElementType ) / ( double ) ( 1 << 30 ) );
+      double dataset_size = ( double ) elementsPerTest * sizeof( long int ) / ( double ) ( 1 << 30 );
+      if( read_test || write_test )
+         dataset_size *= 2;
+      benchmark.setDatasetSize( dataset_size );
       auto compute = [&] () {
          array.performTest();
       };
