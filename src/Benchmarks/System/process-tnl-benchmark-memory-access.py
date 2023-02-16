@@ -9,6 +9,7 @@ import numpy as np
 import math
 from os.path import exists
 
+font_size = "15"
 threads = [ ]
 accesses = [ "sequential", "random" ]
 element_sizes = []
@@ -55,8 +56,8 @@ def processDf( df ):
     out_idx = 0
 
     sizes = list(set(df['array size']))
-
-    print( sizes )
+    sizes.sort()
+    print( f'Sizes = {sizes}' )
 
     for size in sizes:
         aux_df=df.loc[ ( df['array size'] == size ) ]
@@ -65,6 +66,8 @@ def processDf( df ):
         new_df.iloc[0][ ('size','','','','','') ]  = size
         for index, row in aux_df.iterrows():
             threads_count = row[ 'threads' ]
+            if threads_count not in threads:
+                continue
             access_type = row[ 'access type' ]
             read_test = row[ 'read test']
             write_test = row[ 'write test']
@@ -83,7 +86,7 @@ def processDf( df ):
             time = row[ 'time' ]
             bandwidth = row[ 'bandwidth' ]
             cpu_cycles = row[ 'cycles/op.' ]
-            print( f'Threads {threads_count} \t {access_type} \t {test_type} \t {ordering}  \t {element_size} \t {time} \t {bandwidth} \t {cpu_cycles} ')
+            print( f'Threads {threads_count} \t {access_type} \t {test_type} \t {ordering}  \t {element_size} \t {time} \t {bandwidth} \t {cpu_cycles} \r', end='')
             new_df.iloc[0][( f'Threads {threads_count}', access_type, test_type, ordering, element_size,'time') ] = time
             new_df.iloc[0][( f'Threads {threads_count}', access_type, test_type, ordering, element_size,'bandwidth') ] = bandwidth
             new_df.iloc[0][( f'Threads {threads_count}', access_type, test_type, ordering, element_size,'CPU cycles') ] = cpu_cycles
@@ -100,8 +103,8 @@ def get_bandwidth( df, threads_count, access, test_type, ordering, element_size 
         try:
             bandwidth.append( float( bw )/1000000000 )
         except ValueError:
-            bandwidth.append( '' )
-            print( f'Warning wrong value of bandwidth: {bw} ')
+            bandwidth.append( 0 )
+            print( f'Warning wrong value of bandwidth: {bw} for threads count {threads_count}, access {access}, test type {test_type}, ordering {ordering}, element size {element_size} ')
     return bandwidth
 
 ###
@@ -113,8 +116,8 @@ def get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size
         try:
             cpu_cycles.append( float( cycles ) )
         except ValueError:
-            cpu_cycles.append( '' )
-            print( f'Warning wrong value of bandwidth: {cycles} ')
+            cpu_cycles.append( 0 )
+            print( f'Warning wrong value of CPU cycles: {cycles} for threads count {threads_count}, access {access}, test type {test_type}, ordering {ordering}, element size {element_size} ')
     return cpu_cycles
 
 ####
@@ -132,12 +135,12 @@ def writeGeneralFigures( df ):
                         print( f'Writing figure for benchmark: {access} threads={threads_count} {test_type} {ordering} element size = {element_size}:' )
                         bandwidth = get_bandwidth( df, threads_count, access, test_type, ordering, element_size )
                         cpu_cycles = get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size )
-                        max_bandwidth = max( bandwidth )
                         print( f'   BW: {bandwidth}' )
                         print( f'   CPU cycles: {cpu_cycles}' )
+                        max_bandwidth = max( bandwidth )
 
                         fig, axs = plt.subplots( 1, 1 )
-                        axs.plot( sizes, bandwidth, '-o', ms=4, lw=1 )
+                        axs.plot( sizes, bandwidth, '-o', ms=6, lw=2 )
                         axs.legend( [ f'{access} access {threads_count} threads' ], loc='upper right' )
                         axs.set_ylabel( 'Effective bandwidth in GB/sec' )
                         axs.set_xlabel( 'Array size in bytes' )
@@ -147,12 +150,14 @@ def writeGeneralFigures( df ):
                         axs.grid()
                         plt.rcParams.update({
                         "text.usetex": True,
-                        "font.family": "sans-serif"})
+                        "font.family": "sans-serif",
+                        "font.size" : font_size })
                         plt.savefig( f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-bw.pdf")
                         plt.close(fig)
 
+                        print( f'WRITING CPU_CYCLES: {cpu_cycles} to file \n {access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf' )
                         fig, axs = plt.subplots( 1, 1 )
-                        axs.plot( sizes, cpu_cycles, '-o', ms=4, lw=1 )
+                        axs.plot( sizes, cpu_cycles, '-o', ms=6, lw=2 )
                         axs.legend( [ f'{access} access {threads_count} threads' ], loc='upper left' )
                         axs.set_ylabel( 'CPU cycles per element' )
                         axs.set_xlabel( 'Array size in bytes' )
@@ -161,7 +166,8 @@ def writeGeneralFigures( df ):
                         axs.grid()
                         plt.rcParams.update({
                         "text.usetex": True,
-                        "font.family": "sans-serif"})
+                        "font.family": "sans-serif",
+                        "font.size" : font_size})
                         plt.savefig( f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf")
                         plt.close(fig)
 
@@ -191,7 +197,8 @@ def writeSequentialRandomComparisonFigures( df ):
                 #axs.set_ylim( [0, 1.2*max_bandwidth ])
                 plt.rcParams.update({
                 "text.usetex": True,
-                "font.family": "sans-serif"})
+                "font.family": "sans-serif",
+                "font.size" : font_size})
                 plt.savefig( f"sequential-random-comparison-{access}-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf")
                 plt.close(fig)
 
@@ -207,7 +214,8 @@ def writeSequentialRandomComparisonFigures( df ):
                 axs.grid()
                 plt.rcParams.update({
                 "text.usetex": True,
-                "font.family": "sans-serif"})
+                "font.family": "sans-serif",
+                "font.size" : font_size})
                 plt.savefig( f"sequential-random-comparison-{access}-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf")
                 plt.close(fig)
 
@@ -243,7 +251,8 @@ def writeThreadsCountComparisonFigures( df ):
                     #axs.set_ylim( [0, 1.2*max_bandwidth ])
                     plt.rcParams.update({
                     "text.usetex": True,
-                    "font.family": "sans-serif"})
+                    "font.family": "sans-serif",
+                    "font.size" : font_size})
                     plt.savefig( f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-bw.pdf")
                     plt.close(fig)
 
@@ -261,7 +270,8 @@ def writeThreadsCountComparisonFigures( df ):
                     axs.grid()
                     plt.rcParams.update({
                     "text.usetex": True,
-                    "font.family": "sans-serif"})
+                    "font.family": "sans-serif",
+                    "font.size" : font_size})
                     plt.savefig( f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf")
                     plt.close(fig)
 
@@ -292,7 +302,8 @@ def writeReadWriteComparisonFigures( df ):
                 #axs.set_ylim( [0, 1.2*max_bandwidth ])
                 plt.rcParams.update({
                 "text.usetex": True,
-                "font.family": "sans-serif"})
+                "font.family": "sans-serif",
+                "font.size" : font_size})
                 plt.savefig( f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-bw.pdf")
                 plt.close(fig)
 
@@ -308,7 +319,8 @@ def writeReadWriteComparisonFigures( df ):
                 axs.grid()
                 plt.rcParams.update({
                 "text.usetex": True,
-                "font.family": "sans-serif"})
+                "font.family": "sans-serif",
+                "font.size" : font_size})
                 plt.savefig( f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-cycles.pdf")
                 plt.close(fig)
 
@@ -341,7 +353,8 @@ def writeBlocksInterleavingComparisonFigures( df ):
                 #axs.set_ylim( [0, 1.2*max_bandwidth ])
                 plt.rcParams.update({
                 "text.usetex": True,
-                "font.family": "sans-serif"})
+                "font.family": "sans-serif",
+                "font.size" : font_size})
                 plt.savefig( f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf")
                 plt.close(fig)
 
@@ -357,7 +370,8 @@ def writeBlocksInterleavingComparisonFigures( df ):
                 axs.grid()
                 plt.rcParams.update({
                 "text.usetex": True,
-                "font.family": "sans-serif"})
+                "font.family": "sans-serif",
+                "font.size" : font_size})
                 plt.savefig( f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf")
                 plt.close(fig)
 
@@ -389,7 +403,8 @@ def writeElementSizeComparisonFigures( df ):
                     #axs.set_ylim( [0, 1.2*max_bandwidth ])
                     plt.rcParams.update({
                     "text.usetex": True,
-                    "font.family": "sans-serif"})
+                    "font.family": "sans-serif",
+                    "font.size" : font_size})
                     plt.savefig( f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-bw.pdf")
                     plt.close(fig)
 
@@ -405,7 +420,8 @@ def writeElementSizeComparisonFigures( df ):
                     axs.grid()
                     plt.rcParams.update({
                     "text.usetex": True,
-                    "font.family": "sans-serif"})
+                    "font.family": "sans-serif",
+                    "font.size" : font_size})
                     plt.savefig( f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-cycles.pdf")
                     plt.close(fig)
 
@@ -423,13 +439,15 @@ with open( filename ) as f:
         parsed_lines.append( parsed_line )
 
 df = pd.DataFrame(parsed_lines)
-for threads_count in df['threads']:
-    if threads_count not in threads:
-        threads.append( threads_count )
+if not threads:
+    for threads_count in df['threads']:
+        if threads_count not in threads:
+            threads.append( threads_count )
 
-for element_size in df['element size']:
-    if element_size not in element_sizes:
-        element_sizes.append( element_size )
+if not element_sizes:
+    for element_size in df['element size']:
+        if element_size not in element_sizes:
+            element_sizes.append( element_size )
 
 keys = ['array size','time', 'bandwidth', 'cycles/op' ]
 
