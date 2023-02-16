@@ -1,5 +1,4 @@
 #include <iostream>
-#include <TNL/Algorithms/ParallelFor.h>
 #include <TNL/Matrices/TridiagonalMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -10,7 +9,7 @@ void laplaceOperatorMatrix()
 {
    const int gridSize( 6 );
    const int matrixSize = gridSize;
-   TNL::Matrices::TridiagonalMatrix< double, Device > matrix( 
+   TNL::Matrices::TridiagonalMatrix< double, Device > matrix(
       matrixSize, // number of rows
       matrixSize  // number of columns
    );

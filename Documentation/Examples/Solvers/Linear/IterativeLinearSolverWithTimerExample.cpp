@@ -3,7 +3,6 @@
 #include <chrono>
 #include <thread>
 #include <TNL/Timer.h>
-#include <TNL/Algorithms/ParallelFor.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Cuda.h>

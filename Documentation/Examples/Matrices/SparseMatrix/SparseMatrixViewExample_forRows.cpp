@@ -1,5 +1,4 @@
 #include <iostream>
-#include <TNL/Algorithms/ParallelFor.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>

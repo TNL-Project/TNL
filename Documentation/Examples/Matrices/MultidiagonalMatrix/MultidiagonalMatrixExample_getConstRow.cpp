@@ -1,6 +1,5 @@
 #include <iostream>
 #include <functional>
-#include <TNL/Algorithms/ParallelFor.h>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>

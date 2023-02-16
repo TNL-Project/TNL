@@ -2,7 +2,6 @@
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/StaticVector.h>
-#include <TNL/Algorithms/ParallelFor.h>
 
 #ifdef HAVE_GTEST
 #include <gtest/gtest.h>

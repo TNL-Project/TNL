@@ -12,7 +12,6 @@
 
 #include "ILU0.h"
 #include <TNL/Solvers/Linear/Utils/TriangularSolve.h>
-#include <TNL/Algorithms/ParallelFor.h>
 
 namespace TNL {
 namespace Solvers {
