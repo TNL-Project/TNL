@@ -283,7 +283,7 @@ MultidiagonalMatrixView< Real, Device, Index, Organization >::reduceRows( IndexT
       }
       keep( rowIdx, sum );
    };
-   Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -312,7 +312,7 @@ MultidiagonalMatrixView< Real, Device, Index, Organization >::reduceRows( IndexT
       }
       keep( rowIdx, sum );
    };
-   Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -357,7 +357,7 @@ MultidiagonalMatrixView< Real, Device, Index, Organization >::forElements( Index
             function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
       }
    };
-   Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -378,7 +378,7 @@ MultidiagonalMatrixView< Real, Device, Index, Organization >::forElements( Index
             function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
       }
    };
-   Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -408,7 +408,7 @@ MultidiagonalMatrixView< Real, Device, Index, Organization >::forRows( IndexType
       auto rowView = view.getRow( rowIdx );
       function( rowView );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -424,7 +424,7 @@ MultidiagonalMatrixView< Real, Device, Index, Organization >::forRows( IndexType
       auto rowView = view.getRow( rowIdx );
       function( rowView );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

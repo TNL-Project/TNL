@@ -171,7 +171,7 @@ void test_helper_comparisonOperators( DistributedArray& u, DistributedArray& v, 
       v_view( gi - localRange.getBegin() ) = gi;
       w_view( gi - localRange.getBegin() ) = 2 * gi;
    };
-   Algorithms::ParallelFor< DeviceType >::exec( localRange.getBegin(), localRange.getEnd(), kernel );
+   Algorithms::parallelFor< DeviceType >( localRange.getBegin(), localRange.getEnd(), kernel );
 }
 
 TYPED_TEST( DistributedNDArray_1D_test, comparisonOperators )

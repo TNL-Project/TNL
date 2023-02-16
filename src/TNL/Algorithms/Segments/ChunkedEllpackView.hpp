@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpackView.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 //#include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
@@ -225,7 +225,7 @@ ChunkedEllpackView< Device, Index, Organization >::forElements( IndexType first,
          }
       }
    };
-   Algorithms::ParallelFor< DeviceType >::exec( first, last, work );
+   Algorithms::parallelFor< DeviceType >( first, last, work );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -249,7 +249,7 @@ ChunkedEllpackView< Device, Index, Organization >::forSegments( IndexType begin,
       auto segment = view.getSegmentView( segmentIdx );
       function( segment );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >

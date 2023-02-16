@@ -10,7 +10,7 @@
 #include <TNL/Meshes/MeshEntity.h>
 #include <TNL/Meshes/MeshBuilder.h>
 #include <TNL/Meshes/Geometry/EntityRefiner.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/scan.h>
 
 namespace TNL {
@@ -52,7 +52,7 @@ refineMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
       const auto cell = inMesh.template getEntity< CellDimension >( i );
       indices[ i ] = EntityRefiner::getExtraPointsAndEntitiesCount( cell );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, setCounts );
+   parallelFor< Devices::Host >( 0, inCellsCount, setCounts );
    indices[ inCellsCount ] = { 0,
                                0 };  // extend exclusive prefix sum by one element to also get result of reduce at the same time
    auto reduction = []( const IndexPair& a, const IndexPair& b ) -> IndexPair
@@ -70,7 +70,7 @@ refineMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
    {
       meshBuilder.setPoint( i, inMesh.getPoint( i ) );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inPointsCount, copyPoint );
+   parallelFor< Devices::Host >( 0, inPointsCount, copyPoint );
 
    // Refine each cell
    auto refineCell = [ & ]( GlobalIndexType i ) mutable
@@ -97,7 +97,7 @@ refineMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
 
       EntityRefiner::decompose( cell, addPoint, addCell );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, refineCell );
+   parallelFor< Devices::Host >( 0, inCellsCount, refineCell );
 
    return meshBuilder;
 }

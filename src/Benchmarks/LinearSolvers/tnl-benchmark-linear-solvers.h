@@ -130,7 +130,7 @@ void set_random_vector( Vector& v, typename Vector::RealType a, typename Vector:
    {
       host_v[ i ] = dis(gen);
    };
-   Algorithms::ParallelFor< Devices::Host >::exec( (IndexType) 0, host_v.getSize(), kernel );
+   Algorithms::parallelFor< Devices::Host >( 0, host_v.getSize(), kernel );
 
    // copy the data to the device vector
    v = host_v;

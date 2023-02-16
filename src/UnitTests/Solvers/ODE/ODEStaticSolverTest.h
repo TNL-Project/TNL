@@ -3,7 +3,7 @@
 #include <TNL/Solvers/ODE/Euler.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/StaticVector.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 #ifdef HAVE_GTEST
 #include <gtest/gtest.h>
@@ -99,7 +99,7 @@ void ODENumericSolverTest_ParallelLinearFunctionTest()
       //   fu = time;
       //} );
    };
-   TNL::Algorithms::ParallelFor< Device >::exec( 0, size, f );
+   TNL::Algorithms::parallelFor< Device >( 0, size, f );
 
 
    RealType exact_solution = 0.5 * final_time * final_time;
@@ -173,7 +173,7 @@ void ODEStaticSolverTest_ParallelLinearFunctionTest()
       //   fu = time;
       //} );
    };
-   TNL::Algorithms::ParallelFor< Device >::exec( 0, size, f );
+   TNL::Algorithms::parallelFor< Device >( 0, size, f );
 
    RealType exact_solution( 0.5 * final_time * final_time );
    auto error = TNL::Algorithms::reduce< Device >( 0, size,

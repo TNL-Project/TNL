@@ -4,7 +4,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Math.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Config/parseCommandLine.h>
 
 #include <TNL/Containers/NDArray.h>
@@ -90,7 +90,7 @@ void benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
    };
 
    auto f = [&]() {
-      Algorithms::ParallelFor< Device >::exec( 0, (int) size, kernel, a.getData(), b.getData() );
+      Algorithms::parallelFor< Device >( 0, (int) size, kernel, a.getData(), b.getData() );
    };
 
    // warm-up for all benchmarks

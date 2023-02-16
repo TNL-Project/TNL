@@ -543,7 +543,7 @@ void test_SetRow()
          row.setElement( i, values[ rowIdx ][ i ] );
       }
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( 0, 3, f );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, 3, f );
 
    EXPECT_EQ( m.getElement( 0, 0 ),  1 );
    EXPECT_EQ( m.getElement( 0, 1 ),  2 );
@@ -666,7 +666,7 @@ void test_AddRow()
          val = rowIdx * val + values[ rowIdx ][ i ];
       }
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( 0, 6, f );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, 6, f );
 
 
    EXPECT_EQ( m.getElement( 0, 0 ),  11 );

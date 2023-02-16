@@ -13,7 +13,7 @@
 #include <TNL/Meshes/MeshDetails/initializer/EntitySeed.h>
 #include <TNL/Atomic.h>
 #include <TNL/Algorithms/AtomicOperations.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/staticFor.h>
 
 namespace TNL {
@@ -49,8 +49,8 @@ initializeSuperentities( Initializer< MeshConfig >& meshInitializer,
    if constexpr( subentityStorage && (subdimension > 0 || std::is_same_v< SuperentityTopology, Topologies::Polyhedron >) ) {
       NeighborCountsArray capacities( superentitiesCount );
 
-      Algorithms::ParallelFor< Devices::Host >::exec(
-         GlobalIndexType{ 0 },
+      Algorithms::parallelFor< Devices::Host >(  //
+         0,
          superentitiesCount,
          [ & ]( GlobalIndexType superentityIndex )
          {
@@ -71,8 +71,8 @@ initializeSuperentities( Initializer< MeshConfig >& meshInitializer,
    }
 
    if constexpr( subentityStorage || superentityStorage ) {
-      Algorithms::ParallelFor< Devices::Host >::exec(
-         GlobalIndexType{ 0 },
+      Algorithms::parallelFor< Devices::Host >(
+         0,
          superentitiesCount,
          [ & ]( GlobalIndexType superentityIndex )
          {

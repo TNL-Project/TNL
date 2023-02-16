@@ -3,7 +3,7 @@
 #pragma once
 
 #include <TNL/Devices/Host.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 namespace TNL {
    namespace Benchmarks {
@@ -32,7 +32,7 @@ struct SimpleProblem
       {
          fu[ i ] = 1.0;
       };
-      Algorithms::ParallelFor< DeviceType >::exec( ( IndexType ) 0, u.getSize(), computeF, u, fu );
+      Algorithms::parallelFor< DeviceType >( 0, u.getSize(), computeF, u, fu );
    }
 
    template< typename Vector >

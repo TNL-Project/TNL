@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Algorithms/staticFor.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Pointers/DevicePointer.h>
 #include <TNL/Meshes/DimensionTag.h>
 #include <TNL/Meshes/MeshDetails/traits/MeshEntityTraits.h>
@@ -80,8 +80,7 @@ initializeEntityTags( Mesh& mesh )
 
       const GlobalIndexType facesCount = mesh.template getEntitiesCount< Mesh::getMeshDimension() - 1 >();
       Pointers::DevicePointer< Mesh > meshPointer( mesh );
-      Algorithms::ParallelFor< DeviceType >::exec(
-         (GlobalIndexType) 0, facesCount, kernel, &meshPointer.template modifyData< DeviceType >() );
+      Algorithms::parallelFor< DeviceType >( 0, facesCount, kernel, &meshPointer.template modifyData< DeviceType >() );
 
       // update entity tags
       Algorithms::staticFor< int, 0, Mesh::getMeshDimension() + 1 >(

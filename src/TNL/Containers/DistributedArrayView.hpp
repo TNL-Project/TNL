@@ -10,7 +10,7 @@
 
 #include "DistributedArrayView.h"
 
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/MPI/Wrappers.h>
 
 namespace TNL {
@@ -142,7 +142,7 @@ DistributedArrayView< Value, Device, Index >::copyFromGlobal( ConstLocalViewType
       localView[ i ] = globalArray[ localRange.getGlobalIndex( i ) ];
    };
 
-   Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, localRange.getSize(), kernel );
+   Algorithms::parallelFor< DeviceType >( 0, localRange.getSize(), kernel );
    startSynchronization();
 }
 

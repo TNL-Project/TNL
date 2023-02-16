@@ -280,7 +280,7 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
    //    (maybe 2 iterations are always enough, but we should be extra careful)
    for( int iter = 0; iter < DistributedMesh::getMeshDimension(); iter++ ) {
       // 6a. determine global indices for the received seeds
-      Algorithms::ParallelFor< Devices::Host >::exec(
+      Algorithms::parallelFor< Devices::Host >(
          0,
          nproc,
          [ & ]( int i )

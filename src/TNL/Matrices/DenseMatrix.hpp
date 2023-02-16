@@ -8,6 +8,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Matrices/DenseMatrix.h>
+#include <TNL/Algorithms/ParallelFor.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
 namespace TNL {

@@ -242,8 +242,7 @@ public:
          if( ghostEntitiesCounts( i, rank ) > 0 ) {
             const GlobalIndexType offset = ghostNeighborOffsets[ i ];
             // copy data to send buffers
-            Algorithms::ParallelFor< DeviceType >::exec(
-               (GlobalIndexType) 0, ghostEntitiesCounts( i, rank ), copy_kernel, offset );
+            Algorithms::parallelFor< DeviceType >( 0, ghostEntitiesCounts( i, rank ), copy_kernel, offset );
 
             // issue async send operation
             requests.push_back( MPI::Isend( sendBuffersView.getData() + bytesPerValue * ghostNeighborOffsets[ i ],

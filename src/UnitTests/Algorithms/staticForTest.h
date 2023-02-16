@@ -3,7 +3,7 @@
 #include <array>
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/staticFor.h>
 
 #ifdef HAVE_GTEST
@@ -86,7 +86,7 @@ void test_cuda_dynamic()
          }
       );
    };
-   ParallelFor< Devices::Cuda >::exec( 0, 1, kernel );
+   parallelFor< Devices::Cuda >( 0, 1, kernel );
 
    ArrayHost expected;
    expected.setSize( N );
@@ -127,7 +127,7 @@ void test_cuda_static()
          }
       );
    };
-   ParallelFor< Devices::Cuda >::exec( 0, 1, kernel );
+   parallelFor< Devices::Cuda >( 0, 1, kernel );
 
    ArrayHost expected;
    expected.setSize( N );

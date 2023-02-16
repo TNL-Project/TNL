@@ -1,5 +1,5 @@
 #include <iostream>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -33,7 +33,7 @@ void setElements()
     * MultidiagonalMatrixView::getRow example for details.
     */
    TNL::Pointers::synchronizeSmartPointersOnDevice< Device >();
-   TNL::Algorithms::ParallelFor< Device >::exec( 0, matrixSize, f );
+   TNL::Algorithms::parallelFor< Device >( 0, matrixSize, f );
 
    std::cout << "Matrix set from its native device:" << std::endl;
    std::cout << *matrix << std::endl;
@@ -45,7 +45,7 @@ int main( int argc, char* argv[] )
    setElements< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   // It seems that nvcc 10.1 does not handle lambda functions properly. 
+   // It seems that nvcc 10.1 does not handle lambda functions properly.
    // It is hard to make nvcc to compile this example and it does not work
    // properly. We will try it with later version of CUDA.
    //std::cout << "Set elements on CUDA device:" << std::endl;

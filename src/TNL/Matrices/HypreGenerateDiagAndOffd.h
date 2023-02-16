@@ -10,7 +10,7 @@
 
 #ifdef HAVE_HYPRE
 
-   #include <TNL/Algorithms/ParallelFor.h>
+   #include <TNL/Algorithms/parallelFor.h>
    #include <TNL/Algorithms/reduce.h>
    #include <TNL/Algorithms/scan.h>
    #include <TNL/Algorithms/sort.h>
@@ -65,7 +65,7 @@ GenerateDiagAndOffd( hypre_CSRMatrix* A, hypre_ParCSRMatrix* matrix, HYPRE_BigIn
       const HYPRE_Int first_elmt = a_i.getElement( 0 );
 
       // count the numbers of diagonal and off-diagonal elements in each row
-      Algorithms::ParallelFor< HYPRE_Device >::exec(  //
+      Algorithms::parallelFor< HYPRE_Device >(  //
          HYPRE_Int( 0 ),
          num_rows,
          [ = ] __cuda_callable__( HYPRE_Int i ) mutable
@@ -98,7 +98,7 @@ GenerateDiagAndOffd( hypre_CSRMatrix* A, hypre_ParCSRMatrix* matrix, HYPRE_BigIn
       HYPRE_Int* offd_j = hypre_CSRMatrixJ( offd );
 
       // copy the values and column indices from A to the diag and offd parts
-      Algorithms::ParallelFor< HYPRE_Device >::exec(  //
+      Algorithms::parallelFor< HYPRE_Device >(  //
          HYPRE_Int( 0 ),
          num_rows,
          [ = ] __cuda_callable__( HYPRE_Int i ) mutable

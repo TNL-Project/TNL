@@ -12,7 +12,7 @@
 
 #include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
@@ -29,7 +29,7 @@ MemoryOperations< Devices::Cuda >::construct( Element* data, Index size )
       // placement-new
       ::new( (void*) ( data + i ) ) Element();
    };
-   ParallelFor< Devices::Cuda >::exec( (Index) 0, size, kernel );
+   parallelFor< Devices::Cuda >( 0, size, kernel );
 }
 
 template< typename Element, typename Index, typename... Args >
@@ -47,7 +47,7 @@ MemoryOperations< Devices::Cuda >::construct( Element* data, Index size, const A
       // with CUDA kernels)
       ::new( (void*) ( data + i ) ) Element( args... );
    };
-   ParallelFor< Devices::Cuda >::exec( (Index) 0, size, kernel, args... );
+   parallelFor< Devices::Cuda >( 0, size, kernel, args... );
 }
 
 template< typename Element, typename Index >
@@ -59,7 +59,7 @@ MemoryOperations< Devices::Cuda >::destruct( Element* data, Index size )
    {
       ( data + i )->~Element();
    };
-   ParallelFor< Devices::Cuda >::exec( (Index) 0, size, kernel );
+   parallelFor< Devices::Cuda >( 0, size, kernel );
 }
 
 template< typename Element >
@@ -105,7 +105,7 @@ MemoryOperations< Devices::Cuda >::set( Element* data, const Element& value, Ind
    {
       data[ i ] = value;
    };
-   ParallelFor< Devices::Cuda >::exec( (Index) 0, size, kernel );
+   parallelFor< Devices::Cuda >( 0, size, kernel );
 }
 
 template< typename DestinationElement, typename SourceElement, typename Index >
@@ -122,7 +122,7 @@ MemoryOperations< Devices::Cuda >::copy( DestinationElement* destination, const 
    {
       destination[ i ] = source[ i ];
    };
-   ParallelFor< Devices::Cuda >::exec( (Index) 0, size, kernel );
+   parallelFor< Devices::Cuda >( 0, size, kernel );
 }
 
 template< typename DestinationElement, typename Index, typename SourceIterator >

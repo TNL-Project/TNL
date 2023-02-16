@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
@@ -170,7 +170,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::computeColum
          groupPointersView[ groupIdx + groupBegin ] = groupSize;
       }
    };
-   Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, this->virtualRows / getWarpSize(), createGroups );
+   Algorithms::parallelFor< DeviceType >( 0, this->virtualRows / getWarpSize(), createGroups );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >

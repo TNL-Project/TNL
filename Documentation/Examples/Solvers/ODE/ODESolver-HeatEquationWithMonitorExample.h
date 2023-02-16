@@ -70,7 +70,7 @@ void solveHeatEquation( const char* file_name )
              fu[ i ] = h_sqr_inv * (  u[ i - 1 ] - 2.0 * u[ i ] + u[ i + 1 ] );
           };
       auto time_stepping = [=] ( const Real& t, const Real& tau, const VectorView& u, VectorView& fu ) {
-         TNL::Algorithms::ParallelFor< Device >::exec( 0, n, f, u, fu ); };
+         TNL::Algorithms::parallelFor< Device >( 0, n, f, u, fu ); };
       solver.solve( u, time_stepping );
       write( file, u, n, h, solver.getTime() ); // write the current state to a file
    }

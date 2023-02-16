@@ -124,7 +124,7 @@ main( int argc, char* argv[] )
    typename CSR::RowsCapacitiesType capacities;
    capacities.setSize( local_size );
    auto capacities_view = capacities.getView();
-   TNL::Algorithms::ParallelFor< TNL::HYPRE_Device >::exec( ilower, iupper + 1,
+   TNL::Algorithms::parallelFor< TNL::HYPRE_Device >( ilower, iupper + 1,
       [=] __cuda_callable__ ( HYPRE_Int i ) mutable
       {
          int nnz = 0;

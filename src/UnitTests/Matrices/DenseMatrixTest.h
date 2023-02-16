@@ -6,7 +6,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Math.h>
 
@@ -414,7 +414,7 @@ void test_SetElement()
    auto f1 = [=] __cuda_callable__ ( IndexType i ) mutable {
       v_view[ i ] = m_view.getElement( i, i );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( ( IndexType ) 0, m.getRows(), f1 );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, m.getRows(), f1 );
 
    for( IndexType i = 0; i < m.getRows(); i++ )
       EXPECT_EQ( v.getElement( i ), m.getElement( i, i ) );
@@ -582,7 +582,7 @@ void test_SetRow()
       for( IndexType i = 0; i < 5; i++ )
         row.setValue( columnIndexes[ rowIdx ][ i ], values[ rowIdx ][ i ] );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( 0, 3, f );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, 3, f );
 
    EXPECT_EQ( m.getElement( 0, 0 ), 11 );
    EXPECT_EQ( m.getElement( 0, 1 ), 11 );
@@ -701,7 +701,7 @@ void test_AddRow()
          val = rowIdx * val + values[ rowIdx ][ i ];
       }
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( 0, 6, f );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, 6, f );
 
 
     EXPECT_EQ( m.getElement( 0, 0 ),  11 );

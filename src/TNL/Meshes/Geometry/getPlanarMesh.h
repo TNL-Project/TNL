@@ -15,7 +15,7 @@
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 #include <TNL/Meshes/Geometry/isPlanar.h>
 #include <TNL/Meshes/Geometry/EntityDecomposer.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/scan.h>
 
 namespace TNL {
@@ -64,7 +64,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
          indices[ i ] = EntityDecomposer::getExtraPointsAndEntitiesCount( cell );
       }
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, setCounts );
+   parallelFor< Devices::Host >( 0, inCellsCount, setCounts );
    indices[ inCellsCount ] = { 0,
                                0 };  // extend exclusive prefix sum by one element to also get result of reduce at the same time
    auto reduction = []( const IndexPair& a, const IndexPair& b ) -> IndexPair
@@ -82,7 +82,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
    {
       meshBuilder.setPoint( i, inMesh.getPoint( i ) );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inPointsCount, copyPoint );
+   parallelFor< Devices::Host >( 0, inPointsCount, copyPoint );
 
    // set corner counts for cells
    NeighborCountsArray cellCornersCounts( outCellsCount );
@@ -103,7 +103,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
          }
       }
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, setCornersCount );
+   parallelFor< Devices::Host >( 0, inCellsCount, setCornersCount );
    meshBuilder.setCellCornersCounts( std::move( cellCornersCounts ) );
 
    // Decompose non-planar cells and copy the rest
@@ -144,7 +144,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
          EntityDecomposer::decompose( cell, addPoint, addCell );
       }
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, decomposeCell );
+   parallelFor< Devices::Host >( 0, inCellsCount, decomposeCell );
 
    return meshBuilder;
 }
@@ -193,7 +193,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
          indices[ i ] = EntityDecomposer::getExtraPointsAndEntitiesCount( face );
       }
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inFacesCount, setCounts );
+   parallelFor< Devices::Host >( 0, inFacesCount, setCounts );
    indices[ inFacesCount ] = { 0,
                                0 };  // extend exclusive prefix sum by one element to also get result of reduce at the same time
    auto reduction = []( const IndexPair& a, const IndexPair& b ) -> IndexPair
@@ -212,7 +212,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
    {
       meshBuilder.setPoint( i, inMesh.getPoint( i ) );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inPointsCount, copyPoint );
+   parallelFor< Devices::Host >( 0, inPointsCount, copyPoint );
 
    // set corner counts for cells
    NeighborCountsArray cellCornersCounts( outCellsCount );
@@ -230,7 +230,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
 
       cellCornersCounts[ i ] = cornersCount;
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, setCellCornersCount );
+   parallelFor< Devices::Host >( 0, inCellsCount, setCellCornersCount );
    meshBuilder.setCellCornersCounts( std::move( cellCornersCounts ) );
 
    // Set corner ids for cells
@@ -247,7 +247,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
          }
       }
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, setCellCornersIds );
+   parallelFor< Devices::Host >( 0, inCellsCount, setCellCornersIds );
 
    // set corner counts for faces
    NeighborCountsArray faceCornersCounts( outFacesCount );
@@ -267,7 +267,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
          }
       }
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inFacesCount, setFaceCornersCount );
+   parallelFor< Devices::Host >( 0, inFacesCount, setFaceCornersCount );
    meshBuilder.setFaceCornersCounts( std::move( faceCornersCounts ) );
 
    // Decompose non-planar faces and copy the rest
@@ -308,7 +308,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
          EntityDecomposer::decompose( face, addPoint, addFace );
       }
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inFacesCount, decomposeFace );
+   parallelFor< Devices::Host >( 0, inFacesCount, decomposeFace );
 
    return meshBuilder;
 }

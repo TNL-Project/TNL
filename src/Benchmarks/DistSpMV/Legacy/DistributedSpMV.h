@@ -17,7 +17,7 @@
 // operations
 #include <type_traits>  // std::add_const
 #include <TNL/Atomic.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Pointers/DevicePointer.h>
 
 namespace TNL {
@@ -115,13 +115,13 @@ public:
             local_span[1].fetch_min( i );
       };
 
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, localMatrix.getRows(),
-                                                   kernel,
-                                                   &localMatrixPointer.template getData< DeviceType >(),
-                                                   span_starts.getData(),
-                                                   span_ends.getData(),
-                                                   local_span.getData()
-                                                );
+      Algorithms::parallelFor< DeviceType >( 0, localMatrix.getRows(),
+                                             kernel,
+                                             &localMatrixPointer.template getData< DeviceType >(),
+                                             span_starts.getData(),
+                                             span_ends.getData(),
+                                             local_span.getData()
+                                           );
 
       // set the local-only span (optimization for banded matrices)
       localOnlySpan.first = local_span.getElement( 0 );

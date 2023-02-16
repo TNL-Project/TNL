@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
@@ -174,7 +174,7 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::forElements( IndexT
 #endif
          }
       };
-      Algorithms::ParallelFor< Device >::exec( first, last, l );
+      Algorithms::parallelFor< Device >( first, last, l );
    }
    else {
       auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
@@ -195,7 +195,7 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::forElements( IndexT
 #endif
          }
       };
-      Algorithms::ParallelFor< Device >::exec( first, last, l );
+      Algorithms::parallelFor< Device >( first, last, l );
    }
 }
 
@@ -220,7 +220,7 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::forSegments( IndexT
       auto segment = view.getSegmentView( segmentIdx );
       function( segment );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
@@ -261,7 +261,7 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::reduceSegments( Ind
                aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx, compute ) );
          keeper( segmentIdx, aux );
       };
-      Algorithms::ParallelFor< Device >::exec( first, last, l );
+      Algorithms::parallelFor< Device >( first, last, l );
    }
    else {
       auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
@@ -279,7 +279,7 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::reduceSegments( Ind
                aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx, compute ) );
          keeper( segmentIdx, aux );
       };
-      Algorithms::ParallelFor< Device >::exec( first, last, l );
+      Algorithms::parallelFor< Device >( first, last, l );
    }
 }
 

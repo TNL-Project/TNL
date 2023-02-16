@@ -479,7 +479,7 @@ GMRES< Matrix >::hauseholder_generate( const int i, VectorViewType y_i, ConstVec
          else
             y_i_local[ j ] = z_local[ j ];
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, size, kernel_truncation );
+      Algorithms::parallelFor< DeviceType >( 0, size, kernel_truncation );
    }
    else {
       y_i_local = z_local;

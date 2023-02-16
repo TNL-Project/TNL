@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/EllpackView.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
@@ -219,7 +219,7 @@ EllpackView< Device, Index, Organization, Alignment >::forElements( IndexType be
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
             f( segmentIdx, localIdx++, globalIdx );
       };
-      Algorithms::ParallelFor< Device >::exec( begin, end, l );
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
    else {
       const IndexType storageSize = this->getStorageSize();
@@ -232,7 +232,7 @@ EllpackView< Device, Index, Organization, Alignment >::forElements( IndexType be
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
             f( segmentIdx, localIdx++, globalIdx );
       };
-      Algorithms::ParallelFor< Device >::exec( begin, end, l );
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 }
 
@@ -255,7 +255,7 @@ EllpackView< Device, Index, Organization, Alignment >::forSegments( IndexType be
       auto segment = view.getSegmentView( segmentIdx );
       function( segment );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
@@ -313,7 +313,7 @@ EllpackView< Device, Index, Organization, Alignment >::reduceSegments( IndexType
                   aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j, compute ) );
             keeper( segmentIdx, aux );
          };
-         Algorithms::ParallelFor< Device >::exec( first, last, l );
+         Algorithms::parallelFor< Device >( first, last, l );
       }
    }
    else {
@@ -331,7 +331,7 @@ EllpackView< Device, Index, Organization, Alignment >::reduceSegments( IndexType
                aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j, compute ) );
          keeper( segmentIdx, aux );
       };
-      Algorithms::ParallelFor< Device >::exec( first, last, l );
+      Algorithms::parallelFor< Device >( first, last, l );
    }
 }
 

@@ -8,7 +8,7 @@
 
 #include <TNL/TypeTraits.h>
 #include <TNL/Containers/Expressions/TypeTraits.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 namespace TNL {
 namespace Containers {
@@ -68,7 +68,7 @@ struct VectorAssignment< Vector, T, true >
       {
          data[ i ] = t[ i ];
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), assignment );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), assignment );
    }
 };
 
@@ -101,7 +101,7 @@ struct VectorAssignment< Vector, T, false >
       {
          data[ i ] = t;
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), assignment );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), assignment );
    }
 };
 
@@ -170,7 +170,7 @@ struct VectorAssignmentWithOperation< Vector, T, true, false >
       {
          data[ i ] += t[ i ];
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), add );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), add );
    }
 
    static constexpr void
@@ -196,7 +196,7 @@ struct VectorAssignmentWithOperation< Vector, T, true, false >
       {
          data[ i ] -= t[ i ];
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), subtract );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), subtract );
    }
 
    static constexpr void
@@ -222,7 +222,7 @@ struct VectorAssignmentWithOperation< Vector, T, true, false >
       {
          data[ i ] *= t[ i ];
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), multiply );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), multiply );
    }
 
    static constexpr void
@@ -248,7 +248,7 @@ struct VectorAssignmentWithOperation< Vector, T, true, false >
       {
          data[ i ] /= t[ i ];
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), divide );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), divide );
    }
 
    static constexpr void
@@ -274,7 +274,7 @@ struct VectorAssignmentWithOperation< Vector, T, true, false >
       {
          data[ i ] %= t[ i ];
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), divide );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), divide );
    }
 };
 
@@ -304,7 +304,7 @@ struct VectorAssignmentWithOperation< Vector, T, false, false >
       {
          data[ i ] += t;
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), add );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), add );
    }
 
    static constexpr void
@@ -326,7 +326,7 @@ struct VectorAssignmentWithOperation< Vector, T, false, false >
       {
          data[ i ] -= t;
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), subtract );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), subtract );
    }
 
    static constexpr void
@@ -348,7 +348,7 @@ struct VectorAssignmentWithOperation< Vector, T, false, false >
       {
          data[ i ] *= t;
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), multiply );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), multiply );
    }
 
    static constexpr void
@@ -370,7 +370,7 @@ struct VectorAssignmentWithOperation< Vector, T, false, false >
       {
          data[ i ] /= t;
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), divide );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), divide );
    }
 
    static constexpr void
@@ -392,7 +392,7 @@ struct VectorAssignmentWithOperation< Vector, T, false, false >
       {
          data[ i ] %= t;
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, v.getSize(), divide );
+      Algorithms::parallelFor< DeviceType >( 0, v.getSize(), divide );
    }
 };
 

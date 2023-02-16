@@ -10,6 +10,7 @@
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Algorithms/ParallelFor.h>
 
 template< typename Real = double,
           typename Device = TNL::Devices::Host,

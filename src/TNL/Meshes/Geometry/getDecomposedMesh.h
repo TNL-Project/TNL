@@ -14,7 +14,7 @@
 #include <TNL/Meshes/Topologies/Polygon.h>
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 #include <TNL/Meshes/Geometry/EntityDecomposer.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/scan.h>
 
 namespace TNL {
@@ -60,7 +60,7 @@ decomposeMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
       const auto cell = inMesh.template getEntity< CellDimension >( i );
       indices[ i ] = EntityDecomposer::getExtraPointsAndEntitiesCount( cell );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, setCounts );
+   parallelFor< Devices::Host >( 0, inCellsCount, setCounts );
    indices[ inCellsCount ] = { 0,
                                0 };  // extend exclusive prefix sum by one element to also get result of reduce at the same time
    auto reduction = []( const IndexPair& a, const IndexPair& b ) -> IndexPair
@@ -78,7 +78,7 @@ decomposeMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
    {
       meshBuilder.setPoint( i, inMesh.getPoint( i ) );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inPointsCount, copyPoint );
+   parallelFor< Devices::Host >( 0, inPointsCount, copyPoint );
 
    // Decompose each cell
    auto decomposeCell = [ & ]( GlobalIndexType i ) mutable
@@ -107,7 +107,7 @@ decomposeMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
 
       EntityDecomposer::decompose( cell, addPoint, addCell );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, decomposeCell );
+   parallelFor< Devices::Host >( 0, inCellsCount, decomposeCell );
 
    return meshBuilder;
 }
@@ -168,7 +168,7 @@ decomposeMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
       const auto cell = inMesh.template getEntity< CellDimension >( i );
       indices[ i ] = EntityDecomposer::getExtraPointsAndEntitiesCount( cell );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, setCounts );
+   parallelFor< Devices::Host >( 0, inCellsCount, setCounts );
    indices[ inCellsCount ] = { 0,
                                0 };  // extend exclusive prefix sum by one element to also get result of reduce at the same time
    auto reduction = []( const IndexPair& a, const IndexPair& b ) -> IndexPair
@@ -186,7 +186,7 @@ decomposeMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
    {
       meshBuilder.setPoint( i, inMesh.getPoint( i ) );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inPointsCount, copyPoint );
+   parallelFor< Devices::Host >( 0, inPointsCount, copyPoint );
 
    // Decompose each cell
    auto decomposeCell = [ & ]( GlobalIndexType i ) mutable
@@ -216,7 +216,7 @@ decomposeMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
 
       EntityDecomposer::decompose( cell, addPoint, addCell );
    };
-   ParallelFor< Devices::Host >::exec( GlobalIndexType{ 0 }, inCellsCount, decomposeCell );
+   parallelFor< Devices::Host >( 0, inCellsCount, decomposeCell );
 
    return meshBuilder;
 }

@@ -10,7 +10,7 @@
 
 #include "Diagonal.h"
 
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 namespace TNL {
 namespace Solvers {
@@ -36,7 +36,7 @@ Diagonal< Matrix >::update( const MatrixPointer& matrixPointer )
       diag_view[ i ] = kernel_matrix.getElement( i, i );
    };
 
-   Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, diagonal.getSize(), kernel );
+   Algorithms::parallelFor< DeviceType >( 0, diagonal.getSize(), kernel );
 }
 
 template< typename Matrix >
@@ -65,7 +65,7 @@ Diagonal< Matrices::DistributedMatrix< Matrix > >::update( const MatrixPointer& 
          const IndexType gi = row_range.getGlobalIndex( i );
          diag_view[ i ] = matrix_view.getElement( i, gi );
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, diagonal.getSize(), kernel );
+      Algorithms::parallelFor< DeviceType >( 0, diagonal.getSize(), kernel );
    }
    else {
       // non-square matrix, assume ghost indexing
@@ -76,7 +76,7 @@ Diagonal< Matrices::DistributedMatrix< Matrix > >::update( const MatrixPointer& 
       {
          diag_view[ i ] = matrix_view.getElement( i, i );
       };
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, diagonal.getSize(), kernel );
+      Algorithms::parallelFor< DeviceType >( 0, diagonal.getSize(), kernel );
    }
 }
 
