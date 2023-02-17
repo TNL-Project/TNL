@@ -28,7 +28,7 @@ namespace Algorithms {
  * to know even the position of the smallest or the largest element, the
  * function \ref reduceWithArgument can be used.
  *
- * \tparam Device parameter says on what device the reduction is gonna be performed.
+ * \tparam Device is a type of the device where the reduction will be performed.
  * \tparam Index is a type for indexing.
  * \tparam Result is a type of the reduction result.
  * \tparam Fetch is a lambda function for fetching the input data.
@@ -77,7 +77,7 @@ reduce( Index begin, Index end, Fetch&& fetch, Reduction&& reduction, const Resu
 /**
  * \brief Variant of \ref reduce with functional instead of reduction lambda function.
  *
- * \tparam Device parameter says on what device the reduction is gonna be performed.
+ * \tparam Device is a type of the device where the reduction will be performed.
  * \tparam Index is a type for indexing.
  * \tparam Fetch is a lambda function for fetching the input data.
  * \tparam Reduction is a functional performing the reduction.
@@ -188,7 +188,7 @@ reduce( const Array& array, Reduction&& reduction = TNL::Plus{} )
  * the position of the element having given value can be obtained. This method
  * is, however, more flexible.
  *
- * \tparam Device parameter says on what device the reduction is gonna be performed.
+ * \tparam Device is a type of the device where the reduction will be performed.
  * \tparam Index is a type for indexing.
  * \tparam Result is a type of the reduction result.
  * \tparam Reduction is a lambda function performing the reduction.
@@ -238,7 +238,7 @@ reduceWithArgument( Index begin, Index end, Fetch&& fetch, Reduction&& reduction
 /**
  * \brief Variant of \ref reduceWithArgument with functional instead of reduction lambda function.
  *
- * \tparam Device parameter says on what device the reduction is gonna be performed.
+ * \tparam Device is a type of the device where the reduction will be performed.
  * \tparam Index is a type for indexing.
  * \tparam Result is a type of the reduction result.
  * \tparam Reduction is a functional performing the reduction.
