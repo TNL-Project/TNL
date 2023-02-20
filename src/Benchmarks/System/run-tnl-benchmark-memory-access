@@ -3,7 +3,7 @@
 log_file_base="tnl-benchmark-memory-access"
 threads="1 2 4 8"
 access_types="sequential random"
-element_sizes="1 2 4 8 16 32 64 128 256"
+element_sizes="1 2 4 16 64 256"
 #max_array_size="33554432"   # 32 MB
 #max_array_size="67108864"   # 64 MB
 #max_array_size="134217728"  # 128 MB
