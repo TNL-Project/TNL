@@ -1,7 +1,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Math.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <iostream>
 
 // Temporary, until test_OperatorEquals doesn't work for all formats.
@@ -344,7 +344,7 @@ void test_GetRow()
              break;
        }
     };
-    TNL::Algorithms::ParallelFor< DeviceType >::exec( ( IndexType ) 0, rows, f );
+    TNL::Algorithms::parallelFor< DeviceType >( 0, rows, f );
 
     EXPECT_EQ( m.getElement( 0, 0 ),  1 );
     EXPECT_EQ( m.getElement( 0, 1 ),  0 );

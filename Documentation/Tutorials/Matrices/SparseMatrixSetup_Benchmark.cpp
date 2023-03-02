@@ -1,5 +1,5 @@
 #include <iostream>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -152,7 +152,7 @@ void getRow( const int gridSize, Matrix& matrix )
          row.setElement( 4, rowIdx + gridSize, 1.0 );
       }
    };
-   TNL::Algorithms::ParallelFor< typename Matrix::DeviceType >::exec( 0, matrixSize, f );
+   TNL::Algorithms::parallelFor< typename Matrix::DeviceType >( 0, matrixSize, f );
 }
 
 template< typename Matrix >

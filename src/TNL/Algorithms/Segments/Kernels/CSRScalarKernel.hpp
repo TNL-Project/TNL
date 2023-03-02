@@ -9,7 +9,7 @@
 #include <TNL/Assert.h>
 #include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/Kernels/CSRScalarKernel.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
@@ -62,7 +62,7 @@ struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction,
             l( segmentIdx );
       }
       else
-         Algorithms::ParallelFor< Device >::exec( first, last, l );
+         Algorithms::parallelFor< Device >( first, last, l );
    }
 };
 
@@ -102,7 +102,7 @@ struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduce, Ke
             l( segmentIdx );
       }
       else
-         Algorithms::ParallelFor< Device >::exec( first, last, l );
+         Algorithms::parallelFor< Device >( first, last, l );
    }
 };
 
@@ -185,7 +185,7 @@ globalIdx, compute ) ); keeper( segmentIdx, aux );
         }
     }
     else
-        Algorithms::ParallelFor< Device >::exec( first, last, l, args... );*/
+        Algorithms::parallelFor< Device >( first, last, l, args... );*/
 }
 }  // namespace Segments
 }  // namespace Algorithms

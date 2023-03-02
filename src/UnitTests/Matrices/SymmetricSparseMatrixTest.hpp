@@ -1,7 +1,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Math.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <iostream>
 #include <sstream>
@@ -256,7 +256,7 @@ void test_GetRow()
          case 10: row.setElement( 0, 2, 28 ); row.setElement( 1, 5, 29 ); row.setElement( 2, 10, 30 ); break;
       }
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( ( IndexType ) 0, m.getRows(), f );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, m.getRows(), f );
 
    EXPECT_EQ( m.getElement( 0,  0 ),  1 );
    EXPECT_EQ( m.getElement( 0,  1 ),  2 );

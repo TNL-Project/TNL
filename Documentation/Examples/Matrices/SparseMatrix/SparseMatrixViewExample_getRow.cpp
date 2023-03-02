@@ -1,9 +1,8 @@
 #include <iostream>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Pointers/SharedPointer.h>
 
 template< typename Device >
 void getRowExample()
@@ -37,7 +36,7 @@ void getRowExample()
          row.setElement( 2, rowIdx + 1, 1.0 );   // elements above the diagonal
       }
    };
-   TNL::Algorithms::ParallelFor< Device >::exec( 0, matrix.getRows(), f );
+   TNL::Algorithms::parallelFor< Device >( 0, matrix.getRows(), f );
    std::cout << matrix << std::endl;
 }
 

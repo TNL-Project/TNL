@@ -3,7 +3,8 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Containers/StaticArray.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 #ifdef HAVE_GTEST
 #include <gtest/gtest.h>
@@ -15,7 +16,9 @@ using namespace TNL;
 TEST( ParallelForTest, 1D_host )
 {
    using Array = Containers::Array< int, Devices::Host >;
+
    Array a;
+
    for (int size = 1; size <= 100000; size *= 10)
    {
       Array expected;
@@ -30,7 +33,7 @@ TEST( ParallelForTest, 1D_host )
       {
          view[i] = i;
       };
-      Algorithms::ParallelFor< Devices::Host >::exec( 0, size, kernel );
+      Algorithms::parallelFor< Devices::Host >( 0, size, kernel );
 
       if( a != expected ) {
          for (int i = 0; i < size; i++)
@@ -42,7 +45,10 @@ TEST( ParallelForTest, 1D_host )
 TEST( ParallelForTest, 2D_host )
 {
    using Array = Containers::Array< int, Devices::Host >;
+   using MultiIndex = Containers::StaticArray< 2, int >;
+
    Array a;
+
    for (int size = 1; size <= 100000; size *= 10)
    {
       Array expected;
@@ -53,11 +59,11 @@ TEST( ParallelForTest, 2D_host )
       a.setSize( size );
       a.setValue( 0 );
       auto view = a.getView();
-      auto kernel1 = [=] (int i, int j) mutable
+      auto kernel1 = [=] (const MultiIndex& i) mutable
       {
-         view[i] = i;
+         view[i.x()] = i.x();
       };
-      Algorithms::ParallelFor2D< Devices::Host >::exec( 0, 0, size, 1, kernel1 );
+      Algorithms::parallelFor< Devices::Host >( MultiIndex{0, 0}, MultiIndex{size, 1}, kernel1 );
 
       if( a != expected ) {
          for (int i = 0; i < size; i++)
@@ -65,11 +71,11 @@ TEST( ParallelForTest, 2D_host )
       }
 
       a.setValue( 0 );
-      auto kernel2 = [=] (int i, int j) mutable
+      auto kernel2 = [=] (const MultiIndex& i) mutable
       {
-         view[j] = j;
+         view[i.y()] = i.y();
       };
-      Algorithms::ParallelFor2D< Devices::Host >::exec( 0, 0, 1, size, kernel2 );
+      Algorithms::parallelFor< Devices::Host >( MultiIndex{0, 0}, MultiIndex{1, size}, kernel2 );
 
       if( a != expected ) {
          for (int i = 0; i < size; i++)
@@ -81,7 +87,10 @@ TEST( ParallelForTest, 2D_host )
 TEST( ParallelForTest, 3D_host )
 {
    using Array = Containers::Array< int, Devices::Host >;
+   using MultiIndex = Containers::StaticArray< 3, int >;
+
    Array a;
+
    for (int size = 1; size <= 100000; size *= 10)
    {
       Array expected;
@@ -92,11 +101,11 @@ TEST( ParallelForTest, 3D_host )
       a.setSize( size );
       a.setValue( 0 );
       auto view = a.getView();
-      auto kernel1 = [=] (int i, int j, int k) mutable
+      auto kernel1 = [=] (const MultiIndex& i) mutable
       {
-         view[i] = i;
+         view[i.x()] = i.x();
       };
-      Algorithms::ParallelFor3D< Devices::Host >::exec( 0, 0, 0, size, 1, 1, kernel1 );
+      Algorithms::parallelFor< Devices::Host >( MultiIndex{0, 0, 0}, MultiIndex{size, 1, 1}, kernel1 );
 
       if( a != expected ) {
          for (int i = 0; i < size; i++)
@@ -104,11 +113,11 @@ TEST( ParallelForTest, 3D_host )
       }
 
       a.setValue( 0 );
-      auto kernel2 = [=] (int i, int j, int k) mutable
+      auto kernel2 = [=] (const MultiIndex& i) mutable
       {
-         view[j] = j;
+         view[i.y()] = i.y();
       };
-      Algorithms::ParallelFor3D< Devices::Host >::exec( 0, 0, 0, 1, size, 1, kernel2 );
+      Algorithms::parallelFor< Devices::Host >( MultiIndex{0, 0, 0}, MultiIndex{1, size, 1}, kernel2 );
 
       if( a != expected ) {
          for (int i = 0; i < size; i++)
@@ -116,11 +125,11 @@ TEST( ParallelForTest, 3D_host )
       }
 
       a.setValue( 0 );
-      auto kernel3 = [=] (int i, int j, int k) mutable
+      auto kernel3 = [=] (const MultiIndex& i) mutable
       {
-         view[k] = k;
+         view[i.z()] = i.z();
       };
-      Algorithms::ParallelFor3D< Devices::Host >::exec( 0, 0, 0, 1, 1, size, kernel3 );
+      Algorithms::parallelFor< Devices::Host >( MultiIndex{0, 0, 0}, MultiIndex{1, 1, size}, kernel3 );
 
       if( a != expected ) {
          for (int i = 0; i < size; i++)
@@ -135,7 +144,9 @@ void test_1D_cuda()
 {
    using Array = Containers::Array< int, Devices::Cuda >;
    using ArrayHost = Containers::Array< int, Devices::Host >;
+
    Array a;
+
    for (int size = 1; size <= 100000000; size *= 100)
    {
       ArrayHost expected;
@@ -150,7 +161,7 @@ void test_1D_cuda()
       {
          view[i] = i;
       };
-      Algorithms::ParallelFor< Devices::Cuda >::exec( 0, size, kernel );
+      Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
 
       ArrayHost ah;
       ah = a;
@@ -171,7 +182,10 @@ void test_2D_cuda()
 {
    using Array = Containers::Array< int, Devices::Cuda >;
    using ArrayHost = Containers::Array< int, Devices::Host >;
+   using MultiIndex = Containers::StaticArray< 2, int >;
+
    Array a;
+
    for (int size = 1; size <= 100000000; size *= 100)
    {
       ArrayHost expected;
@@ -182,11 +196,11 @@ void test_2D_cuda()
       a.setSize( size );
       a.setValue( 0 );
       auto view = a.getView();
-      auto kernel1 = [=] __cuda_callable__ (int i, int j) mutable
+      auto kernel1 = [=] __cuda_callable__ (const MultiIndex& i) mutable
       {
-         view[i] = i;
+         view[i.x()] = i.x();
       };
-      Algorithms::ParallelFor2D< Devices::Cuda >::exec( 0, 0, size, 1, kernel1 );
+      Algorithms::parallelFor< Devices::Cuda >( MultiIndex{0, 0}, MultiIndex{size, 1}, kernel1 );
 
       ArrayHost ah;
       ah = a;
@@ -196,11 +210,11 @@ void test_2D_cuda()
       }
 
       a.setValue( 0 );
-      auto kernel2 = [=] __cuda_callable__ (int i, int j) mutable
+      auto kernel2 = [=] __cuda_callable__ (const MultiIndex& i) mutable
       {
-         view[j] = j;
+         view[i.y()] = i.y();
       };
-      Algorithms::ParallelFor2D< Devices::Cuda >::exec( 0, 0, 1, size, kernel2 );
+      Algorithms::parallelFor< Devices::Cuda >( MultiIndex{0, 0}, MultiIndex{1, size}, kernel2 );
 
       ah = a;
       if( ah != expected ) {
@@ -220,7 +234,10 @@ void test_3D_cuda()
 {
    using Array = Containers::Array< int, Devices::Cuda >;
    using ArrayHost = Containers::Array< int, Devices::Host >;
+   using MultiIndex = Containers::StaticArray< 3, int >;
+
    Array a;
+
    for (int size = 1; size <= 100000000; size *= 100)
    {
       ArrayHost expected;
@@ -231,11 +248,11 @@ void test_3D_cuda()
       a.setSize( size );
       a.setValue( 0 );
       auto view = a.getView();
-      auto kernel1 = [=] __cuda_callable__ (int i, int j, int k) mutable
+      auto kernel1 = [=] __cuda_callable__ (const MultiIndex& i) mutable
       {
-         view[i] = i;
+         view[i.x()] = i.x();
       };
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec( 0, 0, 0, size, 1, 1, kernel1 );
+      Algorithms::parallelFor< Devices::Cuda >( MultiIndex{0, 0, 0}, MultiIndex{size, 1, 1}, kernel1 );
 
       ArrayHost ah;
       ah = a;
@@ -245,11 +262,11 @@ void test_3D_cuda()
       }
 
       a.setValue( 0 );
-      auto kernel2 = [=] __cuda_callable__ (int i, int j, int k) mutable
+      auto kernel2 = [=] __cuda_callable__ (const MultiIndex& i) mutable
       {
-         view[j] = j;
+         view[i.y()] = i.y();
       };
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec( 0, 0, 0, 1, size, 1, kernel2 );
+      Algorithms::parallelFor< Devices::Cuda >( MultiIndex{0, 0, 0}, MultiIndex{1, size, 1}, kernel2 );
 
       ah = a;
       if( ah != expected ) {
@@ -258,11 +275,11 @@ void test_3D_cuda()
       }
 
       a.setValue( 0 );
-      auto kernel3 = [=] __cuda_callable__ (int i, int j, int k) mutable
+      auto kernel3 = [=] __cuda_callable__ (const MultiIndex& i) mutable
       {
-         view[k] = k;
+         view[i.z()] = i.z();
       };
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec( 0, 0, 0, 1, 1, size, kernel3 );
+      Algorithms::parallelFor< Devices::Cuda >( MultiIndex{0, 0, 0}, MultiIndex{1, 1, size}, kernel3 );
 
       ah = a;
       if( ah != expected ) {

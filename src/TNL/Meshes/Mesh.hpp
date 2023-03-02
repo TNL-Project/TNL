@@ -222,7 +222,7 @@ void
 Mesh< MeshConfig, Device >::forAll( Func f ) const
 {
    const GlobalIndexType entitiesCount = getEntitiesCount< EntityDimension >();
-   Algorithms::ParallelFor< Device2 >::exec( (GlobalIndexType) 0, entitiesCount, f );
+   Algorithms::parallelFor< Device2 >( (GlobalIndexType) 0, entitiesCount, f );
 }
 
 template< typename MeshConfig, typename Device >
@@ -236,7 +236,7 @@ Mesh< MeshConfig, Device >::forBoundary( Func f ) const
    {
       f( boundaryIndices[ i ] );
    };
-   Algorithms::ParallelFor< Device2 >::exec( (GlobalIndexType) 0, entitiesCount, wrapper );
+   Algorithms::parallelFor< Device2 >( (GlobalIndexType) 0, entitiesCount, wrapper );
 }
 
 template< typename MeshConfig, typename Device >
@@ -250,7 +250,7 @@ Mesh< MeshConfig, Device >::forInterior( Func f ) const
    {
       f( interiorIndices[ i ] );
    };
-   Algorithms::ParallelFor< Device2 >::exec( (GlobalIndexType) 0, entitiesCount, wrapper );
+   Algorithms::parallelFor< Device2 >( (GlobalIndexType) 0, entitiesCount, wrapper );
 }
 
 template< typename MeshConfig, typename Device >
@@ -259,7 +259,7 @@ void
 Mesh< MeshConfig, Device >::forLocal( Func f ) const
 {
    const GlobalIndexType ghostsOffset = this->template getGhostEntitiesOffset< EntityDimension >();
-   Algorithms::ParallelFor< DeviceType >::exec( (GlobalIndexType) 0, ghostsOffset, f );
+   Algorithms::parallelFor< DeviceType >( (GlobalIndexType) 0, ghostsOffset, f );
 }
 
 template< typename MeshConfig, typename Device >
@@ -269,7 +269,7 @@ Mesh< MeshConfig, Device >::forGhost( Func f ) const
 {
    const GlobalIndexType ghostsOffset = this->template getGhostEntitiesOffset< EntityDimension >();
    const GlobalIndexType entitiesCount = this->template getEntitiesCount< EntityDimension >();
-   Algorithms::ParallelFor< Device2 >::exec( ghostsOffset, entitiesCount, f );
+   Algorithms::parallelFor< Device2 >( ghostsOffset, entitiesCount, f );
 }
 
 template< typename MeshConfig, typename Device >

@@ -106,9 +106,8 @@ public:
          array[ i ] = buffer[ i ];
       };
 
-      Algorithms::ParallelFor< DeviceType >::exec(
-         (IndexType) 0, array.getSize(), kernel1, array.getData(), buffer.getData(), perm.getData() );
-      Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, array.getSize(), kernel2, array.getData(), buffer.getData() );
+      Algorithms::parallelFor< DeviceType >( 0, array.getSize(), kernel1, array.getData(), buffer.getData(), perm.getData() );
+      Algorithms::parallelFor< DeviceType >( 0, array.getSize(), kernel2, array.getData(), buffer.getData() );
    }
 
    static void

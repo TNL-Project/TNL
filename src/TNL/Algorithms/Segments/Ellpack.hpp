@@ -7,7 +7,6 @@
 #pragma once
 
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/ParallelFor.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 
 namespace TNL {

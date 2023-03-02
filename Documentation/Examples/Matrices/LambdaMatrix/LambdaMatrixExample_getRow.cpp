@@ -1,4 +1,5 @@
 #include <iostream>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/LambdaMatrix.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
@@ -71,7 +72,7 @@ void getRowExample()
       for( int localIdx = 0; localIdx < row.getSize(); localIdx++ )
          dense_row.setValue( row.getColumnIndex( localIdx ), row.getValue( localIdx ) );
    };
-   TNL::Algorithms::ParallelFor< Device >::exec( 0, matrixSize, f );
+   TNL::Algorithms::parallelFor< Device >( 0, matrixSize, f );
 
    std::cout << "Laplace operator lambda matrix: " << std::endl << matrix << std::endl;
    std::cout << "Laplace operator dense matrix: " << std::endl << denseMatrix << std::endl;

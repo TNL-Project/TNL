@@ -6,5 +6,5 @@ void lambda_capture_by_value( int size )
     auto f = [=] __cuda_callable__ ( int i ) mutable {
         view[ i ] = 1;
     };
-    TNL::Algorithms::ParallelFor< Device >::exec( 0, size, f );
+    TNL::Algorithms::parallelFor< Device >( 0, size, f );
 }

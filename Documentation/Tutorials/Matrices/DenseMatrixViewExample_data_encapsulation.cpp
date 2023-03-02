@@ -3,7 +3,7 @@
 #include <cuda.h>
 #endif
 #include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
 
@@ -45,7 +45,7 @@ void encapsulation()
    auto f = [=] __cuda_callable__ ( int i ) mutable {
       matrix.setElement( i, i, -i );
    };
-   TNL::Algorithms::ParallelFor< Device >::exec( 0, 5, f );
+   TNL::Algorithms::parallelFor< Device >( 0, 5, f );
 
    std::cout << "Dense matrix view after elements manipulation:" << std::endl;
    std::cout << matrix << std::endl;

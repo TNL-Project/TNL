@@ -320,7 +320,7 @@ void test_setElement()
       a_view.setElement( i, i );
       b_view.setElement( i, a_view.getElement( i ) );
    };
-   Algorithms::ParallelFor< typename ArrayType::DeviceType >::exec( 0, 10, set );
+   Algorithms::parallelFor< typename ArrayType::DeviceType >( 0, 10, set );
    for( int i = 0; i < 10; i++ )
    {
       EXPECT_EQ( a.getElement( i ), i );

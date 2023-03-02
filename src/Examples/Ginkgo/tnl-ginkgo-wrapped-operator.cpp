@@ -29,7 +29,7 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, config, parameters ) )
       return EXIT_FAILURE;
 
-   const int n = parameters.getParameter< int >( "grid-size" );;
+   const int n = parameters.getParameter< int >( "grid-size" );
    const std::string executor_string = parameters.getParameter< std::string >( "executor" );
 
    // Create the linear system in TNL

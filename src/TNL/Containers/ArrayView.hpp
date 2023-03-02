@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 #include <TNL/TypeInfo.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
 #include <TNL/Containers/detail/ArrayIO.h>
@@ -285,7 +285,7 @@ ArrayView< Value, Device, Index >::forElements( IndexType begin, IndexType end, 
    {
       f( i, view[ i ] );
    };
-   Algorithms::ParallelFor< DeviceType >::exec( begin, end, g, f, *this );
+   Algorithms::parallelFor< DeviceType >( begin, end, g, f, *this );
 }
 
 template< typename Value, typename Device, typename Index >
@@ -300,7 +300,7 @@ ArrayView< Value, Device, Index >::forElements( IndexType begin, IndexType end, 
    {
       f( i, view[ i ] );
    };
-   Algorithms::ParallelFor< DeviceType >::exec( begin, end, g, f, *this );
+   Algorithms::parallelFor< DeviceType >( begin, end, g, f, *this );
 }
 
 template< typename Value, typename Device, typename Index >

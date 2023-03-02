@@ -1,10 +1,8 @@
 #include <iostream>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Pointers/SharedPointer.h>
-#include <TNL/Pointers/SmartPointersRegister.h>
 
 template< typename Device >
 void setElements()
@@ -25,7 +23,7 @@ void setElements()
       view.setElement( i, i, -i );
    };
 
-   TNL::Algorithms::ParallelFor< Device >::exec( 0, 5, f );
+   TNL::Algorithms::parallelFor< Device >( 0, 5, f );
 
    std::cout << "Matrix set from its native device:" << std::endl;
    std::cout << matrix << std::endl;

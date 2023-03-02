@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 namespace TNL {
 namespace Matrices {
@@ -38,7 +38,7 @@ permuteMatrixRows( Matrix& matrix, const PermutationArray& perm )
    {
       capacities_view[ i ] = matrix_view.getRowCapacity( perm_view[ i ] );
    };
-   Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, matrix.getRows(), kernel_capacities );
+   Algorithms::parallelFor< DeviceType >( 0, matrix.getRows(), kernel_capacities );
 
    matrixCopy.setRowCapacities( capacities );
    auto copy_view = matrixCopy.getView();
@@ -53,7 +53,7 @@ permuteMatrixRows( Matrix& matrix, const PermutationArray& perm )
          else
             destRow.setElement( c, srcRow.getColumnIndex( c ), srcRow.getValue( c ) );
    };
-   Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, matrix.getRows(), kernel );
+   Algorithms::parallelFor< DeviceType >( 0, matrix.getRows(), kernel );
 
    // copy the permuted data back into the matrix
    matrix = matrixCopy;
@@ -84,7 +84,7 @@ permuteMatrixColumns( Matrix& matrix, const PermutationArray& iperm )
             row.setElement( c, iperm_view[ col ], row.getValue( c ) );
       }
    };
-   Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, matrix.getRows(), kernel );
+   Algorithms::parallelFor< DeviceType >( 0, matrix.getRows(), kernel );
 }
 
 }  // namespace Matrices

@@ -153,7 +153,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::getNonzeroElementsCo
          }
          row_sums_view[ rowIdx ] = sum;
       };
-      TNL::Algorithms::ParallelFor< DeviceType >::exec( (IndexType) 0, this->getRows(), f );
+      TNL::Algorithms::parallelFor< DeviceType >( 0, this->getRows(), f );
       return sum( row_sums );
    }
    return 0;
@@ -361,7 +361,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::vectorProduct( const
       }
    }
    else {
-      // SANDBOX_TODO: The following is general implementation based on ParallelFor and lambda function. It would work even on
+      // SANDBOX_TODO: The following is general implementation based on parallelFor and lambda function. It would work even on
       // CPU.
       auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
@@ -372,7 +372,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::vectorProduct( const
             sum += valuesView[ globalIdx ] * inVectorView[ columnIndexesView[ globalIdx ] ];
          outVectorView[ rowIdx ] = outVectorView[ rowIdx ] * outVectorMultiplicator + matrixMultiplicator * sum;
       };
-      TNL::Algorithms::ParallelFor< DeviceType >::exec( firstRow, lastRow, f );
+      TNL::Algorithms::parallelFor< DeviceType >( firstRow, lastRow, f );
    }
 #ifdef HAVE_SANDBOX_SIMPLE_SPMV
 #else
@@ -485,7 +485,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceRows( IndexTyp
       }
       keep( rowIdx, sum );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -520,7 +520,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceRows( IndexTyp
       }
       keep( rowIdx, sum );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -569,7 +569,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::forElements( IndexTy
          localIdx++;
       }
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -595,7 +595,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::forElements( IndexTy
          localIdx++;
       }
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -633,7 +633,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::forRows( IndexType b
                               columns_view );
       function( rowView );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -655,7 +655,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::forRows( IndexType b
                                    columns_view );
       function( rowView );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >

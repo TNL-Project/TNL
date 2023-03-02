@@ -11,7 +11,7 @@
 #include <algorithm>  // std::copy, std::equal
 
 #include <TNL/Algorithms/MemoryOperations.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/reduce.h>
 
 namespace TNL {
@@ -27,7 +27,7 @@ MemoryOperations< Devices::Host >::construct( Element* data, Index size )
       // placement-new
       ::new( (void*) ( data + i ) ) Element();
    };
-   ParallelFor< Devices::Host >::exec( (Index) 0, size, kernel );
+   parallelFor< Devices::Host >( 0, size, kernel );
 }
 
 template< typename Element, typename Index, typename... Args >
@@ -43,7 +43,7 @@ MemoryOperations< Devices::Host >::construct( Element* data, Index size, const A
       // of multiple elements)
       ::new( (void*) ( data + i ) ) Element( args... );
    };
-   ParallelFor< Devices::Host >::exec( (Index) 0, size, kernel );
+   parallelFor< Devices::Host >( 0, size, kernel );
 }
 
 template< typename Element, typename Index >
@@ -55,7 +55,7 @@ MemoryOperations< Devices::Host >::destruct( Element* data, Index size )
    {
       ( data + i )->~Element();
    };
-   ParallelFor< Devices::Host >::exec( (Index) 0, size, kernel );
+   parallelFor< Devices::Host >( 0, size, kernel );
 }
 
 template< typename Element >
@@ -87,7 +87,7 @@ MemoryOperations< Devices::Host >::set( Element* data, const Element& value, Ind
    {
       data[ i ] = value;
    };
-   ParallelFor< Devices::Host >::exec( (Index) 0, size, kernel );
+   parallelFor< Devices::Host >( 0, size, kernel );
 }
 
 template< typename DestinationElement, typename SourceElement, typename Index >
@@ -105,7 +105,7 @@ MemoryOperations< Devices::Host >::copy( DestinationElement* destination, const 
       {
          destination[ i ] = source[ i ];
       };
-      ParallelFor< Devices::Host >::exec( (Index) 0, size, kernel );
+      parallelFor< Devices::Host >( 0, size, kernel );
    }
    else {
       // std::copy usually uses std::memcpy for TriviallyCopyable types

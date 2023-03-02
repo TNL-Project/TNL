@@ -20,7 +20,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/StaticArray.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 #include "HeatEquationSolverBenchmark.h"
 
@@ -174,7 +174,7 @@ class NdGrid {
             function(index, args...);
          };
 
-         TNL::Algorithms::ParallelFor<Device>::exec(0, cumulativeDimensionMap[0], lambda, args...);
+         TNL::Algorithms::parallelFor<Device>(0, cumulativeDimensionMap[0], lambda, args...);
       }
       /**
        * @brief - Traverses a grid from start index to end index.
@@ -228,12 +228,12 @@ class NdGrid {
          Index lowerBound = 0, upperBound = verticesCount;
 
          for (Index i = 0; i < directions.getSize(); i++) {
-            TNL::Algorithms::ParallelFor<Device>::exec(lowerBound, upperBound, outerFunction,
-                                                       traverseRectOrigin,
-                                                       traverseRectDimensions,
-                                                       traverseRectDimensionsProducts,
-                                                       dimensionsProducts,
-                                                       args...);
+            TNL::Algorithms::parallelFor<Device>(lowerBound, upperBound, outerFunction,
+                                                 traverseRectOrigin,
+                                                 traverseRectDimensions,
+                                                 traverseRectDimensionsProducts,
+                                                 dimensionsProducts,
+                                                 args...);
          }
       }
    private:

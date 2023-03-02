@@ -226,7 +226,7 @@ struct TurbulenceGenerator
          auto _sz = sz.getView();
 
          // loop over all wave numbers
-         TNL::Algorithms::ParallelFor< Device >::exec(
+         TNL::Algorithms::parallelFor< Device >(
             unsigned( 0 ),
             nmodes,
             [ velocityScale, dk, k_e, k_eta, _k, _sx, _sy, _sz ] __cuda_callable__( unsigned m ) mutable

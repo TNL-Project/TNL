@@ -67,7 +67,7 @@ benchmarkTriad( Benchmark<> & benchmark,
          {
             a_v[i] = b_v[i] + scalar * c_v[i];
          };
-         Algorithms::ParallelFor< Devices::Cuda >::exec( (long) 0, size, kernel );
+         Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
 
          a_h = a_d;
       };
@@ -115,7 +115,7 @@ benchmarkTriad( Benchmark<> & benchmark,
          {
             a_v[i] = b_v[i] + scalar * c_v[i];
          };
-         Algorithms::ParallelFor< Devices::Cuda >::exec( (long) 0, size, kernel );
+         Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
 
          a_h = a_d;
       };
@@ -150,7 +150,7 @@ benchmarkTriad( Benchmark<> & benchmark,
       };
       auto triad = [&]()
       {
-         Algorithms::ParallelFor< Devices::Cuda >::exec( (long) 0, size, kernel );
+         Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
       };
 
       benchmark.time< Devices::Cuda >( reset, "zero-copy", triad );
@@ -183,7 +183,7 @@ benchmarkTriad( Benchmark<> & benchmark,
       };
       auto triad = [&]()
       {
-         Algorithms::ParallelFor< Devices::Cuda >::exec( (long) 0, size, kernel );
+         Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
       };
 
       benchmark.time< Devices::Cuda >( reset, "unified memory", triad );

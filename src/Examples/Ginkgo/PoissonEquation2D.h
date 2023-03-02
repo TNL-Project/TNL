@@ -1,6 +1,6 @@
 #pragma once
 
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/LambdaMatrix.h>
 
 /**
@@ -52,7 +52,7 @@ generateStencilMatrix( Matrix& A_local, Vector& b_local, typename Matrix::IndexT
    typename Matrix::RowsCapacitiesType capacities;
    capacities.setSize( local_size );
    auto capacities_view = capacities.getView();
-   TNL::Algorithms::ParallelFor< typename Matrix::DeviceType >::exec(
+   TNL::Algorithms::parallelFor< typename Matrix::DeviceType >(
       //
       ilower,
       iupper + 1,

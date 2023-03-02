@@ -10,7 +10,7 @@
 #include <functional>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/LambdaMatrix.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/details/SparseMatrix.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
@@ -137,7 +137,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
          }
       }
    };
-   Algorithms::ParallelFor< DeviceType >::exec( row, row + 1, getValue );
+   Algorithms::parallelFor< DeviceType >( row, row + 1, getValue );
    return valueView.getElement( 0 );
 }
 
@@ -221,7 +221,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
       }
       keep( rowIdx, result );
    };
-   Algorithms::ParallelFor< DeviceType >::exec( begin, end, processRow );
+   Algorithms::parallelFor< DeviceType >( begin, end, processRow );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
@@ -258,7 +258,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
             function( rowIdx, localIdx, elementColumn, elementValue );
       }
    };
-   Algorithms::ParallelFor< DeviceType >::exec( begin, end, processRow );
+   Algorithms::parallelFor< DeviceType >( begin, end, processRow );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
@@ -283,7 +283,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
       auto rowView = view.getRow( rowIdx );
       function( rowView );
    };
-   TNL::Algorithms::ParallelFor< DeviceType >::exec( begin, end, f );
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >

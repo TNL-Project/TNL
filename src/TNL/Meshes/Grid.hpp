@@ -14,8 +14,8 @@
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/NormalsGetter.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
-#include <TNL/Meshes/GridDetails/Templates/ParallelFor.h>
 #include <TNL/Meshes/GridDetails/Templates/ForEachOrientation.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/staticFor.h>
 
 #ifndef DOXYGEN_ONLY
@@ -416,7 +416,8 @@ Grid< Dimension, Real, Device, Index >::traverseAll( const CoordinatesType& from
 
    auto exec = [ & ]( const Index orientation, const CoordinatesType& normals )
    {
-      Templates::ParallelFor< Dimension, Device, Index >::exec( from, to + normals, func, normals, orientation, args... );
+      const CoordinatesType end = to + normals;
+      Algorithms::parallelFor< Device >( from, end, func, normals, orientation, args... );
    };
    Templates::ForEachOrientation< Index, EntityDimension, Dimension >::exec( exec );
 }
@@ -446,20 +447,21 @@ Grid< Dimension, Real, Device, Index >::traverseInterior( const CoordinatesType&
       switch( EntityDimension ) {
          case 0:
             {
-               Templates::ParallelFor< Dimension, Device, Index >::exec(
-                  from + CoordinatesType( 1 ), to, func, normals, orientation, args... );
+               const CoordinatesType begin = from + CoordinatesType( 1 );
+               Algorithms::parallelFor< Device >( begin, to, func, normals, orientation, args... );
                break;
             }
          case Dimension:
             {
-               Templates::ParallelFor< Dimension, Device, Index >::exec(
-                  from + CoordinatesType( 1 ), to - CoordinatesType( 1 ), func, normals, orientation, args... );
+               const CoordinatesType begin = from + CoordinatesType( 1 );
+               const CoordinatesType end = to - CoordinatesType( 1 );
+               Algorithms::parallelFor< Device >( begin, end, func, normals, orientation, args... );
                break;
             }
          default:
             {
-               Templates::ParallelFor< Dimension, Device, Index >::exec(
-                  from + normals, to, func, normals, orientation, args... );
+               const CoordinatesType begin = from + normals;
+               Algorithms::parallelFor< Device >( begin, to, func, normals, orientation, args... );
                break;
             }
       }
@@ -506,7 +508,7 @@ Grid< Dimension, Real, Device, Index >::traverseBoundary( const CoordinatesType&
 
       start[ orthogonalOrientation ] = end[ orthogonalOrientation ] - 1;
 
-      Templates::ParallelFor< Dimension, Device, Index >::exec( start, end, func, normals, orientation, args... );
+      Algorithms::parallelFor< Device >( start, end, func, normals, orientation, args... );
 
       // Skip entities defined only once
       if( ! start[ orthogonalOrientation ] && end[ orthogonalOrientation ] )
@@ -515,7 +517,7 @@ Grid< Dimension, Real, Device, Index >::traverseBoundary( const CoordinatesType&
       start[ orthogonalOrientation ] = 0;
       end[ orthogonalOrientation ] = 1;
 
-      Templates::ParallelFor< Dimension, Device, Index >::exec( start, end, func, normals, orientation, args... );
+      Algorithms::parallelFor< Device >( start, end, func, normals, orientation, args... );
    };
 
    if( ! isAnyBoundaryIntersects ) {

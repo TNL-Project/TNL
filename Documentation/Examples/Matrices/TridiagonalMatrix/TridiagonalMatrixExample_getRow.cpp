@@ -1,5 +1,5 @@
 #include <iostream>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/TridiagonalMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -16,8 +16,8 @@ void getRowExample()
    );
 
    auto f = [=] __cuda_callable__ ( int rowIdx ) mutable {
-      //auto row = matrix->getRow( rowIdx );    
-      // For some reason the previous line of code is not accepted by nvcc 10.1 
+      //auto row = matrix->getRow( rowIdx );
+      // For some reason the previous line of code is not accepted by nvcc 10.1
       // so we replace it with the following two lines.
       auto ref = matrix.modifyData();
       auto row = ref.getRow( rowIdx );
@@ -39,7 +39,7 @@ void getRowExample()
    /***
     * Set the matrix elements.
     */
-   TNL::Algorithms::ParallelFor< Device >::exec( 0, matrix->getRows(), f );
+   TNL::Algorithms::parallelFor< Device >( 0, matrix->getRows(), f );
    std::cout << std::endl << *matrix << std::endl;
 }
 
@@ -49,7 +49,7 @@ int main( int argc, char* argv[] )
    getRowExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   // It seems that nvcc 10.1 does not handle lambda functions properly. 
+   // It seems that nvcc 10.1 does not handle lambda functions properly.
    // It is hard to make nvcc to compile this example and it does not work
    // properly. We will try it with later version of CUDA.
    //std::cout << "Getting matrix rows on CUDA device: " << std::endl;
