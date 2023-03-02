@@ -40,7 +40,7 @@ struct SequentialFor
    exec( Index start, Index end, Function f )
    {
       for( Index i = start; i < end; i++ )
-         ParallelFor< Device >::exec( i, i + 1, f );
+         ParallelFor< Device >::exec( i, Index{ i + 1 }, f );
    }
 };
 
