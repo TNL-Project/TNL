@@ -335,6 +335,9 @@ if( TNL_USE_CUDA )
             # enforce (more or less) warning-free builds
             set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=unknown-cuda-version" )
          endif()
+         # workaround for Clang 15
+         # https://github.com/llvm/llvm-project/issues/58491
+         set( CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0" )
       endif()
    endif()
    set( CMAKE_EXECUTABLE_SUFFIX "${executable_suffix_backup}" )
