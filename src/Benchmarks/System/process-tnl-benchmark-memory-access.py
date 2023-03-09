@@ -12,7 +12,7 @@ from os.path import exists
 font_size = "15"
 threads = [ ]
 accesses = [ "sequential", "random" ]
-element_sizes = []
+element_sizes = [ '1', '2', '4', '16', '64', '256']
 
 ####
 # Create multiindex for columns
@@ -22,7 +22,6 @@ def get_multiindex():
     level3 = [ '',    ]
     level4 = [ '',    ]
     level5 = [ '',    ]
-    level6 = [ '',    ]
     df_data = [[ ' ' ]]
     for threads_count in threads:
         for access in accesses:
@@ -34,15 +33,14 @@ def get_multiindex():
                     for element_size in element_sizes:
                         values = ['time', "bandwidth", "CPU cycles"]
                         for value in values:
-                            level1.append( f'Threads {threads_count}' )
-                            level2.append( access )
-                            level3.append( rw )
-                            level4.append( ordering )
-                            level5.append( element_size )
-                            level6.append( value )
+                            level1.append( f'Threads {threads_count} {access}' )
+                            level2.append( rw )
+                            level3.append( ordering )
+                            level4.append( element_size )
+                            level5.append( value )
                             df_data[0].append( '' )
 
-    multiColumns = pd.MultiIndex.from_arrays([ level1, level2, level3, level4, level5, level6 ] )
+    multiColumns = pd.MultiIndex.from_arrays([ level1, level2, level3, level4, level5 ] )
     return multiColumns, df_data
 
 
@@ -63,7 +61,7 @@ def processDf( df ):
         aux_df=df.loc[ ( df['array size'] == size ) ]
         new_df = pd.DataFrame( df_data, columns = multicolumns, index = [out_idx] )
         out_idx += 1
-        new_df.iloc[0][ ('size','','','','','') ]  = size
+        new_df.iloc[0][ ('size','','','','') ]  = size
         for index, row in aux_df.iterrows():
             threads_count = row[ 'threads' ]
             if threads_count not in threads:
@@ -87,9 +85,9 @@ def processDf( df ):
             bandwidth = row[ 'bandwidth' ]
             cpu_cycles = row[ 'cycles/op.' ]
             print( f'Threads {threads_count} \t {access_type} \t {test_type} \t {ordering}  \t {element_size} \t {time} \t {bandwidth} \t {cpu_cycles} \r', end='')
-            new_df.iloc[0][( f'Threads {threads_count}', access_type, test_type, ordering, element_size,'time') ] = time
-            new_df.iloc[0][( f'Threads {threads_count}', access_type, test_type, ordering, element_size,'bandwidth') ] = bandwidth
-            new_df.iloc[0][( f'Threads {threads_count}', access_type, test_type, ordering, element_size,'CPU cycles') ] = cpu_cycles
+            new_df.iloc[0][( f'Threads {threads_count} {access_type}', test_type, ordering, element_size,'time') ] = time
+            new_df.iloc[0][( f'Threads {threads_count} {access_type}', test_type, ordering, element_size,'bandwidth') ] = bandwidth
+            new_df.iloc[0][( f'Threads {threads_count} {access_type}', test_type, ordering, element_size,'CPU cycles') ] = cpu_cycles
         frames.append( new_df)
     result = pd.concat( frames )
     return result
@@ -97,11 +95,11 @@ def processDf( df ):
 ####
 # Extract data with memory bandwidth from a data frame
 def get_bandwidth( df, threads_count, access, test_type, ordering, element_size ):
-    in_bandwidth  = df[(f'Threads {threads_count}', access, test_type, ordering, element_size,'bandwidth')].tolist()
+    in_bandwidth  = df[(f'Threads {threads_count} {access}', test_type, ordering, element_size,'bandwidth')].tolist()
     bandwidth = []
     for bw in in_bandwidth:
         try:
-            bandwidth.append( float( bw )/1000000000 )
+            bandwidth.append( float( bw ) )
         except ValueError:
             bandwidth.append( 0 )
             print( f'Warning wrong value of bandwidth: {bw} for threads count {threads_count}, access {access}, test type {test_type}, ordering {ordering}, element size {element_size} ')
@@ -110,7 +108,7 @@ def get_bandwidth( df, threads_count, access, test_type, ordering, element_size 
 ###
 # Extract data with CPU cycles from a data frame
 def get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size ):
-    in_cpu_cycles = df[(f'Threads {threads_count}', access, test_type, ordering, element_size, 'CPU cycles')].tolist()
+    in_cpu_cycles = df[(f'Threads {threads_count} {access}', test_type, ordering, element_size, 'CPU cycles')].tolist()
     cpu_cycles = []
     for cycles in in_cpu_cycles:
         try:
@@ -123,7 +121,7 @@ def get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size
 ####
 # Write figures for particular benchmark tests
 def writeGeneralFigures( df ):
-    sizes = df[('size','', '','','','')].tolist()
+    sizes = df[('size','', '','','')].tolist()
     for threads_count in threads:
         for access in accesses:
             for test_type in [ 'read', 'write']:
@@ -174,7 +172,7 @@ def writeGeneralFigures( df ):
 ####
 # Write figures for comparison of sequential and random access
 def writeSequentialRandomComparisonFigures( df ):
-    sizes = df[('size','', '','','','')].tolist()
+    sizes = df[('size','', '','','')].tolist()
     for threads_count in threads:
         for test_type in [ 'read', 'write']:
             ordering = 'blocks'
@@ -223,7 +221,7 @@ def writeSequentialRandomComparisonFigures( df ):
 ####
 # Write figures for comparison with different threads count
 def writeThreadsCountComparisonFigures( df ):
-    sizes = df[('size','', '','','','')].tolist()
+    sizes = df[('size','', '','','')].tolist()
     for access in accesses:
         for test_type in [ 'read', 'write']:
             orderings = [ 'blocks' ]
@@ -279,7 +277,7 @@ def writeThreadsCountComparisonFigures( df ):
 ####
 # Write figures for comparison of read and write access
 def writeReadWriteComparisonFigures( df ):
-    sizes = df[('size','', '','','','')].tolist()
+    sizes = df[('size','', '','','')].tolist()
     for threads_count in threads:
         for access in accesses:
             ordering = 'blocks'
@@ -328,7 +326,7 @@ def writeReadWriteComparisonFigures( df ):
 ####
 # Write figures for comparison of blocks and interleaving for sequential access
 def writeBlocksInterleavingComparisonFigures( df ):
-    sizes = df[('size','', '','','','')].tolist()
+    sizes = df[('size','', '','','')].tolist()
     orderings = [ 'blocks', 'interleaving' ]
     for threads_count in threads:
         if threads_count == '1':
@@ -378,7 +376,7 @@ def writeBlocksInterleavingComparisonFigures( df ):
 ####
 # Write figures for comparison with different element sizes
 def writeElementSizeComparisonFigures( df ):
-    sizes = df[('size','', '','','','')].tolist()
+    sizes = df[('size','', '','','')].tolist()
     for threads_count in threads:
         for access in accesses:
             for test_type in [ 'read', 'write']:
