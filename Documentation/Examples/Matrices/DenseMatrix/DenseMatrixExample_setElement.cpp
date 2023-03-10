@@ -1,5 +1,6 @@
 #include <iostream>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/StaticArray.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -18,8 +19,8 @@ void setElements()
    std::cout << *matrix << std::endl;
 
    MatrixType* matrix_device = &matrix.template modifyData< Device >();
-   auto f = [=] __cuda_callable__ ( int i, int j ) mutable {
-      matrix_device->addElement( i, j, 5.0 );
+   auto f = [=] __cuda_callable__ ( const TNL::Containers::StaticArray< 2, int >& i ) mutable {
+      matrix_device->addElement( i[ 0 ], i[ 1 ], 5.0 );
    };
 
    /***
@@ -28,7 +29,10 @@ void setElements()
     * DenseMatrixView::getRow example for details.
     */
    TNL::Pointers::synchronizeSmartPointersOnDevice< Device >();
-   TNL::Algorithms::ParallelFor2D< Device >::exec( 0, 0, 5, 5, f );
+
+   TNL::Containers::StaticArray< 2, int > begin = { 0, 0 };
+   TNL::Containers::StaticArray< 2, int > end = { 5, 5 };
+   TNL::Algorithms::parallelFor< Device >( begin, end, f );
 
    std::cout << "Matrix set from its native device:" << std::endl;
    std::cout << *matrix << std::endl;

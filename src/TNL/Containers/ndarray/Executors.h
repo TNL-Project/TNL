@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/StaticArray.h>
 
 #include <TNL/Containers/ndarray/Meta.h>
 #include <TNL/Containers/ndarray/SizesHolder.h>
@@ -20,18 +21,15 @@ namespace detail {
 template< typename Permutation, typename Device2 >
 struct Functor_call_with_unpermuted_arguments
 {
-   template< typename Index, typename Func >
+   template< typename MultiIndex, typename Func >
    void
-   operator()( Index i1, Index i0, Func f )
+   operator()( MultiIndex i, Func f ) const
    {
-      call_with_unpermuted_arguments< Permutation >( f, i0, i1 );
-   }
-
-   template< typename Index, typename Func >
-   void
-   operator()( Index i2, Index i1, Index i0, Func f )
-   {
-      call_with_unpermuted_arguments< Permutation >( f, i0, i1, i2 );
+      static_assert( 2 <= MultiIndex::getSize() && MultiIndex::getSize() <= 3 );
+      if constexpr( MultiIndex::getSize() == 2 )
+         call_with_unpermuted_arguments< Permutation >( f, i[ 1 ], i[ 0 ] );
+      if constexpr( MultiIndex::getSize() == 3 )
+         call_with_unpermuted_arguments< Permutation >( f, i[ 2 ], i[ 1 ], i[ 0 ] );
    }
 };
 
@@ -40,20 +38,16 @@ struct Functor_call_with_unpermuted_arguments
 template< typename Permutation >
 struct Functor_call_with_unpermuted_arguments< Permutation, Devices::Cuda >
 {
-   template< typename Index, typename Func >
+   template< typename MultiIndex, typename Func >
    __cuda_callable__
    void
-   operator()( Index i1, Index i0, Func f )
+   operator()( MultiIndex i, Func f ) const
    {
-      call_with_unpermuted_arguments< Permutation >( f, i0, i1 );
-   }
-
-   template< typename Index, typename Func >
-   __cuda_callable__
-   void
-   operator()( Index i2, Index i1, Index i0, Func f )
-   {
-      call_with_unpermuted_arguments< Permutation >( f, i0, i1, i2 );
+      static_assert( 2 <= MultiIndex::getSize() && MultiIndex::getSize() <= 3 );
+      if constexpr( MultiIndex::getSize() == 2 )
+         call_with_unpermuted_arguments< Permutation >( f, i[ 1 ], i[ 0 ] );
+      if constexpr( MultiIndex::getSize() == 3 )
+         call_with_unpermuted_arguments< Permutation >( f, i[ 2 ], i[ 1 ], i[ 0 ] );
    }
 };
 
@@ -146,20 +140,21 @@ struct ParallelExecutorDeviceDispatch
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
       using Index = typename Ends::IndexType;
+      using MultiIndex = Containers::StaticArray< 3, Index >;
 
-      auto kernel = [ = ]( Index i2, Index i1, Index i0 )
+      auto kernel = [ = ]( const MultiIndex& i )
       {
          SequentialExecutor< Permutation, IndexTag< 3 > > exec;
-         exec( begins, ends, f, i0, i1, i2 );
+         exec( begins, ends, f, i[ 2 ], i[ 1 ], i[ 0 ] );
       };
 
-      const Index begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
-      const Index begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
-      const Index begin2 = begins.template getSize< get< 2 >( Permutation{} ) >();
-      const Index end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
-      const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
-      const Index end2 = ends.template getSize< get< 2 >( Permutation{} ) >();
-      Algorithms::ParallelFor3D< Device >::exec( begin2, begin1, begin0, end2, end1, end0, launch_configuration, kernel );
+      const MultiIndex begin = { begins.template getSize< get< 2 >( Permutation{} ) >(),
+                                 begins.template getSize< get< 1 >( Permutation{} ) >(),
+                                 begins.template getSize< get< 0 >( Permutation{} ) >() };
+      const MultiIndex end = { ends.template getSize< get< 2 >( Permutation{} ) >(),
+                               ends.template getSize< get< 1 >( Permutation{} ) >(),
+                               ends.template getSize< get< 0 >( Permutation{} ) >() };
+      Algorithms::parallelFor< Device >( begin, end, launch_configuration, kernel );
    }
 };
 
@@ -173,21 +168,21 @@ struct ParallelExecutorDeviceDispatch< Permutation, Devices::Cuda >
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
       using Index = typename Ends::IndexType;
+      using MultiIndex = Containers::StaticArray< 3, Index >;
 
-      auto kernel = [ = ] __cuda_callable__( Index i2, Index i1, Index i0 )
+      auto kernel = [ = ] __cuda_callable__( const MultiIndex& i )
       {
          SequentialExecutorRTL< Permutation, IndexTag< Begins::getDimension() - 4 > > exec;
-         exec( begins, ends, f, i0, i1, i2 );
+         exec( begins, ends, f, i[ 2 ], i[ 1 ], i[ 0 ] );
       };
 
-      const Index begin0 = begins.template getSize< get< Begins::getDimension() - 3 >( Permutation{} ) >();
-      const Index begin1 = begins.template getSize< get< Begins::getDimension() - 2 >( Permutation{} ) >();
-      const Index begin2 = begins.template getSize< get< Begins::getDimension() - 1 >( Permutation{} ) >();
-      const Index end0 = ends.template getSize< get< Ends::getDimension() - 3 >( Permutation{} ) >();
-      const Index end1 = ends.template getSize< get< Ends::getDimension() - 2 >( Permutation{} ) >();
-      const Index end2 = ends.template getSize< get< Ends::getDimension() - 1 >( Permutation{} ) >();
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec(
-         begin2, begin1, begin0, end2, end1, end0, launch_configuration, kernel );
+      const MultiIndex begin = { begins.template getSize< get< Begins::getDimension() - 1 >( Permutation{} ) >(),
+                                 begins.template getSize< get< Begins::getDimension() - 2 >( Permutation{} ) >(),
+                                 begins.template getSize< get< Begins::getDimension() - 3 >( Permutation{} ) >() };
+      const MultiIndex end = { ends.template getSize< get< Ends::getDimension() - 1 >( Permutation{} ) >(),
+                               ends.template getSize< get< Ends::getDimension() - 2 >( Permutation{} ) >(),
+                               ends.template getSize< get< Ends::getDimension() - 3 >( Permutation{} ) >() };
+      Algorithms::parallelFor< Devices::Cuda >( begin, end, launch_configuration, kernel );
    }
 };
 
@@ -219,17 +214,18 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 3 > >
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
       using Index = typename Ends::IndexType;
+      using MultiIndex = Containers::StaticArray< 3, Index >;
 
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
       Functor_call_with_unpermuted_arguments< Permutation, Device > kernel;
 
-      const Index begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
-      const Index begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
-      const Index begin2 = begins.template getSize< get< 2 >( Permutation{} ) >();
-      const Index end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
-      const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
-      const Index end2 = ends.template getSize< get< 2 >( Permutation{} ) >();
-      Algorithms::ParallelFor3D< Device >::exec( begin2, begin1, begin0, end2, end1, end0, launch_configuration, kernel, f );
+      const MultiIndex begin = { begins.template getSize< get< 2 >( Permutation{} ) >(),
+                                 begins.template getSize< get< 1 >( Permutation{} ) >(),
+                                 begins.template getSize< get< 0 >( Permutation{} ) >() };
+      const MultiIndex end = { ends.template getSize< get< 2 >( Permutation{} ) >(),
+                               ends.template getSize< get< 1 >( Permutation{} ) >(),
+                               ends.template getSize< get< 0 >( Permutation{} ) >() };
+      Algorithms::parallelFor< Device >( begin, end, launch_configuration, kernel, f );
    }
 };
 
@@ -246,15 +242,16 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 2 > >
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
       using Index = typename Ends::IndexType;
+      using MultiIndex = Containers::StaticArray< 2, Index >;
 
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
       Functor_call_with_unpermuted_arguments< Permutation, Device > kernel;
 
-      const Index begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
-      const Index begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
-      const Index end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
-      const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
-      Algorithms::ParallelFor2D< Device >::exec( begin1, begin0, end1, end0, launch_configuration, kernel, f );
+      const MultiIndex begin = { begins.template getSize< get< 1 >( Permutation{} ) >(),
+                                 begins.template getSize< get< 0 >( Permutation{} ) >() };
+      const MultiIndex end = { ends.template getSize< get< 1 >( Permutation{} ) >(),
+                               ends.template getSize< get< 0 >( Permutation{} ) >() };
+      Algorithms::parallelFor< Device >( begin, end, launch_configuration, kernel, f );
    }
 };
 
@@ -274,7 +271,7 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 1 > >
 
       const Index begin = begins.template getSize< get< 0 >( Permutation{} ) >();
       const Index end = ends.template getSize< get< 0 >( Permutation{} ) >();
-      Algorithms::ParallelFor< Device >::exec( begin, end, launch_configuration, f );
+      Algorithms::parallelFor< Device >( begin, end, launch_configuration, f );
    }
 };
 

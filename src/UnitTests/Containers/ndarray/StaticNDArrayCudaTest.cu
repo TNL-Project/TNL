@@ -39,7 +39,7 @@ void __test_SetThroughView()
     };
 
     a.setValue(0);
-    Algorithms::ParallelFor< TNL::Devices::Cuda >::exec( 0, 1, kernel, a_view );
+    Algorithms::parallelFor< TNL::Devices::Cuda >( 0, 1, kernel, a_view );
     expect_identity( a.getStorageArray() );
 }
 TEST( StaticNDArrayCudaTest, SetThroughView )
@@ -70,7 +70,7 @@ void __test_CopyFromArray()
     };
 
     a.setValue(0);
-    Algorithms::ParallelFor< TNL::Devices::Cuda >::exec( 0, 1, kernel, a_view );
+    Algorithms::parallelFor< TNL::Devices::Cuda >( 0, 1, kernel, a_view );
     expect_identity( a.getStorageArray() );
 }
 TEST( StaticNDArrayCudaTest, CopyFromArray )

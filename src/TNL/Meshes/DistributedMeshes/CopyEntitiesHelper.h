@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/StaticArray.h>
 
 namespace TNL {
 namespace Meshes {
@@ -41,7 +42,7 @@ public:
          fromEntity.refresh();
          toData[ toEntity.getIndex() ] = fromData[ fromEntity.getIndex() ];
       };
-      Algorithms::ParallelFor< typename MeshFunctionType::MeshType::DeviceType >::exec( (Index) 0, (Index) size.x(), kernel );
+      Algorithms::parallelFor< typename MeshFunctionType::MeshType::DeviceType >( 0, size.x(), kernel );
    }
 };
 
@@ -62,20 +63,21 @@ public:
       auto fromData = from.getData().getData();
       auto* fromMesh = &from.getMeshPointer().template getData< typename MeshFunctionType::MeshType::DeviceType >();
       auto* toMesh = &to.getMeshPointer().template getData< typename MeshFunctionType::MeshType::DeviceType >();
-      auto kernel = [ fromData, toData, fromMesh, toMesh, fromBegin, toBegin ] __cuda_callable__( Index i, Index j )
+      auto kernel = [ fromData, toData, fromMesh, toMesh, fromBegin, toBegin ] __cuda_callable__(
+                       const Containers::StaticArray< 2, Index >& i )
       {
          Cell fromEntity( *fromMesh );
          Cell toEntity( *toMesh );
-         toEntity.getCoordinates().x() = toBegin.x() + i;
-         toEntity.getCoordinates().y() = toBegin.y() + j;
+         toEntity.getCoordinates().x() = toBegin.x() + i.x();
+         toEntity.getCoordinates().y() = toBegin.y() + i.y();
          toEntity.refresh();
-         fromEntity.getCoordinates().x() = fromBegin.x() + i;
-         fromEntity.getCoordinates().y() = fromBegin.y() + j;
+         fromEntity.getCoordinates().x() = fromBegin.x() + i.x();
+         fromEntity.getCoordinates().y() = fromBegin.y() + i.y();
          fromEntity.refresh();
          toData[ toEntity.getIndex() ] = fromData[ fromEntity.getIndex() ];
       };
-      Algorithms::ParallelFor2D< typename MeshFunctionType::MeshType::DeviceType >::exec(
-         (Index) 0, (Index) 0, (Index) size.x(), (Index) size.y(), kernel );
+      Algorithms::parallelFor< typename MeshFunctionType::MeshType::DeviceType >(
+         Containers::StaticArray< 2, Index >{ 0, 0 }, size, kernel );
    }
 };
 
@@ -95,22 +97,23 @@ public:
       auto fromData = from.getData().getData();
       auto* fromMesh = &from.getMeshPointer().template getData< typename MeshFunctionType::MeshType::DeviceType >();
       auto* toMesh = &to.getMeshPointer().template getData< typename MeshFunctionType::MeshType::DeviceType >();
-      auto kernel = [ fromData, toData, fromMesh, toMesh, fromBegin, toBegin ] __cuda_callable__( Index i, Index j, Index k )
+      auto kernel = [ fromData, toData, fromMesh, toMesh, fromBegin, toBegin ] __cuda_callable__(
+                       const Containers::StaticArray< 3, Index >& i )
       {
          Cell fromEntity( *fromMesh );
          Cell toEntity( *toMesh );
-         toEntity.getCoordinates().x() = toBegin.x() + i;
-         toEntity.getCoordinates().y() = toBegin.y() + j;
-         toEntity.getCoordinates().z() = toBegin.z() + k;
+         toEntity.getCoordinates().x() = toBegin.x() + i.x();
+         toEntity.getCoordinates().y() = toBegin.y() + i.y();
+         toEntity.getCoordinates().z() = toBegin.z() + i.z();
          toEntity.refresh();
-         fromEntity.getCoordinates().x() = fromBegin.x() + i;
-         fromEntity.getCoordinates().y() = fromBegin.y() + j;
-         fromEntity.getCoordinates().z() = fromBegin.z() + k;
+         fromEntity.getCoordinates().x() = fromBegin.x() + i.x();
+         fromEntity.getCoordinates().y() = fromBegin.y() + i.y();
+         fromEntity.getCoordinates().z() = fromBegin.z() + i.z();
          fromEntity.refresh();
          toData[ toEntity.getIndex() ] = fromData[ fromEntity.getIndex() ];
       };
-      Algorithms::ParallelFor3D< typename MeshFunctionType::MeshType::DeviceType >::exec(
-         (Index) 0, (Index) 0, (Index) 0, (Index) size.x(), (Index) size.y(), (Index) size.z(), kernel );
+      Algorithms::parallelFor< typename MeshFunctionType::MeshType::DeviceType >(
+         Containers::StaticArray< 3, Index >{ 0, 0, 0 }, size, kernel );
    }
 };
 

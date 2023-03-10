@@ -1,6 +1,7 @@
 #include <iostream>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Matrices/SparseMatrix.h>
+#include <TNL/Containers/StaticArray.h>
+#include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Timer.h>
@@ -37,10 +38,12 @@ void setElement_on_device( const int matrixSize, Matrix& matrix )
    matrix.setDimensions( matrixSize, matrixSize );
 
    auto matrixView = matrix.getView();
-   auto f = [=] __cuda_callable__ ( int i, int j ) mutable {
-         matrixView.setElement( i, j,  i + j );
+   auto f = [=] __cuda_callable__ ( const TNL::Containers::StaticArray< 2, int >& i ) mutable {
+         matrixView.setElement( i[ 0 ], i[ 1 ],  i[ 0 ] + i[ 1 ] );
    };
-   TNL::Algorithms::ParallelFor2D< typename Matrix::DeviceType >::exec( 0, 0, matrixSize, matrixSize, f );
+   const TNL::Containers::StaticArray< 2, int > begin = { 0, 0 };
+   const TNL::Containers::StaticArray< 2, int > end = { matrixSize, matrixSize };
+   TNL::Algorithms::parallelFor< typename Matrix::DeviceType >( begin, end, f );
 }
 
 template< typename Matrix >

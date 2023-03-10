@@ -156,33 +156,43 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
+      using Index = typename Ends::IndexType;
+      using MultiIndex = Containers::StaticArray< 3, Index >;
+
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
       Functor_call_with_unpermuted_arguments< Permutation, Device > kernel;
 
-      const auto begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
-      const auto begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
-      const auto begin2 = begins.template getSize< get< 2 >( Permutation{} ) >();
-      const auto skipBegin0 = skipBegins.template getSize< get< 0 >( Permutation{} ) >();
-      const auto skipBegin1 = skipBegins.template getSize< get< 1 >( Permutation{} ) >();
-      const auto skipBegin2 = skipBegins.template getSize< get< 2 >( Permutation{} ) >();
-      const auto skipEnd0 = skipEnds.template getSize< get< 0 >( Permutation{} ) >();
-      const auto skipEnd1 = skipEnds.template getSize< get< 1 >( Permutation{} ) >();
-      const auto skipEnd2 = skipEnds.template getSize< get< 2 >( Permutation{} ) >();
-      const auto end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
-      const auto end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
-      const auto end2 = ends.template getSize< get< 2 >( Permutation{} ) >();
+      const Index begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
+      const Index begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
+      const Index begin2 = begins.template getSize< get< 2 >( Permutation{} ) >();
+      const Index skipBegin0 = skipBegins.template getSize< get< 0 >( Permutation{} ) >();
+      const Index skipBegin1 = skipBegins.template getSize< get< 1 >( Permutation{} ) >();
+      const Index skipBegin2 = skipBegins.template getSize< get< 2 >( Permutation{} ) >();
+      const Index skipEnd0 = skipEnds.template getSize< get< 0 >( Permutation{} ) >();
+      const Index skipEnd1 = skipEnds.template getSize< get< 1 >( Permutation{} ) >();
+      const Index skipEnd2 = skipEnds.template getSize< get< 2 >( Permutation{} ) >();
+      const Index end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
+      const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
+      const Index end2 = ends.template getSize< get< 2 >( Permutation{} ) >();
 
-      Algorithms::ParallelFor3D< Device >::exec(
-         begin2, begin1, begin0, skipBegin2, end1, end0, launch_configuration, kernel, f );
-      Algorithms::ParallelFor3D< Device >::exec( skipEnd2, begin1, begin0, end2, end1, end0, launch_configuration, kernel, f );
-      Algorithms::ParallelFor3D< Device >::exec(
-         skipBegin2, begin1, begin0, skipEnd2, skipBegin1, end0, launch_configuration, kernel, f );
-      Algorithms::ParallelFor3D< Device >::exec(
-         skipBegin2, skipEnd1, begin0, skipEnd2, end1, end0, launch_configuration, kernel, f );
-      Algorithms::ParallelFor3D< Device >::exec(
-         skipBegin2, skipBegin1, begin0, skipEnd2, skipEnd1, skipBegin0, launch_configuration, kernel, f );
-      Algorithms::ParallelFor3D< Device >::exec(
-         skipBegin2, skipBegin1, skipEnd0, skipEnd2, skipEnd1, end0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Device >(
+         MultiIndex{ begin2, begin1, begin0 }, MultiIndex{ skipBegin2, end1, end0 }, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Device >(
+         MultiIndex{ skipEnd2, begin1, begin0 }, MultiIndex{ end2, end1, end0 }, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Device >(
+         MultiIndex{ skipBegin2, begin1, begin0 }, MultiIndex{ skipEnd2, skipBegin1, end0 }, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Device >(
+         MultiIndex{ skipBegin2, skipEnd1, begin0 }, MultiIndex{ skipEnd2, end1, end0 }, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Device >( MultiIndex{ skipBegin2, skipBegin1, begin0 },
+                                         MultiIndex{ skipEnd2, skipEnd1, skipBegin0 },
+                                         launch_configuration,
+                                         kernel,
+                                         f );
+      Algorithms::parallelFor< Device >( MultiIndex{ skipBegin2, skipBegin1, skipEnd0 },
+                                         MultiIndex{ skipEnd2, skipEnd1, end0 },
+                                         launch_configuration,
+                                         kernel,
+                                         f );
    }
 };
 
@@ -200,21 +210,24 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 3 > >
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
+      using Index = typename Ends::IndexType;
+      using MultiIndex = Containers::StaticArray< 3, Index >;
+
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
       Functor_call_with_unpermuted_arguments< Permutation, Devices::Cuda > kernel;
 
-      const auto begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
-      const auto begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
-      const auto begin2 = begins.template getSize< get< 2 >( Permutation{} ) >();
-      const auto skipBegin0 = skipBegins.template getSize< get< 0 >( Permutation{} ) >();
-      const auto skipBegin1 = skipBegins.template getSize< get< 1 >( Permutation{} ) >();
-      const auto skipBegin2 = skipBegins.template getSize< get< 2 >( Permutation{} ) >();
-      const auto skipEnd0 = skipEnds.template getSize< get< 0 >( Permutation{} ) >();
-      const auto skipEnd1 = skipEnds.template getSize< get< 1 >( Permutation{} ) >();
-      const auto skipEnd2 = skipEnds.template getSize< get< 2 >( Permutation{} ) >();
-      const auto end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
-      const auto end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
-      const auto end2 = ends.template getSize< get< 2 >( Permutation{} ) >();
+      const Index begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
+      const Index begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
+      const Index begin2 = begins.template getSize< get< 2 >( Permutation{} ) >();
+      const Index skipBegin0 = skipBegins.template getSize< get< 0 >( Permutation{} ) >();
+      const Index skipBegin1 = skipBegins.template getSize< get< 1 >( Permutation{} ) >();
+      const Index skipBegin2 = skipBegins.template getSize< get< 2 >( Permutation{} ) >();
+      const Index skipEnd0 = skipEnds.template getSize< get< 0 >( Permutation{} ) >();
+      const Index skipEnd1 = skipEnds.template getSize< get< 1 >( Permutation{} ) >();
+      const Index skipEnd2 = skipEnds.template getSize< get< 2 >( Permutation{} ) >();
+      const Index end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
+      const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
+      const Index end2 = ends.template getSize< get< 2 >( Permutation{} ) >();
 
       // launch each kernel in its own stream to achieve concurrency
       cudaStream_t stream_1 = Cuda::StreamPool::getInstance().getStream( 1 );
@@ -229,23 +242,29 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 3 > >
       launch_configuration.blockHostUntilFinished = false;
 
       launch_configuration.stream = stream_1;
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec(
-         begin2, begin1, begin0, skipBegin2, end1, end0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Devices::Cuda >(
+         MultiIndex{ begin2, begin1, begin0 }, MultiIndex{ skipBegin2, end1, end0 }, launch_configuration, kernel, f );
       launch_configuration.stream = stream_2;
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec(
-         skipEnd2, begin1, begin0, end2, end1, end0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Devices::Cuda >(
+         MultiIndex{ skipEnd2, begin1, begin0 }, MultiIndex{ end2, end1, end0 }, launch_configuration, kernel, f );
       launch_configuration.stream = stream_3;
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec(
-         skipBegin2, begin1, begin0, skipEnd2, skipBegin1, end0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Devices::Cuda >(
+         MultiIndex{ skipBegin2, begin1, begin0 }, MultiIndex{ skipEnd2, skipBegin1, end0 }, launch_configuration, kernel, f );
       launch_configuration.stream = stream_4;
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec(
-         skipBegin2, skipEnd1, begin0, skipEnd2, end1, end0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Devices::Cuda >(
+         MultiIndex{ skipBegin2, skipEnd1, begin0 }, MultiIndex{ skipEnd2, end1, end0 }, launch_configuration, kernel, f );
       launch_configuration.stream = stream_5;
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec(
-         skipBegin2, skipBegin1, begin0, skipEnd2, skipEnd1, skipBegin0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Devices::Cuda >( MultiIndex{ skipBegin2, skipBegin1, begin0 },
+                                                MultiIndex{ skipEnd2, skipEnd1, skipBegin0 },
+                                                launch_configuration,
+                                                kernel,
+                                                f );
       launch_configuration.stream = stream_6;
-      Algorithms::ParallelFor3D< Devices::Cuda >::exec(
-         skipBegin2, skipBegin1, skipEnd0, skipEnd2, skipEnd1, end0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Devices::Cuda >( MultiIndex{ skipBegin2, skipBegin1, skipEnd0 },
+                                                MultiIndex{ skipEnd2, skipEnd1, end0 },
+                                                launch_configuration,
+                                                kernel,
+                                                f );
 
       if( blockHostUntilFinished ) {
          // synchronize all streams
@@ -274,22 +293,29 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 2 > >
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
+      using Index = typename Ends::IndexType;
+      using MultiIndex = Containers::StaticArray< 2, Index >;
+
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
       Functor_call_with_unpermuted_arguments< Permutation, Device > kernel;
 
-      const auto begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
-      const auto begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
-      const auto skipBegin0 = skipBegins.template getSize< get< 0 >( Permutation{} ) >();
-      const auto skipBegin1 = skipBegins.template getSize< get< 1 >( Permutation{} ) >();
-      const auto skipEnd0 = skipEnds.template getSize< get< 0 >( Permutation{} ) >();
-      const auto skipEnd1 = skipEnds.template getSize< get< 1 >( Permutation{} ) >();
-      const auto end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
-      const auto end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
+      const Index begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
+      const Index begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
+      const Index skipBegin0 = skipBegins.template getSize< get< 0 >( Permutation{} ) >();
+      const Index skipBegin1 = skipBegins.template getSize< get< 1 >( Permutation{} ) >();
+      const Index skipEnd0 = skipEnds.template getSize< get< 0 >( Permutation{} ) >();
+      const Index skipEnd1 = skipEnds.template getSize< get< 1 >( Permutation{} ) >();
+      const Index end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
+      const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
 
-      Algorithms::ParallelFor2D< Device >::exec( begin1, begin0, skipBegin1, end0, launch_configuration, kernel, f );
-      Algorithms::ParallelFor2D< Device >::exec( skipEnd1, begin0, end1, end0, launch_configuration, kernel, f );
-      Algorithms::ParallelFor2D< Device >::exec( skipBegin1, begin0, skipEnd1, skipBegin0, launch_configuration, kernel, f );
-      Algorithms::ParallelFor2D< Device >::exec( skipBegin1, skipEnd0, skipEnd1, end0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Device >(
+         MultiIndex{ begin1, begin0 }, MultiIndex{ skipBegin1, end0 }, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Device >(
+         MultiIndex{ skipEnd1, begin0 }, MultiIndex{ end1, end0 }, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Device >(
+         MultiIndex{ skipBegin1, begin0 }, MultiIndex{ skipEnd1, skipBegin0 }, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Device >(
+         MultiIndex{ skipBegin1, skipEnd0 }, MultiIndex{ skipEnd1, end0 }, launch_configuration, kernel, f );
    }
 };
 
@@ -307,17 +333,20 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 2 > >
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
+      using Index = typename Ends::IndexType;
+      using MultiIndex = Containers::StaticArray< 2, Index >;
+
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
       Functor_call_with_unpermuted_arguments< Permutation, Devices::Cuda > kernel;
 
-      const auto begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
-      const auto begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
-      const auto skipBegin0 = skipBegins.template getSize< get< 0 >( Permutation{} ) >();
-      const auto skipBegin1 = skipBegins.template getSize< get< 1 >( Permutation{} ) >();
-      const auto skipEnd0 = skipEnds.template getSize< get< 0 >( Permutation{} ) >();
-      const auto skipEnd1 = skipEnds.template getSize< get< 1 >( Permutation{} ) >();
-      const auto end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
-      const auto end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
+      const Index begin0 = begins.template getSize< get< 0 >( Permutation{} ) >();
+      const Index begin1 = begins.template getSize< get< 1 >( Permutation{} ) >();
+      const Index skipBegin0 = skipBegins.template getSize< get< 0 >( Permutation{} ) >();
+      const Index skipBegin1 = skipBegins.template getSize< get< 1 >( Permutation{} ) >();
+      const Index skipEnd0 = skipEnds.template getSize< get< 0 >( Permutation{} ) >();
+      const Index skipEnd1 = skipEnds.template getSize< get< 1 >( Permutation{} ) >();
+      const Index end0 = ends.template getSize< get< 0 >( Permutation{} ) >();
+      const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
 
       // launch each kernel in its own stream to achieve concurrency
       cudaStream_t stream_1 = Cuda::StreamPool::getInstance().getStream( 1 );
@@ -330,14 +359,17 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 2 > >
       launch_configuration.blockHostUntilFinished = false;
 
       launch_configuration.stream = stream_1;
-      Algorithms::ParallelFor2D< Devices::Cuda >::exec( begin1, begin0, skipBegin1, end0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Devices::Cuda >(
+         MultiIndex{ begin1, begin0 }, MultiIndex{ skipBegin1, end0 }, launch_configuration, kernel, f );
       launch_configuration.stream = stream_2;
-      Algorithms::ParallelFor2D< Devices::Cuda >::exec( skipEnd1, begin0, end1, end0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Devices::Cuda >(
+         MultiIndex{ skipEnd1, begin0 }, MultiIndex{ end1, end0 }, launch_configuration, kernel, f );
       launch_configuration.stream = stream_3;
-      Algorithms::ParallelFor2D< Devices::Cuda >::exec(
-         skipBegin1, begin0, skipEnd1, skipBegin0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Devices::Cuda >(
+         MultiIndex{ skipBegin1, begin0 }, MultiIndex{ skipEnd1, skipBegin0 }, launch_configuration, kernel, f );
       launch_configuration.stream = stream_4;
-      Algorithms::ParallelFor2D< Devices::Cuda >::exec( skipBegin1, skipEnd0, skipEnd1, end0, launch_configuration, kernel, f );
+      Algorithms::parallelFor< Devices::Cuda >(
+         MultiIndex{ skipBegin1, skipEnd0 }, MultiIndex{ skipEnd1, end0 }, launch_configuration, kernel, f );
 
       if( blockHostUntilFinished ) {
          // synchronize all streams
@@ -369,8 +401,8 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 1 > >
       const auto skipEnd = skipEnds.template getSize< get< 0 >( Permutation{} ) >();
       const auto end = ends.template getSize< get< 0 >( Permutation{} ) >();
 
-      Algorithms::ParallelFor< Device >::exec( begin, skipBegin, launch_configuration, f );
-      Algorithms::ParallelFor< Device >::exec( skipEnd, end, launch_configuration, f );
+      Algorithms::parallelFor< Device >( begin, skipBegin, launch_configuration, f );
+      Algorithms::parallelFor< Device >( skipEnd, end, launch_configuration, f );
    }
 };
 
@@ -402,9 +434,9 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 1 > >
       launch_configuration.blockHostUntilFinished = false;
 
       launch_configuration.stream = stream_1;
-      Algorithms::ParallelFor< Devices::Cuda >::exec( begin, skipBegin, launch_configuration, f );
+      Algorithms::parallelFor< Devices::Cuda >( begin, skipBegin, launch_configuration, f );
       launch_configuration.stream = stream_2;
-      Algorithms::ParallelFor< Devices::Cuda >::exec( skipEnd, end, launch_configuration, f );
+      Algorithms::parallelFor< Devices::Cuda >( skipEnd, end, launch_configuration, f );
 
       if( blockHostUntilFinished ) {
          // synchronize all streams

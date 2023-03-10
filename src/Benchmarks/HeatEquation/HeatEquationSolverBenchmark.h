@@ -10,7 +10,8 @@
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Benchmarks/Benchmarks.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/StaticArray.h>
 
 template< typename Real = double,
           typename Device = TNL::Devices::Host,
@@ -72,16 +73,18 @@ struct HeatEquationSolverBenchmark
       auto alpha_ = this->alpha;
       auto beta_ = this->beta;
       auto gamma_ = this->gamma;
-      auto init = [=] __cuda_callable__(int i, int j) mutable
+      auto init = [=] __cuda_callable__( const TNL::Containers::StaticArray< 2, int >& i ) mutable
       {
-         auto index = j * xSize + i;
+         auto index = i.y() * xSize + i.x();
 
-         auto x = i * hx - xDomainSize_ / 2.;
-         auto y = j * hy - yDomainSize_ / 2.;
+         auto x = i.x() * hx - xDomainSize_ / 2.;
+         auto y = i.y() * hy - yDomainSize_ / 2.;
 
          uxView[index] = TNL::max( ( ( ( x*x / alpha_ )  + ( y*y / beta_ ) ) + gamma_ ) * 0.2, 0.0 );
       };
-      TNL::Algorithms::ParallelFor2D<Device>::exec( 1, 1, xSize - 1, ySize - 1, init );
+      const TNL::Containers::StaticArray< 2, int > begin = { 1, 1 };
+      const TNL::Containers::StaticArray< 2, int > end = { xSize - 1, ySize - 1 };
+      TNL::Algorithms::parallelFor<Device>( begin, end, init );
    }
 
    bool writeGnuplot( const std::string &filename,

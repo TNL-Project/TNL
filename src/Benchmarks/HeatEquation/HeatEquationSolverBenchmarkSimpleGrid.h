@@ -8,7 +8,9 @@
 
 #pragma once
 
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/StaticVector.h>
+
 #include "HeatEquationSolverBenchmark.h"
 
 template<int Size, typename Index, typename Real>
@@ -102,8 +104,8 @@ struct HeatEquationSolverBenchmarkSimpleGrid : public HeatEquationSolverBenchmar
       {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
-         auto next = [=] __cuda_callable__(int i, int j) mutable {
-            auto entity = grid.getEntity(i, j);
+         auto next = [=] __cuda_callable__(const TNL::Containers::StaticArray< 2, int >& i) mutable {
+            auto entity = grid.getEntity(i.x(), i.y());
 
             auto index = entity.index;
             auto element = uxView[index];
@@ -112,7 +114,11 @@ struct HeatEquationSolverBenchmarkSimpleGrid : public HeatEquationSolverBenchmar
             auxView[index] = element + ((uxView[index - 1] - center + uxView[index + 1]) * hx_inv +
                                         (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv) * timestep;
          };
-         TNL::Algorithms::ParallelFor2D<Device>::exec( 1, 1, xSize - 1, ySize - 1, next);
+
+         const TNL::Containers::StaticArray< 2, int > begin = { 1, 1 };
+         const TNL::Containers::StaticArray< 2, int > end = { xSize - 1, ySize - 1 };
+         TNL::Algorithms::parallelFor< Device >( begin, end, next );
+
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
