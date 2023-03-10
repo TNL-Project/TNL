@@ -437,6 +437,7 @@ public:
     * \par Output
     * \include TridiagonalMatrixExample_setElement.out
     */
+   __cuda_callable__
    void
    setElement( IndexType row, IndexType column, const RealType& value );
 
@@ -463,6 +464,7 @@ public:
     * \include TridiagonalMatrixExample_addElement.out
     *
     */
+   __cuda_callable__
    void
    addElement( IndexType row, IndexType column, const RealType& value, const RealType& thisElementMultiplicator = 1.0 );
 
@@ -486,6 +488,7 @@ public:
     * \par Output
     * \include TridiagonalMatrixExample_getElement.out
     */
+   __cuda_callable__
    RealType
    getElement( IndexType row, IndexType column ) const;
 
