@@ -15,13 +15,9 @@ void getRowExample()
       matrixSize  // number of matrix columns
    );
 
+   MatrixType* matrix_device = &matrix.template modifyData< Device >();
    auto f = [=] __cuda_callable__ ( int rowIdx ) mutable {
-      //auto row = matrix->getRow( rowIdx );
-      // For some reason the previous line of code is not accepted by nvcc 10.1
-      // so we replace it with the following two lines.
-      auto ref = matrix.modifyData();
-      auto row = ref.getRow( rowIdx );
-
+      auto row = matrix_device->getRow( rowIdx );
       if( rowIdx > 0 )
          row.setElement( 0, -1.0 );  // elements below the diagonal
       row.setElement( 1, 2.0 );      // elements on the diagonal
@@ -49,10 +45,7 @@ int main( int argc, char* argv[] )
    getRowExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   // It seems that nvcc 10.1 does not handle lambda functions properly.
-   // It is hard to make nvcc to compile this example and it does not work
-   // properly. We will try it with later version of CUDA.
-   //std::cout << "Getting matrix rows on CUDA device: " << std::endl;
-   //getRowExample< TNL::Devices::Cuda >();
+   std::cout << "Getting matrix rows on CUDA device: " << std::endl;
+   getRowExample< TNL::Devices::Cuda >();
 #endif
 }

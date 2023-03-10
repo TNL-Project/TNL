@@ -11,8 +11,9 @@ void getRowExample()
    using MatrixType = TNL::Matrices::DenseMatrix< double, Device >;
    TNL::Pointers::SharedPointer< MatrixType > matrix( 5, 5 );
 
+   MatrixType* matrix_device = &matrix.template modifyData< Device >();
    auto f = [=] __cuda_callable__ ( int rowIdx ) mutable {
-      auto row = matrix->getRow( rowIdx );
+      auto row = matrix_device->getRow( rowIdx );
       row.setValue( rowIdx, 10 * ( rowIdx + 1 ) );
    };
 

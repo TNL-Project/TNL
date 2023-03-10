@@ -18,12 +18,13 @@ void setElements()
    std::cout << "Matrix set from the host:" << std::endl;
    std::cout << *matrix << std::endl;
 
+   Matrix* matrix_device = &matrix.template modifyData< Device >();
    auto f = [=] __cuda_callable__ ( int i ) mutable {
       if( i > 0 )
-         matrix->setElement( i, i - 1, 1.0 );
-      matrix->setElement( i, i, -i );
+         matrix_device->setElement( i, i - 1, 1.0 );
+      matrix_device->setElement( i, i, -i );
       if( i < matrixSize - 1 )
-         matrix->setElement( i, i + 1, 1.0 );
+         matrix_device->setElement( i, i + 1, 1.0 );
    };
 
    /***
@@ -45,7 +46,6 @@ int main( int argc, char* argv[] )
 
 #ifdef __CUDACC__
    std::cout << "Set elements on CUDA device:" << std::endl;
-// FIXME: it does not work with nvcc 10.1
-//   setElements< TNL::Devices::Cuda >();
+   setElements< TNL::Devices::Cuda >();
 #endif
 }

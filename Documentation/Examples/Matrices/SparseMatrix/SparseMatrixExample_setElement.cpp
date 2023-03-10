@@ -10,7 +10,8 @@ template< typename Device >
 void setElements()
 {
    auto rowCapacities = { 1, 1, 1, 1, 1 };
-   TNL::Pointers::SharedPointer< TNL::Matrices::SparseMatrix< double, Device > > matrix( rowCapacities, 5 );
+   using MatrixType = TNL::Matrices::SparseMatrix< double, Device >;
+   TNL::Pointers::SharedPointer< MatrixType > matrix( rowCapacities, 5 );
 
    /***
     * Calling the method setElements from host (CPU).
@@ -24,8 +25,9 @@ void setElements()
    /***
     * This lambda function will run on the native device of the matrix which can be CPU or GPU.
     */
+   MatrixType* matrix_device = &matrix.template modifyData< Device >();
    auto f = [=] __cuda_callable__ ( int i ) mutable {
-      matrix->setElement( i, i, -i );
+      matrix_device->setElement( i, i, -i );
    };
 
    /***
