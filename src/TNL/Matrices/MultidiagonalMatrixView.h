@@ -40,7 +40,8 @@ public:
    // Supporting types - they are not important for the user
    using BaseType = MatrixView< Real, Device, Index >;
    using ValuesViewType = typename BaseType::ValuesView;
-   using IndexerType = details::MultidiagonalMatrixIndexer< Index, Organization == Algorithms::Segments::RowMajorOrder >;
+   using IndexerType =
+      details::MultidiagonalMatrixIndexer< std::remove_const_t< Index >, Organization == Algorithms::Segments::RowMajorOrder >;
    using DiagonalsOffsetsView = Containers::
       VectorView< std::conditional_t< std::is_const< Real >::value, std::add_const_t< Index >, Index >, Device, Index >;
    using HostDiagonalsOffsetsView = Containers::

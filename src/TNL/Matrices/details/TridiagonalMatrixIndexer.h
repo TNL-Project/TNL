@@ -17,7 +17,6 @@ class TridiagonalMatrixIndexer
 {
 public:
    using IndexType = Index;
-   using ConstType = TridiagonalMatrixIndexer< std::add_const_t< Index >, Organization >;
 
    static constexpr bool
    getRowMajorOrder()
