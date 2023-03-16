@@ -11,7 +11,7 @@
 #ifdef HAVE_HYPRE
 
    #include <TNL/Hypre.h>
-
+   #include <TNL/Containers/HypreVector.h>
    #include <TNL/Matrices/SparseMatrix.h>
 
 namespace TNL::Matrices {
@@ -398,6 +398,37 @@ public:
                row.setElement( 0, j_diag, v_diag );
             }
          } );
+   }
+
+   template< typename InVector, typename OutVector >
+   void
+   vectorProduct( const InVector& inVector,
+                  OutVector& outVector,
+                  RealType matrixMultiplicator = 1.0,
+                  RealType outVectorMultiplicator = 0.0,
+                  IndexType begin = 0,
+                  IndexType end = 0 ) const
+   {
+      static_assert( std::is_same< typename InVector::RealType, RealType >::value, "Wrong value type." );
+      static_assert( std::is_same< typename InVector::IndexType, IndexType >::value, "Wrong index type." );
+      static_assert( std::is_same< typename OutVector::RealType, RealType >::value, "Wrong value type." );
+      static_assert( std::is_same< typename OutVector::IndexType, IndexType >::value, "Wrong index type." );
+
+      TNL_ASSERT_EQ( begin, 0, "Hypre does not allow multiplication of a part of matrix and vector." );
+      TNL_ASSERT_EQ( end, 0, "Hypre does not allow multiplication of a part of matrix and vector." );
+
+      TNL::Containers::HypreVector x( const_cast< RealType* >( inVector.getData() ), inVector.getSize() );
+      TNL::Containers::HypreVector y( outVector.getData(), outVector.getSize() );
+      // y = alpha*A + beta*y
+      auto err = hypre_CSRMatrixMatvec( matrixMultiplicator,     // HYPRE_Complex alpha,
+                                        this->m,                 // hypre_CSRMatrix *A,
+                                        (hypre_Vector*) x,       // hypre_Vector *x,
+                                        outVectorMultiplicator,  // HYPRE_Complex beta,
+                                        (hypre_Vector*) y        // hypre_Vector *y
+      );
+
+      if( err != 0 )
+         throw std::runtime_error( "hypre_CSRMatrixMatvec returned code " + std::to_string( err ) );
    }
 
 protected:
