@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 namespace TNL {
 
 /**
@@ -133,6 +135,25 @@ firstKCombinationsSum( Index k, Index n )
    for( Index i = 0; i < k; i++ )
       result += combinationsCount( i, n );
    return result;
+}
+
+/**
+ * \brief Checks if two values of the same integral type can be multiplied without causing integer overflow or underflow.
+ *
+ * \tparam Index is the integral type of input values.
+ * \param a is the first operand in the expression `a * b`
+ * \param b is the second operand in the expression `a * b`
+ * \return `true` if the operation `a * b` results in an integer overflow or underflow,
+ *         and `false` if the result fits into the \e Index type.
+ */
+template< typename Index, std::enable_if_t< std::is_integral_v< Index >, bool > = true >
+bool
+integerMultiplyOverflow( Index a, Index b )
+{
+   if( a == 0 || b == 0 )
+      return false;
+   const Index result = a * b;
+   return a != result / b;
 }
 
 }  // namespace TNL

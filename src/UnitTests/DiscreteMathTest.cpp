@@ -90,6 +90,31 @@ TEST( DiscreteMathTest, firstKCombinationsSumTest )
    testFirstKCombinationsSum( 5, 4, 16 );
 }
 
+TEST( DiscreteMathTest, detectMultiplicationOverflowTest )
+{
+   for( char a = -7; a <= 8; a++ )
+      for( char b = -16; b < 16; b++ ) {
+         EXPECT_FALSE( TNL::integerMultiplyOverflow( a, b ) ) << "a = " << +a << ", b = " << +b;
+         EXPECT_FALSE( TNL::integerMultiplyOverflow( b, a ) ) << "a = " << +a << ", b = " << +b;
+      }
+   for( char a = 8; a <= 16; a++ )
+      for( char b = 16; b < 127; b++ ) {
+         EXPECT_TRUE( TNL::integerMultiplyOverflow( a, b ) ) << "a = " << +a << ", b = " << +b;
+         EXPECT_TRUE( TNL::integerMultiplyOverflow( b, a ) ) << "a = " << +a << ", b = " << +b;
+      }
+
+   for( unsigned char a = 0; a <= 16; a++ )
+      for( unsigned char b = -16; b < 16; b++ ) {
+         EXPECT_FALSE( TNL::integerMultiplyOverflow( a, b ) ) << "a = " << +a << ", b = " << +b;
+         EXPECT_FALSE( TNL::integerMultiplyOverflow( b, a ) ) << "a = " << +a << ", b = " << +b;
+      }
+   for( unsigned char a = 16; a <= 32; a++ )
+      for( unsigned char b = 16; b < 255; b++ ) {
+         EXPECT_TRUE( TNL::integerMultiplyOverflow( a, b ) ) << "a = " << +a << ", b = " << +b;
+         EXPECT_TRUE( TNL::integerMultiplyOverflow( b, a ) ) << "a = " << +a << ", b = " << +b;
+      }
+}
+
 #endif
 
 #include "main.h"

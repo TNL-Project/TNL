@@ -6,9 +6,11 @@
 
 #pragma once
 
+#include <stdexcept>
 #include <type_traits>
 
 #include <TNL/Cuda/CudaCallable.h>
+#include <TNL/DiscreteMath.h>
 
 namespace TNL::Matrices::details {
 
@@ -47,6 +49,10 @@ public:
       this->columns = columns;
       this->diagonals = diagonals;
       this->nonemptyRows = nonemptyRows;
+      if( TNL::integerMultiplyOverflow( this->diagonals, this->nonemptyRows ) )
+         throw std::overflow_error(
+            "MultidiagonalMatrix: multiplication overflow - the storage size required for the matrix is "
+            "larger than the maximal value of used index type." );
    }
 
    [[nodiscard]] __cuda_callable__
@@ -81,7 +87,7 @@ public:
    IndexType
    getStorageSize() const
    {
-      return diagonals * this->nonemptyRows;
+      return this->diagonals * this->nonemptyRows;
    }
 
    [[nodiscard]] __cuda_callable__

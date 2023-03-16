@@ -96,6 +96,9 @@ Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::setSegmentsSi
       this->alignedSize = this->size;
    else
       this->alignedSize = roundUpDivision( size, this->getAlignment() ) * this->getAlignment();
+   if( integerMultiplyOverflow( this->alignedSize, this->segmentSize ) )
+      throw( std::overflow_error( "Ellpack: multiplication overflow - the storage size required for the segments is larger "
+                                  "than the maximal value of used index type." ) );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
