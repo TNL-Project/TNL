@@ -445,7 +445,11 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       auto fetch = [ inVectorView, valuesView, columnIndexesView, paddingIndex ] __cuda_callable__(
                       IndexType globalIdx, bool& compute ) mutable -> ComputeRealType
       {
+         TNL_ASSERT_GE( globalIdx, 0, "" );
+         TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "" );
          const IndexType column = columnIndexesView[ globalIdx ];
+         TNL_ASSERT( ( column >= 0 || column == paddingIndex ), std::cerr << "Wrong column index." << std::endl );
+         TNL_ASSERT_LT( column, inVectorView.getSize(), "Wrong column index." );
          if( SegmentsViewType::havePadding() ) {
             compute = ( column != paddingIndex );
             if( ! compute )
