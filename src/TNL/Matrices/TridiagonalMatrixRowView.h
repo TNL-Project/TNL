@@ -62,11 +62,6 @@ public:
    using ConstValuesViewType = typename ValuesViewType::ConstViewType;
 
    /**
-    * \brief Type of constant indexer view.
-    */
-   using ConstIndexerViewType = typename Indexer::ConstType;
-
-   /**
     * \brief Type of constant sparse matrix row view.
     */
    using RowView = TridiagonalMatrixRowView< ValuesViewType, IndexerType >;
@@ -74,7 +69,7 @@ public:
    /**
     * \brief Type of constant sparse matrix row view.
     */
-   using ConstRowView = TridiagonalMatrixRowView< ConstValuesViewType, ConstIndexerViewType >;
+   using ConstRowView = TridiagonalMatrixRowView< ConstValuesViewType, IndexerType >;
 
    /**
     * \brief The type of related matrix element.

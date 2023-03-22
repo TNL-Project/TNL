@@ -20,8 +20,9 @@ void getRowExample()
    /***
     * Fetch lambda function returns diagonal element in each row.
     */
+   const MatrixType* matrix_device = &matrix.template getData< Device >();
    auto fetch = [=] __cuda_callable__ ( int rowIdx ) mutable -> double {
-      auto row = matrix->getRow( rowIdx );
+      auto row = matrix_device->getRow( rowIdx );
       return row.getValue( rowIdx );
    };
 

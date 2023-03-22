@@ -19,12 +19,13 @@ void setElements()
    std::cout << "Matrix set from the host:" << std::endl;
    std::cout << *matrix << std::endl;
 
+   Matrix* matrix_device = &matrix.template modifyData< Device >();
    auto f = [=] __cuda_callable__ ( int i ) mutable {
       if( i > 0 )
-         matrix->setElement( i, i - 1, 1.0 );
-      matrix->setElement( i, i, -i );
+         matrix_device->setElement( i, i - 1, 1.0 );
+      matrix_device->setElement( i, i, -i );
       if( i < matrixSize - 1 )
-         matrix->setElement( i, i + 1, 1.0 );
+         matrix_device->setElement( i, i + 1, 1.0 );
    };
 
    /***
@@ -45,10 +46,7 @@ int main( int argc, char* argv[] )
    setElements< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   // It seems that nvcc 10.1 does not handle lambda functions properly.
-   // It is hard to make nvcc to compile this example and it does not work
-   // properly. We will try it with later version of CUDA.
-   //std::cout << "Set elements on CUDA device:" << std::endl;
-   //setElements< TNL::Devices::Cuda >();
+   std::cout << "Set elements on CUDA device:" << std::endl;
+   setElements< TNL::Devices::Cuda >();
 #endif
 }

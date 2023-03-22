@@ -128,7 +128,7 @@ __cuda_callable__
 auto
 TridiagonalMatrixView< Real, Device, Index, Organization >::getRow( IndexType rowIdx ) const -> ConstRowView
 {
-   return ConstRowView( rowIdx, this->values.getView(), this->indexer );
+   return { rowIdx, this->values.getConstView(), this->indexer };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -136,7 +136,7 @@ __cuda_callable__
 auto
 TridiagonalMatrixView< Real, Device, Index, Organization >::getRow( IndexType rowIdx ) -> RowView
 {
-   return RowView( rowIdx, this->values.getView(), this->indexer );
+   return { rowIdx, this->values.getView(), this->indexer };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

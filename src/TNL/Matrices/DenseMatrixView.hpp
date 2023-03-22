@@ -332,7 +332,7 @@ auto
 DenseMatrixView< Real, Device, Index, Organization >::getRow( IndexType rowIdx ) const -> ConstRowView
 {
    TNL_ASSERT_LT( rowIdx, this->getRows(), "Row index is larger than number of matrix rows." );
-   return RowView( this->segments.getSegmentView( rowIdx ), this->values.getConstView() );
+   return { this->segments.getSegmentView( rowIdx ), this->values.getConstView() };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -341,7 +341,7 @@ auto
 DenseMatrixView< Real, Device, Index, Organization >::getRow( IndexType rowIdx ) -> RowView
 {
    TNL_ASSERT_LT( rowIdx, this->getRows(), "Row index is larger than number of matrix rows." );
-   return RowView( this->segments.getSegmentView( rowIdx ), this->values.getView() );
+   return { this->segments.getSegmentView( rowIdx ), this->values.getView() };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

@@ -75,11 +75,6 @@ public:
    using ConstDiagonalsOffsetsView = typename DiagonalsOffsetsView::ConstViewType;
 
    /**
-    * \brief Type of constant indexer view.
-    */
-   using ConstIndexerViewType = typename IndexerType::ConstType;
-
-   /**
     * \brief Type of constant sparse matrix row view.
     */
    using RowView = MultidiagonalMatrixRowView< ValuesViewType, IndexerType, DiagonalsOffsetsView >;
@@ -87,7 +82,7 @@ public:
    /**
     * \brief Type of constant sparse matrix row view.
     */
-   using ConstRowView = MultidiagonalMatrixRowView< ConstValuesViewType, ConstIndexerViewType, ConstDiagonalsOffsetsView >;
+   using ConstRowView = MultidiagonalMatrixRowView< ConstValuesViewType, IndexerType, ConstDiagonalsOffsetsView >;
 
    /**
     * \brief The type of related matrix element.

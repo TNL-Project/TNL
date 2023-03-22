@@ -39,7 +39,7 @@ public:
    // Supporting types - they are not important for the user
    using BaseType = MatrixView< Real, Device, Index >;
    using ValuesViewType = typename BaseType::ValuesView;
-   using IndexerType = details::TridiagonalMatrixIndexer< Index, Organization >;
+   using IndexerType = details::TridiagonalMatrixIndexer< std::remove_const_t< Index >, Organization >;
 
    /**
     * \brief The type of matrix elements.

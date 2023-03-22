@@ -204,6 +204,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( I
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+__cuda_callable__
 void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setElement( IndexType row,
                                                                                    IndexType column,
@@ -213,6 +214,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setElemen
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+__cuda_callable__
 void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::addElement( IndexType row,
                                                                                    IndexType column,
@@ -223,6 +225,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::addElemen
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+__cuda_callable__
 Real
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getElement( IndexType row, IndexType column ) const
 {
