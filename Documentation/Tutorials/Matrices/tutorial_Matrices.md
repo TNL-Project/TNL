@@ -386,7 +386,7 @@ More efficient way of the matrix initialization on GPU consists of calling the m
 
 Here we get the matrix view (\ref TNL::Matrices::DenseMatrixView) (line 10) to make the matrix accessible in lambda function even on GPU (see [Shared pointers and views](../GeneralConcepts/tutorial_GeneralConcepts.md) ). We first call the `setElement` method from CPU to set the `i`-th diagonal element to `i` (lines 11-12). Next we iterate over the matrix rows with `ParallelFor2D` (\ref TNL::Algorithms::ParallelFor2D) (line 20) and for each row we call the lambda function `f`. This is done on the same device where the matrix is allocated and so it we get optimal performance even for matrices on GPU. In the lambda function we add one to each matrix element (line 18). The result looks as follows:
 
-\include DenseMatrixExample_setElement.out
+\include DenseMatrixViewExample_setElement.out
 
 #### Method `getRow`
 
