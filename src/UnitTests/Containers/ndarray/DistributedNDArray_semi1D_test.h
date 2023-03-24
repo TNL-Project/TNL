@@ -148,21 +148,22 @@ void test_helper_comparisonOperators( DistributedArray& u, DistributedArray& v, 
 {
    using DeviceType = typename DistributedArray::DeviceType;
    using IndexType = typename DistributedArray::IndexType;
+   using MultiIndex = Containers::StaticArray< 3, IndexType >;
 
    const auto localRange = u.template getLocalRange< 1 >();
    auto u_view = u.getLocalView();
    auto v_view = v.getLocalView();
    auto w_view = w.getLocalView();
 
-   auto kernel = [=] __cuda_callable__ ( IndexType q, IndexType gi, IndexType j ) mutable
+   auto kernel = [=] __cuda_callable__ ( const MultiIndex& i ) mutable
    {
-      u_view( q, gi - localRange.getBegin(), j ) = gi;
-      v_view( q, gi - localRange.getBegin(), j ) = gi;
-      w_view( q, gi - localRange.getBegin(), j ) = 2 * gi;
+      u_view( i[ 0 ], i[ 1 ] - localRange.getBegin(), i[ 2 ] ) = i[ 1 ];
+      v_view( i[ 0 ], i[ 1 ] - localRange.getBegin(), i[ 2 ] ) = i[ 1 ];
+      w_view( i[ 0 ], i[ 1 ] - localRange.getBegin(), i[ 2 ] ) = 2 * i[ 1 ];
    };
-   Algorithms::ParallelFor3D< DeviceType >::exec( (IndexType) 0, localRange.getBegin(), (IndexType) 0,
-                                      Q, localRange.getEnd(), u.template getSize< 2 >(),
-                                      kernel );
+   Algorithms::parallelFor< DeviceType >( MultiIndex{ 0, localRange.getBegin(), 0 },
+                                          MultiIndex{ Q, localRange.getEnd(), u.template getSize< 2 >() },
+                                          kernel );
 }
 
 TYPED_TEST( DistributedNDArray_semi1D_test, comparisonOperators )

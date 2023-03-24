@@ -158,9 +158,9 @@ There are several ways how to create a new matrix:
 2. **STL map** can be used for creation of sparse matrices only. The user first insert all matrix elements together with their coordinates into [`std::map`](https://en.cppreference.com/w/cpp/container/map) based on which the sparse matrix is created in the next step. It is simple and user friendly approach suitable for creation of large matrices. An advantage is that we do not need to know the distribution of the nonzero matrix elements in matrix rows in advance like we do in other ways of construction of sparse matrices. This makes the use of STL map suitable for combining of sparse matrices from TNL with other numerical packages. However, the sparse matrix is constructed on the host and then copied on GPU if necessary. Therefore, this approach is not a good choice if fast and efficient matrix construction is required.
 3. **Methods `setElement` and `addElement` called from the host** allow to change particular matrix elements. The methods can be called from host even for matrices allocated on GPU. In this case, however, the matrix elements are transferred on GPU one by one which is very inefficient. If the matrix is allocated on the host system (CPU), the efficiency is nearly optimal. In case of sparse matrices, one must set row capacities (i.e. maximal number of nonzero elements in each row) before using these methods. If the row capacity is exceeded, the matrix has to be reallocated and all matrix elements are lost.
 4. **Methods `setElement` and `addElement` called on the host and copy matrix on GPU** setting particular matrix elements by the methods `setElement` and `addElement` when the matrix is allocated on GPU can be time consuming for large matrices. Setting up the matrix on CPU using the same methods and copying it on GPU at once when the setup is finished can be significantly more efficient. A drawback is that we need to allocate temporarily whole matrix on CPU.
-5. **Methods `setElement` and `addElement` called from native device** allow to do efficient matrix elements setup even on devices (GPUs). In this case, the methods must be called from a GPU kernel or a lambda function combined with the parallel for (\ref TNL::Algorithms::ParallelFor). The user get very good performance even when manipulating matrix allocated on GPU. On the other hand, only data structures allocated on GPUs can be accessed from the kernel or lambda function. The matrix can be accessed in the GPU kernel or lambda function by means of matrix view (see the previous section) or the shared pointer (see \ref TNL::Pointers::SharedPointer).
-6. **Method `getRow` combined with `ParallelFor`** is very similar to the previous one. The difference is that we first fetch helper object called *matrix row* which is linked to particular matrix row. Using methods of this object, one may change the matrix elements in given matrix row. An advantage is that the access to the matrix row is resolved only once for all elements in the row. In some more sophisticated sparse matrix formats, this can be nontrivial operation and this approach may slightly improve the performance. Another advantage for sparse matrices is that we access the matrix elements based on their *local index* ('localIdx', see [Indexing of nonzero matrix elements in sparse matrices](indexing_of_nonzero_matrix_elements_in_sparse_matrices)) in the row which is something like a rank of the nonzero element in the row. This is more efficient than addressing the matrix elements by the column indexes which requires searching in the matrix row. So this may significantly improve the performance of setup of sparse matrices. When it comes to dense matrices, there should not be great difference in performance compared to use of the methods `setElement` and `getElement`. Note that when the method is called from a GPU kernel or a lambda function, only data structures allocated on GPU can be accessed and the matrix must be made accessible by the means of matrix view.
-7. **Methods `forRows` and `forElements`** this approach is very similar to the previous one but it avoids using `ParallelFor` and necessity of passing the matrix to GPU kernels by matrix view or shared pointers.
+5. **Methods `setElement` and `addElement` called from native device** allow to do efficient matrix elements setup even on devices (GPUs). In this case, the methods must be called from a GPU kernel or a lambda function combined with the parallel for (\ref TNL::Algorithms::parallelFor). The user get very good performance even when manipulating matrix allocated on GPU. On the other hand, only data structures allocated on GPUs can be accessed from the kernel or lambda function. The matrix can be accessed in the GPU kernel or lambda function by means of matrix view (see the previous section) or the shared pointer (see \ref TNL::Pointers::SharedPointer).
+6. **Method `getRow` combined with `parallelFor`** is very similar to the previous one. The difference is that we first fetch helper object called *matrix row* which is linked to particular matrix row. Using methods of this object, one may change the matrix elements in given matrix row. An advantage is that the access to the matrix row is resolved only once for all elements in the row. In some more sophisticated sparse matrix formats, this can be nontrivial operation and this approach may slightly improve the performance. Another advantage for sparse matrices is that we access the matrix elements based on their *local index* ('localIdx', see [Indexing of nonzero matrix elements in sparse matrices](indexing_of_nonzero_matrix_elements_in_sparse_matrices)) in the row which is something like a rank of the nonzero element in the row. This is more efficient than addressing the matrix elements by the column indexes which requires searching in the matrix row. So this may significantly improve the performance of setup of sparse matrices. When it comes to dense matrices, there should not be great difference in performance compared to use of the methods `setElement` and `getElement`. Note that when the method is called from a GPU kernel or a lambda function, only data structures allocated on GPU can be accessed and the matrix must be made accessible by the means of matrix view.
+7. **Methods `forRows` and `forElements`** this approach is very similar to the previous one but it avoids using `parallelFor` and necessity of passing the matrix to GPU kernels by matrix view or shared pointers.
 
 The following table shows pros and cons of particular methods:
 
@@ -177,7 +177,7 @@ The following table shows pros and cons of particular methods:
 | **[set,add]Element on native device**   | `****`    |             | Good efficiency.                                                      | Requires setting of row capacities.                                   |
 |                                         |           |             |                                                                       | Requires writing GPU kernel or lambda function.                       |
 |                                         |           |             |                                                                       | Allows accessing only data allocated on the same device/memory space. |
-| **getRow and ParallelFor**              | `*****`   | `**`        | Best efficiency for sparse matrices.                                  | Requires setting of row capacities.                                   |
+| **getRow and parallelFor**              | `*****`   | `**`        | Best efficiency for sparse matrices.                                  | Requires setting of row capacities.                                   |
 |                                         |           |             |                                                                       | Requires writing GPU kernel or lambda function.                       |
 |                                         |           |             |                                                                       | Allows accessing only data allocated on the same device/memory space. |
 |                                         |           |             |                                                                       | Use of matrix local indexes can be less intuitive.                    |
@@ -200,7 +200,7 @@ Though it may seem that the later methods come with more cons than pros, they of
 
 In the test of dense matrices, we set each matrix element to value equal to `rowIdx + columnIdx`. The times in seconds obtained on CPU looks as follows:
 
-| Matrix rows and columns     | `setElement` on host | `setElement` with `ParallelFor` |  `getRow`    | `forElements`   |
+| Matrix rows and columns     | `setElement` on host | `setElement` with `parallelFor` |  `getRow`    | `forElements`   |
 |----------------------------:|---------------------:|--------------------------------:|-------------:|----------------:|
 |                          16 |           0.00000086 |                       0.0000053 |   0.00000035 |       0.0000023 |
 |                          32 |           0.00000278 |                       0.0000050 |   0.00000201 |       0.0000074 |
@@ -215,8 +215,8 @@ In the test of dense matrices, we set each matrix element to value equal to `row
 
 Here:
 
-* **setElement on host** tests run in one thread. Therefore they are faster for small matrices compared to "`setElement` with `ParallelFor`" tests.
-* **setElement with ParallelFor** tests run in parallel in several OpenMP threads. This approach is faster for larger matrices.
+* **setElement on host** tests run in one thread. Therefore they are faster for small matrices compared to "`setElement` with `parallelFor`" tests.
+* **setElement with parallelFor** tests run in parallel in several OpenMP threads. This approach is faster for larger matrices.
 * **getRow** tests run in parallel in several OpenMP threads mapping of which is more efficient compared to "`setElement` on host" tests.
 
 And the same on GPU is in the following table:
@@ -248,7 +248,7 @@ You can see the source code of the previous benchmark in [Appendix](#benchmark-o
 
 The sparse matrices are tested on computation of matrix the [discrete Laplace operator in 2D](https://en.wikipedia.org/wiki/Discrete_Laplace_operator). This matrix has at most five nonzero elements in each row. The times for sparse matrix (with CSR format) on CPU in seconds looks as follows:
 
-| Matrix rows and columns     |  STL Map     | `setElement` on host | `setElement` with `ParallelFor` | `getRow`    | `forElements`    |
+| Matrix rows and columns     |  STL Map     | `setElement` on host | `setElement` with `parallelFor` | `getRow`    | `forElements`    |
 |----------------------------:|-------------:|---------------------:|--------------------------------:|------------:|-----------------:|
 |                         256 |      0.00016 |             0.000017 |                        0.000014 |    0.000013 |         0.000020 |
 |                       1,024 |      0.00059 |             0.000044 |                        0.000021 |    0.000019 |         0.000022 |
@@ -265,9 +265,9 @@ Here:
 
 * **STL Map** tests show that use of STL Map can be very slow on large matrices and, of course, they need to allocate the map containing all the matrix elements. This can be memory consuming. On the other hand, it is the only way which does not require knowing the matrix row capacities in advance.
 * **setElement on host** tests are much faster compared to STL map, it does not need to allocate anything else except the sparse matrix. However, matrix row capacities must be known in advance.
-* **setElement with ParallelFor** tests run in parallel in several OpenMP threads and so this can be faster for larger matrices.
-* **getRow** tests perform the same as "setElement with ParallelFor".
-* **forElements** tests perform the same as both "setElement with ParallelFor" and "forElements".
+* **setElement with parallelFor** tests run in parallel in several OpenMP threads and so this can be faster for larger matrices.
+* **getRow** tests perform the same as "setElement with parallelFor".
+* **forElements** tests perform the same as both "setElement with parallelFor" and "forElements".
 
 We see, that the use of STL map makes sense only in situation when it is hard to estimate necessary row capacities. Otherwise very easy setup with `setElement` method is much faster. If the performance is the highest priority, `getRow` method should be preferred. The results for GPU are in the following table:
 
@@ -301,7 +301,7 @@ You can see the source code of the previous benchmark in [Appendix](#benchmark-o
 
 Finally, the following tables show the times of the same test performed with multidiagonal matrix. Times on CPU in seconds looks as follows:
 
-| Matrix rows and columns     |  `setElement` on host     | `setElement` with `ParallelFor` | `getRow`    | `forElements`   |
+| Matrix rows and columns     |  `setElement` on host     | `setElement` with `parallelFor` | `getRow`    | `forElements`   |
 |----------------------------:|--------------------------:|--------------------------------:|------------:|----------------:|
 |                         256 |                  0.000055 |                       0.0000038 |    0.000004 |        0.000009 |
 |                       1,024 |                  0.000002 |                       0.0000056 |    0.000003 |        0.000006 |
@@ -317,9 +317,9 @@ Finally, the following tables show the times of the same test performed with mul
 Here:
 
 * **setElement on host** tests show that this method is fairly efficient.
-* **setElement with ParallelFor** tests run in parallel in several OpenMP threads compared to "setElement on host" tests. For larger matrices, this way of matrix setup performs better.
-* **getRow** tests perform more or less the same as "setElement with ParallelFor" and `forElements`.
-* **forElements** tests perform more or less the same as "setElement with ParallelFor" and `getRow`.
+* **setElement with parallelFor** tests run in parallel in several OpenMP threads compared to "setElement on host" tests. For larger matrices, this way of matrix setup performs better.
+* **getRow** tests perform more or less the same as "setElement with parallelFor" and `forElements`.
+* **forElements** tests perform more or less the same as "setElement with parallelFor" and `getRow`.
 
 Note, that setup of multidiagonal matrix is faster compared to the same matrix stored in general sparse format. Results for GPU are in the following table:
 
@@ -338,7 +338,7 @@ Note, that setup of multidiagonal matrix is faster compared to the same matrix s
 
 * **setElement on host** tests are extremely slow again, especially for large matrices.
 * **setElement on host and copy** tests are much faster compared to the previous.
-* **setElement with ParallelFor** tests offer the best performance. They are even faster then `getRow` and `forElements` method. This, however, does not have be true for matrices having more nonzero elements in a row.
+* **setElement with parallelFor** tests offer the best performance. They are even faster then `getRow` and `forElements` method. This, however, does not have be true for matrices having more nonzero elements in a row.
 * **getRow** tests perform more or less the same as `forElements`. For matrices having more nonzero elements in a row this method could be faster than `setElement`.
 * **forElements** tests perform more or less the same as `getRow`.
 
@@ -380,11 +380,11 @@ As we can see, both methods can be called from the host no matter where the matr
 
 \include DenseMatrixExample_addElement.out
 
-More efficient way of the matrix initialization on GPU consists of calling the methods `setElement` and `addElement` (\ref TNL::Matrices::DenseMatrix::setElement, \ref TNL::Matrices::DenseMatrix::addElement) directly from GPU, for example by means of lambda function and `ParallelFor2D` (\ref TNL::Algorithms::ParallelFor2D). It is demonstrated in the following example (of course it works even on CPU):
+More efficient way of the matrix initialization on GPU consists of calling the methods `setElement` and `addElement` (\ref TNL::Matrices::DenseMatrix::setElement, \ref TNL::Matrices::DenseMatrix::addElement) directly from GPU, for example by means of lambda function and \ref TNL::Algorithms::parallelFor "parallelFor". It is demonstrated in the following example (of course it works even on CPU):
 
 \includelineno DenseMatrixViewExample_setElement.cpp
 
-Here we get the matrix view (\ref TNL::Matrices::DenseMatrixView) (line 10) to make the matrix accessible in lambda function even on GPU (see [Shared pointers and views](../GeneralConcepts/tutorial_GeneralConcepts.md) ). We first call the `setElement` method from CPU to set the `i`-th diagonal element to `i` (lines 11-12). Next we iterate over the matrix rows with `ParallelFor2D` (\ref TNL::Algorithms::ParallelFor2D) (line 20) and for each row we call the lambda function `f`. This is done on the same device where the matrix is allocated and so it we get optimal performance even for matrices on GPU. In the lambda function we add one to each matrix element (line 18). The result looks as follows:
+Here we get the matrix view (\ref TNL::Matrices::DenseMatrixView) (line 10) to make the matrix accessible in lambda function even on GPU (see [Shared pointers and views](../GeneralConcepts/tutorial_GeneralConcepts.md) ). We first call the `setElement` method from CPU to set the `i`-th diagonal element to `i` (lines 11-12). Next we iterate over the matrix rows with \ref TNL::Algorithms::parallelFor "parallelFor" (line 20) and for each row we call the lambda function `f`. This is done on the same device where the matrix is allocated and so it we get optimal performance even for matrices on GPU. In the lambda function we add one to each matrix element (line 18). The result looks as follows:
 
 \include DenseMatrixViewExample_setElement.out
 
@@ -393,13 +393,13 @@ Here we get the matrix view (\ref TNL::Matrices::DenseMatrixView) (line 10) to m
 This method is available for the dense matrix (\ref TNL::Matrices::DenseMatrix::getRow) mainly for two reasons:
 
 1. The method `getRow` is recommended for sparse matrices. In most cases, it is not optimal for dense matrices. However, if one needs to have one code for both dense and sparse matrices, this method is a good choice.
-2. In general, use of `setElement` (\ref TNL::Matrices::DenseMatrix::setElement) combined with `ParallelFor2D` (\ref TNL::Algorithms::ParallelFor2D) is preferred, for dense matrices, since it offers more parallelism for GPUs. `ParallelFor2D` creates one CUDA thread per each matrix element which is desirable for GPUs. With the use of the method `getRow` we have only one CUDA thread per each matrix row. This makes sense only in situation when we need to setup each matrix row sequentially.
+2. In general, use of `setElement` (\ref TNL::Matrices::DenseMatrix::setElement) combined with \ref TNL::Algorithms::parallelFor "parallelFor" is preferred, for dense matrices, since it offers more parallelism for GPUs. `parallelFor` creates one CUDA thread per each matrix element which is desirable for GPUs. With the use of the method `getRow` we have only one CUDA thread per each matrix row. This makes sense only in situation when we need to setup each matrix row sequentially.
 
 Here we show an example:
 
 \includelineno DenseMatrixViewExample_getRow.cpp
 
-Here we create the matrix on the line 10 and get the matrix view on the line 16. Next we use `ParallelFor` (\ref TNL::Algorithms::ParallelFor) (line 31) to iterate over the matrix rows and call the lambda function `f` (lines 19-26) for each of them. In the lambda function, we first fetch the matrix row by means of the method `getRow` (\ref TNL::Matrices::DenseMatrixView::getRow) and next we set the matrix elements by using the method `setElement` of the matrix row (\ref TNL::Matrices::DenseMatrixRowView::setElement). For the compatibility with the sparse matrices, use the variant of `setElement` with the parameter `localIdx`. It has no effect here, it is only for compatibility of the interface.
+Here we create the matrix on the line 10 and get the matrix view on the line 16. Next we use \ref TNL::Algorithms::parallelFor "parallelFor" (line 31) to iterate over the matrix rows and call the lambda function `f` (lines 19-26) for each of them. In the lambda function, we first fetch the matrix row by means of the method `getRow` (\ref TNL::Matrices::DenseMatrixView::getRow) and next we set the matrix elements by using the method `setElement` of the matrix row (\ref TNL::Matrices::DenseMatrixRowView::setElement). For the compatibility with the sparse matrices, use the variant of `setElement` with the parameter `localIdx`. It has no effect here, it is only for compatibility of the interface.
 
 The result looks as follows:
 
@@ -407,7 +407,7 @@ The result looks as follows:
 
 #### Method `forRows`
 
-This method iterates in parallel over all matrix rows. In fact, it combines \ref TNL::Algorithms::ParallelFor and \ref TNL::Matrices::DenseMatrix::getRow method in one. See the following example. It is even a bit simpler compared to the previous one:
+This method iterates in parallel over all matrix rows. In fact, it combines \ref TNL::Algorithms::parallelFor and \ref TNL::Matrices::DenseMatrix::getRow method in one. See the following example. It is even a bit simpler compared to the previous one:
 
 \includelineno DenseMatrixExample_forRows.cpp
 
@@ -425,7 +425,7 @@ The result looks as follows:
 
 \includelineno DenseMatrixExample_forElements.cpp
 
-We do not need any matrix view and instead of calling `ParallelFor` (\ref TNL::Algorithms::ParallelFor) we call just the method `forElements` (line 18). The lambda function `f` (line 11) must accept the following parameters:
+We do not need any matrix view and instead of calling \ref TNL::Algorithms::parallelFor "parallelFor" we call just the method `forElements` (line 18). The lambda function `f` (line 11) must accept the following parameters:
 
 * `rowIdx` is the row index of given matrix element.
 * `columnIdx` is the column index of given matrix element.
@@ -573,7 +573,7 @@ Another way of setting the sparse matrix is by means of the methods `setElement`
 
 \includelineno SparseMatrixViewExample_setElement.cpp
 
-We first allocate matrix with five rows (it is given by the size of the [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list) and columns and we set capacity each row to one (line 12). The first for-loop (lines 17-19) runs on CPU no matter where the matrix is allocated. After printing the matrix (lines 21-22), we call the lambda function `f` (lines 24-26) with a help of `ParallelFor` (\ref TNL::Algorithms::ParallelFor , line 28) which is device sensitive and so it runs on CPU or GPU depending on where the matrix is allocated. The result looks as follows:
+We first allocate matrix with five rows (it is given by the size of the [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list) and columns and we set capacity each row to one (line 12). The first for-loop (lines 17-19) runs on CPU no matter where the matrix is allocated. After printing the matrix (lines 21-22), we call the lambda function `f` (lines 24-26) with a help of \ref TNL::Algorithms::parallelFor "parallelFor" (line 28) which is device sensitive and so it runs on CPU or GPU depending on where the matrix is allocated. The result looks as follows:
 
 \include SparseMatrixExample_setElement.out
 
@@ -587,11 +587,11 @@ The result looks as follows:
 
 #### Method `getRow`
 
-More efficient method, especially for GPUs, is to combine `getRow` (\ref TNL::Matrices::SparseMatrix::getRow) method with `ParallelFor` (\ref TNL::Algorithms::ParallelFor) and lambda function as the following example demonstrates:
+More efficient method, especially for GPUs, is to combine `getRow` (\ref TNL::Matrices::SparseMatrix::getRow) method with \ref TNL::Algorithms::parallelFor "parallelFor" and lambda function as the following example demonstrates:
 
 \includelineno SparseMatrixExample_getRow.cpp
 
-On the line 21, we create small matrix having five rows (number of rows is given by the size of the [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list) ) and columns (number of columns is given by the second parameter) and we set each row capacity to one or three (particular elements of the initializer list). On the line 41, we call `ParallelFor` (\ref TNL::Algorithms::ParallelFor) to iterate over all matrix rows. Each row is processed by the lambda function `f` (lines 24-36). In the lambda function, we first fetch a sparse matrix row (\ref TNL::Matrices::SparseMatrixRowView) (line 25) which serves for accessing particular matrix elements in the matrix row. This object has a method `setElement` (\ref TNL::Matrices::SparseMatrixRowView::setElement) accepting three parameters:
+On the line 21, we create small matrix having five rows (number of rows is given by the size of the [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list) ) and columns (number of columns is given by the second parameter) and we set each row capacity to one or three (particular elements of the initializer list). On the line 41, we call \ref TNL::Algorithms::parallelFor "parallelFor" to iterate over all matrix rows. Each row is processed by the lambda function `f` (lines 24-36). In the lambda function, we first fetch a sparse matrix row (\ref TNL::Matrices::SparseMatrixRowView) (line 25) which serves for accessing particular matrix elements in the matrix row. This object has a method `setElement` (\ref TNL::Matrices::SparseMatrixRowView::setElement) accepting three parameters:
 
 1. `localIdx` is a rank of the nonzero element in given matrix row.
 2. `columnIdx` is the new column index of the matrix element.
@@ -610,7 +610,7 @@ The method `forRows` (\ref TNL::Matrices::SparseMatrix::forRows) calls the metho
 The differences are:
 
 1. We do not need to get the matrix view as we did in the previous example.
-2. We call the method `forAllRows` (\ref TNL::Matrices::SparseMatrix::forAllRows) instead of `ParallelFor` (\ref TNL::Algorithms::ParallelFor) which is simpler since we do not have to state the device type explicitly. The method `forAllRows` calls the method `forRows` for all matrix rows so we do not have to state explicitly the interval of matrix rows neither.
+2. We call the method `forAllRows` (\ref TNL::Matrices::SparseMatrix::forAllRows) instead of \ref TNL::Algorithms::parallelFor "parallelFor" which is simpler since we do not have to state the device type explicitly. The method `forAllRows` calls the method `forRows` for all matrix rows so we do not have to state explicitly the interval of matrix rows neither.
 3. The lambda function `f` (lines 27-39) accepts one parameter `row` of the type `RowView` (\ref TNL::Matrices::SparseMatrix::RowView which is \ref TNL::Matrices::SparseMatrixRowView) instead of the index of the matrix row. Therefore we do not need to call the method `getRow` (\ref TNL::Matrices::SparseMatrix::getRow). On the other hand, we need the method `geRowIndex` (\ref TNL::Matrices::SparseMatrixRowView::getRowIndex) to get the index of the matrix row (line 28).
 
 On the lines 46-52, we call a lambda function which computes sum of all elements in a row (lines 47-49) and it divides the row by the `sum` then (lines 50-51).
@@ -883,7 +883,7 @@ Here we create the matrix in two steps. Firstly, we setup the matrix dimensions 
 
 \include TridiagonalMatrixExample_setElements.out
 
-In the following example we create tridiagonal matrix with 5 rows and 5 columns (line 12-14) by the means of a shared pointer (\ref TNL::Pointers::SharedPointer) to make this work even on GPU. We set numbers 0,...,4 on the diagonal (line 16) and we print the matrix (line 18). Next we use a lambda function (lines 21-27) combined with parallel for (\ref TNL::Algorithms::ParallelFor) (line 35), to modify the matrix. The offdiagonal elements are set to 1 (lines 23 and 26) and for the diagonal elements, we change the sign (line 24).
+In the following example we create tridiagonal matrix with 5 rows and 5 columns (line 12-14) by the means of a shared pointer (\ref TNL::Pointers::SharedPointer) to make this work even on GPU. We set numbers 0,...,4 on the diagonal (line 16) and we print the matrix (line 18). Next we use a lambda function (lines 21-27) combined with \ref TNL::Algorithms::parallelFor "parallelFor" (line 35), to modify the matrix. The offdiagonal elements are set to 1 (lines 23 and 26) and for the diagonal elements, we change the sign (line 24).
 
 \includelineno TridiagonalMatrixExample_setElement.cpp
 
@@ -897,7 +897,7 @@ The result looks as follows:
 
 \includelineno TridiagonalMatrixViewExample_getRow.cpp
 
-We create a matrix with the same size (line 22-27). Next, we fetch the tridiagonal matrix view (ef TNL::Matrices::TridiagonalMatrixView ,line 28) which we use in the lambda function for matrix elements modification (lines 30-38). Inside the lambda function, we first get a matrix row by calling the method `getRow` (\ref TNL::Matrices::TridiagonalMatrixView::getRow) using which we can access the matrix elements (lines 33-37). We would like to stress that the method `setElement` addresses the matrix elements with the `localIdx` parameter which is a rank of the nonzero element in the matrix row - see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices). The lambda function is called by the `ParallelFor` (\ref TNL::Algorithms::ParallelFor).
+We create a matrix with the same size (line 22-27). Next, we fetch the tridiagonal matrix view (ef TNL::Matrices::TridiagonalMatrixView ,line 28) which we use in the lambda function for matrix elements modification (lines 30-38). Inside the lambda function, we first get a matrix row by calling the method `getRow` (\ref TNL::Matrices::TridiagonalMatrixView::getRow) using which we can access the matrix elements (lines 33-37). We would like to stress that the method `setElement` addresses the matrix elements with the `localIdx` parameter which is a rank of the nonzero element in the matrix row - see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices). The lambda function is called by the \ref TNL::Algorithms::parallelFor "parallelFor".
 
 The result looks as follows:
 
@@ -912,7 +912,7 @@ As in the case of other matrix types, the method `forRows` (\ref TNL::Matrices::
 The differences are:
 
 1. We do not need to get the matrix view as we did in the previous example.
-2. We call the method `forAllRows` (\ref TNL::Matrices::TridiagonalMatrix::forAllRows) (line 33) instead of `ParallelFor` (\ref TNL::Algorithms::ParallelFor) which is simpler since we do not have to state the device type explicitly. The method `forAllRows` calls the method `forRows` for all matrix rows so we do not have to state explicitly the interval of matrix rows neither.
+2. We call the method `forAllRows` (\ref TNL::Matrices::TridiagonalMatrix::forAllRows) (line 33) instead of \ref TNL::Algorithms::parallelFor "parallelFor" which is simpler since we do not have to state the device type explicitly. The method `forAllRows` calls the method `forRows` for all matrix rows so we do not have to state explicitly the interval of matrix rows neither.
 3. The lambda function `f` (lines 25-31) accepts one parameter `row` of the type `RowView` (\ref TNL::Matrices::TridiagonalMatrix::RowView which is \ref TNL::Matrices::TridiagonalMatrixRowView) instead of the index of the matrix row. Therefore we do not need to call the method `getRow` (\ref TNL::Matrices::TridiagonalMatrix::getRow). On the other hand, we need the method `geRowIndex` (\ref TNL::Matrices::TridiagonalMatrixRowView::getRowIndex) to get the index of the matrix row (line 24).
 
 Next, we compute sum of absolute values of matrix elements in each row and store it in a vector (lines 39-46). Firstly we create the vector `sum_vector` for storing the sums (line 39) and get a vector view `sum_view` to get access to the vector from a lambda function. On the lines 41-46, we call lambda function for each matrix row which iterates over all matrix elements and sum their absolute values. Finally we store the result to the output vector (line 45).
@@ -927,7 +927,7 @@ Finally, even a bit more simple way of matrix elements manipulation with the met
 
 \includelineno TridiagonalMatrixViewExample_forElements.cpp
 
-On the line 41, we call the method `forElements` (\ref TNL::Matrices::TridiagonalMatrix::forElements) instead of parallel for (\ref TNL::Algorithms::ParallelFor). This method iterates over all matrix rows and all nonzero matrix elements. The lambda function on the line 24 therefore do not receive only the matrix row index but also local index of the matrix element (`localIdx`) which is a rank of the nonzero matrix element in given row  - see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices). Next parameter, `columnIdx` received by the lambda function, is the column index of the matrix element. The fourth parameter `value` is a reference on the matrix element which we use for its modification. If the last parameter `compute` is set to false, the iterations over the matrix rows is terminated.
+On the line 41, we call the method `forElements` (\ref TNL::Matrices::TridiagonalMatrix::forElements) instead of \ref TNL::Algorithms::parallelFor "parallelFor". This method iterates over all matrix rows and all nonzero matrix elements. The lambda function on the line 24 therefore do not receive only the matrix row index but also local index of the matrix element (`localIdx`) which is a rank of the nonzero matrix element in given row  - see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices). Next parameter, `columnIdx` received by the lambda function, is the column index of the matrix element. The fourth parameter `value` is a reference on the matrix element which we use for its modification. If the last parameter `compute` is set to false, the iterations over the matrix rows is terminated.
 
 The result looks as follows:
 
@@ -1173,7 +1173,7 @@ The matrix is constructed by iterating over particular nodes of the numerical gr
 \right)
 \f]
 
-We use `ParallelFor2D` (\ref TNL::Algorithms::ParallelFor2D) to iterate over all nodes of the numerical grid (line 36) and apply the lambda function. The result looks as follows:
+We use \ref TNL::Algorithms::parallelFor "parallelFor" to iterate over all nodes of the numerical grid (line 36) and apply the lambda function. The result looks as follows:
 
 \include MultidiagonalMatrixExample_Constructor.out
 
@@ -1183,7 +1183,7 @@ As in the case of other matrix types, the method `forRows` (\ref TNL::Matrices::
 
 \includelineno MultidiagonalMatrixExample_forRows.cpp
 
- We call the method `forAllRows` (\ref TNL::Matrices::MultidiagonalMatrix::forAllRows) (line 36) instead of `ParallelFor` (\ref TNL::Algorithms::ParallelFor) which is simpler since we do not have to state the device type explicitly. The method `forAllRows` calls the method `forRows` for all matrix rows so we do not have to state explicitly the interval of matrix rows neither. The lambda function `f` (lines 28-35) accepts one parameter `row` of the type `RowView` (\ref TNL::Matrices::MultidiagonalMatrix::RowView which is \ref TNL::Matrices::MultidiagonalMatrixRowView). At the beginning of the lambda function, we call the method `geRowIndex` (\ref TNL::Matrices::MultidiagonalMatrixRowView::getRowIndex) to get the index of the matrix row (line 29).
+ We call the method `forAllRows` (\ref TNL::Matrices::MultidiagonalMatrix::forAllRows) (line 36) instead of \ref TNL::Algorithms::parallelFor "parallelFor" which is simpler since we do not have to state the device type explicitly. The method `forAllRows` calls the method `forRows` for all matrix rows so we do not have to state explicitly the interval of matrix rows neither. The lambda function `f` (lines 28-35) accepts one parameter `row` of the type `RowView` (\ref TNL::Matrices::MultidiagonalMatrix::RowView which is \ref TNL::Matrices::MultidiagonalMatrixRowView). At the beginning of the lambda function, we call the method `geRowIndex` (\ref TNL::Matrices::MultidiagonalMatrixRowView::getRowIndex) to get the index of the matrix row (line 29).
 
 Next, we compute sum of absolute values of matrix elements in each row and store it in a vector (lines 39-46). Firstly we create the vector `sum_vector` for storing the sums (line 39) and get a vector view `sum_view` to get access to the vector from a lambda function. On the lines 41-46, we call lambda function for each matrix row which iterates over all matrix elements and sum their absolute values. Finally we store the result to the output vector (line 45).
 

@@ -2,9 +2,11 @@
 #include <fstream>
 #include <TNL/Solvers/ODE/StaticEuler.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/StaticArray.h>
 
 using Real = double;
+using MultiIndex = TNL::Containers::StaticArray< 3, int >;
 
 template< typename Device >
 void solveParallelODEs( const char* file_name )
@@ -33,26 +35,28 @@ void solveParallelODEs( const char* file_name )
          fu[ 1 ] = rho_j * x - y - x * z;
          fu[ 2 ] = -beta_k * z + x * y;
       };
-   auto solve = [=] __cuda_callable__ ( int i, int j, int k ) mutable {
-      const Real sigma_i = sigma_min + i * sigma_step;
-      const Real rho_j   = rho_min + j * rho_step;
-      const Real beta_k  = beta_min + k * beta_step;
+   auto solve = [=] __cuda_callable__ ( const MultiIndex& i ) mutable {
+      const Real sigma_i = sigma_min + i[ 0 ] * sigma_step;
+      const Real rho_j   = rho_min + i[ 1 ] * rho_step;
+      const Real beta_k  = beta_min + i[ 2 ] * beta_step;
 
       ODESolver solver;
       solver.setTau(  tau );
       solver.setTime( 0.0 );
       Vector u( 1.0, 1.0, 1.0 );
       int time_step( 1 );
-      results_view[ ( i * parametric_steps + j ) * parametric_steps + k ] = u;
+      results_view[ ( i[ 0 ] * parametric_steps + i[ 1 ] ) * parametric_steps + i[ 2 ] ] = u;
       while( time_step < output_time_steps )
       {
          solver.setStopTime( TNL::min( solver.getTime() + output_time_step, final_t ) );
          solver.solve( u, f, sigma_i, rho_j, beta_k );
-         const int idx = ( ( time_step++ * parametric_steps + i ) * parametric_steps + j ) * parametric_steps + k;
+         const int idx = ( ( time_step++ * parametric_steps + i[ 0 ] ) * parametric_steps + i[ 1 ] ) * parametric_steps + i[ 2 ];
          results_view[ idx ] = u;
       }
    };
-   TNL::Algorithms::ParallelFor3D< Device >::exec( 0, 0, 0, parametric_steps, parametric_steps, parametric_steps, solve );
+   const MultiIndex begin = { 0, 0, 0 };
+   const MultiIndex end = { parametric_steps, parametric_steps, parametric_steps };
+   TNL::Algorithms::parallelFor< Device >( begin, end, solve );
 
    std::fstream file;
    file.open( file_name, std::ios::out );

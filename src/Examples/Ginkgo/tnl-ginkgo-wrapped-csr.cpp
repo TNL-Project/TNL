@@ -94,7 +94,7 @@ main( int argc, char* argv[] )
    auto solver = solver_factory->generate( gko_A );
 
    // Solve system
-   solver->apply( lend( gko_b ), lend( gko_x ) );
+   solver->apply( gko_b, gko_x );
 
    // Write the result
    std::cout << "converged: " << logger->has_converged() << "\n"

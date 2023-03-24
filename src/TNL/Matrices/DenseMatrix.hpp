@@ -8,7 +8,8 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Matrices/DenseMatrix.h>
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/StaticArray.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
 namespace TNL {
@@ -843,13 +844,17 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=(
          ////
          // Copy matrix elements from the buffer to the matrix.
          auto this_view = this->view;
-         auto f2 = [ = ] __cuda_callable__( IndexType columnIdx, IndexType bufferRowIdx ) mutable
+         using MultiIndex = Containers::StaticArray< 2, IndexType >;
+         auto f2 = [ = ] __cuda_callable__( const MultiIndex& i ) mutable
          {
-            IndexType bufferIdx = bufferRowIdx * maxRowLength + columnIdx;
+            const IndexType& columnIdx = i[ 0 ];
+            const IndexType& bufferRowIdx = i[ 1 ];
+            const IndexType bufferIdx = bufferRowIdx * maxRowLength + columnIdx;
             this_view( baseRow + bufferRowIdx, columnIdx ) = thisValuesBuffer_view[ bufferIdx ];
          };
-         Algorithms::ParallelFor2D< DeviceType >::exec(
-            (IndexType) 0, (IndexType) 0, maxRowLength, (IndexType) min( bufferRowsCount, this->getRows() - baseRow ), f2 );
+         MultiIndex begin = { 0, 0 };
+         MultiIndex end = { maxRowLength, (IndexType) min( bufferRowsCount, this->getRows() - baseRow ) };
+         Algorithms::parallelFor< DeviceType >( begin, end, f2 );
          baseRow += bufferRowsCount;
       }
    }
@@ -925,15 +930,19 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=( cons
          ////
          // Copy matrix elements from the buffer to the matrix
          auto this_view = this->view;
-         auto f2 = [ = ] __cuda_callable__( IndexType bufferColumnIdx, IndexType bufferRowIdx ) mutable
+         using MultiIndex = Containers::StaticArray< 2, IndexType >;
+         auto f2 = [ = ] __cuda_callable__( const MultiIndex& i ) mutable
          {
-            IndexType bufferIdx = bufferRowIdx * maxRowLength + bufferColumnIdx;
-            IndexType columnIdx = thisColumnsBuffer_view[ bufferIdx ];
+            const IndexType& bufferColumnIdx = i[ 0 ];
+            const IndexType& bufferRowIdx = i[ 1 ];
+            const IndexType bufferIdx = bufferRowIdx * maxRowLength + bufferColumnIdx;
+            const IndexType columnIdx = thisColumnsBuffer_view[ bufferIdx ];
             if( columnIdx != padding_index )
                this_view( baseRow + bufferRowIdx, columnIdx ) = thisValuesBuffer_view[ bufferIdx ];
          };
-         Algorithms::ParallelFor2D< DeviceType >::exec(
-            (IndexType) 0, (IndexType) 0, maxRowLength, (IndexType) min( bufferRowsCount, this->getRows() - baseRow ), f2 );
+         MultiIndex begin = { 0, 0 };
+         MultiIndex end = { maxRowLength, min( bufferRowsCount, this->getRows() - baseRow ) };
+         Algorithms::parallelFor< DeviceType >( begin, end, f2 );
          baseRow += bufferRowsCount;
       }
    }

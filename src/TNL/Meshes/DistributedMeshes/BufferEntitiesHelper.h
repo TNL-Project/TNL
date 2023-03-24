@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <TNL/Algorithms/ParallelFor.h>
-#include <TNL/Containers/StaticVector.h>
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/StaticArray.h>
 
 namespace TNL {
 namespace Meshes {
@@ -30,8 +30,8 @@ public:
                    const MaskPointer& maskPointer,
                    RealType* buffer,
                    bool isBoundary,
-                   const Containers::StaticVector< 1, Index >& begin,
-                   const Containers::StaticVector< 1, Index >& size,
+                   const Containers::StaticArray< 1, Index >& begin,
+                   const Containers::StaticArray< 1, Index >& size,
                    bool tobuffer )
    {
       Index beginx = begin.x();
@@ -54,7 +54,7 @@ public:
                meshFunctionData[ entity.getIndex() ] = buffer[ j ];
          }
       };
-      Algorithms::ParallelFor< Device >::exec( 0, sizex, kernel );
+      Algorithms::parallelFor< Device >( 0, sizex, kernel );
    }
 };
 
@@ -67,36 +67,31 @@ public:
                    const MaskPointer& maskPointer,
                    RealType* buffer,
                    bool isBoundary,
-                   const Containers::StaticVector< 2, Index >& begin,
-                   const Containers::StaticVector< 2, Index >& size,
+                   const Containers::StaticArray< 2, Index >& begin,
+                   const Containers::StaticArray< 2, Index >& size,
                    bool tobuffer )
    {
-      Index beginx = begin.x();
-      Index beginy = begin.y();
-      Index sizex = size.x();
-      Index sizey = size.y();
-
       auto* mesh = &meshFunction.getMeshPointer().template getData< Device >();
       RealType* meshFunctionData = meshFunction.getData().getData();
       const typename MaskPointer::ObjectType* mask( nullptr );
       if( maskPointer )
          mask = &maskPointer.template getData< Device >();
 
-      auto kernel = [ tobuffer, mask, mesh, buffer, isBoundary, meshFunctionData, beginx, sizex, beginy ] __cuda_callable__(
-                       Index i, Index j )
+      auto kernel = [ tobuffer, mask, mesh, buffer, isBoundary, meshFunctionData, begin, size ] __cuda_callable__(
+                       const Containers::StaticArray< 2, Index >& i )
       {
          typename MeshFunctionType::MeshType::Cell entity( *mesh );
-         entity.getCoordinates().x() = beginx + i;
-         entity.getCoordinates().y() = beginy + j;
+         entity.getCoordinates().x() = begin.x() + i.x();
+         entity.getCoordinates().y() = begin.y() + i.y();
          entity.refresh();
          if( ! isBoundary || ! mask || ( *mask )[ entity.getIndex() ] ) {
             if( tobuffer )
-               buffer[ j * sizex + i ] = meshFunctionData[ entity.getIndex() ];
+               buffer[ i.y() * size.x() + i.x() ] = meshFunctionData[ entity.getIndex() ];
             else
-               meshFunctionData[ entity.getIndex() ] = buffer[ j * sizex + i ];
+               meshFunctionData[ entity.getIndex() ] = buffer[ i.y() * size.x() + i.x() ];
          }
       };
-      Algorithms::ParallelFor2D< Device >::exec( 0, 0, sizex, sizey, kernel );
+      Algorithms::parallelFor< Device >( Containers::StaticArray< 2, Index >{ 0, 0 }, size, kernel );
    }
 };
 
@@ -109,39 +104,31 @@ public:
                    const MaskPointer& maskPointer,
                    RealType* buffer,
                    bool isBoundary,
-                   const Containers::StaticVector< 3, Index >& begin,
-                   const Containers::StaticVector< 3, Index >& size,
+                   const Containers::StaticArray< 3, Index >& begin,
+                   const Containers::StaticArray< 3, Index >& size,
                    bool tobuffer )
    {
-      Index beginx = begin.x();
-      Index beginy = begin.y();
-      Index beginz = begin.z();
-      Index sizex = size.x();
-      Index sizey = size.y();
-      Index sizez = size.z();
-
       auto* mesh = &meshFunction.getMeshPointer().template getData< Device >();
       RealType* meshFunctionData = meshFunction.getData().getData();
       const typename MaskPointer::ObjectType* mask( nullptr );
       if( maskPointer )
          mask = &maskPointer.template getData< Device >();
-      auto kernel =
-         [ tobuffer, mesh, mask, buffer, isBoundary, meshFunctionData, beginx, sizex, beginy, sizey, beginz ] __cuda_callable__(
-            Index i, Index j, Index k )
+      auto kernel = [ tobuffer, mesh, mask, buffer, isBoundary, meshFunctionData, begin, size ] __cuda_callable__(
+                       const Containers::StaticArray< 3, Index >& i )
       {
          typename MeshFunctionType::MeshType::Cell entity( *mesh );
-         entity.getCoordinates().x() = beginx + i;
-         entity.getCoordinates().y() = beginy + j;
-         entity.getCoordinates().z() = beginz + k;
+         entity.getCoordinates().x() = begin.x() + i.x();
+         entity.getCoordinates().y() = begin.y() + i.y();
+         entity.getCoordinates().z() = begin.z() + i.z();
          entity.refresh();
          if( ! isBoundary || ! mask || ( *mask )[ entity.getIndex() ] ) {
             if( tobuffer )
-               buffer[ k * sizex * sizey + j * sizex + i ] = meshFunctionData[ entity.getIndex() ];
+               buffer[ i.z() * size.x() * size.y() + i.y() * size.x() + i.x() ] = meshFunctionData[ entity.getIndex() ];
             else
-               meshFunctionData[ entity.getIndex() ] = buffer[ k * sizex * sizey + j * sizex + i ];
+               meshFunctionData[ entity.getIndex() ] = buffer[ i.z() * size.x() * size.y() + i.y() * size.x() + i.x() ];
          }
       };
-      Algorithms::ParallelFor3D< Device >::exec( 0, 0, 0, sizex, sizey, sizez, kernel );
+      Algorithms::parallelFor< Device >( Containers::StaticArray< 3, Index >{ 0, 0, 0 }, size, kernel );
    }
 };
 

@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/StaticArray.h>
+
 #include "HeatEquationSolverBenchmark.h"
 
 template< typename Real = double,
@@ -29,9 +32,9 @@ struct HeatEquationSolverBenchmarkParallelFor : public HeatEquationSolverBenchma
       {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
-         auto next = [=] __cuda_callable__( Index i, Index j ) mutable
+         auto next = [=] __cuda_callable__( const TNL::Containers::StaticArray< 2, int >& i ) mutable
          {
-            auto index = j * xSize + i;
+            auto index = i.y() * xSize + i.x();
             auto element = uxView[index];
             auto center = 2 * element;
 
@@ -39,7 +42,10 @@ struct HeatEquationSolverBenchmarkParallelFor : public HeatEquationSolverBenchma
                                          (uxView[index - xSize] - center + uxView[index + xSize]) * hy_inv   ) * timestep;
          };
 
-         TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize - 1, ySize - 1, next );
+         const TNL::Containers::StaticArray< 2, int > begin = { 1, 1 };
+         const TNL::Containers::StaticArray< 2, int > end = { xSize - 1, ySize - 1 };
+         TNL::Algorithms::parallelFor< Device >( begin, end, next );
+
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;

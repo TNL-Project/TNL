@@ -195,7 +195,7 @@ main( int argc, char* argv[] )
    // Solve the system
    TNL::Timer t;
    t.start();
-   solver->apply( lend( gko_b ), lend( gko_x ) );
+   solver->apply( gko_b, gko_x );
    t.stop();
 
    // Write the result
