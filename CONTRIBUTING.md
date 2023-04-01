@@ -36,11 +36,11 @@ code.
 
 The continuous integration on Gitlab features a code linting job using
 [clang-tidy](https://clang.llvm.org/extra/clang-tidy/) to help developers
-diagnosing and fixing common programming errors. The configuration is provided
+diagnose and fix common programming errors. The configuration is provided
 in the [.clang-tidy](src/.clang-tidy) file. Various editors and IDEs provide
 [integrations](https://clang.llvm.org/extra/clang-tidy/Integrations.html) either
 directly for _clang-tidy_ or for [clangd](https://clangd.llvm.org/) (which
-integrates _clang-tidy_). This way you can get full linting directly in your
+integrates _clang-tidy_). This way, you can get full linting directly in your
 editor without having to rely on the continuous integration.
 
 ## How to configure git
@@ -60,18 +60,18 @@ in the past, you can also add secondary email addresses to the Gitlab profile.
 
 ## How to write good commit messages
 
-Begin with a short summary line a.k.a. message subject:
+Begin with a short summary line, a.k.a. message subject:
 
 - Use up to 50 characters; this is the git official preference.
 - Finish without a sentence-ending period.
 
-Continue with a longer description a.k.a. message body:
+Continue with a longer description, a.k.a. message body:
 
 - Add a blank line after the summary line, then write as much as you want.
 - Use up to 72 characters per line for typical text for word wrap.
 - Use as many characters as needed for atypical text, such as URLs, terminal
   output, formatted messages, etc.
-- Include any kind of notes, links, examples, etc. as you want.
+- Include any kind of notes, links, examples, etc.
 
 See [5 Useful Tips For A Better Commit Message](
 https://robots.thoughtbot.com/5-useful-tips-for-a-better-commit-message) and
