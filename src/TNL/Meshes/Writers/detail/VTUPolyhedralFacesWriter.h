@@ -9,7 +9,7 @@
 #include <type_traits>  // std::enable_if_t
 
 #include <TNL/Containers/ArrayView.h>
-#include <TNL/Meshes/Grid.h>
+#include <TNL/Meshes/Traits.h>
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 
 namespace TNL {
@@ -21,15 +21,23 @@ namespace detail {
 template< typename Mesh >
 struct VTUPolyhedralFacesWriter
 {
+   // specialization for non-mesh types
+   template< typename W, typename M >
+   static std::enable_if_t< ! isMesh< M >::value >
+   exec( W& writer, const M& mesh )
+   {}
+
    // specialization for all meshes except polyhedral
    template< typename W, typename M >
-   static std::enable_if_t< ! std::is_same< typename M::Config::CellTopology, Topologies::Polyhedron >::value >
+   static std::enable_if_t< isMesh< M >::value
+                            && ! std::is_same< typename M::Config::CellTopology, Topologies::Polyhedron >::value >
    exec( W& writer, const M& mesh )
    {}
 
    // specialization for polyhedral meshes
    template< typename W, typename M >
-   static std::enable_if_t< std::is_same< typename M::Config::CellTopology, Topologies::Polyhedron >::value >
+   static std::enable_if_t< isMesh< M >::value
+                            && std::is_same< typename M::Config::CellTopology, Topologies::Polyhedron >::value >
    exec( W& writer, const M& mesh )
    {
       // build the "face stream" for VTK
@@ -60,16 +68,6 @@ struct VTUPolyhedralFacesWriter
       writer.writeDataArray( faces_v, "faces", 0 );
       writer.writeDataArray( faceoffsets_v, "faceoffsets", 0 );
    }
-};
-
-// specialization for grids
-template< int Dimension, typename MeshReal, typename Device, typename MeshIndex >
-struct VTUPolyhedralFacesWriter< Meshes::Grid< Dimension, MeshReal, Device, MeshIndex > >
-{
-   template< typename W, typename M >
-   static void
-   exec( W& writer, const M& mesh )
-   {}
 };
 
 }  // namespace detail
