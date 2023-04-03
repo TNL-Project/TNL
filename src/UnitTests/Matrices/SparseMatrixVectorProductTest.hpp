@@ -65,6 +65,16 @@ void test_VectorProduct_smallMatrix1()
    EXPECT_EQ( outVector_1.getElement( 1 ), 10 );
    EXPECT_EQ( outVector_1.getElement( 2 ),  8 );
    EXPECT_EQ( outVector_1.getElement( 3 ), 10 );
+
+   // Test transposedVectorProduct
+   Matrix m_1_transposed;
+   m_1_transposed.getTransposition( m_1 );
+   VectorType inVector_1_transposed( m_rows_1, 1.0 );
+   VectorType outVector_1_transposed( m_cols_1, 0.0 );
+   VectorType outVector_2_transposed( m_cols_1, 0.0 );
+   m_1_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+   m_1.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+   EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
 }
 
 template< typename Matrix, typename Kernel >
