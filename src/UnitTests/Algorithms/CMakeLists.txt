@@ -1,3 +1,4 @@
+ADD_SUBDIRECTORY( Graphs )
 ADD_SUBDIRECTORY( Segments )
 ADD_SUBDIRECTORY( Sorting )
 
