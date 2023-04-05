@@ -131,6 +131,16 @@ void test_VectorProduct_smallMatrix2()
    EXPECT_EQ( outVector_2.getElement( 1 ),  8 );
    EXPECT_EQ( outVector_2.getElement( 2 ), 36 );
    EXPECT_EQ( outVector_2.getElement( 3 ), 16 );
+
+   // Test transposedVectorProduct
+   Matrix m_2_transposed;
+   m_2_transposed.getTransposition( m_2 );
+   VectorType inVector_1_transposed( m_rows_2, 1.0 );
+   VectorType outVector_1_transposed( m_cols_2, 0.0 );
+   VectorType outVector_2_transposed( m_cols_2, 0.0 );
+   m_2_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+   m_2.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+   EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
 }
 
 template< typename Matrix, typename Kernel >
@@ -188,6 +198,17 @@ void test_VectorProduct_smallMatrix3()
    EXPECT_EQ( outVector_3.getElement( 1 ), 30 );
    EXPECT_EQ( outVector_3.getElement( 2 ), 48 );
    EXPECT_EQ( outVector_3.getElement( 3 ), 66 );
+
+   // Test transposedVectorProduct
+   Matrix m_3_transposed;
+   m_3_transposed.getTransposition( m_3 );
+   VectorType inVector_1_transposed( m_rows_3, 1.0 );
+   VectorType outVector_1_transposed( m_cols_3, 0.0 );
+   VectorType outVector_2_transposed( m_cols_3, 0.0 );
+   m_3_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+   m_3.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+   EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+
 }
 
 template< typename Matrix, typename Kernel >
@@ -267,6 +288,16 @@ void test_VectorProduct_mediumSizeMatrix1()
    EXPECT_EQ( outVector_4.getElement( 5 ), 188 );
    EXPECT_EQ( outVector_4.getElement( 6 ), 280 );
    EXPECT_EQ( outVector_4.getElement( 7 ), 330 );
+
+   // Test transposedVectorProduct
+   Matrix m_4_transposed;
+   m_4_transposed.getTransposition( m_4 );
+   VectorType inVector_1_transposed( m_rows_4, 1.0 );
+   VectorType outVector_1_transposed( m_cols_4, 0.0 );
+   VectorType outVector_2_transposed( m_cols_4, 0.0 );
+   m_4_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+   m_4.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+   EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
 }
 
 template< typename Matrix, typename Kernel >
@@ -351,8 +382,17 @@ void test_VectorProduct_mediumSizeMatrix2()
    EXPECT_EQ( outVector_5.getElement( 5 ), 224 );
    EXPECT_EQ( outVector_5.getElement( 6 ), 352 );
    EXPECT_EQ( outVector_5.getElement( 7 ), 520 );
-}
 
+   // Test transposedVectorProduct
+   Matrix m_5_transposed;
+   m_5_transposed.getTransposition( m_5 );
+   VectorType inVector_1_transposed( m_rows_5, 1.0 );
+   VectorType outVector_1_transposed( m_cols_5, 0.0 );
+   VectorType outVector_2_transposed( m_cols_5, 0.0 );
+   m_5_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+   m_5.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+   EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+}
 
 template< typename Matrix, typename Kernel >
 void test_VectorProduct_largeMatrix()
