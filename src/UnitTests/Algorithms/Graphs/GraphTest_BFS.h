@@ -18,7 +18,8 @@ protected:
 // types for which MatrixTest is instantiated
 using GraphTestTypes = ::testing::Types
 <
-    TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int >
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Sequential, int >,
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int >
 #ifdef __CUDACC__
    ,TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int >
 #endif
@@ -38,11 +39,11 @@ TYPED_TEST( GraphTest, test_BFS_small )
         5, // number of matrix rows
         5, // number of matrix columns
         {  // matrix elements definition
-            {0, 1, 1.0}, {0, 2, 1.0},
-            {1, 0, 1.0}, {1, 3, 1.0}, {1, 4, 1.0},
-            {2, 0, 1.0}, {2, 3, 1.0},
-            {3, 1, 1.0}, {3, 2, 1.0}, {3, 4, 1.0},
-            {4, 1, 1.0}, {4, 3, 1.0},
+                         {0, 1, 1.0}, {0, 2, 1.0},
+            {1, 0, 1.0},                           {1, 3, 1.0}, {1, 4, 1.0},
+            {2, 0, 1.0},                           {2, 3, 1.0},
+                         {3, 1, 1.0}, {3, 2, 1.0},              {3, 4, 1.0},
+                         {4, 1, 1.0},              {4, 3, 1.0},
         });
 
    VectorType distances( matrix.getRows() );
@@ -73,16 +74,16 @@ TYPED_TEST( GraphTest, test_BFS_larger )
         10, // number of matrix rows
         10, // number of matrix columns
         {  // matrix elements definition
-            {0, 1, 1.0}, {0, 2, 1.0},
-            {1, 0, 1.0}, {1, 3, 1.0}, {1, 4, 1.0},
-            {2, 0, 1.0}, {2, 3, 1.0}, {2, 5, 1.0},
-            {3, 1, 1.0}, {3, 2, 1.0}, {3, 4, 1.0}, {3, 6, 1.0},
-            {4, 1, 1.0}, {4, 3, 1.0}, {4, 7, 1.0},
-            {5, 2, 1.0}, {5, 6, 1.0}, {5, 8, 1.0},
-            {6, 3, 1.0}, {6, 5, 1.0}, {6, 9, 1.0},
-            {7, 4, 1.0}, {7, 8, 1.0},
-            {8, 5, 1.0}, {8, 7, 1.0}, {8, 9, 1.0},
-            {9, 6, 1.0}, {9, 8, 1.0},
+                         {0, 1, 1.0}, {0, 2, 1.0},
+            {1, 0, 1.0},                           {1, 3, 1.0}, {1, 4, 1.0},
+            {2, 0, 1.0}, {2, 3, 1.0},                                        {2, 5, 1.0},
+                         {3, 1, 1.0}, {3, 2, 1.0},              {3, 4, 1.0},             {3, 6, 1.0},
+                         {4, 1, 1.0},              {4, 3, 1.0},                                       {4, 7, 1.0},
+                                      {5, 2, 1.0},                                       {5, 6, 1.0},               {5, 8, 1.0},
+                                                   {6, 3, 1.0},              {6, 5, 1.0},                                        {6, 9, 1.0},
+                                                                {7, 4, 1.0},                                        {7, 8, 1.0},
+                                                                             {8, 5, 1.0},              {8, 7, 1.0},              {8, 9, 1.0},
+                                                                                          {9, 6, 1.0},               {9, 8, 1.0},
         });
 
    VectorType distances( matrix.getRows() );
