@@ -525,8 +525,9 @@ transposedVectorProduct( const InVector& inVector,
 
    using OutVectorReal = typename OutVector::RealType;
    static_assert(  ! std::is_same< Device, Devices::Cuda >::value
-                  || ( std::is_same< OutVectorReal, float >::value || std::is_same< OutVectorReal, double >::value
-                  || std::is_same< OutVectorReal, int >::value || std::is_same< OutVectorReal, long long int >::value ),
+                  || ( std::is_same< OutVectorReal, float >::value || std::is_same< OutVectorReal, double >::value ||
+                       std::is_same< OutVectorReal, int >::value || std::is_same< OutVectorReal, long long int >::value ||
+                       std::is_same< OutVectorReal, long >::value  ),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
    const auto inVectorView = inVector.getConstView();

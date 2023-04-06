@@ -1,5 +1,6 @@
 set( COMMON_TESTS
             GraphTest_BFS
+            GraphTest_SSSP
 )
 
 set( CPP_TESTS )
