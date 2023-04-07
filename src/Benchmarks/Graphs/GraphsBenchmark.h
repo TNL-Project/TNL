@@ -13,6 +13,7 @@
 #include <TNL/Benchmarks/Benchmarks.h>
 #include <TNL/Algorithms/Graphs/GraphReader.h>
 #include <TNL/Algorithms/Graphs/breadthFirstSearch.h>
+#include <TNL/Algorithms/Graphs/singleSourceShortestPath.h>
 #include "BoostGraph.h"
 
 template< typename Real = double,
@@ -36,7 +37,8 @@ struct GraphsBenchmark
    bool runBenchmark( const TNL::Config::ParameterContainer& parameters )
    {
       using Matrix = TNL::Matrices::SparseMatrix<Real, Device, Index>;
-      using Vector = TNL::Containers::Vector<Index, Device, Index>;
+      using IndexVector = TNL::Containers::Vector<Index, Device, Index>;
+      using RealVector = TNL::Containers::Vector<Real, Device, Index>;
       auto inputFile = parameters.getParameter< TNL::String >( "input-file" );
       const TNL::String logFileName = parameters.getParameter< TNL::String >( "log-file" );
       const TNL::String outputMode = parameters.getParameter< TNL::String >( "output-mode" );
@@ -68,15 +70,29 @@ struct GraphsBenchmark
       Matrix adjacencyMatrix;
       std::cout << "Reading graph from file " << inputFile << std::endl;
       TNL::Algorithms::Graphs::GraphReader< Matrix >::readEdgeList( inputFile, adjacencyMatrix );
-      Vector distances( adjacencyMatrix.getRows(), 0 );
 
+      // Benchmarking breadth-first search
+      IndexVector distances( adjacencyMatrix.getRows(), 0 );
       TNL::Algorithms::Graphs::breadthFirstSearch( adjacencyMatrix, 0, distances );
 
-      BoostGraph boostGraph( adjacencyMatrix );
+      BoostGraph< Index, Real > boostGraph( adjacencyMatrix );
       std::vector< Index > boostDistances;
       boostGraph.breadthFirstSearch( 0, boostDistances );
-      Vector boost_v( boostDistances );
+      IndexVector boost_v( boostDistances );
       if( distances != boost_v )
+      {
+         std::cout << "ERROR: Distances do not match!" << std::endl;
+         return false;
+      }
+
+      // Benchamrking single-source shortest paths
+      RealVector real_distances( adjacencyMatrix.getRows(), 0 );
+      TNL::Algorithms::Graphs::singleSourceShortestPath( adjacencyMatrix, 0, real_distances );
+
+      std::vector< Real > boostRealDistances;
+      boostGraph.singleSourceShortestPath( 0, boostRealDistances );
+      IndexVector boost_v_real( boostRealDistances );
+      if( real_distances != boost_v_real )
       {
          std::cout << "ERROR: Distances do not match!" << std::endl;
          return false;

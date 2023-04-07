@@ -4,6 +4,7 @@
 #include <string>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/graph_utility.hpp>
 
 using namespace std;
@@ -24,10 +25,12 @@ struct bfs_distance_visitor : public boost::default_bfs_visitor {
 };
 
 
-template< typename Index = int >
+template< typename Index = int,
+          typename Real = double >
 struct BoostGraph
 {
-   using AdjacencyList = boost::adjacency_list< boost::vecS, boost::vecS, boost::directedS >;
+   using EdgeWeightProperty = boost::property<boost::edge_weight_t, Real > ;
+   using AdjacencyList = boost::adjacency_list< boost::vecS, boost::vecS, boost::directedS, boost::no_property, EdgeWeightProperty >;
    using IndexType = Index;
 
    BoostGraph(){}
@@ -62,6 +65,25 @@ struct BoostGraph
 
       ::bfs_distance_visitor distance_visitor( distances );
       boost::breadth_first_search(graph, boost::vertex(0, graph), boost::visitor( distance_visitor ) );
+   }
+
+   void singleSourceShortestPath( Index start, std::vector< Real >& distances )
+   {
+      // Define a distance map to store distances from the source vertex
+      distances.resize( boost::num_vertices(graph) );
+
+      // Compute the shortest paths from the source vertex (vertex 0) using Dijkstra's algorithm
+      //boost::Vertex source_vertex = 0;
+      boost::dijkstra_shortest_paths( graph, start,
+                                      boost::predecessor_map(boost::dummy_property_map())
+                                          .distance_map(boost::make_iterator_property_map(
+                                           distances.begin(), get(boost::vertex_index, graph))));
+
+      // Print the distances from the source vertex
+      for (size_t i = 0; i < distances.size(); ++i) {
+         std::cout << "Distance from vertex " << start << " to vertex " << i
+                     << ": " << distances[i] << std::endl;
+      }
    }
 
 protected:

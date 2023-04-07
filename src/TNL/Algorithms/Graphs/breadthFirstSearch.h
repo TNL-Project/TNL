@@ -17,7 +17,7 @@ namespace TNL {
 namespace Algorithms {
 namespace Graphs {
 
-
+// TODO: add support for visitor in form a of lambda function
 template< typename Matrix, typename Vector, typename Index = typename Matrix::IndexType >
 void breadthFirstSearchTransposed( const Matrix& transposedAdjacencyMatrix, Index start, Vector& distances )
 {
