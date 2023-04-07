@@ -29,9 +29,15 @@ template< typename Index = int,
           typename Real = double >
 struct BoostGraph
 {
-   using EdgeWeightProperty = boost::property<boost::edge_weight_t, Real > ;
-   using AdjacencyList = boost::adjacency_list< boost::vecS, boost::vecS, boost::directedS, boost::no_property, EdgeWeightProperty >;
    using IndexType = Index;
+   using RealType = Real;
+   using AdjacencyList = boost::adjacency_list< boost::vecS,
+                                                boost::vecS,
+                                                boost::directedS,
+                                                boost::no_property,
+                                                boost::property<boost::edge_weight_t, Real> >;
+   using Vertex = typename boost::graph_traits< AdjacencyList >::vertex_descriptor;
+   using Edge = typename boost::graph_traits< AdjacencyList >::edge_descriptor;
 
    BoostGraph(){}
 
@@ -45,11 +51,7 @@ struct BoostGraph
          for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ )
          {
             if( row.getValue( localIdx ) != 0.0 )
-            {
-               add_edge( rowIdx, row.getColumnIndex( localIdx ), graph );
-               //std::cout << "Adding edge: " << rowIdx << " -> " << row.getColumnIndex( localIdx ) << std::endl;
-               //std::cout << rowIdx << " " << row.getColumnIndex( localIdx ) << std::endl;
-            }
+               add_edge( rowIdx, row.getColumnIndex( localIdx ), 1.0, graph );
          }
       }
    }
@@ -73,8 +75,8 @@ struct BoostGraph
       distances.resize( boost::num_vertices(graph) );
 
       // Compute the shortest paths from the source vertex (vertex 0) using Dijkstra's algorithm
-      //boost::Vertex source_vertex = 0;
-      boost::dijkstra_shortest_paths( graph, start,
+      Vertex source_vertex = 0;
+      boost::dijkstra_shortest_paths( graph, source_vertex,
                                       boost::predecessor_map(boost::dummy_property_map())
                                           .distance_map(boost::make_iterator_property_map(
                                            distances.begin(), get(boost::vertex_index, graph))));
