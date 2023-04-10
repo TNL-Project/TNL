@@ -70,34 +70,67 @@ struct GraphsBenchmark
       Matrix adjacencyMatrix;
       std::cout << "Reading graph from file " << inputFile << std::endl;
       TNL::Algorithms::Graphs::GraphReader< Matrix >::readEdgeList( inputFile, adjacencyMatrix );
+      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
+                                                          { "device", device },
+                                                          { "algorithm", std::string( "BFS TNL" ) } } ) );
 
       // Benchmarking breadth-first search
-      IndexVector distances( adjacencyMatrix.getRows(), 0 );
-      TNL::Algorithms::Graphs::breadthFirstSearch( adjacencyMatrix, 0, distances );
+      IndexVector bfsDistances( adjacencyMatrix.getRows(), 0 );
+      auto bfs_tnl = [&] () mutable {
+         TNL::Algorithms::Graphs::breadthFirstSearch( adjacencyMatrix, 0, bfsDistances );
+      };
+      benchmark.time< Device >( device, bfs_tnl );
 
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
+                                                          { "device", device },
+                                                          { "algorithm", std::string( "BFS Boost" ) } } ) );
       BoostGraph< Index, Real > boostGraph( adjacencyMatrix );
-      std::vector< Index > boostDistances;
-      boostGraph.breadthFirstSearch( 0, boostDistances );
-      IndexVector boost_v( boostDistances );
-      if( distances != boost_v )
+      std::vector< Index > boostBfsDistances;
+      auto bfs_boost = [&] () mutable {
+         boostGraph.breadthFirstSearch( 0, boostBfsDistances );
+      };
+      benchmark.time< Device >( device, bfs_boost );
+
+      IndexVector boost_bfs_dist( boostBfsDistances );
+      boost_bfs_dist.forAllElements( [] __cuda_callable__ ( Index i, Index& x ) { x = x == std::numeric_limits< Index >::max() ? -1 : x; } );
+      if( bfsDistances != boost_bfs_dist )
       {
          std::cout << "ERROR: Distances do not match!" << std::endl;
          return false;
       }
 
-      // Benchamrking single-source shortest paths
-      RealVector real_distances( adjacencyMatrix.getRows(), 0 );
-      TNL::Algorithms::Graphs::singleSourceShortestPath( adjacencyMatrix, 0, real_distances );
+      // Benchmarking single-source shortest paths
+      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
+                                                          { "device", device },
+                                                          { "algorithm", std::string( "SSSP TNL" ) } } ) );
 
-      std::vector< Real > boostRealDistances;
-      boostGraph.singleSourceShortestPath( 0, boostRealDistances );
-      IndexVector boost_v_real( boostRealDistances );
-      if( real_distances != boost_v_real )
+      RealVector ssspDistances( adjacencyMatrix.getRows(), 0 );
+      auto sssp_tnl = [&] () mutable {
+         TNL::Algorithms::Graphs::singleSourceShortestPath( adjacencyMatrix, 0, ssspDistances );
+      };
+      benchmark.time< Device >( device, sssp_tnl );
+
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
+                                                          { "device", device },
+                                                          { "algorithm", std::string( "SSSP Boost" ) } } ) );
+      std::vector< Real > boostSSSPDistances;
+      auto sssp_boost = [&] () mutable {
+         boostGraph.singleSourceShortestPath( 0, boostSSSPDistances );
+      };
+      benchmark.time< Device >( device, sssp_boost );
+      RealVector boost_sssp_dist( boostSSSPDistances );
+      boost_sssp_dist.forAllElements( [] __cuda_callable__ ( Index i, Real& x ) { x = x == std::numeric_limits< Real >::max() ? -1 : x; } );
+      if( ssspDistances != boost_sssp_dist )
       {
          std::cout << "ERROR: Distances do not match!" << std::endl;
          return false;
       }
-
       return true;
    }
 

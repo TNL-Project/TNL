@@ -82,10 +82,10 @@ struct BoostGraph
                                            distances.begin(), get(boost::vertex_index, graph))));
 
       // Print the distances from the source vertex
-      for (size_t i = 0; i < distances.size(); ++i) {
-         std::cout << "Distance from vertex " << start << " to vertex " << i
-                     << ": " << distances[i] << std::endl;
-      }
+      //for (size_t i = 0; i < distances.size(); ++i) {
+      //   std::cout << "Distance from vertex " << start << " to vertex " << i
+      //              << ": " << distances[i] << std::endl;
+      //}
    }
 
 protected:
