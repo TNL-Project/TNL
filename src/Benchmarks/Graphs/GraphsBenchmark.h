@@ -15,12 +15,16 @@
 #include <TNL/Algorithms/Graphs/breadthFirstSearch.h>
 #include <TNL/Algorithms/Graphs/singleSourceShortestPath.h>
 #include "BoostGraph.h"
+//#include "GunrockGraph.h"
 
 template< typename Real = double,
-          typename Device = TNL::Devices::Host,
           typename Index = int >
 struct GraphsBenchmark
 {
+   using HostMatrix = TNL::Matrices::SparseMatrix<Real, TNL::Devices::Host, Index>;
+   using HostIndexVector = TNL::Containers::Vector<Index, TNL::Devices::Host, Index>;
+   using HostRealVector = TNL::Containers::Vector<Real, TNL::Devices::Host, Index>;
+
    static void configSetup( TNL::Config::ConfigDescription& config )
    {
       config.addDelimiter("Benchmark settings:");
@@ -30,15 +34,102 @@ struct GraphsBenchmark
       config.addEntryEnum("append");
       config.addEntryEnum("overwrite");
 
+      config.addDelimiter( "Device settings:" );
+      config.addEntry< TNL::String >( "device", "Device the computation will run on.", "cuda" );
+      config.addEntryEnum< TNL::String >( "all" );
+      config.addEntryEnum< TNL::String >( "host" );
+      config.addEntryEnum< TNL::String >( "sequential" );
+      config.addEntryEnum< TNL::String >("cuda");
+      TNL::Devices::Host::configSetup( config );
+      TNL::Devices::Cuda::configSetup( config );
+
       config.addEntry<int>("loops", "Number of iterations for every computation.", 10);
       config.addEntry<int>("verbose", "Verbose mode.", 1);
    }
 
-   bool runBenchmark( const TNL::Config::ParameterContainer& parameters )
+   template< typename Device >
+   void TNLBenchmarks( const HostMatrix& hostAdjacencyMatrix, TNL::Benchmarks::Benchmark<>& benchmark, const TNL::String& device )
    {
       using Matrix = TNL::Matrices::SparseMatrix<Real, Device, Index>;
       using IndexVector = TNL::Containers::Vector<Index, Device, Index>;
       using RealVector = TNL::Containers::Vector<Real, Device, Index>;
+
+      Matrix adjacencyMatrix;
+      adjacencyMatrix = hostAdjacencyMatrix;
+      IndexVector bfsDistances( adjacencyMatrix.getRows() );
+
+      // Benchmarking breadth-first search
+      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
+                                                          { "device", device },
+                                                          { "algorithm", std::string( "BFS TNL" ) } } ) );
+
+      auto bfs_tnl = [&] () mutable {
+         TNL::Algorithms::Graphs::breadthFirstSearch( adjacencyMatrix, 0, bfsDistances );
+      };
+      benchmark.time< Device >( device, bfs_tnl );
+      if( bfsDistances != this->boostBfsDistances )
+      {
+         std::cout << "ERROR: Distances do not match!" << std::endl;
+         this->errors++;
+      }
+
+      // Benchmarking single-source shortest paths
+      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType<Real>() },
+                                                          { "device", device },
+                                                          { "algorithm", std::string( "SSSP TNL" ) } } ) );
+
+      RealVector ssspDistances( adjacencyMatrix.getRows(), 0 );
+      auto sssp_tnl = [&] () mutable {
+         TNL::Algorithms::Graphs::singleSourceShortestPath( adjacencyMatrix, 0, ssspDistances );
+      };
+      benchmark.time< Device >( device, sssp_tnl );
+
+      if( ssspDistances != this->boostSSSPDistances )
+      {
+         std::cout << "ERROR: Distances do not match!" << std::endl;
+         this->errors++;
+      }
+   }
+
+   void boostBenchmarks( const HostMatrix& adjacencyMatrix, TNL::Benchmarks::Benchmark<>& benchmark, const TNL::String& device )
+   {
+      benchmark.setMetadataColumns(
+      TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
+                                                       { "device", device },
+                                                       { "algorithm", std::string( "BFS Boost" ) } } ) );
+      BoostGraph< Index, Real > boostGraph( adjacencyMatrix );
+
+      std::vector<Index> boostBfsDistances( adjacencyMatrix.getRows() );
+      auto bfs_boost = [&] () mutable {
+         boostGraph.breadthFirstSearch( 0, boostBfsDistances );
+      };
+      benchmark.time< TNL::Devices::Sequential >( device, bfs_boost );
+
+      HostIndexVector boost_bfs_dist( boostBfsDistances );
+      boost_bfs_dist.forAllElements( [] __cuda_callable__ ( Index i, Index& x ) { x = x == std::numeric_limits< Index >::max() ? -1 : x; } );
+      this->boostBfsDistances = boost_bfs_dist;
+
+
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType<Real>() },
+                                                          { "device", device },
+                                                          { "algorithm", std::string( "SSSP Boost" ) } } ) );
+      std::vector<Real> boostSSSPDistances( adjacencyMatrix.getRows() );
+      auto sssp_boost = [&] () mutable {
+         boostGraph.singleSourceShortestPath( 0, boostSSSPDistances );
+      };
+      benchmark.time< TNL::Devices::Sequential >( device, sssp_boost );
+      HostRealVector boost_sssp_dist( boostSSSPDistances );
+      boost_sssp_dist.forAllElements( [] __cuda_callable__ ( Index i, Real& x ) { x = x == std::numeric_limits< Real >::max() ? -1 : x; } );
+      this->boostSSSPDistances = boost_sssp_dist;
+   }
+
+   bool runBenchmark( const TNL::Config::ParameterContainer& parameters )
+   {
       auto inputFile = parameters.getParameter< TNL::String >( "input-file" );
       const TNL::String logFileName = parameters.getParameter< TNL::String >( "log-file" );
       const TNL::String outputMode = parameters.getParameter< TNL::String >( "output-mode" );
@@ -55,93 +146,34 @@ struct GraphsBenchmark
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
       TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
 
+      this->errors = 0;
 
-      auto precision = TNL::getType<Real>();
-      TNL::String device;
-      if( std::is_same< Device, TNL::Devices::Sequential >::value )
-         device = "sequential";
-      if( std::is_same< Device, TNL::Devices::Host >::value )
-         device = "host";
-      if( std::is_same< Device, TNL::Devices::Cuda >::value )
-         device = "cuda";
+      TNL::String device = parameters.getParameter< TNL::String >( "device" );
 
-      std::cout << "Graphs benchmark  with (" << precision << ", " << device << ")" << std::endl;
+      std::cout << "Graphs benchmark  with " << TNL::getType<Real>() << " precision and device: " << device << std::endl;
 
-      Matrix adjacencyMatrix;
+      HostMatrix adjacencyMatrix;
       std::cout << "Reading graph from file " << inputFile << std::endl;
-      TNL::Algorithms::Graphs::GraphReader< Matrix >::readEdgeList( inputFile, adjacencyMatrix );
-      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
-                                                          { "device", device },
-                                                          { "algorithm", std::string( "BFS TNL" ) } } ) );
+      TNL::Algorithms::Graphs::GraphReader< HostMatrix >::readEdgeList( inputFile, adjacencyMatrix );
 
-      // Benchmarking breadth-first search
-      IndexVector bfsDistances( adjacencyMatrix.getRows(), 0 );
-      auto bfs_tnl = [&] () mutable {
-         TNL::Algorithms::Graphs::breadthFirstSearch( adjacencyMatrix, 0, bfsDistances );
-      };
-      benchmark.time< Device >( device, bfs_tnl );
+      boostBenchmarks( adjacencyMatrix, benchmark, "sequential" );
 
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
-                                                          { "device", device },
-                                                          { "algorithm", std::string( "BFS Boost" ) } } ) );
-      BoostGraph< Index, Real > boostGraph( adjacencyMatrix );
-      std::vector< Index > boostBfsDistances;
-      auto bfs_boost = [&] () mutable {
-         boostGraph.breadthFirstSearch( 0, boostBfsDistances );
-      };
-      benchmark.time< Device >( device, bfs_boost );
+      if( device == "sequential" || device == "all" )
+         TNLBenchmarks< TNL::Devices::Sequential >( adjacencyMatrix, benchmark, "sequential" );
+      if( device == "host" || device == "all" )
+         TNLBenchmarks< TNL::Devices::Host >( adjacencyMatrix, benchmark, "host" );
+#ifdef __CUDACC__
+      if( device == "cuda" || device == "all" )
+         TNLBenchmarks< TNL::Devices::Cuda >( adjacencyMatrix, benchmark, "cuda" );
+#endif
 
-      IndexVector boost_bfs_dist( boostBfsDistances );
-      boost_bfs_dist.forAllElements( [] __cuda_callable__ ( Index i, Index& x ) { x = x == std::numeric_limits< Index >::max() ? -1 : x; } );
-      if( bfsDistances != boost_bfs_dist )
-      {
-         std::cout << "ERROR: Distances do not match!" << std::endl;
-         return false;
-      }
-
-      // Benchmarking single-source shortest paths
-      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
-                                                          { "device", device },
-                                                          { "algorithm", std::string( "SSSP TNL" ) } } ) );
-
-      RealVector ssspDistances( adjacencyMatrix.getRows(), 0 );
-      auto sssp_tnl = [&] () mutable {
-         TNL::Algorithms::Graphs::singleSourceShortestPath( adjacencyMatrix, 0, ssspDistances );
-      };
-      benchmark.time< Device >( device, sssp_tnl );
-
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
-                                                          { "device", device },
-                                                          { "algorithm", std::string( "SSSP Boost" ) } } ) );
-      std::vector< Real > boostSSSPDistances;
-      auto sssp_boost = [&] () mutable {
-         boostGraph.singleSourceShortestPath( 0, boostSSSPDistances );
-      };
-      benchmark.time< Device >( device, sssp_boost );
-      RealVector boost_sssp_dist( boostSSSPDistances );
-      boost_sssp_dist.forAllElements( [] __cuda_callable__ ( Index i, Real& x ) { x = x == std::numeric_limits< Real >::max() ? -1 : x; } );
-      if( ssspDistances != boost_sssp_dist )
-      {
-         std::cout << "ERROR: Distances do not match!" << std::endl;
-         return false;
-      }
       return true;
    }
 
 protected:
 
-   Real xDomainSize = 0.0, yDomainSize = 0.0;
-   Real alpha = 0.0, beta = 0.0, gamma = 0.0;
-   Real timeStep = 0.0, finalTime = 0.0;
-   bool outputData = false;
-   bool verbose = false;
-   Index maxIterations = 0;
-
-   TNL::Containers::Vector<Real, Device> ux, aux;
+   // These vectors serve as a reference solution for comparison with TNL
+   HostIndexVector boostBfsDistances;
+   HostRealVector boostSSSPDistances;
+   int errors;
 };

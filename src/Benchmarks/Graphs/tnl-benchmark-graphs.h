@@ -15,15 +15,6 @@ void configSetup( TNL::Config::ConfigDescription& config )
 {
    //config.addDelimiter( "General settings:" );
 
-   config.addDelimiter( "Device settings:" );
-   config.addEntry< TNL::String >( "device", "Device the computation will run on.", "cuda" );
-   config.addEntryEnum< TNL::String >( "all" );
-   config.addEntryEnum< TNL::String >( "host" );
-   config.addEntryEnum< TNL::String >( "sequential" );
-   config.addEntryEnum< TNL::String >("cuda");
-   TNL::Devices::Host::configSetup( config );
-   TNL::Devices::Cuda::configSetup( config );
-
    config.addDelimiter("Precision settings:");
    config.addEntry<TNL::String>("precision", "Precision of the arithmetics.", "double");
    config.addEntryEnum("float");
@@ -31,14 +22,14 @@ void configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum("all");
 }
 
-template< typename Real, typename Device >
+template< typename Real >
 bool startBenchmark( TNL::Config::ParameterContainer& parameters )
 {
-   GraphsBenchmark< Real, Device > benchmark;
+   GraphsBenchmark< Real > benchmark;
    return benchmark.runBenchmark( parameters );
 }
 
-template< typename Real >
+/*template< typename Real >
 bool resolveDevice( TNL::Config::ParameterContainer& parameters )
 {
    auto device = parameters.getParameter<TNL::String>( "device" );
@@ -56,15 +47,15 @@ bool resolveDevice( TNL::Config::ParameterContainer& parameters )
    }
    std::cerr << "Unknown device " << device << "." << std::endl;
    return false;
-}
+}*/
 
 bool resolveReal( TNL::Config::ParameterContainer& parameters )
 {
    auto precision = parameters.getParameter<TNL::String>( "precision" );
    if( precision == "float" )
-      return resolveDevice< float >( parameters );
+      return startBenchmark< float >( parameters );
    if( precision == "double" )
-      return resolveDevice< double >( parameters );
+      return startBenchmark< double >( parameters );
    std::cerr << "Unknown precision " << precision << "." << std::endl;
    return false;
 }
