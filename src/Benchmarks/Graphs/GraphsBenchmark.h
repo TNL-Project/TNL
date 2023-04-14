@@ -15,7 +15,7 @@
 #include <TNL/Algorithms/Graphs/breadthFirstSearch.h>
 #include <TNL/Algorithms/Graphs/singleSourceShortestPath.h>
 #include "BoostGraph.h"
-//#include "GunrockGraph.h"
+#include "GunrockBenchmark.h"
 
 template< typename Real = double,
           typename Index = int >
@@ -50,7 +50,7 @@ struct GraphsBenchmark
    template< typename Device >
    void TNLBenchmarks( const HostMatrix& hostAdjacencyMatrix, TNL::Benchmarks::Benchmark<>& benchmark, const TNL::String& device )
    {
-      using Matrix = TNL::Matrices::SparseMatrix<Real, Device, Index>;
+      using Matrix = TNL::Matrices::SparseMatrix<Real, Device, Index, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSRVector >;
       using IndexVector = TNL::Containers::Vector<Index, Device, Index>;
       using RealVector = TNL::Containers::Vector<Real, Device, Index>;
 
@@ -95,11 +95,11 @@ struct GraphsBenchmark
       }
    }
 
-   void boostBenchmarks( const HostMatrix& adjacencyMatrix, TNL::Benchmarks::Benchmark<>& benchmark, const TNL::String& device )
+   void boostBenchmarks( const HostMatrix& adjacencyMatrix, TNL::Benchmarks::Benchmark<>& benchmark )
    {
       benchmark.setMetadataColumns(
       TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
-                                                       { "device", device },
+                                                       { "device", "sequential" },
                                                        { "algorithm", std::string( "BFS Boost" ) } } ) );
       BoostGraph< Index, Real > boostGraph( adjacencyMatrix );
 
@@ -107,7 +107,7 @@ struct GraphsBenchmark
       auto bfs_boost = [&] () mutable {
          boostGraph.breadthFirstSearch( 0, boostBfsDistances );
       };
-      benchmark.time< TNL::Devices::Sequential >( device, bfs_boost );
+      benchmark.time< TNL::Devices::Sequential >( "sequential", bfs_boost );
 
       HostIndexVector boost_bfs_dist( boostBfsDistances );
       boost_bfs_dist.forAllElements( [] __cuda_callable__ ( Index i, Index& x ) { x = x == std::numeric_limits< Index >::max() ? -1 : x; } );
@@ -116,17 +116,72 @@ struct GraphsBenchmark
 
       benchmark.setMetadataColumns(
          TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType<Real>() },
-                                                          { "device", device },
+                                                          { "device", "sequential" },
                                                           { "algorithm", std::string( "SSSP Boost" ) } } ) );
       std::vector<Real> boostSSSPDistances( adjacencyMatrix.getRows() );
       auto sssp_boost = [&] () mutable {
          boostGraph.singleSourceShortestPath( 0, boostSSSPDistances );
       };
-      benchmark.time< TNL::Devices::Sequential >( device, sssp_boost );
+      benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost );
       HostRealVector boost_sssp_dist( boostSSSPDistances );
       boost_sssp_dist.forAllElements( [] __cuda_callable__ ( Index i, Real& x ) { x = x == std::numeric_limits< Real >::max() ? -1 : x; } );
       this->boostSSSPDistances = boost_sssp_dist;
    }
+
+#ifdef HAVE_GUNROCK
+   void gunrockBenchmarks( const HostMatrix& adjacencyMatrix, TNL::Benchmarks::Benchmark<>& benchmark, std::string filename )
+   {
+      TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
+
+      std::vector<int> row_offsets;
+      std::vector<int> column_indices, values;
+
+      TNL::copy( adjacencyMatrix.getSegments().getOffsets(), row_offsets );
+      TNL::copy( adjacencyMatrix.getColumnIndexes(), column_indices );
+      TNL::copy( adjacencyMatrix.getValues(), values );
+
+      thrust::device_vector< Index > d_row_offsets( adjacencyMatrix.getRows() + 1 );
+      thrust::device_vector< Index > d_column_indices( adjacencyMatrix.getNonzeroElementsCount() );
+      thrust::device_vector< Real > d_values( adjacencyMatrix.getNonzeroElementsCount() );
+      thrust::device_vector< Index > d_row_indices( adjacencyMatrix.getNonzeroElementsCount() );
+      thrust::device_vector< Index > d_column_offsets( adjacencyMatrix.getColumns() + 1 );
+      thrust::copy( row_offsets.begin(), row_offsets.end(), d_row_offsets.begin() );
+      thrust::copy( column_indices.begin(), column_indices.end(), d_column_indices.begin() );
+      thrust::copy( values.begin(), values.end(), d_values.begin() );
+
+      //std::cout << "d_column_indices = ";
+      //thrust::copy(d_values.begin(), d_values.end(),
+      //         std::ostream_iterator<int>(std::cout, " "));
+
+      auto graph =
+        gunrock::graph::build::from_csr<gunrock::memory_space_t::device, gunrock::graph::view_t::csr >(
+            adjacencyMatrix.getRows(),                 // rows
+            adjacencyMatrix.getColumns(),              // columns
+            adjacencyMatrix.getNonzeroElementsCount(), // nonzeros
+            d_row_offsets.data().get(),                // row_offsets
+            d_column_indices.data().get(),             // column_indices
+            d_values.data().get(),                     // values
+            d_row_indices.data().get(),                // row_indices
+            d_column_offsets.data().get()              // column_offsets
+        );
+
+      GunrockBenchmark< Real, Index > gunrockBenchmark;
+
+      // Benchmarking breadth-first search
+      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
+                                                          { "device", std::string( "GPU" ) },
+                                                          { "algorithm", std::string( "BFS Gunrock" ) } } ) );
+      std::vector< Index > bfsDistances( adjacencyMatrix.getRows() );
+      Index start = 0;
+      gunrockBenchmark.breadthFirstSearch( benchmark, graph, start, adjacencyMatrix.getRows(), bfsDistances );
+      //TNL::Containers::Vector< Index > bfsDistances( distances );
+      //std::cout << " distances: " << bfsDistances << std::endl;
+      std::vector< Real > ssspDistances( adjacencyMatrix.getRows() );
+      gunrockBenchmark.singleSourceShortestPath( benchmark, graph, start, adjacencyMatrix.getRows(), ssspDistances );
+   }
+#endif
 
    bool runBenchmark( const TNL::Config::ParameterContainer& parameters )
    {
@@ -156,7 +211,8 @@ struct GraphsBenchmark
       std::cout << "Reading graph from file " << inputFile << std::endl;
       TNL::Algorithms::Graphs::GraphReader< HostMatrix >::readEdgeList( inputFile, adjacencyMatrix );
 
-      boostBenchmarks( adjacencyMatrix, benchmark, "sequential" );
+      boostBenchmarks( adjacencyMatrix, benchmark );
+      gunrockBenchmarks( adjacencyMatrix, benchmark, inputFile );
 
       if( device == "sequential" || device == "all" )
          TNLBenchmarks< TNL::Devices::Sequential >( adjacencyMatrix, benchmark, "sequential" );

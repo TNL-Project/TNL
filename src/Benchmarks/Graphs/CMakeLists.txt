@@ -11,7 +11,19 @@ else()
 endif()
 
 if( TNL_BUILD_CUDA )
+   # Find Gunrock
+   find_path(GUNROCK_INCLUDE_DIR gunrock/algorithms/bfs.hxx)
+   if( GUNROCK_INCLUDE_DIR )
+      message(STATUS "Gunrock found ${GUNROCK_INCLUDE_DIR}")
+      set( GUNROCK_FLAGS -DHAVE_GUNROCK ${Gunrock_INCLUDE_DIR} -D SM_TARGET=86 )
+   else()
+         message(STATUS "Gunrock not found.")
+   endif()
+endif()
+
+if( TNL_BUILD_CUDA )
    add_executable( tnl-benchmark-graphs tnl-benchmark-graphs.cu )
+   target_compile_options( tnl-benchmark-graphs PUBLIC ${GUNROCK_FLAGS} )
    target_link_libraries( tnl-benchmark-graphs PUBLIC TNL::TNL_CUDA )
    # NOTE: the following parameters are just for performance debugging
    # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#printing-code-generation-statistics
