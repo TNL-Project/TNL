@@ -1,7 +1,7 @@
 #include <TNL/Meshes/Mesh.h>
-#include <TNL/Meshes/Geometry/getEntityMeasure.h>
-#include <TNL/Meshes/Geometry/getEntityCircumradius.h>
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
+#include <TNL/Meshes/Geometry/getEntityCenter.h>
+#include <TNL/Meshes/MeshBuilder.h>
 
 using namespace TNL;
 using namespace TNL::Meshes;
@@ -25,11 +25,12 @@ template<> struct GridRealTag< MyConfigTag, long double > { static constexpr boo
  */
 //template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge >{ static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >{ static constexpr bool enabled = true; };
+/*template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >{ static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polygon > { static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron >{ static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron >{ static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron >{ static constexpr bool enabled = true; };
+*/
 
 // Meshes are enabled only for the world dimension equal to the cell dimension.
 template< typename CellTopology, int WorldDimension >
@@ -49,62 +50,66 @@ template<> struct MeshLocalIndexTag< MyConfigTag, short int >{ static constexpr 
 
 template< typename MeshConfig >
 bool
-printInfo( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName )
+createDualMesh( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName )
 {
    using MeshType = Mesh< MeshConfig, Devices::Host >;
    using CellType = typename MeshType::Cell;
    using RealType = typename MeshType::RealType;
    using GlobalIndexType = typename MeshType::GlobalIndexType;
+   using PointType = typename MeshType::PointType;
    using VectorType = TNL::Containers::Vector< RealType, TNL::Devices::Host, GlobalIndexType >;
 
+   // primary mesh
    const auto verticesCount = mesh.template getEntitiesCount< 0 >();
-   const auto facesCount = mesh.template getEntitiesCount< MeshType::getMeshDimension() - 1 >();
    const auto cellsCount = mesh.template getEntitiesCount< MeshType::getMeshDimension() >();
 
-   VectorType diameters( cellsCount );
-   VectorType circumradii( cellsCount );
-   VectorType cellSubvertices( cellsCount );
-   VectorType faceSubvertices( facesCount );
-   VectorType cellSubfaces( cellsCount );
+   // dual mesh
+   using DualMesh = Mesh <DefaultConfig<Topologies::Polygon>, TNL::Devices::Host>;
+   using NeighborCountsArray = typename MeshBuilder< DualMesh >::NeighborCountsArray;
+   MeshBuilder< DualMesh > builder;
+   builder.setEntitiesCount(cellsCount, verticesCount); //reverse cause of dual-mesh
 
-   mesh.template forAll< MeshType::getMeshDimension() >(
-      [&] (GlobalIndexType i) {
+//triangle center
+   for(int i = 0; i < cellsCount; i++){
          const auto cell = mesh.template getEntity< MeshType::getMeshDimension() >( i );
-         if( MeshType::getMeshDimension() == 3 )
-            diameters[ i ] = std::cbrt( getEntityMeasure( mesh, cell ) * 6 / 3.1415926535897932384626433 );
-         else
-            diameters[ i ] = std::sqrt( getEntityMeasure( mesh, cell ) * 4 / 3.1415926535897932384626433 );
-         circumradii[ i ] = getEntityCircumradius( mesh, cell );
+         const PointType center = getEntityCenter(mesh, cell);
+         std::cout << center << std::endl;
+         builder.setPoint(i, center);
+      }
 
-         cellSubvertices[ i ] = cell.template getSubentitiesCount< 0 >();
-         cellSubfaces[ i ] = cell.template getSubentitiesCount< MeshType::getMeshDimension() - 1 >();
-      } );
+   NeighborCountsArray neighborCounts(verticesCount);
+   for(int j = 0; j < verticesCount; j++){
+      const auto vertex = mesh.template getEntity< 0 >( j );
+      auto p = vertex.template getSuperentitiesCount< MeshType::getMeshDimension() >();
+      neighborCounts[j] = p;
+   }
 
-   mesh.template forAll< MeshType::getMeshDimension() - 1 >(
-      [&] (GlobalIndexType i) {
-         const auto face = mesh.template getEntity< MeshType::getMeshDimension() - 1 >( i );
-         faceSubvertices[ i ] = face.template getSubentitiesCount< 0 >();
-      } );
+   builder.setCellCornersCounts(neighborCounts);
 
-   const double avgCellSubvertices = TNL::sum( cellSubvertices ) / cellsCount;
-   const double avgFaceSubvertices = TNL::sum( faceSubvertices ) / facesCount;
-   const double avgSubfaces = TNL::sum( cellSubfaces ) / cellsCount;
+   for(int j = 0; j < verticesCount; j++){
+      const auto vertex = mesh.template getEntity< 0 >( j );
+      auto p = vertex.template getSuperentitiesCount< MeshType::getMeshDimension() >();
 
-   std::cout << fileName << ":\n"
-             << "\tMesh dimension:\t" << MeshType::getMeshDimension() << "\n"
-             << "\tCell topology:\t" << getType( typename CellType::EntityTopology{} ) << "\n"
-             << "\tVertices count:\t" << verticesCount << "\n"
-             << "\tFaces count:\t" << facesCount << "\n"
-             << "\tCells count:\t" << cellsCount << "\n"
-             << "\tLargest cell circumradius:\t" << TNL::max( circumradii ) << "\n"
-             << "\tSmallest cell circumradius:\t" << TNL::min( circumradii ) << "\n"
-             << "\tDiameter of a ball with the same volume as the largest cell:\t" << TNL::max( diameters ) << "\n"
-             << "\tDiameter of a ball with the same volume as the smallest cell:\t" << TNL::min( diameters ) << "\n"
-             << "\tAverage cell diameter:\t" << TNL::sum( diameters ) / cellsCount << "\n"
-             << "\tAverage number of subvertices per cell:\t" << avgCellSubvertices << "\n"
-             << "\tAverage number of subvertices per face:\t" << avgFaceSubvertices << "\n"
-             << "\tAverage number of faces per cell:\t" << avgSubfaces << "\n"
-             << std::endl;
+      for(int c = 0; c < p; c++){
+         auto i = vertex.template getSuperentityIndex< MeshType::getMeshDimension() >( c );
+         std::cout << "vertex " << j << " is next to cell " << i << std::endl;
+         builder.getCellSeed(j).setCornerId(c, i);
+      }
+   }
+
+   DualMesh dualMesh;
+   bool b = builder.build(dualMesh);
+   if(b == false){
+      std::cout<<"mistake"<<std::endl;
+   }
+   else{
+      std::cout<<"ok"<<std::endl;
+   }
+   
+
+
+
+
 
    return true;
 }
@@ -123,7 +128,7 @@ main( int argc, char* argv[] )
       const std::string fileName = argv[ i ];
       auto wrapper = [&]( auto& reader, auto&& mesh ) -> bool
       {
-         return printInfo( mesh, fileName );
+         return createDualMesh( mesh, fileName );
       };
       result &= resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, fileName );
    }
