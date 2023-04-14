@@ -45,6 +45,8 @@ void breadthFirstSearchTransposed( const Matrix& transposedAdjacencyMatrix, Inde
             y_view[ rowIdx ] = i;
       };
       transposedAdjacencyMatrix.reduceAllRows( fetch, TNL::Plus{}, keep, ( Index ) 0 );
+      if( distances == y )
+         break;
       distances = y;
    }
    distances -= 1;

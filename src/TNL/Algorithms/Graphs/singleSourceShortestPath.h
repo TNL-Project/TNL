@@ -44,6 +44,8 @@ void singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix
             y_view[ rowIdx ] = min( x_view[ rowIdx ], value );
       };
       transposedAdjacencyMatrix.reduceAllRows( fetch, TNL::Min{}, keep, std::numeric_limits< Real >::max() );
+      if( distances == y )
+         break;
       distances = y;
    }
 }
