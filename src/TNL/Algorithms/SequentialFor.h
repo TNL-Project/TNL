@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 namespace TNL {
 namespace Algorithms {
@@ -40,7 +40,7 @@ struct SequentialFor
    exec( Index start, Index end, Function f )
    {
       for( Index i = start; i < end; i++ )
-         ParallelFor< Device >::exec( i, Index{ i + 1 }, f );
+         parallelFor< Device >( i, Index{ i + 1 }, f );
    }
 };
 
