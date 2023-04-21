@@ -38,7 +38,7 @@ Developing a code for GPUs (in [CUDA](https://developer.nvidia.com/CUDA-zone) fo
 2. Code implemented this way works even on CPU, so the developer writes only one code for both hardware architectures.
 3. The developer may debug the code on CPU first and then just run it on GPU. Quite likely it will work with only a little or no changes.
 
-The following code snippet demonstrates it on use of \ref TNL::Algorithms::ParallelFor.
+The following code snippet demonstrates it on use of \ref TNL::Algorithms::parallelFor.
 
 \includelineno snippet_algorithms_and_lambda_functions_parallel_for.cpp
 
