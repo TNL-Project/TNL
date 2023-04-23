@@ -21,7 +21,7 @@ namespace ODE {
  *
  * This is a specialization for static solvers, i.e. solvers which of scalar problem
  * or small system of ODEs solution of which can be expressed by \ref TNL::Containers::StaticVector.
- * The static solvers can be created even in GPU kernels and can be combined with \ref TNL::Algorithms::ParallelFor.
+ * The static solvers can be created even in GPU kernels and can be combined with \ref TNL::Algorithms::parallelFor.
  *
  * See also: \ref TNL::Solvers::ODE::StaticEuler, \ref TNL::Solvers::ODE::StaticMerson.
  *

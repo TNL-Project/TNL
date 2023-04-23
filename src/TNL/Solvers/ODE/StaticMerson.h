@@ -42,7 +42,7 @@ namespace ODE {
  * \include StaticODESolver-SineExample.out
  *
  * Since this variant of the Euler solver is static, it can be used even inside of GPU kernels and so combined with \ref
- * TNL::Algorithms::ParallelFor as demonstrated by the following example:
+ * TNL::Algorithms::parallelFor as demonstrated by the following example:
  *
  * \includelineno Solvers/ODE/StaticODESolver-SineParallelExample.h
  *
@@ -172,7 +172,7 @@ protected:
  * \includelineno Solvers/ODE/StaticODESolver-LorenzExample.h
  *
  * Since this variant of the Euler solver is static, it can be used even inside of GPU kernels and so combined with \ref
- * TNL::Algorithms::ParallelFor as demonstrated by the following example:
+ * TNL::Algorithms::parallelFor as demonstrated by the following example:
  *
  * \includelineno Solvers/ODE/StaticODESolver-LorenzParallelExample.h
  *

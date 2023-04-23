@@ -3,7 +3,7 @@
 
 #include <TNL/Containers/NDArray.h>
 
-#include <TNL/Algorithms/ParallelFor.h>
+#include <TNL/Algorithms/parallelFor.h>
 
 using namespace TNL;
 using namespace TNL::Containers;

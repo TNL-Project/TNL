@@ -16,7 +16,7 @@ TNL offers the following ODE solvers:
 1. \ref TNL::Solvers::ODE::Euler - the Euler method with the 1-st order of accuracy.
 2. \ref TNL::Solvers::ODE::Merson - the Runge-Kutta-Merson solver with the 4-th order of accuracy and adaptive choice of the time step.
 
-Each solver has its static counterpart which can be run even in the GPU kernels which means that it can be combined with \ref TNL::Algorithms::ParallelFor for example. The static ODE solvers are the following:
+Each solver has its static counterpart which can be run even in the GPU kernels which means that it can be combined with \ref TNL::Algorithms::parallelFor for example. The static ODE solvers are the following:
 
 1. \ref TNL::Solvers::ODE::StaticEuler - the Euler method with the 1-st order of accuracy.
 2. \ref TNL::Solvers::ODE::StaticMerson - the Runge-Kutta-Merson solver with the 4-th order of accuracy and adaptive choice of the time step.
@@ -103,7 +103,7 @@ The script has very similar structure as in the previous example. The result loo
 
 ## Combining static ODE solvers with parallel for
 
-The static solvers can be used inside of lambda functions for \ref TNL::Algorithms::ParallelFor for example. This can be useful when we need to solve large number of independent ODE problems, for example for parametric analysis. We demonstrate it on the two examples we have described above.
+The static solvers can be used inside of lambda functions for \ref TNL::Algorithms::parallelFor for example. This can be useful when we need to solve large number of independent ODE problems, for example for parametric analysis. We demonstrate it on the two examples we have described above.
 
 ### Solving scalar problems in parallel
 
@@ -241,7 +241,7 @@ What are the main differences compared to the Lorenz model?
 
 1. The size of the Lorenz model is fixed. It is equal to three since \f$ (\sigma, \rho, \beta) \in R^3 \f$ which is small vector of fixed size and it can be represented by the static vector \ref TNL::Containers::StaticVector< 3, Real >. On the other hand, the size of the ODE system arising in the discretization by the [method of lines](https://en.wikipedia.org/wiki/Method_of_lines) depends not on the problem we solve but on the desired accuracy - the larger \f$ n \f$ the more accurate numerical approximation we get. The number of nodes \f$ n \f$ used for the space discretisation defines the number of parameters defining the mesh function. These parameters are also referred as [degrees of freedom, DOFs](https://en.wikipedia.org/wiki/Degrees_of_freedom). Therefore the size of the system can be large and it is better to employ dynamic vector \ref TNL::Containers::Vector for the solution.
 2. The size of the Lorenz model is small and so the evaluation of its right-hand side can be done sequentially by one thread. The size of the ODE system can be very large and evaluating the right-hand side asks for being performed in parallel.
-3. The dynamic vector \ref TNL::Containers::Vector allocates data dynamically and therefore it cannot be created within a GPU kernel which means the ODE solvers cannot be created in the GPU kernel either. For this reason, the lambda function `f` evaluating the right-hand side of the ODE system is always executed on the host and it calls \ref TNL::Algorithms::ParallelFor to evaluate the right-hand side of the ODE system.
+3. The dynamic vector \ref TNL::Containers::Vector allocates data dynamically and therefore it cannot be created within a GPU kernel which means the ODE solvers cannot be created in the GPU kernel either. For this reason, the lambda function `f` evaluating the right-hand side of the ODE system is always executed on the host and it calls \ref TNL::Algorithms::parallelFor to evaluate the right-hand side of the ODE system.
 
 ### Basic setup
 
@@ -288,7 +288,7 @@ As we mentioned above, since `nvcc` does not accept lambda functions defined wit
 
 Now look at the code of the lambda function `f`. Since the solution \f$ u \f$ does not change on the boundaries, we return zero on the boundary nodes (lines 55-56) and we evaluate the central difference for approximation of the second derivative on the interior nodes (line 58).
 
-Next we define the lambda function `time_stepping` (lines ) which is responsible for computing of the updates for all nodes \f$ i = 0, \ldots n-1 \f$. It is done by means of \ref TNL::Algorithms::ParallelFor which iterates over all the nodes and calling the function `f` on each of them. It passes the vector views `u` and `fu` explicitly to `f` for the reasons we have mentioned above.
+Next we define the lambda function `time_stepping` (lines ) which is responsible for computing of the updates for all nodes \f$ i = 0, \ldots n-1 \f$. It is done by means of \ref TNL::Algorithms::parallelFor which iterates over all the nodes and calling the function `f` on each of them. It passes the vector views `u` and `fu` explicitly to `f` for the reasons we have mentioned above.
 
 Finally, we run the ODE solver (\ref TNL::Solvers::ODE::Euler::solve ) (line 62) and we pass `u` as the current state of the heat equation and `f` the lambda function controlling the time evolution to the method `solve`. On the line 63, we store the current state to a file.
 
