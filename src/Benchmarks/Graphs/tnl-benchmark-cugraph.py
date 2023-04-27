@@ -2,6 +2,7 @@
 import argparse
 import cudf
 import cugraph
+import time
 
 def read_input_file(file_path):
     data = []
@@ -36,7 +37,6 @@ def main():
     # Read the input file and create a DataFrame
     print(f"Reading input file: {args.input_file}")
     df = read_input_file(args.input_file)
-    print( f'DataFrame = {df}' )
 
     # Create a cuGraph graph from the DataFrame
     G = create_cugraph_graph(df)
@@ -45,11 +45,14 @@ def main():
     print("Performing BFS...")
     source_vertex = 0
 
+    start_time = time.time()
     distances = bfs_distances(G, 0 ) #source_vertex)
+    end_time = time.time()
+    print(f"cuGraph BFS took {end_time - start_time} seconds")
 
     # Print the distances
-    for i, distance in enumerate(distances):
-        print(f"Distance from vertex {source_vertex} to vertex {i}: {distance}")
+    #for i, distance in enumerate(distances):
+    #    print(f"Distance from vertex {source_vertex} to vertex {i}: {distance}")
 
 if __name__ == '__main__':
     main()
