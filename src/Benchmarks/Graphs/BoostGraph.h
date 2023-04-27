@@ -88,6 +88,10 @@ struct BoostGraph
       //}
    }
 
+   void minimumSpanningTree( std::vector< Edge >& spanning_tree )
+   {
+      boost::kruskal_minimum_spanning_tree(graph, std::back_inserter(spanning_tree));
+   }
 protected:
    AdjacencyList graph;
 };
