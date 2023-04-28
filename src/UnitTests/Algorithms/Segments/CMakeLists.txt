@@ -5,6 +5,7 @@ set( COMMON_TESTS
             SegmentsTest_CSR
             SegmentsTest_Ellpack
             SegmentsTest_SlicedEllpack
+            GrowingSegmentsTest
 )
 
 set( CPP_TESTS )
