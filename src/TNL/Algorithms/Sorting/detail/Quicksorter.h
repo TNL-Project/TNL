@@ -85,7 +85,9 @@ protected:
    void
    secondPhase( const CMP& Cmp );
 
-   int maxBlocks, threadsPerBlock, desiredElemPerBlock, maxSharable;  // kernel config
+   // kernel config
+   int maxBlocks, threadsPerBlock, desiredElemPerBlock;
+   std::size_t maxSharable;
 
    Containers::Array< Value, Devices::Cuda > auxMem;
    Containers::ArrayView< Value, Devices::Cuda > arr, aux;
