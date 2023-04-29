@@ -151,34 +151,14 @@ void forElements( const int gridSize, Matrix& matrix )
       const int j = rowIdx / gridSize;
       if( ( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 ) && localIdx == 0 )
       {
-         columnIdx = rowIdx;
          value = 1.0;
       }
       else
       {
-         switch( localIdx )
-         {
-            case 0:
-               columnIdx = rowIdx - gridSize;
-               value = 1.0;
-               break;
-            case 1:
-               columnIdx = rowIdx - 1;
-               value = 1.0;
-               break;
-            case 2:
-               columnIdx = rowIdx;
-               value = -4.0;
-               break;
-            case 3:
-               columnIdx = rowIdx + 1;
-               value = 1.0;
-               break;
-            case 4:
-               columnIdx = rowIdx + gridSize;
-               value = 1.0;
-               break;
-         }
+         if( localIdx == 2 )
+            value = -4.0;
+         else
+            value = 1.0;
       }
    };
    matrix.forElements( 0, matrixSize, f );
