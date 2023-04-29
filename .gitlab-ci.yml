@@ -21,6 +21,17 @@ stages:
     - build:doc
     - deploy
 
+# https://docs.gitlab.com/ee/ci/yaml/workflow.html
+workflow:
+    rules:
+        # run a pipeline in the merge request context
+        - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+        # don't run a branch pipeline on push when there is an open merge request
+        - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+          when: never
+        # otherwise run a branch pipeline
+        - if: $CI_COMMIT_BRANCH
+
 # default flags for cmake
 .default_cmake_flags_def: &default_cmake_flags
     # architectures
@@ -123,8 +134,8 @@ stages:
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Debug
-    only:
-        changes:
+    rules:
+        - changes:
             - src/**/*.{h,hpp,cpp,cu}
             - "**/CMakeLists.txt"
             - cmake/*
@@ -441,8 +452,8 @@ documentation:
         BUILD_TYPE: Debug
         # build output snippets for documentation
         BUILD_DOC: "yes"
-    only:
-        changes:
+    rules:
+        - changes:
             - Documentation/**/*
             - src/TNL/**/*.{h,hpp}
             - .gitlab-ci.yml
@@ -456,15 +467,12 @@ documentation:
 
 pages:
     stage: deploy
-    only:
-        changes:
+    rules:
+        - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "trigger" || $CI_COMMIT_BRANCH == "main"
+          changes:
             - Documentation/**/*
             - src/TNL/**/*.{h,hpp}
             - .gitlab-ci.yml
-        refs:
-            - main
-            - schedules
-            - triggers
     # use "dependencies" instead of "needs" to deploy only when the entire pipeline succeeds
     dependencies:
         - documentation
@@ -477,8 +485,8 @@ pages:
 
 clang-format src/TNL:
     stage: lint
-    only:
-        changes:
+    rules:
+        - changes:
             - src/TNL/**/*.{h,hpp,cpp,cu}
     script:
         - ./scripts/run-clang-format.py
@@ -491,8 +499,8 @@ clang-format src/TNL:
 
 clang-format src/Benchmarks:
     stage: lint
-    only:
-        changes:
+    rules:
+        - changes:
             - src/Benchmarks/**/*.{h,hpp,cpp,cu}
     script:
         - ./scripts/run-clang-format.py
@@ -506,8 +514,8 @@ clang-format src/Benchmarks:
 
 clang-format src/Examples:
     stage: lint
-    only:
-        changes:
+    rules:
+        - changes:
             - src/Examples/**/*.{h,hpp,cpp,cu}
     script:
         - ./scripts/run-clang-format.py
@@ -521,8 +529,8 @@ clang-format src/Examples:
 
 clang-format src/Tools:
     stage: lint
-    only:
-        changes:
+    rules:
+        - changes:
             - src/Tools/**/*.{h,hpp,cpp,cu}
     script:
         - ./scripts/run-clang-format.py
@@ -536,8 +544,8 @@ clang-format src/Tools:
 
 clang-format src/UnitTests:
     stage: lint
-    only:
-        changes:
+    rules:
+        - changes:
             - src/UnitTests/**/*.{h,hpp,cpp,cu}
     script:
         - ./scripts/run-clang-format.py
@@ -551,8 +559,8 @@ clang-format src/UnitTests:
 
 clang-format Documentation:
     stage: lint
-    only:
-        changes:
+    rules:
+        - changes:
             - Documentation/**/*.{h,hpp,cpp,cu}
     script:
         - ./scripts/run-clang-format.py
@@ -566,10 +574,13 @@ clang-format Documentation:
 
 clang-tidy:
     stage: lint
-#    only:
-#        changes:
-#            - Documentation/**/*.{h,hpp,cpp,cu}
-#            - src/**/*.{h,hpp,cpp,cu}
+    rules:
+        - changes:
+            - Documentation/**/*.{h,hpp,cpp,cu}
+            - src/**/*.{h,hpp,cpp,cu}
+            - "**/CMakeLists.txt"
+            - cmake/*
+            - .gitlab-ci.yml
     variables:
         CXX: clang++
         CC: clang
