@@ -16,7 +16,9 @@ void sort( ArrayT& array )
    */
    Array< int > aux_array( size );
    srand( size + 2021 );
-   aux_array.forAllElements( [=] __cuda_callable__ ( int i, int& value ) { value = std::rand() % (2*size); } );
+   parallelFor< Devices::Host >( 0, size, [&]( int i ) {
+      aux_array[ i ] = std::rand() % (2*size);
+   });
    array = aux_array;
 
    std::cout << "Random array: " << array << std::endl;
