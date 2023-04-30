@@ -73,7 +73,7 @@ __cuda_callable__
 auto
 TridiagonalMatrixRowView< ValuesView, Indexer >::begin() -> IteratorType
 {
-   return IteratorType( *this, 0 );
+   return { *this, 0 };
 }
 
 template< typename ValuesView, typename Indexer >
@@ -81,23 +81,23 @@ __cuda_callable__
 auto
 TridiagonalMatrixRowView< ValuesView, Indexer >::end() -> IteratorType
 {
-   return IteratorType( *this, this->getSize() );
+   return { *this, this->getSize() };
 }
 
 template< typename ValuesView, typename Indexer >
 __cuda_callable__
 auto
-TridiagonalMatrixRowView< ValuesView, Indexer >::cbegin() const -> const IteratorType
+TridiagonalMatrixRowView< ValuesView, Indexer >::cbegin() const -> ConstIteratorType
 {
-   return IteratorType( *this, 0 );
+   return { *this, 0 };
 }
 
 template< typename ValuesView, typename Indexer >
 __cuda_callable__
 auto
-TridiagonalMatrixRowView< ValuesView, Indexer >::cend() const -> const IteratorType
+TridiagonalMatrixRowView< ValuesView, Indexer >::cend() const -> ConstIteratorType
 {
-   return IteratorType( *this, this->getSize() );
+   return { *this, this->getSize() };
 }
 
 }  // namespace TNL::Matrices

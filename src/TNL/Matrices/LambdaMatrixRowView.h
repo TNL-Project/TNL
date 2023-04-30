@@ -166,7 +166,7 @@ public:
     * \return iterator pointing at the beginning.
     */
    [[nodiscard]] __cuda_callable__
-   const IteratorType
+   IteratorType
    begin() const;
 
    /**
@@ -175,7 +175,7 @@ public:
     * \return iterator pointing at the end.
     */
    [[nodiscard]] __cuda_callable__
-   const IteratorType
+   IteratorType
    end() const;
 
    /**
@@ -184,7 +184,7 @@ public:
     * \return iterator pointing at the beginning.
     */
    [[nodiscard]] __cuda_callable__
-   const IteratorType
+   IteratorType
    cbegin() const;
 
    /**
@@ -193,7 +193,7 @@ public:
     * \return iterator pointing at the end.
     */
    [[nodiscard]] __cuda_callable__
-   const IteratorType
+   IteratorType
    cend() const;
 
 protected:

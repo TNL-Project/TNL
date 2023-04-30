@@ -87,7 +87,7 @@ __cuda_callable__
 auto
 DenseMatrixRowView< SegmentView, ValuesView >::begin() -> IteratorType
 {
-   return IteratorType( *this, 0 );
+   return { *this, 0 };
 }
 
 template< typename SegmentView, typename ValuesView >
@@ -95,23 +95,23 @@ __cuda_callable__
 auto
 DenseMatrixRowView< SegmentView, ValuesView >::end() -> IteratorType
 {
-   return IteratorType( *this, this->getSize() );
+   return { *this, this->getSize() };
 }
 
 template< typename SegmentView, typename ValuesView >
 __cuda_callable__
 auto
-DenseMatrixRowView< SegmentView, ValuesView >::cbegin() const -> const IteratorType
+DenseMatrixRowView< SegmentView, ValuesView >::cbegin() const -> ConstIteratorType
 {
-   return IteratorType( *this, 0 );
+   return { *this, 0 };
 }
 
 template< typename SegmentView, typename ValuesView >
 __cuda_callable__
 auto
-DenseMatrixRowView< SegmentView, ValuesView >::cend() const -> const IteratorType
+DenseMatrixRowView< SegmentView, ValuesView >::cend() const -> ConstIteratorType
 {
-   return IteratorType( *this, this->getSize() );
+   return { *this, this->getSize() };
 }
 
 }  // namespace TNL::Matrices

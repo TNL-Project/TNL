@@ -143,7 +143,7 @@ __cuda_callable__
 auto
 SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::begin() -> IteratorType
 {
-   return IteratorType( *this, 0 );
+   return { *this, 0 };
 }
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
@@ -151,23 +151,23 @@ __cuda_callable__
 auto
 SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::end() -> IteratorType
 {
-   return IteratorType( *this, this->getSize() );
+   return { *this, this->getSize() };
 }
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
 auto
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::cbegin() const -> const IteratorType
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::cbegin() const -> ConstIteratorType
 {
-   return IteratorType( *this, 0 );
+   return { *this, 0 };
 }
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
 auto
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::cend() const -> const IteratorType
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::cend() const -> ConstIteratorType
 {
-   return IteratorType( *this, this->getSize() );
+   return { *this, this->getSize() };
 }
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >

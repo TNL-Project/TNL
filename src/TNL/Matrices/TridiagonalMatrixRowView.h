@@ -81,6 +81,11 @@ public:
    using IteratorType = MatrixRowViewIterator< RowView >;
 
    /**
+    * \brief Type of constant iterator for the matrix row.
+    */
+   using ConstIteratorType = MatrixRowViewIterator< ConstRowView >;
+
+   /**
     * \brief Constructor with all necessary data.
     *
     * \param rowIdx is index of the matrix row this RowView refer to.
@@ -175,7 +180,7 @@ public:
     * \return iterator pointing at the beginning.
     */
    [[nodiscard]] __cuda_callable__
-   const IteratorType
+   ConstIteratorType
    cbegin() const;
 
    /**
@@ -184,7 +189,7 @@ public:
     * \return iterator pointing at the end.
     */
    [[nodiscard]] __cuda_callable__
-   const IteratorType
+   ConstIteratorType
    cend() const;
 
 protected:
