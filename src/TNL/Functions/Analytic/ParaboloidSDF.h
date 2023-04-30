@@ -24,31 +24,31 @@ public:
    void
    setXCenter( const Real& waveLength );
 
-   Real
+   [[nodiscard]] Real
    getXCenter() const;
 
    void
    setYCenter( const Real& waveLength );
 
-   Real
+   [[nodiscard]] Real
    getYCenter() const;
 
    void
    setZCenter( const Real& waveLength );
 
-   Real
+   [[nodiscard]] Real
    getZCenter() const;
 
    void
    setCoefficient( const Real& coefficient );
 
-   Real
+   [[nodiscard]] Real
    getCoefficient() const;
 
    void
    setOffset( const Real& offset );
 
-   Real
+   [[nodiscard]] Real
    getOffset() const;
 
 protected:
@@ -67,11 +67,11 @@ public:
    using PointType = Containers::StaticVector< 1, RealType >;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -84,11 +84,11 @@ public:
    using PointType = Containers::StaticVector< 2, RealType >;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -101,11 +101,11 @@ public:
    using PointType = Containers::StaticVector< 3, RealType >;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };

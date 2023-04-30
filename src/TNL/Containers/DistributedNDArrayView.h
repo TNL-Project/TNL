@@ -150,21 +150,21 @@ public:
    }
 
    //! \brief Returns the dimension of the \e N-dimensional array, i.e. \e N.
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getDimension()
    {
       return NDArrayView::getDimension();
    }
 
    //! \brief Returns the MPI communicator associated with the array.
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const
    {
       return communicator;
    }
 
    //! \brief Returns the N-dimensional sizes of the **global** array.
-   const SizesHolderType&
+   [[nodiscard]] const SizesHolderType&
    getSizes() const
    {
       return globalSizes;
@@ -176,7 +176,7 @@ public:
     * \tparam level Integer specifying the component of the sizes to be returned.
     */
    template< std::size_t level >
-   IndexType
+   [[nodiscard]] IndexType
    getSize() const
    {
       return globalSizes.template getSize< level >();
@@ -184,7 +184,7 @@ public:
 
    //! \brief Returns the beginning position of the local array in the global
    //! N-dimensional array.
-   LocalBeginsType
+   [[nodiscard]] LocalBeginsType
    getLocalBegins() const
    {
       return localBegins;
@@ -192,7 +192,7 @@ public:
 
    //! \brief Returns the ending position of the local array in the global
    //! N-dimensional array.
-   SizesHolderType
+   [[nodiscard]] SizesHolderType
    getLocalEnds() const
    {
       return localEnds;
@@ -205,7 +205,7 @@ public:
     * \tparam level Integer specifying the component of the sizes to be returned.
     */
    template< std::size_t level >
-   LocalRangeType
+   [[nodiscard]] LocalRangeType
    getLocalRange() const
    {
       return LocalRangeType( localBegins.template getSize< level >(), localEnds.template getSize< level >() );
@@ -213,21 +213,21 @@ public:
 
    //! \brief Returns the size (number of elements) needed to store the local
    //! N-dimensional array.
-   IndexType
+   [[nodiscard]] IndexType
    getLocalStorageSize() const
    {
       return localView.getStorageSize();
    }
 
    //! \brief Returns a modifiable view of the local array.
-   LocalViewType
+   [[nodiscard]] LocalViewType
    getLocalView()
    {
       return localView;
    }
 
    //! \brief Returns a non-modifiable view of the local array.
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalView() const
    {
       return localView.getConstView();
@@ -243,7 +243,7 @@ public:
     *          one-dimensional array.
     */
    template< typename... IndexTypes >
-   IndexType
+   [[nodiscard]] IndexType
    getStorageIndex( IndexTypes&&... indices ) const
    {
       static_assert( sizeof...( indices ) == SizesHolderType::getDimension(), "got wrong number of indices" );
@@ -257,14 +257,14 @@ public:
    }
 
    //! \brief Returns a raw pointer to the local data.
-   ValueType*
+   [[nodiscard]] ValueType*
    getData()
    {
       return localView.getData();
    }
 
    //! \brief Returns a \e const-qualified raw pointer to the local data.
-   std::add_const_t< ValueType >*
+   [[nodiscard]] std::add_const_t< ValueType >*
    getData() const
    {
       return localView.getData();
@@ -282,7 +282,7 @@ public:
     * \returns Reference to the array element.
     */
    template< typename... IndexTypes >
-   ValueType&
+   [[nodiscard]] ValueType&
    operator()( IndexTypes&&... indices )
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
@@ -303,7 +303,7 @@ public:
     * \returns Constant reference to the array element.
     */
    template< typename... IndexTypes >
-   const ValueType&
+   [[nodiscard]] const ValueType&
    operator()( IndexTypes&&... indices ) const
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
@@ -324,7 +324,7 @@ public:
     * \param index Global index of the element in the one-dimensional array.
     * \returns Reference to the array element.
     */
-   ValueType&
+   [[nodiscard]] ValueType&
    operator[]( IndexType index )
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
@@ -344,7 +344,7 @@ public:
     * \param index Global index of the element in the one-dimensional array.
     * \returns Reference to the array element.
     */
-   const ValueType&
+   [[nodiscard]] const ValueType&
    operator[]( IndexType index ) const
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
@@ -353,21 +353,21 @@ public:
    }
 
    //! \brief Returns a modifiable view of the array.
-   ViewType
+   [[nodiscard]] ViewType
    getView()
    {
       return ViewType( *this );
    }
 
    //! \brief Returns a non-modifiable view of the array.
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const
    {
       return ConstViewType( localView, globalSizes, localBegins, localEnds, communicator );
    }
 
    //! \brief Compares the array with another distributed N-dimensional array.
-   bool
+   [[nodiscard]] bool
    operator==( const DistributedNDArrayView& other ) const
    {
       // we can't run allreduce if the communicators are different
@@ -383,7 +383,7 @@ public:
    }
 
    //! \brief Compares the array with another distributed N-dimensional array.
-   bool
+   [[nodiscard]] bool
    operator!=( const DistributedNDArrayView& other ) const
    {
       return ! ( *this == other );

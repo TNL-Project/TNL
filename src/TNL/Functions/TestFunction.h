@@ -71,11 +71,11 @@ public:
    operator=( const TestFunction& function );
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Real
    getPartialDerivative( const PointType& vertex, const Real& time = 0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Real
    operator()( const PointType& vertex, const Real& time = 0 ) const
    {
@@ -83,7 +83,7 @@ public:
    }
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Real
    getTimeDerivative( const PointType& vertex, const Real& time = 0 ) const;
 

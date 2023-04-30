@@ -32,7 +32,7 @@ public:
    }
 
    template< typename CSROffsets >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getSegmentsCount( const CSROffsets& offsets )
    {
@@ -43,7 +43,7 @@ public:
     * \brief Returns size of the segment number \r segmentIdx
     */
    template< typename CSROffsets >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getSegmentSize( const CSROffsets& offsets, const IndexType segmentIdx )
    {
@@ -61,7 +61,7 @@ public:
     * \brief Returns number of elements that needs to be allocated.
     */
    template< typename CSROffsets >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getStorageSize( const CSROffsets& offsets )
    {
@@ -75,7 +75,7 @@ public:
       return offsets[ getSegmentsCount( offsets ) ];
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( Index segmentIdx, Index localIdx ) const;
 

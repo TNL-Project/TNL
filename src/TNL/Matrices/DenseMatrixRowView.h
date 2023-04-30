@@ -93,7 +93,7 @@ public:
     *
     * \return Size of the matrix row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -102,7 +102,7 @@ public:
     *
     * \return matrix row index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getRowIndex() const;
 
@@ -113,7 +113,7 @@ public:
     *
     * \return constant reference to the matrix element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getValue( IndexType column ) const;
 
@@ -124,7 +124,7 @@ public:
     *
     * \return non-constant reference to the matrix element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType&
    getValue( IndexType column );
 
@@ -135,7 +135,7 @@ public:
     *
     * \return the value of \e localIdx as column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getColumnIndex( IndexType localIdx ) const;
 
@@ -166,7 +166,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    begin();
 
@@ -175,7 +175,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    end();
 
@@ -184,7 +184,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IteratorType
    cbegin() const;
 
@@ -193,7 +193,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IteratorType
    cend() const;
 

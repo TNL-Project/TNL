@@ -79,19 +79,19 @@ public:
       this->cellSeeds.setEntityCornersCounts( std::move( counts ) );
    }
 
-   GlobalIndexType
+   [[nodiscard]] GlobalIndexType
    getPointsCount() const
    {
       return this->points.getSize();
    }
 
-   GlobalIndexType
+   [[nodiscard]] GlobalIndexType
    getFacesCount() const
    {
       return this->faceSeeds.getEntitiesCount();
    }
 
-   GlobalIndexType
+   [[nodiscard]] GlobalIndexType
    getCellsCount() const
    {
       return this->cellSeeds.getEntitiesCount();
@@ -104,13 +104,13 @@ public:
       this->pointsSet[ index ] = true;
    }
 
-   FaceSeedType
+   [[nodiscard]] FaceSeedType
    getFaceSeed( GlobalIndexType index )
    {
       return this->faceSeeds.getSeed( index );
    }
 
-   CellSeedType
+   [[nodiscard]] CellSeedType
    getCellSeed( GlobalIndexType index )
    {
       return this->cellSeeds.getSeed( index );

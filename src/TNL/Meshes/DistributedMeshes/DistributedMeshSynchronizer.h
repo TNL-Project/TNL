@@ -197,7 +197,7 @@ public:
       MPI::Waitall( requests.data(), requests.size() );
    }
 
-   RequestsVector
+   [[nodiscard]] RequestsVector
    synchronizeByteArrayAsyncWorker( ByteArrayView array, int bytesPerValue ) override
    {
       TNL_ASSERT_EQ( array.getSize(),
@@ -262,7 +262,7 @@ public:
    //       set assumeConsistentRowCapacities to true
    // returns: a tuple of the received rankOffsets, rowPointers and columnIndices arrays
    template< typename SparsePattern >
-   auto
+   [[nodiscard]] auto
    synchronizeSparse( const SparsePattern& pattern, bool assumeConsistentRowCapacities = false )
    {
       TNL_ASSERT_EQ( pattern.getRows(), ghostOffsets[ ghostOffsets.getSize() - 1 ], "invalid sparse pattern matrix" );
@@ -413,7 +413,7 @@ public:
    }
 
    // get entity owner based on its global index - can be used only after running initialize()
-   int
+   [[nodiscard]] int
    getEntityOwner( GlobalIndexType global_idx ) const
    {
       const int nproc = globalOffsets.getSize();
@@ -425,31 +425,31 @@ public:
 
    // public const accessors for the communication pattern matrix and index arrays which were
    // created in the `initialize` method
-   const auto&
+   [[nodiscard]] const auto&
    getGlobalOffsets() const
    {
       return globalOffsets;
    }
 
-   const auto&
+   [[nodiscard]] const auto&
    getGhostEntitiesCounts() const
    {
       return ghostEntitiesCounts;
    }
 
-   const auto&
+   [[nodiscard]] const auto&
    getGhostOffsets() const
    {
       return ghostOffsets;
    }
 
-   const auto&
+   [[nodiscard]] const auto&
    getGhostNeighborOffsets() const
    {
       return ghostNeighborOffsets;
    }
 
-   const auto&
+   [[nodiscard]] const auto&
    getGhostNeighbors() const
    {
       return ghostNeighbors;

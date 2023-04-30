@@ -10,7 +10,7 @@
 
 namespace TNL::MPI {
 
-inline Timer&
+[[nodiscard]] inline Timer&
 getTimerAllreduce()
 {
    static Timer t;

@@ -52,44 +52,44 @@ public:
       return *this;
    }
 
-   std::size_t
+   [[nodiscard]] std::size_t
    size() const noexcept
    {
       return elements.size();
    }
 
    // iterators
-   auto
+   [[nodiscard]] auto
    begin() noexcept
    {
       return elements.begin();
    }
 
-   auto
+   [[nodiscard]] auto
    begin() const noexcept
    {
       return elements.begin();
    }
 
-   auto
+   [[nodiscard]] auto
    cbegin() const noexcept
    {
       return elements.cbegin();
    }
 
-   auto
+   [[nodiscard]] auto
    end() noexcept
    {
       return elements.end();
    }
 
-   auto
+   [[nodiscard]] auto
    end() const noexcept
    {
       return elements.end();
    }
 
-   auto
+   [[nodiscard]] auto
    cend() const noexcept
    {
       return elements.cend();
@@ -134,7 +134,7 @@ public:
       this->verbose = verbose;
    }
 
-   int
+   [[nodiscard]] int
    getVerbose() const
    {
       return verbose;

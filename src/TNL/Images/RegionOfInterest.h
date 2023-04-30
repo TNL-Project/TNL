@@ -21,32 +21,32 @@ public:
    bool
    setup( const Config::ParameterContainer& parameters, const Image< Index >* image );
 
-   bool
+   [[nodiscard]] bool
    check( const Image< Index >* image ) const;
 
-   Index
+   [[nodiscard]] Index
    getTop() const;
 
-   Index
+   [[nodiscard]] Index
    getBottom() const;
 
-   Index
+   [[nodiscard]] Index
    getLeft() const;
 
-   Index
+   [[nodiscard]] Index
    getRight() const;
 
-   Index
+   [[nodiscard]] Index
    getWidth() const;
 
-   Index
+   [[nodiscard]] Index
    getHeight() const;
 
    template< typename Grid >
    bool
    setGrid( Grid& grid, bool verbose = false );
 
-   bool
+   [[nodiscard]] bool
    isIn( Index row, Index column ) const;
 
 protected:

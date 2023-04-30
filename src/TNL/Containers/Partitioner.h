@@ -25,7 +25,7 @@ class Partitioner
 public:
    using SubrangeType = Subrange< Index >;
 
-   static SubrangeType
+   [[nodiscard]] static SubrangeType
    splitRange( Index globalSize, const MPI::Comm& communicator )
    {
       if( communicator == MPI_COMM_NULL )
@@ -47,7 +47,7 @@ public:
    }
 
    // Gets the offset of data for given rank.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static Index
    getOffset( Index globalSize, int rank, int partitions )
    {
@@ -59,7 +59,7 @@ public:
    }
 
    // Gets the size of data assigned to given rank.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static Index
    getSizeForRank( Index globalSize, int rank, int partitions )
    {
@@ -103,7 +103,7 @@ public:
          MPI::Waitall( requests.data(), requests.size() );
       }
 
-      RequestsVector
+      [[nodiscard]] RequestsVector
       synchronizeByteArrayAsyncWorker( ByteArrayView array, int bytesPerValue ) override
       {
          TNL_ASSERT_EQ( array.getSize(), bytesPerValue * ( localRange.getSize() + 2 * overlaps ), "unexpected array size" );

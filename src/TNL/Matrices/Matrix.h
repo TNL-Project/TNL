@@ -131,7 +131,7 @@ public:
     *
     * \return Number of allocated matrix elements.
     */
-   IndexType
+   [[nodiscard]] IndexType
    getAllocatedElementsCount() const;
 
    /**
@@ -139,7 +139,7 @@ public:
     *
     * \return number of nonzero matrix elements.
     */
-   virtual IndexType
+   [[nodiscard]] virtual IndexType
    getNonzeroElementsCount() const;
 
    /**
@@ -155,7 +155,7 @@ public:
     *
     * \return number of matrix row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getRows() const;
 
@@ -164,7 +164,7 @@ public:
     *
     * @return number of matrix columns.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getColumns() const;
 
@@ -173,7 +173,7 @@ public:
     *
     * \return constant reference to a vector with the matrix elements values.
     */
-   const ValuesType&
+   [[nodiscard]] const ValuesType&
    getValues() const;
 
    /**
@@ -181,7 +181,7 @@ public:
     *
     * \return constant reference to a vector with the matrix elements values.
     */
-   ValuesType&
+   [[nodiscard]] ValuesType&
    getValues();
 
    /**
@@ -191,7 +191,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator==( const Matrix& matrix ) const;
 
    /**
@@ -201,7 +201,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator!=( const Matrix& matrix ) const;
 
    /**

@@ -22,7 +22,7 @@ template< typename Index, typename LevelTag, std::size_t size >
 class SizeHolder
 {
 public:
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    constexpr Index
    getSize( LevelTag ) const
    {
@@ -36,7 +36,7 @@ public:
       TNL_ASSERT_EQ( newSize, 0, "Dynamic size for a static dimension must be 0." );
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const SizeHolder& ) const
    {
@@ -48,7 +48,7 @@ template< typename Index, typename LevelTag >
 class SizeHolder< Index, LevelTag, 0 >
 {
 public:
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getSize( LevelTag ) const
    {
@@ -62,7 +62,7 @@ public:
       this->size = size;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const SizeHolder& other ) const
    {
@@ -94,7 +94,7 @@ protected:
    using Layer::getSize;
    using Layer::setSize;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const SizesHolderLayer& other ) const
    {
@@ -116,7 +116,7 @@ protected:
    using Layer::getSize;
    using Layer::setSize;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const SizesHolderLayer& other ) const
    {
@@ -164,7 +164,7 @@ public:
 
    //! \brief Returns the dimension of the array, i.e. number of \e sizes
    //! specified in the template parameters.
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getDimension()
    {
       return sizeof...( sizes );
@@ -172,7 +172,7 @@ public:
 
    //! \brief Returns the _static_ size of a specific dimension.
    template< std::size_t level >
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getStaticSize()
    {
       static_assert( level < sizeof...( sizes ), "Invalid dimension passed to getStaticSize()." );
@@ -181,7 +181,7 @@ public:
 
    //! \brief Returns the _dynamic_ size along a specific axis.
    template< std::size_t level >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getSize() const
    {
@@ -200,7 +200,7 @@ public:
    }
 
    //! \brief Compares the sizes with another instance of the holder.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const SizesHolder& other ) const
    {
@@ -208,7 +208,7 @@ public:
    }
 
    //! \brief Compares the sizes with another instance of the holder.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const SizesHolder& other ) const
    {
@@ -289,14 +289,14 @@ class ConstStaticSizesHolder
 public:
    using IndexType = Index;
 
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getDimension()
    {
       return dimension;
    }
 
    template< std::size_t level >
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getStaticSize()
    {
       static_assert( level < getDimension(), "Invalid level passed to getStaticSize()." );
@@ -304,7 +304,7 @@ public:
    }
 
    template< std::size_t level >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getSize() const
    {
@@ -313,14 +313,14 @@ public:
    }
 
    // methods for convenience
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const ConstStaticSizesHolder& other ) const
    {
       return true;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const ConstStaticSizesHolder& other ) const
    {
@@ -336,7 +336,7 @@ struct SubtractedSizesHolder
 template< typename Index, std::size_t ConstValue, std::size_t... sizes >
 struct SubtractedSizesHolder< SizesHolder< Index, sizes... >, ConstValue >
 {
-   //   using type = SizesHolder< Index, std::max( (std::size_t) 0, sizes - ConstValue )... >;
+   // using type = SizesHolder< Index, std::max( (std::size_t) 0, sizes - ConstValue )... >;
    using type = SizesHolder< Index, ( ( sizes >= ConstValue ) ? sizes - ConstValue : 0 )... >;
 };
 
@@ -347,7 +347,7 @@ template< typename SizesHolder,
 struct LocalBeginsHolder : public SizesHolder
 {
    template< std::size_t dimension >
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getStaticSize()
    {
       static_assert( dimension < SizesHolder::getDimension(), "Invalid dimension passed to getStaticSize()." );
@@ -355,7 +355,7 @@ struct LocalBeginsHolder : public SizesHolder
    }
 
    template< std::size_t level >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    typename SizesHolder::IndexType
    getSize() const
    {

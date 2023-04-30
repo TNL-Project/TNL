@@ -64,14 +64,14 @@ public:
    /**
     * \brief Returns a reference to the mesh that owns this mesh entity.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const MeshType&
    getMesh() const;
 
    /**
     * \brief Returns the index of this mesh entity.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    GlobalIndexType
    getIndex() const;
 
@@ -80,7 +80,7 @@ public:
     *
     * Can be used only when \ref getEntityDimension returns 0.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    PointType
    getPoint() const;
 
@@ -88,7 +88,7 @@ public:
     * \brief Returns the count of subentities of this entity.
     */
    template< int Subdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    LocalIndexType
    getSubentitiesCount() const;
 
@@ -96,7 +96,7 @@ public:
     * \brief Returns the global index of the subentity specified by its local index.
     */
    template< int Subdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    GlobalIndexType
    getSubentityIndex( LocalIndexType localIndex ) const;
 
@@ -104,7 +104,7 @@ public:
     * \brief Returns the count of superentities of this entity.
     */
    template< int Superdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    LocalIndexType
    getSuperentitiesCount() const;
 
@@ -112,14 +112,14 @@ public:
     * \brief Returns the global index of the superentity specified by its local index.
     */
    template< int Superdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    GlobalIndexType
    getSuperentityIndex( LocalIndexType localIndex ) const;
 
    /**
     * \brief Returns the tag associated with this entity.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    TagType
    getTag() const;
 

@@ -29,46 +29,46 @@ public:
    : name( std::move( name ) ), description( std::move( description ) ), required( required ), _hasDefaultValue( false )
    {}
 
-   const std::string&
+   [[nodiscard]] const std::string&
    getName() const
    {
       return name;
    }
 
-   const std::string&
+   [[nodiscard]] const std::string&
    getDescription() const
    {
       return description;
    }
 
-   bool
+   [[nodiscard]] bool
    isRequired() const
    {
       return required;
    }
 
-   bool
+   [[nodiscard]] bool
    hasDefaultValue() const
    {
       return _hasDefaultValue;
    }
 
-   virtual std::string
+   [[nodiscard]] virtual std::string
    getUIEntryType() const = 0;
 
-   virtual bool
+   [[nodiscard]] virtual bool
    isDelimiter() const
    {
       return false;
    }
 
-   virtual std::string
+   [[nodiscard]] virtual std::string
    printDefaultValue() const
    {
       return "";
    }
 
-   virtual bool
+   [[nodiscard]] virtual bool
    hasEnumValues() const
    {
       return false;

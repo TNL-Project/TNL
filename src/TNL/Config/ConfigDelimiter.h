@@ -17,13 +17,13 @@ class ConfigDelimiter : public ConfigEntryBase
 public:
    ConfigDelimiter( const std::string& delimiter ) : ConfigEntryBase( "", delimiter, false ) {}
 
-   bool
+   [[nodiscard]] bool
    isDelimiter() const override
    {
       return true;
    }
 
-   std::string
+   [[nodiscard]] std::string
    getUIEntryType() const override
    {
       return "";

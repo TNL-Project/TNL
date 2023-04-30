@@ -116,7 +116,7 @@ public:
     * \returns the current value of the parameter controlling the adaptive choice of
     *    integration time step.
     */
-   const RealType&
+   [[nodiscard]] const RealType&
    getAdaptivity() const;
 
    /**

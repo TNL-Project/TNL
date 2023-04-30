@@ -18,7 +18,7 @@
 
 namespace TNL::Config {
 
-ParameterContainer
+[[nodiscard]] ParameterContainer
 parseINIConfigFile( const std::string& configPath, const ConfigDescription& description )
 {
    ParameterContainer parameters;

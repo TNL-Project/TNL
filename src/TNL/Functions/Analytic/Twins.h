@@ -41,11 +41,11 @@ public:
    Twins();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0, typename Point = PointType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const Point& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -64,11 +64,11 @@ public:
    Twins();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0, typename Point = PointType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const Point& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -87,11 +87,11 @@ public:
    Twins();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0, typename Point = PointType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const Point& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };

@@ -36,7 +36,7 @@ public:
    using ChunkedEllpackSliceInfoContainerView = Containers::
       ArrayView< typename TNL::copy_const< ChunkedEllpackSliceInfoType >::template from< Index >::type, DeviceType, IndexType >;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    havePadding()
    {
       return true;
@@ -75,53 +75,53 @@ public:
    __cuda_callable__
    ChunkedEllpackView( ChunkedEllpackView&& chunked_ellpack_view ) noexcept = default;
 
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
-   static String
+   [[nodiscard]] static String
    getSegmentsType();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
    /**
     * \brief Number of segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentsCount() const;
 
    /***
     * \brief Returns size of the segment number \r segmentIdx
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentSize( IndexType segmentIdx ) const;
 
    /***
     * \brief Returns number of elements managed by all segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
    /***
     * \brief Returns number of elements that needs to be allocated.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getStorageSize() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( Index segmentIdx, Index localIdx ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 

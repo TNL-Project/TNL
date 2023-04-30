@@ -41,7 +41,7 @@ public:
      code_( error_code )
    {}
 
-   CudaStatusType
+   [[nodiscard]] CudaStatusType
    code() const
    {
       return code_;

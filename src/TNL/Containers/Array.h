@@ -229,21 +229,21 @@ public:
    /**
     * \brief Returns the allocator associated with the array.
     */
-   AllocatorType
+   [[nodiscard]] AllocatorType
    getAllocator() const;
 
    /**
     * \brief Returns a string representation of the array type in C++ style,
     * with a placeholder in place of \e Device and \e Allocator.
     */
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
    /**
     * \brief Returns a string representation of the array type in C++ style,
     * with a placeholder in place of \e Device and \e Allocator.
     */
-   virtual std::string
+   [[nodiscard]] virtual std::string
    getSerializationTypeVirtual() const;
 
    /**
@@ -312,7 +312,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -344,7 +344,7 @@ public:
     * \param end The end of the array sub-interval. The default value is 0
     *            which is, however, replaced with the array size.
     */
-   ViewType
+   [[nodiscard]] ViewType
    getView( IndexType begin = 0, IndexType end = 0 );
 
    /**
@@ -359,7 +359,7 @@ public:
     * \param end The end of the array sub-interval. The default value is 0
     *            which is, however, replaced with the array size.
     */
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView( IndexType begin = 0, IndexType end = 0 ) const;
 
    /**
@@ -397,7 +397,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    empty() const;
 
@@ -406,7 +406,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Value*
    getData() const;
 
@@ -415,7 +415,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Value*
    getData();
 
@@ -427,7 +427,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Value*
    getArrayData() const;
 
@@ -439,7 +439,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Value*
    getArrayData();
 
@@ -464,7 +464,7 @@ public:
     *
     * \param i The index of the element to be returned.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType
    getElement( IndexType i ) const;
 
@@ -483,7 +483,7 @@ public:
     * \param i The index of the element to be accessed.
     * \return Reference to the \e i-th element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Value&
    operator[]( IndexType i );
 
@@ -502,7 +502,7 @@ public:
     * \param i The index of the element to be accessed.
     * \return Constant reference to the \e i-th element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Value&
    operator[]( IndexType i ) const;
 
@@ -511,7 +511,7 @@ public:
     *
     * Equivalent to \ref operator[], with the same notes and caveats.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Value&
    operator()( IndexType i );
 
@@ -520,7 +520,7 @@ public:
     *
     * Equivalent to \ref operator[], with the same notes and caveats.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Value&
    operator()( IndexType i ) const;
 
@@ -592,7 +592,7 @@ public:
     *         otherwise.
     */
    template< typename ArrayT >
-   bool
+   [[nodiscard]] bool
    operator==( const ArrayT& array ) const;
 
    /**
@@ -605,7 +605,7 @@ public:
     * \return The negated result of \ref operator==.
     */
    template< typename ArrayT >
-   bool
+   [[nodiscard]] bool
    operator!=( const ArrayT& array ) const;
 
    /**

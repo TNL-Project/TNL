@@ -26,12 +26,12 @@ public:
    using CoordinatesType = typename DistributedGridType::CoordinatesType;
    using SubdomainOverlapsType = typename DistributedGridType::SubdomainOverlapsType;
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getMeshDimension()
    {
       return DistributedGridType::getMeshDimension();
    }
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getNeighborsCount()
    {
       return DistributedGridType::getNeighborsCount();

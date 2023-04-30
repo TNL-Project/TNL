@@ -43,7 +43,7 @@ public:
     *
     * \return index of the parent segment.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    segmentIndex() const
    {
@@ -55,7 +55,7 @@ public:
     *
     * \return rank of the element in the segment.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    localIndex() const
    {
@@ -67,7 +67,7 @@ public:
     *
     * \return index of the element in the related container.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    globalIndex() const
    {

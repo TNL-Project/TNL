@@ -41,7 +41,7 @@ public:
     * \brief Tells whether the parent matrix is a binary matrix.
     * @return `true` if the matrix is binary.
     */
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isBinary()
    {
       return RowViewType::isBinary();
@@ -56,7 +56,7 @@ public:
     * \param other is another matrix row iterator.
     * \return \e true if both iterators points at the same point of the same matrix, \e false otherwise.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const LambdaMatrixRowViewIterator& other ) const;
 
@@ -66,7 +66,7 @@ public:
     * \param other is another matrix row iterator.
     * \return \e false if both iterators points at the same point of the same matrix, \e true otherwise.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const LambdaMatrixRowViewIterator& other ) const;
 
@@ -78,11 +78,11 @@ public:
    LambdaMatrixRowViewIterator&
    operator--();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    MatrixElementType
    operator*();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    MatrixElementType
    operator*() const;
 

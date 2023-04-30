@@ -59,7 +59,7 @@ enum class EntityShape : std::uint8_t
    Polyhedron = 42
 };
 
-inline std::string
+[[nodiscard]] inline std::string
 getShapeName( EntityShape shape )
 {
    switch( shape ) {
@@ -101,7 +101,7 @@ getShapeName( EntityShape shape )
    return "<unknown entity shape>";
 }
 
-inline int
+[[nodiscard]] inline int
 getEntityDimension( EntityShape shape )
 {
    switch( shape ) {
@@ -218,7 +218,7 @@ public:
 // NOTE: C++ has fixed-width integer types (std::int8_t etc.) but also minimum-width types (int, long int, long long int, etc.)
 // which makes it impossible to cover all possibilities with function overloading, because some types may be aliases for others
 template< typename T >
-std::enable_if_t< std::is_integral_v< T > && std::is_signed_v< T >, std::string >
+[[nodiscard]] std::enable_if_t< std::is_integral_v< T > && std::is_signed_v< T >, std::string >
 getTypeName( T )
 {
    static_assert( sizeof( T ) == 1 || sizeof( T ) == 2 || sizeof( T ) == 4 || sizeof( T ) == 8 );
@@ -233,7 +233,7 @@ getTypeName( T )
 }
 
 template< typename T >
-std::enable_if_t< std::is_integral_v< T > && std::is_unsigned_v< T >, std::string >
+[[nodiscard]] std::enable_if_t< std::is_integral_v< T > && std::is_unsigned_v< T >, std::string >
 getTypeName( T )
 {
    static_assert( sizeof( T ) == 1 || sizeof( T ) == 2 || sizeof( T ) == 4 || sizeof( T ) == 8 );
@@ -247,13 +247,13 @@ getTypeName( T )
       return "UInt64";
 }
 
-inline std::string
+[[nodiscard]] inline std::string
 getTypeName( float )
 {
    return "Float32";
 }
 
-inline std::string
+[[nodiscard]] inline std::string
 getTypeName( double )
 {
    return "Float64";
@@ -291,7 +291,7 @@ enum class PointGhostTypes : std::uint8_t
  *
  * For details, see https://blog.kitware.com/ghost-and-blanking-visibility-changes/
  */
-inline const char*
+[[nodiscard]] inline const char*
 ghostArrayName()
 {
    return "vtkGhostType";

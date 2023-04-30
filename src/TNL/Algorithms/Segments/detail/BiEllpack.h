@@ -22,7 +22,7 @@ class BiEllpack
 public:
    using DeviceType = Device;
    using IndexType = Index;
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    getOrganization()
    {
       return Organization;
@@ -33,25 +33,25 @@ public:
    using SegmentsSizes = OffsetsContainer;
    using SegmentViewType = BiEllpackSegmentView< IndexType, Organization >;
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getWarpSize()
    {
       return WarpSize;
    }
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getLogWarpSize()
    {
       return std::log2( WarpSize );
    }
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getGroupsCount()
    {
       return getLogWarpSize() + 1;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getActiveGroupsCountDirect( const ConstOffsetsHolderView& rowPermArray, const IndexType segmentIdx )
    {
@@ -71,7 +71,7 @@ public:
       return -1;  // to avoid compiler warning
    }
 
-   static IndexType
+   [[nodiscard]] static IndexType
    getActiveGroupsCount( const ConstOffsetsHolderView& rowPermArray, const IndexType segmentIdx )
    {
       TNL_ASSERT_GE( segmentIdx, 0, "" );
@@ -89,7 +89,7 @@ public:
       throw std::logic_error( "segmentIdx was not found" );
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getGroupSizeDirect( const ConstOffsetsHolderView& groupPointers, const IndexType strip, const IndexType group )
    {
@@ -97,13 +97,13 @@ public:
       return groupPointers[ groupOffset + 1 ] - groupPointers[ groupOffset ];
    }
 
-   static IndexType
+   [[nodiscard]] static IndexType
    getGroupSize( const ConstOffsetsHolderView& groupPointers, const IndexType strip, const IndexType group )
    {
       const IndexType groupOffset = strip * ( getLogWarpSize() + 1 ) + group;
       return groupPointers.getElement( groupOffset + 1 ) - groupPointers.getElement( groupOffset );
    }
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getSegmentSizeDirect( const OffsetsHolderView& rowPermArray,
                          const OffsetsHolderView& groupPointers,
@@ -124,7 +124,7 @@ public:
       return segmentSize;
    }
 
-   static IndexType
+   [[nodiscard]] static IndexType
    getSegmentSize( const OffsetsHolderView& rowPermArray, const OffsetsHolderView& groupPointers, const IndexType segmentIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
@@ -142,7 +142,7 @@ public:
       return segmentSize;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getGlobalIndexDirect( const OffsetsHolderView& rowPermArray,
                          const OffsetsHolderView& groupPointers,
@@ -176,7 +176,7 @@ public:
       return -1;  // to avoid compiler warning
    }
 
-   static IndexType
+   [[nodiscard]] static IndexType
    getGlobalIndex( const ConstOffsetsHolderView& rowPermArray,
                    const ConstOffsetsHolderView& groupPointers,
                    const IndexType segmentIdx,
@@ -210,8 +210,8 @@ public:
       return -1;  // to avoid compiler warning
    }
 
-   static __cuda_callable__
-   SegmentViewType
+   [[nodiscard]] __cuda_callable__
+   static SegmentViewType
    getSegmentViewDirect( const OffsetsHolderView& rowPermArray,
                          const OffsetsHolderView& groupPointers,
                          const IndexType segmentIdx )
@@ -235,8 +235,8 @@ public:
       return SegmentViewType( segmentIdx, groupPointers[ groupIdx ], inStripIdx, groupsWidth );
    }
 
-   static __cuda_callable__
-   SegmentViewType
+   [[nodiscard]] __cuda_callable__
+   static SegmentViewType
    getSegmentView( const OffsetsHolderView& rowPermArray, const OffsetsHolderView& groupPointers, const IndexType segmentIdx )
    {
       using GroupsWidthType = typename SegmentViewType::GroupsWidthType;
@@ -255,7 +255,7 @@ public:
       return SegmentViewType( segmentIdx, groupPointers[ groupIdx ], inStripIdx, groupsWidth );
    }
 
-   static Index
+   [[nodiscard]] static Index
    getStripLength( const ConstOffsetsHolderView& groupPointers, const IndexType strip )
    {
       TNL_ASSERT( strip >= 0, std::cerr << "strip = " << strip );
@@ -264,8 +264,8 @@ public:
            - groupPointers.getElement( strip * ( getLogWarpSize() + 1 ) );
    }
 
-   static __cuda_callable__
-   Index
+   [[nodiscard]] __cuda_callable__
+   static Index
    getStripLengthDirect( const ConstOffsetsHolderView& groupPointers, const IndexType strip )
    {
       TNL_ASSERT( strip >= 0, std::cerr << "strip = " << strip );

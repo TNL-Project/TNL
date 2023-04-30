@@ -29,7 +29,7 @@ struct SparseMatrixRowViewValueGetter< SegmentView, ValuesView, ColumnsIndexesVi
 
    using ConstResultType = bool;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static bool
    getValue( const IndexType& globalIdx,
              const ValuesView& values,
@@ -51,7 +51,7 @@ struct SparseMatrixRowViewValueGetter< SegmentView, ValuesView, ColumnsIndexesVi
 
    using ConstResultType = const RealType&;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static const RealType&
    getValue( const IndexType& globalIdx,
              const ValuesView& values,
@@ -61,7 +61,7 @@ struct SparseMatrixRowViewValueGetter< SegmentView, ValuesView, ColumnsIndexesVi
       return values[ globalIdx ];
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static RealType&
    getValue( const IndexType& globalIdx, ValuesView& values, ColumnsIndexesView& columnIndexes, const IndexType& paddingIndex )
    {

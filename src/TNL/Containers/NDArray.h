@@ -35,7 +35,7 @@ template< std::size_t slicedDimension = 0, std::size_t sliceSize = 0 >
 struct SliceInfo
 {
    // sliceSize == 0 means no slicing
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getSliceSize( std::size_t dimension )
    {
       return ( dimension == slicedDimension ) ? sliceSize : 0;
@@ -123,7 +123,7 @@ public:
    }
 
    //! \brief Compares the array with another N-dimensional array.
-   bool
+   [[nodiscard]] bool
    operator==( const NDArrayStorage& other ) const
    {
       // FIXME: uninitialized data due to alignment in NDArray and padding in SlicedNDArray
@@ -131,7 +131,7 @@ public:
    }
 
    //! \brief Compares the array with another N-dimensional array.
-   bool
+   [[nodiscard]] bool
    operator!=( const NDArrayStorage& other ) const
    {
       // FIXME: uninitialized data due to alignment in NDArray and padding in SlicedNDArray
@@ -143,7 +143,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType*
    getData()
    {
@@ -155,7 +155,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    std::add_const_t< ValueType >*
    getData() const
    {
@@ -173,7 +173,7 @@ public:
    using IndexerType::isContiguousBlock;
 
    //! Returns a const-qualified reference to the underlying indexer.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexerType&
    getIndexer() const
    {
@@ -181,7 +181,7 @@ public:
    }
 
    //! \brief Returns a modifiable view of the array.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView()
    {
@@ -189,7 +189,7 @@ public:
    }
 
    //! \brief Returns a non-modifiable view of the array.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const
    {
@@ -210,7 +210,7 @@ public:
     *          subarray sizes.
     */
    template< std::size_t... Dimensions, typename... IndexTypes >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    auto
    getSubarrayView( IndexTypes&&... indices )
    {
@@ -248,7 +248,7 @@ public:
     * \returns Reference to the array element.
     */
    template< typename... IndexTypes >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType&
    operator()( IndexTypes&&... indices )
    {
@@ -265,7 +265,7 @@ public:
     * \returns Constant reference to the array element.
     */
    template< typename... IndexTypes >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const ValueType&
    operator()( IndexTypes&&... indices ) const
    {
@@ -282,7 +282,7 @@ public:
     * \param index Index of the element in the one-dimensional array.
     * \returns Reference to the array element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType&
    operator[]( IndexType index )
    {
@@ -300,7 +300,7 @@ public:
     * \param index Index of the element in the one-dimensional array.
     * \returns Constant reference to the array element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const ValueType&
    operator[]( IndexType index ) const
    {
@@ -495,7 +495,7 @@ public:
     * the device.
     */
    template< typename... IndexTypes >
-   ValueType
+   [[nodiscard]] ValueType
    getElement( IndexTypes&&... indices ) const
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
@@ -503,14 +503,14 @@ public:
    }
 
    //! \brief Returns a constant reference to the underlying storage array.
-   const StorageArray&
+   [[nodiscard]] const StorageArray&
    getStorageArray() const
    {
       return array;
    }
 
    //! \brief Returns a reference to the underlying storage array.
-   StorageArray&
+   [[nodiscard]] StorageArray&
    getStorageArray()
    {
       return array;
@@ -602,7 +602,7 @@ public:
    }
 
    //! \brief Returns the allocator associated with the array.
-   AllocatorType
+   [[nodiscard]] AllocatorType
    getAllocator() const
    {
       return this->array.getAllocator();
@@ -725,7 +725,7 @@ public:
    }
 
    //! \brief Returns the allocator associated with the array.
-   AllocatorType
+   [[nodiscard]] AllocatorType
    getAllocator() const
    {
       return this->array.getAllocator();

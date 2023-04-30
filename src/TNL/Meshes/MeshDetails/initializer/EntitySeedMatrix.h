@@ -51,7 +51,7 @@ public:
    public:
       EntitySeedMatrixSeed( const RowView& matrixRow ) : row( matrixRow ) {}
 
-      static constexpr LocalIndexType
+      [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
       {
          return SubentityTraitsType::count;
@@ -74,7 +74,7 @@ public:
          setCornerIds_impl( 0, pointIndices... );
       }
 
-      GlobalIndexType
+      [[nodiscard]] GlobalIndexType
       getCornerId( const LocalIndexType& cornerIndex ) const
       {
          return this->row.getColumnIndex( cornerIndex );
@@ -106,13 +106,13 @@ public:
    public:
       ConstEntitySeedMatrixSeed( const ConstRowView& matrixRow ) : row( matrixRow ) {}
 
-      static constexpr LocalIndexType
+      [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
       {
          return SubentityTraitsType::count;
       }
 
-      GlobalIndexType
+      [[nodiscard]] GlobalIndexType
       getCornerId( const LocalIndexType& cornerIndex ) const
       {
          return this->row.getColumnIndex( cornerIndex );
@@ -148,25 +148,25 @@ public:
       matrix.reset();
    }
 
-   GlobalIndexType
+   [[nodiscard]] GlobalIndexType
    getEntitiesCount() const
    {
       return matrix.getRows();
    }
 
-   SubentityMatrixType&
+   [[nodiscard]] SubentityMatrixType&
    getMatrix()
    {
       return matrix;
    }
 
-   const SubentityMatrixType&
+   [[nodiscard]] const SubentityMatrixType&
    getMatrix() const
    {
       return matrix;
    }
 
-   NeighborCountsArray
+   [[nodiscard]] NeighborCountsArray
    getEntityCornerCounts() const
    {
       NeighborCountsArray counts( getEntitiesCount() );
@@ -174,19 +174,19 @@ public:
       return counts;
    }
 
-   bool
+   [[nodiscard]] bool
    empty() const
    {
       return getEntitiesCount() == 0;
    }
 
-   EntitySeedMatrixSeed
+   [[nodiscard]] EntitySeedMatrixSeed
    getSeed( const GlobalIndexType& entityIndex )
    {
       return EntitySeedMatrixSeed( matrix.getRow( entityIndex ) );
    }
 
-   ConstEntitySeedMatrixSeed
+   [[nodiscard]] ConstEntitySeedMatrixSeed
    getSeed( const GlobalIndexType& entityIndex ) const
    {
       return ConstEntitySeedMatrixSeed( matrix.getRow( entityIndex ) );
@@ -226,7 +226,7 @@ public:
    public:
       EntitySeedMatrixSeed( const RowView& matrixRow ) : row( matrixRow ) {}
 
-      static constexpr LocalIndexType
+      [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
       {
          return 1;
@@ -241,7 +241,7 @@ public:
          this->row.setColumnIndex( cornerIndex, pointIndex );
       }
 
-      GlobalIndexType
+      [[nodiscard]] GlobalIndexType
       getCornerId( const LocalIndexType& cornerIndex ) const
       {
          return this->row.getColumnIndex( cornerIndex );
@@ -258,13 +258,13 @@ public:
    public:
       ConstEntitySeedMatrixSeed( const ConstRowView& matrixRow ) : row( matrixRow ) {}
 
-      static constexpr LocalIndexType
+      [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
       {
          return 1;
       }
 
-      GlobalIndexType
+      [[nodiscard]] GlobalIndexType
       getCornerId( const LocalIndexType& cornerIndex ) const
       {
          return this->row.getColumnIndex( cornerIndex );
@@ -300,25 +300,25 @@ public:
       matrix.reset();
    }
 
-   GlobalIndexType
+   [[nodiscard]] GlobalIndexType
    getEntitiesCount() const
    {
       return matrix.getRows();
    }
 
-   SubentityMatrixType&
+   [[nodiscard]] SubentityMatrixType&
    getMatrix()
    {
       return matrix;
    }
 
-   const SubentityMatrixType&
+   [[nodiscard]] const SubentityMatrixType&
    getMatrix() const
    {
       return matrix;
    }
 
-   NeighborCountsArray
+   [[nodiscard]] NeighborCountsArray
    getEntityCornerCounts() const
    {
       NeighborCountsArray counts( getEntitiesCount() );
@@ -326,19 +326,19 @@ public:
       return counts;
    }
 
-   bool
+   [[nodiscard]] bool
    empty() const
    {
       return getEntitiesCount() == 0;
    }
 
-   EntitySeedMatrixSeed
+   [[nodiscard]] EntitySeedMatrixSeed
    getSeed( const GlobalIndexType& entityIndex )
    {
       return EntitySeedMatrixSeed( matrix.getRow( entityIndex ) );
    }
 
-   ConstEntitySeedMatrixSeed
+   [[nodiscard]] ConstEntitySeedMatrixSeed
    getSeed( const GlobalIndexType& entityIndex ) const
    {
       return ConstEntitySeedMatrixSeed( matrix.getRow( entityIndex ) );
@@ -380,7 +380,7 @@ public:
       : row( matrixRow ), cornersCount( corners )
       {}
 
-      LocalIndexType
+      [[nodiscard]] LocalIndexType
       getCornersCount() const
       {
          return cornersCount;
@@ -395,7 +395,7 @@ public:
          this->row.setColumnIndex( cornerIndex, pointIndex );
       }
 
-      GlobalIndexType
+      [[nodiscard]] GlobalIndexType
       getCornerId( const LocalIndexType& cornerIndex ) const
       {
          return this->row.getColumnIndex( cornerIndex );
@@ -415,13 +415,13 @@ public:
       : row( matrixRow ), cornersCount( corners )
       {}
 
-      LocalIndexType
+      [[nodiscard]] LocalIndexType
       getCornersCount() const
       {
          return cornersCount;
       }
 
-      GlobalIndexType
+      [[nodiscard]] GlobalIndexType
       getCornerId( const LocalIndexType& cornerIndex ) const
       {
          return this->row.getColumnIndex( cornerIndex );
@@ -460,49 +460,49 @@ public:
       counts.reset();
    }
 
-   GlobalIndexType
+   [[nodiscard]] GlobalIndexType
    getEntitiesCount() const
    {
       return matrix.getRows();
    }
 
-   SubentityMatrixType&
+   [[nodiscard]] SubentityMatrixType&
    getMatrix()
    {
       return matrix;
    }
 
-   const SubentityMatrixType&
+   [[nodiscard]] const SubentityMatrixType&
    getMatrix() const
    {
       return matrix;
    }
 
-   NeighborCountsArray&
+   [[nodiscard]] NeighborCountsArray&
    getEntityCornerCounts()
    {
       return counts;
    }
 
-   const NeighborCountsArray&
+   [[nodiscard]] const NeighborCountsArray&
    getEntityCornerCounts() const
    {
       return counts;
    }
 
-   bool
+   [[nodiscard]] bool
    empty() const
    {
       return getEntitiesCount() == 0;
    }
 
-   EntitySeedMatrixSeed
+   [[nodiscard]] EntitySeedMatrixSeed
    getSeed( const GlobalIndexType& entityIndex )
    {
       return EntitySeedMatrixSeed( matrix.getRow( entityIndex ), counts[ entityIndex ] );
    }
 
-   ConstEntitySeedMatrixSeed
+   [[nodiscard]] ConstEntitySeedMatrixSeed
    getSeed( const GlobalIndexType& entityIndex ) const
    {
       return ConstEntitySeedMatrixSeed( matrix.getRow( entityIndex ), counts[ entityIndex ] );

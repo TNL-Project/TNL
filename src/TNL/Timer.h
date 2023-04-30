@@ -69,7 +69,7 @@ public:
     * This method can be called while the timer is running, there is no
     * need to use \ref stop method first.
     */
-   double
+   [[nodiscard]] double
    getRealTime() const;
 
    /**
@@ -80,7 +80,7 @@ public:
     * while the timer is running, there is no need to use \ref stop method
     * first.
     */
-   double
+   [[nodiscard]] double
    getCPUTime() const;
 
    /**
@@ -89,7 +89,7 @@ public:
     * CPU cycles are counted by adding the number of CPU cycles between
     * \ref start and \ref stop methods together.
     */
-   unsigned long long int
+   [[nodiscard]] unsigned long long int
    getCPUCycles() const;
 
    /**

@@ -77,7 +77,7 @@ public:
    }
 
    template< typename Vector >
-   static std::unique_ptr< GinkgoVector >
+   [[nodiscard]] static std::unique_ptr< GinkgoVector >
    create( std::shared_ptr< const gko::Executor > exec, Vector&& vector, bool ownership = false )
    {
       static_assert( std::is_same< typename std::decay_t< Vector >::DeviceType, DeviceType >::value,
@@ -85,13 +85,13 @@ public:
       return std::unique_ptr< GinkgoVector >( new GinkgoVector( exec, std::forward< Vector >( vector ), ownership ) );
    }
 
-   ViewType
+   [[nodiscard]] ViewType
    getView()
    {
       return wrapped_view.getView();
    }
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const
    {
       return wrapped_view.getConstView();
@@ -101,7 +101,7 @@ public:
     * \brief Override base Dense class implementation for creating new vectors
     * with same executor and size as self
     */
-   std::unique_ptr< gko::matrix::Dense< ValueType > >
+   [[nodiscard]] std::unique_ptr< gko::matrix::Dense< ValueType > >
    create_with_same_config() const override
    {
       AllocatorType allocator;
@@ -119,7 +119,7 @@ public:
     * This function will create "one large VectorWrapper" of size
     * size[0] * size[1], since MFEM Vectors only have one dimension.
     */
-   std::unique_ptr< gko::matrix::Dense< ValueType > >
+   [[nodiscard]] std::unique_ptr< gko::matrix::Dense< ValueType > >
    create_with_type_of_impl( std::shared_ptr< const gko::Executor > exec,
                              const gko::dim< 2 >& size,
                              gko::size_type stride ) const override
@@ -143,7 +143,7 @@ public:
     * \brief Override base Dense class implementation for creating new
     * sub-vectors from a larger vector.
     */
-   std::unique_ptr< gko::matrix::Dense< ValueType > >
+   [[nodiscard]] std::unique_ptr< gko::matrix::Dense< ValueType > >
    create_submatrix_impl( const gko::span& rows, const gko::span& columns, const gko::size_type stride ) override
    {
       const gko::size_type num_rows = rows.end - rows.begin;

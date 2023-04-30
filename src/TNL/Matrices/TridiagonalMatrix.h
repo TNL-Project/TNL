@@ -87,7 +87,7 @@ public:
     *
     * \return \e  \e false.
     */
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isSymmetric()
    {
       return false;
@@ -133,7 +133,7 @@ public:
              typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
    using Self = TridiagonalMatrix< _Real, _Device, _Index, _Organization, _RealAllocator >;
 
-   static constexpr ElementsOrganization
+   [[nodiscard]] static constexpr ElementsOrganization
    getOrganization()
    {
       return Organization;
@@ -194,7 +194,7 @@ public:
     *
     * \return tridiagonal matrix view.
     */
-   ViewType
+   [[nodiscard]] ViewType
    getView();
 
    /**
@@ -204,7 +204,7 @@ public:
     *
     * \return tridiagonal matrix view.
     */
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const;
 
    /**
@@ -220,7 +220,7 @@ public:
     * \par Output
     * \include TridiagonalMatrixExample_getSerializationType.out
     */
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
    /**
@@ -235,7 +235,7 @@ public:
     * \par Output
     * \include TridiagonalMatrixExample_getSerializationType.out
     */
-   std::string
+   [[nodiscard]] std::string
    getSerializationTypeVirtual() const override;
 
    /**
@@ -331,7 +331,7 @@ public:
     *
     * \return number of non-zero matrix elements.
     */
-   IndexType
+   [[nodiscard]] IndexType
    getNonzeroElementsCount() const override;
 
    /**
@@ -352,7 +352,7 @@ public:
     * \return \e true if both matrices are identical and \e false otherwise.
     */
    template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_, typename RealAllocator_ >
-   bool
+   [[nodiscard]] bool
    operator==( const TridiagonalMatrix< Real_, Device_, Index_, Organization_, RealAllocator_ >& matrix ) const;
 
    /**
@@ -369,7 +369,7 @@ public:
     * \return \e true if both matrices are NOT identical and \e false otherwise.
     */
    template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_, typename RealAllocator_ >
-   bool
+   [[nodiscard]] bool
    operator!=( const TridiagonalMatrix< Real_, Device_, Index_, Organization_, RealAllocator_ >& matrix ) const;
 
    /**
@@ -386,7 +386,7 @@ public:
     *
     * See \ref TridiagonalMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RowView
    getRow( IndexType rowIdx );
 
@@ -404,7 +404,7 @@ public:
     *
     * See \ref TridiagonalMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstRowView
    getRow( IndexType rowIdx ) const;
 
@@ -487,7 +487,7 @@ public:
     * \par Output
     * \include TridiagonalMatrixExample_getElement.out
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getElement( IndexType row, IndexType column ) const;
 
@@ -1032,7 +1032,7 @@ public:
     *
     * \return constant reference to the indexer.
     */
-   const IndexerType&
+   [[nodiscard]] const IndexerType&
    getIndexer() const;
 
    /**
@@ -1040,7 +1040,7 @@ public:
     *
     * \return non-constant reference to the indexer.
     */
-   IndexerType&
+   [[nodiscard]] IndexerType&
    getIndexer();
 
    /**
@@ -1050,12 +1050,12 @@ public:
     *
     * \return value of the padding index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getPaddingIndex() const;
 
 protected:
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getElementIndex( IndexType row, IndexType column ) const;
 

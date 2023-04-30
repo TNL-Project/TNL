@@ -112,7 +112,7 @@ public:
     *
     * \return number of diagonals of the multidiagonal matrix.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -121,7 +121,7 @@ public:
     *
     * \return matrix row index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getRowIndex() const;
 
@@ -132,7 +132,7 @@ public:
     *
     * \return column index of matrix element on given subdiagonal.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getColumnIndex( IndexType localIdx ) const;
 
@@ -143,7 +143,7 @@ public:
     *
     * \return constant reference to matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getValue( IndexType localIdx ) const;
 
@@ -154,7 +154,7 @@ public:
     *
     * \return non-constant reference to matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType&
    getValue( IndexType localIdx );
 
@@ -173,7 +173,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    begin();
 
@@ -182,7 +182,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    end();
 
@@ -191,7 +191,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IteratorType
    cbegin() const;
 
@@ -200,7 +200,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IteratorType
    cend() const;
 

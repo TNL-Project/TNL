@@ -17,10 +17,10 @@ struct CSRAdaptiveKernelParameters
 {
    static constexpr int MaxValueSizeLog = 6;
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getSizeValueLogConstexpr( int i );
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getSizeOfValue()
    {
       return SizeOfValue;
@@ -47,7 +47,7 @@ struct CSRAdaptiveKernelParameters
     *
     * \return Stream shared memory.
     */
-   static constexpr size_t
+   [[nodiscard]] static constexpr size_t
    StreamedSharedMemory()
    {
       return StreamedSharedMemory_;
@@ -56,7 +56,7 @@ struct CSRAdaptiveKernelParameters
    /**
     * \brief Number of elements fitting into streamed shared memory.
     */
-   static constexpr size_t
+   [[nodiscard]] static constexpr size_t
    StreamedSharedElementsCount()
    {
       return StreamedSharedMemory() / SizeOfValue;
@@ -65,7 +65,7 @@ struct CSRAdaptiveKernelParameters
    /**
     * \brief Computes number of warps in one CUDA block.
     */
-   static constexpr size_t
+   [[nodiscard]] static constexpr size_t
    WarpsCount()
    {
       return CudaBlockSize() / Cuda::getWarpSize();
@@ -76,7 +76,7 @@ struct CSRAdaptiveKernelParameters
     *
     * \return Number of elements to be streamed into the shared memory.
     */
-   static constexpr size_t
+   [[nodiscard]] static constexpr size_t
    StreamedSharedElementsPerWarp()
    {
       return StreamedSharedElementsCount() / WarpsCount();
@@ -87,7 +87,7 @@ struct CSRAdaptiveKernelParameters
     *
     * \return Maximum number of elements per warp for vector and hybrid kernel.
     */
-   static constexpr int
+   [[nodiscard]] static constexpr int
    MaxVectorElementsPerWarp()
    {
       return 384;
@@ -98,13 +98,13 @@ struct CSRAdaptiveKernelParameters
     *
     * \return Maximum number of elements per warp for adaptive kernel.
     */
-   static constexpr int
+   [[nodiscard]] static constexpr int
    MaxAdaptiveElementsPerWarp()
    {
       return 512;
    }
 
-   static int
+   [[nodiscard]] static int
    getSizeValueLog( const int i )
    {
       if( i == 1 )

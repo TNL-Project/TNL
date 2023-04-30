@@ -25,7 +25,7 @@ public:
    void
    setDiameter( const RealType& sigma );
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getDiameter() const;
 
 protected:
@@ -50,11 +50,11 @@ public:
    Flowerpot();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0, typename Point = PointType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const Point& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -73,11 +73,11 @@ public:
    Flowerpot();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0, typename Point = PointType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const Point& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -96,11 +96,11 @@ public:
    Flowerpot();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0, typename Point = PointType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const Point& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };

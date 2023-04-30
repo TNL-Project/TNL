@@ -50,7 +50,7 @@ public:
     *
     * \return reference on matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType&
    value()
    {
@@ -62,7 +62,7 @@ public:
     *
     * \return constant reference on matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    value() const
    {
@@ -74,7 +74,7 @@ public:
     *
     * \return constant reference on matrix element column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    rowIndex() const
    {
@@ -86,7 +86,7 @@ public:
     *
     * \return constant reference on matrix element column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    columnIndex() const
    {
@@ -98,7 +98,7 @@ public:
     *
     * \return constant reference on the rank of the non-zero matrix element in the row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    localIndex() const
    {

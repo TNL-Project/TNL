@@ -41,13 +41,13 @@ public:
       _hasDefaultValue = true;
    }
 
-   std::string
+   [[nodiscard]] std::string
    getUIEntryType() const override
    {
       return Config::getUIEntryType< DefaultValueType >();
    }
 
-   std::string
+   [[nodiscard]] std::string
    printDefaultValue() const override
    {
       // printDefaultValue must be compilable even if DefaultValueType is std::vector,
@@ -55,7 +55,7 @@ public:
       return _print_value( defaultValue );
    }
 
-   bool
+   [[nodiscard]] bool
    hasEnumValues() const override
    {
       return ! enumValues.empty();
@@ -72,19 +72,19 @@ public:
       str << " ";
    }
 
-   virtual DefaultValueType
+   [[nodiscard]] virtual DefaultValueType
    getDefaultValue() const
    {
       return defaultValue;
    }
 
-   virtual std::vector< EntryType >&
+   [[nodiscard]] virtual std::vector< EntryType >&
    getEnumValues()
    {
       return enumValues;
    }
 
-   virtual const std::vector< EntryType >&
+   [[nodiscard]] virtual const std::vector< EntryType >&
    getEnumValues() const
    {
       return enumValues;

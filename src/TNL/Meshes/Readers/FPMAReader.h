@@ -155,7 +155,7 @@ public:
 
 private:
    template< typename T >
-   T
+   [[nodiscard]] T
    readValue( std::ifstream& ifs )
    {
       skipComments( ifs );

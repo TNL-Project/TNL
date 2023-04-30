@@ -24,7 +24,7 @@ public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
    using OffsetsContainer = Containers::Vector< IndexType, DeviceType, IndexType, IndexAllocator >;
-   static constexpr ElementsOrganization
+   [[nodiscard]] static constexpr ElementsOrganization
    getOrganization()
    {
       return Organization;
@@ -35,7 +35,7 @@ public:
    using ConstViewType = typename ViewType::ConstViewType;
    using SegmentViewType = typename ViewType::SegmentViewType;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    havePadding()
    {
       return true;
@@ -53,22 +53,22 @@ public:
 
    BiEllpack( BiEllpack&& segments ) noexcept = default;
 
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
-   static String
+   [[nodiscard]] static String
    getSegmentsType();
 
-   ViewType
+   [[nodiscard]] ViewType
    getView();
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const;
 
    /**
     * \brief Number of segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentsCount() const;
 
@@ -82,25 +82,25 @@ public:
    void
    reset();
 
-   IndexType
+   [[nodiscard]] IndexType
    getSegmentSize( IndexType segmentIdx ) const;
 
    /**
     * \brief Number segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getStorageSize() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( IndexType segmentIdx, IndexType localIdx ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
@@ -173,13 +173,13 @@ public:
    computeColumnSizes( const SizesHolder& segmentsSizes );
 
 protected:
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getWarpSize()
    {
       return WarpSize;
    }
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getLogWarpSize()
    {
       return std::log2( WarpSize );
@@ -193,10 +193,10 @@ protected:
    void
    verifyRowLengths( const SizesHolder& segmentsSizes );
 
-   IndexType
+   [[nodiscard]] IndexType
    getStripLength( IndexType stripIdx ) const;
 
-   IndexType
+   [[nodiscard]] IndexType
    getGroupLength( IndexType strip, IndexType group ) const;
 
    IndexType size = 0, storageSize = 0;
@@ -208,7 +208,7 @@ protected:
    OffsetsContainer groupPointers;
 
    // TODO: Replace later
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    power( const IndexType number, const IndexType exponent ) const
    {

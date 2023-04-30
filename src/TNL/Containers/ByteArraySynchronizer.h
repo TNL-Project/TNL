@@ -58,7 +58,7 @@ public:
    virtual void
    synchronizeByteArray( ByteArrayView array, int bytesPerValue ) = 0;
 
-   virtual RequestsVector
+   [[nodiscard]] virtual RequestsVector
    synchronizeByteArrayAsyncWorker( ByteArrayView array, int bytesPerValue ) = 0;
 
    /**

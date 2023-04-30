@@ -64,17 +64,17 @@ struct HilbertOrdering
          = Less_d;
          using Point_dimension_d [[maybe_unused]]  // FIXME: workaround for https://github.com/llvm/llvm-project/issues/59706
          = Point_dim_d;
-         Compute_coordinate_d
+         [[nodiscard]] Compute_coordinate_d
          compute_coordinate_d_object() const
          {
             return {};
          }
-         Less_coordinate_d
+         [[nodiscard]] Less_coordinate_d
          less_coordinate_d_object() const
          {
             return {};
          }
-         Point_dimension_d
+         [[nodiscard]] Point_dimension_d
          point_dimension_d_object() const
          {
             return {};

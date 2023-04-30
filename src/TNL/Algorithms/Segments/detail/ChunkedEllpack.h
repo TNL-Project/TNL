@@ -51,7 +51,7 @@ class ChunkedEllpack
 public:
    using DeviceType = Device;
    using IndexType = Index;
-   static constexpr ElementsOrganization
+   [[nodiscard]] static constexpr ElementsOrganization
    getOrganization()
    {
       return Organization;
@@ -67,7 +67,7 @@ public:
    using ChunkedEllpackSliceInfoContainerView = typename ChunkedEllpackSliceInfoContainer::ConstViewType;
    using SegmentViewType = ChunkedEllpackSegmentView< IndexType, Organization >;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getSegmentSizeDirect( const OffsetsHolderView& segmentsToSlicesMapping,
                          const ChunkedEllpackSliceInfoContainerView& slices,
@@ -85,7 +85,7 @@ public:
       return chunkSize * segmentChunksCount;
    }
 
-   static IndexType
+   [[nodiscard]] static IndexType
    getSegmentSize( const OffsetsHolderView& segmentsToSlicesMapping,
                    const ChunkedEllpackSliceInfoContainerView& slices,
                    const OffsetsHolderView& segmentsToChunksMapping,
@@ -102,7 +102,7 @@ public:
       return chunkSize * segmentChunksCount;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getGlobalIndexDirect( const OffsetsHolderView& segmentsToSlicesMapping,
                          const ChunkedEllpackSliceInfoContainerView& slices,
@@ -132,7 +132,7 @@ public:
       }
    }
 
-   static IndexType
+   [[nodiscard]] static IndexType
    getGlobalIndex( const OffsetsHolderView& segmentsToSlicesMapping,
                    const ChunkedEllpackSliceInfoContainerView& slices,
                    const OffsetsHolderView& segmentsToChunksMapping,
@@ -161,8 +161,8 @@ public:
       }
    }
 
-   static __cuda_callable__
-   SegmentViewType
+   [[nodiscard]] __cuda_callable__
+   static SegmentViewType
    getSegmentViewDirect( const OffsetsHolderView& segmentsToSlicesMapping,
                          const ChunkedEllpackSliceInfoContainerView& slices,
                          const OffsetsHolderView& segmentsToChunksMapping,
@@ -187,8 +187,8 @@ public:
          return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment, segmentSize, chunkSize, chunksInSlice );
    }
 
-   static __cuda_callable__
-   SegmentViewType
+   [[nodiscard]] __cuda_callable__
+   static SegmentViewType
    getSegmentView( const OffsetsHolderView& segmentsToSlicesMapping,
                    const ChunkedEllpackSliceInfoContainerView& slices,
                    const OffsetsHolderView& segmentsToChunksMapping,

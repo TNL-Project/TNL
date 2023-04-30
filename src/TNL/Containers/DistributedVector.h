@@ -86,39 +86,39 @@ public:
    /**
     * \brief Returns a modifiable view of the local part of the vector.
     */
-   LocalViewType
+   [[nodiscard]] LocalViewType
    getLocalView();
 
    /**
     * \brief Returns a non-modifiable view of the local part of the vector.
     */
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalView() const;
 
    /**
     * \brief Returns a modifiable view of the local part of the vector,
     * including ghost values.
     */
-   LocalViewType
+   [[nodiscard]] LocalViewType
    getLocalViewWithGhosts();
 
    /**
     * \brief Returns a non-modifiable view of the local part of the vector,
     * including ghost values.
     */
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalViewWithGhosts() const;
 
    /**
     * \brief Returns a modifiable view of the vector.
     */
-   ViewType
+   [[nodiscard]] ViewType
    getView();
 
    /**
     * \brief Returns a non-modifiable view of the vector.
     */
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const;
 
    /**

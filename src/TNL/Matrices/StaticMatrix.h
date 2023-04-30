@@ -43,14 +43,13 @@ public:
    __cuda_callable__
    constexpr StaticMatrix( const T& v );
 
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getRows()
    {
       return Rows;
    }
 
-   __cuda_callable__
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getColumns()
    {
       return Columns;
@@ -61,7 +60,7 @@ public:
    constexpr StaticMatrix&
    operator=( const T& v );
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Containers::StaticVector< Rows, Value >
    operator*( const Containers::StaticVector< Columns, Value >& vector ) const
    {

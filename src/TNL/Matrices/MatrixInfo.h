@@ -27,13 +27,13 @@ struct MatrixInfo
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 struct MatrixInfo< DenseMatrixView< Real, Device, Index, Organization > >
 {
-   static String
+   [[nodiscard]] static String
    getDensity()
    {
       return "dense";
    }
 
-   static String
+   [[nodiscard]] static String
    getFormat()
    {
       return "Dense";
@@ -53,13 +53,13 @@ template< typename Real,
           class SegmentsView >
 struct MatrixInfo< SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView > >
 {
-   static String
+   [[nodiscard]] static String
    getDensity()
    {
       return "sparse";
    }
 
-   static String
+   [[nodiscard]] static String
    getFormat()
    {
       String prefix;
@@ -91,13 +91,13 @@ struct MatrixInfo< SparseMatrix< Real, Device, Index, MatrixType, Segments, Real
 template< typename Real, typename Device, typename Index, typename MatrixType >
 struct MatrixInfo< Sandbox::SparseSandboxMatrixView< Real, Device, Index, MatrixType > >
 {
-   static String
+   [[nodiscard]] static String
    getDensity()
    {
       return "sparse";
    }
 
-   static String
+   [[nodiscard]] static String
    getFormat()
    {
       if( MatrixType::isSymmetric() )

@@ -23,13 +23,13 @@ class Domain
 public:
    using DeviceType = void;
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getDomainDimension()
    {
       return Dimension;
    }
 
-   static constexpr DomainType
+   [[nodiscard]] static constexpr DomainType
    getDomainType()
    {
       return DomainType_;

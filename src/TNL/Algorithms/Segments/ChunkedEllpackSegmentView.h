@@ -32,14 +32,14 @@ public:
    : segmentIdx( view.segmentIdx ), segmentOffset( view.segmentOffset ), segmentSize( view.segmentSize )
    {}
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const
    {
       return this->segmentSize;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( const IndexType localIndex ) const
    {
@@ -47,7 +47,7 @@ public:
       return segmentOffset + localIndex;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getSegmentIndex() const
    {
@@ -80,14 +80,14 @@ public:
      chunkSize( view.chunkSize ), chunksInSlice( view.chunksInSlice )
    {}
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const
    {
       return this->segmentSize;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( const IndexType localIdx ) const
    {
@@ -97,7 +97,7 @@ public:
       return segmentOffset + inChunkOffset * chunksInSlice + chunkIdx;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getSegmentIndex() const
    {

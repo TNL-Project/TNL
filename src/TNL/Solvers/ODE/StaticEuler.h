@@ -120,7 +120,7 @@ public:
     *
     * \return the Courant number.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getCourantNumber() const;
 
@@ -256,7 +256,7 @@ public:
     *
     * \return the Courant number.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getCourantNumber() const;
 

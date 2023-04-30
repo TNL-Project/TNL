@@ -78,7 +78,7 @@ public:
    /**
     * \brief Getter of the current time of the evolution computed by the solver.
     */
-   const RealType&
+   [[nodiscard]] const RealType&
    getTime() const;
 
    /**
@@ -90,7 +90,7 @@ public:
    /**
     * \brief Getter of the time where the evolution computation shall by stopped.
     */
-   const RealType&
+   [[nodiscard]] const RealType&
    getStopTime() const;
 
    /**
@@ -104,7 +104,7 @@ public:
    /**
     * \brief Getter of the time step used for the computation.
     */
-   const RealType&
+   [[nodiscard]] const RealType&
    getTau() const;
 
    /**
@@ -118,7 +118,7 @@ public:
    /**
     * \brief Getter of maximal value of the time step.
     */
-   const RealType&
+   [[nodiscard]] const RealType&
    getMaxTau() const;
 
    /**
@@ -137,7 +137,7 @@ public:
     * \return \e false if the solver is \b not allowed to do the next iteration. This may
     *    happen because the divergence occurred.
     */
-   bool
+   [[nodiscard]] bool
    checkNextIteration();
 
    void

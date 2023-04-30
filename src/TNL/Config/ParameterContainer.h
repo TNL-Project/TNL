@@ -78,7 +78,7 @@ public:
     *
     * \param name Name of the parameter.
     */
-   bool
+   [[nodiscard]] bool
    checkParameter( const std::string& name ) const
    {
       return parameters.count( name ) > 0;
@@ -89,7 +89,7 @@ public:
     *
     * \param names List of the parameter names.
     */
-   bool
+   [[nodiscard]] bool
    checkParameters( std::initializer_list< std::string > names ) const
    {
       for( const auto& name : names )
@@ -104,7 +104,7 @@ public:
     * \param name Name of the parameter.
     */
    template< class T >
-   bool
+   [[nodiscard]] bool
    checkParameterType( const std::string& name ) const
    {
       using CoercedType = typename ParameterTypeCoercion< T >::type;
@@ -153,7 +153,7 @@ public:
     * \param name Name of the parameter.
     */
    template< class T >
-   T
+   [[nodiscard]] T
    getParameter( const std::string& name ) const
    {
       using CoercedType = typename ParameterTypeCoercion< T >::type;
@@ -180,7 +180,7 @@ public:
     * \param name Name of the parameter list.
     */
    template< class T >
-   std::vector< T >
+   [[nodiscard]] std::vector< T >
    getList( const std::string& name ) const
    {
       return getParameter< std::vector< T > >( name );
@@ -193,7 +193,7 @@ public:
     *               \e prefix-y and \e prefix-z.
     */
    template< class StaticArray >
-   StaticArray
+   [[nodiscard]] StaticArray
    getXyz( const std::string& prefix ) const
    {
       StaticArray result;

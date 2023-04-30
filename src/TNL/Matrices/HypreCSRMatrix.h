@@ -119,7 +119,7 @@ public:
       reset();
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getRows() const
    {
       if( m == nullptr )
@@ -127,7 +127,7 @@ public:
       return hypre_CSRMatrixNumRows( m );
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getColumns() const
    {
       if( m == nullptr )
@@ -135,7 +135,7 @@ public:
       return hypre_CSRMatrixNumCols( m );
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getNonzeroElementsCount() const
    {
       if( m == nullptr )
@@ -143,7 +143,7 @@ public:
       return hypre_CSRMatrixNumNonzeros( m );
    }
 
-   ConstValuesViewType
+   [[nodiscard]] ConstValuesViewType
    getValues() const
    {
       if( m == nullptr )
@@ -151,7 +151,7 @@ public:
       return { hypre_CSRMatrixData( m ), hypre_CSRMatrixNumNonzeros( m ) };
    }
 
-   ValuesViewType
+   [[nodiscard]] ValuesViewType
    getValues()
    {
       if( m == nullptr )
@@ -159,7 +159,7 @@ public:
       return { hypre_CSRMatrixData( m ), hypre_CSRMatrixNumNonzeros( m ) };
    }
 
-   ConstColumnIndexesViewType
+   [[nodiscard]] ConstColumnIndexesViewType
    getColumnIndexes() const
    {
       if( m == nullptr )
@@ -171,7 +171,7 @@ public:
       return { hypre_CSRMatrixJ( m ), hypre_CSRMatrixNumNonzeros( m ) };
    }
 
-   ColumnIndexesViewType
+   [[nodiscard]] ColumnIndexesViewType
    getColumnIndexes()
    {
       if( m == nullptr )
@@ -183,7 +183,7 @@ public:
       return { hypre_CSRMatrixJ( m ), hypre_CSRMatrixNumNonzeros( m ) };
    }
 
-   ConstColumnIndexesViewType
+   [[nodiscard]] ConstColumnIndexesViewType
    getRowOffsets() const
    {
       if( m == nullptr )
@@ -193,7 +193,7 @@ public:
       return { hypre_CSRMatrixI( m ), hypre_CSRMatrixNumRows( m ) + 1 };
    }
 
-   ColumnIndexesViewType
+   [[nodiscard]] ColumnIndexesViewType
    getRowOffsets()
    {
       if( m == nullptr )
@@ -203,7 +203,7 @@ public:
       return { hypre_CSRMatrixI( m ), hypre_CSRMatrixNumRows( m ) + 1 };
    }
 
-   ConstSegmentsViewType
+   [[nodiscard]] ConstSegmentsViewType
    getSegments() const
    {
       if( m == nullptr )
@@ -211,7 +211,7 @@ public:
       return { getRowOffsets(), typename ConstSegmentsViewType::KernelType{} };
    }
 
-   SegmentsViewType
+   [[nodiscard]] SegmentsViewType
    getSegments()
    {
       if( m == nullptr )
@@ -219,13 +219,13 @@ public:
       return { getRowOffsets(), typename SegmentsViewType::KernelType{} };
    }
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const
    {
       return { getRows(), getColumns(), getValues(), getColumnIndexes(), getSegments() };
    }
 
-   ViewType
+   [[nodiscard]] ViewType
    getView()
    {
       return { getRows(), getColumns(), getValues(), getColumnIndexes(), getSegments() };

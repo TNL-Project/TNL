@@ -117,7 +117,7 @@ public:
     *
     * \return Size of the matrix row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -126,7 +126,7 @@ public:
     *
     * \return matrix row index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getRowIndex() const;
 
@@ -137,7 +137,7 @@ public:
     *
     * \return constant reference to the matrix element column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getColumnIndex( IndexType localIdx ) const;
 
@@ -148,7 +148,7 @@ public:
     *
     * \return non-constant reference to the matrix element column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType&
    getColumnIndex( IndexType localIdx );
 
@@ -159,7 +159,7 @@ public:
     *
     * \return constant reference to the matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getValue( IndexType localIdx ) const;
 
@@ -170,7 +170,7 @@ public:
     *
     * \return non-constant reference to the matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType&
    getValue( IndexType localIdx );
 
@@ -214,7 +214,7 @@ public:
     * \return \e true if both rows are the same, \e false otherwise.
     */
    template< typename _ValuesView, typename _ColumnsIndexesView, bool _isBinary >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const SparseSandboxMatrixRowView< _ValuesView, _ColumnsIndexesView, _isBinary >& other ) const;
 
@@ -223,7 +223,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    begin();
 
@@ -232,7 +232,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    end();
 
@@ -241,7 +241,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IteratorType
    cbegin() const;
 
@@ -250,7 +250,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IteratorType
    cend() const;
 

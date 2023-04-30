@@ -32,19 +32,19 @@ public:
       return *this;
    }
 
-   bool
+   [[nodiscard]] bool
    operator==( const GlobalIndexStorage& other ) const
    {
       return globalIndices == other.getGlobalIndices();
    }
 
-   const GlobalIndexArray&
+   [[nodiscard]] const GlobalIndexArray&
    getGlobalIndices() const
    {
       return globalIndices;
    }
 
-   GlobalIndexArray&
+   [[nodiscard]] GlobalIndexArray&
    getGlobalIndices()
    {
       return globalIndices;
@@ -80,7 +80,7 @@ public:
       return *this;
    }
 
-   bool
+   [[nodiscard]] bool
    operator==( const GlobalIndexStorageFamily& other ) const
    {
       return GlobalIndexStorage< Mesh, Device, DimensionTag::value >::operator==( other )
@@ -107,7 +107,7 @@ public:
       return *this;
    }
 
-   bool
+   [[nodiscard]] bool
    operator==( const GlobalIndexStorageFamily& ) const
    {
       return true;

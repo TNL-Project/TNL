@@ -82,7 +82,7 @@ enum class SyncDirection : std::uint8_t
  *
  * \ingroup ndarray
  */
-inline SyncDirection
+[[nodiscard]] inline SyncDirection
 operator&( SyncDirection a, SyncDirection b )
 {
    return static_cast< SyncDirection >( static_cast< std::uint8_t >( a ) & static_cast< std::uint8_t >( b ) );
@@ -93,7 +93,7 @@ operator&( SyncDirection a, SyncDirection b )
  *
  * \ingroup ndarray
  */
-inline SyncDirection
+[[nodiscard]] inline SyncDirection
 operator|( SyncDirection a, SyncDirection b )
 {
    return static_cast< SyncDirection >( static_cast< std::uint8_t >( a ) | static_cast< std::uint8_t >( b ) );
@@ -109,7 +109,7 @@ operator|( SyncDirection a, SyncDirection b )
  *
  * \ingroup ndarray
  */
-inline SyncDirection&
+[[nodiscard]] inline SyncDirection&
 operator-=( SyncDirection& a, SyncDirection b )
 {
    a = static_cast< SyncDirection >( static_cast< std::uint8_t >( a ) & ~static_cast< std::uint8_t >( b ) );

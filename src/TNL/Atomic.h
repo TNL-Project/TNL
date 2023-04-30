@@ -167,13 +167,13 @@ public:
       return *this;
    }
 
-   bool
+   [[nodiscard]] bool
    is_lock_free() const noexcept
    {
       return true;
    }
 
-   constexpr bool
+   [[nodiscard]] constexpr bool
    is_always_lock_free() const noexcept
    {
       return true;

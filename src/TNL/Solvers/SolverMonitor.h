@@ -106,7 +106,7 @@ public:
     * \return true if the main loop was stopped.
     * \return false if the main loop was not stopped yet.
     */
-   bool
+   [[nodiscard]] bool
    isStopped() const
    {
       return stopped;

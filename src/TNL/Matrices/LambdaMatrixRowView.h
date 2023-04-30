@@ -112,7 +112,7 @@ public:
     *
     * \return Size of the matrix row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -121,7 +121,7 @@ public:
     *
     * \return matrix row index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getRowIndex() const;
 
@@ -132,7 +132,7 @@ public:
     *
     * \return constant reference to the matrix element column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getColumnIndex( IndexType localIdx ) const;
 
@@ -143,7 +143,7 @@ public:
     *
     * \return constant reference to the matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getValue( IndexType localIdx ) const;
 
@@ -156,7 +156,7 @@ public:
     * \return \e true if both rows are the same, \e false otherwise.
     */
    template< typename MatrixElementsLambda_, typename CompressedRowLengthsLambda_, typename Real_, typename Index_ >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const LambdaMatrixRowView< MatrixElementsLambda_, CompressedRowLengthsLambda_, Real_, Index_ >& other ) const;
 
@@ -165,7 +165,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IteratorType
    begin() const;
 
@@ -174,7 +174,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IteratorType
    end() const;
 
@@ -183,7 +183,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IteratorType
    cbegin() const;
 
@@ -192,7 +192,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IteratorType
    cend() const;
 

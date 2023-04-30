@@ -15,7 +15,7 @@ namespace TNL::Containers::detail {
 template< typename DistributedNDArray, std::size_t level >
 struct SynchronizerBuffersLayer
 {
-   SynchronizerBuffersLayer&
+   [[nodiscard]] SynchronizerBuffersLayer&
    getDimBuffers( std::integral_constant< std::size_t, level > )
    {
       return *this;
@@ -79,7 +79,7 @@ struct SynchronizerBuffers : public SynchronizerBuffersLayerHelper< DistributedN
    using SynchronizerBuffersLayerHelper< DistributedNDArray >::getDimBuffers;
 
    template< std::size_t level >
-   auto&
+   [[nodiscard]] auto&
    getDimBuffers()
    {
       return this->getDimBuffers( std::integral_constant< std::size_t, level >{} );

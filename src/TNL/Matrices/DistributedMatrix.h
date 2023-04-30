@@ -46,16 +46,16 @@ public:
    void
    setDistribution( LocalRangeType localRowRange, IndexType rows, IndexType columns, const MPI::Comm& communicator );
 
-   const LocalRangeType&
+   [[nodiscard]] const LocalRangeType&
    getLocalRowRange() const;
 
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const;
 
-   const Matrix&
+   [[nodiscard]] const Matrix&
    getLocalMatrix() const;
 
-   Matrix&
+   [[nodiscard]] Matrix&
    getLocalMatrix();
 
    /*
@@ -76,10 +76,10 @@ public:
    void
    reset();
 
-   IndexType
+   [[nodiscard]] IndexType
    getRows() const;
 
-   IndexType
+   [[nodiscard]] IndexType
    getColumns() const;
 
    template< typename RowCapacitiesVector >
@@ -90,22 +90,22 @@ public:
    void
    getCompressedRowLengths( Vector& rowLengths ) const;
 
-   IndexType
+   [[nodiscard]] IndexType
    getRowCapacity( IndexType row ) const;
 
    void
    setElement( IndexType row, IndexType column, RealType value );
 
-   RealType
+   [[nodiscard]] RealType
    getElement( IndexType row, IndexType column ) const;
 
-   RealType
+   [[nodiscard]] RealType
    getElementFast( IndexType row, IndexType column ) const;
 
-   MatrixRow
+   [[nodiscard]] MatrixRow
    getRow( IndexType row );
 
-   ConstMatrixRow
+   [[nodiscard]] ConstMatrixRow
    getRow( IndexType row ) const;
 
    // multiplication with a global vector

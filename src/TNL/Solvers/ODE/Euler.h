@@ -123,7 +123,7 @@ public:
     *
     * \return the Courant number.
     */
-   const RealType&
+   [[nodiscard]] const RealType&
    getCourantNumber() const;
 
    /**

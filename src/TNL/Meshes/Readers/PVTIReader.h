@@ -17,7 +17,7 @@ namespace TNL::Meshes::Readers {
 
 class PVTIReader : public XMLVTK
 {
-   std::string
+   [[nodiscard]] std::string
    getSourcePath( const std::string& source )
    {
       namespace fs = std::filesystem;
@@ -304,13 +304,13 @@ public:
       throw MeshReaderError( "MeshReader", "the PVTI reader cannot be used to load a distributed unstructured mesh." );
    }
 
-   VariantVector
+   [[nodiscard]] VariantVector
    readPointData( const std::string& arrayName ) override
    {
       return localReader.readPointData( arrayName );
    }
 
-   VariantVector
+   [[nodiscard]] VariantVector
    readCellData( const std::string& arrayName ) override
    {
       return localReader.readCellData( arrayName );

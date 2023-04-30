@@ -26,7 +26,7 @@ private:
    using Subsequence = decltype( filter_sequence< Dimensions >( Permutation{} ) );
 
    template< std::size_t... v >
-   static constexpr auto
+   [[nodiscard]] static constexpr auto
    get_subpermutation( std::index_sequence< v... > )
    {
       using Subpermutation = std::index_sequence< count_smaller( v, v... )... >;
@@ -49,7 +49,7 @@ private:
    using Subsequence = decltype( concat_sequences( std::index_sequence< get_from_pack< dims >( sizes... ) >{}... ) );
 
    template< std::size_t... v >
-   static constexpr auto
+   [[nodiscard]] static constexpr auto
    get_sizesholder( std::index_sequence< v... > )
    {
       using Sizes = SizesHolder< Index, v... >;
@@ -90,7 +90,7 @@ private:
    struct IndexChecker
    {
       template< typename... IndexTypes >
-      static constexpr bool
+      [[nodiscard]] static constexpr bool
       check( IndexTypes&&... indices )
       {
          constexpr std::size_t d = get< level >( Dimensions{} );
@@ -104,7 +104,7 @@ private:
    struct IndexChecker< Dimensions::size() - 1, _unused >
    {
       template< typename... IndexTypes >
-      static constexpr bool
+      [[nodiscard]] static constexpr bool
       check( IndexTypes&&... indices )
       {
          constexpr std::size_t d = get< Dimensions::size() - 1 >( Dimensions{} );
@@ -116,7 +116,7 @@ public:
    using Sizes = decltype( get_sizesholder( Subsequence{} ) );
 
    template< typename... IndexTypes >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static Sizes
    filterSizes( const SizesHolder< Index, sizes... >& oldSizes, IndexTypes&&... indices )
    {
@@ -141,20 +141,20 @@ public:
 template< typename Index, std::size_t Dimension >
 struct DummyStrideBase
 {
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getDimension()
    {
       return Dimension;
    }
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isContiguous()
    {
       return true;
    }
 
    template< std::size_t level >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    constexpr Index
    getStride( Index i = 0 ) const
    {
@@ -170,7 +170,7 @@ class StridesHolder : private SizesHolder< Index, sizes... >
 public:
    using BaseType::getDimension;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isContiguous()
    {
       // a priori not contiguous (otherwise DummyStrideBase would be used)
@@ -178,14 +178,14 @@ public:
    }
 
    template< std::size_t level >
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    getStaticStride( Index i = 0 )
    {
       return BaseType::template getStaticSize< level >();
    }
 
    template< std::size_t level >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getStride( Index i = 0 ) const
    {
@@ -209,7 +209,7 @@ class SubarrayGetter< NDArrayBase< SliceInfo >, Permutation, Dimensions... >
 {
    // returns the number of factors in the stride product
    template< std::size_t dim, std::size_t... vals >
-   static constexpr std::size_t
+   [[nodiscard]] static constexpr std::size_t
    get_end( std::index_sequence< vals... > _perm )
    {
       if( dim == get< Permutation::size() - 1 >( Permutation{} ) )
@@ -323,7 +323,7 @@ public:
    using Subpermutation = typename SubpermutationGetter< std::index_sequence< Dimensions... >, Permutation >::Subpermutation;
 
    template< typename SizesHolder, typename... IndexTypes >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static auto
    filterSizes( const SizesHolder& sizes, IndexTypes&&... indices )
    {
@@ -332,7 +332,7 @@ public:
    }
 
    template< typename SizesHolder, typename... IndexTypes >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static auto
    getStrides( const SizesHolder& sizes, IndexTypes&&... indices )
    {

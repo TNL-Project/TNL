@@ -70,7 +70,7 @@ public:
     *
     * \return number of elements in the segment.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getSize() const
    {
@@ -83,7 +83,7 @@ public:
     * \param localIndex is the rank of the element in the segment.
     * \return global index of the element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( const IndexType localIndex ) const
    {
@@ -96,7 +96,7 @@ public:
     *
     * \return index of the segment.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getSegmentIndex() const
    {
@@ -108,7 +108,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    begin() const
    {
@@ -120,7 +120,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    end() const
    {
@@ -132,7 +132,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    cbegin() const
    {
@@ -144,7 +144,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    cend() const
    {
@@ -200,7 +200,7 @@ public:
     *
     * \return number of elements in the segment.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getSize() const
    {
@@ -213,7 +213,7 @@ public:
     * \param localIndex is the rank of the element in the segment.
     * \return global index of the element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( const IndexType localIndex ) const
    {
@@ -226,7 +226,7 @@ public:
     *
     * \return index of the segment.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getSegmentIndex() const
    {
@@ -238,7 +238,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    begin() const
    {
@@ -250,7 +250,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    end() const
    {
@@ -262,7 +262,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    cbegin() const
    {
@@ -274,7 +274,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    cend() const
    {

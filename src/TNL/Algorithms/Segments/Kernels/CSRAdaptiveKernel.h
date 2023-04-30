@@ -55,19 +55,19 @@ struct CSRAdaptiveKernel
    using BlocksType = typename ViewType::BlocksType;
    using BlocksView = typename BlocksType::ViewType;
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    MaxValueSizeLog()
    {
       return ViewType::MaxValueSizeLog;
    }
 
-   static int
+   [[nodiscard]] static int
    getSizeValueLog( const int& i )
    {
       return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
    }
 
-   static TNL::String
+   [[nodiscard]] static TNL::String
    getKernelType();
 
    template< typename Offsets >
@@ -77,11 +77,11 @@ struct CSRAdaptiveKernel
    void
    reset();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 

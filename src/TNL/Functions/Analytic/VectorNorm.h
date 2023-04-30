@@ -54,7 +54,7 @@ public:
       this->center = center;
    }
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getCenter() const
    {
       return this->center;
@@ -66,7 +66,7 @@ public:
       this->anisotropy = anisotropy;
    }
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getAnisotropy() const
    {
       return this->anisotropy;
@@ -78,7 +78,7 @@ public:
       this->power = power;
    }
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getPower() const
    {
       return this->power;
@@ -90,7 +90,7 @@ public:
       this->radius = radius;
    }
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getRadius() const
    {
       return this->radius;
@@ -102,7 +102,7 @@ public:
       this->multiplicator = multiplicator;
    }
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getMultiplicator() const
    {
       return this->multiplicator;
@@ -114,7 +114,7 @@ public:
       this->maxNorm = maxNorm;
    }
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getMaxNorm() const
    {
       return this->maxNorm;
@@ -141,7 +141,7 @@ public:
    using typename BaseType::RealType;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const
    {
@@ -174,7 +174,7 @@ public:
    using typename BaseType::RealType;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    inline RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const
    {
@@ -219,7 +219,7 @@ public:
    using typename BaseType::RealType;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const
    {

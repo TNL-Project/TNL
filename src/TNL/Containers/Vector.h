@@ -150,7 +150,7 @@ public:
     * \param end The end of the vector sub-interval. The default value is 0
     *            which is, however, replaced with the array size.
     */
-   ViewType
+   [[nodiscard]] ViewType
    getView( IndexType begin = 0, IndexType end = 0 );
 
    /**
@@ -165,7 +165,7 @@ public:
     * \param end The end of the vector sub-interval. The default value is 0
     *            which is, however, replaced with the array size.
     */
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView( IndexType begin = 0, IndexType end = 0 ) const;
 
    /**

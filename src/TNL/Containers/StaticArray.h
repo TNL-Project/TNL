@@ -35,7 +35,7 @@ public:
    /**
     * \brief Gets size of this array.
     */
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getSize();
 
    /**
@@ -112,13 +112,13 @@ public:
    /**
     * \brief Gets pointer to data of this static array.
     */
-   constexpr Value*
+   [[nodiscard]] constexpr Value*
    getData();
 
    /**
     * \brief Gets constant pointer to data of this static array.
     */
-   constexpr const Value*
+   [[nodiscard]] constexpr const Value*
    getData() const;
 
    /**
@@ -126,7 +126,7 @@ public:
     *
     * \param i Index position of an element.
     */
-   constexpr const Value&
+   [[nodiscard]] constexpr const Value&
    operator[]( int i ) const;
 
    /**
@@ -134,7 +134,7 @@ public:
     *
     * \param i Index position of an element.
     */
-   constexpr Value&
+   [[nodiscard]] constexpr Value&
    operator[]( int i );
 
    /**
@@ -142,7 +142,7 @@ public:
     *
     * Equivalent to \ref operator[].
     */
-   constexpr const Value&
+   [[nodiscard]] constexpr const Value&
    operator()( int i ) const;
 
    /**
@@ -150,43 +150,43 @@ public:
     *
     * Equivalent to \ref operator[].
     */
-   constexpr Value&
+   [[nodiscard]] constexpr Value&
    operator()( int i );
 
    /**
     * \brief Returns reference to the first coordinate.
     */
-   constexpr Value&
+   [[nodiscard]] constexpr Value&
    x();
 
    /**
     * \brief Returns constant reference to the first coordinate.
     */
-   constexpr const Value&
+   [[nodiscard]] constexpr const Value&
    x() const;
 
    /**
     * \brief Returns reference to the second coordinate for arrays with Size >= 2.
     */
-   constexpr Value&
+   [[nodiscard]] constexpr Value&
    y();
 
    /**
     * \brief Returns constant reference to the second coordinate for arrays with Size >= 2.
     */
-   constexpr const Value&
+   [[nodiscard]] constexpr const Value&
    y() const;
 
    /**
     * \brief Returns reference to the third coordinate for arrays with Size >= 3.
     */
-   constexpr Value&
+   [[nodiscard]] constexpr Value&
    z();
 
    /**
     * \brief Returns constant reference to the third coordinate for arrays with Size >= 3.
     */
-   constexpr const Value&
+   [[nodiscard]] constexpr const Value&
    z() const;
 
    /**
@@ -223,7 +223,7 @@ public:
     * Return \e true if the arrays are equal in size. Otherwise returns \e false.
     */
    template< typename Array >
-   constexpr bool
+   [[nodiscard]] constexpr bool
    operator==( const Array& array ) const;
 
    /**
@@ -232,7 +232,7 @@ public:
     * Return \e true if the arrays are not equal in size. Otherwise returns \e false.
     */
    template< typename Array >
-   constexpr bool
+   [[nodiscard]] constexpr bool
    operator!=( const Array& array ) const;
 
    /**
@@ -261,14 +261,14 @@ public:
     * \brief Saves this static array into the \e file.
     * \param file Reference to a file.
     */
-   bool
+   void
    save( File& file ) const;
 
    /**
     * \brief Loads data from the \e file to this static array.
     * \param file Reference to a file.
     */
-   bool
+   void
    load( File& file );
 
    /**

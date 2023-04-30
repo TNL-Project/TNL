@@ -265,45 +265,45 @@ public:
       meshBuilder.build( mesh );
    }
 
-   virtual VariantVector
+   [[nodiscard]] virtual VariantVector
    readPointData( const std::string& arrayName )
    {
       throw Exceptions::NotImplementedError(
          "readPointData is not implemented in the mesh reader for this specific file format." );
    }
 
-   virtual VariantVector
+   [[nodiscard]] virtual VariantVector
    readCellData( const std::string& arrayName )
    {
       throw Exceptions::NotImplementedError(
          "readCellData is not implemented in the mesh reader for this specific file format." );
    }
 
-   std::string
+   [[nodiscard]] std::string
    getMeshType() const
    {
       return meshType;
    }
 
-   int
+   [[nodiscard]] int
    getMeshDimension() const
    {
       return meshDimension;
    }
 
-   int
+   [[nodiscard]] int
    getSpaceDimension() const
    {
       return spaceDimension;
    }
 
-   VTK::EntityShape
+   [[nodiscard]] VTK::EntityShape
    getCellShape() const
    {
       return cellShape;
    }
 
-   std::string
+   [[nodiscard]] std::string
    getRealType() const
    {
       if( forcedRealType.empty() )
@@ -311,7 +311,7 @@ public:
       return forcedRealType;
    }
 
-   std::string
+   [[nodiscard]] std::string
    getGlobalIndexType() const
    {
       if( forcedGlobalIndexType.empty() )
@@ -319,7 +319,7 @@ public:
       return forcedGlobalIndexType;
    }
 
-   std::string
+   [[nodiscard]] std::string
    getLocalIndexType() const
    {
       return forcedLocalIndexType;

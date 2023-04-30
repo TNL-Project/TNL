@@ -37,7 +37,7 @@ configSetup( Config::ConfigDescription& config, const String& prefix = "" )
 #endif
 }
 
-inline bool
+[[nodiscard]] inline bool
 setup( const Config::ParameterContainer& parameters, const String& prefix = "" )
 {
 #ifdef HAVE_MPI

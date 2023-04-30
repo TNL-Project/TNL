@@ -165,7 +165,7 @@ struct CSRAdaptiveKernelBlockDescriptor
 
    CSRAdaptiveKernelBlockDescriptor() = default;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Type
    getType() const
    {
@@ -177,7 +177,7 @@ struct CSRAdaptiveKernelBlockDescriptor
       return Type::LONG;*/
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Index&
    getFirstSegment() const
    {
@@ -188,7 +188,7 @@ struct CSRAdaptiveKernelBlockDescriptor
    /***
     * \brief Returns number of elements covered by the block.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getSize() const
    {
@@ -199,7 +199,7 @@ struct CSRAdaptiveKernelBlockDescriptor
    /***
     * \brief Returns number of segments covered by the block.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getSegmentsInBlock() const
    {
@@ -207,14 +207,14 @@ struct CSRAdaptiveKernelBlockDescriptor
       // return ( twobytes[ sizeof( Index ) == 4 ? 3 : 5 ] & 0x3FFF );
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    uint8_t
    getWarpIdx() const
    {
       return this->warpIdx;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    uint8_t
    getWarpsCount() const
    {

@@ -22,12 +22,12 @@ class Ellpack
 public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getAlignment()
    {
       return Alignment;
    }
-   static constexpr ElementsOrganization
+   [[nodiscard]] static constexpr ElementsOrganization
    getOrganization()
    {
       return Organization;
@@ -40,7 +40,7 @@ public:
    using ConstViewType = typename ViewType::ConstViewType;
    using SegmentViewType = SegmentView< IndexType, Organization >;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    havePadding()
    {
       return true;
@@ -60,16 +60,16 @@ public:
 
    Ellpack( Ellpack&& segments ) noexcept = default;
 
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
-   static String
+   [[nodiscard]] static String
    getSegmentsType();
 
-   ViewType
+   [[nodiscard]] ViewType
    getView();
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const;
 
    /**
@@ -88,15 +88,15 @@ public:
    /**
     * \brief Number segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentsCount() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentSize( IndexType segmentIdx ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -105,15 +105,15 @@ public:
     *
     * \return size of container connected to this segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getStorageSize() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( Index segmentIdx, Index localIdx ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 

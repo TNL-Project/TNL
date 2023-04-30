@@ -23,7 +23,7 @@ struct CudaBadAlloc : public std::bad_alloc
 #endif
    }
 
-   const char*
+   [[nodiscard]] const char*
    what() const noexcept override
    {
       return "Failed to allocate memory on the CUDA device: "

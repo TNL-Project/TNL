@@ -91,12 +91,12 @@ public:
     */
    using ConstRowView = RowView;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isSymmetric()
    {
       return false;
    }
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isBinary()
    {
       return false;
@@ -167,7 +167,7 @@ public:
     *
     * \return number of matrix rows.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getRows() const;
 
@@ -176,7 +176,7 @@ public:
     *
     * \return number of matrix columns.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getColumns() const;
 
@@ -185,7 +185,7 @@ public:
     *
     * \return constant reference to CompressedRowLengthsLambda.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const CompressedRowLengthsLambda&
    getCompressedRowLengthsLambda() const;
 
@@ -194,7 +194,7 @@ public:
     *
     * \return constant reference to MatrixElementsLambda.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const MatrixElementsLambda&
    getMatrixElementsLambda() const;
 
@@ -234,7 +234,7 @@ public:
     * \par Output
     * \include LambdaMatrixExample_getNonzeroElementsCount.out
     */
-   IndexType
+   [[nodiscard]] IndexType
    getNonzeroElementsCount() const;
 
    /**
@@ -251,7 +251,7 @@ public:
     *
     * See \ref LambdaMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstRowView
    getRow( IndexType rowIdx ) const;
 
@@ -263,7 +263,7 @@ public:
     *
     * \return value of given matrix element.
     */
-   RealType
+   [[nodiscard]] RealType
    getElement( IndexType row, IndexType column ) const;
 
    /**
@@ -571,7 +571,7 @@ struct LambdaMatrixFactory
     * \include LambdaMatrixExample_Constructor.out
     */
    template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda >
-   static auto
+   [[nodiscard]] static auto
    create( MatrixElementsLambda& matrixElementsLambda, CompressedRowLengthsLambda& compressedRowLengthsLambda )
       -> LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >
    {
@@ -608,7 +608,7 @@ struct LambdaMatrixFactory
     * \include LambdaMatrixExample_Constructor.out
     */
    template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda >
-   static auto
+   [[nodiscard]] static auto
    create( IndexType rows,
            IndexType columns,
            MatrixElementsLambda& matrixElementsLambda,

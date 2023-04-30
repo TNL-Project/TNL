@@ -274,19 +274,17 @@ StaticArray< Size, Value >::setValue( const ValueType& val )
 }
 
 template< int Size, typename Value >
-bool
+void
 StaticArray< Size, Value >::save( File& file ) const
 {
    file.save( getData(), Size );
-   return true;
 }
 
 template< int Size, typename Value >
-bool
+void
 StaticArray< Size, Value >::load( File& file )
 {
    file.load( getData(), Size );
-   return true;
 }
 
 template< int Size, typename Value >

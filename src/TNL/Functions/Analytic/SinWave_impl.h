@@ -21,7 +21,7 @@ SinWaveBase< dimensions, Real >::setup( const Config::ParameterContainer& parame
    this->waveLength = parameters.getParameter< double >( prefix + "wave-length" );
    this->amplitude = parameters.getParameter< double >( prefix + "amplitude" );
    this->phase = parameters.getParameter< double >( prefix + "phase" );
-   parameters.getParameter< double >( prefix + "waves-number" );
+   this->wavesNumber = parameters.getParameter< double >( prefix + "waves-number" );
    return true;
 }
 

@@ -27,7 +27,7 @@ public:
       std::enable_if_t<
          Templates::isInLeftClosedRightOpenInterval( 0, Orientation, combinationsCount( EntityDimension, GridDimension ) ),
          bool > = true >
-   constexpr static Coordinate
+   [[nodiscard]] constexpr static Coordinate
    getNormals()
    {
       using Value = Templates::get< Orientation, Permutations >;
@@ -43,7 +43,7 @@ private:
    struct BuildNormals< TNL::Meshes::Templates::int_pack< Values... > >
    {
    public:
-      constexpr static Coordinate
+      [[nodiscard]] constexpr static Coordinate
       build()
       {
          return Coordinate( Values... );

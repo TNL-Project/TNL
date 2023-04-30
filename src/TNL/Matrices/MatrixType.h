@@ -18,13 +18,13 @@ namespace TNL::Matrices {
 template< bool Symmetric >
 struct MatrixType
 {
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isSymmetric()
    {
       return Symmetric;
    }
 
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType()
    {
       if( isSymmetric() )

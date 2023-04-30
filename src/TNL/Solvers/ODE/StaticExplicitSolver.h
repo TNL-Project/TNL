@@ -68,7 +68,7 @@ public:
    /**
     * \brief Getter of the current time of the evolution computed by the solver.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getTime() const;
 
@@ -82,7 +82,7 @@ public:
    /**
     * \brief Getter of the time where the evolution computation shall by stopped.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getStopTime() const;
 
@@ -98,7 +98,7 @@ public:
    /**
     * \brief Getter of the time step used for the computation.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getTau() const;
 
@@ -114,7 +114,7 @@ public:
    /**
     * \brief Getter of maximal value of the time step.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getMaxTau() const;
 
@@ -125,7 +125,7 @@ public:
     * \return \e false if the solver is \b not allowed to do the next iteration. This may
     *    happen because the divergence occurred.
     */
-   bool __cuda_callable__
+   [[nodiscard]] bool __cuda_callable__
    checkNextIteration();
 
    __cuda_callable__

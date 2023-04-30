@@ -26,13 +26,13 @@ public:
    void
    setAmplitude( const RealType& amplitude );
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getAmplitude() const;
 
    void
    setSigma( const RealType& sigma );
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getSigma() const;
 
 protected:
@@ -53,11 +53,11 @@ public:
    ExpBump();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const RealType& time = 0.0 ) const;
 };
@@ -72,11 +72,11 @@ public:
    ExpBump();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    inline RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -91,11 +91,11 @@ public:
    ExpBump();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };

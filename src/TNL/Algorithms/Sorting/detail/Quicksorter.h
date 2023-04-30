@@ -46,13 +46,13 @@ protected:
    /**
     * returns how many blocks are needed to start sort phase 1 if @param elemPerBlock were to be used
     * */
-   int
+   [[nodiscard]] int
    getSetsNeeded( int elemPerBlock ) const;
 
    /**
     * returns the optimal amount of elements per thread needed for phase
     * */
-   int
+   [[nodiscard]] int
    getElemPerBlock() const;
 
    /**

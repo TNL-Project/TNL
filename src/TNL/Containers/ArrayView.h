@@ -185,7 +185,7 @@ public:
     * \param end The end of the array view sub-interval. The default value is 0
     *            which is, however, replaced with the array size.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView( IndexType begin = 0, IndexType end = 0 );
 
@@ -201,7 +201,7 @@ public:
     * \param end The end of the array view sub-interval. The default value is 0
     *            which is, however, replaced with the array size.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView( IndexType begin = 0, IndexType end = 0 ) const;
 
@@ -260,7 +260,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    empty() const;
 
@@ -269,7 +269,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const ValueType*
    getData() const;
 
@@ -278,7 +278,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType*
    getData();
 
@@ -290,7 +290,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const ValueType*
    getArrayData() const;
 
@@ -302,7 +302,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType*
    getArrayData();
 
@@ -311,7 +311,7 @@ public:
     *
     * This method can be called from device kernels.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -336,7 +336,7 @@ public:
     *
     * \param i The index of the element to be returned.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType
    getElement( IndexType i ) const;
 
@@ -355,7 +355,7 @@ public:
     * \param i The index of the element to be accessed.
     * \return Reference to the \e i-th element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Value&
    operator[]( IndexType i );
 
@@ -374,7 +374,7 @@ public:
     * \param i The index of the element to be accessed.
     * \return Constant reference to the \e i-th element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Value&
    operator[]( IndexType i ) const;
 
@@ -383,7 +383,7 @@ public:
     *
     * Equivalent to \ref operator[], with the same notes and caveats.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Value&
    operator()( IndexType i );
 
@@ -392,7 +392,7 @@ public:
     *
     * Equivalent to \ref operator[], with the same notes and caveats.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Value&
    operator()( IndexType i ) const;
 
@@ -407,7 +407,7 @@ public:
     *         array-like container and false otherwise.
     */
    template< typename ArrayT >
-   bool
+   [[nodiscard]] bool
    operator==( const ArrayT& array ) const;
 
    /**
@@ -420,7 +420,7 @@ public:
     * \return The negated result of \ref operator==.
     */
    template< typename ArrayT >
-   bool
+   [[nodiscard]] bool
    operator!=( const ArrayT& array ) const;
 
    /**

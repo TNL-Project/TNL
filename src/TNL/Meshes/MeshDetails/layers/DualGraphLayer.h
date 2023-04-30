@@ -53,28 +53,28 @@ public:
       return neighborCounts == other.getNeighborCounts() && graph == other.getDualGraph();
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const NeighborCountsArray&
    getNeighborCounts() const
    {
       return neighborCounts;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    NeighborCountsArray&
    getNeighborCounts()
    {
       return neighborCounts;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const DualGraph&
    getDualGraph() const
    {
       return graph;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    DualGraph&
    getDualGraph()
    {

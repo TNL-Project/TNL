@@ -19,13 +19,13 @@ public:
 
    Image() : width( 0 ), height( 0 ) {}
 
-   IndexType
+   [[nodiscard]] IndexType
    getWidth() const
    {
       return this->width;
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getHeight() const
    {
       return this->height;

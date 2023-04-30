@@ -58,7 +58,7 @@ struct Cuda
       return *this;
    }
 
-   value_type*
+   [[nodiscard]] value_type*
    allocate( size_type n )
    {
 #ifdef __CUDACC__
@@ -87,14 +87,14 @@ struct Cuda
 };
 
 template< class T1, class T2 >
-bool
+[[nodiscard]] bool
 operator==( const Cuda< T1 >&, const Cuda< T2 >& )
 {
    return true;
 }
 
 template< class T1, class T2 >
-bool
+[[nodiscard]] bool
 operator!=( const Cuda< T1 >& lhs, const Cuda< T2 >& rhs )
 {
    return ! ( lhs == rhs );

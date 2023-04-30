@@ -31,22 +31,22 @@ public:
    void
    setConstant( const RealType& constant );
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getConstant() const;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    inline RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    inline RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const
    {
       return constant;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    inline RealType
    getValue( const Real& time = 0.0 ) const
    {

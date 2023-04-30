@@ -43,7 +43,7 @@ struct TASK
       this->pivotIdx = pivotIdx;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    int
    getSize() const
    {

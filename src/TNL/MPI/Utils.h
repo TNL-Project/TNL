@@ -17,7 +17,7 @@
 
 namespace TNL::MPI {
 
-inline bool
+[[nodiscard]] inline bool
 isInitialized()
 {
    return Initialized() && ! Finalized();
@@ -90,7 +90,7 @@ selectGPU()
  *         value).
  */
 template< typename T >
-T
+[[nodiscard]] T
 reduce( T value, const MPI_Op& op, MPI_Comm communicator = MPI_COMM_WORLD )
 {
    // call the in-place variant of Allreduce

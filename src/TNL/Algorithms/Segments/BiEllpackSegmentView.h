@@ -15,20 +15,20 @@ template< typename Index, ElementsOrganization Organization, int WarpSize = 32 >
 class BiEllpackSegmentView
 {
 public:
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getWarpSize()
    {
       return WarpSize;
    }
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getLogWarpSize()
    {
       static_assert( WarpSize == 32, "nvcc does not allow constexpr log2" );
       return 5;
    }  // TODO: return std::log2( WarpSize ); };
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getGroupsCount()
    {
       return getLogWarpSize() + 1;
@@ -54,14 +54,14 @@ public:
      groupsWidth( groupsWidth )
    {}
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const
    {
       return this->segmentSize;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( IndexType localIdx ) const
    {
@@ -84,7 +84,7 @@ public:
          return offset + inStripIdx + localIdx * groupHeight;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getSegmentIndex() const
    {

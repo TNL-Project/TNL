@@ -305,7 +305,7 @@ public:
     * \return constant reference to the object image on given device.
     */
    template< typename Device = Devices::Host >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Object&
    getData() const
    {
@@ -332,7 +332,7 @@ public:
     * \return constant reference to the object image on given device.
     */
    template< typename Device = Devices::Host >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Object&
    modifyData()
    {

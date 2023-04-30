@@ -169,93 +169,93 @@ struct Complex
    Complex&
    operator/=( const std::complex< Value_ >& c );
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const Value& v ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const Complex< Value >& c ) const;
 
    template< typename Value_ >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const Value_& v ) const;
 
    template< typename Value_ >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const Complex< Value_ >& c ) const;
 
-   bool
+   [[nodiscard]] bool
    operator==( const std::complex< Value >& c ) const;
 
    template< typename Value_ >
-   bool
+   [[nodiscard]] bool
    operator==( const std::complex< Value_ >& c ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const Value& v ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const Complex< Value >& c ) const;
 
    template< typename Value_ >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const Value_& v ) const;
 
    template< typename Value_ >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const Complex< Value_ >& c ) const;
 
-   bool
+   [[nodiscard]] bool
    operator!=( const std::complex< Value >& c ) const;
 
    template< typename Value_ >
-   bool
+   [[nodiscard]] bool
    operator!=( const std::complex< Value_ >& c ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Complex
    operator-() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Complex
    operator+() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Value&
    real() const volatile;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Value&
    imag() const volatile;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Value&
    real() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Value&
    imag() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Value&
    real() volatile;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Value&
    imag() volatile;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Value&
    real();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Value&
    imag();
 

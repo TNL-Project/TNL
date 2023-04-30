@@ -24,7 +24,7 @@ struct CSRAdaptiveKernelView
 
    static constexpr int MaxValueSizeLog = detail::CSRAdaptiveKernelParameters<>::MaxValueSizeLog;
 
-   static int
+   [[nodiscard]] static int
    getSizeValueLog( const int& i )
    {
       return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
@@ -35,15 +35,15 @@ struct CSRAdaptiveKernelView
    void
    setBlocks( BlocksType& blocks, int idx );
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
-   static TNL::String
+   [[nodiscard]] static TNL::String
    getKernelType();
 
    template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real, typename... Args >

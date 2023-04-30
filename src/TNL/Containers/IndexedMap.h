@@ -22,23 +22,23 @@ public:
    void
    reset();
 
-   IndexType
+   [[nodiscard]] IndexType
    getSize() const;
 
    IndexType
    insert( const ValueType& data );
 
-   bool
+   [[nodiscard]] bool
    find( const ValueType& data, IndexType& index ) const;
 
    template< typename ArrayType >
    void
    toArray( ArrayType& array ) const;
 
-   const Value&
+   [[nodiscard]] const Value&
    getElement( KeyType key ) const;
 
-   Value&
+   [[nodiscard]] Value&
    getElement( KeyType key );
 
    void

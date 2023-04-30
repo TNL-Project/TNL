@@ -66,19 +66,19 @@ public:
       ghostsOffset = entitiesCount;
    }
 
-   typename EntityTagsArrayType::ViewType
+   [[nodiscard]] typename EntityTagsArrayType::ViewType
    getEntityTagsView( DimensionTag )
    {
       return tags.getView();
    }
 
-   typename EntityTagsArrayType::ConstViewType
+   [[nodiscard]] typename EntityTagsArrayType::ConstViewType
    getEntityTagsView( DimensionTag ) const
    {
       return tags.getConstView();
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    TagType
    getEntityTag( DimensionTag, const GlobalIndexType& entityIndex ) const
    {
@@ -99,14 +99,14 @@ public:
       tags[ entityIndex ] ^= tag;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    isBoundaryEntity( DimensionTag, const GlobalIndexType& entityIndex ) const
    {
       return tags[ entityIndex ] & EntityTags::BoundaryEntity;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    isGhostEntity( DimensionTag, const GlobalIndexType& entityIndex ) const
    {
@@ -183,26 +183,26 @@ public:
       }
    }
 
-   auto
+   [[nodiscard]] auto
    getBoundaryIndices( DimensionTag ) const
    {
       return boundaryIndices.getConstView();
    }
 
-   auto
+   [[nodiscard]] auto
    getInteriorIndices( DimensionTag ) const
    {
       return interiorIndices.getConstView();
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    GlobalIndexType
    getGhostEntitiesCount( DimensionTag ) const
    {
       return tags.getSize() - ghostsOffset;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    GlobalIndexType
    getGhostEntitiesOffset( DimensionTag ) const
    {

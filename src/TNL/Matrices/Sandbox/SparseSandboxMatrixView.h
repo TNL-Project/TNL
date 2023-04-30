@@ -194,7 +194,7 @@ public:
     *
     * \return sparse matrix view.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
@@ -203,7 +203,7 @@ public:
     *
     * \return sparse matrix view.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
@@ -220,7 +220,7 @@ public:
     * \par Output
     * \include SparseMatrixViewExample_getSerializationType.out
     */
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
    /**
@@ -235,7 +235,7 @@ public:
     * \par Output
     * \include SparseMatrixExample_getSerializationType.out
     */
-   std::string
+   [[nodiscard]] std::string
    getSerializationTypeVirtual() const override;
 
    /**
@@ -270,7 +270,7 @@ public:
     * \param row index of matrix row.
     * \return number of matrix elements allocated for the row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getRowCapacity( IndexType row ) const;
 
@@ -282,7 +282,7 @@ public:
     *
     * \return number of non-zero matrix elements.
     */
-   IndexType
+   [[nodiscard]] IndexType
    getNonzeroElementsCount() const override;
 
    /**
@@ -299,7 +299,7 @@ public:
     *
     * See \ref SparseSandboxMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstRowView
    getRow( const IndexType& rowIdx ) const;
 
@@ -317,7 +317,7 @@ public:
     *
     * See \ref SparseSandboxMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RowView
    getRow( const IndexType& rowIdx );
 
@@ -392,7 +392,7 @@ public:
     * \include SparseMatrixViewExample_getElement.out
     *
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getElement( IndexType row, IndexType column ) const;
 
@@ -792,7 +792,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator==( const Matrix& matrix ) const;
 
    /**
@@ -802,7 +802,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator!=( const Matrix& matrix ) const;
 
    /**
@@ -854,7 +854,7 @@ public:
     *
     * \return Constant reference to a vector with matrix elements column indexes.
     */
-   const ColumnsIndexesViewType&
+   [[nodiscard]] const ColumnsIndexesViewType&
    getColumnIndexes() const;
 
    /**
@@ -862,7 +862,7 @@ public:
     *
     * \return Reference to a vector with matrix elements column indexes.
     */
-   ColumnsIndexesViewType&
+   [[nodiscard]] ColumnsIndexesViewType&
    getColumnIndexes();
 
    /**
@@ -873,7 +873,7 @@ public:
     *
     * \return value of the padding index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getPaddingIndex() const;
 

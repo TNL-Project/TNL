@@ -171,7 +171,7 @@ public:
     *
     * \param name Name of the entry.
     */
-   const ConfigEntryBase*
+   [[nodiscard]] const ConfigEntryBase*
    getEntry( const std::string& name ) const
    {
       // ConfigDelimiter has empty name
@@ -186,32 +186,32 @@ public:
    }
 
    // iterators
-   auto
+   [[nodiscard]] auto
    begin() noexcept
    {
       return entries.begin();
    }
-   auto
+   [[nodiscard]] auto
    begin() const noexcept
    {
       return entries.begin();
    }
-   auto
+   [[nodiscard]] auto
    cbegin() const noexcept
    {
       return entries.cbegin();
    }
-   auto
+   [[nodiscard]] auto
    end() noexcept
    {
       return entries.end();
    }
-   auto
+   [[nodiscard]] auto
    end() const noexcept
    {
       return entries.end();
    }
-   auto
+   [[nodiscard]] auto
    cend() const noexcept
    {
       return entries.cend();

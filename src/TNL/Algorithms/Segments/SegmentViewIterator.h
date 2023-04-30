@@ -48,7 +48,7 @@ public:
     * \param other is another matrix Segment iterator.
     * \return \e true if both iterators points at the same point of the same matrix, \e false otherwise.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const SegmentViewIterator& other ) const;
 
@@ -58,7 +58,7 @@ public:
     * \param other is another matrix Segment iterator.
     * \return \e false if both iterators points at the same point of the same matrix, \e true otherwise.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const SegmentViewIterator& other ) const;
 
@@ -86,7 +86,7 @@ public:
     * It returns structure \ref SegmentElementType which represent one element of a segment.
     * \return segment element the iterator points to.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const SegmentElementType
    operator*() const;
 
