@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 #include <sstream>
+#include <optional>
 
 #include <TNL/Config/ConfigEntryBase.h>
 #include <TNL/Config/ConfigEntryType.h>
@@ -24,21 +25,23 @@ class ConfigEntry : public ConfigEntryBase
                      || std::is_same< std::vector< EntryType >, DefaultValueType >::value,
                   "DefaultValueType must be the same as either EntryType or std::vector< EntryType >" );
 
-   DefaultValueType defaultValue;
+   std::optional< DefaultValueType > defaultValue;
 
    std::vector< EntryType > enumValues;
 
 public:
    ConfigEntry( const std::string& name, const std::string& description, bool required )
    : ConfigEntryBase( name, description, required )
-   {
-      _hasDefaultValue = false;
-   }
+   {}
 
    ConfigEntry( const std::string& name, const std::string& description, bool required, DefaultValueType defaultValue )
    : ConfigEntryBase( name, description, required ), defaultValue( std::move( defaultValue ) )
+   {}
+
+   [[nodiscard]] bool
+   hasDefaultValue() const override
    {
-      _hasDefaultValue = true;
+      return defaultValue.has_value();
    }
 
    [[nodiscard]] std::string
@@ -52,7 +55,7 @@ public:
    {
       // printDefaultValue must be compilable even if DefaultValueType is std::vector,
       // so we can't override the method in ConfigEntryList
-      return _print_value( defaultValue );
+      return _print_value( defaultValue.value() );
    }
 
    [[nodiscard]] bool
@@ -75,7 +78,7 @@ public:
    [[nodiscard]] virtual DefaultValueType
    getDefaultValue() const
    {
-      return defaultValue;
+      return defaultValue.value();
    }
 
    [[nodiscard]] virtual std::vector< EntryType >&

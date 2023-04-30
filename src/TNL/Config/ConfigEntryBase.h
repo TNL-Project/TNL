@@ -22,11 +22,9 @@ protected:
 
    bool required;
 
-   bool _hasDefaultValue;
-
 public:
    ConfigEntryBase( std::string name, std::string description, bool required )
-   : name( std::move( name ) ), description( std::move( description ) ), required( required ), _hasDefaultValue( false )
+   : name( std::move( name ) ), description( std::move( description ) ), required( required )
    {}
 
    [[nodiscard]] const std::string&
@@ -47,10 +45,10 @@ public:
       return required;
    }
 
-   [[nodiscard]] bool
+   [[nodiscard]] virtual bool
    hasDefaultValue() const
    {
-      return _hasDefaultValue;
+      return false;
    }
 
    [[nodiscard]] virtual std::string
