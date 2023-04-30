@@ -663,8 +663,7 @@ decompose_and_save( const Mesh& mesh,
 
       // init mesh for the subdomain
       Mesh subdomain;
-      if( ! builder.build( subdomain ) )
-         throw std::runtime_error( "mesh builder failed for subdomain " + std::to_string(p) );
+      builder.build( subdomain );
 
       // write the subdomain
       using Writer = Meshes::Writers::VTUWriter< Mesh >;

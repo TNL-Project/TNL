@@ -25,7 +25,7 @@ public:
 };
 
 template< typename Device >
-bool buildTriangleMesh( Mesh< TestTriangleMeshConfig, Device >& mesh )
+void buildTriangleMesh( Mesh< TestTriangleMeshConfig, Device >& mesh )
 {
    using TriangleMesh = Mesh< TestTriangleMeshConfig, Device >;
    using TriangleMeshEntityType = typename TriangleMesh::template EntityType< 2 >;
@@ -81,7 +81,7 @@ bool buildTriangleMesh( Mesh< TestTriangleMeshConfig, Device >& mesh )
    meshBuilder.getCellSeed( 1 ).setCornerId( 0, 1 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 1, 2 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 2, 3 );
-   return meshBuilder.build( mesh );
+   meshBuilder.build( mesh );
 }
 
 template< typename PermutationArray >
@@ -250,7 +250,7 @@ TEST( MeshOrderingTest, OrderingOnHost )
    using MeshHost = Mesh< TestTriangleMeshConfig, Devices::Host >;
 
    MeshHost mesh;
-   ASSERT_TRUE( buildTriangleMesh( mesh ) );
+   buildTriangleMesh( mesh );
 
    using PermutationArray = typename MeshHost::GlobalIndexArray;
    PermutationArray vertexIdentity, edgeIdentity, cellIdentity,
@@ -284,7 +284,7 @@ TEST( MeshOrderingTest, OrderingOnCuda )
 
    MeshHost meshHost;
    MeshCuda mesh;
-   ASSERT_TRUE( buildTriangleMesh( meshHost ) );
+   buildTriangleMesh( meshHost );
    mesh = meshHost;
 
    using PermutationCuda = typename MeshCuda::GlobalIndexArray;

@@ -55,7 +55,7 @@ struct MeshCreator< Meshes::Grid< 1, Real, Device, Index > >
                                                   LocalIndexType >;
    using MeshType = Meshes::Mesh< MeshConfig >;
 
-   static bool run( const GridType& grid, MeshType& mesh )
+   static void run( const GridType& grid, MeshType& mesh )
    {
       const Index numberOfVertices = grid.template getEntitiesCount< typename GridType::Vertex >();
       const Index numberOfCells = grid.template getEntitiesCount< typename GridType::Cell >();
@@ -75,7 +75,7 @@ struct MeshCreator< Meshes::Grid< 1, Real, Device, Index > >
          meshBuilder.getCellSeed( i ).setCornerId( 1, cell.template getNeighbourEntity< 0 >( { 1 } ).getIndex() );
       }
 
-      return meshBuilder.build( mesh );
+      meshBuilder.build( mesh );
    }
 };
 
@@ -91,7 +91,7 @@ struct MeshCreator< Meshes::Grid< 2, Real, Device, Index > >
                                                   LocalIndexType >;
    using MeshType = Meshes::Mesh< MeshConfig >;
 
-   static bool run( const GridType& grid, MeshType& mesh )
+   static void run( const GridType& grid, MeshType& mesh )
    {
       const Index numberOfVertices = grid.template getEntitiesCount< typename GridType::Vertex >();
       const Index numberOfCells = grid.template getEntitiesCount< typename GridType::Cell >();
@@ -112,7 +112,7 @@ struct MeshCreator< Meshes::Grid< 2, Real, Device, Index > >
          meshBuilder.getCellSeed( i ).setCornerId( 3, cell.template getNeighbourEntity< 0 >( { 0, 1 } ).getIndex() );
       }
 
-      return meshBuilder.build( mesh );
+      meshBuilder.build( mesh );
    }
 };
 
@@ -128,7 +128,7 @@ struct MeshCreator< Meshes::Grid< 3, Real, Device, Index > >
                                                   LocalIndexType >;
    using MeshType = Meshes::Mesh< MeshConfig >;
 
-   static bool run( const GridType& grid, MeshType& mesh )
+   static void run( const GridType& grid, MeshType& mesh )
    {
       const Index numberOfVertices = grid.template getEntitiesCount< typename GridType::Vertex >();
       const Index numberOfCells = grid.template getEntitiesCount< typename GridType::Cell >();
@@ -153,7 +153,7 @@ struct MeshCreator< Meshes::Grid< 3, Real, Device, Index > >
          meshBuilder.getCellSeed( i ).setCornerId( 7, cell.template getNeighbourEntity< 0 >( { 0, 1, 1 } ).getIndex() );
       }
 
-      return meshBuilder.build( mesh );
+      meshBuilder.build( mesh );
    }
 };
 
@@ -164,10 +164,7 @@ bool convertGrid( Grid& grid, const std::string& outputFileName, const std::stri
    using Mesh = typename MeshCreator::MeshType;
 
    Mesh mesh;
-   if( ! MeshCreator::run( grid, mesh ) ) {
-      std::cerr << "Unable to build mesh from grid." << std::endl;
-      return false;
-   }
+   MeshCreator::run( grid, mesh );
 
    std::string format = outputFormat;
    if( outputFormat == "auto" ) {

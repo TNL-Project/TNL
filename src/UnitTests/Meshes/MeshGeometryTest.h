@@ -99,7 +99,7 @@ TEST( MeshGeometryTest, Polygon2DAreaTest )
    meshBuilder.getCellSeed( 0 ).setCornerId( 3, 3 );
    meshBuilder.getCellSeed( 0 ).setCornerId( 4, 4 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 2 >( 0 ) ),
                 30.0,
@@ -147,7 +147,7 @@ TEST( MeshGeometryTest, Polygon3DAreaTest )
    meshBuilder.getCellSeed( 0 ).setCornerId( 3, 3 );
    meshBuilder.getCellSeed( 0 ).setCornerId( 4, 4 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 2 >( 0 ) ),
                 30.0,
@@ -187,7 +187,7 @@ TEST( MeshGeometryTest, WedgeAreaTest )
    meshBuilder.getCellSeed( 0 ).setCornerId( 4, 4 );
    meshBuilder.getCellSeed( 0 ).setCornerId( 5, 5 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 3 >( 0 ) ),
                 108.0,
@@ -226,7 +226,7 @@ TEST( MeshGeometryTest, PyramidAreaTest )
    meshBuilder.getCellSeed( 0 ).setCornerId( 3, 3 );
    meshBuilder.getCellSeed( 0 ).setCornerId( 4, 4 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 3 >( 0 ) ),
                 1000.0 / 3.0,
@@ -322,7 +322,7 @@ TEST( MeshGeometryTest, PolyhedronAreaTest )
    meshBuilder.getCellSeed( 0 ).setCornerId( 7, 7 );
    meshBuilder.getCellSeed( 0 ).setCornerId( 8, 8 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 3 >( 0 ) ),
                 1000.0 + ( 1000.0 / 3.0 ),
@@ -421,7 +421,7 @@ TEST( MeshGeometryTest, Polygon3DIsPlanarTest )
    meshBuilder.getCellSeed( 5 ).setCornerId( 3, 3 );
    meshBuilder.getCellSeed( 5 ).setCornerId( 4, 9 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    EXPECT_EQ( isPlanar( mesh, mesh.template getEntity< 2 >( 0 ), 1e-4 ), true );
    EXPECT_EQ( isPlanar( mesh, mesh.template getEntity< 2 >( 1 ), 1e-4 ), false );
@@ -522,7 +522,7 @@ TEST( MeshGeometryTest, PolygonDecompositionTest )
    meshBuilder.getCellSeed( 6 ).setCornerId( 3, 13 );
    meshBuilder.getCellSeed( 6 ).setCornerId( 4, 15 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    // Test for the 1st version
    {
@@ -760,7 +760,7 @@ TEST( MeshGeometryTest, PolyhedronDecompositionTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 6, 14 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 7, 15 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    // Test for the 1st version
    {
@@ -841,7 +841,7 @@ TEST( MeshGeometryTest, Polygon3DGetPlanarMeshTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 2, 5 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 3, 2 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    // Write original mesh
    {
@@ -1087,7 +1087,7 @@ TEST( MeshGeometryTest, PolyhedronGetPlanarMeshTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 6, 14 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 7, 15 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    // Test for the 1st version
    {
@@ -1151,7 +1151,7 @@ TEST( MeshGeometryTest, TriangleGetRefinedMeshTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 2, 3 );
 
    TriangleTestMesh mesh;
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
    const TriangleTestMesh refinedMesh = getRefinedMesh< EntityRefinerVersion::EdgeBisection >( mesh );
 
    EXPECT_EQ( refinedMesh.getEntitiesCount< 2 >(),  8 );
@@ -1191,7 +1191,7 @@ TEST( MeshGeometryTest, QuadrangleGetRefinedMeshTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 3, 4 );
 
    QuadrangleTestMesh mesh;
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
    const QuadrangleTestMesh refinedMesh = getRefinedMesh< EntityRefinerVersion::EdgeBisection >( mesh );
 
    EXPECT_EQ( refinedMesh.getEntitiesCount< 2 >(),  8 );
@@ -1229,7 +1229,7 @@ TEST( MeshGeometryTest, TetrahedronGetRefinedMeshTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 3, 4 );
 
    TetrahedronTestMesh mesh;
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
    const TetrahedronTestMesh refinedMesh = getRefinedMesh< EntityRefinerVersion::EdgeBisection >( mesh );
 
    EXPECT_EQ( refinedMesh.getEntitiesCount< 3 >(), 16 );
@@ -1290,7 +1290,7 @@ TEST( MeshGeometryTest, HexahedronGetRefinedMeshTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 7, 11 );
 
    HexahedronTestMesh mesh;
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
    const HexahedronTestMesh refinedMesh = getRefinedMesh< EntityRefinerVersion::EdgeBisection >( mesh );
 
    EXPECT_EQ( refinedMesh.getEntitiesCount< 3 >(), 16 );

@@ -213,7 +213,7 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
       for( Index x = cell_end.x(); x < cell_end.x() + (rank_coordinates.x() < rank_sizes.x() - 1) * overlap; x++ )
          add_cell( x, y );
 
-      ASSERT_TRUE( meshBuilder.build( mesh.getLocalMesh() ) );
+      meshBuilder.build( mesh.getLocalMesh() );
 
       // set ghost levels
       mesh.setGhostLevels( overlap );

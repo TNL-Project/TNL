@@ -117,7 +117,7 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
       meshBuilder.getCellSeed( cellIdx++ ).setCornerId( 3, vertex3 );
    }
 
-   ASSERT_TRUE( meshBuilder.build( *meshPointer ) );
+   meshBuilder.build( *meshPointer );
 
    // arrays for all test cases
    Containers::Array< int > array_cells_boundary( meshPointer->template getEntitiesCount< 2 >() );
@@ -264,7 +264,7 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
       meshBuilder.getCellSeed( cellIdx++ ).setCornerId( 7, vertex7 );
    }
 
-   ASSERT_TRUE( meshBuilder.build( *meshPointer ) );
+   meshBuilder.build( *meshPointer );
 
    // arrays for all test cases
    Containers::Array< int > array_cells_boundary( meshPointer->template getEntitiesCount< 3 >() );

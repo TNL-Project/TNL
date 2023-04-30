@@ -262,8 +262,7 @@ public:
       if( NumberOfFaces > 0 )
          meshBuilder.deduplicateFaces();
 
-      if( ! meshBuilder.build( mesh ) )
-         throw MeshReaderError( "MeshReader", "MeshBuilder failed" );
+      meshBuilder.build( mesh );
    }
 
    virtual VariantVector

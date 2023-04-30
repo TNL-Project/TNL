@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <stdexcept>
 #include <numeric>  // std::iota
 #include <vector>
 
@@ -13,6 +14,11 @@
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 
 namespace TNL::Meshes {
+
+struct MeshBuilderError : public std::runtime_error
+{
+   MeshBuilderError( const std::string& msg ) : std::runtime_error( msg ) {}
+};
 
 template< typename Mesh >
 class MeshBuilder
@@ -307,50 +313,40 @@ public:
       remap_matrix( cellSeeds );
    }
 
-   bool
+   void
    build( MeshType& mesh )
    {
-      if( ! this->validate() )
-         return false;
+      this->validate();
       pointsSet.reset();
       mesh.init( this->points, this->faceSeeds, this->cellSeeds );
-      return true;
    }
 
 private:
-   bool
+   void
    validate() const
    {
       // verify that matrix dimensions are consistent with points
       if( faceSeeds.empty() ) {
          // no face seeds - cell seeds refer to points
-         if( cellSeeds.getMatrix().getColumns() != points.getSize() ) {
-            std::cerr << "Mesh builder error: Inconsistent size of the cellSeeds matrix (it has "
-                      << cellSeeds.getMatrix().getColumns() << " columns, but there are " << points.getSize() << " points)."
-                      << std::endl;
-            return false;
-         }
+         if( cellSeeds.getMatrix().getColumns() != points.getSize() )
+            throw MeshBuilderError( "Inconsistent size of the cellSeeds matrix (it has "
+                                    + std::to_string( cellSeeds.getMatrix().getColumns() ) + " columns, but there are "
+                                    + std::to_string( points.getSize() ) + " points)." );
       }
       else {
          // cell seeds refer to faces and face seeds refer to points
-         if( cellSeeds.getMatrix().getColumns() != faceSeeds.getMatrix().getRows() ) {
-            std::cerr << "Mesh builder error: Inconsistent size of the cellSeeds matrix (it has "
-                      << cellSeeds.getMatrix().getColumns() << " columns, but there are " << faceSeeds.getMatrix().getRows()
-                      << " faces)." << std::endl;
-            return false;
-         }
-         if( faceSeeds.getMatrix().getColumns() != points.getSize() ) {
-            std::cerr << "Mesh builder error: Inconsistent size of the faceSeeds matrix (it has "
-                      << faceSeeds.getMatrix().getColumns() << " columns, but there are " << points.getSize() << " points)."
-                      << std::endl;
-            return false;
-         }
+         if( cellSeeds.getMatrix().getColumns() != faceSeeds.getMatrix().getRows() )
+            throw MeshBuilderError( "Inconsistent size of the cellSeeds matrix (it has "
+                                    + std::to_string( cellSeeds.getMatrix().getColumns() ) + " columns, but there are "
+                                    + std::to_string( faceSeeds.getMatrix().getRows() ) + " faces)." );
+         if( faceSeeds.getMatrix().getColumns() != points.getSize() )
+            throw MeshBuilderError( "Inconsistent size of the faceSeeds matrix (it has "
+                                    + std::to_string( faceSeeds.getMatrix().getColumns() ) + " columns, but there are "
+                                    + std::to_string( points.getSize() ) + " points)." );
       }
 
-      if( min( pointsSet ) != true ) {
-         std::cerr << "Mesh builder error: Not all points were set." << std::endl;
-         return false;
-      }
+      if( min( pointsSet ) != true )
+         throw MeshBuilderError( "Not all points were set." );
 
       BoolVector assignedPoints;
       assignedPoints.setLike( pointsSet );
@@ -362,35 +358,29 @@ private:
             for( LocalIndexType j = 0; j < cellSeed.getCornersCount(); j++ ) {
                const GlobalIndexType cornerId = cellSeed.getCornerId( j );
                assignedPoints[ cornerId ] = true;
-               if( cornerId < 0 || getPointsCount() <= cornerId ) {
-                  std::cerr << "Cell seed " << i << " is referencing unavailable point " << cornerId << std::endl;
-                  return false;
-               }
+               if( cornerId < 0 || getPointsCount() <= cornerId )
+                  throw MeshBuilderError( "Cell seed " + std::to_string( i ) + " is referencing unavailable point "
+                                          + std::to_string( cornerId ) );
             }
          }
 
-         if( min( assignedPoints ) != true ) {
-            std::cerr << "Mesh builder error: Some points were not used for cells." << std::endl;
-            return false;
-         }
+         if( min( assignedPoints ) != true )
+            throw MeshBuilderError( "Some points were not used for cells." );
       }
       else {
          for( GlobalIndexType i = 0; i < getFacesCount(); i++ ) {
             const auto faceSeed = this->faceSeeds.getSeed( i );
             for( LocalIndexType j = 0; j < faceSeed.getCornersCount(); j++ ) {
                const GlobalIndexType cornerId = faceSeed.getCornerId( j );
-               if( cornerId < 0 || getPointsCount() <= cornerId ) {
-                  std::cerr << "face seed " << i << " is referencing unavailable point " << cornerId << std::endl;
-                  return false;
-               }
+               if( cornerId < 0 || getPointsCount() <= cornerId )
+                  throw MeshBuilderError( "Face seed " + std::to_string( i ) + " is referencing unavailable point "
+                                          + std::to_string( cornerId ) );
                assignedPoints[ cornerId ] = true;
             }
          }
 
-         if( min( assignedPoints ) != true ) {
-            std::cerr << "Mesh builder error: Some points were not used for faces." << std::endl;
-            return false;
-         }
+         if( min( assignedPoints ) != true )
+            throw MeshBuilderError( "Some points were not used for faces." );
 
          BoolVector assignedFaces;
          assignedFaces.setSize( faceSeeds.getEntitiesCount() );
@@ -400,21 +390,16 @@ private:
             const auto cellSeed = this->cellSeeds.getSeed( i );
             for( LocalIndexType j = 0; j < cellSeed.getCornersCount(); j++ ) {
                const GlobalIndexType cornerId = cellSeed.getCornerId( j );
-               if( cornerId < 0 || getFacesCount() <= cornerId ) {
-                  std::cerr << "cell seed " << i << " is referencing unavailable face " << cornerId << std::endl;
-                  return false;
-               }
+               if( cornerId < 0 || getFacesCount() <= cornerId )
+                  throw MeshBuilderError( "Cell seed " + std::to_string( i ) + " is referencing unavailable face "
+                                          + std::to_string( cornerId ) );
                assignedFaces[ cornerId ] = true;
             }
          }
 
-         if( min( assignedFaces ) != true ) {
-            std::cerr << "Mesh builder error: Some faces were not used for cells." << std::endl;
-            return false;
-         }
+         if( min( assignedFaces ) != true )
+            throw MeshBuilderError( "Some faces were not used for cells." );
       }
-
-      return true;
    }
 
    PointArrayType points;

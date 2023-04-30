@@ -198,8 +198,7 @@ createMeshWithTwoTriangles()
    meshBuilder.getCellSeed( 1 ).setCornerId( 0, 1 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 1, 2 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 2, 3 );
-   if( ! meshBuilder.build( mesh ) )
-      throw std::runtime_error("mesh builder failed");
+   meshBuilder.build( mesh );
 
    return mesh;
 }
@@ -530,7 +529,7 @@ TEST( MeshTest, TetrahedronsTest )
    meshBuilder.getCellSeed( 17 ).setCornerId( 2, 6 );
    meshBuilder.getCellSeed( 17 ).setCornerId( 3, 10 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    testFinishedMesh( mesh );
 }
@@ -583,7 +582,7 @@ TEST( MeshTest, RegularMeshOfTrianglesTest )
          meshBuilder.getCellSeed( cellIdx++ ).setCornerId( 2, vertex3 );
       }
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    // Test cells -> vertices subentities
    cellIdx = 0;
@@ -680,7 +679,7 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
          meshBuilder.getCellSeed( cellIdx++ ).setCornerId( 3, vertex3 );
       }
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    // Test cells -> vertices subentities
    cellIdx = 0;
@@ -821,7 +820,7 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
             meshBuilder.getCellSeed( cellIdx++ ).setCornerId( 7, vertex7 );
          }
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    // Test cells -> vertices subentities
    cellIdx = 0;
@@ -1168,7 +1167,7 @@ TEST( MeshTest, TwoPolygonsTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 1, 2 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 2, 4 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    // tests for entities counts
    EXPECT_EQ( mesh.getEntitiesCount< 2 >(), 2 );
@@ -1382,7 +1381,7 @@ TEST( MeshTest, SevenPolygonsTest )
    meshBuilder.getCellSeed( 6 ).setCornerId( 3, 13 );
    meshBuilder.getCellSeed( 6 ).setCornerId( 4, 15 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    // tests for entities counts
    EXPECT_EQ( mesh.getEntitiesCount< 2 >(), 7 );
@@ -1811,7 +1810,7 @@ TEST( MeshTest, TwoWedgesTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 4, 4 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 5, 7 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
 
    // tests for entities counts
@@ -2280,7 +2279,7 @@ TEST( MeshTest, TwoPyramidsTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 3, 3 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 4, 5 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
 
    // tests for entities counts
@@ -2862,7 +2861,7 @@ TEST( MeshTest, TwoPolyhedronsTest )
    meshBuilder.getCellSeed( 1 ).setCornerId( 6, 14 );
    meshBuilder.getCellSeed( 1 ).setCornerId( 7, 15 );
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    // tests for entities counts
    EXPECT_EQ( mesh.getEntitiesCount< 3 >(), 2 );
