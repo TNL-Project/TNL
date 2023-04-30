@@ -14,8 +14,7 @@
 
 #include <unordered_set>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device, typename EntityTopology >
 class MeshEntity;
@@ -48,5 +47,4 @@ public:
       Matrices::SparseMatrix< bool, Device, GlobalIndexType, Matrices::GeneralMatrix, EllpackSegments > >;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

@@ -9,10 +9,7 @@
 #include <TNL/Meshes/VTKTraits.h>
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
-namespace detail {
+namespace TNL::Meshes::Writers::detail {
 
 // TODO: specialization for disabled entities
 // Unstructured meshes, entities
@@ -357,7 +354,4 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
    }
 };
 
-}  // namespace detail
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers::detail

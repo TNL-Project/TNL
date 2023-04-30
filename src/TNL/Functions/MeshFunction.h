@@ -11,8 +11,7 @@
 #include <TNL/Functions/Domain.h>
 #include <TNL/Pointers/SharedPointer.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename Mesh, int MeshEntityDimension = Mesh::getMeshDimension(), typename Real = typename Mesh::RealType >
 class MeshFunction : public Domain< Mesh::getMeshDimension(), MeshDomain >
@@ -145,7 +144,6 @@ template< typename Mesh, int MeshEntityDimension, typename Real >
 std::ostream&
 operator<<( std::ostream& str, const MeshFunction< Mesh, MeshEntityDimension, Real >& f );
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions
 
 #include <TNL/Functions/MeshFunction.hpp>

@@ -6,8 +6,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 template< typename OuterOperator, typename InnerOperator >
 class ExactOperatorComposition
@@ -29,5 +28,4 @@ protected:
    OuterOperator outerOperator;
 };
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators

@@ -10,9 +10,7 @@
 #include <TNL/Algorithms/Segments/EllpackView.h>
 #include <TNL/Algorithms/Segments/SegmentView.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device,
           typename Index,
@@ -190,8 +188,6 @@ operator<<( std::ostream& str, const Ellpack< Device, Index, IndexAllocator, Org
    return printSegments( segments, str );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/Ellpack.hpp>

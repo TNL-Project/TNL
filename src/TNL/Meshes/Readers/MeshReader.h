@@ -15,10 +15,8 @@
 #include <TNL/Meshes/VTKTraits.h>
 #include <TNL/Meshes/Traits.h>
 
-namespace TNL {
-namespace Meshes {
 //! \brief Namespace for mesh readers.
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 struct MeshReaderError : public std::runtime_error
 {
@@ -412,6 +410,4 @@ protected:
    }
 };
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

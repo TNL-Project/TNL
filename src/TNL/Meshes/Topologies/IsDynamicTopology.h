@@ -10,9 +10,7 @@
 #include <TNL/Meshes/Topologies/SubentityVertexMap.h>
 #include <TNL/Meshes/Topologies/Vertex.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 /**
  * \brief Type trait for checking if Topology has at least one missing Subtopology< Topology, D > >::count for all D from
@@ -41,6 +39,4 @@ struct IsDynamicTopology< Topology, 1 >
    static constexpr bool value = ! HasCountMember< Subtopology< Topology, 0 > >::value;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

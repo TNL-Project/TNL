@@ -14,8 +14,7 @@
 
    #include <TNL/Containers/Vector.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Wrapper for Hypre's sequential vector.
@@ -262,7 +261,6 @@ protected:
    bool owns_handle = true;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #endif  // HAVE_HYPRE

@@ -8,8 +8,7 @@
 
 #include <TNL/Containers/UnorderedIndexedSet.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< class Key, class Index, class Hash, class KeyEqual, class Allocator >
 void
@@ -130,5 +129,4 @@ operator<<( std::ostream& str, UnorderedIndexedSet< Key, Index, Hash, KeyEqual, 
    return str;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

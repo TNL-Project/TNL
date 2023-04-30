@@ -10,8 +10,7 @@
 #include <TNL/Meshes/Topologies/IsDynamicTopology.h>
 #include <TNL/Devices/Host.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device >
 class MeshTraits;
@@ -514,5 +513,4 @@ private:
    NeighborCountsArray counts;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

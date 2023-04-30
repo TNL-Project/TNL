@@ -8,8 +8,7 @@
 
 #include <TNL/Matrices/TridiagonalMatrixRowView.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename ValuesView, typename Indexer >
 __cuda_callable__
@@ -101,5 +100,4 @@ TridiagonalMatrixRowView< ValuesView, Indexer >::cend() const -> const IteratorT
    return IteratorType( *this, this->getSize() );
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

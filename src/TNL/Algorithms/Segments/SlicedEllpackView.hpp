@@ -13,9 +13,7 @@
 
 #include "SlicedEllpackView.h"
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 __cuda_callable__
@@ -338,6 +336,4 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::print( Fetch&& fetc
    return SegmentsPrinter< SlicedEllpackView, Fetch >( *this, fetch );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

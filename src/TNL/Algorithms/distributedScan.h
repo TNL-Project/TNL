@@ -13,8 +13,7 @@
 #include <TNL/Algorithms/detail/DistributedScan.h>
 #include <TNL/Functional.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 /**
  * \brief Computes an inclusive scan (or prefix sum) of a distributed array in-place.
@@ -294,5 +293,4 @@ distributedInplaceExclusiveScan( DistributedArray& array,
    distributedInplaceExclusiveScan( array, begin, end, std::forward< Reduction >( reduction ), identity );
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

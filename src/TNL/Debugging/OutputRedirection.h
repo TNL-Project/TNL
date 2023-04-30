@@ -14,8 +14,7 @@
    #include <unistd.h>
 #endif
 
-namespace TNL {
-namespace Debugging {
+namespace TNL::Debugging {
 
 class OutputRedirection
 {
@@ -120,5 +119,4 @@ redirect_stdout_stderr( const std::string& stdout_fname, const std::string& stde
 #endif
 }
 
-}  // namespace Debugging
-}  // namespace TNL
+}  // namespace TNL::Debugging

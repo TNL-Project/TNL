@@ -10,9 +10,7 @@
 #include <TNL/Solvers/PDE/SemiImplicitTimeStepper.h>
 #include <TNL/Solvers/LinearSolverTypeResolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Problem >
 void
@@ -196,6 +194,4 @@ SemiImplicitTimeStepper< Problem >::writeEpilog( Logger& logger ) const
    return true;
 }
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

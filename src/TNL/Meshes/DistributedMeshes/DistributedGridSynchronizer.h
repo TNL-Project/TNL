@@ -14,9 +14,7 @@
 #include <TNL/Meshes/DistributedMeshes/Directions.h>
 #include <TNL/Pointers/SharedPointer.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 // NOTE: this specialization works only for synchronizations on cells
 template< int MeshDimension, typename Index, typename Device, typename GridReal >
@@ -236,6 +234,4 @@ private:
    bool isSet;
 };
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes

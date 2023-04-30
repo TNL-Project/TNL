@@ -12,9 +12,7 @@
 #include <TNL/Meshes/DistributedMeshes/SubdomainOverlapsGetter.h>
 #include <TNL/MPI/Wrappers.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void
@@ -474,6 +472,4 @@ operator<<( std::ostream& str, const DistributedMesh< Grid< Dimension, Real, Dev
    return str;
 }
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes

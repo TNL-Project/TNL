@@ -12,9 +12,7 @@
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 #include <TNL/Algorithms/Segments/Kernels/CSRHybridKernel.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< int ThreadsPerSegment,
           typename Offsets,
@@ -315,6 +313,4 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const OffsetsV
    TNL_CHECK_CUDA_DEVICE;
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

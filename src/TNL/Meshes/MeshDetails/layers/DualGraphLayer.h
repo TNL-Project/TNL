@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device, bool enabled = MeshConfig::dualGraphStorage() >
 class DualGraphLayer
@@ -182,5 +181,4 @@ public:
    {}
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

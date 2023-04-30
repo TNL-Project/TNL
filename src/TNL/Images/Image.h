@@ -6,11 +6,10 @@
 
 #pragma once
 
-namespace TNL {
 /**
  * \brief Namespace for image processing.
  */
-namespace Images {
+namespace TNL::Images {
 
 template< typename Index = int >
 class Image
@@ -36,5 +35,4 @@ protected:
    IndexType width, height;
 };
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images

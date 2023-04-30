@@ -12,9 +12,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 struct TASK
 {
@@ -67,6 +65,4 @@ operator<<( std::ostream& out, const TASK& task )
    return out << " ] ";
 }
 
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Sorting

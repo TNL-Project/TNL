@@ -11,10 +11,7 @@
 #include <TNL/Algorithms/Segments/ChunkedEllpackSegmentView.h>
 #include <TNL/Algorithms/Segments/detail/CheckLambdas.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
-namespace detail {
+namespace TNL::Algorithms::Segments::detail {
 
 /***
  * In the ChunkedEllpack, the segments are split into slices. This is done
@@ -243,7 +240,4 @@ ChunkedEllpackreduceSegmentsKernel( View chunkedEllpack,
       chunkedEllpack.reduceSegmentsKernel( gridIdx, first, last, fetch, reduction, keeper, zero, args... );
 }
 
-}  // namespace detail
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments::detail

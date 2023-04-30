@@ -10,9 +10,7 @@
 #include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 template< typename Array, typename T, bool isArrayType = IsArrayType< T >::value >
 struct ArrayAssignment;
@@ -66,6 +64,4 @@ struct ArrayAssignment< Array, T, false >
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

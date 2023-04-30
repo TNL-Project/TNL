@@ -11,9 +11,7 @@
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
 #include <TNL/Algorithms/Segments/SegmentView.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device,
           typename Index,
@@ -179,8 +177,6 @@ operator<<( std::ostream& str, const SlicedEllpack< Device, Index, IndexAllocato
    return printSegments( str, segments );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/SlicedEllpack.hpp>

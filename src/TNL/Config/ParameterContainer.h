@@ -15,8 +15,7 @@
 #include <TNL/TypeInfo.h>
 #include <TNL/Exceptions/ConfigError.h>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 class ParameterContainer
 {
@@ -210,5 +209,4 @@ protected:
    std::unordered_map< std::string, Parameter > parameters;
 };
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

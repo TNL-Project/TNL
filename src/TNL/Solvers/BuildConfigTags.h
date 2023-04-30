@@ -9,8 +9,7 @@
 #include <TNL/Solvers/ODE/Merson.h>
 #include <TNL/Solvers/ODE/Euler.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 class DefaultBuildConfigTag
 {};
@@ -100,5 +99,4 @@ struct ConfigTagExplicitSolver
    static constexpr bool enabled = true;
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

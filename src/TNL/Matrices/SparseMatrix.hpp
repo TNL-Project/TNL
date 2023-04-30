@@ -9,8 +9,7 @@
 #include <sstream>
 #include <TNL/Matrices/SparseMatrix.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Real,
           typename Device,
@@ -1427,5 +1426,4 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    return this->columnIndexes;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

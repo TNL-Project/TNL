@@ -16,9 +16,7 @@ using namespace TNL::Meshes;
 struct MyConfigTag
 {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off all grids.
@@ -52,9 +50,7 @@ template<> struct MeshGlobalIndexTag< MyConfigTag, int >{ static constexpr bool 
 template<> struct MeshGlobalIndexTag< MyConfigTag, long int >{ static constexpr bool enabled = true; };
 template<> struct MeshLocalIndexTag< MyConfigTag, short int >{ static constexpr bool enabled = true; };
 
-}  // namespace BuildConfigTags
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::BuildConfigTags
 
 template< typename Mesh >
 bool

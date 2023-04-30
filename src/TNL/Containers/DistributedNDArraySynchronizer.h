@@ -17,8 +17,7 @@
 #include <TNL/MPI/Wrappers.h>
 #include <TNL/Timer.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Directions for data synchronization in a distributed N-dimensional
@@ -715,5 +714,4 @@ public:
    };
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

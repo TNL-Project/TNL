@@ -8,9 +8,7 @@
 
 #include <TNL/Functions/Analytic/SinWave.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< int dimensions, typename Real >
 SinWaveBase< dimensions, Real >::SinWaveBase() : waveLength( 1.0 ), amplitude( 1.0 ), phase( 0 ), wavesNumber( 0 )
@@ -226,6 +224,4 @@ SinWave< 3, Real >::operator()( const PointType& v, const Real& time ) const
    return this->template getPartialDerivative< 0, 0, 0 >( v, time );
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic

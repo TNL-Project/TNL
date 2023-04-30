@@ -15,8 +15,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief \e ArrayView is a simple data structure which provides a non-owning
@@ -622,7 +621,6 @@ template< typename Value, typename Device, typename Index >
 File&
 operator>>( File&& file, ArrayView< Value, Device, Index > view );
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/ArrayView.hpp>

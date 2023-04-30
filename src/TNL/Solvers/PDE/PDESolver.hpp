@@ -10,9 +10,7 @@
 #include <TNL/MPI/Comm.h>
 #include <TNL/MPI/Utils.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Real, typename Index >
 PDESolver< Real, Index >::PDESolver() : ioTimer( 0 ), computeTimer( 0 ), totalTimer( 0 ), solverMonitorPointer( 0 )
@@ -91,6 +89,4 @@ PDESolver< Real, Index >::setTotalTimer( Timer& totalTimer )
    this->totalTimer = &totalTimer;
 }
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

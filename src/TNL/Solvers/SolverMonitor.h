@@ -11,8 +11,7 @@
 
 #include <TNL/Timer.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 /**
  * \brief Base class for solver monitors.
@@ -161,5 +160,4 @@ private:
    std::thread t;
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

@@ -10,9 +10,7 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< int dimensions, typename Real = double >
 class ParaboloidBase : public Functions::Domain< dimensions, SpaceDomain >
@@ -129,8 +127,6 @@ operator<<( std::ostream& str, const Paraboloid< Dimensions, Real >& f )
    return str;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic
 
 #include <TNL/Functions/Analytic/Paraboloid_impl.h>

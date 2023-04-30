@@ -19,8 +19,7 @@
 #include <cstddef>    // std::nullptr_t
 #include <algorithm>  // swap
 
-namespace TNL {
-namespace Pointers {
+namespace TNL::Pointers {
 
 /**
  * \brief Specialization of the \ref SharedPointer for the CUDA device.
@@ -580,5 +579,4 @@ protected:
    Object* cuda_pointer;
 };
 
-}  // namespace Pointers
-}  // namespace TNL
+}  // namespace TNL::Pointers

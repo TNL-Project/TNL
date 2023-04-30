@@ -13,9 +13,7 @@
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename DofVector, template< typename DofVector_, typename SolverMonitor > class OdeSolver >
 class ExplicitTimeStepper
@@ -84,8 +82,6 @@ protected:
    long long int allIterations = 0;
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE
 
 #include <TNL/Solvers/PDE/ExplicitTimeStepper.hpp>

@@ -12,8 +12,7 @@
 #include <TNL/Containers/Expressions/DistributedExpressionTemplates.h>
 #include <TNL/Containers/VectorView.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief \e DistributedVectorView extends \ref DistributedArrayView with algebraic operations.
@@ -152,7 +151,6 @@ struct HasEnabledDistributedExpressionTemplates< DistributedVectorView< Real, De
 {};
 }  // namespace Expressions
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/DistributedVectorView.hpp>

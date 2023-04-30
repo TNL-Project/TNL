@@ -10,9 +10,7 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< int dimensions, typename Real = double >
 class Constant : public Domain< dimensions, NonspaceDomain >
@@ -67,8 +65,6 @@ operator<<( std::ostream& str, const Constant< dimensions, Real >& f )
    return str;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic
 
 #include <TNL/Functions/Analytic/Constant_impl.h>

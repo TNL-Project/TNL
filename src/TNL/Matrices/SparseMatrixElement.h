@@ -10,8 +10,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Accessor for sparse matrix elements.
@@ -141,5 +140,4 @@ protected:
    IndexType localIdx;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

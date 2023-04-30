@@ -12,8 +12,7 @@
 #include <TNL/Math.h>
 #include <TNL/Cuda/DummyDefs.h>
 
-namespace TNL {
-namespace Cuda {
+namespace TNL::Cuda {
 
 [[deprecated( "this function is deprecated - use either getMaxGridXSize(), getMaxGridYSize(), or "
               "getMaxGridZSize()" )]] inline constexpr std::size_t
@@ -200,5 +199,4 @@ printThreadsSetup( const dim3& blockSize,
        << " Grids count: " << gridsCount << std::endl;
 }
 
-}  // namespace Cuda
-}  // namespace TNL
+}  // namespace TNL::Cuda

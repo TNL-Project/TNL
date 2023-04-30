@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/Geometry/getEntityMeasure.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device, typename Topology >
 __cuda_callable__
@@ -72,5 +71,4 @@ getEntityCircumradius( const Mesh< MeshConfig, Device >& mesh,
    return TNL::sqrt( product ) / ( 24 * V );
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

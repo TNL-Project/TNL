@@ -6,10 +6,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
-namespace detail {
+namespace TNL::Algorithms::Segments::detail {
 
 // This can be used for tunning the number of CUDA threads per block depending on the size of Value
 // TODO: Perform some tests
@@ -143,7 +140,4 @@ CSRAdaptiveKernelParameters< SizeOfValue, StreamedSharedMemory_ >::getSizeValueL
    return 6;
 }
 
-}  // namespace detail
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments::detail

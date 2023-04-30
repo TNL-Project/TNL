@@ -14,9 +14,7 @@
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Containers/Vector.h>
 
-namespace TNL {
-namespace Solvers {
-namespace ODE {
+namespace TNL::Solvers::ODE {
 
 /**
  * \brief Base class for ODE solvers and explicit solvers od PDEs.
@@ -168,8 +166,6 @@ protected:
    bool testingMode = false;
 };
 
-}  // namespace ODE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::ODE
 
 #include <TNL/Solvers/ODE/ExplicitSolver.hpp>

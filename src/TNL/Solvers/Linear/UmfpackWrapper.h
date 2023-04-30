@@ -15,9 +15,7 @@
    #include "LinearSolver.h"
    #include <TNL/Matrices/CSR.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 template< typename Matrix >
 struct is_csr_matrix
@@ -79,9 +77,7 @@ public:
    solve( ConstVectorViewType b, VectorViewType x ) override;
 };
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear
 
    #include "UmfpackWrapper.hpp"
 

@@ -11,8 +11,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/LambdaMatrixRowView.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief "Matrix-free matrix" based on lambda functions.
@@ -635,7 +634,6 @@ struct LambdaMatrixFactory
    }
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/LambdaMatrix.hpp>

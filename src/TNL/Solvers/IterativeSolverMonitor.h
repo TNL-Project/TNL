@@ -8,8 +8,7 @@
 
 #include <TNL/Solvers/SolverMonitor.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 /**
  * \brief Object for monitoring convergence of iterative solvers.
@@ -149,7 +148,6 @@ protected:
    IndexType nodesPerIteration = 0;
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers
 
 #include <TNL/Solvers/IterativeSolverMonitor.hpp>

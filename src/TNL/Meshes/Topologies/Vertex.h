@@ -6,16 +6,12 @@
 
 #pragma once
 
-namespace TNL {
-namespace Meshes {
 //! \brief Namespace for unstructured mesh entity topologies
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 struct Vertex
 {
    static constexpr int dimension = 0;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

@@ -11,9 +11,7 @@
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Index, typename Device >
 struct CSRVectorKernel
@@ -53,8 +51,6 @@ struct CSRVectorKernel
                    Args... args );
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/Kernels/CSRVectorKernel.hpp>

@@ -8,9 +8,7 @@
 
 #include <TNL/Functions/Analytic/PseudoSquare.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< typename Real, int Dimension >
 bool
@@ -107,6 +105,4 @@ PseudoSquare< 3, Real >::operator()( const PointType& v, const Real& time ) cons
    return this->template getPartialDerivative< 0, 0, 0 >( v, time );
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic

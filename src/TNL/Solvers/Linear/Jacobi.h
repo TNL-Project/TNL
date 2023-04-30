@@ -8,9 +8,7 @@
 
 #include <TNL/Solvers/Linear/LinearSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 /**
  * \brief Iterative solver of linear systems based on the Jacobi method.
@@ -137,8 +135,6 @@ public:  // because nvcc does not accept lambda functions within private or prot
                      VectorViewType& out ) const;
 };
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear
 
 #include <TNL/Solvers/Linear/Jacobi.hpp>

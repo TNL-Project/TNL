@@ -10,8 +10,7 @@
 
 #include <TNL/Containers/ndarray/Executors.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 namespace detail {
 
@@ -503,5 +502,4 @@ nd_square( Output& output, const Input& input )
 #endif
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

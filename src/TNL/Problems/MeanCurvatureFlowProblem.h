@@ -18,8 +18,7 @@
 #include <TNL/Matrices/CSR.h>
 #include <TNL/Functions/MeshFunction.h>
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename Mesh,
           typename BoundaryCondition,
@@ -104,7 +103,6 @@ protected:
    RightHandSide rightHandSide;
 };
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems
 
 #include "MeanCurvatureFlowProblem_impl.h"

@@ -8,8 +8,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< int Dimension, typename Real, typename Device, typename Index >
 class Grid;
@@ -234,5 +233,4 @@ public:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

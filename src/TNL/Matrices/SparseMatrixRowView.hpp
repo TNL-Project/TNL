@@ -9,8 +9,7 @@
 #include <TNL/Matrices/SparseMatrixRowView.h>
 #include <TNL/Assert.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
@@ -186,5 +185,4 @@ operator<<( std::ostream& str, const SparseMatrixRowView< SegmentView, ValuesVie
    return str;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

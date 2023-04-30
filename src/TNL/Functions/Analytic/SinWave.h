@@ -13,9 +13,7 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< int dimensions, typename Real = double >
 class SinWaveBase : public Domain< dimensions, SpaceDomain >
@@ -121,8 +119,6 @@ operator<<( std::ostream& str, const SinWave< Dimension, Real >& f )
    return str;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic
 
 #include <TNL/Functions/Analytic/SinWave_impl.h>

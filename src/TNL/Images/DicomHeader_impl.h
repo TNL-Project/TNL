@@ -11,8 +11,7 @@
 #include <TNL/Images/DicomPatientInfo.h>
 #include <TNL/Images/DicomSeriesInfo.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 inline DicomHeader::DicomHeader()
 {
@@ -75,5 +74,4 @@ DicomHeader::getSeriesInfo()
    return *seriesInfoObj;
 }
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images

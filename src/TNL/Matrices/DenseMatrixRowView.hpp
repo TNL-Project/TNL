@@ -8,8 +8,7 @@
 
 #include <TNL/Matrices/DenseMatrixRowView.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename SegmentView, typename ValuesView >
 __cuda_callable__
@@ -115,5 +114,4 @@ DenseMatrixRowView< SegmentView, ValuesView >::cend() const -> const IteratorTyp
    return IteratorType( *this, this->getSize() );
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

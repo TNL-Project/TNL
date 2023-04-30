@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Topologies/SubentityVertexMap.h>
 #include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
 
-namespace TNL {
-namespace Meshes {
-namespace EntityTags {
+namespace TNL::Meshes::EntityTags {
 
 template< typename MeshConfig, int EntityDimension, bool entityTagsStorage = MeshConfig::entityTagsStorage( EntityDimension ) >
 class ConfigValidatorEntityTagsLayer
@@ -40,6 +38,4 @@ template< typename MeshConfig >
 class ConfigValidator : public ConfigValidatorLayer< MeshConfig >
 {};
 
-}  // namespace EntityTags
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::EntityTags

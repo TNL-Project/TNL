@@ -6,8 +6,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 enum DomainType
 {
@@ -37,5 +36,4 @@ public:
    }
 };
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/MeshEntity.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device, typename EntityTopology >
 __cuda_callable__
@@ -121,5 +120,4 @@ operator<<( std::ostream& str, const MeshEntity< MeshConfig, Device, EntityTopol
    return str << getType< decltype( entity ) >() << "( <meshPointer>, " << entity.getIndex() << " )";
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

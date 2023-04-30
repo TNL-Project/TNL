@@ -10,9 +10,7 @@
 #include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
 #include <TNL/Algorithms/Sorting/detail/helpers.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 /**
  * this kernel simulates 1 exchange
@@ -425,6 +423,4 @@ bitonicSort( int begin, int end, const CMP& Cmp, SWAP Swap )
    TNL_CHECK_CUDA_DEVICE;
 }
 
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Sorting

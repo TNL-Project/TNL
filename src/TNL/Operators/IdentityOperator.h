@@ -8,8 +8,7 @@
 
 #include <TNL/Functions/MeshFunction.h>
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 template< typename MeshFunction >
 class IdentityOperator : public Domain< MeshFunction::getMeshDimension(), MeshFunction::getDomainType() >
@@ -35,5 +34,4 @@ protected:
    const MeshFunction& meshFunction;
 };
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators

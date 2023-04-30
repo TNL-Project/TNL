@@ -11,8 +11,7 @@
 #include <TNL/Meshes/Topologies/Polygon.h>
 #include <TNL/Meshes/Topologies/SubentityVertexCount.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename Mesh, typename EntityTopology, typename SubentityDimensionTag >
 class SubentitySeedsCreator
@@ -339,5 +338,4 @@ public:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

@@ -16,9 +16,7 @@
 #include <TNL/Matrices/MatrixOperations.h>
 #include <TNL/Matrices/Factorization/LUsequential.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 template< typename Matrix >
 void
@@ -340,6 +338,4 @@ IDRs< Matrix >::setSize( const VectorViewType& x )
    }
 }
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear

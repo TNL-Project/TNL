@@ -15,9 +15,7 @@
 #include <TNL/Solvers/Linear/Preconditioners/Preconditioner.h>
 #include <TNL/Solvers/Linear/Utils/Traits.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 /**
  * \brief Base class for iterative solvers of systems of linear equations.
@@ -170,6 +168,4 @@ protected:
    MatrixPointer matrix = nullptr;
    PreconditionerPointer preconditioner = nullptr;
 };
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear

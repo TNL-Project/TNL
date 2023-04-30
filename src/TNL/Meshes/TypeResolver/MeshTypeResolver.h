@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/TypeResolver/BuildConfigTags.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename ConfigTag, typename Device >
 class MeshTypeResolver
@@ -56,7 +55,6 @@ protected:
    };
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #include <TNL/Meshes/TypeResolver/MeshTypeResolver.hpp>

@@ -11,9 +11,7 @@
 #include <TNL/Meshes/DistributedMeshes/Directions.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< int Dimension, typename Real, typename Device, typename Index >
 class DistributedMesh< Grid< Dimension, Real, Device, Index > >
@@ -175,8 +173,6 @@ template< int Dimension, typename Real, typename Device, typename Index >
 std::ostream&
 operator<<( std::ostream& str, const DistributedMesh< Grid< Dimension, Real, Device, Index > >& grid );
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes
 
 #include <TNL/Meshes/DistributedMeshes/DistributedGrid.hpp>

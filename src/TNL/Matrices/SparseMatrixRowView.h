@@ -12,8 +12,7 @@
 #include <TNL/Matrices/MatrixRowViewIterator.h>
 #include <TNL/Matrices/details/SparseMatrixRowViewValueGetter.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief RowView is a simple structure for accessing rows of sparse matrix.
@@ -285,7 +284,6 @@ template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView
 std::ostream&
 operator<<( std::ostream& str, const SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >& row );
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/SparseMatrixRowView.hpp>

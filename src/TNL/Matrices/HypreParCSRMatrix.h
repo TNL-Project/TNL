@@ -19,8 +19,7 @@
    #include <TNL/Matrices/HypreCSRMatrix.h>
    #include <TNL/Matrices/HypreGenerateDiagAndOffd.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Wrapper for Hypre's sequential CSR matrix.
@@ -544,7 +543,6 @@ protected:
    bool owns_col_map_offd = true;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #endif  // HAVE_HYPRE

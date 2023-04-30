@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Writers/VTIWriter.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedGrid.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 // NOTE: Grid should be the local grid type, not DistributedMesh<Grid<...>>
 template< typename Grid >
@@ -118,8 +116,6 @@ protected:
    closePPointData();
 };
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers
 
 #include <TNL/Meshes/Writers/PVTIWriter.hpp>

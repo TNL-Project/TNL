@@ -16,8 +16,7 @@
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 /**
  * \brief Fills in the parameters from the \e parameters.
@@ -353,5 +352,4 @@ parseCommandLine( int argc,
    return checkMissingEntries( config_description, parameters, printUsage, argv[ 0 ] );
 }
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

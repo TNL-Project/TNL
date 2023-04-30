@@ -8,10 +8,7 @@
 
 #include <TNL/Algorithms/scan.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
-namespace detail {
+namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index >
 class CSR
@@ -117,7 +114,5 @@ public:
    void
    reduceAllSegments( Fetch& fetch, Reduction& reduction, ResultKeeper& keeper, const Real& zero, Args... args ) const;
 };
-}  // namespace detail
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+
+}  // namespace TNL::Algorithms::Segments::detail

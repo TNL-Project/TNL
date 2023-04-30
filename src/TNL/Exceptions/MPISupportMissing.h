@@ -8,8 +8,7 @@
 
 #include <stdexcept>
 
-namespace TNL {
-namespace Exceptions {
+namespace TNL::Exceptions {
 
 struct MPISupportMissing : public std::runtime_error
 {
@@ -19,5 +18,4 @@ struct MPISupportMissing : public std::runtime_error
    {}
 };
 
-}  // namespace Exceptions
-}  // namespace TNL
+}  // namespace TNL::Exceptions

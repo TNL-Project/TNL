@@ -8,9 +8,7 @@
 
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
-namespace TNL {
-namespace Matrices {
-namespace details {
+namespace TNL::Matrices::details {
 
 template< typename Index, Algorithms::Segments::ElementsOrganization Organization >
 class TridiagonalMatrixIndexer
@@ -99,6 +97,4 @@ protected:
    IndexType rows, columns, nonemptyRows;
 };
 
-}  // namespace details
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::details

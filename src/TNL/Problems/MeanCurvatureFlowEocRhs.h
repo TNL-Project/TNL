@@ -14,8 +14,7 @@
 
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename ExactOperator, typename TestFunction, int Dimension >
 class MeanCurvatureFlowEocRhs : public Domain< Dimension, SpaceDomain >
@@ -48,5 +47,4 @@ protected:
    TestFunction testFunction;
 };
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems

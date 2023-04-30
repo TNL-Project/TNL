@@ -8,8 +8,7 @@
 
 #include <TNL/Functions/FunctionAdapter.h>
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 template< typename Mesh,
           typename Function,
@@ -380,5 +379,4 @@ operator<<( std::ostream& str, const NeumannBoundaryConditions< Mesh, Function, 
    return str;
 }
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators

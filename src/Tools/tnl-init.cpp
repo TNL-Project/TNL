@@ -12,9 +12,7 @@ using namespace TNL;
 
 struct TnlInitConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 // Configure real types
 template<> struct GridRealTag< TnlInitConfigTag, float > { static constexpr bool enabled = true; };
@@ -28,9 +26,7 @@ template<> struct GridIndexTag< TnlInitConfigTag, long int >{ static constexpr b
 
 // Unstructured meshes are disabled, only grids can be on input.
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 void setupConfig( Config::ConfigDescription& config )
 {

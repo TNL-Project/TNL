@@ -14,9 +14,7 @@
 #include <TNL/Meshes/Readers/VTUReader.h>
 #include <TNL/Meshes/MeshDetails/layers/EntityTags/Traits.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 class PVTUReader : public XMLVTK
 {
@@ -280,6 +278,4 @@ protected:
    VariantVector pointTags, cellTags, pointGlobalIndices, cellGlobalIndices;
 };
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

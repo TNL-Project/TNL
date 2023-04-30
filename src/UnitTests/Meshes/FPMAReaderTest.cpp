@@ -14,9 +14,7 @@ static const char* TEST_FILE_NAME = "test_FPMAReaderTest.fpma";
 
 struct MyConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -25,9 +23,7 @@ struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >{ static co
 // enable meshes used in the tests
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron > { static constexpr bool enabled = true; };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 TEST( FPMAReaderTest, two_polyhedra )
 {

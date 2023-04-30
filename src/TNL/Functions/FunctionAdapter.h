@@ -10,8 +10,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 /***
  * MeshType is a type of mesh on which we evaluate the function.
@@ -183,5 +182,4 @@ public:
 };
 #endif
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

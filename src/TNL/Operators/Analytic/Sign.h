@@ -10,9 +10,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Config/ParameterContainer.h>
 
-namespace TNL {
-namespace Operators {
-namespace Analytic {
+namespace TNL::Operators::Analytic {
 
 template< int Dimensions, typename Real >
 class Sign : public Functions::Domain< Dimensions, Functions::SpaceDomain >
@@ -103,6 +101,4 @@ protected:
    RealType positiveValue, negativeValue, zeroValue;
 };
 
-}  // namespace Analytic
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators::Analytic

@@ -9,8 +9,7 @@
 #include <TNL/Functions/VectorFieldEvaluator.h>
 #include <TNL/Meshes/Traverser.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename OutVectorField, typename InVectorField >
 template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
@@ -153,5 +152,4 @@ VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateEntities( OutVect
    }
 }
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

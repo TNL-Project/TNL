@@ -13,9 +13,7 @@
 #include <TNL/MPI/Comm.h>
 #include <TNL/MPI/Wrappers.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< typename T, typename Enable = void >
 struct HasMeshType : public std::false_type
@@ -518,8 +516,6 @@ protected:
    Containers::Array< std::uint8_t, DeviceType, GlobalIndexType > sendBuffers;
 };
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes
 
 #include <TNL/Meshes/DistributedMeshes/DistributedGridSynchronizer.h>

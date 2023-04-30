@@ -9,8 +9,7 @@
 #include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Cuda/LaunchHelpers.h>  // getTransferBufferSize
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 template< typename DestinationDevice, typename SourceDevice = DestinationDevice >
 struct MultiDeviceMemoryOperations
@@ -218,5 +217,4 @@ MultiDeviceMemoryOperations< Devices::Cuda, DeviceType >::compare( const Element
    return MultiDeviceMemoryOperations< DeviceType, Devices::Cuda >::compare( source, destination, size );
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

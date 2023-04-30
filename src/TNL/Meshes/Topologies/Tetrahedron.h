@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/Topologies/Triangle.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 struct Tetrahedron
 {
@@ -172,6 +170,4 @@ struct SubentityVertexMap< Tetrahedron, Triangle, 3, 2 >
    static constexpr int index = 2;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

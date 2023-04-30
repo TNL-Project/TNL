@@ -14,8 +14,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/reduce.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 template< typename Element, typename Index >
 void
@@ -145,5 +144,4 @@ MemoryOperations< Devices::Host >::compare( const Element1* destination, const E
    }
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

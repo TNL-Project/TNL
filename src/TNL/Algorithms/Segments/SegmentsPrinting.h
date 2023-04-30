@@ -9,9 +9,7 @@
 #include <iostream>
 #include <TNL/Containers/Array.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 /**
  * \brief Print segments sizes, i.e. the segments setup.
@@ -127,6 +125,4 @@ printSegments( const Segments& segments, Fetch&& fetch, std::ostream& str )
 }
 /// \endcond
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

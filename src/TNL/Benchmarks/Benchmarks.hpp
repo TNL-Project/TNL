@@ -15,8 +15,7 @@
 #include <iostream>
 #include <exception>
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 template< typename Logger >
 Benchmark< Logger >::Benchmark( std::ostream& output, int loops, int verbose ) : logger( output, verbose ), loops( loops )
@@ -191,5 +190,4 @@ Benchmark< Logger >::getBaseTime() const
    return baseTime;
 }
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks

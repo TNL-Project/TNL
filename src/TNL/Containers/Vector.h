@@ -9,8 +9,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/VectorView.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief \e Vector extends \ref Array with algebraic operations.
@@ -294,7 +293,6 @@ struct HasEnabledExpressionTemplates< Vector< Real, Device, Index, Allocator > >
 {};
 }  // namespace Expressions
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/Vector.hpp>

@@ -13,9 +13,7 @@
 #include <TNL/Algorithms/Segments/Kernels/CSRScalarKernel.h>
 #include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelBlockDescriptor.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Index, typename Device >
 TNL::String
@@ -160,6 +158,4 @@ CSRAdaptiveKernel< Index, Device >::initValueSize( const Offsets& offsets )
    this->blocksArray[ getSizeValueLog( SizeOfValue ) ] = inBlocks;
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

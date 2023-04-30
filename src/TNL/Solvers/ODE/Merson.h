@@ -9,9 +9,7 @@
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace ODE {
+namespace TNL::Solvers::ODE {
 
 /**
  * \brief Solver of ODEs with the first order of accuracy.
@@ -152,8 +150,6 @@ protected:
    RealType adaptivity = 0.00001;
 };
 
-}  // namespace ODE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::ODE
 
 #include <TNL/Solvers/ODE/Merson.hpp>

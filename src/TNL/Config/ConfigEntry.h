@@ -15,8 +15,7 @@
 #include <TNL/Config/ConfigEntryBase.h>
 #include <TNL/Config/ConfigEntryType.h>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 template< typename EntryType, typename DefaultValueType = EntryType >
 class ConfigEntry : public ConfigEntryBase
@@ -113,5 +112,4 @@ private:
    }
 };
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

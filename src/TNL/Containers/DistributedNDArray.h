@@ -11,8 +11,7 @@
 #include <TNL/Containers/NDArray.h>
 #include <TNL/Containers/DistributedNDArrayView.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Distributed N-dimensional array.
@@ -715,5 +714,4 @@ protected:
    SizesHolderType localEnds;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

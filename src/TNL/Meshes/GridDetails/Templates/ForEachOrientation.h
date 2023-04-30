@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/GridDetails/NormalsGetter.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Templates {
+namespace TNL::Meshes::Templates {
 
 template< typename Index, int Orientation, int EntityDimension, int Dimension, int SkipValue >
 struct _ForEachOrientationMain;
@@ -70,6 +68,4 @@ struct ForEachOrientation : _ForEachOrientationMain< Index,
                                                      Dimension,
                                                      skipOrientation >
 {};
-}  // namespace Templates
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Templates

@@ -10,8 +10,7 @@
 #include <TNL/Exceptions/CudaBadAlloc.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 class CudaReductionBuffer
 {
@@ -87,5 +86,4 @@ private:
 #endif
 };
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

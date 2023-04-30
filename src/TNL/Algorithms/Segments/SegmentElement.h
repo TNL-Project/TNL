@@ -10,9 +10,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 /**
  * \brief Simple structure representing one element of a segment.
@@ -84,6 +82,4 @@ protected:
    const IndexType globalIdx;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

@@ -9,8 +9,7 @@
 #include <TNL/Meshes/Mesh.h>
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 /**
  * This function does the following (in pseudo-code):
@@ -77,7 +76,6 @@ template< typename MeshConfig >
 bool
 loadMesh( Mesh< MeshConfig, Devices::Cuda >& mesh, const std::string& fileName, const std::string& fileFormat = "auto" );
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #include <TNL/Meshes/TypeResolver/resolveMeshType.hpp>

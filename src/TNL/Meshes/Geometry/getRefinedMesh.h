@@ -13,8 +13,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/scan.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 // TODO: refactor to avoid duplicate points altogether - first split edges, then faces, then cells
 template< EntityRefinerVersion RefinerVersion,
@@ -121,5 +120,4 @@ getRefinedMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
    return outMesh;
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

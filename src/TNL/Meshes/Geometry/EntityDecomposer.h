@@ -12,8 +12,7 @@
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 #include <TNL/Meshes/Geometry/getEntityCenter.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 enum class EntityDecomposerVersion
 {
@@ -244,5 +243,4 @@ private:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

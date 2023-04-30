@@ -14,9 +14,7 @@
 #include <TNL/Algorithms/staticFor.h>
 #include <TNL/Containers/ndarray/Meta.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 // Dynamic storage size with alignment
 template< typename SizesHolder,
@@ -365,6 +363,4 @@ struct SetSizesMinHelper< TargetHolder, SourceHolder, 0 >
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

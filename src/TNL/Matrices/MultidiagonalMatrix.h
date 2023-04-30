@@ -13,8 +13,7 @@
 #include <TNL/Matrices/details/MultidiagonalMatrixIndexer.h>
 #include <TNL/Matrices/MultidiagonalMatrixView.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Implementation of sparse multidiagonal matrix.
@@ -1199,7 +1198,6 @@ protected:
    ViewType view;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/MultidiagonalMatrix.hpp>

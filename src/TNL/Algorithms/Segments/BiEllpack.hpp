@@ -12,9 +12,7 @@
 #include <TNL/Algorithms/Segments/BiEllpack.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 template< typename SizesContainer >
@@ -464,6 +462,4 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getGroupLeng
         - this->groupPointers.getElement( strip * ( getLogWarpSize() + 1 ) + group );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

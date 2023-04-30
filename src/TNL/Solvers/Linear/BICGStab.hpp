@@ -10,9 +10,7 @@
 
 #include "BICGStab.h"
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 template< typename Matrix >
 void
@@ -161,6 +159,4 @@ BICGStab< Matrix >::setSize( const VectorViewType& x )
    M_tmp.setLike( x );
 }
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear

@@ -44,8 +44,7 @@
  *     space is not wasted.
  */
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename DimensionTag >
 class InitializerLayer;
@@ -242,5 +241,4 @@ public:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

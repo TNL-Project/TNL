@@ -8,9 +8,7 @@
 #include <TNL/Algorithms/Sorting/detail/helpers.h>
 #include <TNL/Containers/Array.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 #ifdef __CUDACC__
 
@@ -112,6 +110,5 @@ bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src, 
 }
 
 #endif
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+
+}  // namespace TNL::Algorithms::Sorting

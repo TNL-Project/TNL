@@ -8,8 +8,7 @@
 
 #include <TNL/Containers/Vector.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Real, typename Device, typename Index, typename Allocator >
 Vector< Real, Device, Index, Allocator >::Vector( const Vector& vector, const AllocatorType& allocator )
@@ -121,5 +120,4 @@ Vector< Real, Device, Index, Allocator >::operator%=( const VectorExpression& ex
    return *this;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

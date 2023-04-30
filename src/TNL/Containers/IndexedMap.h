@@ -9,8 +9,7 @@
 #include <map>
 #include <iostream>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Value, typename Index, typename Key >
 class IndexedMap
@@ -73,7 +72,6 @@ template< typename Value, typename Index, typename Key >
 std::ostream&
 operator<<( std::ostream& str, IndexedMap< Value, Index, Key >& set );
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/IndexedMap_impl.h>

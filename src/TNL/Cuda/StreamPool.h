@@ -10,8 +10,7 @@
 
 #include <TNL/Cuda/Stream.h>
 
-namespace TNL {
-namespace Cuda {
+namespace TNL::Cuda {
 
 class StreamPool
 {
@@ -62,5 +61,4 @@ private:
    MapType pool;
 };
 
-}  // namespace Cuda
-}  // namespace TNL
+}  // namespace TNL::Cuda

@@ -13,8 +13,7 @@
 #include <TNL/Exceptions/NotImplementedError.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 template< detail::ScanType Type >
 template< typename Vector, typename Reduction, typename Flags >
@@ -83,5 +82,4 @@ SegmentedScan< Devices::Cuda, Type >::perform( Vector& v,
 #endif
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

@@ -9,9 +9,7 @@
 #include <TNL/Algorithms/staticFor.h>
 #include <TNL/Meshes/EntityShapeGroup.h>
 
-namespace TNL {
-namespace Meshes {
-namespace VTK {
+namespace TNL::Meshes::VTK {
 
 template< EntityShape GeneralShape_ >
 class EntityShapeGroupChecker
@@ -46,6 +44,4 @@ public:
    }
 };
 
-}  // namespace VTK
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::VTK

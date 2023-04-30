@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/Topologies/Edge.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 struct Quadrangle
 {
@@ -104,6 +102,4 @@ struct SubentityVertexMap< Quadrangle, Edge, 3, 1 >
    static constexpr int index = 0;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

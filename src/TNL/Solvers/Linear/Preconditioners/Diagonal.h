@@ -10,10 +10,7 @@
 
 #include "Preconditioner.h"
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
-namespace Preconditioners {
+namespace TNL::Solvers::Linear::Preconditioners {
 
 /**
  * \brief Diagonal (Jacobi) preconditioner for iterative solvers of linear systems.
@@ -161,9 +158,6 @@ protected:
    VectorType diagonal;
 };
 
-}  // namespace Preconditioners
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear::Preconditioners
 
 #include "Diagonal.hpp"

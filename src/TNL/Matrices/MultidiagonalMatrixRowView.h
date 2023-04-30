@@ -9,8 +9,7 @@
 #include <TNL/Matrices/MultidiagonalMatrixElement.h>
 #include <TNL/Matrices/MatrixRowViewIterator.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief RowView is a simple structure for accessing rows of multidiagonal matrix.
@@ -215,7 +214,6 @@ protected:
    Indexer indexer;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/MultidiagonalMatrixRowView.hpp>

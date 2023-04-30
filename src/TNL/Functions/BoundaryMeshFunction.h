@@ -8,8 +8,7 @@
 
 #include <TNL/Functions/MeshFunction.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 // BoundaryMeshFunction is supposed to store values of a mesh functions only
 // at boundary mesh entities. It is just a small memory optimization.
@@ -29,5 +28,4 @@ public:
    using typename BaseType::VectorType;
 };
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

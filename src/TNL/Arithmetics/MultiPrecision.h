@@ -20,8 +20,7 @@
    #include <gmp.h>
 #endif
 
-namespace TNL {
-namespace Arithmetics {
+namespace TNL::Arithmetics {
 
 class MultiPrecision
 {
@@ -99,5 +98,4 @@ sqrt( const MultiPrecision );
 MultiPrecision
 cqrt( const MultiPrecision );
 
-}  // namespace Arithmetics
-}  // namespace TNL
+}  // namespace TNL::Arithmetics

@@ -10,8 +10,7 @@
 #include <TNL/Matrices/MatrixRowViewIterator.h>
 #include <TNL/Matrices/DenseMatrixElement.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief RowView is a simple structure for accessing rows of dense matrix.
@@ -203,7 +202,6 @@ protected:
 
    ValuesViewType values;
 };
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/DenseMatrixRowView.hpp>

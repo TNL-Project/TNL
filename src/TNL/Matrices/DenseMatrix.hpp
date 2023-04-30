@@ -12,8 +12,7 @@
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix( const RealAllocatorType& allocator )
@@ -1088,5 +1087,4 @@ operator!=( const DenseMatrixView< Real, Device, Index, Organization >& leftMatr
    return rightMatrix != leftMatrix;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

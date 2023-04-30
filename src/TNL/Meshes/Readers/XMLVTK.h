@@ -22,9 +22,7 @@
    #include <tinyxml2.h>
 #endif
 
-namespace TNL {
-namespace Meshes {
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 static const std::map< std::string, std::string > VTKDataTypes{ { "Int8", "std::int8_t" },   { "UInt8", "std::uint8_t" },
                                                                 { "Int16", "std::int16_t" }, { "UInt16", "std::uint16_t" },
@@ -450,6 +448,4 @@ protected:
 #endif
 };
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

@@ -9,9 +9,7 @@
 #include "LinearResidueGetter.h"
 #include "Traits.h"
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 template< typename Matrix, typename Vector1, typename Vector2 >
 typename Matrix::RealType
@@ -27,6 +25,4 @@ LinearResidueGetter::getResidue( const Matrix& matrix, const Vector1& x, const V
    return l2Norm( v - b ) / bNorm;
 }
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear

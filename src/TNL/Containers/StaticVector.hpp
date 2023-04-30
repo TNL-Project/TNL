@@ -9,8 +9,7 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Containers/detail/VectorAssignment.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< int Size, typename Real >
 template< typename T1, typename T2, typename Operation >
@@ -96,5 +95,4 @@ constexpr StaticVector< Size, Real >::operator StaticVector< Size, OtherReal >()
    return aux;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

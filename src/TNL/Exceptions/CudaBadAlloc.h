@@ -10,8 +10,7 @@
 
 #include <new>
 
-namespace TNL {
-namespace Exceptions {
+namespace TNL::Exceptions {
 
 struct CudaBadAlloc : public std::bad_alloc
 {
@@ -32,5 +31,4 @@ struct CudaBadAlloc : public std::bad_alloc
    }
 };
 
-}  // namespace Exceptions
-}  // namespace TNL
+}  // namespace TNL::Exceptions

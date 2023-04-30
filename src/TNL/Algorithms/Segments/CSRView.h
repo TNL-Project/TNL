@@ -17,9 +17,7 @@
 #include <TNL/Algorithms/Segments/Kernels/CSRAdaptiveKernel.h>
 #include <TNL/Algorithms/Segments/SegmentsPrinting.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename Kernel = CSRScalarKernel< std::remove_const_t< Index >, Device > >
 class CSRView
@@ -226,8 +224,6 @@ using CSRViewAdaptive = CSRView< Device, Index, CSRAdaptiveKernel< std::remove_c
 template< typename Device, typename Index >
 using CSRViewDefault = CSRViewScalar< Device, Index >;
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/CSRView.hpp>

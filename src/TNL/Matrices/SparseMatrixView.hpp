@@ -14,8 +14,7 @@
 #include <TNL/Matrices/details/SparseMatrix.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Real,
           typename Device,
@@ -1012,5 +1011,4 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    return this->columnIndexes;
 }
 
-}  // namespace Matrices
-}  // namespace  TNL
+}  // namespace TNL::Matrices

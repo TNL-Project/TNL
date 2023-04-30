@@ -11,8 +11,7 @@
 #include "Wrappers.h"
 #include "Utils.h"
 
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
 
 // defined here rather than in Wrappers.h to break cyclic header inclusion (due to selectGPU.h)
 inline void
@@ -79,5 +78,4 @@ struct ScopedInitializer
    }
 };
 
-}  // namespace MPI
-}  // namespace TNL
+}  // namespace TNL::MPI

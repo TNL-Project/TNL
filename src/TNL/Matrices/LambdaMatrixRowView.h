@@ -12,8 +12,7 @@
 #include <TNL/Matrices/LambdaMatrixRowViewIterator.h>
 #include <TNL/Matrices/LambdaMatrixElement.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief RowView is a simple structure for accessing rows of Lambda matrix.
@@ -217,7 +216,6 @@ std::ostream&
 operator<<( std::ostream& str,
             const LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >& row );
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/LambdaMatrixRowView.hpp>

@@ -16,8 +16,7 @@
 #include <TNL/Config/ConfigDelimiter.h>
 #include <TNL/Exceptions/ConfigError.h>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 class ConfigDescription
 {
@@ -224,5 +223,4 @@ protected:
    bool isCurrentEntryList = false;
 };
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

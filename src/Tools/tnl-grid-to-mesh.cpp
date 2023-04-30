@@ -8,9 +8,7 @@ using namespace TNL;
 
 struct GridToMeshConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off support for float and long double.
@@ -28,9 +26,7 @@ template<> struct GridIndexTag< GridToMeshConfigTag, long int >{ static constexp
  * Unstructured meshes are disabled, only grids can be on input.
  */
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 // cannot be deduced from GridType
 using LocalIndexType = short int;

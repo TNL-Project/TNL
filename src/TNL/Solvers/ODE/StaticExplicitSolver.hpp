@@ -10,9 +10,7 @@
 
 #include <TNL/Solvers/ODE/StaticExplicitSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace ODE {
+namespace TNL::Solvers::ODE {
 
 template< typename Real, typename Index >
 void
@@ -117,6 +115,4 @@ StaticExplicitSolver< Real, Index >::setTestingMode( bool testingMode )
    this->testingMode = testingMode;
 }
 
-}  // namespace ODE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::ODE

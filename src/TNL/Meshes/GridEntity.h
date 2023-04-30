@@ -10,8 +10,7 @@
 
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< int, int, int >
 class NeighbourGridEntityGetter;
@@ -332,7 +331,6 @@ template< class Grid, int EntityDimension >
 std::ostream&
 operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity );
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #include <TNL/Meshes/GridEntity.hpp>

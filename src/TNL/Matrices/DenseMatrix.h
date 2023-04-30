@@ -13,8 +13,7 @@
 #include <TNL/Matrices/DenseMatrixView.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Implementation of dense matrix, i.e. matrix storing explicitly all of its elements including zeros.
@@ -1172,7 +1171,6 @@ bool
 operator!=( const DenseMatrixView< Real, Device, Index, Organization >& leftMatrix,
             const DenseMatrix< Real_, Device_, Index_, Organization, RealAllocator >& rightMatrix );
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/DenseMatrix.hpp>

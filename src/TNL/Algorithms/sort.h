@@ -12,8 +12,7 @@
 
 #include <TNL/Algorithms/Sorting/DefaultSorter.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 /**
  * \brief Function for sorting elements of array or vector in ascending order.
@@ -236,5 +235,4 @@ isDescending( const Array& arr )
    return isSorted( arr, std::greater<>{} );
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

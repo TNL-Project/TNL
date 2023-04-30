@@ -5,9 +5,7 @@
 
 struct TNLDiffBuildConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off support for float and long double.
@@ -21,9 +19,7 @@ template<> struct GridRealTag< TNLDiffBuildConfigTag, long double > { static con
 template<> struct GridIndexTag< TNLDiffBuildConfigTag, short int >{ static constexpr bool enabled = false; };
 template<> struct GridIndexTag< TNLDiffBuildConfigTag, long int >{ static constexpr bool enabled = false; };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 void setupConfig( Config::ConfigDescription& config )
 {

@@ -8,9 +8,7 @@
 
 #include <TNL/Functions/Analytic/SinBumpsSDF.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< typename Point >
 void
@@ -218,6 +216,4 @@ SinBumpsSDF< 3, Real >::getPartialDerivative( const PointType& v, const Real& ti
    return 0.0;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic

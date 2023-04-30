@@ -11,10 +11,7 @@
 #include <TNL/Algorithms/Segments/BiEllpackSegmentView.h>
 #include <TNL/Algorithms/Segments/detail/CheckLambdas.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
-namespace detail {
+namespace TNL::Algorithms::Segments::detail {
 
 template< typename Index,
           typename Device,
@@ -306,7 +303,4 @@ BiEllpackreduceSegmentsKernel( View biEllpack,
          gridIdx, first, last, fetch, reduction, keeper, zero, args... );
 }
 
-}  // namespace detail
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments::detail

@@ -8,9 +8,7 @@
 
 #include <TNL/Solvers/Optimization/NesterovMomentum.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Optimization {
+namespace TNL::Solvers::Optimization {
 
 template< typename Vector, typename SolverMonitor >
 void
@@ -109,6 +107,4 @@ NesterovMomentum< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&
    return false;  // just to avoid warnings
 }
 
-}  // namespace Optimization
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Optimization

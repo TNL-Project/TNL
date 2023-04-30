@@ -258,10 +258,8 @@ namespace TNL {
 } // namespace TNL
 
 #ifdef HAVE_MPI
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
    template< typename T >
    struct TypeResolver< CustomScalar< T > > : public TypeResolver< T > {};
-} // namespace MPI
-} // namespace TNL
+} // namespace TNL::MPI
 #endif

@@ -8,8 +8,7 @@
 
 #include <string>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Structure for specifying type of sparse matrix.
@@ -52,5 +51,4 @@ struct GeneralMatrix : MatrixType< false >
 struct SymmetricMatrix : MatrixType< true >
 {};
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

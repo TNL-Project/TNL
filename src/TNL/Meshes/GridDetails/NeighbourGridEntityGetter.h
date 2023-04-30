@@ -9,8 +9,7 @@
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Meshes/GridDetails/NormalsGetter.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< class, int >
 class GridEntity;
@@ -65,5 +64,4 @@ public:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

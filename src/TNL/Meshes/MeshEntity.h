@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/Mesh.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device, typename EntityTopology_ >
 class MeshEntity
@@ -133,7 +132,6 @@ template< typename MeshConfig, typename Device, typename EntityTopology >
 std::ostream&
 operator<<( std::ostream& str, const MeshEntity< MeshConfig, Device, EntityTopology >& entity );
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #include <TNL/Meshes/MeshEntity.hpp>

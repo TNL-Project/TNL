@@ -17,8 +17,7 @@
 #include <TNL/Math.h>
 #include <TNL/MPI/Comm.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Index >
 class Partitioner
@@ -139,5 +138,4 @@ public:
    };
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

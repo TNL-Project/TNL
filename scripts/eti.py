@@ -53,10 +53,10 @@ namespaces = []
 file_names = set()
 for line in open(src).readlines():
     # heuristics for namespaces
-    ns_begin = re.search(r"^\s*namespace\s+(\w+)\s*\{$", line)
+    ns_begin = re.search(r"^\s*namespace\s+([\w:]+)\s*\{$", line)
     if ns_begin:
         namespaces.append(ns_begin.group(1))
-    ns_end = re.search(r"^\s*\}\s*\/\/\s*namespace\s+(\w+)$", line)
+    ns_end = re.search(r"^\s*\}\s*\/\/\s*namespace\s+([\w:]+)$", line)
     if ns_end:
         namespaces.pop(-1)
 

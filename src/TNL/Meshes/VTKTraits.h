@@ -20,9 +20,7 @@
 #include <TNL/Meshes/Topologies/Pyramid.h>
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 
-namespace TNL {
-namespace Meshes {
-namespace VTK {
+namespace TNL::Meshes::VTK {
 
 // VTK file formats
 enum class FileFormat : std::uint8_t
@@ -299,6 +297,4 @@ ghostArrayName()
    return "vtkGhostType";
 }
 
-}  // namespace VTK
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::VTK

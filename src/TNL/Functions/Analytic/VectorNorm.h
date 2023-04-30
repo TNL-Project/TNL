@@ -9,9 +9,7 @@
 #include <TNL/Math.h>
 #include <TNL/Assert.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< int Dimensions_, typename Real >
 class VectorNormBase : public Domain< Dimensions_, SpaceDomain >
@@ -270,6 +268,4 @@ operator<<( std::ostream& str, const VectorNorm< Dimensions, Real >& f )
    return str;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic

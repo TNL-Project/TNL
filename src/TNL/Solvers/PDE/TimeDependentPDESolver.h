@@ -15,9 +15,7 @@
 
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Problem, typename TimeStepper >
 class TimeDependentPDESolver : public PDESolver< typename Problem::RealType, typename Problem::IndexType >,
@@ -99,8 +97,6 @@ protected:
    RealType initialTime, finalTime, snapshotPeriod, timeStep;
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE
 
 #include <TNL/Solvers/PDE/TimeDependentPDESolver.hpp>

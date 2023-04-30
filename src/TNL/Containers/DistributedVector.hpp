@@ -10,8 +10,7 @@
 
 #include "DistributedVector.h"
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Real, typename Device, typename Index, typename Allocator >
 DistributedVector< Real, Device, Index, Allocator >::DistributedVector( const DistributedVector& vector,
@@ -186,5 +185,4 @@ DistributedVector< Real, Device, Index, Allocator >::operator%=( Scalar c )
    return *this;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

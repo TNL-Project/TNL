@@ -9,9 +9,7 @@
 #include <TNL/Matrices/Sandbox/SparseSandboxMatrixRowView.h>
 #include <TNL/Assert.h>
 
-namespace TNL {
-namespace Matrices {
-namespace Sandbox {
+namespace TNL::Matrices::Sandbox {
 
 // SANDBOX_TODO: Modify the follwing constructor by your needs
 template< typename ValuesView, typename ColumnsIndexesView, bool isBinary_ >
@@ -200,6 +198,4 @@ operator<<( std::ostream& str, const SparseSandboxMatrixRowView< ValuesView, Col
    return str;
 }
 
-}  // namespace Sandbox
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::Sandbox

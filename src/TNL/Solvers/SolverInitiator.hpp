@@ -14,8 +14,7 @@
 #include <TNL/Solvers/SolverStarter.h>
 #include <TNL/Meshes/DummyMesh.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 template<
    template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
@@ -239,5 +238,4 @@ public:
    }
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

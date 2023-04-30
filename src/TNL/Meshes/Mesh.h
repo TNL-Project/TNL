@@ -16,11 +16,10 @@
 
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
 
-namespace TNL {
 /**
  * \brief Namespace for numerical meshes and related objects.
  */
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device, typename EntityTopology_ >
 class MeshEntity;
@@ -311,8 +310,7 @@ template< typename MeshConfig, typename Device >
 std::ostream&
 operator<<( std::ostream& str, const Mesh< MeshConfig, Device >& mesh );
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #include <TNL/Meshes/MeshEntity.h>
 

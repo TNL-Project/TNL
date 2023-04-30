@@ -13,9 +13,7 @@
 #include <TNL/Containers/Array.h>
 #include "ScanType.h"
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 #ifdef __CUDACC__
 /* Template for cooperative scan across the CUDA block of threads.
@@ -950,6 +948,4 @@ struct CudaScanKernelLauncher
 
 #endif
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail

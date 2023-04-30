@@ -9,9 +9,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/StaticArray.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< typename MeshFunctionType,
           typename PeriodicBoundariesMaskPointer,
@@ -132,6 +130,4 @@ public:
    }
 };
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes

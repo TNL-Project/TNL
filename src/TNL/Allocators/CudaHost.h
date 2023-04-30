@@ -12,8 +12,7 @@
 #include <TNL/Exceptions/CudaSupportMissing.h>
 #include <TNL/Cuda/CheckDevice.h>
 
-namespace TNL {
-namespace Allocators {
+namespace TNL::Allocators {
 
 /**
  * \brief Allocator for page-locked memory on the host.
@@ -109,5 +108,4 @@ operator!=( const CudaHost< T1 >& lhs, const CudaHost< T2 >& rhs )
    return ! ( lhs == rhs );
 }
 
-}  // namespace Allocators
-}  // namespace TNL
+}  // namespace TNL::Allocators

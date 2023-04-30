@@ -11,8 +11,7 @@
 #include <TNL/Meshes/Mesh.h>
 #include <TNL/Meshes/MeshEntity.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 // compatibility wrapper
 template< typename Grid, int EntityDimension >
@@ -51,5 +50,4 @@ getEntityCenter( const Mesh< MeshConfig, Device >& mesh, const MeshEntity< MeshC
    return ( 1.0 / subvertices ) * c;
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

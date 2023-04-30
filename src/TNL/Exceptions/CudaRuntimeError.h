@@ -12,8 +12,7 @@
 
 #include "CudaSupportMissing.h"
 
-namespace TNL {
-namespace Exceptions {
+namespace TNL::Exceptions {
 
 #ifdef __CUDACC__
 using CudaStatusType = cudaError;
@@ -72,5 +71,4 @@ private:
    CudaStatusType code_;
 };
 
-}  // namespace Exceptions
-}  // namespace TNL
+}  // namespace TNL::Exceptions

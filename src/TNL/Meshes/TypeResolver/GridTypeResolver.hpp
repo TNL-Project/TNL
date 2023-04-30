@@ -11,8 +11,7 @@
 
 #include <TNL/Meshes/TypeResolver/GridTypeResolver.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename ConfigTag, typename Device >
 template< typename Reader, typename Functor >
@@ -112,5 +111,4 @@ GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveTermina
    }
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

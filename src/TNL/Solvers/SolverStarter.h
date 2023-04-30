@@ -11,8 +11,7 @@
 #include <TNL/Solvers/SolverMonitor.h>
 #include <ostream>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 template< typename ConfigTag >
 class SolverStarter
@@ -38,7 +37,6 @@ protected:
    Timer ioTimer, computeTimer, totalTimer;
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers
 
 #include <TNL/Solvers/SolverStarter.hpp>

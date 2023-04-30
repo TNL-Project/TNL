@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/Topologies/Edge.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 struct Polygon
 {
@@ -29,6 +27,4 @@ struct Subtopology< Polygon, 1 >
    using Topology = Edge;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

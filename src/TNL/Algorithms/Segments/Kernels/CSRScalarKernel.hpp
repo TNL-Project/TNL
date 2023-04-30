@@ -13,9 +13,7 @@
 #include <TNL/Algorithms/Segments/Kernels/CSRScalarKernel.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Index,
           typename Device,
@@ -187,6 +185,5 @@ globalIdx, compute ) ); keeper( segmentIdx, aux );
     else
         Algorithms::parallelFor< Device >( first, last, l, args... );*/
 }
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+
+}  // namespace TNL::Algorithms::Segments

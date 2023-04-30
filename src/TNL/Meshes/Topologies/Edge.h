@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Topologies/SubentityVertexMap.h>
 #include <TNL/Meshes/Topologies/Vertex.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 struct Edge
 {
@@ -26,6 +24,4 @@ struct Subtopology< Edge, 0 >
    static constexpr int count = 2;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

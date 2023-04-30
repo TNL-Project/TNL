@@ -16,8 +16,7 @@
 #include <TNL/MPI/Wrappers.h>
 #include <TNL/Timer.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Device, typename Index >
 class ByteArraySynchronizer
@@ -148,5 +147,4 @@ public:
    std::size_t async_ops_count = 0;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

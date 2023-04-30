@@ -14,9 +14,7 @@
 
 #include "Traits.h"
 
-namespace TNL {
-namespace Meshes {
-namespace EntityTags {
+namespace TNL::Meshes::EntityTags {
 
 template< typename Mesh >
 constexpr bool
@@ -91,6 +89,4 @@ initializeEntityTags( Mesh& mesh )
    }
 }
 
-}  // namespace EntityTags
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::EntityTags

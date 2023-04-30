@@ -9,9 +9,7 @@
 #include <TNL/Containers/StaticVector.h>
 #include <type_traits>
 
-namespace TNL {
-namespace Meshes {
-namespace Templates {
+namespace TNL::Meshes::Templates {
 
 /**
  * @brief A help method to calculate collapsed index the next way:
@@ -66,6 +64,4 @@ isInLeftClosedRightOpenInterval( int lower, int value, int upper )
    return lower <= value && value < upper;
 }
 
-}  // namespace Templates
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Templates

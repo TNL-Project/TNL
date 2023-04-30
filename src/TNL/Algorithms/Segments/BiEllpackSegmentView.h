@@ -9,9 +9,7 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Containers/StaticVector.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Index, ElementsOrganization Organization, int WarpSize = 32 >
 class BiEllpackSegmentView
@@ -99,6 +97,4 @@ protected:
    GroupsWidthType groupsWidth;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

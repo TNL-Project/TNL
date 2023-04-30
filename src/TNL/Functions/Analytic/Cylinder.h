@@ -11,9 +11,7 @@
 #include <TNL/Functions/Domain.h>
 #include <TNL/Devices/Cuda.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< typename Real, int Dimension >
 class CylinderBase : public Domain< Dimension, SpaceDomain >
@@ -115,8 +113,6 @@ operator<<( std::ostream& str, const Cylinder< Dimension, Real >& f )
    return str;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic
 
 #include <TNL/Functions/Analytic/Cylinder_impl.h>

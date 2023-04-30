@@ -17,8 +17,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/scan.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 // Polygon Mesh
 template< typename ParentConfig >
@@ -237,5 +236,4 @@ getDecomposedMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
    return outMesh;
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

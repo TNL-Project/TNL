@@ -14,9 +14,7 @@
 #include <TNL/Containers/ndarray/Meta.h>
 #include <TNL/Containers/ndarray/SizesHolder.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 template< typename Permutation, typename Device2 >
 struct Functor_call_with_unpermuted_arguments
@@ -315,6 +313,4 @@ struct ExecutorDispatcher< Permutation, Devices::Cuda >
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

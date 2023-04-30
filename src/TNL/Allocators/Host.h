@@ -10,8 +10,6 @@
 
 #include <memory>
 
-namespace TNL {
-
 /**
  * \brief Namespace for TNL allocators.
  *
@@ -19,7 +17,7 @@ namespace TNL {
  * [Allocator concept](https://en.cppreference.com/w/cpp/named_req/Allocator)
  * from STL.
  */
-namespace Allocators {
+namespace TNL::Allocators {
 
 /**
  * \brief Allocator for the host memory space -- alias for \ref std::allocator.
@@ -27,5 +25,4 @@ namespace Allocators {
 template< class T >
 using Host = std::allocator< T >;
 
-}  // namespace Allocators
-}  // namespace TNL
+}  // namespace TNL::Allocators

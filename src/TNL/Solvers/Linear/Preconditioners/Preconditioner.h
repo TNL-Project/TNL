@@ -14,10 +14,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Solvers/Linear/Utils/Traits.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
-namespace Preconditioners {
+namespace TNL::Solvers::Linear::Preconditioners {
 
 /**
  * \brief Base class for preconditioners of of iterative solvers of linear systems.
@@ -123,7 +120,4 @@ public:
    virtual ~Preconditioner() {}
 };
 
-}  // namespace Preconditioners
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear::Preconditioners

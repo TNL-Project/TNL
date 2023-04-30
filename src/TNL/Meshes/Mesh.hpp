@@ -10,8 +10,7 @@
 #include <TNL/Meshes/MeshDetails/IndexPermutationApplier.h>
 #include <TNL/Meshes/MeshDetails/initializer/Initializer.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device, typename MeshType >
 void
@@ -353,5 +352,4 @@ operator<<( std::ostream& str, const Mesh< MeshConfig, Device >& mesh )
    return str;
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

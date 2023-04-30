@@ -17,8 +17,7 @@
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 #include <TNL/Meshes/Topologies/IsDynamicTopology.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device, typename EntityTopology >
 class MeshEntity;
@@ -111,5 +110,4 @@ public:
    using DualGraph = Matrices::SparseMatrix< bool, Device, GlobalIndexType, Matrices::GeneralMatrix, SlicedEllpackSegments >;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

@@ -12,11 +12,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 
-namespace TNL {
-/**
- * \brief Namespace for different matrix formats.
- */
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Base class for other matrix types views.
@@ -251,7 +247,6 @@ operator<<( std::ostream& str, const MatrixView< Real, Device, Index >& matrix )
    return str;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/MatrixView.hpp>

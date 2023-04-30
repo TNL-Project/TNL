@@ -12,9 +12,7 @@
 #include <TNL/Containers/ndarray/SizesHolder.h>
 #include <TNL/Containers/ndarray/Indexing.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 template< typename Dimensions, typename Permutation >
 class SubpermutationGetter;
@@ -352,6 +350,4 @@ public:
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

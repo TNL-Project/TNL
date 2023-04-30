@@ -10,8 +10,7 @@
 
 #include <TNL/Containers/Array.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< bool reverse = true >
 struct CuthillMcKeeOrdering
@@ -157,5 +156,4 @@ private:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

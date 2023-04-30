@@ -8,9 +8,7 @@
 
 #include <TNL/Functions/Analytic/ParaboloidSDF.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< int dimensions, typename Real >
 ParaboloidSDFBase< dimensions, Real >::ParaboloidSDFBase()
@@ -147,6 +145,4 @@ ParaboloidSDF< 3, Real >::getPartialDerivative( const PointType& v, const Real& 
    return 0.0;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic

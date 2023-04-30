@@ -20,9 +20,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Pointers/DevicePointer.h>
 
-namespace TNL {
-namespace Matrices {
-namespace Legacy {
+namespace TNL::Matrices::Legacy {
 
 template< typename Matrix >
 class DistributedSpMV
@@ -247,6 +245,4 @@ protected:
    __DistributedSpMV_impl::ThreePartVector< RealType, DeviceType, IndexType > globalBuffer;
 };
 
-} // namespace Legacy
-} // namespace Matrices
-} // namespace TNL
+} // namespace TNL::Matrices::Legacy

@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/Traverser.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Mesh, typename DifferentialOperator, typename BoundaryConditions, typename RowsCapacitiesType >
 template< typename EntityType >
@@ -30,5 +29,4 @@ MatrixSetter< Mesh, DifferentialOperator, BoundaryConditions, RowsCapacitiesType
    }
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

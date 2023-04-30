@@ -11,8 +11,7 @@
 #include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Cuda/SharedMemory.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Real, typename Device, typename Index, typename RealAllocator >
 Matrix< Real, Device, Index, RealAllocator >::Matrix( const RealAllocatorType& allocator )
@@ -148,5 +147,4 @@ void
 Matrix< Real, Device, Index, RealAllocator >::print( std::ostream& str ) const
 {}
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

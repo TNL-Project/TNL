@@ -14,11 +14,10 @@
 #include <TNL/Matrices/MatrixView.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
-namespace TNL {
 /**
- * \brief Namespace for different matrix types.
+ * \brief Namespace for matrix formats.
  */
-namespace Matrices {
+namespace TNL::Matrices {
 
 using Algorithms::Segments::ElementsOrganization;
 
@@ -256,7 +255,6 @@ operator<<( std::ostream& str, const Matrix< Real, Device, Index >& matrix )
    return str;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/Matrix.hpp>

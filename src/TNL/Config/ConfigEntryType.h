@@ -14,8 +14,7 @@
 #include <vector>
 #include <variant>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 using std::get;
 using std::holds_alternative;
@@ -165,5 +164,4 @@ getUIEntryType< std::vector< std::string > >()
    return "list of string";
 }
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

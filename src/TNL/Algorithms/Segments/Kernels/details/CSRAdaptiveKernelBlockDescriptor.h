@@ -6,10 +6,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
-namespace detail {
+namespace TNL::Algorithms::Segments::detail {
 
 enum class Type
 {
@@ -263,7 +260,5 @@ operator<<( std::ostream& str, const CSRAdaptiveKernelBlockDescriptor< Index >& 
    block.print( str );
    return str;
 }
-}  // namespace detail
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+
+}  // namespace TNL::Algorithms::Segments::detail

@@ -9,9 +9,7 @@
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/unrolledFor.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 template< typename StaticArray, typename T, bool isStaticArrayType = IsStaticArrayType< T >::value >
 struct StaticArrayAssignment;
@@ -52,6 +50,4 @@ struct StaticArrayAssignment< StaticArray, T, false >
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

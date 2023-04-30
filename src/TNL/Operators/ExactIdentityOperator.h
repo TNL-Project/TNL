@@ -10,8 +10,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Operators/Operator.h>
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 template< int Dimension >
 class ExactIdentityOperator : public Functions::Domain< Dimension, Functions::SpaceDomain >
@@ -41,5 +40,4 @@ public:
    }
 };
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators

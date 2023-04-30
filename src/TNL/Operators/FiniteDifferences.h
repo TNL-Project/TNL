@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 template< typename Grid >
 class FiniteDifferences
@@ -111,7 +110,6 @@ public:
    getDifference( const GridType& grid, const CellType& cell, const GridFunction& function );
 };
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators
 
 #include <TNL/Operators/FiniteDifferences_impl.h>

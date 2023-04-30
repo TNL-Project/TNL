@@ -23,8 +23,7 @@
 
 #include "MeanCurvatureFlowProblem.h"
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename Mesh, typename BoundaryCondition, typename RightHandSide, typename DifferentialOperator >
 String
@@ -200,5 +199,4 @@ MeanCurvatureFlowProblem< Mesh, BoundaryCondition, RightHandSide, DifferentialOp
    //abort();*/
 }
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems

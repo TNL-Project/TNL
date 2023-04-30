@@ -14,9 +14,7 @@
 #include <TNL/Algorithms/Segments/Kernels/CSRAdaptiveKernelView.h>
 #include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelBlockDescriptor.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 #ifdef __CUDACC__
 
@@ -115,8 +113,6 @@ protected:
    ViewType view;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/Kernels/CSRAdaptiveKernel.hpp>

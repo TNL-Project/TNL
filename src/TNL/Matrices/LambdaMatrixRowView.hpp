@@ -9,8 +9,7 @@
 #include <TNL/Matrices/LambdaMatrixRowView.h>
 #include <TNL/Assert.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Index >
 __cuda_callable__
@@ -133,5 +132,4 @@ operator<<( std::ostream& str, const LambdaMatrixRowView< MatrixElementsLambda, 
    return str;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

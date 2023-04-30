@@ -14,8 +14,7 @@
 #include <TNL/Solvers/LinearSolverTypeResolver.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 template< typename ConfigTag, typename ProblemConfig >
 struct SolverConfig
@@ -146,5 +145,4 @@ struct SolverConfig
    }
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

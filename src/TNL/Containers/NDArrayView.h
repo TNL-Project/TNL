@@ -17,8 +17,7 @@
 #include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Simple data structure which provides a non-owning encapsulation of
@@ -506,5 +505,4 @@ protected:
    IndexerType indexer;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

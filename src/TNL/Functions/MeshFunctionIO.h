@@ -17,8 +17,7 @@
 #include <TNL/Meshes/Writers/PVTIWriter.h>
 #include <TNL/Functions/MeshFunctionGnuplotWriter.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename MeshFunction >
 bool
@@ -290,5 +289,4 @@ writeDistributedMeshFunction(
 
 // TODO: specialization of writeDistributedMeshFunction for unstructured mesh
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

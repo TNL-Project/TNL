@@ -12,8 +12,7 @@
 #include <TNL/Containers/ndarray/SizesHolderHelpers.h>  // StorageSizeGetter
 #include <TNL/Containers/ndarray/Subarrays.h>           // DummyStrideBase
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 // HACK for https://stackoverflow.com/q/74240374
 #ifdef _MSC_VER
@@ -229,5 +228,4 @@ protected:
    SizesHolderType sizes;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

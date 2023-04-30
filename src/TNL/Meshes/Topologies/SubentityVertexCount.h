@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/Topologies/SubentityVertexMap.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 template< typename EntityTopology, typename SubentityTopology, int SubentityIndex >
 struct SubentityVertexCount
@@ -18,6 +16,4 @@ struct SubentityVertexCount
    static constexpr int count = Subtopology< SubentityTopology, 0 >::count;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

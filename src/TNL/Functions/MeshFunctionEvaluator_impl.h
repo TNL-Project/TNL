@@ -10,8 +10,7 @@
 //#include <TNL/Meshes/Traverser.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename OutMeshFunction, typename InFunction >
 template< typename OutMeshFunctionPointer, typename InFunctionPointer >
@@ -154,5 +153,4 @@ MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateEntities( OutMeshF
    }*/
 }
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

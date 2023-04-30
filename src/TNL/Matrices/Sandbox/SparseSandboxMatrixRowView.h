@@ -11,9 +11,7 @@
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Matrices/MatrixRowViewIterator.h>
 
-namespace TNL {
-namespace Matrices {
-namespace Sandbox {
+namespace TNL::Matrices::Sandbox {
 
 /**
  * \brief RowView is a simple structure for accessing rows of sparse matrix.
@@ -278,8 +276,6 @@ template< typename ValuesView, typename ColumnsIndexesView, bool isBinary_ >
 std::ostream&
 operator<<( std::ostream& str, const SparseSandboxMatrixRowView< ValuesView, ColumnsIndexesView, isBinary_ >& row );
 
-}  // namespace Sandbox
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::Sandbox
 
 #include <TNL/Matrices/Sandbox/SparseSandboxMatrixRowView.hpp>

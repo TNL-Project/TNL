@@ -14,8 +14,7 @@
 
 #include <TNL/Containers/ndarray/Meta.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 namespace detail {
 
@@ -430,5 +429,4 @@ operator<<( std::ostream& str, const LocalBeginsHolder< SizesHolder, ConstValue 
 
 }  // namespace detail
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

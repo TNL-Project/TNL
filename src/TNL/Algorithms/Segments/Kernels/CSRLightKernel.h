@@ -11,9 +11,7 @@
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 enum LightCSRSThreadsMapping
 {
@@ -79,8 +77,6 @@ protected:
    int threadsPerSegment = 32;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/Kernels/CSRLightKernel.hpp>

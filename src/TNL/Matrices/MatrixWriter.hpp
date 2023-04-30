@@ -11,8 +11,7 @@
 
 #include <TNL/Matrices/MatrixWriter.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Matrix, typename Device >
 void
@@ -194,5 +193,4 @@ MatrixWriter< Matrix, TNL::Devices::Host >::writeEpsBody( std::ostream& str,
 }
 /// \endcond
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

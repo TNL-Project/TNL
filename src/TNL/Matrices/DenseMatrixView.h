@@ -13,8 +13,7 @@
 #include <TNL/Matrices/MatrixType.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Implementation of dense matrix view.
@@ -959,7 +958,6 @@ protected:
    SegmentsViewType segments;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/DenseMatrixView.hpp>

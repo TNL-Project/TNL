@@ -12,9 +12,7 @@
 
 #include "Merson.h"
 
-namespace TNL {
-namespace Solvers {
-namespace ODE {
+namespace TNL::Solvers::ODE {
 
 template< typename Vector, typename SolverMonitor >
 void
@@ -195,6 +193,4 @@ Merson< Vector, SolverMonitor >::writeGrids( const DofVectorType& u )
    getchar();
 }
 
-}  // namespace ODE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::ODE

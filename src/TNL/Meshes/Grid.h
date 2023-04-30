@@ -13,8 +13,7 @@
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< class, int >
 class GridEntity;
@@ -911,8 +910,7 @@ operator!=( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimen
    return ! ( lhs == rhs );
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #include <TNL/Meshes/Grid.hpp>
 #include <TNL/Meshes/GridEntity.h>

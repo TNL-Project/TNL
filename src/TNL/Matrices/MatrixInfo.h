@@ -16,11 +16,7 @@
 #include <TNL/Algorithms/Segments/EllpackView.h>
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
 
-namespace TNL {
-/**
- * \brief Namespace for matrix formats.
- */
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Matrix >
 struct MatrixInfo
@@ -118,5 +114,4 @@ struct MatrixInfo< Sandbox::SparseSandboxMatrix< Real, Device, Index, MatrixType
 {};
 
 /// \endcond
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

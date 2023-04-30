@@ -18,8 +18,7 @@
 
 #include <TNL/Solvers/IterativeSolver.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 template< typename Real, typename Index >
 void
@@ -209,5 +208,4 @@ IterativeSolverMonitor< Real, Index >::getLineWidth()
 #endif
 }
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

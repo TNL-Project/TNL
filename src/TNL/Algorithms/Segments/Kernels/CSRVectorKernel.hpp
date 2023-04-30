@@ -12,9 +12,7 @@
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 #include <TNL/Algorithms/Segments/Kernels/CSRVectorKernel.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Offsets,
           typename Index,
@@ -135,6 +133,4 @@ CSRVectorKernel< Index, Device >::reduceSegments( const OffsetsView& offsets,
    TNL_CHECK_CUDA_DEVICE;
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

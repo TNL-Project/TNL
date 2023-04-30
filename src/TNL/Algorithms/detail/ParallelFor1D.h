@@ -14,9 +14,7 @@
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Math.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 template< typename Device = Devices::Sequential >
 struct ParallelFor1D
@@ -107,6 +105,4 @@ struct ParallelFor1D< Devices::Cuda >
    }
 };
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail

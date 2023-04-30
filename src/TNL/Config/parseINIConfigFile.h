@@ -16,8 +16,7 @@
 
 #include <TNL/3rdparty/Leksys/iniparser.hpp>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 ParameterContainer
 parseINIConfigFile( const std::string& configPath, const ConfigDescription& description )
@@ -120,5 +119,4 @@ parseINIConfigFile( const std::string& configPath, const ConfigDescription& desc
    return parameters;
 }
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

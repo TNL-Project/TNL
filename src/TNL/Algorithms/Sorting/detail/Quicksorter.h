@@ -11,9 +11,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/Sorting/detail/task.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 template< typename Value, typename Device >
 class Quicksorter;
@@ -111,8 +109,6 @@ protected:
    getSetsNeededFunction( int elemPerBlock, const Quicksorter< T, Devices::Cuda >& quicksort );
 };
 
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Sorting
 
 #include <TNL/Algorithms/Sorting/detail/Quicksorter.hpp>

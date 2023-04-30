@@ -21,8 +21,7 @@
 #include "getDataType.h"
 #include "Profiling.h"
 
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
 
 // wrappers for basic MPI functions
 
@@ -266,5 +265,4 @@ Alltoall( const T* sendData, int sendCount, T* receiveData, int receiveCount, MP
 #endif
 }
 
-}  // namespace MPI
-}  // namespace TNL
+}  // namespace TNL::MPI

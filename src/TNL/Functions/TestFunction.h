@@ -12,8 +12,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< int FunctionDimension, typename Real = double, typename Device = Devices::Host >
 class TestFunction : public Domain< FunctionDimension, SpaceDomain >
@@ -142,7 +141,6 @@ operator<<( std::ostream& str, const TestFunction< FunctionDimension, Real, Devi
    return f.print( str );
 }
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions
 
 #include <TNL/Functions/TestFunction_impl.h>

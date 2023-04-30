@@ -10,8 +10,7 @@
 
 #include <TNL/Config/ConfigEntryBase.h>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 class ConfigDelimiter : public ConfigEntryBase
 {
@@ -31,5 +30,4 @@ public:
    }
 };
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

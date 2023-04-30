@@ -9,8 +9,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Solvers/BuildConfigTags.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 template<
    template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
@@ -23,7 +22,6 @@ public:
    run( const Config::ParameterContainer& parameters );
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers
 
 #include <TNL/Solvers/SolverInitiator.hpp>

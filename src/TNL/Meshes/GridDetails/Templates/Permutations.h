@@ -9,9 +9,7 @@
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <type_traits>
 
-namespace TNL {
-namespace Meshes {
-namespace Templates {
+namespace TNL::Meshes::Templates {
 
 /*
  * A pack of type and its count
@@ -302,6 +300,4 @@ public:
 template< int N, class Pack >
 using get = typename Get< N, Pack >::type;
 
-}  // namespace Templates
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Templates

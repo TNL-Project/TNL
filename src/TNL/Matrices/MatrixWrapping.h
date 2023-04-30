@@ -11,8 +11,7 @@
 #include <TNL/Matrices/SparseMatrixView.h>
 #include <TNL/Matrices/DenseMatrixView.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Function for wrapping an array of values into a dense matrix view.
@@ -147,5 +146,4 @@ wrapEllpackMatrix( const Index rows, const Index columns, const Index nonzerosPe
       rows, columns, nonzerosPerRow, values, columnIndexes );
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

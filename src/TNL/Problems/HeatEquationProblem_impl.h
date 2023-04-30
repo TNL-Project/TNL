@@ -20,8 +20,7 @@
 
 #include "HeatEquationProblem.h"
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename Mesh, typename BoundaryCondition, typename RightHandSide, typename DifferentialOperator >
 String
@@ -204,5 +203,4 @@ HeatEquationProblem< Mesh, BoundaryCondition, RightHandSide, DifferentialOperato
       time, tau, this->getMesh(), this->uPointer, matrixPointer, bPointer );
 }
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems

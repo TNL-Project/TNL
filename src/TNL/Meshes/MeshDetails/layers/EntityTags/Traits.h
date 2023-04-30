@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
 
-namespace TNL {
-namespace Meshes {
-namespace EntityTags {
+namespace TNL::Meshes::EntityTags {
 
 template< typename MeshConfig,
           typename Device,
@@ -35,6 +33,4 @@ enum EntityTags : std::uint8_t
    GhostEntity = 2,
 };
 
-}  // namespace EntityTags
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::EntityTags

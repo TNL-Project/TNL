@@ -12,8 +12,7 @@
 #include <TNL/Meshes/Mesh.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename T >
 class isGrid : public std::false_type
@@ -47,5 +46,4 @@ template< typename Config, typename Device >
 class isDistributedMesh< DistributedMeshes::DistributedMesh< Mesh< Config, Device > > > : public std::true_type
 {};
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

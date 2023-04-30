@@ -25,8 +25,7 @@
 
 #include <string>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 struct WindowCenterWidth
 {
@@ -115,7 +114,6 @@ private:
    ImagesInfo imagesInfo;
 };
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images
 
 #include <TNL/Images/DicomSeries_impl.h>

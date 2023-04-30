@@ -13,9 +13,7 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/SegmentsPrinting.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 enum EllpackKernelType
 {
@@ -180,8 +178,6 @@ operator<<( std::ostream& str, const EllpackView< Device, Index, Organization, A
    return printSegments( str, ellpack );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/EllpackView.hpp>

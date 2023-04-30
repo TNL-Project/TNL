@@ -11,8 +11,7 @@
 #include <TNL/Containers/ArrayView.h>
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief \e VectorView extends \ref ArrayView with algebraic operations.
@@ -243,7 +242,6 @@ struct HasEnabledExpressionTemplates< VectorView< Real, Device, Index > > : std:
 {};
 }  // namespace Expressions
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/VectorView.hpp>

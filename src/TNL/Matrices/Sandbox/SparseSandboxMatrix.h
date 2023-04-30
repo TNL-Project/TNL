@@ -15,12 +15,10 @@
 #include <TNL/Matrices/Sandbox/SparseSandboxMatrixView.h>
 #include <TNL/Matrices/DenseMatrix.h>
 
-namespace TNL {
-namespace Matrices {
 /**
  * \brief Namespace for sandbox matrices.
  */
-namespace Sandbox {
+namespace TNL::Matrices::Sandbox {
 
 /**
  * \brief Template of a sparse matrix that can be used for testing of new
@@ -1254,8 +1252,6 @@ protected:
    RowPointers rowPointers;
 };
 
-}  // namespace Sandbox
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::Sandbox
 
 #include <TNL/Matrices/Sandbox/SparseSandboxMatrix.hpp>

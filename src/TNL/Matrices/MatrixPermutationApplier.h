@@ -10,8 +10,7 @@
 
 #include <TNL/Algorithms/parallelFor.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Matrix, typename PermutationArray >
 void
@@ -87,5 +86,4 @@ permuteMatrixColumns( Matrix& matrix, const PermutationArray& iperm )
    Algorithms::parallelFor< DeviceType >( 0, matrix.getRows(), kernel );
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

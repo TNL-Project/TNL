@@ -3,8 +3,7 @@
 #include <TNL/Algorithms/reduce.h>
 #include "CommonVectorOperations.h"
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 template< typename Device >
    template< typename Vector, typename ResultType >
@@ -316,5 +315,4 @@ getScalarProduct( const Vector1& v1,
    return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v1.getSize(),  fetch, std::plus<>{}, ( ResultType ) 0 );
 }
 
-} // namespace Benchmarks
-} // namespace TNL
+} // namespace TNL::Benchmarks

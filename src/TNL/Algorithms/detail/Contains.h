@@ -12,9 +12,7 @@
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Algorithms/reduce.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 template< typename Device >
 struct Contains;
@@ -154,6 +152,4 @@ struct ContainsOnlyValue< Devices::Cuda >
    }
 };
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail

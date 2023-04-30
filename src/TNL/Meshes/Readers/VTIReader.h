@@ -10,9 +10,7 @@
 
 #include <TNL/Meshes/Readers/XMLVTK.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 class VTIReader : public XMLVTK
 {
@@ -149,6 +147,4 @@ public:
    }
 };
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

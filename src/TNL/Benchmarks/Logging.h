@@ -18,8 +18,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 class LoggingRowElements
 {
@@ -206,5 +205,4 @@ protected:
    bool header_changed = true;
 };
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks

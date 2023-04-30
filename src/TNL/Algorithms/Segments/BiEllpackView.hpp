@@ -13,9 +13,7 @@
 //#include <TNL/Algorithms/Segments/detail/BiEllpack.h>
 #include <TNL/Cuda/SharedMemory.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
@@ -569,6 +567,4 @@ BiEllpackView< Device, Index, Organization, WarpSize >::reduceSegmentsKernel( In
 }
 #endif
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

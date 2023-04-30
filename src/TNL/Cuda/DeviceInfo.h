@@ -8,8 +8,7 @@
 
 #include <TNL/String.h>
 
-namespace TNL {
-namespace Cuda {
+namespace TNL::Cuda {
 
 struct DeviceInfo
 {
@@ -57,7 +56,6 @@ struct DeviceInfo
    getRegistersPerMultiprocessor( int deviceNum );
 };
 
-}  // namespace Cuda
-}  // namespace TNL
+}  // namespace TNL::Cuda
 
 #include <TNL/Cuda/DeviceInfo.hpp>

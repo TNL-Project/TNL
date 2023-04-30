@@ -11,8 +11,7 @@
 #include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename EntitySeed >
 struct EntitySeedHash;
@@ -238,5 +237,4 @@ struct EntitySeedEq< EntitySeed< MeshConfig, Topologies::Vertex > >
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

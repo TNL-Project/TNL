@@ -9,8 +9,7 @@
 #include <TNL/Meshes/GridDetails/Templates/Permutations.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename Index, Index EntityDimension, Index GridDimension >
 struct NormalsGetter
@@ -52,5 +51,4 @@ private:
    };
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

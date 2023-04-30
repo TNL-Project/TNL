@@ -13,9 +13,7 @@
 #include <TNL/File.h>
 #include <TNL/TypeInfo.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 template< typename Value, typename Index, typename Allocator, bool Elementwise = std::is_base_of< Object, Value >::value >
 struct ArrayIO
@@ -252,6 +250,4 @@ struct ArrayIO< Value, Index, Allocator, false >
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

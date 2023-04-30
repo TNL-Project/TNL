@@ -13,9 +13,7 @@
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Matrices/details/SparseMatrix.h>
 
-namespace TNL {
-namespace Matrices {
-namespace Sandbox {
+namespace TNL::Matrices::Sandbox {
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
 __cuda_callable__
@@ -858,6 +856,4 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::getColumnIndexes() -
    return this->columnIndexes;
 }
 
-}  // namespace Sandbox
-}  // namespace Matrices
-}  // namespace  TNL
+}  // namespace TNL::Matrices::Sandbox

@@ -10,8 +10,7 @@
 #include <TNL/String.h>
 #include <TNL/Containers/Vector.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Helper class for importing of matrices from different input formats.
@@ -148,7 +147,6 @@ protected:
 };
 /// \endcond
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/MatrixReader.hpp>

@@ -10,8 +10,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Operators/Operator.h>
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 template< typename OperatorT >
 class FunctionInverseOperator : public Operator< typename OperatorT::MeshType,
@@ -47,5 +46,4 @@ protected:
    const OperatorType& operator_;
 };
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators

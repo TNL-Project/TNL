@@ -10,9 +10,7 @@
 
 #include <TNL/Containers/NDArray.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 template< typename DistributedNDArray, std::size_t level >
 struct SynchronizerBuffersLayer
@@ -88,6 +86,4 @@ struct SynchronizerBuffers : public SynchronizerBuffersLayerHelper< DistributedN
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

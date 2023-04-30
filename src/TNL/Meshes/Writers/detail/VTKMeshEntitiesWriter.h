@@ -14,10 +14,7 @@
 #include <TNL/Meshes/MeshEntity.h>
 #include <TNL/Meshes/VTKTraits.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
-namespace detail {
+namespace TNL::Meshes::Writers::detail {
 
 template< typename T >
 void
@@ -705,7 +702,4 @@ struct VTKMeshEntityTypesWriter< Grid< Dimension, MeshReal, Device, MeshIndex >,
    }
 };
 
-}  // namespace detail
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers::detail

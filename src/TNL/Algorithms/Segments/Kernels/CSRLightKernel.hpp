@@ -12,9 +12,7 @@
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 #include <TNL/Algorithms/Segments/Kernels/CSRLightKernel.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Real, typename Index, typename OffsetsView, typename Fetch, typename Reduce, typename Keep >
 __global__
@@ -571,6 +569,4 @@ CSRLightKernel< Index, Device >::getThreadsPerSegment() const
    return this->threadsPerSegment;
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

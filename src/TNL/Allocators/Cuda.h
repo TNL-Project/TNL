@@ -12,8 +12,7 @@
 #include <TNL/Exceptions/CudaSupportMissing.h>
 #include <TNL/Cuda/CheckDevice.h>
 
-namespace TNL {
-namespace Allocators {
+namespace TNL::Allocators {
 
 /**
  * \brief Allocator for the CUDA device memory space.
@@ -101,5 +100,4 @@ operator!=( const Cuda< T1 >& lhs, const Cuda< T2 >& rhs )
    return ! ( lhs == rhs );
 }
 
-}  // namespace Allocators
-}  // namespace TNL
+}  // namespace TNL::Allocators

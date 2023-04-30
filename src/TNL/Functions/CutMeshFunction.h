@@ -8,8 +8,8 @@
 
 #include <TNL/Containers/StaticVector.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
+
 template< typename MeshFunctionType,
           typename OutMesh,
           typename OutDof,
@@ -124,5 +124,4 @@ public:
    }
 };
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

@@ -9,9 +9,7 @@ using namespace TNL;
 
 struct MeshPlanarCorrectConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off all grids.
@@ -81,9 +79,7 @@ struct MeshConfigTemplateTag< MeshPlanarCorrectConfigTag >
    };
 };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 using namespace TNL::Meshes;
 

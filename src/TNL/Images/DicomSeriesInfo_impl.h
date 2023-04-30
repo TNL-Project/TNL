@@ -11,8 +11,7 @@
 #include <TNL/Images/DicomHeader.h>
 #include <TNL/Images/DicomSeriesInfo.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 inline DicomSeriesInfo::DicomSeriesInfo( DicomHeader& dicomHeader ) : dicomHeader( dicomHeader )
 {
@@ -184,5 +183,4 @@ DicomSeriesInfo::getAcquisitionTime()
    return this->acquisitionTime;
 }
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images

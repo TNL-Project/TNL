@@ -11,9 +11,7 @@
 
 #include <TNL/Functions/Analytic/SinBumps.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< typename Point >
 void
@@ -297,6 +295,4 @@ SinBumps< 3, Real >::operator()( const PointType& v, const Real& time ) const
    return this->template getPartialDerivative< 0, 0, 0 >( v, time );
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic

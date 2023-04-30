@@ -8,9 +8,7 @@
 
 #include <TNL/Solvers/IterativeSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Optimization {
+namespace TNL::Solvers::Optimization {
 
 /***
  * https://arxiv.org/pdf/1609.04747.pdf
@@ -51,8 +49,6 @@ protected:
    VectorType gradient, a;
 };
 
-}  // namespace Optimization
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Optimization
 
 #include <TNL/Solvers/Optimization/AdaGrad.hpp>

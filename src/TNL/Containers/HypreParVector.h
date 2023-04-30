@@ -13,8 +13,7 @@
    #include <TNL/Containers/HypreVector.h>
    #include <TNL/Containers/DistributedVector.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Wrapper for Hypre's parallel vector.
@@ -375,7 +374,6 @@ protected:
    int valuesPerElement = 1;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #endif  // HAVE_HYPRE

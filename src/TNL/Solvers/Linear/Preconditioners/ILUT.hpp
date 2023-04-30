@@ -15,10 +15,7 @@
 #include <TNL/Solvers/Linear/Utils/TriangularSolve.h>
 #include <TNL/Timer.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
-namespace Preconditioners {
+namespace TNL::Solvers::Linear::Preconditioners {
 
 template< typename Matrix, typename Real, typename Index >
 bool
@@ -283,7 +280,4 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::solve( ConstVectorViewType _b, 
    Traits< Matrix >::startSynchronization( _x );
 }
 
-}  // namespace Preconditioners
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear::Preconditioners

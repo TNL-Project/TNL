@@ -15,8 +15,7 @@
 #include "Wrappers.h"
 #include "Comm.h"
 
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
 
 inline bool
 isInitialized()
@@ -252,5 +251,4 @@ bcast( Array& array, int root, MPI_Comm communicator = MPI_COMM_WORLD )
    MPI::Bcast( array.getData(), size, root, communicator );
 }
 
-}  // namespace MPI
-}  // namespace TNL
+}  // namespace TNL::MPI

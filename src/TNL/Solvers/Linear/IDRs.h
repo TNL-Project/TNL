@@ -9,9 +9,7 @@
 #include <TNL/Solvers/Linear/LinearSolver.h>
 #include <TNL/Matrices/DenseMatrix.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 /**
  * \brief Iterative solver of linear systems based on the IDR(s) method.
@@ -148,8 +146,6 @@ protected:
    IndexType sizeWithGhosts = 0;
 };
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear
 
 #include <TNL/Solvers/Linear/IDRs.hpp>

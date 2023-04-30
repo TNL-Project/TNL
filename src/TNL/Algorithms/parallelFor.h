@@ -11,14 +11,13 @@
 #include <TNL/Algorithms/detail/ParallelFor3D.h>
 #include <TNL/TypeTraits.h>
 
-namespace TNL {
 /**
  * \brief Namespace for fundamental TNL algorithms
  *
  * It contains algorithms like for-loops, memory operations, (parallel) reduction,
  * multireduction, scan etc.
  */
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 /**
  * \brief Parallel for-loop function for 1D range specified with integral values.
@@ -123,5 +122,4 @@ parallelFor( const Begin& begin, const End& end, Function f, FunctionArgs... arg
    parallelFor< Device >( begin, end, launch_config, f, args... );
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

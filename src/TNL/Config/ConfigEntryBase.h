@@ -11,8 +11,7 @@
 #include <string>
 #include <utility>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 class ConfigEntryBase
 {
@@ -82,5 +81,4 @@ public:
    virtual ~ConfigEntryBase() = default;
 };
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

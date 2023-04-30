@@ -12,8 +12,7 @@
 #include <TNL/Meshes/MeshDetails/layers/SuperentityStorageLayer.h>
 #include <TNL/Meshes/MeshDetails/layers/DualGraphLayer.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig,
           typename Device,
@@ -318,5 +317,4 @@ protected:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

@@ -20,8 +20,7 @@
 
 #ifndef DOXYGEN_ONLY
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< int Dimension, typename Real, typename Device, typename Index >
 constexpr int
@@ -933,7 +932,6 @@ Grid< Dimension, Real, Device, Index >::forLocalEntities( Func func, FuncArgs...
    this->template traverseAll< EntityDimension >( this->localBegin, this->localEnd, exec, *this, args... );
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #endif

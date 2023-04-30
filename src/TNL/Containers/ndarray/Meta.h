@@ -11,9 +11,7 @@
 #include <utility>
 #include <initializer_list>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 /*
  * Generic function to get the N-th element from a variadic pack.
@@ -346,6 +344,4 @@ using make_constant_integer_sequence = gen_const_seq_t< T, std::integral_constan
 template< std::size_t N, std::size_t value >
 using make_constant_index_sequence = gen_const_seq_t< std::size_t, std::integral_constant< std::size_t, N >, value >;
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

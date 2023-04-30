@@ -11,9 +11,7 @@
 #include <TNL/Algorithms/Segments/BiEllpackView.h>
 #include <TNL/Algorithms/Segments/SegmentView.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device,
           typename Index,
@@ -234,8 +232,6 @@ operator<<( std::ostream& str, const BiEllpack< Device, Index, IndexAllocator, O
    return printSegments( segments, str );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/BiEllpack.hpp>

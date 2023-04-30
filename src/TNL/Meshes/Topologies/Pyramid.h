@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Topologies/SubentityVertexCount.h>
 #include <TNL/Meshes/Topologies/Polygon.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 struct Pyramid
 {
@@ -245,6 +243,4 @@ struct SubentityVertexMap< Pyramid, Polygon, 4, 2 >
    static constexpr int index = 4;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

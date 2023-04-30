@@ -11,8 +11,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/DistributedArrayView.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Distributed array.
@@ -327,7 +326,6 @@ private:
    {}
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include "DistributedArray.hpp"

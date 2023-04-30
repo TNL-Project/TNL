@@ -11,9 +11,7 @@
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Algorithms/Segments/SegmentElement.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 /**
  * \brief Iterator for iterating over elements of a segment.
@@ -98,8 +96,6 @@ protected:
    IndexType localIdx = 0;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/SegmentViewIterator.hpp>

@@ -20,9 +20,7 @@
 #include <TNL/Meshes/TypeResolver/resolveDistributedMeshType.h>
 #include <TNL/MPI/Comm.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Problem >
 TimeIndependentPDESolver< Problem >::TimeIndependentPDESolver() : problem( 0 )
@@ -145,6 +143,4 @@ TimeIndependentPDESolver< Problem >::writeEpilog( Logger& logger ) const
    return this->problem->writeEpilog( logger );
 }
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

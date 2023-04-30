@@ -10,9 +10,7 @@
 
 #include <TNL/Solvers/Linear/LinearSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 /**
  * \brief Iterative solver of linear systems based on the Generalized minimal residual (GMRES) method.
@@ -234,8 +232,6 @@ protected:
    int restarting_step_max = 3;
 };
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear
 
 #include <TNL/Solvers/Linear/GMRES.hpp>

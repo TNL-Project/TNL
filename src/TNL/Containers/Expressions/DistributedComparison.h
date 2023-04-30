@@ -9,9 +9,7 @@
 #include <TNL/Containers/Expressions/ExpressionVariableType.h>
 #include <TNL/MPI/Wrappers.h>
 
-namespace TNL {
-namespace Containers {
-namespace Expressions {
+namespace TNL::Containers::Expressions {
 
 ////
 // Non-static comparison
@@ -241,6 +239,4 @@ struct DistributedComparison< T1, T2, VectorExpressionVariable, ArithmeticVariab
    }
 };
 
-}  // namespace Expressions
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::Expressions

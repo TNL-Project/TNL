@@ -14,8 +14,7 @@
 
    #include <TNL/Matrices/SparseMatrix.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Wrapper for Hypre's sequential CSR matrix.
@@ -406,7 +405,6 @@ protected:
    bool owns_handle = true;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #endif  // HAVE_HYPRE

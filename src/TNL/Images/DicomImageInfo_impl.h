@@ -9,8 +9,7 @@
 #include <TNL/Images/DicomHeader.h>
 #include <TNL/Images/DicomImageInfo.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 inline DicomImageInfo::DicomImageInfo( DicomHeader& dicomHeader ) : dicomHeader( dicomHeader )
 {
@@ -109,5 +108,4 @@ DicomImageInfo::getNumberOfSlices()
    return numberOfSlices;
 }
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images

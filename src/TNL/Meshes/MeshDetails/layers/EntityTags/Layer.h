@@ -12,9 +12,7 @@
 
 #include "Traits.h"
 
-namespace TNL {
-namespace Meshes {
-namespace EntityTags {
+namespace TNL::Meshes::EntityTags {
 
 // This is the implementation of the boundary tags layer for one specific dimension.
 // It is inherited by the EntityTags::LayerFamily.
@@ -325,6 +323,4 @@ protected:
    }
 };
 
-}  // namespace EntityTags
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::EntityTags

@@ -12,8 +12,7 @@
    #include <dcmtk/dcmdata/dcdeftag.h>
 #endif
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 class DicomSeriesInfo;
 class DicomPatientInfo;
@@ -62,7 +61,6 @@ protected:
    bool isLoaded;
 };
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images
 
 #include <TNL/Images/DicomHeader_impl.h>

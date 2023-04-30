@@ -15,8 +15,7 @@
 #include <TNL/Matrices/SparseMatrixView.h>
 #include <TNL/Matrices/DenseMatrix.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Implementation of sparse matrix, i.e. matrix storing only non-zero elements.
@@ -1267,7 +1266,6 @@ protected:
    ViewType view;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/SparseMatrix.hpp>

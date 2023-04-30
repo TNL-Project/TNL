@@ -9,8 +9,7 @@
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Containers/Expressions/StaticExpressionTemplates.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Vector with constant size.
@@ -176,14 +175,12 @@ struct HasEnabledStaticExpressionTemplates< StaticVector< Size, Real > > : std::
 {};
 }  // namespace Expressions
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/StaticVector.hpp>
 
 // TODO: move to some other source file
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Real >
 __cuda_callable__
@@ -233,5 +230,4 @@ TriangleArea( const StaticVector< 3, Real >& a, const StaticVector< 3, Real >& b
    return 0.5 * TNL::sqrt( dot( v, v ) );
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

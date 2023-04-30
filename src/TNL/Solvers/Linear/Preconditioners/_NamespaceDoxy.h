@@ -6,9 +6,6 @@
 
 #pragma once
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
 /**
  * \brief Namespace for preconditioners of linear system solvers.
  *
@@ -20,7 +17,4 @@ namespace Linear {
  * 3. ILUT - is Incomplete LU preconiditoner with thresholding - see [paper by Y.
  * Saad](https://www-users.cse.umn.edu/~saad/PDF/umsi-92-38.pdf)
  */
-namespace Preconditioners {}  // namespace Preconditioners
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+namespace TNL::Solvers::Linear::Preconditioners {}

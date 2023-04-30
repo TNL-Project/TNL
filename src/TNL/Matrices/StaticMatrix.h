@@ -12,8 +12,7 @@
 #include <TNL/Containers/NDArray.h>
 #include <TNL/Containers/StaticVector.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Value,
           std::size_t Rows,
@@ -243,12 +242,10 @@ StaticMatrix< Value, Rows, Columns, Permutation >::print( std::ostream& str ) co
    }
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 // Special functions for special cases:
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Value, std::size_t Rows, std::size_t Columns, typename Permutation >
 StaticMatrix< Value, Columns, Rows, Permutation >
@@ -441,5 +438,4 @@ solve( const StaticMatrix< Real, 4, 4 >& A, const Containers::StaticVector< 4, R
    return inverse( A ) * b;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

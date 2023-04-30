@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/DimensionTag.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< typename Mesh, typename Device, int Dimension >
 class GlobalIndexStorage
@@ -116,6 +114,4 @@ public:
    }
 };
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes

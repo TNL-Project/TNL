@@ -8,8 +8,7 @@
 
 #include <TNL/Matrices/MultidiagonalMatrixRowView.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >
 __cuda_callable__
@@ -106,5 +105,4 @@ MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::cend() 
    return IteratorType( *this, this->getSize() );
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

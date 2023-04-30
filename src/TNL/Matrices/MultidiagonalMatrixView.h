@@ -13,8 +13,7 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Matrices/details/MultidiagonalMatrixIndexer.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Implementation of sparse multidiagonal matrix.
@@ -916,7 +915,6 @@ protected:
    IndexerType indexer;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/MultidiagonalMatrixView.hpp>

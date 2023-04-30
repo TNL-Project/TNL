@@ -14,8 +14,7 @@
 #include <TNL/String.h>
 #include <TNL/TypeInfo.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 // Specifies a subrange [begin, end) of a range [0, globalSize).
 template< typename Index >
@@ -131,5 +130,4 @@ operator<<( std::ostream& str, const Subrange< Index >& range )
    return str << getType< Subrange< Index > >() << "( " << range.getBegin() << ", " << range.getEnd() << " )";
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

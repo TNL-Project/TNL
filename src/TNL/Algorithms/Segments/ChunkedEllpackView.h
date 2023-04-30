@@ -15,9 +15,7 @@
 #include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
 #include <TNL/Algorithms/Segments/SegmentsPrinting.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device,
           typename Index,
@@ -230,8 +228,6 @@ public:
 #endif
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/ChunkedEllpackView.hpp>

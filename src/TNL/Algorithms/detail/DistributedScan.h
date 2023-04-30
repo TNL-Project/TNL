@@ -15,9 +15,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/MPI/Wrappers.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 template< ScanType Type, ScanPhaseType PhaseType >
 struct DistributedScan
@@ -69,6 +67,4 @@ struct DistributedScan
    }
 };
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail

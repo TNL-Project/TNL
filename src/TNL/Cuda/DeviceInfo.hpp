@@ -11,8 +11,7 @@
 #include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
-namespace TNL {
-namespace Cuda {
+namespace TNL::Cuda {
 
 inline int
 DeviceInfo::getNumberOfDevices()
@@ -232,5 +231,4 @@ DeviceInfo::getRegistersPerMultiprocessor( int deviceNum )
 #endif
 }
 
-}  // namespace Cuda
-}  // namespace TNL
+}  // namespace TNL::Cuda

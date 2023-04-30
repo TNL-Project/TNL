@@ -15,8 +15,7 @@
 #include <TNL/Matrices/SparseMatrixRowView.h>
 #include <TNL/TypeTraits.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /// This is to prevent from appearing in Doxygen documentation.
 /// \cond HIDDEN_CLASS
@@ -995,7 +994,6 @@ private:
    }
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/SparseMatrixView.hpp>

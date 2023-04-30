@@ -13,9 +13,7 @@
 #include <TNL/Meshes/Readers/VTIReader.h>
 #include <TNL/Meshes/MeshDetails/layers/EntityTags/Traits.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 class PVTIReader : public XMLVTK
 {
@@ -341,6 +339,4 @@ protected:
    VariantVector pointTags, cellTags;
 };
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

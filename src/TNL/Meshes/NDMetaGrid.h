@@ -8,8 +8,7 @@
 
 #include <TNL/Containers/StaticVector.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 /**
  * \brief Minimal class usable as \e Mesh in the \ref Writers::VTIWriter.
@@ -98,5 +97,4 @@ protected:
    PointType spaceSteps = 0;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

@@ -10,8 +10,7 @@
    #include <mpi.h>
 #endif
 
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
 
 #ifdef HAVE_MPI
 template< typename T >
@@ -170,5 +169,4 @@ getDataType( const T& = T{} )
 }
 #endif
 
-}  // namespace MPI
-}  // namespace TNL
+}  // namespace TNL::MPI

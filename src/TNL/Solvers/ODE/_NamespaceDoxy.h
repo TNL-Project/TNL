@@ -6,9 +6,6 @@
 
 #pragma once
 
-namespace TNL {
-namespace Solvers {
-
 /**
  * \brief Namespace for solvers of ordinary differential equations.
  *
@@ -31,6 +28,4 @@ namespace Solvers {
  * is expressed by a \ref Containers::StaticVector or it is a scalar, i.e.
  * \f$ x \in R \f$ expressed by a numeric type like `double` or `float`.
  */
-namespace ODE {}  // namespace ODE
-}  // namespace Solvers
-}  // namespace TNL
+namespace TNL::Solvers::ODE {}

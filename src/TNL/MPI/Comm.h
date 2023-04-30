@@ -11,8 +11,7 @@
 
 #include "Wrappers.h"
 
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
 
 inline int
 GetRank( MPI_Comm communicator = MPI_COMM_WORLD )
@@ -273,5 +272,4 @@ getRankOnNode( MPI_Comm communicator = MPI_COMM_WORLD )
 #endif
 }
 
-}  // namespace MPI
-}  // namespace TNL
+}  // namespace TNL::MPI

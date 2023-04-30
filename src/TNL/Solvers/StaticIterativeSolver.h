@@ -13,8 +13,7 @@
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 /**
  * \brief Base class for iterative solvers.
@@ -232,7 +231,6 @@ protected:
    Index refreshRate = 1;
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers
 
 #include <TNL/Solvers/StaticIterativeSolver.hpp>

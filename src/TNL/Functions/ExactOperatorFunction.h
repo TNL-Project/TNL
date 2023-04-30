@@ -8,8 +8,7 @@
 
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename Operator, typename Function >
 class ExactOperatorFunction : public Domain< Operator::getDomainDimension(), SpaceDomain >
@@ -46,5 +45,4 @@ protected:
    const FunctionType& function;
 };
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

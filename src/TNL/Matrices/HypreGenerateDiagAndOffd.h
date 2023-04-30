@@ -17,9 +17,7 @@
    #include <TNL/Containers/Array.h>
    #include <TNL/Hypre.h>
 
-namespace TNL {
-namespace Matrices {
-namespace detail {
+namespace TNL::Matrices::detail {
 
 /**
  * \brief Splits matrix A into the diagonal and off-diagonal blocks
@@ -205,8 +203,6 @@ GenerateDiagAndOffd( hypre_CSRMatrix* A, hypre_ParCSRMatrix* matrix, HYPRE_BigIn
    return hypre_error_flag;
 }
 
-}  // namespace detail
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::detail
 
 #endif  // HAVE_HYPRE

@@ -12,8 +12,7 @@
 
 #include <ginkgo/ginkgo.hpp>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \defgroup Ginkgo  Wrappers for the Ginkgo library
@@ -174,5 +173,4 @@ private:
    bool ownership;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

@@ -13,9 +13,7 @@
 #include <TNL/Algorithms/Segments/SegmentView.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 /**
  * \brief Data structure for CSR segments format.
@@ -622,8 +620,6 @@ template< typename Device,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 using CSRDefault = CSRScalar< Device, Index, IndexAllocator >;
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/CSR.hpp>

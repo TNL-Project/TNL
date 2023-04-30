@@ -16,8 +16,7 @@
    #include <dcmtk/ofstd/ofstring.h>
 #endif
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 class DicomHeader;
 
@@ -109,7 +108,6 @@ private:
    String acquisitionTime;
 };
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images
 
 #include <TNL/Images/DicomSeriesInfo_impl.h>

@@ -11,8 +11,7 @@
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Matrices/SparseMatrixElement.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename RowView >
 class MatrixRowViewIterator
@@ -105,7 +104,6 @@ protected:
    IndexType localIdx = 0;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/MatrixRowViewIterator.hpp>

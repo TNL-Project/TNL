@@ -6,9 +6,6 @@
 
 #pragma once
 
-namespace TNL {
-namespace Solvers {
-
 /**
  * \brief Namespace for linear system solvers.
  *
@@ -35,6 +32,4 @@ namespace Solvers {
  *        5. Compact WY form of the Householder reflections, CWY
  *
  */
-namespace Linear {}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+namespace TNL::Solvers::Linear {}

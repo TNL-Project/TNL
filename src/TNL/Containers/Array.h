@@ -14,11 +14,10 @@
 #include <TNL/Allocators/Default.h>
 #include <TNL/Containers/ArrayView.h>
 
-namespace TNL {
 /**
  * \brief Namespace for TNL containers.
  */
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief \e Array is responsible for memory management, access to array
@@ -826,7 +825,6 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 File&
 operator>>( File&& file, Array< Value, Device, Index, Allocator >& array );
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/Array.hpp>

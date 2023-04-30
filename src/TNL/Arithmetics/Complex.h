@@ -12,8 +12,7 @@
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Math.h>
 
-namespace TNL {
-namespace Arithmetics {
+namespace TNL::Arithmetics {
 /**
  * \brief Implementation of complex types.
  *
@@ -388,7 +387,6 @@ template< typename Value >
 std::ostream&
 operator<<( std::ostream& str, const Complex< Value >& c );
 
-}  // namespace Arithmetics
-}  // namespace TNL
+}  // namespace TNL::Arithmetics
 
 #include <TNL/Arithmetics/Complex.hpp>

@@ -15,8 +15,7 @@
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 
-namespace TNL {
-namespace Pointers {
+namespace TNL::Pointers {
 
 /**
  * Since TNL currently supports only execution on host (which does not need
@@ -121,5 +120,4 @@ synchronizeSmartPointersOnDevice( int deviceId = -1 )
    return b;
 }
 
-}  // namespace Pointers
-}  // namespace TNL
+}  // namespace TNL::Pointers

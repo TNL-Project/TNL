@@ -13,8 +13,7 @@
 #include <TNL/MPI/Comm.h>
 #include <TNL/MPI/Wrappers.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Distributed N-dimensional array view.
@@ -622,5 +621,4 @@ protected:
    SizesHolderType localEnds;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

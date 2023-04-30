@@ -15,8 +15,7 @@
 #include <TNL/Containers/ByteArraySynchronizer.h>
 #include <TNL/MPI/Comm.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Distributed array view.
@@ -275,7 +274,6 @@ protected:
    int valuesPerElement = 1;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include "DistributedArrayView.hpp"

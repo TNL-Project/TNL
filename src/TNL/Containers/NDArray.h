@@ -13,8 +13,7 @@
 
 #include <TNL/Containers/NDArrayView.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \defgroup ndarray  N-dimensional arrays
@@ -736,5 +735,4 @@ public:
 // this is a Doxygen end-group marker
 //! @}
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

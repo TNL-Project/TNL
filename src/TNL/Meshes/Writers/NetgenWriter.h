@@ -9,9 +9,7 @@
 #include <ostream>
 #include <iomanip>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
 class NetgenWriter
@@ -51,6 +49,4 @@ public:
    }
 };
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers

@@ -10,8 +10,7 @@
 #include <TNL/Images/Image.h>
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 template< typename Index = int >
 class RegionOfInterest
@@ -54,7 +53,6 @@ protected:
    Index top, bottom, left, right;
 };
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images
 
 #include <TNL/Images/RegionOfInterest_impl.h>

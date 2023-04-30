@@ -14,8 +14,7 @@
    // - https://doc.cgal.org/latest/Spatial_sorting/index.html
    #include <CGAL/hilbert_sort.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 struct HilbertOrdering
 {
@@ -104,7 +103,6 @@ struct HilbertOrdering
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #endif  // HAVE_CGAL

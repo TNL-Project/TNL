@@ -11,8 +11,7 @@
 #include <TNL/Operators/Operator.h>
 #include <TNL/Operators/ExactOperatorComposition.h>
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 /****
  * This object serves for composition of two operators F and G into an operator F( G( u ) ).
@@ -207,5 +206,4 @@ protected:
    InnerOperatorFunction innerOperatorFunction;
 };
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators

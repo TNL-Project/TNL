@@ -15,9 +15,7 @@ static const char* TEST_FILE_NAME = "test_VTIReaderTest.vti";
 
 struct MyConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 // enable all index types in the GridTypeResolver
 template<> struct GridIndexTag< MyConfigTag, short int >{ static constexpr bool enabled = true; };
@@ -30,9 +28,7 @@ template<> struct GridIndexTag< MyConfigTag, std::int64_t >{ static constexpr bo
 template<> struct GridRealTag< MyConfigTag, float > { static constexpr bool enabled = false; };
 template<> struct GridRealTag< MyConfigTag, long double > { static constexpr bool enabled = false; };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 TEST( VTIReaderTest, Grid1D )
 {

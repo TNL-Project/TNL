@@ -12,9 +12,7 @@
 #include <TNL/Algorithms/Segments/detail/CSR.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename Kernel >
 __cuda_callable__
@@ -246,6 +244,4 @@ CSRView< Device, Index, Kernel >::print( Fetch&& fetch ) const -> SegmentsPrinte
    return SegmentsPrinter< CSRView, Fetch >( *this, fetch );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

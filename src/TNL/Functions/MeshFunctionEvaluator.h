@@ -8,8 +8,7 @@
 
 #include <TNL/Functions/FunctionAdapter.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename OutMeshFunction, typename InFunction, typename Real >
 class MeshFunctionEvaluatorTraverserUserData
@@ -141,7 +140,6 @@ public:
    }
 };
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions
 
 #include <TNL/Functions/MeshFunctionEvaluator_impl.h>

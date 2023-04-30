@@ -11,9 +11,7 @@
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Meshes/Traverser.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Real, typename DofVector, typename BoundaryConditions >
 class BoundaryConditionsSetterTraverserUserData
@@ -66,6 +64,4 @@ public:
    };
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

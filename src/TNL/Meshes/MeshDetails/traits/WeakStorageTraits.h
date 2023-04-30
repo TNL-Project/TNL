@@ -9,8 +9,7 @@
 #include <TNL/Meshes/MeshDetails/traits/MeshSubentityTraits.h>
 #include <TNL/Meshes/MeshDetails/traits/MeshSuperentityTraits.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig,
           typename Device,
@@ -46,5 +45,4 @@ struct WeakSuperentityStorageTrait< MeshConfig, Device, EntityTopology, Superdim
    static constexpr bool storageEnabled = false;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

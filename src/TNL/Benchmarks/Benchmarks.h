@@ -16,8 +16,7 @@
 #include <TNL/String.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 const double oneGB = 1024.0 * 1024.0 * 1024.0;
 
@@ -160,7 +159,6 @@ protected:
    SolverMonitorType monitor;
 };
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks
 
 #include "Benchmarks.hpp"

@@ -21,9 +21,7 @@ using MetisIndexArray = Containers::Array< idx_t, Devices::Sequential, idx_t >;
 
 struct DecomposeMeshConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off all grids.
@@ -99,9 +97,7 @@ struct MeshConfigTemplateTag< DecomposeMeshConfigTag >
    };
 };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 
 void configSetup( Config::ConfigDescription& config )

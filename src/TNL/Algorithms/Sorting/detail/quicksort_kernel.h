@@ -13,9 +13,7 @@
 #include <TNL/Algorithms/Sorting/detail/cudaPartition.h>
 #include <TNL/Algorithms/Sorting/detail/quicksort_1Block.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 template< typename Index >
 __device__
@@ -308,6 +306,4 @@ cudaQuickSort2ndPhase2( Containers::ArrayView< Value, Devices::Cuda > arr,
 #endif
 }
 
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Sorting

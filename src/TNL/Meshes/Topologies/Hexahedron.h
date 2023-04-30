@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/Topologies/Quadrangle.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 struct Hexahedron
 {
@@ -356,6 +354,4 @@ struct SubentityVertexMap< Hexahedron, Quadrangle, 5, 3 >
    static constexpr int index = 7;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

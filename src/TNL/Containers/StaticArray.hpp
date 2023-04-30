@@ -12,8 +12,7 @@
 #include <TNL/Containers/detail/StaticArrayAssignment.h>
 #include <TNL/Algorithms/unrolledFor.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 namespace detail {
 
@@ -353,5 +352,4 @@ operator>>( File&& file, StaticArray< Size, Value >& array )
    return f >> array;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

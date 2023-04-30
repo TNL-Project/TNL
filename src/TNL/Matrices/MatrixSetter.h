@@ -8,8 +8,7 @@
 
 #include <TNL/Pointers/SharedPointer.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename DifferentialOperator, typename BoundaryConditions, typename RowsCapacitiesType >
 class MatrixSetterTraverserUserData
@@ -139,7 +138,6 @@ class MatrixSetter< Meshes::Grid< Dimension, Real, Device, Index >,
 };
 */
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/MatrixSetter_impl.h>

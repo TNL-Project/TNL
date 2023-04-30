@@ -17,9 +17,7 @@
 #include <TNL/Algorithms/CudaReductionBuffer.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 #ifdef __CUDACC__
 template< int blockSizeX, typename Result, typename DataFetcher, typename Reduction, typename Index >
@@ -313,6 +311,4 @@ CudaMultireductionKernelLauncher( const Result identity,
 #endif
 }
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail

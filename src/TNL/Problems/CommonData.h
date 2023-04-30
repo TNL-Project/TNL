@@ -10,8 +10,7 @@
 
 #include <TNL/Config/ParameterContainer.h>
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 class CommonData
 {
@@ -23,5 +22,4 @@ public:
    }
 };
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems

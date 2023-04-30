@@ -14,9 +14,7 @@
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 #include <TNL/Solvers/Linear/LinearSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Problem >
 class SemiImplicitTimeStepper
@@ -88,8 +86,6 @@ protected:
    long long int allIterations = 0;
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE
 
 #include <TNL/Solvers/PDE/SemiImplicitTimeStepper.hpp>

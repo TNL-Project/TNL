@@ -10,8 +10,7 @@
 
 #include "DistributedVectorView.h"
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Real, typename Device, typename Index >
 typename DistributedVectorView< Real, Device, Index >::LocalViewType
@@ -265,5 +264,4 @@ DistributedVectorView< Real, Device, Index >::operator%=( Scalar c )
    return *this;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

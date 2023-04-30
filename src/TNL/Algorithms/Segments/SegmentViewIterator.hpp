@@ -9,9 +9,7 @@
 #include <TNL/Algorithms/Segments/SegmentView.h>
 #include <TNL/Assert.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename SegmentView >
 __cuda_callable__
@@ -64,6 +62,4 @@ SegmentViewIterator< SegmentView >::operator*() const -> const SegmentElementTyp
       this->segmentView.getSegmentIndex(), this->localIdx, this->segmentView.getGlobalIndex( this->localIdx ) );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

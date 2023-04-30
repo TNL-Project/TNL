@@ -11,9 +11,7 @@
 #include "Layer.h"
 #include "Traits.h"
 
-namespace TNL {
-namespace Meshes {
-namespace EntityTags {
+namespace TNL::Meshes::EntityTags {
 
 template< typename MeshConfig, typename Device, typename Dimension = DimensionTag< 0 > >
 class LayerInheritor : public Layer< MeshConfig, Device, Dimension >,
@@ -292,6 +290,4 @@ protected:
    }
 };
 
-}  // namespace EntityTags
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::EntityTags

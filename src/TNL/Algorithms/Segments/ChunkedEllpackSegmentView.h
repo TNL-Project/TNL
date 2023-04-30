@@ -6,9 +6,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Index, ElementsOrganization Organization >
 class ChunkedEllpackSegmentView;
@@ -122,6 +120,4 @@ protected:
    IndexType segmentIdx, segmentOffset, segmentSize, chunkSize, chunksInSlice;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

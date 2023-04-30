@@ -8,8 +8,7 @@
 
 #include <TNL/Devices/Host.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename Real = double, typename Device = Devices::Host, typename Index = int >
 class DummyMesh
@@ -26,5 +25,4 @@ public:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

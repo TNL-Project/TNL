@@ -18,8 +18,7 @@
 #include <TNL/Meshes/Writers/VTUWriter.h>
 #include <TNL/Meshes/Writers/VTIWriter.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< int Size, typename Function >
 class VectorField : public Functions::Domain< Function::getDomainDimension(), Function::getDomainType() >
@@ -550,5 +549,4 @@ operator<<( std::ostream& str, const VectorField< Dimension, Function >& f )
    return str;
 }
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

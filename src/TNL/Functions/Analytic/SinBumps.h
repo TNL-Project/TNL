@@ -14,9 +14,7 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< typename Point >
 class SinBumpsBase : public Domain< Point::getSize(), SpaceDomain >
@@ -138,8 +136,6 @@ operator<<( std::ostream& str, const SinBumps< Dimension, Real >& f )
    return str;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic
 
 #include <TNL/Functions/Analytic/SinBumps_impl.h>

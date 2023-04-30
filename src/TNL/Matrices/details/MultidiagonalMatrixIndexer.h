@@ -10,9 +10,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Matrices {
-namespace details {
+namespace TNL::Matrices::details {
 
 template< typename Index, bool RowMajorOrder >
 class MultidiagonalMatrixIndexer
@@ -105,6 +103,4 @@ protected:
    IndexType rows, columns, diagonals, nonemptyRows;
 };
 
-}  // namespace details
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::details

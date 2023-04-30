@@ -10,8 +10,7 @@
 
 #include <TNL/File.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Array with constant size.
@@ -336,7 +335,6 @@ template< int Size, typename Value >
 File&
 operator>>( File&& file, StaticArray< Size, Value >& array );
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/StaticArray.hpp>

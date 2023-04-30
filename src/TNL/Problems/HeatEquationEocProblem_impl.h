@@ -14,8 +14,7 @@
 
 #include "HeatEquationEocProblem.h"
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename Mesh, typename BoundaryCondition, typename RightHandSide, typename DifferentialOperator >
 bool
@@ -35,5 +34,4 @@ HeatEquationEocProblem< Mesh, BoundaryCondition, RightHandSide, DifferentialOper
    return true;
 }
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems

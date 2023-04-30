@@ -10,9 +10,7 @@
 
 #include <TNL/Meshes/Writers/PVTUWriter.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
 void
@@ -234,6 +232,4 @@ PVTUWriter< Mesh >::closePPointData()
    }
 }
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers

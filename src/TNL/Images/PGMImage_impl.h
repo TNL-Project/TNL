@@ -10,8 +10,7 @@
 
 #include <TNL/Images/PGMImage.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 template< typename Index >
 PGMImage< Index >::PGMImage() : binary( false ), maxColors( 0 ), fileOpen( false )
@@ -215,5 +214,4 @@ PGMImage< Index >::~PGMImage()
    close();
 }
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images

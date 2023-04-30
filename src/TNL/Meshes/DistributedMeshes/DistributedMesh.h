@@ -12,9 +12,7 @@
 #include <TNL/Meshes/DistributedMeshes/GlobalIndexStorage.h>
 #include <TNL/Meshes/MeshDetails/IndexPermutationApplier.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< typename Mesh >
 class DistributedMesh : protected GlobalIndexStorageFamily< Mesh >
@@ -247,8 +245,6 @@ protected:
    VTKTypesArrayType vtkPointGhostTypesArray, vtkCellGhostTypesArray;
 };
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes
 
 #include <TNL/Meshes/DistributedMeshes/DistributedGrid.h>

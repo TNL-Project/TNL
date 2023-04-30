@@ -15,8 +15,7 @@
 #include <TNL/Containers/DistributedVectorView.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 // TODO: 2D distribution for dense matrices (maybe it should be in different template,
 //       because e.g. setRowFast doesn't make sense for dense matrices)
@@ -216,7 +215,6 @@ protected:
    Matrix localMatrix;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include "DistributedMatrix_impl.h"

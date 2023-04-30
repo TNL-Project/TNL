@@ -8,9 +8,7 @@
 
 #include "ExplicitTimeStepper.h"
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 /*
 template< typename DofVector, template< typename DofVector_, typename SolverMonitor > class OdeSolver >
@@ -156,6 +154,4 @@ ExplicitTimeStepper< DofVector, OdeSolver >::writeEpilog( Logger& logger ) const
 }
 */
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

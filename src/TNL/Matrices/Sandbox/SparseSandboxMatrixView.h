@@ -13,9 +13,7 @@
 #include <TNL/Matrices/Sandbox/SparseSandboxMatrixRowView.h>
 #include <TNL/TypeTraits.h>
 
-namespace TNL {
-namespace Matrices {
-namespace Sandbox {
+namespace TNL::Matrices::Sandbox {
 
 /**
  * \brief Implementation of sparse sandbox matrix view.
@@ -902,8 +900,6 @@ private:
    }
 };
 
-}  // namespace Sandbox
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::Sandbox
 
 #include <TNL/Matrices/Sandbox/SparseSandboxMatrixView.hpp>

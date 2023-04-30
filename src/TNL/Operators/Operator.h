@@ -8,8 +8,7 @@
 
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 template< typename Mesh,
           Functions::DomainType DomainType = Functions::MeshInteriorDomain,
@@ -62,5 +61,4 @@ public:
    {}
 };
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators

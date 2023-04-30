@@ -9,9 +9,7 @@
 #include <cmath>
 #include <TNL/Functions/Analytic/ExpBump.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< int dimensions, typename Real >
 ExpBumpBase< dimensions, Real >::ExpBumpBase() : amplitude( 1.0 ), sigma( 1.0 )
@@ -201,6 +199,4 @@ ExpBump< 3, Real >::operator()( const PointType& v, const Real& time ) const
    return this->template getPartialDerivative< 0, 0, 0 >( v, time );
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic

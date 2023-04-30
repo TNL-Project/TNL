@@ -12,8 +12,7 @@
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Matrices/details/TridiagonalMatrixIndexer.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Implementation of sparse tridiagonal matrix.
@@ -876,7 +875,6 @@ protected:
    IndexerType indexer;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/TridiagonalMatrixView.hpp>

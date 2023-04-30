@@ -12,8 +12,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename Mesh >
 class MeshBuilder
@@ -424,5 +423,4 @@ private:
    BoolVector pointsSet;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
