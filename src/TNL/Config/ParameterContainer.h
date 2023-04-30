@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <unordered_map>
 #include <vector>
 
@@ -92,10 +93,12 @@ public:
    [[nodiscard]] bool
    checkParameters( std::initializer_list< std::string > names ) const
    {
-      for( const auto& name : names )
-         if( ! checkParameter( name ) )
-            return false;
-      return true;
+      return std::all_of( names.begin(),
+                          names.end(),
+                          [ this ]( const std::string& name )
+                          {
+                             return checkParameter( name );
+                          } );
    }
 
    /**
