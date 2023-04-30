@@ -56,10 +56,9 @@ SegmentViewIterator< SegmentView >::operator--()
 template< typename SegmentView >
 __cuda_callable__
 auto
-SegmentViewIterator< SegmentView >::operator*() const -> const SegmentElementType
+SegmentViewIterator< SegmentView >::operator*() const -> SegmentElementType
 {
-   return SegmentElementType(
-      this->segmentView.getSegmentIndex(), this->localIdx, this->segmentView.getGlobalIndex( this->localIdx ) );
+   return { this->segmentView.getSegmentIndex(), this->localIdx, this->segmentView.getGlobalIndex( this->localIdx ) };
 }
 
 }  // namespace TNL::Algorithms::Segments

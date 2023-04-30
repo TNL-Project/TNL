@@ -87,7 +87,7 @@ public:
     * \return segment element the iterator points to.
     */
    [[nodiscard]] __cuda_callable__
-   const SegmentElementType
+   SegmentElementType
    operator*() const;
 
 protected:
