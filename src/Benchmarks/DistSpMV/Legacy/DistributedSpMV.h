@@ -12,7 +12,7 @@
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
-#include <TNL/Matrices/ThreePartVector.h>
+#include "ThreePartVector.h"
 
 // operations
 #include <type_traits>  // std::add_const
