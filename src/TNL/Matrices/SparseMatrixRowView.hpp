@@ -50,7 +50,7 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getColumnInd
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
 auto
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getColumnIndex( const IndexType localIdx ) -> IndexType&
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getColumnIndex( const IndexType localIdx ) -> typename ColumnsIndexesViewType::ValueType&
 {
    TNL_ASSERT_LT( localIdx, this->getSize(), "Local index exceeds matrix row capacity." );
    return columnIndexes[ segmentView.getGlobalIndex( localIdx ) ];
