@@ -33,6 +33,7 @@ struct GrowingSegmentsView : public SegmentsView_
    IndexType newSlot( IndexType segmentIdx )
    {
       IndexType localIdx = Algorithms::AtomicOperations< DeviceType >::add( segmentsFilling[ segmentIdx ], ( IndexType) 1 );
+      TNL_ASSERT_LT( localIdx, this->getSegmentSize( segmentIdx ), "" );
       return this->getGlobalIndex( segmentIdx, localIdx );
    }
 
@@ -59,6 +60,20 @@ struct GrowingSegmentsView : public SegmentsView_
    {
       forElements( 0, this->getSegmentsCount(), f );
    }
+
+   /*template< typename Function >
+   void
+   sequentialForSegments( IndexType begin, IndexType end, Function&& function ) const
+   {
+      Segments::sequentialForSegments( begin, end, function ); // TODO: we need special SegmentView for growing segemnts.
+   }
+
+   template< typename Function >
+   void
+   sequentialForAllSegments( Function&& f ) const
+   {
+      Segemnts::sequentialForAllSegments( 0, this->sequentialForSegments(), f );
+   }*/
 
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    void reduceSegments( IndexType begin,

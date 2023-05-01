@@ -26,6 +26,7 @@ struct GrowingSegments : public Segments
    using FillingVector = Containers::Vector< IndexType, DeviceType, IndexType >;
    using FillingVectorView = typename FillingVector::ViewType;
    using GrowingSegmentsViewType = GrowingSegmentsView< SegmentsType >;
+   using SegmentViewType = typename Segments::SegmentViewType;
 
    template< typename SizesContainer >
    GrowingSegments( const SizesContainer& segmentsSizes )
@@ -69,6 +70,20 @@ struct GrowingSegments : public Segments
    {
       forElements( 0, this->getSegmentsCount(), f );
    }
+
+   /*template< typename Function >
+   void
+   sequentialForSegments( IndexType begin, IndexType end, Function&& function ) const
+   {
+      this->view.sequentialForSegments( begin, end, function );
+   }
+
+   template< typename Function >
+   void
+   sequentialForAllSegments( Function&& f ) const
+   {
+      this->view.sequentialForAllSegments( f );
+   }*/
 
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    void reduceSegments( IndexType begin,
