@@ -118,23 +118,18 @@ MatrixWriter< Matrix, TNL::Devices::Host >::writeMtx( std::ostream& str, const M
    str << "%%" << std::setw( 9 ) << " ROWS " << std::setw( 9 ) << " COLUMNS " << std::setw( 12 ) << " ELEMENTS " << std::endl;
    str << std::setw( 9 ) << matrix.getRows() << " " << std::setw( 9 ) << matrix.getColumns() << " " << std::setw( 12 )
        << matrix.getNonzeroElementsCount() << std::endl;
-   std::ostream* str_ptr = &str;
-   std::ostream* cout_ptr = &std::cout;
-   auto f = [ = ] __cuda_callable__( const typename Matrix::ConstRowView& row ) mutable
-   {
-      auto rowIdx = row.getRowIndex();
+   for( IndexType rowIdx = 0; rowIdx < matrix.getRows(); rowIdx++ ) {
+      const auto row = matrix.getRow( rowIdx );
       for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
          IndexType columnIdx = row.getColumnIndex( localIdx );
          RealType value = row.getValue( localIdx );
          if( value != 0 ) {
-            *str_ptr << std::setw( 9 ) << rowIdx + 1 << std::setw( 9 ) << columnIdx + 1 << std::setw( 12 ) << value
-                     << std::endl;
+            str << std::setw( 9 ) << rowIdx + 1 << std::setw( 9 ) << columnIdx + 1 << std::setw( 12 ) << value << std::endl;
             if( verbose )
-               *cout_ptr << "Drawing the row " << rowIdx << "      \r" << std::flush;
+               std::cout << "Drawing the row " << rowIdx << "      \r" << std::flush;
          }
       }
-   };
-   matrix.sequentialForAllRows( f );
+   }
 }
 
 template< typename Matrix >
