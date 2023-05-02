@@ -113,13 +113,13 @@ public:
     * \brief Gets pointer to data of this static array.
     */
    [[nodiscard]] constexpr Value*
-   getData();
+   getData() noexcept;
 
    /**
     * \brief Gets constant pointer to data of this static array.
     */
    [[nodiscard]] constexpr const Value*
-   getData() const;
+   getData() const noexcept;
 
    /**
     * \brief Accesses specified element at the position \e i and returns a constant reference to its value.
@@ -127,7 +127,7 @@ public:
     * \param i Index position of an element.
     */
    [[nodiscard]] constexpr const Value&
-   operator[]( int i ) const;
+   operator[]( int i ) const noexcept;
 
    /**
     * \brief Accesses specified element at the position \e i and returns a reference to its value.
@@ -135,7 +135,7 @@ public:
     * \param i Index position of an element.
     */
    [[nodiscard]] constexpr Value&
-   operator[]( int i );
+   operator[]( int i ) noexcept;
 
    /**
     * \brief Accesses specified element at the position \e i and returns a constant reference to its value.
@@ -143,7 +143,7 @@ public:
     * Equivalent to \ref operator[].
     */
    [[nodiscard]] constexpr const Value&
-   operator()( int i ) const;
+   operator()( int i ) const noexcept;
 
    /**
     * \brief Accesses specified element at the position \e i and returns a reference to its value.
@@ -151,43 +151,43 @@ public:
     * Equivalent to \ref operator[].
     */
    [[nodiscard]] constexpr Value&
-   operator()( int i );
+   operator()( int i ) noexcept;
 
    /**
     * \brief Returns reference to the first coordinate.
     */
    [[nodiscard]] constexpr Value&
-   x();
+   x() noexcept;
 
    /**
     * \brief Returns constant reference to the first coordinate.
     */
    [[nodiscard]] constexpr const Value&
-   x() const;
+   x() const noexcept;
 
    /**
     * \brief Returns reference to the second coordinate for arrays with Size >= 2.
     */
    [[nodiscard]] constexpr Value&
-   y();
+   y() noexcept;
 
    /**
     * \brief Returns constant reference to the second coordinate for arrays with Size >= 2.
     */
    [[nodiscard]] constexpr const Value&
-   y() const;
+   y() const noexcept;
 
    /**
     * \brief Returns reference to the third coordinate for arrays with Size >= 3.
     */
    [[nodiscard]] constexpr Value&
-   z();
+   z() noexcept;
 
    /**
     * \brief Returns constant reference to the third coordinate for arrays with Size >= 3.
     */
    [[nodiscard]] constexpr const Value&
-   z() const;
+   z() const noexcept;
 
    /**
     * \brief Copy-assignment operator.

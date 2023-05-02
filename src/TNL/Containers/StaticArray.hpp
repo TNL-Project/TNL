@@ -128,21 +128,21 @@ constexpr StaticArray< Size, Value >::StaticArray( const std::initializer_list< 
 
 template< int Size, typename Value >
 constexpr Value*
-StaticArray< Size, Value >::getData()
+StaticArray< Size, Value >::getData() noexcept
 {
    return data.data();
 }
 
 template< int Size, typename Value >
 constexpr const Value*
-StaticArray< Size, Value >::getData() const
+StaticArray< Size, Value >::getData() const noexcept
 {
    return data.data();
 }
 
 template< int Size, typename Value >
 constexpr const Value&
-StaticArray< Size, Value >::operator[]( int i ) const
+StaticArray< Size, Value >::operator[]( int i ) const noexcept
 {
    TNL_ASSERT_GE( i, 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, Size, "Element index is out of bounds." );
@@ -151,7 +151,7 @@ StaticArray< Size, Value >::operator[]( int i ) const
 
 template< int Size, typename Value >
 constexpr Value&
-StaticArray< Size, Value >::operator[]( int i )
+StaticArray< Size, Value >::operator[]( int i ) noexcept
 {
    TNL_ASSERT_GE( i, 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, Size, "Element index is out of bounds." );
@@ -160,35 +160,35 @@ StaticArray< Size, Value >::operator[]( int i )
 
 template< int Size, typename Value >
 constexpr const Value&
-StaticArray< Size, Value >::operator()( int i ) const
+StaticArray< Size, Value >::operator()( int i ) const noexcept
 {
    return operator[]( i );
 }
 
 template< int Size, typename Value >
 constexpr Value&
-StaticArray< Size, Value >::operator()( int i )
+StaticArray< Size, Value >::operator()( int i ) noexcept
 {
    return operator[]( i );
 }
 
 template< int Size, typename Value >
 constexpr Value&
-StaticArray< Size, Value >::x()
+StaticArray< Size, Value >::x() noexcept
 {
    return data[ 0 ];
 }
 
 template< int Size, typename Value >
 constexpr const Value&
-StaticArray< Size, Value >::x() const
+StaticArray< Size, Value >::x() const noexcept
 {
    return data[ 0 ];
 }
 
 template< int Size, typename Value >
 constexpr Value&
-StaticArray< Size, Value >::y()
+StaticArray< Size, Value >::y() noexcept
 {
    static_assert( Size > 1, "Cannot call StaticArray< Size, Value >::y() for arrays with Size < 2." );
    return data[ 1 ];
@@ -196,7 +196,7 @@ StaticArray< Size, Value >::y()
 
 template< int Size, typename Value >
 constexpr const Value&
-StaticArray< Size, Value >::y() const
+StaticArray< Size, Value >::y() const noexcept
 {
    static_assert( Size > 1, "Cannot call StaticArray< Size, Value >::y() for arrays with Size < 2." );
    return data[ 1 ];
@@ -204,7 +204,7 @@ StaticArray< Size, Value >::y() const
 
 template< int Size, typename Value >
 constexpr Value&
-StaticArray< Size, Value >::z()
+StaticArray< Size, Value >::z() noexcept
 {
    static_assert( Size > 2, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
    return data[ 2 ];
@@ -212,7 +212,7 @@ StaticArray< Size, Value >::z()
 
 template< int Size, typename Value >
 constexpr const Value&
-StaticArray< Size, Value >::z() const
+StaticArray< Size, Value >::z() const noexcept
 {
    static_assert( Size > 2, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
    return data[ 2 ];
