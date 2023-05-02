@@ -299,6 +299,75 @@ TYPED_TEST( StaticArrayTest, streamOperator )
    std::stringstream testStream;
    testStream << u;
 }
+
+template< typename... Ts >
+void unused_variables( const Ts&... ) {}
+
+TYPED_TEST( StaticArrayTest, structuredBinding )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   constexpr int N = ArrayType::getSize();
+
+   ArrayType array;
+   const ArrayType constarray = array;
+
+   if constexpr( N == 1 ) {
+      auto& [lv1] = array;
+      const auto& [clv1] = constarray;
+      auto&& [rv1] = std::move( array );
+      const auto&& [crv1] = std::move( constarray );
+
+      // ignore warnings due to unused variables
+      unused_variables( lv1, clv1, rv1, crv1 );
+   }
+   else if constexpr( N == 2 ) {
+      auto& [lv1, lv2] = array;
+      const auto& [clv1, clv2] = constarray;
+      auto&& [rv1, rv2] = std::move( array );
+      const auto&& [crv1, crv2] = std::move( constarray );
+
+      // ignore warnings due to unused variables
+      unused_variables( lv1, clv1, rv1, crv1 );
+      unused_variables( lv2, clv2, rv2, crv2 );
+   }
+   else if constexpr( N == 3 ) {
+      auto& [lv1, lv2, lv3] = array;
+      const auto& [clv1, clv2, clv3] = constarray;
+      auto&& [rv1, rv2, rv3] = std::move( array );
+      const auto&& [crv1, crv2, crv3] = std::move( constarray );
+
+      // ignore warnings due to unused variables
+      unused_variables( lv1, clv1, rv1, crv1 );
+      unused_variables( lv2, clv2, rv2, crv2 );
+      unused_variables( lv3, clv3, rv3, crv3 );
+   }
+   else if constexpr( N == 4 ) {
+      auto& [lv1, lv2, lv3, lv4] = array;
+      const auto& [clv1, clv2, clv3, clv4] = constarray;
+      auto&& [rv1, rv2, rv3, rv4] = std::move( array );
+      const auto&& [crv1, crv2, crv3, crv4] = std::move( constarray );
+
+      // ignore warnings due to unused variables
+      unused_variables( lv1, clv1, rv1, crv1 );
+      unused_variables( lv2, clv2, rv2, crv2 );
+      unused_variables( lv3, clv3, rv3, crv3 );
+      unused_variables( lv4, clv4, rv4, crv4 );
+   }
+   else if constexpr( N == 5 ) {
+      auto& [lv1, lv2, lv3, lv4, lv5] = array;
+      const auto& [clv1, clv2, clv3, clv4, clv5] = constarray;
+      auto&& [rv1, rv2, rv3, rv4, rv5] = std::move( array );
+      const auto&& [crv1, crv2, crv3, crv4, crv5] = std::move( constarray );
+
+      // ignore warnings due to unused variables
+      unused_variables( lv1, clv1, rv1, crv1 );
+      unused_variables( lv2, clv2, rv2, crv2 );
+      unused_variables( lv3, clv3, rv3, crv3 );
+      unused_variables( lv4, clv4, rv4, crv4 );
+      unused_variables( lv5, clv5, rv5, crv5 );
+   }
+}
+
 #endif // HAVE_GTEST
 
 

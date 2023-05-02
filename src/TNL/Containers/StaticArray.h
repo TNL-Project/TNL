@@ -337,4 +337,58 @@ operator>>( File&& file, StaticArray< Size, Value >& array );
 
 }  // namespace TNL::Containers
 
+// specializations to make StaticArray work with C++17 structured bindings
+// (all these specializations exist for std::array)
+namespace std {
+
+template< int N, class T >
+struct tuple_size< TNL::Containers::StaticArray< N, T > > : std::integral_constant< std::size_t, N >
+{};
+
+template< std::size_t I, int N, class T >
+struct tuple_element< I, TNL::Containers::StaticArray< N, T > >
+{
+   using type = T;
+};
+
+}  // namespace std
+
+// the `get` function must be defined in the TNL::Containers namespace,
+// because structured binding finds it by ADL
+namespace TNL::Containers {
+
+template< std::size_t I, int N, class T >
+constexpr T&
+get( StaticArray< N, T >& a ) noexcept
+{
+   static_assert( I < N );
+   return a[ I ];
+}
+
+template< std::size_t I, int N, class T >
+constexpr T&&
+get( StaticArray< N, T >&& a ) noexcept
+{
+   static_assert( I < N );
+   return std::move( a[ I ] );
+}
+
+template< std::size_t I, int N, class T >
+constexpr const T&
+get( const StaticArray< N, T >& a ) noexcept
+{
+   static_assert( I < N );
+   return a[ I ];
+}
+
+template< std::size_t I, int N, class T >
+constexpr const T&&
+get( const StaticArray< N, T >&& a ) noexcept
+{
+   static_assert( I < N );
+   return std::move( a[ I ] );
+}
+
+}  // namespace TNL::Containers
+
 #include <TNL/Containers/StaticArray.hpp>
