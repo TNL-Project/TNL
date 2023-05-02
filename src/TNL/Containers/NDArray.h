@@ -641,6 +641,16 @@ class StaticNDArray
 public:
    // inherit all assignment operators
    using Base::operator=;
+
+   // FIXME: StaticNDArray inherits even "dynamic" methods from NDArrayStorage (e.g. reset or setLike) which
+   // don't make sense here - a separate base class should be created with only the static functionality
+
+   //! \brief Sets all elements of the array to given value.
+   constexpr void
+   setValue( Value value )
+   {
+      this->array.setValue( value );
+   }
 };
 
 /**
