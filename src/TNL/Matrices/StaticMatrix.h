@@ -132,8 +132,7 @@ __cuda_callable__
 constexpr StaticMatrix< Value, Rows, Columns, Permutation >::StaticMatrix( const T& v )
 : Containers::StaticNDArray< Value, Containers::SizesHolder< int, Rows, Columns >, Permutation >()
 {
-   // setValue works but it complaints about calliign __host__ function from __host__ __device__ function.
-   this->array = v;
+   this->setValue( v );
 }
 
 template< typename Value, std::size_t Rows, std::size_t Columns, typename Permutation >
@@ -152,8 +151,7 @@ __cuda_callable__
 constexpr StaticMatrix< Value, Rows, Columns, Permutation >&
 StaticMatrix< Value, Rows, Columns, Permutation >::operator=( const T& v )
 {
-   // setValue works but it complaints about calliign __host__ function from __host__ __device__ function.
-   this->array = v;
+   this->setValue( v );
    return *this;
 }
 
