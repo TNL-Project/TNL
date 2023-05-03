@@ -8,6 +8,7 @@
 
 #include <iostream>
 
+#include <TNL/DiscreteMath.h>
 #include <TNL/Math.h>
 #include <TNL/Cuda/DummyDefs.h>
 

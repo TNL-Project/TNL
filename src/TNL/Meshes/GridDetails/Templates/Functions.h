@@ -13,37 +13,6 @@ namespace TNL {
 namespace Meshes {
 namespace Templates {
 
-constexpr size_t
-pow( size_t Value, size_t Power )
-{
-   size_t result = 1;
-
-   for( size_t i = 0; i < Power; i++ )
-      result *= Value;
-
-   return result;
-}
-
-template< typename Index >
-constexpr Index
-product( Index from, Index to )
-{
-   Index result = 1;
-
-   if( from <= to )
-      for( Index i = from; i <= to; i++ )
-         result *= i;
-
-   return result;
-}
-
-template< typename Index >
-constexpr Index
-combination( Index k, Index n )
-{
-   return product< Index >( k + 1, n ) / product< Index >( 1, n - k );
-}
-
 /**
  * @brief A help method to calculate collapsed index the next way:
  *        base ^ 0 * (power_0 + base/2) + base ^ 1 * (power_1 + base/2)
@@ -83,25 +52,6 @@ makeCollapsedIndex( const int base )
    }
 
    return index;
-}
-
-template< typename Index >
-constexpr Index
-firstKCombinationSum( Index k, Index n )
-{
-   if( k == 0 )
-      return 0;
-
-   if( k == n )
-      return ( 1 << n ) - 1;
-
-   Index result = 0;
-
-   // Fraction simplification of k-combination
-   for( Index i = 0; i < k; i++ )
-      result += combination( i, n );
-
-   return result;
 }
 
 constexpr bool

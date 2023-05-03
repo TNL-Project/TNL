@@ -18,7 +18,7 @@ struct NormalsGetter
 public:
    using Coordinate = TNL::Containers::StaticVector< GridDimension, Index >;
    using OrientationNormalsContainer =
-      TNL::Containers::StaticVector< Templates::combination( EntityDimension, GridDimension ), Coordinate >;
+      TNL::Containers::StaticVector< combinationsCount( EntityDimension, GridDimension ), Coordinate >;
    using Permutations =
       Templates::make_int_permutations< GridDimension,
                                         Templates::build_ones_pack< GridDimension - EntityDimension, GridDimension > >;
@@ -26,7 +26,7 @@ public:
    template<
       int Orientation,
       std::enable_if_t<
-         Templates::isInLeftClosedRightOpenInterval( 0, Orientation, Templates::combination( EntityDimension, GridDimension ) ),
+         Templates::isInLeftClosedRightOpenInterval( 0, Orientation, combinationsCount( EntityDimension, GridDimension ) ),
          bool > = true >
    constexpr static Coordinate
    getNormals()

@@ -69,7 +69,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 constexpr Index
 Grid< Dimension, Real, Device, Index >::getEntityOrientationsCount( IndexType entityDimension )
 {
-   return Templates::combination< Index >( entityDimension, Dimension );
+   return combinationsCount< Index >( entityDimension, Dimension );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -201,7 +201,7 @@ Grid< Dimension, Real, Device, Index >::getOrientedEntitiesCount( IndexType dime
    if( dimension == 0 || dimension == Dimension )
       return this->getEntitiesCount( dimension );
 
-   Index index = Templates::firstKCombinationSum( dimension, (Index) Dimension ) + orientation;
+   Index index = firstKCombinationsSum( dimension, (Index) Dimension ) + orientation;
 
    return this->entitiesCountAlongNormals[ index ];
 }
@@ -212,7 +212,7 @@ __cuda_callable__
 typename Grid< Dimension, Real, Device, Index >::CoordinatesType
 Grid< Dimension, Real, Device, Index >::getNormals( Index orientation ) const noexcept
 {
-   constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   constexpr Index index = firstKCombinationsSum( EntityDimension, Dimension );
 
    return this->normals( index + orientation );
 }
@@ -223,7 +223,7 @@ __cuda_callable__
 typename Grid< Dimension, Real, Device, Index >::CoordinatesType
 Grid< Dimension, Real, Device, Index >::getBasis( Index orientation ) const noexcept
 {
-   constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   constexpr Index index = firstKCombinationsSum( EntityDimension, Dimension );
    return 1 - this->normals( index + orientation );
 }
 
@@ -233,7 +233,7 @@ __cuda_callable__
 Index
 Grid< Dimension, Real, Device, Index >::getOrientation( const CoordinatesType& normals ) const noexcept
 {
-   constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   constexpr Index index = firstKCombinationsSum( EntityDimension, Dimension );
    const Index count = this->getEntityOrientationsCount( EntityDimension );
    for( IndexType orientation = 0; orientation < count; orientation++ )
       if( this->normals( index + orientation ) == normals )
@@ -249,7 +249,7 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
                                                               CoordinatesType& entityNormals,
                                                               Index& orientation ) const noexcept -> CoordinatesType
 {
-   orientation = Templates::firstKCombinationSum( EntityDimension, Dimension );
+   orientation = firstKCombinationsSum( EntityDimension, Dimension );
    const Index end = orientation + this->getEntityOrientationsCount( EntityDimension );
    auto entityIdx_( entityIdx );
    while( orientation < end && entityIdx_ >= this->entitiesCountAlongNormals[ orientation ] ) {
@@ -281,7 +281,7 @@ Grid< Dimension, Real, Device, Index >::getOrientedEntitiesCount() const noexcep
    if( EntityDimension == 0 || EntityDimension == Dimension )
       return this->getEntitiesCount( EntityDimension );
 
-   constexpr Index index = Templates::firstKCombinationSum( EntityDimension, Dimension ) + EntityOrientation;
+   constexpr Index index = firstKCombinationsSum( EntityDimension, Dimension ) + EntityOrientation;
 
    return this->entitiesCountAlongNormals[ index ];
 }

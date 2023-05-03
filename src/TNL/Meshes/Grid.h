@@ -114,8 +114,7 @@ public:
    static constexpr int spaceStepsPowersSize = 5;
 
    using SpaceProductsContainer =
-      Containers::StaticVector< std::integral_constant< Index, Templates::pow( spaceStepsPowersSize, Dimension ) >::value,
-                                Real >;
+      Containers::StaticVector< std::integral_constant< Index, discretePow( spaceStepsPowersSize, Dimension ) >::value, Real >;
 
    /**
     * \brief Grid constructor with no parameters.
