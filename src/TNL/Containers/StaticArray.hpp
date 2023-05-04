@@ -128,6 +128,15 @@ constexpr StaticArray< Size, Value >::StaticArray( const std::initializer_list< 
 }
 
 template< int Size, typename Value >
+   template< typename Value_ >
+   __cuda_callable__
+constexpr StaticArray< Size, Value >::StaticArray( const std::array< Value_, Size >& array )
+{
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = array[ i ];
+}
+
+template< int Size, typename Value >
 constexpr Value*
 StaticArray< Size, Value >::getData()
 {

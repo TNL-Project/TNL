@@ -111,6 +111,18 @@ public:
    constexpr StaticArray( const std::initializer_list< Value >& elems );
 
    /**
+    * \brief Constructor from std::array.
+    *
+    * The array size must equal to \e Size.
+    *
+    * \tparam Value_ is type of elements in the input array.
+    * \param array is the input array.
+    */
+   template< typename Value_ >
+   __cuda_callable__
+   constexpr StaticArray( const std::array< Value_, Size >& array );
+
+   /**
     * \brief Gets pointer to data of this static array.
     */
    constexpr Value*
