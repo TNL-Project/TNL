@@ -69,10 +69,10 @@ parallelFor( const Begin& begin, const End& end, Function f, FunctionArgs... arg
  *
  * \param begin is the left bound of the iteration range `[begin, end)`.
  * \param end is the right bound of the iteration range `[begin, end)`.
+ * \param launch_config specifies kernel launch parameters.
  * \param f is the function to be called in each iteration. Arguments of the
  *          function are the iteration multi-index, which is an instance of the
  *          `End` type, and arguments from the `args...` variadic pack.
- * \param launch_config specifies kernel launch parameters.
  * \param args are additional parameters to be passed to the function f.
  *
  * \par Example
