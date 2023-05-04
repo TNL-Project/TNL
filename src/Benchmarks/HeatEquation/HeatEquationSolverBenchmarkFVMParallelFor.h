@@ -55,13 +55,13 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 1, Real, Device, Index > : pub
          auto gradients = [=] __cuda_callable__ ( Index i ) mutable {
             faces_view[ i ] = ( ux_view[ i ] - ux_view[ i-1 ] ) * hx_inv;
          };
-         TNL::Algorithms::ParallelFor< Device >::exec( 1, xSize, gradients );
+         TNL::Algorithms::parallelFor< Device >( 1, xSize, gradients );
 
          auto update = [=] __cuda_callable__( Index i ) mutable
          {
             aux_view[ i ] = ux_view[ i ] + timestep * ( faces_view[ i+1 ] - faces_view[ i ] ) * hx_inv;
          };
-         TNL::Algorithms::ParallelFor< Device >::exec( 1, xSize - 1, update );
+         TNL::Algorithms::parallelFor< Device >( 1, xSize - 1, update );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -81,6 +81,7 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index > : pub
    static constexpr int Dimension = 2;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
+   using CoordinatesType = TNL::Containers::StaticArray< Dimension, Index >;
 
    TNL::String scheme() { return "fvm"; }
 
@@ -147,12 +148,14 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index > : pub
          //    face_idx =  row * ( xSize + 1 ) + column
          //
          // where column = 1 ... xSize-1 and row = 1 ... ySize-2 and
-         auto x_gradients = [=] __cuda_callable__ ( Index column, Index row ) mutable {
+         auto x_gradients = [=] __cuda_callable__ ( const CoordinatesType& idx ) mutable {
+            const Index& column = idx[ 0 ];
+            const Index& row = idx[ 1 ];
             const Index face_idx = row * ( xSize + 1 ) + column;
             const Index cell_idx = row * xSize + column;
             y_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - 1 ] ) * hx_inv;
          };
-         TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize, ySize - 1, x_gradients );
+         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize, ySize - 1 }, x_gradients );
 
          /////
          // Next we iterate over horizontal faces of interior cells. Their coordinates and
@@ -180,13 +183,15 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index > : pub
          //
          //    face_idx =  row * xSize + column
          // where column = 1 ... xSize-2 and row = 1 ... ySize-1
-         auto y_gradients = [=] __cuda_callable__ ( Index column, Index row ) mutable {
+         auto y_gradients = [=] __cuda_callable__ ( const CoordinatesType& idx ) mutable {
+            const Index& column = idx[ 0 ];
+            const Index& row = idx[ 1 ];
             //const Index face_idx = row * xSize + column;
             //const Index cell_idx = row * xSize + column;
-            const Index idx = row * xSize + column;
-            x_faces_view[ idx ] = ( ux_view[ idx ] - ux_view[ idx - xSize ] ) * hy_inv;
+            const Index i = row * xSize + column;
+            x_faces_view[ i ] = ( ux_view[ i ] - ux_view[ i - xSize ] ) * hy_inv;
          };
-         TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize - 1, ySize, y_gradients );
+         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize }, y_gradients );
 
          ////
          // From the first derivatives stored on the faces, we will now compute the laplacian:
@@ -219,15 +224,17 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index > : pub
          //
          // BC denotes cells where we set boundary conditions and therefore we iterate only over the
          // interior cells for which column = 1 ... xSize-2 and row = 1 ... ySize-2.
-         auto update = [=] __cuda_callable__( Index column, Index row ) mutable
+         auto update = [=] __cuda_callable__( const CoordinatesType& idx ) mutable
          {
+            const Index& column = idx[ 0 ];
+            const Index& row = idx[ 1 ];
             const Index y_face_idx = row * ( xSize + 1 ) + column;
             auto index = row * xSize + column;
             aux_view[index] = ux_view[ index ] + timestep * (
                ( y_faces_view[ y_face_idx + 1 ] - y_faces_view[ y_face_idx ] ) * hx_inv +
                ( x_faces_view[ index + xSize ]  - x_faces_view[ index ]      ) * hy_inv );
          };
-         TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize - 1, ySize - 1, update );
+         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, update );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -247,6 +254,7 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index > : pub
    static constexpr int Dimension = 3;
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
+   using CoordinatesType = TNL::Containers::StaticArray< Dimension, Index >;
 
    TNL::String scheme() { return "fvm"; }
 
@@ -287,29 +295,41 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index > : pub
          auto xz_faces_view = this->xz_faces.getView();
          auto xy_faces_view = this->xy_faces.getView();
 
-         auto x_gradients = [=] __cuda_callable__ ( Index i, Index j, Index k ) mutable {
+         auto x_gradients = [=] __cuda_callable__ ( const CoordinatesType& idx ) mutable {
+            const Index& i = idx[0];
+            const Index& j = idx[1];
+            const Index& k = idx[2];
             const Index face_idx = ( k * ySize + j ) * ( xSize + 1 ) + i;
             const Index cell_idx = ( k * ySize + j ) * xSize + i;
             yz_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - 1 ] ) * hx_inv;
          };
-         TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize, ySize - 1, zSize - 1, x_gradients );
+         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize, ySize - 1, zSize - 1 }, x_gradients );
 
-         auto y_gradients = [=] __cuda_callable__ ( Index i, Index j, Index k ) mutable {
+         auto y_gradients = [=] __cuda_callable__ ( const CoordinatesType& idx ) mutable {
+            const Index& i = idx[0];
+            const Index& j = idx[1];
+            const Index& k = idx[2];
             const Index face_idx = ( k * ( ySize+1 ) + j ) * xSize + i;
             const Index cell_idx = ( k * ySize + j ) * xSize + i;
             xz_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - xSize ] ) * hy_inv;
          };
-         TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize, zSize - 1, y_gradients );
+         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize, zSize - 1 }, y_gradients );
 
-         auto z_gradients = [=] __cuda_callable__ ( Index i, Index j, Index k ) mutable {
+         auto z_gradients = [=] __cuda_callable__ ( const CoordinatesType& idx ) mutable {
+            const Index& i = idx[0];
+            const Index& j = idx[1];
+            const Index& k = idx[2];
             const Index face_idx = ( k * ySize + j ) * xSize + i;
             const Index cell_idx = ( k * ySize + j ) * xSize + i;
             xy_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - xySize ] ) * hz_inv;
          };
-         TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize, z_gradients );
+         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize }, z_gradients );
 
-         auto update = [=] __cuda_callable__( Index i, Index j, Index k ) mutable
+         auto update = [=] __cuda_callable__( const CoordinatesType& idx ) mutable
          {
+            const Index& i = idx[0];
+            const Index& j = idx[1];
+            const Index& k = idx[2];
             const Index yz_face_idx = ( k * ySize + j ) * ( xSize + 1 ) + i;
             const Index xz_face_idx = ( k * ( ySize+1 ) + j ) * xSize + i;
             const Index xy_face_idx = ( k * ySize + j ) * xSize + i;
@@ -320,7 +340,7 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index > : pub
                ( xz_faces_view[ xz_face_idx + xSize ] - xz_faces_view[ xz_face_idx ] ) * hy_inv +
                ( xy_faces_view[ xy_face_idx + xySize ] - xy_faces_view[ xy_face_idx ] ) * hz_inv );
          };
-         TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, update );
+         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, update );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;

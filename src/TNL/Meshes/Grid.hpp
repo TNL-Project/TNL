@@ -294,13 +294,13 @@ Grid< Dimension, Real, Device, Index >::traverseAll( const CoordinatesType& from
    TNL_ASSERT_ALL_LE( from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor" );
 
    if constexpr( EntityDimension == getMeshDimension() ) {
-      Templates::ParallelFor< Dimension, Device, Index >::exec( from, to, func, args... );
+      Algorithms::parallelFor< Device >( from, to, func, args... );
    }
    else {
       auto exec = [ & ]( const Index orientation, const NormalsType& normals )
       {
          TNL_ASSERT_EQ( orientation, this->getOrientationIndex( normals ), "Wrong index of entity orientation." );
-         Templates::ParallelFor< Dimension, Device, Index >::exec( from, to + normals, func, normals, orientation, args... );
+         Algorithms::parallelFor< Device >( from, to + normals, func, normals, orientation, args... );
       };
       Templates::ForEachOrientation< Index, EntityDimension, Dimension >::exec( exec );
    }

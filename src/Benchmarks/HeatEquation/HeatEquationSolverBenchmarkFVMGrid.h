@@ -65,7 +65,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >: public Heat
          this->grid.template forInteriorEntities<0>( gradient );
 
          auto update = [=] __cuda_callable__( const typename Grid::Cell& cell ) mutable {
-            using Face = typename Grid::Face;
+            //using Face = typename Grid::Face;
             const Index cellIdx = cell.getIndex();
             const Real& element = ux_view[ cellIdx ];
             aux_view[ cellIdx ] = element + timestep * (
@@ -145,7 +145,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 2, Real, Device, Index >: public Heat
          this->grid.template forInteriorEntities<1>( gradient );
 
          auto update = [=] __cuda_callable__( const typename Grid::Cell& cell ) mutable {
-            using Face = typename Grid::Face;
+            //using Face = typename Grid::Face;
             const Index cellIdx = cell.getIndex();
             const Real& element = ux_view[ cellIdx ];
             Coordinates closer, remoter;
@@ -226,7 +226,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 3, Real, Device, Index >: public Heat
          constexpr Index xz_faces = EntitiesOrientations::template getOrientationIndex< 2, 0, 1, 0 >();
          constexpr Index xy_faces = EntitiesOrientations::template getOrientationIndex< 2, 0, 0, 1 >();
          auto update = [=] __cuda_callable__( const typename Grid::Cell& cell ) mutable {
-            using Face = typename Grid::Face;
+            //using Face = typename Grid::Face;  
             const Index cell_idx = cell.getIndex();
             aux_view[ cell_idx ] = ux_view[ cell_idx ] + timestep * (
                ( faces_view[ cell.template getEntityIndex< 2 >( { 1, 0, 0 }, yz_faces ) ] -
