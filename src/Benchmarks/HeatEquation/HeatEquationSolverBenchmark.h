@@ -171,7 +171,7 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
          auto x = i * hx - xDomainSize_ / 2.0;
          uxView[i] = delta_ * ( 1.0 - TNL::sign( x*x / alpha_ - 1.0 ) );
       };
-      TNL::Algorithms::ParallelFor<Device>::exec( 1, xSize - 1, init );
+      TNL::Algorithms::parallelFor< Device >( 1, xSize - 1, init );
    }
 
    template< typename Vector >
@@ -260,6 +260,7 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
 {
    static constexpr int Dimension = 2;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
+   using CoordinatesType = TNL::Containers::StaticArray< Dimension, Index >;
 
    virtual TNL::String scheme() = 0;
 
@@ -286,18 +287,18 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
       auto alpha_ = this->alpha;
       auto beta_ = this->beta;
       auto gamma_ = this->gamma;
-      auto init = [=] __cuda_callable__( const TNL::Containers::StaticArray< 2, int >& i ) mutable
+      auto init = [=] __cuda_callable__( const CoordinatesType& idx ) mutable
       {
-         auto index = i.y() * xSize + i.x();
+         const Index& i = idx.x();
+         const Index& j = idx.y();
+         auto index = j * xSize + i;
 
-         auto x = i.x() * hx - xDomainSize_ / 2.;
-         auto y = i.y() * hy - yDomainSize_ / 2.;
+         auto x = i * hx - xDomainSize_ / 2.;
+         auto y = j * hy - yDomainSize_ / 2.;
 
-         uxView[index] = TNL::max( ( ( ( x*x / alpha_ )  + ( y*y / beta_ ) ) + delta_ ) * 0.2, 0.0 );
+         uxView[index] = TNL::max( ( ( ( x*x / alpha_ )  + ( y*y / beta_ ) ) + gamma_ ) * 0.2, 0.0 );
       };
-      const TNL::Containers::StaticArray< 2, int > begin = { 1, 1 };
-      const TNL::Containers::StaticArray< 2, int > end = { xSize - 1, ySize - 1 };
-      TNL::Algorithms::parallelFor<Device>( begin, end, init );
+      TNL::Algorithms::parallelFor<Device>( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, init );
    }
 
    template< typename Vector >
@@ -395,6 +396,7 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
 {
    static constexpr int Dimension = 3;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
+   using CoordinatesType = TNL::Containers::StaticArray< Dimension, Index >;
 
    virtual TNL::String scheme() = 0;
 
@@ -426,8 +428,11 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
       auto alpha_ = this->alpha;
       auto beta_ = this->beta;
       auto gamma_ = this->gamma;
-      auto init = [=] __cuda_callable__( Index i, Index j, Index k) mutable
+      auto init = [=] __cuda_callable__( const CoordinatesType& idx ) mutable
       {
+         const Index& i = idx[0];
+         const Index& j = idx[1];
+         const Index& k = idx[2];
          auto index = ( k * ySize + j ) * xSize + i;
 
          auto x = i * hx - xDomainSize_ / 2.0;
@@ -435,7 +440,7 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
          auto z = k * hz - zDomainSize_ / 2.0;
          uxView[index] = delta_ * ( 1.0 - TNL::sign( x*x / alpha_ + y*y / beta_ + z*z / gamma_ - 1.0 ) );
       };
-      TNL::Algorithms::ParallelFor3D<Device>::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, init );
+      TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, init );
    }
 
    template< typename Vector >

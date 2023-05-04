@@ -9,6 +9,7 @@
 #pragma once
 
 #include <TNL/Containers/NDArray.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include "HeatEquationSolverBenchmark.h"
 
 template< int Dimension,
@@ -48,7 +49,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 1, Real, Device, Index >: public H
          auto x = i * hx - xDomainSize_ / 2.0;
          uxView( i ) = delta_ * ( 1.0 - TNL::sign( x*x / alpha_ - 1.0 ) );
       };
-      TNL::Algorithms::ParallelFor<Device>::exec( 1, xSize - 1, init );
+      TNL::Algorithms::parallelFor< Device >( 1, xSize - 1, init );
    }
 
    bool writeGnuplot( const std::string &filename, const Index xSize ) const
@@ -104,6 +105,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 2, Real, Device, Index >: public H
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
    using NDArrayType = TNL::Containers::NDArray< Real, TNL::Containers::SizesHolder< Index, 0, 0 >, std::index_sequence< 0, 1 >, Device >;
+   using CoordinatesType = TNL::Containers::StaticArray< Dimension, Index >;
 
    TNL::String scheme() { return "fdm"; }
 
@@ -124,13 +126,15 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 2, Real, Device, Index >: public H
       auto delta_ = this->delta;
       auto alpha_ = this->alpha;
       auto beta_ = this->beta;
-      auto init = [=] __cuda_callable__( Index i, Index j) mutable
+      auto init = [=] __cuda_callable__( const CoordinatesType& idx ) mutable
       {
+         const Index& i = idx.x();
+         const Index& j = idx.y();
          auto x = i * hx - xDomainSize_ / 2.0;
          auto y = j * hy - yDomainSize_ / 2.0;
          uxView( i, j ) = delta_ * ( 1.0 - TNL::sign( x*x / alpha_ + y*y / beta_ - 1.0 ) );
       };
-      TNL::Algorithms::ParallelFor2D<Device>::exec( 1, 1, xSize - 1, ySize - 1, init );
+      TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, init );
    }
 
    bool writeGnuplot( const std::string &filename, const Index xSize, const Index ySize ) const
@@ -164,6 +168,8 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 2, Real, Device, Index >: public H
          auto auxView = this->aux.getView();
          auto next = [=] __cuda_callable__( Index i, Index j ) mutable
          {
+            //const Index& i = idx.x();
+            //const Index& j = idx.y();
             auto element = uxView( i, j );
             auto center = ( Real ) 2.0 * element;
 
@@ -171,7 +177,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 2, Real, Device, Index >: public H
                                           ( uxView( i, j-1 ) - center + uxView( i, j+1 ) ) * hy_inv   ) * timestep;
          };
 
-         //TNL::Algorithms::ParallelFor2D< Device >::exec( 1, 1, xSize - 1, ySize - 1, next );
+         //TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, next );
          ux.forInterior( next );
          this->ux.swap( this->aux );
          start += timestep;
@@ -193,6 +199,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >: public H
    using BaseBenchmarkType = HeatEquationSolverBenchmark< Dimension, Real, Device, Index >;
    using VectorType = typename BaseBenchmarkType::VectorType;
    using NDArrayType = TNL::Containers::NDArray< Real, TNL::Containers::SizesHolder< Index, 0, 0, 0 >, std::index_sequence< 0, 1, 2 >, Device >;
+   using CoordinatesType = TNL::Containers::StaticArray< Dimension, Index >;
 
    TNL::String scheme() { return "fdm"; }
 
@@ -216,14 +223,17 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >: public H
       auto alpha_ = this->alpha;
       auto beta_ = this->beta;
       auto gamma_ = this->gamma;
-      auto init = [=] __cuda_callable__( Index i, Index j, Index k) mutable
+      auto init = [=] __cuda_callable__( const CoordinatesType& idx ) mutable
       {
+         const Index& i = idx.x();
+         const Index& j = idx.y();
+         const Index& k = idx.z();
          auto x = i * hx - xDomainSize_ / 2.0;
          auto y = j * hy - yDomainSize_ / 2.0;
          auto z = k * hz - zDomainSize_ / 2.0;
          uxView( i, j, k ) = delta_ * ( 1.0 - TNL::sign( x*x / alpha_ + y*y / beta_ + z*z / gamma_ - 1.0 ) );
       };
-      TNL::Algorithms::ParallelFor3D<Device>::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, init );
+      TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, init );
    }
 
    bool writeGnuplot( const std::string &filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice ) const
@@ -259,6 +269,9 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >: public H
          auto auxView = this->aux.getView();
          auto next = [=] __cuda_callable__( Index i, Index j, Index k ) mutable
          {
+            //const Index& i = idx.x();
+            //const Index& j = idx.y();
+            //const Index& k = idx.z();
             auto element = uxView( i, j, k );
             auto center = ( Real ) 2.0 * element;
 
@@ -267,7 +280,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >: public H
                                              ( uxView( i, j, k-1 ) - center + uxView( i, j, k+1 ) ) * hz_inv
                                            ) * timestep;
          };
-         //TNL::Algorithms::ParallelFor3D< Device >::exec( 1, 1, 1, xSize - 1, ySize - 1, zSize - 1, next );
+         //TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, next );
          ux.forInterior( next );
          this->ux.swap( this->aux );
          start += timestep;
