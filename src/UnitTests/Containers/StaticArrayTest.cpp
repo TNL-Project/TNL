@@ -112,17 +112,16 @@ TYPED_TEST( StaticArrayTest, constructors )
    for( int i = 0; i < size; i++ )
       EXPECT_EQ( u5[ i ], i + 1 );
 
+   ArrayType u6{ 1, 2, 3, 4, 5 };
+   for( int i = 0; i < size; i++ )
+      EXPECT_EQ( u6[ i ], i+1 );
+
    std::array< ValueType, size > a;
    for( int i = 0; i < size; i++ )
-      a[ i ] = i + 1;
-   ArrayType u6( a );
+      a[ i ] = i+1;
+   ArrayType u7( a );
    for( int i = 0; i < size; i++ )
-      EXPECT_EQ( u6[ i ], i + 1 );
-
-   // this is ambiguous with std::initializer_list< std::array< ... > >
-   ArrayType u7{ a };
-   for( int i = 0; i < size; i++ )
-      EXPECT_EQ( u7[ i ], i + 1 );
+      EXPECT_EQ( u7[ i ], i+1 );
 }
 
 TYPED_TEST( StaticArrayTest, getSize )
