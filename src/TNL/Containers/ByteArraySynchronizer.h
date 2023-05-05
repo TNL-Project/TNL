@@ -9,8 +9,8 @@
 #pragma once
 
 #include <future>
-// 3rd-party async library providing a thread-pool
-#include <TNL/3rdparty/async/threadpool.h>
+// 3rd-party thread pool library
+#include <TNL/3rdparty/BS_thread_pool_light.hpp>
 
 #include <TNL/Containers/ArrayView.h>
 #include <TNL/MPI/Wrappers.h>
@@ -22,16 +22,7 @@ template< typename Device, typename Index >
 class ByteArraySynchronizer
 {
 private:
-   // NOTE: async::threadpool has alignment requirements, which causes problems:
-   //  - it may become misaligned in derived classes, see e.g.
-   //    https://stackoverflow.com/a/46475498
-   //    solution: specify it as the first member of the base class
-   //  - operator new before C++17 may not support over-aligned types, see
-   //    https://stackoverflow.com/a/53485295
-   //    solution: relaxed alignment requirements to not exceed the value of
-   //    alignof(std::max_align_t), which is the strongest alignment supported
-   //    by plain new. See https://github.com/d36u9/async/pull/2
-   async::threadpool tp;
+   BS::thread_pool_light tp;
 
    int gpu_id = 0;
 
@@ -100,7 +91,7 @@ public:
          };
 
          if( policy == AsyncPolicy::threadpool )
-            async_op = tp.post( worker );
+            async_op = tp.submit( worker );
          else
             async_op = std::async( std::launch::async, worker );
       }
