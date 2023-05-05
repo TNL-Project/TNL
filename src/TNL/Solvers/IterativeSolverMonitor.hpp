@@ -9,9 +9,9 @@
 #include <iomanip>
 #include <limits>
 
-// check if we are on a POSIX system or Windows,
-// see https://stackoverflow.com/a/4575466
-#if ! defined( _WIN32 ) && ! defined( _WIN64 )
+#include <TNL/3rdparty/spy.hpp>
+
+#ifndef SPY_OS_IS_WINDOWS
    #include <sys/ioctl.h>
    #include <unistd.h>
 #endif
@@ -199,7 +199,7 @@ template< typename Real, typename Index >
 int
 IterativeSolverMonitor< Real, Index >::getLineWidth()
 {
-#if ! defined( _WIN32 ) && ! defined( _WIN64 )
+#ifndef SPY_OS_IS_WINDOWS
    struct winsize w;
    ioctl( STDOUT_FILENO, TIOCGWINSZ, &w );
    return w.ws_col;

@@ -6,7 +6,9 @@
 
 #pragma once
 
-#if defined( __APPLE__ ) && defined( __MACH__ )
+#include <TNL/3rdparty/spy.hpp>
+
+#ifdef SPY_OS_IS_MACOS
    #include <fenv.h>
 #else
    #include <cfenv>
@@ -44,9 +46,8 @@ printStackBacktraceAndAbort( int sig = 0 )
    abort();
 }
 
-#if defined( __APPLE__ ) && defined( __MACH__ )
+#ifdef SPY_OS_IS_MACOS
 // https://stackoverflow.com/questions/69059981/how-to-trap-floating-point-exceptions-on-m1-macs
-
 static void
 fpe_signal_handler( int sig, siginfo_t* sip, void* scp )
 {
@@ -79,7 +80,7 @@ fpe_signal_handler( int sig, siginfo_t* sip, void* scp )
 static void
 trackFloatingPointExceptions()
 {
-#if defined( __APPLE__ ) && defined( __MACH__ )
+#ifdef SPY_OS_IS_MACOS
    fenv_t env;
    fegetenv( &env );
 
@@ -95,7 +96,7 @@ trackFloatingPointExceptions()
    signal( SIGSEGV, printStackBacktraceAndAbort );
    signal( SIGFPE, printStackBacktraceAndAbort );
    // TODO: find a workaround for Windows, e.g. https://stackoverflow.com/a/30175525
-   #ifndef _WIN32
+   #ifdef SPY_OS_IS_LINUX
    feenableexcept( FE_ALL_EXCEPT & ~FE_INEXACT );
    #endif
 #endif

@@ -8,10 +8,9 @@
 
 #include <TNL/Timer.h>
 #include <TNL/Logger.h>
+#include <TNL/3rdparty/spy.hpp>
 
-// check if we are on a POSIX system or Windows,
-// see https://stackoverflow.com/a/4575466
-#if ! defined( _WIN32 ) && ! defined( _WIN64 )
+#if defined( SPY_OS_IS_LINUX ) || defined( SPY_OS_IS_MACOS )
    #include <sys/resource.h>
 #endif
 
@@ -96,7 +95,7 @@ Timer::readRealTime()
 inline double
 Timer::readCPUTime()
 {
-#if ! defined( _WIN32 ) && ! defined( _WIN64 )
+#if defined( SPY_OS_IS_LINUX ) || defined( SPY_OS_IS_MACOS )
    rusage initUsage;
    getrusage( RUSAGE_SELF, &initUsage );
    return initUsage.ru_utime.tv_sec + 1.0e-6 * (double) initUsage.ru_utime.tv_usec;
@@ -108,10 +107,15 @@ Timer::readCPUTime()
 inline unsigned long long int
 Timer::readCPUCycles()
 {
-#if defined( __APPLE__ ) || defined( _MSC_VER )
-   return 0;  // TODO: fix https://lemire.me/blog/2021/03/24/counting-cycles-and-instructions-on-the-apple-m1-processor/
+#ifdef SPY_OS_IS_LINUX
+   unsigned hi;
+   unsigned lo;
+   __asm__ __volatile__( "rdtsc" : "=a"( lo ), "=d"( hi ) );
+   return ( (unsigned long long) lo ) | ( ( (unsigned long long) hi ) << 32 );
 #else
-   return rdtsc();
+   // TODO: implement for Windows and macOS:
+   // https://lemire.me/blog/2021/03/24/counting-cycles-and-instructions-on-the-apple-m1-processor/
+   return 0;
 #endif
 }
 
@@ -121,16 +125,5 @@ Timer::durationToDouble( const Duration& duration )
    std::chrono::duration< double > dur( duration );
    return dur.count();
 }
-
-#if ! defined( __APPLE__ ) && ! defined( _MSC_VER )
-inline unsigned long long
-Timer::rdtsc()
-{
-   unsigned hi;
-   unsigned lo;
-   __asm__ __volatile__( "rdtsc" : "=a"( lo ), "=d"( hi ) );
-   return ( (unsigned long long) lo ) | ( ( (unsigned long long) hi ) << 32 );
-}
-#endif
 
 }  // namespace TNL
