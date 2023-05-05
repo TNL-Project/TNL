@@ -106,6 +106,7 @@ getHardwareMetadata()
       { "architecture", getSystemArchitecture() },
       { "system", getSystemName() },
       { "system release", getSystemRelease() },
+      { "compiler", getCompilerName() },
       { "start time", getCurrentTime() },
 #ifdef HAVE_MPI
       { "number of MPI processes", std::to_string( nproc ) },

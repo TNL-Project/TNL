@@ -40,32 +40,11 @@ Logger::writeSeparator()
 inline bool
 Logger::writeSystemInformation( bool printGPUInfo )
 {
-// compiler detection macros:
-// http://nadeausoftware.com/articles/2012/10/c_c_tip_how_detect_compiler_name_and_version_using_compiler_predefined_macros
-// https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#compilation-phases
-#if defined( __NVCC__ )
-   #define TNL_STRINGIFY_IMPL( x ) #x
-   // indirection is necessary in order to expand macros in the argument
-   #define TNL_STRINGIFY( x ) TNL_STRINGIFY_IMPL( x )
-   const char* compiler_name = "Nvidia NVCC (" TNL_STRINGIFY( __CUDACC_VER_MAJOR__ ) "." TNL_STRINGIFY(
-      __CUDACC_VER_MINOR__ ) "." TNL_STRINGIFY( __CUDACC_VER_BUILD__ ) ")";
-   #undef TNL_STRINGIFY
-   #undef TNL_STRINGIFY_IMPL
-#elif defined( __clang__ )
-   const char* compiler_name = "Clang/LLVM (" __VERSION__ ")";
-#elif defined( __ICC ) || defined( __INTEL_COMPILER )
-   const char* compiler_name = "Intel ICPC (" __VERSION__ ")";
-#elif defined( __GNUC__ ) || defined( __GNUG__ )
-   const char* compiler_name = "GNU G++ (" __VERSION__ ")";
-#else
-   const char* compiler_name = "(unknown)";
-#endif
-
    writeParameter< String >( "Host name:", getHostname() );
    writeParameter< String >( "System:", getSystemName() );
    writeParameter< String >( "Release:", getSystemRelease() );
    writeParameter< String >( "Architecture:", getSystemArchitecture() );
-   writeParameter< String >( "TNL compiler:", compiler_name );
+   writeParameter< String >( "TNL compiler:", getCompilerName() );
    const int threads = getCPUInfo().threads;
    const int cores = getCPUInfo().cores;
    int threadsPerCore = 0;

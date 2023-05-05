@@ -156,6 +156,25 @@ getSystemRelease()
 }
 
 inline std::string
+getCompilerName()
+{
+#if defined( __NVCC__ )
+   // TODO: this can be removed when SPY supports nvcc: https://github.com/jfalcou/spy/issues/31
+   #define TNL_STRINGIFY_IMPL( x ) #x
+   // indirection is necessary in order to expand macros in the argument
+   #define TNL_STRINGIFY( x ) TNL_STRINGIFY_IMPL( x )
+   return "Nvidia NVCC (" TNL_STRINGIFY( __CUDACC_VER_MAJOR__ ) "." TNL_STRINGIFY( __CUDACC_VER_MINOR__ ) "." TNL_STRINGIFY(
+      __CUDACC_VER_BUILD__ ) ")";
+   #undef TNL_STRINGIFY
+   #undef TNL_STRINGIFY_IMPL
+#else
+   std::stringstream ss;
+   ss << spy::compiler;
+   return ss.str();
+#endif
+}
+
+inline std::string
 getCurrentTime( const char* format = "%a %b %d %Y, %H:%M:%S" )
 {
    const std::time_t time_since_epoch = std::time( nullptr );
