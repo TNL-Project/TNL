@@ -61,24 +61,22 @@ Logger::writeSystemInformation( bool printGPUInfo )
    const char* compiler_name = "(unknown)";
 #endif
 
-   writeParameter< String >( "Host name:", SystemInfo::getHostname() );
-   writeParameter< String >( "System:", SystemInfo::getSystemName() );
-   writeParameter< String >( "Release:", SystemInfo::getSystemRelease() );
-   writeParameter< String >( "Architecture:", SystemInfo::getArchitecture() );
+   writeParameter< String >( "Host name:", getHostname() );
+   writeParameter< String >( "System:", getSystemName() );
+   writeParameter< String >( "Release:", getSystemRelease() );
+   writeParameter< String >( "Architecture:", getSystemArchitecture() );
    writeParameter< String >( "TNL compiler:", compiler_name );
-   // FIXME: generalize for multi-socket systems, here we consider only the first found CPU
-   const int cpu_id = 0;
-   const int threads = SystemInfo::getNumberOfThreads( cpu_id );
-   const int cores = SystemInfo::getNumberOfCores( cpu_id );
+   const int threads = getCPUInfo().threads;
+   const int cores = getCPUInfo().cores;
    int threadsPerCore = 0;
    if( cores > 0 )
       threadsPerCore = threads / cores;
    writeParameter< String >( "CPU info", "" );
-   writeParameter< String >( "Model name:", SystemInfo::getCPUModelName( cpu_id ), 1 );
+   writeParameter< String >( "Model name:", getCPUInfo().modelName, 1 );
    writeParameter< int >( "Cores:", cores, 1 );
    writeParameter< int >( "Threads per core:", threadsPerCore, 1 );
-   writeParameter< double >( "Max clock rate (in MHz):", SystemInfo::getCPUMaxFrequency( cpu_id ) / 1000, 1 );
-   const CacheSizes cacheSizes = SystemInfo::getCPUCacheSizes( cpu_id );
+   writeParameter< double >( "Max clock rate (in MHz):", getCPUMaxFrequency() / 1000, 1 );
+   const CPUCacheSizes cacheSizes = getCPUCacheSizes();
    const String cacheInfo = convertToString( cacheSizes.L1data ) + ", " + convertToString( cacheSizes.L1instruction ) + ", "
                           + convertToString( cacheSizes.L2 ) + ", " + convertToString( cacheSizes.L3 );
    writeParameter< String >( "Cache (L1d, L1i, L2, L3):", cacheInfo, 1 );
@@ -114,7 +112,7 @@ Logger::writeSystemInformation( bool printGPUInfo )
 inline void
 Logger::writeCurrentTime( const char* label )
 {
-   writeParameter< String >( label, SystemInfo::getCurrentTime() );
+   writeParameter< String >( label, getCurrentTime() );
 }
 
 template< typename T >
