@@ -7,8 +7,9 @@
 #pragma once
 
 #include <set>
-#include <iomanip>
-#include <cstring>  // strncmp - TODO: replace with std::string operations
+#include <cstdlib>  // std::atoi
+#include <ctime>    // std::localtime
+#include <iomanip>  // std::put_time
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -53,36 +54,39 @@ parseCPUInfo()
       return info;
    }
 
-   char line[ 1024 ];
    std::set< int > processors;
    while( ! file.eof() ) {
-      int i;
-      file.getline( line, 1024 );
-      if( strncmp( line, "physical id", strlen( "physical id" ) ) == 0 ) {
-         i = strlen( "physical id" );
-         while( line[ i ] != ':' && line[ i ] != '\0' )
+      std::string line;
+      std::getline( file, line );
+      // check if line starts with "physical id"
+      if( line.rfind( "physical id", 0 ) == 0 ) {
+         std::size_t i = 0;
+         while( i < line.size() && line[ i ] != ':' )
             i++;
-         processors.insert( atoi( &line[ i + 1 ] ) );
+         processors.insert( std::atoi( &line[ i + 1 ] ) );
          continue;
       }
       // FIXME: the rest does not work on heterogeneous multi-socket systems
-      if( strncmp( line, "model name", strlen( "model name" ) ) == 0 ) {
-         i = strlen( "model name" );
-         while( line[ i ] != ':' && line[ i ] != '\0' )
+      // check if line starts with "model name"
+      if( line.rfind( "model name", 0 ) == 0 ) {
+         std::size_t i = 0;
+         while( i < line.size() && line[ i ] != ':' )
             i++;
          info.modelName = &line[ i + 1 ];
          continue;
       }
-      if( strncmp( line, "cpu cores", strlen( "cpu cores" ) ) == 0 ) {
-         i = strlen( "cpu MHz" );
-         while( line[ i ] != ':' && line[ i ] != '\0' )
+      // check if line starts with "cpu cores"
+      if( line.rfind( "cpu cores", 0 ) == 0 ) {
+         std::size_t i = 0;
+         while( i < line.size() && line[ i ] != ':' )
             i++;
-         info.cores = atoi( &line[ i + 1 ] );
+         info.cores = std::atoi( &line[ i + 1 ] );
          continue;
       }
-      if( strncmp( line, "siblings", strlen( "siblings" ) ) == 0 ) {
-         i = strlen( "siblings" );
-         while( line[ i ] != ':' && line[ i ] != '\0' )
+      // check if line starts with "siblings"
+      if( line.rfind( "siblings", 0 ) == 0 ) {
+         std::size_t i = 0;
+         while( i < line.size() && line[ i ] != ':' )
             i++;
          info.threads = atoi( &line[ i + 1 ] );
       }
