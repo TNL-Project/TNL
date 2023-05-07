@@ -7,37 +7,13 @@
 #pragma once
 
 #include <TNL/TypeInfo.h>
+#include <TNL/TypeTraits.h>
 #include <TNL/Math.h>
 #include <TNL/Containers/StaticArray.h>
-#include <TNL/Containers/detail/StaticArrayAssignment.h>
-#include <TNL/Algorithms/unrolledFor.h>
 
 namespace TNL::Containers {
 
 namespace detail {
-
-// StaticArrayComparator does static loop unrolling of array comparison
-template< int Size, typename LeftValue, typename RightValue, int Index >
-struct StaticArrayComparator
-{
-   static constexpr bool
-   EQ( const StaticArray< Size, LeftValue >& left, const StaticArray< Size, RightValue >& right )
-   {
-      if( left[ Index ] == right[ Index ] )
-         return StaticArrayComparator< Size, LeftValue, RightValue, Index + 1 >::EQ( left, right );
-      return false;
-   }
-};
-
-template< int Size, typename LeftValue, typename RightValue >
-struct StaticArrayComparator< Size, LeftValue, RightValue, Size >
-{
-   static constexpr bool
-   EQ( const StaticArray< Size, LeftValue >& left, const StaticArray< Size, RightValue >& right )
-   {
-      return true;
-   }
-};
 
 ////
 // Static array sort does static loop unrolling of array sort.
@@ -90,31 +66,31 @@ template< int Size, typename Value >
 template< typename _unused >
 constexpr StaticArray< Size, Value >::StaticArray( const Value v[ Size ] )
 {
-   Algorithms::unrolledFor< int, 0, Size >(
-      [ & ]( int i ) mutable
-      {
-         ( *this )[ i ] = v[ i ];
-      } );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = v[ i ];
 }
 
 template< int Size, typename Value >
 constexpr StaticArray< Size, Value >::StaticArray( const StaticArray& v )
 {
-   detail::StaticArrayAssignment< StaticArray, StaticArray >::assign( *this, v );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = v[ i ];
 }
 
 template< int Size, typename Value >
 template< typename OtherValue >
 constexpr StaticArray< Size, Value >::StaticArray( const StaticArray< Size, OtherValue >& v )
 {
-   detail::StaticArrayAssignment< StaticArray, StaticArray< Size, OtherValue > >::assign( *this, v );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = v[ i ];
 }
 
 template< int Size, typename Value >
 __cuda_callable__
 constexpr StaticArray< Size, Value >::StaticArray( const Value& v )
 {
-   detail::StaticArrayAssignment< StaticArray, Value >::assign( *this, v );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = v;
 }
 
 template< int Size, typename Value >
@@ -246,7 +222,8 @@ template< int Size, typename Value >
 constexpr StaticArray< Size, Value >&
 StaticArray< Size, Value >::operator=( const StaticArray& v )
 {
-   detail::StaticArrayAssignment< StaticArray, StaticArray >::assign( *this, v );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = v[ i ];
    return *this;
 }
 
@@ -255,7 +232,14 @@ template< typename T >
 constexpr StaticArray< Size, Value >&
 StaticArray< Size, Value >::operator=( const T& v )
 {
-   detail::StaticArrayAssignment< StaticArray, T >::assign( *this, v );
+   if constexpr( IsStaticArrayType< T >::value ) {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = v[ i ];
+   }
+   else {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = v;
+   }
    return *this;
 }
 
@@ -264,7 +248,10 @@ template< typename Array >
 constexpr bool
 StaticArray< Size, Value >::operator==( const Array& array ) const
 {
-   return detail::StaticArrayComparator< Size, Value, typename Array::ValueType, 0 >::EQ( *this, array );
+   for( int i = 0; i < getSize(); i++ )
+      if( ! ( data[ i ] == array[ i ] ) )
+         return false;
+   return true;
 }
 
 template< int Size, typename Value >
@@ -279,11 +266,8 @@ template< int Size, typename Value >
 constexpr void
 StaticArray< Size, Value >::setValue( const ValueType& val )
 {
-   Algorithms::unrolledFor< int, 0, Size >(
-      [ & ]( int i ) mutable
-      {
-         ( *this )[ i ] = val;
-      } );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = val;
 }
 
 template< int Size, typename Value >
