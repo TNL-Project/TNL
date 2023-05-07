@@ -104,6 +104,13 @@ constexpr StaticArray< Size, Value >::StaticArray( const StaticArray& v )
 }
 
 template< int Size, typename Value >
+template< typename OtherValue >
+constexpr StaticArray< Size, Value >::StaticArray( const StaticArray< Size, OtherValue >& v )
+{
+   detail::StaticArrayAssignment< StaticArray, StaticArray< Size, OtherValue > >::assign( *this, v );
+}
+
+template< int Size, typename Value >
 __cuda_callable__
 constexpr StaticArray< Size, Value >::StaticArray( const Value& v )
 {
@@ -118,12 +125,29 @@ constexpr StaticArray< Size, Value >::StaticArray( Values&&... values )
 {}
 
 template< int Size, typename Value >
+template< typename OtherValue >
 __cuda_callable__
-constexpr StaticArray< Size, Value >::StaticArray( const std::initializer_list< Value >& elems )
+constexpr StaticArray< Size, Value >::StaticArray( const std::initializer_list< OtherValue >& elems )
 {
    const auto* it = elems.begin();
    for( int i = 0; i < getSize() && it != elems.end(); i++ )
       data[ i ] = *it++;
+}
+
+template< int Size, typename Value >
+template< typename OtherValue >
+__cuda_callable__
+constexpr StaticArray< Size, Value >::StaticArray( const std::array< OtherValue, Size >& array )
+{
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = array[ i ];
+}
+
+template< int Size, typename Value >
+__cuda_callable__
+constexpr StaticArray< Size, Value >::StaticArray( std::array< Value, Size >&& array )
+{
+   data = std::move( array );
 }
 
 template< int Size, typename Value >
@@ -249,17 +273,6 @@ constexpr bool
 StaticArray< Size, Value >::operator!=( const Array& array ) const
 {
    return ! this->operator==( array );
-}
-
-template< int Size, typename Value >
-template< typename OtherValue >
-// NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
-__cuda_callable__
-constexpr StaticArray< Size, Value >::operator StaticArray< Size, OtherValue >() const
-{
-   StaticArray< Size, OtherValue > aux;
-   aux.operator=( *this );
-   return aux;
 }
 
 template< int Size, typename Value >

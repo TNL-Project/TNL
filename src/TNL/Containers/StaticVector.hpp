@@ -84,15 +84,4 @@ StaticVector< Size, Real >::operator%=( const VectorExpression& expression )
    return *this;
 }
 
-template< int Size, typename Real >
-template< typename OtherReal >
-// NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
-__cuda_callable__
-constexpr StaticVector< Size, Real >::operator StaticVector< Size, OtherReal >() const
-{
-   StaticVector< Size, OtherReal > aux;
-   aux.operator=( *this );
-   return aux;
-}
-
 }  // namespace TNL::Containers

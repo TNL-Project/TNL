@@ -150,22 +150,6 @@ public:
    template< typename VectorExpression >
    constexpr StaticVector&
    operator%=( const VectorExpression& expression );
-
-   /**
-    * \brief Cast operator for changing of the \e Value type.
-    *
-    * Returns static array having \e ValueType set to \e OtherValue, i.e.
-    * StaticArray< Size, OtherValue >.
-    *
-    * \tparam OtherValue is the \e Value type of the static array the casting
-    * will be performed to.
-    *
-    * \return instance of StaticVector< Size, OtherValue >
-    */
-   template< typename OtherReal >
-   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
-   __cuda_callable__
-   constexpr operator StaticVector< Size, OtherReal >() const;
 };
 
 // Enable expression templates for StaticVector

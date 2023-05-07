@@ -1,6 +1,6 @@
 #ifdef HAVE_GTEST
 #include <TNL/Containers/StaticArray.h>
-#include <TNL/Containers/Array.h>
+#include <TNL/Containers/StaticVector.h>
 
 #include "gtest/gtest.h"
 
@@ -44,7 +44,32 @@ using StaticArrayTypes = ::testing::Types<
    StaticArray< 2, double >,
    StaticArray< 3, double >,
    StaticArray< 4, double >,
-   StaticArray< 5, double >
+   StaticArray< 5, double >,
+   StaticVector< 1, short >,
+   StaticVector< 1, int >,
+   StaticVector< 1, long >,
+   StaticVector< 1, float >,
+   StaticVector< 1, double >,
+   StaticVector< 2, short >,
+   StaticVector< 2, int >,
+   StaticVector< 2, long >,
+   StaticVector< 2, float >,
+   StaticVector< 2, double >,
+   StaticVector< 3, short >,
+   StaticVector< 3, int >,
+   StaticVector< 3, long >,
+   StaticVector< 3, float >,
+   StaticVector< 3, double >,
+   StaticVector< 4, short >,
+   StaticVector< 4, int >,
+   StaticVector< 4, long >,
+   StaticVector< 4, float >,
+   StaticVector< 4, double >,
+   StaticVector< 5, short >,
+   StaticVector< 5, int >,
+   StaticVector< 5, long >,
+   StaticVector< 5, float >,
+   StaticVector< 5, double >
 >;
 
 TYPED_TEST_SUITE( StaticArrayTest, StaticArrayTypes );
@@ -76,9 +101,21 @@ TYPED_TEST( StaticArrayTest, constructors )
 
    // initialization with 0 requires special treatment to avoid ambiguity,
    // see https://stackoverflow.com/q/4610503
-   ArrayType v( 0 );
+   ArrayType u4( 0 );
    for( int i = 0; i < size; i++ )
-      EXPECT_EQ( v[ i ], 0 );
+      EXPECT_EQ( u4[ i ], 0 );
+
+   std::initializer_list< int > il = { 1, 2, 3, 4, 5 };
+   ArrayType u5( il );
+   for( int i = 0; i < size; i++ )
+      EXPECT_EQ( u5[ i ], i+1 );
+
+   std::array< ValueType, size > a;
+   for( int i = 0; i < size; i++ )
+      a[ i ] = i+1;
+   ArrayType u6( a );
+   for( int i = 0; i < size; i++ )
+      EXPECT_EQ( u6[ i ], i+1 );
 }
 
 TYPED_TEST( StaticArrayTest, getSize )

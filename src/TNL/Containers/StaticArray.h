@@ -77,6 +77,18 @@ public:
    constexpr StaticArray( const StaticArray& v );
 
    /**
+    * \brief Templated copy constructor.
+    *
+    * Constructs a copy of another static array \e v where the value type is
+    * \e ValueType. This constructor allows casting between `StaticArray`
+    * types with the same size, but different value types.
+    */
+   template< typename OtherValue >
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
+   __cuda_callable__
+   constexpr StaticArray( const StaticArray< Size, OtherValue >& v );
+
+   /**
     * \brief Move constructor.
     */
    constexpr StaticArray( StaticArray&& ) noexcept = default;
@@ -89,7 +101,7 @@ public:
     * `StaticArray< 3, int > a = {1, 2, 3};`. The number of supplied arguments
     * must be equal to \e Size.
     *
-    * @param values The elements forwarded to the constructor of the underlying
+    * \param values The elements forwarded to the constructor of the underlying
     *               \ref std::array.
     */
    template< typename... Values, std::enable_if_t< ( Size > 1 ) && sizeof...( Values ) == Size, bool > = true >
@@ -103,11 +115,33 @@ public:
     *
     * The initializer list size must larger or equal to \e Size.
     *
-    * @param elems input initializer list
+    * \param elems input initializer list
+    */
+   template< typename OtherValue >
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
+   __cuda_callable__
+   constexpr StaticArray( const std::initializer_list< OtherValue >& elems );
+
+   /**
+    * \brief Constructor which initializes the array by copying elements from
+    * \ref std::array.
+    *
+    * \param array input array
+    */
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
+   template< typename OtherValue >
+   __cuda_callable__
+   constexpr StaticArray( const std::array< OtherValue, Size >& array );
+
+   /**
+    * \brief Constructor which initializes the array by moving elements from
+    * \ref std::array.
+    *
+    * \param array input array
     */
    // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
    __cuda_callable__
-   constexpr StaticArray( const std::initializer_list< Value >& elems );
+   constexpr StaticArray( std::array< Value, Size >&& array );
 
    /**
     * \brief Gets pointer to data of this static array.
@@ -234,22 +268,6 @@ public:
    template< typename Array >
    [[nodiscard]] constexpr bool
    operator!=( const Array& array ) const;
-
-   /**
-    * \brief Cast operator for changing of the \e Value type.
-    *
-    * Returns static array having \e ValueType set to \e OtherValue, i.e.
-    * StaticArray< Size, OtherValue >.
-    *
-    * \tparam OtherValue is the \e Value type of the static array the casting
-    * will be performed to.
-    *
-    * \return instance of StaticArray< Size, OtherValue >
-    */
-   template< typename OtherValue >
-   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
-   __cuda_callable__
-   constexpr operator StaticArray< Size, OtherValue >() const;
 
    /**
     * \brief Sets all values of this static array to \e val.
