@@ -76,15 +76,15 @@ TYPED_TEST( GraphTest, test_MST_medium )
         9, // number of matrix rows
         9, // number of matrix columns
         {  // matrix elements definition
-                          { 0, 1, 4.0 },                                                                              { 0, 7,  8.0 },
-           { 1, 0, 4.0 },                 { 1, 2, 8.0 },                                                              { 1, 7, 11.0 },
-                          { 2, 1, 8.0 },                 { 2, 3, 7.0 },                 { 2, 5,  4.0 },                               { 2, 8, 2.0 },
-                                          { 3, 2, 7.0 },                { 3, 4, 9.0 },  { 3, 5, 14.0 },
-                                                         { 4, 3, 9.0 },                 { 4, 5, 10.0 },
-                                          { 5, 2, 4.0 },                                                { 5, 6, 2.0 },
-                                                                                        { 6, 5,  2.0 },                { 6, 7, 1.0 }, { 6, 8, 6.0 },
-           { 7, 0, 8.0 }, { 7, 1, 8.0 },                                                                { 7, 6, 1.0 },                { 7, 8, 7.0 },
-                                          { 8, 2, 2.0 },                                                { 8, 6, 6.0 }, { 8, 7, 7.0 }
+                          { 0, 1, 4.0 },                                                                                { 0, 7,  8.0 },
+           { 1, 0, 4.0 },                 { 1, 2, 8.0 },                                                                { 1, 7, 11.0 },
+                          { 2, 1, 8.0 },                 { 2, 3,  7.0 },                 { 2, 5,  4.0 },                                 { 2, 8, 2.0 },
+                                          { 3, 2, 7.0 },                 { 3, 4, 9.0 },  { 3, 5, 14.0 },
+                                                         { 4, 3,  9.0 },                 { 4, 5, 10.0 },
+                                          { 5, 2, 4.0 }, { 5, 3, 14.0 }, { 5, 4, 10.0 },                 { 5, 6, 2.0 },
+                                                                                         { 6, 5,  2.0 },                { 6, 7,  1.0 },  { 6, 8, 6.0 },
+           { 7, 0, 8.0 }, { 7, 1, 8.0 },                                                                { 7, 6, 1.0 },                   { 7, 8, 7.0 },
+                                          { 8, 2, 2.0 },                                                { 8, 6, 6.0 },  { 8, 7,  7.0 }
          } );
 
    MatrixType expectedTree( 9, 9,
@@ -102,6 +102,11 @@ TYPED_TEST( GraphTest, test_MST_medium )
    MatrixType minimum_tree;
    TNL::Algorithms::Graphs::minimumSpanningTree( matrix, minimum_tree );
    minimum_tree.sortColumnIndexes();
+   const auto& v1 = minimum_tree.getValues();
+   const auto& v2 = expectedTree.getValues();
+   std::cout << v1 << std::endl;
+   std::cout << "minimum tree sum = " << sum(  max( v1, 0 ) ) << std::endl;
+   std::cout << "expected tree sum = " << sum(  max( v2, 0 ) ) << std::endl;
    ASSERT_EQ(minimum_tree, expectedTree );
 }
 
@@ -164,7 +169,6 @@ TYPED_TEST( GraphTest, test_MST_large )
    minimum_tree.sortColumnIndexes();
    ASSERT_EQ (minimum_tree, expected_tree );
 }
-
 
 #endif
 
