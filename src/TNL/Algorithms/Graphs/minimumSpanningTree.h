@@ -17,17 +17,18 @@ namespace TNL {
 namespace Algorithms {
 namespace Graphs {
 
+// TODO: replace with std::touple
 template< typename Real = double,
           typename Index = int >
 struct Aux {
 
    Aux( int ) {}
 
-   Aux( const Real& weight, Index source )
-      : first( weight ), second( source ) {}
+   Aux( const Real& weight, Index source, Index target  )
+      : first( weight ), second( source ), third( target ) {}
 
    Real first;
-   Index second;
+   Index second, third;
 };
 
 template< typename Index, typename Real >
@@ -111,15 +112,11 @@ void kruskal(const Matrix& graph, Matrix& minimum_spanning_tree )
       auto u = edge.getSource();
       auto v = edge.getTarget();
       if( forest.getRoot( u ) != forest.getRoot( v ) ) {
-         //minSpanningTree.push_back( edge );
          IndexType localIdx = tree_filling[ edge.getSource() ]++;
          minimum_spanning_tree.getRow( edge.getSource() ).setElement( localIdx, edge.getTarget(), edge.getWeight() );
-         //std::cout << "Adding edge: " << edge.getSource() << " " << edge.getTarget() << " " << edge.getWeight() << std::endl;
-         //std::cout << minimum_spanning_tree << std::endl;
          forest.mergeTrees( u, v );
       }
    }
-   //minimumSpanningTree = minSpanningTree;
 }
 
 template< typename Matrix,
@@ -149,6 +146,8 @@ void parallelMST(const Matrix& graph, Matrix& tree )
    RealVector hook_candidates_weights( hook_candidates.getStorageSize(), std::numeric_limits< Real >::max() ),
               hook_weights( n, std::numeric_limits< Real >::max() );
    IndexVector hook_candidates_sources( hook_candidates.getStorageSize(), ( IndexType ) 0 ),
+               hook_candidates_targets( hook_candidates.getStorageSize(), ( IndexType ) 0 ),
+               hook_targets( n, ( IndexType ) -1 ),
                hook_sources( n, ( IndexType ) -1 );
    p.forAllElements( [] __cuda_callable__ ( Index i, Index& value ) { value = i; } );
    IndexVector treeFilling( n, 0 );
@@ -156,8 +155,10 @@ void parallelMST(const Matrix& graph, Matrix& tree )
 
    auto hook_candidates_view = hook_candidates.getView();
    auto hook_candidates_weights_view = hook_candidates_weights.getView();
+   auto hook_candidates_targets_view = hook_candidates_targets.getView();
    auto hook_candidates_sources_view = hook_candidates_sources.getView();
    auto hook_weights_view = hook_weights.getView();
+   auto hook_targets_view = hook_targets.getView();
    auto hook_sources_view = hook_sources.getView();
    auto new_links_target_view = new_links_target.getView();
    auto new_links_weight_view = new_links_weight.getView();
@@ -179,6 +180,7 @@ void parallelMST(const Matrix& graph, Matrix& tree )
          hook_candidates_weights_view[ globalIdx ] = std::numeric_limits< Real >::max();
       } );*/
       //hook_candidates.setSegmentsSizes( starRootsSlots );
+      hook_candidates_targets_view = -1;
       hook_candidates_sources_view = -1;
       hook_candidates_weights_view = std::numeric_limits< Real >::max();
       hook_candidates.clear();
@@ -209,6 +211,7 @@ void parallelMST(const Matrix& graph, Matrix& tree )
             IndexType idx = hook_candidates_view.newSlot( p_view[ minEdgeTarget ] );
             std::cout <<  " at position idx = " << idx << " / " << hook_candidates_view.getSize() << std::endl;
             hook_candidates_weights_view[ idx ] = minEdgeWeight;
+            hook_candidates_targets_view[ idx ] = minEdgeTarget;
             hook_candidates_sources_view[ idx ] = source_node;
          }
       };
@@ -222,7 +225,8 @@ void parallelMST(const Matrix& graph, Matrix& tree )
          {
             auto globalIdx = segment.getGlobalIndex( localIdx );
             if( hook_candidates_sources_view[ globalIdx ] != -1 )
-               std::cout << hook_candidates_sources_view[ globalIdx ] << " @ "
+               std::cout << hook_candidates_targets_view[ globalIdx ] << " -> "
+                         << hook_candidates_sources_view[ globalIdx ] << " @ "
                          << hook_candidates_weights_view[ globalIdx ] << ", ";
          }
          std::cout << std::endl;
@@ -232,16 +236,21 @@ void parallelMST(const Matrix& graph, Matrix& tree )
       // Find minimum weight hook candidates
       using AuxType = Aux< RealType, IndexType >;
       auto hook_candidates_fetch = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool& compute ) {
-         return AuxType{ hook_candidates_weights_view[ globalIdx ], hook_candidates_sources_view[ globalIdx ] };
+         return AuxType{ hook_candidates_weights_view[ globalIdx ],
+                         hook_candidates_sources_view[ globalIdx ],
+                         hook_candidates_targets_view[ globalIdx ] };
       };
       auto hook_candidates_reduction = [=] __cuda_callable__ ( const AuxType& a, const AuxType& b ) {
-         return a.first < b.first ? a : b;
+         if( a.first == b.first )
+            return a.second < b.second ? a : b;
+         else return a.first < b.first ? a : b;
       };
       auto hook_candidates_keep = [=] __cuda_callable__ ( IndexType segmentIdx, const AuxType& value ) mutable {
          hook_weights_view[ segmentIdx ] = value.first;
          hook_sources_view[ segmentIdx ] = value.second;
+         hook_targets_view[ segmentIdx ] = value.third;
       };
-      hook_candidates.reduceAllSegments( hook_candidates_fetch, hook_candidates_reduction, hook_candidates_keep, AuxType( std::numeric_limits< RealType >::max(), -1 ) );
+      hook_candidates.reduceAllSegments( hook_candidates_fetch, hook_candidates_reduction, hook_candidates_keep, AuxType( std::numeric_limits< RealType >::max(), -1, -1 ) );
       /*for( Index i = 0; i < hook_sources.getSize(); i++ ) {
          if( hook_sources_view[ i ] != -1 )
             std::cout << " Best hook: " << hook_sources[ i ] << " -> " << i << " @ " << hook_weights[ i ] << std::endl;
@@ -251,11 +260,13 @@ void parallelMST(const Matrix& graph, Matrix& tree )
       new_links_target_view = -1;
       new_links_weight_view = 0.0;
       auto hooking_fetch = [=] __cuda_callable__ ( Index i ) mutable {
-         if( hook_sources_view[ i ] != -1 ) {
-            std::cout << " Hooking " << i << " -> " << hook_sources_view[ i ] << " parent node is " << p_old_view[ hook_sources_view[ i ] ] << " weight " << hook_weights_view[ i ] << std::endl;
-            p_view[ i ] = p_old_view[ hook_sources_view[ i ] ];
-            new_links_target_view[ i ] = hook_sources_view[ i ];
-            new_links_weight_view[ i ] = hook_weights_view[ i ];
+         auto source = hook_sources_view[ i ];
+         auto target = hook_targets_view[ i ];
+         if( source != -1 ) {
+            std::cout << " Hooking " << source << " -> " << i << " parent node is " << p_old_view[ source ] << " weight " << hook_weights_view[ i ] << std::endl;
+            p_view[ i ] = p_old_view[ source ];
+            new_links_target_view[ target ] = source; //source; //hook_sources_view[ i ];
+            new_links_weight_view[ target ] = hook_weights_view[ i ];
             return hook_weights_view[ i ];
          }
          else
@@ -287,7 +298,7 @@ void parallelMST(const Matrix& graph, Matrix& tree )
       [=] __cuda_callable__ ( Index i ) mutable {
          if( new_links_target_view[ i ] != -1 ) {
             IndexType localIdx = treeFillingView.atomicAdd( i, 1 );
-            tree_view.getRow( i ).setElement( localIdx, new_links_target_view[ i ], new_links_weight_view[ i ] );
+            tree_view.getRow( new_links_target_view[ i ] ).setElement( localIdx, i, new_links_weight_view[ i ] );
             std::cout <<    " Adding edge " << i << " -> " << new_links_target_view[ i ] << " with weight " << new_links_weight_view[ i ]
                       << " to the output tree." << std::endl;
          }
@@ -331,9 +342,9 @@ void minimumSpanningTree( const Matrix& adjacencyMatrix, Matrix& spanning_tree )
 
    using Device = typename Matrix::DeviceType;
 
-   if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value )
-      kruskal( adjacencyMatrix, spanning_tree );
-   else
+   //if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value )
+   //   kruskal( adjacencyMatrix, spanning_tree );
+   //else
       parallelMST( adjacencyMatrix, spanning_tree );
 }
 } // namespace Graphs
