@@ -157,6 +157,8 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::sortColumnIn
    IndexType size = this->getSize();
    for( IndexType i = 1; i < size; i++ ) {
       const IndexType columnIdx = getColumnIndex( i );
+      if( columnIdx == getPaddingIndex() )
+         return;
       const RealType value = getValue( i );
       IndexType j = i;
       for( j = i; j > 0 && getColumnIndex( j - 1 ) > columnIdx; j-- ) {
