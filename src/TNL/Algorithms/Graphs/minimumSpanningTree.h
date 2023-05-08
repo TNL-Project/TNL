@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <TNL/Containers/Vector.h>
+#include <TNL/Containers/AtomicVectorView.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Algorithms/Graphs/Graph.h>
 #include <TNL/Algorithms/Segments/GrowingSegments.h>
@@ -77,8 +78,13 @@ private:
 template< typename Matrix,
           typename Real = typename Matrix::RealType,
           typename Index = typename Matrix::IndexType >
-void kruskal(const Matrix& graph, Containers::Array< Edge< Real, Index >, TNL::Devices::Sequential, Index >& minimumSpanningTree )
+void kruskal(const Matrix& graph, Matrix& minimum_spanning_tree )
+   //Containers::Array< Edge< Real, Index >, TNL::Devices::Sequential, Index >& minimumSpanningTree )
 {
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
    Index n = graph.getRows();
    std::vector< Edge< Real, Index > > edges;
    for( Index i = 0; i < n; i++ )
@@ -94,23 +100,32 @@ void kruskal(const Matrix& graph, Containers::Array< Edge< Real, Index >, TNL::D
    std::sort(edges.begin(), edges.end(), compareEdges< Real, Index >);
 
    Forest< Real, Index > forest(n);
-   std::vector< Edge< Real, Index > > minSpanningTree;
+   //std::vector< Edge< Real, Index > > minSpanningTree;
+   IndexVector rowCapacities( n ), tree_filling( n, 0 );
+   graph.getRowCapacities( rowCapacities );
+   minimum_spanning_tree.setDimensions( n, n );
+   minimum_spanning_tree.setRowCapacities( rowCapacities );
+
 
    for( const auto& edge : edges ) {
       auto u = edge.getSource();
       auto v = edge.getTarget();
       if( forest.getRoot( u ) != forest.getRoot( v ) ) {
-         minSpanningTree.push_back( edge );
+         //minSpanningTree.push_back( edge );
+         IndexType localIdx = tree_filling[ edge.getSource() ]++;
+         minimum_spanning_tree.getRow( edge.getSource() ).setElement( localIdx, edge.getTarget(), edge.getWeight() );
+         //std::cout << "Adding edge: " << edge.getSource() << " " << edge.getTarget() << " " << edge.getWeight() << std::endl;
+         //std::cout << minimum_spanning_tree << std::endl;
          forest.mergeTrees( u, v );
       }
    }
-   minimumSpanningTree = minSpanningTree;
+   //minimumSpanningTree = minSpanningTree;
 }
 
 template< typename Matrix,
           typename Real = typename Matrix::RealType,
           typename Index = typename Matrix::IndexType >
-void parallelMST(const Matrix& graph )
+void parallelMST(const Matrix& graph, Matrix& tree )
 {
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
@@ -126,6 +141,8 @@ void parallelMST(const Matrix& graph )
    graph.getRowCapacities( starRootsSlots );
    starRootsSlots = n;
    GrowingSegmentsType hook_candidates( starRootsSlots );
+   tree.setDimensions( n, n );
+   tree.setRowCapacities( starRootsSlots );
 
    IndexVector p( n ), p_old( n, 0 ), q( n ), new_links_target( n, -1 );
    RealVector new_links_weight( n, 0.0 );
@@ -134,6 +151,8 @@ void parallelMST(const Matrix& graph )
    IndexVector hook_candidates_sources( hook_candidates.getStorageSize(), ( IndexType ) 0 ),
                hook_sources( n, ( IndexType ) -1 );
    p.forAllElements( [] __cuda_callable__ ( Index i, Index& value ) { value = i; } );
+   IndexVector treeFilling( n, 0 );
+   Containers::AtomicVectorView< IndexType, DeviceType, IndexType > treeFillingView( treeFilling.getView() );
 
    auto hook_candidates_view = hook_candidates.getView();
    auto hook_candidates_weights_view = hook_candidates_weights.getView();
@@ -142,6 +161,7 @@ void parallelMST(const Matrix& graph )
    auto hook_sources_view = hook_sources.getView();
    auto new_links_target_view = new_links_target.getView();
    auto new_links_weight_view = new_links_weight.getView();
+   auto tree_view = tree.getView();
 
    IndexType iter( 0 );
    Real sum( 0.0 );
@@ -263,7 +283,15 @@ void parallelMST(const Matrix& graph )
       sum -= add;
 
       // Adding edges to the graph of the spanning tree
-      // TODO
+      Algorithms::parallelFor< DeviceType >( 0, n,
+      [=] __cuda_callable__ ( Index i ) mutable {
+         if( new_links_target_view[ i ] != -1 ) {
+            IndexType localIdx = treeFillingView.atomicAdd( i, 1 );
+            tree_view.getRow( i ).setElement( localIdx, new_links_target_view[ i ], new_links_weight_view[ i ] );
+            std::cout <<    " Adding edge " << i << " -> " << new_links_target_view[ i ] << " with weight " << new_links_weight_view[ i ]
+                      << " to the output tree." << std::endl;
+         }
+      } );
       std::cout << "  Adding " << add << " to sum " << sum << std::endl;
       std::cout << " After cycles removing:    p = " << p << "                 sum = " << sum << std::endl;
 
@@ -296,16 +324,17 @@ void parallelMST(const Matrix& graph )
 template< typename Matrix,
           typename Real = typename Matrix::RealType,
           typename Index = typename Matrix::IndexType >
-void minimumSpanningTree( const Matrix& adjacencyMatrix, Containers::Array< Edge< Real, Index >, typename Matrix::DeviceType >& spanning_tree )
+void minimumSpanningTree( const Matrix& adjacencyMatrix, Matrix& spanning_tree )
+   //Containers::Array< Edge< Real, Index >, typename Matrix::DeviceType >& spanning_tree )
 {
    TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
 
    using Device = typename Matrix::DeviceType;
 
    if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value )
-   //   kruskal( adjacencyMatrix, spanning_tree );
-   //else
-      parallelMST( adjacencyMatrix );
+      kruskal( adjacencyMatrix, spanning_tree );
+   else
+      parallelMST( adjacencyMatrix, spanning_tree );
 }
 } // namespace Graphs
 } // namespace Algorithms
