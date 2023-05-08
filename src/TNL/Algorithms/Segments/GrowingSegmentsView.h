@@ -8,6 +8,7 @@
 
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Containers/Vector.h>
+#include <TNL/Containers/AtomicVectorView.h>
 #include <TNL/Algorithms/Segments/SegmentsPrinting.h>
 
 
@@ -25,6 +26,7 @@ struct GrowingSegmentsView : public SegmentsView_
    using DeviceType = typename SegmentsType::DeviceType;
    using FillingVector = Containers::Vector< IndexType, DeviceType, IndexType >;
    using FillingVectorView = typename FillingVector::ViewType;
+   using AtomicFillingVectorView = Containers::AtomicVectorView< IndexType, DeviceType, IndexType >;
 
    GrowingSegmentsView( SegmentsView&& segmentsView, FillingVectorView&& fillingView )
       : SegmentsView_( segmentsView ), segmentsFilling( fillingView ) {}
@@ -32,7 +34,7 @@ struct GrowingSegmentsView : public SegmentsView_
    __cuda_callable__
    IndexType newSlot( IndexType segmentIdx )
    {
-      IndexType localIdx = Algorithms::AtomicOperations< DeviceType >::add( segmentsFilling[ segmentIdx ], ( IndexType) 1 );
+      IndexType localIdx = segmentsFilling.atomicAdd( segmentIdx, ( IndexType) 1 );
       TNL_ASSERT_LT( localIdx, this->getSegmentSize( segmentIdx ), "" );
       return this->getGlobalIndex( segmentIdx, localIdx );
    }
@@ -40,7 +42,7 @@ struct GrowingSegmentsView : public SegmentsView_
    __cuda_callable__
    IndexType deleteSlot( IndexType segmentIdx )
    {
-      IndexType localIdx = Algorithms::AtomicOperations< DeviceType >::add( segmentsFilling[ segmentIdx ], ( IndexType ) -1 );
+      IndexType localIdx = segmentsFilling.atomicAdd( segmentIdx, ( IndexType) -1 );
       return this->getGlobalIndex( segmentIdx, localIdx-1 );
    }
 
@@ -125,7 +127,7 @@ struct GrowingSegmentsView : public SegmentsView_
    }
 
 private:
-   FillingVectorView segmentsFilling;
+   AtomicFillingVectorView segmentsFilling;
 };
 
 
