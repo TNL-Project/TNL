@@ -1058,6 +1058,11 @@ public:
    operator=( const RHSMatrix& matrix );
 
    /**
+    * \brief Sort matrix elements in each row by column indexes in ascending order.
+    */
+   void sortColumnIndexes();
+
+   /**
     * \brief Method for saving the matrix to the file with given filename.
     *
     * \param fileName is name of the file.

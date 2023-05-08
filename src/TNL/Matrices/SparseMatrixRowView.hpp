@@ -150,6 +150,28 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::operator==(
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
+void
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::sortColumnIndexes()
+{
+   // Sort the row by insertion sort
+   IndexType size = this->getSize();
+   for( IndexType i = 1; i < size; i++ ) {
+      const IndexType columnIdx = getColumnIndex( i );
+      const RealType value = getValue( i );
+      IndexType j = i;
+      for( j = i; j > 0 && getColumnIndex( j - 1 ) > columnIdx; j-- ) {
+         getColumnIndex( j ) = getColumnIndex( j - 1 );
+         if( ! isBinary() )
+            getValue( j ) = getValue( j - 1 );
+      };
+      getColumnIndex( j ) = columnIdx;
+      if( ! isBinary() )
+         getValue( j ) = value;
+   }
+}
+
+template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
+__cuda_callable__
 auto
 SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::begin() -> IteratorType
 {

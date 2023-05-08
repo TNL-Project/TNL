@@ -984,6 +984,21 @@ template< typename Real,
           typename RealAllocator,
           typename IndexAllocator >
 void
+SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::sortColumnIndexes()
+{
+   this->view.sortColumnIndexes();
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename, typename >
+          class Segments,
+          typename ComputeReal,
+          typename RealAllocator,
+          typename IndexAllocator >
+void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::save( File& file ) const
 {
    file.save( &this->rows );

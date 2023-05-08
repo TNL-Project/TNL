@@ -944,6 +944,21 @@ template< typename Real,
           class SegmentsView,
           typename ComputeReal >
 void
+SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sortColumnIndexes()
+{
+   this->forAllRows( [=] __cuda_callable__ ( RowView& row ) {
+      row.sortColumnIndexes();
+   } );
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename >
+          class SegmentsView,
+          typename ComputeReal >
+void
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::save( File& file ) const
 {
    file.save( &this->rows );

@@ -223,6 +223,12 @@ public:
    operator==( const SparseMatrixRowView< _SegmentView, _ValuesView, _ColumnsIndexesView >& other ) const;
 
    /**
+    * \brief Sort the matrix row by column indexes in ascending order.
+    */
+   __cuda_callable__
+   void sortColumnIndexes();
+
+   /**
     * \brief Returns iterator pointing at the beginning of the matrix row.
     *
     * \return iterator pointing at the beginning.

@@ -98,6 +98,13 @@ TYPED_TEST( MatrixTest, reduceRows )
     test_reduceRows< MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, sortColumnIndexes )
+{
+    using MatrixType = typename TestFixture::MatrixType;
+
+    test_SortColumnIndexes< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, saveAndLoad )
 {
     using MatrixType = typename TestFixture::MatrixType;
