@@ -37,9 +37,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 std::string
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getSerializationType()
 {
-   // FIXME: the serialized data DEPEND on the Organization and Alignment parameters, so it should be reflected in the
-   // serialization type
-   return "Ellpack< [any_device], " + TNL::getSerializationType< IndexType >() + " >";
+   return ViewType::getSerializationType();
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >

@@ -41,9 +41,8 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 std::string
 BiEllpackView< Device, Index, Organization, WarpSize >::getSerializationType()
 {
-   // FIXME: the serialized data DEPEND on the Organization and WarpSize parameters, so it should be reflected in the
-   // serialization type
-   return "BiEllpack< [any_device], " + TNL::getSerializationType< IndexType >() + " >";
+   return "BiEllpack< " + TNL::getSerializationType< IndexType >() + ", " + TNL::getSerializationType( Organization ) + ", "
+        + std::to_string( WarpSize ) + " >";
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >

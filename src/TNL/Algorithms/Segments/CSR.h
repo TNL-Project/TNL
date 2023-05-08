@@ -164,9 +164,6 @@ public:
    /**
     * \brief Returns string with serialization type.
     *
-    * The string has a form `Algorithms::Segments::CSR< IndexType,
-    * [any_device], [any_kernel], [any_allocator] >`.
-    *
     * \return String with the serialization type.
     *
     * \par Example
@@ -179,8 +176,6 @@ public:
 
    /**
     * \brief Returns string with segments type.
-    *
-    * The string has a form `CSR< KernelType >`.
     *
     * \return \ref String with the segments type.
     *

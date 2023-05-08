@@ -54,8 +54,8 @@ template< typename Device, typename Index, ElementsOrganization Organization >
 std::string
 ChunkedEllpackView< Device, Index, Organization >::getSerializationType()
 {
-   // FIXME: the serialized data DEPEND on the Organization parameter, so it should be reflected in the serialization type
-   return "ChunkedEllpack< [any_device], " + TNL::getSerializationType< IndexType >() + " >";
+   return "ChunkedEllpack< " + TNL::getSerializationType< IndexType >() + ", " + TNL::getSerializationType( Organization )
+        + " >";
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >

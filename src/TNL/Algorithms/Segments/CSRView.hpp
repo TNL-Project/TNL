@@ -37,16 +37,14 @@ template< typename Device, typename Index, typename Kernel >
 std::string
 CSRView< Device, Index, Kernel >::getSerializationType()
 {
-   return "CSR< [any_device], " + TNL::getSerializationType< IndexType >() + ", " +
-          // FIXME: the serialized data do not depend on the the kernel type so it should not be in the serialization type
-          TNL::getSerializationType< KernelType >() + " >";
+   return "CSR< " + TNL::getSerializationType< IndexType >() + " >";
 }
 
 template< typename Device, typename Index, typename Kernel >
 String
 CSRView< Device, Index, Kernel >::getSegmentsType()
 {
-   return "CSR< " + KernelType::getKernelType() + " >";
+   return "CSR";
 }
 
 template< typename Device, typename Index, typename Kernel >

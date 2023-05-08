@@ -30,9 +30,7 @@ template< typename Device, typename Index, typename Kernel, typename IndexAlloca
 std::string
 CSR< Device, Index, Kernel, IndexAllocator >::getSerializationType()
 {
-   return "CSR< [any_device], " + TNL::getSerializationType< IndexType >() + ", " +
-          // FIXME: the serialized data do not depend on the the kernel type so it should not be in the serialization type
-          TNL::getSerializationType< KernelType >() + " >";
+   return ViewType::getSerializationType();
 }
 
 template< typename Device, typename Index, typename Kernel, typename IndexAllocator >

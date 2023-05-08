@@ -33,9 +33,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 std::string
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getSerializationType()
 {
-   // FIXME: the serialized data DEPEND on the Organization and WarpSize parameters, so it should be reflected in the
-   // serialization type
-   return "BiEllpack< [any_device], " + TNL::getSerializationType< IndexType >() + " >";
+   return ViewType::getSerializationType();
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
