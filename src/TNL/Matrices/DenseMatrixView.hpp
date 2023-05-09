@@ -415,7 +415,6 @@ DenseMatrixView< Real, Device, Index, Organization >::reduceRows( IndexType begi
       -> decltype( fetch( IndexType(), IndexType(), RealType() ) )
    {
       return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
-      return identity;
    };
    this->segments.reduceSegments( begin, end, fetch_, reduce, keep, identity );
 }
@@ -435,7 +434,6 @@ DenseMatrixView< Real, Device, Index, Organization >::reduceRows( IndexType begi
       -> decltype( fetch( IndexType(), IndexType(), RealType() ) )
    {
       return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
-      return identity;
    };
    this->segments.reduceSegments( begin, end, fetch_, reduce, keep, identity );
 }
