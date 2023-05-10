@@ -6,12 +6,10 @@
 
 #pragma once
 
-#include <TNL/Assert.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
+#include <TNL/String.h>
 
-namespace TNL::Algorithms::Segments {
+namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Index, typename Device, int ThreadsInBlock = 128 >
 struct CSRHybridKernel
@@ -21,9 +19,9 @@ struct CSRHybridKernel
    using ViewType = CSRHybridKernel< Index, Device, ThreadsInBlock >;
    using ConstViewType = CSRHybridKernel< Index, Device, ThreadsInBlock >;
 
-   template< typename Offsets >
+   template< typename Segments >
    void
-   init( const Offsets& offsets );
+   init( const Segments& segments );
 
    void
    reset();
@@ -39,9 +37,9 @@ struct CSRHybridKernel
    [[nodiscard]] static TNL::String
    getKernelType();
 
-   template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
    void
-   reduceSegments( const OffsetsView& offsets,
+   reduceSegments( const SegmentsView& segments,
                    Index first,
                    Index last,
                    Fetch& fetch,
@@ -49,10 +47,18 @@ struct CSRHybridKernel
                    ResultKeeper& keeper,
                    const Real& zero ) const;
 
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   void
+   reduceAllSegments( const SegmentsView& segments,
+                      Fetch& fetch,
+                      const Reduction& reduction,
+                      ResultKeeper& keeper,
+                      const Real& zero ) const;
+
 protected:
    int threadsPerSegment = 0;
 };
 
-}  // namespace TNL::Algorithms::Segments
+}  // namespace TNL::Algorithms::SegmentsReductionKernels
 
-#include <TNL/Algorithms/Segments/Kernels/CSRHybridKernel.hpp>
+#include "CSRHybridKernel.hpp"

@@ -6,12 +6,9 @@
 
 #pragma once
 
-#include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Algorithms/Segments/ChunkedEllpackView.h>
-#include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
-//#include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
-#include <TNL/Cuda/SharedMemory.h>
+
+#include "ChunkedEllpackView.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -182,6 +179,54 @@ ChunkedEllpackView< Device, Index, Organization >::getSegmentView( const IndexTy
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpackView< Device, Index, Organization >::getSlicesView() const -> ChunkedEllpackSliceInfoConstView
+{
+   return slices.getConstView();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpackView< Device, Index, Organization >::getRowToChunkMappingView() const -> ConstOffsetsView
+{
+   return rowToChunkMapping.getConstView();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpackView< Device, Index, Organization >::getRowToSliceMappingView() const -> ConstOffsetsView
+{
+   return rowToSliceMapping.getConstView();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpackView< Device, Index, Organization >::getChunksToSegmentsMappingView() const -> ConstOffsetsView
+{
+   return chunksToSegmentsMapping.getConstView();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpackView< Device, Index, Organization >::getChunksInSlice() const -> IndexType
+{
+   return chunksInSlice;
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpackView< Device, Index, Organization >::getNumberOfSlices() const -> IndexType
+{
+   return numberOfSlices;
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
 ChunkedEllpackView< Device, Index, Organization >::forElements( IndexType first, IndexType last, Function&& f ) const
@@ -259,92 +304,6 @@ ChunkedEllpackView< Device, Index, Organization >::forAllSegments( Function&& f 
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-ChunkedEllpackView< Device, Index, Organization >::reduceSegments( IndexType first,
-                                                                   IndexType last,
-                                                                   Fetch& fetch,
-                                                                   const Reduction& reduction,
-                                                                   ResultKeeper& keeper,
-                                                                   const Real& zero ) const
-{
-   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   if constexpr( std::is_same< DeviceType, Devices::Host >::value ) {
-      // reduceSegmentsKernel( 0, first, last, fetch, reduction, keeper, zero );
-      // return;
-
-      for( IndexType segmentIdx = first; segmentIdx < last; segmentIdx++ ) {
-         const IndexType& sliceIndex = rowToSliceMapping[ segmentIdx ];
-         TNL_ASSERT_LE( sliceIndex, this->size, "" );
-         IndexType firstChunkOfSegment( 0 );
-         if( segmentIdx != slices[ sliceIndex ].firstSegment )
-            firstChunkOfSegment = rowToChunkMapping[ segmentIdx - 1 ];
-
-         const IndexType lastChunkOfSegment = rowToChunkMapping[ segmentIdx ];
-         const IndexType segmentChunksCount = lastChunkOfSegment - firstChunkOfSegment;
-         const IndexType sliceOffset = slices[ sliceIndex ].pointer;
-         const IndexType chunkSize = slices[ sliceIndex ].chunkSize;
-
-         const IndexType segmentSize = segmentChunksCount * chunkSize;
-         RealType aux( zero );
-         bool compute( true );
-         if( Organization == RowMajorOrder ) {
-            IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
-            IndexType end = begin + segmentSize;
-            IndexType localIdx( 0 );
-            for( IndexType globalIdx = begin; globalIdx < end && compute; globalIdx++ )
-               aux = reduction(
-                  aux,
-                  detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx, compute ) );
-         }
-         else {
-            for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
-               IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
-               IndexType end = begin + chunksInSlice * chunkSize;
-               IndexType localIdx( 0 );
-               for( IndexType globalIdx = begin; globalIdx < end && compute; globalIdx += chunksInSlice )
-                  aux = reduction( aux,
-                                   detail::FetchLambdaAdapter< IndexType, Fetch >::call(
-                                      fetch, segmentIdx, localIdx++, globalIdx, compute ) );
-            }
-         }
-         keeper( segmentIdx, aux );
-      }
-   }
-   if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
-      Devices::Cuda::LaunchConfiguration launch_config;
-      // const IndexType chunksCount = this->numberOfSlices * this->chunksInSlice;
-      //  TODO: This ignores parameters first and last
-      const IndexType cudaBlocks = this->numberOfSlices;
-      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
-      launch_config.blockSize.x = this->chunksInSlice;
-      launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( RealType );
-
-      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         launch_config.gridSize.x = Cuda::getMaxGridXSize();
-         if( gridIdx == cudaGrids - 1 )
-            launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
-         constexpr auto kernel =
-            detail::ChunkedEllpackreduceSegmentsKernel< ViewType, IndexType, Fetch, Reduction, ResultKeeper, Real >;
-         Cuda::launchKernelAsync( kernel, launch_config, *this, gridIdx, first, last, fetch, reduction, keeper, zero );
-      }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
-   }
-}
-
-template< typename Device, typename Index, ElementsOrganization Organization >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-ChunkedEllpackView< Device, Index, Organization >::reduceAllSegments( Fetch& fetch,
-                                                                      const Reduction& reduction,
-                                                                      ResultKeeper& keeper,
-                                                                      const Real& zero ) const
-{
-   this->reduceSegments( 0, this->getSegmentsCount(), fetch, reduction, keeper, zero );
-}
-
-template< typename Device, typename Index, ElementsOrganization Organization >
 ChunkedEllpackView< Device, Index, Organization >&
 ChunkedEllpackView< Device, Index, Organization >::operator=( const ChunkedEllpackView& view )
 {
@@ -397,136 +356,5 @@ ChunkedEllpackView< Device, Index, Organization >::printStructure( std::ostream&
       str << "Segment " << i << " : slice = " << this->rowToSliceMapping.getElement( i )
           << " chunk = " << this->rowToChunkMapping.getElement( i ) << std::endl;
 }
-
-#ifdef __CUDACC__
-template< typename Device, typename Index, ElementsOrganization Organization >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-__device__
-void
-ChunkedEllpackView< Device, Index, Organization >::reduceSegmentsKernelWithAllParameters( IndexType gridIdx,
-                                                                                          IndexType first,
-                                                                                          IndexType last,
-                                                                                          Fetch fetch,
-                                                                                          Reduction reduction,
-                                                                                          ResultKeeper keeper,
-                                                                                          Real zero ) const
-{
-   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   // using RealType = decltype( fetch( IndexType(), IndexType(), IndexType(), std::declval< bool& >() ) );
-
-   const IndexType firstSlice = rowToSliceMapping[ first ];
-   const IndexType lastSlice = rowToSliceMapping[ last - 1 ];
-
-   const IndexType sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridXSize() + blockIdx.x;
-   if( sliceIdx > lastSlice )
-      return;
-
-   RealType* chunksResults = Cuda::getSharedMemory< RealType >();
-   __shared__ detail::ChunkedEllpackSliceInfo< IndexType > sliceInfo;
-   if( threadIdx.x == 0 )
-      sliceInfo = this->slices[ sliceIdx ];
-   chunksResults[ threadIdx.x ] = zero;
-   __syncthreads();
-
-   const IndexType sliceOffset = sliceInfo.pointer;
-   const IndexType chunkSize = sliceInfo.chunkSize;
-   const IndexType chunkIdx = sliceIdx * chunksInSlice + threadIdx.x;
-   const IndexType segmentIdx = this->chunksToSegmentsMapping[ chunkIdx ];
-   IndexType firstChunkOfSegment( 0 );
-   if( segmentIdx != sliceInfo.firstSegment )
-      firstChunkOfSegment = rowToChunkMapping[ segmentIdx - 1 ];
-   IndexType localIdx = ( threadIdx.x - firstChunkOfSegment ) * chunkSize;
-   bool compute( true );
-
-   if( Organization == RowMajorOrder ) {
-      IndexType begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
-      IndexType end = begin + chunkSize;
-      for( IndexType j = begin; j < end && compute; j++ )
-         chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( segmentIdx, localIdx++, j, compute ) );
-   }
-   else {
-      const IndexType begin = sliceOffset + threadIdx.x;  // threadIdx.x = chunkIdx within the slice
-      const IndexType end = begin + chunksInSlice * chunkSize;
-      for( IndexType j = begin; j < end && compute; j += chunksInSlice )
-         chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( segmentIdx, localIdx++, j, compute ) );
-   }
-   __syncthreads();
-   if( threadIdx.x < sliceInfo.size ) {
-      const IndexType row = sliceInfo.firstSegment + threadIdx.x;
-      IndexType chunkIndex( 0 );
-      if( threadIdx.x != 0 )
-         chunkIndex = this->rowToChunkMapping[ row - 1 ];
-      const IndexType lastChunk = this->rowToChunkMapping[ row ];
-      RealType result( zero );
-      while( chunkIndex < lastChunk )
-         result = reduction( result, chunksResults[ chunkIndex++ ] );
-      if( row >= first && row < last )
-         keeper( row, result );
-   }
-}
-
-template< typename Device, typename Index, ElementsOrganization Organization >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-__device__
-void
-ChunkedEllpackView< Device, Index, Organization >::reduceSegmentsKernel( IndexType gridIdx,
-                                                                         IndexType first,
-                                                                         IndexType last,
-                                                                         Fetch fetch,
-                                                                         Reduction reduction,
-                                                                         ResultKeeper keeper,
-                                                                         Real zero ) const
-{
-   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   // using RealType = decltype( fetch( IndexType(), std::declval< bool& >() ) );
-
-   const IndexType firstSlice = rowToSliceMapping[ first ];
-   const IndexType lastSlice = rowToSliceMapping[ last - 1 ];
-
-   const IndexType sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridXSize() + blockIdx.x;
-   if( sliceIdx > lastSlice )
-      return;
-
-   RealType* chunksResults = Cuda::getSharedMemory< RealType >();
-   __shared__ detail::ChunkedEllpackSliceInfo< IndexType > sliceInfo;
-
-   if( threadIdx.x == 0 )
-      sliceInfo = this->slices[ sliceIdx ];
-   chunksResults[ threadIdx.x ] = zero;
-   __syncthreads();
-
-   const IndexType sliceOffset = sliceInfo.pointer;
-   const IndexType chunkSize = sliceInfo.chunkSize;
-   // const IndexType chunkIdx = sliceIdx * chunksInSlice + threadIdx.x;
-   bool compute( true );
-
-   if( Organization == RowMajorOrder ) {
-      IndexType begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
-      IndexType end = begin + chunkSize;
-      for( IndexType j = begin; j < end && compute; j++ )
-         chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( j, compute ) );
-   }
-   else {
-      const IndexType begin = sliceOffset + threadIdx.x;  // threadIdx.x = chunkIdx within the slice
-      const IndexType end = begin + chunksInSlice * chunkSize;
-      for( IndexType j = begin; j < end && compute; j += chunksInSlice )
-         chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( j, compute ) );
-   }
-   __syncthreads();
-
-   if( threadIdx.x < sliceInfo.size ) {
-      const IndexType row = sliceInfo.firstSegment + threadIdx.x;
-      IndexType chunkIndex( 0 );
-      if( threadIdx.x != 0 )
-         chunkIndex = this->rowToChunkMapping[ row - 1 ];
-      const IndexType lastChunk = this->rowToChunkMapping[ row ];
-      RealType result( zero );
-      while( chunkIndex < lastChunk )
-         result = reduction( result, chunksResults[ chunkIndex++ ] );
-      if( row >= first && row < last )
-         keeper( row, result );
-   }
-}
-#endif
 
 }  // namespace TNL::Algorithms::Segments

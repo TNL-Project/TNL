@@ -35,6 +35,13 @@ public:
    using ChunkedEllpackSliceInfoType = detail::ChunkedEllpackSliceInfo< IndexType >;
    using ChunkedEllpackSliceInfoContainerView = Containers::
       ArrayView< typename TNL::copy_const< ChunkedEllpackSliceInfoType >::template from< Index >::type, DeviceType, IndexType >;
+   using ChunkedEllpackSliceInfoConstView = typename ChunkedEllpackSliceInfoContainerView::ConstViewType;
+
+   [[nodiscard]] static constexpr ElementsOrganization
+   getOrganization()
+   {
+      return Organization;
+   }
 
    [[nodiscard]] static constexpr bool
    havePadding()
@@ -125,6 +132,30 @@ public:
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
+   [[nodiscard]] __cuda_callable__
+   ChunkedEllpackSliceInfoConstView
+   getSlicesView() const;
+
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getRowToChunkMappingView() const;
+
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getRowToSliceMappingView() const;
+
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getChunksToSegmentsMappingView() const;
+
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getChunksInSlice() const;
+
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getNumberOfSlices() const;
+
    /***
     * \brief Go over all segments and for each segment element call
     * function 'f' with arguments 'args'. The return type of 'f' is bool.
@@ -146,22 +177,6 @@ public:
    template< typename Function >
    void
    forAllSegments( Function&& f ) const;
-
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Real& zero ) const;
 
    ChunkedEllpackView&
    operator=( const ChunkedEllpackView& view );
@@ -200,34 +215,8 @@ protected:
    OffsetsView rowPointers;
 
    ChunkedEllpackSliceInfoContainerView slices;
-
-#ifdef __CUDACC__
-   // these methods must be public so they can be called from the __global__ function
-public:
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   __device__
-   void
-   reduceSegmentsKernelWithAllParameters( IndexType gridIdx,
-                                          IndexType first,
-                                          IndexType last,
-                                          Fetch fetch,
-                                          Reduction reduction,
-                                          ResultKeeper keeper,
-                                          Real zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   __device__
-   void
-   reduceSegmentsKernel( IndexType gridIdx,
-                         IndexType first,
-                         IndexType last,
-                         Fetch fetch,
-                         Reduction reduction,
-                         ResultKeeper keeper,
-                         Real zero ) const;
-#endif
 };
 
 }  // namespace TNL::Algorithms::Segments
 
-#include <TNL/Algorithms/Segments/ChunkedEllpackView.hpp>
+#include "ChunkedEllpackView.hpp"

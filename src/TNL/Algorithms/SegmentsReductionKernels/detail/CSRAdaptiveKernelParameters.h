@@ -6,7 +6,9 @@
 
 #pragma once
 
-namespace TNL::Algorithms::Segments::detail {
+#include <TNL/Cuda/LaunchHelpers.h>
+
+namespace TNL::Algorithms::SegmentsReductionKernels::detail {
 
 // This can be used for tunning the number of CUDA threads per block depending on the size of Value
 // TODO: Perform some tests
@@ -47,7 +49,7 @@ struct CSRAdaptiveKernelParameters
     *
     * \return Stream shared memory.
     */
-   [[nodiscard]] static constexpr size_t
+   [[nodiscard]] static constexpr std::size_t
    StreamedSharedMemory()
    {
       return StreamedSharedMemory_;
@@ -56,7 +58,7 @@ struct CSRAdaptiveKernelParameters
    /**
     * \brief Number of elements fitting into streamed shared memory.
     */
-   [[nodiscard]] static constexpr size_t
+   [[nodiscard]] static constexpr std::size_t
    StreamedSharedElementsCount()
    {
       return StreamedSharedMemory() / SizeOfValue;
@@ -65,7 +67,7 @@ struct CSRAdaptiveKernelParameters
    /**
     * \brief Computes number of warps in one CUDA block.
     */
-   [[nodiscard]] static constexpr size_t
+   [[nodiscard]] static constexpr std::size_t
    WarpsCount()
    {
       return CudaBlockSize() / Cuda::getWarpSize();
@@ -76,7 +78,7 @@ struct CSRAdaptiveKernelParameters
     *
     * \return Number of elements to be streamed into the shared memory.
     */
-   [[nodiscard]] static constexpr size_t
+   [[nodiscard]] static constexpr std::size_t
    StreamedSharedElementsPerWarp()
    {
       return StreamedSharedElementsCount() / WarpsCount();
@@ -140,4 +142,4 @@ CSRAdaptiveKernelParameters< SizeOfValue, StreamedSharedMemory_ >::getSizeValueL
    return 6;
 }
 
-}  // namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::SegmentsReductionKernels::detail

@@ -94,8 +94,7 @@ public:
 
 protected:
    // The factors L and U are stored separately and the rows of U are reversed.
-   using CSR =
-      Matrices::SparseMatrix< RealType, DeviceType, IndexType, Matrices::GeneralMatrix, Algorithms::Segments::CSRScalar >;
+   using CSR = Matrices::SparseMatrix< RealType, DeviceType, IndexType, Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
    CSR L, U;
 
    // Specialized methods to distinguish between normal and distributed matrices

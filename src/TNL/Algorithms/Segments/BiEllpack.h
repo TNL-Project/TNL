@@ -24,16 +24,30 @@ public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
    using OffsetsContainer = Containers::Vector< IndexType, DeviceType, IndexType, IndexAllocator >;
-   [[nodiscard]] static constexpr ElementsOrganization
-   getOrganization()
-   {
-      return Organization;
-   }
+   using ConstOffsetsView = typename OffsetsContainer::ConstViewType;
    using ViewType = BiEllpackView< Device, Index, Organization, WarpSize >;
    template< typename Device_, typename Index_ >
    using ViewTemplate = BiEllpackView< Device_, Index_, Organization, WarpSize >;
    using ConstViewType = typename ViewType::ConstViewType;
    using SegmentViewType = typename ViewType::SegmentViewType;
+
+   [[nodiscard]] static constexpr ElementsOrganization
+   getOrganization()
+   {
+      return Organization;
+   }
+
+   [[nodiscard]] static constexpr int
+   getWarpSize()
+   {
+      return WarpSize;
+   }
+
+   [[nodiscard]] static constexpr int
+   getLogWarpSize()
+   {
+      return std::log2( WarpSize );
+   }
 
    [[nodiscard]] static constexpr bool
    havePadding()
@@ -104,6 +118,14 @@ public:
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getRowPermArrayView() const;
+
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getGroupPointersView() const;
+
    /***
     * \brief Go over all segments and for each segment element call
     * function 'f' with arguments 'args'. The return type of 'f' is bool.
@@ -125,22 +147,6 @@ public:
    template< typename Function >
    void
    forAllSegments( Function&& f ) const;
-
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Real& zero ) const;
 
    BiEllpack&
    operator=( const BiEllpack& source ) = default;
@@ -173,18 +179,6 @@ public:
    computeColumnSizes( const SizesHolder& segmentsSizes );
 
 protected:
-   [[nodiscard]] static constexpr int
-   getWarpSize()
-   {
-      return WarpSize;
-   }
-
-   [[nodiscard]] static constexpr int
-   getLogWarpSize()
-   {
-      return std::log2( WarpSize );
-   }
-
    template< typename SizesHolder = OffsetsContainer >
    void
    verifyRowPerm( const SizesHolder& segmentsSizes );

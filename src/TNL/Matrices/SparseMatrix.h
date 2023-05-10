@@ -48,7 +48,7 @@ template< typename Real = double,
           typename Index = int,
           typename MatrixType = GeneralMatrix,
           template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments =
-             Algorithms::Segments::CSRDefault,
+             Algorithms::Segments::CSR,
           typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >

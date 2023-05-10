@@ -157,6 +157,14 @@ Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getSegmentVie
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
+__cuda_callable__
+auto
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getAlignedSize() const -> IndexType
+{
+   return alignedSize;
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
 template< typename Function >
 void
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::forElements( IndexType first,
@@ -190,30 +198,6 @@ void
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::forAllSegments( Function&& f ) const
 {
    this->getConstView().forAllSegments( f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::reduceSegments( IndexType first,
-                                                                                   IndexType last,
-                                                                                   Fetch& fetch,
-                                                                                   const Reduction& reduction,
-                                                                                   ResultKeeper& keeper,
-                                                                                   const Real& zero ) const
-{
-   this->getConstView().reduceSegments( first, last, fetch, reduction, keeper, zero );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::reduceAllSegments( Fetch& fetch,
-                                                                                      const Reduction& reduction,
-                                                                                      ResultKeeper& keeper,
-                                                                                      const Real& zero ) const
-{
-   this->reduceSegments( 0, this->getSegmentsCount(), fetch, reduction, keeper, zero );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >

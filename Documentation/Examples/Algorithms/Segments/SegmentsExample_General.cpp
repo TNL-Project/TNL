@@ -3,6 +3,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/DefaultKernel.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -11,6 +12,7 @@ void SegmentsExample()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using SegmentsReductionKernel = typename TNL::Algorithms::SegmentsReductionKernels::DefaultKernel< typename Segments::ViewType >::type;
 
    /***
     * Create segments with given segments sizes.
@@ -49,7 +51,10 @@ void SegmentsExample()
    auto keep = [=] __cuda_callable__ ( const IndexType& segmentIdx, const double& value ) mutable {
       sums_view[ segmentIdx ] = value;
    };
-   segments.reduceAllSegments( sum_fetch, std::plus<>{}, keep, 0.0 );
+
+   SegmentsReductionKernel kernel;
+   kernel.init( segments );
+   kernel.reduceAllSegments( segments, sum_fetch, std::plus<>{}, keep, 0.0 );
    std::cout << "The sums are: " << sums << std::endl;
 }
 

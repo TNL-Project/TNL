@@ -207,7 +207,8 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       {
          row_sums_view[ row ] = value;
       };
-      this->segments.reduceSegments( 0, this->getRows(), fetch, std::plus<>{}, keeper, (IndexType) 0 );
+      SegmentsReductionKernel::reduceSegments(
+         this->segments, 0, this->getRows(), fetch, std::plus<>{}, keeper, (IndexType) 0 );
       return sum( row_sums );
    }
 }
@@ -439,7 +440,7 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          typename OutVector::RealType aux = matrixMultiplicator * value;
          Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ row ], aux );
       };
-      this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+      SegmentsReductionKernel::reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
    }
    else {
       auto fetch = [ inVectorView, valuesView, columnIndexesView, paddingIndex ] __cuda_callable__(
@@ -465,14 +466,16 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             {
                outVectorView[ row ] = value;
             };
-            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+            SegmentsReductionKernel::reduceSegments(
+               this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
          }
          else {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
                outVectorView[ row ] = matrixMultiplicator * value;
             };
-            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+            SegmentsReductionKernel::reduceSegments(
+               this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
          }
       }
       else {
@@ -481,14 +484,16 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             {
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
             };
-            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+            SegmentsReductionKernel::reduceSegments(
+               this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
          }
          else {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
             };
-            this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+            SegmentsReductionKernel::reduceSegments(
+               this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
          }
       }
    }
@@ -525,7 +530,7 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       }
       return identity;
    };
-   this->segments.reduceSegments( begin, end, fetch_, reduce, keep, identity );
+   SegmentsReductionKernel::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
 }
 
 template< typename Real,
@@ -560,7 +565,7 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       }
       return identity;
    };
-   this->segments.reduceSegments( begin, end, fetch_, reduce, keep, identity );
+   SegmentsReductionKernel::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
 }
 
 template< typename Real,

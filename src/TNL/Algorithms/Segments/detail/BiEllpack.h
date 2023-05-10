@@ -9,7 +9,6 @@
 #include <type_traits>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/BiEllpackSegmentView.h>
-#include <TNL/Algorithms/Segments/detail/CheckLambdas.h>
 
 namespace TNL::Algorithms::Segments::detail {
 
@@ -273,34 +272,5 @@ public:
       return groupPointers[ ( strip + 1 ) * ( getLogWarpSize() + 1 ) ] - groupPointers[ strip * ( getLogWarpSize() + 1 ) ];
    }
 };
-
-template< typename View,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultKeeper,
-          typename Real,
-          int BlockDim,
-          typename... Args >
-__global__
-void
-BiEllpackreduceSegmentsKernel( View biEllpack,
-                               Index gridIdx,
-                               Index first,
-                               Index last,
-                               Fetch fetch,
-                               Reduction reduction,
-                               ResultKeeper keeper,
-                               Real zero,
-                               Args... args )
-{
-   constexpr bool HasAllParameters = detail::CheckFetchLambda< Index, Fetch >::hasAllParameters();
-   if constexpr( HasAllParameters )
-      biEllpack.template reduceSegmentsKernelWithAllParameters< Fetch, Reduction, ResultKeeper, Real, BlockDim, Args... >(
-         gridIdx, first, last, fetch, reduction, keeper, zero, args... );
-   else
-      biEllpack.template reduceSegmentsKernel< Fetch, Reduction, ResultKeeper, Real, BlockDim, Args... >(
-         gridIdx, first, last, fetch, reduction, keeper, zero, args... );
-}
 
 }  // namespace TNL::Algorithms::Segments::detail

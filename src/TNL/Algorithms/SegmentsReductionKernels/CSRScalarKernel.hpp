@@ -6,19 +6,18 @@
 
 #pragma once
 
-#include <TNL/Assert.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRScalarKernel.h>
-#include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
-namespace TNL::Algorithms::Segments {
+#include "CSRScalarKernel.h"
+#include "detail/FetchLambdaAdapter.h"
+
+namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Index,
           typename Device,
           typename Fetch,
-          typename Reduce,
+          typename Reduction,
           typename Keep,
           bool DispatchScalarCSR = detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() >
 struct CSRScalarKernelreduceSegmentsDispatcher;
@@ -64,8 +63,8 @@ struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction,
    }
 };
 
-template< typename Index, typename Device, typename Fetch, typename Reduce, typename Keep >
-struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduce, Keep, false >
+template< typename Index, typename Device, typename Fetch, typename Reduction, typename Keep >
+struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, Keep, false >
 {
    template< typename OffsetsView, typename Real >
    static void
@@ -73,7 +72,7 @@ struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduce, Ke
            Index first,
            Index last,
            Fetch& fetch,
-           const Reduce& reduction,
+           const Reduction& reduction,
            Keep& keep,
            const Real& zero )
    {
@@ -105,9 +104,9 @@ struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduce, Ke
 };
 
 template< typename Index, typename Device >
-template< typename Offsets >
+template< typename Segments >
 void
-CSRScalarKernel< Index, Device >::init( const Offsets& offsets )
+CSRScalarKernel< Index, Device >::init( const Segments& segments )
 {}
 
 template< typename Index, typename Device >
@@ -139,21 +138,23 @@ CSRScalarKernel< Index, Device >::getKernelType()
 }
 
 template< typename Index, typename Device >
-template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real, typename... Args >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 void
-CSRScalarKernel< Index, Device >::reduceSegments( const OffsetsView& offsets,
+CSRScalarKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                   Index first,
                                                   Index last,
                                                   Fetch& fetch,
                                                   const Reduction& reduction,
                                                   ResultKeeper& keeper,
-                                                  const Real& zero,
-                                                  Args... args )
+                                                  const Real& zero )
 {
+   using OffsetsView = typename SegmentsView::ConstOffsetsView;
+   OffsetsView offsets = segments.getOffsets();
+
    CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, ResultKeeper >::reduce(
       offsets, first, last, fetch, reduction, keeper, zero );
    /*
-    auto l = [=] __cuda_callable__ ( const IndexType segmentIdx, Args... args ) mutable {
+    auto l = [=] __cuda_callable__ ( const IndexType segmentIdx ) mutable {
         const IndexType begin = offsets[ segmentIdx ];
         const IndexType end = offsets[ segmentIdx + 1 ];
         Real aux( zero );
@@ -170,7 +171,7 @@ globalIdx, compute ) ); keeper( segmentIdx, aux );
         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
 #endif
         for( Index segmentIdx = first; segmentIdx < last; segmentIdx ++ )
-            l( segmentIdx, args... );
+            l( segmentIdx );
         {
             const IndexType begin = offsets[ segmentIdx ];
             const IndexType end = offsets[ segmentIdx + 1 ];
@@ -183,7 +184,19 @@ globalIdx, compute ) ); keeper( segmentIdx, aux );
         }
     }
     else
-        Algorithms::parallelFor< Device >( first, last, l, args... );*/
+        Algorithms::parallelFor< Device >( first, last, l );*/
 }
 
-}  // namespace TNL::Algorithms::Segments
+template< typename Index, typename Device >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+void
+CSRScalarKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
+                                                     Fetch& fetch,
+                                                     const Reduction& reduction,
+                                                     ResultKeeper& keeper,
+                                                     const Real& zero )
+{
+   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, zero );
+}
+
+}  // namespace TNL::Algorithms::SegmentsReductionKernels

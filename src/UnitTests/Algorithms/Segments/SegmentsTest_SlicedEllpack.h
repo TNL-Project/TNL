@@ -1,4 +1,5 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/SlicedEllpackKernel.h>
 
 #include "SegmentsTest.hpp"
 #include <iostream>
@@ -37,8 +38,9 @@ TYPED_TEST( SlicedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 TYPED_TEST( SlicedEllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
 {
     using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+    using Kernel = TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel< typename SlicedEllpackSegmentsType::IndexType, typename SlicedEllpackSegmentsType::DeviceType >;
 
-    test_reduceAllSegments_MaximumInSegments< SlicedEllpackSegmentsType >();
+    test_reduceAllSegments_MaximumInSegments< SlicedEllpackSegmentsType, Kernel >();
 }
 
 #endif

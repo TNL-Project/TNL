@@ -10,29 +10,22 @@
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/SegmentView.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRScalarKernel.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRVectorKernel.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRHybridKernel.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRLightKernel.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRAdaptiveKernel.h>
 #include <TNL/Algorithms/Segments/SegmentsPrinting.h>
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Device, typename Index, typename Kernel = CSRScalarKernel< std::remove_const_t< Index >, Device > >
+template< typename Device, typename Index >
 class CSRView
 {
 public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
-   using KernelType = Kernel;
    using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
    using ConstOffsetsView = typename OffsetsView::ConstViewType;
-   using KernelView = typename Kernel::ViewType;
    using ViewType = CSRView;
    template< typename Device_, typename Index_ >
-   using ViewTemplate = CSRView< Device_, Index_, Kernel >;
-   using ConstViewType = CSRView< Device, std::add_const_t< Index >, Kernel >;
+   using ViewTemplate = CSRView< Device_, Index_ >;
+   using ConstViewType = CSRView< Device, std::add_const_t< Index > >;
    using SegmentViewType = SegmentView< IndexType, RowMajorOrder >;
 
    [[nodiscard]] static constexpr bool
@@ -45,17 +38,17 @@ public:
    CSRView() = default;
 
    __cuda_callable__
-   CSRView( const OffsetsView& offsets, const KernelView& kernel );
+   CSRView( const OffsetsView& offsets );
 
    __cuda_callable__
-   CSRView( OffsetsView&& offsets, KernelView&& kernel );
+   CSRView( OffsetsView&& offsets );
 
    __cuda_callable__
    CSRView( const CSRView& csr_view ) = default;
 
    template< typename Index2 >
    __cuda_callable__
-   CSRView( const CSRView< Device, Index2, Kernel >& csr_view );
+   CSRView( const CSRView< Device, Index2 >& csr_view );
 
    __cuda_callable__
    CSRView( CSRView&& csr_view ) noexcept = default;
@@ -140,22 +133,6 @@ public:
    void
    sequentialForAllSegments( Function&& f ) const;
 
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Real& zero ) const;
-
    CSRView&
    operator=( const CSRView& view );
 
@@ -181,48 +158,16 @@ public:
       return offsets.getConstView();
    }
 
-   [[nodiscard]] KernelType&
-   getKernel()
-   {
-      return kernel;
-   }
-
-   [[nodiscard]] const KernelType&
-   getKernel() const
-   {
-      return kernel;
-   }
-
 protected:
    OffsetsView offsets;
-
-   KernelView kernel;
 };
 
-template< typename Device, typename Index, typename Kernel >
+template< typename Device, typename Index >
 std::ostream&
-operator<<( std::ostream& str, const CSRView< Device, Index, Kernel >& segments )
+operator<<( std::ostream& str, const CSRView< Device, Index >& segments )
 {
    return printSegments( str, segments );
 }
-
-template< typename Device, typename Index >
-using CSRViewScalar = CSRView< Device, Index, CSRScalarKernel< std::remove_const_t< Index >, Device > >;
-
-template< typename Device, typename Index >
-using CSRViewVector = CSRView< Device, Index, CSRVectorKernel< std::remove_const_t< Index >, Device > >;
-
-template< typename Device, typename Index, int ThreadsInBlock = 256 >
-using CSRViewHybrid = CSRView< Device, Index, CSRHybridKernel< std::remove_const_t< Index >, Device, ThreadsInBlock > >;
-
-template< typename Device, typename Index >
-using CSRViewLight = CSRView< Device, Index, CSRLightKernel< std::remove_const_t< Index >, Device > >;
-
-template< typename Device, typename Index >
-using CSRViewAdaptive = CSRView< Device, Index, CSRAdaptiveKernel< std::remove_const_t< Index >, Device > >;
-
-template< typename Device, typename Index >
-using CSRViewDefault = CSRViewScalar< Device, Index >;
 
 }  // namespace TNL::Algorithms::Segments
 

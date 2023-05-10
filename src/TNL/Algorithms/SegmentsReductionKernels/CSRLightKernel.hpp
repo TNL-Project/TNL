@@ -8,11 +8,12 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRLightKernel.h>
 
-namespace TNL::Algorithms::Segments {
+#include "detail/FetchLambdaAdapter.h"
+#include "CSRLightKernel.h"
+#include "CSRScalarKernel.h"
+
+namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Real, typename Index, typename OffsetsView, typename Fetch, typename Reduce, typename Keep >
 __global__
@@ -357,10 +358,11 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
 }
 
 template< typename Index, typename Device >
-template< typename Offsets >
+template< typename Segments >
 void
-CSRLightKernel< Index, Device >::init( const Offsets& offsets )
+CSRLightKernel< Index, Device >::init( const Segments& segments )
 {
+   const auto& offsets = segments.getOffsets();
    TNL_ASSERT_GT( offsets.getSize(), 0, "offsets size must be strictly positive" );
    const Index segmentsCount = offsets.getSize() - 1;
    if( segmentsCount <= 0 )
@@ -432,21 +434,22 @@ CSRLightKernel< Index, Device >::getConstView() const -> ConstViewType
 }
 
 template< typename Index, typename Device >
-template< typename OffsetsView, typename Fetch, typename Reduce, typename Keep, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename Keep, typename Real >
 void
-CSRLightKernel< Index, Device >::reduceSegments( const OffsetsView& offsets,
+CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                  Index first,
                                                  Index last,
                                                  Fetch& fetch,
-                                                 const Reduce& reduce,
+                                                 const Reduction& reduction,
                                                  Keep& keep,
                                                  const Real& zero ) const
 {
+   // FIXME: JK: why does it dispatch CSRScalarKernel when the lambda has all parameters?
    constexpr bool DispatchScalarCSR =
       detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same< Device, Devices::Host >::value;
    if constexpr( DispatchScalarCSR ) {
-      TNL::Algorithms::Segments::CSRScalarKernel< Index, Device >::reduceSegments(
-         offsets, first, last, fetch, reduce, keep, zero );
+      TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
+         segments, first, last, fetch, reduction, keep, zero );
    }
    else {
       TNL_ASSERT_GE( this->threadsPerSegment, 0, "" );
@@ -460,6 +463,9 @@ CSRLightKernel< Index, Device >::reduceSegments( const OffsetsView& offsets,
 
       std::size_t neededThreads = threadsPerSegment * ( last - first );
 
+      using OffsetsView = typename SegmentsView::ConstOffsetsView;
+      OffsetsView offsets = segments.getOffsets();
+
       for( Index grid = 0; neededThreads != 0; ++grid ) {
          if( TNL::Cuda::getMaxGridXSize() * launch_config.blockSize.x >= neededThreads ) {
             launch_config.gridSize.x = roundUpDivision( neededThreads, launch_config.blockSize.x );
@@ -471,38 +477,38 @@ CSRLightKernel< Index, Device >::reduceSegments( const OffsetsView& offsets,
          }
 
          if( threadsPerSegment == 1 ) {
-            constexpr auto kernel = SpMVCSRVector< 1, Real, Index, OffsetsView, Fetch, Reduce, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduce, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 1, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduction, keep, zero, grid );
          }
          if( threadsPerSegment == 2 ) {
-            constexpr auto kernel = SpMVCSRVector< 2, Real, Index, OffsetsView, Fetch, Reduce, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduce, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 2, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduction, keep, zero, grid );
          }
          if( threadsPerSegment == 4 ) {
-            constexpr auto kernel = SpMVCSRVector< 4, Real, Index, OffsetsView, Fetch, Reduce, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduce, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 4, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduction, keep, zero, grid );
          }
          if( threadsPerSegment == 8 ) {
-            constexpr auto kernel = SpMVCSRVector< 8, Real, Index, OffsetsView, Fetch, Reduce, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduce, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 8, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduction, keep, zero, grid );
          }
          if( threadsPerSegment == 16 ) {
-            constexpr auto kernel = SpMVCSRVector< 16, Real, Index, OffsetsView, Fetch, Reduce, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduce, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 16, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduction, keep, zero, grid );
          }
          if( threadsPerSegment == 32 ) {
-            constexpr auto kernel = SpMVCSRVector< 32, Real, Index, OffsetsView, Fetch, Reduce, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduce, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 32, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, first, last, fetch, reduction, keep, zero, grid );
          }
          if( threadsPerSegment == 64 ) {  // Execute CSR MultiVector
             constexpr auto kernel =
-               reduceSegmentsCSRLightMultivectorKernel< 128, 64, OffsetsView, Index, Fetch, Reduce, Keep, Real >;
-            Cuda::launchKernelAsync( kernel, launch_config, grid, offsets, first, last, fetch, reduce, keep, zero );
+               reduceSegmentsCSRLightMultivectorKernel< 128, 64, OffsetsView, Index, Fetch, Reduction, Keep, Real >;
+            Cuda::launchKernelAsync( kernel, launch_config, grid, offsets, first, last, fetch, reduction, keep, zero );
          }
          if( threadsPerSegment >= 128 ) {  // Execute CSR MultiVector
             constexpr auto kernel =
-               reduceSegmentsCSRLightMultivectorKernel< 128, 128, OffsetsView, Index, Fetch, Reduce, Keep, Real >;
-            Cuda::launchKernelAsync( kernel, launch_config, grid, offsets, first, last, fetch, reduce, keep, zero );
+               reduceSegmentsCSRLightMultivectorKernel< 128, 128, OffsetsView, Index, Fetch, Reduction, Keep, Real >;
+            Cuda::launchKernelAsync( kernel, launch_config, grid, offsets, first, last, fetch, reduction, keep, zero );
          }
 
          /*if (threadsPerSegment == 2)
@@ -539,6 +545,18 @@ CSRLightKernel< Index, Device >::reduceSegments( const OffsetsView& offsets,
 }
 
 template< typename Index, typename Device >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+void
+CSRLightKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
+                                                    Fetch& fetch,
+                                                    const Reduction& reduction,
+                                                    ResultKeeper& keeper,
+                                                    const Real& zero ) const
+{
+   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, zero );
+}
+
+template< typename Index, typename Device >
 void
 CSRLightKernel< Index, Device >::setThreadsMapping( LightCSRSThreadsMapping mapping )
 {
@@ -569,4 +587,4 @@ CSRLightKernel< Index, Device >::getThreadsPerSegment() const
    return this->threadsPerSegment;
 }
 
-}  // namespace TNL::Algorithms::Segments
+}  // namespace TNL::Algorithms::SegmentsReductionKernels

@@ -33,6 +33,24 @@ public:
    using ConstViewType = BiEllpackView< Device, std::add_const_t< Index >, Organization, WarpSize >;
    using SegmentViewType = BiEllpackSegmentView< IndexType, Organization, WarpSize >;
 
+   [[nodiscard]] static constexpr ElementsOrganization
+   getOrganization()
+   {
+      return Organization;
+   }
+
+   [[nodiscard]] static constexpr int
+   getWarpSize()
+   {
+      return WarpSize;
+   }
+
+   [[nodiscard]] static constexpr int
+   getLogWarpSize()
+   {
+      return std::log2( WarpSize );
+   }
+
    [[nodiscard]] static constexpr bool
    havePadding()
    {
@@ -112,6 +130,14 @@ public:
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getRowPermArrayView() const;
+
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getGroupPointersView() const;
+
    /***
     * \brief Go over all segments and for each segment element call
     * function 'f' with arguments 'args'. The return type of 'f' is bool.
@@ -134,22 +160,6 @@ public:
    void
    forAllSegments( Function&& f ) const;
 
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Real& zero ) const;
-
    BiEllpackView&
    operator=( const BiEllpackView& view );
 
@@ -167,18 +177,6 @@ public:
    printStructure( std::ostream& str ) const;
 
 protected:
-   static constexpr int
-   getWarpSize()
-   {
-      return WarpSize;
-   }
-
-   static constexpr int
-   getLogWarpSize()
-   {
-      return std::log2( WarpSize );
-   }
-
    IndexType size = 0, storageSize = 0;
 
    IndexType virtualRows = 0;
@@ -186,32 +184,6 @@ protected:
    OffsetsView rowPermArray;
 
    OffsetsView groupPointers;
-
-#ifdef __CUDACC__
-   // these methods must be public so they can be called from the __global__ function
-public:
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real, int BlockDim >
-   __device__
-   void
-   reduceSegmentsKernelWithAllParameters( IndexType gridIdx,
-                                          IndexType first,
-                                          IndexType last,
-                                          Fetch fetch,
-                                          Reduction reduction,
-                                          ResultKeeper keeper,
-                                          Real zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real_, int BlockDim >
-   __device__
-   void
-   reduceSegmentsKernel( IndexType gridIdx,
-                         IndexType first,
-                         IndexType last,
-                         Fetch fetch,
-                         Reduction reduction,
-                         ResultKeeper keeper,
-                         Real_ zero ) const;
-#endif
 };
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -223,4 +195,4 @@ operator<<( std::ostream& str, const BiEllpackView< Device, Index, Organization,
 
 }  // namespace TNL::Algorithms::Segments
 
-#include <TNL/Algorithms/Segments/BiEllpackView.hpp>
+#include "BiEllpackView.hpp"

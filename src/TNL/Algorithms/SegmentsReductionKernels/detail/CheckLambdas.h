@@ -6,7 +6,9 @@
 
 #pragma once
 
-namespace TNL::Algorithms::Segments::detail {
+#include <utility>
+
+namespace TNL::Algorithms::SegmentsReductionKernels::detail {
 
 template< typename Index, typename Lambda >
 class CheckFetchLambda
@@ -32,4 +34,4 @@ public:
    }
 };
 
-}  // namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::SegmentsReductionKernels::detail

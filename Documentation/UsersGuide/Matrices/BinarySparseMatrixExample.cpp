@@ -23,7 +23,7 @@ void binarySparseMatrixExample()
    binaryMatrix.vectorProduct( inVector, outVector );
    std::cout << "Product with vector " << inVector << " is " << outVector << std::endl << std::endl;
 
-   TNL::Matrices::SparseMatrix< bool, Device, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSRDefault, double > binaryMatrix2;
+   TNL::Matrices::SparseMatrix< bool, Device, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR, double > binaryMatrix2;
    binaryMatrix2 = binaryMatrix;
    binaryMatrix2.vectorProduct( inVector, outVector );
    std::cout << "Product with vector in double precision " << inVector << " is " << outVector << std::endl << std::endl;

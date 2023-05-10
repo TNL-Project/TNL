@@ -6,7 +6,12 @@
 
 #pragma once
 
-namespace TNL::Algorithms::Segments::detail {
+#include <cstdint>
+#include <ostream>
+
+#include <TNL/Cuda/CudaCallable.h>
+
+namespace TNL::Algorithms::SegmentsReductionKernels::detail {
 
 enum class Type
 {
@@ -16,17 +21,20 @@ enum class Type
    VECTOR = 2
 };
 
-//#define CSR_ADAPTIVE_UNION
+// #define CSR_ADAPTIVE_UNION
 
 #ifdef CSR_ADAPTIVE_UNION
 template< typename Index >
 union CSRAdaptiveKernelBlockDescriptor
 {
-   CSRAdaptiveKernelBlockDescriptor( Index row, Type type = Type::VECTOR, Index index = 0, uint8_t warpsCount = 0 ) noexcept
+   CSRAdaptiveKernelBlockDescriptor( Index row,
+                                     Type type = Type::VECTOR,
+                                     Index index = 0,
+                                     std::uint8_t warpsCount = 0 ) noexcept
    {
       this->index[ 0 ] = row;
       this->index[ 1 ] = index;
-      this->byte[ sizeof( Index ) == 4 ? 7 : 15 ] = (uint8_t) type;
+      this->byte[ sizeof( Index ) == 4 ? 7 : 15 ] = (std::uint8_t) type;
    }
 
    CSRAdaptiveKernelBlockDescriptor( Index row, Type type, Index nextRow, Index maxID, Index minID ) noexcept
@@ -85,14 +93,14 @@ union CSRAdaptiveKernelBlockDescriptor
    }
 
    __cuda_callable__
-   uint8_t
+   std::uint8_t
    getWarpIdx() const
    {
       return index[ 1 ];
    }
 
    __cuda_callable__
-   uint8_t
+   std::uint8_t
    getWarpsCount() const
    {
       return 1;
@@ -118,10 +126,10 @@ union CSRAdaptiveKernelBlockDescriptor
       str << " block end: " << getSize();
       str << " index in warp: " << index[ 1 ];
    }
-   Index index[ 2 ];                                   // index[0] is row pointer, index[1] is index in warp
-   uint8_t byte[ sizeof( Index ) == 4 ? 8 : 16 ];      // byte[7/15] is type specificator
-   uint16_t twobytes[ sizeof( Index ) == 4 ? 4 : 8 ];  // twobytes[2/4] is maxID - minID
-                                                       // twobytes[3/5] is nextRow - row
+   Index index[ 2 ];                                        // index[0] is row pointer, index[1] is index in warp
+   std::uint8_t byte[ sizeof( Index ) == 4 ? 8 : 16 ];      // byte[7/15] is type specificator
+   std::uint16_t twobytes[ sizeof( Index ) == 4 ? 4 : 8 ];  // twobytes[2/4] is maxID - minID
+                                                            // twobytes[3/5] is nextRow - row
 };
 #else
 
@@ -130,16 +138,16 @@ struct CSRAdaptiveKernelBlockDescriptor
 {
    CSRAdaptiveKernelBlockDescriptor( Index firstSegmentIdx,
                                      Type type = Type::VECTOR,
-                                     uint8_t warpIdx = 0,
-                                     uint8_t warpsCount = 0 ) noexcept
+                                     std::uint8_t warpIdx = 0,
+                                     std::uint8_t warpsCount = 0 ) noexcept
    {
       this->firstSegmentIdx = firstSegmentIdx;
-      this->type = (uint8_t) type;
+      this->type = (std::uint8_t) type;
       this->warpIdx = warpIdx;
       this->warpsCount = warpsCount;
       /*this->index[0] = row;
       this->index[1] = index;
-      this->byte[sizeof(Index) == 4 ? 7 : 15] = (uint8_t)type;*/
+      this->byte[sizeof(Index) == 4 ? 7 : 15] = (std::uint8_t)type;*/
    }
 
    CSRAdaptiveKernelBlockDescriptor( Index firstSegmentIdx, Type type, Index lastSegmentIdx, Index end, Index begin ) noexcept
@@ -148,7 +156,7 @@ struct CSRAdaptiveKernelBlockDescriptor
       this->warpIdx = 0;
       this->blockSize = end - begin;
       this->segmentsInBlock = lastSegmentIdx - firstSegmentIdx;
-      this->type = (uint8_t) type;
+      this->type = (std::uint8_t) type;
 
       /*this->index[0] = row;
       this->index[1] = 0;
@@ -208,14 +216,14 @@ struct CSRAdaptiveKernelBlockDescriptor
    }
 
    [[nodiscard]] __cuda_callable__
-   uint8_t
+   std::uint8_t
    getWarpIdx() const
    {
       return this->warpIdx;
    }
 
    [[nodiscard]] __cuda_callable__
-   uint8_t
+   std::uint8_t
    getWarpsCount() const
    {
       return this->warpsCount;
@@ -241,13 +249,13 @@ struct CSRAdaptiveKernelBlockDescriptor
       str << " index in warp: " << this->getWarpIdx();
    }
 
-   uint8_t type;
+   std::uint8_t type;
    Index firstSegmentIdx, blockSize, segmentsInBlock;
-   uint8_t warpIdx, warpsCount;
+   std::uint8_t warpIdx, warpsCount;
 
    // Index index[2]; // index[0] is row pointer, index[1] is index in warp
-   // uint8_t byte[sizeof(Index) == 4 ? 8 : 16]; // byte[7/15] is type specificator
-   // uint16_t twobytes[sizeof(Index) == 4 ? 4 : 8]; //twobytes[2/4] is maxID - minID
+   // std::uint8_t byte[sizeof(Index) == 4 ? 8 : 16]; // byte[7/15] is type specificator
+   // std::uint16_t twobytes[sizeof(Index) == 4 ? 4 : 8]; //twobytes[2/4] is maxID - minID
    // twobytes[3/5] is nextRow - row
 };
 
@@ -261,4 +269,4 @@ operator<<( std::ostream& str, const CSRAdaptiveKernelBlockDescriptor< Index >& 
    return str;
 }
 
-}  // namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::SegmentsReductionKernels::detail

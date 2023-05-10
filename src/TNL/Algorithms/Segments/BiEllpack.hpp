@@ -330,7 +330,25 @@ __cuda_callable__
 auto
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getSegmentView( const IndexType segmentIdx ) const
    -> SegmentViewType
-{}
+{
+   return getConstView().getSegmentView( segmentIdx );
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
+__cuda_callable__
+auto
+BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getRowPermArrayView() const -> ConstOffsetsView
+{
+   return rowPermArray.getConstView();
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
+__cuda_callable__
+auto
+BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getGroupPointersView() const -> ConstOffsetsView
+{
+   return groupPointers.getConstView();
+}
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 template< typename Function >
@@ -366,30 +384,6 @@ void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::forAllSegments( Function&& f ) const
 {
    this->getConstView().forAllSegments( f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::reduceSegments( IndexType first,
-                                                                                    IndexType last,
-                                                                                    Fetch& fetch,
-                                                                                    const Reduction& reduction,
-                                                                                    ResultKeeper& keeper,
-                                                                                    const Real& zero ) const
-{
-   this->getConstView().reduceSegments( first, last, fetch, reduction, keeper, zero );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::reduceAllSegments( Fetch& fetch,
-                                                                                       const Reduction& reduction,
-                                                                                       ResultKeeper& keeper,
-                                                                                       const Real& zero ) const
-{
-   this->reduceSegments( 0, this->getSegmentsCount(), fetch, reduction, keeper, zero );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >

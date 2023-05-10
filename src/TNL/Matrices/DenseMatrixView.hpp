@@ -416,7 +416,7 @@ DenseMatrixView< Real, Device, Index, Organization >::reduceRows( IndexType begi
    {
       return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
    };
-   this->segments.reduceSegments( begin, end, fetch_, reduce, keep, identity );
+   SegmentsReductionKernel::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -435,7 +435,7 @@ DenseMatrixView< Real, Device, Index, Organization >::reduceRows( IndexType begi
    {
       return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
    };
-   this->segments.reduceSegments( begin, end, fetch_, reduce, keep, identity );
+   SegmentsReductionKernel::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -677,15 +677,19 @@ DenseMatrixView< Real, Device, Index, Organization >::vectorProduct( const InVec
 
    if( outVectorMultiplicator == 0.0 ) {
       if( matrixMultiplicator == 1.0 )
-         this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperDirect, (RealType) 0.0 );
+         SegmentsReductionKernel::reduceSegments(
+            this->segments, begin, end, fetch, std::plus<>{}, keeperDirect, (RealType) 0.0 );
       else
-         this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperMatrixMult, (RealType) 0.0 );
+         SegmentsReductionKernel::reduceSegments(
+            this->segments, begin, end, fetch, std::plus<>{}, keeperMatrixMult, (RealType) 0.0 );
    }
    else {
       if( matrixMultiplicator == 1.0 )
-         this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperVectorMult, (RealType) 0.0 );
+         SegmentsReductionKernel::reduceSegments(
+            this->segments, begin, end, fetch, std::plus<>{}, keeperVectorMult, (RealType) 0.0 );
       else
-         this->segments.reduceSegments( begin, end, fetch, std::plus<>{}, keeperGeneral, (RealType) 0.0 );
+         SegmentsReductionKernel::reduceSegments(
+            this->segments, begin, end, fetch, std::plus<>{}, keeperGeneral, (RealType) 0.0 );
    }
 }
 

@@ -117,6 +117,10 @@ public:
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getAlignedSize() const;
+
    /***
     * \brief Go over all segments and for each segment element call
     * function 'f' with arguments 'args'. The return type of 'f' is bool.
@@ -138,25 +142,6 @@ public:
    template< typename Function >
    void
    forAllSegments( Function&& f ) const;
-
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero ) const;
-
-   /**
-    * \brief Call \e reduceSegments for all segments.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Real& zero ) const;
 
    Ellpack&
    operator=( const Ellpack& source ) = default;

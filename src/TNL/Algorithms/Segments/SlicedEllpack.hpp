@@ -10,6 +10,7 @@
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
 
 namespace TNL::Algorithms::Segments {
 
@@ -89,7 +90,8 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::setSegm
       slices_view[ i ] = res * SliceSize;
       slice_segment_size_view[ i ] = res;
    };
-   ellpack.reduceAllSegments( fetch, reduce, keep, std::numeric_limits< IndexType >::min() );
+   using Kernel = SegmentsReductionKernels::EllpackKernel< IndexType, DeviceType >;
+   Kernel::reduceAllSegments( ellpack, fetch, reduce, keep, std::numeric_limits< IndexType >::min() );
    Algorithms::inplaceExclusiveScan( this->sliceOffsets );
    // this->sliceOffsets.template exclusiveScan< Algorithms::detail::ScanType::Exclusive >();
    this->size = sum( sizes );
@@ -197,6 +199,22 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getSegm
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
+__cuda_callable__
+auto
+SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getSliceSegmentSizesView() const -> ConstOffsetsView
+{
+   return sliceSegmentSizes.getConstView();
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
+__cuda_callable__
+auto
+SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getSliceOffsetsView() const -> ConstOffsetsView
+{
+   return sliceOffsets.getConstView();
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
 template< typename Function >
 void
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::forElements( IndexType first,
@@ -230,30 +248,6 @@ void
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::forAllSegments( Function&& f ) const
 {
    this->getConstView().forAllSegments( f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::reduceSegments( IndexType first,
-                                                                                         IndexType last,
-                                                                                         Fetch& fetch,
-                                                                                         const Reduction& reduction,
-                                                                                         ResultKeeper& keeper,
-                                                                                         const Real& zero ) const
-{
-   this->getConstView().reduceSegments( first, last, fetch, reduction, keeper, zero );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::reduceAllSegments( Fetch& fetch,
-                                                                                            const Reduction& reduction,
-                                                                                            ResultKeeper& keeper,
-                                                                                            const Real& zero ) const
-{
-   this->reduceSegments( 0, this->getSegmentsCount(), fetch, reduction, keeper, zero );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >

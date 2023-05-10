@@ -74,45 +74,6 @@ public:
       }
       return offsets[ getSegmentsCount( offsets ) ];
    }
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getGlobalIndex( Index segmentIdx, Index localIdx ) const;
-
-   __cuda_callable__
-   void
-   getSegmentAndLocalIndex( Index globalIdx, Index& segmentIdx, Index& localIdx ) const;
-
-   /***
-    * \brief Go over all segments and for each segment element call
-    * function 'f' with arguments 'args'. The return type of 'f' is bool.
-    * When its true, the for-loop continues. Once 'f' returns false, the for-loop
-    * is terminated.
-    */
-   template< typename Function, typename... Args >
-   void
-   forElements( IndexType first, IndexType last, Function& f, Args... args ) const;
-
-   template< typename Function, typename... Args >
-   void
-   forAllElements( Function& f, Args... args ) const;
-
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real, typename... Args >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero,
-                   Args... args ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real, typename... Args >
-   void
-   reduceAllSegments( Fetch& fetch, Reduction& reduction, ResultKeeper& keeper, const Real& zero, Args... args ) const;
 };
 
 }  // namespace TNL::Algorithms::Segments::detail

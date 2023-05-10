@@ -6,12 +6,10 @@
 
 #pragma once
 
-#include <TNL/Assert.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
+#include <TNL/String.h>
 
-namespace TNL::Algorithms::Segments {
+namespace TNL::Algorithms::SegmentsReductionKernels {
 
 enum LightCSRSThreadsMapping
 {
@@ -28,9 +26,9 @@ struct CSRLightKernel
    using ViewType = CSRLightKernel< Index, Device >;
    using ConstViewType = CSRLightKernel< Index, Device >;
 
-   template< typename Offsets >
+   template< typename Segments >
    void
-   init( const Offsets& offsets );
+   init( const Segments& segments );
 
    void
    reset();
@@ -49,15 +47,23 @@ struct CSRLightKernel
    [[nodiscard]] TNL::String
    getSetup() const;
 
-   template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
    void
-   reduceSegments( const OffsetsView& offsets,
+   reduceSegments( const SegmentsView& segments,
                    Index first,
                    Index last,
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
                    const Real& zero ) const;
+
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   void
+   reduceAllSegments( const SegmentsView& segments,
+                      Fetch& fetch,
+                      const Reduction& reduction,
+                      ResultKeeper& keeper,
+                      const Real& zero ) const;
 
    void
    setThreadsMapping( LightCSRSThreadsMapping mapping );
@@ -77,6 +83,6 @@ protected:
    int threadsPerSegment = 32;
 };
 
-}  // namespace TNL::Algorithms::Segments
+}  // namespace TNL::Algorithms::SegmentsReductionKernels
 
-#include <TNL/Algorithms/Segments/Kernels/CSRLightKernel.hpp>
+#include "CSRLightKernel.hpp"

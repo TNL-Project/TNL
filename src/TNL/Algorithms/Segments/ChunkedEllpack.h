@@ -24,11 +24,7 @@ public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
    using OffsetsContainer = Containers::Vector< Index, DeviceType, IndexType, IndexAllocator >;
-   [[nodiscard]] static constexpr ElementsOrganization
-   getOrganization()
-   {
-      return Organization;
-   }
+   using ConstOffsetsView = typename OffsetsContainer::ConstViewType;
    using ViewType = ChunkedEllpackView< Device, Index, Organization >;
    template< typename Device_, typename Index_ >
    using ViewTemplate = ChunkedEllpackView< Device_, Index_, Organization >;
@@ -42,6 +38,13 @@ public:
                          DeviceType,
                          IndexType,
                          ChunkedEllpackSliceInfoAllocator >;
+   using ChunkedEllpackSliceInfoConstView = typename ChunkedEllpackSliceInfoContainer::ConstViewType;
+
+   [[nodiscard]] static constexpr ElementsOrganization
+   getOrganization()
+   {
+      return Organization;
+   }
 
    [[nodiscard]] static constexpr bool
    havePadding()
@@ -112,6 +115,30 @@ public:
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
+   [[nodiscard]] __cuda_callable__
+   ChunkedEllpackSliceInfoConstView
+   getSlicesView() const;
+
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getRowToChunkMappingView() const;
+
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getRowToSliceMappingView() const;
+
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getChunksToSegmentsMappingView() const;
+
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getChunksInSlice() const;
+
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getNumberOfSlices() const;
+
    /***
     * \brief Go over all segments and for each segment element call
     * function 'f' with arguments 'args'. The return type of 'f' is bool.
@@ -133,22 +160,6 @@ public:
    template< typename Function >
    void
    forAllSegments( Function&& f ) const;
-
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Real& zero ) const;
 
    ChunkedEllpack&
    operator=( const ChunkedEllpack& source ) = default;

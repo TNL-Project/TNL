@@ -291,7 +291,57 @@ __cuda_callable__
 auto
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getSegmentView( const IndexType segmentIdx ) const
    -> SegmentViewType
-{}
+{
+   return getConstView().getSegmentView( segmentIdx );
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getSlicesView() const -> ChunkedEllpackSliceInfoConstView
+{
+   return slices.getConstView();
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getRowToChunkMappingView() const -> ConstOffsetsView
+{
+   return rowToChunkMapping.getConstView();
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getRowToSliceMappingView() const -> ConstOffsetsView
+{
+   return rowToSliceMapping.getConstView();
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getChunksToSegmentsMappingView() const -> ConstOffsetsView
+{
+   return chunksToSegmentsMapping.getConstView();
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getChunksInSlice() const -> IndexType
+{
+   return chunksInSlice;
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getNumberOfSlices() const -> IndexType
+{
+   return numberOfSlices;
+}
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
 template< typename Function >
@@ -325,30 +375,6 @@ void
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::forAllSegments( Function&& f ) const
 {
    this->getConstView().forAllSegments( f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-ChunkedEllpack< Device, Index, IndexAllocator, Organization >::reduceSegments( IndexType first,
-                                                                               IndexType last,
-                                                                               Fetch& fetch,
-                                                                               const Reduction& reduction,
-                                                                               ResultKeeper& keeper,
-                                                                               const Real& zero ) const
-{
-   this->getConstView().reduceSegments( first, last, fetch, reduction, keeper, zero );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-ChunkedEllpack< Device, Index, IndexAllocator, Organization >::reduceAllSegments( Fetch& fetch,
-                                                                                  const Reduction& reduction,
-                                                                                  ResultKeeper& keeper,
-                                                                                  const Real& zero ) const
-{
-   this->reduceSegments( 0, this->getSegmentsCount(), fetch, reduction, keeper, zero );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >

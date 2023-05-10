@@ -6,12 +6,10 @@
 
 #pragma once
 
-#include <TNL/Assert.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
+#include <TNL/String.h>
 
-namespace TNL::Algorithms::Segments {
+namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Index, typename Device >
 struct CSRVectorKernel
@@ -21,9 +19,9 @@ struct CSRVectorKernel
    using ViewType = CSRVectorKernel< Index, Device >;
    using ConstViewType = CSRVectorKernel< Index, Device >;
 
-   template< typename Offsets >
+   template< typename Segments >
    void
-   init( const Offsets& offsets );
+   init( const Segments& segments );
 
    void
    reset();
@@ -39,18 +37,25 @@ struct CSRVectorKernel
    [[nodiscard]] static TNL::String
    getKernelType();
 
-   template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real, typename... Args >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
    static void
-   reduceSegments( const OffsetsView& offsets,
+   reduceSegments( const SegmentsView& segments,
                    Index first,
                    Index last,
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
-                   const Real& zero,
-                   Args... args );
+                   const Real& zero );
+
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   static void
+   reduceAllSegments( const SegmentsView& segments,
+                      Fetch& fetch,
+                      const Reduction& reduction,
+                      ResultKeeper& keeper,
+                      const Real& zero );
 };
 
-}  // namespace TNL::Algorithms::Segments
+}  // namespace TNL::Algorithms::SegmentsReductionKernels
 
-#include <TNL/Algorithms/Segments/Kernels/CSRVectorKernel.hpp>
+#include "CSRVectorKernel.hpp"

@@ -12,6 +12,7 @@
 #include <TNL/Matrices/MatrixView.h>
 #include <TNL/Matrices/MatrixType.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
 
 namespace TNL::Matrices {
 
@@ -42,6 +43,7 @@ protected:
       Ellpack< Device, Index, typename Allocators::Default< Device >::template Allocator< Index >, Organization, 1 >;
    using SegmentsViewType = typename SegmentsType::ViewType;
    using SegmentViewType = typename SegmentsType::SegmentViewType;
+   using SegmentsReductionKernel = Algorithms::SegmentsReductionKernels::EllpackKernel< Index, Device >;
 
 public:
    /**

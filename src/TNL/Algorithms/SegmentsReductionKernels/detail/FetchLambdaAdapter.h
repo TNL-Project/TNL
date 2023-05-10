@@ -6,9 +6,11 @@
 
 #pragma once
 
+#include <TNL/Cuda/CudaCallable.h>
+
 #include "CheckLambdas.h"
 
-namespace TNL::Algorithms::Segments::detail {
+namespace TNL::Algorithms::SegmentsReductionKernels::detail {
 
 template< typename Index, typename Lambda, bool AllParameters = CheckFetchLambda< Index, Lambda >::hasAllParameters() >
 struct FetchLambdaAdapter
@@ -40,4 +42,4 @@ struct FetchLambdaAdapter< Index, Lambda, false >
    }
 };
 
-}  // namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::SegmentsReductionKernels::detail

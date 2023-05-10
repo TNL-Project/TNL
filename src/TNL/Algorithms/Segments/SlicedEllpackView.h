@@ -25,6 +25,7 @@ public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
    using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
+   using ConstOffsetsView = typename OffsetsView::ConstViewType;
    [[nodiscard]] static constexpr int
    getSliceSize()
    {
@@ -104,6 +105,14 @@ public:
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getSliceSegmentSizesView() const;
+
+   [[nodiscard]] __cuda_callable__
+   ConstOffsetsView
+   getSliceOffsetsView() const;
+
    /***
     * \brief Go over all segments and for each segment element call
     * function 'f' with arguments 'args'. The return type of 'f' is bool.
@@ -125,22 +134,6 @@ public:
    template< typename Function >
    void
    forAllSegments( Function&& f ) const;
-
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Real& zero ) const;
 
    SlicedEllpackView&
    operator=( const SlicedEllpackView& view );

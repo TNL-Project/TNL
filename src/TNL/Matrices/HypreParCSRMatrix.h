@@ -47,8 +47,8 @@ public:
    using ColumnIndexesVectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
    using ColumnIndexesViewType = typename ColumnIndexesVectorType::ViewType;
    using ConstColumnIndexesViewType = typename ColumnIndexesVectorType::ConstViewType;
-   using SegmentsViewType = Algorithms::Segments::CSRViewDefault< DeviceType, IndexType >;
-   using ConstSegmentsViewType = Algorithms::Segments::CSRViewDefault< DeviceType, std::add_const_t< IndexType > >;
+   using SegmentsViewType = Algorithms::Segments::CSRView< DeviceType, IndexType >;
+   using ConstSegmentsViewType = Algorithms::Segments::CSRView< DeviceType, std::add_const_t< IndexType > >;
 
    HypreParCSRMatrix() = default;
 

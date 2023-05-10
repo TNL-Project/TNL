@@ -22,15 +22,10 @@ namespace TNL::Algorithms::Segments {
  *
  * \tparam Device is type of device where the segments will be operating.
  * \tparam Index is type for indexing of the elements managed by the segments.
- * \tparam Kernel is type of kernel used for parallel operations with segments.
- *    It can be any of the following: \ref CSRAdaptiveKernel,
- *    \ref CSRHybridKernel, \ref CSRScalarKernel, \ref CSRVectorKernel.
- *
  * \tparam IndexAllocator is allocator for supporting index containers.
  */
 template< typename Device,
           typename Index,
-          typename Kernel = CSRScalarKernel< Index, Device >,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 class CSR
 {
@@ -46,14 +41,11 @@ public:
    using IndexType = std::remove_const_t< Index >;
 
    /**
-    * \brief Type of kernel used for reduction operations.
-    */
-   using KernelType = Kernel;
-
-   /**
     * \brief Type of container storing offsets of particular rows.
     */
    using OffsetsContainer = Containers::Vector< Index, DeviceType, IndexType, IndexAllocator >;
+
+   using ConstOffsetsView = typename OffsetsContainer::ConstViewType;
 
    /**
     * \brief Templated view type.
@@ -62,17 +54,17 @@ public:
     * \tparam Index_ is alternative index type for the view.
     */
    template< typename Device_, typename Index_ >
-   using ViewTemplate = CSRView< Device_, Index_, KernelType >;
+   using ViewTemplate = CSRView< Device_, Index_ >;
 
    /**
     * \brief Type of segments view.1
     */
-   using ViewType = CSRView< Device, Index, KernelType >;
+   using ViewType = CSRView< Device, Index >;
 
    /**
     * \brief Type of constant segments view.
     */
-   using ConstViewType = CSRView< Device, std::add_const_t< IndexType >, KernelType >;
+   using ConstViewType = CSRView< Device, std::add_const_t< IndexType > >;
 
    /**
     * \brief Accessor type fro one particular segment.
@@ -417,72 +409,6 @@ public:
    sequentialForAllSegments( Function&& f ) const;
 
    /**
-    * \brief Compute reduction in each segment.
-    *
-    * \tparam Fetch is type of lambda function for data fetching.
-    * \tparam Reduce is a reduction operation.
-    * \tparam Keep is lambda function for storing results from particular segments.
-    *
-    * \param begin defines begining of an interval [ \e begin, \e end ) of segments in
-    *    which we want to perform the reduction.
-    * \param end defines and of an interval [ \e begin, \e end ) of segments in
-    *    which we want to perform the reduction.
-    * \param fetch is a lambda function for fetching of data. It is suppos have one of the
-    *  following forms:
-    * 1. Full form
-    *  ```
-    *  auto fetch = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool& compute ) { ...
-    * }
-    *  ```
-    * 2. Brief form
-    * ```
-    * auto fetch = [=] __cuda_callable__ ( IndexType globalIdx, bool& compute ) { ... }
-    * ```
-    * where for both variants \e segmentIdx is segment index, \e localIdx is a
-    * rank of element in the segment, \e globalIdx is index of the element in
-    * related container and \e compute is a boolean variable which serves for
-    * stopping the reduction if it is set to \e false. It is however, only a
-    * hint and the real behaviour depends on type of kernel used ofr the
-    * redcution.  Some kernels are optimized so that they can be significantly
-    * faster with the brief variant of the \e fetch lambda function.
-    *
-    * \param reduce is a lambda function representing the reduction opeartion. It is
-    * supposed to be defined as:
-    *
-    * ```
-    * auto reduce = [=] __cuda_callable__ ( const Value& a, const Value& b ) -> Value { ... }
-    * ```
-    *
-    * where \e a and \e b are values to be reduced and the lambda function returns result of the reduction.
-    * \param keep is a lambda function for saving results from particular segments. It is supposed to be defined as:
-    *
-    * ```
-    * auto keep = [=] __cuda_callable__ ( IndexType segmentIdx, const Value& value ) { ... }
-    * ```
-    *
-    * where \e segmentIdx is an index of the segment and \e value is the result of the reduction in given segment to be stored.
-    *
-    * \param zero is the initial value for the reduction operation.
-    *
-    * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_reduceSegments.cpp
-    * \par Output
-    * \include SegmentsExample_CSR_reduceSegments.out
-    */
-   template< typename Fetch, typename Reduce, typename Keep, typename Value >
-   void
-   reduceSegments( IndexType begin, IndexType end, Fetch& fetch, const Reduce& reduce, Keep& keep, const Value& zero ) const;
-
-   /**
-    * \brief Call \ref TNL::Algorithms::Segments::CSR::reduceSegments for all segments.
-    *
-    * See \ref TNL::Algorithms::Segments::CSR::reduceSegments for more details.
-    */
-   template< typename Fetch, typename Reduce, typename Keep, typename Value >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduce& reduce, Keep& keep, const Value& zero ) const;
-
-   /**
     * \brief Assignment operator.
     *
     * It makes a deep copy of the source segments.
@@ -500,14 +426,13 @@ public:
     *
     * \tparam Device_ is device type of the source segments.
     * \tparam Index_ is the index type of the source segments.
-    * \tparam Kernel_ is the kernel type of the source segments.
     * \tparam IndexAllocator_ is the index allocator of the source segments.
     * \param source is the source segments object.
     * \return reference to this instance.
     */
-   template< typename Device_, typename Index_, typename Kernel_, typename IndexAllocator_ >
+   template< typename Device_, typename Index_, typename IndexAllocator_ >
    CSR&
-   operator=( const CSR< Device_, Index_, Kernel_, IndexAllocator_ >& source );
+   operator=( const CSR< Device_, Index_, IndexAllocator_ >& source );
 
    /**
     * \brief Method for saving the segments to a file in a binary form.
@@ -549,22 +474,8 @@ public:
    SegmentsPrinter< CSR, Fetch >
    print( Fetch&& fetch ) const;
 
-   [[nodiscard]] KernelType&
-   getKernel()
-   {
-      return kernel;
-   }
-
-   [[nodiscard]] const KernelType&
-   getKernel() const
-   {
-      return kernel;
-   }
-
 protected:
    OffsetsContainer offsets;
-
-   KernelType kernel;
 };
 
 /**
@@ -572,48 +483,17 @@ protected:
  *
  * \tparam Device is the device type of the source segments.
  * \tparam Index is the index type of the source segments.
- * \tparam Kernel is kernel type of the source segments.
  * \tparam IndexAllocator is the index allocator of the source segments.
  * \param str is the output stream.
  * \param segments are the source segments.
  * \return reference to the output stream.
  */
-template< typename Device, typename Index, typename Kernel, typename IndexAllocator >
+template< typename Device, typename Index, typename IndexAllocator >
 std::ostream&
-operator<<( std::ostream& str, const CSR< Device, Index, Kernel, IndexAllocator >& segments )
+operator<<( std::ostream& str, const CSR< Device, Index, IndexAllocator >& segments )
 {
    return printSegments( segments, str );
 }
-
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-using CSRScalar = CSR< Device, Index, CSRScalarKernel< Index, Device >, IndexAllocator >;
-
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-using CSRVector = CSR< Device, Index, CSRVectorKernel< Index, Device >, IndexAllocator >;
-
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-using CSRHybrid = CSR< Device, Index, CSRHybridKernel< Index, Device >, IndexAllocator >;
-
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-using CSRLight = CSR< Device, Index, CSRLightKernel< Index, Device >, IndexAllocator >;
-
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-using CSRAdaptive = CSR< Device, Index, CSRAdaptiveKernel< Index, Device >, IndexAllocator >;
-
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-using CSRDefault = CSRScalar< Device, Index, IndexAllocator >;
 
 }  // namespace TNL::Algorithms::Segments
 

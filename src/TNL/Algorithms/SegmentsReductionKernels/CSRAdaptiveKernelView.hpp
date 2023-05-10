@@ -8,14 +8,12 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRScalarKernel.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRAdaptiveKernelView.h>
-#include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelBlockDescriptor.h>
-#include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelParameters.h>
 
-namespace TNL::Algorithms::Segments {
+#include "detail/FetchLambdaAdapter.h"
+#include "CSRScalarKernel.h"
+#include "CSRAdaptiveKernelView.h"
+
+namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename BlocksView,
           typename Offsets,
@@ -23,8 +21,7 @@ template< typename BlocksView,
           typename Fetch,
           typename Reduction,
           typename ResultKeeper,
-          typename Real,
-          typename... Args >
+          typename Real >
 __global__
 void
 reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
@@ -35,8 +32,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
                                  Fetch fetch,
                                  Reduction reduce,
                                  ResultKeeper keep,
-                                 Real zero,
-                                 Args... args )
+                                 Real zero )
 {
 #ifdef __CUDACC__
    using BlockType = detail::CSRAdaptiveKernelBlockDescriptor< Index >;
@@ -193,30 +189,31 @@ CSRAdaptiveKernelView< Index, Device >::getKernelType()
 }
 
 template< typename Index, typename Device >
-template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real, typename... Args >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 void
-CSRAdaptiveKernelView< Index, Device >::reduceSegments( const OffsetsView& offsets,
+CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                         Index first,
                                                         Index last,
                                                         Fetch& fetch,
                                                         const Reduction& reduction,
                                                         ResultKeeper& keeper,
-                                                        const Real& zero,
-                                                        Args... args ) const
+                                                        const Real& zero ) const
 {
    int valueSizeLog = getSizeValueLog( sizeof( Real ) );
 
+   // FIXME: JK: why does it dispatch CSRScalarKernel when the lambda has all parameters?
    if( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || valueSizeLog >= MaxValueSizeLog ) {
-      TNL::Algorithms::Segments::CSRScalarKernel< Index, Device >::reduceSegments(
-         offsets, first, last, fetch, reduction, keeper, zero, args... );
+      TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
+         segments, first, last, fetch, reduction, keeper, zero );
       return;
    }
 
+   // FIXME: JK: why does it dispatch CSRScalarKernel when the lambda has all parameters?
    constexpr bool DispatchScalarCSR =
       detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same< Device, Devices::Host >::value;
    if constexpr( DispatchScalarCSR ) {
-      TNL::Algorithms::Segments::CSRScalarKernel< Index, Device >::reduceSegments(
-         offsets, first, last, fetch, reduction, keeper, zero, args... );
+      TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
+         segments, first, last, fetch, reduction, keeper, zero );
    }
    else {
       Devices::Cuda::LaunchConfiguration launch_config;
@@ -238,16 +235,32 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const OffsetsView& offse
             neededThreads -= maxGridSize * launch_config.blockSize.x;
          }
 
+         using OffsetsView = typename SegmentsView::ConstOffsetsView;
+         OffsetsView offsets = segments.getOffsets();
+
          constexpr auto kernel =
-            reduceSegmentsCSRAdaptiveKernel< BlocksView, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Real, Args... >;
+            reduceSegmentsCSRAdaptiveKernel< BlocksView, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Real >;
          Cuda::launchKernelAsync(
-            kernel, launch_config, blocks, gridIdx, offsets, first, last, fetch, reduction, keeper, zero, args... );
+            kernel, launch_config, blocks, gridIdx, offsets, first, last, fetch, reduction, keeper, zero );
       }
       cudaStreamSynchronize( launch_config.stream );
       TNL_CHECK_CUDA_DEVICE;
    }
 }
 
+template< typename Index, typename Device >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+void
+CSRAdaptiveKernelView< Index, Device >::reduceAllSegments( const SegmentsView& segments,
+                                                           Fetch& fetch,
+                                                           const Reduction& reduction,
+                                                           ResultKeeper& keeper,
+                                                           const Real& zero ) const
+{
+   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, zero );
+}
+
+// FIXME: JK: operator= should not bind, it should do a shallow copy (or not even exist)
 template< typename Index, typename Device >
 CSRAdaptiveKernelView< Index, Device >&
 CSRAdaptiveKernelView< Index, Device >::operator=( const CSRAdaptiveKernelView< Index, Device >& kernelView )
@@ -268,4 +281,4 @@ CSRAdaptiveKernelView< Index, Device >::printBlocks( int idx ) const
    }
 }
 
-}  // namespace TNL::Algorithms::Segments
+}  // namespace TNL::Algorithms::SegmentsReductionKernels

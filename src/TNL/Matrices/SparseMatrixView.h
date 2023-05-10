@@ -12,6 +12,7 @@
 #include <TNL/Matrices/MatrixType.h>
 #include <TNL/Allocators/Default.h>
 #include <TNL/Algorithms/Segments/CSR.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/DefaultKernel.h>
 #include <TNL/Matrices/SparseMatrixRowView.h>
 #include <TNL/TypeTraits.h>
 
@@ -64,7 +65,7 @@ template< typename Real,
           typename Device = Devices::Host,
           typename Index = int,
           typename MatrixType = GeneralMatrix,
-          template< typename Device_, typename Index_ > class SegmentsView = Algorithms::Segments::CSRViewDefault,
+          template< typename Device_, typename Index_ > class SegmentsView = Algorithms::Segments::CSRView,
           typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type >
 class SparseMatrixView : public MatrixView< Real, Device, Index >
 {
@@ -74,6 +75,9 @@ class SparseMatrixView : public MatrixView< Real, Device, Index >
               || std::is_same< std::decay_t< Real >, int >::value || std::is_same< std::decay_t< Real >, long long int >::value
               || std::is_same< std::decay_t< Real >, bool >::value ),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
+
+   // TODO: CSRAdaptiveKernel needs to be instantiated
+   using SegmentsReductionKernel = typename Algorithms::SegmentsReductionKernels::DefaultKernel< SegmentsView< Device, Index > >::type;
 
 public:
    // Supporting types - they are not important for the user

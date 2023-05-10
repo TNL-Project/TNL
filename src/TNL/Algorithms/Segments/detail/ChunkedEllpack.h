@@ -9,7 +9,6 @@
 #include <type_traits>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpackSegmentView.h>
-#include <TNL/Algorithms/Segments/detail/CheckLambdas.h>
 
 namespace TNL::Algorithms::Segments::detail {
 
@@ -213,31 +212,5 @@ public:
          return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment, segmentSize, chunkSize, chunksInSlice );
    }
 };
-
-template< typename View,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultKeeper,
-          typename Real,
-          typename... Args >
-__global__
-void
-ChunkedEllpackreduceSegmentsKernel( View chunkedEllpack,
-                                    Index gridIdx,
-                                    Index first,
-                                    Index last,
-                                    Fetch fetch,
-                                    Reduction reduction,
-                                    ResultKeeper keeper,
-                                    Real zero,
-                                    Args... args )
-{
-   constexpr bool HasAllParameters = detail::CheckFetchLambda< Index, Fetch >::hasAllParameters();
-   if constexpr( HasAllParameters )
-      chunkedEllpack.reduceSegmentsKernelWithAllParameters( gridIdx, first, last, fetch, reduction, keeper, zero, args... );
-   else
-      chunkedEllpack.reduceSegmentsKernel( gridIdx, first, last, fetch, reduction, keeper, zero, args... );
-}
 
 }  // namespace TNL::Algorithms::Segments::detail

@@ -6,14 +6,9 @@
 
 #pragma once
 
-#include <TNL/Assert.h>
-#include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRScalarKernel.h>
-#include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelBlockDescriptor.h>
+#include "CSRAdaptiveKernel.h"
 
-namespace TNL::Algorithms::Segments {
+namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Index, typename Device >
 TNL::String
@@ -23,10 +18,12 @@ CSRAdaptiveKernel< Index, Device >::getKernelType()
 }
 
 template< typename Index, typename Device >
-template< typename Offsets >
+template< typename Segments >
 void
-CSRAdaptiveKernel< Index, Device >::init( const Offsets& offsets )
+CSRAdaptiveKernel< Index, Device >::init( const Segments& segments )
 {
+   const auto& offsets = segments.getOffsets();
+
    if( max( offsets ) == 0 ) {
       for( int i = 0; i < MaxValueSizeLog(); i++ ) {
          this->blocksArray[ i ].reset();
@@ -72,18 +69,29 @@ CSRAdaptiveKernel< Index, Device >::getConstView() const -> ConstViewType
 }
 
 template< typename Index, typename Device >
-template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real, typename... Args >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 void
-CSRAdaptiveKernel< Index, Device >::reduceSegments( const OffsetsView& offsets,
+CSRAdaptiveKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                     Index first,
                                                     Index last,
                                                     Fetch& fetch,
                                                     const Reduction& reduction,
                                                     ResultKeeper& keeper,
-                                                    const Real& zero,
-                                                    Args... args ) const
+                                                    const Real& zero ) const
 {
-   view.reduceSegments( offsets, first, last, fetch, reduction, keeper, zero, args... );
+   view.reduceSegments( segments, first, last, fetch, reduction, keeper, zero );
+}
+
+template< typename Index, typename Device >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+void
+CSRAdaptiveKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
+                                                       Fetch& fetch,
+                                                       const Reduction& reduction,
+                                                       ResultKeeper& keeper,
+                                                       const Real& zero ) const
+{
+   view.reduceAllSegments( segments, fetch, reduction, keeper, zero );
 }
 
 template< typename Index, typename Device >
@@ -158,4 +166,4 @@ CSRAdaptiveKernel< Index, Device >::initValueSize( const Offsets& offsets )
    this->blocksArray[ getSizeValueLog( SizeOfValue ) ] = inBlocks;
 }
 
-}  // namespace TNL::Algorithms::Segments
+}  // namespace TNL::Algorithms::SegmentsReductionKernels

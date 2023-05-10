@@ -7,10 +7,11 @@
 #pragma once
 
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelBlockDescriptor.h>
-#include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelParameters.h>
 
-namespace TNL::Algorithms::Segments {
+#include "detail/CSRAdaptiveKernelBlockDescriptor.h"
+#include "detail/CSRAdaptiveKernelParameters.h"
+
+namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Index, typename Device >
 struct CSRAdaptiveKernelView
@@ -46,16 +47,23 @@ struct CSRAdaptiveKernelView
    [[nodiscard]] static TNL::String
    getKernelType();
 
-   template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real, typename... Args >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
    void
-   reduceSegments( const OffsetsView& offsets,
+   reduceSegments( const SegmentsView& segments,
                    Index first,
                    Index last,
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
-                   const Real& zero,
-                   Args... args ) const;
+                   const Real& zero ) const;
+
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   void
+   reduceAllSegments( const SegmentsView& segments,
+                      Fetch& fetch,
+                      const Reduction& reduction,
+                      ResultKeeper& keeper,
+                      const Real& zero ) const;
 
    CSRAdaptiveKernelView&
    operator=( const CSRAdaptiveKernelView< Index, Device >& kernelView );
@@ -67,6 +75,6 @@ protected:
    BlocksView blocksArray[ MaxValueSizeLog ];
 };
 
-}  // namespace TNL::Algorithms::Segments
+}  // namespace TNL::Algorithms::SegmentsReductionKernels
 
-#include <TNL/Algorithms/Segments/Kernels/CSRAdaptiveKernelView.hpp>
+#include "CSRAdaptiveKernelView.hpp"
