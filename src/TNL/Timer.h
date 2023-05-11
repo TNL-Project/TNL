@@ -134,14 +134,6 @@ protected:
    static double
    durationToDouble( const Duration& duration );
 
-   /**
-    * \brief Time Stamp Counter returning number of CPU cycles since reset.
-    */
-#if ! defined( __APPLE__ ) && ! defined( _MSC_VER )
-   static inline unsigned long long
-   rdtsc();
-#endif
-
    TimePoint initialRealTime;
 
    Duration totalRealTime;

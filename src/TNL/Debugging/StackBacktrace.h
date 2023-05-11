@@ -9,7 +9,9 @@
 #include <iostream>
 #include <memory>
 
-#ifndef _WIN32
+#include <TNL/3rdparty/spy.hpp>
+
+#ifndef SPY_OS_IS_WINDOWS
    #include <execinfo.h>
 #endif
 
@@ -28,7 +30,7 @@ namespace TNL::Debugging {
 static void
 printStackBacktrace( std::ostream& out = std::cout, unsigned int max_frames = 64 )
 {
-#ifndef _WIN32
+#ifndef SPY_OS_IS_WINDOWS
    out << "stack trace:\n";
 
    // storage array for stack trace address data

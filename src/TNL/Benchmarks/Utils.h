@@ -84,8 +84,7 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
 inline std::map< std::string, std::string >
 getHardwareMetadata()
 {
-   const int cpu_id = 0;
-   const CacheSizes cacheSizes = SystemInfo::getCPUCacheSizes( cpu_id );
+   const CPUCacheSizes cacheSizes = getCPUCacheSizes();
    const std::string cacheInfo = std::to_string( cacheSizes.L1data ) + ", " + std::to_string( cacheSizes.L1instruction ) + ", "
                                + std::to_string( cacheSizes.L2 ) + ", " + std::to_string( cacheSizes.L3 );
 #ifdef __CUDACC__
@@ -103,21 +102,21 @@ getHardwareMetadata()
 #endif
 
    std::map< std::string, std::string > metadata{
-      { "host name", SystemInfo::getHostname() },
-      { "architecture", SystemInfo::getArchitecture() },
-      { "system", SystemInfo::getSystemName() },
-      { "system release", SystemInfo::getSystemRelease() },
-      { "start time", SystemInfo::getCurrentTime() },
+      { "host name", getHostname() },
+      { "architecture", getSystemArchitecture() },
+      { "system", getSystemName() },
+      { "system release", getSystemRelease() },
+      { "compiler", getCompilerName() },
+      { "start time", getCurrentTime() },
 #ifdef HAVE_MPI
       { "number of MPI processes", std::to_string( nproc ) },
 #endif
       { "OpenMP enabled", Devices::Host::isOMPEnabled() ? "yes" : "no" },
       { "OpenMP threads", std::to_string( Devices::Host::getMaxThreadsCount() ) },
-      { "CPU model name", SystemInfo::getCPUModelName( cpu_id ) },
-      { "CPU cores", std::to_string( SystemInfo::getNumberOfCores( cpu_id ) ) },
-      { "CPU threads per core",
-        std::to_string( SystemInfo::getNumberOfThreads( cpu_id ) / SystemInfo::getNumberOfCores( cpu_id ) ) },
-      { "CPU max frequency (MHz)", std::to_string( SystemInfo::getCPUMaxFrequency( cpu_id ) / 1e3 ) },
+      { "CPU model name", getCPUInfo().modelName },
+      { "CPU cores", std::to_string( getCPUInfo().cores ) },
+      { "CPU threads per core", std::to_string( getCPUInfo().threads / getCPUInfo().cores ) },
+      { "CPU max frequency (MHz)", std::to_string( getCPUMaxFrequency() / 1e3 ) },
       { "CPU cache sizes (L1d, L1i, L2, L3) (kiB)", cacheInfo },
 #ifdef __CUDACC__
       { "GPU name", Cuda::DeviceInfo::getDeviceName( activeGPU ) },
