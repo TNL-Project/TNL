@@ -26,7 +26,7 @@ public:
    {
       using CoordinatesType = typename Grid::CoordinatesType;
 
-      constexpr int orientationsCount = Templates::combination( NeighbourEntityDimension, GridDimension );
+      constexpr int orientationsCount = combinationsCount( NeighbourEntityDimension, GridDimension );
 
       const CoordinatesType coordinate = entity.getCoordinates() + offset;
       const int orientation = TNL::min( orientationsCount - 1, entity.getOrientation() );
@@ -46,7 +46,7 @@ public:
              std::enable_if_t< Templates::isInLeftClosedRightOpenInterval(
                                   0,
                                   Orientation,
-                                  Templates::combination( NeighbourEntityDimension, GridDimension ) ),
+                                  combinationsCount( NeighbourEntityDimension, GridDimension ) ),
                                bool > = true >
    static __cuda_callable__
    inline GridEntity< Grid, NeighbourEntityDimension >

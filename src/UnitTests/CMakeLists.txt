@@ -11,6 +11,7 @@ ADD_SUBDIRECTORY( Solvers )
 set( CPP_TESTS  AssertTest
                 base64Test
                 CustomScalarTest
+                DiscreteMathTest
                 FileNameTest
                 MathTest
                 ObjectTest
