@@ -9,8 +9,7 @@
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Meshes/GridDetails/NormalsGetter.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< class, int >
 class GridEntity;
@@ -20,8 +19,8 @@ class NeighbourGridEntityGetter
 {
 public:
    template< class Grid >
-   static __cuda_callable__
-   inline GridEntity< Grid, NeighbourEntityDimension >
+   [[nodiscard]] __cuda_callable__
+   static GridEntity< Grid, NeighbourEntityDimension >
    getEntity( const GridEntity< Grid, ParentEntityDimension >& entity, const typename Grid::CoordinatesType& offset )
    {
       using CoordinatesType = typename Grid::CoordinatesType;
@@ -48,8 +47,8 @@ public:
                                   Orientation,
                                   combinationsCount( NeighbourEntityDimension, GridDimension ) ),
                                bool > = true >
-   static __cuda_callable__
-   inline GridEntity< Grid, NeighbourEntityDimension >
+   [[nodiscard]] __cuda_callable__
+   static GridEntity< Grid, NeighbourEntityDimension >
    getEntity( const GridEntity< Grid, ParentEntityDimension >& entity, const typename Grid::CoordinatesType& offset )
    {
       using NormalsGetterType = NormalsGetter< typename Grid::IndexType, NeighbourEntityDimension, GridDimension >;
@@ -65,5 +64,4 @@ public:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

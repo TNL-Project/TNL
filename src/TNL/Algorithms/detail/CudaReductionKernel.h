@@ -16,9 +16,7 @@
 #include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 #ifdef __CUDACC__
 /* Template for cooperative reduction across the CUDA block of threads.
@@ -683,6 +681,4 @@ protected:
    Index reducedSize;
 };
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail

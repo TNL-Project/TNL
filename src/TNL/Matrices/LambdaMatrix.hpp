@@ -14,8 +14,7 @@
 #include <TNL/Matrices/details/SparseMatrix.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
 LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::LambdaMatrix(
@@ -342,5 +341,4 @@ operator<<( std::ostream& str,
    return str;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

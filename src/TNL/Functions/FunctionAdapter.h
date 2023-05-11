@@ -10,8 +10,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 /***
  * MeshType is a type of mesh on which we evaluate the function.
@@ -40,8 +39,8 @@ public:
    }
 
    template< typename EntityType >
-   __cuda_callable__
-   inline static RealType
+   [[nodiscard]] __cuda_callable__
+   static RealType
    getValue( const FunctionType& function, const EntityType& meshEntity, const RealType& time )
    {
       return function( meshEntity, time );
@@ -73,8 +72,8 @@ public:
    }
 
    template< typename EntityType >
-   __cuda_callable__
-   inline static RealType
+   [[nodiscard]] __cuda_callable__
+   static RealType
    getValue( const FunctionType& function, const EntityType& meshEntity, const RealType& time )
    {
       return function( meshEntity.getCenter(), time );
@@ -107,8 +106,8 @@ public:
    }
 
    template< typename EntityType >
-   __cuda_callable__
-   inline static RealType
+   [[nodiscard]] __cuda_callable__
+   static RealType
    getValue( const FunctionType& function, const EntityType& meshEntity, const RealType& time )
    {
       return function.getValue( time );
@@ -130,8 +129,8 @@ public:
    typedef typename MeshType::GlobalIndexType IndexType;
 
    template< typename EntityType >
-   __cuda_callable__
-   inline static RealType
+   [[nodiscard]] __cuda_callable__
+   static RealType
    getValue( const FunctionType& function, const EntityType& meshEntity, const RealType& time )
    {
       return function( meshEntity, time );
@@ -152,8 +151,8 @@ public:
    typedef typename FunctionType::PointType PointType;
 
    template< typename EntityType >
-   __cuda_callable__
-   inline static RealType
+   [[nodiscard]] __cuda_callable__
+   static RealType
    getValue( const FunctionType& function, const EntityType& meshEntity, const RealType& time )
    {
       return function.getValue( meshEntity.getCenter(), time );
@@ -174,8 +173,8 @@ public:
    typedef typename FunctionType::PointType PointType;
 
    template< typename EntityType >
-   __cuda_callable__
-   inline static RealType
+   [[nodiscard]] __cuda_callable__
+   static RealType
    getValue( const FunctionType& function, const EntityType& meshEntity, const RealType& time )
    {
       return function.getValue( time );
@@ -183,5 +182,4 @@ public:
 };
 #endif
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

@@ -13,8 +13,7 @@
 #include <TNL/Algorithms/detail/Scan.h>
 #include <TNL/Functional.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 /**
  * \brief Computes an inclusive scan (or prefix sum) of an input array and
@@ -332,5 +331,4 @@ inplaceExclusiveScan( Array& array,
    inplaceExclusiveScan( array, begin, end, std::forward< Reduction >( reduction ), identity );
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

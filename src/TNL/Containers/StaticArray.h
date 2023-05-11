@@ -10,8 +10,7 @@
 
 #include <TNL/File.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Array with constant size.
@@ -36,7 +35,7 @@ public:
    /**
     * \brief Gets size of this array.
     */
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getSize();
 
    /**
@@ -78,6 +77,18 @@ public:
    constexpr StaticArray( const StaticArray& v );
 
    /**
+    * \brief Templated copy constructor.
+    *
+    * Constructs a copy of another static array \e v where the value type is
+    * \e ValueType. This constructor allows casting between `StaticArray`
+    * types with the same size, but different value types.
+    */
+   template< typename OtherValue >
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
+   __cuda_callable__
+   constexpr StaticArray( const StaticArray< Size, OtherValue >& v );
+
+   /**
     * \brief Move constructor.
     */
    constexpr StaticArray( StaticArray&& ) noexcept = default;
@@ -90,7 +101,7 @@ public:
     * `StaticArray< 3, int > a = {1, 2, 3};`. The number of supplied arguments
     * must be equal to \e Size.
     *
-    * @param values The elements forwarded to the constructor of the underlying
+    * \param values The elements forwarded to the constructor of the underlying
     *               \ref std::array.
     */
    template< typename... Values, std::enable_if_t< ( Size > 1 ) && sizeof...( Values ) == Size, bool > = true >
@@ -104,91 +115,113 @@ public:
     *
     * The initializer list size must larger or equal to \e Size.
     *
-    * @param elems input initializer list
+    * \param elems input initializer list
+    */
+   template< typename OtherValue >
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
+   __cuda_callable__
+   constexpr StaticArray( const std::initializer_list< OtherValue >& elems );
+
+   /**
+    * \brief Constructor which initializes the array by copying elements from
+    * \ref std::array.
+    *
+    * \param array input array
+    */
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
+   template< typename OtherValue >
+   __cuda_callable__
+   constexpr StaticArray( const std::array< OtherValue, Size >& array );
+
+   /**
+    * \brief Constructor which initializes the array by moving elements from
+    * \ref std::array.
+    *
+    * \param array input array
     */
    // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
    __cuda_callable__
-   constexpr StaticArray( const std::initializer_list< Value >& elems );
+   constexpr StaticArray( std::array< Value, Size >&& array );
 
    /**
     * \brief Gets pointer to data of this static array.
     */
-   constexpr Value*
-   getData();
+   [[nodiscard]] constexpr Value*
+   getData() noexcept;
 
    /**
     * \brief Gets constant pointer to data of this static array.
     */
-   constexpr const Value*
-   getData() const;
+   [[nodiscard]] constexpr const Value*
+   getData() const noexcept;
 
    /**
     * \brief Accesses specified element at the position \e i and returns a constant reference to its value.
     *
     * \param i Index position of an element.
     */
-   constexpr const Value&
-   operator[]( int i ) const;
+   [[nodiscard]] constexpr const Value&
+   operator[]( int i ) const noexcept;
 
    /**
     * \brief Accesses specified element at the position \e i and returns a reference to its value.
     *
     * \param i Index position of an element.
     */
-   constexpr Value&
-   operator[]( int i );
+   [[nodiscard]] constexpr Value&
+   operator[]( int i ) noexcept;
 
    /**
     * \brief Accesses specified element at the position \e i and returns a constant reference to its value.
     *
     * Equivalent to \ref operator[].
     */
-   constexpr const Value&
-   operator()( int i ) const;
+   [[nodiscard]] constexpr const Value&
+   operator()( int i ) const noexcept;
 
    /**
     * \brief Accesses specified element at the position \e i and returns a reference to its value.
     *
     * Equivalent to \ref operator[].
     */
-   constexpr Value&
-   operator()( int i );
+   [[nodiscard]] constexpr Value&
+   operator()( int i ) noexcept;
 
    /**
     * \brief Returns reference to the first coordinate.
     */
-   constexpr Value&
-   x();
+   [[nodiscard]] constexpr Value&
+   x() noexcept;
 
    /**
     * \brief Returns constant reference to the first coordinate.
     */
-   constexpr const Value&
-   x() const;
+   [[nodiscard]] constexpr const Value&
+   x() const noexcept;
 
    /**
     * \brief Returns reference to the second coordinate for arrays with Size >= 2.
     */
-   constexpr Value&
-   y();
+   [[nodiscard]] constexpr Value&
+   y() noexcept;
 
    /**
     * \brief Returns constant reference to the second coordinate for arrays with Size >= 2.
     */
-   constexpr const Value&
-   y() const;
+   [[nodiscard]] constexpr const Value&
+   y() const noexcept;
 
    /**
     * \brief Returns reference to the third coordinate for arrays with Size >= 3.
     */
-   constexpr Value&
-   z();
+   [[nodiscard]] constexpr Value&
+   z() noexcept;
 
    /**
     * \brief Returns constant reference to the third coordinate for arrays with Size >= 3.
     */
-   constexpr const Value&
-   z() const;
+   [[nodiscard]] constexpr const Value&
+   z() const noexcept;
 
    /**
     * \brief Copy-assignment operator.
@@ -224,7 +257,7 @@ public:
     * Return \e true if the arrays are equal in size. Otherwise returns \e false.
     */
    template< typename Array >
-   constexpr bool
+   [[nodiscard]] constexpr bool
    operator==( const Array& array ) const;
 
    /**
@@ -233,24 +266,8 @@ public:
     * Return \e true if the arrays are not equal in size. Otherwise returns \e false.
     */
    template< typename Array >
-   constexpr bool
+   [[nodiscard]] constexpr bool
    operator!=( const Array& array ) const;
-
-   /**
-    * \brief Cast operator for changing of the \e Value type.
-    *
-    * Returns static array having \e ValueType set to \e OtherValue, i.e.
-    * StaticArray< Size, OtherValue >.
-    *
-    * \tparam OtherValue is the \e Value type of the static array the casting
-    * will be performed to.
-    *
-    * \return instance of StaticArray< Size, OtherValue >
-    */
-   template< typename OtherValue >
-   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
-   __cuda_callable__
-   constexpr operator StaticArray< Size, OtherValue >() const;
 
    /**
     * \brief Sets all values of this static array to \e val.
@@ -262,14 +279,14 @@ public:
     * \brief Saves this static array into the \e file.
     * \param file Reference to a file.
     */
-   bool
+   void
    save( File& file ) const;
 
    /**
     * \brief Loads data from the \e file to this static array.
     * \param file Reference to a file.
     */
-   bool
+   void
    load( File& file );
 
    /**
@@ -336,7 +353,60 @@ template< int Size, typename Value >
 File&
 operator>>( File&& file, StaticArray< Size, Value >& array );
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
+
+// specializations to make StaticArray work with C++17 structured bindings
+// (all these specializations exist for std::array)
+namespace std {
+
+template< int N, class T >
+struct tuple_size< TNL::Containers::StaticArray< N, T > > : std::integral_constant< std::size_t, N >
+{};
+
+template< std::size_t I, int N, class T >
+struct tuple_element< I, TNL::Containers::StaticArray< N, T > >
+{
+   using type = T;
+};
+
+}  // namespace std
+
+// the `get` function must be defined in the TNL::Containers namespace,
+// because structured binding finds it by ADL
+namespace TNL::Containers {
+
+template< std::size_t I, int N, class T >
+constexpr T&
+get( StaticArray< N, T >& a ) noexcept
+{
+   static_assert( I < N );
+   return a[ I ];
+}
+
+template< std::size_t I, int N, class T >
+constexpr T&&
+get( StaticArray< N, T >&& a ) noexcept
+{
+   static_assert( I < N );
+   return std::move( a[ I ] );
+}
+
+template< std::size_t I, int N, class T >
+constexpr const T&
+get( const StaticArray< N, T >& a ) noexcept
+{
+   static_assert( I < N );
+   return a[ I ];
+}
+
+template< std::size_t I, int N, class T >
+constexpr const T&&
+get( const StaticArray< N, T >&& a ) noexcept
+{
+   static_assert( I < N );
+   return std::move( a[ I ] );
+}
+
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/StaticArray.hpp>

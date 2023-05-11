@@ -9,8 +9,7 @@
 #include <TNL/Matrices/LambdaMatrixRowView.h>
 #include <TNL/Assert.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Index >
 __cuda_callable__
@@ -93,33 +92,33 @@ LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Ind
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Index >
 __cuda_callable__
 auto
-LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >::begin() const -> const IteratorType
+LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >::begin() const -> IteratorType
 {
-   return IteratorType( *this, 0 );
+   return { *this, 0 };
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Index >
 __cuda_callable__
 auto
-LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >::end() const -> const IteratorType
+LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >::end() const -> IteratorType
 {
-   return IteratorType( *this, this->getSize() );
+   return { *this, this->getSize() };
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Index >
 __cuda_callable__
 auto
-LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >::cbegin() const -> const IteratorType
+LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >::cbegin() const -> IteratorType
 {
-   return IteratorType( *this, 0 );
+   return { *this, 0 };
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Index >
 __cuda_callable__
 auto
-LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >::cend() const -> const IteratorType
+LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >::cend() const -> IteratorType
 {
-   return IteratorType( *this, this->getSize() );
+   return { *this, this->getSize() };
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Index >
@@ -133,5 +132,4 @@ operator<<( std::ostream& str, const LambdaMatrixRowView< MatrixElementsLambda, 
    return str;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

@@ -8,8 +8,7 @@
 
 #include <TNL/Matrices/MultidiagonalMatrixRowView.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >
 __cuda_callable__
@@ -79,7 +78,7 @@ __cuda_callable__
 auto
 MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::begin() -> IteratorType
 {
-   return IteratorType( *this, 0 );
+   return { *this, 0 };
 }
 
 template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >
@@ -87,24 +86,23 @@ __cuda_callable__
 auto
 MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::end() -> IteratorType
 {
-   return IteratorType( *this, this->getSize() );
+   return { *this, this->getSize() };
 }
 
 template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >
 __cuda_callable__
 auto
-MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::cbegin() const -> const IteratorType
+MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::cbegin() const -> ConstIteratorType
 {
-   return IteratorType( *this, 0 );
+   return { *this, 0 };
 }
 
 template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >
 __cuda_callable__
 auto
-MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::cend() const -> const IteratorType
+MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::cend() const -> ConstIteratorType
 {
-   return IteratorType( *this, this->getSize() );
+   return { *this, this->getSize() };
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

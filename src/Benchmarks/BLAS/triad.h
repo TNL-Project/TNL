@@ -8,8 +8,7 @@
 #include <TNL/Allocators/CudaHost.h>
 #include <TNL/Allocators/CudaManaged.h>
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 template< typename Real = double,
           typename Index = int >
@@ -192,5 +191,4 @@ benchmarkTriad( Benchmark<> & benchmark,
    // TODO: unified memory with AccessedBy hint and/or prefetching - see https://github.com/cwpearson/triad-gpu-bandwidth
 }
 
-} // namespace Benchmarks
-} // namespace TNL
+} // namespace TNL::Benchmarks

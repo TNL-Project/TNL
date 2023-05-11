@@ -9,8 +9,7 @@
 #include <iostream>
 #include <TNL/Functions/VectorFieldGnuplotWriter.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename VectorField >
 bool
@@ -275,5 +274,4 @@ VectorFieldGnuplotWriter<
    return true;
 }
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

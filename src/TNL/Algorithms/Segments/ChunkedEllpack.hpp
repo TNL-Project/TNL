@@ -11,9 +11,7 @@
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
 template< typename SizesContainer >
@@ -415,6 +413,4 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::printStructure( s
    this->getView().printStructure( str );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

@@ -16,8 +16,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/staticFor.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig >
 class Initializer;
@@ -286,5 +285,4 @@ public:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

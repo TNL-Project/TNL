@@ -15,8 +15,7 @@
 
 #include <TNL/Debugging/StackBacktrace.h>
 
-namespace TNL {
-namespace Debugging {
+namespace TNL::Debugging {
 
 static void
 printStackBacktraceAndAbort( int sig = 0 )
@@ -102,5 +101,4 @@ trackFloatingPointExceptions()
 #endif
 }
 
-}  // namespace Debugging
-}  // namespace TNL
+}  // namespace TNL::Debugging

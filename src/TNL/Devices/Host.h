@@ -14,8 +14,7 @@
    #include <omp.h>
 #endif
 
-namespace TNL {
-namespace Devices {
+namespace TNL::Devices {
 
 class Host
 {
@@ -131,5 +130,4 @@ protected:
    }
 };
 
-}  // namespace Devices
-}  // namespace TNL
+}  // namespace TNL::Devices

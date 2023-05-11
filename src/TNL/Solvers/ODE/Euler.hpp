@@ -8,9 +8,7 @@
 
 #include <TNL/Solvers/ODE/Euler.h>
 
-namespace TNL {
-namespace Solvers {
-namespace ODE {
+namespace TNL::Solvers::ODE {
 
 template< typename Vector, typename SolverMonitor >
 void
@@ -116,6 +114,4 @@ Euler< Vector, SolverMonitor >::solve( VectorType& _u, RHSFunction&& rhsFunction
    return false;  // just to avoid warnings
 }
 
-}  // namespace ODE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::ODE

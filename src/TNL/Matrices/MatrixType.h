@@ -8,8 +8,7 @@
 
 #include <string>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Structure for specifying type of sparse matrix.
@@ -19,13 +18,13 @@ namespace Matrices {
 template< bool Symmetric >
 struct MatrixType
 {
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isSymmetric()
    {
       return Symmetric;
    }
 
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType()
    {
       if( isSymmetric() )
@@ -52,5 +51,4 @@ struct GeneralMatrix : MatrixType< false >
 struct SymmetricMatrix : MatrixType< true >
 {};
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

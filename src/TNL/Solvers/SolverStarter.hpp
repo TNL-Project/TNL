@@ -19,8 +19,7 @@
 #include <TNL/Solvers/PDE/SemiImplicitTimeStepper.h>
 #include <TNL/Solvers/PDE/PDESolverTypeResolver.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 template< typename Problem, typename ConfigTag, bool TimeDependent = Problem::isTimeDependent() >
 class TimeDependencyResolver
@@ -390,5 +389,4 @@ SolverStarter< ConfigTag >::writeEpilog( std::ostream& str, const Solver& solver
    return true;
 }
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

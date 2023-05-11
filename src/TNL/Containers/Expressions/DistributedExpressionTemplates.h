@@ -76,7 +76,7 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
                      "Distributed expressions are supported only on vectors within the same communicator." );
    }
 
-   RealType
+   [[nodiscard]] RealType
    getElement( const IndexType i ) const
    {
       const IndexType li = getLocalRange().getLocalIndex( i );
@@ -91,49 +91,49 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
       return getConstLocalView()[ i ];
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getSize() const
    {
       return op1.getSize();
    }
 
-   LocalRangeType
+   [[nodiscard]] LocalRangeType
    getLocalRange() const
    {
       return op1.getLocalRange();
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getGhosts() const
    {
       return op1.getGhosts();
    }
 
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const
    {
       return op1.getCommunicator();
    }
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalView() const
    {
       return ConstLocalViewType( op1.getConstLocalView(), op2.getConstLocalView() );
    }
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalViewWithGhosts() const
    {
       return ConstLocalViewType( op1.getConstLocalViewWithGhosts(), op2.getConstLocalViewWithGhosts() );
    }
 
-   std::shared_ptr< SynchronizerType >
+   [[nodiscard]] std::shared_ptr< SynchronizerType >
    getSynchronizer() const
    {
       return op1.getSynchronizer();
    }
 
-   int
+   [[nodiscard]] int
    getValuesPerElement() const
    {
       return op1.getValuesPerElement();
@@ -168,7 +168,7 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
 
    DistributedBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b ) {}
 
-   RealType
+   [[nodiscard]] RealType
    getElement( const IndexType i ) const
    {
       const IndexType li = getLocalRange().getLocalIndex( i );
@@ -183,49 +183,49 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
       return getConstLocalView()[ i ];
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getSize() const
    {
       return op1.getSize();
    }
 
-   LocalRangeType
+   [[nodiscard]] LocalRangeType
    getLocalRange() const
    {
       return op1.getLocalRange();
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getGhosts() const
    {
       return op1.getGhosts();
    }
 
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const
    {
       return op1.getCommunicator();
    }
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalView() const
    {
       return ConstLocalViewType( op1.getConstLocalView(), op2 );
    }
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalViewWithGhosts() const
    {
       return ConstLocalViewType( op1.getConstLocalViewWithGhosts(), op2 );
    }
 
-   std::shared_ptr< SynchronizerType >
+   [[nodiscard]] std::shared_ptr< SynchronizerType >
    getSynchronizer() const
    {
       return op1.getSynchronizer();
    }
 
-   int
+   [[nodiscard]] int
    getValuesPerElement() const
    {
       return op1.getValuesPerElement();
@@ -259,7 +259,7 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariabl
 
    DistributedBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b ) {}
 
-   RealType
+   [[nodiscard]] RealType
    getElement( const IndexType i ) const
    {
       const IndexType li = getLocalRange().getLocalIndex( i );
@@ -274,49 +274,49 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariabl
       return getConstLocalView()[ i ];
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getSize() const
    {
       return op2.getSize();
    }
 
-   LocalRangeType
+   [[nodiscard]] LocalRangeType
    getLocalRange() const
    {
       return op2.getLocalRange();
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getGhosts() const
    {
       return op2.getGhosts();
    }
 
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const
    {
       return op2.getCommunicator();
    }
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalView() const
    {
       return ConstLocalViewType( op1, op2.getConstLocalView() );
    }
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalViewWithGhosts() const
    {
       return ConstLocalViewType( op1, op2.getConstLocalViewWithGhosts() );
    }
 
-   std::shared_ptr< SynchronizerType >
+   [[nodiscard]] std::shared_ptr< SynchronizerType >
    getSynchronizer() const
    {
       return op2.getSynchronizer();
    }
 
-   int
+   [[nodiscard]] int
    getValuesPerElement() const
    {
       return op2.getValuesPerElement();
@@ -352,7 +352,7 @@ struct DistributedUnaryExpressionTemplate
 
    DistributedUnaryExpressionTemplate( const T1& a ) : operand( a ) {}
 
-   RealType
+   [[nodiscard]] RealType
    getElement( const IndexType i ) const
    {
       const IndexType li = getLocalRange().getLocalIndex( i );
@@ -367,49 +367,49 @@ struct DistributedUnaryExpressionTemplate
       return getConstLocalView()[ i ];
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getSize() const
    {
       return operand.getSize();
    }
 
-   LocalRangeType
+   [[nodiscard]] LocalRangeType
    getLocalRange() const
    {
       return operand.getLocalRange();
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getGhosts() const
    {
       return operand.getGhosts();
    }
 
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const
    {
       return operand.getCommunicator();
    }
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalView() const
    {
       return ConstLocalViewType( operand.getConstLocalView() );
    }
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalViewWithGhosts() const
    {
       return ConstLocalViewType( operand.getConstLocalViewWithGhosts() );
    }
 
-   std::shared_ptr< SynchronizerType >
+   [[nodiscard]] std::shared_ptr< SynchronizerType >
    getSynchronizer() const
    {
       return operand.getSynchronizer();
    }
 
-   int
+   [[nodiscard]] int
    getValuesPerElement() const
    {
       return operand.getValuesPerElement();

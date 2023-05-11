@@ -10,9 +10,7 @@
 
 #include "TFQMR.h"
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 template< typename Matrix >
 bool
@@ -130,6 +128,4 @@ TFQMR< Matrix >::setSize( const VectorViewType& x )
    M_tmp.setLike( x );
 }
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear

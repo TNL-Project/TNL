@@ -6,8 +6,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Arithmetics {
+namespace TNL::Arithmetics {
 
 template< typename Value >
 __cuda_callable__
@@ -757,5 +756,4 @@ operator<<( std::ostream& str, const Complex< Value >& c )
    return str;
 }
 
-}  // namespace Arithmetics
-}  // namespace TNL
+}  // namespace TNL::Arithmetics

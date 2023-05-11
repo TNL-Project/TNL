@@ -43,7 +43,7 @@ public:
     * by Devices::Host. For example \c Array< double, Devices::Cuda > is
     * saved as \c Array< double, Devices::Host >.
     */
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
    /***
@@ -54,7 +54,7 @@ public:
     * by Devices::Host. For example \c Array< double, Devices::Cuda > is
     * saved as \c Array< double, Devices::Host >.
     */
-   virtual std::string
+   [[nodiscard]] virtual std::string
    getSerializationTypeVirtual() const;
 
    /**
@@ -114,7 +114,7 @@ public:
  * @param file is file where the object is stored
  * @return string with the object type
  */
-String
+[[nodiscard]] String
 getObjectType( File& file );
 
 /**
@@ -125,7 +125,7 @@ getObjectType( File& file );
  * @param fileName name of a file where the object is stored
  * @return string with the object type
  */
-String
+[[nodiscard]] String
 getObjectType( const String& fileName );
 
 /**
@@ -140,7 +140,7 @@ getObjectType( const String& fileName );
  * \par Output
  * \include ParseObjectTypeExample.out
  */
-std::vector< String >
+[[nodiscard]] std::vector< String >
 parseObjectType( const String& objectType );
 
 /**

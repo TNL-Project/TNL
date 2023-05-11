@@ -8,9 +8,7 @@
 
 #include <TNL/Devices/Cuda.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 class BackwardTimeDiscretisation
 {
@@ -30,6 +28,4 @@ public:
    }
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

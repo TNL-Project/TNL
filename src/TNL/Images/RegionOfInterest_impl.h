@@ -8,8 +8,7 @@
 
 #include <TNL/Images/Image.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 template< typename Index >
 RegionOfInterest< Index >::RegionOfInterest() : top( -1 ), bottom( -1 ), left( -1 ), right( -1 )
@@ -154,5 +153,4 @@ RegionOfInterest< Index >::isIn( const Index row, const Index column ) const
    return false;
 }
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images

@@ -13,8 +13,7 @@
 #include <TNL/Timer.h>
 #include <TNL/Matrices/MatrixReader.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Matrix, typename Device >
 void
@@ -364,5 +363,4 @@ MatrixReader< Matrix, TNL::Devices::Host >::parseMtxLineWithElement( const Strin
 }
 /// \endcond
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

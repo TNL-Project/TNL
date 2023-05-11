@@ -18,9 +18,7 @@
 
 #include <TNL/Solvers/Linear/LinearSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 /**
  * \brief Iterative solver of linear systems based on the BICGStab(l) method.
@@ -153,8 +151,6 @@ protected:
    IndexType ldSize = 0;
 };
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear
 
 #include <TNL/Solvers/Linear/BICGStabL.hpp>

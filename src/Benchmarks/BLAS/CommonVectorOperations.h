@@ -1,7 +1,6 @@
 #pragma once
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 template< typename Device >
 struct CommonVectorOperations
@@ -60,7 +59,6 @@ struct CommonVectorOperations
    static ResultType getScalarProduct( const Vector1& v1, const Vector2& v2 );
 };
 
-} // namespace Benchmarks
-} // namespace TNL
+} // namespace TNL::Benchmarks
 
 #include "CommonVectorOperations.hpp"

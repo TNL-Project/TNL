@@ -8,8 +8,7 @@
 
 #include <TNL/Containers/StaticVector.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 /**
  * \brief Minimal class usable as \e Mesh in the \ref Writers::VTIWriter.
@@ -43,7 +42,7 @@ public:
    }
 
    //! \brief Returns the grid dimensions/size.
-   const CoordinatesType&
+   [[nodiscard]] const CoordinatesType&
    getDimensions() const
    {
       return dimensions;
@@ -59,7 +58,7 @@ public:
 
    //! \brief Returns the origin of the grid (coordinates of the left bottom
    //! front corner).
-   const PointType&
+   [[nodiscard]] const PointType&
    getOrigin() const
    {
       return origin;
@@ -84,7 +83,7 @@ public:
    }
 
    //! \brief Returns the space steps of the grid.
-   const PointType&
+   [[nodiscard]] const PointType&
    getSpaceSteps() const
    {
       return spaceSteps;
@@ -98,5 +97,4 @@ protected:
    PointType spaceSteps = 0;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

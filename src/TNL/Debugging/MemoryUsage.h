@@ -11,8 +11,7 @@
 #include <string>
 #include <limits>
 
-namespace TNL {
-namespace Debugging {
+namespace TNL::Debugging {
 
 /*
  * Prints memory usage of the current process into the specified stream.
@@ -61,5 +60,4 @@ printMemoryUsage( std::ostream& str = std::cerr )
        << "VmHWM = " << hwm / 1024 << "MiB, " << std::endl;
 }
 
-}  // namespace Debugging
-}  // namespace TNL
+}  // namespace TNL::Debugging

@@ -16,8 +16,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Algorithms/detail/ScanType.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 /**
  * \brief Computes segmented scan (or prefix sum) on a vector.
@@ -192,7 +191,6 @@ struct SegmentedScan< Devices::Cuda, Type >
             typename Vector::ValueType identity );
 };
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms
 
 #include <TNL/Algorithms/SegmentedScan.hpp>

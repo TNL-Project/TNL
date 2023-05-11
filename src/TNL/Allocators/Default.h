@@ -14,8 +14,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
-namespace TNL {
-namespace Allocators {
+namespace TNL::Allocators {
 
 /**
  * \brief A trait-like class used for the selection of a default allocators for
@@ -48,5 +47,4 @@ struct Default< Devices::Cuda >
    using Allocator = Allocators::Cuda< T >;
 };
 
-}  // namespace Allocators
-}  // namespace TNL
+}  // namespace TNL::Allocators

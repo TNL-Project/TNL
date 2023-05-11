@@ -12,8 +12,7 @@
 #include <TNL/Matrices/MatrixRowViewIterator.h>
 #include <TNL/Matrices/details/SparseMatrixRowViewValueGetter.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief RowView is a simple structure for accessing rows of sparse matrix.
@@ -42,7 +41,7 @@ public:
     * \brief Tells whether the parent matrix is a binary matrix.
     * @return `true` if the matrix is binary.
     */
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isBinary()
    {
       return std::is_same< std::decay_t< RealType >, bool >::value;
@@ -103,6 +102,11 @@ public:
     */
    using IteratorType = MatrixRowViewIterator< RowView >;
 
+   /**
+    * \brief Type of constant iterator for the matrix row.
+    */
+   using ConstIteratorType = MatrixRowViewIterator< ConstRowView >;
+
    using ValueGetterType = details::SparseMatrixRowViewValueGetter< SegmentView, ValuesView, ColumnsIndexesView >;
 
    /**
@@ -122,7 +126,7 @@ public:
     *
     * \return Size of the matrix row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -131,7 +135,7 @@ public:
     *
     * \return matrix row index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getRowIndex() const;
 
@@ -142,7 +146,7 @@ public:
     *
     * \return constant reference to the matrix element column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getColumnIndex( IndexType localIdx ) const;
 
@@ -153,7 +157,7 @@ public:
     *
     * \return non-constant reference to the matrix element column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType&
    getColumnIndex( IndexType localIdx );
 
@@ -164,7 +168,7 @@ public:
     *
     * \return constant reference to the matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    auto
    getValue( IndexType localIdx ) const -> typename ValueGetterType::ConstResultType;
 
@@ -175,7 +179,7 @@ public:
     *
     * \return non-constant reference to the matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    auto
    getValue( IndexType localIdx ) -> typename ValueGetterType::ResultType;
 
@@ -219,7 +223,7 @@ public:
     * \return \e true if both rows are the same, \e false otherwise.
     */
    template< typename _SegmentView, typename _ValuesView, typename _ColumnsIndexesView >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const SparseMatrixRowView< _SegmentView, _ValuesView, _ColumnsIndexesView >& other ) const;
 
@@ -228,7 +232,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    begin();
 
@@ -237,7 +241,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    end();
 
@@ -246,8 +250,8 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
-   const IteratorType
+   [[nodiscard]] __cuda_callable__
+   ConstIteratorType
    cbegin() const;
 
    /**
@@ -255,11 +259,11 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
-   const IteratorType
+   [[nodiscard]] __cuda_callable__
+   ConstIteratorType
    cend() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getPaddingIndex() const
    {
@@ -285,7 +289,6 @@ template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView
 std::ostream&
 operator<<( std::ostream& str, const SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >& row );
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/SparseMatrixRowView.hpp>

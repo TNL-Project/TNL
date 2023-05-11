@@ -13,8 +13,7 @@
    #include <TNL/Containers/HypreVector.h>
    #include <TNL/Containers/DistributedVector.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Wrapper for Hypre's parallel vector.
@@ -109,7 +108,7 @@ public:
       reset();
    }
 
-   LocalRangeType
+   [[nodiscard]] LocalRangeType
    getLocalRange() const
    {
       if( v == nullptr )
@@ -117,14 +116,14 @@ public:
       return { hypre_ParVectorPartitioning( v )[ 0 ], hypre_ParVectorPartitioning( v )[ 1 ] };
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getGhosts() const
    {
       return ghosts;
    }
 
    //! \brief Return the MPI communicator.
-   MPI_Comm
+   [[nodiscard]] MPI_Comm
    getCommunicator() const
    {
       if( v == nullptr )
@@ -133,7 +132,7 @@ public:
    }
 
    //! \brief Returns the global size of the vector.
-   HYPRE_Int
+   [[nodiscard]] HYPRE_Int
    getSize() const
    {
       if( v == nullptr )
@@ -141,37 +140,37 @@ public:
       return hypre_ParVectorGlobalSize( v );
    }
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalView() const
    {
       return { localData.getData(), getLocalRange().getSize() };
    }
 
-   LocalViewType
+   [[nodiscard]] LocalViewType
    getLocalView()
    {
       return { localData.getData(), getLocalRange().getSize() };
    }
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalViewWithGhosts() const
    {
       return localData.getConstView();
    }
 
-   LocalViewType
+   [[nodiscard]] LocalViewType
    getLocalViewWithGhosts()
    {
       return localData.getView();
    }
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const
    {
       return { getLocalRange(), ghosts, getSize(), getCommunicator(), getConstLocalViewWithGhosts() };
    }
 
-   ViewType
+   [[nodiscard]] ViewType
    getView()
    {
       return { getLocalRange(), ghosts, getSize(), getCommunicator(), getLocalViewWithGhosts() };
@@ -325,13 +324,13 @@ public:
       this->valuesPerElement = valuesPerElement;
    }
 
-   std::shared_ptr< SynchronizerType >
+   [[nodiscard]] std::shared_ptr< SynchronizerType >
    getSynchronizer() const
    {
       return synchronizer;
    }
 
-   int
+   [[nodiscard]] int
    getValuesPerElement() const
    {
       return valuesPerElement;
@@ -375,7 +374,6 @@ protected:
    int valuesPerElement = 1;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #endif  // HAVE_HYPRE

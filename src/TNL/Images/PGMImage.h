@@ -13,8 +13,7 @@
 #include <TNL/Images/Image.h>
 #include <TNL/Images/RegionOfInterest.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 template< typename Index = int >
 class PGMImage : public Image< Index >
@@ -67,7 +66,6 @@ protected:
    bool fileOpen;
 };
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images
 
 #include <TNL/Images/PGMImage_impl.h>

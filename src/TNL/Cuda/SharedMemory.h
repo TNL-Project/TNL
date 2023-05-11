@@ -37,8 +37,7 @@
 
 #include <stdint.h>
 
-namespace TNL {
-namespace Cuda {
+namespace TNL::Cuda {
 
 #ifdef __CUDACC__
 template< typename T, std::size_t _alignment = CHAR_BIT * sizeof( T ) >
@@ -146,5 +145,4 @@ getInterleaving( const Index index )
    return index + index / Cuda::getNumberOfSharedMemoryBanks();
 }
 
-}  // namespace Cuda
-}  // namespace TNL
+}  // namespace TNL::Cuda

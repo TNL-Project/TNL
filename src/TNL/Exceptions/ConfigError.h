@@ -10,13 +10,11 @@
 
 #include <stdexcept>
 
-namespace TNL {
-namespace Exceptions {
+namespace TNL::Exceptions {
 
 struct ConfigError : public std::runtime_error
 {
    ConfigError( const std::string& msg ) : std::runtime_error( msg ) {}
 };
 
-}  // namespace Exceptions
-}  // namespace TNL
+}  // namespace TNL::Exceptions

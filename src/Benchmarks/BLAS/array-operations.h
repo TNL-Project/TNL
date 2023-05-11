@@ -7,8 +7,7 @@
 #include <TNL/Benchmarks/Benchmarks.h>
 #include <TNL/Containers/Array.h>
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 template< typename Real = double,
           typename Index = int,
@@ -180,5 +179,4 @@ benchmarkArrayOperations( Benchmark<> & benchmark,
 #endif
 }
 
-} // namespace Benchmarks
-} // namespace TNL
+} // namespace TNL::Benchmarks

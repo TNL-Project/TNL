@@ -14,9 +14,7 @@
 
    #include <TNL/Solvers/Linear/Utils/LinearResidueGetter.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 bool
 UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >::solve( ConstVectorViewType b, VectorViewType x )
@@ -105,8 +103,6 @@ finished:
    return status == UMFPACK_OK;
 }
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear
 
 #endif

@@ -10,9 +10,7 @@
 #include <TNL/Assert.h>
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 /*
  * TODO: This could work when the MPI directions are rewritten
@@ -182,6 +180,4 @@ SubdomainOverlapsGetter< Grid< 3, Real, Device, Index > >::getOverlaps(
       upper[ 2 ] = upperPeriodicBoundariesOverlapSize[ 2 ];
 }
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes

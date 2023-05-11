@@ -11,9 +11,7 @@
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Matrices/Sandbox/SparseSandboxMatrix.h>
 
-namespace TNL {
-namespace Matrices {
-namespace Sandbox {
+namespace TNL::Matrices::Sandbox {
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::SparseSandboxMatrix(
@@ -920,6 +918,4 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    return this->columnIndexes;
 }
 
-}  // namespace Sandbox
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::Sandbox

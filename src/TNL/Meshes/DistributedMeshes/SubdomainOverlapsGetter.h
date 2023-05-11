@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< typename Mesh >
 class DistributedMesh;
@@ -106,8 +104,6 @@ public:
                 const SubdomainOverlapsType& upperPeriodicBoundariesOverlapSize = 0 );
 };
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes
 
 #include <TNL/Meshes/DistributedMeshes/SubdomainOverlapsGetter.hpp>

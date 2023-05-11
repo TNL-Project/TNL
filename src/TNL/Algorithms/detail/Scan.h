@@ -13,9 +13,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Algorithms/detail/ScanType.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 template< typename Device, ScanType Type, ScanPhaseType PhaseType = ScanPhaseType::WriteInSecondPhase >
 struct Scan;
@@ -129,8 +127,6 @@ struct Scan< Devices::Cuda, Type, PhaseType >
                        typename OutputArray::ValueType shift );
 };
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail
 
 #include "Scan.hpp"

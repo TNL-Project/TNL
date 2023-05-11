@@ -10,9 +10,7 @@
 #include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelBlockDescriptor.h>
 #include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelParameters.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Index, typename Device >
 struct CSRAdaptiveKernelView
@@ -26,7 +24,7 @@ struct CSRAdaptiveKernelView
 
    static constexpr int MaxValueSizeLog = detail::CSRAdaptiveKernelParameters<>::MaxValueSizeLog;
 
-   static int
+   [[nodiscard]] static int
    getSizeValueLog( const int& i )
    {
       return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
@@ -37,15 +35,15 @@ struct CSRAdaptiveKernelView
    void
    setBlocks( BlocksType& blocks, int idx );
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
-   static TNL::String
+   [[nodiscard]] static TNL::String
    getKernelType();
 
    template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real, typename... Args >
@@ -69,8 +67,6 @@ protected:
    BlocksView blocksArray[ MaxValueSizeLog ];
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/Kernels/CSRAdaptiveKernelView.hpp>

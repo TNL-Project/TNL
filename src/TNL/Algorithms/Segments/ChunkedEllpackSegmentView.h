@@ -6,9 +6,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Index, ElementsOrganization Organization >
 class ChunkedEllpackSegmentView;
@@ -34,14 +32,14 @@ public:
    : segmentIdx( view.segmentIdx ), segmentOffset( view.segmentOffset ), segmentSize( view.segmentSize )
    {}
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const
    {
       return this->segmentSize;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( const IndexType localIndex ) const
    {
@@ -49,7 +47,7 @@ public:
       return segmentOffset + localIndex;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getSegmentIndex() const
    {
@@ -82,14 +80,14 @@ public:
      chunkSize( view.chunkSize ), chunksInSlice( view.chunksInSlice )
    {}
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const
    {
       return this->segmentSize;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( const IndexType localIdx ) const
    {
@@ -99,7 +97,7 @@ public:
       return segmentOffset + inChunkOffset * chunksInSlice + chunkIdx;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getSegmentIndex() const
    {
@@ -122,6 +120,4 @@ protected:
    IndexType segmentIdx, segmentOffset, segmentSize, chunkSize, chunksInSlice;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

@@ -8,8 +8,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< int Dimension, typename Real, typename Device, typename Index >
 class Grid;
@@ -33,8 +32,8 @@ public:
    using EntityType = GridEntity< GridType, EntityDimension >;
    using CoordinatesType = typename GridType::CoordinatesType;
 
-   __cuda_callable__
-   inline static Index
+   [[nodiscard]] __cuda_callable__
+   static Index
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0 ), "wrong coordinates" );
@@ -57,8 +56,8 @@ public:
    using EntityType = GridEntity< GridType, entityDimension >;
    using CoordinatesType = typename GridType::CoordinatesType;
 
-   __cuda_callable__
-   inline static Index
+   [[nodiscard]] __cuda_callable__
+   static Index
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0 ), "wrong coordinates" );
@@ -78,8 +77,8 @@ public:
    using EntityType = GridEntity< GridType, entityDimension >;
    using CoordinatesType = typename GridType::CoordinatesType;
 
-   __cuda_callable__
-   inline static Index
+   [[nodiscard]] __cuda_callable__
+   static Index
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0 ), "wrong coordinates" );
@@ -105,8 +104,8 @@ public:
    using EntityType = GridEntity< GridType, entityDimension >;
    using CoordinatesType = typename GridType::CoordinatesType;
 
-   __cuda_callable__
-   inline static Index
+   [[nodiscard]] __cuda_callable__
+   static Index
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0 ), "wrong coordinates" );
@@ -132,8 +131,8 @@ public:
    using EntityType = GridEntity< GridType, entityDimension >;
    using CoordinatesType = typename GridType::CoordinatesType;
 
-   __cuda_callable__
-   inline static Index
+   [[nodiscard]] __cuda_callable__
+   static Index
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0, 0 ), "wrong coordinates" );
@@ -156,8 +155,8 @@ public:
    using EntityType = GridEntity< GridType, entityDimension >;
    using CoordinatesType = typename GridType::CoordinatesType;
 
-   __cuda_callable__
-   inline static Index
+   [[nodiscard]] __cuda_callable__
+   static Index
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0, 0 ), "wrong coordinates" );
@@ -188,8 +187,8 @@ public:
    using EntityType = GridEntity< GridType, entityDimension >;
    using CoordinatesType = typename GridType::CoordinatesType;
 
-   __cuda_callable__
-   inline static Index
+   [[nodiscard]] __cuda_callable__
+   static Index
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0, 0 ), "wrong coordinates" );
@@ -220,8 +219,8 @@ public:
    using EntityType = GridEntity< GridType, entityDimension >;
    using CoordinatesType = typename GridType::CoordinatesType;
 
-   __cuda_callable__
-   inline static Index
+   [[nodiscard]] __cuda_callable__
+   static Index
    getEntityIndex( const GridType& grid, const EntityType& entity )
    {
       TNL_ASSERT_GE( entity.getCoordinates(), CoordinatesType( 0, 0, 0 ), "wrong coordinates" );
@@ -234,5 +233,4 @@ public:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

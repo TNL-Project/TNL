@@ -11,9 +11,7 @@
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 enum LightCSRSThreadsMapping
 {
@@ -37,18 +35,18 @@ struct CSRLightKernel
    void
    reset();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
-   static TNL::String
+   [[nodiscard]] static TNL::String
    getKernelType();
 
-   TNL::String
+   [[nodiscard]] TNL::String
    getSetup() const;
 
    template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
@@ -64,13 +62,13 @@ struct CSRLightKernel
    void
    setThreadsMapping( LightCSRSThreadsMapping mapping );
 
-   LightCSRSThreadsMapping
+   [[nodiscard]] LightCSRSThreadsMapping
    getThreadsMapping() const;
 
    void
    setThreadsPerSegment( int threadsPerSegment );
 
-   int
+   [[nodiscard]] int
    getThreadsPerSegment() const;
 
 protected:
@@ -79,8 +77,6 @@ protected:
    int threadsPerSegment = 32;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/Kernels/CSRLightKernel.hpp>

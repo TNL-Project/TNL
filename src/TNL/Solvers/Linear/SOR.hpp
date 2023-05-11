@@ -11,9 +11,7 @@
 #include <TNL/Solvers/Linear/SOR.h>
 #include <TNL/Solvers/Linear/Utils/LinearResidueGetter.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 template< typename Matrix >
 void
@@ -116,6 +114,4 @@ SOR< Matrix >::performIteration( const ConstVectorViewType& b,
    this->matrix->reduceAllRows( fetch, TNL::Plus{}, keep, 0.0 );
 }
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear

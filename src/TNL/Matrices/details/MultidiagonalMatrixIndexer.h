@@ -10,9 +10,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Matrices {
-namespace details {
+namespace TNL::Matrices::details {
 
 template< typename Index, bool RowMajorOrder >
 class MultidiagonalMatrixIndexer
@@ -20,7 +18,7 @@ class MultidiagonalMatrixIndexer
 public:
    using IndexType = Index;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    getRowMajorOrder()
    {
       return RowMajorOrder;
@@ -51,42 +49,42 @@ public:
       this->nonemptyRows = nonemptyRows;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getRows() const
    {
       return this->rows;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getColumns() const
    {
       return this->columns;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getDiagonals() const
    {
       return this->diagonals;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getNonemptyRowsCount() const
    {
       return this->nonemptyRows;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getStorageSize() const
    {
       return diagonals * this->nonemptyRows;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( const Index rowIdx, const Index localIdx ) const
    {
@@ -105,6 +103,4 @@ protected:
    IndexType rows, columns, diagonals, nonemptyRows;
 };
 
-}  // namespace details
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::details

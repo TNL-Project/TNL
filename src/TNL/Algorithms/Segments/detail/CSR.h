@@ -8,10 +8,7 @@
 
 #include <TNL/Algorithms/scan.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
-namespace detail {
+namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index >
 class CSR
@@ -35,7 +32,7 @@ public:
    }
 
    template< typename CSROffsets >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getSegmentsCount( const CSROffsets& offsets )
    {
@@ -46,7 +43,7 @@ public:
     * \brief Returns size of the segment number \r segmentIdx
     */
    template< typename CSROffsets >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getSegmentSize( const CSROffsets& offsets, const IndexType segmentIdx )
    {
@@ -64,7 +61,7 @@ public:
     * \brief Returns number of elements that needs to be allocated.
     */
    template< typename CSROffsets >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static IndexType
    getStorageSize( const CSROffsets& offsets )
    {
@@ -78,7 +75,7 @@ public:
       return offsets[ getSegmentsCount( offsets ) ];
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( Index segmentIdx, Index localIdx ) const;
 
@@ -117,7 +114,5 @@ public:
    void
    reduceAllSegments( Fetch& fetch, Reduction& reduction, ResultKeeper& keeper, const Real& zero, Args... args ) const;
 };
-}  // namespace detail
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+
+}  // namespace TNL::Algorithms::Segments::detail

@@ -12,9 +12,7 @@
 #include <TNL/Algorithms/Segments/SegmentView.h>
 #include <TNL/Algorithms/Segments/SegmentsPrinting.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device,
           typename Index,
@@ -26,7 +24,7 @@ public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
    using OffsetsContainer = Containers::Vector< Index, DeviceType, IndexType, IndexAllocator >;
-   static constexpr ElementsOrganization
+   [[nodiscard]] static constexpr ElementsOrganization
    getOrganization()
    {
       return Organization;
@@ -45,7 +43,7 @@ public:
                          IndexType,
                          ChunkedEllpackSliceInfoAllocator >;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    havePadding()
    {
       return true;
@@ -63,22 +61,22 @@ public:
 
    ChunkedEllpack( ChunkedEllpack&& segments ) noexcept = default;
 
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
-   static String
+   [[nodiscard]] static String
    getSegmentsType();
 
-   ViewType
+   [[nodiscard]] ViewType
    getView();
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const;
 
    /**
     * \brief Number of segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentsCount() const;
 
@@ -92,25 +90,25 @@ public:
    void
    reset();
 
-   IndexType
+   [[nodiscard]] IndexType
    getSegmentSize( IndexType segmentIdx ) const;
 
    /**
     * \brief Number segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getStorageSize() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( Index segmentIdx, Index localIdx ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
@@ -218,8 +216,6 @@ operator<<( std::ostream& str, const ChunkedEllpack< Device, Index, IndexAllocat
    return printSegments( segments, str );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/ChunkedEllpack.hpp>

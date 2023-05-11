@@ -16,8 +16,7 @@
 #include <TNL/Pointers/DevicePointer.h>
 #include <TNL/Algorithms/parallelFor.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Vector, typename Matrix >
 __global__
@@ -339,5 +338,4 @@ reorderArray( const Array1& src, Array2& dest, const PermutationArray& perm )
    Algorithms::parallelFor< DeviceType >( 0, src.getSize(), kernel, src.getData(), dest.getData(), perm.getData() );
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

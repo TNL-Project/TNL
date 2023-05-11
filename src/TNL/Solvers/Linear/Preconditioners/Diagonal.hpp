@@ -12,10 +12,7 @@
 
 #include <TNL/Algorithms/parallelFor.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
-namespace Preconditioners {
+namespace TNL::Solvers::Linear::Preconditioners {
 
 template< typename Matrix >
 void
@@ -95,7 +92,4 @@ Diagonal< Matrices::DistributedMatrix< Matrix > >::solve( ConstVectorViewType b,
    x.startSynchronization();
 }
 
-}  // namespace Preconditioners
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear::Preconditioners

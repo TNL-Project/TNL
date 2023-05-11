@@ -10,9 +10,7 @@
 
 #include <TNL/Containers/ndarray/SizesHolderHelpers.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 template< typename OffsetsHolder, typename Sequence >
 struct OffsetsHelper
@@ -316,6 +314,4 @@ struct SlicedNDArrayBase
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

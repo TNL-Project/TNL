@@ -8,8 +8,7 @@
 
 #include <TNL/Assert.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 /***
  * This tag or integer wrapper is necessary for C++ templates specializations.
@@ -48,5 +47,4 @@ public:
    using Increment = DimensionTag< 1 >;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

@@ -11,9 +11,7 @@
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/contains.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< typename GlobalIndexType >
 auto
@@ -418,6 +416,4 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
    }
 }
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes

@@ -11,9 +11,7 @@
 #include <TNL/Meshes/DistributedMeshes/Directions.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< int Dimension, typename Real, typename Device, typename Index >
 class DistributedMesh< Grid< Dimension, Real, Device, Index > >
@@ -28,13 +26,13 @@ public:
    using CoordinatesType = Containers::StaticVector< Dimension, IndexType >;
    using SubdomainOverlapsType = Containers::StaticVector< Dimension, IndexType >;
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getMeshDimension()
    {
       return Dimension;
    }
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getNeighborsCount()
    {
       return Directions::i3pow( Dimension ) - 1;
@@ -47,13 +45,13 @@ public:
    void
    setDomainDecomposition( const CoordinatesType& domainDecomposition );
 
-   const CoordinatesType&
+   [[nodiscard]] const CoordinatesType&
    getDomainDecomposition() const;
 
    void
    setGlobalGrid( const GridType& globalGrid );
 
-   const GridType&
+   [[nodiscard]] const GridType&
    getGlobalGrid() const;
 
    void
@@ -62,89 +60,89 @@ public:
    // for compatibility with DistributedMesh
    void
    setGhostLevels( int levels );
-   int
+   [[nodiscard]] int
    getGhostLevels() const;
 
-   bool
+   [[nodiscard]] bool
    isDistributed() const;
 
-   bool
+   [[nodiscard]] bool
    isBoundarySubdomain() const;
 
    // currently used overlaps at this subdomain
-   const SubdomainOverlapsType&
+   [[nodiscard]] const SubdomainOverlapsType&
    getLowerOverlap() const;
 
-   const SubdomainOverlapsType&
+   [[nodiscard]] const SubdomainOverlapsType&
    getUpperOverlap() const;
 
    // returns the local grid WITH overlap
-   const GridType&
+   [[nodiscard]] const GridType&
    getLocalMesh() const;
 
    // number of elements of local sub domain WITHOUT overlap
    //  TODO: getSubdomainDimensions
-   const CoordinatesType&
+   [[nodiscard]] const CoordinatesType&
    getLocalSize() const;
 
    // TODO: delete
    // Dimensions of global grid
-   const CoordinatesType&
+   [[nodiscard]] const CoordinatesType&
    getGlobalSize() const;
 
    // coordinates of begin of local subdomain without overlaps in global grid
-   const CoordinatesType&
+   [[nodiscard]] const CoordinatesType&
    getGlobalBegin() const;
 
-   const CoordinatesType&
+   [[nodiscard]] const CoordinatesType&
    getSubdomainCoordinates() const;
 
    void
    setCommunicator( const MPI::Comm& communicator );
 
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const;
 
    template< int EntityDimension >
-   IndexType
+   [[nodiscard]] IndexType
    getEntitiesCount() const;
 
    template< typename Entity >
-   IndexType
+   [[nodiscard]] IndexType
    getEntitiesCount() const;
 
-   const int*
+   [[nodiscard]] const int*
    getNeighbors() const;
 
-   const int*
+   [[nodiscard]] const int*
    getPeriodicNeighbors() const;
 
    template< typename DistributedGridType >
-   bool
+   [[nodiscard]] bool
    SetupByCut( DistributedGridType& inputDistributedGrid,
                Containers::StaticVector< Dimension, int > savedDimensions,
                Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, int > reducedDimensions,
                Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, IndexType > fixedIndexs );
 
-   int
+   [[nodiscard]] int
    getRankOfProcCoord( const CoordinatesType& nodeCoordinates ) const;
 
-   String
+   [[nodiscard]] String
    printProcessCoords() const;
 
-   String
+   [[nodiscard]] String
    printProcessDistr() const;
 
    void
    writeProlog( Logger& logger );
 
-   bool
+   [[nodiscard]] bool
    operator==( const DistributedMesh& other ) const;
 
-   bool
+   [[nodiscard]] bool
    operator!=( const DistributedMesh& other ) const;
 
-   bool
+   [[nodiscard]] bool
    isThereNeighbor( const CoordinatesType& direction ) const;
 
    void
@@ -175,8 +173,6 @@ template< int Dimension, typename Real, typename Device, typename Index >
 std::ostream&
 operator<<( std::ostream& str, const DistributedMesh< Grid< Dimension, Real, Device, Index > >& grid );
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes
 
 #include <TNL/Meshes/DistributedMeshes/DistributedGrid.hpp>

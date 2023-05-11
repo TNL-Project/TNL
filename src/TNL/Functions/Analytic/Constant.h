@@ -10,9 +10,7 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< int dimensions, typename Real = double >
 class Constant : public Domain< dimensions, NonspaceDomain >
@@ -33,22 +31,22 @@ public:
    void
    setConstant( const RealType& constant );
 
-   const RealType&
+   [[nodiscard]] const RealType&
    getConstant() const;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    inline RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    inline RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const
    {
       return constant;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    inline RealType
    getValue( const Real& time = 0.0 ) const
    {
@@ -67,8 +65,6 @@ operator<<( std::ostream& str, const Constant< dimensions, Real >& f )
    return str;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic
 
 #include <TNL/Functions/Analytic/Constant_impl.h>

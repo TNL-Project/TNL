@@ -39,8 +39,7 @@
    #include <thrust/device_ptr.h>
 #endif
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 template< typename Real = double, typename Index = int >
 class VectorOperationsBenchmark
@@ -1589,5 +1588,4 @@ benchmarkVectorOperations( Benchmark<>& benchmark, const long& size )
    ops.exclusiveScanThreeVectors();
 }
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks

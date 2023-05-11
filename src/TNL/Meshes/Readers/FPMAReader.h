@@ -12,9 +12,7 @@
 
 #include <TNL/Meshes/Readers/MeshReader.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 class FPMAReader : public MeshReader
 {
@@ -157,7 +155,7 @@ public:
 
 private:
    template< typename T >
-   T
+   [[nodiscard]] T
    readValue( std::ifstream& ifs )
    {
       skipComments( ifs );
@@ -179,6 +177,4 @@ private:
    }
 };
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

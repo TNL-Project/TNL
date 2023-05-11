@@ -10,8 +10,7 @@
 
 #include <TNL/Images/JPEGImage.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 #ifdef HAVE_JPEG_H
 inline void
@@ -282,5 +281,4 @@ JPEGImage< Index >::~JPEGImage()
    close();
 }
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images

@@ -12,11 +12,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 
-namespace TNL {
-/**
- * \brief Namespace for different matrix formats.
- */
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Base class for other matrix types views.
@@ -112,7 +108,7 @@ public:
     *
     * \return Number of allocated matrix elements.
     */
-   IndexType
+   [[nodiscard]] IndexType
    getAllocatedElementsCount() const;
 
    /**
@@ -120,7 +116,7 @@ public:
     *
     * \return number of nonzero matrix elements.
     */
-   virtual IndexType
+   [[nodiscard]] virtual IndexType
    getNonzeroElementsCount() const;
 
    /**
@@ -128,7 +124,7 @@ public:
     *
     * \return number of matrix row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getRows() const;
 
@@ -137,7 +133,7 @@ public:
     *
     * @return number of matrix columns.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getColumns() const;
 
@@ -146,7 +142,7 @@ public:
     *
     * \return constant reference to a vector with the matrix elements values.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const ValuesView&
    getValues() const;
 
@@ -155,7 +151,7 @@ public:
     *
     * \return constant reference to a vector with the matrix elements values.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValuesView&
    getValues();
 
@@ -176,7 +172,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator==( const Matrix& matrix ) const;
 
    /**
@@ -187,7 +183,7 @@ public:
     */
 
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator!=( const Matrix& matrix ) const;
 
    /***
@@ -198,7 +194,7 @@ public:
     * by Devices::Host. For example \c Array< double, Devices::Cuda > is
     * saved as \c Array< double, Devices::Host >.
     */
-   virtual std::string
+   [[nodiscard]] virtual std::string
    getSerializationTypeVirtual() const = 0;
 
    /**
@@ -251,7 +247,6 @@ operator<<( std::ostream& str, const MatrixView< Real, Device, Index >& matrix )
    return str;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/MatrixView.hpp>

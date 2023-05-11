@@ -22,8 +22,7 @@
 
 #include <TNL/Meshes/DistributedMeshes/DistributedMeshSynchronizer.h>
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename Mesh,
           typename BoundaryCondition,
@@ -122,7 +121,6 @@ protected:
    bool catchExceptions = true;
 };
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems
 
 #include <TNL/Problems/HeatEquationProblem_impl.h>

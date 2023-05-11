@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/DimensionTag.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< typename Mesh, typename Device, int Dimension >
 class GlobalIndexStorage
@@ -34,19 +32,19 @@ public:
       return *this;
    }
 
-   bool
+   [[nodiscard]] bool
    operator==( const GlobalIndexStorage& other ) const
    {
       return globalIndices == other.getGlobalIndices();
    }
 
-   const GlobalIndexArray&
+   [[nodiscard]] const GlobalIndexArray&
    getGlobalIndices() const
    {
       return globalIndices;
    }
 
-   GlobalIndexArray&
+   [[nodiscard]] GlobalIndexArray&
    getGlobalIndices()
    {
       return globalIndices;
@@ -82,7 +80,7 @@ public:
       return *this;
    }
 
-   bool
+   [[nodiscard]] bool
    operator==( const GlobalIndexStorageFamily& other ) const
    {
       return GlobalIndexStorage< Mesh, Device, DimensionTag::value >::operator==( other )
@@ -109,13 +107,11 @@ public:
       return *this;
    }
 
-   bool
+   [[nodiscard]] bool
    operator==( const GlobalIndexStorageFamily& ) const
    {
       return true;
    }
 };
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes

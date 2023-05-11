@@ -8,8 +8,7 @@
 
 #include <TNL/Exceptions/CudaRuntimeError.h>
 
-namespace TNL {
-namespace Cuda {
+namespace TNL::Cuda {
 
 #ifdef __CUDACC__
 /****
@@ -29,8 +28,7 @@ checkDevice()
 {}
 #endif
 
-}  // namespace Cuda
-}  // namespace TNL
+}  // namespace TNL::Cuda
 
 #ifdef __CUDACC__
    #define TNL_CHECK_CUDA_DEVICE ::TNL::Cuda::checkDevice( __FILE__, __LINE__, cudaGetLastError() )

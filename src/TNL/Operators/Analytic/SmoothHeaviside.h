@@ -10,9 +10,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Config/ParameterContainer.h>
 
-namespace TNL {
-namespace Operators {
-namespace Analytic {
+namespace TNL::Operators::Analytic {
 
 template< int Dimensions, typename Real = double >
 class SmoothHeaviside : public Functions::Domain< Dimensions, Functions::SpaceDomain >
@@ -73,6 +71,4 @@ protected:
    RealType sharpness;
 };
 
-}  // namespace Analytic
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators::Analytic

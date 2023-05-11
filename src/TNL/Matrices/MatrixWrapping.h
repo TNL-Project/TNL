@@ -11,8 +11,7 @@
 #include <TNL/Matrices/SparseMatrixView.h>
 #include <TNL/Matrices/DenseMatrixView.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Function for wrapping an array of values into a dense matrix view.
@@ -38,7 +37,7 @@ template< typename Device,
           typename Real,
           typename Index,
           ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
-DenseMatrixView< Real, Device, Index, Organization >
+[[nodiscard]] DenseMatrixView< Real, Device, Index, Organization >
 wrapDenseMatrix( const Index& rows, const Index& columns, Real* values )
 {
    using MatrixView = DenseMatrixView< Real, Device, Index, Organization >;
@@ -73,7 +72,7 @@ wrapDenseMatrix( const Index& rows, const Index& columns, Real* values )
  * \include SparseMatrixViewExample_wrapCSR.out
  */
 template< typename Device, typename Real, typename Index >
-SparseMatrixView< Real, Device, Index, GeneralMatrix, Algorithms::Segments::CSRViewDefault >
+[[nodiscard]] SparseMatrixView< Real, Device, Index, GeneralMatrix, Algorithms::Segments::CSRViewDefault >
 wrapCSRMatrix( const Index& rows, const Index& columns, Index* rowPointers, Real* values, Index* columnIndexes )
 {
    using MatrixView = SparseMatrixView< Real, Device, Index, GeneralMatrix, Algorithms::Segments::CSRViewDefault >;
@@ -99,7 +98,7 @@ struct EllpackMatrixWrapper
    using EllpackSegments = Algorithms::Segments::EllpackView< Device_, Index_, Organization, Alignment >;
    using MatrixView = SparseMatrixView< Real, Device, Index, GeneralMatrix, EllpackSegments >;
 
-   static MatrixView
+   [[nodiscard]] static MatrixView
    wrap( const Index& rows, const Index& columns, const Index& nonzerosPerRow, Real* values, Index* columnIndexes )
    {
       using ValuesViewType = typename MatrixView::ValuesViewType;
@@ -135,7 +134,7 @@ struct EllpackMatrixWrapper
  * \include SparseMatrixViewExample_wrapEllpack.out
  */
 template< typename Device, ElementsOrganization Organization, typename Real, typename Index, int Alignment = 1 >
-auto
+[[nodiscard]] auto
 wrapEllpackMatrix( const Index rows, const Index columns, const Index nonzerosPerRow, Real* values, Index* columnIndexes )
    -> decltype( EllpackMatrixWrapper< Device, Organization, Real, Index, Alignment >::wrap( rows,
                                                                                             columns,
@@ -147,5 +146,4 @@ wrapEllpackMatrix( const Index rows, const Index columns, const Index nonzerosPe
       rows, columns, nonzerosPerRow, values, columnIndexes );
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

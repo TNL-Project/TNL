@@ -12,8 +12,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< int FunctionDimension, typename Real = double, typename Device = Devices::Host >
 class TestFunction : public Domain< FunctionDimension, SpaceDomain >
@@ -72,11 +71,11 @@ public:
    operator=( const TestFunction& function );
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Real
    getPartialDerivative( const PointType& vertex, const Real& time = 0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Real
    operator()( const PointType& vertex, const Real& time = 0 ) const
    {
@@ -84,7 +83,7 @@ public:
    }
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Real
    getTimeDerivative( const PointType& vertex, const Real& time = 0 ) const;
 
@@ -142,7 +141,6 @@ operator<<( std::ostream& str, const TestFunction< FunctionDimension, Real, Devi
    return f.print( str );
 }
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions
 
 #include <TNL/Functions/TestFunction_impl.h>

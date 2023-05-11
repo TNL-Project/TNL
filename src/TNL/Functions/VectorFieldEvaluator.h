@@ -10,8 +10,7 @@
 #include <TNL/Functions/OperatorFunction.h>
 #include <TNL/Functions/FunctionAdapter.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename OutVectorField, typename InVectorField, typename Real >
 class VectorFieldEvaluatorTraverserUserData
@@ -153,7 +152,6 @@ public:
    }
 };
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions
 
 #include <TNL/Functions/VectorFieldEvaluator_impl.h>

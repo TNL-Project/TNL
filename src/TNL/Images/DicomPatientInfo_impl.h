@@ -15,8 +15,7 @@
    #include <dcmtk/ofstd/ofstring.h>
 #endif
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 inline DicomPatientInfo::DicomPatientInfo( DicomHeader& dicomHeader ) : dicomHeader( dicomHeader )
 {
@@ -99,5 +98,4 @@ DicomPatientInfo::getOrientation()
    return patientOrientation;
 }
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images

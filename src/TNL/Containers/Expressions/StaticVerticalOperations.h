@@ -13,9 +13,7 @@
 // By vertical operations we mean those applied across vector elements or
 // vector expression elements. It means for example minim/maximum of all
 // vector elements etc.
-namespace TNL {
-namespace Containers {
-namespace Expressions {
+namespace TNL::Containers::Expressions {
 
 template< typename Expression >
 constexpr auto
@@ -147,6 +145,4 @@ StaticExpressionBinaryXor( const Expression& expression )
    return aux;
 }
 
-}  // namespace Expressions
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::Expressions

@@ -8,9 +8,7 @@
 
 #include <TNL/Containers/Expressions/TypeTraits.h>
 
-namespace TNL {
-namespace Containers {
-namespace Expressions {
+namespace TNL::Containers::Expressions {
 
 enum ExpressionVariableType
 {
@@ -36,6 +34,4 @@ getExpressionVariableType()
    return OtherVariable;
 }
 
-}  // namespace Expressions
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::Expressions

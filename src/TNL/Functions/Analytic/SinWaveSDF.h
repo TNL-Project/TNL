@@ -10,9 +10,7 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< int dimensions, typename Real = double >
 class SinWaveSDFBase : public Functions::Domain< dimensions, SpaceDomain >
@@ -26,29 +24,29 @@ public:
    void
    setWaveLength( const Real& waveLength );
 
-   Real
+   [[nodiscard]] Real
    getWaveLength() const;
 
    void
    setAmplitude( const Real& amplitude );
 
-   Real
+   [[nodiscard]] Real
    getAmplitude() const;
 
    void
    setPhase( const Real& phase );
 
-   Real
+   [[nodiscard]] Real
    getPhase() const;
 
    void
    setWavesNumber( const Real& wavesNumber );
 
-   Real
+   [[nodiscard]] Real
    getWavesNumber() const;
 
 protected:
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Real
    sinWaveFunctionSDF( const Real& r ) const;
 
@@ -67,11 +65,11 @@ public:
    using PointType = Containers::StaticVector< 1, RealType >;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -84,11 +82,11 @@ public:
    using PointType = Containers::StaticVector< 2, RealType >;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -101,11 +99,11 @@ public:
    using PointType = Containers::StaticVector< 3, RealType >;
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -119,8 +117,6 @@ operator<<( std::ostream& str, const SinWaveSDF< Dimensions, Real >& f )
    return str;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic
 
 #include <TNL/Functions/Analytic/SinWaveSDF_impl.h>

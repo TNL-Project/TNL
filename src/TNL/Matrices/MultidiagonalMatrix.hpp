@@ -11,8 +11,7 @@
 #include <TNL/Matrices/MultidiagonalMatrix.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Real,
           typename Device,
@@ -1020,5 +1019,4 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    return this->view.getPaddingIndex();
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

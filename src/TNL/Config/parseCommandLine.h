@@ -16,8 +16,7 @@
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 /**
  * \brief Fills in the parameters from the \e parameters.
@@ -141,7 +140,7 @@ printUsage( const ConfigDescription& config, const char* program_name )
 //! Check for all entries with the flag 'required'.
 /*! Returns false if any parameter is missing.
  */
-inline bool
+[[nodiscard]] inline bool
 checkMissingEntries( const ConfigDescription& config,
                      Config::ParameterContainer& parameters,
                      bool printUsage,
@@ -194,7 +193,7 @@ checkEnumValues( const ConfigEntry< EntryType, DefaultValueType >& entry,
 }
 
 template< typename T >
-T
+[[nodiscard]] T
 convertStringValue( const std::string& value, const std::string& param )
 {
    T v;
@@ -207,7 +206,7 @@ convertStringValue( const std::string& value, const std::string& param )
    return v;
 }
 
-inline bool
+[[nodiscard]] inline bool
 parseCommandLine( int argc,
                   char* argv[],
                   const Config::ConfigDescription& config_description,
@@ -353,5 +352,4 @@ parseCommandLine( int argc,
    return checkMissingEntries( config_description, parameters, printUsage, argv[ 0 ] );
 }
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

@@ -40,8 +40,7 @@
 
 #include "TestFunction.h"
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< int FunctionDimension, typename Real, typename Device >
 TestFunction< FunctionDimension, Real, Device >::TestFunction()
@@ -896,5 +895,4 @@ TestFunction< FunctionDimension, Real, Device >::~TestFunction()
    deleteFunctions();
 }
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

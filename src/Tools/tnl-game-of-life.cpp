@@ -12,9 +12,7 @@ using namespace TNL;
 
 struct MyConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -78,9 +76,7 @@ struct MeshConfigTemplateTag< MyConfigTag >
    };
 };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 
 template< typename Mesh >

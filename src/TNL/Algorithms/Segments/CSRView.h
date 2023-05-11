@@ -17,9 +17,7 @@
 #include <TNL/Algorithms/Segments/Kernels/CSRAdaptiveKernel.h>
 #include <TNL/Algorithms/Segments/SegmentsPrinting.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename Kernel = CSRScalarKernel< std::remove_const_t< Index >, Device > >
 class CSRView
@@ -37,7 +35,7 @@ public:
    using ConstViewType = CSRView< Device, std::add_const_t< Index >, Kernel >;
    using SegmentViewType = SegmentView< IndexType, RowMajorOrder >;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    havePadding()
    {
       return false;
@@ -62,53 +60,53 @@ public:
    __cuda_callable__
    CSRView( CSRView&& csr_view ) noexcept = default;
 
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
-   static String
+   [[nodiscard]] static String
    getSegmentsType();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
    /**
     * \brief Number segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentsCount() const;
 
    /***
     * \brief Returns size of the segment number \r segmentIdx
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentSize( IndexType segmentIdx ) const;
 
    /***
     * \brief Returns number of elements managed by all segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
    /***
     * \brief Returns number of elements that needs to be allocated.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getStorageSize() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( Index segmentIdx, Index localIdx ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
@@ -171,25 +169,25 @@ public:
    SegmentsPrinter< CSRView, Fetch >
    print( Fetch&& fetch ) const;
 
-   OffsetsView
+   [[nodiscard]] OffsetsView
    getOffsets()
    {
       return offsets;
    }
 
-   ConstOffsetsView
+   [[nodiscard]] ConstOffsetsView
    getOffsets() const
    {
       return offsets.getConstView();
    }
 
-   KernelType&
+   [[nodiscard]] KernelType&
    getKernel()
    {
       return kernel;
    }
 
-   const KernelType&
+   [[nodiscard]] const KernelType&
    getKernel() const
    {
       return kernel;
@@ -226,8 +224,6 @@ using CSRViewAdaptive = CSRView< Device, Index, CSRAdaptiveKernel< std::remove_c
 template< typename Device, typename Index >
 using CSRViewDefault = CSRViewScalar< Device, Index >;
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/CSRView.hpp>

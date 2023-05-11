@@ -16,8 +16,7 @@
 #include "Comm.h"
 #include "Utils.h"
 
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
 
 /**
  * \brief Returns a matrix of communication costs between each pair of ranks as
@@ -217,5 +216,4 @@ optimizeRanks( const MPI::Comm& communicator, const CommPattern& communicationPa
    return communicator.split( 0, perm[ rank ] );
 }
 
-}  // namespace MPI
-}  // namespace TNL
+}  // namespace TNL::MPI

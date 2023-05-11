@@ -10,8 +10,7 @@
 
 #include "IterativeSolver.h"
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 template< typename Real, typename Index, typename SolverMonitor >
 void
@@ -224,5 +223,4 @@ IterativeSolver< Real, Index, SolverMonitor >::setSolverMonitor( SolverMonitorTy
    this->solverMonitor->setRefreshRate( this->refreshRate );
 }
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

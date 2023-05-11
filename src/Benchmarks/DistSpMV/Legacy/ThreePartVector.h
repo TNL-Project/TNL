@@ -11,9 +11,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 
-namespace TNL {
-namespace Matrices {
-namespace __DistributedSpMV_impl {
+namespace TNL::Matrices::__DistributedSpMV_impl {
 
 template< typename Real, typename Device = Devices::Host, typename Index = int >
 class ThreePartVectorView
@@ -200,6 +198,4 @@ protected:
    ConstVectorView middle;
 };
 
-}  // namespace __DistributedSpMV_impl
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::__DistributedSpMV_impl

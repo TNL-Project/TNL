@@ -11,8 +11,7 @@
 #include <TNL/Exceptions/CudaSupportMissing.h>
 #include <TNL/TypeInfo.h>
 
-namespace TNL {
-namespace Cuda {
+namespace TNL::Cuda {
 
 /**
  * Holds the parameters necessary to "launch" a CUDA kernel (i.e. schedule it for
@@ -125,5 +124,4 @@ launchKernelAsync( RawKernel kernel_function, LaunchConfiguration launch_configu
    launchKernel( kernel_function, launch_configuration, std::forward< KernelParameters >( parameters )... );
 }
 
-}  // namespace Cuda
-}  // namespace TNL
+}  // namespace TNL::Cuda

@@ -11,8 +11,7 @@
 
 #include <TNL/Timer.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 /**
  * \brief Base class for solver monitors.
@@ -107,7 +106,7 @@ public:
     * \return true if the main loop was stopped.
     * \return false if the main loop was not stopped yet.
     */
-   bool
+   [[nodiscard]] bool
    isStopped() const
    {
       return stopped;
@@ -161,5 +160,4 @@ private:
    std::thread t;
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

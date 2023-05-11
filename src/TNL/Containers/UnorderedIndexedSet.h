@@ -9,8 +9,7 @@
 #include <unordered_map>
 #include <ostream>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< class Key,
           class Index,
@@ -36,7 +35,7 @@ public:
    void
    clear();
 
-   size_type
+   [[nodiscard]] size_type
    size() const;
 
    Index
@@ -48,13 +47,13 @@ public:
    std::pair< Index, bool >
    try_insert( const Key& key );
 
-   bool
+   [[nodiscard]] bool
    find( const Key& key, Index& index ) const;
 
    void
    reserve( size_type count );
 
-   size_type
+   [[nodiscard]] size_type
    count( const Key& key ) const;
 
    size_type
@@ -63,16 +62,16 @@ public:
    void
    print( std::ostream& str ) const;
 
-   iterator
+   [[nodiscard]] iterator
    begin();
 
-   const_iterator
+   [[nodiscard]] const_iterator
    begin() const;
 
-   iterator
+   [[nodiscard]] iterator
    end();
 
-   const_iterator
+   [[nodiscard]] const_iterator
    end() const;
 };
 
@@ -80,7 +79,6 @@ template< typename Element, typename Index >
 std::ostream&
 operator<<( std::ostream& str, UnorderedIndexedSet< Element, Index >& set );
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/UnorderedIndexedSet.hpp>

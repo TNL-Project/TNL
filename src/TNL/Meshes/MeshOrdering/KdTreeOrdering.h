@@ -18,8 +18,7 @@
    #include <CGAL/Search_traits_adapter.h>
    #include <CGAL/Kd_tree.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 struct KdTreeOrdering
 {
@@ -87,7 +86,6 @@ struct KdTreeOrdering
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #endif  // HAVE_CGAL

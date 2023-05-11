@@ -8,9 +8,7 @@
 
 #include <TNL/Solvers/ODE/StaticEuler.h>
 
-namespace TNL {
-namespace Solvers {
-namespace ODE {
+namespace TNL::Solvers::ODE {
 
 /////
 // Specialization of the Euler solver for numeric types
@@ -224,6 +222,4 @@ StaticEuler< Containers::StaticVector< Size_, Real > >::solve( VectorType& u, RH
    return false;  // just to avoid warnings
 }
 
-}  // namespace ODE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::ODE

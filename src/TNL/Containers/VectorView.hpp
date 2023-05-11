@@ -9,8 +9,7 @@
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Containers/detail/VectorAssignment.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Real, typename Device, typename Index >
 __cuda_callable__
@@ -98,5 +97,4 @@ VectorView< Real, Device, Index >::operator%=( const VectorExpression& expressio
    return *this;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

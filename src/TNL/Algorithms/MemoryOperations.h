@@ -11,8 +11,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 template< typename DestinationDevice >
 struct MemoryOperations;
@@ -163,8 +162,7 @@ struct MemoryOperations< Devices::Cuda >
    compare( const Element1* destination, const Element2* source, Index size );
 };
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms
 
 #include <TNL/Algorithms/MemoryOperationsSequential.hpp>
 #include <TNL/Algorithms/MemoryOperationsHost.hpp>

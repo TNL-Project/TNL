@@ -8,9 +8,7 @@
 
 #include <TNL/Solvers/Linear/LinearSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 /**
  * \brief Iterative solver of linear systems based on the Transpose-free quasi-minimal residual (TFQMR) method.
@@ -72,8 +70,6 @@ protected:
    typename Traits< Matrix >::VectorType d, r, w, u, v, r_ast, Au, M_tmp;
 };
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear
 
 #include <TNL/Solvers/Linear/TFQMR.hpp>

@@ -14,8 +14,7 @@
 #include <TNL/String.h>
 #include <TNL/TypeInfo.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 // Specifies a subrange [begin, end) of a range [0, globalSize).
 template< typename Index >
@@ -53,7 +52,7 @@ public:
    }
 
    // Checks if a global index is in the set of local indices.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    isLocal( Index i ) const
    {
@@ -61,7 +60,7 @@ public:
    }
 
    // Gets the begin of the subrange.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getBegin() const
    {
@@ -69,7 +68,7 @@ public:
    }
 
    // Gets the begin of the subrange.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getEnd() const
    {
@@ -77,7 +76,7 @@ public:
    }
 
    // Gets number of local indices.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getSize() const
    {
@@ -85,7 +84,7 @@ public:
    }
 
    // Gets local index for given global index.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getLocalIndex( Index i ) const
    {
@@ -95,7 +94,7 @@ public:
    }
 
    // Gets global index for given local index.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getGlobalIndex( Index i ) const
    {
@@ -104,14 +103,14 @@ public:
       return i + begin;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const Subrange& other ) const
    {
       return begin == other.begin && end == other.end;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const Subrange& other ) const
    {
@@ -131,5 +130,4 @@ operator<<( std::ostream& str, const Subrange< Index >& range )
    return str << getType< Subrange< Index > >() << "( " << range.getBegin() << ", " << range.getEnd() << " )";
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

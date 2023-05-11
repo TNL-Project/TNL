@@ -10,8 +10,7 @@
 
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< int, int, int >
 class NeighbourGridEntityGetter;
@@ -137,7 +136,7 @@ public:
     *
     * \return grid entity coordinates in a form of constant reference.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const CoordinatesType&
    getCoordinates() const;
 
@@ -146,7 +145,7 @@ public:
     *
     * \return grid entity coordinates in a form of a reference.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    CoordinatesType&
    getCoordinates();
 
@@ -173,7 +172,7 @@ public:
     *
     * \return the grid entity index in the grid.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getIndex() const;
 
@@ -182,7 +181,7 @@ public:
     *
     * \return `true` if the entity is a boundary entity and `false` otherwise.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    isBoundary() const;
 
@@ -191,7 +190,7 @@ public:
     *
     * \return the centre of the grid entity.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    PointType
    getCenter() const;
 
@@ -200,7 +199,7 @@ public:
     *
     * \return the measure of the grid entity.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getMeasure() const;
 
@@ -209,7 +208,7 @@ public:
     *
     * \return reference to the grid the grid entity belongs to.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Grid&
    getMesh() const;
 
@@ -227,7 +226,7 @@ public:
    /**
     * \brief Returns the packed normals vector of the grid entity.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const CoordinatesType&
    getNormals() const;
 
@@ -240,7 +239,7 @@ public:
     *
     * \return basis vector.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    CoordinatesType
    getBasis() const;
 
@@ -250,7 +249,7 @@ public:
     * Orientation is always paired with the normals. In other words, if orientations, entity dimensions and dimensions are
     * equal, then normals are equal also.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getOrientation() const;
 
@@ -276,7 +275,7 @@ public:
     * \return neighbour grid entity.
     */
    template< int Dimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    GridEntity< Grid, Dimension >
    getNeighbourEntity( const CoordinatesType& offset ) const;
 
@@ -289,7 +288,7 @@ public:
     * \return neighbour grid entity.
     */
    template< int Dimension, int Orientation >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    GridEntity< Grid, Dimension >
    getNeighbourEntity( const CoordinatesType& offset ) const;
 
@@ -298,7 +297,7 @@ public:
     *
     * \return the point at the origin of the grid entity.
     */
-   PointType
+   [[nodiscard]] PointType
    getPoint() const;
 
    /**
@@ -306,7 +305,7 @@ public:
     *
     * \return a reference on the grid the grid entity belongs to.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Grid&
    getGrid() const;
 
@@ -332,7 +331,6 @@ template< class Grid, int EntityDimension >
 std::ostream&
 operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity );
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #include <TNL/Meshes/GridEntity.hpp>

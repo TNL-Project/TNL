@@ -13,9 +13,7 @@
 //#include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
 #include <TNL/Cuda/SharedMemory.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
@@ -531,6 +529,4 @@ ChunkedEllpackView< Device, Index, Organization >::reduceSegmentsKernel( IndexTy
 }
 #endif
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

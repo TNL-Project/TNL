@@ -17,8 +17,7 @@
 #include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Simple data structure which provides a non-owning encapsulation of
@@ -175,7 +174,7 @@ public:
 
    //! \brief Compares the array view with another N-dimensional array view.
    TNL_NVCC_HD_WARNING_DISABLE
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const NDArrayView& other ) const
    {
@@ -188,7 +187,7 @@ public:
 
    //! \brief Compares the array view with another N-dimensional array view.
    TNL_NVCC_HD_WARNING_DISABLE
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const NDArrayView& other ) const
    {
@@ -199,7 +198,7 @@ public:
    }
 
    //! \brief Returns a raw pointer to the data.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType*
    getData()
    {
@@ -207,7 +206,7 @@ public:
    }
 
    //! \brief Returns a \e const-qualified raw pointer to the data.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    std::add_const_t< ValueType >*
    getData() const
    {
@@ -225,7 +224,7 @@ public:
    using IndexerType::isContiguousBlock;
 
    //! Returns a const-qualified reference to the underlying indexer.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexerType&
    getIndexer() const
    {
@@ -233,7 +232,7 @@ public:
    }
 
    //! \brief Returns a modifiable view of the array.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView()
    {
@@ -241,7 +240,7 @@ public:
    }
 
    //! \brief Returns a non-modifiable view of the array.
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const
    {
@@ -262,7 +261,7 @@ public:
     *          subarray sizes.
     */
    template< std::size_t... Dimensions, typename... IndexTypes >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    auto
    getSubarrayView( IndexTypes&&... indices )
    {
@@ -300,7 +299,7 @@ public:
     * \returns Reference to the array element.
     */
    template< typename... IndexTypes >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType&
    operator()( IndexTypes&&... indices )
    {
@@ -317,7 +316,7 @@ public:
     * \returns Constant reference to the array element.
     */
    template< typename... IndexTypes >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const ValueType&
    operator()( IndexTypes&&... indices ) const
    {
@@ -334,7 +333,7 @@ public:
     * \param index Index of the element in the one-dimensional array.
     * \returns Reference to the array element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType&
    operator[]( IndexType&& index )
    {
@@ -352,7 +351,7 @@ public:
     * \param index Index of the element in the one-dimensional array.
     * \returns Constant reference to the array element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const ValueType&
    operator[]( IndexType index ) const
    {
@@ -506,5 +505,4 @@ protected:
    IndexerType indexer;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

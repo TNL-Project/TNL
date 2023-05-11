@@ -12,9 +12,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Real, typename Index >
 class PDESolver
@@ -59,8 +57,6 @@ protected:
    SolverMonitorType* solverMonitorPointer;
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE
 
 #include <TNL/Solvers/PDE/PDESolver.hpp>

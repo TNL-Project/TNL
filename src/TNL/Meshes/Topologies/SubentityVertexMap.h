@@ -6,9 +6,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 template< typename EntityTopology, int SubentityDimension >
 struct Subtopology
@@ -18,6 +16,4 @@ template< typename EntityTopology, typename SubentityTopology, int SubentityInde
 struct SubentityVertexMap
 {};
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

@@ -21,9 +21,7 @@ using MetisIndexArray = Containers::Array< idx_t, Devices::Sequential, idx_t >;
 
 struct DecomposeMeshConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off all grids.
@@ -99,9 +97,7 @@ struct MeshConfigTemplateTag< DecomposeMeshConfigTag >
    };
 };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 
 void configSetup( Config::ConfigDescription& config )
@@ -667,8 +663,7 @@ decompose_and_save( const Mesh& mesh,
 
       // init mesh for the subdomain
       Mesh subdomain;
-      if( ! builder.build( subdomain ) )
-         throw std::runtime_error( "mesh builder failed for subdomain " + std::to_string(p) );
+      builder.build( subdomain );
 
       // write the subdomain
       using Writer = Meshes::Writers::VTUWriter< Mesh >;

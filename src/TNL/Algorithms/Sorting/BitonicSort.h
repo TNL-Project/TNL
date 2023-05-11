@@ -11,9 +11,7 @@
 #include <TNL/Algorithms/Sorting/detail/bitonicSort.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 struct BitonicSort
 {
@@ -39,6 +37,4 @@ struct BitonicSort
    }
 };
 
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Sorting

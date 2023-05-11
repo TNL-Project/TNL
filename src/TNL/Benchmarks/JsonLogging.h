@@ -12,8 +12,7 @@
 #include "Logging.h"
 #include <TNL/Assert.h>
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 class JsonLogging : public Logging
 {
@@ -168,5 +167,4 @@ protected:
    HeaderElements lastHeaderElements;
 };
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks

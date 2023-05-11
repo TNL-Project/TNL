@@ -8,9 +8,7 @@
 
 #include <TNL/Solvers/Optimization/RMSProp.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Optimization {
+namespace TNL::Solvers::Optimization {
 
 template< typename Vector, typename SolverMonitor >
 void
@@ -86,6 +84,4 @@ RMSProp< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&& getGrad
    return false;  // just to avoid warnings
 }
 
-}  // namespace Optimization
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Optimization

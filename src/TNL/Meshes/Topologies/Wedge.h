@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Topologies/SubentityVertexCount.h>
 #include <TNL/Meshes/Topologies/Polygon.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 struct Wedge
 {
@@ -266,6 +264,4 @@ struct SubentityVertexMap< Wedge, Polygon, 4, 3 >
    static constexpr int index = 4;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

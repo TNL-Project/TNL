@@ -9,8 +9,7 @@
 #include <TNL/Meshes/Mesh.h>
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 /**
  * This function does the following (in pseudo-code):
@@ -31,7 +30,7 @@ namespace Meshes {
  * \endcode
  */
 template< typename ConfigTag, typename Device, typename Functor >
-bool
+[[nodiscard]] bool
 resolveMeshType( Functor&& functor,
                  const std::string& fileName,
                  const std::string& fileFormat = "auto",
@@ -54,7 +53,7 @@ resolveMeshType( Functor&& functor,
  * \endcode
  */
 template< typename ConfigTag, typename Device, typename Functor >
-bool
+[[nodiscard]] bool
 resolveAndLoadMesh( Functor&& functor,
                     const std::string& fileName,
                     const std::string& fileFormat = "auto",
@@ -70,14 +69,13 @@ resolveAndLoadMesh( Functor&& functor,
  * reader instance created in \ref resolveMeshType.
  */
 template< typename Mesh >
-bool
+[[nodiscard]] bool
 loadMesh( Mesh& mesh, const std::string& fileName, const std::string& fileFormat = "auto" );
 
 template< typename MeshConfig >
-bool
+[[nodiscard]] bool
 loadMesh( Mesh< MeshConfig, Devices::Cuda >& mesh, const std::string& fileName, const std::string& fileFormat = "auto" );
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #include <TNL/Meshes/TypeResolver/resolveMeshType.hpp>

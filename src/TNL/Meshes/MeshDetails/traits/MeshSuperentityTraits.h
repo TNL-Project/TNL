@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/MeshDetails/traits/MeshEntityTraits.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device, typename EntityTopology, int Dimension >
 class MeshSuperentityTraits
@@ -27,5 +26,4 @@ public:
    using SuperentityType = typename MeshEntityTraits< MeshConfig, Device, Dimension >::EntityType;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

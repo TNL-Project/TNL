@@ -11,12 +11,12 @@
 #include <utility>
 #include <vector>
 #include <sstream>
+#include <optional>
 
 #include <TNL/Config/ConfigEntryBase.h>
 #include <TNL/Config/ConfigEntryType.h>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 template< typename EntryType, typename DefaultValueType = EntryType >
 class ConfigEntry : public ConfigEntryBase
@@ -25,38 +25,40 @@ class ConfigEntry : public ConfigEntryBase
                      || std::is_same< std::vector< EntryType >, DefaultValueType >::value,
                   "DefaultValueType must be the same as either EntryType or std::vector< EntryType >" );
 
-   DefaultValueType defaultValue;
+   std::optional< DefaultValueType > defaultValue;
 
    std::vector< EntryType > enumValues;
 
 public:
    ConfigEntry( const std::string& name, const std::string& description, bool required )
    : ConfigEntryBase( name, description, required )
-   {
-      _hasDefaultValue = false;
-   }
+   {}
 
    ConfigEntry( const std::string& name, const std::string& description, bool required, DefaultValueType defaultValue )
    : ConfigEntryBase( name, description, required ), defaultValue( std::move( defaultValue ) )
+   {}
+
+   [[nodiscard]] bool
+   hasDefaultValue() const override
    {
-      _hasDefaultValue = true;
+      return defaultValue.has_value();
    }
 
-   std::string
+   [[nodiscard]] std::string
    getUIEntryType() const override
    {
       return Config::getUIEntryType< DefaultValueType >();
    }
 
-   std::string
+   [[nodiscard]] std::string
    printDefaultValue() const override
    {
       // printDefaultValue must be compilable even if DefaultValueType is std::vector,
       // so we can't override the method in ConfigEntryList
-      return _print_value( defaultValue );
+      return _print_value( defaultValue.value() );
    }
 
-   bool
+   [[nodiscard]] bool
    hasEnumValues() const override
    {
       return ! enumValues.empty();
@@ -73,19 +75,19 @@ public:
       str << " ";
    }
 
-   virtual DefaultValueType
+   [[nodiscard]] virtual DefaultValueType
    getDefaultValue() const
    {
-      return defaultValue;
+      return defaultValue.value();
    }
 
-   virtual std::vector< EntryType >&
+   [[nodiscard]] virtual std::vector< EntryType >&
    getEnumValues()
    {
       return enumValues;
    }
 
-   virtual const std::vector< EntryType >&
+   [[nodiscard]] virtual const std::vector< EntryType >&
    getEnumValues() const
    {
       return enumValues;
@@ -113,5 +115,4 @@ private:
    }
 };
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

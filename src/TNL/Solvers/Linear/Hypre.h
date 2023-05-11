@@ -13,9 +13,7 @@
    #include <TNL/Containers/HypreParVector.h>
    #include <TNL/Matrices/HypreParCSRMatrix.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 //! \brief Abstract class for Hypre's solvers and preconditioners
 //! \ingroup Hypre
@@ -771,9 +769,7 @@ protected:
    postSolveHook() const override;
 };
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear
 
    #include "Hypre.hpp"
 

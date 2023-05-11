@@ -14,7 +14,6 @@
 #include <stdexcept>
 #include <ostream>
 
-namespace TNL {
 /**
  * \brief Namespace for base64 encoding and decoding functions.
  *
@@ -24,7 +23,7 @@ namespace TNL {
  * - https://stackoverflow.com/questions/180947/base64-decode-snippet-in-c/
  * - https://stackoverflow.com/questions/342409/how-do-i-base64-encode-decode-in-c
  */
-namespace base64 {
+namespace TNL::base64 {
 
 /**
  * \brief Get the length of base64-encoded block for given data byte length.
@@ -205,5 +204,4 @@ write_encoded_block( const T* data, const std::size_t data_length, std::ostream&
    output_stream << encoded_data.get();
 }
 
-}  // namespace base64
-}  // namespace TNL
+}  // namespace TNL::base64

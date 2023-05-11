@@ -8,10 +8,7 @@
 
 #include <TNL/Meshes/Writers/detail/VerticesPerEntity.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
-namespace detail {
+namespace TNL::Meshes::Writers::detail {
 
 template< typename Mesh, int EntityDimension, typename EntityType = typename Mesh::template EntityType< EntityDimension > >
 struct VTKOffsetsCountGetter
@@ -73,7 +70,4 @@ struct VTKOffsetsCountGetter< Mesh,
    }
 };
 
-}  // namespace detail
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers::detail

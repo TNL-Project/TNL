@@ -8,8 +8,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< int Dimension, typename Real, typename Device, typename Index >
 class Grid;
@@ -29,8 +28,8 @@ class BoundaryGridEntityChecker< GridEntity< Meshes::Grid< 1, Real, Device, Inde
 public:
    using Entity = GridEntity< Meshes::Grid< 1, Real, Device, Index >, 1 >;
 
-   __cuda_callable__
-   inline static bool
+   [[nodiscard]] __cuda_callable__
+   static bool
    isBoundaryEntity( const Entity& entity )
    {
       return ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 );
@@ -43,8 +42,8 @@ class BoundaryGridEntityChecker< GridEntity< Meshes::Grid< 1, Real, Device, Inde
 public:
    using Entity = GridEntity< Meshes::Grid< 1, Real, Device, Index >, 0 >;
 
-   __cuda_callable__
-   inline static bool
+   [[nodiscard]] __cuda_callable__
+   static bool
    isBoundaryEntity( const Entity& entity )
    {
       return ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() );
@@ -60,8 +59,8 @@ class BoundaryGridEntityChecker< GridEntity< Meshes::Grid< 2, Real, Device, Inde
 public:
    using Entity = GridEntity< Meshes::Grid< 2, Real, Device, Index >, 2 >;
 
-   __cuda_callable__
-   inline static bool
+   [[nodiscard]] __cuda_callable__
+   static bool
    isBoundaryEntity( const Entity& entity )
    {
       return ( entity.getCoordinates().x() == 0 || entity.getCoordinates().y() == 0
@@ -76,8 +75,8 @@ class BoundaryGridEntityChecker< GridEntity< Meshes::Grid< 2, Real, Device, Inde
 public:
    using Entity = GridEntity< Meshes::Grid< 2, Real, Device, Index >, 1 >;
 
-   __cuda_callable__
-   inline static bool
+   [[nodiscard]] __cuda_callable__
+   static bool
    isBoundaryEntity( const Entity& entity )
    {
       return (
@@ -95,8 +94,8 @@ class BoundaryGridEntityChecker< GridEntity< Meshes::Grid< 2, Real, Device, Inde
 public:
    using Entity = GridEntity< Meshes::Grid< 2, Real, Device, Index >, 0 >;
 
-   __cuda_callable__
-   inline static bool
+   [[nodiscard]] __cuda_callable__
+   static bool
    isBoundaryEntity( const Entity& entity )
    {
       return ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() )
@@ -113,8 +112,8 @@ class BoundaryGridEntityChecker< GridEntity< Meshes::Grid< 3, Real, Device, Inde
 public:
    using Entity = GridEntity< Meshes::Grid< 3, Real, Device, Index >, 3 >;
 
-   __cuda_callable__
-   inline static bool
+   [[nodiscard]] __cuda_callable__
+   static bool
    isBoundaryEntity( const Entity& entity )
    {
       return ( entity.getCoordinates().x() == 0 || entity.getCoordinates().y() == 0 || entity.getCoordinates().z() == 0
@@ -130,8 +129,8 @@ class BoundaryGridEntityChecker< GridEntity< Meshes::Grid< 3, Real, Device, Inde
 public:
    using Entity = GridEntity< Meshes::Grid< 3, Real, Device, Index >, 2 >;
 
-   __cuda_callable__
-   inline static bool
+   [[nodiscard]] __cuda_callable__
+   static bool
    isBoundaryEntity( const Entity& entity )
    {
       return (
@@ -151,8 +150,8 @@ class BoundaryGridEntityChecker< GridEntity< Meshes::Grid< 3, Real, Device, Inde
 public:
    using Entity = GridEntity< Meshes::Grid< 3, Real, Device, Index >, 1 >;
 
-   __cuda_callable__
-   inline static bool
+   [[nodiscard]] __cuda_callable__
+   static bool
    isBoundaryEntity( const Entity& entity )
    {
       return (
@@ -172,8 +171,8 @@ class BoundaryGridEntityChecker< GridEntity< Meshes::Grid< 3, Real, Device, Inde
 public:
    using Entity = GridEntity< Meshes::Grid< 3, Real, Device, Index >, 0 >;
 
-   __cuda_callable__
-   inline static bool
+   [[nodiscard]] __cuda_callable__
+   static bool
    isBoundaryEntity( const Entity& entity )
    {
       return ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() )
@@ -182,5 +181,4 @@ public:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

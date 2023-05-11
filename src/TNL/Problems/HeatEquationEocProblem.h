@@ -14,8 +14,7 @@
 
 #include <TNL/Problems/HeatEquationProblem.h>
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename Mesh,
           typename BoundaryCondition,
@@ -32,7 +31,6 @@ public:
    setup( const Config::ParameterContainer& parameters, const String& prefix );
 };
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems
 
 #include <TNL/Problems/HeatEquationEocProblem_impl.h>

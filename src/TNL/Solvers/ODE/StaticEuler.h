@@ -13,9 +13,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Containers/StaticVector.h>
 
-namespace TNL {
-namespace Solvers {
-namespace ODE {
+namespace TNL::Solvers::ODE {
 
 /**
  * \brief Solver of ODEs with the first order of accuracy.
@@ -122,7 +120,7 @@ public:
     *
     * \return the Courant number.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getCourantNumber() const;
 
@@ -258,7 +256,7 @@ public:
     *
     * \return the Courant number.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getCourantNumber() const;
 
@@ -289,8 +287,6 @@ protected:
    RealType courantNumber = 0.0;
 };
 
-}  // namespace ODE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::ODE
 
 #include <TNL/Solvers/ODE/StaticEuler.hpp>

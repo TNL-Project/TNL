@@ -13,8 +13,7 @@
 #include <TNL/Images/DicomSeries.h>
 #include <TNL/Images/DicomSeriesInfo.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 int
 findLastIndexOf( String& str, const char* c )
@@ -381,5 +380,4 @@ DicomSeries::isDicomSeriesLoaded()
    return isLoaded;
 }
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images

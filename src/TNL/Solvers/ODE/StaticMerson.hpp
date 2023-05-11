@@ -11,9 +11,7 @@
 
 #include "StaticMerson.h"
 
-namespace TNL {
-namespace Solvers {
-namespace ODE {
+namespace TNL::Solvers::ODE {
 
 template< typename Real >
 void
@@ -293,6 +291,4 @@ StaticMerson< Containers::StaticVector< Size_, Real > >::solve( VectorType& u, R
    return this->checkConvergence();
 }
 
-}  // namespace ODE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::ODE

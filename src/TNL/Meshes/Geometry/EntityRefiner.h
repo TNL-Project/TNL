@@ -12,8 +12,7 @@
 #include <TNL/Meshes/Topologies/Tetrahedron.h>
 #include <TNL/Meshes/Topologies/Hexahedron.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 enum class EntityRefinerVersion
 {
@@ -237,5 +236,4 @@ struct EntityRefiner< MeshConfig, Topologies::Hexahedron, EntityRefinerVersion::
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

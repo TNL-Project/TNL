@@ -15,8 +15,7 @@
 #include <TNL/Containers/DistributedVectorView.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 // TODO: 2D distribution for dense matrices (maybe it should be in different template,
 //       because e.g. setRowFast doesn't make sense for dense matrices)
@@ -47,16 +46,16 @@ public:
    void
    setDistribution( LocalRangeType localRowRange, IndexType rows, IndexType columns, const MPI::Comm& communicator );
 
-   const LocalRangeType&
+   [[nodiscard]] const LocalRangeType&
    getLocalRowRange() const;
 
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const;
 
-   const Matrix&
+   [[nodiscard]] const Matrix&
    getLocalMatrix() const;
 
-   Matrix&
+   [[nodiscard]] Matrix&
    getLocalMatrix();
 
    /*
@@ -77,10 +76,10 @@ public:
    void
    reset();
 
-   IndexType
+   [[nodiscard]] IndexType
    getRows() const;
 
-   IndexType
+   [[nodiscard]] IndexType
    getColumns() const;
 
    template< typename RowCapacitiesVector >
@@ -91,22 +90,22 @@ public:
    void
    getCompressedRowLengths( Vector& rowLengths ) const;
 
-   IndexType
+   [[nodiscard]] IndexType
    getRowCapacity( IndexType row ) const;
 
    void
    setElement( IndexType row, IndexType column, RealType value );
 
-   RealType
+   [[nodiscard]] RealType
    getElement( IndexType row, IndexType column ) const;
 
-   RealType
+   [[nodiscard]] RealType
    getElementFast( IndexType row, IndexType column ) const;
 
-   MatrixRow
+   [[nodiscard]] MatrixRow
    getRow( IndexType row );
 
-   ConstMatrixRow
+   [[nodiscard]] ConstMatrixRow
    getRow( IndexType row ) const;
 
    // multiplication with a global vector
@@ -216,7 +215,6 @@ protected:
    Matrix localMatrix;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include "DistributedMatrix_impl.h"

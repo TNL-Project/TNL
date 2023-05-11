@@ -8,15 +8,13 @@
 
 #include <TNL/Timer.h>
 
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
 
-inline Timer&
+[[nodiscard]] inline Timer&
 getTimerAllreduce()
 {
    static Timer t;
    return t;
 }
 
-}  // namespace MPI
-}  // namespace TNL
+}  // namespace TNL::MPI

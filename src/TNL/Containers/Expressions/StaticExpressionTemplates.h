@@ -74,19 +74,19 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariab
       return Operation{}( op1[ i ], op2[ i ] );
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    x() const
    {
       return ( *this )[ 0 ];
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    y() const
    {
       return ( *this )[ 1 ];
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    z() const
    {
       return ( *this )[ 2 ];
@@ -124,19 +124,19 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariab
       return Operation{}( op1[ i ], op2 );
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    x() const
    {
       return ( *this )[ 0 ];
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    y() const
    {
       return ( *this )[ 1 ];
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    z() const
    {
       return ( *this )[ 2 ];
@@ -174,19 +174,19 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariable, Ve
       return Operation{}( op1, op2[ i ] );
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    x() const
    {
       return ( *this )[ 0 ];
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    y() const
    {
       return ( *this )[ 1 ];
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    z() const
    {
       return ( *this )[ 2 ];
@@ -226,19 +226,19 @@ struct StaticUnaryExpressionTemplate
       return Operation{}( operand[ i ] );
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    x() const
    {
       return ( *this )[ 0 ];
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    y() const
    {
       return ( *this )[ 1 ];
    }
 
-   constexpr RealType
+   [[nodiscard]] constexpr RealType
    z() const
    {
       return ( *this )[ 2 ];

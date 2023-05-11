@@ -15,8 +15,7 @@
 
 #include <TNL/String.h>
 
-namespace TNL {
-namespace Arithmetics {
+namespace TNL::Arithmetics {
 
 template< class T >
 class Quad
@@ -160,5 +159,4 @@ template< typename T >
 void
 printQuad( T* a );  // Print of quad-double
 
-}  // namespace Arithmetics
-}  // namespace TNL
+}  // namespace TNL::Arithmetics

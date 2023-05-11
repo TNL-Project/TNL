@@ -10,9 +10,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 /**
  * \brief Simple structure representing one element of a segment.
@@ -45,7 +43,7 @@ public:
     *
     * \return index of the parent segment.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    segmentIndex() const
    {
@@ -57,7 +55,7 @@ public:
     *
     * \return rank of the element in the segment.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    localIndex() const
    {
@@ -69,7 +67,7 @@ public:
     *
     * \return index of the element in the related container.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    globalIndex() const
    {
@@ -84,6 +82,4 @@ protected:
    const IndexType globalIdx;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

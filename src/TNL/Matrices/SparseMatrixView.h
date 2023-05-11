@@ -15,8 +15,7 @@
 #include <TNL/Matrices/SparseMatrixRowView.h>
 #include <TNL/TypeTraits.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /// This is to prevent from appearing in Doxygen documentation.
 /// \cond HIDDEN_CLASS
@@ -92,7 +91,7 @@ public:
     *
     * \return \e true if the matrix is stored as symmetric and \e false otherwise.
     */
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isSymmetric()
    {
       return MatrixType::isSymmetric();
@@ -103,7 +102,7 @@ public:
     *
     * \return \e true if the matrix is stored as binary and \e false otherwise.
     */
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isBinary()
    {
       return std::is_same< std::decay_t< Real >, bool >::value;
@@ -213,7 +212,7 @@ public:
     *
     * \return sparse matrix view.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
@@ -222,7 +221,7 @@ public:
     *
     * \return sparse matrix view.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
@@ -239,7 +238,7 @@ public:
     * \par Output
     * \include SparseMatrixViewExample_getSerializationType.out
     */
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
    /**
@@ -254,7 +253,7 @@ public:
     * \par Output
     * \include SparseMatrixExample_getSerializationType.out
     */
-   std::string
+   [[nodiscard]] std::string
    getSerializationTypeVirtual() const override;
 
    /**
@@ -289,7 +288,7 @@ public:
     * \param row index of matrix row.
     * \return number of matrix elements allocated for the row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getRowCapacity( IndexType row ) const;
 
@@ -301,7 +300,7 @@ public:
     *
     * \return number of non-zero matrix elements.
     */
-   IndexType
+   [[nodiscard]] IndexType
    getNonzeroElementsCount() const override;
 
    /**
@@ -318,7 +317,7 @@ public:
     *
     * See \ref SparseMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstRowView
    getRow( IndexType rowIdx ) const;
 
@@ -336,7 +335,7 @@ public:
     *
     * See \ref SparseMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RowView
    getRow( IndexType rowIdx );
 
@@ -411,7 +410,7 @@ public:
     * \include SparseMatrixViewExample_getElement.out
     *
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getElement( IndexType row, IndexType column ) const;
 
@@ -886,7 +885,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator==( const Matrix& matrix ) const;
 
    /**
@@ -896,7 +895,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator!=( const Matrix& matrix ) const;
 
    /**
@@ -931,7 +930,7 @@ public:
     *
     * \return Non-constant reference to segments.
     */
-   SegmentsViewType&
+   [[nodiscard]] SegmentsViewType&
    getSegments();
 
    /**
@@ -942,7 +941,7 @@ public:
     *
     * \return Constant reference to segments.
     */
-   const SegmentsViewType&
+   [[nodiscard]] const SegmentsViewType&
    getSegments() const;
 
    /**
@@ -950,7 +949,7 @@ public:
     *
     * \return Constant reference to a vector with matrix elements column indexes.
     */
-   const ColumnsIndexesViewType&
+   [[nodiscard]] const ColumnsIndexesViewType&
    getColumnIndexes() const;
 
    /**
@@ -958,7 +957,7 @@ public:
     *
     * \return Reference to a vector with matrix elements column indexes.
     */
-   ColumnsIndexesViewType&
+   [[nodiscard]] ColumnsIndexesViewType&
    getColumnIndexes();
 
    /**
@@ -969,7 +968,7 @@ public:
     *
     * \return value of the padding index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getPaddingIndex() const;
 
@@ -995,7 +994,6 @@ private:
    }
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/SparseMatrixView.hpp>

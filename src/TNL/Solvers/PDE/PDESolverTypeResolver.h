@@ -9,9 +9,7 @@
 #include <TNL/Solvers/PDE/TimeDependentPDESolver.h>
 #include <TNL/Solvers/PDE/TimeIndependentPDESolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Problem, typename TimeStepper, bool TimeDependent = Problem::isTimeDependent() >
 class PDESolverTypeResolver
@@ -31,6 +29,4 @@ public:
    using SolverType = TimeIndependentPDESolver< Problem >;
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

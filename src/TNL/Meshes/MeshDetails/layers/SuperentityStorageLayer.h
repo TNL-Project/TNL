@@ -11,8 +11,7 @@
 #include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
 #include <TNL/Meshes/MeshDetails/traits/WeakStorageTraits.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig,
           typename Device,
@@ -45,7 +44,7 @@ public:
 
 protected:
    template< int Superdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    typename MeshTraitsType::NeighborCountsArray&
    getSuperentitiesCountsArray()
    {
@@ -54,7 +53,7 @@ protected:
    }
 
    template< int Superdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const typename MeshTraitsType::NeighborCountsArray&
    getSuperentitiesCountsArray() const
    {
@@ -63,7 +62,7 @@ protected:
    }
 
    template< int Superdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    typename MeshTraitsType::SuperentityMatrixType&
    getSuperentitiesMatrix()
    {
@@ -72,7 +71,7 @@ protected:
    }
 
    template< int Superdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const typename MeshTraitsType::SuperentityMatrixType&
    getSuperentitiesMatrix() const
    {
@@ -136,14 +135,14 @@ protected:
    }
 
    using BaseType::getSuperentitiesCountsArray;
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    NeighborCountsArray&
    getSuperentitiesCountsArray( SuperdimensionTag )
    {
       return superentitiesCounts;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const NeighborCountsArray&
    getSuperentitiesCountsArray( SuperdimensionTag ) const
    {
@@ -151,14 +150,14 @@ protected:
    }
 
    using BaseType::getSuperentitiesMatrix;
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SuperentityMatrixType&
    getSuperentitiesMatrix( SuperdimensionTag )
    {
       return matrix;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const SuperentityMatrixType&
    getSuperentitiesMatrix( SuperdimensionTag ) const
    {
@@ -230,5 +229,4 @@ protected:
    {}
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

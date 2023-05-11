@@ -10,9 +10,7 @@
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/detail/CSR.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename Kernel, typename IndexAllocator >
 template< typename SizesContainer >
@@ -250,6 +248,4 @@ CSR< Device, Index, Kernel, IndexAllocator >::print( Fetch&& fetch ) const -> Se
    return SegmentsPrinter< CSR, Fetch >( *this, fetch );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

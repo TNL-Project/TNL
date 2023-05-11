@@ -12,9 +12,7 @@
 
 #include <TNL/Matrices/MatrixOperations.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 template< typename Matrix >
 void
@@ -301,6 +299,4 @@ BICGStabL< Matrix >::setSize( const VectorViewType& x )
    g_2.setSize( ell + 1 );
 }
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear

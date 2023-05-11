@@ -8,8 +8,7 @@
 
 #include <TNL/Images/PNGImage.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 template< typename Index >
 PNGImage< Index >::PNGImage() : fileOpen( false )
@@ -335,5 +334,4 @@ PNGImage< Index >::~PNGImage()
    close();
 }
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images

@@ -8,9 +8,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 enum class ScanType
 {
@@ -24,6 +22,4 @@ enum class ScanPhaseType
    WriteInSecondPhase
 };
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail

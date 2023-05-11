@@ -8,9 +8,7 @@
 
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
-namespace TNL {
-namespace Matrices {
-namespace details {
+namespace TNL::Matrices::details {
 
 template< typename Index, Algorithms::Segments::ElementsOrganization Organization >
 class TridiagonalMatrixIndexer
@@ -18,7 +16,7 @@ class TridiagonalMatrixIndexer
 public:
    using IndexType = Index;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    getRowMajorOrder()
    {
       return Organization == Algorithms::Segments::RowMajorOrder;
@@ -45,42 +43,42 @@ public:
       this->nonemptyRows = min( rows, columns ) + ( rows > columns );
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getRowSize( const IndexType rowIdx ) const
    {
       return 3;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getRows() const
    {
       return this->rows;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getColumns() const
    {
       return this->columns;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getNonemptyRowsCount() const
    {
       return this->nonemptyRows;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getStorageSize() const
    {
       return 3 * this->nonemptyRows;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( const Index rowIdx, const Index localIdx ) const
    {
@@ -99,6 +97,4 @@ protected:
    IndexType rows, columns, nonemptyRows;
 };
 
-}  // namespace details
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::details

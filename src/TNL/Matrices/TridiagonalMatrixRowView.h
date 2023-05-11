@@ -9,8 +9,7 @@
 #include <TNL/Matrices/MatrixRowViewIterator.h>
 #include <TNL/Matrices/MultidiagonalMatrixElement.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief RowView is a simple structure for accessing rows of tridiagonal matrix.
@@ -82,6 +81,11 @@ public:
    using IteratorType = MatrixRowViewIterator< RowView >;
 
    /**
+    * \brief Type of constant iterator for the matrix row.
+    */
+   using ConstIteratorType = MatrixRowViewIterator< ConstRowView >;
+
+   /**
     * \brief Constructor with all necessary data.
     *
     * \param rowIdx is index of the matrix row this RowView refer to.
@@ -96,7 +100,7 @@ public:
     *
     * \return number three.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -105,7 +109,7 @@ public:
     *
     * \return matrix row index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getRowIndex() const;
 
@@ -116,7 +120,7 @@ public:
     *
     * \return column index of matrix element on given subdiagonal.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getColumnIndex( IndexType localIdx ) const;
 
@@ -127,7 +131,7 @@ public:
     *
     * \return constant reference to matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getValue( IndexType localIdx ) const;
 
@@ -138,7 +142,7 @@ public:
     *
     * \return non-constant reference to matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType&
    getValue( IndexType localIdx );
 
@@ -157,7 +161,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    begin();
 
@@ -166,7 +170,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    end();
 
@@ -175,8 +179,8 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
-   const IteratorType
+   [[nodiscard]] __cuda_callable__
+   ConstIteratorType
    cbegin() const;
 
    /**
@@ -184,8 +188,8 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
-   const IteratorType
+   [[nodiscard]] __cuda_callable__
+   ConstIteratorType
    cend() const;
 
 protected:
@@ -196,7 +200,6 @@ protected:
    Indexer indexer;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/TridiagonalMatrixRowView.hpp>

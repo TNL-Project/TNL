@@ -12,9 +12,7 @@
 #include <TNL/MPI/Wrappers.h>
 #include <TNL/Algorithms/reduce.h>
 
-namespace TNL {
-namespace Containers {
-namespace Expressions {
+namespace TNL::Containers::Expressions {
 
 template< typename Expression >
 auto
@@ -237,6 +235,4 @@ DistributedExpressionBinaryXor( const Expression& expression ) -> std::decay_t< 
    return result;
 }
 
-}  // namespace Expressions
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::Expressions

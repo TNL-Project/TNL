@@ -9,8 +9,7 @@
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Containers/Expressions/StaticExpressionTemplates.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Vector with constant size.
@@ -151,22 +150,6 @@ public:
    template< typename VectorExpression >
    constexpr StaticVector&
    operator%=( const VectorExpression& expression );
-
-   /**
-    * \brief Cast operator for changing of the \e Value type.
-    *
-    * Returns static array having \e ValueType set to \e OtherValue, i.e.
-    * StaticArray< Size, OtherValue >.
-    *
-    * \tparam OtherValue is the \e Value type of the static array the casting
-    * will be performed to.
-    *
-    * \return instance of StaticVector< Size, OtherValue >
-    */
-   template< typename OtherReal >
-   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
-   __cuda_callable__
-   constexpr operator StaticVector< Size, OtherReal >() const;
 };
 
 // Enable expression templates for StaticVector
@@ -176,14 +159,66 @@ struct HasEnabledStaticExpressionTemplates< StaticVector< Size, Real > > : std::
 {};
 }  // namespace Expressions
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
+
+// specializations to make StaticVector work with C++17 structured bindings
+// (all these specializations exist for std::array)
+namespace std {
+
+template< int N, class T >
+struct tuple_size< TNL::Containers::StaticVector< N, T > > : std::integral_constant< std::size_t, N >
+{};
+
+template< std::size_t I, int N, class T >
+struct tuple_element< I, TNL::Containers::StaticVector< N, T > >
+{
+   using type = T;
+};
+
+}  // namespace std
+
+// the `get` function must be defined in the TNL::Containers namespace,
+// because structured binding finds it by ADL
+namespace TNL::Containers {
+
+template< std::size_t I, int N, class T >
+constexpr T&
+get( StaticVector< N, T >& a ) noexcept
+{
+   static_assert( I < N );
+   return a[ I ];
+}
+
+template< std::size_t I, int N, class T >
+constexpr T&&
+get( StaticVector< N, T >&& a ) noexcept
+{
+   static_assert( I < N );
+   return std::move( a[ I ] );
+}
+
+template< std::size_t I, int N, class T >
+constexpr const T&
+get( const StaticVector< N, T >& a ) noexcept
+{
+   static_assert( I < N );
+   return a[ I ];
+}
+
+template< std::size_t I, int N, class T >
+constexpr const T&&
+get( const StaticVector< N, T >&& a ) noexcept
+{
+   static_assert( I < N );
+   return std::move( a[ I ] );
+}
+
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/StaticVector.hpp>
 
 // TODO: move to some other source file
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Real >
 __cuda_callable__
@@ -233,5 +268,4 @@ TriangleArea( const StaticVector< 3, Real >& a, const StaticVector< 3, Real >& b
    return 0.5 * TNL::sqrt( dot( v, v ) );
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

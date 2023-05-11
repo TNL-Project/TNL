@@ -11,8 +11,7 @@
 #include <TNL/Containers/ArrayView.h>
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief \e VectorView extends \ref ArrayView with algebraic operations.
@@ -104,7 +103,7 @@ public:
     * \param end The end of the vector view sub-interval. The default value is 0
     *            which is, however, replaced with the array size.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView( IndexType begin = 0, IndexType end = 0 );
 
@@ -120,7 +119,7 @@ public:
     * \param end The end of the vector view sub-interval. The default value is 0
     *            which is, however, replaced with the array size.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView( IndexType begin = 0, IndexType end = 0 ) const;
 
@@ -243,7 +242,6 @@ struct HasEnabledExpressionTemplates< VectorView< Real, Device, Index > > : std:
 {};
 }  // namespace Expressions
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/VectorView.hpp>

@@ -14,9 +14,7 @@
 #include <TNL/Meshes/GridDetails/Traverser_Grid2D.h>
 #include <TNL/Meshes/GridDetails/Traverser_Grid3D.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Real,
           typename MeshFunction,
@@ -183,6 +181,4 @@ protected:
    TraverserUserData userData;
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

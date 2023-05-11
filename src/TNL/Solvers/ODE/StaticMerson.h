@@ -9,9 +9,7 @@
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Solvers/ODE/StaticExplicitSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace ODE {
+namespace TNL::Solvers::ODE {
 
 /**
  * \brief Solver of ODEs with the first order of accuracy.
@@ -116,7 +114,7 @@ public:
     * \returns the current value of the parameter controlling the adaptive choice of
     *    integration time step.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getAdaptivity() const;
 
@@ -252,7 +250,7 @@ public:
     * \returns the current value of the parameter controlling the adaptive choice of
     *    integration time step.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getAdaptivity() const;
 
@@ -286,8 +284,6 @@ protected:
    RealType adaptivity = 0.00001;
 };
 
-}  // namespace ODE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::ODE
 
 #include <TNL/Solvers/ODE/StaticMerson.hpp>

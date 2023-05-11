@@ -11,8 +11,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/DistributedArrayView.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Distributed array.
@@ -105,48 +104,48 @@ public:
    /**
     * \brief Returns the local range of the distributed array.
     */
-   const LocalRangeType&
+   [[nodiscard]] const LocalRangeType&
    getLocalRange() const;
 
-   IndexType
+   [[nodiscard]] IndexType
    getGhosts() const;
 
    /**
     * \brief Returns the MPI communicator associated to the array.
     */
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const;
 
    /**
     * \brief Returns the allocator associated to the array.
     */
-   AllocatorType
+   [[nodiscard]] AllocatorType
    getAllocator() const;
 
    /**
     * \brief Returns a modifiable view of the local part of the array.
     */
-   LocalViewType
+   [[nodiscard]] LocalViewType
    getLocalView();
 
    /**
     * \brief Returns a non-modifiable view of the local part of the array.
     */
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalView() const;
 
    /**
     * \brief Returns a modifiable view of the local part of the array,
     * including ghost values.
     */
-   LocalViewType
+   [[nodiscard]] LocalViewType
    getLocalViewWithGhosts();
 
    /**
     * \brief Returns a non-modifiable view of the local part of the array,
     * including ghost values.
     */
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalViewWithGhosts() const;
 
    void
@@ -156,10 +155,10 @@ public:
    void
    setSynchronizer( std::shared_ptr< SynchronizerType > synchronizer, int valuesPerElement = 1 );
 
-   std::shared_ptr< SynchronizerType >
+   [[nodiscard]] std::shared_ptr< SynchronizerType >
    getSynchronizer() const;
 
-   int
+   [[nodiscard]] int
    getValuesPerElement() const;
 
    void
@@ -173,13 +172,13 @@ public:
    /**
     * \brief Returns a modifiable view of the array.
     */
-   ViewType
+   [[nodiscard]] ViewType
    getView();
 
    /**
     * \brief Returns a non-modifiable view of the array.
     */
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const;
 
    /**
@@ -201,13 +200,13 @@ public:
    reset();
 
    // Returns true if the current array size is zero.
-   bool
+   [[nodiscard]] bool
    empty() const;
 
    // TODO: swap
 
    // Returns the *global* size
-   IndexType
+   [[nodiscard]] IndexType
    getSize() const;
 
    // Sets all elements of the array to the given value
@@ -219,16 +218,16 @@ public:
    setElement( IndexType i, ValueType value );
 
    // Safe device-independent element getter
-   ValueType
+   [[nodiscard]] ValueType
    getElement( IndexType i ) const;
 
    // Unsafe element accessor usable only from the Device
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType&
    operator[]( IndexType i );
 
    // Unsafe element accessor usable only from the Device
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const ValueType&
    operator[]( IndexType i ) const;
 
@@ -246,11 +245,11 @@ public:
 
    // Comparison operators
    template< typename Array >
-   bool
+   [[nodiscard]] bool
    operator==( const Array& array ) const;
 
    template< typename Array >
-   bool
+   [[nodiscard]] bool
    operator!=( const Array& array ) const;
 
    /**
@@ -327,7 +326,6 @@ private:
    {}
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include "DistributedArray.hpp"

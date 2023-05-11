@@ -18,8 +18,7 @@
 #include <TNL/Meshes/Writers/VTUWriter.h>
 #include <TNL/Meshes/Writers/VTIWriter.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< int Size, typename Function >
 class VectorField : public Functions::Domain< Function::getDomainDimension(), Function::getDomainType() >
@@ -48,14 +47,14 @@ public:
       return true;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const FunctionType&
    operator[]( int i ) const
    {
       return this->vectorField[ i ];
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    FunctionType&
    operator[]( int i )
    {
@@ -122,14 +121,14 @@ public:
    }
 
    template< typename Device = Devices::Host >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const MeshType&
    getMesh() const
    {
       return this->vectorField[ 0 ].template getData< Device >().template getMesh< Device >();
    }
 
-   const MeshPointer&
+   [[nodiscard]] const MeshPointer&
    getMeshPointer() const
    {
       return this->vectorField[ 0 ]->getMeshPointer();
@@ -152,14 +151,14 @@ public:
       return Size * FunctionType::getDofs( meshPointer );
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const FunctionPointer&
    operator[]( int i ) const
    {
       return this->vectorField[ i ];
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    FunctionPointer&
    operator[]( int i )
    {
@@ -183,7 +182,7 @@ public:
       return v;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    VectorType
    getVector( const IndexType index ) const
    {
@@ -203,7 +202,7 @@ public:
    }
 
    template< typename EntityType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    VectorType
    getVector( const EntityType& meshEntity ) const
    {
@@ -341,14 +340,14 @@ public:
    }
 
    template< typename Device = Devices::Host >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const MeshType&
    getMesh() const
    {
       return this->vectorField[ 0 ].template getData< Device >().template getMesh< Device >();
    }
 
-   const MeshPointer&
+   [[nodiscard]] const MeshPointer&
    getMeshPointer() const
    {
       return this->vectorField[ 0 ]->getMeshPointer();
@@ -405,14 +404,14 @@ public:
       }
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const FunctionPointer&
    operator[]( int i ) const
    {
       return this->vectorField[ i ];
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    FunctionPointer&
    operator[]( int i )
    {
@@ -427,7 +426,7 @@ public:
          ( *this )[ j ]->getData().setElement( i, v[ j ] );
    }
 
-   VectorType
+   [[nodiscard]] VectorType
    getElement( const IndexType i ) const
    {
       VectorType v;
@@ -436,7 +435,7 @@ public:
       return v;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    VectorType
    getVector( const IndexType index ) const
    {
@@ -456,7 +455,7 @@ public:
    }
 
    template< typename EntityType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    VectorType
    getVector( const EntityType& meshEntity ) const
    {
@@ -550,5 +549,4 @@ operator<<( std::ostream& str, const VectorField< Dimension, Function >& f )
    return str;
 }
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

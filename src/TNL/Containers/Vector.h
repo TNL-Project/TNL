@@ -9,8 +9,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/VectorView.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief \e Vector extends \ref Array with algebraic operations.
@@ -151,7 +150,7 @@ public:
     * \param end The end of the vector sub-interval. The default value is 0
     *            which is, however, replaced with the array size.
     */
-   ViewType
+   [[nodiscard]] ViewType
    getView( IndexType begin = 0, IndexType end = 0 );
 
    /**
@@ -166,7 +165,7 @@ public:
     * \param end The end of the vector sub-interval. The default value is 0
     *            which is, however, replaced with the array size.
     */
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView( IndexType begin = 0, IndexType end = 0 ) const;
 
    /**
@@ -294,7 +293,6 @@ struct HasEnabledExpressionTemplates< Vector< Real, Device, Index, Allocator > >
 {};
 }  // namespace Expressions
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/Vector.hpp>

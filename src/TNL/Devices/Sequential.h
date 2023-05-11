@@ -6,9 +6,8 @@
 
 #pragma once
 
-namespace TNL {
 //! \brief Namespace for TNL execution models
-namespace Devices {
+namespace TNL::Devices {
 
 struct Sequential
 {
@@ -17,5 +16,4 @@ struct Sequential
    {};
 };
 
-}  // namespace Devices
-}  // namespace TNL
+}  // namespace TNL::Devices

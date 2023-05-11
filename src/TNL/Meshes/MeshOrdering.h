@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/Mesh.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 // general implementation covering grids
 template< typename Mesh, typename Ordering >
@@ -44,5 +43,4 @@ struct MeshOrdering< TNL::Meshes::Mesh< MeshConfig, Device >, Ordering >
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

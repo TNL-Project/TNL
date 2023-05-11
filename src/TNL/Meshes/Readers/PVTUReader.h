@@ -14,13 +14,11 @@
 #include <TNL/Meshes/Readers/VTUReader.h>
 #include <TNL/Meshes/MeshDetails/layers/EntityTags/Traits.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 class PVTUReader : public XMLVTK
 {
-   std::string
+   [[nodiscard]] std::string
    getSourcePath( const std::string& source )
    {
       namespace fs = std::filesystem;
@@ -245,13 +243,13 @@ public:
       }
    }
 
-   VariantVector
+   [[nodiscard]] VariantVector
    readPointData( const std::string& arrayName ) override
    {
       return localReader.readPointData( arrayName );
    }
 
-   VariantVector
+   [[nodiscard]] VariantVector
    readCellData( const std::string& arrayName ) override
    {
       return localReader.readCellData( arrayName );
@@ -280,6 +278,4 @@ protected:
    VariantVector pointTags, cellTags, pointGlobalIndices, cellGlobalIndices;
 };
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

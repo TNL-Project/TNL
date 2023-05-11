@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Writers/VTUWriter.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 // NOTE: Mesh should be the local mesh type, not DistributedMesh
 template< typename Mesh >
@@ -98,8 +96,6 @@ protected:
    closePPointData();
 };
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers
 
 #include <TNL/Meshes/Writers/PVTUWriter.hpp>

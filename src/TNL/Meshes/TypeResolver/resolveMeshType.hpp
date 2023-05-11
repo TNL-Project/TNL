@@ -13,8 +13,7 @@
 #include <TNL/Meshes/TypeResolver/MeshTypeResolver.h>
 #include <TNL/Meshes/Readers/getMeshReader.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename ConfigTag, typename Device, typename Functor >
 bool
@@ -103,5 +102,4 @@ loadMesh( Mesh< MeshConfig, Devices::Cuda >& mesh, const std::string& fileName, 
    return true;
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

@@ -15,8 +15,7 @@
 #include <TNL/Images/RegionOfInterest.h>
 #include <TNL/Functions/MeshFunction.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 template< typename Index = int >
 class PNGImage : public Image< Index >
@@ -73,7 +72,6 @@ protected:
 #endif
 };
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images
 
 #include <TNL/Images/PNGImage_impl.h>

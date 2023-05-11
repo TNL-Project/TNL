@@ -9,9 +9,7 @@
 #include <TNL/Assert.h>
 #include <TNL/Containers/StaticVector.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 // index of direction can be written as number in 3-base system
 //   -> 1 order x axis, 2 order y axis, 3 order z axis
@@ -156,6 +154,4 @@ public:
    }
 };
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes

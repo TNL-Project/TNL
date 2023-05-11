@@ -11,8 +11,7 @@
 #include <TNL/Functions/Domain.h>
 #include <TNL/Pointers/SharedPointer.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename Mesh, int MeshEntityDimension = Mesh::getMeshDimension(), typename Real = typename Mesh::RealType >
 class MeshFunction : public Domain< Mesh::getMeshDimension(), MeshDomain >
@@ -55,35 +54,35 @@ public:
    setMesh( const MeshPointer& meshPointer );
 
    template< typename Device = Devices::Host >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const MeshType&
    getMesh() const;
 
-   const MeshPointer&
+   [[nodiscard]] const MeshPointer&
    getMeshPointer() const;
 
-   MeshPointer&
+   [[nodiscard]] MeshPointer&
    getMeshPointer();
 
    static IndexType
    getDofs( const MeshPointer& meshPointer );
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const VectorType&
    getData() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    VectorType&
    getData();
 
-   bool
+   [[nodiscard]] bool
    refresh( const RealType& time = 0.0 ) const;
 
-   bool
+   [[nodiscard]] bool
    deepRefresh( const RealType& time = 0.0 ) const;
 
    template< typename EntityType >
-   RealType
+   [[nodiscard]] RealType
    getValue( const EntityType& meshEntity ) const;
 
    template< typename EntityType >
@@ -91,20 +90,20 @@ public:
    setValue( const EntityType& meshEntity, const RealType& value );
 
    template< typename EntityType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType&
    operator()( const EntityType& meshEntity, const RealType& time = 0 );
 
    template< typename EntityType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    operator()( const EntityType& meshEntity, const RealType& time = 0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType&
    operator[]( const IndexType& meshEntityIndex );
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    operator[]( const IndexType& meshEntityIndex ) const;
 
@@ -123,10 +122,10 @@ public:
    MeshFunction&
    operator+=( const Function& f );
 
-   RealType
+   [[nodiscard]] RealType
    getLpNorm( const RealType& p ) const;
 
-   RealType
+   [[nodiscard]] RealType
    getMaxNorm() const;
 
    bool
@@ -145,7 +144,6 @@ template< typename Mesh, int MeshEntityDimension, typename Real >
 std::ostream&
 operator<<( std::ostream& str, const MeshFunction< Mesh, MeshEntityDimension, Real >& f );
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions
 
 #include <TNL/Functions/MeshFunction.hpp>

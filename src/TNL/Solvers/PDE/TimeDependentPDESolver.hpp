@@ -11,9 +11,7 @@
 #include <TNL/Meshes/TypeResolver/resolveDistributedMeshType.h>
 #include <TNL/MPI/Comm.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Problem, typename TimeStepper >
 TimeDependentPDESolver< Problem, TimeStepper >::TimeDependentPDESolver()
@@ -297,6 +295,4 @@ TimeDependentPDESolver< Problem, TimeStepper >::writeEpilog( Logger& logger ) co
    return ( this->timeStepper.writeEpilog( logger ) && this->problem->writeEpilog( logger ) );
 }
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

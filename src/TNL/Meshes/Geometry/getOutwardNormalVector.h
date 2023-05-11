@@ -9,8 +9,7 @@
 #include <TNL/Meshes/Geometry/getEntityCenter.h>
 #include <TNL/Meshes/Topologies/Edge.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename Grid >
 __cuda_callable__
@@ -150,5 +149,4 @@ getOutwardNormalVector( const Mesh< MeshConfig, Device >& mesh,
       return -n / l2Norm( n );
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

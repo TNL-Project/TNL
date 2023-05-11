@@ -10,8 +10,7 @@
 #include <TNL/Meshes/DimensionTag.h>
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig, typename EntityTopology, typename DimensionTag >
 class ConfigValidatorSubtopologyLayer
@@ -86,5 +85,4 @@ class ConfigValidator : public ConfigValidatorLayerCell< MeshConfig >
    static_assert( meshDimension <= MeshConfig::spaceDimension, "space dimension must not be less than mesh dimension" );
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

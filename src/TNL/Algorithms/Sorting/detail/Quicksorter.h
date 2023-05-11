@@ -11,9 +11,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/Sorting/detail/task.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 template< typename Value, typename Device >
 class Quicksorter;
@@ -48,13 +46,13 @@ protected:
    /**
     * returns how many blocks are needed to start sort phase 1 if @param elemPerBlock were to be used
     * */
-   int
+   [[nodiscard]] int
    getSetsNeeded( int elemPerBlock ) const;
 
    /**
     * returns the optimal amount of elements per thread needed for phase
     * */
-   int
+   [[nodiscard]] int
    getElemPerBlock() const;
 
    /**
@@ -111,8 +109,6 @@ protected:
    getSetsNeededFunction( int elemPerBlock, const Quicksorter< T, Devices::Cuda >& quicksort );
 };
 
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Sorting
 
 #include <TNL/Algorithms/Sorting/detail/Quicksorter.hpp>

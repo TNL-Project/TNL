@@ -13,9 +13,7 @@
 #include <TNL/Algorithms/Sorting/detail/bitonicSort.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 #ifdef __CUDACC__
 
@@ -257,6 +255,4 @@ stackPush( int stackArrBegin[],
 
 #endif
 
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Sorting

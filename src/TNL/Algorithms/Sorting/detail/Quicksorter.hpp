@@ -16,9 +16,7 @@
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 template< typename Value >
 template< typename Array, typename Compare >
@@ -383,6 +381,4 @@ Quicksorter< Value, Devices::Cuda >::processNewTasks()
    host_2ndPhaseTasksAmount = min( cuda_2ndPhaseTasksAmount.getElement( 0 ), maxTasks );
 }
 
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Sorting

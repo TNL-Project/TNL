@@ -23,8 +23,7 @@
 #include <TNL/Cuda/SharedMemory.h>
 #include <TNL/Containers/Vector.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename DeviceType = Devices::Host >
 class MatrixOperations
@@ -399,5 +398,4 @@ public:
    }
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

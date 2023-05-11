@@ -11,9 +11,7 @@
 
 #include <TNL/Meshes/Readers/MeshReader.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 class NetgenReader : public MeshReader
 {
@@ -150,6 +148,4 @@ public:
    }
 };
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

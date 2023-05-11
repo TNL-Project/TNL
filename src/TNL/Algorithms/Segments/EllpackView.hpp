@@ -11,9 +11,7 @@
 #include <TNL/Algorithms/Segments/EllpackView.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 __global__
@@ -383,6 +381,4 @@ EllpackView< Device, Index, Organization, Alignment >::print( Fetch&& fetch ) co
    return SegmentsPrinter< EllpackView, Fetch >( *this, fetch );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

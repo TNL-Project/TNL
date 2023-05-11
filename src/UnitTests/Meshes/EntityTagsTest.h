@@ -74,7 +74,7 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
       meshBuilder.getCellSeed( cellIdx++ ).setCornerId( 3, vertex3 );
    }
 
-   ASSERT_TRUE( meshBuilder.build( mesh ) );
+   meshBuilder.build( mesh );
 
    std::vector< IndexType > boundaryCells = {0, 1, 2, 3, 5, 6, 8, 9, 10, 11};
    std::vector< IndexType > interiorCells = {4, 7};

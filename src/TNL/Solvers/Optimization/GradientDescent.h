@@ -8,9 +8,7 @@
 
 #include <TNL/Solvers/IterativeSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Optimization {
+namespace TNL::Solvers::Optimization {
 
 template< typename Vector,
           typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
@@ -47,8 +45,6 @@ protected:
    VectorType gradient;
 };
 
-}  // namespace Optimization
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Optimization
 
 #include <TNL/Solvers/Optimization/GradientDescent.hpp>

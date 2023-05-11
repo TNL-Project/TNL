@@ -7,38 +7,13 @@
 #pragma once
 
 #include <TNL/TypeInfo.h>
+#include <TNL/TypeTraits.h>
 #include <TNL/Math.h>
 #include <TNL/Containers/StaticArray.h>
-#include <TNL/Containers/detail/StaticArrayAssignment.h>
-#include <TNL/Algorithms/unrolledFor.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 namespace detail {
-
-// StaticArrayComparator does static loop unrolling of array comparison
-template< int Size, typename LeftValue, typename RightValue, int Index >
-struct StaticArrayComparator
-{
-   static constexpr bool
-   EQ( const StaticArray< Size, LeftValue >& left, const StaticArray< Size, RightValue >& right )
-   {
-      if( left[ Index ] == right[ Index ] )
-         return StaticArrayComparator< Size, LeftValue, RightValue, Index + 1 >::EQ( left, right );
-      return false;
-   }
-};
-
-template< int Size, typename LeftValue, typename RightValue >
-struct StaticArrayComparator< Size, LeftValue, RightValue, Size >
-{
-   static constexpr bool
-   EQ( const StaticArray< Size, LeftValue >& left, const StaticArray< Size, RightValue >& right )
-   {
-      return true;
-   }
-};
 
 ////
 // Static array sort does static loop unrolling of array sort.
@@ -91,24 +66,31 @@ template< int Size, typename Value >
 template< typename _unused >
 constexpr StaticArray< Size, Value >::StaticArray( const Value v[ Size ] )
 {
-   Algorithms::unrolledFor< int, 0, Size >(
-      [ & ]( int i ) mutable
-      {
-         ( *this )[ i ] = v[ i ];
-      } );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = v[ i ];
 }
 
 template< int Size, typename Value >
 constexpr StaticArray< Size, Value >::StaticArray( const StaticArray& v )
 {
-   detail::StaticArrayAssignment< StaticArray, StaticArray >::assign( *this, v );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = v[ i ];
+}
+
+template< int Size, typename Value >
+template< typename OtherValue >
+constexpr StaticArray< Size, Value >::StaticArray( const StaticArray< Size, OtherValue >& v )
+{
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = v[ i ];
 }
 
 template< int Size, typename Value >
 __cuda_callable__
 constexpr StaticArray< Size, Value >::StaticArray( const Value& v )
 {
-   detail::StaticArrayAssignment< StaticArray, Value >::assign( *this, v );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = v;
 }
 
 template< int Size, typename Value >
@@ -119,8 +101,9 @@ constexpr StaticArray< Size, Value >::StaticArray( Values&&... values )
 {}
 
 template< int Size, typename Value >
+template< typename OtherValue >
 __cuda_callable__
-constexpr StaticArray< Size, Value >::StaticArray( const std::initializer_list< Value >& elems )
+constexpr StaticArray< Size, Value >::StaticArray( const std::initializer_list< OtherValue >& elems )
 {
    const auto* it = elems.begin();
    for( int i = 0; i < getSize() && it != elems.end(); i++ )
@@ -128,22 +111,38 @@ constexpr StaticArray< Size, Value >::StaticArray( const std::initializer_list< 
 }
 
 template< int Size, typename Value >
+template< typename OtherValue >
+__cuda_callable__
+constexpr StaticArray< Size, Value >::StaticArray( const std::array< OtherValue, Size >& array )
+{
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = array[ i ];
+}
+
+template< int Size, typename Value >
+__cuda_callable__
+constexpr StaticArray< Size, Value >::StaticArray( std::array< Value, Size >&& array )
+{
+   data = std::move( array );
+}
+
+template< int Size, typename Value >
 constexpr Value*
-StaticArray< Size, Value >::getData()
+StaticArray< Size, Value >::getData() noexcept
 {
    return data.data();
 }
 
 template< int Size, typename Value >
 constexpr const Value*
-StaticArray< Size, Value >::getData() const
+StaticArray< Size, Value >::getData() const noexcept
 {
    return data.data();
 }
 
 template< int Size, typename Value >
 constexpr const Value&
-StaticArray< Size, Value >::operator[]( int i ) const
+StaticArray< Size, Value >::operator[]( int i ) const noexcept
 {
    TNL_ASSERT_GE( i, 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, Size, "Element index is out of bounds." );
@@ -152,7 +151,7 @@ StaticArray< Size, Value >::operator[]( int i ) const
 
 template< int Size, typename Value >
 constexpr Value&
-StaticArray< Size, Value >::operator[]( int i )
+StaticArray< Size, Value >::operator[]( int i ) noexcept
 {
    TNL_ASSERT_GE( i, 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, Size, "Element index is out of bounds." );
@@ -161,35 +160,35 @@ StaticArray< Size, Value >::operator[]( int i )
 
 template< int Size, typename Value >
 constexpr const Value&
-StaticArray< Size, Value >::operator()( int i ) const
+StaticArray< Size, Value >::operator()( int i ) const noexcept
 {
    return operator[]( i );
 }
 
 template< int Size, typename Value >
 constexpr Value&
-StaticArray< Size, Value >::operator()( int i )
+StaticArray< Size, Value >::operator()( int i ) noexcept
 {
    return operator[]( i );
 }
 
 template< int Size, typename Value >
 constexpr Value&
-StaticArray< Size, Value >::x()
+StaticArray< Size, Value >::x() noexcept
 {
    return data[ 0 ];
 }
 
 template< int Size, typename Value >
 constexpr const Value&
-StaticArray< Size, Value >::x() const
+StaticArray< Size, Value >::x() const noexcept
 {
    return data[ 0 ];
 }
 
 template< int Size, typename Value >
 constexpr Value&
-StaticArray< Size, Value >::y()
+StaticArray< Size, Value >::y() noexcept
 {
    static_assert( Size > 1, "Cannot call StaticArray< Size, Value >::y() for arrays with Size < 2." );
    return data[ 1 ];
@@ -197,7 +196,7 @@ StaticArray< Size, Value >::y()
 
 template< int Size, typename Value >
 constexpr const Value&
-StaticArray< Size, Value >::y() const
+StaticArray< Size, Value >::y() const noexcept
 {
    static_assert( Size > 1, "Cannot call StaticArray< Size, Value >::y() for arrays with Size < 2." );
    return data[ 1 ];
@@ -205,7 +204,7 @@ StaticArray< Size, Value >::y() const
 
 template< int Size, typename Value >
 constexpr Value&
-StaticArray< Size, Value >::z()
+StaticArray< Size, Value >::z() noexcept
 {
    static_assert( Size > 2, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
    return data[ 2 ];
@@ -213,7 +212,7 @@ StaticArray< Size, Value >::z()
 
 template< int Size, typename Value >
 constexpr const Value&
-StaticArray< Size, Value >::z() const
+StaticArray< Size, Value >::z() const noexcept
 {
    static_assert( Size > 2, "Cannot call StaticArray< Size, Value >::z() for arrays with Size < 3." );
    return data[ 2 ];
@@ -223,7 +222,8 @@ template< int Size, typename Value >
 constexpr StaticArray< Size, Value >&
 StaticArray< Size, Value >::operator=( const StaticArray& v )
 {
-   detail::StaticArrayAssignment< StaticArray, StaticArray >::assign( *this, v );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = v[ i ];
    return *this;
 }
 
@@ -232,7 +232,14 @@ template< typename T >
 constexpr StaticArray< Size, Value >&
 StaticArray< Size, Value >::operator=( const T& v )
 {
-   detail::StaticArrayAssignment< StaticArray, T >::assign( *this, v );
+   if constexpr( IsStaticArrayType< T >::value ) {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = v[ i ];
+   }
+   else {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = v;
+   }
    return *this;
 }
 
@@ -241,7 +248,10 @@ template< typename Array >
 constexpr bool
 StaticArray< Size, Value >::operator==( const Array& array ) const
 {
-   return detail::StaticArrayComparator< Size, Value, typename Array::ValueType, 0 >::EQ( *this, array );
+   for( int i = 0; i < getSize(); i++ )
+      if( ! ( data[ i ] == array[ i ] ) )
+         return false;
+   return true;
 }
 
 template< int Size, typename Value >
@@ -253,41 +263,25 @@ StaticArray< Size, Value >::operator!=( const Array& array ) const
 }
 
 template< int Size, typename Value >
-template< typename OtherValue >
-// NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
-__cuda_callable__
-constexpr StaticArray< Size, Value >::operator StaticArray< Size, OtherValue >() const
-{
-   StaticArray< Size, OtherValue > aux;
-   aux.operator=( *this );
-   return aux;
-}
-
-template< int Size, typename Value >
 constexpr void
 StaticArray< Size, Value >::setValue( const ValueType& val )
 {
-   Algorithms::unrolledFor< int, 0, Size >(
-      [ & ]( int i ) mutable
-      {
-         ( *this )[ i ] = val;
-      } );
+   for( int i = 0; i < getSize(); i++ )
+      data[ i ] = val;
 }
 
 template< int Size, typename Value >
-bool
+void
 StaticArray< Size, Value >::save( File& file ) const
 {
    file.save( getData(), Size );
-   return true;
 }
 
 template< int Size, typename Value >
-bool
+void
 StaticArray< Size, Value >::load( File& file )
 {
    file.load( getData(), Size );
-   return true;
 }
 
 template< int Size, typename Value >
@@ -353,5 +347,4 @@ operator>>( File&& file, StaticArray< Size, Value >& array )
    return f >> array;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

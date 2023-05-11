@@ -12,8 +12,7 @@
    #include <dcmtk/dcmdata/dcdeftag.h>
 #endif
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 class DicomHeader;
 
@@ -89,7 +88,6 @@ private:
    int width, height, depth;
 };
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images
 
 #include <TNL/Images/DicomImageInfo_impl.h>

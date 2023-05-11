@@ -19,9 +19,7 @@
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 template< ScanType Type, ScanPhaseType PhaseType >
 template< typename InputArray, typename OutputArray, typename Reduction >
@@ -418,6 +416,4 @@ Scan< Devices::Cuda, Type, PhaseType >::performSecondPhase( const InputArray& in
 #endif
 }
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail

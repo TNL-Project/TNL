@@ -12,9 +12,7 @@
 #include <TNL/Meshes/DistributedMeshes/GlobalIndexStorage.h>
 #include <TNL/Meshes/MeshDetails/IndexPermutationApplier.h>
 
-namespace TNL {
-namespace Meshes {
-namespace DistributedMeshes {
+namespace TNL::Meshes::DistributedMeshes {
 
 template< typename Mesh >
 class DistributedMesh : protected GlobalIndexStorageFamily< Mesh >
@@ -57,7 +55,7 @@ public:
       return *this;
    }
 
-   bool
+   [[nodiscard]] bool
    operator==( const DistributedMesh& other ) const
    {
       return ( GlobalIndexStorageFamily< Mesh, DeviceType >::operator==( other ) && localMesh == other.getLocalMesh()
@@ -66,7 +64,7 @@ public:
                && vtkCellGhostTypesArray == other.vtkCellGhostTypes() );
    }
 
-   bool
+   [[nodiscard]] bool
    operator!=( const DistributedMesh& other ) const
    {
       return ! operator==( other );
@@ -75,7 +73,7 @@ public:
    /**
     * Common methods redirected to the local mesh
     */
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getMeshDimension()
    {
       return MeshType::getMeshDimension();
@@ -98,19 +96,19 @@ public:
       this->communicator = communicator;
    }
 
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const
    {
       return communicator;
    }
 
-   const MeshType&
+   [[nodiscard]] const MeshType&
    getLocalMesh() const
    {
       return localMesh;
    }
 
-   MeshType&
+   [[nodiscard]] MeshType&
    getLocalMesh()
    {
       return localMesh;
@@ -122,45 +120,45 @@ public:
       ghostLevels = levels;
    }
 
-   int
+   [[nodiscard]] int
    getGhostLevels() const
    {
       return ghostLevels;
    }
 
    template< int Dimension >
-   const GlobalIndexArray&
+   [[nodiscard]] const GlobalIndexArray&
    getGlobalIndices() const
    {
       return GlobalIndexStorage< MeshType, DeviceType, Dimension >::getGlobalIndices();
    }
 
    template< int Dimension >
-   GlobalIndexArray&
+   [[nodiscard]] GlobalIndexArray&
    getGlobalIndices()
    {
       return GlobalIndexStorage< MeshType, DeviceType, Dimension >::getGlobalIndices();
    }
 
-   VTKTypesArrayType&
+   [[nodiscard]] VTKTypesArrayType&
    vtkCellGhostTypes()
    {
       return vtkCellGhostTypesArray;
    }
 
-   const VTKTypesArrayType&
+   [[nodiscard]] const VTKTypesArrayType&
    vtkCellGhostTypes() const
    {
       return vtkCellGhostTypesArray;
    }
 
-   VTKTypesArrayType&
+   [[nodiscard]] VTKTypesArrayType&
    vtkPointGhostTypes()
    {
       return vtkPointGhostTypesArray;
    }
 
-   const VTKTypesArrayType&
+   [[nodiscard]] const VTKTypesArrayType&
    vtkPointGhostTypes() const
    {
       return vtkPointGhostTypesArray;
@@ -247,8 +245,6 @@ protected:
    VTKTypesArrayType vtkPointGhostTypesArray, vtkCellGhostTypesArray;
 };
 
-}  // namespace DistributedMeshes
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::DistributedMeshes
 
 #include <TNL/Meshes/DistributedMeshes/DistributedGrid.h>

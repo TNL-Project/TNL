@@ -11,9 +11,7 @@
 
 #include <TNL/Meshes/Writers/PVTIWriter.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 template< typename Grid >
 void
@@ -322,6 +320,4 @@ PVTIWriter< Grid >::closePPointData()
    }
 }
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers

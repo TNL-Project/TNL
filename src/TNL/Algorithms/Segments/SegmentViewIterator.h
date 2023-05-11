@@ -11,9 +11,7 @@
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Algorithms/Segments/SegmentElement.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 /**
  * \brief Iterator for iterating over elements of a segment.
@@ -50,7 +48,7 @@ public:
     * \param other is another matrix Segment iterator.
     * \return \e true if both iterators points at the same point of the same matrix, \e false otherwise.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator==( const SegmentViewIterator& other ) const;
 
@@ -60,7 +58,7 @@ public:
     * \param other is another matrix Segment iterator.
     * \return \e false if both iterators points at the same point of the same matrix, \e true otherwise.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    operator!=( const SegmentViewIterator& other ) const;
 
@@ -88,8 +86,8 @@ public:
     * It returns structure \ref SegmentElementType which represent one element of a segment.
     * \return segment element the iterator points to.
     */
-   __cuda_callable__
-   const SegmentElementType
+   [[nodiscard]] __cuda_callable__
+   SegmentElementType
    operator*() const;
 
 protected:
@@ -98,8 +96,6 @@ protected:
    IndexType localIdx = 0;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/SegmentViewIterator.hpp>

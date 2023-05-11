@@ -8,9 +8,7 @@ using namespace TNL;
 
 struct MeshRefineConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off all grids.
@@ -72,9 +70,7 @@ struct MeshConfigTemplateTag< MeshRefineConfigTag >
    };
 };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 template< typename Mesh >
 Mesh getRefinedMeshHelper( const Mesh& mesh, const std::string& decompositionType )

@@ -14,8 +14,7 @@
 #include <TNL/Algorithms/detail/Reduction.h>
 #include <TNL/Containers/Expressions/TypeTraits.h>  // RemoveET
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 /**
  * \brief \e reduce implements [(parallel) reduction](https://en.wikipedia.org/wiki/Reduce_(parallel_pattern))
@@ -347,5 +346,4 @@ reduceWithArgument( const Array& array, Reduction&& reduction )
       array, std::forward< Reduction >( reduction ), reduction.template getIdentity< Result >() );
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

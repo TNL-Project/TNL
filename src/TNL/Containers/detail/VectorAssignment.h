@@ -10,9 +10,7 @@
 #include <TNL/Containers/Expressions/TypeTraits.h>
 #include <TNL/Algorithms/parallelFor.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 /**
  * \brief Vector assignment
@@ -396,6 +394,4 @@ struct VectorAssignmentWithOperation< Vector, T, false, false >
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

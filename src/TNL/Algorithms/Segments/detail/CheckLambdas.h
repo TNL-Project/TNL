@@ -6,10 +6,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
-namespace detail {
+namespace TNL::Algorithms::Segments::detail {
 
 template< typename Index, typename Lambda >
 class CheckFetchLambda
@@ -35,7 +32,4 @@ public:
    }
 };
 
-}  // namespace detail
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments::detail

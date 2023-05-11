@@ -9,9 +9,7 @@
 #include <TNL/Containers/DistributedVectorView.h>
 #include "DistributedSpMV.h"
 
-namespace TNL {
-namespace Matrices {
-namespace Legacy {
+namespace TNL::Matrices::Legacy {
 
 // TODO: 2D distribution for dense matrices (maybe it should be in different template,
 //       because e.g. setRowFast doesn't make sense for dense matrices)
@@ -119,8 +117,6 @@ protected:
    DistributedSpMV< Matrix > spmv;
 };
 
-} // namespace Legacy
-} // namespace Matrices
-} // namespace TNL
+} // namespace TNL::Matrices::Legacy
 
 #include "DistributedMatrix_impl.h"

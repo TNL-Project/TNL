@@ -12,9 +12,7 @@
 #include <TNL/Algorithms/Sorting/detail/task.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 #ifdef __CUDACC__
 
@@ -233,6 +231,4 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
 
 #endif
 
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Sorting

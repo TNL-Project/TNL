@@ -10,8 +10,7 @@
 #include <TNL/Matrices/MatrixRowViewIterator.h>
 #include <TNL/Matrices/DenseMatrixElement.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief RowView is a simple structure for accessing rows of dense matrix.
@@ -81,6 +80,11 @@ public:
    using IteratorType = MatrixRowViewIterator< RowView >;
 
    /**
+    * \brief Type of constant iterator for the matrix row.
+    */
+   using ConstIteratorType = MatrixRowViewIterator< ConstRowView >;
+
+   /**
     * \brief Constructor with \e segmentView and \e values
     *
     * \param segmentView instance of SegmentViewType representing matrix row.
@@ -94,7 +98,7 @@ public:
     *
     * \return Size of the matrix row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -103,7 +107,7 @@ public:
     *
     * \return matrix row index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    getRowIndex() const;
 
@@ -114,7 +118,7 @@ public:
     *
     * \return constant reference to the matrix element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    getValue( IndexType column ) const;
 
@@ -125,7 +129,7 @@ public:
     *
     * \return non-constant reference to the matrix element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType&
    getValue( IndexType column );
 
@@ -136,7 +140,7 @@ public:
     *
     * \return the value of \e localIdx as column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getColumnIndex( IndexType localIdx ) const;
 
@@ -167,7 +171,7 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    begin();
 
@@ -176,7 +180,7 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IteratorType
    end();
 
@@ -185,8 +189,8 @@ public:
     *
     * \return iterator pointing at the beginning.
     */
-   __cuda_callable__
-   const IteratorType
+   [[nodiscard]] __cuda_callable__
+   ConstIteratorType
    cbegin() const;
 
    /**
@@ -194,8 +198,8 @@ public:
     *
     * \return iterator pointing at the end.
     */
-   __cuda_callable__
-   const IteratorType
+   [[nodiscard]] __cuda_callable__
+   ConstIteratorType
    cend() const;
 
 protected:
@@ -203,7 +207,6 @@ protected:
 
    ValuesViewType values;
 };
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/DenseMatrixRowView.hpp>

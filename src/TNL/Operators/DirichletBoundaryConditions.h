@@ -11,8 +11,7 @@
 #include <TNL/Functions/FunctionAdapter.h>
 #include <TNL/Functions/MeshFunction.h>
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 template< typename Mesh,
           typename Function = Functions::Analytic::Constant< Mesh::getMeshDimension(), typename Mesh::RealType >,
@@ -117,5 +116,4 @@ operator<<( std::ostream& str, const DirichletBoundaryConditions< Mesh, Function
    return str;
 }
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators

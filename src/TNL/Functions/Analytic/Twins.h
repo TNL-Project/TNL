@@ -11,9 +11,7 @@
 #include <TNL/Functions/Domain.h>
 #include <TNL/Devices/Cuda.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< typename Real, int Dimension >
 class TwinsBase : public Domain< Dimension, SpaceDomain >
@@ -43,11 +41,11 @@ public:
    Twins();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0, typename Point = PointType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const Point& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -66,11 +64,11 @@ public:
    Twins();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0, typename Point = PointType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const Point& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -89,11 +87,11 @@ public:
    Twins();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0, typename Point = PointType >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const Point& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -106,8 +104,6 @@ operator<<( std::ostream& str, const Twins< Dimension, Real >& f )
    return str;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic
 
 #include <TNL/Functions/Analytic/Twins_impl.h>

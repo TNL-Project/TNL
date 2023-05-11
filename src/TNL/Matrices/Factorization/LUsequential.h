@@ -11,9 +11,7 @@
 #include <TNL/Assert.h>
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Matrices {
-namespace Factorization {
+namespace TNL::Matrices::Factorization {
 
 template< typename Matrix >
 __cuda_callable__
@@ -78,6 +76,4 @@ LU_sequential_solve( const Matrix& A, const Vector1& b, Vector2& x )
    LU_sequential_solve_inplace( A, x );
 }
 
-}  // namespace Factorization
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::Factorization

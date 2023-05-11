@@ -13,8 +13,7 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Matrices/details/MultidiagonalMatrixIndexer.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Implementation of sparse multidiagonal matrix.
@@ -133,7 +132,7 @@ public:
     *
     * \return multidiagonal matrix view.
     */
-   ViewType
+   [[nodiscard]] ViewType
    getView();
 
    /**
@@ -141,7 +140,7 @@ public:
     *
     * \return multidiagonal matrix view.
     */
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const;
 
    /**
@@ -154,7 +153,7 @@ public:
     *
     * \return \ref String with the serialization type.
     */
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
    /**
@@ -164,7 +163,7 @@ public:
     *
     * \return \ref String with the serialization type.
     */
-   std::string
+   [[nodiscard]] std::string
    getSerializationTypeVirtual() const override;
 
    /**
@@ -172,7 +171,7 @@ public:
     *
     * \return Number of diagonals.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getDiagonalsCount() const;
 
@@ -202,7 +201,7 @@ public:
    void
    getCompressedRowLengths( Vector& rowLengths ) const;
 
-   [[deprecated]] IndexType
+   [[deprecated]] [[nodiscard]] IndexType
    getRowLength( IndexType row ) const;
 
    /**
@@ -213,7 +212,7 @@ public:
     *
     * \return number of non-zero matrix elements.
     */
-   IndexType
+   [[nodiscard]] IndexType
    getNonzeroElementsCount() const override;
 
    /**
@@ -229,7 +228,7 @@ public:
     * \return \e true if both matrices are identical and \e false otherwise.
     */
    template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_ >
-   bool
+   [[nodiscard]] bool
    operator==( const MultidiagonalMatrixView< Real_, Device_, Index_, Organization_ >& matrix ) const;
 
    /**
@@ -245,7 +244,7 @@ public:
     * \return \e true if both matrices are NOT identical and \e false otherwise.
     */
    template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_ >
-   bool
+   [[nodiscard]] bool
    operator!=( const MultidiagonalMatrixView< Real_, Device_, Index_, Organization_ >& matrix ) const;
 
    /**
@@ -262,7 +261,7 @@ public:
     *
     * See \ref MultidiagonalMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RowView
    getRow( IndexType rowIdx );
 
@@ -280,7 +279,7 @@ public:
     *
     * See \ref MultidiagonalMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstRowView
    getRow( IndexType rowIdx ) const;
 
@@ -362,7 +361,7 @@ public:
     * \par Output
     * \include MultidiagonalMatrixViewExample_getElement.out
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getElement( IndexType row, IndexType column ) const;
 
@@ -884,7 +883,7 @@ public:
     *
     * \return constant reference to the indexer.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexerType&
    getIndexer() const;
 
@@ -893,7 +892,7 @@ public:
     *
     * \return non-constant reference to the indexer.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexerType&
    getIndexer();
 
@@ -904,7 +903,7 @@ public:
     *
     * \return value of the padding index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getPaddingIndex() const;
 
@@ -916,7 +915,6 @@ protected:
    IndexerType indexer;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/MultidiagonalMatrixView.hpp>

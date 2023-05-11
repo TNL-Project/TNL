@@ -14,8 +14,7 @@
 
    #include <TNL/Containers/Vector.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Wrapper for Hypre's sequential vector.
@@ -108,7 +107,7 @@ public:
       reset();
    }
 
-   const RealType*
+   [[nodiscard]] const RealType*
    getData() const noexcept
    {
       if( v == nullptr )
@@ -116,7 +115,7 @@ public:
       return hypre_VectorData( v );
    }
 
-   RealType*
+   [[nodiscard]] RealType*
    getData() noexcept
    {
       if( v == nullptr )
@@ -124,7 +123,7 @@ public:
       return hypre_VectorData( v );
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getSize() const
    {
       if( v == nullptr )
@@ -132,7 +131,7 @@ public:
       return hypre_VectorSize( v );
    }
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const
    {
       if( v == nullptr )
@@ -140,7 +139,7 @@ public:
       return { getData(), getSize() };
    }
 
-   ViewType
+   [[nodiscard]] ViewType
    getView()
    {
       if( v == nullptr )
@@ -262,7 +261,6 @@ protected:
    bool owns_handle = true;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #endif  // HAVE_HYPRE

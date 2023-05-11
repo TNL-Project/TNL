@@ -14,10 +14,7 @@
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
-namespace Preconditioners {
+namespace TNL::Solvers::Linear::Preconditioners {
 
 // implementation template
 template< typename Matrix, typename Real, typename Device, typename Index >
@@ -176,9 +173,6 @@ public:
    }
 };
 
-}  // namespace Preconditioners
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear::Preconditioners
 
 #include "ILUT.hpp"

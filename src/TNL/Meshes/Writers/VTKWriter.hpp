@@ -13,9 +13,7 @@
 #include <TNL/Meshes/Writers/detail/VTKMeshEntitiesWriter.h>
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
 VTKWriter< Mesh >::VTKWriter( std::ostream& str, VTK::FileFormat format ) : str( str.rdbuf() ), format( format )
@@ -185,6 +183,4 @@ VTKWriter< Mesh >::writeHeader()
    headerWritten = true;
 }
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers

@@ -11,8 +11,7 @@
 #include <TNL/Matrices/TridiagonalMatrix.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::TridiagonalMatrix() = default;
@@ -591,5 +590,4 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getPaddin
    return this->view.getPaddingIndex();
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

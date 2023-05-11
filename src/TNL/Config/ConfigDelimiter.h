@@ -10,26 +10,24 @@
 
 #include <TNL/Config/ConfigEntryBase.h>
 
-namespace TNL {
-namespace Config {
+namespace TNL::Config {
 
 class ConfigDelimiter : public ConfigEntryBase
 {
 public:
    ConfigDelimiter( const std::string& delimiter ) : ConfigEntryBase( "", delimiter, false ) {}
 
-   bool
+   [[nodiscard]] bool
    isDelimiter() const override
    {
       return true;
    }
 
-   std::string
+   [[nodiscard]] std::string
    getUIEntryType() const override
    {
       return "";
    }
 };
 
-}  // namespace Config
-}  // namespace TNL
+}  // namespace TNL::Config

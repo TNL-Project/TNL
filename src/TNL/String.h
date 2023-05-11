@@ -88,13 +88,13 @@ public:
    /**
     * \brief Returns the number of characters in given string. Equivalent to \ref getSize.
     */
-   int
+   [[nodiscard]] int
    getLength() const;
 
    /**
     * \brief Returns the number of characters in given string.
     */
-   int
+   [[nodiscard]] int
    getSize() const;
 
    /**
@@ -105,7 +105,7 @@ public:
     * \par Output
     * \include StringExampleGetAllocatedSize.out
     */
-   int
+   [[nodiscard]] int
    getAllocatedSize() const;
 
    /**
@@ -128,19 +128,19 @@ public:
     *
     * It returns the content of the given string as a constant pointer to char.
     */
-   const char*
+   [[nodiscard]] const char*
    getString() const;
 
    /**
     * \brief Returns pointer to data. Alias of \ref std::string::data.
     */
-   const char*
+   [[nodiscard]] const char*
    getData() const;
 
    /**
     * \brief Returns pointer to data. Alias of \ref std::string::data.
     */
-   char*
+   [[nodiscard]] char*
    getData();
 
    /**
@@ -150,7 +150,7 @@ public:
     * the character at position \e i in given string.
     * The character can not be changed be user.
     */
-   const char&
+   [[nodiscard]] const char&
    operator[]( int i ) const;
 
    /**
@@ -159,7 +159,7 @@ public:
     * It returns the character at the position \e i in given string as
     * a modifiable reference.
     */
-   char&
+   [[nodiscard]] char&
    operator[]( int i );
 
    /**
@@ -185,7 +185,7 @@ public:
     *
     * It returns \e true when the given string is equal to \e str. Otherwise it returns \e false.
     */
-   bool
+   [[nodiscard]] bool
    operator==( char str ) const;
 
    /**
@@ -193,7 +193,7 @@ public:
     *
     * It returns \e true when the given string is NOT equal to \e str. Otherwise it returns \e true.
     */
-   bool
+   [[nodiscard]] bool
    operator!=( char str ) const;
 
    /**
@@ -219,7 +219,7 @@ public:
     *
     * It returns \e true when the given string is equal to \e str. Otherwise it returns \e false.
     */
-   bool
+   [[nodiscard]] bool
    operator==( const char* str ) const;
 
    /**
@@ -227,7 +227,7 @@ public:
     *
     * It returns \e true when the given string is NOT equal to \e str. Otherwise it returns \e true.
     */
-   bool
+   [[nodiscard]] bool
    operator!=( const char* str ) const;
 
    /**
@@ -253,7 +253,7 @@ public:
     *
     * It returns \e true when the given string is equal to \e str. Otherwise it returns \e false.
     */
-   bool
+   [[nodiscard]] bool
    operator==( const std::string& str ) const;
 
    /**
@@ -261,7 +261,7 @@ public:
     *
     * It returns \e true when the given string is NOT equal to \e str. Otherwise it returns \e true.
     */
-   bool
+   [[nodiscard]] bool
    operator!=( const std::string& str ) const;
 
    /**
@@ -287,7 +287,7 @@ public:
     *
     * It returns \e true when the given string is equal to \e str. Otherwise it returns \e false.
     */
-   bool
+   [[nodiscard]] bool
    operator==( const String& str ) const;
 
    /**
@@ -295,7 +295,7 @@ public:
     *
     * It returns \e true when the given string is NOT equal to \e str. Otherwise it returns \e true.
     */
-   bool
+   [[nodiscard]] bool
    operator!=( const String& str ) const;
 
    /**
@@ -330,7 +330,7 @@ public:
     * \par Output
     * \include StringExampleReplace.out
     */
-   String
+   [[nodiscard]] String
    replace( const String& pattern, const String& replaceWith, int count = 0 ) const;
 
    /**
@@ -345,7 +345,7 @@ public:
     * \par Output
     * \include StringExampleStrip.out
     */
-   String
+   [[nodiscard]] String
    strip( char strip = ' ' ) const;
 
    /**
@@ -365,19 +365,19 @@ public:
     * \par Output
     * \include StringExampleSplit.out
     */
-   std::vector< String >
+   [[nodiscard]] std::vector< String >
    split( char separator = ' ', SplitSkip skipEmpty = SplitSkip::NoSkip ) const;
 
    /**
     * \brief Checks if the string starts with given prefix.
     */
-   bool
+   [[nodiscard]] bool
    startsWith( const String& prefix ) const;
 
    /**
     * \brief Checks if the string ends with given suffix.
     */
-   bool
+   [[nodiscard]] bool
    endsWith( const String& suffix ) const;
 };
 
@@ -405,7 +405,7 @@ operator+( const std::string& string1, const String& string2 );
  * \tparam T can be any type fir which operator << is defined.
  */
 template< typename T >
-String
+[[nodiscard]] String
 convertToString( const T& value )
 {
    std::stringstream str;
@@ -419,7 +419,7 @@ convertToString( const T& value )
  * The boolean type is converted to 'true' or 'false'.
  */
 template<>
-inline String
+[[nodiscard]] inline String
 convertToString( const bool& value )
 {
    if( value )

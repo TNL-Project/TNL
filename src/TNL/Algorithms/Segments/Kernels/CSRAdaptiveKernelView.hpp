@@ -15,9 +15,7 @@
 #include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelBlockDescriptor.h>
 #include <TNL/Algorithms/Segments/Kernels/details/CSRAdaptiveKernelParameters.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename BlocksView,
           typename Offsets,
@@ -270,6 +268,4 @@ CSRAdaptiveKernelView< Index, Device >::printBlocks( int idx ) const
    }
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/VTKTraits.h>
 
-namespace TNL {
-namespace Meshes {
-namespace VTK {
+namespace TNL::Meshes::VTK {
 
 template< EntityShape GeneralShape >
 struct EntityShapeGroup
@@ -80,6 +78,4 @@ struct EntityShapeGroupElement< EntityShape::Polyhedron, 5 >
    static constexpr EntityShape shape = EntityShape::HexagonalPrism;
 };
 
-}  // namespace VTK
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::VTK

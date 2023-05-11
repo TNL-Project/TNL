@@ -11,9 +11,7 @@
 #include <TNL/Containers/ndarray/Executors.h>
 #include <TNL/Cuda/StreamPool.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 template< typename Permutation, typename LevelTag = IndexTag< 0 > >
 struct SequentialBoundaryExecutor_inner
@@ -500,6 +498,4 @@ struct BoundaryExecutorDispatcher< Permutation, Devices::Cuda >
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

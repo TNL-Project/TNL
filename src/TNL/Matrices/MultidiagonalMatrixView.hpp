@@ -11,8 +11,7 @@
 #include <TNL/Matrices/MultidiagonalMatrixView.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
@@ -694,5 +693,4 @@ MultidiagonalMatrixView< Real, Device, Index, Organization >::getPaddingIndex() 
    return -1;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

@@ -10,9 +10,7 @@ using namespace TNL;
 
 struct MeshConverterConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off support for float and long double.
@@ -91,9 +89,7 @@ struct MeshConfigTemplateTag< MeshConverterConfigTag >
    };
 };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 // overload for meshes
 template< typename Mesh >

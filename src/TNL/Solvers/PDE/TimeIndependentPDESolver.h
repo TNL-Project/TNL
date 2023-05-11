@@ -24,9 +24,7 @@
 
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Problem >
 class TimeIndependentPDESolver : public PDESolver< typename Problem::RealType, typename Problem::IndexType >
@@ -76,8 +74,6 @@ protected:
    ProblemType* problem;
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE
 
 #include <TNL/Solvers/PDE/TimeIndependentPDESolver.hpp>

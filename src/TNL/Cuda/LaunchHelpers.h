@@ -12,8 +12,7 @@
 #include <TNL/Math.h>
 #include <TNL/Cuda/DummyDefs.h>
 
-namespace TNL {
-namespace Cuda {
+namespace TNL::Cuda {
 
 [[deprecated( "this function is deprecated - use either getMaxGridXSize(), getMaxGridYSize(), or "
               "getMaxGridZSize()" )]] inline constexpr std::size_t
@@ -116,9 +115,9 @@ setupThreads( const dim3& blockSize,
               long long int yThreads = 0,
               long long int zThreads = 0 )
 {
-   blocksCount.x = max( 1, xThreads / blockSize.x + ( xThreads % blockSize.x != 0 ) );
-   blocksCount.y = max( 1, yThreads / blockSize.y + ( yThreads % blockSize.y != 0 ) );
-   blocksCount.z = max( 1, zThreads / blockSize.z + ( zThreads % blockSize.z != 0 ) );
+   blocksCount.x = max( 1, xThreads / blockSize.x + static_cast< long long int >( xThreads % blockSize.x != 0 ) );
+   blocksCount.y = max( 1, yThreads / blockSize.y + static_cast< long long int >( yThreads % blockSize.y != 0 ) );
+   blocksCount.z = max( 1, zThreads / blockSize.z + static_cast< long long int >( zThreads % blockSize.z != 0 ) );
 
    /****
     * TODO: Fix the following:
@@ -133,9 +132,12 @@ setupThreads( const dim3& blockSize,
    gridsCount.y = blocksCount.y / properties.maxGridSize[ 1 ] + ( blocksCount.y % properties.maxGridSize[ 1 ] != 0 );
    gridsCount.z = blocksCount.z / properties.maxGridSize[ 2 ] + ( blocksCount.z % properties.maxGridSize[ 2 ] != 0 );
    */
-   gridsCount.x = blocksCount.x / getMaxGridXSize() + ( blocksCount.x % getMaxGridXSize() != 0 );
-   gridsCount.y = blocksCount.y / getMaxGridYSize() + ( blocksCount.y % getMaxGridYSize() != 0 );
-   gridsCount.z = blocksCount.z / getMaxGridZSize() + ( blocksCount.z % getMaxGridZSize() != 0 );
+   gridsCount.x =
+      blocksCount.x / getMaxGridXSize() + static_cast< unsigned long int >( blocksCount.x % getMaxGridXSize() != 0 );
+   gridsCount.y =
+      blocksCount.y / getMaxGridYSize() + static_cast< unsigned long int >( blocksCount.y % getMaxGridYSize() != 0 );
+   gridsCount.z =
+      blocksCount.z / getMaxGridZSize() + static_cast< unsigned long int >( blocksCount.z % getMaxGridZSize() != 0 );
 }
 
 inline void
@@ -200,5 +202,4 @@ printThreadsSetup( const dim3& blockSize,
        << " Grids count: " << gridsCount << std::endl;
 }
 
-}  // namespace Cuda
-}  // namespace TNL
+}  // namespace TNL::Cuda

@@ -11,9 +11,7 @@
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/Segments/detail/LambdaAdapter.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Index, typename Device, int ThreadsInBlock = 128 >
 struct CSRHybridKernel
@@ -30,15 +28,15 @@ struct CSRHybridKernel
    void
    reset();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
-   static TNL::String
+   [[nodiscard]] static TNL::String
    getKernelType();
 
    template< typename OffsetsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
@@ -55,8 +53,6 @@ protected:
    int threadsPerSegment = 0;
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/Kernels/CSRHybridKernel.hpp>

@@ -10,8 +10,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Accessor for sparse matrix elements.
@@ -28,7 +27,7 @@ public:
     *
     * \return \e true if the matrix is stored as binary and \e false otherwise.
     */
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isBinary()
    {
       return std::is_same< std::remove_const_t< Real >, bool >::value;
@@ -62,7 +61,7 @@ public:
     *
     * \return reference on matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType&
    value()
    {
@@ -74,7 +73,7 @@ public:
     *
     * \return constant reference on matrix element value.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const RealType&
    value() const
    {
@@ -86,7 +85,7 @@ public:
     *
     * \return constant reference on matrix element column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    rowIndex() const
    {
@@ -98,7 +97,7 @@ public:
     *
     * \return reference on matrix element column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType&
    columnIndex()
    {
@@ -110,7 +109,7 @@ public:
     *
     * \return constant reference on matrix element column index.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    columnIndex() const
    {
@@ -122,7 +121,7 @@ public:
     *
     * \return constant reference on the rank of the non-zero matrix element in the row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const IndexType&
    localIndex() const
    {
@@ -141,5 +140,4 @@ protected:
    IndexType localIdx;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

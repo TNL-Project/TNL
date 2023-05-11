@@ -14,8 +14,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 template< typename Device >
 struct Multireduction;
@@ -89,7 +88,6 @@ struct Multireduction< Devices::Cuda >
    reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int n, Result* hostResult );
 };
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms
 
 #include "Multireduction.hpp"

@@ -15,8 +15,7 @@
 
 #include <TNL/TypeInfo.h>  // TNL::detail::demangle
 
-namespace TNL {
-namespace Debugging {
+namespace TNL::Debugging {
 
 /*
  * Print a demangled stack backtrace of the caller function to FILE* out.
@@ -87,5 +86,4 @@ printStackBacktrace( std::ostream& out = std::cout, unsigned int max_frames = 64
 #endif
 }
 
-}  // namespace Debugging
-}  // namespace TNL
+}  // namespace TNL::Debugging

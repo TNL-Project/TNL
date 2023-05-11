@@ -12,8 +12,7 @@
 #include <TNL/Meshes/TypeResolver/MeshTypeResolver.h>
 #include <TNL/Meshes/VTKTraits.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename ConfigTag, typename Device >
 template< typename Reader, typename Functor >
@@ -195,5 +194,4 @@ MeshTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveTermina
    }
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

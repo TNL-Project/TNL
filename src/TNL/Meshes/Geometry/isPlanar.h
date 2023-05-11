@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/Geometry/getEntityMeasure.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 // Polygon
 template< typename MeshConfig, typename Device, std::enable_if_t< MeshConfig::spaceDimension == 3, bool > = true >
@@ -34,5 +33,4 @@ isPlanar( const Mesh< MeshConfig, Device >& mesh,
    return true;
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

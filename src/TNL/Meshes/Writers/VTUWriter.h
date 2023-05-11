@@ -10,9 +10,7 @@
 
 #include <TNL/Meshes/VTKTraits.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
 class VTUWriter
@@ -100,8 +98,6 @@ protected:
    closePiece();
 };
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers
 
 #include <TNL/Meshes/Writers/VTUWriter.hpp>

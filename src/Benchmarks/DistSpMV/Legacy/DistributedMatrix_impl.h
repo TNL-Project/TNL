@@ -4,9 +4,7 @@
 
 #include "DistributedMatrix.h"
 
-namespace TNL {
-namespace Matrices {
-namespace Legacy {
+namespace TNL::Matrices::Legacy {
 
 template< typename Matrix >
 DistributedMatrix< Matrix >::
@@ -282,6 +280,4 @@ vectorProduct( const InVector& inVector,
    }
 }
 
-} // namespace Legacy
-} // namespace Matrices
-} // namespace TNL
+} // namespace TNL::Matrices::Legacy

@@ -11,8 +11,7 @@
 #include <TNL/Operators/Operator.h>
 #include <TNL/Operators/ExactIdentityOperator.h>
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 template< int Dimension, typename InnerOperator = ExactIdentityOperator< Dimension > >
 class ExactFunctionInverseOperator : public Functions::Domain< Dimension, Functions::SpaceDomain >
@@ -75,5 +74,4 @@ protected:
    InnerOperator innerOperator;
 };
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators

@@ -12,8 +12,7 @@
 #include <TNL/Meshes/GridDetails/GridEntityMeasureGetter.h>
 #include <TNL/Meshes/GridDetails/NeighbourGridEntityGetter.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< class Grid, int EntityDimension >
 constexpr int
@@ -241,5 +240,4 @@ operator<<( std::ostream& str, const GridEntity< Grid, EntityDimension >& entity
    return str;
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

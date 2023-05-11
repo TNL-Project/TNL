@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Topologies/SubentityVertexMap.h>
 #include <TNL/Meshes/Topologies/Vertex.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 template< int dimension_ >
 struct Simplex
@@ -169,6 +167,4 @@ public:
 
 }  // namespace SimplexDetails
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

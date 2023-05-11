@@ -15,8 +15,7 @@
 #include <TNL/Problems/MeanCurvatureFlowProblem.h>
 #include <TNL/Operators/operator-Q/tnlOneSideDiffOperatorQ.h>
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename Mesh,
           typename BoundaryCondition,
@@ -38,7 +37,6 @@ public:
    setup( const Config::ParameterContainer& parameters );
 };
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems
 
 #include <TNL/Problems/MeanCurvatureFlowEocProblem_impl.h>

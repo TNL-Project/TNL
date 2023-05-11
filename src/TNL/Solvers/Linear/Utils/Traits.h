@@ -15,9 +15,7 @@
 #include <TNL/Containers/DistributedVectorView.h>
 #include <TNL/Matrices/DistributedMatrix.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 template< typename Matrix >
 struct Traits
@@ -147,6 +145,4 @@ struct Traits< Matrices::DistributedMatrix< Matrix > >
    }
 };
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear

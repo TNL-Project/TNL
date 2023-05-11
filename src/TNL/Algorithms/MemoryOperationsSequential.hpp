@@ -8,8 +8,7 @@
 
 #include <TNL/Algorithms/MemoryOperations.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 template< typename Element, typename Index >
 __cuda_callable__
@@ -120,5 +119,4 @@ MemoryOperations< Devices::Sequential >::compare( const Element1* destination, c
    return true;
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

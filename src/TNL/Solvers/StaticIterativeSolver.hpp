@@ -10,8 +10,7 @@
 
 #include "StaticIterativeSolver.h"
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 template< typename Real, typename Index >
 void
@@ -207,5 +206,4 @@ StaticIterativeSolver< Real, Index >::getResidue() const
    return this->currentResidue;
 }
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

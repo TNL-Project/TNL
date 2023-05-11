@@ -17,8 +17,7 @@
 #include <cstddef>    // std::nullptr_t
 #include <algorithm>  // swap
 
-namespace TNL {
-namespace Pointers {
+namespace TNL::Pointers {
 
 /**
  * \brief Specialization of the \ref SharedPointer for the host system.
@@ -269,7 +268,7 @@ public:
     * \return constant reference to the object image on given device.
     */
    template< typename Device = Devices::Host >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Object&
    getData() const
    {
@@ -288,7 +287,7 @@ public:
     * \return constant reference to the object image on given device.
     */
    template< typename Device = Devices::Host >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Object&
    modifyData()
    {
@@ -457,5 +456,4 @@ protected:
    PointerData* pd;
 };
 
-}  // namespace Pointers
-}  // namespace TNL
+}  // namespace TNL::Pointers

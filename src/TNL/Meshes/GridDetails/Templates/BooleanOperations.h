@@ -8,9 +8,7 @@
 
 #include <type_traits>
 
-namespace TNL {
-namespace Meshes {
-namespace Templates {
+namespace TNL::Meshes::Templates {
 
 /**
  * One of the possible implementation of the conjuction operator.
@@ -54,6 +52,4 @@ struct disjunction< Head, Tail... > : std::conditional_t< bool( Head::value ), H
 template< class... Types >
 constexpr bool disjunction_v = disjunction< Types... >::value;
 
-}  // namespace Templates
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Templates

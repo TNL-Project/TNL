@@ -19,8 +19,7 @@
    #include <TNL/Matrices/HypreCSRMatrix.h>
    #include <TNL/Matrices/HypreGenerateDiagAndOffd.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Wrapper for Hypre's sequential CSR matrix.
@@ -93,7 +92,7 @@ public:
     * `MPI_COMM_SELF` communicator. The data is not copied, but
     * \e HypreParCSRMatrix keeps a non-owning reference.
     */
-   static HypreParCSRMatrix
+   [[nodiscard]] static HypreParCSRMatrix
    wrapCSRMatrix( hypre_CSRMatrix* matrix )
    {
       TNL_ASSERT_TRUE( matrix, "invalid input" );
@@ -157,7 +156,7 @@ public:
     *                          the number of ranks in the \e communicator.
     * \param matrix Matrix allocated on the master rank to be distributed.
     */
-   static HypreParCSRMatrix
+   [[nodiscard]] static HypreParCSRMatrix
    fromMasterRank( MPI_Comm communicator, IndexType* global_row_starts, IndexType* global_col_starts, hypre_CSRMatrix* matrix )
    {
       TNL_ASSERT_TRUE( global_row_starts, "invalid input" );
@@ -202,7 +201,7 @@ public:
     * \param b The values of the vector are unused, but its distribution is
     *          used for the distribution of the matrix **rows**.
     */
-   static HypreParCSRMatrix
+   [[nodiscard]] static HypreParCSRMatrix
    fromMasterRank( hypre_CSRMatrix* matrix, hypre_ParVector* x, hypre_ParVector* b )
    {
       const MPI_Comm communicator = hypre_ParVectorComm( x );
@@ -253,7 +252,7 @@ public:
     *        number of rows must match the size of \e local_row_range and the
     *        column indices must span the whole `[0, global_cols)` range.
     */
-   static HypreParCSRMatrix
+   [[nodiscard]] static HypreParCSRMatrix
    fromLocalBlocks( MPI_Comm communicator,
                     IndexType global_num_rows,
                     IndexType global_num_cols,
@@ -328,7 +327,7 @@ public:
       reset();
    }
 
-   LocalRangeType
+   [[nodiscard]] LocalRangeType
    getLocalRowRange() const
    {
       if( m == nullptr )
@@ -336,7 +335,7 @@ public:
       return { hypre_ParCSRMatrixRowStarts( m )[ 0 ], hypre_ParCSRMatrixRowStarts( m )[ 1 ] };
    }
 
-   LocalRangeType
+   [[nodiscard]] LocalRangeType
    getLocalColumnRange() const
    {
       if( m == nullptr )
@@ -344,7 +343,7 @@ public:
       return { hypre_ParCSRMatrixColStarts( m )[ 0 ], hypre_ParCSRMatrixColStarts( m )[ 1 ] };
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getRows() const
    {
       if( m == nullptr )
@@ -352,7 +351,7 @@ public:
       return hypre_ParCSRMatrixGlobalNumRows( m );
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getColumns() const
    {
       if( m == nullptr )
@@ -360,7 +359,7 @@ public:
       return hypre_ParCSRMatrixGlobalNumCols( m );
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getNonzeroElementsCount() const
    {
       if( m == nullptr )
@@ -368,7 +367,7 @@ public:
       return hypre_ParCSRMatrixNumNonzeros( m );
    }
 
-   MPI_Comm
+   [[nodiscard]] MPI_Comm
    getCommunicator() const
    {
       if( m == nullptr )
@@ -376,7 +375,7 @@ public:
       return hypre_ParCSRMatrixComm( m );
    }
 
-   MatrixType
+   [[nodiscard]] MatrixType
    getDiagonalBlock()
    {
       if( m == nullptr )
@@ -384,7 +383,7 @@ public:
       return HypreCSRMatrix( hypre_ParCSRMatrixDiag( m ), false );
    }
 
-   MatrixType
+   [[nodiscard]] MatrixType
    getOffdiagonalBlock()
    {
       if( m == nullptr )
@@ -392,7 +391,7 @@ public:
       return HypreCSRMatrix( hypre_ParCSRMatrixOffd( m ), false );
    }
 
-   Containers::VectorView< HYPRE_Int, HYPRE_Device, HYPRE_Int >
+   [[nodiscard]] Containers::VectorView< HYPRE_Int, HYPRE_Device, HYPRE_Int >
    getOffdiagonalColumnsMapping()
    {
       if( m == nullptr )
@@ -403,7 +402,7 @@ public:
    }
 
    //! \brief Constructs a local matrix by merging the diagonal and off-diagonal blocks.
-   HypreCSRMatrix
+   [[nodiscard]] HypreCSRMatrix
    getMergedLocalMatrix() const
    {
       hypre_CSRMatrix* local_A = hypre_MergeDiagAndOffd( m );
@@ -544,7 +543,6 @@ protected:
    bool owns_col_map_offd = true;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #endif  // HAVE_HYPRE

@@ -11,8 +11,7 @@
 #include <TNL/Meshes/TypeResolver/resolveDistributedMeshType.h>
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename ConfigTag, typename Device, typename Functor >
 bool
@@ -100,5 +99,4 @@ loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh
    }
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

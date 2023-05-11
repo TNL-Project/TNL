@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
 class AsymptoteWriter
@@ -136,6 +134,4 @@ public:
    }
 };
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers

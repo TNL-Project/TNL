@@ -9,9 +9,7 @@ using namespace TNL;
 
 struct DecomposeGridConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn on all grids.
@@ -23,9 +21,7 @@ template<> struct GridRealTag< DecomposeGridConfigTag, long double > { static co
 template<> struct GridIndexTag< DecomposeGridConfigTag, int > { static constexpr bool enabled = true; };
 template<> struct GridIndexTag< DecomposeGridConfigTag, long int > { static constexpr bool enabled = true; };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 
 void configSetup( Config::ConfigDescription& config )

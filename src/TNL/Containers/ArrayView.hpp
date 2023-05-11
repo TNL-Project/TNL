@@ -19,8 +19,7 @@
 
 #include "ArrayView.h"
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 // explicit initialization by raw data pointer and size
 template< typename Value, typename Device, typename Index >
@@ -397,5 +396,4 @@ operator>>( File&& file, ArrayView< Value, Device, Index > view )
    return f >> view;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

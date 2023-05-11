@@ -15,9 +15,7 @@
 #include <TNL/Endianness.h>
 #include <TNL/Meshes/EntityShapeGroupChecker.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 class VTKReader : public MeshReader
 {
@@ -382,13 +380,13 @@ public:
       meshType = "Meshes::Mesh";
    }
 
-   VariantVector
+   [[nodiscard]] VariantVector
    readPointData( const std::string& arrayName ) override
    {
       return readPointOrCellData( "POINT_DATA", arrayName );
    }
 
-   VariantVector
+   [[nodiscard]] VariantVector
    readCellData( const std::string& arrayName ) override
    {
       return readPointOrCellData( "CELL_DATA", arrayName );
@@ -764,7 +762,7 @@ protected:
       str.clear();
    }
 
-   VariantVector
+   [[nodiscard]] VariantVector
    readPointOrCellData( std::string sectionName, const std::string& arrayName )
    {
       // NOTE: we must open the file in binary mode to prevent CR/CRLF conversions on Windows
@@ -825,7 +823,7 @@ protected:
    }
 
    template< typename T >
-   std::vector< T >
+   [[nodiscard]] std::vector< T >
    readDataArray( std::istream& str, std::int32_t values )
    {
       std::vector< T > vector( values );
@@ -868,7 +866,7 @@ protected:
       return value;
    }
 
-   static inline std::string
+   [[nodiscard]] static inline std::string
    rstrip_cr( const std::string& string )
    {
       const auto end = string.find_last_not_of( '\r' );
@@ -876,6 +874,4 @@ protected:
    }
 };
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

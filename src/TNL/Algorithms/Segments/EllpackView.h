@@ -13,9 +13,7 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/SegmentsPrinting.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 enum EllpackKernelType
 {
@@ -36,12 +34,12 @@ class EllpackView
 public:
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getAlignment()
    {
       return Alignment;
    }
-   static constexpr ElementsOrganization
+   [[nodiscard]] static constexpr ElementsOrganization
    getOrganization()
    {
       return Organization;
@@ -54,7 +52,7 @@ public:
    using ConstViewType = ViewType;
    using SegmentViewType = SegmentView< IndexType, Organization >;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    havePadding()
    {
       return true;
@@ -75,44 +73,44 @@ public:
    __cuda_callable__
    EllpackView( EllpackView&& ellpackView ) noexcept = default;
 
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
-   static String
+   [[nodiscard]] static String
    getSegmentsType();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
    /**
     * \brief Number segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentsCount() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentSize( IndexType segmentIdx ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getStorageSize() const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( Index segmentIdx, Index localIdx ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
@@ -180,8 +178,6 @@ operator<<( std::ostream& str, const EllpackView< Device, Index, Organization, A
    return printSegments( str, ellpack );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/EllpackView.hpp>

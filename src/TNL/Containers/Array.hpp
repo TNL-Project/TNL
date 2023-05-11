@@ -17,8 +17,7 @@
 
 #include "Array.h"
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Value, typename Device, typename Index, typename Allocator >
 Array< Value, Device, Index, Allocator >::Array( Array&& array ) noexcept
@@ -618,5 +617,4 @@ operator>>( File&& file, Array< Value, Device, Index, Allocator >& array )
    return f >> array;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

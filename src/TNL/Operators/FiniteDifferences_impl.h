@@ -8,8 +8,7 @@
 
 #include <TNL/Operators/FiniteDifferences.h>
 
-namespace TNL {
-namespace Operators {
+namespace TNL::Operators {
 
 template< typename Real, typename Device, typename Index >
 template< typename GridFunction,
@@ -213,7 +212,6 @@ FiniteDifferences< Meshes::Grid< 3, Real, Device, Index > >::getDifference( cons
    }
 }
 
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators
 
 #include <TNL/Operators/FiniteDifferences_impl.h>

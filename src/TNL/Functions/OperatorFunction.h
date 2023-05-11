@@ -11,8 +11,7 @@
 #include <TNL/Functions/MeshFunction.h>
 #include <TNL/Solvers/PDE/BoundaryConditionsSetter.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 /***
  * This class evaluates given operator on given preimageFunction. If the flag
@@ -481,5 +480,4 @@ protected:
    Operator operator_;
 };
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

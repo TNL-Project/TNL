@@ -11,9 +11,7 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
 template< typename SizesContainer >
@@ -305,6 +303,4 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::print( 
    return SegmentsPrinter< SlicedEllpack, Fetch >( *this, fetch );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

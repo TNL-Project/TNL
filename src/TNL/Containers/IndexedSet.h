@@ -9,8 +9,7 @@
 #include <map>
 #include <ostream>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< class Key,
           class Index,
@@ -31,16 +30,16 @@ public:
    void
    clear();
 
-   size_type
+   [[nodiscard]] size_type
    size() const;
 
    Index
    insert( const Key& key );
 
-   bool
+   [[nodiscard]] bool
    find( const Key& key, Index& index ) const;
 
-   size_type
+   [[nodiscard]] size_type
    count( const Key& key ) const;
 
    size_type
@@ -54,7 +53,6 @@ template< typename Element, typename Index >
 std::ostream&
 operator<<( std::ostream& str, IndexedSet< Element, Index >& set );
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/IndexedSet_impl.h>

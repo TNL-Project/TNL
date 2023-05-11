@@ -8,9 +8,7 @@ using namespace TNL;
 
 struct MeshTriangulatorConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off all grids.
@@ -85,9 +83,7 @@ struct MeshConfigTemplateTag< MeshTriangulatorConfigTag >
    };
 };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 template< typename Mesh >
 auto getDecomposedMeshHelper( const Mesh& mesh, const std::string& decompositionType )

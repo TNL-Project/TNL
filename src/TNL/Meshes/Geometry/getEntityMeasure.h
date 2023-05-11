@@ -22,8 +22,7 @@
 #include <TNL/Meshes/Topologies/Pyramid.h>
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename Grid >
 __cuda_callable__
@@ -345,5 +344,4 @@ getEntityMeasure( const Mesh< MeshConfig, Device >& mesh,
    return volume;
 }
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

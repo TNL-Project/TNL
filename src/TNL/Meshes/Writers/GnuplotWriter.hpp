@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Writers/GnuplotWriter.h>
 #include <TNL/Meshes/Traits.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
 GnuplotWriter< Mesh >::GnuplotWriter( std::ostream& str ) : str( str )
@@ -116,6 +114,4 @@ GnuplotWriter< Mesh >::write( std::ostream& str, const Containers::StaticVector<
    str << d.x() << " " << d.y() << " " << d.z() << " ";
 }
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers

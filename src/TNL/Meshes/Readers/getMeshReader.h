@@ -17,9 +17,7 @@
 #include <TNL/Meshes/Readers/PVTIReader.h>
 #include <TNL/Meshes/Readers/FPMAReader.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 inline std::shared_ptr< MeshReader >
 getMeshReader( const std::string& fileName, const std::string& fileFormat )
@@ -57,6 +55,4 @@ getMeshReader( const std::string& fileName, const std::string& fileFormat )
    return nullptr;
 }
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

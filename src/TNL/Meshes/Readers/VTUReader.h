@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Readers/XMLVTK.h>
 #include <TNL/Meshes/EntityShapeGroupChecker.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Readers {
+namespace TNL::Meshes::Readers {
 
 class VTUReader : public XMLVTK
 {
@@ -275,6 +273,4 @@ public:
    }
 };
 
-}  // namespace Readers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Readers

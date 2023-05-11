@@ -14,9 +14,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 template< typename Device >
 struct Reduction;
@@ -57,8 +55,6 @@ struct Reduction< Devices::Cuda >
    reduceWithArgument( Index begin, Index end, Fetch&& fetch, Reduce&& reduce, const Result& identity );
 };
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail
 
 #include <TNL/Algorithms/detail/Reduction.hpp>

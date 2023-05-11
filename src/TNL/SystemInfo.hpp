@@ -95,8 +95,7 @@ inline String
 SystemInfo::getOnlineCPUs()
 {
 #if ! defined( _WIN32 ) && ! defined( __APPLE__ )
-   std::string online = readFile< std::string >( "/sys/devices/system/cpu/online" );
-   return online;
+   return readFile< std::string >( "/sys/devices/system/cpu/online" );
 #else
    return "";
 #endif
@@ -170,7 +169,7 @@ SystemInfo::getCPUCacheSizes( int cpu_id )
          break;
 
       const int level = readFile< int >( cache + "/level" );
-      const std::string type = readFile< std::string >( cache + "/type" );
+      const auto type = readFile< std::string >( cache + "/type" );
       const int size = readFile< int >( cache + "/size" );
 
       if( level == 1 && type == "Instruction" )

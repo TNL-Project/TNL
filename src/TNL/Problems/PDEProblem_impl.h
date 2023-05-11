@@ -9,8 +9,7 @@
 #include <TNL/Problems/PDEProblem.h>
 #include <TNL/Meshes/DistributedMeshes/SubdomainOverlapsGetter.h>
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename Mesh, typename Real, typename Device, typename Index >
 String
@@ -150,5 +149,4 @@ PDEProblem< Mesh, Real, Device, Index >::getSolverMonitor()
    return 0;
 }
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems

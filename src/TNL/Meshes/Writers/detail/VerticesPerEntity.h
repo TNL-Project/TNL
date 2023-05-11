@@ -9,10 +9,7 @@
 #include <TNL/TypeTraits.h>
 #include <TNL/Meshes/MeshEntity.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
-namespace detail {
+namespace TNL::Meshes::Writers::detail {
 
 template< typename T, typename Enable = void >
 struct has_entity_topology : std::false_type
@@ -45,7 +42,4 @@ public:
    static constexpr int count = ( dim == 0 ) ? 1 : ( dim == 1 ) ? 2 : ( dim == 2 ) ? 4 : 8;
 };
 
-}  // namespace detail
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers::detail

@@ -10,8 +10,7 @@
 #include <TNL/Meshes/MeshDetails/traits/MeshEntityTraits.h>
 #include <TNL/Meshes/Topologies/SubentityVertexMap.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 /****
  *       Mesh subentity traits with specializations
@@ -65,5 +64,4 @@ public:
    using SubentityType = typename MeshEntityTraits< MeshConfig, Device, Dimension >::EntityType;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

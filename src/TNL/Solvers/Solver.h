@@ -15,8 +15,7 @@
 #include <TNL/MPI/ScopedInitializer.h>
 #include <TNL/MPI/Config.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 template<
    template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
@@ -48,5 +47,4 @@ struct Solver
    }
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

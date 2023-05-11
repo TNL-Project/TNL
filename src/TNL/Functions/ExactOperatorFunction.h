@@ -8,8 +8,7 @@
 
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename Operator, typename Function >
 class ExactOperatorFunction : public Domain< Operator::getDomainDimension(), SpaceDomain >
@@ -23,7 +22,7 @@ public:
    typedef typename FunctionType::RealType RealType;
    typedef typename FunctionType::PointType PointType;
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getDomainDimension()
    {
       return Operator::getDomainDimension();
@@ -33,7 +32,7 @@ public:
    : operator_( operator_ ), function( function )
    {}
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& vertex, const RealType& time ) const
    {
@@ -46,5 +45,4 @@ protected:
    const FunctionType& function;
 };
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

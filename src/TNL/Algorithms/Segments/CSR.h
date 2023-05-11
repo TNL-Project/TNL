@@ -13,9 +13,7 @@
 #include <TNL/Algorithms/Segments/SegmentView.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 /**
  * \brief Data structure for CSR segments format.
@@ -85,7 +83,7 @@ public:
     * \brief This functions says that CSR format is always organised in
     * row-major order.
     */
-   static constexpr ElementsOrganization
+   [[nodiscard]] static constexpr ElementsOrganization
    getOrganization()
    {
       return RowMajorOrder;
@@ -94,7 +92,7 @@ public:
    /**
     * \brief This function says that CSR format does not use padding elements.
     */
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    havePadding()
    {
       return false;
@@ -176,7 +174,7 @@ public:
     * \par Output
     * \include SegmentsExample_CSR_getSerializationType.out
     */
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
    /**
@@ -191,7 +189,7 @@ public:
     * \par Output
     * \include SegmentsExample_CSR_getSegmentsType.out
     */
-   static String
+   [[nodiscard]] static String
    getSegmentsType();
 
    /**
@@ -220,7 +218,7 @@ public:
     * \return View for this instance of CSR segments which can by used for
     * example in lambda functions running in GPU kernels.
     */
-   ViewType
+   [[nodiscard]] ViewType
    getView();
 
    /**
@@ -229,7 +227,7 @@ public:
     * \return View for this instance of CSR segments which can by used for
     * example in lambda functions running in GPU kernels.
     */
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const;
 
    /**
@@ -237,7 +235,7 @@ public:
     *
     * \return number of segments within this object.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentsCount() const;
 
@@ -246,7 +244,7 @@ public:
     *
     * \return size of the segment number \e segmentIdx.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentSize( IndexType segmentIdx ) const;
 
@@ -255,7 +253,7 @@ public:
     *
     * \return number of elements managed by all segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
 
@@ -265,7 +263,7 @@ public:
     *
     * \return size of container connected to this segments.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getStorageSize() const;
 
@@ -278,7 +276,7 @@ public:
     * \param localIdx is tha local index of the element within the segment.
     * \return global index of the element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( Index segmentIdx, Index localIdx ) const;
 
@@ -294,7 +292,7 @@ public:
     * \par Output
     * \include SegmentsExample_CSR_getSegmentView.out
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
@@ -303,7 +301,7 @@ public:
     *
     * \return reference on constant vector with row offsets used in the CSR format.
     */
-   const OffsetsContainer&
+   [[nodiscard]] const OffsetsContainer&
    getOffsets() const;
 
    /**
@@ -311,7 +309,7 @@ public:
     *
     * \return reference on vector with row offsets used in the CSR format.
     */
-   OffsetsContainer&
+   [[nodiscard]] OffsetsContainer&
    getOffsets();
 
    /**
@@ -556,13 +554,13 @@ public:
    SegmentsPrinter< CSR, Fetch >
    print( Fetch&& fetch ) const;
 
-   KernelType&
+   [[nodiscard]] KernelType&
    getKernel()
    {
       return kernel;
    }
 
-   const KernelType&
+   [[nodiscard]] const KernelType&
    getKernel() const
    {
       return kernel;
@@ -622,8 +620,6 @@ template< typename Device,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 using CSRDefault = CSRScalar< Device, Index, IndexAllocator >;
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments
 
 #include <TNL/Algorithms/Segments/CSR.hpp>

@@ -10,8 +10,7 @@
 
 #include <TNL/Cuda/DummyDefs.h>
 
-namespace TNL {
-namespace Cuda {
+namespace TNL::Cuda {
 
 class Stream
 {
@@ -114,5 +113,4 @@ public:
    }
 };
 
-}  // namespace Cuda
-}  // namespace TNL
+}  // namespace TNL::Cuda

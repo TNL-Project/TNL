@@ -13,9 +13,7 @@ static const char* TEST_FILE_NAME = "test_NetgenReaderTest.ng";
 
 struct MyConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -26,9 +24,7 @@ struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >{ static co
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle > { static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron > { static constexpr bool enabled = true; };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 template< typename MeshType >
 void test_NetgenReader( const MeshType& mesh )

@@ -10,8 +10,7 @@
 #include <TNL/Images/Image.h>
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 template< typename Index = int >
 class RegionOfInterest
@@ -22,39 +21,38 @@ public:
    bool
    setup( const Config::ParameterContainer& parameters, const Image< Index >* image );
 
-   bool
+   [[nodiscard]] bool
    check( const Image< Index >* image ) const;
 
-   Index
+   [[nodiscard]] Index
    getTop() const;
 
-   Index
+   [[nodiscard]] Index
    getBottom() const;
 
-   Index
+   [[nodiscard]] Index
    getLeft() const;
 
-   Index
+   [[nodiscard]] Index
    getRight() const;
 
-   Index
+   [[nodiscard]] Index
    getWidth() const;
 
-   Index
+   [[nodiscard]] Index
    getHeight() const;
 
    template< typename Grid >
    bool
    setGrid( Grid& grid, bool verbose = false );
 
-   bool
+   [[nodiscard]] bool
    isIn( Index row, Index column ) const;
 
 protected:
    Index top, bottom, left, right;
 };
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images
 
 #include <TNL/Images/RegionOfInterest_impl.h>

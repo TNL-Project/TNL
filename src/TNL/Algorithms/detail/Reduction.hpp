@@ -21,9 +21,7 @@
    #include <TNL/Timer.h>
 #endif
 
-namespace TNL {
-namespace Algorithms {
-namespace detail {
+namespace TNL::Algorithms::detail {
 
 /****
  * Arrays smaller than the following constant
@@ -419,6 +417,4 @@ Reduction< Devices::Cuda >::reduceWithArgument( const Index begin,
    }
 }
 
-}  // namespace detail
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::detail

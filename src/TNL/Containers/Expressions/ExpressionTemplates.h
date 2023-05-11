@@ -63,7 +63,7 @@ struct BinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariable, Ve
       TNL_ASSERT_EQ( op1.getSize(), op2.getSize(), "Attempt to mix operands with different sizes." );
    }
 
-   RealType
+   [[nodiscard]] RealType
    getElement( const IndexType i ) const
    {
       return Operation{}( op1.getElement( i ), op2.getElement( i ) );
@@ -83,14 +83,14 @@ struct BinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariable, Ve
       return operator[]( i );
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const
    {
       return op1.getSize();
    }
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const
    {
       return *this;
@@ -116,7 +116,7 @@ struct BinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariable, Ar
 
    BinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a.getConstView() ), op2( b ) {}
 
-   RealType
+   [[nodiscard]] RealType
    getElement( const IndexType i ) const
    {
       return Operation{}( op1.getElement( i ), op2 );
@@ -136,14 +136,14 @@ struct BinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariable, Ar
       return operator[]( i );
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const
    {
       return op1.getSize();
    }
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const
    {
       return *this;
@@ -169,7 +169,7 @@ struct BinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariable, VectorEx
 
    BinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b.getConstView() ) {}
 
-   RealType
+   [[nodiscard]] RealType
    getElement( const IndexType i ) const
    {
       return Operation{}( op1, op2.getElement( i ) );
@@ -189,14 +189,14 @@ struct BinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariable, VectorEx
       return operator[]( i );
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const
    {
       return op2.getSize();
    }
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const
    {
       return *this;
@@ -223,7 +223,7 @@ struct UnaryExpressionTemplate
 
    UnaryExpressionTemplate( const T1& a ) : operand( a.getConstView() ) {}
 
-   RealType
+   [[nodiscard]] RealType
    getElement( const IndexType i ) const
    {
       return Operation{}( operand.getElement( i ) );
@@ -243,14 +243,14 @@ struct UnaryExpressionTemplate
       return operator[]( i );
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const
    {
       return operand.getSize();
    }
 
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const
    {
       return *this;

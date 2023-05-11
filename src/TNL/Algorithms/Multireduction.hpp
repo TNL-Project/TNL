@@ -22,8 +22,7 @@
    #include <iostream>
 #endif
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 template< typename Result, typename DataFetcher, typename Reduction, typename Index >
 void constexpr Multireduction< Devices::Sequential >::reduce( Result identity,
@@ -229,5 +228,4 @@ Multireduction< Devices::Cuda >::reduce( Result identity,
 #endif
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

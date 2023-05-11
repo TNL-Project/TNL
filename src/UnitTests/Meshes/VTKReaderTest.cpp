@@ -14,9 +14,7 @@ static const char* TEST_FILE_NAME = "test_VTKReaderTest.vtk";
 
 struct MyConfigTag {};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -31,9 +29,7 @@ template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron > { s
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polygon > { static constexpr bool enabled = true; };
 template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron > { static constexpr bool enabled = true; };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+} // namespace TNL::Meshes::BuildConfigTags
 
 // TODO: test case for 1D mesh of edges
 

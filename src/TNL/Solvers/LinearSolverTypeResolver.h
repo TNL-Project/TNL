@@ -25,8 +25,7 @@
 #include <TNL/Solvers/Linear/Preconditioners/ILU0.h>
 #include <TNL/Solvers/Linear/Preconditioners/ILUT.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 /**
  * \brief Function returning available linear solvers.
@@ -164,5 +163,4 @@ getPreconditioner( std::string name )
    return nullptr;
 }
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers

@@ -10,9 +10,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Config/ParameterContainer.h>
 
-namespace TNL {
-namespace Operators {
-namespace Analytic {
+namespace TNL::Operators::Analytic {
 
 // TODO: Implement RotationXY, RotationXZ and RotationYZ in all dimensions.
 //       Where it does not make sense, the operator does nothing.
@@ -64,6 +62,4 @@ public:
    }
 };
 
-}  // namespace Analytic
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators::Analytic

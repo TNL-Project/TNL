@@ -9,9 +9,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
 template< typename SizesContainer >
@@ -256,6 +254,4 @@ Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::print( Fetch&
    return SegmentsPrinter< Ellpack, Fetch >( *this, fetch );
 }
 
-}  // namespace Segments
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Segments

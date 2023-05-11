@@ -11,9 +11,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Functions/Domain.h>
 
-namespace TNL {
-namespace Operators {
-namespace Analytic {
+namespace TNL::Operators::Analytic {
 
 template< int Dimensions, typename Real = double >
 class Heaviside : public Functions::Domain< Dimensions, Functions::SpaceDomain >
@@ -64,6 +62,4 @@ protected:
    RealType multiplicator;
 };
 
-}  // namespace Analytic
-}  // namespace Operators
-}  // namespace TNL
+}  // namespace TNL::Operators::Analytic

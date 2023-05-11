@@ -10,9 +10,7 @@
 
 #include <TNL/Math.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Sorting {
+namespace TNL::Algorithms::Sorting {
 
 #ifdef __CUDACC__
 
@@ -57,6 +55,4 @@ cmpSwap( Value& a, Value& b, bool ascending, const CMP& Cmp )
       TNL::swap( a, b );
 }
 
-}  // namespace Sorting
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms::Sorting

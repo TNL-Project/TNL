@@ -8,9 +8,7 @@
 
 #include <TNL/TypeTraits.h>
 
-namespace TNL {
-namespace Matrices {
-namespace details {
+namespace TNL::Matrices::details {
 
 template< typename VectorOrView, std::enable_if_t< HasSetSizeMethod< VectorOrView >::value, bool > = true >
 static void
@@ -26,6 +24,4 @@ set_size_if_resizable( VectorOrView& v, typename VectorOrView::IndexType size )
    TNL_ASSERT_EQ( v.getSize(), size, "view has wrong size" );
 }
 
-}  // namespace details
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices::details

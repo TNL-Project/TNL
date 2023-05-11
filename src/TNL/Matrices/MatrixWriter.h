@@ -12,8 +12,7 @@
 #include <TNL/String.h>
 #include <TNL/Devices/Host.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Helper class for exporting of matrices to different output formats.
@@ -154,7 +153,6 @@ protected:
 };
 /// \endcond
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/MatrixWriter.hpp>

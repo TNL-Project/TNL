@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/Grid.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< int, typename >
 class VectorField;
@@ -152,7 +151,6 @@ public:
    write( const VectorFieldType& function, std::ostream& str );
 };
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions
 
 #include <TNL/Functions/VectorFieldGnuplotWriter_impl.h>

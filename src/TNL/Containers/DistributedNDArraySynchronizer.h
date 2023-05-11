@@ -9,16 +9,15 @@
 #pragma once
 
 #include <future>
-// 3rd-party async library providing a thread-pool
-#include <TNL/3rdparty/async/threadpool.h>
+// 3rd-party thread pool library
+#include <TNL/3rdparty/BS_thread_pool_light.hpp>
 
 #include <TNL/Containers/ndarray/SynchronizerBuffers.h>
 #include <TNL/MPI/Comm.h>
 #include <TNL/MPI/Wrappers.h>
 #include <TNL/Timer.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Directions for data synchronization in a distributed N-dimensional
@@ -83,7 +82,7 @@ enum class SyncDirection : std::uint8_t
  *
  * \ingroup ndarray
  */
-inline SyncDirection
+[[nodiscard]] inline SyncDirection
 operator&( SyncDirection a, SyncDirection b )
 {
    return static_cast< SyncDirection >( static_cast< std::uint8_t >( a ) & static_cast< std::uint8_t >( b ) );
@@ -94,7 +93,7 @@ operator&( SyncDirection a, SyncDirection b )
  *
  * \ingroup ndarray
  */
-inline SyncDirection
+[[nodiscard]] inline SyncDirection
 operator|( SyncDirection a, SyncDirection b )
 {
    return static_cast< SyncDirection >( static_cast< std::uint8_t >( a ) | static_cast< std::uint8_t >( b ) );
@@ -110,7 +109,7 @@ operator|( SyncDirection a, SyncDirection b )
  *
  * \ingroup ndarray
  */
-inline SyncDirection&
+[[nodiscard]] inline SyncDirection&
 operator-=( SyncDirection& a, SyncDirection b )
 {
    a = static_cast< SyncDirection >( static_cast< std::uint8_t >( a ) & ~static_cast< std::uint8_t >( b ) );
@@ -126,16 +125,7 @@ template< typename DistributedNDArray >
 class DistributedNDArraySynchronizer
 {
 private:
-   // NOTE: async::threadpool has alignment requirements, which causes problems:
-   //  - it may become misaligned in derived classes, see e.g.
-   //    https://stackoverflow.com/a/46475498
-   //    solution: specify it as the first member of the base class
-   //  - operator new before C++17 may not support over-aligned types, see
-   //    https://stackoverflow.com/a/53485295
-   //    solution: relaxed alignment requirements to not exceed the value of
-   //    alignof(std::max_align_t), which is the strongest alignment supported
-   //    by plain new. See https://github.com/d36u9/async/pull/2
-   async::threadpool tp;
+   BS::thread_pool_light tp;
 
    int gpu_id = 0;
    cudaStream_t stream_id_left = 0;
@@ -183,7 +173,7 @@ public:
    // async::threadpool is not move-constructible (due to std::atomic), so we need
    // custom move-constructor that skips moving tp
    DistributedNDArraySynchronizer( DistributedNDArraySynchronizer&& other ) noexcept
-   : tp( other.tp.size() ), gpu_id( std::move( other.gpu_id ) ), tag_offset( std::move( other.tag_offset ) )
+   : tp( other.tp.get_thread_count() ), gpu_id( std::move( other.gpu_id ) ), tag_offset( std::move( other.tag_offset ) )
    {}
 
    void
@@ -298,7 +288,7 @@ public:
          };
 
          if( policy == AsyncPolicy::threadpool )
-            async_op = tp.post( worker );
+            async_op = tp.submit( worker );
          else
             async_op = std::async( std::launch::async, worker );
       }
@@ -715,5 +705,4 @@ public:
    };
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

@@ -14,11 +14,10 @@
 #include <TNL/Matrices/MatrixView.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
-namespace TNL {
 /**
- * \brief Namespace for different matrix types.
+ * \brief Namespace for matrix formats.
  */
-namespace Matrices {
+namespace TNL::Matrices {
 
 using Algorithms::Segments::ElementsOrganization;
 
@@ -132,7 +131,7 @@ public:
     *
     * \return Number of allocated matrix elements.
     */
-   IndexType
+   [[nodiscard]] IndexType
    getAllocatedElementsCount() const;
 
    /**
@@ -140,7 +139,7 @@ public:
     *
     * \return number of nonzero matrix elements.
     */
-   virtual IndexType
+   [[nodiscard]] virtual IndexType
    getNonzeroElementsCount() const;
 
    /**
@@ -156,7 +155,7 @@ public:
     *
     * \return number of matrix row.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getRows() const;
 
@@ -165,7 +164,7 @@ public:
     *
     * @return number of matrix columns.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getColumns() const;
 
@@ -174,7 +173,7 @@ public:
     *
     * \return constant reference to a vector with the matrix elements values.
     */
-   const ValuesType&
+   [[nodiscard]] const ValuesType&
    getValues() const;
 
    /**
@@ -182,7 +181,7 @@ public:
     *
     * \return constant reference to a vector with the matrix elements values.
     */
-   ValuesType&
+   [[nodiscard]] ValuesType&
    getValues();
 
    /**
@@ -192,7 +191,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator==( const Matrix& matrix ) const;
 
    /**
@@ -202,7 +201,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator!=( const Matrix& matrix ) const;
 
    /**
@@ -256,7 +255,6 @@ operator<<( std::ostream& str, const Matrix< Real, Device, Index >& matrix )
    return str;
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/Matrix.hpp>

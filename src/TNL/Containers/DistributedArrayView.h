@@ -15,8 +15,7 @@
 #include <TNL/Containers/ByteArraySynchronizer.h>
 #include <TNL/MPI/Comm.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 /**
  * \brief Distributed array view.
@@ -91,25 +90,25 @@ public:
    void
    bind( Value_* data, IndexType localSize );
 
-   const LocalRangeType&
+   [[nodiscard]] const LocalRangeType&
    getLocalRange() const;
 
-   IndexType
+   [[nodiscard]] IndexType
    getGhosts() const;
 
-   const MPI::Comm&
+   [[nodiscard]] const MPI::Comm&
    getCommunicator() const;
 
-   LocalViewType
+   [[nodiscard]] LocalViewType
    getLocalView();
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalView() const;
 
-   LocalViewType
+   [[nodiscard]] LocalViewType
    getLocalViewWithGhosts();
 
-   ConstLocalViewType
+   [[nodiscard]] ConstLocalViewType
    getConstLocalViewWithGhosts() const;
 
    void
@@ -119,10 +118,10 @@ public:
    void
    setSynchronizer( std::shared_ptr< SynchronizerType > synchronizer, int valuesPerElement = 1 );
 
-   std::shared_ptr< SynchronizerType >
+   [[nodiscard]] std::shared_ptr< SynchronizerType >
    getSynchronizer() const;
 
-   int
+   [[nodiscard]] int
    getValuesPerElement() const;
 
    // Note that this method is not thread-safe - only the thread which created
@@ -140,13 +139,13 @@ public:
    /**
     * \brief Returns a modifiable view of the array view.
     */
-   ViewType
+   [[nodiscard]] ViewType
    getView();
 
    /**
     * \brief Returns a non-modifiable view of the array view.
     */
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const;
 
    // Resets the array view to the empty state.
@@ -154,13 +153,13 @@ public:
    reset();
 
    // Returns true if the current array view size is zero.
-   bool
+   [[nodiscard]] bool
    empty() const;
 
    // TODO: swap
 
    // Returns the *global* size
-   IndexType
+   [[nodiscard]] IndexType
    getSize() const;
 
    // Sets all elements of the array to the given value
@@ -172,16 +171,16 @@ public:
    setElement( IndexType i, ValueType value );
 
    // Safe device-independent element getter
-   ValueType
+   [[nodiscard]] ValueType
    getElement( IndexType i ) const;
 
    // Unsafe element accessor usable only from the Device
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ValueType&
    operator[]( IndexType i );
 
    // Unsafe element accessor usable only from the Device
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const ValueType&
    operator[]( IndexType i ) const;
 
@@ -200,11 +199,11 @@ public:
 
    // Comparison operators
    template< typename Array >
-   bool
+   [[nodiscard]] bool
    operator==( const Array& array ) const;
 
    template< typename Array >
-   bool
+   [[nodiscard]] bool
    operator!=( const Array& array ) const;
 
    /**
@@ -275,7 +274,6 @@ protected:
    int valuesPerElement = 1;
 };
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include "DistributedArrayView.hpp"

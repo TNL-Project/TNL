@@ -11,8 +11,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Cuda/KernelLaunch.h>
 
-namespace TNL {
-namespace Devices {
+namespace TNL::Devices {
 
 class Cuda
 {
@@ -45,5 +44,4 @@ public:
    }
 };
 
-}  // namespace Devices
-}  // namespace TNL
+}  // namespace TNL::Devices

@@ -9,8 +9,7 @@
 #include <map>
 #include <iostream>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Value, typename Index, typename Key >
 class IndexedMap
@@ -23,23 +22,23 @@ public:
    void
    reset();
 
-   IndexType
+   [[nodiscard]] IndexType
    getSize() const;
 
    IndexType
    insert( const ValueType& data );
 
-   bool
+   [[nodiscard]] bool
    find( const ValueType& data, IndexType& index ) const;
 
    template< typename ArrayType >
    void
    toArray( ArrayType& array ) const;
 
-   const Value&
+   [[nodiscard]] const Value&
    getElement( KeyType key ) const;
 
-   Value&
+   [[nodiscard]] Value&
    getElement( KeyType key );
 
    void
@@ -73,7 +72,6 @@ template< typename Value, typename Index, typename Key >
 std::ostream&
 operator<<( std::ostream& str, IndexedMap< Value, Index, Key >& set );
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers
 
 #include <TNL/Containers/IndexedMap_impl.h>

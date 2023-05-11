@@ -10,8 +10,7 @@
 
 #include "DistributedArray.h"
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Value, typename Device, typename Index, typename Allocator >
 DistributedArray< Value, Device, Index, Allocator >::~DistributedArray()
@@ -330,5 +329,4 @@ DistributedArray< Value, Device, Index, Allocator >::loadFromGlobalFile( File& f
    view.loadFromGlobalFile( file, allowCasting );
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

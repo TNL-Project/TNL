@@ -10,9 +10,7 @@
 #include <TNL/Functions/FunctionAdapter.h>
 #include <TNL/Meshes/Traverser.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Real,
           typename MeshFunction,
@@ -177,6 +175,4 @@ protected:
    const RightHandSide* rightHandSide = NULL;
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

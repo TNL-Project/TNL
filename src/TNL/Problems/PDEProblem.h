@@ -13,8 +13,7 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename Mesh,
           typename Real = typename Mesh::RealType,
@@ -124,7 +123,6 @@ public:
    CommonDataPointer commonDataPointer;
 };
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems
 
 #include <TNL/Problems/PDEProblem_impl.h>

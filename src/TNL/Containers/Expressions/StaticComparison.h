@@ -9,9 +9,7 @@
 #include <TNL/Assert.h>
 #include <TNL/Containers/Expressions/ExpressionVariableType.h>
 
-namespace TNL {
-namespace Containers {
-namespace Expressions {
+namespace TNL::Containers::Expressions {
 
 template< typename T1,
           typename T2,
@@ -196,6 +194,4 @@ struct StaticComparison< T1, T2, VectorExpressionVariable, ArithmeticVariable >
    }
 };
 
-}  // namespace Expressions
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::Expressions

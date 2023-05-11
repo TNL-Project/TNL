@@ -14,9 +14,7 @@
 #include <TNL/Algorithms/staticFor.h>
 #include <TNL/Containers/ndarray/Meta.h>
 
-namespace TNL {
-namespace Containers {
-namespace detail {
+namespace TNL::Containers::detail {
 
 // Dynamic storage size with alignment
 template< typename SizesHolder,
@@ -25,7 +23,7 @@ template< typename SizesHolder,
           typename LevelTag = IndexTag< SizesHolder::getDimension() - 1 > >
 struct StorageSizeGetter
 {
-   static typename SizesHolder::IndexType __cuda_callable__
+   [[nodiscard]] static typename SizesHolder::IndexType __cuda_callable__
    get( const SizesHolder& sizes )
    {
       static constexpr std::size_t overlap = detail::get< LevelTag::value >( Overlaps{} );
@@ -35,7 +33,7 @@ struct StorageSizeGetter
    }
 
    template< typename Permutation >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static typename SizesHolder::IndexType
    getPermuted( const SizesHolder& sizes, Permutation )
    {
@@ -50,7 +48,7 @@ struct StorageSizeGetter
 template< typename SizesHolder, typename Alignment, typename Overlaps >
 struct StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< 0 > >
 {
-   static typename SizesHolder::IndexType __cuda_callable__
+   [[nodiscard]] static typename SizesHolder::IndexType __cuda_callable__
    get( const SizesHolder& sizes )
    {
       static constexpr std::size_t overlap = detail::get< 0 >( Overlaps{} );
@@ -58,7 +56,7 @@ struct StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< 0 > >
    }
 
    template< typename Permutation >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    static typename SizesHolder::IndexType
    getPermuted( const SizesHolder& sizes, Permutation )
    {
@@ -72,7 +70,7 @@ struct StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< 0 > >
 template< typename SizesHolder, typename LevelTag = IndexTag< SizesHolder::getDimension() - 1 > >
 struct StaticStorageSizeGetter
 {
-   constexpr static std::size_t
+   [[nodiscard]] constexpr static std::size_t
    get()
    {
       return SizesHolder::template getStaticSize< LevelTag::value >()
@@ -83,7 +81,7 @@ struct StaticStorageSizeGetter
 template< typename SizesHolder >
 struct StaticStorageSizeGetter< SizesHolder, IndexTag< 0 > >
 {
-   constexpr static std::size_t
+   [[nodiscard]] constexpr static std::size_t
    get()
    {
       return SizesHolder::template getStaticSize< 0 >();
@@ -192,7 +190,7 @@ struct SetSizesCopyHelper< TargetHolder, SourceHolder, 0 >
 
 // helper for the assignment operator in NDArrayView
 template< typename SizesHolder1, typename SizesHolder2 >
-__cuda_callable__
+[[nodiscard]] __cuda_callable__
 bool
 sizesWeakCompare( const SizesHolder1& sizes1, const SizesHolder2& sizes2 )
 {
@@ -365,6 +363,4 @@ struct SetSizesMinHelper< TargetHolder, SourceHolder, 0 >
    }
 };
 
-}  // namespace detail
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers::detail

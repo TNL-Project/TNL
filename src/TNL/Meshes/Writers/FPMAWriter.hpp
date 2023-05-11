@@ -10,9 +10,7 @@
 
 #include <TNL/Meshes/Writers/FPMAWriter.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 namespace details {
 
@@ -76,6 +74,4 @@ FPMAWriter< Mesh >::writePoints( const Mesh& mesh )
    }
 }
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers

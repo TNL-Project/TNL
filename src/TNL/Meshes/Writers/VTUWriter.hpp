@@ -18,9 +18,7 @@
    #include <TNL/zlib_compression.h>
 #endif
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
 void
@@ -291,6 +289,4 @@ VTUWriter< Mesh >::closePiece()
    }
 }
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers

@@ -9,8 +9,7 @@
 #include <TNL/Devices/Host.h>
 
 namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace Algorithms::Segments {
 
 enum ElementsOrganization
 {
@@ -33,8 +32,7 @@ struct DefaultElementsOrganization
    }
 };
 
-}  // namespace Segments
-}  // namespace Algorithms
+}  // namespace Algorithms::Segments
 
 inline std::string
 getSerializationType( Algorithms::Segments::ElementsOrganization Organization )

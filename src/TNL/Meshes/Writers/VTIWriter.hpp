@@ -18,9 +18,7 @@
    #include <TNL/zlib_compression.h>
 #endif
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
 VTIWriter< Mesh >::VTIWriter( std::ostream& str, VTK::FileFormat format ) : str( str.rdbuf() ), format( format )
@@ -300,6 +298,4 @@ VTIWriter< Mesh >::closePiece()
    }
 }
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers

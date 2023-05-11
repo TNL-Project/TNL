@@ -11,8 +11,7 @@
 #include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
 #include <TNL/Meshes/Topologies/Polyhedron.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename EntitySeed >
 struct EntitySeedHash;
@@ -37,7 +36,7 @@ public:
    setCornersCount( const LocalIndexType& cornersCount )
    {}
 
-   static constexpr LocalIndexType
+   [[nodiscard]] static constexpr LocalIndexType
    getCornersCount()
    {
       return SubvertexTraits::count;
@@ -53,13 +52,13 @@ public:
       this->cornerIds[ cornerIndex ] = pointIndex;
    }
 
-   IdArrayType&
+   [[nodiscard]] IdArrayType&
    getCornerIds()
    {
       return cornerIds;
    }
 
-   const IdArrayType&
+   [[nodiscard]] const IdArrayType&
    getCornerIds() const
    {
       return cornerIds;
@@ -86,7 +85,7 @@ public:
    setCornersCount( const LocalIndexType& cornersCount )
    {}
 
-   static constexpr LocalIndexType
+   [[nodiscard]] static constexpr LocalIndexType
    getCornersCount()
    {
       return 1;
@@ -101,13 +100,13 @@ public:
       this->cornerIds[ cornerIndex ] = pointIndex;
    }
 
-   IdArrayType&
+   [[nodiscard]] IdArrayType&
    getCornerIds()
    {
       return cornerIds;
    }
 
-   const IdArrayType&
+   [[nodiscard]] const IdArrayType&
    getCornerIds() const
    {
       return cornerIds;
@@ -146,7 +145,7 @@ public:
       this->cornerIds.setSize( cornersCount );
    }
 
-   LocalIndexType
+   [[nodiscard]] LocalIndexType
    getCornersCount() const
    {
       return this->cornerIds.getSize();
@@ -162,13 +161,13 @@ public:
       this->cornerIds[ cornerIndex ] = pointIndex;
    }
 
-   IdArrayType&
+   [[nodiscard]] IdArrayType&
    getCornerIds()
    {
       return cornerIds;
    }
 
-   const IdArrayType&
+   [[nodiscard]] const IdArrayType&
    getCornerIds() const
    {
       return cornerIds;
@@ -189,7 +188,7 @@ operator<<( std::ostream& str, const EntitySeed< MeshConfig, EntityTopology >& e
 template< typename EntitySeed >
 struct EntitySeedHash
 {
-   std::size_t
+   [[nodiscard]] std::size_t
    operator()( const EntitySeed& seed ) const
    {
       using LocalIndexType = typename EntitySeed::LocalIndexType;
@@ -208,7 +207,7 @@ struct EntitySeedHash
 template< typename EntitySeed >
 struct EntitySeedEq
 {
-   bool
+   [[nodiscard]] bool
    operator()( const EntitySeed& left, const EntitySeed& right ) const
    {
       using IdArrayType = typename EntitySeed::IdArrayType;
@@ -231,12 +230,11 @@ struct EntitySeedEq< EntitySeed< MeshConfig, Topologies::Vertex > >
 {
    using Seed = EntitySeed< MeshConfig, Topologies::Vertex >;
 
-   bool
+   [[nodiscard]] bool
    operator()( const Seed& left, const Seed& right ) const
    {
       return left.getCornerIds() == right.getCornerIds();
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

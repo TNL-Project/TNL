@@ -11,8 +11,7 @@
 
 #include "Wrappers.h"
 
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
 
 inline int
 GetRank( MPI_Comm communicator = MPI_COMM_WORLD )
@@ -131,7 +130,7 @@ public:
    }
 
    //! \brief Factory method – wrapper for `MPI_Comm_dup`
-   static Comm
+   [[nodiscard]] static Comm
    duplicate( MPI_Comm comm )
    {
 #ifdef HAVE_MPI
@@ -144,14 +143,14 @@ public:
    }
 
    //! \brief Non-static factory method – wrapper for `MPI_Comm_dup`
-   Comm
+   [[nodiscard]] Comm
    duplicate() const
    {
       return duplicate( *this );
    }
 
    //! \brief Factory method – wrapper for `MPI_Comm_split`
-   static Comm
+   [[nodiscard]] static Comm
    split( MPI_Comm comm, int color, int key )
    {
 #ifdef HAVE_MPI
@@ -164,14 +163,14 @@ public:
    }
 
    //! \brief Non-static factory method – wrapper for `MPI_Comm_split`
-   Comm
+   [[nodiscard]] Comm
    split( int color, int key ) const
    {
       return split( *this, color, key );
    }
 
    //! \brief Factory method – wrapper for `MPI_Comm_split_type`
-   static Comm
+   [[nodiscard]] static Comm
    split_type( MPI_Comm comm, int split_type, int key, MPI_Info info )
    {
 #ifdef HAVE_MPI
@@ -184,7 +183,7 @@ public:
    }
 
    //! \brief Non-static factory method – wrapper for `MPI_Comm_split_type`
-   Comm
+   [[nodiscard]] Comm
    split_type( int split_type, int key, MPI_Info info ) const
    {
       return Comm::split_type( *this, split_type, key, info );
@@ -212,21 +211,21 @@ public:
    }
 
    //! \brief Determines the rank of the calling process in the communicator.
-   int
+   [[nodiscard]] int
    rank() const
    {
       return GetRank( *this );
    }
 
    //! \brief Returns the size of the group associated with a communicator.
-   int
+   [[nodiscard]] int
    size() const
    {
       return GetSize( *this );
    }
 
    //! \brief Compares two communicators – wrapper for `MPI_Comm_compare`.
-   int
+   [[nodiscard]] int
    compare( MPI_Comm comm2 ) const
    {
 #ifdef HAVE_MPI
@@ -273,5 +272,4 @@ getRankOnNode( MPI_Comm communicator = MPI_COMM_WORLD )
 #endif
 }
 
-}  // namespace MPI
-}  // namespace TNL
+}  // namespace TNL::MPI

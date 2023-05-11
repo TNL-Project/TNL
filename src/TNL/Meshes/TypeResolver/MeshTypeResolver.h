@@ -8,22 +8,21 @@
 
 #include <TNL/Meshes/TypeResolver/BuildConfigTags.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename ConfigTag, typename Device >
 class MeshTypeResolver
 {
 public:
    template< typename Reader, typename Functor >
-   static bool
+   [[nodiscard]] static bool
    run( Reader& reader, Functor&& functor );
 
 protected:
    template< typename Reader, typename Functor >
    struct detail
    {
-      static bool
+      [[nodiscard]] static bool
       resolveCellTopology( Reader& reader, Functor&& functor );
 
       // NOTE: We could disable the meshes only by the MeshTag, but doing the
@@ -31,32 +30,31 @@ protected:
       //       good optimization of compilation times.
 
       template< typename CellTopology >
-      static bool
+      [[nodiscard]] static bool
       resolveSpaceDimension( Reader& reader, Functor&& functor );
 
       template< typename CellTopology, int SpaceDimension >
-      static bool
+      [[nodiscard]] static bool
       resolveReal( Reader& reader, Functor&& functor );
 
       template< typename CellTopology, int SpaceDimension, typename Real >
-      static bool
+      [[nodiscard]] static bool
       resolveGlobalIndex( Reader& reader, Functor&& functor );
 
       template< typename CellTopology, int SpaceDimension, typename Real, typename GlobalIndex >
-      static bool
+      [[nodiscard]] static bool
       resolveLocalIndex( Reader& reader, Functor&& functor );
 
       template< typename CellTopology, int SpaceDimension, typename Real, typename GlobalIndex, typename LocalIndex >
-      static bool
+      [[nodiscard]] static bool
       resolveMeshType( Reader& reader, Functor&& functor );
 
       template< typename MeshConfig >
-      static bool
+      [[nodiscard]] static bool
       resolveTerminate( Reader& reader, Functor&& functor );
    };
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes
 
 #include <TNL/Meshes/TypeResolver/MeshTypeResolver.hpp>

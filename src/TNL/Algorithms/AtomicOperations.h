@@ -10,8 +10,7 @@
 
 #include <TNL/Atomic.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 template< typename Device >
 struct AtomicOperations;
@@ -85,5 +84,4 @@ struct AtomicOperations< Devices::Cuda >
    }
 };
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

@@ -192,7 +192,7 @@ public:
     * \return constant reference to the object image on given device.
     */
    template< typename Device = Devices::Host >
-   const Object&
+   [[nodiscard]] const Object&
    getData() const
    {
       TNL_ASSERT_TRUE( this->pointer, "Attempt to dereference a null pointer" );
@@ -212,7 +212,7 @@ public:
     * \return constant reference to the object image on given device.
     */
    template< typename Device = Devices::Host >
-   Object&
+   [[nodiscard]] Object&
    modifyData()
    {
       TNL_ASSERT_TRUE( this->pointer, "Attempt to dereference a null pointer" );
@@ -429,7 +429,7 @@ public:
     * \return constant reference to the object image on given device.
     */
    template< typename Device = Devices::Host >
-   const Object&
+   [[nodiscard]] const Object&
    getData() const
    {
       static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Cuda >::value,
@@ -455,7 +455,7 @@ public:
     * \return constant reference to the object image on given device.
     */
    template< typename Device = Devices::Host >
-   Object&
+   [[nodiscard]] Object&
    modifyData()
    {
       static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Cuda >::value,

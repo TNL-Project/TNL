@@ -26,8 +26,7 @@
 #include <TNL/MPI/Comm.h>
 #include <TNL/MPI/Wrappers.h>
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 // returns a tuple of (loops, mean, stddev) where loops is the number of
 // performed loops (i.e. timing samples), mean is the arithmetic mean of the
@@ -167,5 +166,4 @@ writeMapAsJson( const std::map< std::string, std::string >& data, std::string fi
    writeMapAsJson( data, file );
 }
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks

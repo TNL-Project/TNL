@@ -11,9 +11,7 @@
 #include "Layer.h"
 #include "Traits.h"
 
-namespace TNL {
-namespace Meshes {
-namespace EntityTags {
+namespace TNL::Meshes::EntityTags {
 
 template< typename MeshConfig, typename Device, typename Dimension = DimensionTag< 0 > >
 class LayerInheritor : public Layer< MeshConfig, Device, Dimension >,
@@ -171,7 +169,7 @@ public:
    using BaseType::operator=;
 
    template< int Dimension >
-   typename EntityTagsArrayType::ViewType
+   [[nodiscard]] typename EntityTagsArrayType::ViewType
    getEntityTagsView()
    {
       static_assert( WeakTrait< Dimension >::entityTagsEnabled,
@@ -180,7 +178,7 @@ public:
    }
 
    template< int Dimension >
-   typename EntityTagsArrayType::ConstViewType
+   [[nodiscard]] typename EntityTagsArrayType::ConstViewType
    getEntityTagsView() const
    {
       static_assert( WeakTrait< Dimension >::entityTagsEnabled,
@@ -189,7 +187,7 @@ public:
    }
 
    template< int Dimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    TagType
    getEntityTag( const GlobalIndexType& entityIndex ) const
    {
@@ -219,7 +217,7 @@ public:
    }
 
    template< int Dimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    isBoundaryEntity( const GlobalIndexType& entityIndex ) const
    {
@@ -229,7 +227,7 @@ public:
    }
 
    template< int Dimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    isGhostEntity( const GlobalIndexType& entityIndex ) const
    {
@@ -239,7 +237,7 @@ public:
    }
 
    template< int Dimension >
-   auto
+   [[nodiscard]] auto
    getBoundaryIndices() const
    {
       static_assert( WeakTrait< Dimension >::entityTagsEnabled,
@@ -248,7 +246,7 @@ public:
    }
 
    template< int Dimension >
-   auto
+   [[nodiscard]] auto
    getInteriorIndices() const
    {
       static_assert( WeakTrait< Dimension >::entityTagsEnabled,
@@ -257,7 +255,7 @@ public:
    }
 
    template< int Dimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    GlobalIndexType
    getGhostEntitiesCount() const
    {
@@ -267,7 +265,7 @@ public:
    }
 
    template< int Dimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    GlobalIndexType
    getGhostEntitiesOffset() const
    {
@@ -292,6 +290,4 @@ protected:
    }
 };
 
-}  // namespace EntityTags
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::EntityTags

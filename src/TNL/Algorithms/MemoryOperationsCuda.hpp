@@ -16,8 +16,7 @@
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 template< typename Element, typename Index >
 void
@@ -163,5 +162,4 @@ MemoryOperations< Devices::Cuda >::compare( const Element1* destination, const E
    return reduce< Devices::Cuda >( (Index) 0, size, fetch, std::logical_and<>{}, true );
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

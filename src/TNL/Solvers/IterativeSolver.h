@@ -12,8 +12,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 /**
  * \brief Base class for iterative solvers.
@@ -245,7 +244,6 @@ protected:
    std::ofstream residualHistoryFile;
 };
 
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers
 
 #include <TNL/Solvers/IterativeSolver.hpp>

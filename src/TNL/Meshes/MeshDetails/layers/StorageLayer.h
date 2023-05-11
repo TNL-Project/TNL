@@ -12,8 +12,7 @@
 #include <TNL/Meshes/MeshDetails/layers/SuperentityStorageLayer.h>
 #include <TNL/Meshes/MeshDetails/layers/DualGraphLayer.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig,
           typename Device,
@@ -98,7 +97,7 @@ public:
    }
 
    template< int Dimension, int Subdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    typename MeshTraitsType::LocalIndexType
    getSubentitiesCount( const GlobalIndexType entityIndex ) const
    {
@@ -110,7 +109,7 @@ public:
    }
 
    template< int Dimension, int Subdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    typename MeshTraitsType::template SubentityMatrixType< Dimension >&
    getSubentitiesMatrix()
    {
@@ -122,7 +121,7 @@ public:
    }
 
    template< int Dimension, int Subdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const typename MeshTraitsType::template SubentityMatrixType< Dimension >&
    getSubentitiesMatrix() const
    {
@@ -134,7 +133,7 @@ public:
    }
 
    template< int Dimension, int Superdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    typename MeshTraitsType::NeighborCountsArray&
    getSuperentitiesCountsArray()
    {
@@ -146,7 +145,7 @@ public:
    }
 
    template< int Dimension, int Superdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const typename MeshTraitsType::NeighborCountsArray&
    getSuperentitiesCountsArray() const
    {
@@ -158,7 +157,7 @@ public:
    }
 
    template< int Dimension, int Superdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    typename MeshTraitsType::SuperentityMatrixType&
    getSuperentitiesMatrix()
    {
@@ -170,7 +169,7 @@ public:
    }
 
    template< int Dimension, int Superdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const typename MeshTraitsType::SuperentityMatrixType&
    getSuperentitiesMatrix() const
    {
@@ -248,7 +247,7 @@ public:
    }
 
    using BaseType::getEntitiesCount;
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    GlobalIndexType
    getEntitiesCount( DimensionTag ) const
    {
@@ -318,5 +317,4 @@ protected:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

@@ -21,12 +21,11 @@
 #include "getDataType.h"
 #include "Profiling.h"
 
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
 
 // wrappers for basic MPI functions
 
-inline bool
+[[nodiscard]] inline bool
 Initialized()
 {
 #ifdef HAVE_MPI
@@ -38,7 +37,7 @@ Initialized()
 #endif
 }
 
-inline bool
+[[nodiscard]] inline bool
 Finalized()
 {
 #ifdef HAVE_MPI
@@ -168,7 +167,7 @@ Sendrecv( const T* sendData,
 }
 
 template< typename T >
-MPI_Request
+[[nodiscard]] MPI_Request
 Isend( const T* data, int count, int dest, int tag, MPI_Comm communicator = MPI_COMM_WORLD )
 {
    TNL_ASSERT_NE( communicator, MPI_COMM_NULL, "Isend cannot be called with MPI_COMM_NULL" );
@@ -183,7 +182,7 @@ Isend( const T* data, int count, int dest, int tag, MPI_Comm communicator = MPI_
 }
 
 template< typename T >
-MPI_Request
+[[nodiscard]] MPI_Request
 Irecv( T* data, int count, int src, int tag, MPI_Comm communicator = MPI_COMM_WORLD )
 {
    TNL_ASSERT_NE( communicator, MPI_COMM_NULL, "Irecv cannot be called with MPI_COMM_NULL" );
@@ -266,5 +265,4 @@ Alltoall( const T* sendData, int sendCount, T* receiveData, int receiveCount, MP
 #endif
 }
 
-}  // namespace MPI
-}  // namespace TNL
+}  // namespace TNL::MPI

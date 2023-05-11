@@ -12,8 +12,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Problems {
+namespace TNL::Problems {
 
 template< typename Mesh, typename BoundaryCondition, typename RightHandSide, typename DifferentialOperator >
 bool
@@ -28,5 +27,4 @@ MeanCurvatureFlowEocProblem< Mesh, BoundaryCondition, RightHandSide, Differentia
    return true;
 }
 
-}  // namespace Problems
-}  // namespace TNL
+}  // namespace TNL::Problems

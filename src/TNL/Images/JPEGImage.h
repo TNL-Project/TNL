@@ -22,8 +22,7 @@ struct my_error_mgr
 };
 #endif
 
-namespace TNL {
-namespace Images {
+namespace TNL::Images {
 
 template< typename Index = int >
 class JPEGImage : public Image< Index >
@@ -80,7 +79,6 @@ protected:
 #endif
 };
 
-}  // namespace Images
-}  // namespace TNL
+}  // namespace TNL::Images
 
 #include <TNL/Images/JPEGImage_impl.h>

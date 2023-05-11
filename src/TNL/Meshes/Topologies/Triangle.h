@@ -8,9 +8,7 @@
 
 #include <TNL/Meshes/Topologies/Edge.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Topologies {
+namespace TNL::Meshes::Topologies {
 
 struct Triangle
 {
@@ -66,6 +64,4 @@ struct SubentityVertexMap< Triangle, Edge, 2, 1 >
    static constexpr int index = 1;
 };
 
-}  // namespace Topologies
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Topologies

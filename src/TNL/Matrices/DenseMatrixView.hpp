@@ -12,8 +12,7 @@
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * The following kernel is an attempt to map more CUDA threads to one matrix row.
@@ -801,5 +800,4 @@ DenseMatrixView< Real, Device, Index, Organization >::getElementIndex( IndexType
    return this->segments.getGlobalIndex( row, column );
 }
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices

@@ -10,8 +10,7 @@
 #include <TNL/Meshes/Mesh.h>
 #include <TNL/Matrices/MatrixPermutationApplier.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename Mesh, int Dimension >
 struct IndexPermutationApplier
@@ -151,5 +150,4 @@ public:
    }
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

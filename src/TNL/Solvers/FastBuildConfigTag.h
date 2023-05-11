@@ -9,8 +9,7 @@
 #include <TNL/Solvers/BuildConfigTags.h>
 #include <TNL/Meshes/TypeResolver/BuildConfigTags.h>
 
-namespace TNL {
-namespace Solvers {
+namespace TNL::Solvers {
 
 class FastBuildConfigTag
 {};
@@ -101,6 +100,4 @@ struct GridIndexTag< Solvers::FastBuildConfigTag, long int >
    static constexpr bool enabled = false;
 };
 
-}  // namespace BuildConfigTags
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Solvers

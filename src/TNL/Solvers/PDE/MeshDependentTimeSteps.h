@@ -9,9 +9,7 @@
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/Mesh.h>
 
-namespace TNL {
-namespace Solvers {
-namespace PDE {
+namespace TNL::Solvers::PDE {
 
 template< typename Mesh, typename Real >
 class MeshDependentTimeSteps
@@ -84,6 +82,4 @@ protected:
    Real timeStepOrder = 0.0;
 };
 
-}  // namespace PDE
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::PDE

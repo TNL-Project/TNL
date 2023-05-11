@@ -13,8 +13,7 @@
 #include <TNL/Functions/MeshFunctionNormGetter.h>
 #include <TNL/Functions/MeshFunctionIO.h>
 
-namespace TNL {
-namespace Functions {
+namespace TNL::Functions {
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
 MeshFunction< Mesh, MeshEntityDimension, Real >::MeshFunction() = default;
@@ -252,5 +251,4 @@ operator<<( std::ostream& str, const MeshFunction< Mesh, MeshEntityDimension, Re
    return str;
 }
 
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions

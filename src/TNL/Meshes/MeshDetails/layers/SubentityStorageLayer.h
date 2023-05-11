@@ -11,8 +11,7 @@
 #include <TNL/Meshes/MeshDetails/traits/MeshTraits.h>
 #include <TNL/Meshes/MeshDetails/traits/WeakStorageTraits.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 template< typename MeshConfig,
           typename Device,
@@ -56,7 +55,7 @@ protected:
    }
 
    template< int Subdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    typename MeshTraitsType::LocalIndexType
    getSubentitiesCount( const GlobalIndexType entityIndex ) const
    {
@@ -65,7 +64,7 @@ protected:
    }
 
    template< int Subdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    typename MeshTraitsType::template SubentityMatrixType< EntityTopology::dimension >&
    getSubentitiesMatrix()
    {
@@ -74,7 +73,7 @@ protected:
    }
 
    template< int Subdimension >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const typename MeshTraitsType::template SubentityMatrixType< EntityTopology::dimension >&
    getSubentitiesMatrix() const
    {
@@ -153,7 +152,7 @@ protected:
    {}
 
    using BaseType::getSubentitiesCount;
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    LocalIndexType
    getSubentitiesCount( SubdimensionTag, const GlobalIndexType entityIndex ) const
    {
@@ -162,14 +161,14 @@ protected:
    }
 
    using BaseType::getSubentitiesMatrix;
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SubentityMatrixType&
    getSubentitiesMatrix( SubdimensionTag )
    {
       return matrix;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const SubentityMatrixType&
    getSubentitiesMatrix( SubdimensionTag ) const
    {
@@ -280,7 +279,7 @@ protected:
    }
 
    using BaseType::getSubentitiesCount;
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    LocalIndexType
    getSubentitiesCount( SubdimensionTag, const GlobalIndexType entityIndex ) const
    {
@@ -288,14 +287,14 @@ protected:
    }
 
    using BaseType::getSubentitiesMatrix;
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SubentityMatrixType&
    getSubentitiesMatrix( SubdimensionTag )
    {
       return matrix;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const SubentityMatrixType&
    getSubentitiesMatrix( SubdimensionTag ) const
    {
@@ -394,7 +393,7 @@ protected:
    }
 
    using BaseType::getSubentitiesCount;
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    LocalIndexType
    getSubentitiesCount( SubdimensionTag, const GlobalIndexType entityIndex ) const
    {
@@ -402,7 +401,7 @@ protected:
    }
 
    // Subdimension 1 has identical subentitiesCounts as Subdimension 0
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    LocalIndexType
    getSubentitiesCount( typename SubdimensionTag::Increment, const GlobalIndexType entityIndex ) const
    {
@@ -410,14 +409,14 @@ protected:
    }
 
    using BaseType::getSubentitiesMatrix;
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SubentityMatrixType&
    getSubentitiesMatrix( SubdimensionTag )
    {
       return matrix;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const SubentityMatrixType&
    getSubentitiesMatrix( SubdimensionTag ) const
    {
@@ -513,14 +512,14 @@ protected:
    // getSubentitiesCount for subdimension 1 is defined in the specialization for subdimension 0
 
    using BaseType::getSubentitiesMatrix;
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    SubentityMatrixType&
    getSubentitiesMatrix( SubdimensionTag )
    {
       return matrix;
    }
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const SubentityMatrixType&
    getSubentitiesMatrix( SubdimensionTag ) const
    {
@@ -613,5 +612,4 @@ protected:
    {}
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

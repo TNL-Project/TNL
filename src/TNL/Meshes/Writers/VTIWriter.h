@@ -12,9 +12,7 @@
 
 #include <TNL/Meshes/VTKTraits.h>
 
-namespace TNL {
-namespace Meshes {
-namespace Writers {
+namespace TNL::Meshes::Writers {
 
 /**
  * \brief Writer of data linked with meshes into [VTI format](https://kitware.github.io/vtk-examples/site/VTKFileFormats/).
@@ -161,8 +159,6 @@ protected:
    closePiece();
 };
 
-}  // namespace Writers
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes::Writers
 
 #include <TNL/Meshes/Writers/VTIWriter.hpp>

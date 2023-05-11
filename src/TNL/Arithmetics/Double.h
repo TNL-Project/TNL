@@ -12,8 +12,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Arithmetics {
+namespace TNL::Arithmetics {
 
 template< class T >
 class Double
@@ -92,5 +91,4 @@ template< typename T >
 void
 printDouble( T* d );
 
-}  // namespace Arithmetics
-}  // namespace TNL
+}  // namespace TNL::Arithmetics

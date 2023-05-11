@@ -13,8 +13,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/MPI/Wrappers.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Value, typename Device, typename Index >
 DistributedArrayView< Value, Device, Index >::~DistributedArrayView()
@@ -407,5 +406,4 @@ DistributedArrayView< Value, Device, Index >::loadFromGlobalFile( File& file, bo
       IO::loadSubrange( file, elementsInFile, localRange.getBegin(), localData.getData(), localData.getSize() );
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

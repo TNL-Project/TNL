@@ -21,8 +21,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include "Utils.h"
 
-namespace TNL {
-namespace MPI {
+namespace TNL::MPI {
 
 inline void
 configSetup( Config::ConfigDescription& config, const String& prefix = "" )
@@ -38,7 +37,7 @@ configSetup( Config::ConfigDescription& config, const String& prefix = "" )
 #endif
 }
 
-inline bool
+[[nodiscard]] inline bool
 setup( const Config::ParameterContainer& parameters, const String& prefix = "" )
 {
 #ifdef HAVE_MPI
@@ -94,5 +93,4 @@ setup( const Config::ParameterContainer& parameters, const String& prefix = "" )
    return true;
 }
 
-}  // namespace MPI
-}  // namespace TNL
+}  // namespace TNL::MPI

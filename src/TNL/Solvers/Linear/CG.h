@@ -8,9 +8,7 @@
 
 #include <TNL/Solvers/Linear/LinearSolver.h>
 
-namespace TNL {
-namespace Solvers {
-namespace Linear {
+namespace TNL::Solvers::Linear {
 
 /**
  * \brief Iterative solver of linear systems based on the conjugate gradient method.
@@ -77,8 +75,6 @@ protected:
    VectorType r, p, Ap, z;
 };
 
-}  // namespace Linear
-}  // namespace Solvers
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear
 
 #include <TNL/Solvers/Linear/CG.hpp>

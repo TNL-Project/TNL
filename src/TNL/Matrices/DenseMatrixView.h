@@ -13,8 +13,7 @@
 #include <TNL/Matrices/MatrixType.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 
-namespace TNL {
-namespace Matrices {
+namespace TNL::Matrices {
 
 /**
  * \brief Implementation of dense matrix view.
@@ -65,7 +64,7 @@ public:
     *
     * \return matrix elements organization - RowMajorOrder of ColumnMajorOrder.
     */
-   static constexpr ElementsOrganization
+   [[nodiscard]] static constexpr ElementsOrganization
    getOrganization()
    {
       return Organization;
@@ -169,7 +168,7 @@ public:
     *
     * \return dense matrix view.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
@@ -178,7 +177,7 @@ public:
     *
     * \return dense matrix view.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
@@ -189,7 +188,7 @@ public:
     *
     * \return \e String with the serialization type.
     */
-   static std::string
+   [[nodiscard]] static std::string
    getSerializationType();
 
    /**
@@ -199,7 +198,7 @@ public:
     *
     * \return \e String with the serialization type.
     */
-   std::string
+   [[nodiscard]] std::string
    getSerializationTypeVirtual() const override;
 
    /**
@@ -242,7 +241,7 @@ public:
     * \par Output
     * \include DenseMatrixViewExample_getElementsCount.out
     */
-   IndexType
+   [[nodiscard]] IndexType
    getAllocatedElementsCount() const;
 
    /**
@@ -255,7 +254,7 @@ public:
     * \par Output
     * \include DenseMatrixViewExample_getElementsCount.out
     */
-   IndexType
+   [[nodiscard]] IndexType
    getNonzeroElementsCount() const override;
 
    /**
@@ -272,7 +271,7 @@ public:
     *
     * See \ref DenseMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    ConstRowView
    getRow( IndexType rowIdx ) const;
 
@@ -290,7 +289,7 @@ public:
     *
     * See \ref DenseMatrixRowView.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RowView
    getRow( IndexType rowIdx );
 
@@ -313,7 +312,7 @@ public:
     * \param column is a columns index of the element.
     * \return reference to given matrix element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Real&
    operator()( IndexType row, IndexType column );
 
@@ -328,7 +327,7 @@ public:
     * \param column is a columns index of the element.
     * \return reference to given matrix element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Real&
    operator()( IndexType row, IndexType column ) const;
 
@@ -402,7 +401,7 @@ public:
     * \include DenseMatrixExample_getElement.out
     *
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Real
    getElement( IndexType row, IndexType column ) const;
 
@@ -890,7 +889,7 @@ public:
     * \return \e true if the RHS matrix view is equal, \e false otherwise.
     */
    template< typename Real_, typename Device_, typename Index_ >
-   bool
+   [[nodiscard]] bool
    operator==( const DenseMatrixView< Real_, Device_, Index_, Organization >& matrix ) const;
 
    /**
@@ -900,7 +899,7 @@ public:
     * \return \e false if the RHS matrix view is equal, \e true otherwise.
     */
    template< typename Real_, typename Device_, typename Index_ >
-   bool
+   [[nodiscard]] bool
    operator!=( const DenseMatrixView< Real_, Device_, Index_, Organization >& matrix ) const;
 
    /**
@@ -910,7 +909,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator==( const Matrix& matrix ) const;
 
    /**
@@ -920,7 +919,7 @@ public:
     * \return \e true if the RHS matrix is equal, \e false otherwise.
     */
    template< typename Matrix >
-   bool
+   [[nodiscard]] bool
    operator!=( const Matrix& matrix ) const;
 
    /**
@@ -952,14 +951,13 @@ public:
    print( std::ostream& str ) const override;
 
 protected:
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getElementIndex( IndexType row, IndexType column ) const;
 
    SegmentsViewType segments;
 };
 
-}  // namespace Matrices
-}  // namespace TNL
+}  // namespace TNL::Matrices
 
 #include <TNL/Matrices/DenseMatrixView.hpp>

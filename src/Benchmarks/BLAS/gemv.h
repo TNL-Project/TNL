@@ -10,8 +10,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Host.h>
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 template< typename Matrix >
 void setMatrix( Matrix& matrix )
@@ -108,5 +107,4 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
 #endif
 }
 
-} // namespace Benchmarks
-} // namespace TNL
+} // namespace TNL::Benchmarks

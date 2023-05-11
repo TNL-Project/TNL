@@ -8,8 +8,7 @@
 
 #include <TNL/Containers/IndexedSet.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< class Key, class Index, class Compare, class Allocator >
 void
@@ -79,5 +78,4 @@ operator<<( std::ostream& str, IndexedSet< Key, Index, Compare, Allocator >& set
    return str;
 }
 
-}  // namespace Containers
-}  // namespace TNL
+}  // namespace TNL::Containers

@@ -11,9 +11,7 @@
 #include <TNL/Functions/Domain.h>
 #include <TNL/Devices/Cuda.h>
 
-namespace TNL {
-namespace Functions {
-namespace Analytic {
+namespace TNL::Functions::Analytic {
 
 template< typename Real, int Dimension >
 class PseudoSquareBase : public Domain< Dimension, SpaceDomain >
@@ -46,11 +44,11 @@ public:
    PseudoSquare();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -69,11 +67,11 @@ public:
    PseudoSquare();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -92,11 +90,11 @@ public:
    PseudoSquare();
 
    template< int XDiffOrder = 0, int YDiffOrder = 0, int ZDiffOrder = 0 >
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getPartialDerivative( const PointType& v, const Real& time = 0.0 ) const;
 
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    operator()( const PointType& v, const Real& time = 0.0 ) const;
 };
@@ -109,8 +107,6 @@ operator<<( std::ostream& str, const PseudoSquare< Dimension, Real >& f )
    return str;
 }
 
-}  // namespace Analytic
-}  // namespace Functions
-}  // namespace TNL
+}  // namespace TNL::Functions::Analytic
 
 #include <TNL/Functions/Analytic/PseudoSquare_impl.h>

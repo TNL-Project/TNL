@@ -8,8 +8,7 @@
 
 #include <TNL/Algorithms/detail/Contains.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 /**
  * \brief Checks if an array/vector/view contains an element with given value.
@@ -67,5 +66,4 @@ containsOnlyValue( const Array& array,
    return detail::ContainsOnlyValue< typename Array::DeviceType >()( array.getData() + begin, end - begin, value );
 }
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

@@ -8,8 +8,7 @@
 
 #include <TNL/Meshes/Topologies/SubentityVertexMap.h>
 
-namespace TNL {
-namespace Meshes {
+namespace TNL::Meshes {
 
 /****
  * Basic structure for mesh configuration.
@@ -85,5 +84,4 @@ struct DefaultConfig
    static constexpr int dualGraphMinCommonVertices = meshDimension;
 };
 
-}  // namespace Meshes
-}  // namespace TNL
+}  // namespace TNL::Meshes

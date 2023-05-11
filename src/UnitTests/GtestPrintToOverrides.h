@@ -7,8 +7,7 @@
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Containers/StaticVector.h>
 
-namespace TNL {
-namespace Containers {
+namespace TNL::Containers {
 
 template< typename Value, typename Device, typename Index, typename Allocator >
 void PrintTo( const Vector< Value, Device, Index, Allocator >& vec,
@@ -31,5 +30,4 @@ void PrintTo( const StaticVector< Size, Value >& vec,
    *str << vec;
 }
 
-} // namespace Containers
-} // namespace TNL
+} // namespace TNL::Containers
