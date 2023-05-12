@@ -1,16 +1,17 @@
 #pragma once
 
 #include <functional>
+#include <iostream>
+#include <sstream>
+
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Math.h>
-#include <iostream>
-#include <sstream>
 
 #ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
-template< typename Matrix >
+template< typename Matrix, typename Kernel >
 void test_VectorProduct_smallMatrix1()
 {
    using RealType = typename Matrix::RealType;
@@ -56,14 +57,17 @@ void test_VectorProduct_smallMatrix1()
    for( IndexType j = 0; j < outVector_1.getSize(); j++ )
        outVector_1.setElement( j, 0 );
 
-   m_1.vectorProduct( inVector_1, outVector_1 );
+   Kernel kernel;
+   kernel.init( m_1.getSegments() );
+   m_1.vectorProduct( inVector_1, outVector_1, kernel );
+
    EXPECT_EQ( outVector_1.getElement( 0 ),  2 );
    EXPECT_EQ( outVector_1.getElement( 1 ), 10 );
    EXPECT_EQ( outVector_1.getElement( 2 ),  8 );
    EXPECT_EQ( outVector_1.getElement( 3 ), 10 );
 }
 
-template< typename Matrix >
+template< typename Matrix, typename Kernel >
 void test_VectorProduct_smallMatrix2()
 {
    using RealType = typename Matrix::RealType;
@@ -109,7 +113,9 @@ void test_VectorProduct_smallMatrix2()
    for( IndexType j = 0; j < outVector_2.getSize(); j++ )
       outVector_2.setElement( j, 0 );
 
-   m_2.vectorProduct( inVector_2, outVector_2 );
+   Kernel kernel;
+   kernel.init( m_2.getSegments() );
+   m_2.vectorProduct( inVector_2, outVector_2, kernel );
 
    EXPECT_EQ( outVector_2.getElement( 0 ), 12 );
    EXPECT_EQ( outVector_2.getElement( 1 ),  8 );
@@ -117,7 +123,7 @@ void test_VectorProduct_smallMatrix2()
    EXPECT_EQ( outVector_2.getElement( 3 ), 16 );
 }
 
-template< typename Matrix >
+template< typename Matrix, typename Kernel >
 void test_VectorProduct_smallMatrix3()
 {
    using RealType = typename Matrix::RealType;
@@ -164,7 +170,9 @@ void test_VectorProduct_smallMatrix3()
    for( IndexType j = 0; j < outVector_3.getSize(); j++ )
       outVector_3.setElement( j, 0 );
 
-   m_3.vectorProduct( inVector_3, outVector_3 );
+   Kernel kernel;
+   kernel.init( m_3.getSegments() );
+   m_3.vectorProduct( inVector_3, outVector_3, kernel );
 
    EXPECT_EQ( outVector_3.getElement( 0 ), 12 );
    EXPECT_EQ( outVector_3.getElement( 1 ), 30 );
@@ -172,7 +180,7 @@ void test_VectorProduct_smallMatrix3()
    EXPECT_EQ( outVector_3.getElement( 3 ), 66 );
 }
 
-template< typename Matrix >
+template< typename Matrix, typename Kernel >
 void test_VectorProduct_mediumSizeMatrix1()
 {
    using RealType = typename Matrix::RealType;
@@ -237,7 +245,9 @@ void test_VectorProduct_mediumSizeMatrix1()
    for( IndexType j = 0; j < outVector_4.getSize(); j++ )
       outVector_4.setElement( j, 0 );
 
-   m_4.vectorProduct( inVector_4, outVector_4 );
+   Kernel kernel;
+   kernel.init( m_4.getSegments() );
+   m_4.vectorProduct( inVector_4, outVector_4, kernel );
 
    EXPECT_EQ( outVector_4.getElement( 0 ),  20 );
    EXPECT_EQ( outVector_4.getElement( 1 ),  52 );
@@ -249,7 +259,7 @@ void test_VectorProduct_mediumSizeMatrix1()
    EXPECT_EQ( outVector_4.getElement( 7 ), 330 );
 }
 
-template< typename Matrix >
+template< typename Matrix, typename Kernel >
 void test_VectorProduct_mediumSizeMatrix2()
 {
    using RealType = typename Matrix::RealType;
@@ -319,7 +329,9 @@ void test_VectorProduct_mediumSizeMatrix2()
    for( IndexType j = 0; j < outVector_5.getSize(); j++ )
        outVector_5.setElement( j, 0 );
 
-   m_5.vectorProduct( inVector_5, outVector_5 );
+   Kernel kernel;
+   kernel.init( m_5.getSegments() );
+   m_5.vectorProduct( inVector_5, outVector_5, kernel );
 
    EXPECT_EQ( outVector_5.getElement( 0 ),  32 );
    EXPECT_EQ( outVector_5.getElement( 1 ),  28 );
@@ -332,7 +344,7 @@ void test_VectorProduct_mediumSizeMatrix2()
 }
 
 
-template< typename Matrix >
+template< typename Matrix, typename Kernel >
 void test_VectorProduct_largeMatrix()
 {
    using RealType = typename Matrix::RealType;
@@ -363,7 +375,9 @@ void test_VectorProduct_largeMatrix()
       EXPECT_EQ( rowCapacities, 1 );
 
       TNL::Containers::Vector< double, DeviceType, IndexType > in( size, 1.0 ), out( size, 0.0 );
-      m1.vectorProduct( in, out );
+      Kernel kernel;
+      kernel.init( m1.getSegments() );
+      m1.vectorProduct( in, out, kernel );
       //std::cerr << out << std::endl;
       for( IndexType i = 0; i < size; i++ )
          EXPECT_EQ( out.getElement( i ), i + 1 );
@@ -389,13 +403,14 @@ void test_VectorProduct_largeMatrix()
 
       out.setSize( rows );
       out = 0.0;
-      m2.vectorProduct( in, out );
+      kernel.init( m2.getSegments() );
+      m2.vectorProduct( in, out, kernel );
       for( IndexType i = 0; i < rows; i++ )
          EXPECT_EQ( out.getElement( i ), ( i + 1 ) * ( i + 2 ) / 2 );
    }
 }
 
-template< typename Matrix >
+template< typename Matrix, typename Kernel >
 void test_VectorProduct_longRowsMatrix()
 {
    using RealType = typename Matrix::RealType;
@@ -418,7 +433,9 @@ void test_VectorProduct_longRowsMatrix()
       };
       m3.forAllElements( f );
       TNL::Containers::Vector< double, DeviceType, IndexType > in( columns, 1.0 ), out( rows, 0.0 );
-      m3.vectorProduct( in, out );
+      Kernel kernel;
+      kernel.init( m3.getSegments() );
+      m3.vectorProduct( in, out, kernel );
       for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
          EXPECT_EQ( out.getElement( rowIdx ), ( double ) columns * ( double ) (columns - 1 ) / 2.0 + columns * rowIdx );
    }

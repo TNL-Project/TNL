@@ -76,9 +76,6 @@ class SparseMatrixView : public MatrixView< Real, Device, Index >
               || std::is_same< std::decay_t< Real >, bool >::value ),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
-   // TODO: CSRAdaptiveKernel needs to be instantiated
-   using SegmentsReductionKernel = typename Algorithms::SegmentsReductionKernels::DefaultKernel< SegmentsView< Device, Index > >::type;
-
 public:
    // Supporting types - they are not important for the user
    using BaseType = MatrixView< Real, Device, Index >;
@@ -89,6 +86,19 @@ public:
    using ConstColumnsIndexesViewType = typename ColumnsIndexesViewType::ConstViewType;
    using RowsCapacitiesView = Containers::VectorView< Index, Device, Index >;
    using ConstRowsCapacitiesView = typename RowsCapacitiesView::ConstViewType;
+
+   /**
+    * \brief Type of the kernel used for parallel reductions on segments.
+    *
+    * We are assuming that the default segments reduction kernel provides
+    * a *static* reduceAllSegments method, and thus it does not have to be
+    * instantiated and initialized. If the user wants to use a more
+    * complicated kernel, such as CSRAdaptive, it must be instantiated and
+    * initialized by the user and the object must be passed to the
+    * vectorProduct or reduceRows method.
+    */
+   using DefaultSegmentsReductionKernel =
+      typename Algorithms::SegmentsReductionKernels::DefaultKernel< SegmentsView< Device, Index > >::type;
 
    /**
     * \brief Test of symmetric matrix type.
@@ -863,15 +873,22 @@ public:
     *    is computed. It is zero by default.
     * \param end is the end of the rows range for which the vector product
     *    is computed. It is number if the matrix rows by default.
+    * \param kernel is an instance of the segments reduction kernel to be used
+    *               for the operation.
     */
-   template< typename InVector, typename OutVector >
+   template< typename InVector, typename OutVector, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
    void
    vectorProduct( const InVector& inVector,
                   OutVector& outVector,
                   ComputeRealType matrixMultiplicator = 1.0,
                   ComputeRealType outVectorMultiplicator = 0.0,
                   IndexType begin = 0,
-                  IndexType end = 0 ) const;
+                  IndexType end = 0,
+                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+
+   template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
+   void
+   vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 
    /**
     * \brief Assignment of any matrix type.

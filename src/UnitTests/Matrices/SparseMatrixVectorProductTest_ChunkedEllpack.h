@@ -1,43 +1,57 @@
-#include <iostream>
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/ChunkedEllpackKernel.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
 #ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
-const char* saveAndLoadFileName = "test_SparseMatrixTest_ChunkedEllpack_segments";
+template< typename Real, typename Device, typename Index, TNL::Algorithms::Segments::ElementsOrganization Organization >
+struct MatrixAndKernel
+{
+   template< typename Device_, typename Index_, typename IndexAllocator_ >
+   using Segments = TNL::Algorithms::Segments::ChunkedEllpack< Device_, Index_, IndexAllocator_, Organization >;
 
-////
-// Row-major format is used for the host system
-template< typename Device, typename Index, typename IndexAllocator >
-using RowMajorChunkedEllpack = TNL::Algorithms::Segments::ChunkedEllpack< Device, Index, IndexAllocator, TNL::Algorithms::Segments::RowMajorOrder >;
-
-////
-// Column-major format is used for GPUs
-template< typename Device, typename Index, typename IndexAllocator >
-using ColumnMajorChunkedEllpack = TNL::Algorithms::Segments::ChunkedEllpack< Device, Index, IndexAllocator, TNL::Algorithms::Segments::ColumnMajorOrder >;
+   using MatrixType = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
+   using KernelType = TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel< Index, Device >;
+};
 
 // types for which MatrixTest is instantiated
-using MatrixTypes = ::testing::Types
+using MatrixAndKernelTypes = ::testing::Types
 <
-     TNL::Matrices::SparseMatrix< int,     TNL::Devices::Host, int,   TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< int,     TNL::Devices::Host, int,   TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Host, int,   TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Host, int,   TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< double,  TNL::Devices::Host, int,   TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< int,     TNL::Devices::Host, long,  TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Host, long,  TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Host, long,  TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< double,  TNL::Devices::Host, long,  TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >
+   MatrixAndKernel< int,     TNL::Devices::Host, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< long,    TNL::Devices::Host, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< float,   TNL::Devices::Host, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< double,  TNL::Devices::Host, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< int,     TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< long,    TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< float,   TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< double,  TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< int,     TNL::Devices::Host, int,  TNL::Algorithms::Segments::ColumnMajorOrder >,
+   //MatrixAndKernel< long,    TNL::Devices::Host, int,  TNL::Algorithms::Segments::ColumnMajorOrder >,
+   //MatrixAndKernel< float,   TNL::Devices::Host, int,  TNL::Algorithms::Segments::ColumnMajorOrder >,
+   //MatrixAndKernel< double,  TNL::Devices::Host, int,  TNL::Algorithms::Segments::ColumnMajorOrder >,
+   //MatrixAndKernel< int,     TNL::Devices::Host, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   //MatrixAndKernel< long,    TNL::Devices::Host, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   //MatrixAndKernel< float,   TNL::Devices::Host, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< double,  TNL::Devices::Host, long, TNL::Algorithms::Segments::ColumnMajorOrder >
 #ifdef __CUDACC__
-    ,TNL::Matrices::SparseMatrix< int,     TNL::Devices::Cuda, int,   TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Cuda, int,   TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Cuda, int,   TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< double,  TNL::Devices::Cuda, int,   TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< int,     TNL::Devices::Cuda, long,  TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Cuda, long,  TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Cuda, long,  TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
-    ,TNL::Matrices::SparseMatrix< double,  TNL::Devices::Cuda, long,  TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
+   ,
+   MatrixAndKernel< int,     TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< long,    TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< float,   TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< double,  TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< int,     TNL::Devices::Cuda, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< long,    TNL::Devices::Cuda, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< float,   TNL::Devices::Cuda, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< double,  TNL::Devices::Cuda, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< int,     TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< long,    TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< float,   TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< double,  TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< int,     TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< long,    TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< float,   TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< double,  TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >
 #endif
 >;
 

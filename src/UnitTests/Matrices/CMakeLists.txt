@@ -27,7 +27,8 @@ set( COMMON_TESTS
             SymmetricSparseMatrixTest_CSR
             LambdaMatrixTest
             SparseMatrixTest_SandboxMatrix
-            SparseMatrixVectorProductTest_SandboxMatrix
+            # SpMV with SandboxMatrix is not tested because it does not use segments
+            #SparseMatrixVectorProductTest_SandboxMatrix
             MatrixWrappingTest
 )
 

@@ -47,8 +47,7 @@ template< typename Real = double,
           typename Device = Devices::Host,
           typename Index = int,
           typename MatrixType = GeneralMatrix,
-          template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments =
-             Algorithms::Segments::CSR,
+          template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments = Algorithms::Segments::CSR,
           typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
@@ -182,6 +181,18 @@ public:
              typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real >,
              typename _IndexAllocator = typename Allocators::Default< _Device >::template Allocator< _Index > >
    using Self = SparseMatrix< _Real, _Device, _Index, _MatrixType, _Segments, _ComputeReal, _RealAllocator, _IndexAllocator >;
+
+   /**
+    * \brief Type of the kernel used for parallel reductions on segments.
+    *
+    * We are assuming that the default segments reduction kernel provides
+    * a *static* reduceAllSegments method, and thus it does not have to be
+    * instantiated and initialized. If the user wants to use a more
+    * complicated kernel, such as CSRAdaptive, it must be instantiated and
+    * initialized by the user and the object must be passed to the
+    * vectorProduct or reduceRows method.
+    */
+   using DefaultSegmentsReductionKernel = typename ViewType::DefaultSegmentsReductionKernel;
 
    /**
     * \brief Constructor only with values and column indexes allocators.
@@ -1084,15 +1095,22 @@ public:
     *    is computed. It is zero by default.
     * \param end is the end of the rows range for which the vector product
     *    is computed. It is number if the matrix rows by default.
+    * \param kernel is an instance of the segments reduction kernel to be used
+    *               for the operation.
     */
-   template< typename InVector, typename OutVector >
+   template< typename InVector, typename OutVector, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
    void
    vectorProduct( const InVector& inVector,
                   OutVector& outVector,
                   ComputeRealType matrixMultiplicator = 1.0,
                   ComputeRealType outVectorMultiplicator = 0.0,
                   IndexType begin = 0,
-                  IndexType end = 0 ) const;
+                  IndexType end = 0,
+                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+
+   template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
+   void
+   vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 
    /*template< typename Real2, typename Index2 >
    void addMatrix( const SparseMatrix< Real2, Segments, Device, Index2 >& matrix,

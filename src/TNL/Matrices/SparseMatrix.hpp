@@ -553,7 +553,7 @@ template< typename Real,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
-template< typename InVector, typename OutVector >
+template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::vectorProduct(
    const InVector& inVector,
@@ -561,9 +561,29 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    ComputeRealType matrixMultiplicator,
    ComputeRealType outVectorMultiplicator,
    IndexType begin,
-   IndexType end ) const
+   IndexType end,
+   const SegmentsReductionKernel& kernel ) const
 {
-   this->getConstView().vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, begin, end );
+   this->getConstView().vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, begin, end, kernel );
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename, typename >
+          class Segments,
+          typename ComputeReal,
+          typename RealAllocator,
+          typename IndexAllocator >
+template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
+void
+SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::vectorProduct(
+   const InVector& inVector,
+   OutVector& outVector,
+   const SegmentsReductionKernel& kernel ) const
+{
+   this->getConstView().vectorProduct( inVector, outVector, kernel );
 }
 
 template< typename Real,
