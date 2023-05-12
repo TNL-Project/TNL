@@ -1,4 +1,5 @@
 add_subdirectory( HeatEquation )
+add_subdirectory( MeanCurvatureFlow )
 add_subdirectory( Grid )
 add_subdirectory( BLAS )
 add_subdirectory( NDArray )
