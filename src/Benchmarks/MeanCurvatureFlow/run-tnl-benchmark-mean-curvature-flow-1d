@@ -1,0 +1,40 @@
+#/bin/bash
+
+devices="sequential"
+#devices="cuda"
+precisions="float"
+schemes="fdm"
+tests="grid"
+min_x_dimension="100"
+max_x_dimension="100"
+base="tnl-benchmark-mean-curvature-flow"
+
+for device in ${devices}
+do
+   for precision in ${precisions}
+   do
+      for scheme in ${schemes}
+      do
+         for test in ${tests}
+         do
+            command="${base}
+               --id ${test}
+               --implementation ${test}
+               --precision ${precision}
+               --scheme ${scheme}
+               --dimension 1
+               --min-x-dimension ${min_x_dimension}
+               --max-x-dimension ${max_x_dimension}
+               --max-iterations 500
+               --loops 0
+               --final-time 0.1
+               --time-step 0.000
+               --device ${device}
+               --log-file ${base}-${test}-${device}-${precision}-${scheme}-1d.json
+               --write-data yes"
+            echo $command
+            $command
+         done
+      done
+   done
+done
