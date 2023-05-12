@@ -1,7 +1,3 @@
-#include <Benchmarks/SpMV/ReferenceFormats/Legacy/CSR.h>
-#include <Benchmarks/SpMV/ReferenceFormats/Legacy/Ellpack.h>
-#include <Benchmarks/SpMV/ReferenceFormats/Legacy/SlicedEllpack.h>
-
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/MatrixType.h>
 #include <TNL/Matrices/DenseMatrix.h>

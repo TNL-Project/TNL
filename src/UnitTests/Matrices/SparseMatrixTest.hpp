@@ -8,9 +8,6 @@
 #include <iostream>
 #include <sstream>
 
-// Just for ChunkedEllpack vectorProduct test exception
-#include <TNL/Algorithms/Segments/ChunkedEllpackView.h>
-
 #ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
