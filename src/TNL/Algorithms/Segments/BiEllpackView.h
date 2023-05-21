@@ -48,7 +48,7 @@ public:
    [[nodiscard]] static constexpr int
    getLogWarpSize()
    {
-      return std::log2( WarpSize );
+      return TNL::discreteLog2( WarpSize );
    }
 
    [[nodiscard]] static constexpr bool

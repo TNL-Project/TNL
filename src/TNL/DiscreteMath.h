@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <limits>
 #include <type_traits>
 
 namespace TNL {
@@ -71,6 +72,24 @@ discretePow( Index value, Index power )
    Index result = 1;
    for( Index i = 0; i < power; i++ )
       result *= value;
+   return result;
+}
+
+/**
+ * \brief Computes an integral base-2 logarithm.
+ *
+ * \param value is the argument of the log2 function.
+ */
+template< typename Index >
+constexpr Index
+discreteLog2( Index value )
+{
+   if( value == 0 )
+      return std::numeric_limits< Index >::max();
+   // algorithm from https://stackoverflow.com/a/994623
+   Index result = 0;
+   while( value >>= 1 )
+      result++;
    return result;
 }
 

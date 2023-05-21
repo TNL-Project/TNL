@@ -24,9 +24,8 @@ public:
    [[nodiscard]] static constexpr int
    getLogWarpSize()
    {
-      static_assert( WarpSize == 32, "nvcc does not allow constexpr log2" );
-      return 5;
-   }  // TODO: return std::log2( WarpSize ); };
+      return TNL::discreteLog2( WarpSize );
+   }
 
    [[nodiscard]] static constexpr int
    getGroupsCount()

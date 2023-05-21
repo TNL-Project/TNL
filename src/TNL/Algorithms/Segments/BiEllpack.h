@@ -46,7 +46,7 @@ public:
    [[nodiscard]] static constexpr int
    getLogWarpSize()
    {
-      return std::log2( WarpSize );
+      return TNL::discreteLog2( WarpSize );
    }
 
    [[nodiscard]] static constexpr bool
@@ -200,20 +200,6 @@ protected:
    OffsetsContainer rowPermArray;
 
    OffsetsContainer groupPointers;
-
-   // TODO: Replace later
-   [[nodiscard]] __cuda_callable__
-   Index
-   power( const IndexType number, const IndexType exponent ) const
-   {
-      if( exponent >= 0 ) {
-         IndexType result = 1;
-         for( IndexType i = 0; i < exponent; i++ )
-            result *= number;
-         return result;
-      }
-      return 0;
-   }
 
    template< typename Device_, typename Index_, typename IndexAllocator_, ElementsOrganization Organization_, int WarpSize_ >
    friend class BiEllpack;

@@ -228,9 +228,9 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifyRowLen
          std::cerr << "groupIdx = " << group << " groupLength = " << this->getGroupLength( strip, group ) << std::endl;
          for( IndexType i = 0; i < this->getGroupLength( strip, group ); i++ ) {
             IndexType biElementPtr = elementPtr;
-            for( IndexType j = 0; j < this->power( 2, group ); j++ ) {
+            for( IndexType j = 0; j < discretePow( 2, group ); j++ ) {
                rowLength++;
-               biElementPtr += this->power( 2, getLogWarpSize() - group ) * stripLength;
+               biElementPtr += discretePow( 2, getLogWarpSize() - group ) * stripLength;
             }
             elementPtr++;
          }
