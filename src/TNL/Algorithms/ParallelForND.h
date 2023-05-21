@@ -221,7 +221,7 @@ __global__
 void
 ParallelForNDKernel( const Coordinates begin, const Coordinates end, Function f, FunctionArgs... args )
 {
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
    constexpr int Dimension = Coordinates::getSize();
    Coordinates i( begin );
    if constexpr( Dimension == 1 )
