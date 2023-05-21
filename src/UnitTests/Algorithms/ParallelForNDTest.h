@@ -381,7 +381,7 @@ TEST( ParallelForNDTest, 5D_host )
    }
 }
 
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
 // nvcc does not allow __cuda_callable__ lambdas inside private regions
 void test_1D_cuda()
 {

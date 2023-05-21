@@ -12,7 +12,7 @@
 using Implementations = ::testing::Types<
    TNL::Meshes::Grid<2, double, TNL::Devices::Sequential, int>,
    TNL::Meshes::Grid<2, float, TNL::Devices::Sequential, int>
-#ifdef HAVE_CUDA
+#ifdef __CUDACC__
   ,TNL::Meshes::Grid<2, double, TNL::Devices::Cuda, int>,
    TNL::Meshes::Grid<2, float, TNL::Devices::Cuda, int>
 #endif
