@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <cstdint>
 
 #include <TNL/Object.h>
 #include <TNL/File.h>
