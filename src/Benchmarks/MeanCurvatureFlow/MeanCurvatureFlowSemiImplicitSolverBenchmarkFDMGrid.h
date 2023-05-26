@@ -13,6 +13,9 @@
 #include <TNL/Solvers/Linear/SOR.h>
 #include "MeanCurvatureFlowSolverBenchmark.h"
 
+#include <Decomposition/LU/Decomposers/IterativeCroutMethod.h>
+#include <Decomposition/LU/Solvers/CuBLAStrsvWrapper.h>
+
 template< int Dimension,
           typename Real = double,
           typename Device = TNL::Devices::Host,
@@ -165,6 +168,16 @@ struct MeanCurvatureFlowSemiImplicitSolverBenchmarkFDMGrid< 2, Real, Device, Ind
 
    void exec( const Index xSize, const Index ySize )
    {
+      // ICMPP setup:
+      constexpr bool useDecompositionProject = true; // Only works if Device == TNL::Devices::Cuda
+      using CudaMatrix = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Cuda, Index >;
+      // Resulting LU from previous iteration
+      CudaMatrix LU;
+      // Toggle using the decomposed matrix from the last iteration as an initial estimate for ICMPP
+      const bool useLastIterAsInitialEstimate = true;
+      // Create copy of matrix A
+      CudaMatrix A_copy;
+
       const Real hx = grid.getSpaceSteps()[ 0 ];
       const Real hy = grid.getSpaceSteps()[ 1 ];
       const Real hx_inv = ( Real ) 1.0/( hx * hx );
@@ -172,7 +185,10 @@ struct MeanCurvatureFlowSemiImplicitSolverBenchmarkFDMGrid< 2, Real, Device, Ind
       const Real hx_sqr_inv = ( Real ) 1.0 / (hx * hx);
       const Real hy_sqr_inv = ( Real ) 1.0 / (hy * hy);
 
-      BaseBenchmarkType::writeGnuplot( "initial-u.gplt", ux, xSize, ySize );
+      // BaseBenchmarkType::writeGnuplot( "initial-u.gplt", ux, xSize, ySize );
+      constexpr bool isCuda = std::is_same_v< Device, TNL::Devices::Cuda >;
+      const std::string gnuplotFolder = isCuda ? "gplot_cuda_out" : "gplot_seq_out";
+      BaseBenchmarkType::writeGnuplot( gnuplotFolder + "/initial-u.gplt", ux, xSize, ySize );
 
       IterativeSolverMonitorType monitor;
       TNL::Solvers::SolverMonitorThread monitorThread(monitor);
@@ -193,7 +209,7 @@ struct MeanCurvatureFlowSemiImplicitSolverBenchmarkFDMGrid< 2, Real, Device, Ind
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) )
      {
          auto uxView = this->ux.getView();
-         auto auxView = this->aux.getView();
+         // auto auxView = this->aux.getView();
          auto q_view = this->q.getView();
          auto q_bar_view = this->q_bar.getView();
          this->grid.template forInteriorEntities<2>( [=] __cuda_callable__ ( const typename Grid::Cell& entity ) mutable {
@@ -246,8 +262,49 @@ struct MeanCurvatureFlowSemiImplicitSolverBenchmarkFDMGrid< 2, Real, Device, Ind
             b_view[ c ] = u_c;
          } );
          std::cout << "Solving for iteration = " << iterations << " time = " << start << std::endl;
-         solver.solve( this->b, this->ux );
-         std::cout << "Done" << std::endl;
+
+         if constexpr( useDecompositionProject && std::is_same_v< Device, TNL::Devices::Cuda > ) {
+            using CudaMatrixView = TNL::Matrices::DenseMatrixView< Real, TNL::Devices::Cuda, Index >;
+            using CudaPivVector = Decomposition::Containers::RowOrderVector< int64_t, TNL::Devices::Cuda >;
+
+            using Decomposer = Decomposition::LU::Decomposers::IterativeCroutMethod< 8 >;
+            using Solver = Decomposition::LU::Solvers::CuBLAStrsvWrapper< Decomposition::Containers::MatrixFormat::UnitDiagIn_U >;
+
+            A_copy = *A;
+            // Use A as initial estimate for LU in the first iteration
+            if( useLastIterAsInitialEstimate && iterations == 0 ) {
+               LU = A_copy;
+            }
+
+            CudaPivVector piv( LU.getRows() );
+
+            // Set values of u to be b on input
+            this->ux = this->b;
+            auto uxView = this->ux.getView();
+
+            // Create DenseMatrix view that is bound to the values of X (holds values of B on input)
+            CudaMatrixView xView( A->getRows(), this->ux.getSize() / A->getRows(), uxView );
+            try {
+               std::cout << "Decomposing using " << Decomposer::getDecomposerName< Device >( ! piv.empty() ) <<
+                            ( useLastIterAsInitialEstimate ? " with last iter as initial estimate for LU\n" : "\n" );
+               if( useLastIterAsInitialEstimate ) {
+                  auto LUview = LU.getView();
+                  Decomposer::decompose( A_copy, LU, piv );
+                  Solver::solve( LUview, xView, piv );
+               } else {
+                  auto A_copyView = A_copy.getView();
+                  Decomposer::decompose( A_copy, piv );
+                  Solver::solve( A_copyView, xView, piv );
+               }
+
+            } catch( std::exception& e ) {
+               std::cout << e.what() << std::endl;
+            }
+         } else {
+            solver.solve( this->b, this->ux );
+         }
+
+         // std::cout << "Done" << std::endl;
          monitor.stopMainLoop();
          //this->ux.swap( this->aux );
          start += timestep;
@@ -261,7 +318,9 @@ struct MeanCurvatureFlowSemiImplicitSolverBenchmarkFDMGrid< 2, Real, Device, Ind
             //std::cout << "ux = " << ux << std::endl;
             //getchar();
 
-            BaseBenchmarkType::writeGnuplot( "mcf-u-" + std::to_string( iterations ) + ".gplt", ux, xSize, ySize );
+            // BaseBenchmarkType::writeGnuplot( "mcf-u-" + std::to_string( iterations ) + ".gplt", ux, xSize, ySize );
+            BaseBenchmarkType::writeGnuplot( gnuplotFolder + "/mcf-u-" + std::to_string( iterations ) + ".gplt", ux, xSize, ySize );
+
             //BaseBenchmarkType::writeGnuplot( "mcf-q-" + std::to_string( iterations ) + ".gplt", q, xSize, ySize );
             //BaseBenchmarkType::writeGnuplot( "mcf-q-bar-" + std::to_string( iterations ) + ".gplt", q_bar, xSize, ySize );
 
