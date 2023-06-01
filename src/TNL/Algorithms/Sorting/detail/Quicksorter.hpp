@@ -8,11 +8,13 @@
 
 #pragma once
 
+#include <TNL/DiscreteMath.h>
 #include <TNL/Functional.h>
 #include <TNL/Algorithms/Sorting/detail/task.h>
 #include <TNL/Algorithms/Sorting/detail/quicksort_kernel.h>
 #include <TNL/Algorithms/Sorting/detail/quicksort_1Block.h>
 #include <TNL/Algorithms/Sorting/detail/Quicksorter.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
 
@@ -339,14 +341,18 @@ Quicksorter< Value, Devices::Cuda >::initTasks( int elemPerBlock, const CMP& Cmp
    auto& tasks = iteration % 2 == 0 ? cuda_tasks : cuda_newTasks;
 
    //--------------------------------------------------------
-   Cuda::LaunchConfiguration launch_config;
-   launch_config.blockSize.x = threadsPerBlock;
-   launch_config.gridSize.x = host_1stPhaseTasksAmount / threadsPerBlock + ( host_1stPhaseTasksAmount % threadsPerBlock != 0 );
-   Cuda::launchKernelSync( cudaCalcBlocksNeeded< int >,
-                           launch_config,
-                           tasks.getView( 0, host_1stPhaseTasksAmount ),
-                           elemPerBlock,
-                           cuda_reductionTaskInitMem.getView( 0, host_1stPhaseTasksAmount ) );
+   {
+      const auto& cuda_tasks = tasks.getConstView( 0, host_1stPhaseTasksAmount );
+      auto blocksNeeded = cuda_reductionTaskInitMem.getView( 0, host_1stPhaseTasksAmount );
+      parallelFor< Devices::Cuda >( 0,
+                                    host_1stPhaseTasksAmount,
+                                    [ = ] __cuda_callable__( int i ) mutable
+                                    {
+                                       const TASK& task = cuda_tasks[ i ];
+                                       int size = task.partitionEnd - task.partitionBegin;
+                                       blocksNeeded[ i ] = TNL::roundUpDivision( size, elemPerBlock );
+                                    } );
+   }
    // cuda_reductionTaskInitMem[i] == how many blocks task i needs
 
    inplaceInclusiveScan( cuda_reductionTaskInitMem );
@@ -359,6 +365,8 @@ Quicksorter< Value, Devices::Cuda >::initTasks( int elemPerBlock, const CMP& Cmp
       return blocksNeeded;
 
    //--------------------------------------------------------
+   Cuda::LaunchConfiguration launch_config;
+   launch_config.blockSize.x = threadsPerBlock;
    launch_config.gridSize.x = host_1stPhaseTasksAmount;
    Cuda::launchKernelSync(
       cudaInitTask< Value, CMP >,

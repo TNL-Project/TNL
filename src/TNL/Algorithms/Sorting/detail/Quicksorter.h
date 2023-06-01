@@ -31,7 +31,6 @@ public:
    void
    sort( Array& arr );
 
-protected:
    void
    init( Containers::ArrayView< Value, Devices::Cuda > arr,
          int gridDim,
@@ -83,6 +82,7 @@ protected:
    void
    secondPhase( const CMP& Cmp );
 
+protected:
    // kernel config
    int maxBlocks, threadsPerBlock, desiredElemPerBlock;
    std::size_t maxSharable;
