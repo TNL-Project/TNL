@@ -6,102 +6,112 @@
 
 #pragma once
 
-namespace TNL {
-namespace Algorithms {
-namespace Graphs {
+#include <type_traits>
+#include <map>
+#include <TNL/TypeTraits.h>
 
-template< typename Real = double,
-          typename Index = int >
-struct Edge
-{
-   using RealType = Real;
-   using IndexType = Index;
+namespace TNL::Algorithms::Graphs {
 
-   Edge() = default;
+struct Directed {};
 
-   Edge( Index source, Index target, Real weight )
-      : source( source ), target( target ), weight( weight ) {}
+struct Undirected {};
 
-   Edge( const Edge& ) = default;
-
-   Edge( Edge&& ) = default;
-
-   Edge& operator=( const Edge& ) = default;
-
-   Edge& operator=( Edge&& ) = default;
-
-   ~Edge() = default;
-
-   bool operator<( const Edge& other ) const {
-      return weight < other.weight;
-   }
-
-   bool operator>( const Edge& other ) const {
-      return weight > other.weight;
-   }
-
-   bool operator<=( const Edge& other ) const {
-      return weight <= other.weight;
-   }
-
-   bool operator>=( const Edge& other ) const {
-      return weight >= other.weight;
-   }
-
-   bool operator==( const Edge& other ) const {
-      return source == other.source && target == other.target && weight == other.weight;
-   }
-
-   bool operator!=( const Edge& other ) const {
-      return !(*this == other);
-   }
-
-   const Index& getSource() const {
-      return source;
-   }
-
-   Index& getSource() {
-      return source;
-   }
-
-   const Index& getTarget() const {
-      return target;
-   }
-
-   Index& getTarget() {
-      return target;
-   }
-
-   const Real& getWeight() const {
-      return weight;
-   }
-
-   Real& getWeight() {
-      return weight;
-   }
-
-protected:
-   Index source = 0;
-   Index target = 0;
-   Real weight = 0.0;
-};
-
-template< typename Real, typename Index >
-std::ostream& operator<<( std::ostream& os, const Edge< Real, Index >& edge ) {
-   os << "(" << edge.getSource() << ", " << edge.getTarget() << ", " << edge.getWeight() << ")";
-   return os;
-}
-
-template< typename Matrix >
+template< typename Matrix,
+          typename GraphType_ = Directed >
+          // std::enable_if_t< IsMatrixType< Matrix >::value, bool > = true > TODO: fix check for matrix type
 struct Graph
 {
+   using MatrixType = Matrix;
    using IndexType = typename Matrix::IndexType;
    using DeviceType = typename Matrix::DeviceType;
-   using RealType = typename Matrix::RealType;
+   using ValueType = typename Matrix::RealType;
+   using GraphType = GraphType_;
 
+   static constexpr bool isDirected() { return std::is_same_v< GraphType, Directed >; }
+
+   static constexpr bool isUndirected() { return std::is_same_v< GraphType, Undirected >; }
+
+   Graph() = default;
+
+   Graph( const Matrix& matrix )
+      : Matrix( matrix ) {}
+
+   Graph( Matrix&& matrix )
+      : Matrix( std::move( matrix ) ) {}
+
+   Graph( const Graph& ) = default;
+
+   Graph( Graph&& ) = default;
+
+   Graph( IndexType nodesCount,
+          const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data ) {
+      if( isDirected() ) {
+         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
+         this->adjacencyMatrix.setElements( data );
+      }
+      else {
+         std::map< std::pair< IndexType, IndexType >, ValueType > symmetric_map;
+         for( const auto& [source, target, weight] : data ) {
+            symmetric_map[ { source, target } ] = weight;
+            symmetric_map[ { target, source } ] = weight;
+         }
+         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
+         this->adjacencyMatrix.setElements( symmetric_map );
+      }
+   }
+
+   template< typename MapIndex, typename MapValue >
+   Graph( IndexType nodesCount,
+          const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map ) {
+      if( isDirected() ) {
+         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
+         this->adjacencyMatrix.setElements( map );
+      }
+      else {
+         std::map< std::pair< MapIndex, MapIndex >, MapValue > symmetric_map;
+         for( const auto& [key, value] : map ) {
+            symmetric_map[ { key.second, key.first } ] = value;
+            symmetric_map[ { key.first, key.second } ] = value;
+         }
+         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
+         this->adjacencyMatrix.setElements( symmetric_map );
+      }
+   }
+
+   Graph& operator=( const Graph& ) = default;
+
+   Graph& operator=( Graph&& ) = default;
+
+   ~Graph() = default;
+
+   IndexType getNodesCount() const {
+      return adjacencyMatrix.getRows();
+   }
+
+   IndexType getEdgesCount() const {
+      return adjacencyMatrix.getNonzeroElementsCount();
+   }
+
+   const MatrixType& getAdjacencyMatrix() const {
+      return adjacencyMatrix;
+   }
+
+   MatrixType& getAdjacencyMatrix() {
+      return adjacencyMatrix;
+   }
+
+   void setAdjacencyMatrix( const MatrixType& matrix ) {
+      adjacencyMatrix = matrix;
+   }
+
+   void setAdjacencyMatrix( MatrixType&& matrix ) {
+      adjacencyMatrix = std::move( matrix );
+   }
+
+
+   protected:
+
+   MatrixType adjacencyMatrix;
 };
 
-
-} // namespace Graphs
-} // namespace Algorithms
-} // namespace TNL
+} // namespace TNL::Algorithms::Graphs

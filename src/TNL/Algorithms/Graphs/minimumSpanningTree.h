@@ -190,29 +190,25 @@ void parallelMST(const Matrix& graph, Matrix& tree )
          const Index& source_node = row.getRowIndex();
          Index minEdgeTarget = -1;
          Real minEdgeWeight = std::numeric_limits< Real >::max();
-         //std::cout << "Source node " << source_node << std::endl;
+         //std::cout << "Row = " << source_node << " row size = " << row.getSize() << std::endl;
          for( Index j = 0; j < row.getSize(); j++ ) {
             const Index& target_node = row.getColumnIndex( j );
-            /*std::cout << " target_node = " << target_node
-                      << " p_old[ target_node ] = " << p_old[ target_node ]
-                      << " p_old[ source_node ] = " << p_old[ source_node ]
-                      << " row.getValue( j ) = " << row.getValue( j )
-                      << " minEdgeValue = " << minEdgeWeight
-                      << std::endl;*/
+            //std::cout << "   Checking edge " << source_node << " -> " << target_node << " weight " << row.getValue( j ) << " min. weight " << minEdgeWeight << std::endl;
             if( target_node != graph.getPaddingIndex() && p_view[ source_node ] != p_view[ target_node ] && row.getValue( j ) < minEdgeWeight ) {
                minEdgeWeight = row.getValue( j );
                minEdgeTarget = target_node;
             }
          }
-         //std::cout  << "Min. edge " << source_node << " -> " << minEdgeTarget << " weight " << minEdgeWeight << std::endl;
+         std::cout  << "Min. edge " << source_node << " -> " << minEdgeTarget << " weight " << minEdgeWeight << std::endl;
          if( minEdgeTarget != -1 ) {
             std::cout << " Adding candidate edge " << source_node << " -> " << minEdgeTarget << " weight " << minEdgeWeight
                       << " to star root " << p_view[ minEdgeTarget ];
             IndexType idx = hook_candidates_view.newSlot( p_view[ minEdgeTarget ] );
-            std::cout <<  " at position idx = " << idx << " / " << hook_candidates_view.getSize() << std::endl;
             hook_candidates_weights_view[ idx ] = minEdgeWeight;
             hook_candidates_targets_view[ idx ] = minEdgeTarget;
             hook_candidates_sources_view[ idx ] = source_node;
+            std::cout << " Adding candidate edge " << minEdgeTarget << " -> " << source_node << " weight " << minEdgeWeight
+                      << " to star root " << p_view[ minEdgeTarget ];
             idx = hook_candidates_view.newSlot( p_view[ source_node ] );
             hook_candidates_weights_view[ idx ] = minEdgeWeight;
             hook_candidates_targets_view[ idx ] = source_node;
@@ -269,7 +265,7 @@ void parallelMST(const Matrix& graph, Matrix& tree )
          auto target = hook_targets_view[ i ];
          if( source != -1 ) {
             std::cout << " Hooking " << source << " -> " << target << " parent node is " << p_old_view[ source ] << " weight " << hook_weights_view[ i ] << std::endl;
-            p_view[ target ] = p_old_view[ source ];
+            p_view[ p_old_view[ target ] ] = p_old_view[ source ];
             new_links_target_view[ target ] = source; //source; //hook_sources_view[ i ];
             new_links_weight_view[ target ] = hook_weights_view[ i ];
             return hook_weights_view[ i ];
@@ -279,10 +275,17 @@ void parallelMST(const Matrix& graph, Matrix& tree )
       };
       sum += Algorithms::reduce< DeviceType >( 0, p.getSize(), hooking_fetch, TNL::Plus{} );
       //Algorithms::parallelFor< DeviceType >( 0, p.getSize(), hooking_fetch );
-      std::cout << " After hooking: p = " << p << "                         sum = " << sum << std::endl;
+      std::cout << " After hooking: p     = " << p     << "                         sum = " << sum << std::endl;
+      std::cout << " After hooking: p_old = " << p_old << "                         sum = " << sum << std::endl;
+      std::cout << " New links target     = " << new_links_target_view << std::endl;
 
       // Find cycles
       auto cycles_fetch = [=] __cuda_callable__ ( Index i ) mutable {
+         auto& new_link_i = new_links_target_view[ i ];
+         if( new_link_i != -1 && i < new_link_i && i == new_links_target_view[ new_link_i ] ) {
+            std::cout << " Found cycle " << i << " -> " << new_link_i << " -> " << i << std::endl;
+            new_links_target_view[ i ] = -1;
+         }
          auto& p_i = p_view[ i ];
          if( i == p_old_view[ i ] &&    // i was a star root before the hooking
              i < p_i &&                 // we cancel only one edge of the cycle
@@ -297,6 +300,9 @@ void parallelMST(const Matrix& graph, Matrix& tree )
       };
       auto add = TNL::Algorithms::reduce< DeviceType >( 0, p.getSize(), cycles_fetch, TNL::Plus{} );
       sum -= add;
+      std::cout << " After cycles: p      = " << p     << "                         sum = " << sum << std::endl;
+      std::cout << " After cycles: p_old  = " << p_old << "                         sum = " << sum << std::endl;
+      std::cout << " New links target     = " << new_links_target_view << std::endl;
 
       // Adding edges to the graph of the spanning tree
       Algorithms::parallelFor< DeviceType >( 0, n,

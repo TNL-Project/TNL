@@ -13,6 +13,7 @@ class GraphTest : public ::testing::Test
 {
 protected:
    using MatrixType = Matrix;
+   using GraphType = TNL::Algorithms::Graphs::Graph< MatrixType, TNL::Algorithms::Graphs::Directed >;
 };
 
 // types for which MatrixTest is instantiated
@@ -29,17 +30,16 @@ TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 
 TYPED_TEST( GraphTest, test_BFS_small )
 {
-   using MatrixType = typename TestFixture::MatrixType;
-   using RealType = typename MatrixType::RealType;
-   using DeviceType = typename MatrixType::DeviceType;
-   using IndexType = typename MatrixType::IndexType;
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
-   // Create a TNL::Matrices::SparseMatrix for a sample graph.
-   MatrixType matrix(
-        5, // number of matrix rows
-        5, // number of matrix columns
-        {  // matrix elements definition
+   // Create a sample graph.
+   GraphType graph(
+        5, // graph nodes count
+        {  // definition of graph edges
                         { 0, 1, 0.5 }, { 0, 2, 1.2 },
          { 1, 0, 0.5 },                               { 1, 3, 2.3 }, { 1, 4, 3.7 },
          { 2, 0, 1.2 },                               { 2, 3, 0.8 },
@@ -47,7 +47,7 @@ TYPED_TEST( GraphTest, test_BFS_small )
                         { 4, 1, 3.7 },                { 4, 3, 1.5 }
         });
 
-   VectorType distances( matrix.getRows() );
+   VectorType distances( graph.getNodesCount() );
    std::vector< VectorType > expectedDistances{
       { 0.0, 0.5, 1.2, 2.0, 3.5 },
       { 0.5, 0.0, 1.7, 2.3, 3.7 },
@@ -55,26 +55,25 @@ TYPED_TEST( GraphTest, test_BFS_small )
       { 2.0, 2.3, 0.8, 0.0, 1.5 },
       { 3.5, 3.7, 2.3, 1.5, 0.0 } };
 
-   for( int start_node = 0; start_node < matrix.getRows(); ++start_node )
+   for( int start_node = 0; start_node < graph.getNodesCount(); ++start_node )
    {
-      TNL::Algorithms::Graphs::singleSourceShortestPath( matrix, start_node, distances );
+      TNL::Algorithms::Graphs::singleSourceShortestPath( graph, start_node, distances );
       ASSERT_EQ(distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
 }
 
 TYPED_TEST( GraphTest, test_BFS_larger )
 {
-   using MatrixType = typename TestFixture::MatrixType;
-   using RealType = typename MatrixType::RealType;
-   using DeviceType = typename MatrixType::DeviceType;
-   using IndexType = typename MatrixType::IndexType;
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
-   // Create a TNL::Matrices::SparseMatrix for a larger sample graph.
-   MatrixType matrix(
-        10, // number of matrix rows
-        10, // number of matrix columns
-        {  // matrix elements definition
+   // Create a larger sample graph.
+   GraphType graph(
+        10, // graph nodes count
+        {   // definition of graph edges
                      { 0, 1, 0.5 }, { 0, 2, 1.2 },
                                                    { 1, 3, 2.3 }, { 1, 4, 3.7 },
                                                    { 2, 3, 0.8 },                { 2, 5, 2.1 },
@@ -88,7 +87,7 @@ TYPED_TEST( GraphTest, test_BFS_larger )
         });
 
 
-   VectorType distances( matrix.getRows() );
+   VectorType distances( graph.getNodesCount() );
    std::vector< VectorType > expectedDistances = {
       {  0.0,  0.5,  1.2, 2.0,  4.2,  3.3, 3.5,  5.1,  5.0, 6.8 },
       { -1.0,  0.0, -1.0, 2.3,  3.7, -1.0, 3.8,  4.6, -1.0, 6.8 },
@@ -102,10 +101,10 @@ TYPED_TEST( GraphTest, test_BFS_larger )
       { -1.0, -1.0, -1.0, 0.7, -1.0, -1.0, 2.2, -1.0, -1.0, 0.0 }
    };
 
-   for( int start_node = 0; start_node < matrix.getRows(); ++start_node )
+   for( int start_node = 0; start_node < graph.getNodesCount(); start_node++ )
    {
-      TNL::Algorithms::Graphs::singleSourceShortestPath( matrix, start_node, distances );
-      for( IndexType i = 0; i < matrix.getRows(); i++ )
+      TNL::Algorithms::Graphs::singleSourceShortestPath( graph, start_node, distances );
+      for( IndexType i = 0; i < graph.getNodesCount(); i++ )
          ASSERT_FLOAT_EQ(distances.getElement( i ), expectedDistances[ start_node ].getElement( i ) )
             << "start_node: " << start_node
             << " distances[ " << i << " ]: " << distances.getElement( i )
@@ -118,17 +117,16 @@ TYPED_TEST( GraphTest, test_BFS_larger )
 
 TYPED_TEST( GraphTest, test_BFS_largest )
 {
-   using MatrixType = typename TestFixture::MatrixType;
-   using RealType = typename MatrixType::RealType;
-   using DeviceType = typename MatrixType::DeviceType;
-   using IndexType = typename MatrixType::IndexType;
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
-   // Create a TNL::Matrices::SparseMatrix for a larger sample graph with 15 nodes.
-   MatrixType matrix(
-      15, // number of matrix rows
-      15, // number of matrix columns
-      {  // matrix elements definition
+   // Create a sample graph with 15 nodes.
+   GraphType graph(
+      15, // graph nodes count
+      {   // definition of graph edges
         { 0, 1, 2.4}, {0, 4, 4.6},
         {1, 3, 3.1},
         {2, 1, 1.2}, {2, 8, 5.7},
@@ -146,7 +144,7 @@ TYPED_TEST( GraphTest, test_BFS_largest )
         {14, 13, 2.8}
       } );
 
-   VectorType distances( matrix.getRows() );
+   VectorType distances( graph.getNodesCount() );
    std::vector< VectorType > expectedDistances = {
       {  0.0,  2.4, 34.3,  5.5,  4.6,  9.3,  8.4, 32.4, 29.1, 13.7, 15.7, 12.8, 16.5, 25.1, 22.3 },
       { -1.0,  0.0, 31.9,  3.1, -1.0,  6.9,  6.0, 30.0, 26.7, 11.3, 13.3, -1.0, 16.1, 22.7, 19.9 },
@@ -165,10 +163,10 @@ TYPED_TEST( GraphTest, test_BFS_largest )
       { -1.0, 13.2, 12.0, 16.3, -1.0, 20.1, 19.2, 10.1,  6.8,  9.5, 11.8, -1.0,  7.9,  2.8,  0.0 }
    };
 
-   for( int start_node = 0; start_node < matrix.getRows(); start_node++ )
+   for( int start_node = 0; start_node < graph.getNodesCount(); start_node++ )
    {
-      TNL::Algorithms::Graphs::singleSourceShortestPath( matrix, start_node, distances );
-      for( IndexType i = 0; i < matrix.getRows(); i++ )
+      TNL::Algorithms::Graphs::singleSourceShortestPath( graph, start_node, distances );
+      for( IndexType i = 0; i < graph.getNodesCount(); i++ )
          ASSERT_FLOAT_EQ(distances.getElement( i ), expectedDistances[ start_node ].getElement( i ) )
             << "start_node: " << start_node
             << " distances[ " << i << " ]: " << distances.getElement( i )

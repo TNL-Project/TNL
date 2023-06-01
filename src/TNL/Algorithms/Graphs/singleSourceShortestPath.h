@@ -8,6 +8,7 @@
 
 #include <queue>
 
+#include <TNL/Algorithms/Graphs/Graph.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Functional.h>
@@ -28,8 +29,6 @@ void singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix
    const Index n = transposedAdjacencyMatrix.getRows();
 
    Vector y( distances.getSize() );
-   distances = std::numeric_limits< Real >::max();
-   distances.setElement( start, 0.0 );
    y = distances;
 
    for( Index i = 1; i <= n; i++ )
@@ -50,20 +49,19 @@ void singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix
    }
 }
 
-template< typename Matrix, typename Vector, typename Index = typename Matrix::IndexType >
-void singleSourceShortestPath( const Matrix& adjacencyMatrix, Index start, Vector& distances )
+template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
+void singleSourceShortestPath( const Graph& graph, Index start, Vector& distances )
 {
-   TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
-   TNL_ASSERT_TRUE( distances.getSize() == adjacencyMatrix.getRows(), "v must have the same size as the number of rows in adjacencyMatrix" );
+   using Real = typename Graph::ValueType;
+   using Device = typename Graph::DeviceType;
 
-   using Real = typename Matrix::RealType;
-   using Device = typename Matrix::DeviceType;
+   distances.setSize( graph.getNodesCount() );
+   distances = std::numeric_limits< Real >::max();
+   distances.setElement( start, 0.0 );
 
    // In the sequential version, we use the Dijkstra algorithm.
    if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value )
    {
-      distances = std::numeric_limits< Real >::max();
-      distances.setElement( start, 0.0 );
 
       // The priority queue stores pairs of (distance, vertex)
       std::priority_queue< std::pair< Real, Index >, std::vector< std::pair< Real, Index > >, std::greater< std::pair< Real, Index >>> pq;
@@ -79,15 +77,15 @@ void singleSourceShortestPath( const Matrix& adjacencyMatrix, Index start, Vecto
             continue;
          }
 
-         const auto row = adjacencyMatrix.getRow( current );
+         const auto row = graph.getAdjacencyMatrix().getRow( current );
          for( Index i = 0; i < row.getSize(); i++ ) {
             const auto& edge_weight = row.getValue( i );
             const auto& neighbor = row.getColumnIndex( i );
-            if( neighbor == adjacencyMatrix.getPaddingIndex() )
+            if( neighbor == graph.getAdjacencyMatrix().getPaddingIndex() )
                continue;
             double distance = current_distance + edge_weight;
 
-            if (distance < distances[neighbor]) {
+            if( distance < distances[ neighbor ] ) {
                 distances[neighbor] = distance;
                 pq.emplace(distance, neighbor);
             }
@@ -96,8 +94,8 @@ void singleSourceShortestPath( const Matrix& adjacencyMatrix, Index start, Vecto
    }
    else
    {
-      Matrix transposed;
-      transposed.transpose( adjacencyMatrix );
+      typename Graph::MatrixType transposed;
+      transposed.transpose( graph.getAdjacencyMatrix() );
       singleSourceShortestPathTransposed( transposed, start, distances );
    }
    distances.forAllElements( [] __cuda_callable__ ( Index i, Real& x ) {
