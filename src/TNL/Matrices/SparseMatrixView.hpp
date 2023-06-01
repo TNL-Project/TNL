@@ -527,41 +527,6 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                                                                                             Fetch& fetch,
                                                                                             const Reduce& reduce,
                                                                                             Keep& keep,
-                                                                                            const FetchValue& identity )
-{
-   auto columns_view = this->columnIndexes.getView();
-   auto values_view = this->values.getView();
-   const IndexType paddingIndex_ = this->getPaddingIndex();
-   auto fetch_ = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx, bool& compute ) mutable
-      -> decltype( fetch( IndexType(), IndexType(), RealType() ) )
-   {
-      IndexType& columnIdx = columns_view[ globalIdx ];
-      if( columnIdx != paddingIndex_ ) {
-         if( isBinary() )
-            return fetch( rowIdx, columnIdx, 1 );
-         else
-            return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
-      }
-      return identity;
-   };
-   // TODO: parametrize the kernel like in vectorProduct
-   DefaultSegmentsReductionKernel::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
-}
-
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename >
-          class SegmentsView,
-          typename ComputeReal >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
-void
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows( IndexType begin,
-                                                                                            IndexType end,
-                                                                                            Fetch& fetch,
-                                                                                            const Reduce& reduce,
-                                                                                            Keep& keep,
                                                                                             const FetchValue& identity ) const
 {
    const auto columns_view = this->columnIndexes.getConstView();
@@ -582,23 +547,6 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    };
    // TODO: parametrize the kernel like in vectorProduct
    DefaultSegmentsReductionKernel::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
-}
-
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename >
-          class SegmentsView,
-          typename ComputeReal >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceAllRows( Fetch& fetch,
-                                                                                               const Reduce& reduce,
-                                                                                               Keep& keep,
-                                                                                               const FetchReal& identity )
-{
-   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
 }
 
 template< typename Real,

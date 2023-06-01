@@ -603,51 +603,9 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Fetch& fetch,
    const Reduce& reduce,
    Keep& keep,
-   const FetchValue& identity )
-{
-   this->view.reduceRows( begin, end, fetch, reduce, keep, identity );
-}
-
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
-void
-SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::reduceRows(
-   IndexType begin,
-   IndexType end,
-   Fetch& fetch,
-   const Reduce& reduce,
-   Keep& keep,
    const FetchValue& identity ) const
 {
    this->view.reduceRows( begin, end, fetch, reduce, keep, identity );
-}
-
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::reduceAllRows(
-   Fetch& fetch,
-   const Reduce& reduce,
-   Keep& keep,
-   const FetchReal& identity )
-{
-   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
 }
 
 template< typename Real,
