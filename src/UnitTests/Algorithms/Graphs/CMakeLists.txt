@@ -1,6 +1,7 @@
 set( COMMON_TESTS
             GraphTest_BFS
             GraphTest_SSSP
+            GraphTest_trees
             GraphTest_MST
 )
 
