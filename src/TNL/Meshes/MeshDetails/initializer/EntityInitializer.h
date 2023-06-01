@@ -109,7 +109,8 @@ initializeSuperentities( Initializer< MeshConfig >& meshInitializer,
          for( GlobalIndexType superentityIndex = 0; superentityIndex < superentitiesCount; superentityIndex++ ) {
             for( LocalIndexType i = 0;
                  i < mesh.template getSubentitiesCount< superdimension, subdimension >( superentityIndex );
-                 i++ ) {
+                 i++ )
+            {
                const GlobalIndexType subentityIndex =
                   mesh.template getSubentityIndex< superdimension, subdimension >( superentityIndex, i );
                auto row = matrix.getRow( subentityIndex );
@@ -191,7 +192,8 @@ initializeFacesOfPolyhedrons( Initializer< MeshConfig >& meshInitializer,
       // initialize superentities storage
       for( GlobalIndexType superentityIndex = 0; superentityIndex < superentitiesCount; superentityIndex++ ) {
          for( LocalIndexType i = 0; i < mesh.template getSubentitiesCount< superdimension, subdimension >( superentityIndex );
-              i++ ) {
+              i++ )
+         {
             const GlobalIndexType subentityIndex =
                mesh.template getSubentityIndex< superdimension, subdimension >( superentityIndex, i );
             auto row = matrix.getRow( subentityIndex );

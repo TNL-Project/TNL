@@ -143,7 +143,8 @@ private:
       for( IndexType K = 0; K < numberOfCells; K++ ) {
          const auto& cell = mesh.template getEntity< Mesh::getMeshDimension() >( K );
          for( typename Mesh::LocalIndexType e = 0; e < cell.template getSubentitiesCount< MeshEntity::getEntityDimension() >();
-              e++ ) {
+              e++ )
+         {
             const auto E = cell.template getSubentityIndex< MeshEntity::getEntityDimension() >( e );
             if( ! marker[ E ] ) {
                marker[ E ] = true;

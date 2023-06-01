@@ -49,6 +49,8 @@ SpaceBeforeCpp11BracedList: false
 SpaceInEmptyBlock: false
 SpaceInEmptyParentheses: false
 
+SpacesInLineCommentPrefix:
+  Minimum: 0
 SpacesBeforeTrailingComments: 2
 Cpp11BracedListStyle: false
 

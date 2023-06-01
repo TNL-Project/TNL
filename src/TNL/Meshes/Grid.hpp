@@ -683,7 +683,8 @@ Grid< Dimension, Real, Device, Index >::writeProlog( TNL::Logger& logger ) const
       [ & ]( auto entityDim )
       {
          for( IndexType entityOrientation = 0; entityOrientation < this->getEntityOrientationsCount( entityDim() );
-              entityOrientation++ ) {
+              entityOrientation++ )
+         {
             auto normals = this->getBasis< entityDim >( entityOrientation );
             TNL::String tmp = TNL::String( "Entities count with basis " ) + TNL::convertToString( normals ) + ":";
             logger.writeParameter( tmp, this->getOrientedEntitiesCount( entityDim, entityOrientation ) );
