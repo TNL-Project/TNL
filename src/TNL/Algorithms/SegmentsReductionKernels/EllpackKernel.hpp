@@ -19,13 +19,13 @@ namespace TNL::Algorithms::SegmentsReductionKernels {
 template< typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __global__
 void
-EllpackCudaReductionKernelFull( Index begin,
-                                Index end,
-                                Fetch fetch,
-                                const Reduction reduction,
-                                ResultKeeper keep,
-                                const Value identity,
-                                Index segmentSize )
+EllpackCudaReductionKernel( Index begin,
+                            Index end,
+                            Fetch fetch,
+                            const Reduction reduction,
+                            ResultKeeper keep,
+                            const Value identity,
+                            Index segmentSize )
 {
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -38,58 +38,21 @@ EllpackCudaReductionKernelFull( Index begin,
       return;
 
    ReturnType result = identity;
+   bool compute = true;
    const Index laneID = threadIdx.x & 31;  // & is cheaper than %
    begin = segmentIdx * segmentSize;
    end = begin + segmentSize;
 
    /* Calculate result */
-   Index localIdx = 0;
-   bool compute = true;
-   for( Index i = begin + laneID; i < end; i += warpSize )
-      result = reduction( result, fetch( segmentIdx, localIdx++, i, compute ) );
-
-   /* Reduction */
-   result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
-   result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-   result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-   result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-   result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   /* Write result */
-   if( laneID == 0 )
-      keep( segmentIdx, result );
-#endif
-}
-
-template< typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
-__global__
-void
-EllpackCudaReductionKernelCompact( Index begin,
-                                   Index end,
-                                   Fetch fetch,
-                                   const Reduction reduction,
-                                   ResultKeeper keep,
-                                   const Value identity,
-                                   Index segmentSize )
-{
-#ifdef __CUDACC__
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-
-   const int warpSize = 32;
-   const int gridID = 0;
-   const Index segmentIdx =
-      begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
-   if( segmentIdx >= end )
-      return;
-
-   ReturnType result = identity;
-   const Index laneID = threadIdx.x & 31;  // & is cheaper than %
-   begin = segmentIdx * segmentSize;
-   end = begin + segmentSize;
-
-   /* Calculate result */
-   bool compute = true;
-   for( Index i = begin + laneID; i < end; i += warpSize )
-      result = reduction( result, fetch( i, compute ) );
+   if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
+      Index localIdx = 0;
+      for( Index i = begin + laneID; i < end; i += warpSize )
+         result = reduction( result, fetch( segmentIdx, localIdx++, i, compute ) );
+   }
+   else {
+      for( Index i = begin + laneID; i < end; i += warpSize )
+         result = reduction( result, fetch( i, compute ) );
+   }
 
    /* Reduction */
    result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
@@ -160,16 +123,8 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          Cuda::LaunchConfiguration launch_config;
          launch_config.blockSize.x = 256;
          launch_config.gridSize.x = blocksCount;
-
-         constexpr bool FullFetch = detail::CheckFetchLambda< IndexType, Fetch >::hasAllParameters();
-         if constexpr( FullFetch ) {
-            constexpr auto kernel = EllpackCudaReductionKernelFull< IndexType, Fetch, Reduction, ResultKeeper, ReturnType >;
-            Cuda::launchKernelSync( kernel, launch_config, begin, end, fetch, reduction, keeper, identity, segmentSize );
-         }
-         else {
-            constexpr auto kernel = EllpackCudaReductionKernelCompact< IndexType, Fetch, Reduction, ResultKeeper, ReturnType >;
-            Cuda::launchKernelSync( kernel, launch_config, begin, end, fetch, reduction, keeper, identity, segmentSize );
-         }
+         constexpr auto kernel = EllpackCudaReductionKernel< IndexType, Fetch, Reduction, ResultKeeper, ReturnType >;
+         Cuda::launchKernelSync( kernel, launch_config, begin, end, fetch, reduction, keeper, identity, segmentSize );
       }
       else {
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
