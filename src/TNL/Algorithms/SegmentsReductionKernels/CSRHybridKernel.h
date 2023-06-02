@@ -37,7 +37,7 @@ struct CSRHybridKernel
    [[nodiscard]] static TNL::String
    getKernelType();
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
@@ -45,15 +45,15 @@ struct CSRHybridKernel
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
-                   const Real& zero ) const;
+                   const Value& identity ) const;
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
                       ResultKeeper& keeper,
-                      const Real& zero ) const;
+                      const Value& identity ) const;
 
 protected:
    int threadsPerSegment = 0;

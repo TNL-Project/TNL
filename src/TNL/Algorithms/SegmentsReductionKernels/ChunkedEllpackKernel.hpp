@@ -19,7 +19,7 @@
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
-template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __device__
 void
 reduceSegmentsKernelWithAllParameters( SegmentsView segments,
@@ -29,10 +29,10 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
                                        Fetch fetch,
                                        Reduction reduction,
                                        ResultKeeper keeper,
-                                       Real zero )
+                                       Value identity )
 {
 #ifdef __CUDACC__
-   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index firstSlice = segments.getRowToSliceMappingView()[ begin ];
    const Index lastSlice = segments.getRowToSliceMappingView()[ end - 1 ];
@@ -41,22 +41,22 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
    if( sliceIdx > lastSlice )
       return;
 
-   RealType* chunksResults = Cuda::getSharedMemory< RealType >();
+   ReturnType* chunksResults = Cuda::getSharedMemory< ReturnType >();
    __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
    if( threadIdx.x == 0 )
       sliceInfo = segments.getSlicesView()[ sliceIdx ];
-   chunksResults[ threadIdx.x ] = zero;
+   chunksResults[ threadIdx.x ] = identity;
    __syncthreads();
 
    const Index sliceOffset = sliceInfo.pointer;
    const Index chunkSize = sliceInfo.chunkSize;
    const Index chunkIdx = sliceIdx * segments.getChunksInSlice() + threadIdx.x;
    const Index segmentIdx = segments.getChunksToSegmentsMappingView()[ chunkIdx ];
-   Index firstChunkOfSegment( 0 );
+   Index firstChunkOfSegment = 0;
    if( segmentIdx != sliceInfo.firstSegment )
       firstChunkOfSegment = segments.getRowToChunkMappingView()[ segmentIdx - 1 ];
    Index localIdx = ( threadIdx.x - firstChunkOfSegment ) * chunkSize;
-   bool compute( true );
+   bool compute = true;
 
    if( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
       Index begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
@@ -73,11 +73,11 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
    __syncthreads();
    if( threadIdx.x < sliceInfo.size ) {
       const Index row = sliceInfo.firstSegment + threadIdx.x;
-      Index chunkIndex( 0 );
+      Index chunkIndex = 0;
       if( threadIdx.x != 0 )
          chunkIndex = segments.getRowToChunkMappingView()[ row - 1 ];
       const Index lastChunk = segments.getRowToChunkMappingView()[ row ];
-      RealType result( zero );
+      ReturnType result( identity );
       while( chunkIndex < lastChunk )
          result = reduction( result, chunksResults[ chunkIndex++ ] );
       if( row >= begin && row < end )
@@ -86,7 +86,7 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
 #endif
 }
 
-template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __device__
 void
 reduceSegmentsKernel( SegmentsView segments,
@@ -96,10 +96,10 @@ reduceSegmentsKernel( SegmentsView segments,
                       Fetch fetch,
                       Reduction reduction,
                       ResultKeeper keeper,
-                      Real zero )
+                      Value identity )
 {
 #ifdef __CUDACC__
-   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index firstSlice = segments.getRowToSliceMappingView()[ begin ];
    const Index lastSlice = segments.getRowToSliceMappingView()[ end - 1 ];
@@ -108,18 +108,18 @@ reduceSegmentsKernel( SegmentsView segments,
    if( sliceIdx > lastSlice )
       return;
 
-   RealType* chunksResults = Cuda::getSharedMemory< RealType >();
+   ReturnType* chunksResults = Cuda::getSharedMemory< ReturnType >();
    __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
 
    if( threadIdx.x == 0 )
       sliceInfo = segments.getSlicesView()[ sliceIdx ];
-   chunksResults[ threadIdx.x ] = zero;
+   chunksResults[ threadIdx.x ] = identity;
    __syncthreads();
 
    const Index sliceOffset = sliceInfo.pointer;
    const Index chunkSize = sliceInfo.chunkSize;
    // const Index chunkIdx = sliceIdx * segments.getChunksInSlice() + threadIdx.x;
-   bool compute( true );
+   bool compute = true;
 
    if( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
       Index begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
@@ -137,11 +137,11 @@ reduceSegmentsKernel( SegmentsView segments,
 
    if( threadIdx.x < sliceInfo.size ) {
       const Index row = sliceInfo.firstSegment + threadIdx.x;
-      Index chunkIndex( 0 );
+      Index chunkIndex = 0;
       if( threadIdx.x != 0 )
          chunkIndex = segments.getRowToChunkMappingView()[ row - 1 ];
       const Index lastChunk = segments.getRowToChunkMappingView()[ row ];
-      RealType result( zero );
+      ReturnType result( identity );
       while( chunkIndex < lastChunk )
          result = reduction( result, chunksResults[ chunkIndex++ ] );
       if( row >= begin && row < end )
@@ -150,7 +150,7 @@ reduceSegmentsKernel( SegmentsView segments,
 #endif
 }
 
-template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __global__
 void
 ChunkedEllpackreduceSegmentsKernel( SegmentsView segments,
@@ -160,12 +160,12 @@ ChunkedEllpackreduceSegmentsKernel( SegmentsView segments,
                                     Fetch fetch,
                                     Reduction reduction,
                                     ResultKeeper keeper,
-                                    Real zero )
+                                    Value identity )
 {
    if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() )
-      reduceSegmentsKernelWithAllParameters( segments, gridIdx, begin, end, fetch, reduction, keeper, zero );
+      reduceSegmentsKernelWithAllParameters( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
    else
-      reduceSegmentsKernel( segments, gridIdx, begin, end, fetch, reduction, keeper, zero );
+      reduceSegmentsKernel( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
 }
 
 template< typename Index, typename Device >
@@ -203,7 +203,7 @@ ChunkedEllpackKernel< Index, Device >::getKernelType()
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                        Index begin,
@@ -211,9 +211,9 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
                                                        Fetch& fetch,
                                                        const Reduction& reduction,
                                                        ResultKeeper& keeper,
-                                                       const Real& zero )
+                                                       const Value& identity )
 {
-   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if constexpr( std::is_same< DeviceType, Devices::Host >::value ) {
       for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
          const IndexType sliceIndex = segments.getRowToSliceMappingView()[ segmentIdx ];
@@ -228,12 +228,12 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
          const IndexType chunkSize = segments.getSlicesView()[ sliceIndex ].chunkSize;
 
          const IndexType segmentSize = segmentChunksCount * chunkSize;
-         RealType aux( zero );
-         bool compute( true );
+         ReturnType aux = identity;
+         bool compute = true;
          if( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
             IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
             IndexType end = begin + segmentSize;
-            IndexType localIdx( 0 );
+            IndexType localIdx = 0;
             for( IndexType globalIdx = begin; globalIdx < end && compute; globalIdx++ )
                aux = reduction(
                   aux,
@@ -243,7 +243,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
             for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
                IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
                IndexType end = begin + segments.getChunksInSlice() * chunkSize;
-               IndexType localIdx( 0 );
+               IndexType localIdx = 0;
                for( IndexType globalIdx = begin; globalIdx < end && compute; globalIdx += segments.getChunksInSlice() )
                   aux = reduction( aux,
                                    detail::FetchLambdaAdapter< IndexType, Fetch >::call(
@@ -260,7 +260,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
       const IndexType cudaBlocks = segments.getNumberOfSlices();
       const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
       launch_config.blockSize.x = segments.getChunksInSlice();
-      launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( RealType );
+      launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          launch_config.gridSize.x = Cuda::getMaxGridXSize();
@@ -268,9 +268,9 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
             launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
          using ConstSegmentsView = typename SegmentsView::ConstViewType;
          constexpr auto kernel =
-            ChunkedEllpackreduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Real >;
+            ChunkedEllpackreduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
          Cuda::launchKernelAsync(
-            kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, zero );
+            kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
       }
       cudaStreamSynchronize( launch_config.stream );
       TNL_CHECK_CUDA_DEVICE;
@@ -278,15 +278,15 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 ChunkedEllpackKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
                                                           Fetch& fetch,
                                                           const Reduction& reduction,
                                                           ResultKeeper& keeper,
-                                                          const Real& zero )
+                                                          const Value& identity )
 {
-   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, zero );
+   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

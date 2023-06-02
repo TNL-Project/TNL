@@ -25,7 +25,7 @@ struct CSRScalarKernelreduceSegmentsDispatcher;
 template< typename Index, typename Device, typename Fetch, typename Reduction, typename ResultKeeper >
 struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, ResultKeeper, true >
 {
-   template< typename Offsets, typename Real >
+   template< typename Offsets, typename Value >
    static void
    reduce( const Offsets& offsets,
            Index begin,
@@ -33,15 +33,16 @@ struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction,
            Fetch& fetch,
            const Reduction& reduction,
            ResultKeeper& keep,
-           const Real& zero )
+           const Value& identity )
    {
       auto l = [ = ] __cuda_callable__( const Index segmentIdx ) mutable
       {
          const Index begin = offsets[ segmentIdx ];
          const Index end = offsets[ segmentIdx + 1 ];
-         Real aux( zero );
-         Index localIdx( 0 );
-         bool compute( true );
+         using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+         ReturnType aux = identity;
+         Index localIdx = 0;
+         bool compute = true;
          for( Index globalIdx = begin; globalIdx < end && compute; globalIdx++ )
             aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx, compute ) );
          keep( segmentIdx, aux );
@@ -66,7 +67,7 @@ struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction,
 template< typename Index, typename Device, typename Fetch, typename Reduction, typename Keep >
 struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, Keep, false >
 {
-   template< typename OffsetsView, typename Real >
+   template< typename OffsetsView, typename Value >
    static void
    reduce( const OffsetsView& offsets,
            Index begin,
@@ -74,14 +75,15 @@ struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction,
            Fetch& fetch,
            const Reduction& reduction,
            Keep& keep,
-           const Real& zero )
+           const Value& identity )
    {
       auto l = [ = ] __cuda_callable__( const Index segmentIdx ) mutable
       {
          const Index begin = offsets[ segmentIdx ];
          const Index end = offsets[ segmentIdx + 1 ];
-         Real aux( zero );
-         bool compute( true );
+         using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+         ReturnType aux = identity;
+         bool compute = true;
          for( Index globalIdx = begin; globalIdx < end && compute; globalIdx++ )
             aux = reduction( aux, fetch( globalIdx, compute ) );
          keep( segmentIdx, aux );
@@ -138,7 +140,7 @@ CSRScalarKernel< Index, Device >::getKernelType()
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 CSRScalarKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                   Index begin,
@@ -146,25 +148,25 @@ CSRScalarKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                   Fetch& fetch,
                                                   const Reduction& reduction,
                                                   ResultKeeper& keeper,
-                                                  const Real& zero )
+                                                  const Value& identity )
 {
    using OffsetsView = typename SegmentsView::ConstOffsetsView;
    OffsetsView offsets = segments.getOffsets();
 
    CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, ResultKeeper >::reduce(
-      offsets, begin, end, fetch, reduction, keeper, zero );
+      offsets, begin, end, fetch, reduction, keeper, identity );
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 CSRScalarKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
                                                      Fetch& fetch,
                                                      const Reduction& reduction,
                                                      ResultKeeper& keeper,
-                                                     const Real& zero )
+                                                     const Value& identity )
 {
-   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, zero );
+   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

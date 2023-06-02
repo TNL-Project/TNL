@@ -37,7 +37,7 @@ struct ChunkedEllpackKernel
    [[nodiscard]] static TNL::String
    getKernelType();
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    static void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
@@ -45,15 +45,15 @@ struct ChunkedEllpackKernel
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
-                   const Real& zero );
+                   const Value& identity );
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    static void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
                       ResultKeeper& keeper,
-                      const Real& zero );
+                      const Value& identity );
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

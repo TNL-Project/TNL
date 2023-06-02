@@ -15,7 +15,7 @@
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
-template< typename Real, typename Index, typename OffsetsView, typename Fetch, typename Reduce, typename Keep >
+template< typename Value, typename Index, typename OffsetsView, typename Fetch, typename Reduce, typename Keep >
 __global__
 void
 SpMVCSRLight2( OffsetsView offsets,
@@ -24,10 +24,12 @@ SpMVCSRLight2( OffsetsView offsets,
                Fetch fetch,
                Reduce reduce,
                Keep keep,
-               const Real zero,
+               const Value identity,
                const Index gridID )
 {
 #ifdef __CUDACC__
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
    const Index segmentIdx =
       begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 2;
    if( segmentIdx >= end )
@@ -36,7 +38,7 @@ SpMVCSRLight2( OffsetsView offsets,
    const Index inGroupID = threadIdx.x & 1;  // & is cheaper than %
    const Index maxID = offsets[ segmentIdx + 1 ];
 
-   Real result = zero;
+   ReturnType result = identity;
    bool compute = true;
    for( Index i = offsets[ segmentIdx ] + inGroupID; i < maxID; i += 2 )
       result = reduce( result, fetch( i, compute ) );
@@ -50,7 +52,7 @@ SpMVCSRLight2( OffsetsView offsets,
 #endif
 }
 
-template< typename Real, typename Index, typename OffsetsView, typename Fetch, typename Reduce, typename Keep >
+template< typename Value, typename Index, typename OffsetsView, typename Fetch, typename Reduce, typename Keep >
 __global__
 void
 SpMVCSRLight4( OffsetsView offsets,
@@ -59,10 +61,12 @@ SpMVCSRLight4( OffsetsView offsets,
                Fetch fetch,
                Reduce reduce,
                Keep keep,
-               const Real zero,
+               const Value identity,
                const Index gridID )
 {
 #ifdef __CUDACC__
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
    const Index segmentIdx =
       begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 4;
    if( segmentIdx >= end )
@@ -71,7 +75,7 @@ SpMVCSRLight4( OffsetsView offsets,
    const Index inGroupID = threadIdx.x & 3;  // & is cheaper than %
    const Index maxID = offsets[ segmentIdx + 1 ];
 
-   Real result = zero;
+   ReturnType result = identity;
    bool compute = true;
    for( Index i = offsets[ segmentIdx ] + inGroupID; i < maxID; i += 4 )
       result = reduce( result, fetch( i, compute ) );
@@ -86,7 +90,7 @@ SpMVCSRLight4( OffsetsView offsets,
 #endif
 }
 
-template< typename Real, typename Index, typename OffsetsView, typename Fetch, typename Reduce, typename Keep >
+template< typename Value, typename Index, typename OffsetsView, typename Fetch, typename Reduce, typename Keep >
 __global__
 void
 SpMVCSRLight8( OffsetsView offsets,
@@ -95,10 +99,12 @@ SpMVCSRLight8( OffsetsView offsets,
                Fetch fetch,
                Reduce reduce,
                Keep keep,
-               const Real zero,
+               const Value identity,
                const Index gridID )
 {
 #ifdef __CUDACC__
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
    const Index segmentIdx =
       begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 8;
    if( segmentIdx >= end )
@@ -108,7 +114,7 @@ SpMVCSRLight8( OffsetsView offsets,
    const Index inGroupID = threadIdx.x & 7;  // & is cheaper than %
    const Index maxID = offsets[ segmentIdx + 1 ];
 
-   Real result = zero;
+   ReturnType result = identity;
    bool compute = true;
    for( i = offsets[ segmentIdx ] + inGroupID; i < maxID; i += 8 )
       result = reduce( result, fetch( i, compute ) );
@@ -124,7 +130,7 @@ SpMVCSRLight8( OffsetsView offsets,
 #endif
 }
 
-template< typename Real, typename Index, typename OffsetsView, typename Fetch, typename Reduce, typename Keep >
+template< typename Value, typename Index, typename OffsetsView, typename Fetch, typename Reduce, typename Keep >
 __global__
 void
 SpMVCSRLight16( OffsetsView offsets,
@@ -133,10 +139,12 @@ SpMVCSRLight16( OffsetsView offsets,
                 Fetch fetch,
                 Reduce reduce,
                 Keep keep,
-                const Real zero,
+                const Value identity,
                 const Index gridID )
 {
 #ifdef __CUDACC__
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
    const Index segmentIdx =
       begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 16;
    if( segmentIdx >= end )
@@ -146,7 +154,7 @@ SpMVCSRLight16( OffsetsView offsets,
    const Index inGroupID = threadIdx.x & 15;  // & is cheaper than %
    const Index maxID = offsets[ segmentIdx + 1 ];
 
-   Real result = zero;
+   ReturnType result = identity;
    bool compute = true;
    for( i = offsets[ segmentIdx ] + inGroupID; i < maxID; i += 16 )
       result = reduce( result, fetch( i, compute ) );
@@ -163,7 +171,7 @@ SpMVCSRLight16( OffsetsView offsets,
 #endif
 }
 
-/*template< typename Real,
+/*template< typename Value,
           typename Index,
           typename OffsetsView,
           typename Fetch,
@@ -176,16 +184,18 @@ void SpMVCSRVector( OffsetsView offsets,
                     Fetch fetch,
                     Reduce reduce,
                     Keep keep,
-                    const Real zero,
+                    const Value identity,
                     const Index gridID )
 {
 #ifdef __CUDACC__
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
    const int warpSize = 32;
    const Index warpID = begin + ((gridID * TNL::Cuda::getMaxGridXSize() ) + (blockIdx.x * blockDim.x) + threadIdx.x) / warpSize;
    if (warpID >= end)
       return;
 
-   Real result = zero;
+   ReturnType result = identity;
    const Index laneID = threadIdx.x & 31; // & is cheaper than %
    Index endID = offsets[warpID + 1];
 
@@ -207,7 +217,7 @@ void SpMVCSRVector( OffsetsView offsets,
 }*/
 
 template< int ThreadsPerSegment,
-          typename Real,
+          typename Value,
           typename Index,
           typename OffsetsView,
           typename Fetch,
@@ -221,17 +231,19 @@ SpMVCSRVector( OffsetsView offsets,
                Fetch fetch,
                Reduce reduce,
                Keep keep,
-               const Real zero,
+               const Value identity,
                const Index gridID )
 {
 #ifdef __CUDACC__
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
    // const int warpSize = 32;
    const Index warpID =
       begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
    if( warpID >= end )
       return;
 
-   Real result = zero;
+   ReturnType result = identity;
    const Index laneID = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
    Index endID = offsets[ warpID + 1 ];
 
@@ -279,7 +291,7 @@ template< int BlockSize,
           typename Fetch,
           typename Reduction,
           typename ResultKeeper,
-          typename Real >
+          typename Value >
 __global__
 void
 reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
@@ -289,24 +301,26 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
                                          Fetch fetch,
                                          const Reduction reduce,
                                          ResultKeeper keep,
-                                         const Real zero )
+                                         const Value identity )
 {
 #ifdef __CUDACC__
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
    const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
-   __shared__ Real shared[ BlockSize / 32 ];
+   __shared__ ReturnType shared[ BlockSize / 32 ];
    if( threadIdx.x < BlockSize / TNL::Cuda::getWarpSize() )
-      shared[ threadIdx.x ] = zero;
+      shared[ threadIdx.x ] = identity;
 
    const int laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );               // & is cheaper than %
    const int inWarpLaneIdx = threadIdx.x & ( TNL::Cuda::getWarpSize() - 1 );  // & is cheaper than %
    const Index beginIdx = offsets[ segmentIdx ];
    const Index endIdx = offsets[ segmentIdx + 1 ];
 
-   Real result = zero;
-   bool compute( true );
+   ReturnType result = identity;
+   bool compute = true;
    Index localIdx = laneIdx;
    for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx && compute; globalIdx += ThreadsPerSegment ) {
       result =
@@ -370,7 +384,7 @@ CSRLightKernel< Index, Device >::init( const Segments& segments )
 
    if( this->getThreadsMapping() == CSRLightAutomaticThreads ) {
       const Index elementsInSegment =
-         roundUpDivision( offsets.getElement( segmentsCount ), segmentsCount );  // non zeroes per row
+         roundUpDivision( offsets.getElement( segmentsCount ), segmentsCount );  // non identityes per row
       if( elementsInSegment <= 2 )
          setThreadsPerSegment( 2 );
       else if( elementsInSegment <= 4 )
@@ -387,7 +401,7 @@ CSRLightKernel< Index, Device >::init( const Segments& segments )
 
    if( this->getThreadsMapping() == CSRLightAutomaticThreadsLightSpMV ) {
       const Index elementsInSegment =
-         roundUpDivision( offsets.getElement( segmentsCount ), segmentsCount );  // non zeroes per row
+         roundUpDivision( offsets.getElement( segmentsCount ), segmentsCount );  // non identityes per row
       if( elementsInSegment <= 2 )
          setThreadsPerSegment( 2 );
       else if( elementsInSegment <= 4 )
@@ -434,7 +448,7 @@ CSRLightKernel< Index, Device >::getConstView() const -> ConstViewType
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename Keep, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename Keep, typename Value >
 void
 CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                  Index begin,
@@ -442,14 +456,14 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                  Fetch& fetch,
                                                  const Reduction& reduction,
                                                  Keep& keep,
-                                                 const Real& zero ) const
+                                                 const Value& identity ) const
 {
    // FIXME: JK: why does it dispatch CSRScalarKernel when the lambda has all parameters?
    constexpr bool DispatchScalarCSR =
       detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same< Device, Devices::Host >::value;
    if constexpr( DispatchScalarCSR ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
-         segments, begin, end, fetch, reduction, keep, zero );
+         segments, begin, end, fetch, reduction, keep, identity );
    }
    else {
       TNL_ASSERT_GE( this->threadsPerSegment, 0, "" );
@@ -477,66 +491,66 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          }
 
          if( threadsPerSegment == 1 ) {
-            constexpr auto kernel = SpMVCSRVector< 1, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 1, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 2 ) {
-            constexpr auto kernel = SpMVCSRVector< 2, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 2, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 4 ) {
-            constexpr auto kernel = SpMVCSRVector< 4, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 4, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 8 ) {
-            constexpr auto kernel = SpMVCSRVector< 8, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 8, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 16 ) {
-            constexpr auto kernel = SpMVCSRVector< 16, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 16, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 32 ) {
-            constexpr auto kernel = SpMVCSRVector< 32, Real, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, zero, grid );
+            constexpr auto kernel = SpMVCSRVector< 32, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 64 ) {  // Execute CSR MultiVector
             constexpr auto kernel =
-               reduceSegmentsCSRLightMultivectorKernel< 128, 64, OffsetsView, Index, Fetch, Reduction, Keep, Real >;
-            Cuda::launchKernelAsync( kernel, launch_config, grid, offsets, begin, end, fetch, reduction, keep, zero );
+               reduceSegmentsCSRLightMultivectorKernel< 128, 64, OffsetsView, Index, Fetch, Reduction, Keep, Value >;
+            Cuda::launchKernelAsync( kernel, launch_config, grid, offsets, begin, end, fetch, reduction, keep, identity );
          }
          if( threadsPerSegment >= 128 ) {  // Execute CSR MultiVector
             constexpr auto kernel =
-               reduceSegmentsCSRLightMultivectorKernel< 128, 128, OffsetsView, Index, Fetch, Reduction, Keep, Real >;
-            Cuda::launchKernelAsync( kernel, launch_config, grid, offsets, begin, end, fetch, reduction, keep, zero );
+               reduceSegmentsCSRLightMultivectorKernel< 128, 128, OffsetsView, Index, Fetch, Reduction, Keep, Value >;
+            Cuda::launchKernelAsync( kernel, launch_config, grid, offsets, begin, end, fetch, reduction, keep, identity );
          }
 
          /*if (threadsPerSegment == 2)
-            SpMVCSRLight2<Real, Index, OffsetsView, Fetch, Reduce, Keep ><<<blocks, threads>>>(
-               offsets, begin, end, fetch, reduce, keep, zero, grid );
+            SpMVCSRLight2<Value, Index, OffsetsView, Fetch, Reduce, Keep ><<<blocks, threads>>>(
+               offsets, begin, end, fetch, reduce, keep, identity, grid );
          else if (threadsPerSegment == 4)
-            SpMVCSRLight4<Real, Index, OffsetsView, Fetch, Reduce, Keep ><<<blocks, threads>>>(
-               offsets, begin, end, fetch, reduce, keep, zero, grid );
+            SpMVCSRLight4<Value, Index, OffsetsView, Fetch, Reduce, Keep ><<<blocks, threads>>>(
+               offsets, begin, end, fetch, reduce, keep, identity, grid );
          else if (threadsPerSegment == 8)
-            SpMVCSRLight8<Real, Index, OffsetsView, Fetch, Reduce, Keep ><<<blocks, threads>>>(
-               offsets, begin, end, fetch, reduce, keep, zero, grid );
+            SpMVCSRLight8<Value, Index, OffsetsView, Fetch, Reduce, Keep ><<<blocks, threads>>>(
+               offsets, begin, end, fetch, reduce, keep, identity, grid );
          else if (threadsPerSegment == 16)
-            SpMVCSRLight16<Real, Index, OffsetsView, Fetch, Reduce, Keep ><<<blocks, threads>>>(
-               offsets, begin, end, fetch, reduce, keep, zero, grid );
+            SpMVCSRLight16<Value, Index, OffsetsView, Fetch, Reduce, Keep ><<<blocks, threads>>>(
+               offsets, begin, end, fetch, reduce, keep, identity, grid );
          else if (threadsPerSegment == 32)
          { // CSR SpMV Light with threadsPerSegment = 32 is CSR Vector
-            SpMVCSRVector<Real, Index, OffsetsView, Fetch, Reduce, Keep ><<<blocks, threads>>>(
-               offsets, begin, end, fetch, reduce, keep, zero, grid );
+            SpMVCSRVector<Value, Index, OffsetsView, Fetch, Reduce, Keep ><<<blocks, threads>>>(
+               offsets, begin, end, fetch, reduce, keep, identity, grid );
          }
          else if (threadsPerSegment == 64 )
          { // Execute CSR MultiVector
             reduceSegmentsCSRLightMultivectorKernel< 128, 64 ><<<blocks, threads>>>(
-                     grid, offsets, begin, end, fetch, reduce, keep, zero );
+                     grid, offsets, begin, end, fetch, reduce, keep, identity );
          }
          else //if (threadsPerSegment == 64 )
          { // Execute CSR MultiVector
             reduceSegmentsCSRLightMultivectorKernel< 128, 128 ><<<blocks, threads>>>(
-                     grid, offsets, begin, end, fetch, reduce, keep, zero );
+                     grid, offsets, begin, end, fetch, reduce, keep, identity );
          }*/
       }
       cudaStreamSynchronize( launch_config.stream );
@@ -545,15 +559,15 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 CSRLightKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
                                                     Fetch& fetch,
                                                     const Reduction& reduction,
                                                     ResultKeeper& keeper,
-                                                    const Real& zero ) const
+                                                    const Value& identity ) const
 {
-   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, zero );
+   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }
 
 template< typename Index, typename Device >

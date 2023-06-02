@@ -69,7 +69,7 @@ CSRAdaptiveKernel< Index, Device >::getConstView() const -> ConstViewType
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 CSRAdaptiveKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                     Index begin,
@@ -77,21 +77,21 @@ CSRAdaptiveKernel< Index, Device >::reduceSegments( const SegmentsView& segments
                                                     Fetch& fetch,
                                                     const Reduction& reduction,
                                                     ResultKeeper& keeper,
-                                                    const Real& zero ) const
+                                                    const Value& identity ) const
 {
-   view.reduceSegments( segments, begin, end, fetch, reduction, keeper, zero );
+   view.reduceSegments( segments, begin, end, fetch, reduction, keeper, identity );
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 CSRAdaptiveKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
                                                        Fetch& fetch,
                                                        const Reduction& reduction,
                                                        ResultKeeper& keeper,
-                                                       const Real& zero ) const
+                                                       const Value& identity ) const
 {
-   view.reduceAllSegments( segments, fetch, reduction, keeper, zero );
+   view.reduceAllSegments( segments, fetch, reduction, keeper, identity );
 }
 
 template< typename Index, typename Device >

@@ -47,7 +47,7 @@ struct CSRLightKernel
    [[nodiscard]] TNL::String
    getSetup() const;
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
@@ -55,15 +55,15 @@ struct CSRLightKernel
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
-                   const Real& zero ) const;
+                   const Value& identity ) const;
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
                       ResultKeeper& keeper,
-                      const Real& zero ) const;
+                      const Value& identity ) const;
 
    void
    setThreadsMapping( LightCSRSThreadsMapping mapping );

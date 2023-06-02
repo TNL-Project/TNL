@@ -84,14 +84,14 @@ struct CSRScalarKernel
     *
     * where \e segmentIdx is an index of the segment and \e value is the result of the reduction in given segment to be stored.
     *
-    * \param zero is the initial value for the reduction operation.
+    * \param identity is the initial value for the reduction operation.
     *
     * \par Example
     * \include Algorithms/Segments/SegmentsExample_CSR_reduceSegments.cpp
     * \par Output
     * \include SegmentsExample_CSR_reduceSegments.out
     */
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    static void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
@@ -99,20 +99,20 @@ struct CSRScalarKernel
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
-                   const Real& zero );
+                   const Value& identity );
 
    /**
     * \brief Call \ref reduceSegments for all segments.
     *
     * See \ref reduceSegments for more details.
     */
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    static void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
                       ResultKeeper& keeper,
-                      const Real& zero );
+                      const Value& identity );
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

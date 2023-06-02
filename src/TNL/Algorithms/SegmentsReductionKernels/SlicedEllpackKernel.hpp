@@ -51,7 +51,7 @@ SlicedEllpackKernel< Index, Device >::getKernelType()
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                       Index begin,
@@ -59,9 +59,9 @@ SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segmen
                                                       Fetch& fetch,
                                                       const Reduction& reduction,
                                                       ResultKeeper& keeper,
-                                                      const Real& zero )
+                                                      const Value& identity )
 {
-   using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    const auto sliceSegmentSizes = segments.getSliceSegmentSizesView();
    const auto sliceOffsets = segments.getSliceOffsetsView();
    if( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
@@ -72,9 +72,9 @@ SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segmen
          const IndexType segmentSize = sliceSegmentSizes[ sliceIdx ];
          const IndexType begin = sliceOffsets[ sliceIdx ] + segmentInSliceIdx * segmentSize;
          const IndexType end = begin + segmentSize;
-         RealType aux( zero );
-         IndexType localIdx( 0 );
-         bool compute( true );
+         ReturnType aux = identity;
+         IndexType localIdx = 0;
+         bool compute = true;
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
             aux = reduction(
                aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx, compute ) );
@@ -90,9 +90,9 @@ SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segmen
          // const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
          const IndexType begin = sliceOffsets[ sliceIdx ] + segmentInSliceIdx;
          const IndexType end = sliceOffsets[ sliceIdx + 1 ];
-         RealType aux( zero );
-         IndexType localIdx( 0 );
-         bool compute( true );
+         ReturnType aux = identity;
+         IndexType localIdx = 0;
+         bool compute = true;
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SegmentsView::getSliceSize() )
             aux = reduction(
                aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx, compute ) );
@@ -103,15 +103,15 @@ SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segmen
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 SlicedEllpackKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
                                                          Fetch& fetch,
                                                          const Reduction& reduction,
                                                          ResultKeeper& keeper,
-                                                         const Real& zero )
+                                                         const Value& identity )
 {
-   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, zero );
+   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

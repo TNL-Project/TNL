@@ -16,7 +16,7 @@
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
-template< typename Offsets, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename Offsets, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __global__
 void
 reduceSegmentsCSRKernelVector( int gridIdx,
@@ -26,9 +26,11 @@ reduceSegmentsCSRKernelVector( int gridIdx,
                                Fetch fetch,
                                const Reduction reduce,
                                ResultKeeper keep,
-                               const Real zero )
+                               const Value identity )
 {
 #ifdef __CUDACC__
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
    /***
     * We map one warp to each segment
     */
@@ -41,8 +43,8 @@ reduceSegmentsCSRKernelVector( int gridIdx,
    Index endIdx = offsets[ segmentIdx + 1 ];
 
    Index localIdx( laneIdx );
-   Real aux = zero;
-   bool compute( true );
+   ReturnType aux = identity;
+   bool compute = true;
    for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += TNL::Cuda::getWarpSize() ) {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
       aux = reduce( aux, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
@@ -98,7 +100,7 @@ CSRVectorKernel< Index, Device >::getKernelType()
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                   Index begin,
@@ -106,12 +108,12 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                   Fetch& fetch,
                                                   const Reduction& reduction,
                                                   ResultKeeper& keeper,
-                                                  const Real& zero )
+                                                  const Value& identity )
 {
    constexpr bool DispatchScalarCSR = std::is_same< Device, Devices::Host >::value;
    if constexpr( DispatchScalarCSR ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
-         segments, begin, end, fetch, reduction, keeper, zero );
+         segments, begin, end, fetch, reduction, keeper, identity );
    }
    else {
       if( end <= begin )
@@ -129,8 +131,8 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       TNL::Cuda::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          TNL::Cuda::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-         constexpr auto kernel = reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Real >;
-         Cuda::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, zero );
+         constexpr auto kernel = reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
+         Cuda::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
       }
       cudaStreamSynchronize( launch_config.stream );
       TNL_CHECK_CUDA_DEVICE;
@@ -138,15 +140,15 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
 }
 
 template< typename Index, typename Device >
-template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
+template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
 CSRVectorKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
                                                      Fetch& fetch,
                                                      const Reduction& reduction,
                                                      ResultKeeper& keeper,
-                                                     const Real& zero )
+                                                     const Value& identity )
 {
-   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, zero );
+   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels
