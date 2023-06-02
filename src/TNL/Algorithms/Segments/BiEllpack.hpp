@@ -26,7 +26,7 @@ template< typename ListIndex >
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::BiEllpack(
    const std::initializer_list< ListIndex >& segmentsSizes )
 {
-   this->setSegmentsSizes( Containers::Vector< IndexType, DeviceType, IndexType >( segmentsSizes ) );
+   this->setSegmentsSizes( OffsetsContainer( segmentsSizes ) );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >

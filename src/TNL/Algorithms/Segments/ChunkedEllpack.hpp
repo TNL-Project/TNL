@@ -24,7 +24,7 @@ template< typename ListIndex >
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ChunkedEllpack(
    const std::initializer_list< ListIndex >& segmentsSizes )
 {
-   this->setSegmentsSizes( Containers::Vector< IndexType, DeviceType, IndexType >( segmentsSizes ) );
+   this->setSegmentsSizes( OffsetsContainer( segmentsSizes ) );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
@@ -110,7 +110,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::resolveSliceSizes
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
 template< typename SegmentsSizes >
 bool
-ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice( SegmentsSizes& rowLengths,
+ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice( SegmentsSizes& segmentsSizes,
                                                                          const IndexType sliceIndex,
                                                                          IndexType& elementsToAllocation )
 {
@@ -131,21 +131,21 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice( Segment
       this->rowToChunkMapping.setElement( i, 1 );
 
    int totalAddedChunks( 0 );
-   int maxRowLength( rowLengths[ sliceBegin ] );
+   int maxRowLength( segmentsSizes[ sliceBegin ] );
    for( IndexType i = sliceBegin; i < sliceEnd; i++ ) {
       double rowRatio( 0.0 );
       if( allocatedElementsInSlice != 0 )
-         rowRatio = (double) rowLengths[ i ] / (double) allocatedElementsInSlice;
+         rowRatio = (double) segmentsSizes[ i ] / (double) allocatedElementsInSlice;
       const IndexType addedChunks = freeChunks * rowRatio;
       totalAddedChunks += addedChunks;
       this->rowToChunkMapping[ i ] += addedChunks;
-      if( maxRowLength < rowLengths[ i ] )
-         maxRowLength = rowLengths[ i ];
+      if( maxRowLength < segmentsSizes[ i ] )
+         maxRowLength = segmentsSizes[ i ];
    }
    freeChunks -= totalAddedChunks;
    while( freeChunks )
       for( IndexType i = sliceBegin; i < sliceEnd && freeChunks; i++ )
-         if( rowLengths[ i ] == maxRowLength ) {
+         if( segmentsSizes[ i ] == maxRowLength ) {
             this->rowToChunkMapping[ i ]++;
             freeChunks--;
          }
@@ -156,7 +156,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice( Segment
    IndexType maxChunkInSlice( 0 );
    for( IndexType i = sliceBegin; i < sliceEnd; i++ ) {
       TNL_ASSERT_NE( this->rowToChunkMapping[ i ], 0, "" );
-      maxChunkInSlice = TNL::max( maxChunkInSlice, roundUpDivision( rowLengths[ i ], this->rowToChunkMapping[ i ] ) );
+      maxChunkInSlice = TNL::max( maxChunkInSlice, roundUpDivision( segmentsSizes[ i ], this->rowToChunkMapping[ i ] ) );
    }
 
    /****
@@ -423,9 +423,9 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::load( File& file 
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
 void
-ChunkedEllpack< Device, Index, IndexAllocator, Organization >::printStructure( std::ostream& str )
+ChunkedEllpack< Device, Index, IndexAllocator, Organization >::printStructure( std::ostream& str ) const
 {
-   this->getView().printStructure( str );
+   this->getConstView().printStructure( str );
 }
 
 }  // namespace TNL::Algorithms::Segments

@@ -177,16 +177,16 @@ public:
    load( File& file );
 
    void
-   printStructure( std::ostream& str );  // TODO const;
+   printStructure( std::ostream& str ) const;
 
 protected:
    template< typename SegmentsSizes >
    void
-   resolveSliceSizes( SegmentsSizes& rowLengths );
+   resolveSliceSizes( SegmentsSizes& segmentsSizes );
 
    template< typename SegmentsSizes >
    bool
-   setSlice( SegmentsSizes& rowLengths, IndexType sliceIdx, IndexType& elementsToAllocation );
+   setSlice( SegmentsSizes& segmentsSizes, IndexType sliceIndex, IndexType& elementsToAllocation );
 
    IndexType size = 0, storageSize = 0;
 

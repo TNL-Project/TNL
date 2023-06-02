@@ -22,7 +22,7 @@ template< typename Device, typename Index, typename IndexAllocator >
 template< typename ListIndex >
 CSR< Device, Index, IndexAllocator >::CSR( const std::initializer_list< ListIndex >& segmentsSizes )
 {
-   this->setSegmentsSizes( Containers::Vector< IndexType, DeviceType, IndexType >( segmentsSizes ) );
+   this->setSegmentsSizes( OffsetsContainer( segmentsSizes ) );
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
