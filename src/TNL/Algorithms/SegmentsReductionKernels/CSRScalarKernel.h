@@ -41,9 +41,10 @@ struct CSRScalarKernel
     * \brief Compute reduction in each segment.
     *
     * \tparam Fetch is type of lambda function for data fetching.
-    * \tparam Reduce is a reduction operation.
-    * \tparam Keep is lambda function for storing results from particular segments.
+    * \tparam Reduction is a reduction operation.
+    * \tparam ResultKeeper is lambda function for storing results from particular segments.
     *
+    * \param segments is the segments data structure to be reduced.
     * \param begin defines begining of an interval [ \e begin, \e end ) of segments in
     *    which we want to perform the reduction.
     * \param end defines and of an interval [ \e begin, \e end ) of segments in
@@ -67,18 +68,18 @@ struct CSRScalarKernel
     * reduction.  Some kernels are optimized so that they can be significantly
     * faster with the brief variant of the \e fetch lambda function.
     *
-    * \param reduce is a lambda function representing the reduction opeartion. It is
+    * \param reduction is a lambda function representing the reduction opeartion. It is
     * supposed to be defined as:
     *
     * ```
-    * auto reduce = [=] __cuda_callable__ ( const Value& a, const Value& b ) -> Value { ... }
+    * auto reduction = [=] __cuda_callable__ ( const Value& a, const Value& b ) -> Value { ... }
     * ```
     *
     * where \e a and \e b are values to be reduced and the lambda function returns result of the reduction.
-    * \param keep is a lambda function for saving results from particular segments. It is supposed to be defined as:
+    * \param keeper is a lambda function for saving results from particular segments. It is supposed to be defined as:
     *
     * ```
-    * auto keep = [=] __cuda_callable__ ( IndexType segmentIdx, const Value& value ) { ... }
+    * auto keeper = [=] __cuda_callable__ ( IndexType segmentIdx, const Value& value ) { ... }
     * ```
     *
     * where \e segmentIdx is an index of the segment and \e value is the result of the reduction in given segment to be stored.
@@ -93,8 +94,8 @@ struct CSRScalarKernel
    template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
    static void
    reduceSegments( const SegmentsView& segments,
-                   Index first,
-                   Index last,
+                   Index begin,
+                   Index end,
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,

@@ -54,8 +54,8 @@ template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 void
 SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                      Index first,
-                                                      Index last,
+                                                      Index begin,
+                                                      Index end,
                                                       Fetch& fetch,
                                                       const Reduction& reduction,
                                                       ResultKeeper& keeper,
@@ -80,7 +80,7 @@ SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segmen
                aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx, compute ) );
          keeper( segmentIdx, aux );
       };
-      Algorithms::parallelFor< Device >( first, last, l );
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
    else {
       auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
@@ -98,7 +98,7 @@ SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segmen
                aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx, compute ) );
          keeper( segmentIdx, aux );
       };
-      Algorithms::parallelFor< Device >( first, last, l );
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 }
 

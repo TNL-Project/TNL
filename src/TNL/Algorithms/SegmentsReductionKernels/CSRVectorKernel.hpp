@@ -21,8 +21,8 @@ __global__
 void
 reduceSegmentsCSRKernelVector( int gridIdx,
                                const Offsets offsets,
-                               Index first,
-                               Index last,
+                               Index begin,
+                               Index end,
                                Fetch fetch,
                                const Reduction reduce,
                                ResultKeeper keep,
@@ -32,8 +32,8 @@ reduceSegmentsCSRKernelVector( int gridIdx,
    /***
     * We map one warp to each segment
     */
-   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / TNL::Cuda::getWarpSize() + first;
-   if( segmentIdx >= last )
+   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / TNL::Cuda::getWarpSize() + begin;
+   if( segmentIdx >= end )
       return;
 
    const int laneIdx = threadIdx.x & ( TNL::Cuda::getWarpSize() - 1 );  // & is cheaper than %
@@ -101,8 +101,8 @@ template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 void
 CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                  Index first,
-                                                  Index last,
+                                                  Index begin,
+                                                  Index end,
                                                   Fetch& fetch,
                                                   const Reduction& reduction,
                                                   ResultKeeper& keeper,
@@ -111,16 +111,16 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
    constexpr bool DispatchScalarCSR = std::is_same< Device, Devices::Host >::value;
    if constexpr( DispatchScalarCSR ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
-         segments, first, last, fetch, reduction, keeper, zero );
+         segments, begin, end, fetch, reduction, keeper, zero );
    }
    else {
-      if( last <= first )
+      if( end <= begin )
          return;
 
       using OffsetsView = typename SegmentsView::ConstOffsetsView;
       OffsetsView offsets = segments.getOffsets();
 
-      const Index warpsCount = last - first;
+      const Index warpsCount = end - begin;
       const std::size_t threadsCount = warpsCount * TNL::Cuda::getWarpSize();
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
@@ -130,7 +130,7 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          TNL::Cuda::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
          constexpr auto kernel = reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Real >;
-         Cuda::launchKernelAsync( kernel, launch_config, gridIdx, offsets, first, last, fetch, reduction, keeper, zero );
+         Cuda::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, zero );
       }
       cudaStreamSynchronize( launch_config.stream );
       TNL_CHECK_CUDA_DEVICE;

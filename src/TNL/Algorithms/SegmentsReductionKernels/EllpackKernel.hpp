@@ -19,8 +19,8 @@ namespace TNL::Algorithms::SegmentsReductionKernels {
 template< typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 __global__
 void
-EllpackCudaReductionKernelFull( Index first,
-                                Index last,
+EllpackCudaReductionKernelFull( Index begin,
+                                Index end,
                                 Fetch fetch,
                                 const Reduction reduction,
                                 ResultKeeper keep,
@@ -31,14 +31,14 @@ EllpackCudaReductionKernelFull( Index first,
    const int warpSize = 32;
    const int gridID = 0;
    const Index segmentIdx =
-      first + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
-   if( segmentIdx >= last )
+      begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
+   if( segmentIdx >= end )
       return;
 
    Real result = zero;
    const Index laneID = threadIdx.x & 31;  // & is cheaper than %
-   const Index begin = segmentIdx * segmentSize;
-   const Index end = begin + segmentSize;
+   begin = segmentIdx * segmentSize;
+   end = begin + segmentSize;
 
    /* Calculate result */
    Index localIdx( 0 );
@@ -61,8 +61,8 @@ EllpackCudaReductionKernelFull( Index first,
 template< typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 __global__
 void
-EllpackCudaReductionKernelCompact( Index first,
-                                   Index last,
+EllpackCudaReductionKernelCompact( Index begin,
+                                   Index end,
                                    Fetch fetch,
                                    const Reduction reduction,
                                    ResultKeeper keep,
@@ -73,14 +73,14 @@ EllpackCudaReductionKernelCompact( Index first,
    const int warpSize = 32;
    const int gridID = 0;
    const Index segmentIdx =
-      first + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
-   if( segmentIdx >= last )
+      begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
+   if( segmentIdx >= end )
       return;
 
    Real result = zero;
    const Index laneID = threadIdx.x & 31;  // & is cheaper than %
-   const Index begin = segmentIdx * segmentSize;
-   const Index end = begin + segmentSize;
+   begin = segmentIdx * segmentSize;
+   end = begin + segmentSize;
 
    /* Calculate result */
    bool compute( true );
@@ -137,8 +137,8 @@ template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 void
 EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                Index first,
-                                                Index last,
+                                                Index begin,
+                                                Index end,
                                                 Fetch& fetch,
                                                 const Reduction& reduction,
                                                 ResultKeeper& keeper,
@@ -148,9 +148,9 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
    if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
       const IndexType segmentSize = segments.getSegmentSize( 0 );
       if constexpr( std::is_same< Device, Devices::Cuda >::value ) {
-         if( last <= first )
+         if( end <= begin )
             return;
-         const Index segmentsCount = last - first;
+         const Index segmentsCount = end - begin;
          const Index threadsCount = segmentsCount * 32;
          const Index blocksCount = Cuda::getNumberOfBlocks( threadsCount, 256 );
          Cuda::LaunchConfiguration launch_config;
@@ -160,11 +160,11 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          constexpr bool FullFetch = detail::CheckFetchLambda< IndexType, Fetch >::hasAllParameters();
          if constexpr( FullFetch ) {
             constexpr auto kernel = EllpackCudaReductionKernelFull< IndexType, Fetch, Reduction, ResultKeeper, RealType >;
-            Cuda::launchKernelSync( kernel, launch_config, first, last, fetch, reduction, keeper, zero, segmentSize );
+            Cuda::launchKernelSync( kernel, launch_config, begin, end, fetch, reduction, keeper, zero, segmentSize );
          }
          else {
             constexpr auto kernel = EllpackCudaReductionKernelCompact< IndexType, Fetch, Reduction, ResultKeeper, RealType >;
-            Cuda::launchKernelSync( kernel, launch_config, first, last, fetch, reduction, keeper, zero, segmentSize );
+            Cuda::launchKernelSync( kernel, launch_config, begin, end, fetch, reduction, keeper, zero, segmentSize );
          }
       }
       else {
@@ -180,7 +180,7 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                   aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j, compute ) );
             keeper( segmentIdx, aux );
          };
-         Algorithms::parallelFor< Device >( first, last, l );
+         Algorithms::parallelFor< Device >( begin, end, l );
       }
    }
    else {
@@ -198,7 +198,7 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j, compute ) );
          keeper( segmentIdx, aux );
       };
-      Algorithms::parallelFor< Device >( first, last, l );
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 }
 

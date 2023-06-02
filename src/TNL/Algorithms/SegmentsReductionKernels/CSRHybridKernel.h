@@ -40,8 +40,8 @@ struct CSRHybridKernel
    template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
    void
    reduceSegments( const SegmentsView& segments,
-                   Index first,
-                   Index last,
+                   Index begin,
+                   Index end,
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,

@@ -30,8 +30,8 @@ __device__
 void
 reduceSegmentsKernelWithAllParameters( SegmentsView segments,
                                        Index gridIdx,
-                                       Index first,
-                                       Index last,
+                                       Index begin,
+                                       Index end,
                                        Fetch fetch,
                                        Reduction reduction,
                                        ResultKeeper keeper,
@@ -39,8 +39,8 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
 {
 #ifdef __CUDACC__
    using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   const Index segmentIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + first;
-   if( segmentIdx >= last )
+   const Index segmentIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
+   if( segmentIdx >= end )
       return;
 
    const Index strip = segmentIdx / SegmentsView::getWarpSize();
@@ -85,8 +85,8 @@ __device__
 void
 reduceSegmentsKernel( SegmentsView segments,
                       Index gridIdx,
-                      Index first,
-                      Index last,
+                      Index begin,
+                      Index end,
                       Fetch fetch,
                       Reduction reduction,
                       ResultKeeper keeper,
@@ -94,13 +94,13 @@ reduceSegmentsKernel( SegmentsView segments,
 {
 #ifdef __CUDACC__
    using RealType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   Index segmentIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + first;
+   Index segmentIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
 
    const Index strip = segmentIdx >> SegmentsView::getLogWarpSize();
    const Index warpStart = strip << SegmentsView::getLogWarpSize();
    const Index inWarpIdx = segmentIdx & ( SegmentsView::getWarpSize() - 1 );
 
-   if( warpStart >= last )
+   if( warpStart >= end )
       return;
 
    const int warpIdx = threadIdx.x / SegmentsView::getWarpSize();
@@ -216,7 +216,7 @@ reduceSegmentsKernel( SegmentsView segments,
       }
    }
    __syncthreads();
-   if( warpStart + inWarpIdx >= last )
+   if( warpStart + inWarpIdx >= end )
       return;
 
    /////
@@ -239,17 +239,17 @@ __global__
 void
 BiEllpackreduceSegmentsKernel( SegmentsView segments,
                                Index gridIdx,
-                               Index first,
-                               Index last,
+                               Index begin,
+                               Index end,
                                Fetch fetch,
                                Reduction reduction,
                                ResultKeeper keeper,
                                Real zero )
 {
    if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() )
-      reduceSegmentsKernelWithAllParameters< BlockDim >( segments, gridIdx, first, last, fetch, reduction, keeper, zero );
+      reduceSegmentsKernelWithAllParameters< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, keeper, zero );
    else
-      reduceSegmentsKernel< BlockDim >( segments, gridIdx, first, last, fetch, reduction, keeper, zero );
+      reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, keeper, zero );
 }
 
 template< typename Index, typename Device >
@@ -290,8 +290,8 @@ template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 void
 BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                  Index first,
-                                                  Index last,
+                                                  Index begin,
+                                                  Index end,
                                                   Fetch& fetch,
                                                   const Reduction& reduction,
                                                   ResultKeeper& keeper,
@@ -355,7 +355,7 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       Devices::Cuda::LaunchConfiguration launch_config;
       constexpr int BlockDim = 256;
       launch_config.blockSize.x = BlockDim;
-      const IndexType stripsCount = roundUpDivision( last - first, SegmentsView::getWarpSize() );
+      const IndexType stripsCount = roundUpDivision( end - begin, SegmentsView::getWarpSize() );
       const IndexType cudaBlocks = roundUpDivision( stripsCount * SegmentsView::getWarpSize(), launch_config.blockSize.x );
       const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
       if( SegmentsView::getOrganization() == Segments::ColumnMajorOrder )
@@ -369,7 +369,7 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          constexpr auto kernel =
             BiEllpackreduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Real, BlockDim >;
          Cuda::launchKernelAsync(
-            kernel, launch_config, segments.getConstView(), gridIdx, first, last, fetch, reduction, keeper, zero );
+            kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, zero );
       }
       cudaStreamSynchronize( launch_config.stream );
       TNL_CHECK_CUDA_DEVICE;

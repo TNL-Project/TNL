@@ -40,8 +40,8 @@ struct CSRVectorKernel
    template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
    static void
    reduceSegments( const SegmentsView& segments,
-                   Index first,
-                   Index last,
+                   Index begin,
+                   Index end,
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,

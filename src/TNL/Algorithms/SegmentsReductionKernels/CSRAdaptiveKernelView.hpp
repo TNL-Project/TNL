@@ -27,8 +27,6 @@ void
 reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
                                  int gridIdx,
                                  Offsets offsets,
-                                 Index first,
-                                 Index last,
                                  Fetch fetch,
                                  Reduction reduce,
                                  ResultKeeper keep,
@@ -192,8 +190,8 @@ template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 void
 CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                        Index first,
-                                                        Index last,
+                                                        Index begin,
+                                                        Index end,
                                                         Fetch& fetch,
                                                         const Reduction& reduction,
                                                         ResultKeeper& keeper,
@@ -204,7 +202,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
    // FIXME: JK: why does it dispatch CSRScalarKernel when the lambda has all parameters?
    if( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || valueSizeLog >= MaxValueSizeLog ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
-         segments, first, last, fetch, reduction, keeper, zero );
+         segments, begin, end, fetch, reduction, keeper, zero );
       return;
    }
 
@@ -213,7 +211,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
       detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same< Device, Devices::Host >::value;
    if constexpr( DispatchScalarCSR ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
-         segments, first, last, fetch, reduction, keeper, zero );
+         segments, begin, end, fetch, reduction, keeper, zero );
    }
    else {
       Devices::Cuda::LaunchConfiguration launch_config;
@@ -240,8 +238,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
 
          constexpr auto kernel =
             reduceSegmentsCSRAdaptiveKernel< BlocksView, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Real >;
-         Cuda::launchKernelAsync(
-            kernel, launch_config, blocks, gridIdx, offsets, first, last, fetch, reduction, keeper, zero );
+         Cuda::launchKernelAsync( kernel, launch_config, blocks, gridIdx, offsets, fetch, reduction, keeper, zero );
       }
       cudaStreamSynchronize( launch_config.stream );
       TNL_CHECK_CUDA_DEVICE;

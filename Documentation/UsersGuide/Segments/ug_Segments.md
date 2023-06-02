@@ -203,10 +203,6 @@ auto keep = [=] __cuda_callable__ ( int segmentIdx, const double& value ) mutabl
 ```
 where `segmentIdx` is an index of the segment of which the reduction result we aim to store and `value` is the result of the reduction in the segment.
 
-We first create vector `sums` where we will store the results (line 44) and prepare a view to this vector for later use in the lambda functions. We demonstrate use of both variants - full by `fetch_full` (lines 46-54) and brief by `fetch_brief` (lines 55-57). The lambda function `keep` for storing the sums from particular segments into the vector `sums` is on the lines 59-60. Finally, we call the method `reduceAllSegments` (\ref TNL::Algorithms::Segments::CSR::reduceSegments for example) to compute the reductions in the segments - first with  `fetch_full` (line 61) and then with `fetch_brief` (line 63). In both cases, we use `std::plus` for the reduction and we pass zero (the last argument) as an idempotent element for sumation. In both cases we print the results which are supposed to be the same. The result looks as follows:
+We first create vector `sums` where we will store the results (line 44) and prepare a view to this vector for later use in the lambda functions. We demonstrate use of both variants - full by `fetch_full` (lines 46-54) and brief by `fetch_brief` (lines 55-57). The lambda function `keep` for storing the sums from particular segments into the vector `sums` is on the lines 59-60. Finally, we call the method `reduceAllSegments` (\ref TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel::reduceAllSegments for example) to compute the reductions in the segments - first with  `fetch_full` (line 61) and then with `fetch_brief` (line 63). In both cases, we use `std::plus` for the reduction and we pass zero (the last argument) as an idempotent element for sumation. In both cases we print the results which are supposed to be the same. The result looks as follows:
 
 \include SegmentsExample_reduceSegments.out
-
-
-
-

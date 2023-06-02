@@ -72,14 +72,14 @@ template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
 void
 CSRAdaptiveKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                    Index first,
-                                                    Index last,
+                                                    Index begin,
+                                                    Index end,
                                                     Fetch& fetch,
                                                     const Reduction& reduction,
                                                     ResultKeeper& keeper,
                                                     const Real& zero ) const
 {
-   view.reduceSegments( segments, first, last, fetch, reduction, keeper, zero );
+   view.reduceSegments( segments, begin, end, fetch, reduction, keeper, zero );
 }
 
 template< typename Index, typename Device >
