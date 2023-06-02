@@ -520,14 +520,16 @@ template< typename Real,
           template< typename, typename >
           class SegmentsView,
           typename ComputeReal >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
+template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
 void
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows( IndexType begin,
-                                                                                            IndexType end,
-                                                                                            Fetch& fetch,
-                                                                                            const Reduce& reduce,
-                                                                                            Keep& keep,
-                                                                                            const FetchValue& identity ) const
+SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows(
+   IndexType begin,
+   IndexType end,
+   Fetch& fetch,
+   const Reduce& reduce,
+   Keep& keep,
+   const FetchValue& identity,
+   const SegmentsReductionKernel& kernel ) const
 {
    const auto columns_view = this->columnIndexes.getConstView();
    const auto values_view = this->values.getConstView();
@@ -545,8 +547,7 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       }
       return identity;
    };
-   // TODO: parametrize the kernel like in vectorProduct
-   DefaultSegmentsReductionKernel::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
+   kernel.reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
 }
 
 template< typename Real,
@@ -556,14 +557,16 @@ template< typename Real,
           template< typename, typename >
           class SegmentsView,
           typename ComputeReal >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
+template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
 void
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceAllRows( Fetch& fetch,
-                                                                                               const Reduce& reduce,
-                                                                                               Keep& keep,
-                                                                                               const FetchReal& identity ) const
+SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceAllRows(
+   Fetch& fetch,
+   const Reduce& reduce,
+   Keep& keep,
+   const FetchValue& identity,
+   const SegmentsReductionKernel& kernel ) const
 {
-   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
+   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity, kernel );
 }
 
 template< typename Real,

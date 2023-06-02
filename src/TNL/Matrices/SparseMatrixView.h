@@ -460,16 +460,27 @@ public:
     * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
     *                 for the reduction operation, i.e. element which does not
     *                 change the result of the reduction.
+    * \param kernel is an instance of the segments reduction kernel to be used
+    *               for the operation.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixViewExample_reduceRows.cpp
     * \par Output
     * \include SparseMatrixViewExample_reduceRows.out
     */
-   template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
+   template< typename Fetch,
+             typename Reduce,
+             typename Keep,
+             typename FetchValue,
+             typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& identity )
-      const;
+   reduceRows( IndexType begin,
+               IndexType end,
+               Fetch& fetch,
+               const Reduce& reduce,
+               Keep& keep,
+               const FetchValue& identity,
+               const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
    /**
     * \brief Method for performing general reduction on all matrix rows for constant instances.
@@ -502,15 +513,25 @@ public:
     * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
     *                 for the reduction operation, i.e. element which does not
     *                 change the result of the reduction.
+    * \param kernel is an instance of the segments reduction kernel to be used
+    *               for the operation.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixViewExample_reduceAllRows.cpp
     * \par Output
     * \include SparseMatrixViewExample_reduceAllRows.out
     */
-   template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
+   template< typename Fetch,
+             typename Reduce,
+             typename Keep,
+             typename FetchValue,
+             typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
    void
-   reduceAllRows( Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& identity ) const;
+   reduceAllRows( Fetch& fetch,
+                  const Reduce& reduce,
+                  Keep& keep,
+                  const FetchValue& identity,
+                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
    /**
     * \brief Method for iteration over all matrix rows for constant instances.
