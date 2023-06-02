@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include <iostream>
+#include <ostream>
+
 #include <TNL/Containers/Array.h>
 
 namespace TNL::Algorithms::Segments {

@@ -9,11 +9,12 @@
 #include <type_traits>
 
 #include <TNL/TypeTraits.h>
-#include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/ElementsOrganization.h>
-#include <TNL/Algorithms/Segments/ChunkedEllpackSegmentView.h>
-#include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
-#include <TNL/Algorithms/Segments/printSegments.h>
+#include <TNL/Containers/VectorView.h>
+
+#include "ElementsOrganization.h"
+#include "ChunkedEllpackSegmentView.h"
+#include "detail/ChunkedEllpack.h"
+#include "printSegments.h"
 
 namespace TNL::Algorithms::Segments {
 

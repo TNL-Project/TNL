@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/parallelFor.h>
 
 #include "EllpackView.h"

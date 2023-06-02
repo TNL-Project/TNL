@@ -9,9 +9,10 @@
 #include <type_traits>
 
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/SegmentView.h>
-#include <TNL/Algorithms/Segments/ElementsOrganization.h>
-#include <TNL/Algorithms/Segments/printSegments.h>
+
+#include "SegmentView.h"
+#include "ElementsOrganization.h"
+#include "printSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -154,4 +155,4 @@ operator<<( std::ostream& str, const EllpackView< Device, Index, Organization, A
 
 }  // namespace TNL::Algorithms::Segments
 
-#include <TNL/Algorithms/Segments/EllpackView.hpp>
+#include "EllpackView.hpp"

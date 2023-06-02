@@ -8,11 +8,11 @@
 
 #include <type_traits>
 
-#include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/ElementsOrganization.h>
-#include <TNL/Algorithms/Segments/BiEllpackSegmentView.h>
-#include <TNL/Algorithms/Segments/detail/BiEllpack.h>
-#include <TNL/Algorithms/Segments/printSegments.h>
+#include <TNL/Containers/VectorView.h>
+
+#include "ElementsOrganization.h"
+#include "BiEllpackSegmentView.h"
+#include "printSegments.h"
 
 namespace TNL::Algorithms::Segments {
 

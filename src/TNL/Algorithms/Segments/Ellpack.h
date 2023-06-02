@@ -6,9 +6,12 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/EllpackView.h>
-#include <TNL/Algorithms/Segments/SegmentView.h>
+
+#include "EllpackView.h"
+#include "SegmentView.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -171,4 +174,4 @@ operator<<( std::ostream& str, const Ellpack< Device, Index, IndexAllocator, Org
 
 }  // namespace TNL::Algorithms::Segments
 
-#include <TNL/Algorithms/Segments/Ellpack.hpp>
+#include "Ellpack.hpp"

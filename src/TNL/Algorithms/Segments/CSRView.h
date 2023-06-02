@@ -8,9 +8,10 @@
 
 #include <type_traits>
 
-#include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/SegmentView.h>
-#include <TNL/Algorithms/Segments/printSegments.h>
+#include <TNL/Containers/VectorView.h>
+
+#include "SegmentView.h"
+#include "printSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -167,4 +168,4 @@ operator<<( std::ostream& str, const CSRView< Device, Index >& segments )
 
 }  // namespace TNL::Algorithms::Segments
 
-#include <TNL/Algorithms/Segments/CSRView.hpp>
+#include "CSRView.hpp"

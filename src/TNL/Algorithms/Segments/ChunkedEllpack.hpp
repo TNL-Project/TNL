@@ -6,10 +6,9 @@
 
 #pragma once
 
-#include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/scan.h>
-#include <TNL/Algorithms/Segments/ChunkedEllpack.h>
-#include <TNL/Algorithms/Segments/Ellpack.h>
+
+#include "ChunkedEllpack.h"
 
 namespace TNL::Algorithms::Segments {
 

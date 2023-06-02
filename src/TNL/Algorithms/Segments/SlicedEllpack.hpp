@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/scan.h>
-#include <TNL/Algorithms/Segments/SlicedEllpack.h>
-#include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
+
+#include "Ellpack.h"
+#include "SlicedEllpack.h"
 
 namespace TNL::Algorithms::Segments {
 

@@ -6,10 +6,12 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <TNL/Allocators/Default.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/BiEllpackView.h>
-#include <TNL/Algorithms/Segments/SegmentView.h>
+
+#include "BiEllpackView.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -210,4 +212,4 @@ operator<<( std::ostream& str, const BiEllpack< Device, Index, IndexAllocator, O
 
 }  // namespace TNL::Algorithms::Segments
 
-#include <TNL/Algorithms/Segments/BiEllpack.hpp>
+#include "BiEllpack.hpp"

@@ -6,10 +6,7 @@
 
 #pragma once
 
-#include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Algorithms/Segments/SlicedEllpackView.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/detail/FetchLambdaAdapter.h>
 
 #include "SlicedEllpackView.h"
 

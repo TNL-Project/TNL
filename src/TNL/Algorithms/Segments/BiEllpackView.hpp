@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/parallelFor.h>
 
 #include "BiEllpackView.h"
+#include "detail/BiEllpack.h"
 
 namespace TNL::Algorithms::Segments {
 

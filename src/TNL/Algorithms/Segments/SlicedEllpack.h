@@ -6,10 +6,13 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <TNL/Allocators/Default.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/SlicedEllpackView.h>
-#include <TNL/Algorithms/Segments/SegmentView.h>
+
+#include "SlicedEllpackView.h"
+#include "SegmentView.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -168,4 +171,4 @@ operator<<( std::ostream& str, const SlicedEllpack< Device, Index, IndexAllocato
 
 }  // namespace TNL::Algorithms::Segments
 
-#include <TNL/Algorithms/Segments/SlicedEllpack.hpp>
+#include "SlicedEllpack.hpp"

@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Algorithms/Segments/CSRView.h>
-#include <TNL/Algorithms/Segments/detail/CSR.h>
+
+#include "CSRView.h"
+#include "detail/CSR.h"
 
 namespace TNL::Algorithms::Segments {
 

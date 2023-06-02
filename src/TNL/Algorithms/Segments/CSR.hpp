@@ -6,9 +6,8 @@
 
 #pragma once
 
-#include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/CSR.h>
-#include <TNL/Algorithms/Segments/detail/CSR.h>
+#include "CSR.h"
+#include "detail/CSR.h"
 
 namespace TNL::Algorithms::Segments {
 
