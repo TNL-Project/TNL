@@ -198,12 +198,4 @@ CSRView< Device, Index >::load( File& file )
    file >> this->offsets;
 }
 
-template< typename Device, typename Index >
-template< typename Fetch >
-auto
-CSRView< Device, Index >::print( Fetch&& fetch ) const -> SegmentsPrinter< CSRView, Fetch >
-{
-   return SegmentsPrinter< CSRView, Fetch >( *this, fetch );
-}
-
 }  // namespace TNL::Algorithms::Segments

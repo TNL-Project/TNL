@@ -156,10 +156,6 @@ public:
    void
    load( File& file );
 
-   template< typename Fetch >
-   SegmentsPrinter< Ellpack, Fetch >
-   print( Fetch&& fetch ) const;
-
 protected:
    IndexType segmentSize = 0;
    IndexType size = 0;
@@ -170,7 +166,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 std::ostream&
 operator<<( std::ostream& str, const Ellpack< Device, Index, IndexAllocator, Organization, Alignment >& segments )
 {
-   return printSegments( segments, str );
+   return printSegments( str, segments );
 }
 
 }  // namespace TNL::Algorithms::Segments

@@ -10,7 +10,7 @@
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/SegmentView.h>
-#include <TNL/Algorithms/Segments/SegmentsPrinting.h>
+#include <TNL/Algorithms/Segments/printSegments.h>
 
 namespace TNL::Algorithms::Segments {
 
@@ -141,10 +141,6 @@ public:
 
    void
    load( File& file );
-
-   template< typename Fetch >
-   SegmentsPrinter< CSRView, Fetch >
-   print( Fetch&& fetch ) const;
 
    [[nodiscard]] OffsetsView
    getOffsets()

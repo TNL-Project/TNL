@@ -161,10 +161,6 @@ public:
    void
    load( File& file );
 
-   template< typename Fetch >
-   SegmentsPrinter< BiEllpack, Fetch >
-   print( Fetch&& fetch ) const;
-
    void
    printStructure( std::ostream& str ) const;
 
@@ -209,7 +205,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 std::ostream&
 operator<<( std::ostream& str, const BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >& segments )
 {
-   return printSegments( segments, str );
+   return printSegments( str, segments );
 }
 
 }  // namespace TNL::Algorithms::Segments

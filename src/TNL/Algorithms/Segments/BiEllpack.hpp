@@ -421,15 +421,6 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::load( File& 
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
-template< typename Fetch >
-auto
-BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::print( Fetch&& fetch ) const
-   -> SegmentsPrinter< BiEllpack, Fetch >
-{
-   return SegmentsPrinter< BiEllpack, Fetch >( *this, fetch );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::printStructure( std::ostream& str ) const
 {

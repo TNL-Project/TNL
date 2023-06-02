@@ -423,15 +423,6 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::load( File& file 
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
-template< typename Fetch >
-auto
-ChunkedEllpack< Device, Index, IndexAllocator, Organization >::print( Fetch&& fetch ) const
-   -> SegmentsPrinter< ChunkedEllpack, Fetch >
-{
-   return SegmentsPrinter< ChunkedEllpack, Fetch >( *this, fetch );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
 void
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::printStructure( std::ostream& str )
 {

@@ -334,14 +334,6 @@ ChunkedEllpackView< Device, Index, Organization >::save( File& file ) const
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
-template< typename Fetch >
-auto
-ChunkedEllpackView< Device, Index, Organization >::print( Fetch&& fetch ) const -> SegmentsPrinter< ChunkedEllpackView, Fetch >
-{
-   return SegmentsPrinter< ChunkedEllpackView, Fetch >( *this, fetch );
-}
-
-template< typename Device, typename Index, ElementsOrganization Organization >
 void
 ChunkedEllpackView< Device, Index, Organization >::printStructure( std::ostream& str ) const
 {

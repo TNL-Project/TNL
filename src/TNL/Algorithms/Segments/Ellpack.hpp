@@ -230,13 +230,4 @@ Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::load( File& f
    file.load( &alignedSize );
 }
 
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Fetch >
-auto
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::print( Fetch&& fetch ) const
-   -> SegmentsPrinter< Ellpack, Fetch >
-{
-   return SegmentsPrinter< Ellpack, Fetch >( *this, fetch );
-}
-
 }  // namespace TNL::Algorithms::Segments

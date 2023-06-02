@@ -151,10 +151,6 @@ public:
    void
    load( File& file );
 
-   template< typename Fetch >
-   SegmentsPrinter< SlicedEllpack, Fetch >
-   print( Fetch&& fetch ) const;
-
 protected:
    IndexType size = 0;
    IndexType alignedSize = 0;

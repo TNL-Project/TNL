@@ -85,21 +85,21 @@ In general, segments can be used for problems that somehow corresponds wit 2D da
 
 Segments are defined just by sizes of particular segments. The following example shows how to create them:
 
-\includelineno Algorithms/Segments/SegmentsPrintingExample-1.cpp
+\includelineno Algorithms/Segments/printSegmentsExample-1.cpp
 
 We use constructor with initializer list (line 16) where each element of the list defines size of one segment. Next we print sizes of particular segments (line 17). We call this function for different segments types (excluding \ref TNL::Algorithms::Segments::SlicedEllpack since it would behave the same way as \ref TNL::Algorithms::Segments::Ellpack on this small example). The result looks as follows:
 
-\include SegmentsPrintingExample-1.out
+\include printSegmentsExample-1.out
 
 We can see, that real sizes of the segments are different for all Ellpack-based formats. As we said already, these formats often use padding elements to get more efficient access to the memory. For example \ref TNL::Algorithms::Segments::ChunkedEllpack format involves multiple of elements. It is, however, only because of very small example we present now, on large examples the overhead is not so significant.
 
 We remind that segments represent rather sparse format then data structure because they do not store any data. The following example shows how to connect segments with array:
 
-\includelineno Algorithms/Segments/SegmentsPrintingExample-2.cpp
+\includelineno Algorithms/Segments/printSegmentsExample-2.cpp
 
 On the line 19, we show how to create segments with vector (\ref TNL::Containers::Vector) carrying the segments sizes. Of course, the same constructor works even for arrays and views (i.e. \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView and \ref TNL::Containers::VectorView). Next we print the real segment sizes depending on the format in the background (line 20) the same way as we did in the previous example. On the line 25, we allocate array having the size requested by the `segments` by means of method `getStorageSize` (\ref TNL::Algorithms::Segments::CSR::getStorageSize for example). This method says how many elements the segments need to be able to address all elements by their global index. On the lines 26-28, we mark each element of the array by its rank in the array. On the line 35, we use function \ref TNL::Algorithms::Segments::printSegments which accepts lambda function `fetch` as one its parameters. The lambda function reads data from our array `data` (with the help of array view `data_view`) according to given global index `globalIdx` (line 34). The result looks as follows:
 
-\include SegmentsPrintingExample-2.out
+\include printSegmentsExample-2.out
 
 Frankly, what we see is not so important. It only shows that different segments formats can use very different mapping of elements identified by its *segment index* and *local index* (rank of the element in given segment) to a *global index* which serves as an address in the related container.
 

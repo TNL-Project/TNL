@@ -10,7 +10,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpackView.h>
 #include <TNL/Algorithms/Segments/SegmentView.h>
-#include <TNL/Algorithms/Segments/SegmentsPrinting.h>
+#include <TNL/Algorithms/Segments/printSegments.h>
 
 namespace TNL::Algorithms::Segments {
 
@@ -174,10 +174,6 @@ public:
    void
    load( File& file );
 
-   template< typename Fetch >
-   SegmentsPrinter< ChunkedEllpack, Fetch >
-   print( Fetch&& fetch ) const;
-
    void
    printStructure( std::ostream& str );  // TODO const;
 
@@ -224,7 +220,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 std::ostream&
 operator<<( std::ostream& str, const ChunkedEllpack< Device, Index, IndexAllocator, Organization >& segments )
 {
-   return printSegments( segments, str );
+   return printSegments( str, segments );
 }
 
 }  // namespace TNL::Algorithms::Segments

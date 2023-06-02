@@ -210,12 +210,4 @@ CSR< Device, Index, IndexAllocator >::load( File& file )
    file >> this->offsets;
 }
 
-template< typename Device, typename Index, typename IndexAllocator >
-template< typename Fetch >
-auto
-CSR< Device, Index, IndexAllocator >::print( Fetch&& fetch ) const -> SegmentsPrinter< CSR, Fetch >
-{
-   return SegmentsPrinter< CSR, Fetch >( *this, fetch );
-}
-
 }  // namespace TNL::Algorithms::Segments

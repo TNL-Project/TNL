@@ -11,7 +11,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/SegmentView.h>
-#include <TNL/Algorithms/Segments/SegmentsPrinting.h>
+#include <TNL/Algorithms/Segments/printSegments.h>
 
 namespace TNL::Algorithms::Segments {
 
@@ -143,10 +143,6 @@ public:
 
    void
    load( File& file );
-
-   template< typename Fetch >
-   SegmentsPrinter< SlicedEllpackView, Fetch >
-   print( Fetch&& fetch ) const;
 
 protected:
    IndexType size = 0;

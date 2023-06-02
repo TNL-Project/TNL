@@ -12,7 +12,7 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/BiEllpackSegmentView.h>
 #include <TNL/Algorithms/Segments/detail/BiEllpack.h>
-#include <TNL/Algorithms/Segments/SegmentsPrinting.h>
+#include <TNL/Algorithms/Segments/printSegments.h>
 
 namespace TNL::Algorithms::Segments {
 
@@ -168,10 +168,6 @@ public:
 
    void
    load( File& file );
-
-   template< typename Fetch >
-   SegmentsPrinter< BiEllpackView, Fetch >
-   print( Fetch&& fetch ) const;
 
    void
    printStructure( std::ostream& str ) const;

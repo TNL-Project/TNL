@@ -279,13 +279,4 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::load( File& file )
    file >> this->sliceSegmentSizes;
 }
 
-template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
-template< typename Fetch >
-auto
-SlicedEllpackView< Device, Index, Organization, SliceSize >::print( Fetch&& fetch ) const
-   -> SegmentsPrinter< SlicedEllpackView, Fetch >
-{
-   return SegmentsPrinter< SlicedEllpackView, Fetch >( *this, fetch );
-}
-
 }  // namespace TNL::Algorithms::Segments

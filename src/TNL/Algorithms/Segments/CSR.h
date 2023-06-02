@@ -450,30 +450,6 @@ public:
    void
    load( File& file );
 
-   /**
-    * \brief Return simple proxy object for insertion to output stream.
-    *
-    * The proxy object serves for wrapping segments with lambda function
-    * mediating access to data managed by the segments.
-    *
-    * \tparam Fetch is type of lambda function for data access.
-    * \param fetch is an instance of lambda function for data access. It is
-    * supposed to be defined as
-    *
-    * ```
-    * auto fetch = [=] __cuda_callable__ ( IndexType globalIdx ) -> ValueType { return data_view[ globalIdx ]; };
-    * ```
-    * \return Proxy object for insertion to output stream.
-    *
-    * \par Example
-    * \include Algorithms/Segments/SegmentsPrintingExample-2.cpp
-    * \par Output
-    * \include SegmentsPrintingExample-2.out
-    */
-   template< typename Fetch >
-   SegmentsPrinter< CSR, Fetch >
-   print( Fetch&& fetch ) const;
-
 protected:
    OffsetsContainer offsets;
 };
@@ -492,7 +468,7 @@ template< typename Device, typename Index, typename IndexAllocator >
 std::ostream&
 operator<<( std::ostream& str, const CSR< Device, Index, IndexAllocator >& segments )
 {
-   return printSegments( segments, str );
+   return printSegments( str, segments );
 }
 
 }  // namespace TNL::Algorithms::Segments

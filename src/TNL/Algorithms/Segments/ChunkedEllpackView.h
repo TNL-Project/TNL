@@ -13,7 +13,7 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpackSegmentView.h>
 #include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
-#include <TNL/Algorithms/Segments/SegmentsPrinting.h>
+#include <TNL/Algorithms/Segments/printSegments.h>
 
 namespace TNL::Algorithms::Segments {
 
@@ -184,10 +184,6 @@ public:
    void
    save( File& file ) const;
 
-   template< typename Fetch >
-   SegmentsPrinter< ChunkedEllpackView, Fetch >
-   print( Fetch&& fetch ) const;
-
    void
    printStructure( std::ostream& str ) const;
 
@@ -216,6 +212,13 @@ protected:
 
    ChunkedEllpackSliceInfoContainerView slices;
 };
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+std::ostream&
+operator<<( std::ostream& str, const ChunkedEllpackView< Device, Index, Organization >& segments )
+{
+   return printSegments( str, segments );
+}
 
 }  // namespace TNL::Algorithms::Segments
 
