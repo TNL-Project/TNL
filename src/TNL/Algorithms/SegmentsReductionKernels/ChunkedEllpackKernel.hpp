@@ -20,140 +20,9 @@
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
-__device__
-void
-reduceSegmentsKernelWithAllParameters( SegmentsView segments,
-                                       Index gridIdx,
-                                       Index begin,
-                                       Index end,
-                                       Fetch fetch,
-                                       Reduction reduction,
-                                       ResultKeeper keeper,
-                                       Value identity )
-{
-#ifdef __CUDACC__
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-
-   const Index firstSlice = segments.getRowToSliceMappingView()[ begin ];
-   const Index lastSlice = segments.getRowToSliceMappingView()[ end - 1 ];
-
-   const Index sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridXSize() + blockIdx.x;
-   if( sliceIdx > lastSlice )
-      return;
-
-   ReturnType* chunksResults = Cuda::getSharedMemory< ReturnType >();
-   __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
-   if( threadIdx.x == 0 )
-      sliceInfo = segments.getSlicesView()[ sliceIdx ];
-   chunksResults[ threadIdx.x ] = identity;
-   __syncthreads();
-
-   const Index sliceOffset = sliceInfo.pointer;
-   const Index chunkSize = sliceInfo.chunkSize;
-   const Index chunkIdx = sliceIdx * segments.getChunksInSlice() + threadIdx.x;
-   const Index segmentIdx = segments.getChunksToSegmentsMappingView()[ chunkIdx ];
-   Index firstChunkOfSegment = 0;
-   if( segmentIdx != sliceInfo.firstSegment )
-      firstChunkOfSegment = segments.getRowToChunkMappingView()[ segmentIdx - 1 ];
-   Index localIdx = ( threadIdx.x - firstChunkOfSegment ) * chunkSize;
-   bool compute = true;
-
-   if( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
-      Index begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
-      Index end = begin + chunkSize;
-      for( Index j = begin; j < end && compute; j++ )
-         chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( segmentIdx, localIdx++, j, compute ) );
-   }
-   else {
-      const Index begin = sliceOffset + threadIdx.x;  // threadIdx.x = chunkIdx within the slice
-      const Index end = begin + segments.getChunksInSlice() * chunkSize;
-      for( Index j = begin; j < end && compute; j += segments.getChunksInSlice() )
-         chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( segmentIdx, localIdx++, j, compute ) );
-   }
-   __syncthreads();
-   if( threadIdx.x < sliceInfo.size ) {
-      const Index row = sliceInfo.firstSegment + threadIdx.x;
-      Index chunkIndex = 0;
-      if( threadIdx.x != 0 )
-         chunkIndex = segments.getRowToChunkMappingView()[ row - 1 ];
-      const Index lastChunk = segments.getRowToChunkMappingView()[ row ];
-      ReturnType result( identity );
-      while( chunkIndex < lastChunk )
-         result = reduction( result, chunksResults[ chunkIndex++ ] );
-      if( row >= begin && row < end )
-         keeper( row, result );
-   }
-#endif
-}
-
-template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
-__device__
-void
-reduceSegmentsKernel( SegmentsView segments,
-                      Index gridIdx,
-                      Index begin,
-                      Index end,
-                      Fetch fetch,
-                      Reduction reduction,
-                      ResultKeeper keeper,
-                      Value identity )
-{
-#ifdef __CUDACC__
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-
-   const Index firstSlice = segments.getRowToSliceMappingView()[ begin ];
-   const Index lastSlice = segments.getRowToSliceMappingView()[ end - 1 ];
-
-   const Index sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridXSize() + blockIdx.x;
-   if( sliceIdx > lastSlice )
-      return;
-
-   ReturnType* chunksResults = Cuda::getSharedMemory< ReturnType >();
-   __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
-
-   if( threadIdx.x == 0 )
-      sliceInfo = segments.getSlicesView()[ sliceIdx ];
-   chunksResults[ threadIdx.x ] = identity;
-   __syncthreads();
-
-   const Index sliceOffset = sliceInfo.pointer;
-   const Index chunkSize = sliceInfo.chunkSize;
-   // const Index chunkIdx = sliceIdx * segments.getChunksInSlice() + threadIdx.x;
-   bool compute = true;
-
-   if( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
-      Index begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
-      Index end = begin + chunkSize;
-      for( Index j = begin; j < end && compute; j++ )
-         chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( j, compute ) );
-   }
-   else {
-      const Index begin = sliceOffset + threadIdx.x;  // threadIdx.x = chunkIdx within the slice
-      const Index end = begin + segments.getChunksInSlice() * chunkSize;
-      for( Index j = begin; j < end && compute; j += segments.getChunksInSlice() )
-         chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( j, compute ) );
-   }
-   __syncthreads();
-
-   if( threadIdx.x < sliceInfo.size ) {
-      const Index row = sliceInfo.firstSegment + threadIdx.x;
-      Index chunkIndex = 0;
-      if( threadIdx.x != 0 )
-         chunkIndex = segments.getRowToChunkMappingView()[ row - 1 ];
-      const Index lastChunk = segments.getRowToChunkMappingView()[ row ];
-      ReturnType result( identity );
-      while( chunkIndex < lastChunk )
-         result = reduction( result, chunksResults[ chunkIndex++ ] );
-      if( row >= begin && row < end )
-         keeper( row, result );
-   }
-#endif
-}
-
-template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __global__
 void
-ChunkedEllpackreduceSegmentsKernel( SegmentsView segments,
+ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
                                     Index gridIdx,
                                     Index begin,
                                     Index end,
@@ -162,10 +31,81 @@ ChunkedEllpackreduceSegmentsKernel( SegmentsView segments,
                                     ResultKeeper keeper,
                                     Value identity )
 {
-   if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() )
-      reduceSegmentsKernelWithAllParameters( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
-   else
-      reduceSegmentsKernel( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
+#ifdef __CUDACC__
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
+   const Index firstSlice = segments.getRowToSliceMappingView()[ begin ];
+   const Index lastSlice = segments.getRowToSliceMappingView()[ end - 1 ];
+
+   const Index sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridXSize() + blockIdx.x;
+   if( sliceIdx > lastSlice )
+      return;
+
+   ReturnType* chunksResults = Cuda::getSharedMemory< ReturnType >();
+   __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
+
+   if( threadIdx.x == 0 )
+      sliceInfo = segments.getSlicesView()[ sliceIdx ];
+   chunksResults[ threadIdx.x ] = identity;
+   __syncthreads();
+
+   const Index sliceOffset = sliceInfo.pointer;
+   const Index chunkSize = sliceInfo.chunkSize;
+   bool compute = true;
+
+   if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
+      const Index chunkIdx = sliceIdx * segments.getChunksInSlice() + threadIdx.x;
+      const Index segmentIdx = segments.getChunksToSegmentsMappingView()[ chunkIdx ];
+      Index firstChunkOfSegment = 0;
+      if( segmentIdx != sliceInfo.firstSegment )
+         firstChunkOfSegment = segments.getRowToChunkMappingView()[ segmentIdx - 1 ];
+      Index localIdx = ( threadIdx.x - firstChunkOfSegment ) * chunkSize;
+
+      if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
+         Index begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
+         Index end = begin + chunkSize;
+         for( Index j = begin; j < end && compute; j++ )
+            chunksResults[ threadIdx.x ] =
+               reduction( chunksResults[ threadIdx.x ], fetch( segmentIdx, localIdx++, j, compute ) );
+      }
+      else {
+         const Index begin = sliceOffset + threadIdx.x;  // threadIdx.x = chunkIdx within the slice
+         const Index end = begin + segments.getChunksInSlice() * chunkSize;
+         for( Index j = begin; j < end && compute; j += segments.getChunksInSlice() )
+            chunksResults[ threadIdx.x ] =
+               reduction( chunksResults[ threadIdx.x ], fetch( segmentIdx, localIdx++, j, compute ) );
+      }
+   }
+   else {
+      if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
+         Index begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
+         Index end = begin + chunkSize;
+         for( Index j = begin; j < end && compute; j++ )
+            chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( j, compute ) );
+      }
+      else {
+         const Index begin = sliceOffset + threadIdx.x;  // threadIdx.x = chunkIdx within the slice
+         const Index end = begin + segments.getChunksInSlice() * chunkSize;
+         for( Index j = begin; j < end && compute; j += segments.getChunksInSlice() )
+            chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( j, compute ) );
+      }
+   }
+
+   __syncthreads();
+
+   if( threadIdx.x < sliceInfo.size ) {
+      const Index row = sliceInfo.firstSegment + threadIdx.x;
+      Index chunkIndex = 0;
+      if( threadIdx.x != 0 )
+         chunkIndex = segments.getRowToChunkMappingView()[ row - 1 ];
+      const Index lastChunk = segments.getRowToChunkMappingView()[ row ];
+      ReturnType result = identity;
+      while( chunkIndex < lastChunk )
+         result = reduction( result, chunksResults[ chunkIndex++ ] );
+      if( row >= begin && row < end )
+         keeper( row, result );
+   }
+#endif
 }
 
 template< typename Index, typename Device >
@@ -218,7 +158,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
       for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
          const IndexType sliceIndex = segments.getRowToSliceMappingView()[ segmentIdx ];
          TNL_ASSERT_LE( sliceIndex, segments.getSegmentsCount(), "" );
-         IndexType firstChunkOfSegment( 0 );
+         IndexType firstChunkOfSegment = 0;
          if( segmentIdx != segments.getSlicesView()[ sliceIndex ].firstSegment )
             firstChunkOfSegment = segments.getRowToChunkMappingView()[ segmentIdx - 1 ];
 
@@ -227,13 +167,13 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
          const IndexType sliceOffset = segments.getSlicesView()[ sliceIndex ].pointer;
          const IndexType chunkSize = segments.getSlicesView()[ sliceIndex ].chunkSize;
 
-         const IndexType segmentSize = segmentChunksCount * chunkSize;
          ReturnType aux = identity;
+         IndexType localIdx = 0;
          bool compute = true;
-         if( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
+         if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
+            const IndexType segmentSize = segmentChunksCount * chunkSize;
             IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
             IndexType end = begin + segmentSize;
-            IndexType localIdx = 0;
             for( IndexType globalIdx = begin; globalIdx < end && compute; globalIdx++ )
                aux = reduction(
                   aux,
@@ -243,7 +183,6 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
             for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
                IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
                IndexType end = begin + segments.getChunksInSlice() * chunkSize;
-               IndexType localIdx = 0;
                for( IndexType globalIdx = begin; globalIdx < end && compute; globalIdx += segments.getChunksInSlice() )
                   aux = reduction( aux,
                                    detail::FetchLambdaAdapter< IndexType, Fetch >::call(
@@ -268,7 +207,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
             launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
          using ConstSegmentsView = typename SegmentsView::ConstViewType;
          constexpr auto kernel =
-            ChunkedEllpackreduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
+            ChunkedEllpackReduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
          Cuda::launchKernelAsync(
             kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
       }

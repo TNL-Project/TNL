@@ -59,7 +59,7 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
       if( groupSize ) {
          const Index groupWidth = groupSize / groupHeight;
          for( Index i = 0; i < groupWidth; i++ ) {
-            if( SegmentsView::getOrganization() == Segments::RowMajorOrder )
+            if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
                result =
                   reduction( result, fetch( segmentIdx, localIdx, groupOffset + rowStripPerm * groupWidth + i, compute ) );
             else
@@ -138,7 +138,7 @@ reduceSegmentsKernel( SegmentsView segments,
    /////
    // Perform the reduction
    bool compute = true;
-   if( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
+   if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
       for( Index group = 0; group < SegmentsView::getLogWarpSize() + 1; group++ ) {
          Index groupBegin = sharedGroupPointers[ sharedGroupOffset + group ];
          Index groupEnd = sharedGroupPointers[ sharedGroupOffset + group + 1 ];
@@ -328,7 +328,7 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
             // std::cerr << "  groupSize = " << groupSize
             //           << " groupWidth = " << groupWidth
             //           << std::endl;
-            if( SegmentsView::getOrganization() == Segments::RowMajorOrder )
+            if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
                globalIdx += inStripIdx * groupWidth;
             else
                globalIdx += inStripIdx;
@@ -341,7 +341,7 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                aux = reduction(
                   aux,
                   detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx, compute ) );
-               if( SegmentsView::getOrganization() == Segments::RowMajorOrder )
+               if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
                   globalIdx++;
                else
                   globalIdx += groupHeight;
