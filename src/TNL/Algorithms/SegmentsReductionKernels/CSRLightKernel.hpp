@@ -458,7 +458,6 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                  Keep& keep,
                                                  const Value& identity ) const
 {
-   // FIXME: JK: why does it dispatch CSRScalarKernel when the lambda has all parameters?
    constexpr bool DispatchScalarCSR =
       detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same< Device, Devices::Host >::value;
    if constexpr( DispatchScalarCSR ) {

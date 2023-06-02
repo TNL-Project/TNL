@@ -14,97 +14,6 @@
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
-template< typename Index,
-          typename Device,
-          typename Fetch,
-          typename Reduction,
-          typename Keep,
-          bool DispatchScalarCSR = detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() >
-struct CSRScalarKernelreduceSegmentsDispatcher;
-
-template< typename Index, typename Device, typename Fetch, typename Reduction, typename ResultKeeper >
-struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, ResultKeeper, true >
-{
-   template< typename Offsets, typename Value >
-   static void
-   reduce( const Offsets& offsets,
-           Index begin,
-           Index end,
-           Fetch& fetch,
-           const Reduction& reduction,
-           ResultKeeper& keep,
-           const Value& identity )
-   {
-      auto l = [ = ] __cuda_callable__( const Index segmentIdx ) mutable
-      {
-         const Index begin = offsets[ segmentIdx ];
-         const Index end = offsets[ segmentIdx + 1 ];
-         using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-         ReturnType aux = identity;
-         Index localIdx = 0;
-         bool compute = true;
-         for( Index globalIdx = begin; globalIdx < end && compute; globalIdx++ )
-            aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx, compute ) );
-         keep( segmentIdx, aux );
-      };
-
-      if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value ) {
-         for( Index segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
-      }
-      else if constexpr( std::is_same< Device, TNL::Devices::Host >::value ) {
-#ifdef HAVE_OPENMP
-         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
-#endif
-         for( Index segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
-      }
-      else
-         Algorithms::parallelFor< Device >( begin, end, l );
-   }
-};
-
-template< typename Index, typename Device, typename Fetch, typename Reduction, typename Keep >
-struct CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, Keep, false >
-{
-   template< typename OffsetsView, typename Value >
-   static void
-   reduce( const OffsetsView& offsets,
-           Index begin,
-           Index end,
-           Fetch& fetch,
-           const Reduction& reduction,
-           Keep& keep,
-           const Value& identity )
-   {
-      auto l = [ = ] __cuda_callable__( const Index segmentIdx ) mutable
-      {
-         const Index begin = offsets[ segmentIdx ];
-         const Index end = offsets[ segmentIdx + 1 ];
-         using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-         ReturnType aux = identity;
-         bool compute = true;
-         for( Index globalIdx = begin; globalIdx < end && compute; globalIdx++ )
-            aux = reduction( aux, fetch( globalIdx, compute ) );
-         keep( segmentIdx, aux );
-      };
-
-      if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value ) {
-         for( Index segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
-      }
-      else if constexpr( std::is_same< Device, TNL::Devices::Host >::value ) {
-#ifdef HAVE_OPENMP
-         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
-#endif
-         for( Index segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
-      }
-      else
-         Algorithms::parallelFor< Device >( begin, end, l );
-   }
-};
-
 template< typename Index, typename Device >
 template< typename Segments >
 void
@@ -153,8 +62,38 @@ CSRScalarKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
    using OffsetsView = typename SegmentsView::ConstOffsetsView;
    OffsetsView offsets = segments.getOffsets();
 
-   CSRScalarKernelreduceSegmentsDispatcher< Index, Device, Fetch, Reduction, ResultKeeper >::reduce(
-      offsets, begin, end, fetch, reduction, keeper, identity );
+   auto l = [ offsets, fetch, reduction, keeper, identity ] __cuda_callable__( const Index segmentIdx ) mutable
+   {
+      const Index begin = offsets[ segmentIdx ];
+      const Index end = offsets[ segmentIdx + 1 ];
+      using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+      ReturnType aux = identity;
+      bool compute = true;
+      if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
+         Index localIdx = 0;
+         for( Index globalIdx = begin; globalIdx < end && compute; globalIdx++ )
+            aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx, compute ) );
+      }
+      else {
+         for( Index globalIdx = begin; globalIdx < end && compute; globalIdx++ )
+            aux = reduction( aux, fetch( globalIdx, compute ) );
+      }
+      keeper( segmentIdx, aux );
+   };
+
+   if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value ) {
+      for( Index segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+         l( segmentIdx );
+   }
+   else if constexpr( std::is_same< Device, TNL::Devices::Host >::value ) {
+#ifdef HAVE_OPENMP
+      #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
+#endif
+      for( Index segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+         l( segmentIdx );
+   }
+   else
+      Algorithms::parallelFor< Device >( begin, end, l );
 }
 
 template< typename Index, typename Device >

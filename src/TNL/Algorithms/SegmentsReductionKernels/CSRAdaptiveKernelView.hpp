@@ -200,14 +200,12 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
 {
    int valueSizeLog = getSizeValueLog( sizeof( Value ) );
 
-   // FIXME: JK: why does it dispatch CSRScalarKernel when the lambda has all parameters?
-   if( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || valueSizeLog >= MaxValueSizeLog ) {
+   if( valueSizeLog >= MaxValueSizeLog ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
          segments, begin, end, fetch, reduction, keeper, identity );
       return;
    }
 
-   // FIXME: JK: why does it dispatch CSRScalarKernel when the lambda has all parameters?
    constexpr bool DispatchScalarCSR =
       detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same< Device, Devices::Host >::value;
    if constexpr( DispatchScalarCSR ) {
