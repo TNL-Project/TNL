@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <iostream>
+#include <ostream>
 
 #include <TNL/Cuda/CudaCallable.h>
 

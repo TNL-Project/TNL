@@ -29,26 +29,6 @@ writeNewTask( Index begin,
 
 //-----------------------------------------------------------
 
-template< typename Index >
-__global__
-void
-cudaCalcBlocksNeeded( Containers::ArrayView< TASK, Devices::Cuda > cuda_tasks,
-                      Index elemPerBlock,
-                      Containers::ArrayView< Index, Devices::Cuda > blocksNeeded )
-{
-#ifdef __CUDACC__
-   Index i = blockIdx.x * blockDim.x + threadIdx.x;
-   if( i >= cuda_tasks.getSize() )
-      return;
-
-   TASK& task = cuda_tasks[ i ];
-   Index size = task.partitionEnd - task.partitionBegin;
-   blocksNeeded[ i ] = size / elemPerBlock + ( size % elemPerBlock != 0 );
-#endif
-}
-
-//-----------------------------------------------------------
-
 template< typename Value, typename CMP >
 __global__
 void

@@ -97,7 +97,8 @@ HeatEquationProblem< Mesh, BoundaryCondition, RightHandSide, DifferentialOperato
    if( MPI::GetSize() > 1 ) {
       std::cout << "Nodes Distribution: " << this->distributedMeshPointer->printProcessDistr() << std::endl;
       if( ! Functions::readDistributedMeshFunction(
-             *this->distributedMeshPointer, *this->uPointer, "u", initialConditionFile ) ) {
+             *this->distributedMeshPointer, *this->uPointer, "u", initialConditionFile ) )
+      {
          std::cerr << "I am not able to load the initial condition from the file " << initialConditionFile << "." << std::endl;
          return false;
       }
