@@ -1,5 +1,4 @@
 set( COMMON_EXAMPLES
-   SegmentsExample_General
    SegmentsPrintingExample-1
    SegmentsPrintingExample-2
    SegmentsExample_CSR_constructor_1
