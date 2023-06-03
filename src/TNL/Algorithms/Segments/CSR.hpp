@@ -6,10 +6,18 @@
 
 #pragma once
 
+#include <TNL/Algorithms/scan.h>
+
 #include "CSR.h"
-#include "detail/CSR.h"
 
 namespace TNL::Algorithms::Segments {
+
+template< typename Device, typename Index, typename IndexAllocator >
+CSR< Device, Index, IndexAllocator >::CSR( const CSR& segments ) : offsets( segments.offsets )
+{
+   // update the base
+   Base::bind( this->offsets.getView() );
+}
 
 template< typename Device, typename Index, typename IndexAllocator >
 template< typename SizesContainer >
@@ -26,38 +34,39 @@ CSR< Device, Index, IndexAllocator >::CSR( const std::initializer_list< ListInde
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
-std::string
-CSR< Device, Index, IndexAllocator >::getSerializationType()
+CSR< Device, Index, IndexAllocator >&
+CSR< Device, Index, IndexAllocator >::operator=( const CSR& segments )
 {
-   return ViewType::getSerializationType();
+   this->offsets = segments.offsets;
+   // update the base
+   Base::bind( this->offsets.getView() );
+   return *this;
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
-String
-CSR< Device, Index, IndexAllocator >::getSegmentsType()
+CSR< Device, Index, IndexAllocator >&
+CSR< Device, Index, IndexAllocator >::operator=( CSR&& segments ) noexcept( false )
 {
-   return ViewType::getSegmentsType();
+   this->offsets = std::move( segments.offsets );
+   // update the base
+   Base::bind( this->offsets.getView() );
+   return *this;
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
-template< typename SizesHolder >
-void
-CSR< Device, Index, IndexAllocator >::setSegmentsSizes( const SizesHolder& sizes )
+template< typename Device_, typename Index_, typename IndexAllocator_ >
+CSR< Device, Index, IndexAllocator >&
+CSR< Device, Index, IndexAllocator >::operator=( const CSR< Device_, Index_, IndexAllocator_ >& segments )
 {
-   detail::CSR< Device, Index >::setSegmentsSizes( sizes, this->offsets );
+   this->offsets = segments.getOffsets();
+   // update the base
+   Base::bind( this->offsets.getView() );
+   return *this;
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
-void
-CSR< Device, Index, IndexAllocator >::reset()
-{
-   this->offsets.setSize( 1 );
-   this->offsets = 0;
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-typename CSR< Device, Index, IndexAllocator >::ViewType
-CSR< Device, Index, IndexAllocator >::getView()
+auto
+CSR< Device, Index, IndexAllocator >::getView() -> ViewType
 {
    return { this->offsets.getView() };
 }
@@ -70,129 +79,32 @@ CSR< Device, Index, IndexAllocator >::getConstView() const -> ConstViewType
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
-__cuda_callable__
-auto
-CSR< Device, Index, IndexAllocator >::getSegmentsCount() const -> IndexType
+template< typename SizesHolder >
+void
+CSR< Device, Index, IndexAllocator >::setSegmentsSizes( const SizesHolder& sizes )
 {
-   return this->offsets.getSize() - 1;
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-__cuda_callable__
-auto
-CSR< Device, Index, IndexAllocator >::getSegmentSize( const IndexType segmentIdx ) const -> IndexType
-{
-   return detail::CSR< Device, Index >::getSegmentSize( this->offsets, segmentIdx );
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-__cuda_callable__
-auto
-CSR< Device, Index, IndexAllocator >::getSize() const -> IndexType
-{
-   return this->getStorageSize();
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-__cuda_callable__
-auto
-CSR< Device, Index, IndexAllocator >::getStorageSize() const -> IndexType
-{
-   return detail::CSR< Device, Index >::getStorageSize( this->offsets );
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-__cuda_callable__
-auto
-CSR< Device, Index, IndexAllocator >::getGlobalIndex( const Index segmentIdx, const Index localIdx ) const -> IndexType
-{
-   if( ! std::is_same< DeviceType, Devices::Host >::value ) {
-#ifdef __CUDA_ARCH__
-      return offsets[ segmentIdx ] + localIdx;
-#else
-      return offsets.getElement( segmentIdx ) + localIdx;
-#endif
+   offsets.setSize( sizes.getSize() + 1 );
+   // GOTCHA: when sizes.getSize() == 0, getView returns a full view with size == 1
+   if( sizes.getSize() > 0 ) {
+      auto view = offsets.getView( 0, sizes.getSize() );
+      view = sizes;
    }
-   return offsets[ segmentIdx ] + localIdx;
+   offsets.setElement( sizes.getSize(), 0 );
+   inplaceExclusiveScan( offsets );
+
+   // update the base
+   Base::bind( this->offsets.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
-__cuda_callable__
-auto
-CSR< Device, Index, IndexAllocator >::getSegmentView( const IndexType segmentIdx ) const -> SegmentViewType
-{
-   return SegmentViewType( segmentIdx, offsets[ segmentIdx ], offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ] );
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-auto
-CSR< Device, Index, IndexAllocator >::getOffsets() const -> const OffsetsContainer&
-{
-   return this->offsets;
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-auto
-CSR< Device, Index, IndexAllocator >::getOffsets() -> OffsetsContainer&
-{
-   return this->offsets;
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-template< typename Function >
 void
-CSR< Device, Index, IndexAllocator >::forElements( IndexType begin, IndexType end, Function&& f ) const
+CSR< Device, Index, IndexAllocator >::reset()
 {
-   this->getConstView().forElements( begin, end, f );
-}
+   this->offsets.setSize( 1 );
+   this->offsets = 0;
 
-template< typename Device, typename Index, typename IndexAllocator >
-template< typename Function >
-void
-CSR< Device, Index, IndexAllocator >::forAllElements( Function&& f ) const
-{
-   this->forElements( 0, this->getSegmentsCount(), f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-template< typename Function >
-void
-CSR< Device, Index, IndexAllocator >::forSegments( IndexType begin, IndexType end, Function&& f ) const
-{
-   this->getConstView().forSegments( begin, end, f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-template< typename Function >
-void
-CSR< Device, Index, IndexAllocator >::forAllSegments( Function&& f ) const
-{
-   this->getConstView().forAllSegments( f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-template< typename Function >
-void
-CSR< Device, Index, IndexAllocator >::sequentialForSegments( IndexType begin, IndexType end, Function&& f ) const
-{
-   this->getConstView().sequentialForSegments( begin, end, f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-template< typename Function >
-void
-CSR< Device, Index, IndexAllocator >::sequentialForAllSegments( Function&& f ) const
-{
-   this->getConstView().sequentialForAllSegments( f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator >
-template< typename Device_, typename Index_, typename IndexAllocator_ >
-CSR< Device, Index, IndexAllocator >&
-CSR< Device, Index, IndexAllocator >::operator=( const CSR< Device_, Index_, IndexAllocator_ >& source )
-{
-   this->offsets = source.offsets;
-   return *this;
+   // update the base
+   Base::bind( this->offsets.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
@@ -207,6 +119,9 @@ void
 CSR< Device, Index, IndexAllocator >::load( File& file )
 {
    file >> this->offsets;
+
+   // update the base
+   Base::bind( this->offsets.getView() );
 }
 
 }  // namespace TNL::Algorithms::Segments

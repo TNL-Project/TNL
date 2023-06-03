@@ -6,172 +6,99 @@
 
 #pragma once
 
-#include <type_traits>
-
-#include <TNL/Containers/VectorView.h>
-
-#include "SegmentView.h"
-#include "printSegments.h"
+#include "CSRBase.h"
 
 namespace TNL::Algorithms::Segments {
 
+/**
+ * \brief \e CSRView is provides a non-owning encapsulation of data stored in
+ * the CSR segments format.
+ *
+ * \tparam Device is type of device where the segments will be operating.
+ * \tparam Index is type for indexing of the elements managed by the segments.
+ */
 template< typename Device, typename Index >
-class CSRView
+class CSRView : public CSRBase< Device, Index >
 {
+   using Base = CSRBase< Device, Index >;
+
 public:
-   using DeviceType = Device;
-   using IndexType = std::remove_const_t< Index >;
-   using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
-   using ConstOffsetsView = typename OffsetsView::ConstViewType;
+   //! \brief Type of segments view.
    using ViewType = CSRView;
+
+   //! \brief Type of constant segments view.
+   using ConstViewType = CSRView< Device, std::add_const_t< Index > >;
+
+   /**
+    * \brief Templated view type.
+    *
+    * \tparam Device_ is alternative device type for the view.
+    * \tparam Index_ is alternative index type for the view.
+    */
    template< typename Device_, typename Index_ >
    using ViewTemplate = CSRView< Device_, Index_ >;
-   using ConstViewType = CSRView< Device, std::add_const_t< Index > >;
-   using SegmentViewType = SegmentView< IndexType, RowMajorOrder >;
 
-   [[nodiscard]] static constexpr bool
-   havePadding()
-   {
-      return false;
-   }
-
+   //! \brief Default constructor with no parameters to create empty segments view.
    __cuda_callable__
    CSRView() = default;
 
-   __cuda_callable__
-   CSRView( const OffsetsView& offsets );
-
-   __cuda_callable__
-   CSRView( OffsetsView&& offsets );
-
+   //! \brief Copy constructor.
    __cuda_callable__
    CSRView( const CSRView& ) = default;
 
+   //! \brief Move constructor.
    __cuda_callable__
    CSRView( CSRView&& ) noexcept = default;
 
+   //! \brief Binds a new CSR view to an offsets vector.
+   __cuda_callable__
+   CSRView( typename Base::OffsetsView offsets );
+
+   //! \brief Copy-assignment operator.
    CSRView&
    operator=( const CSRView& ) = delete;
 
+   //! \brief Move-assignment operator.
    CSRView&
    operator=( CSRView&& ) = delete;
 
+   //! \brief Method for rebinding (reinitialization) to another view.
    __cuda_callable__
    void
-   bind( CSRView& view );
+   bind( CSRView view );
 
-   __cuda_callable__
-   void
-   bind( CSRView&& view );
-
-   [[nodiscard]] static std::string
-   getSerializationType();
-
-   [[nodiscard]] static String
-   getSegmentsType();
-
+   /**
+    * \brief Returns a view for this instance of CSR segments which can by used
+    * for example in lambda functions running in GPU kernels.
+    */
    [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
+   /**
+    * \brief Returns a constant view for this instance of CSR segments which
+    * can by used for example in lambda functions running in GPU kernels.
+    */
    [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
    /**
-    * \brief Number segments.
+    * \brief Method for saving the segments to a file in a binary form.
+    *
+    * \param file is the target file.
     */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSegmentsCount() const;
-
-   /***
-    * \brief Returns size of the segment number \r segmentIdx
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSegmentSize( IndexType segmentIdx ) const;
-
-   /***
-    * \brief Returns number of elements managed by all segments.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSize() const;
-
-   /***
-    * \brief Returns number of elements that needs to be allocated.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getStorageSize() const;
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getGlobalIndex( Index segmentIdx, Index localIdx ) const;
-
-   [[nodiscard]] __cuda_callable__
-   SegmentViewType
-   getSegmentView( IndexType segmentIdx ) const;
-
-   /***
-    * \brief Go over all segments and for each segment element call
-    * function 'f'. The return type of 'f' is bool.
-    * When its true, the for-loop continues. Once 'f' returns false, the for-loop
-    * is terminated.
-    */
-   template< typename Function >
-   void
-   forElements( IndexType begin, IndexType end, Function&& f ) const;
-
-   template< typename Function >
-   void
-   forAllElements( Function&& f ) const;
-
-   template< typename Function >
-   void
-   forSegments( IndexType begin, IndexType end, Function&& f ) const;
-
-   template< typename Function >
-   void
-   forAllSegments( Function&& f ) const;
-
-   template< typename Function >
-   void
-   sequentialForSegments( IndexType begin, IndexType end, Function&& f ) const;
-
-   template< typename Function >
-   void
-   sequentialForAllSegments( Function&& f ) const;
-
    void
    save( File& file ) const;
 
+   /**
+    * \brief Method for loading the segments from a file in a binary form.
+    *
+    * \param file is the source file.
+    */
    void
    load( File& file );
-
-   [[nodiscard]] OffsetsView
-   getOffsets()
-   {
-      return offsets;
-   }
-
-   [[nodiscard]] ConstOffsetsView
-   getOffsets() const
-   {
-      return offsets.getConstView();
-   }
-
-protected:
-   OffsetsView offsets;
 };
-
-template< typename Device, typename Index >
-std::ostream&
-operator<<( std::ostream& str, const CSRView< Device, Index >& segments )
-{
-   return printSegments( str, segments );
-}
 
 }  // namespace TNL::Algorithms::Segments
 
