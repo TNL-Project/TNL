@@ -32,6 +32,30 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::SparseSandboxMatrixV
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
 __cuda_callable__
+void
+SparseSandboxMatrixView< Real, Device, Index, MatrixType >::bind( SparseSandboxMatrixView& view )
+{
+   MatrixView< Real, Device, Index >::operator=( view );
+   this->columnIndexes.bind( view.columnIndexes );
+   // SANDBOX_TODO: Replace the following line with assignment of metadata required by your
+   //               sparse format.
+   this->rowPointers.bind( view.rowPointers );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType >
+__cuda_callable__
+void
+SparseSandboxMatrixView< Real, Device, Index, MatrixType >::bind( SparseSandboxMatrixView&& view )
+{
+   MatrixView< Real, Device, Index >::bind( view );
+   this->columnIndexes.bind( view.columnIndexes );
+   // SANDBOX_TODO: Replace the following line with assignment of metadata required by your
+   //               sparse format.
+   this->rowPointers.bind( view.rowPointers );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType >
+__cuda_callable__
 auto
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::getView() -> ViewType
 {
@@ -738,19 +762,6 @@ getTransposition( const SparseSandboxMatrixView< Real2, Device, Index2 >& matrix
 {
 
 }*/
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >&
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::operator=(
-   const SparseSandboxMatrixView< Real, Device, Index, MatrixType >& matrix )
-{
-   MatrixView< Real, Device, Index >::operator=( matrix );
-   this->columnIndexes.bind( matrix.columnIndexes );
-   // SANDBOX_TODO: Replace the following line with assignment of metadata required by your
-   //               sparse format.
-   this->rowPointers.bind( matrix.rowPointers );
-   return *this;
-}
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
 template< typename Matrix >

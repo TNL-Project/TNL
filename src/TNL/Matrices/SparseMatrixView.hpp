@@ -51,6 +51,38 @@ template< typename Real,
           class SegmentsView,
           typename ComputeReal >
 __cuda_callable__
+void
+SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::bind( SparseMatrixView& view )
+{
+   MatrixView< Real, Device, Index >::bind( view );
+   this->columnIndexes.bind( view.columnIndexes );
+   this->segments.bind( view.segments );
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename >
+          class SegmentsView,
+          typename ComputeReal >
+__cuda_callable__
+void
+SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::bind( SparseMatrixView&& view )
+{
+   MatrixView< Real, Device, Index >::bind( view );
+   this->columnIndexes.bind( view.columnIndexes );
+   this->segments.bind( view.segments );
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename >
+          class SegmentsView,
+          typename ComputeReal >
+__cuda_callable__
 auto
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getView() -> ViewType
 {
@@ -794,23 +826,6 @@ void
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sequentialForAllRows( Function& function )
 {
    this->sequentialForRows( (IndexType) 0, this->getRows(), function );
-}
-
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename >
-          class SegmentsView,
-          typename ComputeReal >
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >&
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::operator=(
-   const SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix )
-{
-   MatrixView< Real, Device, Index >::operator=( matrix );
-   this->columnIndexes.bind( matrix.columnIndexes );
-   this->segments = matrix.segments;
-   return *this;
 }
 
 template< typename Real,

@@ -69,7 +69,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setDimens
    this->indexer.setDimensions( rows, columns );
    this->values.setSize( this->indexer.getStorageSize() );
    this->values = 0.0;
-   this->view = this->getView();
+   this->view.bind( this->getView() );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -531,7 +531,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::load( Fil
 {
    Matrix< Real, Device, Index >::load( file );
    this->indexer.setDimensions( this->getRows(), this->getColumns() );
-   this->view = this->getView();
+   this->view.bind( this->getView() );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >

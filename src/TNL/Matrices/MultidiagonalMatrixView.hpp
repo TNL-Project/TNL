@@ -25,6 +25,28 @@ MultidiagonalMatrixView< Real, Device, Index, Organization >::MultidiagonalMatri
 {}
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+void
+MultidiagonalMatrixView< Real, Device, Index, Organization >::bind( MultidiagonalMatrixView& view )
+{
+   MatrixView< Real, Device, Index >::bind( view );
+   this->diagonalsOffsets.bind( view.diagonalsOffsets );
+   this->hostDiagonalsOffsets.bind( view.hostDiagonalsOffsets );
+   this->indexer = view.indexer;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+void
+MultidiagonalMatrixView< Real, Device, Index, Organization >::bind( MultidiagonalMatrixView&& view )
+{
+   MatrixView< Real, Device, Index >::bind( view );
+   this->diagonalsOffsets.bind( view.diagonalsOffsets );
+   this->hostDiagonalsOffsets.bind( view.hostDiagonalsOffsets );
+   this->indexer = view.indexer;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 auto
 MultidiagonalMatrixView< Real, Device, Index, Organization >::getView() -> ViewType
 {
@@ -243,17 +265,6 @@ MultidiagonalMatrixView< Real, Device, Index, Organization >::getElement( IndexT
       if( row + diagonalsOffsets.getElement( localIdx ) == column )
          return this->values.getElement( this->indexer.getGlobalIndex( row, localIdx ) );
    return 0.0;
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-MultidiagonalMatrixView< Real, Device, Index, Organization >&
-MultidiagonalMatrixView< Real, Device, Index, Organization >::operator=( const MultidiagonalMatrixView& view )
-{
-   MatrixView< Real, Device, Index >::operator=( view );
-   this->diagonalsOffsets.bind( view.diagonalsOffsets );
-   this->hostDiagonalsOffsets.bind( view.hostDiagonalsOffsets );
-   this->indexer = view.indexer;
-   return *this;
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

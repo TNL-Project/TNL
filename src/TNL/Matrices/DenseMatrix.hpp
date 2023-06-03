@@ -111,7 +111,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setDimensions( 
       throw std::overflow_error( "The number of elements required by segments exceeds index type of the matrix." );
    this->values.setSize( this->segments.getStorageSize() );
    this->values = 0.0;
-   this->view = this->getView();
+   this->view.bind( this->getView() );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -805,7 +805,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=(
       return *this;
    }
 
-   auto this_view = this->view;
+   auto& this_view = this->view;
    if constexpr( std::is_same< DeviceType, RHSDeviceType >::value ) {
       auto f = [ = ] __cuda_callable__(
                   RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIdx, const RHSRealType& value ) mutable
@@ -844,7 +844,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=(
 
          ////
          // Copy matrix elements from the buffer to the matrix.
-         auto this_view = this->view;
+         auto& this_view = this->view;
          using MultiIndex = Containers::StaticArray< 2, IndexType >;
          auto f2 = [ = ] __cuda_callable__( const MultiIndex& i ) mutable
          {
@@ -930,7 +930,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=( cons
 
          ////
          // Copy matrix elements from the buffer to the matrix
-         auto this_view = this->view;
+         auto& this_view = this->view;
          using MultiIndex = Containers::StaticArray< 2, IndexType >;
          auto f2 = [ = ] __cuda_callable__( const MultiIndex& i ) mutable
          {
@@ -947,7 +947,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=( cons
          baseRow += bufferRowsCount;
       }
    }
-   this->view = this->getView();
+   this->view.bind( this->getView() );
    return *this;
 }
 
@@ -1032,7 +1032,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::load( File& fil
 {
    Matrix< Real, Device, Index, RealAllocator >::load( file );
    this->segments.load( file );
-   this->view = this->getView();
+   this->view.bind( this->getView() );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >

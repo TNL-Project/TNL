@@ -241,6 +241,24 @@ DenseMatrixView< Real, Device, Index, Organization >::DenseMatrixView(
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
+void
+DenseMatrixView< Real, Device, Index, Organization >::bind( DenseMatrixView& view )
+{
+   MatrixView< Real, Device, Index >::bind( view );
+   this->segments.bind( view.segments );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+void
+DenseMatrixView< Real, Device, Index, Organization >::bind( DenseMatrixView&& view )
+{
+   MatrixView< Real, Device, Index >::bind( view );
+   this->segments.bind( view.segments );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
 auto
 DenseMatrixView< Real, Device, Index, Organization >::getView() -> ViewType
 {
@@ -710,15 +728,6 @@ DenseMatrixView< Real, Device, Index, Organization >::addMatrix( const Matrix& m
       this->values += matrixMultiplicator * matrix.values;
    else
       this->values = thisMatrixMultiplicator * this->values + matrixMultiplicator * matrix.values;
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-DenseMatrixView< Real, Device, Index, Organization >&
-DenseMatrixView< Real, Device, Index, Organization >::operator=( const DenseMatrixView& matrix )
-{
-   MatrixView< Real, Device, Index >::operator=( matrix );
-   this->segments = matrix.segments;
-   return *this;
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

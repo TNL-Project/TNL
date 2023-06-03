@@ -75,10 +75,24 @@ public:
                   const OffsetsView&& groupPointers );
 
    __cuda_callable__
-   BiEllpackView( const BiEllpackView& chunked_ellpack_view ) = default;
+   BiEllpackView( const BiEllpackView& ) = default;
 
    __cuda_callable__
-   BiEllpackView( BiEllpackView&& chunked_ellpack_view ) noexcept = default;
+   BiEllpackView( BiEllpackView&& ) noexcept = default;
+
+   BiEllpackView&
+   operator=( const BiEllpackView& ) = delete;
+
+   BiEllpackView&
+   operator=( BiEllpackView&& ) = delete;
+
+   __cuda_callable__
+   void
+   bind( BiEllpackView& view );
+
+   __cuda_callable__
+   void
+   bind( BiEllpackView&& view );
 
    [[nodiscard]] static std::string
    getSerializationType();
@@ -159,9 +173,6 @@ public:
    template< typename Function >
    void
    forAllSegments( Function&& f ) const;
-
-   BiEllpackView&
-   operator=( const BiEllpackView& view );
 
    void
    save( File& file ) const;

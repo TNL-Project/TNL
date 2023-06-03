@@ -128,6 +128,33 @@ public:
    MultidiagonalMatrixView( MultidiagonalMatrixView&& view ) noexcept = default;
 
    /**
+    * \brief Copy-assignment operator.
+    *
+    * It is a deleted function, because matrix assignment in general requires
+    * reallocation.
+    */
+   MultidiagonalMatrixView&
+   operator=( const MultidiagonalMatrixView& ) = delete;
+
+   /**
+    * \brief Method for rebinding (reinitialization) using another multidiagonal matrix view.
+    *
+    * \param view The multidiagonal matrix view to be bound.
+    */
+   __cuda_callable__
+   void
+   bind( MultidiagonalMatrixView& view );
+
+   /**
+    * \brief Method for rebinding (reinitialization) using another multidiagonal matrix view.
+    *
+    * \param view The multidiagonal matrix view to be bound.
+    */
+   __cuda_callable__
+   void
+   bind( MultidiagonalMatrixView&& view );
+
+   /**
     * \brief Returns a modifiable view of the multidiagonal matrix.
     *
     * \return multidiagonal matrix view.
@@ -844,15 +871,6 @@ public:
    void
    getTransposition( const MultidiagonalMatrixView< Real2, Device, Index2 >& matrix,
                      const RealType& matrixMultiplicator = 1.0 );
-
-   /**
-    * \brief Assignment of exactly the same matrix type.
-    *
-    * \param view is input matrix view for the assignment.
-    * \return reference to this matrix.
-    */
-   MultidiagonalMatrixView&
-   operator=( const MultidiagonalMatrixView& view );
 
    /**
     * \brief Method for saving the matrix to a file.

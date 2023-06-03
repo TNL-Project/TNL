@@ -45,14 +45,24 @@ public:
    CSRView( OffsetsView&& offsets );
 
    __cuda_callable__
-   CSRView( const CSRView& csr_view ) = default;
-
-   template< typename Index2 >
-   __cuda_callable__
-   CSRView( const CSRView< Device, Index2 >& csr_view );
+   CSRView( const CSRView& ) = default;
 
    __cuda_callable__
-   CSRView( CSRView&& csr_view ) noexcept = default;
+   CSRView( CSRView&& ) noexcept = default;
+
+   CSRView&
+   operator=( const CSRView& ) = delete;
+
+   CSRView&
+   operator=( CSRView&& ) = delete;
+
+   __cuda_callable__
+   void
+   bind( CSRView& view );
+
+   __cuda_callable__
+   void
+   bind( CSRView&& view );
 
    [[nodiscard]] static std::string
    getSerializationType();
@@ -133,9 +143,6 @@ public:
    template< typename Function >
    void
    sequentialForAllSegments( Function&& f ) const;
-
-   CSRView&
-   operator=( const CSRView& view );
 
    void
    save( File& file ) const;

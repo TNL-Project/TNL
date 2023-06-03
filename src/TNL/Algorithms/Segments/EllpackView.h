@@ -59,10 +59,24 @@ public:
    EllpackView( IndexType segmentsCount, IndexType segmentSize );
 
    __cuda_callable__
-   EllpackView( const EllpackView& ellpackView ) = default;
+   EllpackView( const EllpackView& ) = default;
 
    __cuda_callable__
-   EllpackView( EllpackView&& ellpackView ) noexcept = default;
+   EllpackView( EllpackView&& ) noexcept = default;
+
+   EllpackView&
+   operator=( const EllpackView& ) = delete;
+
+   EllpackView&
+   operator=( EllpackView&& ) = delete;
+
+   __cuda_callable__
+   void
+   bind( EllpackView& view );
+
+   __cuda_callable__
+   void
+   bind( EllpackView&& view );
 
    [[nodiscard]] static std::string
    getSerializationType();
@@ -130,9 +144,6 @@ public:
    template< typename Function >
    void
    forAllSegments( Function&& f ) const;
-
-   EllpackView&
-   operator=( const EllpackView& view );
 
    void
    save( File& file ) const;

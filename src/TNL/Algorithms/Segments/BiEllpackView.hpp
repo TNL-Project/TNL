@@ -36,6 +36,30 @@ BiEllpackView< Device, Index, Organization, WarpSize >::BiEllpackView( const Ind
 {}
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+__cuda_callable__
+void
+BiEllpackView< Device, Index, Organization, WarpSize >::bind( BiEllpackView& view )
+{
+   this->size = view.size;
+   this->storageSize = view.storageSize;
+   this->virtualRows = view.virtualRows;
+   this->rowPermArray.bind( view.rowPermArray );
+   this->groupPointers.bind( view.groupPointers );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+__cuda_callable__
+void
+BiEllpackView< Device, Index, Organization, WarpSize >::bind( BiEllpackView&& view )
+{
+   this->size = view.size;
+   this->storageSize = view.storageSize;
+   this->virtualRows = view.virtualRows;
+   this->rowPermArray.bind( view.rowPermArray );
+   this->groupPointers.bind( view.groupPointers );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 std::string
 BiEllpackView< Device, Index, Organization, WarpSize >::getSerializationType()
 {
@@ -236,18 +260,6 @@ void
 BiEllpackView< Device, Index, Organization, WarpSize >::forAllSegments( Function&& f ) const
 {
    this->forSegments( 0, this->getSegmentsCount(), f );
-}
-
-template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
-BiEllpackView< Device, Index, Organization, WarpSize >&
-BiEllpackView< Device, Index, Organization, WarpSize >::operator=( const BiEllpackView& source )
-{
-   this->size = source.size;
-   this->storageSize = source.storageSize;
-   this->virtualRows = source.virtualRows;
-   this->rowPermArray.bind( source.rowPermArray );
-   this->groupPointers.bind( source.groupPointers );
-   return *this;
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >

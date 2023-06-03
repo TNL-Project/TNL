@@ -116,6 +116,33 @@ public:
    TridiagonalMatrixView( TridiagonalMatrixView&& view ) noexcept = default;
 
    /**
+    * \brief Copy-assignment operator.
+    *
+    * It is a deleted function, because matrix assignment in general requires
+    * reallocation.
+    */
+   TridiagonalMatrixView&
+   operator=( const TridiagonalMatrixView& ) = delete;
+
+   /**
+    * \brief Method for rebinding (reinitialization) using another tridiagonal matrix view.
+    *
+    * \param view The tridiagonal matrix view to be bound.
+    */
+   __cuda_callable__
+   void
+   bind( TridiagonalMatrixView& view );
+
+   /**
+    * \brief Method for rebinding (reinitialization) using another tridiagonal matrix view.
+    *
+    * \param view The tridiagonal matrix view to be bound.
+    */
+   __cuda_callable__
+   void
+   bind( TridiagonalMatrixView&& view );
+
+   /**
     * \brief Returns a modifiable view of the tridiagonal matrix.
     *
     * \return tridiagonal matrix view.
@@ -804,15 +831,6 @@ public:
    template< typename Real2, typename Index2 >
    void
    getTransposition( const TridiagonalMatrixView< Real2, Device, Index2 >& matrix, const RealType& matrixMultiplicator = 1.0 );
-
-   /**
-    * \brief Assignment of exactly the same matrix type.
-    *
-    * \param view is input matrix view for the assignment.
-    * \return reference to this matrix.
-    */
-   TridiagonalMatrixView&
-   operator=( const TridiagonalMatrixView& view );
 
    /**
     * \brief Method for saving the matrix to a file.

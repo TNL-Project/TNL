@@ -48,6 +48,40 @@ ChunkedEllpackView< Device, Index, Organization >::ChunkedEllpackView( const Ind
 {}
 
 template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+void
+ChunkedEllpackView< Device, Index, Organization >::bind( ChunkedEllpackView& view )
+{
+   this->size = view.size;
+   this->storageSize = view.storageSize;
+   this->chunksInSlice = view.chunksInSlice;
+   this->desiredChunkSize = view.desiredChunkSize;
+   this->rowToChunkMapping.bind( view.rowToChunkMapping );
+   this->chunksToSegmentsMapping.bind( view.chunksToSegmentsMapping );
+   this->rowToSliceMapping.bind( view.rowToSliceMapping );
+   this->rowPointers.bind( view.rowPointers );
+   this->slices.bind( view.slices );
+   this->numberOfSlices = view.numberOfSlices;
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+void
+ChunkedEllpackView< Device, Index, Organization >::bind( ChunkedEllpackView&& view )
+{
+   this->size = view.size;
+   this->storageSize = view.storageSize;
+   this->chunksInSlice = view.chunksInSlice;
+   this->desiredChunkSize = view.desiredChunkSize;
+   this->rowToChunkMapping.bind( view.rowToChunkMapping );
+   this->chunksToSegmentsMapping.bind( view.chunksToSegmentsMapping );
+   this->rowToSliceMapping.bind( view.rowToSliceMapping );
+   this->rowPointers.bind( view.rowPointers );
+   this->slices.bind( view.slices );
+   this->numberOfSlices = view.numberOfSlices;
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
 std::string
 ChunkedEllpackView< Device, Index, Organization >::getSerializationType()
 {
@@ -301,23 +335,6 @@ void
 ChunkedEllpackView< Device, Index, Organization >::forAllSegments( Function&& f ) const
 {
    this->forSegments( 0, this->getSegmentsCount(), f );
-}
-
-template< typename Device, typename Index, ElementsOrganization Organization >
-ChunkedEllpackView< Device, Index, Organization >&
-ChunkedEllpackView< Device, Index, Organization >::operator=( const ChunkedEllpackView& view )
-{
-   this->size = view.size;
-   this->storageSize = view.storageSize;
-   this->chunksInSlice = view.chunksInSlice;
-   this->desiredChunkSize = view.desiredChunkSize;
-   this->rowToChunkMapping.bind( view.rowToChunkMapping );
-   this->chunksToSegmentsMapping.bind( view.chunksToSegmentsMapping );
-   this->rowToSliceMapping.bind( view.rowToSliceMapping );
-   this->rowPointers.bind( view.rowPointers );
-   this->slices.bind( view.slices );
-   this->numberOfSlices = view.numberOfSlices;
-   return *this;
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >

@@ -101,6 +101,34 @@ public:
    MatrixView( MatrixView&& view ) noexcept = default;
 
    /**
+    * \brief Copy-assignment operator.
+    *
+    * It is a deleted function, because matrix assignment in general requires
+    * reallocation.
+    */
+   __cuda_callable__
+   MatrixView&
+   operator=( const MatrixView& ) = delete;
+
+   /**
+    * \brief Method for rebinding (reinitialization) using another matrix view.
+    *
+    * \param view The matrix view to be bound.
+    */
+   __cuda_callable__
+   void
+   bind( MatrixView& view );
+
+   /**
+    * \brief Method for rebinding (reinitialization) using another matrix view.
+    *
+    * \param view The matrix view to be bound.
+    */
+   __cuda_callable__
+   void
+   bind( MatrixView&& view );
+
+   /**
     * \brief Tells the number of allocated matrix elements.
     *
     * In the case of dense matrices, this is just product of the number of rows and the number of columns.
@@ -154,16 +182,6 @@ public:
    [[nodiscard]] __cuda_callable__
    ValuesView&
    getValues();
-
-   /**
-    * \brief Shallow copy of the matrix view.
-    *
-    * \param view is an input matrix view.
-    * \return reference to this view.
-    */
-   __cuda_callable__
-   MatrixView&
-   operator=( const MatrixView& view );
 
    /**
     * \brief Comparison operator with another arbitrary matrix view type.

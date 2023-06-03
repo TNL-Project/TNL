@@ -25,6 +25,30 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::SlicedEllpackView( 
 {}
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+__cuda_callable__
+void
+SlicedEllpackView< Device, Index, Organization, SliceSize >::bind( SlicedEllpackView& view )
+{
+   this->size = view.size;
+   this->alignedSize = view.alignedSize;
+   this->segmentsCount = view.segmentsCount;
+   this->sliceOffsets.bind( view.sliceOffsets );
+   this->sliceSegmentSizes.bind( view.sliceSegmentSizes );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+__cuda_callable__
+void
+SlicedEllpackView< Device, Index, Organization, SliceSize >::bind( SlicedEllpackView&& view )
+{
+   this->size = view.size;
+   this->alignedSize = view.alignedSize;
+   this->segmentsCount = view.segmentsCount;
+   this->sliceOffsets.bind( view.sliceOffsets );
+   this->sliceSegmentSizes.bind( view.sliceSegmentSizes );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 std::string
 SlicedEllpackView< Device, Index, Organization, SliceSize >::getSerializationType()
 {
@@ -239,19 +263,6 @@ void
 SlicedEllpackView< Device, Index, Organization, SliceSize >::forAllSegments( Function&& f ) const
 {
    this->forSegments( 0, this->getSegmentsCount(), f );
-}
-
-template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
-SlicedEllpackView< Device, Index, Organization, SliceSize >&
-SlicedEllpackView< Device, Index, Organization, SliceSize >::operator=(
-   const SlicedEllpackView< Device, Index, Organization, SliceSize >& view )
-{
-   this->size = view.size;
-   this->alignedSize = view.alignedSize;
-   this->segmentsCount = view.segmentsCount;
-   this->sliceOffsets.bind( view.sliceOffsets );
-   this->sliceSegmentSizes.bind( view.sliceSegmentSizes );
-   return *this;
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >

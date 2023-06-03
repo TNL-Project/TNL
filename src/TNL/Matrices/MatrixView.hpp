@@ -26,6 +26,26 @@ MatrixView< Real, Device, Index >::MatrixView( IndexType rows, IndexType columns
 {}
 
 template< typename Real, typename Device, typename Index >
+__cuda_callable__
+void
+MatrixView< Real, Device, Index >::bind( MatrixView& view )
+{
+   rows = view.rows;
+   columns = view.columns;
+   values.bind( view.values );
+}
+
+template< typename Real, typename Device, typename Index >
+__cuda_callable__
+void
+MatrixView< Real, Device, Index >::bind( MatrixView&& view )
+{
+   rows = view.rows;
+   columns = view.columns;
+   values.bind( view.values );
+}
+
+template< typename Real, typename Device, typename Index >
 Index
 MatrixView< Real, Device, Index >::getAllocatedElementsCount() const
 {
@@ -74,16 +94,6 @@ typename MatrixView< Real, Device, Index >::ValuesView&
 MatrixView< Real, Device, Index >::getValues()
 {
    return this->values;
-}
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-MatrixView< Real, Device, Index >&
-MatrixView< Real, Device, Index >::operator=( const MatrixView& view )
-{
-   rows = view.rows;
-   columns = view.columns;
-   values.bind( view.values );
-   return *this;
 }
 
 template< typename Real, typename Device, typename Index >

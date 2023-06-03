@@ -226,7 +226,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
 {
    BaseType::setDimensions( rows, columns );
    segments.setSegmentsSizes( Containers::Vector< IndexType, DeviceType, IndexType >( rows, 0 ) );
-   this->view = this->getView();
+   this->view.bind( this->getView() );
 }
 
 template< typename Real,
@@ -243,7 +243,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    IndexType columns )
 {
    BaseType::setDimensions( this->getRows(), columns );
-   this->view = this->getView();
+   this->view.bind( this->getView() );
 }
 
 template< typename Real,
@@ -261,8 +261,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    const Matrix_& matrix )
 {
    BaseType::setLike( matrix );
-   this->segments.setSegmentsSizes( Containers::Vector< IndexType, DeviceType, IndexType >( matrix.getRows(), 0 ) ),
-      this->view = this->getView();
+   this->segments.setSegmentsSizes( Containers::Vector< IndexType, DeviceType, IndexType >( matrix.getRows(), 0 ) );
+   this->view.bind( this->getView() );
    TNL_ASSERT_EQ( this->getRows(), segments.getSegmentsCount(), "mismatched segments count" );
 }
 
@@ -296,7 +296,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    }
    this->columnIndexes.setSize( this->segments.getStorageSize() );
    this->columnIndexes = this->getPaddingIndex();
-   this->view = this->getView();
+   this->view.bind( this->getView() );
 }
 
 template< typename Real,
@@ -449,7 +449,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    BaseType::reset();
    this->columnIndexes.reset();
    this->segments.reset();
-   this->view = this->getView();
+   this->view.bind( this->getView() );
    TNL_ASSERT_EQ( this->getRows(), segments.getSegmentsCount(), "mismatched segments count" );
 }
 
@@ -947,7 +947,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    this->columnIndexes = matrix.columnIndexes;
    this->segments = matrix.segments;
    this->indexAllocator = matrix.indexAllocator;
-   this->view = this->getView();
+   this->view.bind( this->getView() );
    return *this;
 }
 
@@ -969,7 +969,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    this->segments = std::move( matrix.segments );
    this->indexAllocator = std::move( matrix.indexAllocator );
    Matrix< Real, Device, Index >::operator=( std::move( matrix ) );
-   this->view = this->getView();
+   this->view.bind( this->getView() );
    return *this;
 }
 
@@ -1079,7 +1079,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
       }
       // std::cerr << "This matrix = " << std::endl << *this << std::endl;
    }
-   this->view = this->getView();
+   this->view.bind( this->getView() );
    return *this;
 }
 
@@ -1207,7 +1207,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          baseRow += bufferRowsCount;
       }
    }
-   this->view = this->getView();
+   this->view.bind( this->getView() );
    return *this;
 }
 
@@ -1275,7 +1275,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Matrix< RealType, DeviceType, IndexType >::load( file );
    file >> this->columnIndexes;
    this->segments.load( file );
-   this->view = this->getView();
+   this->view.bind( this->getView() );
 }
 
 template< typename Real,

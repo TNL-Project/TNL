@@ -60,10 +60,24 @@ public:
                       OffsetsView&& sliceSegmentSizes );
 
    __cuda_callable__
-   SlicedEllpackView( const SlicedEllpackView& slicedEllpackView ) = default;
+   SlicedEllpackView( const SlicedEllpackView& ) = default;
 
    __cuda_callable__
-   SlicedEllpackView( SlicedEllpackView&& slicedEllpackView ) noexcept = default;
+   SlicedEllpackView( SlicedEllpackView&& ) noexcept = default;
+
+   SlicedEllpackView&
+   operator=( const SlicedEllpackView& ) = delete;
+
+   SlicedEllpackView&
+   operator=( SlicedEllpackView&& ) = delete;
+
+   __cuda_callable__
+   void
+   bind( SlicedEllpackView& view );
+
+   __cuda_callable__
+   void
+   bind( SlicedEllpackView&& view );
 
    [[nodiscard]] static std::string
    getSerializationType();
@@ -135,9 +149,6 @@ public:
    template< typename Function >
    void
    forAllSegments( Function&& f ) const;
-
-   SlicedEllpackView&
-   operator=( const SlicedEllpackView& view );
 
    void
    save( File& file ) const;

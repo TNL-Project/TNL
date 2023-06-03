@@ -166,6 +166,41 @@ public:
    DenseMatrixView( const DenseMatrixView& matrix ) = default;
 
    /**
+    * \brief Move constructor.
+    *
+    * \param matrix is the source matrix view.
+    */
+   __cuda_callable__
+   DenseMatrixView( DenseMatrixView&& matrix ) noexcept = default;
+
+   /**
+    * \brief Copy-assignment operator.
+    *
+    * It is a deleted function, because matrix assignment in general requires
+    * reallocation.
+    */
+   DenseMatrixView&
+   operator=( const DenseMatrixView& ) = delete;
+
+   /**
+    * \brief Method for rebinding (reinitialization) using another dense matrix view.
+    *
+    * \param view The dense matrix view to be bound.
+    */
+   __cuda_callable__
+   void
+   bind( DenseMatrixView& view );
+
+   /**
+    * \brief Method for rebinding (reinitialization) using another dense matrix view.
+    *
+    * \param view The dense matrix view to be bound.
+    */
+   __cuda_callable__
+   void
+   bind( DenseMatrixView&& view );
+
+   /**
     * \brief Returns a modifiable dense matrix view.
     *
     * \return dense matrix view.
@@ -874,15 +909,6 @@ public:
    template< typename Matrix >
    void
    addMatrix( const Matrix& matrix, const RealType& matrixMultiplicator = 1.0, const RealType& thisMatrixMultiplicator = 1.0 );
-
-   /**
-    * \brief Assignment operator with DenseMatrix.
-    *
-    * \param matrix is the right-hand side matrix.
-    * \return reference to this matrix.
-    */
-   DenseMatrixView&
-   operator=( const DenseMatrixView& matrix );
 
    /**
     * \brief Comparison operator with another dense matrix view.

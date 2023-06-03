@@ -143,7 +143,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    this->indexer.set( rows, columns, diagonalsOffsets.getSize(), nonemptyRows );
    this->values.setSize( this->indexer.getStorageSize() );
    this->values = 0.0;
-   this->view = this->getView();
+   this->view.bind( this->getView() );
 }
 
 template< typename Real,
@@ -942,7 +942,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    if( this->getRows() > this->getColumns() && minOffset < 0 )
       nonemptyRows = min( this->getRows(), nonemptyRows - minOffset );
    this->indexer.set( this->getRows(), this->getColumns(), diagonalsOffsets.getSize(), nonemptyRows );
-   this->view = this->getView();
+   this->view.bind( this->getView() );
 }
 
 template< typename Real,

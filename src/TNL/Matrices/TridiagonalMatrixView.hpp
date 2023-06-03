@@ -21,6 +21,24 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::TridiagonalMatrixVie
 {}
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+void
+TridiagonalMatrixView< Real, Device, Index, Organization >::bind( TridiagonalMatrixView& view )
+{
+   MatrixView< Real, Device, Index >::bind( view );
+   this->indexer = view.indexer;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+void
+TridiagonalMatrixView< Real, Device, Index, Organization >::bind( TridiagonalMatrixView&& view )
+{
+   MatrixView< Real, Device, Index >::bind( view );
+   this->indexer = view.indexer;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 auto
 TridiagonalMatrixView< Real, Device, Index, Organization >::getView() -> ViewType
 {
@@ -496,15 +514,6 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::vectorProduct( const
       this->reduceRows( begin, end, fetch, reduction, keeper1, (RealType) 0.0 );
    else
       this->reduceRows( begin, end, fetch, reduction, keeper2, (RealType) 0.0 );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-TridiagonalMatrixView< Real, Device, Index, Organization >&
-TridiagonalMatrixView< Real, Device, Index, Organization >::operator=( const TridiagonalMatrixView& view )
-{
-   MatrixView< Real, Device, Index >::operator=( view );
-   this->indexer = view.indexer;
-   return *this;
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

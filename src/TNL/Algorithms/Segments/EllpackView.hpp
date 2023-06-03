@@ -22,6 +22,26 @@ EllpackView< Device, Index, Organization, Alignment >::EllpackView( IndexType se
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 __cuda_callable__
+void
+EllpackView< Device, Index, Organization, Alignment >::bind( EllpackView& view )
+{
+   this->segmentSize = view.segmentSize;
+   this->segmentsCount = view.segmentsCount;
+   this->alignedSize = view.alignedSize;
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
+__cuda_callable__
+void
+EllpackView< Device, Index, Organization, Alignment >::bind( EllpackView&& view )
+{
+   this->segmentSize = view.segmentSize;
+   this->segmentsCount = view.segmentsCount;
+   this->alignedSize = view.alignedSize;
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
+__cuda_callable__
 EllpackView< Device, Index, Organization, Alignment >::EllpackView( IndexType segmentsCount, IndexType segmentSize )
 : segmentSize( segmentSize ), segmentsCount( segmentsCount )
 {
@@ -185,17 +205,6 @@ void
 EllpackView< Device, Index, Organization, Alignment >::forAllSegments( Function&& f ) const
 {
    this->forSegments( 0, this->getSegmentsCount(), f );
-}
-
-template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
-EllpackView< Device, Index, Organization, Alignment >&
-EllpackView< Device, Index, Organization, Alignment >::operator=(
-   const EllpackView< Device, Index, Organization, Alignment >& view )
-{
-   this->segmentSize = view.segmentSize;
-   this->segmentsCount = view.segmentsCount;
-   this->alignedSize = view.alignedSize;
-   return *this;
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >

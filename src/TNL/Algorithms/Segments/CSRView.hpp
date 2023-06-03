@@ -22,9 +22,20 @@ __cuda_callable__
 CSRView< Device, Index >::CSRView( OffsetsView&& offsets ) : offsets( std::move( offsets ) ) {}
 
 template< typename Device, typename Index >
-template< typename Index2 >
 __cuda_callable__
-CSRView< Device, Index >::CSRView( const CSRView< Device, Index2 >& csr_view ) : offsets( csr_view.getOffsets() ) {}
+void
+CSRView< Device, Index >::bind( CSRView& view )
+{
+   this->offsets.bind( view.offsets );
+}
+
+template< typename Device, typename Index >
+__cuda_callable__
+void
+CSRView< Device, Index >::bind( CSRView&& view )
+{
+   this->offsets.bind( view.offsets );
+}
 
 template< typename Device, typename Index >
 std::string
@@ -173,15 +184,6 @@ void
 CSRView< Device, Index >::sequentialForAllSegments( Function&& f ) const
 {
    this->sequentialForSegments( 0, this->getSegmentsCount(), f );
-}
-
-// FIXME: JK: operator= should not bind, it should do a shallow copy (or not exist)
-template< typename Device, typename Index >
-CSRView< Device, Index >&
-CSRView< Device, Index >::operator=( const CSRView& view )
-{
-   this->offsets.bind( view.offsets );
-   return *this;
 }
 
 template< typename Device, typename Index >

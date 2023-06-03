@@ -78,10 +78,24 @@ public:
                        IndexType numberOfSlices );
 
    __cuda_callable__
-   ChunkedEllpackView( const ChunkedEllpackView& chunked_ellpack_view ) = default;
+   ChunkedEllpackView( const ChunkedEllpackView& ) = default;
 
    __cuda_callable__
-   ChunkedEllpackView( ChunkedEllpackView&& chunked_ellpack_view ) noexcept = default;
+   ChunkedEllpackView( ChunkedEllpackView&& ) noexcept = default;
+
+   ChunkedEllpackView&
+   operator=( const ChunkedEllpackView& ) = delete;
+
+   ChunkedEllpackView&
+   operator=( ChunkedEllpackView&& ) = delete;
+
+   __cuda_callable__
+   void
+   bind( ChunkedEllpackView& view );
+
+   __cuda_callable__
+   void
+   bind( ChunkedEllpackView&& view );
 
    [[nodiscard]] static std::string
    getSerializationType();
@@ -178,9 +192,6 @@ public:
    template< typename Function >
    void
    forAllSegments( Function&& f ) const;
-
-   ChunkedEllpackView&
-   operator=( const ChunkedEllpackView& view );
 
    void
    save( File& file ) const;

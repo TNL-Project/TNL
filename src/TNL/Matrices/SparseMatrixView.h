@@ -222,6 +222,33 @@ public:
    SparseMatrixView( SparseMatrixView&& matrix ) noexcept = default;
 
    /**
+    * \brief Copy-assignment operator.
+    *
+    * It is a deleted function, because sparse matrix assignment in general
+    * requires reallocation.
+    */
+   SparseMatrixView&
+   operator=( const SparseMatrixView& ) = delete;
+
+   /**
+    * \brief Method for rebinding (reinitialization) using another sparse matrix view.
+    *
+    * \param view The sparse matrix view to be bound.
+    */
+   __cuda_callable__
+   void
+   bind( SparseMatrixView& view );
+
+   /**
+    * \brief Method for rebinding (reinitialization) using another sparse matrix view.
+    *
+    * \param view The sparse matrix view to be bound.
+    */
+   __cuda_callable__
+   void
+   bind( SparseMatrixView&& view );
+
+   /**
     * \brief Returns a modifiable view of the sparse matrix.
     *
     * \return sparse matrix view.
@@ -827,15 +854,6 @@ public:
    template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
    void
    vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
-
-   /**
-    * \brief Assignment of any matrix type.
-    *
-    * \param matrix is input matrix for the assignment.
-    * \return reference to this matrix.
-    */
-   SparseMatrixView&
-   operator=( const SparseMatrixView& matrix );
 
    /**
     * \brief Comparison operator with another arbitrary matrix type.
