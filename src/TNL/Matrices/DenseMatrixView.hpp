@@ -236,7 +236,7 @@ DenseMatrixView< Real, Device, Index, Organization >::DenseMatrixView(
    IndexType rows,
    IndexType columns,
    const Containers::VectorView< Value_, Device, Index >& values )
-: MatrixView< Real, Device, Index >( rows, columns, values ), segments( rows, columns, true )
+: MatrixView< Real, Device, Index >( rows, columns, values ), segments( rows, columns )
 {}
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
