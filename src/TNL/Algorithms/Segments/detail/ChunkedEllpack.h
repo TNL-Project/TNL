@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include <type_traits>
-#include <TNL/Containers/Vector.h>
+#include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpackSegmentView.h>
+#include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
 namespace TNL::Algorithms::Segments::detail {
 
-/***
+/**
  * In the ChunkedEllpack, the segments are split into slices. This is done
  * in ChunkedEllpack::resolveSliceSizes. All segments elements in each slice
  * are split into chunks. All chunks in one slice have the same size, but the size
@@ -21,26 +21,18 @@ namespace TNL::Algorithms::Segments::detail {
 template< typename Index >
 struct ChunkedEllpackSliceInfo
 {
-   /**
-    * The size of the slice, it means the number of the segments covered by
-    * the slice.
-    */
+   //! \brief The size of the slice, it means the number of the segments
+   //! covered by the slice.
    Index size;
 
-   /**
-    * The chunk size, i.e. maximal number of non-zero elements that can be stored
-    * in the chunk.
-    */
+   //! \brief The chunk size, i.e. maximal number of non-zero elements that can
+   //! be stored in the chunk.
    Index chunkSize;
 
-   /**
-    * Index of the first segment covered be this slice.
-    */
+   //! \brief Index of the first segment covered be this slice.
    Index firstSegment;
 
-   /**
-    * Position of the first element of this slice.
-    */
+   //! \brief Position of the first element of this slice.
    Index pointer;
 };
 
@@ -50,31 +42,20 @@ class ChunkedEllpack
 public:
    using DeviceType = Device;
    using IndexType = Index;
-   [[nodiscard]] static constexpr ElementsOrganization
-   getOrganization()
-   {
-      return Organization;
-   }
-   using OffsetsContainer = Containers::Vector< IndexType, DeviceType, IndexType >;
-   using OffsetsHolderView = typename OffsetsContainer::ConstViewType;
-   using SegmentsSizes = OffsetsContainer;
-   using ChunkedEllpackSliceInfoType = detail::ChunkedEllpackSliceInfo< IndexType >;
-   using ChunkedEllpackSliceInfoAllocator =
-      typename Allocators::Default< Device >::template Allocator< ChunkedEllpackSliceInfoType >;
-   using ChunkedEllpackSliceInfoContainer =
-      Containers::Array< ChunkedEllpackSliceInfoType, DeviceType, IndexType, ChunkedEllpackSliceInfoAllocator >;
-   using ChunkedEllpackSliceInfoContainerView = typename ChunkedEllpackSliceInfoContainer::ConstViewType;
+   using ConstOffsetsView = Containers::VectorView< std::add_const_t< Index >, DeviceType, IndexType >;
+   using SliceInfoType = ChunkedEllpackSliceInfo< IndexType >;
+   using ConstSliceInfoContainerView = Containers::ArrayView< std::add_const_t< SliceInfoType >, DeviceType, IndexType >;
    using SegmentViewType = ChunkedEllpackSegmentView< IndexType, Organization >;
 
    [[nodiscard]] __cuda_callable__
    static IndexType
-   getSegmentSizeDirect( const OffsetsHolderView& segmentsToSlicesMapping,
-                         const ChunkedEllpackSliceInfoContainerView& slices,
-                         const OffsetsHolderView& segmentsToChunksMapping,
+   getSegmentSizeDirect( const ConstOffsetsView& segmentsToSlicesMapping,
+                         const ConstSliceInfoContainerView& slices,
+                         const ConstOffsetsView& segmentsToChunksMapping,
                          const IndexType segmentIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping[ segmentIdx ];
-      IndexType firstChunkOfSegment( 0 );
+      IndexType firstChunkOfSegment = 0;
       if( segmentIdx != slices[ sliceIndex ].firstSegment )
          firstChunkOfSegment = segmentsToChunksMapping[ segmentIdx - 1 ];
 
@@ -85,13 +66,13 @@ public:
    }
 
    [[nodiscard]] static IndexType
-   getSegmentSize( const OffsetsHolderView& segmentsToSlicesMapping,
-                   const ChunkedEllpackSliceInfoContainerView& slices,
-                   const OffsetsHolderView& segmentsToChunksMapping,
+   getSegmentSize( const ConstOffsetsView& segmentsToSlicesMapping,
+                   const ConstSliceInfoContainerView& slices,
+                   const ConstOffsetsView& segmentsToChunksMapping,
                    const IndexType segmentIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping.getElement( segmentIdx );
-      IndexType firstChunkOfSegment( 0 );
+      IndexType firstChunkOfSegment = 0;
       if( segmentIdx != slices.getElement( sliceIndex ).firstSegment )
          firstChunkOfSegment = segmentsToChunksMapping.getElement( segmentIdx - 1 );
 
@@ -103,15 +84,15 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static IndexType
-   getGlobalIndexDirect( const OffsetsHolderView& segmentsToSlicesMapping,
-                         const ChunkedEllpackSliceInfoContainerView& slices,
-                         const OffsetsHolderView& segmentsToChunksMapping,
+   getGlobalIndexDirect( const ConstOffsetsView& segmentsToSlicesMapping,
+                         const ConstSliceInfoContainerView& slices,
+                         const ConstOffsetsView& segmentsToChunksMapping,
                          const IndexType chunksInSlice,
                          const IndexType segmentIdx,
                          const IndexType localIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping[ segmentIdx ];
-      IndexType firstChunkOfSegment( 0 );
+      IndexType firstChunkOfSegment = 0;
       if( segmentIdx != slices[ sliceIndex ].firstSegment )
          firstChunkOfSegment = segmentsToChunksMapping[ segmentIdx - 1 ];
 
@@ -122,7 +103,7 @@ public:
       // TNL_ASSERT_LE( localIdx, segmentChunksCount * chunkSize, "" );
       TNL_ASSERT_LE( localIdx, ( segmentsToChunksMapping[ segmentIdx ] - firstChunkOfSegment ) * chunkSize, "" );
 
-      if( Organization == RowMajorOrder )
+      if constexpr( Organization == RowMajorOrder )
          return sliceOffset + firstChunkOfSegment * chunkSize + localIdx;
       else {
          const IndexType inChunkOffset = localIdx % chunkSize;
@@ -132,15 +113,15 @@ public:
    }
 
    [[nodiscard]] static IndexType
-   getGlobalIndex( const OffsetsHolderView& segmentsToSlicesMapping,
-                   const ChunkedEllpackSliceInfoContainerView& slices,
-                   const OffsetsHolderView& segmentsToChunksMapping,
+   getGlobalIndex( const ConstOffsetsView& segmentsToSlicesMapping,
+                   const ConstSliceInfoContainerView& slices,
+                   const ConstOffsetsView& segmentsToChunksMapping,
                    const IndexType chunksInSlice,
                    const IndexType segmentIdx,
                    const IndexType localIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping.getElement( segmentIdx );
-      IndexType firstChunkOfSegment( 0 );
+      IndexType firstChunkOfSegment = 0;
       if( segmentIdx != slices.getElement( sliceIndex ).firstSegment )
          firstChunkOfSegment = segmentsToChunksMapping.getElement( segmentIdx - 1 );
 
@@ -151,7 +132,7 @@ public:
       // TNL_ASSERT_LE( localIdx, segmentChunksCount * chunkSize, "" );
       TNL_ASSERT_LE( localIdx, ( segmentsToChunksMapping.getElement( segmentIdx ) - firstChunkOfSegment ) * chunkSize, "" );
 
-      if( Organization == RowMajorOrder )
+      if constexpr( Organization == RowMajorOrder )
          return sliceOffset + firstChunkOfSegment * chunkSize + localIdx;
       else {
          const IndexType inChunkOffset = localIdx % chunkSize;
@@ -162,14 +143,14 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static SegmentViewType
-   getSegmentViewDirect( const OffsetsHolderView& segmentsToSlicesMapping,
-                         const ChunkedEllpackSliceInfoContainerView& slices,
-                         const OffsetsHolderView& segmentsToChunksMapping,
+   getSegmentViewDirect( const ConstOffsetsView& segmentsToSlicesMapping,
+                         const ConstSliceInfoContainerView& slices,
+                         const ConstOffsetsView& segmentsToChunksMapping,
                          const IndexType& chunksInSlice,
                          const IndexType& segmentIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping[ segmentIdx ];
-      IndexType firstChunkOfSegment( 0 );
+      IndexType firstChunkOfSegment = 0;
       if( segmentIdx != slices[ sliceIndex ].firstSegment )
          firstChunkOfSegment = segmentsToChunksMapping[ segmentIdx - 1 ];
 
@@ -179,7 +160,7 @@ public:
       const IndexType chunkSize = slices[ sliceIndex ].chunkSize;
       const IndexType segmentSize = segmentChunksCount * chunkSize;
 
-      if( Organization == RowMajorOrder )
+      if constexpr( Organization == RowMajorOrder )
          return SegmentViewType(
             segmentIdx, sliceOffset + firstChunkOfSegment * chunkSize, segmentSize, chunkSize, chunksInSlice );
       else
@@ -188,14 +169,14 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static SegmentViewType
-   getSegmentView( const OffsetsHolderView& segmentsToSlicesMapping,
-                   const ChunkedEllpackSliceInfoContainerView& slices,
-                   const OffsetsHolderView& segmentsToChunksMapping,
+   getSegmentView( const ConstOffsetsView& segmentsToSlicesMapping,
+                   const ConstSliceInfoContainerView& slices,
+                   const ConstOffsetsView& segmentsToChunksMapping,
                    const IndexType chunksInSlice,
                    const IndexType segmentIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping.getElement( segmentIdx );
-      IndexType firstChunkOfSegment( 0 );
+      IndexType firstChunkOfSegment = 0;
       if( segmentIdx != slices.getElement( sliceIndex ).firstSegment )
          firstChunkOfSegment = segmentsToChunksMapping.getElement( segmentIdx - 1 );
 
@@ -205,7 +186,7 @@ public:
       const IndexType chunkSize = slices.getElement( sliceIndex ).chunkSize;
       const IndexType segmentSize = segmentChunksCount * chunkSize;
 
-      if( Organization == RowMajorOrder )
+      if constexpr( Organization == RowMajorOrder )
          return SegmentViewType(
             segmentIdx, sliceOffset + firstChunkOfSegment * chunkSize, segmentSize, chunkSize, chunksInSlice );
       else

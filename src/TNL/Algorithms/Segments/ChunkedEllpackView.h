@@ -6,76 +6,39 @@
 
 #pragma once
 
-#include <type_traits>
-
-#include <TNL/TypeTraits.h>
-#include <TNL/Containers/VectorView.h>
-
-#include "ElementsOrganization.h"
-#include "ChunkedEllpackSegmentView.h"
-#include "detail/ChunkedEllpack.h"
-#include "printSegments.h"
+#include "ChunkedEllpackBase.h"
 
 namespace TNL::Algorithms::Segments {
 
 template< typename Device,
           typename Index,
           ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
-class ChunkedEllpackView
+class ChunkedEllpackView : public ChunkedEllpackBase< Device, Index, Organization >
 {
+   using Base = ChunkedEllpackBase< Device, Index, Organization >;
+
 public:
-   using DeviceType = Device;
-   using IndexType = std::remove_const_t< Index >;
-   using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
-   using ConstOffsetsView = typename OffsetsView::ConstViewType;
    using ViewType = ChunkedEllpackView;
+
+   using ConstViewType = ChunkedEllpackView< Device, std::add_const_t< Index >, Organization >;
+
    template< typename Device_, typename Index_ >
    using ViewTemplate = ChunkedEllpackView< Device_, Index_, Organization >;
-   using ConstViewType = ChunkedEllpackView< Device, std::add_const_t< Index >, Organization >;
-   using SegmentViewType = ChunkedEllpackSegmentView< IndexType, Organization >;
-   using ChunkedEllpackSliceInfoType = detail::ChunkedEllpackSliceInfo< IndexType >;
-   using ChunkedEllpackSliceInfoContainerView = Containers::
-      ArrayView< typename TNL::copy_const< ChunkedEllpackSliceInfoType >::template from< Index >::type, DeviceType, IndexType >;
-   using ChunkedEllpackSliceInfoConstView = typename ChunkedEllpackSliceInfoContainerView::ConstViewType;
-
-   [[nodiscard]] static constexpr ElementsOrganization
-   getOrganization()
-   {
-      return Organization;
-   }
-
-   [[nodiscard]] static constexpr bool
-   havePadding()
-   {
-      return true;
-   }
 
    __cuda_callable__
    ChunkedEllpackView() = default;
 
    __cuda_callable__
-   ChunkedEllpackView( IndexType size,
-                       IndexType storageSize,
-                       IndexType chunksInSlice,
-                       IndexType desiredChunkSize,
-                       const OffsetsView& rowToChunkMapping,
-                       const OffsetsView& rowToSliceMapping,
-                       const OffsetsView& chunksToSegmentsMapping,
-                       const OffsetsView& rowPointers,
-                       const ChunkedEllpackSliceInfoContainerView& slices,
-                       IndexType numberOfSlices );
-
-   __cuda_callable__
-   ChunkedEllpackView( IndexType size,
-                       IndexType storageSize,
-                       IndexType chunksInSlice,
-                       IndexType desiredChunkSize,
-                       const OffsetsView&& rowToChunkMapping,
-                       const OffsetsView&& rowToSliceMapping,
-                       const OffsetsView&& chunksToSegmentsMapping,
-                       const OffsetsView&& rowPointers,
-                       const ChunkedEllpackSliceInfoContainerView&& slices,
-                       IndexType numberOfSlices );
+   ChunkedEllpackView( Index size,
+                       Index storageSize,
+                       Index numberOfSlices,
+                       Index chunksInSlice,
+                       Index desiredChunkSize,
+                       typename Base::OffsetsView rowToChunkMapping,
+                       typename Base::OffsetsView rowToSliceMapping,
+                       typename Base::OffsetsView chunksToSegmentsMapping,
+                       typename Base::OffsetsView rowPointers,
+                       typename Base::SliceInfoContainerView slices );
 
    __cuda_callable__
    ChunkedEllpackView( const ChunkedEllpackView& ) = default;
@@ -91,17 +54,7 @@ public:
 
    __cuda_callable__
    void
-   bind( ChunkedEllpackView& view );
-
-   __cuda_callable__
-   void
-   bind( ChunkedEllpackView&& view );
-
-   [[nodiscard]] static std::string
-   getSerializationType();
-
-   [[nodiscard]] static String
-   getSegmentsType();
+   bind( ChunkedEllpackView view );
 
    [[nodiscard]] __cuda_callable__
    ViewType
@@ -111,126 +64,12 @@ public:
    ConstViewType
    getConstView() const;
 
-   /**
-    * \brief Number of segments.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSegmentsCount() const;
-
-   /***
-    * \brief Returns size of the segment number \r segmentIdx
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSegmentSize( IndexType segmentIdx ) const;
-
-   /***
-    * \brief Returns number of elements managed by all segments.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSize() const;
-
-   /***
-    * \brief Returns number of elements that needs to be allocated.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getStorageSize() const;
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getGlobalIndex( Index segmentIdx, Index localIdx ) const;
-
-   [[nodiscard]] __cuda_callable__
-   SegmentViewType
-   getSegmentView( IndexType segmentIdx ) const;
-
-   [[nodiscard]] __cuda_callable__
-   ChunkedEllpackSliceInfoConstView
-   getSlicesView() const;
-
-   [[nodiscard]] __cuda_callable__
-   ConstOffsetsView
-   getRowToChunkMappingView() const;
-
-   [[nodiscard]] __cuda_callable__
-   ConstOffsetsView
-   getRowToSliceMappingView() const;
-
-   [[nodiscard]] __cuda_callable__
-   ConstOffsetsView
-   getChunksToSegmentsMappingView() const;
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getChunksInSlice() const;
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getNumberOfSlices() const;
-
-   /***
-    * \brief Go over all segments and for each segment element call
-    * function 'f' with arguments 'args'. The return type of 'f' is bool.
-    * When its true, the for-loop continues. Once 'f' returns false, the for-loop
-    * is terminated.
-    */
-   template< typename Function >
-   void
-   forElements( IndexType begin, IndexType end, Function&& f ) const;
-
-   template< typename Function >
-   void
-   forAllElements( Function&& f ) const;
-
-   template< typename Function >
-   void
-   forSegments( IndexType begin, IndexType end, Function&& f ) const;
-
-   template< typename Function >
-   void
-   forAllSegments( Function&& f ) const;
-
    void
    save( File& file ) const;
 
    void
-   printStructure( std::ostream& str ) const;
-
-protected:
-   IndexType size = 0, storageSize = 0, numberOfSlices = 0;
-
-   IndexType chunksInSlice = 256, desiredChunkSize = 16;
-
-   /**
-    * For each segment, this keeps index of the slice which contains the
-    * segment.
-    */
-   OffsetsView rowToSliceMapping;
-
-   /**
-    * For each row, this keeps index of the first chunk within a slice.
-    */
-   OffsetsView rowToChunkMapping;
-
-   OffsetsView chunksToSegmentsMapping;
-
-   /**
-    * Keeps index of the first segment index.
-    */
-   OffsetsView rowPointers;
-
-   ChunkedEllpackSliceInfoContainerView slices;
+   load( File& file );
 };
-
-template< typename Device, typename Index, ElementsOrganization Organization >
-std::ostream&
-operator<<( std::ostream& str, const ChunkedEllpackView< Device, Index, Organization >& segments )
-{
-   return printSegments( str, segments );
-}
 
 }  // namespace TNL::Algorithms::Segments
 
