@@ -164,7 +164,7 @@ public:
          return SegmentViewType(
             segmentIdx, sliceOffset + firstChunkOfSegment * chunkSize, segmentSize, chunkSize, chunksInSlice );
       else
-         return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment, segmentSize, chunkSize, chunksInSlice );
+         return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment, segmentSize );
    }
 
    [[nodiscard]] __cuda_callable__
@@ -190,7 +190,7 @@ public:
          return SegmentViewType(
             segmentIdx, sliceOffset + firstChunkOfSegment * chunkSize, segmentSize, chunkSize, chunksInSlice );
       else
-         return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment, segmentSize, chunkSize, chunksInSlice );
+         return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment, segmentSize );
    }
 };
 

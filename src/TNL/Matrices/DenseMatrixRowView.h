@@ -108,7 +108,7 @@ public:
     * \return matrix row index.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    getRowIndex() const;
 
    /**

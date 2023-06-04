@@ -136,7 +136,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentView( con
    const IndexType& segmentSize = this->sliceSegmentSizes[ sliceIdx ];
 
    if constexpr( Organization == RowMajorOrder )
-      return SegmentViewType( segmentIdx, sliceOffset + segmentInSliceIdx * segmentSize, segmentSize, 1 );
+      return SegmentViewType( segmentIdx, sliceOffset + segmentInSliceIdx * segmentSize, segmentSize );
    else
       return SegmentViewType( segmentIdx, sliceOffset + segmentInSliceIdx, segmentSize, SliceSize );
 }

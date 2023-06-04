@@ -97,7 +97,7 @@ auto
 EllpackBase< Device, Index, Organization, Alignment >::getSegmentView( const IndexType segmentIdx ) const -> SegmentViewType
 {
    if constexpr( Organization == RowMajorOrder )
-      return SegmentViewType( segmentIdx, segmentIdx * this->segmentSize, this->segmentSize, 1 );
+      return SegmentViewType( segmentIdx, segmentIdx * this->segmentSize, this->segmentSize );
    else
       return SegmentViewType( segmentIdx, segmentIdx, this->segmentSize, this->alignedSize );
 }

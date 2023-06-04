@@ -28,7 +28,7 @@ DenseMatrixRowView< SegmentView, ValuesView >::getSize() const -> IndexType
 template< typename SegmentView, typename ValuesView >
 __cuda_callable__
 auto
-DenseMatrixRowView< SegmentView, ValuesView >::getRowIndex() const -> const IndexType&
+DenseMatrixRowView< SegmentView, ValuesView >::getRowIndex() const -> IndexType
 {
    return segmentView.getSegmentIndex();
 }

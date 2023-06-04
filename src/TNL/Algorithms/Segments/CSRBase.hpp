@@ -108,7 +108,7 @@ __cuda_callable__
 auto
 CSRBase< Device, Index >::getSegmentView( IndexType segmentIdx ) const -> SegmentViewType
 {
-   return SegmentViewType( segmentIdx, offsets[ segmentIdx ], offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ], 1 );
+   return SegmentViewType( segmentIdx, offsets[ segmentIdx ], offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ] );
 }
 
 template< typename Device, typename Index >
