@@ -32,7 +32,7 @@
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
-#include "../DistSpMV/ordering.h"
+#include "ordering.h"
 #include "benchmarks.h"
 
 // FIXME: nvcc 8.0 fails when cusolverSp.h is included (works fine with clang):
