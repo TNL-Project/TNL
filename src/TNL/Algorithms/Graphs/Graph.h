@@ -33,11 +33,11 @@ struct Graph
 
    Graph() = default;
 
-   Graph( const Matrix& matrix )
-      : Matrix( matrix ) {}
+   Graph( const MatrixType& matrix )
+      : MatrixType( matrix ) {}
 
-   Graph( Matrix&& matrix )
-      : Matrix( std::move( matrix ) ) {}
+   Graph( MatrixType&& matrix )
+      : MatrixType( std::move( matrix ) ) {}
 
    Graph( const Graph& ) = default;
 
@@ -45,7 +45,7 @@ struct Graph
 
    Graph( IndexType nodesCount,
           const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data ) {
-      if( isDirected() ) {
+      if( isDirected() || MatrixType::isSymmetric() ) {
          this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
          this->adjacencyMatrix.setElements( data );
       }
@@ -63,7 +63,7 @@ struct Graph
    template< typename MapIndex, typename MapValue >
    Graph( IndexType nodesCount,
           const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map ) {
-      if( isDirected() ) {
+      if( isDirected() || MatrixType::isSymmetric() ) {
          this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
          this->adjacencyMatrix.setElements( map );
       }

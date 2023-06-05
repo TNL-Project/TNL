@@ -23,10 +23,13 @@ protected:
 // types for which MatrixTest is instantiated
 using GraphTestTypes = ::testing::Types
 <
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >//,
-   //TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int, TNL::Matrices::SymmetricMatrix >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix >
 #ifdef __CUDACC__
-   ,TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >
+  ,TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::SymmetricMatrix >
 #endif
 >;
 

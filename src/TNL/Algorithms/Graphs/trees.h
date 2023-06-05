@@ -8,11 +8,25 @@
 
 #include <queue>
 #include <TNL/Containers/Vector.h>
+#include <TNL/Algorithms/AtomicOperations.h>
 
 
 namespace TNL::Algorithms::Graphs {
 
 enum class TreeType { Tree, Forest };
+
+template< typename Vector, typename Index = typename Vector::IndexType >
+bool visitNeighbour( const Index current, const Index neighbor, Vector& visited, Vector& parents, std::queue< Index >& q )
+{
+   if( neighbor == parents[ current ] )
+      return true;
+   if( visited[ neighbor ] )
+      return false;
+   parents[ neighbor ] = current;
+   visited[ neighbor ] = 1;
+   q.push( neighbor );
+   return true;
+}
 
 template< typename Graph >
 bool isTree_impl( const Graph& graph, TreeType treeType = TreeType::Tree )
@@ -21,6 +35,8 @@ bool isTree_impl( const Graph& graph, TreeType treeType = TreeType::Tree )
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
    using VectorType = Containers::Vector< ValueType, DeviceType, IndexType >;
+   using IndexVectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
+   using MatrixType = typename Graph::MatrixType;
 
    const IndexType n = graph.getNodesCount();
    /////
@@ -31,7 +47,7 @@ bool isTree_impl( const Graph& graph, TreeType treeType = TreeType::Tree )
             return false;
    }
 
-   VectorType visited( n , 0 ), aux( n ), parents( n, 0 );
+   IndexVectorType visited( n, 0 ), visited_old( n, -1 ), parents( n, 0 );
    IndexType start_node = 0;
    while( true ) {
       visited.setElement( start_node, 1 );
@@ -44,32 +60,54 @@ bool isTree_impl( const Graph& graph, TreeType treeType = TreeType::Tree )
             const auto row = graph.getAdjacencyMatrix().getRow( current );
             for( IndexType i = 0; i < row.getSize(); i++ ) {
                const auto& neighbor = row.getColumnIndex( i );
-               if( neighbor == parents[ current ] )
-                  continue;
                if( neighbor == graph.getAdjacencyMatrix().getPaddingIndex() )
                   continue;
-               if( visited[ neighbor ] )
+               if( ! visitNeighbour( current, neighbor, visited, parents, q ) )
                   return false;
-               parents[ neighbor ] = current;
-               visited[ neighbor ] = 1;
-               q.push( neighbor );
+            }
+            if constexpr( MatrixType::isSymmetric() ) { // search the adjacency matrix for other neighbours
+               for( IndexType rowIdx = 0; rowIdx < graph.getNodesCount(); rowIdx++ ) {
+                  if( rowIdx == current )
+                     continue;
+                  auto row = graph.getAdjacencyMatrix().getRow( rowIdx );
+                  for( IndexType i = 0; i < row.getSize(); i++ ) {
+                     const auto& col = row.getColumnIndex( i );
+                     if( col == graph.getAdjacencyMatrix().getPaddingIndex() || col != current )
+                        continue;
+                     if( ! visitNeighbour( current, rowIdx, visited, parents, q ) )
+                        return false;
+                  }
+               }
             }
          }
       }
       else {
-         while( aux != visited )
+         while( visited_old != visited )
          {
-            aux = visited;
+            visited_old = visited;
             auto visited_view = visited.getView();
-            auto fetch = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) -> IndexType {
-               if( visited_view[ rowIdx ] )
+            auto visited_old_view = visited_old.getView();
+            // NVCC does not support constepxr if inside a lambda
+            auto symmetric_fetch = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType {
+               if( ! visited_old_view[ columnIdx ] )
+                     Algorithms::AtomicOperations< DeviceType >::add( visited_view[ columnIdx ], visited_old_view[ rowIdx ] );
+               if( visited_old_view[ rowIdx ] )
                   return 0;
-               return visited_view[ columnIdx ] != 0;
+               return visited_old_view[ columnIdx ] != 0;
+            };
+            auto fetch = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType {
+               if( visited_old_view[ rowIdx ] )
+                  return 0;
+               return visited_old_view[ columnIdx ] != 0;
             };
             auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const IndexType value ) mutable {
-               visited_view[ rowIdx ] += value;
+               visited_view[ rowIdx ] = visited_view[ rowIdx ] + value;
             };
-            graph.getAdjacencyMatrix().reduceAllRows( fetch, TNL::Plus{}, keep, ( IndexType ) 0 );
+            if constexpr( MatrixType::isSymmetric() )
+               graph.getAdjacencyMatrix().reduceAllRows( symmetric_fetch, TNL::Plus{}, keep, ( IndexType ) 0 );
+            else
+               graph.getAdjacencyMatrix().reduceAllRows( fetch, TNL::Plus{}, keep, ( IndexType ) 0 );
+            //std::cout << "visited: " << visited << std::endl;
 
             if( max( visited ) > 1 )
                return false;
