@@ -6,7 +6,7 @@
 
 TNL offers several different parallel algorithms for sorting of arrays (or vectors) and also sorting based on user defined swapping. The later is more general but also less efficient.
 
-### Sorting of arrays and Vectors
+## Sorting of arrays and vectors
 
 The sorting of arrays and vectors is accessible via the following functions:
 
@@ -33,7 +33,7 @@ The result looks as follows:
 
 The same way, one can sort also \ref TNL::Containers::ArrayView, \ref TNL::Containers::Vector and \ref TNL::Containers::VectorView.
 
-### Sorting with user define swapping
+## Sorting with user-defined swapping
 
 
 \includelineno SortingExample3.cpp

@@ -6,7 +6,7 @@
 
 This tutorial introduces arrays in TNL. There are three types - common arrays with dynamic allocation, static arrays allocated on stack and distributed arrays with dynamic allocation. Arrays are one of the most important structures for memory management. Methods implemented in arrays are particularly useful for GPU programming. From this point of view, the reader will learn how to easily allocate memory on GPU, transfer data between GPU and CPU but also, how to initialize data allocated on GPU. In addition, the resulting code is hardware platform independent, so it can be ran on CPU nad GPU without any changes.
 
-## Arrays
+## Dynamic arrays
 
 Array is templated class defined in namespace `TNL::Containers` having three template parameters:
 

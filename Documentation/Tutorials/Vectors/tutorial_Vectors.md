@@ -6,7 +6,7 @@
 
 This tutorial introduces vectors in TNL. `Vector`, in addition to `Array`, offers also basic operations from linear algebra. The reader will mainly learn how to do Blas level 1 operations in TNL. Thanks to the design of TNL, it is easier to implement, hardware architecture transparent and in some cases even faster then [Blas](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms) or [cuBlas](https://developer.nvidia.com/cublas) implementation.
 
-## Vectors
+## Dynamic vectors
 
 `Vector` is, similar to `Array`, templated class defined in namespace `TNL::Containers` having three template parameters:
 
