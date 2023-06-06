@@ -68,7 +68,7 @@ This could be achieved with the following code:
 
 We believe that C++ lambda functions with properly designed patterns of parallel algorithms could make programming of GPUs significantly easier. We see a parallel with [MPI standard](https://en.wikipedia.org/wiki/Message_Passing_Interface) which in nineties defined frequent communication operations in distributed parallel computing. It made programming of distributed systems much easier and at the same time MPI helps to write efficient programs. We aim to add additional skeletons or patterns to \ref TNL::Algorithms.
 
-## Shared pointers and views
+## Views and shared pointers
 
 You might notice that in the previous section we used only C style arrays represented by pointers in the lambda functions. There is a difficulty when we want to access TNL arrays or other data structures inside the lambda functions. We may capture the outside variables either by a value or a reference. The first case would be as follows:
 
