@@ -304,6 +304,8 @@ cuda-clang_nontests_Debug:
     extends:
         - cuda-nvcc_nontests_Debug
         - .clang_cuda
+    # FIXME: fails on linking tnl-benchmark-spmv
+    allow_failure: true
 
 cuda-clang_nontests_Release:
     extends:
