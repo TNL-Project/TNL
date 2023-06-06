@@ -107,6 +107,8 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setDimensions( 
 {
    Matrix< Real, Device, Index, RealAllocator >::setDimensions( rows, columns );
    this->segments.setSegmentsSizes( rows, columns );
+   if( this->segments.getStorageSize() == -1 )
+      throw std::overflow_error( "The number of elements required by segments exceeds index type of the matrix." );
    this->values.setSize( this->segments.getStorageSize() );
    this->values = 0.0;
    this->view = this->getView();

@@ -86,6 +86,10 @@ main( int argc, char* argv[] )
 #ifdef HAVE_PETSC
    PetscInitialize( &argc, &argv, nullptr, nullptr );
 #endif
+//#ifdef HAVE_MPI
+//   TNL::MPI::ScopedInitializer mpi( argc, argv );
+//#endif
+
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
@@ -104,9 +108,8 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! Devices::Host::setup( parameters ) ||
-       ! Devices::Cuda::setup( parameters ) )
-      return EXIT_FAILURE;
+   Devices::Host::setup( parameters );
+   Devices::Cuda::setup( parameters );
 
    const String & inputFileName = parameters.getParameter< String >( "input-file" );
    const String & logFileName = parameters.getParameter< String >( "log-file" );

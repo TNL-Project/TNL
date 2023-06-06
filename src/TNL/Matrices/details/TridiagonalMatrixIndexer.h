@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <TNL/DiscreteMath.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
 namespace TNL::Matrices::details {
@@ -41,6 +42,9 @@ public:
       this->rows = rows;
       this->columns = columns;
       this->nonemptyRows = min( rows, columns ) + ( rows > columns );
+      if( TNL::integerMultiplyOverflow( IndexType( 3 ), this->nonemptyRows ) )
+         throw std::overflow_error( "TridiagonalMatrix: multiplication overflow - the storage size required for the matrix is "
+                                    "larger than the maximal value of used index type." );
    }
 
    [[nodiscard]] __cuda_callable__

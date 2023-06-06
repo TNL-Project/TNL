@@ -9,6 +9,9 @@ import numpy as np
 import math
 from TNL.BenchmarkLogs import *
 
+
+formats_devices = []
+
 #Latex fonst set-up
 
 #plt.rcParams.update({
@@ -92,7 +95,7 @@ matplotlib_fixed_colors = [ 'blue', 'green', 'red', 'cyan', 'magenta', '#663300'
 
 ####
 # Create multiindex for columns
-def get_multiindex( input_df, formats ):
+def get_multiindex( input_df, formats, threads_num_list ):
    level1 = [ 'Matrix name', 'rows', 'columns', 'nonzeros per row' ]
    level2 = [ '',            '',     '',        '' ]
    level3 = [ '',            '',     '',        '' ]
@@ -100,14 +103,30 @@ def get_multiindex( input_df, formats ):
    df_data = [[ ' ',' ',' ',' ']]
    for format in formats:
       for device in ['CPU','GPU']:
-         for data in ['bandwidth', 'time', 'diff.max' ]: #,'time','speed-up','non-zeros','stddev','stddev/time','diff.max','diff.l2']:
-            level1.append( format )
-            level2.append( device )
-            level3.append( data )
-            level4.append( '' )
-            df_data[ 0 ].append( ' ' )
+        if ( format == "CSR" or format == "Hypre" ) and device == "CPU":
+           for threads in threads_num_list:
+                if threads == 1:
+                    bm_data = ['bandwidth', 'time', ]
+                else:
+                    bm_data =  ['bandwidth', 'time', 'speed-up', 'eff.' ]
+                if format == "Hypre":
+                    bm_data.append('TNL speed-up')
+                for data in bm_data: #,'time','speed-up','non-zeros','stddev','stddev/time','diff.max','diff.l2']:
+                    level1.append( format )
+                    level2.append( "CPU" )# + str( threads ) )
+                    level3.append( str( threads ) + " threads" )
+                    level4.append( data )
+                    #level4.append( '' )
+                    df_data[ 0 ].append( ' ' )
+        else:
+           for data in ['bandwidth', 'time', 'diff.max' ]: #,'time','speed-up','non-zeros','stddev','stddev/time','diff.max','diff.l2']:
+              level1.append( format )
+              level2.append( device )
+              level3.append( data )
+              level4.append( '' )
+              df_data[ 0 ].append( ' ' )
       if not format in [ 'cusparse', 'CSR' ]:
-         for speedup in [ 'cusparse', 'CSR CPU']:
+         for speedup in [ 'cusparse', 'CSR CPU', 'Hypre' ]:
             level1.append( format )
             level2.append( 'GPU' )
             level3.append( 'speed-up')
@@ -175,13 +194,18 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
          aux_df.iloc[0]['nonzeros per row'] = float(row['nonzeros'])/float(row['rows'])
          current_format = row['format']
          current_device = row['performer']
-         #print( current_format + " / " + current_device )
+         formats_devices.append( ( current_format, current_device) )
          bw = pd.to_numeric(row['bandwidth'], errors='coerce')
          time = pd.to_numeric(row['time'], errors='coerce')
          diff_max = pd.to_numeric(row['CSR Diff.Max'], errors='coerce')
-         aux_df.iloc[0][(current_format,current_device,'bandwidth','')] = bw
-         aux_df.iloc[0][(current_format,current_device,'time','')] = time
-         aux_df.iloc[0][(current_format,current_device,'diff.max','')] = diff_max
+         if current_device == 'CPU' and ( current_format == 'CSR' or current_format == 'Hypre' ):
+            threads = row[ 'threads']
+            aux_df.iloc[0][(current_format,current_device,str(threads)+' threads','bandwidth')] = bw
+            aux_df.iloc[0][(current_format,current_device,str(threads)+' threads','time')] = time
+         else:
+            aux_df.iloc[0][(current_format,current_device,'bandwidth','')] = bw
+            aux_df.iloc[0][(current_format,current_device,'time','')] = time
+            aux_df.iloc[0][(current_format,current_device,'diff.max','')] = diff_max
          if( current_device == 'GPU' and
              not 'Binary' in current_format and
              not 'Symmetric' in current_format and
@@ -207,6 +231,8 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
             best_csr_light_format = current_format
          if current_format == 'cusparse':
             cusparse_bw = bw
+         else:
+            cusparse_bw = 0
          #aux_df.iloc[0][(current_format,current_device,'time')]        = row['time']
          #aux_df.iloc[0][(current_format,current_device,'speed-up')]    = row['speedup']
          #aux_df.iloc[0][(current_format,current_device,'non-zeros')]   = row['non-zeros']
@@ -232,32 +258,39 @@ def convert_data_frame( input_df, multicolumns, df_data, begin_idx = 0, end_idx 
    return result
 
 ####
-# Compute speed-up of particular formats compared to Cusparse on GPU and CSR on CPU
+# Compute speed-up of particular formats compared to Cusparse on GPU, CSR on CPU and (possibly) Hypre on GPU
 def compute_cusparse_speedup( df, formats ):
    for device in [ 'CPU', 'GPU' ]:
       for format in formats:
-         if not format in [ 'cusparse', 'CSR' ]:
-            print( 'Adding speed-up for ', format )
-            try:
-               format_times_list = df[(format,device,'time')]
-            except:
+         if not format in [ 'cusparse', 'CSR', 'Hypre' ]:
+            if (format, device) in formats_devices:
+               format_times_list = df[(format,device,'time','')]
+            else:
                continue
-            cusparse_times_list = df[('cusparse','GPU','time')]
-            csr_times_list = df[('CSR','CPU','time')]
+            cusparse_times_list = df[('cusparse','GPU','time','')]
+            csr_times_list = df[('CSR','CPU','1 threads', 'time')]
+            hypre_gpu_times_list = df[('Hypre','GPU','time','')]
             cusparse_speedup_list = []
             csr_speedup_list = []
-            for( format_time, cusparse_time, csr_time ) in zip( format_times_list, cusparse_times_list,csr_times_list ):
+            hypre_gpu_speedup_list = []
+            for( format_time, cusparse_time, csr_time, hypre_time ) in zip( format_times_list, cusparse_times_list,csr_times_list, hypre_gpu_times_list ):
                if( device == 'GPU' ):
                   try:
                      cusparse_speedup_list.append( cusparse_time / format_time  )
                   except:
                      cusparse_speedup_list.append(float('nan'))
+                  try:
+                     hypre_gpu_speedup_list.append( hypre_time / format_time  )
+                  except:
+                     hypre_gpu_speedup_list.append(float('nan'))
+
                try:
                   csr_speedup_list.append( csr_time / format_time  )
                except:
                   csr_speedup_list.append(float('nan'))
             if( device == 'GPU' ):
                df[(format,'GPU','speed-up','cusparse')] = cusparse_speedup_list
+               df[(format,'GPU','speed-up','Hypre')] = hypre_gpu_speedup_list
             df[(format,device,'speed-up','CSR CPU')] = csr_speedup_list
 
 ####
@@ -265,8 +298,8 @@ def compute_cusparse_speedup( df, formats ):
 def compute_csr_light_speedup( df, formats ):
    for light in [ 'CSR< Light > Automatic', 'CSR< Light > Automatic Light']:
       if light in formats:
-         csr_light_bdw_list = df[(light,'GPU','bandwidth')]
-         light_spmv_bdw_list = df[('LightSpMV Vector','GPU','bandwidth')]
+         csr_light_bdw_list = df[(light,'GPU','bandwidth','')]
+         light_spmv_bdw_list = df[('LightSpMV Vector','GPU','bandwidth','')]
 
          csr_light_speedup_list = []
          for ( csr_light_bdw, light_spmv_bdw ) in zip(csr_light_bdw_list,light_spmv_bdw_list):
@@ -280,7 +313,7 @@ def compute_csr_light_speedup( df, formats ):
 # Compute speed-up of binary formats
 def compute_binary_speedup( df, formats ):
    for format in formats:
-      if 'Binary' in format:
+      if 'Binary' in format and (format,'GPU') in formats_devices:
          non_binary_format = format.replace( 'Binary ', '' )
          print( f'Adding speed-up of {format} vs {non_binary_format}' )
          format_time_list = df[(format,'GPU','time')]
@@ -298,6 +331,7 @@ def compute_binary_speedup( df, formats ):
 def compute_symmetric_speedup( df, formats ):
    for format in formats:
       if 'Symmetric' in format:
+        if (format, 'GPU') in formats_devices:
          non_symmetric_format = format.replace( 'Symmetric ', '' )
          print( f'Adding speed-up of {format} vs {non_symmetric_format}' )
          format_times_list = df[(format,'GPU','time')]
@@ -311,11 +345,54 @@ def compute_symmetric_speedup( df, formats ):
                symmetric_speedup_list.append(float('nan'))
          df[(format,'GPU','speed-up','non-symmetric')] = symmetric_speedup_list
 
-def compute_speedup( df, formats ):
-   compute_cusparse_speedup( df, formats )
-   compute_csr_light_speedup( df, formats )
-   compute_binary_speedup( df, formats )
-   compute_symmetric_speedup( df, formats )
+####
+# Compute speed-up on CPU with various number of threads
+def compute_cpu_speedup( df, formats, threads_num_list ):
+    for format in [ 'CSR', 'Hypre']:
+        if format in formats:
+            sequential_times_list = df[(format,'CPU', '1 threads', 'time')]
+            speedup_list = []
+            efficiency_list = []
+            for threads in threads_num_list:
+                if threads == 1:
+                    continue
+                parallel_times_list = df[(format,'CPU', str( threads) + ' threads', 'time')]
+                #print( sequential_times_list)
+                #print( parallel_times_list)
+                for ( sequential_time, parallel_time ) in zip( sequential_times_list, parallel_times_list ):
+                    #print( sequential_time )
+                    #print( parallel_time )
+                    speedup = float( sequential_time ) / float( parallel_time )
+                    efficiency = speedup / threads
+                    speedup_list.append( speedup )
+                    efficiency_list.append( efficiency )
+                df[(format,'CPU', str( threads ) + ' threads', 'speed-up')] = speedup_list
+                df[(format,'CPU', str( threads ) + ' threads', 'eff.')] = efficiency_list
+                speedup_list.clear()
+                efficiency_list.clear()
+
+####
+# Compute speedup of TNL compared to Hypre
+def compute_hypre_cpu_speedup( df, formats, threads_num_list ):
+    for threads in threads_num_list:
+        tnl_times_list = df[('CSR','CPU', str( threads) + ' threads', 'time')]
+        hypre_times_list = df[('Hypre','CPU', str( threads) + ' threads', 'time')]
+        speedup_list = []
+        for ( tnl_time, hypre_time ) in zip( tnl_times_list, hypre_times_list ):
+            speedup = float( hypre_time ) / float( tnl_time )
+            speedup_list.append( speedup )
+        df[('Hypre','CPU', str( threads ) + ' threads', 'TNL speed-up')] = speedup_list
+        speedup_list.clear()
+
+def compute_speedup( df, formats, threads_num_list ):
+    if 'cusparse' in formats:
+        compute_cusparse_speedup( df, formats )
+    compute_csr_light_speedup( df, formats )
+    compute_binary_speedup( df, formats )
+    compute_symmetric_speedup( df, formats )
+    compute_cpu_speedup( df, formats, threads_num_list )
+    if ( 'Hypre', 'CPU' ) in formats_devices:
+        compute_hypre_cpu_speedup( df, formats, threads_num_list )
 
 ###
 # Draw several profiles into one figure
@@ -362,15 +439,15 @@ def effective_bw_profile( df, formats, head_size=10 ):
    for format in formats:
       print( f"Writing BW profile of {format}" )
       fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
-      t = np.arange(df[(format,'GPU','bandwidth')].size )
+      t = np.arange(df[(format,'GPU','bandwidth','')].size )
       if format == 'CSR':
-         df.sort_values(by=[(format,'CPU','bandwidth')],inplace=True,ascending=False)
-         profiles[format] = df[(format,'CPU','bandwidth')].copy()
-         axs.plot( t, df[(format,'CPU','bandwidth')], '-o', ms=1, lw=1 )
+         df.sort_values(by=[('CSR','CPU','1 threads','bandwidth')],inplace=True,ascending=False)
+         profiles[format] = df[('CSR','CPU','1 threads','bandwidth')].copy()
+         axs.plot( t, df[('CSR','CPU','1 threads','bandwidth')], '-o', ms=1, lw=1 )
       else:
-         df.sort_values(by=[(format,'GPU','bandwidth')],inplace=True,ascending=False)
-         profiles[format] = df[(format,'GPU','bandwidth')].copy()
-         axs.plot( t, df[(format,'GPU','bandwidth')], '-o', ms=1, lw=1 )
+         df.sort_values(by=[(format,'GPU','bandwidth','')],inplace=True,ascending=False)
+         profiles[format] = df[(format,'GPU','bandwidth','')].copy()
+         axs.plot( t, df[(format,'GPU','bandwidth','')], '-o', ms=1, lw=1 )
       axs.legend( [ latexFormatName(format), 'CSR on CPU' ], loc='upper right' )
       axs.set_ylabel( 'Effective bandwidth in GB/sec' )
       plt.rcParams.update({
@@ -382,10 +459,10 @@ def effective_bw_profile( df, formats, head_size=10 ):
       fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
       axs.set_yscale( 'log' )
       if color_idx < len( matplotlib_fixed_colors ):
-         axs.plot( t, result[(format,'GPU','bandwidth')], '-o', ms=1, lw=1, color=matplotlib_fixed_colors[ color_idx ] )
+         axs.plot( t, result[(format,'GPU','bandwidth','')], '-o', ms=1, lw=1, color=matplotlib_fixed_colors[ color_idx ] )
          color_idx = color_idx + 1
       else:
-         axs.plot( t, result[(format,'GPU','bandwidth')], '-o', ms=1, lw=1 )
+         axs.plot( t, result[(format,'GPU','bandwidth','')], '-o', ms=1, lw=1 )
       axs.legend( [ latexFormatName(format), 'CSR on CPU' ], loc='lower left' )
       axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} performance" )
       axs.set_ylabel( 'Effective bandwidth in GB/sec' )
@@ -424,35 +501,36 @@ def effective_bw_profile( df, formats, head_size=10 ):
 ####
 # Comparison with Cusparse
 def cusparse_comparison( df, formats, head_size=10 ):
-   if not os.path.exists("Cusparse-bw"):
-      os.mkdir("Cusparse-bw")
-   ascend_df = df.copy()
-   df.sort_values(by=[('cusparse','GPU','bandwidth')],inplace=True,ascending=False)
-   ascend_df.sort_values(by=[('cusparse','GPU','bandwidth')],inplace=True,ascending=True)
-   for format in formats:
-      if not format in ['cusparse','CSR']:
-         print( f"Writing comparison of {format} and cuSPARSE" )
-         filtered_df = df.dropna( subset=[(format,'GPU','bandwidth','')] )
-         filtered_ascend_df = ascend_df.dropna( subset=[(format,'GPU','bandwidth','')] )
-         t = np.arange(filtered_df[(format,'GPU','bandwidth')].size )
-         fig, axs = plt.subplots( 2, 1 )
-         axs[0].plot( t, filtered_df[(format,'GPU','bandwidth')], '-o', ms=1, lw=1 )
-         axs[0].plot( t, filtered_df[('cusparse','GPU','bandwidth')], '-o', ms=1, lw=1 )
-         axs[0].legend( [ format, 'cuSPARSE' ], loc='upper right' )
-         axs[0].set_ylabel( 'Effective bandwidth in GB/sec' )
-         axs[1].set_yscale( 'log' )
-         axs[1].plot( t, filtered_df[(format,'GPU','bandwidth')], '-o', ms=1, lw=1 )
-         axs[1].plot( t, filtered_df[('cusparse','GPU','bandwidth')], '-o', ms=1, lw=1 )
-         axs[1].legend( [ latexFormatName(format), 'cuSPARSE' ], loc='lower left' )
-         axs[1].set_xlabel( 'Matrix number - sorted w.r.t. cuSPARSE performance' )
-         axs[1].set_ylabel( 'Effective bandwidth in GB/sec' )
-         plt.savefig( f"Cusparse-bw/{format}.pdf" )
-         plt.close(fig)
-         copy_df = df.copy()
-         for f in formats:
-            if not f in ['cusparse','CSR',format]:
-               copy_df.drop( labels=f, axis='columns', level=0, inplace=True )
-         copy_df.to_html( f"Cusparse-bw/{format}.html" )
+   if 'cusparse' in formats:
+        if not os.path.exists("Cusparse-bw"):
+            os.mkdir("Cusparse-bw")
+        ascend_df = df.copy()
+        df.sort_values(by=[('cusparse','GPU','bandwidth','')],inplace=True,ascending=False)
+        ascend_df.sort_values(by=[('cusparse','GPU','bandwidth','')],inplace=True,ascending=True)
+        for format in formats:
+            if not format in ['cusparse','CSR']:
+                print( f"Writing comparison of {format} and cuSPARSE" )
+                filtered_df = df.dropna( subset=[(format,'GPU','bandwidth','')] )
+                filtered_ascend_df = ascend_df.dropna( subset=[(format,'GPU','bandwidth','')] )
+                t = np.arange(filtered_df[(format,'GPU','bandwidth','')].size )
+                fig, axs = plt.subplots( 2, 1 )
+                axs[0].plot( t, filtered_df[(format,'GPU','bandwidth','')], '-o', ms=1, lw=1 )
+                axs[0].plot( t, filtered_df[('cusparse','GPU','bandwidth','')], '-o', ms=1, lw=1 )
+                axs[0].legend( [ format, 'cuSPARSE' ], loc='upper right' )
+                axs[0].set_ylabel( 'Effective bandwidth in GB/sec' )
+                axs[1].set_yscale( 'log' )
+                axs[1].plot( t, filtered_df[(format,'GPU','bandwidth','')], '-o', ms=1, lw=1 )
+                axs[1].plot( t, filtered_df[('cusparse','GPU','bandwidth','')], '-o', ms=1, lw=1 )
+                axs[1].legend( [ latexFormatName(format), 'cuSPARSE' ], loc='lower left' )
+                axs[1].set_xlabel( 'Matrix number - sorted w.r.t. cuSPARSE performance' )
+                axs[1].set_ylabel( 'Effective bandwidth in GB/sec' )
+                plt.savefig( f"Cusparse-bw/{format}.pdf" )
+                plt.close(fig)
+                copy_df = df.copy()
+                for f in formats:
+                    if not f in ['cusparse','CSR',format]:
+                        copy_df.drop( labels=f, axis='columns', level=0, inplace=True )
+                copy_df.to_html( f"Cusparse-bw/{format}.html" )
 
 ####
 # Comparison with CSR on CPU
@@ -464,18 +542,18 @@ def csr_comparison( df, formats, head_size=10 ):
          if not format in ['cusparse','CSR']:
             print( f"Writing comparison of {format} and CSR on CPU" )
             try:
-               df.sort_values(by=[(format,device,'bandwidth')],inplace=True,ascending=False)
+               df.sort_values(by=[(format,device,'bandwidth','')],inplace=True,ascending=False)
             except:
                continue
             fig, axs = plt.subplots( 2, 1 )
-            t = np.arange(df[(format,device,'bandwidth')].size )
-            axs[0].plot( t, df[(format,device,'bandwidth')], '-o', ms=1, lw=1 )
-            axs[0].plot( t, df[('CSR','CPU','bandwidth')], '-o', ms=1, lw=1 )
+            t = np.arange(df[(format,device,'bandwidth','')].size )
+            axs[0].plot( t, df[(format,device,'bandwidth','')], '-o', ms=1, lw=1 )
+            axs[0].plot( t, df[('CSR','CPU','1 threads','bandwidth')], '-o', ms=1, lw=1 )
             axs[0].legend( [ latexFormatName(format), 'CSR on CPU' ], loc='upper right' )
             axs[0].set_ylabel( 'Effective bandwidth in GB/sec' )
             axs[1].set_yscale( 'log' )
-            axs[1].plot( t, result[(format,device,'bandwidth')], '-o', ms=1, lw=1 )
-            axs[1].plot( t, result[('CSR','CPU','bandwidth')], '-o', ms=1, lw=1 )
+            axs[1].plot( t, result[(format,device,'bandwidth','')], '-o', ms=1, lw=1 )
+            axs[1].plot( t, result[('CSR','CPU','1 threads','bandwidth')], '-o', ms=1, lw=1 )
             axs[1].legend( [ latexFormatName(format), 'CSR on CPU' ], loc='lower left' )
             axs[1].set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} performance" )
             axs[1].set_ylabel( 'Effective bandwidth in GB/sec' )
@@ -506,12 +584,12 @@ def legacy_formats_comparison( df, formats, head_size=10 ):
       if ref_format in formats and legacy_format in formats:
          print( f"Writing comparison of {ref_format} and {legacy_format}" )
          ascend_df = df.copy()
-         df.sort_values(by=[(ref_format,'GPU','bandwidth')],inplace=True,ascending=False)
-         ascend_df.sort_values(by=[(ref_format,'GPU','bandwidth')],inplace=True,ascending=True)
+         df.sort_values(by=[(ref_format,'GPU','bandwidth','')],inplace=True,ascending=False)
+         ascend_df.sort_values(by=[(ref_format,'GPU','bandwidth','')],inplace=True,ascending=True)
          fig, axs = plt.subplots( 2, 1 )
-         t = np.arange(df[(ref_format,'GPU','bandwidth')].size )
-         axs[0].plot( t, df[(ref_format,'GPU','bandwidth')], '-o', ms=1, lw=1 )
-         axs[0].plot( t, df[(legacy_format,'GPU','bandwidth')], '-o', ms=1, lw=1 )
+         t = np.arange(df[(ref_format,'GPU','bandwidth','')].size )
+         axs[0].plot( t, df[(ref_format,'GPU','bandwidth','')], '-o', ms=1, lw=1 )
+         axs[0].plot( t, df[(legacy_format,'GPU','bandwidth','')], '-o', ms=1, lw=1 )
          axs[0].legend( [ latexFormatName(ref_format), latexFormatName(legacy_format) ], loc='upper right' )
          axs[0].set_ylabel( 'Effective bandwidth in GB/sec' )
          axs[1].set_yscale( 'log' )
@@ -540,9 +618,9 @@ def csr_speedup_comparison( df, formats, head_size=10 ):
    for device in ['CPU', 'GPU']:
       profiles = {}
       for format in formats:
-         if not format in ['cusparse','CSR']:
+         if not format in ['cusparse','CSR','Hypre']:
             print( f"Writing comparison of speed-up of {format} compared to CSR" )
-            df['tmp'] = df[(format, device,'bandwidth')]
+            df['tmp'] = df[(format, device,'bandwidth','')]
             filtered_df=df.dropna(subset=[('tmp','','','')])
             try:
                filtered_df.sort_values(by=[(format,device,'speed-up','CSR CPU')],inplace=True,ascending=False)
@@ -583,108 +661,109 @@ def csr_speedup_comparison( df, formats, head_size=10 ):
 
 ####
 # Comparison of speed-up w.r.t. Cusparse
-def cusparse_speedup_comparison( df, formats, head_size=10 ):
-   if not os.path.exists("Cusparse-speed-up"):
-      os.mkdir("Cusparse-speed-up")
-   profiles = {}
-   for format in formats:
-      if not format in ['cusparse','CSR']:
-         print( f"Writing comparison of speed-up of {format} ({latexFormatName(format)}) compared to cuSPARSE" )
-         df['tmp'] = df[(format, 'GPU','bandwidth')]
-         filtered_df=df.dropna(subset=[('tmp','','','')])
-         filtered_df.sort_values(by=[(format,'GPU','speed-up','cusparse')],inplace=True,ascending=False)
-         profiles[format] = filtered_df[(format,'GPU','speed-up','cusparse')].copy()
-         fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
-         size = len(filtered_df[(format,'GPU','speed-up','cusparse')].index)
-         t = np.arange( size )
-         bar = np.full( size, 1 )
-         axs.plot( t, filtered_df[(format,'GPU','speed-up','cusparse')], '-o', ms=1, lw=1 )
-         axs.plot( t, bar, '-', ms=1, lw=1 )
-         axs.legend( [ latexFormatName(format), 'cuSPARSE' ], loc='upper right' )
-         axs.set_ylabel( 'Speedup' )
-         axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} speed-up" )
-         plt.rcParams.update({
-            "text.usetex": True,
-            "font.family": "sans-serif",
-            "font.sans-serif": ["Helvetica"]})
-         plt.savefig( f"Cusparse-speed-up/{format}.pdf")
-         plt.close(fig)
+def cusparse_and_hypre_speedup_comparison( df, formats, head_size=10 ):
+    for comparison in ['cusparse', 'Hypre' ]:
+        if not os.path.exists(f"{comparison}-speed-up"):
+            os.mkdir(f"{comparison}-speed-up")
+        profiles = {}
+        for format in formats:
+            if not format in ['cusparse','CSR', 'Hypre']:
+                print( f"Writing comparison of speed-up of {format} ({latexFormatName(format)}) compared to {comparison}" )
+                df['tmp'] = df[(format, 'GPU','bandwidth','')]
+                filtered_df=df.dropna(subset=[('tmp','','','')])
+                filtered_df.sort_values(by=[(format,'GPU','speed-up',comparison)],inplace=True,ascending=False)
+                profiles[format] = filtered_df[(format,'GPU','speed-up',comparison)].copy()
+                fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
+                size = len(filtered_df[(format,'GPU','speed-up',comparison)].index)
+                t = np.arange( size )
+                bar = np.full( size, 1 )
+                axs.plot( t, filtered_df[(format,'GPU','speed-up',comparison)], '-o', ms=1, lw=1 )
+                axs.plot( t, bar, '-', ms=1, lw=1 )
+                axs.legend( [ latexFormatName(format), comparison ], loc='upper right' )
+                axs.set_ylabel( 'Speedup' )
+                axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} speed-up" )
+                plt.rcParams.update({
+                    "text.usetex": True,
+                    "font.family": "sans-serif",
+                    "font.sans-serif": ["Helvetica"]})
+                plt.savefig( f"{comparison}-speed-up/{format}.pdf")
+                plt.close(fig)
 
-         fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
-         axs.set_yscale( 'log' )
-         axs.plot( t, filtered_df[(format,'GPU','speed-up','cusparse')], '-o', ms=1, lw=1 )
-         axs.plot( t, bar, '-', ms=1, lw=1 )
-         axs.legend( [ latexFormatName(format), 'cuSPARSE' ], loc='lower left' )
-         axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} speed-up" )
-         axs.set_ylabel( 'Speedup' )
-         plt.savefig( f"Cusparse-speed-up/{format}-log.pdf")
-         plt.close(fig)
-         copy_df = df.copy()
-         for f in formats:
-            if not f in ['cusparse','CSR',format]:
-               copy_df.drop( labels=f, axis='columns', level=0, inplace=True )
-         copy_df.to_html( f"Cusparse-speed-up/{format}.html" )
+                fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
+                axs.set_yscale( 'log' )
+                axs.plot( t, filtered_df[(format,'GPU','speed-up',comparison)], '-o', ms=1, lw=1 )
+                axs.plot( t, bar, '-', ms=1, lw=1 )
+                axs.legend( [ latexFormatName(format), comparison ], loc='lower left' )
+                axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} speed-up" )
+                axs.set_ylabel( 'Speedup' )
+                plt.savefig( f"{comparison}-speed-up/{format}-log.pdf")
+                plt.close(fig)
+                copy_df = df.copy()
+                for f in formats:
+                    if not f in ['cusparse','CSR',format,'Hypre']:
+                        copy_df.drop( labels=f, axis='columns', level=0, inplace=True )
+                copy_df.to_html( f"{comparison}-speed-up/{format}.html" )
 
-   # Draw Ellpack formats profiles
-   xlabel = "Matrix number - sorted by particular formats speedup compared to cuSPARSE"
-   ylabel = "Speedup"
-   current_formats = []
-   for format in formats:
-      if( 'Ellpack' in format and not 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format ):
-         current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+        # Draw Ellpack formats profiles
+        xlabel = f"Matrix number - sorted by particular formats speedup compared to {comparison}"
+        ylabel = "Speedup"
+        current_formats = []
+        for format in formats:
+            if( 'Ellpack' in format and not 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format ):
+                current_formats.append( format )
+        if current_formats:
+            draw_profiles( current_formats, profiles, xlabel, ylabel, f"ellpack-profiles-{comparison}-speedup.pdf", 'upper right', comparison )
 
-   current_formats.clear()
-   for format in formats:
-      if( 'Ellpack' in format and 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format ):
-         current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+        current_formats.clear()
+        for format in formats:
+            if( 'Ellpack' in format and 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format ):
+                current_formats.append( format )
+        if current_formats:
+            draw_profiles( current_formats, profiles, xlabel, ylabel, f"symmetric-ellpack-profiles-{comparison}-speedup.pdf", 'upper right', comparison )
 
-   current_formats.clear()
-   for format in formats:
-      if( 'Ellpack' in format and not 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format ):
-         current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "binary-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+        current_formats.clear()
+        for format in formats:
+            if( 'Ellpack' in format and not 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format ):
+                current_formats.append( format )
+        if current_formats:
+            draw_profiles( current_formats, profiles, xlabel, ylabel, f"binary-ellpack-profiles-{comparison}-speedup.pdf", 'upper right', comparison )
 
-   current_formats.clear()
-   for format in formats:
-      if( 'Ellpack' in format and 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format ):
-         current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-binary-ellpack-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
+        current_formats.clear()
+        for format in formats:
+            if( 'Ellpack' in format and 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format ):
+                current_formats.append( format )
+        if current_formats:
+            draw_profiles( current_formats, profiles, xlabel, ylabel, f"symmetric-binary-ellpack-profiles-{comparison}-speedup.pdf", 'upper right', comparison )
 
 
-   # Draw CSR formats profiles
-   current_formats.clear()
-   for format in formats:
-      if( 'CSR' in format and not 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
-         current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
-   current_formats.clear()
-   for format in formats:
-      if( 'CSR' in format and 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
-         current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "symmetric-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
-   current_formats.clear()
+        # Draw CSR formats profiles
+        current_formats.clear()
+        for format in formats:
+            if( 'CSR' in format and not 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
+                current_formats.append( format )
+        if current_formats:
+            draw_profiles( current_formats, profiles, xlabel, ylabel, f"csr-profiles-{comparison}-speedup.pdf", 'upper right', comparison )
+        current_formats.clear()
+        for format in formats:
+            if( 'CSR' in format and 'Symmetric' in format and not 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
+                current_formats.append( format )
+        if current_formats:
+            draw_profiles( current_formats, profiles, xlabel, ylabel, f"symmetric-csr-profiles-{comparison}-speedup.pdf", 'upper right', comparison )
+        current_formats.clear()
 
-   for format in formats:
-      if( 'CSR' in format and not 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
-         current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "binary-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
-   current_formats.clear()
+        for format in formats:
+            if( 'CSR' in format and not 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
+                current_formats.append( format )
+        if current_formats:
+            draw_profiles( current_formats, profiles, xlabel, ylabel, f"binary-csr-profiles-{comparison}-speedup.pdf", 'upper right', comparison )
+        current_formats.clear()
 
-   for format in formats:
-      if( 'CSR' in format and 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
-         current_formats.append( format )
-   if current_formats:
-      draw_profiles( current_formats, profiles, xlabel, ylabel, "-symmetric-binary-csr-profiles-cusparse-speedup.pdf", 'upper right', "cuSPARSE" )
-   current_formats.clear()
+        for format in formats:
+            if( 'CSR' in format and 'Symmetric' in format and 'Binary' in format and not 'Legacy' in format and not 'Hybrid' in format and format != 'CSR' ):
+                current_formats.append( format )
+        if current_formats:
+            draw_profiles( current_formats, profiles, xlabel, ylabel, f"-symmetric-binary-csr-profiles-{comparison}-speedup.pdf", 'upper right', comparison )
+        current_formats.clear()
 
 ####
 # Comparison of binary matrices
@@ -834,52 +913,113 @@ def symmetric_matrices_comparison( df, formats, head_size = 10 ):
 def csr_light_speedup_comparison( df, head_size=10 ):
    format = 'CSR< Light > Automatic Light'
    print( f"Writing comparison of speed-up of CSR Light compared to LightSPMV" )
-   df['tmp'] = df[(format, 'GPU','bandwidth')]
-   filtered_df=df.dropna(subset=[('tmp','','','')])
-   ascend_df = filtered_df.copy()
-   filtered_df.sort_values(by=[(format,'GPU','speed-up','LightSpMV Vector')],inplace=True,ascending=False)
-   ascend_df.sort_values(by=[(format,'GPU','speed-up','LightSpMV Vector')],inplace=True,ascending=True)
-   fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
-   size = len(filtered_df[(format,'GPU','speed-up','LightSpMV Vector')].index)
-   t = np.arange( size )
-   bar = np.full( size, 1 )
-   axs.plot( t, filtered_df[(format,'GPU','speed-up','LightSpMV Vector')], '-o', ms=1, lw=1 )
-   axs.plot( t, bar, '-', ms=1, lw=1 )
-   axs.legend( [ latexFormatName(format), 'LightSpMV' ], loc='upper right' )
-   axs.set_ylabel( 'Speedup' )
-   axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} speed-up" )
-   plt.rcParams.update({
-      "text.usetex": True,
-      "font.family": "sans-serif",
-      "font.sans-serif": ["Helvetica"]})
-   # for Palatino and other serif fonts use:
-   #plt.rcParams.update({
-   #   "text.usetex": True,
-   #   "font.family": "serif",
-   #   "font.serif": ["Palatino"],
-   #})
-   plt.savefig( f"LightSpMV-speed-up.pdf")
-   plt.close(fig)
+   if ( format, 'GPU') in formats_devices:
+        df['tmp'] = df[(format, 'GPU','bandwidth','')]
+        filtered_df=df.dropna(subset=[('tmp','','','')])
+        ascend_df = filtered_df.copy()
+        filtered_df.sort_values(by=[(format,'GPU','speed-up','LightSpMV Vector')],inplace=True,ascending=False)
+        ascend_df.sort_values(by=[(format,'GPU','speed-up','LightSpMV Vector')],inplace=True,ascending=True)
+        fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
+        size = len(filtered_df[(format,'GPU','speed-up','LightSpMV Vector')].index)
+        t = np.arange( size )
+        bar = np.full( size, 1 )
+        axs.plot( t, filtered_df[(format,'GPU','speed-up','LightSpMV Vector')], '-o', ms=1, lw=1 )
+        axs.plot( t, bar, '-', ms=1, lw=1 )
+        axs.legend( [ latexFormatName(format), 'LightSpMV' ], loc='upper right' )
+        axs.set_ylabel( 'Speedup' )
+        axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} speed-up" )
+        plt.rcParams.update({
+            "text.usetex": True,
+            "font.family": "sans-serif",
+            "font.sans-serif": ["Helvetica"]})
+        # for Palatino and other serif fonts use:
+        #plt.rcParams.update({
+        #   "text.usetex": True,
+        #   "font.family": "serif",
+        #   "font.serif": ["Palatino"],
+        #})
+        plt.savefig( f"LightSpMV-speed-up.pdf")
+        plt.close(fig)
 
-   fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
-   axs.set_yscale( 'log' )
-   axs.plot( t, filtered_df[(format,'GPU','speed-up','LightSpMV Vector')], '-o', ms=1, lw=1 )
-   axs.plot( t, bar, '-', ms=1, lw=1 )
-   axs.legend( [ latexFormatName(format), 'LightSpMV' ], loc='lower left' )
-   axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} speed-up" )
-   axs.set_ylabel( 'Speedup' )
-   plt.savefig( f"LightSpMV-speed-up-log.pdf")
-   plt.close(fig)
-   #head_df = filtered_df.head( head_size )
-   #bottom_df = ascend_df.head( head_size )
-   copy_df = df.copy()
-   for f in formats:
-      if not f in ['cusparse','CSR',format]:
-         #print( f"Droping {f}..." )
-         #head_df.drop( labels=f, axis='columns', level=0, inplace=True )
-         copy_df.drop( labels=f, axis='columns', level=0, inplace=True )
-   #head_df.to_html( f"LightSpMV-speed-up-head.html" )
-   copy_df.to_html( f"LightSpMV-speed-up-bottom.html" )
+        fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
+        axs.set_yscale( 'log' )
+        axs.plot( t, filtered_df[(format,'GPU','speed-up','LightSpMV Vector')], '-o', ms=1, lw=1 )
+        axs.plot( t, bar, '-', ms=1, lw=1 )
+        axs.legend( [ latexFormatName(format), 'LightSpMV' ], loc='lower left' )
+        axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} speed-up" )
+        axs.set_ylabel( 'Speedup' )
+        plt.savefig( f"LightSpMV-speed-up-log.pdf")
+        plt.close(fig)
+        #head_df = filtered_df.head( head_size )
+        #bottom_df = ascend_df.head( head_size )
+        copy_df = df.copy()
+        for f in formats:
+            if not f in ['cusparse','CSR',format]:
+                #print( f"Droping {f}..." )
+                #head_df.drop( labels=f, axis='columns', level=0, inplace=True )
+                copy_df.drop( labels=f, axis='columns', level=0, inplace=True )
+        #head_df.to_html( f"LightSpMV-speed-up-head.html" )
+        copy_df.to_html( f"LightSpMV-speed-up-bottom.html" )
+
+def csr_hypre_cpu_scalability( df, formats, head_size = 10 ):
+    cpu_formats = [ 'CSR' ]
+    if ( 'Hypre', 'CPU') in formats_devices:
+        cpu_formats.append( 'Hypre' )
+    for format in cpu_formats:
+        for threads in threads_num_list:
+            if threads == 1:
+                continue
+            for metrics in [ 'speed-up', 'eff.']:
+                threads_str = str(threads)+' threads'
+                print( f"Writing scalability of {format} on CPU" )
+                df['tmp'] = df[(format, 'CPU', threads_str, metrics)]
+                filtered_df=df.dropna(subset=[('tmp','','','')])
+                try:
+                    filtered_df.sort_values(by=[(format,'CPU', threads_str, metrics)],inplace=True,ascending=False)
+                except:
+                    continue
+                fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
+                size = len(filtered_df[(format,'CPU',threads_str,metrics)].index)
+                t = np.arange( size )
+                bar = np.full( size, 1 )
+                axs.plot( t, filtered_df[(format,'CPU',threads_str,metrics)], '-o', ms=1, lw=1 )
+                axs.plot( t, bar, '-', ms=1, lw=1 )
+                axs.legend( [ latexFormatName(format) ], loc='upper right' )
+                axs.set_ylabel( metrics )
+                axs.set_xlabel( f"Matrix number - sorted w.r.t. {latexFormatName(format)} {metrics}" )
+                plt.rcParams.update({
+                "text.usetex": True,
+                "font.family": "sans-serif",
+                "font.sans-serif": ["Helvetica"]})
+                plt.savefig( f"{format}-{threads}-threads-{metrics}.pdf")
+                plt.close(fig)
+
+def hypre_cpu_tnl_speedup_scalability( df, formats, head_size = 10 ):
+    if ( 'Hypre', 'CPU') in formats_devices:
+        for threads in threads_num_list:
+            threads_str = str(threads)+' threads'
+            print( f"Writing scalability of {format} on CPU" )
+            df['tmp'] = df[('Hypre', 'CPU', threads_str, 'TNL speed-up')]
+            filtered_df=df.dropna(subset=[('tmp','','','')])
+            try:
+               filtered_df.sort_values(by=[('Hypre','CPU', threads_str,'TNL speed-up')],inplace=True,ascending=False)
+            except:
+               continue
+            fig, axs = plt.subplots( 1, 1, figsize=(6,4) )
+            size = len(filtered_df[('Hypre','CPU',threads_str,'TNL speed-up')].index)
+            t = np.arange( size )
+            bar = np.full( size, 1 )
+            axs.plot( t, filtered_df[('Hypre','CPU',threads_str,'TNL speed-up')], '-o', ms=1, lw=1 )
+            axs.plot( t, bar, '-', ms=1, lw=1 )
+            axs.legend( [ 'Hypre' ], loc='upper right' )
+            axs.set_ylabel( 'Speedup' )
+            axs.set_xlabel( f"Matrix number - sorted w.r.t. Hypre TNL speed-up" )
+            plt.rcParams.update({
+               "text.usetex": True,
+               "font.family": "sans-serif",
+               "font.sans-serif": ["Helvetica"]})
+            plt.savefig( f"Hypre-{threads}-threads-TNL-speed-up.pdf")
+            plt.close(fig)
 
 ####
 # Analyze mapping of CUDA thredads in Light CSR
@@ -895,7 +1035,7 @@ def analyze_light_csr( df, formats ):
    fig, axs = plt.subplots( 1, 1 )
    axs.set_yticks(np.arange(0, 100, step=10))
    axs.plot( t, sort_df[('nonzeros per row', '','','')], '-o', ms=1, lw=1 )
-   axs.plot( t, sort_df[('CSR Light Best','GPU','threads per row')], '-o', ms=1, lw=1 )
+   axs.plot( t, sort_df[('CSR Light Best','GPU','threads per row','')], '-o', ms=1, lw=1 )
    axs.legend( [ 'Nonzeros per row', 'Threads per row' ], loc='upper right' )
    axs.set_ylabel( 'CSR Light analysis' )
    axs.set_ylim([0, 200])
@@ -909,12 +1049,12 @@ def analyze_light_csr( df, formats ):
    profiles = {}
    sort_df = df.sort_values(by=[('nonzeros per row','','','')],inplace=False,ascending=True)
    formats_list = ['CSR< Light > 1', 'CSR< Light > 2', 'CSR< Light > 4', 'CSR< Light > 8', 'CSR< Light > 16', 'CSR< Light > 32']
-   for format in formats_list:
-      sort_df.drop( labels=format, axis='columns', level=0, inplace=True )
-      print( f'{format}')
-      profiles[format] = df[(format,'GPU','bandwidth','')].copy()
-   sort_df.to_html( f"LightSpMV-Threads-per-row.html" )
-   draw_profiles( formats_list, profiles, 'non-zeros per row', 'BW', "nonzeros-bw.pdf", 'lower right', "none" )
+   if formats_list in formats:
+      for format in formats_list:
+         sort_df.drop( labels=format, axis='columns', level=0, inplace=True )
+         profiles[format] = df[(format,'GPU','bandwidth','')].copy()
+      sort_df.to_html( f"LightSpMV-Threads-per-row.html" )
+      draw_profiles( formats_list, profiles, 'non-zeros per row', 'BW', "nonzeros-bw.pdf", 'lower right', "none" )
 
 
 def write_colormap( file, max_bw, size, x_position, y_position, standalone = False ):
@@ -1063,17 +1203,19 @@ def processDf( df, formats, head_size = 10 ):
    df.to_html( f'output.html' )
 
    # Generate tables and figures
-   #effective_bw_profile( df, formats, head_size )
-   #cusparse_comparison( df, formats, head_size )
-   #csr_comparison( df, formats, head_size )
-   #legacy_formats_comparison( df, formats, head_size )
-   #csr_speedup_comparison( df, formats, head_size )
-   #cusparse_speedup_comparison( df, formats, head_size )
-   #binary_matrices_comparison( df, formats, head_size )
-   #symmetric_matrices_comparison( df, formats, head_size )
-   #csr_light_speedup_comparison( df, head_size )
+   effective_bw_profile( df, formats, head_size )
+   cusparse_comparison( df, formats, head_size )
+   csr_comparison( df, formats, head_size )
+   legacy_formats_comparison( df, formats, head_size )
+   csr_speedup_comparison( df, formats, head_size )
+   cusparse_and_hypre_speedup_comparison( df, formats, head_size )
+   binary_matrices_comparison( df, formats, head_size )
+   symmetric_matrices_comparison( df, formats, head_size )
+   csr_light_speedup_comparison( df, head_size )
+   csr_hypre_cpu_scalability( df, formats, head_size )
+   hypre_cpu_tnl_speedup_scalability( df, formats, head_size )
 
-   best = df[('TNL Best','GPU','format')].tolist()
+   best = df[('TNL Best','GPU','format','')].tolist()
    best_formats = list(set(best))
    sum = 0
    for format in formats:
@@ -1140,13 +1282,22 @@ if 'Symmetric Binary CSR< Light > Automatic' in formats:
    formats.remove('Symmetric Binary CSR< Light > Automatic')
 formats.append('TNL Best')
 formats.append('CSR Light Best')
-multicolumns, df_data = get_multiindex( input_df, formats )
+print( formats )
+threads_num_list = list(set( input_df['threads'].values.tolist() ))
+if 0 in threads_num_list:
+    threads_num_list.remove( 0 )
+multicolumns, df_data = get_multiindex( input_df, formats, threads_num_list )
 
 print( "Converting data..." )
 result = convert_data_frame( input_df, multicolumns, df_data, 0, 2000 )
-compute_speedup( result, formats )
-
+compute_speedup( result, formats, threads_num_list )
 result.replace( to_replace=' ',value=np.nan,inplace=True)
+
+print( "Writting to file sparse-matrix-benchmark-test-processed.html ... ")
+result.to_html( "sparse-matrix-benchmark-test-processed.html")
+
+
+
 
 head_size = 25
 if not os.path.exists( 'general' ):
