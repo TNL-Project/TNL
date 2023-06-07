@@ -26,31 +26,31 @@ struct DefaultKernel;
 template< typename Device, typename Index >
 struct DefaultKernel< Segments::CSRView< Device, Index > >
 {
-   using type = CSRScalarKernel< Index, Device >;
+   using type = CSRScalarKernel< std::decay_t< Index >, Device >;
 };
 
 template< typename Device, typename Index, Segments::ElementsOrganization Organization, int WarpSize >
 struct DefaultKernel< Segments::BiEllpackView< Device, Index, Organization, WarpSize > >
 {
-   using type = BiEllpackKernel< Index, Device >;
+   using type = BiEllpackKernel< std::decay_t< Index >, Device >;
 };
 
 template< typename Device, typename Index, Segments::ElementsOrganization Organization >
 struct DefaultKernel< Segments::ChunkedEllpackView< Device, Index, Organization > >
 {
-   using type = ChunkedEllpackKernel< Index, Device >;
+   using type = ChunkedEllpackKernel< std::decay_t< Index >, Device >;
 };
 
 template< typename Device, typename Index, Segments::ElementsOrganization Organization, int Alignment >
 struct DefaultKernel< Segments::EllpackView< Device, Index, Organization, Alignment > >
 {
-   using type = EllpackKernel< Index, Device >;
+   using type = EllpackKernel< std::decay_t< Index >, Device >;
 };
 
 template< typename Device, typename Index, Segments::ElementsOrganization Organization, int SliceSize >
 struct DefaultKernel< Segments::SlicedEllpackView< Device, Index, Organization, SliceSize > >
 {
-   using type = SlicedEllpackKernel< Index, Device >;
+   using type = SlicedEllpackKernel< std::decay_t< Index >, Device >;
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels
