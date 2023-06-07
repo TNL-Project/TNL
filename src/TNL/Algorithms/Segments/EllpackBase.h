@@ -63,7 +63,7 @@ public:
    [[nodiscard]] static std::string
    getSerializationType();
 
-   [[nodiscard]] static String
+   [[nodiscard]] static std::string
    getSegmentsType();
 
    [[nodiscard]] __cuda_callable__

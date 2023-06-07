@@ -48,7 +48,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSerializationTyp
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
-String
+std::string
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentsType()
 {
    return "SlicedEllpack";

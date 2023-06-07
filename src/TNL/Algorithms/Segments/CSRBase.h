@@ -85,9 +85,7 @@ public:
    operator=( CSRBase&& ) = delete;
 
    /**
-    * \brief Returns string with serialization type.
-    *
-    * \return String with the serialization type.
+    * \brief Returns string with the serialization type.
     *
     * \par Example
     * \include Algorithms/Segments/SegmentsExample_CSR_getSerializationType.cpp
@@ -98,16 +96,14 @@ public:
    getSerializationType();
 
    /**
-    * \brief Returns string with segments type.
-    *
-    * \return \ref String with the segments type.
+    * \brief Returns string with the segments type.
     *
     * \par Example
     * \include Algorithms/Segments/SegmentsExample_CSR_getSegmentsType.cpp
     * \par Output
     * \include SegmentsExample_CSR_getSegmentsType.out
     */
-   [[nodiscard]] static String
+   [[nodiscard]] static std::string
    getSegmentsType();
 
    //! \brief Returns the number of segments.

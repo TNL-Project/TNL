@@ -42,7 +42,7 @@ SlicedEllpackKernel< Index, Device >::getConstView() const -> ConstViewType
 }
 
 template< typename Index, typename Device >
-TNL::String
+std::string
 SlicedEllpackKernel< Index, Device >::getKernelType()
 {
    return "SlicedEllpack";

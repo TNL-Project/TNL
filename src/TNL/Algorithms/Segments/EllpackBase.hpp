@@ -41,7 +41,7 @@ EllpackBase< Device, Index, Organization, Alignment >::getSerializationType()
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
-String
+std::string
 EllpackBase< Device, Index, Organization, Alignment >::getSegmentsType()
 {
    return "Ellpack";

@@ -280,7 +280,7 @@ BiEllpackKernel< Index, Device >::getConstView() const -> ConstViewType
 }
 
 template< typename Index, typename Device >
-TNL::String
+std::string
 BiEllpackKernel< Index, Device >::getKernelType()
 {
    return "BiEllpack";

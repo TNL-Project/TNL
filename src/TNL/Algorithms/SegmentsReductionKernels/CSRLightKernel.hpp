@@ -433,7 +433,7 @@ CSRLightKernel< Index, Device >::getView() -> ViewType
 }
 
 template< typename Index, typename Device >
-TNL::String
+std::string
 CSRLightKernel< Index, Device >::getKernelType()
 {
    return "Light";

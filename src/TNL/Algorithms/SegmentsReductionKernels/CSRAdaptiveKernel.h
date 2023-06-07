@@ -32,7 +32,7 @@ struct CSRAdaptiveKernel
       return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
    }
 
-   [[nodiscard]] static TNL::String
+   [[nodiscard]] static std::string
    getKernelType();
 
    template< typename Segments >

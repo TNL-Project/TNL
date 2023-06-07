@@ -11,7 +11,7 @@
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Index, typename Device >
-TNL::String
+std::string
 CSRAdaptiveKernel< Index, Device >::getKernelType()
 {
    return ViewType::getKernelType();

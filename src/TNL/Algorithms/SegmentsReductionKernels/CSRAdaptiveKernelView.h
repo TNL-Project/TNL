@@ -44,7 +44,7 @@ struct CSRAdaptiveKernelView
    ConstViewType
    getConstView() const;
 
-   [[nodiscard]] static TNL::String
+   [[nodiscard]] static std::string
    getKernelType();
 
    template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >

@@ -46,7 +46,7 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::getSerializationType()
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
-String
+std::string
 BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentsType()
 {
    return "BiEllpack";

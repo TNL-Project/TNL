@@ -36,7 +36,7 @@ CSRBase< Device, Index >::getSerializationType()
 }
 
 template< typename Device, typename Index >
-String
+std::string
 CSRBase< Device, Index >::getSegmentsType()
 {
    return "CSR";

@@ -65,7 +65,7 @@ ChunkedEllpackBase< Device, Index, Organization >::getSerializationType()
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
-String
+std::string
 ChunkedEllpackBase< Device, Index, Organization >::getSegmentsType()
 {
    return "ChunkedEllpack";

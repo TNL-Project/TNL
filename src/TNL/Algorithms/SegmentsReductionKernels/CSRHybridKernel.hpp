@@ -191,7 +191,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::getView() -> ViewType
 }
 
 template< typename Index, typename Device, int ThreadsInBlock >
-TNL::String
+std::string
 CSRHybridKernel< Index, Device, ThreadsInBlock >::getKernelType()
 {
    return "Hybrid " + TNL::convertToString( ThreadsInBlock );

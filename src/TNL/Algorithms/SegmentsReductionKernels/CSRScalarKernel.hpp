@@ -42,7 +42,7 @@ CSRScalarKernel< Index, Device >::getConstView() const -> ConstViewType
 }
 
 template< typename Index, typename Device >
-TNL::String
+std::string
 CSRScalarKernel< Index, Device >::getKernelType()
 {
    return "Scalar";

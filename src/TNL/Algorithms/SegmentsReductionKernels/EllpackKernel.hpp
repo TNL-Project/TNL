@@ -94,7 +94,7 @@ EllpackKernel< Index, Device >::getConstView() const -> ConstViewType
 }
 
 template< typename Index, typename Device >
-TNL::String
+std::string
 EllpackKernel< Index, Device >::getKernelType()
 {
    return "Ellpack";

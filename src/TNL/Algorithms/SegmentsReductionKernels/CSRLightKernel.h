@@ -7,7 +7,6 @@
 #pragma once
 
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/String.h>
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
@@ -41,10 +40,10 @@ struct CSRLightKernel
    ConstViewType
    getConstView() const;
 
-   [[nodiscard]] static TNL::String
+   [[nodiscard]] static std::string
    getKernelType();
 
-   [[nodiscard]] TNL::String
+   [[nodiscard]] std::string
    getSetup() const;
 
    template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >

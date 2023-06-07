@@ -136,7 +136,7 @@ ChunkedEllpackKernel< Index, Device >::getConstView() const -> ConstViewType
 }
 
 template< typename Index, typename Device >
-TNL::String
+std::string
 ChunkedEllpackKernel< Index, Device >::getKernelType()
 {
    return "ChunkedEllpack";
