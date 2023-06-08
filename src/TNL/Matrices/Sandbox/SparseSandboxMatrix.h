@@ -291,11 +291,6 @@ public:
     * \param columns is the number of matrix columns.
     * \param realAllocator is used for allocation of matrix elements values.
     * \param indexAllocator is used for allocation of matrix elements column indexes.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_Constructor_init_list_1.cpp
-    * \par Output
-    * \include SparseMatrixExample_Constructor_init_list_1.out
     */
    template< typename ListIndex >
    explicit SparseSandboxMatrix( const std::initializer_list< ListIndex >& rowCapacities,
@@ -316,11 +311,6 @@ public:
     * \param columns is the number of matrix columns.
     * \param realAllocator is used for allocation of matrix elements values.
     * \param indexAllocator is used for allocation of matrix elements column indexes.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_Constructor_rowCapacities_vector.cpp
-    * \par Output
-    * \include SparseMatrixExample_Constructor_rowCapacities_vector.out
     */
    template< typename RowCapacitiesVector, std::enable_if_t< TNL::IsArrayType< RowCapacitiesVector >::value, int > = 0 >
    explicit SparseSandboxMatrix( const RowCapacitiesVector& rowCapacities,
@@ -341,11 +331,6 @@ public:
     * \param data is a list of matrix elements values.
     * \param realAllocator is used for allocation of matrix elements values.
     * \param indexAllocator is used for allocation of matrix elements column indexes.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_Constructor_init_list_2.cpp
-    * \par Output
-    * \include SparseMatrixExample_Constructor_init_list_2.out
     */
    explicit SparseSandboxMatrix( IndexType rows,
                                  IndexType columns,
@@ -368,11 +353,6 @@ public:
     * \param map is std::map containing matrix elements.
     * \param realAllocator is used for allocation of matrix elements values.
     * \param indexAllocator is used for allocation of matrix elements column indexes.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_Constructor_std_map.cpp
-    * \par Output
-    * \include SparseMatrixExample_Constructor_std_map.out
     */
    template< typename MapIndex, typename MapValue >
    explicit SparseSandboxMatrix( IndexType rows,
@@ -408,11 +388,6 @@ public:
     * [any_allocator] >`.
     *
     * \return \ref String with the serialization type.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_getSerializationType.cpp
-    * \par Output
-    * \include SparseMatrixExample_getSerializationType.out
     */
    [[nodiscard]] static std::string
    getSerializationType();
@@ -423,11 +398,6 @@ public:
     * See \ref SparseSandboxMatrix::getSerializationType.
     *
     * \return \e String with the serialization type.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_getSerializationType.cpp
-    * \par Output
-    * \include SparseMatrixExample_getSerializationType.out
     */
    [[nodiscard]] std::string
    getSerializationTypeVirtual() const override;
@@ -466,11 +436,6 @@ public:
     *
     * \param rowCapacities is a vector telling the number of required non-zero
     *    matrix elements in each row.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_setRowCapacities.cpp
-    * \par Output
-    * \include SparseMatrixExample_setRowCapacities.out
     */
    template< typename RowsCapacitiesVector >
    void
@@ -498,11 +463,6 @@ public:
     *
     * \param data is a initializer list of initializer lists representing
     * list of matrix rows.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_setElements.cpp
-    * \par Output
-    * \include SparseMatrixExample_setElements.out
     */
    void
    setElements( const std::initializer_list< std::tuple< IndexType, IndexType, RealType > >& data );
@@ -518,11 +478,6 @@ public:
     * \tparam MapValue is a type for matrix elements values in the map.
     *
     * \param map is std::map containing matrix elements.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_setElements_map.cpp
-    * \par Output
-    * \include SparseMatrixExample_setElements_map.out
     */
    template< typename MapIndex, typename MapValue >
    void
@@ -533,11 +488,6 @@ public:
     *
     * \param rowLengths is a vector into which the number of non-zeros in each row
     * will be stored.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_getCompressedRowLengths.cpp
-    * \par Output
-    * \include SparseMatrixExample_getCompressedRowLengths.out
     */
    template< typename Vector >
    void
@@ -577,11 +527,6 @@ public:
     *
     * \return RowView for accessing given matrix row.
     *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_getConstRow.cpp
-    * \par Output
-    * \include SparseMatrixExample_getConstRow.out
-    *
     * See \ref SparseMatrixRowView.
     */
    [[nodiscard]] __cuda_callable__
@@ -594,11 +539,6 @@ public:
     * \param rowIdx is matrix row index.
     *
     * \return RowView for accessing given matrix row.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_getRow.cpp
-    * \par Output
-    * \include SparseMatrixExample_getRow.out
     *
     * See \ref SparseMatrixRowView.
     */
@@ -620,11 +560,6 @@ public:
     * \param row is row index of the element.
     * \param column is columns index of the element.
     * \param value is the value the element will be set to.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_setElement.cpp
-    * \par Output
-    * \include SparseMatrixExample_setElement.out
     */
    __cuda_callable__
    void
@@ -646,12 +581,6 @@ public:
     * \param value is the value the element will be set to.
     * \param thisElementMultiplicator is multiplicator the original matrix element
     *   value is multiplied by before addition of given \e value.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_addElement.cpp
-    * \par Output
-    * \include SparseMatrixExample_addElement.out
-    *
     */
    __cuda_callable__
    void
@@ -671,12 +600,6 @@ public:
     * \param column i a column index of the matrix element.
     *
     * \return value of given matrix element.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_getElement.cpp
-    * \par Output
-    * \include SparseMatrixExample_getElement.out
-    *
     */
    [[nodiscard]] __cuda_callable__
    RealType
@@ -700,11 +623,6 @@ public:
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
     * \param zero is zero of given reduction operation also known as idempotent element.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_reduceRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_reduceRows.out
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
@@ -728,11 +646,6 @@ public:
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
     * \param zero is zero of given reduction operation also known as idempotent element.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_reduceRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_reduceRows.out
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
@@ -754,11 +667,6 @@ public:
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
     * \param zero is zero of given reduction operation also known as idempotent element.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_reduceAllRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_reduceAllRows.out
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
@@ -780,11 +688,6 @@ public:
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
     * \param zero is zero of given reduction operation also known as idempotent element.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_reduceAllRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_reduceAllRows.out
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
@@ -807,11 +710,6 @@ public:
     * ```
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forElements.cpp
-    * \par Output
-    * \include SparseMatrixExample_forElements.out
     */
    template< typename Function >
    void
@@ -834,11 +732,6 @@ public:
     * ```
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forElements.cpp
-    * \par Output
-    * \include SparseMatrixExample_forElements.out
     */
    template< typename Function >
    void
@@ -851,11 +744,6 @@ public:
     *
     * \tparam Function is a type of lambda function that will operate on matrix elements.
     * \param function  is an instance of the lambda function to be called for each matrix element.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forElements.cpp
-    * \par Output
-    * \include SparseMatrixExample_forElements.out
     */
    template< typename Function >
    void
@@ -868,11 +756,6 @@ public:
     *
     * \tparam Function is a type of lambda function that will operate on matrix elements.
     * \param function  is an instance of the lambda function to be called for each matrix element.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forElements.cpp
-    * \par Output
-    * \include SparseMatrixExample_forElements.out
     */
    template< typename Function >
    void
@@ -895,11 +778,6 @@ public:
     * ```
     *
     * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrix::RowView.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_forRows.out
     */
    template< typename Function >
    void
@@ -922,11 +800,6 @@ public:
     * ```
     *
     * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrix::RowView.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_forRows.out
     */
    template< typename Function >
    void
@@ -947,11 +820,6 @@ public:
     * ```
     *
     * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrix::RowView.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_forRows.out
     */
    template< typename Function >
    void
@@ -972,11 +840,6 @@ public:
     * ```
     *
     * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrix::RowView.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_forRows.out
     */
    template< typename Function >
    void

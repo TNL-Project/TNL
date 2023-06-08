@@ -21,16 +21,6 @@ namespace TNL::Matrices::Sandbox {
  * \tparam isBinary tells if the the parent matrix is a binary matrix.
  *
  * See \ref SparseSandboxMatrix and \ref SparseSandboxMatrixView.
- *
- * \par Example
- * \include Matrices/SparseMatrix/SparseMatrixExample_getRow.cpp
- * \par Output
- * \include SparseMatrixExample_getRow.out
- *
- * \par Example
- * \include Matrices/SparseMatrix/SparseMatrixViewExample_getRow.cpp
- * \par Output
- * \include SparseMatrixViewExample_getRow.out
  */
 template< typename ValuesView, typename ColumnsIndexesView, bool isBinary_ >
 class SparseSandboxMatrixRowView
