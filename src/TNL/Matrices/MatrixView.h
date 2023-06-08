@@ -6,11 +6,7 @@
 
 #pragma once
 
-#include <TNL/Object.h>
-#include <TNL/Allocators/Default.h>
-#include <TNL/Devices/Host.h>
-#include <TNL/Containers/Vector.h>
-#include <TNL/Containers/VectorView.h>
+#include "MatrixBase.h"
 
 namespace TNL::Matrices {
 
@@ -21,56 +17,17 @@ namespace TNL::Matrices {
  * \tparam Device is a device where the matrix is allocated.
  * \tparam Index is a type for indexing of the matrix elements.
  */
-template< typename Real = double, typename Device = Devices::Host, typename Index = int >
-class MatrixView
+template< typename Real, typename Device, typename Index >
+class [[deprecated]] MatrixView : public MatrixBase< Real, Device, Index, GeneralMatrix, Algorithms::Segments::RowMajorOrder >
 {
+   using Base = MatrixBase< Real, Device, Index, GeneralMatrix, Algorithms::Segments::RowMajorOrder >;
+
 public:
-   using RowsCapacitiesType = Containers::Vector< Index, Device, Index >;
-   using RowsCapacitiesTypeView = Containers::VectorView< Index, Device, Index >;
-   using ConstRowsCapacitiesTypeView = typename RowsCapacitiesTypeView::ConstViewType;
-
-   /**
-    * \brief The type of matrix elements.
-    */
-   using RealType = Real;
-
-   /**
-    * \brief The device where the matrix is allocated.
-    */
-   using DeviceType = Device;
-
-   /**
-    * \brief The type used for matrix elements indexing.
-    */
-   using IndexType = Index;
-
-   /**
-    * \brief Type of base matrix view.
-    *
-    */
-   using ViewType = MatrixView< Real, Device, Index >;
-
-   /**
-    * \brief Type of base matrix view for constant instances.
-    *
-    */
-   using ConstViewType = MatrixView< typename std::add_const_t< Real >, Device, Index >;
-
-   /**
-    * \brief Type of vector view holding values of matrix elements.
-    */
-   using ValuesView = Containers::VectorView< Real, Device, Index >;
-
-   /**
-    * \brief Type of constant vector view holding values of matrix elements.
-    */
-   using ConstValuesView = typename ValuesView::ConstViewType;
-
    /**
     * \brief Basic constructor with no parameters.
     */
    __cuda_callable__
-   MatrixView();
+   MatrixView() = default;
 
    /**
     * \brief Constructor with matrix dimensions and matrix elements values.
@@ -82,10 +39,10 @@ public:
     * @param values is a vector view with matrix elements values.
     */
    __cuda_callable__
-   MatrixView( IndexType rows, IndexType columns, ValuesView values );
+   MatrixView( Index rows, Index columns, typename Base::ValuesViewType values );
 
    /**
-    * @brief Shallow copy constructor.
+    * @brief Copy constructor.
     *
     * @param view is an input matrix view.
     */
@@ -111,6 +68,13 @@ public:
    operator=( const MatrixView& ) = delete;
 
    /**
+    * \brief Move-assignment operator.
+    */
+   __cuda_callable__
+   MatrixView&
+   operator=( MatrixView&& ) = delete;
+
+   /**
     * \brief Method for rebinding (reinitialization) using another matrix view.
     *
     * \param view The matrix view to be bound.
@@ -127,82 +91,6 @@ public:
    __cuda_callable__
    void
    bind( MatrixView&& view );
-
-   /**
-    * \brief Tells the number of allocated matrix elements.
-    *
-    * In the case of dense matrices, this is just product of the number of rows and the number of columns.
-    * But for other matrix types like sparse matrices, this can be different.
-    *
-    * \return Number of allocated matrix elements.
-    */
-   [[nodiscard]] IndexType
-   getAllocatedElementsCount() const;
-
-   /**
-    * \brief Computes a current number of nonzero matrix elements.
-    *
-    * \return number of nonzero matrix elements.
-    */
-   [[nodiscard]] virtual IndexType
-   getNonzeroElementsCount() const;
-
-   /**
-    * \brief Returns number of matrix rows.
-    *
-    * \return number of matrix row.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getRows() const;
-
-   /**
-    * \brief Returns number of matrix columns.
-    *
-    * @return number of matrix columns.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getColumns() const;
-
-   /**
-    * \brief Returns a constant reference to a vector with the matrix elements values.
-    *
-    * \return constant reference to a vector with the matrix elements values.
-    */
-   [[nodiscard]] __cuda_callable__
-   const ValuesView&
-   getValues() const;
-
-   /**
-    * \brief Returns a reference to a vector with the matrix elements values.
-    *
-    * \return constant reference to a vector with the matrix elements values.
-    */
-   [[nodiscard]] __cuda_callable__
-   ValuesView&
-   getValues();
-
-   /**
-    * \brief Comparison operator with another arbitrary matrix view type.
-    *
-    * \param matrix is the right-hand side matrix.
-    * \return \e true if the RHS matrix is equal, \e false otherwise.
-    */
-   template< typename Matrix >
-   [[nodiscard]] bool
-   operator==( const Matrix& matrix ) const;
-
-   /**
-    * \brief Comparison operator with another arbitrary matrix view type.
-    *
-    * \param matrix is the right-hand side matrix.
-    * \return \e true if the RHS matrix is equal, \e false otherwise.
-    */
-
-   template< typename Matrix >
-   [[nodiscard]] bool
-   operator!=( const Matrix& matrix ) const;
 
    /***
     * \brief Virtual serialization type getter.
@@ -238,11 +126,6 @@ public:
     */
    virtual void
    print( std::ostream& str ) const;
-
-protected:
-   IndexType rows, columns;
-
-   ValuesView values;
 };
 
 /**

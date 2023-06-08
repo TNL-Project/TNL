@@ -77,7 +77,7 @@ wrapCSRMatrix( const Index& rows, const Index& columns, Index* rowPointers, Real
 {
    using MatrixView = SparseMatrixView< Real, Device, Index, GeneralMatrix, Algorithms::Segments::CSRView >;
    using ValuesViewType = typename MatrixView::ValuesViewType;
-   using ColumnIndexesView = typename MatrixView::ColumnsIndexesViewType;
+   using ColumnIndexesView = typename MatrixView::ColumnIndexesViewType;
    using SegmentsView = typename MatrixView::SegmentsViewType;
    using RowPointersView = typename SegmentsView::OffsetsView;
    RowPointersView rowPointersView( rowPointers, rows + 1 );
@@ -101,7 +101,7 @@ struct EllpackMatrixWrapper
    wrap( const Index& rows, const Index& columns, const Index& nonzerosPerRow, Real* values, Index* columnIndexes )
    {
       using ValuesViewType = typename MatrixView::ValuesViewType;
-      using ColumnIndexesView = typename MatrixView::ColumnsIndexesViewType;
+      using ColumnIndexesView = typename MatrixView::ColumnIndexesViewType;
       using SegmentsView = Algorithms::Segments::EllpackView< Device, Index, Organization, Alignment >;
       SegmentsView segments( rows, nonzerosPerRow );
       Index elementsCount = segments.getStorageSize();

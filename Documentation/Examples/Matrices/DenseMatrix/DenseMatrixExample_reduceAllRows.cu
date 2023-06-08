@@ -1,1 +1,0 @@
-DenseMatrixExample_reduceAllRows.cpp

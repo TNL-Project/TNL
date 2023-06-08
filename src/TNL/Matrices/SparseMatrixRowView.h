@@ -21,12 +21,7 @@ namespace TNL::Matrices {
  * \tparam ValuesView is a vector view storing the matrix elements values.
  * \tparam ColumnsIndexesView is a vector view storing the column indexes of the matrix element.
  *
- * See \ref SparseMatrix and \ref SparseMatrixView.
- *
- * \par Example
- * \include Matrices/SparseMatrix/SparseMatrixExample_getRow.cpp
- * \par Output
- * \include SparseMatrixExample_getRow.out
+ * See \ref SparseMatrixBase, \ref SparseMatrix and \ref SparseMatrixView.
  *
  * \par Example
  * \include Matrices/SparseMatrix/SparseMatrixViewExample_getRow.cpp

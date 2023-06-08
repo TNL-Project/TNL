@@ -1,21 +1,9 @@
 set( COMMON_EXAMPLES
     DenseMatrixExample_Constructor_init_list
     DenseMatrixExample_setElements
-    DenseMatrixExample_getCompressedRowLengths
-    DenseMatrixExample_getElementsCount
-    DenseMatrixExample_getConstRow
-    DenseMatrixExample_getRow
-    DenseMatrixExample_setElement
-    DenseMatrixExample_addElement
-    DenseMatrixExample_getElement
-    DenseMatrixExample_reduceRows
-    DenseMatrixExample_reduceAllRows
-    DenseMatrixExample_forElements
-    DenseMatrixExample_forAllElements
-    DenseMatrixExample_forRows
     DenseMatrixViewExample_constructor
     DenseMatrixViewExample_getCompressedRowLengths
-    DenseMatrixViewExample_getElementsCount
+    DenseMatrixViewExample_getAllocatedElementsCount
     DenseMatrixViewExample_getConstRow
     DenseMatrixViewExample_getRow
     DenseMatrixViewExample_setElement

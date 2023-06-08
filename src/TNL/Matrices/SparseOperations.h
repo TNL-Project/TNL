@@ -4,15 +4,25 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
-// Note that these functions cannot be methods of the Sparse class, because
-// their implementation uses methods (marked with __cuda_callable__) which are
-// defined only on the subclasses, but are not virtual methods of Sparse.
-
 #pragma once
 
 namespace TNL::Matrices {
+
+template< typename Matrix1, typename Matrix2 >
+void
+copyDenseToDenseMatrix( Matrix1& A, const Matrix2& B );
+
+template< typename Matrix1, typename Matrix2 >
+void
+copySparseToDenseMatrix( Matrix1& A, const Matrix2& B );
+
+template< typename Matrix1, typename Matrix2 >
+void
+copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B );
+
+template< typename Matrix1, typename Matrix2 >
+void
+copySparseToSparseMatrix( Matrix1& A, const Matrix2& B );
 
 template< typename Matrix1, typename Matrix2 >
 void
@@ -40,4 +50,4 @@ reorderArray( const Array1& src, Array2& dest, const PermutationArray& perm );
 
 }  // namespace TNL::Matrices
 
-#include "SparseOperations_impl.h"
+#include "SparseOperations.hpp"

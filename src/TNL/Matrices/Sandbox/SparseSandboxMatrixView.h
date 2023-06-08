@@ -55,7 +55,7 @@ class SparseSandboxMatrixView : public MatrixView< Real, Device, Index >
 public:
    // Supporting types - they are not important for the user
    using BaseType = MatrixView< Real, Device, Index >;
-   using ValuesViewType = typename BaseType::ValuesView;
+   using ValuesViewType = typename BaseType::ValuesViewType;
    using ConstValuesViewType = typename ValuesViewType::ConstViewType;
    using ColumnsIndexesViewType =
       Containers::VectorView< typename TNL::copy_const< Index >::template from< Real >::type, Device, Index >;
@@ -799,22 +799,6 @@ protected:
 
    RowPointersView rowPointers;
    // SegmentsViewType segments;
-
-private:
-   // TODO: this should be probably moved into a detail namespace
-   template< typename VectorOrView, std::enable_if_t< HasSetSizeMethod< VectorOrView >::value, bool > = true >
-   static void
-   set_size_if_resizable( VectorOrView& v, IndexType size )
-   {
-      v.setSize( size );
-   }
-
-   template< typename VectorOrView, std::enable_if_t< ! HasSetSizeMethod< VectorOrView >::value, bool > = true >
-   static void
-   set_size_if_resizable( VectorOrView& v, IndexType size )
-   {
-      TNL_ASSERT_EQ( v.getSize(), size, "view has wrong size" );
-   }
 };
 
 }  // namespace TNL::Matrices::Sandbox

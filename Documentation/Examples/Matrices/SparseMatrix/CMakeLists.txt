@@ -8,9 +8,6 @@ set( COMMON_EXAMPLES
    SparseMatrixExample_setElements
    SparseMatrixExample_setElements_map
    SparseMatrixExample_getCompressedRowLengths
-   SparseMatrixExample_getConstRow
-   SparseMatrixExample_getRow
-   SparseMatrixExample_setElement
    SparseMatrixExample_addElement
    SparseMatrixExample_getElement
    SparseMatrixExample_reduceRows
@@ -18,18 +15,9 @@ set( COMMON_EXAMPLES
    SparseMatrixExample_forElements
    SparseMatrixExample_forAllElements
    SparseMatrixExample_forRows
-   SparseMatrixViewExample_getSerializationType
-   SparseMatrixViewExample_getCompressedRowLengths
    SparseMatrixViewExample_getConstRow
    SparseMatrixViewExample_getRow
    SparseMatrixViewExample_setElement
-   SparseMatrixViewExample_addElement
-   SparseMatrixViewExample_getElement
-   SparseMatrixViewExample_reduceRows
-   SparseMatrixViewExample_reduceAllRows
-   SparseMatrixViewExample_forElements
-   SparseMatrixViewExample_forRows
-   SparseMatrixViewExample_forAllElements
    SparseMatrixViewExample_wrapCSR
    SparseMatrixViewExample_wrapEllpack
 )

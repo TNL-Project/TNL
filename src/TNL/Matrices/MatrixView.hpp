@@ -6,23 +6,16 @@
 
 #pragma once
 
-#include <TNL/Matrices/Matrix.h>
-#include <TNL/Assert.h>
-#include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Cuda/SharedMemory.h>
-
 #include <utility>
+
+#include <TNL/Matrices/MatrixView.h>
 
 namespace TNL::Matrices {
 
 template< typename Real, typename Device, typename Index >
 __cuda_callable__
-MatrixView< Real, Device, Index >::MatrixView() : rows( 0 ), columns( 0 ) {}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-MatrixView< Real, Device, Index >::MatrixView( IndexType rows, IndexType columns, ValuesView values )
-: rows( rows ), columns( columns ), values( std::move( values ) )
+MatrixView< Real, Device, Index >::MatrixView( Index rows, Index columns, typename Base::ValuesViewType values )
+: Base( rows, columns, std::move( values ) )
 {}
 
 template< typename Real, typename Device, typename Index >
@@ -30,9 +23,7 @@ __cuda_callable__
 void
 MatrixView< Real, Device, Index >::bind( MatrixView& view )
 {
-   rows = view.rows;
-   columns = view.columns;
-   values.bind( view.values );
+   Base::bind( view.rows, view.columns, view.values );
 }
 
 template< typename Real, typename Device, typename Index >
@@ -40,82 +31,7 @@ __cuda_callable__
 void
 MatrixView< Real, Device, Index >::bind( MatrixView&& view )
 {
-   rows = view.rows;
-   columns = view.columns;
-   values.bind( view.values );
-}
-
-template< typename Real, typename Device, typename Index >
-Index
-MatrixView< Real, Device, Index >::getAllocatedElementsCount() const
-{
-   return this->values.getSize();
-}
-
-template< typename Real, typename Device, typename Index >
-Index
-MatrixView< Real, Device, Index >::getNonzeroElementsCount() const
-{
-   const auto values_view = this->values.getConstView();
-   auto fetch = [ = ] __cuda_callable__( const IndexType i ) -> IndexType
-   {
-      return ( values_view[ i ] != 0.0 );
-   };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, this->values.getSize(), fetch, std::plus<>{}, 0 );
-}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-Index
-MatrixView< Real, Device, Index >::getRows() const
-{
-   return this->rows;
-}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-Index
-MatrixView< Real, Device, Index >::getColumns() const
-{
-   return this->columns;
-}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-const typename MatrixView< Real, Device, Index >::ValuesView&
-MatrixView< Real, Device, Index >::getValues() const
-{
-   return this->values;
-}
-
-template< typename Real, typename Device, typename Index >
-__cuda_callable__
-typename MatrixView< Real, Device, Index >::ValuesView&
-MatrixView< Real, Device, Index >::getValues()
-{
-   return this->values;
-}
-
-template< typename Real, typename Device, typename Index >
-template< typename MatrixT >
-bool
-MatrixView< Real, Device, Index >::operator==( const MatrixT& matrix ) const
-{
-   if( this->getRows() != matrix.getRows() || this->getColumns() != matrix.getColumns() )
-      return false;
-   for( IndexType row = 0; row < this->getRows(); row++ )
-      for( IndexType column = 0; column < this->getColumns(); column++ )
-         if( this->getElement( row, column ) != matrix.getElement( row, column ) )
-            return false;
-   return true;
-}
-
-template< typename Real, typename Device, typename Index >
-template< typename MatrixT >
-bool
-MatrixView< Real, Device, Index >::operator!=( const MatrixT& matrix ) const
-{
-   return ! operator==( matrix );
+   Base::bind( view.rows, view.columns, view.values );
 }
 
 template< typename Real, typename Device, typename Index >

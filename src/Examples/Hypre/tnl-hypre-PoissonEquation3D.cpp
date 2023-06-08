@@ -121,7 +121,7 @@ main( int argc, char* argv[] )
 
    // Allocate row capacities - this must match exactly the sparsity pattern of
    // the matrix
-   typename CSR::RowsCapacitiesType capacities;
+   typename CSR::RowCapacitiesType capacities;
    capacities.setSize( local_size );
    auto capacities_view = capacities.getView();
    TNL::Algorithms::parallelFor< TNL::HYPRE_Device >( ilower, iupper + 1,

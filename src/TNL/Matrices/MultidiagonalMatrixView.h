@@ -38,7 +38,7 @@ class MultidiagonalMatrixView : public MatrixView< Real, Device, Index >
 public:
    // Supporting types - they are not important for the user
    using BaseType = MatrixView< Real, Device, Index >;
-   using ValuesViewType = typename BaseType::ValuesView;
+   using ValuesViewType = typename BaseType::ValuesViewType;
    using IndexerType =
       details::MultidiagonalMatrixIndexer< std::remove_const_t< Index >, Organization == Algorithms::Segments::RowMajorOrder >;
    using DiagonalsOffsetsView = Containers::

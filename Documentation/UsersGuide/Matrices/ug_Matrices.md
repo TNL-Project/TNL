@@ -374,11 +374,11 @@ In fact, the constructor takes a list of initializer lists. Each embedded list d
 
 Larger matrices can be setup with methods `setElement` and `addElement` (\ref TNL::Matrices::DenseMatrix::setElement, \ref TNL::Matrices::DenseMatrix::addElement). The following example shows how to call these methods from the host.
 
-\includelineno DenseMatrixExample_addElement.cpp
+\includelineno DenseMatrixViewExample_addElement.cpp
 
 As we can see, both methods can be called from the host no matter where the matrix is allocated. If it is on GPU, each call of `setElement` or `addElement` (\ref TNL::Matrices::DenseMatrix::setElement, \ref TNL::Matrices::DenseMatrix::addElement) causes slow transfer of tha data between CPU and GPU. Use this approach only if the performance is not a priority. The result looks as follows:
 
-\include DenseMatrixExample_addElement.out
+\include DenseMatrixViewExample_addElement.out
 
 More efficient way of the matrix initialization on GPU consists of calling the methods `setElement` and `addElement` (\ref TNL::Matrices::DenseMatrix::setElement, \ref TNL::Matrices::DenseMatrix::addElement) directly from GPU, for example by means of lambda function and \ref TNL::Algorithms::parallelFor "parallelFor". It is demonstrated in the following example (of course it works even on CPU):
 
@@ -409,7 +409,7 @@ The result looks as follows:
 
 This method iterates in parallel over all matrix rows. In fact, it combines \ref TNL::Algorithms::parallelFor and \ref TNL::Matrices::DenseMatrix::getRow method in one. See the following example. It is even a bit simpler compared to the previous one:
 
-\includelineno DenseMatrixExample_forRows.cpp
+\includelineno DenseMatrixViewExample_forRows.cpp
 
 The lambda function `f`, which is called for each matrix row (lines 18-25), have to accept parameter `row` with type `RowView`. This type is defined inside each TNL matrix and in the case of the dense matrix, it is \ref TNL::Matrices::DenseMatrixRowView. We use the method \ref TNL::Matrices::DenseMatrixRowView::getRowIndex to get the index of the matrix row being currently processed and method \ref TNL::Matrices::DenseMatrixRowView::setElement which sets the value of the element with given column index (the first parameter).
 
@@ -417,13 +417,13 @@ Next, on the lines 32-38, we call another lambda function which firstly find the
 
 The result looks as follows:
 
-\include DenseMatrixExample_forRows.out
+\include DenseMatrixViewExample_forRows.out
 
 #### Method `forElements`
 
  The next example demonstrates the method `forElements` (\ref TNL::Matrices::DenseMatrix::forElements) which works in very similar way as the method `getRow` but it is slightly easier to use. It is also compatible with sparse matrices. See the following example:
 
-\includelineno DenseMatrixExample_forElements.cpp
+\includelineno DenseMatrixViewExample_forElements.cpp
 
 We do not need any matrix view and instead of calling \ref TNL::Algorithms::parallelFor "parallelFor" we call just the method `forElements` (line 18). The lambda function `f` (line 11) must accept the following parameters:
 
@@ -434,7 +434,7 @@ We do not need any matrix view and instead of calling \ref TNL::Algorithms::para
 
 The result looks as follows:
 
-\include DenseMatrixExample_forElements.out
+\include DenseMatrixViewExample_forElements.out
 
 #### Wrapping existing data to dense matrix view
 
@@ -575,7 +575,7 @@ Another way of setting the sparse matrix is by means of the methods `setElement`
 
 We first allocate matrix with five rows (it is given by the size of the [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list) and columns and we set capacity each row to one (line 12). The first for-loop (lines 17-19) runs on CPU no matter where the matrix is allocated. After printing the matrix (lines 21-22), we call the lambda function `f` (lines 24-26) with a help of \ref TNL::Algorithms::parallelFor "parallelFor" (line 28) which is device sensitive and so it runs on CPU or GPU depending on where the matrix is allocated. The result looks as follows:
 
-\include SparseMatrixExample_setElement.out
+\include SparseMatrixViewExample_setElement.out
 
 The method `addElement` (\ref TNL::Matrices::SparseMatrix::addElement) adds a value to specific matrix element. Otherwise, it behaves the same as `setElement`. See the following example:
 
@@ -589,7 +589,7 @@ The result looks as follows:
 
 More efficient method, especially for GPUs, is to combine `getRow` (\ref TNL::Matrices::SparseMatrix::getRow) method with \ref TNL::Algorithms::parallelFor "parallelFor" and lambda function as the following example demonstrates:
 
-\includelineno SparseMatrixExample_getRow.cpp
+\includelineno SparseMatrixViewExample_getRow.cpp
 
 On the line 21, we create small matrix having five rows (number of rows is given by the size of the [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list) ) and columns (number of columns is given by the second parameter) and we set each row capacity to one or three (particular elements of the initializer list). On the line 41, we call \ref TNL::Algorithms::parallelFor "parallelFor" to iterate over all matrix rows. Each row is processed by the lambda function `f` (lines 24-36). In the lambda function, we first fetch a sparse matrix row (\ref TNL::Matrices::SparseMatrixRowView) (line 25) which serves for accessing particular matrix elements in the matrix row. This object has a method `setElement` (\ref TNL::Matrices::SparseMatrixRowView::setElement) accepting three parameters:
 
@@ -599,7 +599,7 @@ On the line 21, we create small matrix having five rows (number of rows is given
 
 The result looks as follows:
 
-\include SparseMatrixExample_getRow.out
+\include SparseMatrixViewExample_getRow.out
 
 #### Method `forRows`
 

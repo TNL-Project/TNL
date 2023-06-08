@@ -12,14 +12,11 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Matrices/MatrixView.h>
-#include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
 /**
  * \brief Namespace for matrix formats.
  */
 namespace TNL::Matrices {
-
-using Algorithms::Segments::ElementsOrganization;
 
 /**
  * \brief Base class for other matrix types.
@@ -33,7 +30,7 @@ template< typename Real = double,
           typename Device = Devices::Host,
           typename Index = int,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< std::remove_const_t< Real > > >
-class Matrix : public Object
+class [[deprecated]] Matrix : public Object
 {
 public:
    using RealAllocatorType = RealAllocator;
@@ -57,36 +54,19 @@ public:
    using IndexType = Index;
 
    /**
-    * \brief Type of base matrix view.
-    *
-    */
-   using ViewType = MatrixView< Real, Device, Index >;
-
-   /**
-    * \brief Type of base matrix view for constant instances.
-    *
-    */
-   using ConstViewType = typename MatrixView< Real, Device, Index >::ConstViewType;
-
-   /**
     * \brief Type of vector holding values of matrix elements.
     */
    using ValuesType = Containers::Vector< Real, Device, Index, RealAllocator >;
 
    /**
-    * \brief Type of constant vector holding values of matrix elements.
-    */
-   using ConstValuesType = Containers::Vector< std::add_const_t< Real >, Device, Index, RealAllocator >;
-
-   /**
     * \brief Type of vector view holding values of matrix elements.
     */
-   using ValuesView = typename ViewType::ValuesView;
+   using ValuesView = typename ValuesType::ViewType;
 
    /**
     * \brief Type of constant vector view holding values of matrix elements.
     */
-   using ConstValuesView = typename ViewType::ConstValuesView;
+   using ConstValuesView = typename ValuesType::ConstViewType;
 
    /**
     * \brief Construct a new Matrix object possibly with user defined allocator of the matrix values.
