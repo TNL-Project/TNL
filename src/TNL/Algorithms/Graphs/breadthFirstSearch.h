@@ -40,9 +40,12 @@ void breadthFirstSearchTransposed_impl( const Matrix& transposedAdjacencyMatrix,
       auto y_view = y.getView();
 
       auto fetch = [=] __cuda_callable__ ( Index rowIdx, Index columnIdx, const Real& value ) -> Real {
-         if constexpr( haveExplorer )
-            if( x_view[ columnIdx ] != 0 )
-               explorer( rowIdx );
+         return x_view[ columnIdx ] * value;
+      };
+      // NVCC does not allow use of if constexpr inside lambda.
+      auto fetch_with_explorer = [=] __cuda_callable__ ( Index rowIdx, Index columnIdx, const Real& value ) -> Real {
+         if( x_view[ columnIdx ] != 0 )
+            explorer( rowIdx );
          return x_view[ columnIdx ] * value;
       };
       auto keep = [=] __cuda_callable__ ( int rowIdx, const double& value ) mutable {
@@ -51,7 +54,10 @@ void breadthFirstSearchTransposed_impl( const Matrix& transposedAdjacencyMatrix,
             visitor( rowIdx, i );
          }
       };
-      transposedAdjacencyMatrix.reduceAllRows( fetch, TNL::Plus{}, keep, ( Index ) 0 );
+      if constexpr( haveExplorer )
+         transposedAdjacencyMatrix.reduceAllRows( fetch_with_explorer, TNL::Plus{}, keep, ( Index ) 0 );
+      else
+         transposedAdjacencyMatrix.reduceAllRows( fetch, TNL::Plus{}, keep, ( Index ) 0 );
       if( distances == y )
          break;
       distances = y;
