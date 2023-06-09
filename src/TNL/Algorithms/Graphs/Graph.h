@@ -82,14 +82,28 @@ struct Graph
 
    Graph& operator=( Graph&& ) = default;
 
-   ~Graph() = default;
+   bool operator==( const Graph& other ) const {
+      return adjacencyMatrix == other.adjacencyMatrix;
+   }
 
-   IndexType getNodesCount() const {
+   void setNodeCount( IndexType nodesCount ) {
+      adjacencyMatrix.setDimensions( nodesCount, nodesCount );
+   }
+
+   IndexType getNodeCount() const {
       return adjacencyMatrix.getRows();
    }
 
-   IndexType getEdgesCount() const {
+   IndexType getEdgeCount() const {
+      if constexpr( isUndirected() && ! MatrixType::isSymmetric() ) {
+         return adjacencyMatrix.getNonzeroElementsCount() / 2;
+      }
       return adjacencyMatrix.getNonzeroElementsCount();
+   }
+
+   template< typename Vector >
+   void setNodeCapacities( const Vector& nodeCapacities ) {
+      adjacencyMatrix.setRowCapacities( nodeCapacities );
    }
 
    const MatrixType& getAdjacencyMatrix() const {
@@ -108,10 +122,29 @@ struct Graph
       adjacencyMatrix = std::move( matrix );
    }
 
+   ValueType getTotalWeight() const {
+      auto values_view = adjacencyMatrix.getValues().getConstView();
+      auto column_indexes_view = adjacencyMatrix.getColumnIndexes().getConstView();
+      const auto padding = adjacencyMatrix.getPaddingIndex();
+      return Algorithms::reduce< DeviceType >( 0, values_view.getSize(),
+         [=] __cuda_callable__ ( IndexType i ) {
+            if( column_indexes_view[ i ] != padding )
+               return values_view[ i ];
+            return ( ValueType ) 0; },
+         TNL::Plus{} );
+   }
+
+   ~Graph() = default;
 
    protected:
 
    MatrixType adjacencyMatrix;
+};
+
+template< typename Matrix, typename GraphType >
+std::ostream& operator<<( std::ostream& os, const Graph< Matrix, GraphType >& graph ) {
+   os << graph.getAdjacencyMatrix();
+   return os;
 };
 
 } // namespace TNL::Algorithms::Graphs
