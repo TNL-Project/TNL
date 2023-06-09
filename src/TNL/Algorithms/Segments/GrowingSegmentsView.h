@@ -10,6 +10,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/AtomicVectorView.h>
 #include <TNL/Algorithms/Segments/SegmentsPrinting.h>
+#include <TNL/Algorithms/Segments/detail/CheckLambdas.h>
 
 
 namespace TNL {
@@ -85,19 +86,31 @@ struct GrowingSegmentsView : public SegmentsView_
                         ResultKeeper&& keeper,
                         const Value& identity ) const
    {
-      auto main_fetch = [=,*this] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool compute ) mutable {
-         IndexType end = this->segmentsFilling[ segmentIdx ];
-         if( localIdx < end  ) {
-            if( localIdx == end -1 )
-               compute = false;
-            if constexpr( detail::CheckFetchLambda< IndexType, Fetch >::hasAllParameters() )
+      // NVCC does not allow if constexpr inside lambda
+      if constexpr( detail::CheckFetchLambda< IndexType, Fetch >::hasAllParameters() ) {
+         auto main_fetch_with_all_params = [=,*this] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool compute ) mutable {
+            IndexType end = this->segmentsFilling[ segmentIdx ];
+            if( localIdx < end  ) {
+               if( localIdx == end -1 )
+                  compute = false;
                return fetch( segmentIdx, localIdx, globalIdx, compute );
-            else
+            }
+            else return identity;
+         };
+         SegmentsView_::reduceSegments( begin, end, main_fetch_with_all_params, reduction, keeper, identity );
+      }
+      else {
+         auto main_fetch = [=,*this] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool compute ) mutable {
+            IndexType end = this->segmentsFilling[ segmentIdx ];
+            if( localIdx < end  ) {
+               if( localIdx == end -1 )
+                  compute = false;
                return fetch( globalIdx, compute );
-         }
-         else return identity;
-      };
-      SegmentsView_::reduceSegments( begin, end, main_fetch, reduction, keeper, identity );
+            }
+            else return identity;
+         };
+         SegmentsView_::reduceSegments( begin, end, main_fetch, reduction, keeper, identity );
+      }
    }
 
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
