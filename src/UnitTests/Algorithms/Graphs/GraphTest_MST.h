@@ -3,6 +3,7 @@
 
 #include <TNL/Algorithms/Graphs/minimumSpanningTree.h>
 #include <TNL/Algorithms/Graphs/trees.h>
+#include <TNL/Algorithms/Graphs/GraphWriter.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Containers/StaticVector.h>
 
@@ -17,6 +18,10 @@ class GraphTest : public ::testing::Test
 {
 protected:
    using MatrixType = Matrix;
+   using RealType = typename MatrixType::RealType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using IndexType = typename MatrixType::IndexType;
+   using GraphType = TNL::Algorithms::Graphs::Graph< MatrixType, TNL::Algorithms::Graphs::Undirected >;
 };
 
 // types for which MatrixTest is instantiated
@@ -31,19 +36,17 @@ using GraphTestTypes = ::testing::Types
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 
-/*TYPED_TEST( GraphTest, test_MST_small )
+TYPED_TEST( GraphTest, test_MST_small )
 {
-   using MatrixType = typename TestFixture::MatrixType;
-   using RealType = typename MatrixType::RealType;
-   using DeviceType = typename MatrixType::DeviceType;
-   using IndexType = typename MatrixType::IndexType;
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
    using EdgeType = TNL::Algorithms::Graphs::Edge< RealType, IndexType >;
    using EdgeArray = TNL::Containers::Array< EdgeType >;
 
-   // Create a TNL::Matrices::SparseMatrix for a sample graph.
-   MatrixType matrix(
-        6, // number of matrix rows
-        6, // number of matrix columns
+   // Create a sample graph.
+   GraphType graph( 6, // number of graph nodes
         {  // matrix elements definition
                         { 0, 1, 1.0 },  { 0, 2, 3.0 },
          { 1, 0, 1.0 },                 { 1, 2, 2.0 },
@@ -53,32 +56,32 @@ TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
                                                       { 5, 3, 5.0 }, { 5, 4, 3.0 }
         });
 
-   MatrixType expected_tree( 6, 6,
+   GraphType expected_tree( 6,
       { { 1, 0, 1.0 },
         { 2, 1, 2.0 },
         { 4, 3, 4.0 },
         { 5, 4, 3.0 } }
    );
 
-   MatrixType minimum_tree;
-   TNL::Algorithms::Graphs::minimumSpanningTree( matrix, minimum_tree );
+   GraphType minimum_tree;
+   TNL::Containers::Vector< IndexType > roots;
+   TNL::Algorithms::Graphs::minimumSpanningTree( graph, minimum_tree, roots );
+   minimum_tree.getAdjacencyMatrix().sortColumnIndexes();
    ASSERT_EQ(minimum_tree, expected_tree );
 }
 
 TYPED_TEST( GraphTest, test_MST_medium )
 {
-   using MatrixType = typename TestFixture::MatrixType;
-   using RealType = typename MatrixType::RealType;
-   using DeviceType = typename MatrixType::DeviceType;
-   using IndexType = typename MatrixType::IndexType;
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
    using EdgeType = TNL::Algorithms::Graphs::Edge< RealType, IndexType >;
    using EdgeArray = TNL::Containers::Array< EdgeType >;
 
-   // Create a TNL::Matrices::SparseMatrix for a sample graph.
-   MatrixType matrix(
-        9, // number of matrix rows
-        9, // number of matrix columns
-        {  // matrix elements definition
+   // Create a sample graph.
+   GraphType graph( 9, // number of graph nodes
+        {
            { 1, 0, 4.0 },
                           { 2, 1, 8.0 },
                                           { 3, 2, 7.0 },
@@ -89,7 +92,7 @@ TYPED_TEST( GraphTest, test_MST_medium )
                                           { 8, 2, 2.0 },                                                { 8, 6, 6.0 },  { 8, 7,  7.0 }
          } );
 
-   MatrixType expectedTree( 9, 9,
+   GraphType expectedTree( 9,
       {  {1, 0, 4.0},
          {2, 1, 8.0},
          {3, 2, 7.0},
@@ -100,26 +103,27 @@ TYPED_TEST( GraphTest, test_MST_medium )
          {8, 2, 2.0}
       } );
 
-   MatrixType minimum_tree;
-   TNL::Algorithms::Graphs::minimumSpanningTree( matrix, minimum_tree );
-   minimum_tree.sortColumnIndexes();
-   const auto& v1 = minimum_tree.getValues();
-   const auto& v2 = expectedTree.getValues();
+   GraphType minimum_tree;
+   TNL::Containers::Vector< IndexType > roots;
+   TNL::Algorithms::Graphs::minimumSpanningTree( graph, minimum_tree, roots );
+   minimum_tree.getAdjacencyMatrix().sortColumnIndexes();
+   const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
+   const auto& v2 = expectedTree.getAdjacencyMatrix().getValues();
    std::cout << v1 << std::endl;
    std::cout << "minimum tree sum = " << sum(  max( v1, 0 ) ) << std::endl;
    std::cout << "expected tree sum = " << sum(  max( v2, 0 ) ) << std::endl;
    ASSERT_EQ(minimum_tree, expectedTree );
-}*/
+}
 
 TYPED_TEST( GraphTest, test_MST_large )
 {
-   using MatrixType = typename TestFixture::MatrixType;
-   using RealType = typename MatrixType::RealType;
-   using DeviceType = typename MatrixType::DeviceType;
-   using IndexType = typename MatrixType::IndexType;
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
 
-   // Create a TNL::Matrices::SparseMatrix for a sample graph.
-   /* std::map< std::pair< IndexType, IndexType >, RealType > map{
+   // Create a sample graph.
+   std::map< std::pair< IndexType, IndexType >, RealType > map{
       { {  1,  0 },  3.0 }, { {  5,  0 }, 12.0 },
       { {  2,  1 },  7.0 }, { {  6,  1 }, 11.0 },
       { {  3,  2 },  4.0 }, { {  7,  2 },  8.0 }, { { 6, 2 }, 2.0 },
@@ -140,13 +144,9 @@ TYPED_TEST( GraphTest, test_MST_large )
       { { 18, 17 },  3.0 },
       { { 19, 18 },  9.0 }
     };
-   //makeSymmetric( map );
-   GraphType graph(
-        20, // number of matrix rows
-        20, // number of matrix columns
-        map );*/
+   GraphType graph( 20, map );
 
-   MatrixType expected_tree( 20, 20,
+   GraphType expected_tree( 20,
       {  { 8, 4, 1.0},
          { 6, 2, 2.0},
          {17, 16, 2.0},
@@ -168,12 +168,13 @@ TYPED_TEST( GraphTest, test_MST_large )
          {19, 18, 9.0}
       } );
 
-   MatrixType minimum_tree;
-   TNL::Algorithms::Graphs::minimumSpanningTree( matrix, minimum_tree );
-   minimum_tree.sortColumnIndexes();
-   const auto& v1 = minimum_tree.getValues();
-   const auto& v2 = expected_tree.getValues();
-   std::cout << v1 << std::endl;
+   GraphType minimum_tree;
+   TNL::Containers::Vector< IndexType > roots;
+   TNL::Algorithms::Graphs::minimumSpanningTree( graph, minimum_tree, roots );
+   minimum_tree.getAdjacencyMatrix().sortColumnIndexes();
+   const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
+   const auto& v2 = expected_tree.getAdjacencyMatrix().getValues();
+   //std::cout << v1 << std::endl;
    std::cout << "minimum tree sum = " << sum(  max( v1, 0 ) ) << std::endl;
    std::cout << "expected tree sum = " << sum(  max( v2, 0 ) ) << std::endl;
    ASSERT_EQ (minimum_tree, expected_tree );
@@ -181,11 +182,35 @@ TYPED_TEST( GraphTest, test_MST_large )
 
 TYPED_TEST( GraphTest, test_MST_large_2 )
 {
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using MatrixType = typename GraphType::MatrixType;
 
-   using MatrixType = typename TestFixture::MatrixType;
-   using RealType = typename MatrixType::RealType;
-   using DeviceType = typename MatrixType::DeviceType;
-   using IndexType = typename MatrixType::IndexType;
+   GraphType graph( 10, {
+    {0, 1, 0.5}, {0, 2, 0.7}, {1, 3, 1.0}, {2, 4, 0.3},
+    {3, 4, 0.8}, {4, 5, 0.2}, {5, 6, 0.6}, {6, 7, 0.9},
+    {7, 8, 0.3}, {8, 9, 0.5}, {9, 0, 0.7}, {1, 5, 0.5},
+    {2, 6, 0.6}, {3, 7, 0.3}, {4, 8, 0.4}, {5, 9, 0.9},
+    {6, 2, 0.8}, {7, 3, 0.2}, {8, 1, 0.7}, {9, 4, 0.1} } );
+
+   TNL::Algorithms::Graphs::GraphWriter< GraphType >::writeEdgeList( "graph-10-30.lst", graph );
+   GraphType minimum_tree;
+   TNL::Containers::Vector< IndexType > roots;
+   TNL::Algorithms::Graphs::minimumSpanningTree( graph, minimum_tree, roots );
+   TNL::Algorithms::Graphs::GraphWriter< GraphType >::writeEdgeList( "graph-10-30-mst.lst", minimum_tree );
+   ASSERT_TRUE( TNL::Algorithms::Graphs::isTree( minimum_tree ) );
+   ASSERT_EQ( minimum_tree.getTotalWeight(), 2 * 3.1 ); // we multiply by 2 because the graph is undirected and we store both upper and lower triangular parts
+}
+
+TYPED_TEST( GraphTest, test_MST_large_3 )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using MatrixType = typename GraphType::MatrixType;
 
    // Create a TNL::Matrices::SparseMatrix for a sample graph.
    std::map< std::pair< IndexType, IndexType >, RealType > map{
@@ -214,13 +239,9 @@ TYPED_TEST( GraphTest, test_MST_large_2 )
       { { 28, 3 }, 6.0 },{ { 28, 14 }, 4.0 },{ { 28, 22 }, 7.0 },{ { 28, 5 }, 3.0 },{ { 28, 8 }, 10.0 },{ { 28, 1 }, 6.0 },{ { 28, 18 }, 7.0 },{ { 28, 24 }, 2.0 },{ { 28, 19 }, 9.0 },{ { 28, 17 }, 2.0 },{ { 28, 2 }, 1.0 },{ { 28, 23 }, 9.0 },{ { 28, 11 }, 1.0 },{ { 28, 15 }, 10.0 },{ { 28, 7 }, 3.0 }
    };
 
-   makeSymmetric( map );
-   MatrixType matrix(
-        30, // number of matrix rows
-        30, // number of matrix columns
-        map );
+   GraphType graph( 30, map );
 
-   MatrixType expected_tree( 30, 30,
+   GraphType expected_tree( 30,
       {  { 18, 3, 1.0 },
          { 11, 0, 1.0 },
          { 19, 4, 1.0 },
@@ -251,17 +272,22 @@ TYPED_TEST( GraphTest, test_MST_large_2 )
          { 27, 8, 4.0 }
       } );
 
-   MatrixType minimum_tree;
-   TNL::Algorithms::Graphs::minimumSpanningTree( matrix, minimum_tree );
-   minimum_tree.sortColumnIndexes();
-   const auto& v1 = minimum_tree.getValues();
-   const auto& v2 = expected_tree.getValues();
-   std::cout << v1 << std::endl;
+   GraphType minimum_tree;
+   TNL::Containers::Vector< IndexType > roots;
+   TNL::Algorithms::Graphs::minimumSpanningTree( graph, minimum_tree, roots );
+   //std::cout << "roots = " << roots << std::endl;
+   minimum_tree.getAdjacencyMatrix().sortColumnIndexes();
+   const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
+   const auto& v2 = expected_tree.getAdjacencyMatrix().getValues();
+   //std::cout << v1 << std::endl;
    std::cout << "minimum tree sum = " << sum(  max( v1, 0 ) ) << std::endl;
    std::cout << "expected tree sum = " << sum(  max( v2, 0 ) ) << std::endl;
-   ASSERT_TRUE( TNL::Algorithms::Graphs::isTree( minimum_tree ) );
+   TNL::Algorithms::Graphs::GraphWriter< GraphType >::writeEdgeList( "minimum_tree.lst", minimum_tree );
+   TNL::Algorithms::Graphs::GraphWriter< GraphType >::writeEdgeList( "graph.lst", graph );
+   ASSERT_TRUE( TNL::Algorithms::Graphs::isForest( minimum_tree ) ); // node 29 is not connected
    ASSERT_EQ( sum( max( v1, 0 ) ), sum( max( v2, 0 ) ) );
 }
+
 #endif
 
 #include "../../main.h"

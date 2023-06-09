@@ -11,11 +11,10 @@
 #include <TNL/Containers/AtomicVectorView.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Algorithms/Graphs/Graph.h>
+#include <TNL/Algorithms/Graphs/Edge.h>
 #include <TNL/Algorithms/Segments/GrowingSegments.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Graphs {
+namespace TNL::Algorithms::Graphs {
 
 // TODO: replace with std::touple
 template< typename Real = double,
@@ -53,46 +52,62 @@ struct Forest
       return parent[ u ];
    }
 
-   void mergeTrees( Index u, Index v) {
-      Index root_u = getRoot( u );
-      Index root_v = getRoot( v );
+   void mergeTrees( Index source, Index target ) {
+      Index root_source = getRoot( source );
+      Index root_target = getRoot( target );
 
-      if( root_u == root_v ) {
-            return;
-      }
-
-      if( rank[ root_u ] > rank[ root_v ] ) {
-         parent[ root_v ] = root_u;
+      TNL_ASSERT_NE( root_source, root_target, "Roots must be different at this point." );
+      if( rank[ root_source ] > rank[ root_target ] ) {
+         parent[ root_target ] = root_source;
       } else {
-         parent[ root_u ] = root_v;
-         if( rank[ root_u ] == rank[ root_v ] ) {
-            rank[ root_v ]++;
+         parent[ root_source ] = root_target;
+         if( rank[ root_source ] == rank[ root_target ] ) {
+            rank[ root_target ]++;
          }
       }
    }
 
+   void getRoots( std::vector< Index >& roots ) const {
+      for( Index u = 0; u < ( Index ) parent.size(); u++ ) {
+         if( u == parent[ u ] )
+            roots.push_back( u );
+      }
+   }
+
 private:
-    std::vector< Index > parent;
-    std::vector< Index > rank;
+   std::vector< Index > parent;
+   std::vector< Index > rank;
 };
 
-template< typename Matrix,
-          typename Real = typename Matrix::RealType,
-          typename Index = typename Matrix::IndexType >
-void kruskal(const Matrix& graph, Matrix& minimum_spanning_tree )
+template< typename Vector, typename Index >
+Index getRoot( const Vector& parent, Index source ) {
+   if( parent[ source ] != source )
+      return getRoot( parent, parent[source] );
+   return source;
+}
+
+template< typename InGraph,
+          typename OutGraph = InGraph,
+          typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
+          typename Real = typename InGraph::ValueType,
+          typename Index = typename InGraph::IndexType >
+void kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roots )
 {
-   using DeviceType = typename Matrix::DeviceType;
-   using IndexType = typename Matrix::IndexType;
+   static_assert( InGraph::isUndirected(), "Both input and output graph must be undirected." );
+   static_assert( OutGraph::isUndirected(), "Both input and output graph must be undirected." );
+
+   using DeviceType = typename InGraph::DeviceType;
+   using IndexType = typename InGraph::IndexType;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
-   Index n = graph.getRows();
+   Index n = graph.getNodeCount();
    std::vector< Edge< Real, Index > > edges;
    for( Index i = 0; i < n; i++ )
    {
-      const auto row = graph.getRow(i);
+      const auto row = graph.getAdjacencyMatrix().getRow(i);
       for( Index j = 0; j < row.getSize(); j++ ) {
          const Index& col = row.getColumnIndex( j );
-         if( col < i && col != graph.getPaddingIndex() )
+         if( col < i && col != graph.getAdjacencyMatrix().getPaddingIndex() )
             edges.emplace_back(i, col, row.getValue(j) );
       }
    }
@@ -100,46 +115,51 @@ void kruskal(const Matrix& graph, Matrix& minimum_spanning_tree )
    std::sort(edges.begin(), edges.end(), compareEdges< Real, Index >);
 
    Forest< Real, Index > forest(n);
-   IndexVector rowCapacities( n ), tree_filling( n, 0 );
-   graph.getRowCapacities( rowCapacities );
-   minimum_spanning_tree.setDimensions( n, n );
-   minimum_spanning_tree.setRowCapacities( rowCapacities );
-
+   IndexVector nodeCapacities( n ), tree_filling( n, 0 );
+   graph.getAdjacencyMatrix().getRowCapacities( nodeCapacities );
+   minimum_spanning_tree.setNodeCount( n );
+   minimum_spanning_tree.setNodeCapacities( nodeCapacities );
 
    for( const auto& edge : edges ) {
-      auto u = edge.getSource();
-      auto v = edge.getTarget();
-      if( forest.getRoot( u ) != forest.getRoot( v ) ) {
-         IndexType row = max( edge.getSource(), edge.getTarget() );
-         IndexType col = min( edge.getSource(), edge.getTarget() );
-         IndexType localIdx = tree_filling[ row ]++;
-         minimum_spanning_tree.getRow( row ).setElement( localIdx, col, edge.getWeight() );
-         forest.mergeTrees( u, v );
+      auto source = edge.getSource();
+      auto target = edge.getTarget();
+      auto source_root = forest.getRoot( source );
+      auto target_root = forest.getRoot( target );
+      if( source_root != target_root ) {
+         minimum_spanning_tree.getAdjacencyMatrix().getRow( source ).setElement( tree_filling[ source ]++, target, edge.getWeight() );
+         if constexpr( OutGraph::isUndirected() && ! OutGraph::MatrixType::isSymmetric() )
+            minimum_spanning_tree.getAdjacencyMatrix().getRow( target ).setElement( tree_filling[ target ]++, source, edge.getWeight() );
+         forest.mergeTrees( source, target );
       }
    }
+   std::vector< Index > roots_;
+   forest.getRoots( roots_ );
+   roots = RootsVector( roots_ );
 }
 
-template< typename Matrix,
-          typename Real = typename Matrix::RealType,
-          typename Index = typename Matrix::IndexType >
-void parallelMST(const Matrix& graph, Matrix& tree )
+template< typename InGraph,
+          typename OutGraph = InGraph,
+          typename Real = typename InGraph::ValueType,
+          typename Index = typename InGraph::IndexType >
+void parallelMST(const InGraph& graph, OutGraph& tree )
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
-   using IndexType = typename Matrix::IndexType;
+   using RealType = typename InGraph::ValueType;
+   using DeviceType = typename InGraph::DeviceType;
+   using IndexType = typename InGraph::IndexType;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
    using RealVector = Containers::Vector< RealType, DeviceType, IndexType >;
-   using RowView = typename Matrix::ConstRowView;
-   using SegmentsType = typename Matrix::SegmentsType;
+   using InMatrixType = typename InGraph::MatrixType;
+   using RowView = typename InMatrixType::ConstRowView;
+   using SegmentsType = typename InMatrixType::SegmentsType;
    using GrowingSegmentsType = Segments::GrowingSegments< SegmentsType >;
 
-   Index n = graph.getRows();
+   Index n = graph.getNodeCount();
    IndexVector starRootsSlots;
-   graph.getRowCapacities( starRootsSlots );
+   graph.getAdjacencyMatrix().getRowCapacities( starRootsSlots );
    starRootsSlots = n;
    GrowingSegmentsType hook_candidates( starRootsSlots );
-   tree.setDimensions( n, n );
-   tree.setRowCapacities( starRootsSlots );
+   tree.setNodeCount( n );
+   tree.getAdjacencyMatrix().setRowCapacities( starRootsSlots );
 
    IndexVector p( n ), p_old( n, 0 ), q( n ), new_links_target( n, -1 );
    RealVector new_links_weight( n, 0.0 );
@@ -162,8 +182,9 @@ void parallelMST(const Matrix& graph, Matrix& tree )
    auto hook_sources_view = hook_sources.getView();
    auto new_links_target_view = new_links_target.getView();
    auto new_links_weight_view = new_links_weight.getView();
-   auto tree_view = tree.getView();
+   auto tree_view = tree.getAdjacencyMatrix().getView();
 
+   const IndexType paddingIndex = graph.getAdjacencyMatrix().getPaddingIndex();
    IndexType iter( 0 );
    Real sum( 0.0 );
    while( p != p_old )
@@ -194,7 +215,7 @@ void parallelMST(const Matrix& graph, Matrix& tree )
          for( Index j = 0; j < row.getSize(); j++ ) {
             const Index& target_node = row.getColumnIndex( j );
             //std::cout << "   Checking edge " << source_node << " -> " << target_node << " weight " << row.getValue( j ) << " min. weight " << minEdgeWeight << std::endl;
-            if( target_node != graph.getPaddingIndex() && p_view[ source_node ] != p_view[ target_node ] && row.getValue( j ) < minEdgeWeight ) {
+            if( target_node != paddingIndex && p_view[ source_node ] != p_view[ target_node ] && row.getValue( j ) < minEdgeWeight ) {
                minEdgeWeight = row.getValue( j );
                minEdgeTarget = target_node;
             }
@@ -216,7 +237,7 @@ void parallelMST(const Matrix& graph, Matrix& tree )
 
          }
       };
-      graph.forAllRows( hooking );
+      graph.getAdjacencyMatrix().forAllRows( hooking );
 
       using SegmentView = typename GrowingSegmentsType::SegmentViewType;;
       hook_candidates.sequentialForAllSegments( [=] __cuda_callable__ ( const SegmentView& segment ) {
@@ -311,8 +332,10 @@ void parallelMST(const Matrix& graph, Matrix& tree )
          if( target != -1 ) {
             IndexType row = max( i, target );
             IndexType col = min( i, target );
-            IndexType localIdx = treeFillingView.atomicAdd( row, 1 );
-            tree_view.getRow( row ).setElement( localIdx, col, new_links_weight_view[ i ] );
+            //IndexType localIdx = treeFillingView.atomicAdd( row, 1 );
+            tree_view.getRow( row ).setElement( treeFillingView.atomicAdd( row, 1 ), col, new_links_weight_view[ i ] );
+            if constexpr( ! OutGraph::MatrixType::isSymmetric() )
+               tree_view.getRow( col ).setElement( treeFillingView.atomicAdd( col, 1 ), row, new_links_weight_view[ i ] );
             std::cout <<    " Adding edge " << row << " -> " << col << " with weight " << new_links_weight_view[ i ]
                       << " to the output tree." << std::endl;
          }
@@ -348,25 +371,43 @@ void parallelMST(const Matrix& graph, Matrix& tree )
          }
       } );
       std::cout << "Star roots slots after update: " << starRootsSlots << std::endl;*/
-      getchar();
+      //getchar();
    }
 }
 
-template< typename Matrix,
-          typename Real = typename Matrix::RealType,
-          typename Index = typename Matrix::IndexType >
-void minimumSpanningTree( const Matrix& adjacencyMatrix, Matrix& spanning_tree )
-   //Containers::Array< Edge< Real, Index >, typename Matrix::DeviceType >& spanning_tree )
+/**
+ * \brief Computes minimum spanning tree of a graph.
+ *
+ * The input graph must be undirected. The output graph representing the minimum spanning tree must
+ * be of the same type in this sense. If the input graph is not connected, the output graph will be a forest and the
+ * \e roots vector will contain the roots of the trees in the forest.
+ *
+ * \tparam InGraph is the type of the input graph.
+ * \tparam OutGraph is the type of the output graph.
+ * \tparam RootsVector is the type of the vector containing the roots of the
+ * \tparam Value is the type of the values of the input graph.
+ * \tparam Index is the type of the indices of the input graph.
+ *
+ * \param graph is the input graph
+ * \param spanning_tree is the output graph representing the minimum spanning tree.
+ * \param roots is the vector containing the roots of the trees in the forest.
+ */
+template< typename InGraph,
+          typename OutGraph = InGraph,
+          typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
+          typename Value = typename InGraph::ValueType,
+          typename Index = typename InGraph::IndexType >
+void minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVector& roots )
 {
-   TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
+   static_assert( InGraph::isUndirected(), "The input graph must be undirected." );
+   static_assert( OutGraph::isUndirected(), "The output graph must be undirected." );
 
-   using Device = typename Matrix::DeviceType;
+   using Device = typename InGraph::DeviceType;
 
    //if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value )
-      kruskal( adjacencyMatrix, spanning_tree );
+   //   kruskal( graph, spanning_tree, roots );
    //else
-   //   parallelMST( adjacencyMatrix, spanning_tree );
+      parallelMST( graph, spanning_tree );
 }
-} // namespace Graphs
-} // namespace Algorithms
-} // namespace TNL
+
+} // namespace TNL::Algorithms::Graphs
