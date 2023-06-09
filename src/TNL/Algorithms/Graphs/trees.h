@@ -28,8 +28,8 @@ bool visitNeighbour( const Index current, const Index neighbor, Vector& visited,
    return true;
 }
 
-template< typename Graph >
-bool isTree_impl( const Graph& graph, TreeType treeType = TreeType::Tree )
+template< typename Graph, typename Vector >
+bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeType::Tree )
 {
    using ValueType = typename Graph::ValueType;
    using DeviceType = typename Graph::DeviceType;
@@ -38,17 +38,17 @@ bool isTree_impl( const Graph& graph, TreeType treeType = TreeType::Tree )
    using IndexVectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
    using MatrixType = typename Graph::MatrixType;
 
-   const IndexType n = graph.getNodesCount();
+   const IndexType n = graph.getNodeCount();
+
    /////
    // Check if the number of edges is n - 1, i.e number of vertexes - 1 if we test for tree.
-   if( treeType == TreeType::Tree ) {
-      const IndexType edges_count = graph.getEdgesCount();
-      if( edges_count != ( 2*n - 2 ) )
-            return false;
-   }
+   if( treeType == TreeType::Tree && graph.getEdgeCount() != n - 1 )
+      return false;
 
    IndexVectorType visited( n, 0 ), visited_old( n, -1 ), parents( n, 0 );
-   IndexType start_node = 0;
+   IndexType start_node = 0, rootsIdx = 0;
+   if( ! roots.empty() )
+      start_node = roots.getElement( rootsIdx++ );
    while( true ) {
       visited.setElement( start_node, 1 );
       if( std::is_same_v< DeviceType, Devices::Sequential > ) {
@@ -119,20 +119,37 @@ bool isTree_impl( const Graph& graph, TreeType treeType = TreeType::Tree )
          return true;
       if( treeType == TreeType::Tree )
          return false;
-      start_node = visited.find( 0 );
+      if( ! roots.empty() ) {
+         if( rootsIdx < roots.getSize() )
+            start_node = roots.getElement( rootsIdx++ );
+         else return false;
+      }
+      else start_node = visited.find( 0 );
    }
 }
 
 template< typename Graph >
-bool isTree( const Graph& graph )
+bool isTree( const Graph& graph, typename Graph::IndexType start_node = 0 )
 {
-   return isTree_impl( graph, TreeType::Tree );
+   using ValueType = typename Graph::ValueType;
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+
+   Containers::Vector< IndexType > roots( 1, start_node );
+   return isTree_impl( graph, roots, TreeType::Tree );
+}
+
+template< typename Graph, typename Vector >
+bool isForest( const Graph& graph, const Vector& roots )
+{
+   return isTree_impl( graph, roots, TreeType::Forest );
 }
 
 template< typename Graph >
 bool isForest( const Graph& graph )
 {
-   return isTree_impl( graph, TreeType::Forest );
+   Containers::Vector< typename Graph::IndexType > roots;
+   return isTree_impl( graph, roots, TreeType::Forest );
 }
 
 } // namespace TNL::Algorithms::Graphs
