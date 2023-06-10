@@ -11,9 +11,9 @@
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Benchmarks/Benchmarks.h>
-#include <TNL/Algorithms/Graphs/GraphReader.h>
-#include <TNL/Algorithms/Graphs/breadthFirstSearch.h>
-#include <TNL/Algorithms/Graphs/singleSourceShortestPath.h>
+#include <TNL/Graphs/GraphReader.h>
+#include <TNL/Graphs/breadthFirstSearch.h>
+#include <TNL/Graphs/singleSourceShortestPath.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
@@ -27,6 +27,8 @@ template< typename Real = double,
 struct GraphsBenchmark
 {
    using HostMatrix = TNL::Matrices::SparseMatrix<Real, TNL::Devices::Host, Index>;
+   using HostGraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::Undirected >;
+   using HostDigraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::Directed >;
    using HostIndexVector = TNL::Containers::Vector<Index, TNL::Devices::Host, Index>;
    using HostRealVector = TNL::Containers::Vector<Real, TNL::Devices::Host, Index>;
 
@@ -56,21 +58,22 @@ struct GraphsBenchmark
       template< typename Device_,
                 typename Index_,
                 typename IndexAllocator_ > class Segments = TNL::Algorithms::Segments::CSRScalar >
-   void TNLBenchmarks( const HostMatrix& hostAdjacencyMatrix,
+   void TNLBenchmarks( const HostDigraph& hostDigraph,
                        TNL::Benchmarks::Benchmark<>& benchmark,
                        const TNL::String& device,
                        const TNL::String& segments  )
    {
       using Matrix = TNL::Matrices::SparseMatrix<Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
+      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::Undirected >;
+      using Digraph = TNL::Graphs::Graph< Matrix, TNL::Graphs::Directed >;
       using IndexVector = TNL::Containers::Vector<Index, Device, Index>;
       using RealVector = TNL::Containers::Vector<Real, Device, Index>;
 
-      Matrix adjacencyMatrix;
-      adjacencyMatrix = hostAdjacencyMatrix;
-      IndexVector bfsDistances( adjacencyMatrix.getRows() );
+      Digraph digraph( hostDigraph );
 
       // Benchmarking breadth-first search
-      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
+      IndexVector bfsDistances( digraph.getNodeCount() );
+      benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataColumns(
          TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
                                                           { "device", device },
@@ -78,7 +81,7 @@ struct GraphsBenchmark
                                                           { "algorithm", std::string( "BFS TNL" ) } } ) );
 
       auto bfs_tnl = [&] () mutable {
-         TNL::Algorithms::Graphs::breadthFirstSearch( adjacencyMatrix, 0, bfsDistances );
+         TNL::Graphs::breadthFirstSearch( digraph, 0, bfsDistances );
       };
       benchmark.time< Device >( device, bfs_tnl );
       if( bfsDistances != this->boostBfsDistances )
@@ -88,16 +91,16 @@ struct GraphsBenchmark
       }
 
       // Benchmarking single-source shortest paths
-      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
+      benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
          TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType<Real>() },
                                                           { "device", device },
                                                           { "format", segments },
                                                           { "algorithm", std::string( "SSSP TNL" ) } } ) );
 
-      RealVector ssspDistances( adjacencyMatrix.getRows(), 0 );
+      RealVector ssspDistances( digraph.getNodeCount(), 0 );
       auto sssp_tnl = [&] () mutable {
-         TNL::Algorithms::Graphs::singleSourceShortestPath( adjacencyMatrix, 0, ssspDistances );
+         TNL::Graphs::singleSourceShortestPath( digraph, 0, ssspDistances );
       };
       benchmark.time< Device >( device, sssp_tnl );
 
@@ -108,16 +111,16 @@ struct GraphsBenchmark
       }
    }
 
-   void boostBenchmarks( const HostMatrix& adjacencyMatrix, TNL::Benchmarks::Benchmark<>& benchmark )
+   void boostBenchmarks( const HostDigraph& digraph, TNL::Benchmarks::Benchmark<>& benchmark )
    {
       benchmark.setMetadataColumns(
       TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
                                                        { "device", "sequential" },
                                                        { "format", "N/A" },
                                                        { "algorithm", std::string( "BFS Boost" ) } } ) );
-      BoostGraph< Index, Real > boostGraph( adjacencyMatrix );
+      BoostGraph< Index, Real > boostGraph( digraph );
 
-      std::vector<Index> boostBfsDistances( adjacencyMatrix.getRows() );
+      std::vector<Index> boostBfsDistances( digraph.getNodeCount() );
       auto bfs_boost = [&] () mutable {
          boostGraph.breadthFirstSearch( 0, boostBfsDistances );
       };
@@ -133,7 +136,7 @@ struct GraphsBenchmark
                                                           { "device", "sequential" },
                                                           { "format", "N/A" },
                                                           { "algorithm", std::string( "SSSP Boost" ) } } ) );
-      std::vector<Real> boostSSSPDistances( adjacencyMatrix.getRows() );
+      std::vector<Real> boostSSSPDistances( digraph.getNodeCount() );
       auto sssp_boost = [&] () mutable {
          boostGraph.singleSourceShortestPath( 0, boostSSSPDistances );
       };
@@ -229,29 +232,29 @@ struct GraphsBenchmark
 
       std::cout << "Graphs benchmark  with " << TNL::getType<Real>() << " precision and device: " << device << std::endl;
 
-      HostMatrix adjacencyMatrix;
+      HostDigraph digraph;
       std::cout << "Reading graph from file " << inputFile << std::endl;
-      TNL::Algorithms::Graphs::GraphReader< HostMatrix >::readEdgeList( inputFile, adjacencyMatrix );
+      TNL::Graphs::GraphReader< HostDigraph >::readEdgeList( inputFile, digraph );
 
-      boostBenchmarks( adjacencyMatrix, benchmark );
-#ifdef __CUDACC__
-      gunrockBenchmarks( adjacencyMatrix, benchmark, inputFile );
+      boostBenchmarks( digraph, benchmark );
+#ifdef HAVE_GUNROCK
+      gunrockBenchmarks( digraph, benchmark, inputFile );
 #endif
 
       if( device == "sequential" || device == "all" )
-         TNLBenchmarks< TNL::Devices::Sequential, TNL::Algorithms::Segments::CSRScalar >( adjacencyMatrix, benchmark, "sequential", "CSRScalar" );
+         TNLBenchmarks< TNL::Devices::Sequential, TNL::Algorithms::Segments::CSRScalar >( digraph, benchmark, "sequential", "CSRScalar" );
       if( device == "host" || device == "all" )
-         TNLBenchmarks< TNL::Devices::Host, TNL::Algorithms::Segments::CSRScalar >( adjacencyMatrix, benchmark, "host", "CSRScalar" );
+         TNLBenchmarks< TNL::Devices::Host, TNL::Algorithms::Segments::CSRScalar >( digraph, benchmark, "host", "CSRScalar" );
 #ifdef __CUDACC__
       if( device == "cuda" || device == "all" )
       {
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRScalar     >( adjacencyMatrix, benchmark, "cuda", "CSRScalar" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRVector     >( adjacencyMatrix, benchmark, "cuda", "CSRVector" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRLight      >( adjacencyMatrix, benchmark, "cuda", "CSRLight" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRAdaptive   >( adjacencyMatrix, benchmark, "cuda", "CSRAdaptive" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::Ellpack       >( adjacencyMatrix, benchmark, "cuda", "Ellpack" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::SlicedEllpack >( adjacencyMatrix, benchmark, "cuda", "SlicedEllpack" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::BiEllpack     >( adjacencyMatrix, benchmark, "cuda", "BiEllpack" );
+         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRScalar     >( digraph, benchmark, "cuda", "CSRScalar" );
+         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRVector     >( digraph, benchmark, "cuda", "CSRVector" );
+         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRLight      >( digraph, benchmark, "cuda", "CSRLight" );
+         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRAdaptive   >( digraph, benchmark, "cuda", "CSRAdaptive" );
+         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::Ellpack       >( digraph, benchmark, "cuda", "Ellpack" );
+         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::SlicedEllpack >( digraph, benchmark, "cuda", "SlicedEllpack" );
+         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::BiEllpack     >( digraph, benchmark, "cuda", "BiEllpack" );
       }
 #endif
       return true;

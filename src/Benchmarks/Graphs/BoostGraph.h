@@ -41,13 +41,12 @@ struct BoostGraph
 
    BoostGraph(){}
 
-   template< typename TNLMatrix >
-   BoostGraph( const TNLMatrix& m )
+   template< typename TNLDigraph >
+   BoostGraph( const TNLDigraph& digraph )
    {
-      TNL_ASSERT_TRUE( m.getRows() == m.getColumns(), "Adjacency matrix must be square matrix." );
-      for( Index rowIdx = 0; rowIdx < m.getRows(); rowIdx++ )
+      for( Index rowIdx = 0; rowIdx < digraph.getNodeCount(); rowIdx++ )
       {
-         const auto row = m.getRow( rowIdx );
+         const auto row = digraph.getAdjacencyMatrix().getRow( rowIdx );
          for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ )
          {
             if( row.getValue( localIdx ) != 0.0 )
@@ -90,7 +89,7 @@ struct BoostGraph
 
    void minimumSpanningTree( std::vector< Edge >& spanning_tree )
    {
-      boost::kruskal_minimum_spanning_tree(graph, std::back_inserter(spanning_tree));
+      //boost::kruskal_minimum_spanning_tree(graph, std::back_inserter(spanning_tree));
    }
 protected:
    AdjacencyList graph;

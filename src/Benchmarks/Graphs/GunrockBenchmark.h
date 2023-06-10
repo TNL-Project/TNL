@@ -17,6 +17,7 @@ struct GunrockBenchmark
    template< typename Graph >
    void breadthFirstSearch( TNL::Benchmarks::Benchmark<>& benchmark, Graph& graph, Index start, Index size, std::vector< Index >& distances )
    {
+#ifdef HAVE_GUNROCK
       thrust::device_vector< typename Graph::vertex_type > d_distances( size );
       thrust::device_vector< typename Graph::vertex_type > d_predecessors( size );
 
@@ -26,11 +27,13 @@ struct GunrockBenchmark
       };
       benchmark.time< TNL::Devices::Cuda >( "cuda", bfs_gunrock );
       thrust::copy( d_distances.begin(), d_distances.end(), distances.begin() );
+#endif
    }
 
    template< typename Graph >
    void singleSourceShortestPath( TNL::Benchmarks::Benchmark<>& benchmark, Graph& graph, Index start, Index size, std::vector< Real >& distances )
    {
+#ifdef HAVE_GUNROCK
       thrust::device_vector< Real > d_distances( size );
       thrust::device_vector< Index > d_predecessors( size );
 
@@ -40,5 +43,6 @@ struct GunrockBenchmark
       };
       benchmark.time< TNL::Devices::Cuda >( "cuda", bfs_gunrock );
       thrust::copy( d_distances.begin(), d_distances.end(), distances.begin() );
+#endif
    }
 };
