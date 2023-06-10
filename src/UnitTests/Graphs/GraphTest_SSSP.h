@@ -1,4 +1,4 @@
-#include <TNL/Algorithms/Graphs/singleSourceShortestPath.h>
+#include <TNL/Graphs/singleSourceShortestPath.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Containers/StaticVector.h>
 
@@ -13,7 +13,7 @@ class GraphTest : public ::testing::Test
 {
 protected:
    using MatrixType = Matrix;
-   using GraphType = TNL::Algorithms::Graphs::Graph< MatrixType, TNL::Algorithms::Graphs::Directed >;
+   using GraphType = TNL::Graphs::Graph< MatrixType, TNL::Graphs::Directed >;
 };
 
 // types for which MatrixTest is instantiated
@@ -47,7 +47,7 @@ TYPED_TEST( GraphTest, test_BFS_small )
                         { 4, 1, 3.7 },                { 4, 3, 1.5 }
         });
 
-   VectorType distances( graph.getNodesCount() );
+   VectorType distances( graph.getNodeCount() );
    std::vector< VectorType > expectedDistances{
       { 0.0, 0.5, 1.2, 2.0, 3.5 },
       { 0.5, 0.0, 1.7, 2.3, 3.7 },
@@ -55,9 +55,9 @@ TYPED_TEST( GraphTest, test_BFS_small )
       { 2.0, 2.3, 0.8, 0.0, 1.5 },
       { 3.5, 3.7, 2.3, 1.5, 0.0 } };
 
-   for( int start_node = 0; start_node < graph.getNodesCount(); ++start_node )
+   for( int start_node = 0; start_node < graph.getNodeCount(); ++start_node )
    {
-      TNL::Algorithms::Graphs::singleSourceShortestPath( graph, start_node, distances );
+      TNL::Graphs::singleSourceShortestPath( graph, start_node, distances );
       ASSERT_EQ(distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
 }
@@ -87,7 +87,7 @@ TYPED_TEST( GraphTest, test_BFS_larger )
         });
 
 
-   VectorType distances( graph.getNodesCount() );
+   VectorType distances( graph.getNodeCount() );
    std::vector< VectorType > expectedDistances = {
       {  0.0,  0.5,  1.2, 2.0,  4.2,  3.3, 3.5,  5.1,  5.0, 6.8 },
       { -1.0,  0.0, -1.0, 2.3,  3.7, -1.0, 3.8,  4.6, -1.0, 6.8 },
@@ -101,10 +101,10 @@ TYPED_TEST( GraphTest, test_BFS_larger )
       { -1.0, -1.0, -1.0, 0.7, -1.0, -1.0, 2.2, -1.0, -1.0, 0.0 }
    };
 
-   for( int start_node = 0; start_node < graph.getNodesCount(); start_node++ )
+   for( int start_node = 0; start_node < graph.getNodeCount(); start_node++ )
    {
-      TNL::Algorithms::Graphs::singleSourceShortestPath( graph, start_node, distances );
-      for( IndexType i = 0; i < graph.getNodesCount(); i++ )
+      TNL::Graphs::singleSourceShortestPath( graph, start_node, distances );
+      for( IndexType i = 0; i < graph.getNodeCount(); i++ )
          ASSERT_FLOAT_EQ(distances.getElement( i ), expectedDistances[ start_node ].getElement( i ) )
             << "start_node: " << start_node
             << " distances[ " << i << " ]: " << distances.getElement( i )
@@ -144,7 +144,7 @@ TYPED_TEST( GraphTest, test_BFS_largest )
         {14, 13, 2.8}
       } );
 
-   VectorType distances( graph.getNodesCount() );
+   VectorType distances( graph.getNodeCount() );
    std::vector< VectorType > expectedDistances = {
       {  0.0,  2.4, 34.3,  5.5,  4.6,  9.3,  8.4, 32.4, 29.1, 13.7, 15.7, 12.8, 16.5, 25.1, 22.3 },
       { -1.0,  0.0, 31.9,  3.1, -1.0,  6.9,  6.0, 30.0, 26.7, 11.3, 13.3, -1.0, 16.1, 22.7, 19.9 },
@@ -163,10 +163,10 @@ TYPED_TEST( GraphTest, test_BFS_largest )
       { -1.0, 13.2, 12.0, 16.3, -1.0, 20.1, 19.2, 10.1,  6.8,  9.5, 11.8, -1.0,  7.9,  2.8,  0.0 }
    };
 
-   for( int start_node = 0; start_node < graph.getNodesCount(); start_node++ )
+   for( int start_node = 0; start_node < graph.getNodeCount(); start_node++ )
    {
-      TNL::Algorithms::Graphs::singleSourceShortestPath( graph, start_node, distances );
-      for( IndexType i = 0; i < graph.getNodesCount(); i++ )
+      TNL::Graphs::singleSourceShortestPath( graph, start_node, distances );
+      for( IndexType i = 0; i < graph.getNodeCount(); i++ )
          ASSERT_FLOAT_EQ(distances.getElement( i ), expectedDistances[ start_node ].getElement( i ) )
             << "start_node: " << start_node
             << " distances[ " << i << " ]: " << distances.getElement( i )
@@ -178,4 +178,4 @@ TYPED_TEST( GraphTest, test_BFS_largest )
 
 #endif
 
-#include "../../main.h"
+#include "../main.h"

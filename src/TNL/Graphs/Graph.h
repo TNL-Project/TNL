@@ -8,9 +8,11 @@
 
 #include <type_traits>
 #include <map>
-#include <TNL/TypeTraits.h>
+#include <ostream>
+//#include <TNL/TypeTraits.h>
+//#include <TNL/Algorithms/reduce.h>
 
-namespace TNL::Algorithms::Graphs {
+namespace TNL::Graphs {
 
 struct Directed {};
 
@@ -42,6 +44,15 @@ struct Graph
    Graph( const Graph& ) = default;
 
    Graph( Graph&& ) = default;
+
+   template< typename OtherGraph >
+   Graph( const OtherGraph& other ) {
+      this->adjacencyMatrix = other.getAdjacencyMatrix();
+   }
+
+   template< typename OtherGraph >
+   Graph( const OtherGraph&& other )
+      : MatrixType( std::forward< typename OtherGraph::MatrixType >( other.getAdjacencyMatrix() ) ) {}
 
    Graph( IndexType nodesCount,
           const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data ) {
@@ -90,6 +101,11 @@ struct Graph
       adjacencyMatrix.setDimensions( nodesCount, nodesCount );
    }
 
+   template< typename MapIndex, typename MapValue >
+   void setEdges( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map ) {
+      this->adjacencyMatrix.setElements( map );
+   }
+
    IndexType getNodeCount() const {
       return adjacencyMatrix.getRows();
    }
@@ -114,16 +130,20 @@ struct Graph
       return adjacencyMatrix;
    }
 
-   void setAdjacencyMatrix( const MatrixType& matrix ) {
+   template< typename Matrix_ >
+   void setAdjacencyMatrix( const Matrix_& matrix ) {
+      TNL_ASSERT_EQ( matrix.getRows(), matrix.getColumns(), "Adjacency matrix must be square matrix." );
       adjacencyMatrix = matrix;
    }
 
-   void setAdjacencyMatrix( MatrixType&& matrix ) {
+   template< typename Matrix_ >
+   void setAdjacencyMatrix( Matrix_&& matrix ) {
+      TNL_ASSERT_EQ( matrix.getRows(), matrix.getColumns(), "Adjacency matrix must be square matrix." );
       adjacencyMatrix = std::move( matrix );
    }
 
    ValueType getTotalWeight() const {
-      auto values_view = adjacencyMatrix.getValues().getConstView();
+      /*auto values_view = adjacencyMatrix.getValues().getConstView();
       auto column_indexes_view = adjacencyMatrix.getColumnIndexes().getConstView();
       const auto padding = adjacencyMatrix.getPaddingIndex();
       return Algorithms::reduce< DeviceType >( 0, values_view.getSize(),
@@ -131,7 +151,7 @@ struct Graph
             if( column_indexes_view[ i ] != padding )
                return values_view[ i ];
             return ( ValueType ) 0; },
-         TNL::Plus{} );
+         TNL::Plus{} );*/
    }
 
    ~Graph() = default;
@@ -147,4 +167,4 @@ std::ostream& operator<<( std::ostream& os, const Graph< Matrix, GraphType >& gr
    return os;
 };
 
-} // namespace TNL::Algorithms::Graphs
+} // namespace TNL::Graphs

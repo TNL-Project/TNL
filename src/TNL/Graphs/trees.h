@@ -11,7 +11,7 @@
 #include <TNL/Algorithms/AtomicOperations.h>
 
 
-namespace TNL::Algorithms::Graphs {
+namespace TNL::Graphs {
 
 enum class TreeType { Tree, Forest };
 
@@ -66,7 +66,7 @@ bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = T
                   return false;
             }
             if constexpr( MatrixType::isSymmetric() ) { // search the adjacency matrix for other neighbours
-               for( IndexType rowIdx = 0; rowIdx < graph.getNodesCount(); rowIdx++ ) {
+               for( IndexType rowIdx = 0; rowIdx < graph.getNodeCount(); rowIdx++ ) {
                   if( rowIdx == current )
                      continue;
                   auto row = graph.getAdjacencyMatrix().getRow( rowIdx );
@@ -152,4 +152,4 @@ bool isForest( const Graph& graph )
    return isTree_impl( graph, roots, TreeType::Forest );
 }
 
-} // namespace TNL::Algorithms::Graphs
+} // namespace TNL::Graphs

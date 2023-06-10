@@ -8,16 +8,13 @@
 
 #include <queue>
 
-#include <TNL/Algorithms/Graphs/Graph.h>
+#include <TNL/Graphs/Graph.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Functional.h>
 #include <TNL/Assert.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Graphs {
-
+namespace TNL::Graphs {
 
 template< typename Matrix, typename Vector, typename Index = typename Matrix::IndexType >
 void singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix, Index start, Vector& distances )
@@ -55,7 +52,7 @@ void singleSourceShortestPath( const Graph& graph, Index start, Vector& distance
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
 
-   distances.setSize( graph.getNodesCount() );
+   distances.setSize( graph.getNodeCount() );
    distances = std::numeric_limits< Real >::max();
    distances.setElement( start, 0.0 );
 
@@ -103,7 +100,4 @@ void singleSourceShortestPath( const Graph& graph, Index start, Vector& distance
    );
 }
 
-
-      } // namespace Graphs
-   }  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Graphs

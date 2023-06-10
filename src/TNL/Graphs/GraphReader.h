@@ -13,23 +13,21 @@
 
 #include <TNL/Containers/Vector.h>
 
-namespace TNL {
-namespace Algorithms {
-namespace Graphs {
+namespace TNL::Graphs {
 
-template< typename Matrix >
+template< typename Graph >
 struct GraphReader
 {
-   using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
-   using IndexType = typename Matrix::IndexType;
+   using ValueType = typename Graph::ValueType;
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
 
-   static void readEdgeList( const std::string& file_name, Matrix& matrix )
+   static void readEdgeList( const std::string& file_name, Graph& graph )
    {
       using Edge = std::pair< IndexType, IndexType >;
       std::ifstream file(file_name);
       IndexType nodes( 0 );
-      std::map< Edge, RealType > edges;
+      std::map< Edge, ValueType > edges;
 
       std::string line;
       while( getline(file, line) ) {
@@ -48,11 +46,9 @@ struct GraphReader
          edges.emplace( Edge( from_node, to_node ), 1.0 );
       }
       nodes++; // nodes are numbered from 0
-      matrix.setDimensions( nodes, nodes );
-      matrix.setElements( edges );
+      graph.setNodeCount( nodes );
+      graph.setEdges( edges );
    }
 };
 
-} // namespace Graphs
-} // namespace Algorithms
-} // namespace TNL
+} // namespace TNL::Graphs

@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace TNL::Algorithms::Graphs {
+namespace TNL::Graphs {
 
 template< typename Real = double,
           typename Index = int >
@@ -90,4 +90,4 @@ std::ostream& operator<<( std::ostream& os, const Edge< Real, Index >& edge ) {
    return os;
 }
 
-}  // namespace TNL::Algorithms::Graphs
+}  // namespace TNL::Graphs

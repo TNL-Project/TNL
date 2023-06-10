@@ -13,7 +13,7 @@
 #include <TNL/Functional.h>
 #include <TNL/Assert.h>
 
-namespace TNL::Algorithms::Graphs {
+namespace TNL::Graphs {
 
 template< bool haveExplorer, typename Matrix, typename Vector, typename Visitor, typename Explorer >
 void breadthFirstSearchTransposed_impl( const Matrix& transposedAdjacencyMatrix,
@@ -192,5 +192,4 @@ void breadthFirstSearch( const Graph& graph,
                                     explorer   );
 }
 
-
-}  // namespace TNL::Algorithms::Graphs
+}  // namespace TNL::Graphs

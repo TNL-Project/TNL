@@ -10,11 +10,11 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/AtomicVectorView.h>
 #include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Algorithms/Graphs/Graph.h>
-#include <TNL/Algorithms/Graphs/Edge.h>
+#include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/Edge.h>
 #include <TNL/Algorithms/Segments/GrowingSegments.h>
 
-namespace TNL::Algorithms::Graphs {
+namespace TNL::Graphs {
 
 // TODO: replace with std::touple
 template< typename Real = double,
@@ -151,7 +151,7 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
    using InMatrixType = typename InGraph::MatrixType;
    using RowView = typename InMatrixType::ConstRowView;
    using SegmentsType = typename InMatrixType::SegmentsType;
-   using GrowingSegmentsType = Segments::GrowingSegments< SegmentsType >;
+   using GrowingSegmentsType = Algorithms::Segments::GrowingSegments< SegmentsType >;
 
    Index n = graph.getNodeCount();
    IndexVector starRootsSlots;
@@ -410,4 +410,4 @@ void minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVe
       parallelMST( graph, spanning_tree );
 }
 
-} // namespace TNL::Algorithms::Graphs
+} // namespace TNL::Graphs

@@ -1,15 +1,12 @@
 #include <iostream>
 #include <cstdint>
-
-#include <TNL/Algorithms/Graphs/trees.h>
+#include <TNL/Graphs/trees.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Containers/StaticVector.h>
-#include <TNL/Algorithms/Graphs/Graph.h>
+#include <TNL/Graphs/Graph.h>
 
 #ifdef HAVE_GTEST
 #include <gtest/gtest.h>
-
-#include "makeSymmetric.h"
 
 // test fixture for typed tests
 template< typename Matrix >
@@ -17,7 +14,7 @@ class GraphTest : public ::testing::Test
 {
 protected:
    using MatrixType = Matrix;
-   using GraphType = TNL::Algorithms::Graphs::Graph< MatrixType, TNL::Algorithms::Graphs::Undirected >;
+   using GraphType = TNL::Graphs::Graph< MatrixType, TNL::Graphs::Undirected >;
 };
 
 // types for which MatrixTest is instantiated
@@ -50,7 +47,7 @@ TYPED_TEST( GraphTest, test_isTree_small )
                                                                                                                        {5, 9, 1}
         });
 
-   ASSERT_TRUE( TNL::Algorithms::Graphs::isTree( graph ) );
+   ASSERT_TRUE( TNL::Graphs::isTree( graph ) );
 }
 
 TYPED_TEST( GraphTest, test_isTree_not_tree )
@@ -69,7 +66,7 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
             { 5, 0, 1 },                                                                                              {5, 9, 1}
         });
 
-   ASSERT_FALSE( TNL::Algorithms::Graphs::isTree( graph ) );
+   ASSERT_FALSE( TNL::Graphs::isTree( graph ) );
 
    // Create another sample graph.
    GraphType graph2(
@@ -83,7 +80,7 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
             { 5, 0, 1 }
         });
 
-   ASSERT_FALSE( TNL::Algorithms::Graphs::isTree( graph2 ) );
+   ASSERT_FALSE( TNL::Graphs::isTree( graph2 ) );
 }
 
 TYPED_TEST( GraphTest, test_large_tree )
@@ -121,7 +118,7 @@ TYPED_TEST( GraphTest, test_large_tree )
             {  8, 27, 4.0 }
          } );
 
-   ASSERT_TRUE( TNL::Algorithms::Graphs::isTree( tree ) );
+   ASSERT_TRUE( TNL::Graphs::isTree( tree ) );
 }
 
 TYPED_TEST( GraphTest, test_small_forest )
@@ -133,10 +130,10 @@ TYPED_TEST( GraphTest, test_small_forest )
             { 0, 4, 1.0 }
          } );
 
-   ASSERT_FALSE( TNL::Algorithms::Graphs::isTree( graph ) );
-   ASSERT_TRUE( TNL::Algorithms::Graphs::isForest( graph ) );
+   ASSERT_FALSE( TNL::Graphs::isTree( graph ) );
+   ASSERT_TRUE( TNL::Graphs::isForest( graph ) );
 }
 
 #endif
 
-#include "../../main.h"
+#include "../main.h"

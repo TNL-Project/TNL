@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace TNL::Algorithms::Graphs {
+namespace TNL::Graphs {
 
 template< typename Graph >
 struct GraphWriter
@@ -49,4 +49,4 @@ struct GraphWriter
    }
 };
 
-} // namespace TNL::Algorithms::Graphs
+} // namespace TNL::Graphs
