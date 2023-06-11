@@ -1006,17 +1006,4 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    return this->indexer;
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          ElementsOrganization Organization,
-          typename RealAllocator,
-          typename IndexAllocator >
-__cuda_callable__
-Index
-MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::getPaddingIndex() const
-{
-   return this->view.getPaddingIndex();
-}
-
 }  // namespace TNL::Matrices

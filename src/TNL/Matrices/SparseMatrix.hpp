@@ -280,7 +280,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    }
    this->values.setSize( this->segments.getStorageSize() );
    this->columnIndexes.setSize( this->segments.getStorageSize() );
-   this->columnIndexes = this->getPaddingIndex();
+   this->columnIndexes = paddingIndex< Index >;
 
    // update the base
    Base::bind( this->getRows(), this->getColumns(), values.getView(), columnIndexes.getView(), segments.getView() );
@@ -401,7 +401,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          for( Index c = 0; c < row.getSize(); c++ ) {
             // row index of the transpose = column index of the input
             const Index& transRowIdx = row.getColumnIndex( c );
-            if( transRowIdx == row.getPaddingIndex() )
+            if( transRowIdx == paddingIndex< Index > )
                continue;
             // increment the capacity for the row in the transpose
             Algorithms::AtomicOperations< Device >::add( capacities_view[ transRowIdx ], Index( 1 ) );
@@ -427,7 +427,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          for( Index c = 0; c < row.getSize(); c++ ) {
             // row index of the transpose = column index of the input
             const Index& transRowIdx = row.getColumnIndex( c );
-            if( transRowIdx == row.getPaddingIndex() )
+            if( transRowIdx == paddingIndex< Index > )
                continue;
             // local index in the row of the transpose
             const Index transLocalIdx = Algorithms::AtomicOperations< Device >::add( offsets_view[ transRowIdx ], Index( 1 ) );

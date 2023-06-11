@@ -696,12 +696,4 @@ MultidiagonalMatrixView< Real, Device, Index, Organization >::getIndexer() -> In
    return this->indexer;
 }
 
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-__cuda_callable__
-Index
-MultidiagonalMatrixView< Real, Device, Index, Organization >::getPaddingIndex() const
-{
-   return -1;
-}
-
 }  // namespace TNL::Matrices

@@ -782,18 +782,6 @@ public:
    [[nodiscard]] ColumnsIndexesViewType&
    getColumnIndexes();
 
-   /**
-    * \brief Returns a padding index value.
-    *
-    * Padding index is used for column indexes of padding zeros. Padding zeros
-    * are used in some sparse matrix formats for better data alignment in memory.
-    *
-    * \return value of the padding index.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getPaddingIndex() const;
-
 protected:
    ColumnsIndexesViewType columnIndexes;
 

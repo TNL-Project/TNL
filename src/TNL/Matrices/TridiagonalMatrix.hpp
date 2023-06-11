@@ -582,12 +582,4 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getElemen
    return this->indexer.getGlobalIndex( row, localIdx );
 }
 
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-__cuda_callable__
-Index
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getPaddingIndex() const
-{
-   return this->view.getPaddingIndex();
-}
-
 }  // namespace TNL::Matrices

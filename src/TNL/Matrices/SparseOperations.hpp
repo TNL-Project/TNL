@@ -16,6 +16,8 @@
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Containers/Vector.h>
 
+#include "MatrixBase.h"
+
 namespace TNL::Matrices {
 
 template< typename Matrix1, typename Matrix2 >
@@ -103,14 +105,12 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
    B.getCompressedRowLengths( rowLengths );
    A.setDimensions( B.getRows(), B.getColumns() );
 
-   RHSIndexType padding_index = B.getPaddingIndex();
-
    if constexpr( std::is_same< Device, RHSDeviceType >::value ) {
       auto A_view = A.getView();
       auto f = [ = ] __cuda_callable__(
                   RHSIndexType rowIdx, RHSIndexType localIdx_, RHSIndexType columnIdx, const RHSRealType& value ) mutable
       {
-         if( value != 0.0 && columnIdx != padding_index )
+         if( value != 0.0 && columnIdx != paddingIndex< Index > )
             A_view( rowIdx, columnIdx ) = value;
       };
       B.forAllElements( f );
@@ -132,14 +132,14 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
       const Index rowsCount = A.getRows();
       while( baseRow < rowsCount ) {
          const Index lastRow = min( baseRow + bufferRowsCount, rowsCount );
-         thisColumnsBuffer = padding_index;
-         matrixColumnsBuffer_view = padding_index;
+         thisColumnsBuffer = paddingIndex< Index >;
+         matrixColumnsBuffer_view = paddingIndex< Index >;
 
          // Copy matrix elements into buffer
          auto f1 = [ = ] __cuda_callable__(
                       RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIndex, const RHSRealType& value ) mutable
          {
-            if( columnIndex != padding_index ) {
+            if( columnIndex != paddingIndex< Index > ) {
                const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
                matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
                matrixValuesBuffer_view[ bufferIdx ] = value;
@@ -160,7 +160,7 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
             const Index& bufferRowIdx = i[ 1 ];
             const Index bufferIdx = bufferRowIdx * maxRowLength + bufferColumnIdx;
             const Index columnIdx = thisColumnsBuffer_view[ bufferIdx ];
-            if( columnIdx != padding_index )
+            if( columnIdx != paddingIndex< Index > )
                this_view( baseRow + bufferRowIdx, columnIdx ) = thisValuesBuffer_view[ bufferIdx ];
          };
          MultiIndex begin = { 0, 0 };
@@ -192,11 +192,10 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
    Containers::Vector< Index, Device, Index > rowLocalIndexes( B.getRows() );
    rowLocalIndexes = 0;
 
-   const Index paddingIndex = A.getPaddingIndex();
    auto columns_view = A.getColumnIndexes().getView();
    auto values_view = A.getValues().getView();
    auto rowLocalIndexes_view = rowLocalIndexes.getView();
-   columns_view = paddingIndex;
+   columns_view = paddingIndex< Index >;
 
    if constexpr( std::is_same_v< Device, RHSDeviceType > ) {
       const auto segments_view = A.getSegments().getView();
@@ -226,7 +225,7 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
       const Index rowsCount = A.getRows();
       while( baseRow < rowsCount ) {
          const Index lastRow = min( baseRow + bufferRowsCount, rowsCount );
-         thisColumnsBuffer = paddingIndex;
+         thisColumnsBuffer = paddingIndex< Index >;
 
          // Copy matrix elements into buffer
          auto f1 = [ = ] __cuda_callable__(
@@ -254,7 +253,7 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
             }
             rowLocalIndexes_view[ rowIdx ] = column;
             if( inValue == 0.0 ) {
-               columnIndex = paddingIndex;
+               columnIndex = paddingIndex< Index >;
                value = 0.0;
             }
             else {
@@ -288,11 +287,10 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
    Containers::Vector< Index, Device, Index > rowLocalIndexes( B.getRows() );
    rowLocalIndexes = 0;
 
-   const Index paddingIndex = A.getPaddingIndex();
    auto columns_view = A.getColumnIndexes().getView();
    auto values_view = A.getValues().getView();
    auto rowLocalIndexes_view = rowLocalIndexes.getView();
-   columns_view = paddingIndex;
+   columns_view = paddingIndex< Index >;
 
    if constexpr( std::is_same_v< Device, RHSDeviceType > ) {
       const auto segments_view = A.getSegments().getView();
@@ -300,7 +298,7 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
                   RHSIndexType rowIdx, RHSIndexType localIdx_, RHSIndexType columnIndex, const RHSRealType& value ) mutable
       {
          Index localIdx( rowLocalIndexes_view[ rowIdx ] );
-         if( value != 0.0 && columnIndex != paddingIndex ) {
+         if( value != 0.0 && columnIndex != paddingIndex< Index > ) {
             Index thisGlobalIdx = segments_view.getGlobalIndex( rowIdx, localIdx++ );
             columns_view[ thisGlobalIdx ] = columnIndex;
             if( ! Matrix1::isBinary() )
@@ -332,14 +330,14 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
       const Index rowsCount = A.getRows();
       while( baseRow < rowsCount ) {
          const Index lastRow = min( baseRow + bufferRowsCount, rowsCount );
-         thisColumnsBuffer = paddingIndex;
-         matrixColumnsBuffer_view = paddingIndex;
+         thisColumnsBuffer = paddingIndex< Index >;
+         matrixColumnsBuffer_view = paddingIndex< Index >;
 
          // Copy matrix elements into buffer
          auto f1 = [ = ] __cuda_callable__(
                       RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIndex, const RHSRealType& value ) mutable
          {
-            if( columnIndex != paddingIndex ) {
+            if( columnIndex != paddingIndex< Index > ) {
                TNL_ASSERT_LT( rowIdx - baseRow, bufferRowsCount, "" );
                TNL_ASSERT_LT( localIdx, maxRowLength, "" );
                const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
@@ -370,7 +368,7 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
             }
             rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
             if( inValue == 0.0 ) {
-               columnIndex = paddingIndex;
+               columnIndex = paddingIndex< Index >;
                value = 0.0;
             }
             else {

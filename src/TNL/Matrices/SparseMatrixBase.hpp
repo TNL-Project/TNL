@@ -102,11 +102,10 @@ Index
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getNonzeroElementsCount() const
 {
    const auto columns_view = this->columnIndexes.getConstView();
-   const IndexType paddingIndex = this->getPaddingIndex();
-   if( ! Base::isSymmetric() ) {
+   if constexpr( ! Base::isSymmetric() ) {
       auto fetch = [ = ] __cuda_callable__( IndexType i ) -> IndexType
       {
-         return ( columns_view[ i ] != paddingIndex );
+         return ( columns_view[ i ] != paddingIndex< IndexType > );
       };
       return Algorithms::reduce< DeviceType >( (IndexType) 0, this->columnIndexes.getSize(), fetch, std::plus<>{}, 0 );
    }
@@ -119,7 +118,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       auto fetch = [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType globalIdx, bool& compute ) -> IndexType
       {
          const IndexType column = columnIndexesView[ globalIdx ];
-         compute = ( column != paddingIndex );
+         compute = ( column != paddingIndex< IndexType > );
          if( ! compute )
             return 0.0;
          return 1 + ( column != row && column < rows && row < columns );  // the addition is for non-diagonal elements
@@ -183,7 +182,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    }
 
    const IndexType rowSize = this->segments.getSegmentSize( row );
-   IndexType col = this->getPaddingIndex();
+   IndexType col = paddingIndex< IndexType >;
    IndexType i;
    IndexType globalIdx = 0;
    for( i = 0; i < rowSize; i++ ) {
@@ -195,7 +194,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             this->values.setElement( globalIdx, thisElementMultiplicator * this->values.getElement( globalIdx ) + value );
          return;
       }
-      if( col == this->getPaddingIndex() || col > column )
+      if( col == paddingIndex< IndexType > || col > column )
          break;
    }
    if( i == rowSize ) {
@@ -208,7 +207,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       return;
 #endif
    }
-   if( col == this->getPaddingIndex() ) {
+   if( col == paddingIndex< IndexType > ) {
       this->columnIndexes.setElement( globalIdx, column );
       if( ! Base::isBinary() )
          this->values.setElement( globalIdx, value );
@@ -292,7 +291,6 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    auto outVectorView = outVector.getView();
    const auto valuesView = this->values.getConstView();
    const auto columnIndexesView = this->columnIndexes.getConstView();
-   const IndexType paddingIndex = this->getPaddingIndex();
 
    if( end == 0 )
       end = this->getRows();
@@ -300,12 +298,11 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    if constexpr( Base::isSymmetric() ) {
       if( outVectorMultiplicator != 1.0 )
          outVector *= outVectorMultiplicator;
-      auto fetch =
-         [ valuesView, columnIndexesView, inVectorView, outVectorView, matrixMultiplicator, paddingIndex ] __cuda_callable__(
-            IndexType row, IndexType localIdx, IndexType globalIdx, bool& compute ) mutable -> ComputeRealType
+      auto fetch = [ valuesView, columnIndexesView, inVectorView, outVectorView, matrixMultiplicator ] __cuda_callable__(
+                      IndexType row, IndexType localIdx, IndexType globalIdx, bool& compute ) mutable -> ComputeRealType
       {
          const IndexType column = columnIndexesView[ globalIdx ];
-         compute = ( column != paddingIndex );
+         compute = ( column != paddingIndex< IndexType > );
          if( ! compute )
             return 0.0;
          if( column < row ) {
@@ -329,16 +326,16 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
    }
    else {
-      auto fetch = [ inVectorView, valuesView, columnIndexesView, paddingIndex ] __cuda_callable__(
-                      IndexType globalIdx, bool& compute ) mutable -> ComputeRealType
+      auto fetch = [ inVectorView, valuesView, columnIndexesView ] __cuda_callable__( IndexType globalIdx,
+                                                                                      bool& compute ) mutable -> ComputeRealType
       {
          TNL_ASSERT_GE( globalIdx, 0, "" );
          TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "" );
          const IndexType column = columnIndexesView[ globalIdx ];
-         TNL_ASSERT( ( column >= 0 || column == paddingIndex ), std::cerr << "Wrong column index." << std::endl );
+         TNL_ASSERT( (column >= 0 || column == paddingIndex< Index >), std::cerr << "Wrong column index." << std::endl );
          TNL_ASSERT_LT( column, inVectorView.getSize(), "Wrong column index." );
          if( SegmentsViewType::havePadding() ) {
-            compute = ( column != paddingIndex );
+            compute = ( column != paddingIndex< Index > );
             if( ! compute )
                return 0.0;
          }
@@ -406,13 +403,12 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    const auto columns_view = this->columnIndexes.getConstView();
    const auto values_view = this->values.getConstView();
-   const IndexType paddingIndex_ = this->getPaddingIndex();
    auto fetch_ = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx, bool& compute ) mutable
       -> decltype( fetch( IndexType(), IndexType(), RealType() ) )
    {
       TNL_ASSERT_LT( globalIdx, (IndexType) columns_view.getSize(), "" );
       IndexType columnIdx = columns_view[ globalIdx ];
-      if( columnIdx != paddingIndex_ ) {
+      if( columnIdx != paddingIndex< IndexType > ) {
          if( Base::isBinary() )
             return fetch( rowIdx, columnIdx, 1 );
          else
@@ -445,7 +441,6 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    const auto columns_view = this->columnIndexes.getConstView();
    const auto values_view = this->values.getConstView();
-   // const IndexType paddingIndex_ = this->getPaddingIndex();
    auto columns = this->getColumns();
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
@@ -469,13 +464,12 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
-   const IndexType paddingIndex_ = this->getPaddingIndex();
    auto columns = this->getColumns();
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
       if( localIdx < columns ) {
          if( Base::isBinary() ) {
-            RealType one( columns_view[ globalIdx ] != paddingIndex_ );
+            RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
             function( rowIdx, localIdx, columns_view[ globalIdx ], one );
          }
          else
@@ -636,7 +630,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          for( IndexType i = 0; i < rowLength; i++ ) {
             const IndexType globalIdx = this->segments.getGlobalIndex( row, i );
             const IndexType column = this->columnIndexes.getElement( globalIdx );
-            if( column == this->getPaddingIndex() )
+            if( column == paddingIndex< IndexType > )
                break;
             RealType value;
             if( Base::isBinary() )
@@ -652,14 +646,6 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          str << std::endl;
       }
    }
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-__cuda_callable__
-Index
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getPaddingIndex() const
-{
-   return -1;
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >

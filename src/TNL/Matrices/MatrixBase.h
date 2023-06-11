@@ -18,6 +18,15 @@ namespace TNL::Matrices {
 using Algorithms::Segments::ElementsOrganization;
 
 /**
+ * \brief Padding index value.
+ *
+ * Padding index is used for column indexes of padding zeros. Padding zeros
+ * are used in some sparse matrix formats for better data alignment in memory.
+ */
+template< typename Index >
+constexpr Index paddingIndex = -1;
+
+/**
  * \brief Base class for the implementation of concrete matrix types.
  *
  * \tparam Real is a type of matrix elements.

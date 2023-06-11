@@ -1043,17 +1043,6 @@ public:
    [[nodiscard]] IndexerType&
    getIndexer();
 
-   /**
-    * \brief Returns padding index denoting padding zero elements.
-    *
-    * These elements are used for efficient data alignment in memory.
-    *
-    * \return value of the padding index.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getPaddingIndex() const;
-
 protected:
    [[nodiscard]] __cuda_callable__
    IndexType

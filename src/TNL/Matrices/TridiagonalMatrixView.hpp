@@ -694,12 +694,4 @@ TridiagonalMatrixView< Real, Device, Index, Organization >::getElementIndex( Ind
    return this->indexer.getGlobalIndex( row, localIdx );
 }
 
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-__cuda_callable__
-Index
-TridiagonalMatrixView< Real, Device, Index, Organization >::getPaddingIndex() const
-{
-   return -1;
-}
-
 }  // namespace TNL::Matrices

@@ -120,7 +120,7 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
             j -= minColumn;
          }
          // handle ellpack dummy entries
-         if( j == localMatrix.getPaddingIndex() )
+         if( j == Matrices::paddingIndex< IndexType > )
             break;
          w[ j ] = A_i.getValue( c_j );
 
@@ -157,7 +157,7 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
                const auto j = U_k.getColumnIndex( c_j );
 
                // skip dropped entries
-               if( j == localMatrix.getPaddingIndex() )
+               if( j == Matrices::paddingIndex< IndexType > )
                   break;
                w[ j ] -= w_k * U_k.getValue( c_j );
 

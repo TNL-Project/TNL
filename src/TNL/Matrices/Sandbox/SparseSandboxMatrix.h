@@ -1050,18 +1050,6 @@ public:
    print( std::ostream& str ) const override;
 
    /**
-    * \brief Returns a padding index value.
-    *
-    * Padding index is used for column indexes of padding zeros. Padding zeros
-    * are used in some sparse matrix formats for better data alignment in memory.
-    *
-    * \return value of the padding index.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getPaddingIndex() const;
-
-   /**
     * \brief Getter of segments for non-constant instances.
     *
     * \e Segments are a structure for addressing the matrix elements columns and values.

@@ -10,7 +10,6 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Matrices/MatrixRowViewIterator.h>
-#include <TNL/Matrices/details/SparseMatrixRowViewValueGetter.h>
 
 namespace TNL::Matrices {
 
@@ -102,7 +101,8 @@ public:
     */
    using ConstIteratorType = MatrixRowViewIterator< ConstRowView >;
 
-   using ValueGetterType = details::SparseMatrixRowViewValueGetter< SegmentView, ValuesView, ColumnsIndexesView >;
+   using GetValueResultType = std::conditional_t< isBinary(), bool, RealType& >;
+   using GetValueConstResultType = std::conditional_t< isBinary(), bool, std::add_const_t< RealType >& >;
 
    /**
     * \brief Constructor with \e segmentView, \e values and \e columnIndexes.
@@ -165,7 +165,7 @@ public:
     */
    [[nodiscard]] __cuda_callable__
    auto
-   getValue( IndexType localIdx ) const -> typename ValueGetterType::ConstResultType;
+   getValue( IndexType localIdx ) const -> GetValueConstResultType;
 
    /**
     * \brief Returns non-constants reference to value of an element with given rank in the row.
@@ -176,7 +176,7 @@ public:
     */
    [[nodiscard]] __cuda_callable__
    auto
-   getValue( IndexType localIdx ) -> typename ValueGetterType::ResultType;
+   getValue( IndexType localIdx ) -> GetValueResultType;
 
    /**
     * \brief Sets a value of matrix element with given rank in the matrix row.
@@ -257,13 +257,6 @@ public:
    [[nodiscard]] __cuda_callable__
    ConstIteratorType
    cend() const;
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getPaddingIndex() const
-   {
-      return -1;
-   }
 
 protected:
    SegmentViewType segmentView;

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Matrices/LambdaMatrixRowView.h>
 #include <TNL/Assert.h>
 
@@ -79,12 +80,10 @@ LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Ind
       ++i;
    }
    for( IndexType j = i; j < getSize(); j++ )
-      // TODO: use ... != getPaddingIndex()
-      if( getColumnIndex( j ) >= 0 )
+      if( getColumnIndex( j ) != paddingIndex< IndexType > )
          return false;
    for( IndexType j = i; j < other.getSize(); j++ )
-      // TODO: use ... != getPaddingIndex()
-      if( other.getColumnIndex( j ) >= 0 )
+      if( other.getColumnIndex( j ) != paddingIndex< IndexType > )
          return false;
    return true;
 }

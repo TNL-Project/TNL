@@ -189,7 +189,7 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
       this->values = (RealType) 0;
    }
    this->columnIndexes.setSize( storageSize );
-   this->columnIndexes = this->getPaddingIndex();
+   this->columnIndexes = paddingIndex< Index >;
    this->view.bind( this->getView() );
 }
 
@@ -692,14 +692,6 @@ void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::print( std::ostream& str ) const
 {
    this->view.print( str );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
-__cuda_callable__
-Index
-SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getPaddingIndex() const
-{
-   return -1;
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
