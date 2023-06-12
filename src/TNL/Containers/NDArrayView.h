@@ -14,8 +14,8 @@
 #include <TNL/Containers/ndarray/Executors.h>
 #include <TNL/Containers/ndarray/BoundaryExecutors.h>
 #include <TNL/Containers/ndarray/Operations.h>
-#include <TNL/Algorithms/MemoryOperations.h>
-#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
+#include <TNL/Algorithms/equal.h>
+#include <TNL/Algorithms/copy.h>
 
 namespace TNL::Containers {
 
@@ -110,7 +110,7 @@ public:
    {
       TNL_ASSERT_EQ( getSizes(), other.getSizes(), "The sizes of the array views must be equal, views are not resizable." );
       if( getStorageSize() > 0 )
-         Algorithms::MemoryOperations< DeviceType >::copy( array, other.array, getStorageSize() );
+         Algorithms::detail::Copy< DeviceType >::copy( array, other.array, getStorageSize() );
       return *this;
    }
 
@@ -129,7 +129,7 @@ public:
                        "The sizes of the array views must be equal, views are not resizable." );
       if( getStorageSize() > 0 ) {
          TNL_ASSERT_TRUE( array, "Attempted to assign to an empty view." );
-         Algorithms::MultiDeviceMemoryOperations< DeviceType, typename OtherView::DeviceType >::copy(
+         Algorithms::detail::Copy< DeviceType, typename OtherView::DeviceType >::copy(
             array, other.getData(), getStorageSize() );
       }
       return *this;
@@ -182,7 +182,7 @@ public:
          return false;
       // FIXME: uninitialized data due to alignment in NDArray and padding in SlicedNDArray
       // TODO: overlaps should be skipped, otherwise it works only after synchronization
-      return Algorithms::MemoryOperations< Device >::compare( array, other.array, getStorageSize() );
+      return Algorithms::detail::Equal< Device >::equal( array, other.array, getStorageSize() );
    }
 
    //! \brief Compares the array view with another N-dimensional array view.
@@ -194,7 +194,7 @@ public:
       if( getSizes() != other.getSizes() )
          return true;
       // FIXME: uninitialized data due to alignment in NDArray and padding in SlicedNDArray
-      return ! Algorithms::MemoryOperations< Device >::compare( array, other.array, getStorageSize() );
+      return ! Algorithms::detail::Equal< Device >::equal( array, other.array, getStorageSize() );
    }
 
    //! \brief Returns a raw pointer to the data.

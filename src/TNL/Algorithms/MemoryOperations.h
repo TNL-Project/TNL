@@ -52,19 +52,9 @@ struct MemoryOperations< Devices::Sequential >
    static void
    set( Element* data, const Element& value, Index size );
 
-   template< typename DestinationElement, typename SourceElement, typename Index >
-   __cuda_callable__
-   static void
-   copy( DestinationElement* destination, const SourceElement* source, Index size );
-
    template< typename DestinationElement, typename Index, typename SourceIterator >
    static void
    copyFromIterator( DestinationElement* destination, Index destinationSize, SourceIterator first, SourceIterator last );
-
-   template< typename Element1, typename Element2, typename Index >
-   __cuda_callable__
-   static bool
-   compare( const Element1* destination, const Element2* source, Index size );
 };
 
 template<>
@@ -103,17 +93,9 @@ struct MemoryOperations< Devices::Host >
    static void
    set( Element* data, const Element& value, Index size );
 
-   template< typename DestinationElement, typename SourceElement, typename Index >
-   static void
-   copy( DestinationElement* destination, const SourceElement* source, Index size );
-
    template< typename DestinationElement, typename Index, typename SourceIterator >
    static void
    copyFromIterator( DestinationElement* destination, Index destinationSize, SourceIterator first, SourceIterator last );
-
-   template< typename Element1, typename Element2, typename Index >
-   static bool
-   compare( const Element1* destination, const Element2* source, Index size );
 };
 
 template<>
@@ -149,17 +131,9 @@ struct MemoryOperations< Devices::Cuda >
    static void
    set( Element* data, const Element& value, Index size );
 
-   template< typename DestinationElement, typename SourceElement, typename Index >
-   static void
-   copy( DestinationElement* destination, const SourceElement* source, Index size );
-
    template< typename DestinationElement, typename Index, typename SourceIterator >
    static void
    copyFromIterator( DestinationElement* destination, Index destinationSize, SourceIterator first, SourceIterator last );
-
-   template< typename Element1, typename Element2, typename Index >
-   static bool
-   compare( const Element1* destination, const Element2* source, Index size );
 };
 
 }  // namespace TNL::Algorithms

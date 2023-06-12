@@ -6,15 +6,11 @@
 
 #pragma once
 
-#include <iostream>
-#include <memory>  // std::unique_ptr
 #include <stdexcept>
 
 #include <TNL/Algorithms/MemoryOperations.h>
-#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
+#include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Algorithms/reduce.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
 
 namespace TNL::Algorithms {
 
@@ -74,7 +70,7 @@ MemoryOperations< Devices::Cuda >::setElement( Element* data, const Element& val
    // does not work here due to `#ifdef __CUDA_ARCH__` above. It would involve
    // launching a CUDA kernel with an extended lambda, which would be discarded
    // by nvcc (never called).
-   MultiDeviceMemoryOperations< Devices::Cuda, void >::copy( data, &value, 1 );
+   copy< Devices::Cuda, void >( data, &value, 1 );
 #endif
 }
 
@@ -88,7 +84,7 @@ MemoryOperations< Devices::Cuda >::getElement( const Element* data )
    return *data;
 #else
    Element result;
-   MultiDeviceMemoryOperations< void, Devices::Cuda >::copy( &result, data, 1 );
+   copy< void, Devices::Cuda >( &result, data, 1 );
    return result;
 #endif
 }
@@ -103,23 +99,6 @@ MemoryOperations< Devices::Cuda >::set( Element* data, const Element& value, Ind
    auto kernel = [ data, value ] __cuda_callable__( Index i )
    {
       data[ i ] = value;
-   };
-   parallelFor< Devices::Cuda >( 0, size, kernel );
-}
-
-template< typename DestinationElement, typename SourceElement, typename Index >
-void
-MemoryOperations< Devices::Cuda >::copy( DestinationElement* destination, const SourceElement* source, Index size )
-{
-   if( size == 0 )
-      return;
-   TNL_ASSERT_TRUE( destination, "Attempted to copy data to a nullptr." );
-   TNL_ASSERT_TRUE( source, "Attempted to copy data from a nullptr." );
-
-   // our ParallelFor kernel is faster than cudaMemcpy
-   auto kernel = [ destination, source ] __cuda_callable__( Index i )
-   {
-      destination[ i ] = source[ i ];
    };
    parallelFor< Devices::Cuda >( 0, size, kernel );
 }
@@ -139,27 +118,11 @@ MemoryOperations< Devices::Cuda >::copyFromIterator( DestinationElement* destina
       Index i = 0;
       while( i < buffer_size && first != last )
          buffer[ i++ ] = *first++;
-      MultiDeviceMemoryOperations< Devices::Cuda, void >::copy( &destination[ copiedElements ], buffer.get(), i );
+      copy< Devices::Cuda, void >( &destination[ copiedElements ], buffer.get(), i );
       copiedElements += i;
    }
    if( first != last )
       throw std::length_error( "Source iterator is larger than the destination array." );
-}
-
-template< typename Element1, typename Element2, typename Index >
-bool
-MemoryOperations< Devices::Cuda >::compare( const Element1* destination, const Element2* source, Index size )
-{
-   if( size == 0 )
-      return true;
-   TNL_ASSERT_TRUE( destination, "Attempted to compare data through a nullptr." );
-   TNL_ASSERT_TRUE( source, "Attempted to compare data through a nullptr." );
-
-   auto fetch = [ = ] __cuda_callable__( Index i ) -> bool
-   {
-      return destination[ i ] == source[ i ];
-   };
-   return reduce< Devices::Cuda >( (Index) 0, size, fetch, std::logical_and<>{}, true );
 }
 
 }  // namespace TNL::Algorithms

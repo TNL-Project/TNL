@@ -14,7 +14,7 @@
 
 #include <TNL/Algorithms/detail/Reduction.h>
 #include <TNL/Algorithms/detail/CudaReductionKernel.h>
-#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
+#include <TNL/Algorithms/copy.h>
 
 #ifdef CUDA_REDUCTION_PROFILING
    #include <iostream>
@@ -301,7 +301,7 @@ Reduction< Devices::Cuda >::reduce( const Index begin, const Index end, Fetch&& 
    if( can_reduce_later_on_host ) {
       // transfer the reduced data from device to host
       std::unique_ptr< Result[] > resultArray{ new Result[ reducedSize ] };
-      MultiDeviceMemoryOperations< void, Devices::Cuda >::copy( resultArray.get(), deviceAux1, reducedSize );
+      copy< void, Devices::Cuda >( resultArray.get(), deviceAux1, reducedSize );
 
 #ifdef CUDA_REDUCTION_PROFILING
       timer.stop();
@@ -379,8 +379,8 @@ Reduction< Devices::Cuda >::reduceWithArgument( const Index begin,
       // transfer the reduced data from device to host
       std::unique_ptr< Result[] > resultArray{ new Result[ reducedSize ] };
       std::unique_ptr< Index[] > indexArray{ new Index[ reducedSize ] };
-      MultiDeviceMemoryOperations< void, Devices::Cuda >::copy( resultArray.get(), deviceAux1, reducedSize );
-      MultiDeviceMemoryOperations< void, Devices::Cuda >::copy( indexArray.get(), deviceIndexes, reducedSize );
+      copy< void, Devices::Cuda >( resultArray.get(), deviceAux1, reducedSize );
+      copy< void, Devices::Cuda >( indexArray.get(), deviceIndexes, reducedSize );
 
 #ifdef CUDA_REDUCTION_PROFILING
       timer.stop();

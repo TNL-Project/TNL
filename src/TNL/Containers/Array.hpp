@@ -50,14 +50,14 @@ Array< Value, Device, Index, Allocator >::Array( ValueType* data, IndexType size
 : allocator( allocator )
 {
    this->setSize( size );
-   Algorithms::MemoryOperations< Device >::copy( this->getData(), data, size );
+   Algorithms::copy< Device >( this->getData(), data, size );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
 Array< Value, Device, Index, Allocator >::Array( const Array< Value, Device, Index, Allocator >& array )
 {
    this->setSize( array.getSize() );
-   Algorithms::MemoryOperations< Device >::copy( this->getData(), array.getData(), array.getSize() );
+   Algorithms::copy< Device >( this->getData(), array.getData(), array.getSize() );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -66,7 +66,7 @@ Array< Value, Device, Index, Allocator >::Array( const Array< Value, Device, Ind
 : allocator( allocator )
 {
    this->setSize( array.getSize() );
-   Algorithms::MemoryOperations< Device >::copy( this->getData(), array.getData(), array.getSize() );
+   Algorithms::copy< Device >( this->getData(), array.getData(), array.getSize() );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -82,7 +82,7 @@ Array< Value, Device, Index, Allocator >::Array( const Array< Value, Device, Ind
    TNL_ASSERT_LE( begin + size, array.getSize(), "End of array is out of bounds." );
 
    this->setSize( size );
-   Algorithms::MemoryOperations< Device >::copy( this->getData(), &array.getData()[ begin ], size );
+   Algorithms::copy< Device >( this->getData(), &array.getData()[ begin ], size );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -101,7 +101,7 @@ Array< Value, Device, Index, Allocator >::Array( const std::initializer_list< In
    // Here we assume that the underlying array for std::initializer_list is
    // const T[N] as noted here:
    // https://en.cppreference.com/w/cpp/utility/initializer_list
-   Algorithms::MultiDeviceMemoryOperations< Device, Devices::Host >::copy( this->getData(), &( *list.begin() ), list.size() );
+   Algorithms::copy< Device, Devices::Host >( this->getData(), &( *list.begin() ), list.size() );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -119,7 +119,7 @@ Array< Value, Device, Index, Allocator >::Array( const std::vector< InValue >& v
 : allocator( allocator )
 {
    this->setSize( vector.size() );
-   Algorithms::MultiDeviceMemoryOperations< Device, Devices::Host >::copy( this->getData(), vector.data(), vector.size() );
+   Algorithms::copy< Device, Devices::Host >( this->getData(), vector.data(), vector.size() );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -189,7 +189,7 @@ Array< Value, Device, Index, Allocator >::reallocate( IndexType size )
    Array aux( size );
 
    // copy the old elements into aux
-   Algorithms::MemoryOperations< Device >::copy( aux.getData(), this->getData(), TNL::min( this->size, size ) );
+   Algorithms::copy< Device >( aux.getData(), this->getData(), TNL::min( this->size, size ) );
 
    // swap *this with aux, old data will be released
    this->swap( aux );
@@ -426,7 +426,7 @@ Array< Value, Device, Index, Allocator >::operator=( const Array< Value, Device,
    if( this->getSize() != array.getSize() )
       this->setLike( array );
    if( this->getSize() > 0 )
-      Algorithms::MemoryOperations< Device >::copy( this->getData(), array.getData(), array.getSize() );
+      Algorithms::copy< Device >( this->getData(), array.getData(), array.getSize() );
    return *this;
 }
 
@@ -470,7 +470,7 @@ Array< Value, Device, Index, Allocator >::operator=( const std::vector< InValue 
 {
    if( (std::size_t) this->getSize() != vector.size() )
       this->setSize( vector.size() );
-   Algorithms::MultiDeviceMemoryOperations< Device, Devices::Host >::copy( this->getData(), vector.data(), vector.size() );
+   Algorithms::copy< Device, Devices::Host >( this->getData(), vector.data(), vector.size() );
    return *this;
 }
 
@@ -483,8 +483,7 @@ Array< Value, Device, Index, Allocator >::operator==( const ArrayT& array ) cons
       return false;
    if( this->getSize() == 0 )
       return true;
-   return Algorithms::MultiDeviceMemoryOperations< Device, typename ArrayT::DeviceType >::compare(
-      this->getData(), array.getData(), array.getSize() );
+   return Algorithms::equal< Device, typename ArrayT::DeviceType >( this->getData(), array.getData(), array.getSize() );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >

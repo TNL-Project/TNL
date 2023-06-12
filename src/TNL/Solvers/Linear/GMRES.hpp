@@ -12,6 +12,7 @@
 #include <cmath>
 #include <memory>  // std::unique_ptr
 
+#include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/Multireduction.h>
 #include <TNL/Matrices/MatrixOperations.h>
 
@@ -539,8 +540,7 @@ GMRES< Matrix >::hauseholder_apply_trunc( HostView out, const int i, VectorViewT
    // The upper (m+1)x(m+1) submatrix of Y is duplicated in the YL buffer,
    // which resides on host and is broadcasted from rank 0 to all processes.
    HostView YL_i( &YL[ i * ( restarting_max + 1 ) ], restarting_max + 1 );
-   Algorithms::MultiDeviceMemoryOperations< Devices::Host, DeviceType >::copy(
-      YL_i.getData(), Traits::getLocalView( y_i ).getData(), YL_i.getSize() );
+   Algorithms::copy< Devices::Host, DeviceType >( YL_i.getData(), Traits::getLocalView( y_i ).getData(), YL_i.getSize() );
    // no-op if the problem is not distributed
    MPI::Bcast( YL_i.getData(), YL_i.getSize(), 0, Traits::getCommunicator( *this->matrix ) );
 
@@ -551,8 +551,7 @@ GMRES< Matrix >::hauseholder_apply_trunc( HostView out, const int i, VectorViewT
    if( localOffset == 0 ) {
       if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
          std::unique_ptr< RealType[] > host_z{ new RealType[ i + 1 ] };
-         Algorithms::MultiDeviceMemoryOperations< Devices::Host, Devices::Cuda >::copy(
-            host_z.get(), Traits::getConstLocalView( z ).getData(), i + 1 );
+         Algorithms::copy< Devices::Host, Devices::Cuda >( host_z.get(), Traits::getConstLocalView( z ).getData(), i + 1 );
          for( int k = 0; k <= i; k++ )
             out[ k ] = host_z[ k ] - YL_i[ k ] * aux;
       }

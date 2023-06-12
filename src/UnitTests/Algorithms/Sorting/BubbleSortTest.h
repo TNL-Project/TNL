@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/Sorting/BubbleSort.h>
 #include <TNL/Algorithms/sort.h>
 

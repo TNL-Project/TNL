@@ -75,20 +75,6 @@ MemoryOperations< Devices::Sequential >::set( Element* data, const Element& valu
       data[ i ] = value;
 }
 
-template< typename DestinationElement, typename SourceElement, typename Index >
-__cuda_callable__
-void
-MemoryOperations< Devices::Sequential >::copy( DestinationElement* destination, const SourceElement* source, Index size )
-{
-   if( size == 0 )
-      return;
-   TNL_ASSERT_TRUE( destination, "Attempted to copy data to a nullptr." );
-   TNL_ASSERT_TRUE( source, "Attempted to copy data from a nullptr." );
-
-   for( Index i = 0; i < size; i++ )
-      destination[ i ] = source[ i ];
-}
-
 template< typename DestinationElement, typename Index, typename SourceIterator >
 void
 MemoryOperations< Devices::Sequential >::copyFromIterator( DestinationElement* destination,
@@ -101,22 +87,6 @@ MemoryOperations< Devices::Sequential >::copyFromIterator( DestinationElement* d
       destination[ i++ ] = *first++;
    if( first != last )
       throw std::length_error( "Source iterator is larger than the destination array." );
-}
-
-template< typename Element1, typename Element2, typename Index >
-__cuda_callable__
-bool
-MemoryOperations< Devices::Sequential >::compare( const Element1* destination, const Element2* source, Index size )
-{
-   if( size == 0 )
-      return true;
-   TNL_ASSERT_TRUE( destination, "Attempted to compare data through a nullptr." );
-   TNL_ASSERT_TRUE( source, "Attempted to compare data through a nullptr." );
-
-   for( Index i = 0; i < size; i++ )
-      if( ! ( destination[ i ] == source[ i ] ) )
-         return false;
-   return true;
 }
 
 }  // namespace TNL::Algorithms

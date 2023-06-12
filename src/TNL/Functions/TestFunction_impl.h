@@ -8,7 +8,7 @@
 
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Allocators/Cuda.h>
-#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
+#include <TNL/Algorithms/copy.h>
 
 #include <TNL/Functions/Analytic/Constant.h>
 #include <TNL/Functions/Analytic/ExpBump.h>
@@ -119,8 +119,7 @@ TestFunction< FunctionDimension, Real, Device >::setupFunction( const Config::Pa
    }
    if( std::is_same< Device, Devices::Cuda >::value ) {
       this->function = Allocators::Cuda< FunctionType >{}.allocate( 1 );
-      Algorithms::MultiDeviceMemoryOperations< Devices::Cuda, Devices::Host >::copy(
-         (FunctionType*) this->function, (FunctionType*) auxFunction, 1 );
+      Algorithms::copy< Devices::Cuda, Devices::Host >( (FunctionType*) this->function, (FunctionType*) auxFunction, 1 );
       delete auxFunction;
       TNL_CHECK_CUDA_DEVICE;
    }
@@ -144,8 +143,7 @@ TestFunction< FunctionDimension, Real, Device >::setupOperator( const Config::Pa
    }
    if( std::is_same< Device, Devices::Cuda >::value ) {
       this->operator_ = Allocators::Cuda< OperatorType >{}.allocate( 1 );
-      Algorithms::MultiDeviceMemoryOperations< Devices::Cuda, Devices::Host >::copy(
-         (OperatorType*) this->operator_, (OperatorType*) auxOperator, 1 );
+      Algorithms::copy< Devices::Cuda, Devices::Host >( (OperatorType*) this->operator_, (OperatorType*) auxOperator, 1 );
       delete auxOperator;
       TNL_CHECK_CUDA_DEVICE;
    }
@@ -852,7 +850,7 @@ TestFunction< FunctionDimension, Real, Device >::printFunction( std::ostream& st
    }
    if( std::is_same< Device, Devices::Cuda >::value ) {
       FunctionType f;
-      Algorithms::MultiDeviceMemoryOperations< Devices::Host, Devices::Cuda >::copy( &f, (FunctionType*) this->function, 1 );
+      Algorithms::copy< Devices::Host, Devices::Cuda >( &f, (FunctionType*) this->function, 1 );
       str << f;
       return str;
    }

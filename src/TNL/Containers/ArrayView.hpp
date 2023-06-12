@@ -12,7 +12,8 @@
 #include <TNL/TypeInfo.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/MemoryOperations.h>
-#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
+#include <TNL/Algorithms/copy.h>
+#include <TNL/Algorithms/equal.h>
 #include <TNL/Containers/detail/ArrayIO.h>
 #include <TNL/Containers/detail/ArrayAssignment.h>
 #include <TNL/Allocators/Default.h>
@@ -93,7 +94,7 @@ ArrayView< Value, Device, Index >::operator=( const ArrayView& view )
 {
    TNL_ASSERT_EQ( getSize(), view.getSize(), "The sizes of the array views must be equal, views are not resizable." );
    if( getSize() > 0 )
-      Algorithms::MemoryOperations< Device >::copy( getData(), view.getData(), getSize() );
+      Algorithms::copy< Device >( getData(), view.getData(), getSize() );
    return *this;
 }
 
@@ -251,8 +252,7 @@ ArrayView< Value, Device, Index >::operator==( const ArrayT& array ) const
       return false;
    if( this->getSize() == 0 )
       return true;
-   return Algorithms::MultiDeviceMemoryOperations< DeviceType, typename ArrayT::DeviceType >::compare(
-      this->getData(), array.getData(), array.getSize() );
+   return Algorithms::equal< DeviceType, typename ArrayT::DeviceType >( this->getData(), array.getData(), array.getSize() );
 }
 
 template< typename Value, typename Device, typename Index >

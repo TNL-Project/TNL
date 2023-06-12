@@ -6,13 +6,10 @@
 
 #pragma once
 
-#include <type_traits>
 #include <stdexcept>
-#include <algorithm>  // std::copy, std::equal
 
-#include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Algorithms/reduce.h>
+#include <TNL/Algorithms/MemoryOperations.h>
 
 namespace TNL::Algorithms {
 
@@ -89,29 +86,6 @@ MemoryOperations< Devices::Host >::set( Element* data, const Element& value, Ind
    parallelFor< Devices::Host >( 0, size, kernel );
 }
 
-template< typename DestinationElement, typename SourceElement, typename Index >
-void
-MemoryOperations< Devices::Host >::copy( DestinationElement* destination, const SourceElement* source, Index size )
-{
-   if( size == 0 )
-      return;
-   TNL_ASSERT_TRUE( destination, "Attempted to copy data to a nullptr." );
-   TNL_ASSERT_TRUE( source, "Attempted to copy data from a nullptr." );
-
-   // our ParallelFor version is faster than std::copy iff we use more than 1 thread
-   if( Devices::Host::isOMPEnabled() && Devices::Host::getMaxThreadsCount() > 1 ) {
-      auto kernel = [ destination, source ]( Index i )
-      {
-         destination[ i ] = source[ i ];
-      };
-      parallelFor< Devices::Host >( 0, size, kernel );
-   }
-   else {
-      // std::copy usually uses std::memcpy for TriviallyCopyable types
-      std::copy( source, source + size, destination );
-   }
-}
-
 template< typename DestinationElement, typename Index, typename SourceIterator >
 void
 MemoryOperations< Devices::Host >::copyFromIterator( DestinationElement* destination,
@@ -120,28 +94,6 @@ MemoryOperations< Devices::Host >::copyFromIterator( DestinationElement* destina
                                                      SourceIterator last )
 {
    MemoryOperations< Devices::Sequential >::copyFromIterator( destination, destinationSize, first, last );
-}
-
-template< typename Element1, typename Element2, typename Index >
-bool
-MemoryOperations< Devices::Host >::compare( const Element1* destination, const Element2* source, Index size )
-{
-   if( size == 0 )
-      return true;
-   TNL_ASSERT_TRUE( destination, "Attempted to compare data through a nullptr." );
-   TNL_ASSERT_TRUE( source, "Attempted to compare data through a nullptr." );
-
-   if( Devices::Host::isOMPEnabled() && Devices::Host::getMaxThreadsCount() > 1 ) {
-      auto fetch = [ destination, source ]( Index i ) -> bool
-      {
-         return destination[ i ] == source[ i ];
-      };
-      return reduce< Devices::Host >( (Index) 0, size, fetch, std::logical_and<>{}, true );
-   }
-   else {
-      // sequential algorithm can return as soon as it finds a mismatch
-      return std::equal( source, source + size, destination );
-   }
 }
 
 }  // namespace TNL::Algorithms
