@@ -383,6 +383,17 @@ public:
    getElement( IndexType row, IndexType column ) const;
 
    /**
+    * \brief Finds element in the matrix and returns its position in the arrays with \e values and \e columnIndexes.
+    *
+    * If the element is not found, the method returns the padding index.
+    * \param row is the row index of the element.
+    * \param column is the column index of the element.
+    * \return the position of the element in the arrays with \e values and \e columnIndexes or the padding index if the element is not found.
+    */
+   __cuda_callable__
+   IndexType findElement( IndexType row, IndexType column ) const;
+
+   /**
     * \brief Method for performing general reduction on matrix rows.
     *
     * \tparam Fetch is a type of lambda function for data fetch declared as

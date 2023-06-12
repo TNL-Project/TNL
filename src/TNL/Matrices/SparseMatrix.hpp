@@ -479,6 +479,22 @@ template< typename Real,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
+__cuda_callable__
+Index
+SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::findElement( IndexType row, IndexType column ) const
+{
+   return this->view.findElement( row, column );
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename, typename >
+          class Segments,
+          typename ComputeReal,
+          typename RealAllocator,
+          typename IndexAllocator >
 template< typename InVector, typename OutVector >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::vectorProduct(

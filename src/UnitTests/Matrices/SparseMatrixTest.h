@@ -77,6 +77,13 @@ TYPED_TEST( MatrixTest, addElementTest )
     test_AddElement< MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, findElementTest )
+{
+    using MatrixType = typename TestFixture::MatrixType;
+
+    test_FindElement< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, forElements )
 {
     using MatrixType = typename TestFixture::MatrixType;
