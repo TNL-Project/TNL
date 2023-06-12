@@ -9,8 +9,8 @@
 #include <type_traits>
 #include <map>
 #include <ostream>
-//#include <TNL/TypeTraits.h>
-//#include <TNL/Algorithms/reduce.h>
+#include <TNL/TypeTraits.h>
+#include <TNL/Algorithms/reduce.h>
 
 namespace TNL::Graphs {
 
@@ -56,11 +56,8 @@ struct Graph
 
    Graph( IndexType nodesCount,
           const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data ) {
-      if( isDirected() || MatrixType::isSymmetric() ) {
-         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
-         this->adjacencyMatrix.setElements( data );
-      }
-      else {
+
+      if( isUndirected() && ! MatrixType::isSymmetric() )  {
          std::map< std::pair< IndexType, IndexType >, ValueType > symmetric_map;
          for( const auto& [source, target, weight] : data ) {
             symmetric_map[ { source, target } ] = weight;
@@ -69,16 +66,16 @@ struct Graph
          this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
          this->adjacencyMatrix.setElements( symmetric_map );
       }
+      else{
+         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
+         this->adjacencyMatrix.setElements( data );
+      }
    }
 
    template< typename MapIndex, typename MapValue >
    Graph( IndexType nodesCount,
           const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map ) {
-      if( isDirected() || MatrixType::isSymmetric() ) {
-         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
-         this->adjacencyMatrix.setElements( map );
-      }
-      else {
+      if( isUndirected() && ! MatrixType::isSymmetric() ){
          std::map< std::pair< MapIndex, MapIndex >, MapValue > symmetric_map;
          for( const auto& [key, value] : map ) {
             symmetric_map[ { key.second, key.first } ] = value;
@@ -86,6 +83,10 @@ struct Graph
          }
          this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
          this->adjacencyMatrix.setElements( symmetric_map );
+      }
+      else {
+         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
+         this->adjacencyMatrix.setElements( map );
       }
    }
 
@@ -111,9 +112,8 @@ struct Graph
    }
 
    IndexType getEdgeCount() const {
-      if constexpr( isUndirected() && ! MatrixType::isSymmetric() ) {
+      if constexpr( isUndirected() )
          return adjacencyMatrix.getNonzeroElementsCount() / 2;
-      }
       return adjacencyMatrix.getNonzeroElementsCount();
    }
 
@@ -143,7 +143,7 @@ struct Graph
    }
 
    ValueType getTotalWeight() const {
-      /*auto values_view = adjacencyMatrix.getValues().getConstView();
+      auto values_view = adjacencyMatrix.getValues().getConstView();
       auto column_indexes_view = adjacencyMatrix.getColumnIndexes().getConstView();
       const auto padding = adjacencyMatrix.getPaddingIndex();
       return Algorithms::reduce< DeviceType >( 0, values_view.getSize(),
@@ -151,7 +151,7 @@ struct Graph
             if( column_indexes_view[ i ] != padding )
                return values_view[ i ];
             return ( ValueType ) 0; },
-         TNL::Plus{} );*/
+         TNL::Plus{} );
    }
 
    ~Graph() = default;

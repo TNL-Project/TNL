@@ -107,7 +107,6 @@ bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = T
                graph.getAdjacencyMatrix().reduceAllRows( symmetric_fetch, TNL::Plus{}, keep, ( IndexType ) 0 );
             else
                graph.getAdjacencyMatrix().reduceAllRows( fetch, TNL::Plus{}, keep, ( IndexType ) 0 );
-            //std::cout << "visited: " << visited << std::endl;
 
             if( max( visited ) > 1 )
                return false;
