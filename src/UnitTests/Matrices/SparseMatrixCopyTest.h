@@ -472,7 +472,7 @@ void multidiagonalMatrixAssignment()
    using IndexType = typename Matrix::IndexType;
 
    using MultidiagonalHost = TNL::Matrices::MultidiagonalMatrix< RealType, TNL::Devices::Host, IndexType >;
-   using DiagonalsOffsetsType = typename MultidiagonalHost::DiagonalsOffsetsType;
+   using DiagonalsOffsetsType = typename MultidiagonalHost::DiagonalOffsetsType;
    DiagonalsOffsetsType diagonals{ -4, -2, 0, 1, 3, 5 };
 
    const IndexType rows( 10 ), columns( 10 );

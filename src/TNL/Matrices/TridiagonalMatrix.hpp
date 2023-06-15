@@ -6,26 +6,28 @@
 
 #pragma once
 
-#include <sstream>
-#include <TNL/Assert.h>
-#include <TNL/Matrices/TridiagonalMatrix.h>
-#include <TNL/Exceptions/NotImplementedError.h>
+#include "TridiagonalMatrix.h"
 
 namespace TNL::Matrices {
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::TridiagonalMatrix() = default;
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::TridiagonalMatrix( IndexType rows, IndexType columns )
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::TridiagonalMatrix( Index rows, Index columns )
 {
    this->setDimensions( rows, columns );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::TridiagonalMatrix( const TridiagonalMatrix& matrix )
+: values( matrix.values )
+{
+   // update the base
+   Base::bind( values.getView(), matrix.getIndexer() );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename ListReal >
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::TridiagonalMatrix(
-   IndexType columns,
+   Index columns,
    const std::initializer_list< std::initializer_list< ListReal > >& data )
 {
    this->setDimensions( data.size(), columns );
@@ -36,40 +38,25 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 auto
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getView() -> ViewType
 {
-   return { this->getValues().getView(), indexer };
+   return { this->getValues().getView(), this->getIndexer() };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 auto
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getConstView() const -> ConstViewType
 {
-   return { this->getValues().getConstView(), indexer };
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-std::string
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getSerializationType()
-{
-   return "Matrices::TridiagonalMatrix< " + TNL::getSerializationType< RealType >() + ", [any_device], "
-        + TNL::getSerializationType< IndexType >() + ", " + TNL::getSerializationType( Organization ) + ", [any_allocator] >";
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-std::string
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getSerializationTypeVirtual() const
-{
-   return this->getSerializationType();
+   return { this->getValues().getConstView(), this->getIndexer() };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setDimensions( IndexType rows, IndexType columns )
+TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setDimensions( Index rows, Index columns )
 {
-   Matrix< Real, Device, Index >::setDimensions( rows, columns );
-   this->indexer.setDimensions( rows, columns );
+   this->getIndexer().setDimensions( rows, columns );
    this->values.setSize( this->indexer.getStorageSize() );
    this->values = 0.0;
-   this->view.bind( this->getView() );
+   // update the base
+   Base::bind( values.getView(), this->getIndexer() );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -82,7 +69,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setRowCap
       throw std::logic_error( "Too many non-zero elements per row in a tri-diagonal matrix." );
    if( rowCapacities.getElement( 0 ) > 2 )
       throw std::logic_error( "Too many non-zero elements per row in a tri-diagonal matrix." );
-   const IndexType diagonalLength = min( this->getRows(), this->getColumns() );
+   const Index diagonalLength = min( this->getRows(), this->getColumns() );
    if( this->getRows() > this->getColumns() )
       if( rowCapacities.getElement( this->getRows() - 1 ) > 1 )
          throw std::logic_error( "Too many non-zero elements per row in a tri-diagonal matrix." );
@@ -95,25 +82,17 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setRowCap
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Vector >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getRowCapacities( Vector& rowCapacities ) const
-{
-   return this->view.getRowCapacities( rowCapacities );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename ListReal >
 void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
    const std::initializer_list< std::initializer_list< ListReal > >& data )
 {
-   if( std::is_same< DeviceType, Devices::Host >::value ) {
+   if( std::is_same_v< Device, Devices::Host > ) {
       this->getValues() = 0.0;
       auto row_it = data.begin();
       for( size_t rowIdx = 0; rowIdx < data.size(); rowIdx++ ) {
          auto data_it = row_it->begin();
-         IndexType i = 0;
+         Index i = 0;
          while( data_it != row_it->end() )
             this->getRow( rowIdx ).setElement( i++, *data_it++ );
          row_it++;
@@ -127,14 +106,6 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setElemen
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Vector >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getCompressedRowLengths( Vector& rowLengths ) const
-{
-   return this->view.getCompressedRowLengths( rowLengths );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_, typename RealAllocator_ >
 void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setLike(
@@ -144,271 +115,10 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setLike(
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-Index
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getNonzeroElementsCount() const
-{
-   return this->view.getNonzeroElementsCount();
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reset()
 {
-   Matrix< Real, Device, Index >::reset();
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_, typename RealAllocator_ >
-bool
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::operator==(
-   const TridiagonalMatrix< Real_, Device_, Index_, Organization_, RealAllocator_ >& matrix ) const
-{
-   if( Organization == Organization_ )
-      return this->values == matrix.values;
-   else {
-      TNL_ASSERT_TRUE( false, "TODO" );
-   }
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_, typename RealAllocator_ >
-bool
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::operator!=(
-   const TridiagonalMatrix< Real_, Device_, Index_, Organization_, RealAllocator_ >& matrix ) const
-{
-   return ! this->operator==( matrix );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setValue( const RealType& v )
-{
-   this->view.setValue( v );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-__cuda_callable__
-auto
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( IndexType rowIdx ) const -> ConstRowView
-{
-   return this->view.getRow( rowIdx );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-__cuda_callable__
-auto
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getRow( IndexType rowIdx ) -> RowView
-{
-   return this->view.getRow( rowIdx );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-__cuda_callable__
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setElement( IndexType row,
-                                                                                   IndexType column,
-                                                                                   const RealType& value )
-{
-   this->view.setElement( row, column, value );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-__cuda_callable__
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::addElement( IndexType row,
-                                                                                   IndexType column,
-                                                                                   const RealType& value,
-                                                                                   const RealType& thisElementMultiplicator )
-{
-   this->view.addElement( row, column, value, thisElementMultiplicator );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-__cuda_callable__
-Real
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getElement( IndexType row, IndexType column ) const
-{
-   return this->view.getElement( row, column );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reduceRows( IndexType begin,
-                                                                                   IndexType end,
-                                                                                   Fetch& fetch,
-                                                                                   Reduce& reduce,
-                                                                                   Keep& keep,
-                                                                                   const FetchReal& identity ) const
-{
-   this->view.reduceRows( begin, end, fetch, reduce, keep, identity );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reduceRows( IndexType begin,
-                                                                                   IndexType end,
-                                                                                   Fetch& fetch,
-                                                                                   Reduce& reduce,
-                                                                                   Keep& keep,
-                                                                                   const FetchReal& identity )
-{
-   this->view.reduceRows( begin, end, fetch, reduce, keep, identity );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reduceAllRows( Fetch& fetch,
-                                                                                      Reduce& reduce,
-                                                                                      Keep& keep,
-                                                                                      const FetchReal& identity ) const
-{
-   this->view.reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reduceAllRows( Fetch& fetch,
-                                                                                      Reduce& reduce,
-                                                                                      Keep& keep,
-                                                                                      const FetchReal& identity )
-{
-   this->view.reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forElements( IndexType begin,
-                                                                                    IndexType end,
-                                                                                    Function& function ) const
-{
-   this->view.forElements( begin, end, function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forElements( IndexType begin,
-                                                                                    IndexType end,
-                                                                                    Function& function )
-{
-   this->view.forElements( begin, end, function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forAllElements( Function& function ) const
-{
-   this->view.forElements( (IndexType) 0, this->getRows(), function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forAllElements( Function& function )
-{
-   this->view.forElements( (IndexType) 0, this->getRows(), function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forRows( IndexType begin,
-                                                                                IndexType end,
-                                                                                Function&& function )
-{
-   this->getView().forRows( begin, end, function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forRows( IndexType begin,
-                                                                                IndexType end,
-                                                                                Function&& function ) const
-{
-   this->getConstView().forRows( begin, end, function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forAllRows( Function&& function )
-{
-   this->getView().forAllRows( function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::forAllRows( Function&& function ) const
-{
-   this->getConsView().forAllRows( function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::sequentialForRows( IndexType begin,
-                                                                                          IndexType end,
-                                                                                          Function& function ) const
-{
-   this->view.sequentialForRows( begin, end, function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::sequentialForRows( IndexType begin,
-                                                                                          IndexType end,
-                                                                                          Function& function )
-{
-   this->view.sequentialForRows( begin, end, function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::sequentialForAllRows( Function& function ) const
-{
-   this->sequentialForRows( (IndexType) 0, this->getRows(), function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Function >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::sequentialForAllRows( Function& function )
-{
-   this->sequentialForRows( (IndexType) 0, this->getRows(), function );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename InVector, typename OutVector >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::vectorProduct( const InVector& inVector,
-                                                                                      OutVector& outVector,
-                                                                                      RealType matrixMultiplicator,
-                                                                                      RealType outVectorMultiplicator,
-                                                                                      IndexType begin,
-                                                                                      IndexType end ) const
-{
-   this->view.vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, begin, end );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_, typename RealAllocator_ >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::addMatrix(
-   const TridiagonalMatrix< Real_, Device_, Index_, Organization_, RealAllocator_ >& matrix,
-   const RealType& matrixMultiplicator,
-   const RealType& thisMatrixMultiplicator )
-{
-   this->view.addMatrix( matrix.getConstView(), matrixMultiplicator, thisMatrixMultiplicator );
+   this->setDimensions( 0, 0 );
 }
 
 template< typename InMatrixView, typename OutMatrixView, typename Real, typename Index >
@@ -436,31 +146,31 @@ template< typename Real2, typename Index2 >
 void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getTransposition(
    const TridiagonalMatrix< Real2, Device, Index2 >& matrix,
-   const RealType& matrixMultiplicator )
+   const Real& matrixMultiplicator )
 {
    TNL_ASSERT( this->getRows() == matrix.getRows(),
                std::cerr << "This matrix rows: " << this->getRows() << std::endl
                          << "That matrix rows: " << matrix.getRows() << std::endl );
-   if constexpr( std::is_same< Device, Devices::Host >::value ) {
-      const IndexType& rows = matrix.getRows();
-      for( IndexType i = 1; i < rows; i++ ) {
-         RealType aux = matrix.getElement( i, i - 1 );
+   if constexpr( std::is_same_v< Device, Devices::Host > ) {
+      const Index& rows = matrix.getRows();
+      for( Index i = 1; i < rows; i++ ) {
+         Real aux = matrix.getElement( i, i - 1 );
          this->setElement( i, i - 1, matrix.getElement( i - 1, i ) );
          this->setElement( i, i, matrix.getElement( i, i ) );
          this->setElement( i - 1, i, aux );
       }
    }
-   if constexpr( std::is_same< Device, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       launch_config.gridSize.x = Cuda::getMaxGridXSize();
-      const IndexType cudaBlocks = roundUpDivision( matrix.getRows(), launch_config.blockSize.x );
-      const IndexType cudaGrids = roundUpDivision( cudaBlocks, launch_config.gridSize.x );
-      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      const Index cudaBlocks = roundUpDivision( matrix.getRows(), launch_config.blockSize.x );
+      const Index cudaGrids = roundUpDivision( cudaBlocks, launch_config.gridSize.x );
+      for( Index gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          if( gridIdx == cudaGrids - 1 )
             launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
          constexpr auto kernel =
-            TridiagonalMatrixTranspositionCudaKernel< decltype( matrix.getConstView() ), ViewType, RealType, IndexType >;
+            TridiagonalMatrixTranspositionCudaKernel< decltype( matrix.getConstView() ), ViewType, Real, Index >;
          Cuda::launchKernelAsync( kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, gridIdx );
       }
       cudaStreamSynchronize( launch_config.stream );
@@ -485,35 +195,29 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >&
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::operator=(
    const TridiagonalMatrix< Real_, Device_, Index_, Organization_, RealAllocator_ >& matrix )
 {
-   static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Cuda >::value,
-                  "unknown device" );
-   static_assert( std::is_same< Device_, Devices::Host >::value || std::is_same< Device_, Devices::Cuda >::value,
-                  "unknown device" );
+   static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >, "unknown device" );
+   static_assert( std::is_same_v< Device_, Devices::Host > || std::is_same_v< Device_, Devices::Cuda >, "unknown device" );
 
    this->setLike( matrix );
-   if( Organization == Organization_ )
+   if constexpr( Organization == Organization_ )
       this->values = matrix.getValues();
+   else if constexpr( std::is_same_v< Device, Device_ > ) {
+      const auto matrix_view = matrix.getConstView();
+      auto f = [ = ] __cuda_callable__( const Index& rowIdx, const Index& localIdx, const Index& column, Real& value ) mutable
+      {
+         value = matrix_view.getValues()[ matrix_view.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
+      };
+      this->forAllElements( f );
+   }
    else {
-      if( std::is_same< Device, Device_ >::value ) {
-         const auto matrix_view = matrix.getConstView();
-         auto f = [ = ] __cuda_callable__(
-                     const IndexType& rowIdx, const IndexType& localIdx, const IndexType& column, Real& value ) mutable
-         {
-            value = matrix_view.getValues()[ matrix_view.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
-         };
-         this->forAllElements( f );
-      }
-      else {
-         TridiagonalMatrix< Real, Device, Index, Organization_ > auxMatrix;
-         auxMatrix = matrix;
-         const auto matrix_view = auxMatrix.getView();
-         auto f = [ = ] __cuda_callable__(
-                     const IndexType& rowIdx, const IndexType& localIdx, const IndexType& column, Real& value ) mutable
-         {
-            value = matrix_view.getValues()[ matrix_view.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
-         };
-         this->forAllElements( f );
-      }
+      TridiagonalMatrix< Real, Device, Index, Organization_ > auxMatrix;
+      auxMatrix = matrix;
+      const auto matrix_view = auxMatrix.getView();
+      auto f = [ = ] __cuda_callable__( const Index& rowIdx, const Index& localIdx, const Index& column, Real& value ) mutable
+      {
+         value = matrix_view.getValues()[ matrix_view.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
+      };
+      this->forAllElements( f );
    }
    return *this;
 }
@@ -522,16 +226,24 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::save( File& file ) const
 {
-   Matrix< Real, Device, Index >::save( file );
+   file.save( &this->rows );
+   file.save( &this->columns );
+   file << values;
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::load( File& file )
 {
-   Matrix< Real, Device, Index >::load( file );
-   this->indexer.setDimensions( this->getRows(), this->getColumns() );
-   this->view.bind( this->getView() );
+   Index rows = 0;
+   Index columns = 0;
+   file.load( &rows );
+   file.load( &columns );
+   file >> values;
+   typename Base::IndexerType indexer;
+   indexer.setDimensions( rows, columns );
+   // update the base
+   Base::bind( values.getView(), indexer );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -546,40 +258,6 @@ void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::load( const String& fileName )
 {
    Object::load( fileName );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::print( std::ostream& str ) const
-{
-   this->view.print( str );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-auto
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getIndexer() const -> const IndexerType&
-{
-   return this->indexer;
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-auto
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getIndexer() -> IndexerType&
-{
-   return this->indexer;
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-__cuda_callable__
-Index
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getElementIndex( IndexType row, IndexType column ) const
-{
-   IndexType localIdx = column - row + 1;
-
-   TNL_ASSERT_GE( localIdx, 0, "" );
-   TNL_ASSERT_LT( localIdx, 3, "" );
-
-   return this->indexer.getGlobalIndex( row, localIdx );
 }
 
 }  // namespace TNL::Matrices

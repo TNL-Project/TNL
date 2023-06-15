@@ -1,1 +1,0 @@
-TridiagonalMatrixExample_reduceRows.cpp
