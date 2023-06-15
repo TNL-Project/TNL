@@ -13,6 +13,9 @@
 #include <TNL/Containers/VectorView.h>
 #include "MatrixType.h"
 
+/**
+ * \brief Namespace for matrix formats.
+ */
 namespace TNL::Matrices {
 
 using Algorithms::Segments::ElementsOrganization;

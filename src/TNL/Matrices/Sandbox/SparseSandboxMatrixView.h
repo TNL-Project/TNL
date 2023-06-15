@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Matrices/Matrix.h>
+#include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Matrices/MatrixType.h>
 #include <TNL/Allocators/Default.h>
 #include <TNL/Algorithms/Segments/CSR.h>
@@ -44,7 +44,7 @@ namespace TNL::Matrices::Sandbox {
  *         is set to \e Index type. This can be changed bu the user, of course.
  */
 template< typename Real, typename Device = Devices::Host, typename Index = int, typename MatrixType = GeneralMatrix >
-class SparseSandboxMatrixView : public MatrixView< Real, Device, Index >
+class SparseSandboxMatrixView : public MatrixBase< Real, Device, Index, MatrixType, Algorithms::Segments::RowMajorOrder >
 {
    static_assert(
       ! MatrixType::isSymmetric() || ! std::is_same< Device, Devices::Cuda >::value
@@ -52,9 +52,10 @@ class SparseSandboxMatrixView : public MatrixView< Real, Device, Index >
               || std::is_same< Real, long long int >::value ),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
+   using BaseType = MatrixBase< Real, Device, Index, MatrixType, Algorithms::Segments::RowMajorOrder >;
+
 public:
    // Supporting types - they are not important for the user
-   using BaseType = MatrixView< Real, Device, Index >;
    using ValuesViewType = typename BaseType::ValuesViewType;
    using ConstValuesViewType = typename ValuesViewType::ConstViewType;
    using ColumnsIndexesViewType =
@@ -253,7 +254,7 @@ public:
     * \return \e String with the serialization type.
     */
    [[nodiscard]] std::string
-   getSerializationTypeVirtual() const override;
+   getSerializationTypeVirtual() const;
 
    /**
     * \brief Computes number of non-zeros in each row.
@@ -723,28 +724,12 @@ public:
    operator!=( const Matrix& matrix ) const;
 
    /**
-    * \brief Method for saving the matrix to the file with given filename.
-    *
-    * \param fileName is name of the file.
-    */
-   void
-   save( const String& fileName ) const;
-
-   /**
-    * \brief Method for saving the matrix to a file.
-    *
-    * \param file is the output file.
-    */
-   void
-   save( File& file ) const override;
-
-   /**
     * \brief Method for printing the matrix to output stream.
     *
     * \param str is the output stream.
     */
    void
-   print( std::ostream& str ) const override;
+   print( std::ostream& str ) const;
 
    /**
     * \brief Getter of segments for non-constant instances.

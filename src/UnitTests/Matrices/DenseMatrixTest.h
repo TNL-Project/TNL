@@ -1,7 +1,6 @@
 #include <iostream>
 #include <functional>
 #include <TNL/Devices/Host.h>
-#include <TNL/Matrices/Matrix.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/Vector.h>

@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include <TNL/Matrices/Matrix.h>
+#include "Matrix.h"
 #include <TNL/Assert.h>
 #include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Cuda/SharedMemory.h>
 
-namespace TNL::Matrices {
+namespace TNL::Benchmarks::SpMV::ReferenceFormats::Legacy {
 
 template< typename Real, typename Device, typename Index, typename RealAllocator >
 Matrix< Real, Device, Index, RealAllocator >::Matrix( const RealAllocatorType& allocator )
@@ -147,4 +147,4 @@ void
 Matrix< Real, Device, Index, RealAllocator >::print( std::ostream& str ) const
 {}
 
-}  // namespace TNL::Matrices
+}  // namespace TNL::Benchmarks::SpMV::ReferenceFormats::Legacy

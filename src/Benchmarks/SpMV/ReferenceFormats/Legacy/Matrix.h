@@ -11,12 +11,8 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
-#include <TNL/Matrices/MatrixView.h>
 
-/**
- * \brief Namespace for matrix formats.
- */
-namespace TNL::Matrices {
+namespace TNL::Benchmarks::SpMV::ReferenceFormats::Legacy {
 
 /**
  * \brief Base class for other matrix types.
@@ -30,7 +26,7 @@ template< typename Real = double,
           typename Device = Devices::Host,
           typename Index = int,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< std::remove_const_t< Real > > >
-class [[deprecated]] Matrix : public Object
+class Matrix : public Object
 {
 public:
    using RealAllocatorType = RealAllocator;
@@ -235,6 +231,6 @@ operator<<( std::ostream& str, const Matrix< Real, Device, Index >& matrix )
    return str;
 }
 
-}  // namespace TNL::Matrices
+}  // namespace TNL::Benchmarks::SpMV::ReferenceFormats::Legacy
 
-#include <TNL/Matrices/Matrix.hpp>
+#include "Matrix.hpp"

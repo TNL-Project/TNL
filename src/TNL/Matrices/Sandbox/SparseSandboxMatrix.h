@@ -7,7 +7,7 @@
 #pragma once
 
 #include <map>
-#include <TNL/Matrices/Matrix.h>
+
 #include <TNL/Matrices/MatrixType.h>
 #include <TNL/Allocators/Default.h>
 #include <TNL/Algorithms/Segments/CSR.h>
@@ -54,9 +54,8 @@ namespace TNL::Matrices::Sandbox {
  *
  * In the core of this class there is:
  *
- * 1. Vector 'values` (\ref TNL::Matrices::Matrix::values) which is inheritted
- *    from \ref TNL::Matrices::Matrix. This vector is used for storing of matrix
- *    elements values.
+ * 1. Vector 'values` (\ref SparseSandboxMatrix::values) which is used for
+ *    storing of matrix elements values.
  * 2. Vector `columnIndexes` (\ref SparseSandboxMatrix::columnIndexes). This
  *    vector is used for storing of matrix elements column indexes.
  *
@@ -132,7 +131,7 @@ template< typename Real = double,
           typename MatrixType = GeneralMatrix,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-class SparseSandboxMatrix : public Matrix< Real, Device, Index, RealAllocator >
+class SparseSandboxMatrix : public Object
 {
    static_assert(
       ! MatrixType::isSymmetric() || ! std::is_same< Device, Devices::Cuda >::value
@@ -142,8 +141,7 @@ class SparseSandboxMatrix : public Matrix< Real, Device, Index, RealAllocator >
 
 public:
    // Supporting types - they are not important for the user
-   using BaseType = Matrix< Real, Device, Index, RealAllocator >;
-   using ValuesVectorType = typename Matrix< Real, Device, Index, RealAllocator >::ValuesType;
+   using ValuesVectorType = Containers::Vector< Real, Device, Index, RealAllocator >;
    using ValuesViewType = typename ValuesVectorType::ViewType;
    using ConstValuesViewType = typename ValuesViewType::ConstViewType;
    using ColumnsIndexesVectorType =
@@ -362,6 +360,40 @@ public:
                                  const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
    /**
+    * \brief Returns number of matrix rows.
+    *
+    * \return number of matrix row.
+    */
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getRows() const;
+
+   /**
+    * \brief Returns number of matrix columns.
+    *
+    * @return number of matrix columns.
+    */
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getColumns() const;
+
+   /**
+    * \brief Returns a constant reference to a vector with the matrix elements values.
+    *
+    * \return constant reference to a vector with the matrix elements values.
+    */
+   [[nodiscard]] const ValuesVectorType&
+   getValues() const;
+
+   /**
+    * \brief Returns a reference to a vector with the matrix elements values.
+    *
+    * \return constant reference to a vector with the matrix elements values.
+    */
+   [[nodiscard]] ValuesVectorType&
+   getValues();
+
+   /**
     * \brief Returns a modifiable view of the sparse matrix.
     *
     * See \ref SparseSandboxMatrixView.
@@ -409,7 +441,7 @@ public:
     * \param columns is the number of matrix columns.
     */
    void
-   setDimensions( IndexType rows, IndexType columns ) override;
+   setDimensions( IndexType rows, IndexType columns );
 
    /**
     * \brief Set the number of matrix rows and columns by the given matrix.
@@ -512,7 +544,7 @@ public:
     * \return number of non-zero matrix elements.
     */
    [[nodiscard]] IndexType
-   getNonzeroElementsCount() const override;
+   getNonzeroElementsCount() const;
 
    /**
     * \brief Resets the matrix to zero dimensions.
@@ -1047,7 +1079,7 @@ public:
     * \param str is the output stream.
     */
    void
-   print( std::ostream& str ) const override;
+   print( std::ostream& str ) const;
 
    /**
     * \brief Getter of segments for non-constant instances.
@@ -1086,6 +1118,11 @@ public:
    getColumnIndexes();
 
 protected:
+   IndexType rows, columns;
+
+   //! \brief Array containing the allocated matrix elements.
+   ValuesVectorType values;
+
    //! \brief Vector containing the column indices of non-zero matrix elements.
    ColumnsIndexesVectorType columnIndexes;
 

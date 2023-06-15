@@ -18,7 +18,7 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::SparseSandboxMatrix(
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: BaseType( realAllocator ), columnIndexes( indexAllocator ), rowPointers( (IndexType) 1, (IndexType) 0, indexAllocator )
+: values( realAllocator ), columnIndexes( indexAllocator ), rowPointers( (IndexType) 1, (IndexType) 0, indexAllocator )
 {
    this->view.bind( this->getView() );
 }
@@ -30,7 +30,7 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    const Index_t columns,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: BaseType( rows, columns, realAllocator ), columnIndexes( indexAllocator ),
+: rows( rows ), columns( columns ), values( realAllocator ), columnIndexes( indexAllocator ),
   rowPointers( rows + 1, (IndexType) 0, indexAllocator )
 {
    this->view.bind( this->getView() );
@@ -43,7 +43,7 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    const IndexType columns,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: BaseType( rowCapacities.size(), columns, realAllocator ), columnIndexes( indexAllocator ),
+: rows( rowCapacities.size() ), columns( columns ), values( realAllocator ), columnIndexes( indexAllocator ),
   rowPointers( rowCapacities.size() + 1, (IndexType) 0, indexAllocator )
 {
    this->setRowCapacities( RowsCapacitiesType( rowCapacities ) );
@@ -56,7 +56,7 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    const IndexType columns,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: BaseType( rowCapacities.getSize(), columns, realAllocator ), columnIndexes( indexAllocator ),
+: rows( rowCapacities.size() ), columns( columns ), values( realAllocator ), columnIndexes( indexAllocator ),
   rowPointers( rowCapacities.getSize() + 1, (IndexType) 0, indexAllocator )
 {
    this->setRowCapacities( rowCapacities );
@@ -69,7 +69,7 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    const std::initializer_list< std::tuple< IndexType, IndexType, RealType > >& data,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: BaseType( rows, columns, realAllocator ), columnIndexes( indexAllocator ),
+: rows( rows ), columns( columns ), values( realAllocator ), columnIndexes( indexAllocator ),
   rowPointers( rows + 1, (IndexType) 0, indexAllocator )
 {
    this->setElements( data );
@@ -84,12 +84,43 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: BaseType( rows, columns, realAllocator ), columnIndexes( indexAllocator ),
+: rows( rows ), columns( columns ), values( realAllocator ), columnIndexes( indexAllocator ),
   rowPointers( rows + 1, (IndexType) 0, indexAllocator )
 {
    this->setDimensions( rows, columns );
    this->setElements( map );
    this->view.bind( this->getView() );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
+__cuda_callable__
+Index
+SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getRows() const
+{
+   return this->rows;
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
+__cuda_callable__
+Index
+SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getColumns() const
+{
+   return this->columns;
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
+auto
+SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getValues() const
+   -> const ValuesVectorType&
+{
+   return this->values;
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
+auto
+SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::getValues() -> ValuesVectorType&
+{
+   return this->values;
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
@@ -129,7 +160,9 @@ void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::setDimensions( const IndexType rows,
                                                                                                       const IndexType columns )
 {
-   BaseType::setDimensions( rows, columns );
+   TNL_ASSERT( rows >= 0 && columns >= 0, std::cerr << " rows = " << rows << " columns = " << columns );
+   this->rows = rows;
+   this->columns = columns;
    this->view.bind( this->getView() );
 }
 
@@ -138,7 +171,7 @@ template< typename Matrix_ >
 void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::setLike( const Matrix_& matrix )
 {
-   BaseType::setLike( matrix );
+   setDimensions( matrix.getRows(), matrix.getColumns() );
    // SANDBOX_TODO: Replace the following line with assignment of metadata required by your format.
    //               Do not assign matrix elements here.
    this->rowPointers = matrix.rowPointers;
@@ -283,7 +316,9 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::reset()
 {
-   BaseType::reset();
+   this->rows = 0;
+   this->columns = 0;
+   this->values.reset();
    this->columnIndexes.reset();
    // SANDBOX_TODO: Reset the metadata required by your format here.
    this->rowPointers.reset();
@@ -596,7 +631,9 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::operator=(
    const SparseSandboxMatrix& matrix )
 {
-   Matrix< Real, Device, Index >::operator=( matrix );
+   this->rows = matrix.rows;
+   this->columns = matrix.columns;
+   this->values = matrix.values;
    this->columnIndexes = matrix.columnIndexes;
    // SANDBOX_TODO: Replace the following line with an assignment of metadata required by you sparse matrix format.
    this->rowPointers = matrix.rowPointers;
@@ -610,7 +647,9 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::operator=(
    const SparseSandboxMatrix< RealType, Device_, IndexType, MatrixType, RealAllocator, IndexAllocator >& matrix )
 {
-   Matrix< Real, Device, Index >::operator=( matrix );
+   this->rows = matrix.rows;
+   this->columns = matrix.columns;
+   this->values = matrix.values;
    this->columnIndexes = matrix.columnIndexes;
    // SANDBOX_TODO: Replace the following line with an assignment of metadata required by you sparse matrix format.
    this->rowPointers = matrix.rowPointers;
@@ -659,14 +698,23 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::save( File& file ) const
 {
-   this->view.save( file );
+   Object::save( file );
+   file.save( &this->rows );
+   file.save( &this->columns );
+   file << this->values;
+   file << this->columnIndexes;
+   // SANDBOX_TODO: Replace this with medata required by your format
+   file << this->rowPointers;
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
 void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::load( File& file )
 {
-   Matrix< RealType, DeviceType, IndexType >::load( file );
+   Object::load( file );
+   file.load( &this->rows );
+   file.load( &this->columns );
+   file >> this->values;
    file >> this->columnIndexes;
    // SANDBOX_TODO: Replace the following line with loading of metadata required by your sparse matrix format.
    file >> rowPointers;

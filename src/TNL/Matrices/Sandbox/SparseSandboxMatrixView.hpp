@@ -27,7 +27,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::SparseSandboxMatrixV
    const ValuesViewType& values,
    const ColumnsIndexesViewType& columnIndexes,
    const RowPointersView& rowPointers )
-: MatrixView< Real, Device, Index >( rows, columns, values ), columnIndexes( columnIndexes ), rowPointers( rowPointers )
+: BaseType( rows, columns, values ), columnIndexes( columnIndexes ), rowPointers( rowPointers )
 {}
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -35,7 +35,7 @@ __cuda_callable__
 void
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::bind( SparseSandboxMatrixView& view )
 {
-   MatrixView< Real, Device, Index >::operator=( view );
+   BaseType::operator=( view );
    this->columnIndexes.bind( view.columnIndexes );
    // SANDBOX_TODO: Replace the following line with assignment of metadata required by your
    //               sparse format.
@@ -47,7 +47,7 @@ __cuda_callable__
 void
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::bind( SparseSandboxMatrixView&& view )
 {
-   MatrixView< Real, Device, Index >::bind( view );
+   BaseType::bind( view.getRows(), view.getColumns(), view.getValues() );
    this->columnIndexes.bind( view.columnIndexes );
    // SANDBOX_TODO: Replace the following line with assignment of metadata required by your
    //               sparse format.
@@ -781,21 +781,6 @@ bool
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::operator!=( const Matrix& m ) const
 {
    return ! operator==( m );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-void
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::save( File& file ) const
-{
-   MatrixView< Real, Device, Index >::save( file );
-   file << this->columnIndexes << this->rowPointers;  // SANDBOX_TODO: Replace this with medata required by your format
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-void
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::save( const String& fileName ) const
-{
-   Object::save( fileName );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
