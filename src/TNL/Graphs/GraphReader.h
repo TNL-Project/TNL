@@ -43,7 +43,11 @@ struct GraphReader
          int from_node, to_node;
          ss >> from_node >> to_node;
          nodes = std::max( nodes, std::max( from_node, to_node ) );
-         edges.emplace( Edge( from_node, to_node ), 1.0 );
+         ValueType weight = 1.0;
+         if( !ss.eof() ) {
+            ss >> weight;
+         }
+         edges.emplace( Edge( from_node, to_node ), weight );
       }
       nodes++; // nodes are numbered from 0
       graph.setNodeCount( nodes );

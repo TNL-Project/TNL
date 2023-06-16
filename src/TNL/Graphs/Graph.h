@@ -35,8 +35,9 @@ struct Graph
 
    Graph() = default;
 
-   Graph( const MatrixType& matrix )
-      : MatrixType( matrix ) {}
+   Graph( const MatrixType& matrix ) {
+      this->adjacencyMatrix = matrix;
+   }
 
    Graph( MatrixType&& matrix )
       : MatrixType( std::move( matrix ) ) {}
@@ -146,12 +147,15 @@ struct Graph
       auto values_view = adjacencyMatrix.getValues().getConstView();
       auto column_indexes_view = adjacencyMatrix.getColumnIndexes().getConstView();
       const auto padding = adjacencyMatrix.getPaddingIndex();
-      return Algorithms::reduce< DeviceType >( 0, values_view.getSize(),
+      ValueType w = Algorithms::reduce< DeviceType >( 0, values_view.getSize(),
          [=] __cuda_callable__ ( IndexType i ) {
             if( column_indexes_view[ i ] != padding )
                return values_view[ i ];
             return ( ValueType ) 0; },
          TNL::Plus{} );
+      if constexpr( isUndirected() )
+         return 0.5 * w;
+      return w;
    }
 
    ~Graph() = default;

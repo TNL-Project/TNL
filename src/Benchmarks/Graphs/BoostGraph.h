@@ -5,10 +5,14 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/kruskal_min_spanning_tree.hpp>
 #include <boost/graph/graph_utility.hpp>
+#include <TNL/Graphs/Graph.h>
 
 using namespace std;
 using namespace boost;
+
+namespace TNL::Benchmarks::Graphs {
 
 // Custom visitor to update the distance map
 struct bfs_distance_visitor : public boost::default_bfs_visitor {
@@ -24,35 +28,65 @@ struct bfs_distance_visitor : public boost::default_bfs_visitor {
   std::vector<int>& distances_;
 };
 
+template< typename Value = double,
+          typename GraphType = TNL::Graphs::Directed >
+struct BoostAdjacencyList {
+   using type = boost::adjacency_list< boost::vecS,
+                                       boost::vecS,
+                                       boost::directedS,
+                                       boost::no_property,
+                                       boost::property<boost::edge_weight_t, Value> >;
+};
+
+template< typename Value >
+struct BoostAdjacencyList< Value, TNL::Graphs::Undirected > {
+   using type = boost::adjacency_list< boost::vecS,
+                                       boost::vecS,
+                                       boost::undirectedS,
+                                       boost::no_property,
+                                       boost::property<boost::edge_weight_t, Value> >;
+};
 
 template< typename Index = int,
-          typename Real = double >
+          typename Real = double,
+          typename GraphType = TNL::Graphs::Directed >
 struct BoostGraph
 {
    using IndexType = Index;
    using RealType = Real;
-   using AdjacencyList = boost::adjacency_list< boost::vecS,
-                                                boost::vecS,
-                                                boost::directedS,
-                                                boost::no_property,
-                                                boost::property<boost::edge_weight_t, Real> >;
+   using AdjacencyList = typename BoostAdjacencyList< Real, GraphType >::type;
    using Vertex = typename boost::graph_traits< AdjacencyList >::vertex_descriptor;
    using Edge = typename boost::graph_traits< AdjacencyList >::edge_descriptor;
 
    BoostGraph(){}
 
-   template< typename TNLDigraph >
-   BoostGraph( const TNLDigraph& digraph )
+   template< typename TNLDigraph, typename TNLGraph >
+   BoostGraph( const TNLDigraph& digraph, const TNLGraph& graph )
    {
       for( Index rowIdx = 0; rowIdx < digraph.getNodeCount(); rowIdx++ )
       {
          const auto row = digraph.getAdjacencyMatrix().getRow( rowIdx );
          for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ )
          {
-            if( row.getValue( localIdx ) != 0.0 )
-               add_edge( rowIdx, row.getColumnIndex( localIdx ), 1.0, graph );
+            auto value = row.getValue( localIdx );
+            if(  value != 0.0 )
+               add_edge( rowIdx, row.getColumnIndex( localIdx ), value, this->digraph );
          }
       }
+
+      for( Index rowIdx = 0; rowIdx < graph.getNodeCount(); rowIdx++ )
+      {
+         const auto row = graph.getAdjacencyMatrix().getRow( rowIdx );
+         for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ )
+         {
+            auto value = row.getValue( localIdx );
+            if(  value != 0.0 ) {
+               add_edge( rowIdx, row.getColumnIndex( localIdx ), value, this->graph );
+               add_edge( row.getColumnIndex( localIdx ), rowIdx, value, this->graph );
+            }
+         }
+      }
+
    }
 
    void breadthFirstSearch( Index start, std::vector< Index >& distances )
@@ -64,7 +98,7 @@ struct BoostGraph
       // Initialize the distance map for the source vertex
       distances[0] = 0;
 
-      ::bfs_distance_visitor distance_visitor( distances );
+      bfs_distance_visitor distance_visitor( distances );
       boost::breadth_first_search(graph, boost::vertex(0, graph), boost::visitor( distance_visitor ) );
    }
 
@@ -89,8 +123,33 @@ struct BoostGraph
 
    void minimumSpanningTree( std::vector< Edge >& spanning_tree )
    {
-      //boost::kruskal_minimum_spanning_tree(graph, std::back_inserter(spanning_tree));
+      boost::kruskal_minimum_spanning_tree(graph, std::back_inserter(spanning_tree));
    }
+
+   const AdjacencyList& getGraph() const
+   {
+      return graph;
+   }
+
+   void exportMst( const std::vector< Edge >& mst, const TNL::String& filename )
+   {
+      // Open file to write MST
+      std::ofstream file( filename.getString() );
+
+      // Write the edges of the Minimum Spanning Tree to file
+      for (auto &edge : mst) {
+         int u = boost::source(edge, graph);
+         int v = boost::target(edge, graph);
+         int weight = boost::get(boost::edge_weight, graph, edge);
+         file << u << " " << v << " " << weight << std::endl;
+      }
+
+      // Close the file
+      file.close();
+   }
+
 protected:
-   AdjacencyList graph;
+   AdjacencyList digraph, graph;
 };
+
+} // namespace TNL::Benchmarks::Graphs

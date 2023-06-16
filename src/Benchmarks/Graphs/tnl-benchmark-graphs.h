@@ -25,8 +25,8 @@ void configSetup( TNL::Config::ConfigDescription& config )
 template< typename Real >
 bool startBenchmark( TNL::Config::ParameterContainer& parameters )
 {
-   GraphsBenchmark< Real > benchmark;
-   return benchmark.runBenchmark( parameters );
+   TNL::Benchmarks::Graphs::GraphsBenchmark< Real > benchmark( parameters );
+   return benchmark.runBenchmark();
 }
 
 /*template< typename Real >
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 {
    TNL::Config::ConfigDescription config;
    configSetup( config );
-   GraphsBenchmark<>::configSetup( config );
+   TNL::Benchmarks::Graphs::GraphsBenchmark<>::configSetup( config );
 
    TNL::Config::ParameterContainer parameters;
 

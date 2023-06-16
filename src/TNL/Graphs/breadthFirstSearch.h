@@ -39,14 +39,14 @@ void breadthFirstSearchTransposed_impl( const Matrix& transposedAdjacencyMatrix,
       auto x_view = distances.getView();
       auto y_view = y.getView();
 
-      auto fetch = [=] __cuda_callable__ ( Index rowIdx, Index columnIdx, const Real& value ) -> Real {
-         return x_view[ columnIdx ] * value;
+      auto fetch = [=] __cuda_callable__ ( Index rowIdx, Index columnIdx, const Real& value ) -> bool {
+         return x_view[ columnIdx ] && value;
       };
       // NVCC does not allow use of if constexpr inside lambda.
-      auto fetch_with_explorer = [=] __cuda_callable__ ( Index rowIdx, Index columnIdx, const Real& value ) -> Real {
+      auto fetch_with_explorer = [=] __cuda_callable__ ( Index rowIdx, Index columnIdx, const Real& value ) -> bool {
          if( x_view[ columnIdx ] != 0 )
             explorer( rowIdx );
-         return x_view[ columnIdx ] * value;
+         return x_view[ columnIdx ] && value;
       };
       auto keep = [=] __cuda_callable__ ( int rowIdx, const double& value ) mutable {
          if( value && x_view[ rowIdx ] == 0 ) {

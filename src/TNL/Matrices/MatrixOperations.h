@@ -398,4 +398,37 @@ public:
    }
 };
 
+/**
+ * \brief This function computes ( A + A^T ) / 2, where A is a square matrix.
+ *
+ * \tparam InMatrix is the type of the input matrix.
+ * \tparam OutMatrix is the type of the output matrix.
+ * \param inMatrix is the input matrix.
+ * \param outMatrix is the output matrix.
+ */
+template< typename InMatrix, typename OutMatrix >
+void makeSymmetric( const InMatrix& inMatrix, OutMatrix& outMatrix )
+{
+   TNL_ASSERT_EQ( inMatrix.getRows(), inMatrix.getColumns(), "The input matrix must be square." );
+
+   // TODO: the following needs to be optimized and it works only for sparse matrices
+   using RealType = typename InMatrix::RealType;
+   using IndexType = typename InMatrix::IndexType;
+
+   std::map< std::pair< IndexType, IndexType >, RealType > map;
+   for( IndexType rowIdx = 0; rowIdx < inMatrix.getRows(); rowIdx++ ) {
+      auto row = inMatrix.getRow( rowIdx );
+      for ( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+         IndexType columnIdx = row.getColumnIndex( localIdx );
+         RealType value = row.getValue( localIdx );
+         if( auto element = map.find( std::make_pair( rowIdx, columnIdx ) ); element != map.end() )
+            value = ( value + element->second ) / 2.0;
+         map[ std::make_pair( rowIdx, columnIdx ) ] = value;
+         map[ std::make_pair( columnIdx, rowIdx ) ] = value;
+      }
+   }
+   outMatrix.setDimensions( inMatrix.getRows(), inMatrix.getColumns() );
+   outMatrix.setElements( map );
+}
+
 }  // namespace TNL::Matrices

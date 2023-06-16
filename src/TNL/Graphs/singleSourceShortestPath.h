@@ -40,6 +40,7 @@ void singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix
             y_view[ rowIdx ] = min( x_view[ rowIdx ], value );
       };
       transposedAdjacencyMatrix.reduceAllRows( fetch, TNL::Min{}, keep, std::numeric_limits< Real >::max() );
+      std::cout << "Distances: " << distances << "\n";
       if( distances == y )
          break;
       distances = y;
@@ -56,6 +57,7 @@ void singleSourceShortestPath( const Graph& graph, Index start, Vector& distance
    distances = std::numeric_limits< Real >::max();
    distances.setElement( start, 0.0 );
 
+   std::cout << "Graph: " << graph << "\n";
    // In the sequential version, we use the Dijkstra algorithm.
    if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value )
    {
@@ -70,9 +72,10 @@ void singleSourceShortestPath( const Graph& graph, Index start, Vector& distance
          std::tie(current_distance, current) = pq.top();
          pq.pop();
 
-         if (current_distance > distances[current]) {
-            continue;
-         }
+         std::cout << "Current: " << current << " distance: " << current_distance << " distances: " << distances << "\n";
+         //if (current_distance > distances[current]) {
+         //   continue;
+         //}
 
          const auto row = graph.getAdjacencyMatrix().getRow( current );
          for( Index i = 0; i < row.getSize(); i++ ) {
@@ -81,11 +84,14 @@ void singleSourceShortestPath( const Graph& graph, Index start, Vector& distance
             if( neighbor == graph.getAdjacencyMatrix().getPaddingIndex() )
                continue;
             double distance = current_distance + edge_weight;
+            std::cout << "Neighbor: " << neighbor << " of " << current <<  " distance: " << distance;
 
             if( distance < distances[ neighbor ] ) {
-                distances[neighbor] = distance;
-                pq.emplace(distance, neighbor);
+               std::cout << " --> updating distance of " << neighbor << " to " << distance;
+               distances[neighbor] = distance;
+               pq.emplace(distance, neighbor);
             }
+            std::cout << "\n";
          }
       }
    }

@@ -187,9 +187,10 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
    const IndexType paddingIndex = graph.getAdjacencyMatrix().getPaddingIndex();
    IndexType iter( 0 );
    Real sum( 0.0 );
+   //std::cout << graph.getAdjacencyMatrix() << std::endl;
    while( p != p_old )
    {
-      std::cout << "Iteration " << ++iter << std::endl;
+      //std::cout << "Iteration " << ++iter << std::endl;
       p_old = p;
       auto p_view = p.getView();
       auto p_old_view = p_old.getView();
@@ -220,16 +221,16 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
                minEdgeTarget = target_node;
             }
          }
-         std::cout  << "Min. edge " << source_node << " -> " << minEdgeTarget << " weight " << minEdgeWeight << std::endl;
+         //std::cout  << "Min. edge " << source_node << " -> " << minEdgeTarget << " weight " << minEdgeWeight << std::endl;
          if( minEdgeTarget != -1 ) {
-            std::cout << " Adding candidate edge " << source_node << " -> " << minEdgeTarget << " weight " << minEdgeWeight
-                      << " to star root " << p_view[ minEdgeTarget ];
+            //std::cout << " Adding candidate edge " << source_node << " -> " << minEdgeTarget << " weight " << minEdgeWeight
+            //          << " to star root " << p_view[ minEdgeTarget ];
             IndexType idx = hook_candidates_view.newSlot( p_view[ minEdgeTarget ] );
             hook_candidates_weights_view[ idx ] = minEdgeWeight;
             hook_candidates_targets_view[ idx ] = minEdgeTarget;
             hook_candidates_sources_view[ idx ] = source_node;
-            std::cout << " Adding candidate edge " << minEdgeTarget << " -> " << source_node << " weight " << minEdgeWeight
-                      << " to star root " << p_view[ minEdgeTarget ];
+            //std::cout << " Adding candidate edge " << minEdgeTarget << " -> " << source_node << " weight " << minEdgeWeight
+            //          << " to star root " << p_view[ minEdgeTarget ];
             idx = hook_candidates_view.newSlot( p_view[ source_node ] );
             hook_candidates_weights_view[ idx ] = minEdgeWeight;
             hook_candidates_targets_view[ idx ] = source_node;
@@ -239,7 +240,7 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
       };
       graph.getAdjacencyMatrix().forAllRows( hooking );
 
-      using SegmentView = typename GrowingSegmentsType::SegmentViewType;;
+      /*using SegmentView = typename GrowingSegmentsType::SegmentViewType;;
       hook_candidates.sequentialForAllSegments( [=] __cuda_callable__ ( const SegmentView& segment ) {
          auto segmentIdx = segment.getSegmentIndex();
          std::cout << " Hook candidate for node " << segmentIdx << " : ";
@@ -252,7 +253,7 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
                          << hook_candidates_weights_view[ globalIdx ] << ", ";
          }
          std::cout << std::endl;
-      } );
+      } );*/
 
 
       // Find minimum weight hook candidates
@@ -285,26 +286,26 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
          auto source = hook_sources_view[ i ];
          auto target = hook_targets_view[ i ];
          if( source != -1 ) {
-            std::cout << " Hooking " << source << " -> " << target << " parent node is " << p_old_view[ source ] << " weight " << hook_weights_view[ i ] << std::endl;
+            //std::cout << " Hooking " << source << " -> " << target << " parent node is " << p_old_view[ source ] << " weight " << hook_weights_view[ i ] << std::endl;
             p_view[ p_old_view[ target ] ] = p_old_view[ source ];
             new_links_target_view[ target ] = source; //source; //hook_sources_view[ i ];
             new_links_weight_view[ target ] = hook_weights_view[ i ];
             return hook_weights_view[ i ];
          }
          else
-            return 0.0;
+            return ( Real ) 0.0;
       };
       sum += Algorithms::reduce< DeviceType >( 0, p.getSize(), hooking_fetch, TNL::Plus{} );
       //Algorithms::parallelFor< DeviceType >( 0, p.getSize(), hooking_fetch );
-      std::cout << " After hooking: p     = " << p     << "                         sum = " << sum << std::endl;
+      /*std::cout << " After hooking: p     = " << p     << "                         sum = " << sum << std::endl;
       std::cout << " After hooking: p_old = " << p_old << "                         sum = " << sum << std::endl;
-      std::cout << " New links target     = " << new_links_target_view << std::endl;
+      std::cout << " New links target     = " << new_links_target_view << std::endl;*/
 
       // Find cycles
       auto cycles_fetch = [=] __cuda_callable__ ( Index i ) mutable {
          auto& new_link_i = new_links_target_view[ i ];
          if( new_link_i != -1 && i < new_link_i && i == new_links_target_view[ new_link_i ] ) {
-            std::cout << " Found cycle " << i << " -> " << new_link_i << " -> " << i << std::endl;
+            //std::cout << " Found cycle " << i << " -> " << new_link_i << " -> " << i << std::endl;
             new_links_target_view[ i ] = -1;
          }
          auto& p_i = p_view[ i ];
@@ -312,18 +313,18 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
              i < p_i &&                 // we cancel only one edge of the cycle
              i == p_view[ p_i ] )       // i == p_p_i <=> there is a cycle
          {
-            std::cout << " Cycle detected: " << i << " -> " << p_i << ". Avoiding edge with weight " << hook_weights_view[ i ] << std::endl;
+            //std::cout << " Cycle detected: " << i << " -> " << p_i << ". Avoiding edge with weight " << hook_weights_view[ i ] << std::endl;
             p_i = i;
             new_links_target_view[ i ] = -1;
             return hook_weights_view[ i ];
          }
-         else return 0.0;
+         else return ( Real ) 0.0;
       };
       auto add = TNL::Algorithms::reduce< DeviceType >( 0, p.getSize(), cycles_fetch, TNL::Plus{} );
       sum -= add;
-      std::cout << " After cycles: p      = " << p     << "                         sum = " << sum << std::endl;
+      /*std::cout << " After cycles: p      = " << p     << "                         sum = " << sum << std::endl;
       std::cout << " After cycles: p_old  = " << p_old << "                         sum = " << sum << std::endl;
-      std::cout << " New links target     = " << new_links_target_view << std::endl;
+      std::cout << " New links target     = " << new_links_target_view << std::endl;*/
 
       // Adding edges to the graph of the spanning tree
       Algorithms::parallelFor< DeviceType >( 0, n,
@@ -336,13 +337,13 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
             tree_view.getRow( row ).setElement( treeFillingView.atomicAdd( row, 1 ), col, new_links_weight_view[ i ] );
             if constexpr( ! OutGraph::MatrixType::isSymmetric() )
                tree_view.getRow( col ).setElement( treeFillingView.atomicAdd( col, 1 ), row, new_links_weight_view[ i ] );
-            std::cout <<    " Adding edge " << row << " -> " << col << " with weight " << new_links_weight_view[ i ]
-                      << " to the output tree." << std::endl;
+            //std::cout <<    " Adding edge " << row << " -> " << col << " with weight " << new_links_weight_view[ i ]
+            //          << " to the output tree." << std::endl;
          }
       } );
       //std::cout << "  Adding " << add << " to sum " << sum << std::endl;
-      std::cout << "Tree:" << std::endl << tree << std::endl;
-      std::cout << " After cycles removing:    p = " << p << "                 sum = " << sum << std::endl;
+      //std::cout << "Tree:" << std::endl << tree << std::endl;
+      //std::cout << " After cycles removing:    p = " << p << "                 sum = " << sum << std::endl;
 
       // Perform shortcutting
       while( Algorithms::reduce< DeviceType >(
@@ -350,14 +351,14 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
          [=] __cuda_callable__ ( Index i ) mutable {
             auto& p_i = p_view[ i ];
             if( p_i != p_view[ p_i ] ) {
-               std::cout << " Shortcutting " << i << " to " << p_view[ p_i ] << std::endl;
+               //std::cout << " Shortcutting " << i << " to " << p_view[ p_i ] << std::endl;
                p_i = p_view[ p_i ];
                return 1;
             }
             else return 0; },
          TNL::Plus{} ) );
 
-      std::cout << " After shortcutting:       p = " << p << std::endl;
+      //std::cout << " After shortcutting:       p = " << p << std::endl;
 
       // Updating star roots slots after star roots merging
       /*std::cout << "Star roots slots:              " << starRootsSlots << std::endl;
