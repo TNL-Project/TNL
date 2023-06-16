@@ -1388,31 +1388,34 @@ protected:
 // types for which MatrixTest is instantiated
 using MatrixTypes = ::testing::Types
 <
-    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Host, short >,
-    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Host, short >,
-    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Host, short >,
-    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, short >,
-    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Host, int >,
-    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Host, int >,
-    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Host, int >,
-    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int >,
-    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Host, long >,
-    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Host, long >,
-    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Host, long >,
-    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, long >
+    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Host, short, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Host, short, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Host, short, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, short, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
+    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >
 #ifdef __CUDACC__
-    ,TNL::Matrices::DenseMatrix< int,    TNL::Devices::Cuda, short >,
-    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Cuda, short >,
-    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Cuda, short >,
-    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, short >,
-    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Cuda, int >,
-    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Cuda, int >,
-    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Cuda, int >,
-    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int >,
-    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Cuda, long >,
-    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Cuda, long >,
-    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Cuda, long >,
-    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, long >
+    ,
+    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< int,    TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< long,   TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< float,  TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >
 #endif
 >;
 
