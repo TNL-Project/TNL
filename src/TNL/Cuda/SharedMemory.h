@@ -35,7 +35,9 @@
  * using template class specializations.
  */
 
-#include <stdint.h>
+#include <cstdint>
+
+#include <TNL/Cuda/DummyDefs.h>
 
 namespace TNL::Cuda {
 

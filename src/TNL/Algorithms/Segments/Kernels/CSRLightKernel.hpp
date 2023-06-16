@@ -557,8 +557,8 @@ void
 CSRLightKernel< Index, Device >::setThreadsPerSegment( int threadsPerSegment )
 {
    if( threadsPerSegment != 1 && threadsPerSegment != 2 && threadsPerSegment != 4 && threadsPerSegment != 8
-       && threadsPerSegment != 16 && threadsPerSegment != 32 )
-      throw std::runtime_error( "Number of threads per segment must be power of 2 - 1, 2, ... 32." );
+       && threadsPerSegment != 16 && threadsPerSegment != 32 && threadsPerSegment != 64 && threadsPerSegment != 128 )
+      throw std::invalid_argument( "Number of threads per segment must be power of 2 - 1, 2, ... 128." );
    this->threadsPerSegment = threadsPerSegment;
 }
 
