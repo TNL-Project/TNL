@@ -18,12 +18,14 @@ namespace TNL::Matrices {
 template< int BlockSize, int ThreadsPerRow, typename Matrix, typename InVector, typename OutVector >
 __global__
 void
-VectorColumnMajorDenseMatrixBaseVectorMultiplicationKernel( const Matrix matrix,
-                                                            const InVector inVector,
-                                                            OutVector outVector,
-                                                            const int begin,
-                                                            const int end,
-                                                            int gridIdx )
+VectorColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
+                                                        const InVector inVector,
+                                                        OutVector outVector,
+                                                        int begin,
+                                                        int end,
+                                                        int gridIdx,
+                                                        typename Matrix::RealType matrixMultiplicator,
+                                                        typename Matrix::RealType outVectorMultiplicator )
 {
 #ifdef __CUDACC__
    using Real = typename Matrix::RealType;
@@ -80,20 +82,26 @@ VectorColumnMajorDenseMatrixBaseVectorMultiplicationKernel( const Matrix matrix,
       result_[ idx ] += result_[ idx + 1 ];
    __syncwarp();
 
-   if( rowIdx < end && localColIdx == 0 )
-      outVector[ rowIdx ] = result_[ idx ];
+   if( rowIdx < end && localColIdx == 0 ) {
+      if( outVectorMultiplicator == 0 )
+         outVector[ rowIdx ] = matrixMultiplicator * result_[ idx ];
+      else
+         outVector[ rowIdx ] = matrixMultiplicator * result_[ idx ] + outVectorMultiplicator * outVector[ rowIdx ];
+   }
 #endif
 }
 
 template< typename Matrix, typename InVector, typename OutVector >
 __global__
 void
-ColumnMajorDenseMatrixBaseVectorMultiplicationKernel( const Matrix matrix,
-                                                      const InVector inVector,
-                                                      OutVector outVector,
-                                                      const int begin,
-                                                      const int end,
-                                                      int gridIdx )
+ColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
+                                                  const InVector inVector,
+                                                  OutVector outVector,
+                                                  int begin,
+                                                  int end,
+                                                  int gridIdx,
+                                                  typename Matrix::RealType matrixMultiplicator,
+                                                  typename Matrix::RealType outVectorMultiplicator )
 {
 #ifdef __CUDACC__
    using Real = typename Matrix::RealType;
@@ -103,8 +111,8 @@ ColumnMajorDenseMatrixBaseVectorMultiplicationKernel( const Matrix matrix,
 
    const int rowIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x + begin;
 
-   Real result( 0.0 );
-   Index columnIdx( 0 );
+   Real result = 0;
+   Index columnIdx = 0;
    const auto& values = matrix.getValues();
    const auto& rowsCount = matrix.getRows();
    Index valuesPtr = rowIdx;
@@ -131,86 +139,12 @@ ColumnMajorDenseMatrixBaseVectorMultiplicationKernel( const Matrix matrix,
          }
       columnIdx = lastIdx;
    }
-   if( rowIdx < end )
-      outVector[ rowIdx ] = result;
-#endif
-}
 
-template< typename Matrix, typename InVector, typename OutVector >
-__global__
-void
-RowMajorDenseMatrixBaseVectorMultiplicationKernel( const Matrix matrix,
-                                                   const InVector inVector,
-                                                   OutVector outVector,
-                                                   const int first,
-                                                   const int last,
-                                                   int gridIdx )
-{
-#ifdef __CUDACC__
-   using Real = typename Matrix::RealType;
-   using Index = typename Matrix::IndexType;
-   // constexpr int inVectorCacheSize = 20480 / sizeof( Real );
-   //__shared__ Real inVectorCache[ inVectorCacheSize ];
-
-   constexpr int threadsPerRow = 32;
-   // const Index rowIdx = begin + ((gridIdx * TNL::Cuda::getMaxGridXSize() ) + (blockIdx.x * blockDim.x) + threadIdx.x) /
-   // threadsPerRow;
-   const Index rowIdx = first + ( ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x ) / threadsPerRow;
-
-   Real result = 0.0;
-   const Index laneID = threadIdx.x & 31;  // & is cheaper than %
-   const Real* values = matrix.getValues().getData();
-
-   Index columnIdx( 0 );
-   /*while( columnIdx < matrix.getColumns() )
-   {
-      const Index lastIdx = min( matrix.getColumns(), columnIdx + inVectorCacheSize );
-      Index matrixColIdx = columnIdx + threadIdx.x;
-      Index cacheColIdx = threadIdx.x;
-      while( matrixColIdx < lastIdx )
-      {
-         inVectorCache[ cacheColIdx ] = inVector[ matrixColIdx ];
-         cacheColIdx += 256;
-         matrixColIdx += 256;
-      }
-      __syncthreads();
-
-      // Calculate result
-      if( rowIdx < last )
-      {
-         const Index begin = rowIdx * matrix.getColumns() + columnIdx;
-         const Index end = rowIdx * matrix.getColumns() + lastIdx;
-         Index localColumn( 0 );
-
-         for( Index i = begin + laneID; i < end; i += threadsPerRow, localColumn += threadsPerRow )
-            result += values[ i ] * inVectorCache[ localColumn ];
-      }
-      columnIdx = lastIdx;
-   }*/
-
-   if( rowIdx < last ) {
-      const Index begin = rowIdx * matrix.getColumns();
-      const Index end = begin + matrix.getColumns();
-
-      for( Index i = begin + laneID; i < end; i += threadsPerRow, columnIdx += threadsPerRow )
-         result += values[ i ] * inVector[ columnIdx ];
-   }
-
-   if( rowIdx < last ) {
-      // Reduction
-      if( threadsPerRow > 16 )
-         result += __shfl_down_sync( 0xFFFFFFFF, result, 16 );
-      if( threadsPerRow > 8 )
-         result += __shfl_down_sync( 0xFFFFFFFF, result, 8 );
-      if( threadsPerRow > 4 )
-         result += __shfl_down_sync( 0xFFFFFFFF, result, 4 );
-      if( threadsPerRow > 2 )
-         result += __shfl_down_sync( 0xFFFFFFFF, result, 2 );
-      if( threadsPerRow > 1 )
-         result += __shfl_down_sync( 0xFFFFFFFF, result, 1 );
-      // Write result
-      if( laneID == 0 )
-         outVector[ rowIdx ] = result;
+   if( rowIdx < end ) {
+      if( outVectorMultiplicator == 0 )
+         outVector[ rowIdx ] = matrixMultiplicator * result;
+      else
+         outVector[ rowIdx ] = matrixMultiplicator * result + outVectorMultiplicator * outVector[ rowIdx ];
    }
 #endif
 }
@@ -557,51 +491,35 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
    if( end == 0 )
       end = this->getRows();
 
-   if( matrixMultiplicator == 1.0 && outVectorMultiplicator == 0.0 ) {
-      if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
-         if constexpr( Organization == Algorithms::Segments::ColumnMajorOrder ) {
-            Cuda::LaunchConfiguration launch_config;
-            launch_config.blockSize.x = 256;
-            constexpr int ThreadsPerRow = 1;
-            const std::size_t threadsCount = ( end - begin ) * ThreadsPerRow;
-            const std::size_t blocksCount = roundUpDivision( threadsCount, launch_config.blockSize.x );
-            const std::size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
-            launch_config.dynamicSharedMemorySize = 20480;
-            for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
-               launch_config.gridSize.x = Cuda::getMaxGridXSize();
-               if( gridIdx == gridsCount - 1 )
-                  launch_config.gridSize.x = blocksCount % Cuda::getMaxGridXSize();
-               constexpr auto kernel = ColumnMajorDenseMatrixBaseVectorMultiplicationKernel< DenseMatrixBase,
-                                                                                             decltype( inVectorView ),
-                                                                                             decltype( outVectorView ) >;
-               Cuda::launchKernelAsync( kernel, launch_config, *this, inVectorView, outVectorView, begin, end, gridIdx );
-            }
-            cudaStreamSynchronize( launch_config.stream );
-            TNL_CHECK_CUDA_DEVICE;
-            return;
-         }
-         if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
-            Cuda::LaunchConfiguration launch_config;
-            launch_config.blockSize.x = 256;
-            constexpr int ThreadsPerRow = 32;
-            const std::size_t threadsCount = ( end - begin ) * ThreadsPerRow;
-            const std::size_t blocksCount = roundUpDivision( threadsCount, launch_config.blockSize.x );
-            const std::size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
-            launch_config.dynamicSharedMemorySize = 20480;
-            for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
-               launch_config.gridSize.x = Cuda::getMaxGridXSize();
-               if( gridIdx == gridsCount - 1 )
-                  launch_config.gridSize.x = blocksCount % Cuda::getMaxGridXSize();
-               constexpr auto kernel = RowMajorDenseMatrixBaseVectorMultiplicationKernel< DenseMatrixBase,
-                                                                                          decltype( inVectorView ),
-                                                                                          decltype( outVectorView ) >;
-               Cuda::launchKernelAsync( kernel, launch_config, *this, inVectorView, outVectorView, begin, end, gridIdx );
-            }
-            cudaStreamSynchronize( launch_config.stream );
-            TNL_CHECK_CUDA_DEVICE;
-            return;
-         }
+   // specialization for the case where we can use the CUDA shared memory
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > && Organization == Algorithms::Segments::ColumnMajorOrder ) {
+      Cuda::LaunchConfiguration launch_config;
+      launch_config.blockSize.x = 256;
+      constexpr int ThreadsPerRow = 1;
+      const std::size_t threadsCount = ( end - begin ) * ThreadsPerRow;
+      const std::size_t blocksCount = roundUpDivision( threadsCount, launch_config.blockSize.x );
+      const std::size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
+      for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+         launch_config.gridSize.x = Cuda::getMaxGridXSize();
+         if( gridIdx == gridsCount - 1 )
+            launch_config.gridSize.x = blocksCount % Cuda::getMaxGridXSize();
+         constexpr auto kernel = ColumnMajorDenseMatrixVectorMultiplicationKernel< DenseMatrixBase,
+                                                                                   decltype( inVectorView ),
+                                                                                   decltype( outVectorView ) >;
+         Cuda::launchKernelAsync( kernel,
+                                  launch_config,
+                                  *this,
+                                  inVectorView,
+                                  outVectorView,
+                                  begin,
+                                  end,
+                                  gridIdx,
+                                  matrixMultiplicator,
+                                  outVectorMultiplicator );
       }
+      cudaStreamSynchronize( launch_config.stream );
+      TNL_CHECK_CUDA_DEVICE;
+      return;
    }
 
    /***

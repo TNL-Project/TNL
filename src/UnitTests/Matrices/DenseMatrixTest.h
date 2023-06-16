@@ -964,6 +964,22 @@ void test_VectorProduct()
     EXPECT_EQ( outVector.getElement( 2 ),  84 );
     EXPECT_EQ( outVector.getElement( 3 ), 116 );
     EXPECT_EQ( outVector.getElement( 4 ), 148 );
+
+
+    // Test for a very small matrix
+    const Matrix A({
+       { 2.0,  5.0 },
+       { 1.0,  2.0 }
+    });
+
+    VectorType x{ -2, 5 };
+
+    VectorType result( x.getSize(), 0.0 );
+
+    A.vectorProduct( x, result );
+
+    EXPECT_EQ( result.getElement( 0 ), 21 );
+    EXPECT_EQ( result.getElement( 1 ), 8 );
 }
 
 template< typename Matrix >

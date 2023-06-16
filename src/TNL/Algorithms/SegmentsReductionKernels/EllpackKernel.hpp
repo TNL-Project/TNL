@@ -30,7 +30,7 @@ EllpackCudaReductionKernel( Index begin,
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const int warpSize = 32;
+   constexpr int warpSize = TNL::Cuda::getWarpSize();
    const int gridID = 0;
    const Index segmentIdx =
       begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
@@ -43,24 +43,25 @@ EllpackCudaReductionKernel( Index begin,
    begin = segmentIdx * segmentSize;
    end = begin + segmentSize;
 
-   /* Calculate result */
+   // Calculate the result
    if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
-      Index localIdx = 0;
-      for( Index i = begin + laneID; i < end; i += warpSize )
-         result = reduction( result, fetch( segmentIdx, localIdx++, i, compute ) );
+      Index localIdx = laneID;
+      for( Index i = begin + laneID; i < end; i += warpSize, localIdx += warpSize )
+         result = reduction( result, fetch( segmentIdx, localIdx, i, compute ) );
    }
    else {
       for( Index i = begin + laneID; i < end; i += warpSize )
          result = reduction( result, fetch( i, compute ) );
    }
 
-   /* Reduction */
+   // Reduction
    result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
    result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
    result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
    result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
    result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   /* Write result */
+
+   // Write the result
    if( laneID == 0 )
       keep( segmentIdx, result );
 #endif
