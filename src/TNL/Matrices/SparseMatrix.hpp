@@ -299,27 +299,10 @@ void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setElements(
    const std::initializer_list< std::tuple< Index, Index, Real > >& data )
 {
-   const auto& rows = this->getRows();
-   const auto& columns = this->getColumns();
-   Containers::Vector< Index, Devices::Host, Index > rowCapacities( rows, 0 );
-   for( const auto& i : data ) {
-      if( std::get< 0 >( i ) >= rows ) {
-         throw std::logic_error( "Wrong row index " + std::to_string( std::get< 0 >( i ) ) + " in an initializer list" );
-      }
-      rowCapacities[ std::get< 0 >( i ) ]++;
-   }
-   SparseMatrix< Real, Devices::Host, Index, MatrixType, Segments > hostMatrix( rows, columns );
-   hostMatrix.setRowCapacities( rowCapacities );
-   for( const auto& i : data ) {
-      if( std::get< 1 >( i ) >= columns ) {
-         throw std::logic_error( "Wrong column index " + std::to_string( std::get< 1 >( i ) ) + " in an initializer list" );
-      }
-      hostMatrix.setElement( std::get< 0 >( i ), std::get< 1 >( i ), std::get< 2 >( i ) );
-   }
-   if constexpr( std::is_same_v< Device, Devices::Host > )
-      ( *this ) = std::move( hostMatrix );
-   else
-      ( *this ) = hostMatrix;
+   std::map< std::pair< Index, Index >, Real > map;
+   for( const auto& [ row, column, value ] : data )
+      map[ { row, column } ] = value;
+   this->setElements( map );
 }
 
 template< typename Real,
@@ -336,20 +319,44 @@ void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setElements(
    const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map )
 {
-   Containers::Vector< Index, Devices::Host, Index > rowsCapacities( this->getRows(), 0 );
-   for( auto element : map )
-      rowsCapacities[ element.first.first ]++;
    if constexpr( ! std::is_same_v< Device, Devices::Host > ) {
       SparseMatrix< Real, Devices::Host, Index, MatrixType, Segments > hostMatrix( this->getRows(), this->getColumns() );
-      hostMatrix.setRowCapacities( rowsCapacities );
-      for( auto element : map )
-         hostMatrix.setElement( element.first.first, element.first.second, element.second );
+      hostMatrix.setElements( map );
       *this = hostMatrix;
    }
    else {
+      RowCapacitiesVectorType rowsCapacities( this->getRows(), 0 );
+      for( const auto& [ coordinates, value ] : map ) {
+         const auto& [ rowIdx, columnIdx ] = coordinates;
+         if( Base::isSymmetric() && rowIdx < columnIdx ) {
+            if( map.count( { columnIdx, rowIdx } ) == 0 )
+               throw std::logic_error( "SparseMatrix is configured as symmetric, but the input data is not symmetric." );
+            continue;
+         }
+         if( rowIdx >= this->getRows() )
+            throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
+         if( columnIdx >= this->getColumns() )
+            throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
+         rowsCapacities[ rowIdx ]++;
+      }
       this->setRowCapacities( rowsCapacities );
-      for( auto element : map )
-         this->setElement( element.first.first, element.first.second, element.second );
+
+      // The following algorithm is based on the fact that the input std::map
+      // is sorted in a row-major order and that row capacities were already
+      // set. It is much more efficient than calling setElement over and over,
+      // since it avoids the sequential lookups of column indexes in each row.
+      Index lastRowIdx = 0;
+      Index localIdx = 0;
+      for( const auto& [ coordinates, value ] : map ) {
+         const auto& [ rowIdx, columnIdx ] = coordinates;
+         if( Base::isSymmetric() && rowIdx < columnIdx )
+            continue;
+         auto row = this->getRow( rowIdx );
+         if( rowIdx != lastRowIdx )
+            localIdx = 0;
+         row.setElement( localIdx++, columnIdx, value );
+         lastRowIdx = rowIdx;
+      }
    }
 }
 

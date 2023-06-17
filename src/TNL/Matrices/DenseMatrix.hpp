@@ -79,6 +79,29 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+template< typename MapIndex, typename MapValue >
+void
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
+   const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map )
+{
+   if constexpr( ! std::is_same_v< Device, Devices::Host > ) {
+      DenseMatrix< Real, Devices::Host, Index, Organization > hostMatrix( this->getRows(), this->getColumns() );
+      hostMatrix.setElements( map );
+      *this = hostMatrix;
+   }
+   else {
+      for( const auto& [ coordinates, value ] : map ) {
+         const auto& [ rowIdx, columnIdx ] = coordinates;
+         if( rowIdx >= this->getRows() )
+            throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
+         if( columnIdx >= this->getColumns() )
+            throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
+         this->setElement( rowIdx, columnIdx, value );
+      }
+   }
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 auto
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getView() -> ViewType
 {

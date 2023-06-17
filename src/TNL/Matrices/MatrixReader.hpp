@@ -8,6 +8,8 @@
 
 #include <iomanip>
 #include <sstream>
+#include <map>
+
 #include <TNL/String.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Timer.h>
@@ -64,12 +66,6 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtx( std::istream& file, Matrix&
    if( verbose )
       std::cout << "Matrix dimensions are " << rows << " x " << columns << std::endl;
    matrix.setDimensions( rows, columns );
-   typename Matrix::RowsCapacitiesType rowLengths( rows );
-
-   computeCompressedRowLengthsFromMtxFile(
-      file, rowLengths, columns, rows, symmetricSourceMatrix, Matrix::isSymmetric(), verbose );
-
-   matrix.setRowCapacities( rowLengths );
 
    readMatrixElementsFromMtxFile( file, matrix, symmetricSourceMatrix, verbose );
 }
@@ -78,7 +74,7 @@ template< typename Matrix >
 void
 MatrixReader< Matrix, TNL::Devices::Host >::verifyMtxFile( std::istream& file, const Matrix& matrix, bool verbose )
 {
-   bool symmetricSourceMatrix( false );
+   bool symmetricSourceMatrix = false;
    IndexType rows = 0;
    IndexType columns = 0;
    readMtxHeader( file, rows, columns, symmetricSourceMatrix, false );
@@ -86,8 +82,8 @@ MatrixReader< Matrix, TNL::Devices::Host >::verifyMtxFile( std::istream& file, c
    file.clear();
    file.seekg( 0, std::ios::beg );
    String line;
-   bool dimensionsLine( false );
-   IndexType processedElements( 0 );
+   bool dimensionsLine = false;
+   IndexType processedElements = 0;
    Timer timer;
    timer.start();
    while( std::getline( file, line ) ) {
@@ -137,8 +133,8 @@ MatrixReader< Matrix, TNL::Devices::Host >::findLineByElement( std::istream& fil
 {
    file.clear();
    file.seekg( 0, std::ios::beg );
-   bool symmetricSourceMatrix( false );
-   bool dimensionsLine( false );
+   bool symmetricSourceMatrix = false;
+   bool dimensionsLine = false;
    lineNumber = 0;
    while( std::getline( file, line ) ) {
       lineNumber++;
@@ -194,7 +190,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file,
    file.clear();
    file.seekg( 0, std::ios::beg );
    String line;
-   bool headerParsed( false );
+   bool headerParsed = false;
    std::vector< String > parsedLine;
    while( true ) {
       std::getline( file, line );
@@ -224,78 +220,6 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file,
 
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::computeCompressedRowLengthsFromMtxFile(
-   std::istream& file,
-   typename Matrix::RowsCapacitiesType& rowLengths,
-   const int columns,
-   const int rows,
-   bool symmetricSourceMatrix,
-   bool symmetricTargetMatrix,
-   bool verbose )
-{
-   file.clear();
-   file.seekg( 0, std::ios::beg );
-   rowLengths.setValue( 0 );
-   String line;
-   bool dimensionsLine( false );
-   IndexType numberOfElements( 0 );
-   Timer timer;
-   timer.start();
-   while( std::getline( file, line ) ) {
-      if( line.empty() || line[ 0 ] == '%' )
-         continue;
-      if( ! dimensionsLine ) {
-         dimensionsLine = true;
-         continue;
-      }
-      IndexType row = 1;
-      IndexType column = 1;
-      RealType value;
-      parseMtxLineWithElement( line, row, column, value );
-      numberOfElements++;
-      if( column > columns || row > rows ) {
-         std::stringstream str;
-         str << "There is an element at position " << row << ", " << column << " out of the matrix dimensions " << rows << " x "
-             << columns << ".";
-         throw std::runtime_error( str.str() );
-      }
-      if( verbose )
-         std::cout << " Counting the matrix elements ... " << numberOfElements / 1000 << " thousands      \r" << std::flush;
-
-      if( ! symmetricTargetMatrix || ( symmetricTargetMatrix && row >= column ) )
-         rowLengths[ row - 1 ]++;
-      else if( symmetricTargetMatrix && row < column )
-         rowLengths[ column - 1 ]++;
-
-      if( rowLengths[ row - 1 ] > columns ) {
-         std::stringstream str;
-         str << "There are more elements ( " << rowLengths[ row - 1 ] << " ) than the matrix columns ( " << columns
-             << " ) at the row " << row << ".";
-         throw std::runtime_error( str.str() );
-      }
-      if( symmetricSourceMatrix && row != column && symmetricTargetMatrix ) {
-         rowLengths[ column - 1 ]++;
-         if( rowLengths[ column - 1 ] > columns ) {
-            std::stringstream str;
-            str << "There are more elements ( " << rowLengths[ row - 1 ] << " ) than the matrix columns ( " << columns
-                << " ) at the row " << column << " .";
-            throw std::runtime_error( str.str() );
-         }
-         continue;
-      }
-      else if( symmetricSourceMatrix && row != column && ! symmetricTargetMatrix )
-         rowLengths[ column - 1 ]++;
-   }
-   file.clear();
-   long int fileSize = file.tellg();
-   timer.stop();
-   if( verbose )
-      std::cout << " Counting the matrix elements ... " << numberOfElements / 1000 << " thousands  -> " << timer.getRealTime()
-                << " sec. i.e. " << fileSize / ( timer.getRealTime() * ( 1 << 20 ) ) << "MB/s." << std::endl;
-}
-
-template< typename Matrix >
-void
 MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::istream& file,
                                                                            Matrix& matrix,
                                                                            bool symmetricMatrix,
@@ -304,10 +228,16 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::
    file.clear();
    file.seekg( 0, std::ios::beg );
    String line;
-   bool dimensionsLine( false );
-   IndexType processedElements( 0 );
+   bool dimensionsLine = false;
+   IndexType processedElements = 0;
    Timer timer;
    timer.start();
+
+   // Reading the elements first into an std::map and then copying to the matrix
+   // has higher memory requirements, but avoids having to read the file twice.
+   // Also the SparseMatrix::setElements method is more efficient than calling
+   // SparseMatrix::setElement over and over...
+   std::map< std::pair< IndexType, IndexType >, RealType > map;
 
    while( std::getline( file, line ) ) {
       if( line.empty() || line[ 0 ] == '%' )
@@ -321,27 +251,47 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::
       RealType value;
       parseMtxLineWithElement( line, row, column, value );
 
-      if( ! Matrix::isSymmetric() || ( Matrix::isSymmetric() && row >= column ) )
-         matrix.setElement( row - 1, column - 1, value );
-      else if( Matrix::isSymmetric() && row < column )
-         matrix.setElement( column - 1, row - 1, value );
+      if( column > matrix.getColumns() || row > matrix.getRows() ) {
+         std::stringstream str;
+         str << "There is an element at position " << row << ", " << column << " out of the matrix dimensions "
+             << matrix.getRows() << " x " << matrix.getColumns() << ".";
+         throw std::runtime_error( str.str() );
+      }
 
+      if( ! Matrix::isSymmetric() || ( Matrix::isSymmetric() && row >= column ) )
+         map[ { row - 1, column - 1 } ] = value;
+      else if( Matrix::isSymmetric() && row < column )
+         map[ { column - 1, row - 1 } ] = value;
       processedElements++;
-      if( symmetricMatrix && row != column && Matrix::isSymmetric() )
-         continue;
-      else if( symmetricMatrix && row != column && ! Matrix::isSymmetric() ) {
-         matrix.setElement( column - 1, row - 1, value );
+
+      if( symmetricMatrix && row != column && ! Matrix::isSymmetric() ) {
+         map[ { column - 1, row - 1 } ] = value;
          processedElements++;
       }
+
+      if( verbose && processedElements % 1000 == 0 )
+         std::cout << " Reading the matrix elements ... " << processedElements / 1000 << " thousands      \r" << std::flush;
    }
 
    file.clear();
-   long int fileSize = file.tellg();
+   const long int fileSize = file.tellg();
    timer.stop();
    if( verbose )
-      std::cout << " Reading the matrix elements ... " << processedElements << " / " << matrix.getAllocatedElementsCount()
-                << " -> " << timer.getRealTime() << " sec. i.e. " << fileSize / ( timer.getRealTime() * ( 1 << 20 ) ) << "MB/s."
-                << std::endl;
+      std::cout << " Reading the matrix elements ... " << processedElements << " -> " << timer.getRealTime() << " sec. i.e. "
+                << fileSize / ( timer.getRealTime() * ( 1 << 20 ) ) << "MB/s." << std::endl;
+
+   timer.reset();
+   timer.start();
+
+   if( verbose )
+      std::cout << " Copying matrix elements from std::map to the matrix ... \r" << std::flush;
+   matrix.setElements( map );
+
+   timer.stop();
+   const long int dataSize = processedElements * ( sizeof( RealType ) + sizeof( IndexType ) );
+   if( verbose )
+      std::cout << " Copying matrix elements from std::map to the matrix ... -> " << timer.getRealTime() << " sec. i.e. "
+                << dataSize / ( timer.getRealTime() * ( 1 << 20 ) ) << "MB/s." << std::endl;
 }
 
 template< typename Matrix >

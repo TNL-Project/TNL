@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <map>
+
 #include <TNL/Object.h>
 #include <TNL/Allocators/Default.h>
 
@@ -187,6 +189,25 @@ public:
    template< typename Value >
    void
    setElements( std::initializer_list< std::initializer_list< Value > > data );
+
+   /**
+    * \brief This method sets the dense matrix elements from std::map.
+    *
+    * This is intended for compatibility with \ref SparseMatrix, the method
+    * is used e.g. in \ref MatrixReader.
+    *
+    * The matrix elements values are given as a map \e data where keys are
+    * std::pair of matrix coordinates ( {row, column} ) and value is the
+    * matrix element value.
+    *
+    * \tparam MapIndex is a type for indexing rows and columns.
+    * \tparam MapValue is a type for matrix elements values in the map.
+    *
+    * \param map is std::map containing matrix elements.
+    */
+   template< typename MapIndex, typename MapValue >
+   void
+   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map );
 
    /**
     * \brief Resets the matrix to zero dimensions.

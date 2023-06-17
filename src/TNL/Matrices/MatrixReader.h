@@ -131,15 +131,6 @@ protected:
    readMtxHeader( std::istream& file, IndexType& rows, IndexType& columns, bool& symmetricMatrix, bool verbose );
 
    static void
-   computeCompressedRowLengthsFromMtxFile( std::istream& file,
-                                           typename Matrix::RowsCapacitiesType& rowLengths,
-                                           int columns,
-                                           int rows,
-                                           bool symmetricSourceMatrix,
-                                           bool symmetricTargetMatrix,
-                                           bool verbose );
-
-   static void
    readMatrixElementsFromMtxFile( std::istream& file, Matrix& matrix, bool symmetricMatrix, bool verbose );
 
    static void
