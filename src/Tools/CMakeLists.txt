@@ -111,6 +111,9 @@ endif()
 
 # skip building host-only targets in CUDA-enabled CI jobs
 if( TNL_BUILD_CPP_TARGETS )
+   add_executable( tnl-matrix-info tnl-matrix-info.cpp )
+   target_link_libraries( tnl-matrix-info PUBLIC TNL::TNL_CXX )
+
    add_executable( tnl-grid-setup tnl-grid-setup.cpp )
    target_link_libraries( tnl-grid-setup PUBLIC TNL::TNL_CXX )
 
@@ -129,7 +132,8 @@ if( TNL_BUILD_CPP_TARGETS )
       target_link_libraries( tnl-dicom-reader PUBLIC ${DCMTK_LIBRARIES} )
    endif()
 
-   install( TARGETS tnl-grid-setup
+   install( TARGETS tnl-matrix-info
+                    tnl-grid-setup
                     tnl-image-converter
                     tnl-dicom-reader
             DESTINATION bin )

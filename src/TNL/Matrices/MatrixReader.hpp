@@ -226,7 +226,7 @@ template< typename Matrix >
 void
 MatrixReader< Matrix, TNL::Devices::Host >::computeCompressedRowLengthsFromMtxFile(
    std::istream& file,
-   Containers::Vector< int, DeviceType, int >& rowLengths,
+   typename Matrix::RowsCapacitiesType& rowLengths,
    const int columns,
    const int rows,
    bool symmetricSourceMatrix,
