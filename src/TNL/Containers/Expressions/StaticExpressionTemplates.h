@@ -218,7 +218,9 @@ struct StaticUnaryExpressionTemplate
       return T1::getSize();
    }
 
-   constexpr StaticUnaryExpressionTemplate( const T1& a ) : operand( a ) {}
+   // the constructor is explicit to prevent issues with the ternary operator,
+   // see https://gitlab.com/tnl-project/tnl/-/issues/140
+   explicit constexpr StaticUnaryExpressionTemplate( const T1& a ) : operand( a ) {}
 
    constexpr RealType
    operator[]( const int i ) const

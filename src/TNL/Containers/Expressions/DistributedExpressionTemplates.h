@@ -350,7 +350,9 @@ struct DistributedUnaryExpressionTemplate
                   "Invalid operand in distributed unary expression templates - distributed expression templates are not "
                   "enabled for the operand." );
 
-   DistributedUnaryExpressionTemplate( const T1& a ) : operand( a ) {}
+   // the constructor is explicit to prevent issues with the ternary operator,
+   // see https://gitlab.com/tnl-project/tnl/-/issues/140
+   explicit DistributedUnaryExpressionTemplate( const T1& a ) : operand( a ) {}
 
    [[nodiscard]] RealType
    getElement( const IndexType i ) const

@@ -221,7 +221,9 @@ struct UnaryExpressionTemplate
    static_assert( HasEnabledExpressionTemplates< T1 >::value,
                   "Invalid operand in unary expression templates - expression templates are not enabled for the operand." );
 
-   UnaryExpressionTemplate( const T1& a ) : operand( a.getConstView() ) {}
+   // the constructor is explicit to prevent issues with the ternary operator,
+   // see https://gitlab.com/tnl-project/tnl/-/issues/140
+   explicit UnaryExpressionTemplate( const T1& a ) : operand( a.getConstView() ) {}
 
    [[nodiscard]] RealType
    getElement( const IndexType i ) const
