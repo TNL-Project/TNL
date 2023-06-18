@@ -217,4 +217,60 @@ TEST( DiscreteMathTest, cartesianPower )
                           { 2, 1, 0 }, { 2, 1, 1 }, { 2, 1, 2 }, { 2, 2, 0 }, { 2, 2, 1 }, { 2, 2, 2 } } ) );
 }
 
+TEST( DiscreteMathTest, integerFactorizationTuples_pairs )
+{
+   using pairs_t = std::set< std::array< int, 2 > >;
+
+   EXPECT_TRUE( integerFactorizationTuples< 2 >( 0 ).empty() );
+   EXPECT_EQ( integerFactorizationTuples< 2 >( 1 ), ( pairs_t{ { 1, 1 } } ) );
+   EXPECT_EQ( integerFactorizationTuples< 2 >( 2 ), ( pairs_t{ { 1, 2 }, { 2, 1 } } ) );
+   EXPECT_EQ( integerFactorizationTuples< 2 >( 3 ), ( pairs_t{ { 1, 3 }, { 3, 1 } } ) );
+   EXPECT_EQ( integerFactorizationTuples< 2 >( 4 ), ( pairs_t{ { 1, 4 }, { 2, 2 }, { 4, 1 } } ) );
+   EXPECT_EQ( integerFactorizationTuples< 2 >( 5 ), ( pairs_t{ { 1, 5 }, { 5, 1 } } ) );
+   EXPECT_EQ( integerFactorizationTuples< 2 >( 6 ), ( pairs_t{ { 1, 6 }, { 2, 3 }, { 3, 2 }, { 6, 1 } } ) );
+}
+
+TEST( DiscreteMathTest, integerFactorizationTuples_triplets )
+{
+   using triplets_t = std::set< std::array< int, 3 > >;
+
+   EXPECT_TRUE( integerFactorizationTuples< 3 >( 0 ).empty() );
+   EXPECT_EQ( integerFactorizationTuples< 3 >( 1 ), ( triplets_t{ { 1, 1, 1 } } ) );
+   EXPECT_EQ( integerFactorizationTuples< 3 >( 2 ), ( triplets_t{ { 2, 1, 1 }, { 1, 2, 1 }, { 1, 1, 2 } } ) );
+   EXPECT_EQ( integerFactorizationTuples< 3 >( 3 ), ( triplets_t{ { 3, 1, 1 }, { 1, 3, 1 }, { 1, 1, 3 } } ) );
+   EXPECT_EQ( integerFactorizationTuples< 3 >( 4 ),
+              ( triplets_t{ { 4, 1, 1 }, { 1, 4, 1 }, { 1, 1, 4 }, { 2, 2, 1 }, { 2, 1, 2 }, { 1, 2, 2 } } ) );
+   EXPECT_EQ( integerFactorizationTuples< 3 >( 6 ),
+              ( triplets_t{ { 6, 1, 1 },
+                            { 1, 6, 1 },
+                            { 1, 1, 6 },
+                            { 2, 3, 1 },
+                            { 3, 2, 1 },
+                            { 2, 1, 3 },
+                            { 3, 1, 2 },
+                            { 1, 3, 2 },
+                            { 1, 2, 3 } } ) );
+   EXPECT_EQ( integerFactorizationTuples< 3 >( 12 ),
+              ( triplets_t{
+                 { 12, 1, 1 },
+                 { 1, 12, 1 },
+                 { 1, 1, 12 },
+                 { 4, 3, 1 },
+                 { 3, 4, 1 },
+                 { 4, 1, 3 },
+                 { 3, 1, 4 },
+                 { 1, 4, 3 },
+                 { 1, 3, 4 },
+                 { 3, 2, 2 },
+                 { 2, 3, 2 },
+                 { 2, 2, 3 },
+                 { 6, 2, 1 },
+                 { 2, 6, 1 },
+                 { 6, 1, 2 },
+                 { 2, 1, 6 },
+                 { 1, 6, 2 },
+                 { 1, 2, 6 },
+              } ) );
+}
+
 #include "main.h"

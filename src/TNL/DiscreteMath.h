@@ -6,10 +6,14 @@
 
 #pragma once
 
+#include <cstdint>
 #include <limits>
 #include <type_traits>
 #include <vector>
 #include <set>
+#include <array>
+
+#include <TNL/Assert.h>
 
 namespace TNL {
 
@@ -274,6 +278,65 @@ cartesianPower( std::vector< T > array, int N )
          }
       }
    }
+   return result;
+}
+
+/**
+ * \brief Finds all possible integer factorizations of a positive integer into
+ * a product of `N` factors.
+ *
+ * \tparam N is the rank of the tuples (2 for pairs, 3 for triplets, etc.)
+ * \tparam Index is the integral type of the input number.
+ * \param number is the integer to be factorized.
+ * \return A set of \e N-tuples, where the product of all components in each
+ *         tuple is equal to \e number.
+ */
+template< std::size_t N, typename Index >
+std::set< std::array< Index, N > >
+integerFactorizationTuples( Index number )
+{
+   static_assert( N > 1 );
+
+   if( number < 1 )
+      return {};
+
+   // factorize the input
+   const std::vector< Index > prime_factors = primeFactorization( number );
+
+   // create object for the result
+   std::set< std::array< Index, N > > result;
+
+   // generate component indices
+   std::vector< std::uint8_t > identity( N );
+   for( std::size_t i = 0; i < N; i++ )
+      identity[ i ] = i;
+   const auto component_indices = cartesianPower( identity, prime_factors.size() );
+
+   // generate tuples
+   for( const auto& components : component_indices ) {
+      TNL_ASSERT_EQ( prime_factors.size(), components.size(), "got wrong vector size from the cartesian product" );
+
+      // create default tuple
+      std::array< Index, N > tuple;
+      for( std::size_t i = 0; i < N; i++ )
+         tuple[ i ] = 1;
+
+      for( std::size_t i = 0; i < prime_factors.size(); i++ ) {
+         TNL_ASSERT_LT( components[ i ], 3, "got wrong value from the cartesian power" );
+         tuple[ components[ i ] ] *= prime_factors[ i ];
+      }
+
+#ifndef NDEBUG
+      // verify the result
+      Index product = 1;
+      for( std::size_t i = 0; i < N; i++ )
+         product *= tuple[ i ];
+      TNL_ASSERT_EQ( product, number, "integer factorization failed - product is not equal to the input" );
+#endif
+
+      result.insert( std::move( tuple ) );
+   }
+
    return result;
 }
 
