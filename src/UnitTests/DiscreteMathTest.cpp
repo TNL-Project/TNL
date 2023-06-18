@@ -151,4 +151,40 @@ TEST( DiscreteMathTest, detectMultiplicationOverflowTest )
       }
 }
 
+TEST( DiscreteMathTest, primeFactorizationTest )
+{
+   EXPECT_TRUE( primeFactorization( 0 ).empty() );
+   EXPECT_EQ( primeFactorization( 1 ), ( std::vector< int >{ 1 } ) );
+   EXPECT_EQ( primeFactorization( 2 ), ( std::vector< int >{ 2 } ) );
+   EXPECT_EQ( primeFactorization( 3 ), ( std::vector< int >{ 3 } ) );
+   EXPECT_EQ( primeFactorization( 4 ), ( std::vector< int >{ 2, 2 } ) );
+   EXPECT_EQ( primeFactorization( 5 ), ( std::vector< int >{ 5 } ) );
+   EXPECT_EQ( primeFactorization( 6 ), ( std::vector< int >{ 2, 3 } ) );
+   EXPECT_EQ( primeFactorization( 7 ), ( std::vector< int >{ 7 } ) );
+   EXPECT_EQ( primeFactorization( 8 ), ( std::vector< int >{ 2, 2, 2 } ) );
+   EXPECT_EQ( primeFactorization( 9 ), ( std::vector< int >{ 3, 3 } ) );
+   EXPECT_EQ( primeFactorization( 10 ), ( std::vector< int >{ 2, 5 } ) );
+   EXPECT_EQ( primeFactorization( 11 ), ( std::vector< int >{ 11 } ) );
+   EXPECT_EQ( primeFactorization( 12 ), ( std::vector< int >{ 2, 2, 3 } ) );
+   EXPECT_EQ( primeFactorization( 13 ), ( std::vector< int >{ 13 } ) );
+   EXPECT_EQ( primeFactorization( 14 ), ( std::vector< int >{ 2, 7 } ) );
+   EXPECT_EQ( primeFactorization( 15 ), ( std::vector< int >{ 3, 5 } ) );
+   EXPECT_EQ( primeFactorization( 16 ), ( std::vector< int >{ 2, 2, 2, 2 } ) );
+   EXPECT_EQ( primeFactorization( 17 ), ( std::vector< int >{ 17 } ) );
+   EXPECT_EQ( primeFactorization( 18 ), ( std::vector< int >{ 2, 3, 3 } ) );
+   EXPECT_EQ( primeFactorization( 19 ), ( std::vector< int >{ 19 } ) );
+   EXPECT_EQ( primeFactorization( 20 ), ( std::vector< int >{ 2, 2, 5 } ) );
+
+   EXPECT_EQ( primeFactorization( 864 ), ( std::vector< int >{ 2, 2, 2, 2, 2, 3, 3, 3 } ) );
+   EXPECT_EQ( primeFactorization( 20460 ), ( std::vector< int >{ 2, 2, 3, 5, 11, 31 } ) );
+
+   for( int n = 21; n <= 1024; n++ ) {
+      const std::vector< int > prime_factors = primeFactorization( n );
+      int product = 1;
+      for( auto prime : prime_factors )
+         product *= prime;
+      EXPECT_EQ( n, product );
+   }
+}
+
 #include "main.h"

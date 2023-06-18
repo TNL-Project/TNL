@@ -8,6 +8,7 @@
 
 #include <limits>
 #include <type_traits>
+#include <vector>
 
 namespace TNL {
 
@@ -173,6 +174,49 @@ integerMultiplyOverflow( Index a, Index b )
       return false;
    const Index result = a * b;
    return a != result / b;
+}
+
+/**
+ * \brief Calculates the prime factorization of a positive integer.
+ *
+ * The function uses the simple [trial division](https://en.wikipedia.org/wiki/Trial_division)
+ * algorithm, so it is not efficient for large numbers.
+ *
+ * \tparam Index is the integral type of the input number.
+ * \param number is the integer to be factorized.
+ * \return A vector of the prime factors.
+ */
+template< typename Index >
+std::vector< Index >
+primeFactorization( Index number )
+{
+   if( number <= 0 )
+      return {};
+   if( number == 1 )
+      return { 1 };
+
+   std::vector< Index > factors;
+   Index factor = 2;
+   while( number % 2 == 0 ) {
+      factors.push_back( factor );
+      number /= 2;
+   }
+
+   factor = 3;
+   while( factor * factor <= number ) {
+      if( number % factor == 0 ) {
+         factors.push_back( factor );
+         number /= factor;
+      }
+      else {
+         factor += 2;
+      }
+   }
+
+   if( number != 1 )
+      factors.push_back( number );
+
+   return factors;
 }
 
 }  // namespace TNL
