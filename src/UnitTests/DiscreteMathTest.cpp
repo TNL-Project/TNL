@@ -187,4 +187,34 @@ TEST( DiscreteMathTest, primeFactorizationTest )
    }
 }
 
+TEST( DiscreteMathTest, cartesianPower )
+{
+   using result_t = std::set< std::vector< int > >;
+   std::vector< int > array_1 = { 0 };
+   std::vector< int > array_2 = { 0, 1 };
+   std::vector< int > array_3 = { 0, 1, 2 };
+
+   // N = 1
+   EXPECT_EQ( cartesianPower( array_1, 1 ), ( result_t{ { 0 } } ) );
+   EXPECT_EQ( cartesianPower( array_2, 1 ), ( result_t{ { 0 }, { 1 } } ) );
+   EXPECT_EQ( cartesianPower( array_3, 1 ), ( result_t{ { 0 }, { 1 }, { 2 } } ) );
+
+   // N = 2
+   EXPECT_EQ( cartesianPower( array_1, 2 ), ( result_t{ { 0, 0 } } ) );
+   EXPECT_EQ( cartesianPower( array_2, 2 ), ( result_t{ { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } } ) );
+   EXPECT_EQ( cartesianPower( array_3, 2 ),
+              ( result_t{ { 0, 0 }, { 0, 1 }, { 0, 2 }, { 1, 0 }, { 1, 1 }, { 1, 2 }, { 2, 0 }, { 2, 1 }, { 2, 2 } } ) );
+
+   // N = 3
+   EXPECT_EQ( cartesianPower( array_1, 3 ), ( result_t{ { 0, 0, 0 } } ) );
+   EXPECT_EQ(
+      cartesianPower( array_2, 3 ),
+      ( result_t{ { 0, 0, 0 }, { 0, 0, 1 }, { 0, 1, 0 }, { 1, 0, 0 }, { 1, 1, 0 }, { 1, 0, 1 }, { 0, 1, 1 }, { 1, 1, 1 } } ) );
+   EXPECT_EQ( cartesianPower( array_3, 3 ),
+              ( result_t{ { 0, 0, 0 }, { 0, 0, 1 }, { 0, 0, 2 }, { 0, 1, 0 }, { 0, 1, 1 }, { 0, 1, 2 }, { 0, 2, 0 },
+                          { 0, 2, 1 }, { 0, 2, 2 }, { 1, 0, 0 }, { 1, 0, 1 }, { 1, 0, 2 }, { 1, 1, 0 }, { 1, 1, 1 },
+                          { 1, 1, 2 }, { 1, 2, 0 }, { 1, 2, 1 }, { 1, 2, 2 }, { 2, 0, 0 }, { 2, 0, 1 }, { 2, 0, 2 },
+                          { 2, 1, 0 }, { 2, 1, 1 }, { 2, 1, 2 }, { 2, 2, 0 }, { 2, 2, 1 }, { 2, 2, 2 } } ) );
+}
+
 #include "main.h"

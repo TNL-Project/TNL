@@ -9,6 +9,7 @@
 #include <limits>
 #include <type_traits>
 #include <vector>
+#include <set>
 
 namespace TNL {
 
@@ -217,6 +218,63 @@ primeFactorization( Index number )
       factors.push_back( number );
 
    return factors;
+}
+
+/**
+ * \brief Calculates the [cartesian power](https://en.wikipedia.org/wiki/Cartesian_product#n-ary_Cartesian_power)
+ * of elements in an array: `array^N`.
+ *
+ * For example, `cartesianPower(std::vector<int>{0,1}, 2)` returns the following set (written in pseudo-code):
+ * `{ { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } }`.
+ *
+ * \tparam T is the type of elements in the \e array.
+ * \param array is the input array/vector of elements.
+ * \param N is the power of the cartesian product.
+ * \return A set of vectors of elements, where each vector contains \e N elements from \e array.
+ */
+template< typename T >
+std::set< std::vector< T > >
+cartesianPower( std::vector< T > array, int N )
+{
+   if( array.empty() || N < 1 )
+      return {};
+   if( array.size() == 1 ) {
+      std::vector< T > tuple( N );
+      return { tuple };
+   }
+
+   std::set< std::vector< T > > result;
+
+   if( N == 1 ) {
+      for( const auto& value : array )
+         result.emplace( std::vector< T >{ value } );
+      return result;
+   }
+
+   std::vector< std::size_t > indices( N, 0 );
+   bool changed = true;
+   while( changed ) {
+      changed = false;
+      // add current tuple
+      std::vector< T > tuple( N );
+      for( int i = 0; i < N; i++ )
+         tuple[ i ] = array[ indices[ i ] ];
+      result.insert( tuple );
+      // loop over the input elements in reverse order
+      for( int i = N - 1; ! changed && i >= 0; i-- ) {
+         // increment
+         indices[ i ]++;
+         if( indices[ i ] < array.size() ) {
+            // we moved to the next character
+            changed = true;
+         }
+         else {
+            // end of string, so roll over
+            indices[ i ] = 0;
+         }
+      }
+   }
+   return result;
 }
 
 }  // namespace TNL
