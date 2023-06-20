@@ -58,21 +58,15 @@ struct BoostGraph
    using Vertex = typename boost::graph_traits< AdjacencyList >::vertex_descriptor;
    using Edge = typename boost::graph_traits< AdjacencyList >::edge_descriptor;
 
+   static constexpr bool isDirected() { return std::is_same_v< GraphType, TNL::Graphs::Directed >; }
+   static constexpr bool isUndirected() { return std::is_same_v< GraphType, TNL::Graphs::Undirected >; }
+
    BoostGraph(){}
 
-   template< typename TNLDigraph, typename TNLGraph >
-   BoostGraph( const TNLDigraph& digraph, const TNLGraph& graph )
+   template< typename TNLGraph >
+   BoostGraph( const TNLGraph& graph )
    {
-      for( Index rowIdx = 0; rowIdx < digraph.getNodeCount(); rowIdx++ )
-      {
-         const auto row = digraph.getAdjacencyMatrix().getRow( rowIdx );
-         for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ )
-         {
-            auto value = row.getValue( localIdx );
-            if(  value != 0.0 )
-               add_edge( rowIdx, row.getColumnIndex( localIdx ), value, this->digraph );
-         }
-      }
+      static_assert( std::is_same_v< typename TNLGraph::GraphType, GraphType >, "Graph types must match." );
 
       for( Index rowIdx = 0; rowIdx < graph.getNodeCount(); rowIdx++ )
       {
@@ -80,13 +74,11 @@ struct BoostGraph
          for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ )
          {
             auto value = row.getValue( localIdx );
-            if(  value != 0.0 ) {
+            if( value != 0.0 ) {
                add_edge( rowIdx, row.getColumnIndex( localIdx ), value, this->graph );
-               add_edge( row.getColumnIndex( localIdx ), rowIdx, value, this->graph );
             }
          }
       }
-
    }
 
    void breadthFirstSearch( Index start, std::vector< Index >& distances )
@@ -96,7 +88,7 @@ struct BoostGraph
       std::fill( distances.begin(), distances.end(), -1 );
 
       // Initialize the distance map for the source vertex
-      distances[0] = 0;
+      distances[start] = 0;
 
       bfs_distance_visitor distance_visitor( distances );
       boost::breadth_first_search(graph, boost::vertex(0, graph), boost::visitor( distance_visitor ) );
@@ -113,12 +105,6 @@ struct BoostGraph
                                       boost::predecessor_map(boost::dummy_property_map())
                                           .distance_map(boost::make_iterator_property_map(
                                            distances.begin(), get(boost::vertex_index, graph))));
-
-      // Print the distances from the source vertex
-      //for (size_t i = 0; i < distances.size(); ++i) {
-      //   std::cout << "Distance from vertex " << start << " to vertex " << i
-      //              << ": " << distances[i] << std::endl;
-      //}
    }
 
    void minimumSpanningTree( std::vector< Edge >& spanning_tree )
@@ -149,7 +135,7 @@ struct BoostGraph
    }
 
 protected:
-   AdjacencyList digraph, graph;
+   AdjacencyList graph;
 };
 
 } // namespace TNL::Benchmarks::Graphs
