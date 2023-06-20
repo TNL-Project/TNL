@@ -31,6 +31,8 @@ template< typename Real = double,
           typename Index = int >
 struct GraphsBenchmark
 {
+   using RealType = Real;
+   using IndexType = Index;
    using HostMatrix = TNL::Matrices::SparseMatrix<Real, TNL::Devices::Host, Index>;
    using HostGraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::Undirected >;
    using HostDigraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::Directed >;
@@ -98,7 +100,7 @@ struct GraphsBenchmark
       {
          std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << std::endl;
          std::cout << "Boost: " << this->boostBfsDistancesDirected << std::endl;
-         std::cout << "TNL: " << bfsDistances << std::endl;
+         std::cout << "TNL:   " << bfsDistances << std::endl;
          this->errors++;
       }
 
@@ -118,7 +120,7 @@ struct GraphsBenchmark
       {
          std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << std::endl;
          std::cout << "Boost: " << this->boostBfsDistancesUndirected << std::endl;
-         std::cout << "TNL: " << bfsDistances << std::endl;
+         std::cout << "TNL:   " << bfsDistances << std::endl;
          this->errors++;
       }
 
@@ -140,7 +142,7 @@ struct GraphsBenchmark
       {
          std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!" << std::endl;
          std::cout << "Boost: " << this->boostSSSPDistancesDirected << std::endl;
-         std::cout << "TNL: " << ssspDistances << std::endl;
+         std::cout << "TNL:   " << ssspDistances << std::endl;
          this->errors++;
       }
 
@@ -162,7 +164,7 @@ struct GraphsBenchmark
       {
          std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!" << std::endl;
          std::cout << "Boost: " << this->boostSSSPDistancesUndirected << std::endl;
-         std::cout << "TNL: " << ssspDistances << std::endl;
+         std::cout << "TNL:   " << ssspDistances << std::endl;
          this->errors++;
       }
 
@@ -274,75 +276,148 @@ struct GraphsBenchmark
       for (auto &edge : boostMstEdges) {
         Real weight = boost::get(boost::edge_weight, boostGraph.getGraph(), edge);
         this->boostMSTTotalWeight += weight;
-        //std::cout << boost::source(edge, g) << " <--> " << boost::target(edge, g) << " [weight = " << weight << "]" << std::endl;
       }
       auto filename = this->parameters.getParameter< TNL::String >( "input-file" );
       boostGraph.exportMst( boostMstEdges, filename + "-boost-mst.txt" );
    }
 
 #ifdef HAVE_GUNROCK
-   void gunrockBenchmarks( const HostDigraph& digraph, TNL::Benchmarks::Benchmark<>& benchmark )
+   void gunrockBenchmarks( const HostDigraph& hostDigraph, const HostGraph& hostGraph, TNL::Benchmarks::Benchmark<>& benchmark )
    {
       auto filename = this->parameters.getParameter< TNL::String >( "input-file" );
-      std::vector<int> row_offsets;
-      std::vector<int> column_indices, values;
+      std::vector< IndexType > digraph_row_offsets, graph_row_offsets;
+      std::vector< IndexType > digraph_column_indices, graph_column_indices;
+      std::vector< RealType > digraph_values, graph_values;
 
-      const auto& adjacencyMatrix = digraph.getAdjacencyMatrix();
-      TNL::copy( adjacencyMatrix.getSegments().getOffsets(), row_offsets );
-      TNL::copy( adjacencyMatrix.getColumnIndexes(), column_indices );
-      TNL::copy( adjacencyMatrix.getValues(), values );
+      const auto& digraphAdjacencyMatrix = hostDigraph.getAdjacencyMatrix();
+      TNL::copy( digraphAdjacencyMatrix.getSegments().getOffsets(), digraph_row_offsets );
+      TNL::copy( digraphAdjacencyMatrix.getColumnIndexes(), digraph_column_indices );
+      TNL::copy( digraphAdjacencyMatrix.getValues(), digraph_values );
+      thrust::device_vector< IndexType > d_digraph_row_offsets( digraphAdjacencyMatrix.getRows() + 1 );
+      thrust::device_vector< IndexType > d_digraph_column_indices( digraphAdjacencyMatrix.getNonzeroElementsCount() );
+      thrust::device_vector< RealType > d_digraph_values( digraphAdjacencyMatrix.getNonzeroElementsCount() );
+      thrust::device_vector< IndexType > d_digraph_row_indices( digraphAdjacencyMatrix.getNonzeroElementsCount() );
+      thrust::device_vector< IndexType > d_digraph_column_offsets( digraphAdjacencyMatrix.getColumns() + 1 );
+      thrust::copy( digraph_row_offsets.begin(), digraph_row_offsets.end(), d_digraph_row_offsets.begin() );
+      thrust::copy( digraph_column_indices.begin(), digraph_column_indices.end(), d_digraph_column_indices.begin() );
+      thrust::copy( digraph_values.begin(), digraph_values.end(), d_digraph_values.begin() );
 
-      thrust::device_vector< Index > d_row_offsets( adjacencyMatrix.getRows() + 1 );
-      thrust::device_vector< Index > d_column_indices( adjacencyMatrix.getNonzeroElementsCount() );
-      thrust::device_vector< Real > d_values( adjacencyMatrix.getNonzeroElementsCount() );
-      thrust::device_vector< Index > d_row_indices( adjacencyMatrix.getNonzeroElementsCount() );
-      thrust::device_vector< Index > d_column_offsets( adjacencyMatrix.getColumns() + 1 );
-      thrust::copy( row_offsets.begin(), row_offsets.end(), d_row_offsets.begin() );
-      thrust::copy( column_indices.begin(), column_indices.end(), d_column_indices.begin() );
-      thrust::copy( values.begin(), values.end(), d_values.begin() );
+      auto digraph =
+        gunrock::graph::build::from_csr<gunrock::memory_space_t::device, gunrock::graph::view_t::csr >(
+            digraphAdjacencyMatrix.getRows(),           // rows
+            digraphAdjacencyMatrix.getColumns(),        // columns
+            digraphAdjacencyMatrix.getValues().getSize(), // nonzeros
+            d_digraph_row_offsets.data().get(),         // row_offsets
+            d_digraph_column_indices.data().get(),      // column_indices
+            d_digraph_values.data().get(),              // values
+            d_digraph_row_indices.data().get(),         // row_indices
+            d_digraph_column_offsets.data().get()       // column_offsets
+        );
+
+
+      const auto& graphAdjacencyMatrix = hostGraph.getAdjacencyMatrix();
+      TNL::copy( graphAdjacencyMatrix.getSegments().getOffsets(), graph_row_offsets );
+      TNL::copy( graphAdjacencyMatrix.getColumnIndexes(), graph_column_indices );
+      TNL::copy( graphAdjacencyMatrix.getValues(), graph_values );
+      thrust::device_vector< IndexType > d_graph_row_offsets( graphAdjacencyMatrix.getRows() + 1 );
+      thrust::device_vector< IndexType > d_graph_column_indices( graphAdjacencyMatrix.getNonzeroElementsCount() );
+      thrust::device_vector< RealType > d_graph_values( graphAdjacencyMatrix.getNonzeroElementsCount() );
+      thrust::device_vector< IndexType > d_graph_row_indices( graphAdjacencyMatrix.getNonzeroElementsCount() );
+      thrust::device_vector< IndexType > d_graph_column_offsets( graphAdjacencyMatrix.getColumns() + 1 );
+      thrust::copy( graph_row_offsets.begin(), graph_row_offsets.end(), d_graph_row_offsets.begin() );
+      thrust::copy( graph_column_indices.begin(), graph_column_indices.end(), d_graph_column_indices.begin() );
+      thrust::copy( graph_values.begin(), graph_values.end(), d_graph_values.begin() );
 
       auto graph =
         gunrock::graph::build::from_csr<gunrock::memory_space_t::device, gunrock::graph::view_t::csr >(
-            adjacencyMatrix.getRows(),                 // rows
-            adjacencyMatrix.getColumns(),              // columns
-            adjacencyMatrix.getNonzeroElementsCount(), // nonzeros
-            d_row_offsets.data().get(),                // row_offsets
-            d_column_indices.data().get(),             // column_indices
-            d_values.data().get(),                     // values
-            d_row_indices.data().get(),                // row_indices
-            d_column_offsets.data().get()              // column_offsets
+            graphAdjacencyMatrix.getRows(),            // rows
+            graphAdjacencyMatrix.getColumns(),         // columns
+            graphAdjacencyMatrix.getValues().getSize(), // nonzeros
+            d_graph_row_offsets.data().get(),          // row_offsets
+            d_graph_column_indices.data().get(),       // column_indices
+            d_graph_values.data().get(),               // values
+            d_graph_row_indices.data().get(),          // row_indices
+            d_graph_column_offsets.data().get()        // column_offsets
         );
 
       GunrockBenchmark< Real, Index > gunrockBenchmark;
       Index start = 0;
 
-      // Benchmarking breadth-first search
-      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
+      // Benchmarking breadth-first search of directed graph
+      benchmark.setDatasetSize( digraphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataColumns(
          TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
                                                           { "device", std::string( "GPU" ) },
                                                           { "format", "N/A" },
-                                                          { "algorithm", std::string( "BFS Gunrock" ) } } ) );
-      std::vector< Index > bfsDistances( adjacencyMatrix.getRows() );
-      gunrockBenchmark.breadthFirstSearch( benchmark, graph, start, adjacencyMatrix.getRows(), bfsDistances );
-      this->gunrockBfsDistances = bfsDistances;
+                                                          { "algorithm", std::string( "BFS Gunrock dir" ) } } ) );
+      std::vector< Index > bfsDistances( digraphAdjacencyMatrix.getRows() );
+      gunrockBenchmark.breadthFirstSearch( benchmark, digraph, start, digraphAdjacencyMatrix.getRows(), bfsDistances );
+      HostIndexVector gunrock_bfs_dist( bfsDistances );
+      gunrock_bfs_dist.forAllElements( [] __cuda_callable__ ( Index i, Index& x ) { x = x == std::numeric_limits< Index >::max() ? -1 : x; } );
+      this->gunrockBfsDistancesDirected = gunrock_bfs_dist;
 
-      benchmark.setDatasetSize( adjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
-                                                          { "device", std::string( "GPU" ) },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "SSSP Gunrock" ) } } ) );
-      std::vector< Real > ssspDistances( adjacencyMatrix.getRows() );
-      gunrockBenchmark.singleSourceShortestPath( benchmark, graph, start, adjacencyMatrix.getRows(), ssspDistances );
-      this->gunrockSSSPDistances = ssspDistances;
-
-      if( this->boostBfsDistances != this->gunrockBfsDistances ) {
-         std::cout << "BFS distances from Boost and Gunrock are not equal!" << std::endl;
+      if( this->boostBfsDistancesDirected != this->gunrockBfsDistancesDirected ) {
+         std::cout << "BFS distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
+         std::cout << "Boost:   " << this->boostBfsDistancesDirected << std::endl;
+         std::cout << "Gunrock: " << this->gunrockBfsDistancesDirected << std::endl;
          this->errors++;
       }
-      if( this->boostSSSPDistances != this->gunrockSSSPDistances ) {
-         std::cout << "SSSP distances from Boost and Gunrock are not equal!" << std::endl;
+
+      // Benchmarking breadth-first search of undirected graph
+      benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
+                                                          { "device", std::string( "GPU" ) },
+                                                          { "format", "N/A" },
+                                                          { "algorithm", std::string( "BFS Gunrock undir" ) } } ) );
+      gunrockBenchmark.breadthFirstSearch( benchmark, graph, start, graphAdjacencyMatrix.getRows(), bfsDistances );
+      gunrock_bfs_dist = bfsDistances;
+      gunrock_bfs_dist.forAllElements( [] __cuda_callable__ ( Index i, Index& x ) { x = x == std::numeric_limits< Index >::max() ? -1 : x; } );
+      this->gunrockBfsDistancesUndirected = gunrock_bfs_dist;
+
+      if( this->boostBfsDistancesUndirected != this->gunrockBfsDistancesUndirected ) {
+         std::cout << "BFS distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
+         std::cout << "Boost:   " << this->boostBfsDistancesUndirected << std::endl;
+         std::cout << "Gunrock: " << this->gunrockBfsDistancesUndirected << std::endl;
+         this->errors++;
+      }
+
+      // Benchmarking single-source shortest path of directed graph
+      benchmark.setDatasetSize( digraphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
+                                                          { "device", std::string( "GPU" ) },
+                                                          { "format", "N/A" },
+                                                          { "algorithm", std::string( "SSSP Gunrock dir" ) } } ) );
+      std::vector< Real > ssspDistances( digraphAdjacencyMatrix.getRows() );
+      gunrockBenchmark.singleSourceShortestPath( benchmark, digraph, start, digraphAdjacencyMatrix.getRows(), ssspDistances );
+      HostRealVector gunrock_sssp_dist( ssspDistances );
+      gunrock_sssp_dist.forAllElements( [] __cuda_callable__ ( Index i, Real& x ) { x = x == std::numeric_limits< Real >::max() ? -1 : x; } );
+      this->gunrockSSSPDistancesDirected = gunrock_sssp_dist;
+
+      if( this->boostSSSPDistancesDirected != this->gunrockSSSPDistancesDirected ) {
+         std::cout << "SSSP distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
+         std::cout << "Boost:   " << this->boostSSSPDistancesDirected << std::endl;
+         std::cout << "Gunrock: " << this->gunrockSSSPDistancesDirected << std::endl;
+         this->errors++;
+      }
+
+      // Benchmarking single-source shortest path of undirected graph
+      benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType<Index>() },
+                                                          { "device", std::string( "GPU" ) },
+                                                          { "format", "N/A" },
+                                                          { "algorithm", std::string( "SSSP Gunrock undir" ) } } ) );
+      gunrockBenchmark.singleSourceShortestPath( benchmark, graph, start, graphAdjacencyMatrix.getRows(), ssspDistances );
+      gunrock_sssp_dist = ssspDistances;
+      gunrock_sssp_dist.forAllElements( [] __cuda_callable__ ( Index i, Real& x ) { x = x == std::numeric_limits< Real >::max() ? -1 : x; } );
+      this->gunrockSSSPDistancesUndirected = gunrock_sssp_dist;
+
+      if( this->boostSSSPDistancesUndirected != this->gunrockSSSPDistancesUndirected ) {
+         std::cout << "SSSP distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
+         std::cout << "Boost:   " << this->boostSSSPDistancesUndirected << std::endl;
+         std::cout << "Gunrock: " << this->gunrockSSSPDistancesUndirected << std::endl;
          this->errors++;
       }
    }
@@ -381,10 +456,9 @@ struct GraphsBenchmark
       HostGraph graph( symmetrizedAdjacencyMatrix );
       TNL::Graphs::GraphWriter< HostGraph >::writeEdgeList( inputFile+"-undirected.txt", graph );
 
-
       boostBenchmarks( digraph, graph, benchmark );
 #ifdef HAVE_GUNROCK
-      gunrockBenchmarks( digraph, benchmark );
+      gunrockBenchmarks( digraph, graph, benchmark );
 #endif
 
       if( device == "sequential" || device == "all" )
@@ -415,8 +489,8 @@ protected:
    HostIndexVector boostBfsDistancesDirected, boostBfsDistancesUndirected;
    HostRealVector boostSSSPDistancesDirected, boostSSSPDistancesUndirected;
 
-   HostIndexVector gunrockBfsDistances;
-   HostRealVector gunrockSSSPDistances;
+   HostIndexVector gunrockBfsDistancesDirected, gunrockBfsDistancesUndirected;
+   HostRealVector gunrockSSSPDistancesDirected, gunrockSSSPDistancesUndirected;
 
    Real boostMSTTotalWeight;
 
