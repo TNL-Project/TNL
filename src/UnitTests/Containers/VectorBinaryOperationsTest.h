@@ -4,6 +4,7 @@
    #include <TNL/Containers/DistributedVector.h>
    #include <TNL/Containers/DistributedVectorView.h>
    #include <TNL/Containers/Partitioner.h>
+   #include <TNL/Containers/DistributedArraySynchronizer.h>
 using namespace TNL::MPI;
 #elif defined( STATIC_VECTOR )
    #include <TNL/Containers/StaticVector.h>
@@ -88,8 +89,7 @@ protected:
 #else
    #ifdef DISTRIBUTED_VECTOR
       using LocalRangeType = typename LeftVector::LocalRangeType;
-      using Synchronizer =
-         typename Partitioner< typename Left::IndexType >::template ArraySynchronizer< typename Left::DeviceType >;
+      using Synchronizer = DistributedArraySynchronizer< LeftVector >;
       const LocalRangeType localRange = Partitioner< typename Left::IndexType >::splitRange( size, communicator );
 
       _L1.setDistribution( localRange, ghosts, size, communicator );

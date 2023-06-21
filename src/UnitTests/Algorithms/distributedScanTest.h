@@ -5,6 +5,7 @@
 #include <TNL/Containers/DistributedArray.h>
 #include <TNL/Containers/DistributedVectorView.h>
 #include <TNL/Containers/Partitioner.h>
+#include <TNL/Containers/DistributedArraySynchronizer.h>
 #include <TNL/Algorithms/distributedScan.h>
 
 #define DISTRIBUTED_VECTOR
@@ -41,8 +42,8 @@ protected:
    using DistributedVectorView = Containers::DistributedVectorView< ValueType, DeviceType, IndexType >;
    using HostDistributedArrayType = typename DistributedArrayType::template Self< ValueType, Devices::Sequential >;
    using LocalRangeType = typename DistributedArray::LocalRangeType;
-   using Synchronizer = typename Partitioner< IndexType >::template ArraySynchronizer< DeviceType >;
-   using HostSynchronizer = typename Partitioner< IndexType >::template ArraySynchronizer< Devices::Sequential >;
+   using Synchronizer = Containers::DistributedArraySynchronizer< DistributedArrayType >;
+   using HostSynchronizer = Containers::DistributedArraySynchronizer< HostDistributedArrayType >;
 
    const MPI_Comm communicator = MPI_COMM_WORLD;
 

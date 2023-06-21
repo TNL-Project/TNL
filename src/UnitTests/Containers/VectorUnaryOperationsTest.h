@@ -4,6 +4,7 @@
    #include <TNL/Containers/DistributedVector.h>
    #include <TNL/Containers/DistributedVectorView.h>
    #include <TNL/Containers/Partitioner.h>
+   #include <TNL/Containers/DistributedArraySynchronizer.h>
 using namespace TNL::MPI;
 #elif defined( STATIC_VECTOR )
    #include <TNL/Containers/StaticVector.h>
@@ -170,8 +171,7 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       using LocalRangeType = typename VectorOrView::LocalRangeType;                                              \
       const LocalRangeType localRange =                                                                          \
          Partitioner< typename VectorOrView::IndexType >::splitRange( size, this->communicator );                \
-      using Synchronizer = typename Partitioner< typename VectorOrView::IndexType >::template ArraySynchronizer< \
-         typename VectorOrView::DeviceType >;                                                                    \
+      using Synchronizer = DistributedArraySynchronizer< VectorOrView >;                                         \
                                                                                                                  \
       VectorType _V1, _V2;                                                                                       \
       _V1.setDistribution( localRange, this->ghosts, size, this->communicator );                                 \
@@ -197,8 +197,7 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       using LocalRangeType = typename VectorOrView::LocalRangeType;                                                          \
       const LocalRangeType localRange =                                                                                      \
          Partitioner< typename VectorOrView::IndexType >::splitRange( size, this->communicator );                            \
-      using Synchronizer = typename Partitioner< typename VectorOrView::IndexType >::template ArraySynchronizer<             \
-         typename VectorOrView::DeviceType >;                                                                                \
+      using Synchronizer = DistributedArraySynchronizer< VectorOrView >;                                                     \
                                                                                                                              \
       HostVector _V1h;                                                                                                       \
       HostExpectedVector expected_h;                                                                                         \
