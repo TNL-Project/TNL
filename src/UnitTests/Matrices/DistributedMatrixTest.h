@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <TNL/Containers/BlockPartitioning.h>
 #include <TNL/Matrices/DistributedMatrix.h>
-#include <TNL/Containers/Partitioner.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
 using namespace TNL;
@@ -80,7 +80,7 @@ protected:
    DistributedMatrixTest()
    {
       using LocalRangeType = typename DistributedMatrix::LocalRangeType;
-      const LocalRangeType localRange = Containers::Partitioner< IndexType >::splitRange( globalSize, communicator );
+      const LocalRangeType localRange = Containers::splitRange< IndexType >( globalSize, communicator );
       matrix.setDistribution( localRange, globalSize, globalSize, communicator );
       rowCapacities.setDistribution( localRange, 0, globalSize, communicator );
 

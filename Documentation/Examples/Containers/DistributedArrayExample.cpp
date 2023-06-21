@@ -1,5 +1,5 @@
 #include <iostream>
-#include <TNL/Containers/Partitioner.h>
+#include <TNL/Containers/BlockPartitioning.h>
 #include <TNL/Containers/DistributedArray.h>
 #include <TNL/MPI/ScopedInitializer.h>
 
@@ -19,7 +19,7 @@ void distributedArrayExample()
    const int size = 97;
    const int ghosts = (communicator.size() > 1) ? 4 : 0;
 
-   const LocalRangeType localRange = TNL::Containers::Partitioner< IndexType >::splitRange( size, communicator );
+   const LocalRangeType localRange = TNL::Containers::splitRange< IndexType >( size, communicator );
    ArrayType a( localRange, ghosts, size, communicator );
    a.forElements( 0, size, [] __cuda_callable__ ( int idx, int& value ) { value = idx; } );
    std::cout << "Rank " << communicator.rank() << ": " << a.getLocalView() << std::endl;

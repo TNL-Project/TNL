@@ -146,7 +146,7 @@ The output looks as:
 
 Distributed arrays are managed by the \ref TNL::Containers::DistributedArray class.
 It is a wrapper around a \ref TNL::Containers::Array "local array", \ref TNL::MPI::Comm "MPI communicator" and global indexing information.
-When creating a distributed array, the global range must be partitioned into subranges (e.g. using \ref TNL::Containers::Partitioner) and passed to the constructor or the \ref TNL::Containers::DistributedArray::setDistribution "setDistribution" member function.
+When creating a distributed array, the global range must be partitioned into subranges (e.g. using \ref TNL::Containers::splitRange) and passed to the constructor or the \ref TNL::Containers::DistributedArray::setDistribution "setDistribution" member function.
 For example:
 
 ```cpp

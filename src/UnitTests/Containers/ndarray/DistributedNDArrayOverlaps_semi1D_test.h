@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <TNL/Containers/BlockPartitioning.h>
 #include <TNL/Containers/DistributedNDArray.h>
 #include <TNL/Containers/DistributedNDArrayView.h>
 #include <TNL/Containers/DistributedNDArraySynchronizer.h>
 #include <TNL/Containers/ArrayView.h>
-#include <TNL/Containers/Partitioner.h>
 
 using namespace TNL;
 using namespace TNL::Containers;
@@ -41,7 +41,7 @@ protected:
    DistributedNDArrayOverlaps_semi1D_test()
    {
       using LocalRangeType = typename DistributedNDArray::LocalRangeType;
-      const LocalRangeType localRange = Partitioner< IndexType >::splitRange( globalSize, communicator );
+      const LocalRangeType localRange = splitRange< IndexType >( globalSize, communicator );
       distributedNDArray.setSizes( 0, globalSize, globalSize / 2 );
       distributedNDArray.template setDistribution< 1 >( localRange.getBegin(), localRange.getEnd(), communicator );
       distributedNDArray.allocate();

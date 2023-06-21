@@ -2,7 +2,7 @@
 
 #include <TNL/Containers/DistributedArray.h>
 #include <TNL/Containers/DistributedArraySynchronizer.h>
-#include <TNL/Containers/Partitioner.h>
+#include <TNL/Containers/BlockPartitioning.h>
 
 #include "VectorHelperFunctions.h"
 
@@ -44,7 +44,7 @@ protected:
    DistributedArrayTest()
    {
       using LocalRangeType = typename DistributedArray::LocalRangeType;
-      const LocalRangeType localRange = Partitioner< IndexType >::splitRange( globalSize, communicator );
+      const LocalRangeType localRange = splitRange< IndexType >( globalSize, communicator );
       distributedArray.setDistribution( localRange, ghosts, globalSize, communicator );
 
       using Synchronizer = DistributedArraySynchronizer< DistributedArray >;
