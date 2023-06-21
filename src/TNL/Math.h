@@ -20,9 +20,6 @@ static constexpr double pi = 3.14159265358979323846;
 
 /**
  * \brief This function returns minimum of two numbers.
- *
- * GPU device code uses the functions defined in the CUDA's math_functions.h,
- * host uses the STL functions.
  */
 template< typename T1,
           typename T2,
@@ -52,9 +49,6 @@ min( T1&& val1, T2&& val2, T3&& val3, Ts&&... vs )
 
 /**
  * \brief This function returns maximum of two numbers.
- *
- * GPU device code uses the functions defined in the CUDA's math_functions.h,
- * host uses the STL functions.
  */
 template< typename T1,
           typename T2,
