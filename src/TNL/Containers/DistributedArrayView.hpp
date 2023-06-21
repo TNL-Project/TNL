@@ -356,8 +356,8 @@ DistributedArrayView< Value, Device, Index >::forElements( IndexType begin, Inde
 {
    // GOTCHA: we can't use localRange.getLocalIndex to calculate localEnd, because localRange.getEnd() does not return a valid
    // local index
-   const IndexType localBegin = max( begin, localRange.getBegin() ) - localRange.getBegin();
-   const IndexType localEnd = min( end, localRange.getEnd() ) - localRange.getBegin();
+   const IndexType localBegin = TNL::max( begin, localRange.getBegin() ) - localRange.getBegin();
+   const IndexType localEnd = TNL::min( end, localRange.getEnd() ) - localRange.getBegin();
    const LocalRangeType localRange = getLocalRange();
    auto local_f = [ = ] __cuda_callable__( IndexType idx, ValueType & value ) mutable
    {
@@ -373,8 +373,8 @@ DistributedArrayView< Value, Device, Index >::forElements( IndexType begin, Inde
 {
    // GOTCHA: we can't use localRange.getLocalIndex to calculate localEnd, because localRange.getEnd() does not return a valid
    // local index
-   const IndexType localBegin = max( begin, localRange.getBegin() ) - localRange.getBegin();
-   const IndexType localEnd = min( end, localRange.getEnd() ) - localRange.getBegin();
+   const IndexType localBegin = TNL::max( begin, localRange.getBegin() ) - localRange.getBegin();
+   const IndexType localEnd = TNL::min( end, localRange.getEnd() ) - localRange.getBegin();
    const LocalRangeType localRange = getLocalRange();
    auto local_f = [ = ] __cuda_callable__( IndexType idx, const ValueType& value )
    {

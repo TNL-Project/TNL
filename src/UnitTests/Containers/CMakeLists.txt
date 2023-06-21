@@ -14,6 +14,7 @@ set( CPP_TESTS
          VectorUnaryOperationsTest
          VectorVerticalOperationsTest
          VectorOfStaticVectorsTest
+         BlockTest
          BlockPartitioningTest
 )
 set( CUDA_TESTS
