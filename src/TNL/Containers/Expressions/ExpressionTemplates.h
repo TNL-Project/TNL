@@ -14,8 +14,8 @@
 #include <TNL/TypeTraits.h>
 #include <TNL/Containers/Expressions/TypeTraits.h>
 #include <TNL/Containers/Expressions/ExpressionVariableType.h>
-#include <TNL/Containers/Expressions/Comparison.h>
 #include <TNL/Algorithms/reduce.h>
+#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
 
 namespace TNL {
 namespace Containers {
@@ -354,60 +354,6 @@ cast( const ET1& a )
 }
 
 ////
-// Comparison operator ==
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator==( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::EQ( a, b );
-}
-
-////
-// Comparison operator !=
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator!=( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::NE( a, b );
-}
-
-////
-// Comparison operator <
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator<( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::LT( a, b );
-}
-
-////
-// Comparison operator <=
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator<=( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::LE( a, b );
-}
-
-////
-// Comparison operator >
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator>( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::GT( a, b );
-}
-
-////
-// Comparison operator >=
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator>=( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::GE( a, b );
-}
-
-////
 // Scalar product
 template< typename ET1, typename ET2,
           typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
@@ -518,6 +464,39 @@ any( const ET1& a )
    return Algorithms::reduce( a, TNL::LogicalOr{} );
 }
 
+////
+// Comparison operator ==
+template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
+bool
+operator==( const ET1& a, const ET2& b )
+{
+   // If both operands are vectors, we compare them using array operations.
+   // It allows to compare vectors on different devices.
+   constexpr bool BothAreNonstaticVectors = IsArrayType< ET1 >::value && IsArrayType< ET2 >::value
+                                         && ! IsStaticArrayType< ET1 >::value && ! IsStaticArrayType< ET2 >::value;
+   if constexpr( BothAreNonstaticVectors ) {
+      if( a.getSize() != b.getSize() )
+         return false;
+      if( a.getSize() == 0 )
+         return true;
+      return Algorithms::MultiDeviceMemoryOperations< typename ET1::DeviceType, typename ET2::DeviceType >::compare(
+         a.getData(), b.getData(), a.getSize() );
+   }
+   else {
+      // If some operand is not a vector, we compare them with parallel reduction.
+      return all( equalTo( a, b ) );
+   }
+}
+
+////
+// Comparison operator !=
+template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
+bool
+operator!=( const ET1& a, const ET2& b )
+{
+   return ! operator==( a, b );
+}
+
 #endif  // DOXYGEN_ONLY
 
 ////
@@ -558,10 +537,6 @@ using Expressions::operator%;
 using Expressions::operator, ;
 using Expressions::operator==;
 using Expressions::operator!=;
-using Expressions::operator<;
-using Expressions::operator<=;
-using Expressions::operator>;
-using Expressions::operator>=;
 
 using Expressions::equalTo;
 using Expressions::greater;

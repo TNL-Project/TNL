@@ -11,7 +11,6 @@
 #include <utility>
 
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
-#include <TNL/Containers/Expressions/DistributedComparison.h>
 #include <TNL/Containers/Expressions/DistributedVerticalOperations.h>
 
 namespace TNL {
@@ -511,60 +510,6 @@ cast( const ET1& a )
 }
 
 ////
-// Comparison operator ==
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator==( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::EQ( a, b );
-}
-
-////
-// Comparison operator !=
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator!=( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::NE( a, b );
-}
-
-////
-// Comparison operator <
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator<( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::LT( a, b );
-}
-
-////
-// Comparison operator <=
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator<=( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::LE( a, b );
-}
-
-////
-// Comparison operator >
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator>( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::GT( a, b );
-}
-
-////
-// Comparison operator >=
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator>=( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::GE( a, b );
-}
-
-////
 // Scalar product
 template< typename ET1, typename ET2,
           typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
@@ -676,6 +621,51 @@ any( const ET1& a )
 }
 
 ////
+// Comparison operator ==
+template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
+bool
+operator==( const ET1& a, const ET2& b )
+{
+   MPI_Comm communicator = MPI_COMM_NULL;
+
+   // we can't return all( equalTo( a, b ) ) because we want to allow comparison on different devices and
+   // DistributedBinaryExpressionTemplate does not allow that
+   bool localResult = false;
+   if constexpr( getExpressionVariableType< ET1, ET2 >() == VectorExpressionVariable
+                 && getExpressionVariableType< ET2, ET1 >() == VectorExpressionVariable )
+   {
+      // we can't run allreduce if the communicators are different
+      if( a.getCommunicator() != b.getCommunicator() )
+         return false;
+      communicator = a.getCommunicator();
+      localResult = a.getLocalRange() == b.getLocalRange() && a.getGhosts() == b.getGhosts() && a.getSize() == b.getSize() &&
+                    // compare without ghosts
+                    a.getConstLocalView() == b.getConstLocalView();
+   }
+   else if constexpr( getExpressionVariableType< ET1, ET2 >() == VectorExpressionVariable ) {
+      communicator = a.getCommunicator();
+      localResult = a.getConstLocalView() == b;
+   }
+   else if constexpr( getExpressionVariableType< ET2, ET1 >() == VectorExpressionVariable ) {
+      communicator = b.getCommunicator();
+      localResult = a == b.getConstLocalView();
+   }
+   bool result = true;
+   if( communicator != MPI_COMM_NULL )
+      MPI::Allreduce( &localResult, &result, 1, MPI_LAND, communicator );
+   return result;
+}
+
+////
+// Comparison operator !=
+template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
+bool
+operator!=( const ET1& a, const ET2& b )
+{
+   return ! operator==( a, b );
+}
+
+////
 // Output stream
 template< typename T1, typename T2, typename Operation >
 std::ostream&
@@ -733,10 +723,6 @@ using Expressions::operator%;
 using Expressions::operator, ;
 using Expressions::operator==;
 using Expressions::operator!=;
-using Expressions::operator<;
-using Expressions::operator<=;
-using Expressions::operator>;
-using Expressions::operator>=;
 
 using Expressions::equalTo;
 using Expressions::greater;
