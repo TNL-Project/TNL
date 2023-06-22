@@ -366,8 +366,6 @@ TYPED_TEST( VectorVerticalOperationsTest, product )
    EXPECT_EQ( product(2 * V2 - V2), std::exp2(size) );
 }
 
-// TODO: tests for logicalOr, binaryOr, logicalAnd, binaryAnd
-
 } // namespace vertical_tests
 
 #endif // HAVE_GTEST

@@ -804,6 +804,8 @@ TYPED_TEST( VectorBinaryOperationsTest, max )
    EXPECT_EQ( max(LeftReal(1), R1 + R1), L2 );
 }
 
+// TODO: tests for logicalAnd, logicalOr, bitwiseAnd, bitwiseOr, bitwiseXor
+
 #if defined(__CUDACC__) && !defined(STATIC_VECTOR)
 TYPED_TEST( VectorBinaryOperationsTest, comparisonOnDifferentDevices )
 {

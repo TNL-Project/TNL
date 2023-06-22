@@ -28,39 +28,44 @@ Output is:
 
 The expression is evaluated on the same device where the vectors are allocated, this is done automatically. One cannot, however, mix vectors from different devices in one expression. Vector expression may contain any common function like the following:
 
-| Expression                              | Meaning                                  |
-|-----------------------------------------|------------------------------------------|
-| `v = TNL::equalTo( expr1, expr2 )`      | `v[ i ] = expr1[ i ] == expr2[ i ]`      |
-| `v = TNL::notEqualTo( expr1, expr2 )`   | `v[ i ] = expr1[ i ] != expr2[ i ]`      |
-| `v = TNL::greater( expr1, expr2 )`      | `v[ i ] = expr1[ i ] > expr2[ i ]`       |
-| `v = TNL::greaterEqual( expr1, expr2 )` | `v[ i ] = expr1[ i ] >= expr2[ i ]`      |
-| `v = TNL::less( expr1, expr2 )`         | `v[ i ] = expr1[ i ] < expr2[ i ]`       |
-| `v = TNL::lessEqual( expr1, expr2 )`    | `v[ i ] = expr1[ i ] <= expr2[ i ]`      |
-| `v = TNL::min( expr1, expr2 )`          | `v[ i ] = min( expr1[ i ], expr2[ i ] )` |
-| `v = TNL::max( expr1, expr2 )`          | `v[ i ] = max( expr1[ i ], expr2[ i ] )` |
-| `v = TNL::abs( expr )`                  | `v[ i ] = abs( expr[ i ] )`              |
-| `v = TNL::sin( expr )`                  | `v[ i ] = sin( expr[ i ] )`              |
-| `v = TNL::cos( expr )`                  | `v[ i ] = cos( expr[ i ] )`              |
-| `v = TNL::tan( expr )`                  | `v[ i ] = tan( expr[ i ] )`              |
-| `v = TNL::asin( expr )`                 | `v[ i ] = asin( expr[ i ] )`             |
-| `v = TNL::acos( expr )`                 | `v[ i ] = acos( expr[ i ] )`             |
-| `v = TNL::atan( expr )`                 | `v[ i ] = atan( expr[ i ] )`             |
-| `v = TNL::sinh( expr )`                 | `v[ i ] = sinh( expr[ i ] )`             |
-| `v = TNL::cosh( expr )`                 | `v[ i ] = cosh( expr[ i ] )`             |
-| `v = TNL::tanh( expr )`                 | `v[ i ] = tanh( expr[ i ] )`             |
-| `v = TNL::asinh( expr )`                | `v[ i ] = asinh( expr[ i ] )`            |
-| `v = TNL::acosh( expr )`                | `v[ i ] = acosh( expr[ i ] )`            |
-| `v = TNL::atanh( expr )`                | `v[ i ] = atanh( expr[ i ] )`            |
-| `v = TNL::exp( expr )`                  | `v[ i ] = exp( expr[ i ] )`              |
-| `v = TNL::log( expr )`                  | `v[ i ] = log( expr[ i ] )`              |
-| `v = TNL::log10( expr )`                | `v[ i ] = log10( expr[ i ] )`            |
-| `v = TNL::log2( expr )`                 | `v[ i ] = log2( expr[ i ] )`             |
-| `v = TNL::sqrt( expr )`                 | `v[ i ] = sqrt( expr[ i ] )`             |
-| `v = TNL::cbrt( expr )`                 | `v[ i ] = cbrt( expr[ i ] )`             |
-| `v = TNL::pow( expr )`                  | `v[ i ] = pow( expr[ i ] )`              |
-| `v = TNL::floor( expr )`                | `v[ i ] = floor( expr[ i ] )`            |
-| `v = TNL::ceil( expr )`                 | `v[ i ] = ceil( expr[ i ] )`             |
-| `v = TNL::sign( expr )`                 | `v[ i ] = sign( expr[ i ] )`             |
+| Expression                              | Meaning                                          |
+|-----------------------------------------|--------------------------------------------------|
+| `v = TNL::logicalAnd( expr1, expr2 )`   | `v[ i ] = expr1[ i ] && expr2[ i ]`              |
+| `v = TNL::logicalOr( expr1, expr2 )`    | <code>v[ i ] = expr1[ i ] \|\| expr2[ i ]</code> |
+| `v = TNL::bitwiseAnd( expr1, expr2 )`   | `v[ i ] = expr1[ i ] & expr2[ i ]`               |
+| `v = TNL::bitwiseOr( expr1, expr2 )`    | <code>v[ i ] = expr1[ i ] \| expr2[ i ]</code>   |
+| `v = TNL::bitwiseXor( expr1, expr2 )`   | `v[ i ] = expr1[ i ] ^ expr2[ i ]`               |
+| `v = TNL::equalTo( expr1, expr2 )`      | `v[ i ] = expr1[ i ] == expr2[ i ]`              |
+| `v = TNL::notEqualTo( expr1, expr2 )`   | `v[ i ] = expr1[ i ] != expr2[ i ]`              |
+| `v = TNL::greater( expr1, expr2 )`      | `v[ i ] = expr1[ i ] > expr2[ i ]`               |
+| `v = TNL::greaterEqual( expr1, expr2 )` | `v[ i ] = expr1[ i ] >= expr2[ i ]`              |
+| `v = TNL::less( expr1, expr2 )`         | `v[ i ] = expr1[ i ] < expr2[ i ]`               |
+| `v = TNL::lessEqual( expr1, expr2 )`    | `v[ i ] = expr1[ i ] <= expr2[ i ]`              |
+| `v = TNL::min( expr1, expr2 )`          | `v[ i ] = min( expr1[ i ], expr2[ i ] )`         |
+| `v = TNL::max( expr1, expr2 )`          | `v[ i ] = max( expr1[ i ], expr2[ i ] )`         |
+| `v = TNL::abs( expr )`                  | `v[ i ] = abs( expr[ i ] )`                      |
+| `v = TNL::sin( expr )`                  | `v[ i ] = sin( expr[ i ] )`                      |
+| `v = TNL::cos( expr )`                  | `v[ i ] = cos( expr[ i ] )`                      |
+| `v = TNL::tan( expr )`                  | `v[ i ] = tan( expr[ i ] )`                      |
+| `v = TNL::asin( expr )`                 | `v[ i ] = asin( expr[ i ] )`                     |
+| `v = TNL::acos( expr )`                 | `v[ i ] = acos( expr[ i ] )`                     |
+| `v = TNL::atan( expr )`                 | `v[ i ] = atan( expr[ i ] )`                     |
+| `v = TNL::sinh( expr )`                 | `v[ i ] = sinh( expr[ i ] )`                     |
+| `v = TNL::cosh( expr )`                 | `v[ i ] = cosh( expr[ i ] )`                     |
+| `v = TNL::tanh( expr )`                 | `v[ i ] = tanh( expr[ i ] )`                     |
+| `v = TNL::asinh( expr )`                | `v[ i ] = asinh( expr[ i ] )`                    |
+| `v = TNL::acosh( expr )`                | `v[ i ] = acosh( expr[ i ] )`                    |
+| `v = TNL::atanh( expr )`                | `v[ i ] = atanh( expr[ i ] )`                    |
+| `v = TNL::exp( expr )`                  | `v[ i ] = exp( expr[ i ] )`                      |
+| `v = TNL::log( expr )`                  | `v[ i ] = log( expr[ i ] )`                      |
+| `v = TNL::log10( expr )`                | `v[ i ] = log10( expr[ i ] )`                    |
+| `v = TNL::log2( expr )`                 | `v[ i ] = log2( expr[ i ] )`                     |
+| `v = TNL::sqrt( expr )`                 | `v[ i ] = sqrt( expr[ i ] )`                     |
+| `v = TNL::cbrt( expr )`                 | `v[ i ] = cbrt( expr[ i ] )`                     |
+| `v = TNL::pow( expr )`                  | `v[ i ] = pow( expr[ i ] )`                      |
+| `v = TNL::floor( expr )`                | `v[ i ] = floor( expr[ i ] )`                    |
+| `v = TNL::ceil( expr )`                 | `v[ i ] = ceil( expr[ i ] )`                     |
+| `v = TNL::sign( expr )`                 | `v[ i ] = sign( expr[ i ] )`                     |
 
 Where `v` is a result vector and `expr`, `expr1` and `expr2` are vector expressions. Vector expressions can be combined with vector views (\ref TNL::Containers::VectorView) as well.
 
@@ -88,10 +93,6 @@ The following table shows vertical operations that can be used on vector express
 | `v =  TNL::l2Norm( expr )`                   | `v` is l2 norm of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                      |
 | `v =  TNL::lpNorm( expr, p )`                | `v` is lp norm of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                      |
 | `v =  TNL::product( expr )`                  | `v` is product of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                      |
-| `v =  TNL::logicalAnd( expr )`               | `v` is logical AND of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                  |
-| `v =  TNL::logicalOr( expr )`                | `v` is logical OR of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                   |
-| `v =  TNL::binaryAnd( expr )`                | `v` is binary AND of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                   |
-| `v =  TNL::binaryOr( expr )`                 | `v` is binary OR of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                    |
 
 ## Static vectors
 

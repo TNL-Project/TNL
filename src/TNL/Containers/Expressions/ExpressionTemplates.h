@@ -291,6 +291,11 @@ TNL_MAKE_BINARY_EXPRESSION( greaterEqual, TNL::GreaterEqual )
 TNL_MAKE_BINARY_EXPRESSION( lessEqual, TNL::LessEqual )
 TNL_MAKE_BINARY_EXPRESSION( min, TNL::Min )
 TNL_MAKE_BINARY_EXPRESSION( max, TNL::Max )
+TNL_MAKE_BINARY_EXPRESSION( logicalAnd, TNL::LogicalAnd )
+TNL_MAKE_BINARY_EXPRESSION( logicalOr, TNL::LogicalOr )
+TNL_MAKE_BINARY_EXPRESSION( bitwiseAnd, TNL::BitAnd )
+TNL_MAKE_BINARY_EXPRESSION( bitwiseOr, TNL::BitOr )
+TNL_MAKE_BINARY_EXPRESSION( bitwiseXor, TNL::BitXor )
 
 TNL_MAKE_UNARY_EXPRESSION( operator+, TNL::UnaryPlus )
 TNL_MAKE_UNARY_EXPRESSION( operator-, TNL::UnaryMinus )
@@ -493,41 +498,6 @@ product( const ET1& a )
    return Algorithms::reduce( a, TNL::Multiplies{} );
 }
 
-template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
-auto
-logicalAnd( const ET1& a )
-{
-   return Algorithms::reduce( a, TNL::LogicalAnd{} );
-}
-
-template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
-auto
-logicalOr( const ET1& a )
-{
-   return Algorithms::reduce( a, TNL::LogicalOr{} );
-}
-
-template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
-auto
-binaryAnd( const ET1& a )
-{
-   return Algorithms::reduce( a, TNL::BitAnd{} );
-}
-
-template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
-auto
-binaryOr( const ET1& a )
-{
-   return Algorithms::reduce( a, TNL::BitOr{} );
-}
-
-template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
-auto
-binaryXor( const ET1& a )
-{
-   return Algorithms::reduce( a, TNL::BitXor{} );
-}
-
 #endif  // DOXYGEN_ONLY
 
 ////
@@ -590,8 +560,9 @@ using Expressions::asin;
 using Expressions::asinh;
 using Expressions::atan;
 using Expressions::atanh;
-using Expressions::binaryAnd;
-using Expressions::binaryOr;
+using Expressions::bitwiseAnd;
+using Expressions::bitwiseOr;
+using Expressions::bitwiseXor;
 using Expressions::cast;
 using Expressions::cbrt;
 using Expressions::ceil;
@@ -634,8 +605,9 @@ using Containers::asin;
 using Containers::asinh;
 using Containers::atan;
 using Containers::atanh;
-using Containers::binaryAnd;
-using Containers::binaryOr;
+using Containers::bitwiseAnd;
+using Containers::bitwiseOr;
+using Containers::bitwiseXor;
 using Containers::cast;
 using Containers::cbrt;
 using Containers::ceil;

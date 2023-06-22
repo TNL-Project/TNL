@@ -279,6 +279,11 @@ TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, greaterEqual, TNL::GreaterEqual )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, lessEqual, TNL::LessEqual )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, min, TNL::Min )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, max, TNL::Max )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, logicalAnd, TNL::LogicalAnd )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, logicalOr, TNL::LogicalOr )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, bitwiseAnd, TNL::BitAnd )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, bitwiseOr, TNL::BitOr )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, bitwiseXor, TNL::BitXor )
 
 TNL_MAKE_STATIC_UNARY_EXPRESSION( constexpr, operator+, TNL::UnaryPlus )
 TNL_MAKE_STATIC_UNARY_EXPRESSION( constexpr, operator-, TNL::UnaryMinus )
@@ -515,41 +520,6 @@ product( const ET1& a )
    return StaticExpressionProduct( a );
 }
 
-template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
-constexpr auto
-logicalAnd( const ET1& a )
-{
-   return StaticExpressionLogicalAnd( a );
-}
-
-template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
-constexpr auto
-logicalOr( const ET1& a )
-{
-   return StaticExpressionLogicalOr( a );
-}
-
-template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
-constexpr auto
-binaryAnd( const ET1& a )
-{
-   return StaticExpressionBinaryAnd( a );
-}
-
-template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
-constexpr auto
-binaryOr( const ET1& a )
-{
-   return StaticExpressionBinaryOr( a );
-}
-
-template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
-constexpr auto
-binaryXor( const ET1& a )
-{
-   return StaticExpressionBinaryXor( a );
-}
-
 #endif  // DOXYGEN_ONLY
 
 ////
@@ -612,8 +582,9 @@ using Expressions::asin;
 using Expressions::asinh;
 using Expressions::atan;
 using Expressions::atanh;
-using Expressions::binaryAnd;
-using Expressions::binaryOr;
+using Expressions::bitwiseAnd;
+using Expressions::bitwiseOr;
+using Expressions::bitwiseXor;
 using Expressions::cast;
 using Expressions::cbrt;
 using Expressions::ceil;
@@ -655,8 +626,9 @@ using Containers::asin;
 using Containers::asinh;
 using Containers::atan;
 using Containers::atanh;
-using Containers::binaryAnd;
-using Containers::binaryOr;
+using Containers::bitwiseAnd;
+using Containers::bitwiseOr;
+using Containers::bitwiseXor;
 using Containers::cast;
 using Containers::cbrt;
 using Containers::ceil;
