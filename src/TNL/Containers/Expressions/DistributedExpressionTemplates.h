@@ -454,8 +454,8 @@ TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( greater, TNL::Greater )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( less, TNL::Less )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( greaterEqual, TNL::GreaterEqual )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( lessEqual, TNL::LessEqual )
-TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( min, TNL::Min )
-TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( max, TNL::Max )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( minimum, TNL::Min )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( maximum, TNL::Max )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( logicalAnd, TNL::LogicalAnd )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( logicalOr, TNL::LogicalOr )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( bitwiseAnd, TNL::BitAnd )
@@ -778,8 +778,10 @@ using Expressions::logicalAnd;
 using Expressions::logicalOr;
 using Expressions::lpNorm;
 using Expressions::max;
+using Expressions::maximum;
 using Expressions::maxNorm;
 using Expressions::min;
+using Expressions::minimum;
 using Expressions::pow;
 using Expressions::product;
 using Expressions::sign;
@@ -829,8 +831,10 @@ using Containers::logicalAnd;
 using Containers::logicalOr;
 using Containers::lpNorm;
 using Containers::max;
+using Containers::maximum;
 using Containers::maxNorm;
 using Containers::min;
+using Containers::minimum;
 using Containers::notEqualTo;
 using Containers::pow;
 using Containers::product;

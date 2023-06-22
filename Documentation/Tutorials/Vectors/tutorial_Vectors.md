@@ -41,8 +41,8 @@ The expression is evaluated on the same device where the vectors are allocated, 
 | `v = TNL::greaterEqual( expr1, expr2 )` | `v[ i ] = expr1[ i ] >= expr2[ i ]`              |
 | `v = TNL::less( expr1, expr2 )`         | `v[ i ] = expr1[ i ] < expr2[ i ]`               |
 | `v = TNL::lessEqual( expr1, expr2 )`    | `v[ i ] = expr1[ i ] <= expr2[ i ]`              |
-| `v = TNL::min( expr1, expr2 )`          | `v[ i ] = min( expr1[ i ], expr2[ i ] )`         |
-| `v = TNL::max( expr1, expr2 )`          | `v[ i ] = max( expr1[ i ], expr2[ i ] )`         |
+| `v = TNL::minimum( expr1, expr2 )`      | `v[ i ] = min( expr1[ i ], expr2[ i ] )`         |
+| `v = TNL::maximum( expr1, expr2 )`      | `v[ i ] = max( expr1[ i ], expr2[ i ] )`         |
 | `v = TNL::abs( expr )`                  | `v[ i ] = abs( expr[ i ] )`                      |
 | `v = TNL::sin( expr )`                  | `v[ i ] = sin( expr[ i ] )`                      |
 | `v = TNL::cos( expr )`                  | `v[ i ] = cos( expr[ i ] )`                      |

@@ -277,8 +277,8 @@ TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, greater, TNL::Greater )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, less, TNL::Less )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, greaterEqual, TNL::GreaterEqual )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, lessEqual, TNL::LessEqual )
-TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, min, TNL::Min )
-TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, max, TNL::Max )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, minimum, TNL::Min )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, maximum, TNL::Max )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, logicalAnd, TNL::LogicalAnd )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, logicalOr, TNL::LogicalOr )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, bitwiseAnd, TNL::BitAnd )
@@ -618,8 +618,10 @@ using Expressions::logicalAnd;
 using Expressions::logicalOr;
 using Expressions::lpNorm;
 using Expressions::max;
+using Expressions::maximum;
 using Expressions::maxNorm;
 using Expressions::min;
+using Expressions::minimum;
 using Expressions::pow;
 using Expressions::product;
 using Expressions::sign;
@@ -669,8 +671,10 @@ using Containers::logicalAnd;
 using Containers::logicalOr;
 using Containers::lpNorm;
 using Containers::max;
+using Containers::maximum;
 using Containers::maxNorm;
 using Containers::min;
+using Containers::minimum;
 using Containers::notEqualTo;
 using Containers::pow;
 using Containers::product;

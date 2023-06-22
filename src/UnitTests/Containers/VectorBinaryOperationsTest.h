@@ -754,55 +754,53 @@ TYPED_TEST( VectorBinaryOperationsTest, scalarProduct )
    EXPECT_EQ( (2 * L - L, 2 * R - R), expected );
 }
 
-TYPED_TEST( VectorBinaryOperationsTest, min )
+// The TNL::Min functional cannot be applied on StaticVector
+#ifndef VECTOR_OF_STATIC_VECTORS
+TYPED_TEST( VectorBinaryOperationsTest, minimum )
 {
    SETUP_BINARY_TEST_ALIASES;
 
-   // make sure we are testing TNL::min and not std::min (which might take precedence when
-   // both arguments have the same type, see https://stackoverflow.com/q/62847698/4180822
-   using TNL::min;
-
    // with vector or vector view
-   EXPECT_EQ( min(L1, R2), L1 );
+   EXPECT_EQ( minimum(L1, R2), L1 );
    // with scalar
-   EXPECT_EQ( min(L1, 2), L1 );
-   EXPECT_EQ( min(1, R2), L1 );
+   EXPECT_EQ( minimum(L1, 2), L1 );
+   EXPECT_EQ( minimum(1, R2), L1 );
    // with expression
-   EXPECT_EQ( min(L1, R1 + R1), L1 );
-   EXPECT_EQ( min(L1 + L1, R1), R1 );
+   EXPECT_EQ( minimum(L1, R1 + R1), L1 );
+   EXPECT_EQ( minimum(L1 + L1, R1), R1 );
    // with two expressions
-   EXPECT_EQ( min(L1 + L1, R1 + R2), L2 );
+   EXPECT_EQ( minimum(L1 + L1, R1 + R2), L2 );
    // with expression and scalar
-   EXPECT_EQ( min(L1 + L1, 1), L1 );
-   EXPECT_EQ( min(L1 + L1, RightReal(1)), L1 );
-   EXPECT_EQ( min(1, R1 + R1), L1 );
-   EXPECT_EQ( min(LeftReal(1), R1 + R1), L1 );
+   EXPECT_EQ( minimum(L1 + L1, 1), L1 );
+   EXPECT_EQ( minimum(L1 + L1, RightReal(1)), L1 );
+   EXPECT_EQ( minimum(1, R1 + R1), L1 );
+   EXPECT_EQ( minimum(LeftReal(1), R1 + R1), L1 );
 }
+#endif
 
-TYPED_TEST( VectorBinaryOperationsTest, max )
+// The TNL::Max functional cannot be applied on StaticVector
+#ifndef VECTOR_OF_STATIC_VECTORS
+TYPED_TEST( VectorBinaryOperationsTest, maximum )
 {
    SETUP_BINARY_TEST_ALIASES;
 
-   // make sure we are testing TNL::max and not std::max (which might take precedence when
-   // both arguments have the same type, see https://stackoverflow.com/q/62847698/4180822
-   using TNL::max;
-
    // with vector or vector view
-   EXPECT_EQ( max(L1, R2), R2 );
+   EXPECT_EQ( maximum(L1, R2), R2 );
    // with scalar
-   EXPECT_EQ( max(L1, 2), L2 );
-   EXPECT_EQ( max(1, R2), L2 );
+   EXPECT_EQ( maximum(L1, 2), L2 );
+   EXPECT_EQ( maximum(1, R2), L2 );
    // with expression
-   EXPECT_EQ( max(L1, R1 + R1), L2 );
-   EXPECT_EQ( max(L1 + L1, R1), R2 );
+   EXPECT_EQ( maximum(L1, R1 + R1), L2 );
+   EXPECT_EQ( maximum(L1 + L1, R1), R2 );
    // with two expressions
-   EXPECT_EQ( max(L1 - L1, R1 + R1), L2 );
+   EXPECT_EQ( maximum(L1 - L1, R1 + R1), L2 );
    // with expression and scalar
-   EXPECT_EQ( max(L1 + L1, 1), L2 );
-   EXPECT_EQ( max(L1 + L1, RightReal(1)), L2 );
-   EXPECT_EQ( max(1, R1 + R1), L2 );
-   EXPECT_EQ( max(LeftReal(1), R1 + R1), L2 );
+   EXPECT_EQ( maximum(L1 + L1, 1), L2 );
+   EXPECT_EQ( maximum(L1 + L1, RightReal(1)), L2 );
+   EXPECT_EQ( maximum(1, R1 + R1), L2 );
+   EXPECT_EQ( maximum(LeftReal(1), R1 + R1), L2 );
 }
+#endif
 
 // TODO: tests for logicalAnd, logicalOr, bitwiseAnd, bitwiseOr, bitwiseXor
 
