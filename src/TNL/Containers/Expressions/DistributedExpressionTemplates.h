@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include <utility>
 #include <memory>
+#include <stdexcept>
+#include <utility>
 
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
 #include <TNL/Containers/Expressions/DistributedComparison.h>
@@ -64,16 +65,14 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
 
    DistributedBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b )
    {
-      TNL_ASSERT_EQ( op1.getSize(), op2.getSize(), "Attempt to mix operands with different sizes." );
-      TNL_ASSERT_EQ( op1.getLocalRange(),
-                     op2.getLocalRange(),
-                     "Distributed expressions are supported only on vectors which are distributed the same way." );
-      TNL_ASSERT_EQ( op1.getGhosts(),
-                     op2.getGhosts(),
-                     "Distributed expressions are supported only on vectors which are distributed the same way." );
-      TNL_ASSERT_EQ( op1.getCommunicator(),
-                     op2.getCommunicator(),
-                     "Distributed expressions are supported only on vectors within the same communicator." );
+      if( op1.getSize() != op2.getSize() )
+         throw std::logic_error( "Attempt to mix operands with different sizes." );
+      if( op1.getLocalRange() != op2.getLocalRange() )
+         throw std::logic_error( "Distributed expressions are supported only on vectors which are distributed the same way." );
+      if( op1.getGhosts() != op2.getGhosts() )
+         throw std::logic_error( "Distributed expressions are supported only on vectors which are distributed the same way." );
+      if( op1.getCommunicator() != op2.getCommunicator() )
+         throw std::logic_error( "Distributed expressions are supported only on vectors within the same communicator." );
    }
 
    [[nodiscard]] RealType

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <ostream>
+#include <stdexcept>
 #include <utility>
 
 #include <TNL/Functional.h>
@@ -60,7 +61,8 @@ struct BinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariable, Ve
 
    BinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a.getConstView() ), op2( b.getConstView() )
    {
-      TNL_ASSERT_EQ( op1.getSize(), op2.getSize(), "Attempt to mix operands with different sizes." );
+      if( op1.getSize() != op2.getSize() )
+         throw std::logic_error( "Attempt to mix operands with different sizes." );
    }
 
    [[nodiscard]] RealType
