@@ -13,7 +13,6 @@
 #include <TNL/TypeTraits.h>
 #include <TNL/Containers/Expressions/TypeTraits.h>
 #include <TNL/Containers/Expressions/ExpressionVariableType.h>
-#include <TNL/Containers/Expressions/StaticComparison.h>
 #include <TNL/Containers/Expressions/StaticVerticalOperations.h>
 
 namespace TNL {
@@ -336,60 +335,6 @@ cast( const ET1& a )
 }
 
 ////
-// Comparison operator ==
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator==( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::EQ( a, b );
-}
-
-////
-// Comparison operator !=
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator!=( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::NE( a, b );
-}
-
-////
-// Comparison operator <
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator<( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::LT( a, b );
-}
-
-////
-// Comparison operator <=
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator<=( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::LE( a, b );
-}
-
-////
-// Comparison operator >
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator>( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::GT( a, b );
-}
-
-////
-// Comparison operator >=
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator>=( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::GE( a, b );
-}
-
-////
 // Scalar product
 template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
 constexpr auto
@@ -534,6 +479,48 @@ any( const ET1& a )
    return StaticExpressionAny( a );
 }
 
+////
+// Comparison operator ==
+template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
+constexpr bool
+operator==( const ET1& a, const ET2& b )
+{
+   if constexpr( getExpressionVariableType< ET1, ET2 >() == VectorExpressionVariable
+                 && getExpressionVariableType< ET2, ET1 >() == VectorExpressionVariable )
+   {
+      if( a.getSize() != b.getSize() )
+         return false;
+      for( int i = 0; i < a.getSize(); i++ )
+         if( ! ( a[ i ] == b[ i ] ) )
+            return false;
+      return true;
+   }
+   else if constexpr( getExpressionVariableType< ET1, ET2 >() == VectorExpressionVariable ) {
+      for( int i = 0; i < a.getSize(); i++ )
+         if( ! ( a[ i ] == b ) )
+            return false;
+      return true;
+   }
+   else if constexpr( getExpressionVariableType< ET2, ET1 >() == VectorExpressionVariable ) {
+      for( int i = 0; i < b.getSize(); i++ )
+         if( ! ( a == b[ i ] ) )
+            return false;
+      return true;
+   }
+   else {
+      return false;
+   }
+}
+
+////
+// Comparison operator !=
+template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
+constexpr bool
+operator!=( const ET1& a, const ET2& b )
+{
+   return ! operator==( a, b );
+}
+
 #endif  // DOXYGEN_ONLY
 
 ////
@@ -574,10 +561,6 @@ using Expressions::operator%;
 using Expressions::operator, ;
 using Expressions::operator==;
 using Expressions::operator!=;
-using Expressions::operator<;
-using Expressions::operator<=;
-using Expressions::operator>;
-using Expressions::operator>=;
 
 using Expressions::equalTo;
 using Expressions::greater;
@@ -789,3 +772,6 @@ addAndReduceAbs( Vector& lhs,
 }
 
 }  // namespace TNL
+
+// Helper TNL_ASSERT_ALL_* macros
+#include "Assert.h"

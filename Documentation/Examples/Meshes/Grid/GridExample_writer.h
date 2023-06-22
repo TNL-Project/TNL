@@ -110,7 +110,7 @@ void writeGrid()
          sum += cells_view[ neighbour.getIndex() ];
          count++;
       }
-      if( vertex.getCoordinates() < vertex.getGrid().getDimensions() ) {
+      if( TNL::all(less( vertex.getCoordinates(), vertex.getGrid().getDimensions() )) ) {
          auto neighbour = vertex.template getNeighbourEntity< Dimension >( {0,0} );
          sum += cells_view[ neighbour.getIndex() ];
          count++;

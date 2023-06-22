@@ -77,12 +77,12 @@ void traverseGrid()
       const CoordinatesType normal =  face.getNormals();
       double sum = 0.0;
       double count = 0.0;
-      if( face.getCoordinates() - normal >= CoordinatesType( 0, 0 ) ) {
+      if( TNL::all(greaterEqual( face.getCoordinates() - normal, 0 )) ) {
          auto neighbour = face.template getNeighbourEntity< Dimension >( -normal );
          sum += cells_view[ neighbour.getIndex() ];
          count++;
       }
-      if( face.getCoordinates() < face.getGrid().getDimensions() ) {
+      if( TNL::all(less( face.getCoordinates(), face.getGrid().getDimensions() )) ) {
          auto neighbour = face.template getNeighbourEntity< Dimension >( { 0, 0 } );
          sum += cells_view[ neighbour.getIndex() ];
          count++;
@@ -133,7 +133,7 @@ void traverseGrid()
          sum += cells_view[ neighbour.getIndex() ];
          count++;
       }
-      if( vertex.getCoordinates() < vertex.getGrid().getDimensions() ) {
+      if( TNL::all(less( vertex.getCoordinates(), vertex.getGrid().getDimensions() )) ) {
          auto neighbour = vertex.template getNeighbourEntity< Dimension >( {0,0} );
          sum += cells_view[ neighbour.getIndex() ];
          count++;

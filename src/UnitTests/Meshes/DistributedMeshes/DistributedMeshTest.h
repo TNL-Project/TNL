@@ -71,8 +71,8 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
       // ranges for local (owned) cells
       cell_begin = rank_coordinates * local_size;
       cell_end = (rank_coordinates + 1) * local_size;
-      ASSERT_LE( cell_begin, grid.getDimensions() );
-      ASSERT_LE( cell_end, grid.getDimensions() );
+      ASSERT_TRUE( all(lessEqual(cell_begin, grid.getDimensions() )) );
+      ASSERT_TRUE( all(lessEqual(cell_end, grid.getDimensions() )) );
       // ranges for local (owned) vertices
       vert_begin = cell_begin + 1;
       if( rank_coordinates.x() == 0 ) vert_begin.x()--;

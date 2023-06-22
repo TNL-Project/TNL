@@ -26,7 +26,7 @@ class NeighbourGridEntityGetterTestCase {
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
             Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(neighbourEntityOrientation);
 
-            if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
+            if( all(greaterEqual( alignedCoordinate, 0 )) && all(less( alignedCoordinate, boundary )) ) {
                auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension>(offset);
 
                neighbour.refresh();
@@ -47,7 +47,7 @@ class NeighbourGridEntityGetterTestCase {
             Coordinate alignedCoordinate = entity.getCoordinates() + offset;
             Coordinate boundary = grid.getDimensions() + grid.template getNormals<NeighbourEntityDimension>(NeighbourEntityOrientation);
 
-            if ((alignedCoordinate >= 0 && alignedCoordinate < boundary)) {
+            if( all(greaterEqual( alignedCoordinate, 0 )) && all(less( alignedCoordinate, boundary )) ) {
                auto neighbour = entity.template getNeighbourEntity<NeighbourEntityDimension, NeighbourEntityOrientation>(offset);
 
                neighbour.refresh();
@@ -93,7 +93,8 @@ class NeighbourGridEntityGetterTestCase {
                Coordinate alignedCoordinate = iterator.getCoordinate() + offset;
 
                // Unable to get entity out of bounds
-               bool expectCall = alignedCoordinate >= Coordinate(0) && alignedCoordinate < grid.getDimensions() + neighbourEntityNormals;
+               bool expectCall = all(greaterEqual( alignedCoordinate, 0 ))
+                              && all(less( alignedCoordinate, grid.getDimensions() + neighbourEntityNormals ));
 
                EXPECT_EQ(expectCall, neighbourEntity.calls == 1) <<
                          "Expect, that the parent entity was called";

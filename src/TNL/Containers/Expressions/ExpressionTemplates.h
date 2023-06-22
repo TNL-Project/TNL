@@ -776,3 +776,6 @@ addAndReduceAbs( Vector& lhs,
 }
 
 }  // namespace TNL
+
+// Helper TNL_ASSERT_ALL_* macros
+#include "Assert.h"
