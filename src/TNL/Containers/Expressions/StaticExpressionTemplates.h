@@ -520,6 +520,20 @@ product( const ET1& a )
    return StaticExpressionProduct( a );
 }
 
+template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
+constexpr auto
+all( const ET1& a )
+{
+   return StaticExpressionAll( a );
+}
+
+template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
+constexpr auto
+any( const ET1& a )
+{
+   return StaticExpressionAny( a );
+}
+
 #endif  // DOXYGEN_ONLY
 
 ////
@@ -576,6 +590,8 @@ using Expressions::notEqualTo;
 using Expressions::abs;
 using Expressions::acos;
 using Expressions::acosh;
+using Expressions::all;
+using Expressions::any;
 using Expressions::argMax;
 using Expressions::argMin;
 using Expressions::asin;
@@ -620,6 +636,8 @@ using Expressions::tanh;
 using Containers::abs;
 using Containers::acos;
 using Containers::acosh;
+using Containers::all;
+using Containers::any;
 using Containers::argMax;
 using Containers::argMin;
 using Containers::asin;

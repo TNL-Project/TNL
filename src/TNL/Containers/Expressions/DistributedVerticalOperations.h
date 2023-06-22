@@ -160,4 +160,34 @@ DistributedExpressionProduct( const Expression& expression ) -> std::decay_t< de
    return result;
 }
 
+template< typename Expression >
+auto
+DistributedExpressionAll( const Expression& expression ) -> std::decay_t< decltype( expression[ 0 ] && expression[ 0 ] ) >
+{
+   using ResultType = std::decay_t< decltype( expression[ 0 ] && expression[ 0 ] ) >;
+
+   static_assert( std::numeric_limits< ResultType >::is_specialized,
+                  "std::numeric_limits is not specialized for the reduction's result type" );
+   ResultType result = std::numeric_limits< ResultType >::max();
+   if( expression.getCommunicator() != MPI_COMM_NULL ) {
+      const ResultType localResult = Algorithms::reduce( expression.getConstLocalView(), TNL::LogicalAnd{} );
+      MPI::Allreduce( &localResult, &result, 1, MPI_LAND, expression.getCommunicator() );
+   }
+   return result;
+}
+
+template< typename Expression >
+auto
+DistributedExpressionAny( const Expression& expression ) -> std::decay_t< decltype( expression[ 0 ] || expression[ 0 ] ) >
+{
+   using ResultType = std::decay_t< decltype( expression[ 0 ] || expression[ 0 ] ) >;
+
+   ResultType result = 0;
+   if( expression.getCommunicator() != MPI_COMM_NULL ) {
+      const ResultType localResult = Algorithms::reduce( expression.getConstLocalView(), TNL::LogicalOr{} );
+      MPI::Allreduce( &localResult, &result, 1, MPI_LOR, expression.getCommunicator() );
+   }
+   return result;
+}
+
 }  // namespace TNL::Containers::Expressions

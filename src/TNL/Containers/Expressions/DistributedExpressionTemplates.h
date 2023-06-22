@@ -662,6 +662,20 @@ product( const ET1& a )
    return DistributedExpressionProduct( a );
 }
 
+template< typename ET1, typename..., EnableIfDistributedUnaryExpression_t< ET1, bool > = true >
+auto
+all( const ET1& a )
+{
+   return DistributedExpressionAll( a );
+}
+
+template< typename ET1, typename..., EnableIfDistributedUnaryExpression_t< ET1, bool > = true >
+auto
+any( const ET1& a )
+{
+   return DistributedExpressionAny( a );
+}
+
 ////
 // Output stream
 template< typename T1, typename T2, typename Operation >
@@ -736,6 +750,8 @@ using Expressions::notEqualTo;
 using Expressions::abs;
 using Expressions::acos;
 using Expressions::acosh;
+using Expressions::all;
+using Expressions::any;
 using Expressions::argMax;
 using Expressions::argMin;
 using Expressions::asin;
@@ -780,6 +796,8 @@ using Expressions::tanh;
 using Containers::abs;
 using Containers::acos;
 using Containers::acosh;
+using Containers::all;
+using Containers::any;
 using Containers::argMax;
 using Containers::argMin;
 using Containers::asin;

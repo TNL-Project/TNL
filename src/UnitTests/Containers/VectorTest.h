@@ -224,6 +224,10 @@ TEST( VectorSpecialCasesTest, reductionOfEmptyVector )
    EXPECT_EQ( argMax(v), std::make_pair( std::numeric_limits< int >::lowest(), 0 ) );
    EXPECT_EQ( sum(v), 0 );
    EXPECT_EQ( product(v), 1 );
+#ifndef VECTOR_OF_STATIC_VECTORS  // StaticVector is not contextually convertible to bool
+   EXPECT_EQ( all(v), true );
+   EXPECT_EQ( any(v), false );
+#endif
 
    EXPECT_EQ( min(v_view), std::numeric_limits< int >::max() );
    EXPECT_EQ( max(v_view), std::numeric_limits< int >::lowest() );
@@ -231,6 +235,10 @@ TEST( VectorSpecialCasesTest, reductionOfEmptyVector )
    EXPECT_EQ( argMax(v_view), std::make_pair( std::numeric_limits< int >::lowest(), 0 ) );
    EXPECT_EQ( sum(v_view), 0 );
    EXPECT_EQ( product(v_view), 1 );
+#ifndef VECTOR_OF_STATIC_VECTORS  // StaticVector is not contextually convertible to bool
+   EXPECT_EQ( all(v_view), true );
+   EXPECT_EQ( any(v_view), false );
+#endif
 }
 
 #endif // HAVE_GTEST

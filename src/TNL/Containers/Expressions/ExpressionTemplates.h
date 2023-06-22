@@ -498,6 +498,20 @@ product( const ET1& a )
    return Algorithms::reduce( a, TNL::Multiplies{} );
 }
 
+template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
+auto
+all( const ET1& a )
+{
+   return Algorithms::reduce( a, TNL::LogicalAnd{} );
+}
+
+template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
+auto
+any( const ET1& a )
+{
+   return Algorithms::reduce( a, TNL::LogicalOr{} );
+}
+
 #endif  // DOXYGEN_ONLY
 
 ////
@@ -554,6 +568,8 @@ using Expressions::notEqualTo;
 using Expressions::abs;
 using Expressions::acos;
 using Expressions::acosh;
+using Expressions::all;
+using Expressions::any;
 using Expressions::argMax;
 using Expressions::argMin;
 using Expressions::asin;
@@ -599,6 +615,8 @@ using Expressions::tanh;
 using Containers::abs;
 using Containers::acos;
 using Containers::acosh;
+using Containers::all;
+using Containers::any;
 using Containers::argMax;
 using Containers::argMin;
 using Containers::asin;

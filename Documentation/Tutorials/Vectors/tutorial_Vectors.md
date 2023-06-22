@@ -81,18 +81,20 @@ Output is:
 
 The following table shows vertical operations that can be used on vector expressions:
 
-| Expression                                   | Meaning                                                                                            |
-|----------------------------------------------|----------------------------------------------------------------------------------------------------|
-| `v =  TNL::min( expr )`                      | `v` is minimum of `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                       |
-| `std::pair( v, i ) =  TNL::argMin( expr )`   | `v` is minimum of `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`, `i` is index of the smallest element. |
-| `v =  TNL::max( expr )`                      | `v` is maximum of `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                       |
-| `std::pair( v, i ) =  TNL::argMax( expr )`   | `v` is maximum of `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`, `i` is index of the largest element.  |
-| `v =  TNL::sum( expr )`                      | `v` is sum of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                          |
-| `v =  TNL::maxNorm( expr )`                  | `v` is maximal norm of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                 |
-| `v =  TNL::l1Norm( expr )`                   | `v` is l1 norm of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                      |
-| `v =  TNL::l2Norm( expr )`                   | `v` is l2 norm of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                      |
-| `v =  TNL::lpNorm( expr, p )`                | `v` is lp norm of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                      |
-| `v =  TNL::product( expr )`                  | `v` is product of  `expr[ 0 ], expr[ 1 ] , .... expr[ n-1 ]`.                                      |
+| Expression                            | Meaning                                                                                                   |
+|---------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `v = TNL::min( expr )`                | `v` is the minimum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                           |
+| `auto [ v, i ] = TNL::argMin( expr )` | `v` is the minimum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`, `i` is the index of the smallest element. |
+| `v = TNL::max( expr )`                | `v` is the maximum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                           |
+| `auto [ v, i ] = TNL::argMax( expr )` | `v` is the maximum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`, `i` is the index of the largest element.  |
+| `v = TNL::sum( expr )`                | `v` is the sum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                               |
+| `v = TNL::maxNorm( expr )`            | `v` is the maximum norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                      |
+| `v = TNL::l1Norm( expr )`             | `v` is the l1 norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                           |
+| `v = TNL::l2Norm( expr )`             | `v` is the l2 norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                           |
+| `v = TNL::lpNorm( expr, p )`          | `v` is the lp norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                           |
+| `v = TNL::product( expr )`            | `v` is product of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                               |
+| `v = TNL::all( expr )`                | `v` is the result of `expr[ 0 ] && expr[ 1 ] && ... && expr[ n-1 ]`.                                      |
+| `v = TNL::any( expr )`                | `v` is the result of <code>expr[ 0 ] \|\| expr[ 1 ] \|\| ... \|\| expr[ n-1 ]</code>.                     |
 
 ## Static vectors
 
