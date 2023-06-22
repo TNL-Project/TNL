@@ -271,6 +271,12 @@ TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator-, TNL::Minus )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator*, TNL::Multiplies )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator/, TNL::Divides )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator%, TNL::Modulus )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, equalTo, TNL::EqualTo )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, notEqualTo, TNL::NotEqualTo )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, greater, TNL::Greater )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, less, TNL::Less )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, greaterEqual, TNL::GreaterEqual )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, lessEqual, TNL::LessEqual )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, min, TNL::Min )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, max, TNL::Max )
 
@@ -589,6 +595,13 @@ using Expressions::operator<=;
 using Expressions::operator>;
 using Expressions::operator>=;
 
+using Expressions::equalTo;
+using Expressions::greater;
+using Expressions::greaterEqual;
+using Expressions::less;
+using Expressions::lessEqual;
+using Expressions::notEqualTo;
+
 // Make all functions visible in the TNL::Containers namespace
 using Expressions::abs;
 using Expressions::acos;
@@ -650,10 +663,15 @@ using Containers::ceil;
 using Containers::cos;
 using Containers::cosh;
 using Containers::dot;
+using Containers::equalTo;
 using Containers::exp;
 using Containers::floor;
+using Containers::greater;
+using Containers::greaterEqual;
 using Containers::l1Norm;
 using Containers::l2Norm;
+using Containers::less;
+using Containers::lessEqual;
 using Containers::log;
 using Containers::log10;
 using Containers::log2;
@@ -663,6 +681,7 @@ using Containers::lpNorm;
 using Containers::max;
 using Containers::maxNorm;
 using Containers::min;
+using Containers::notEqualTo;
 using Containers::pow;
 using Containers::product;
 using Containers::sign;
