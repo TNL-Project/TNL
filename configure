@@ -15,6 +15,7 @@ PREFIX="$HOME/.local"
 BUILD_TYPE="Release"
 OFFLINE_BUILD="no"
 COMPILER="gcc"
+CUDA_COMPILER="nvcc"
 
 # array of options that are passed directly to cmake
 CMAKE_OPTIONS=()
@@ -65,7 +66,8 @@ General options:
 
 Options affecting all targets:
     --offline-build=yes/no              Disables online updates during the build. '$OFFLINE_BUILD' by default.
-    --compiler=gcc/clang/icc            Selects the compiler to use. '$COMPILER' by default.
+    --compiler=gcc/clang/icc            Selects the compiler for C++ source files. '$COMPILER' by default.
+    --cuda-compiler=nvcc/clang          Selects the compiler for CUDA source files. '$CUDA_COMPILER' by default.
     --use-mpi=yes/no                    Enables MPI. '$USE_MPI' by default (OpenMPI required).
     --use-cuda=yes/no                   Enables CUDA. '$USE_CUDA' by default (CUDA Toolkit is required).
     --cuda-arch=all/native/70/75/...    Chooses CUDA architecture. '$CUDA_ARCH' by default.
@@ -93,6 +95,7 @@ for option in "$@"; do
         --build-type=*        ) BUILD_TYPE="${option#*=}" ;;
         --offline-build       ) OFFLINE_BUILD="yes" ;;
         --compiler=*          ) COMPILER="${option#*=}" ;;
+        --cuda-compiler=*     ) CUDA_COMPILER="${option#*=}" ;;
         --use-mpi=*           ) USE_MPI="${option#*=}" ;;
         --use-cuda=*          ) USE_CUDA="${option#*=}" ;;
         --cuda-arch=*         ) CUDA_ARCH="${option#*=}";;
@@ -162,28 +165,46 @@ done
 if [[ "$COMPILER" == "gcc" ]]; then
     export CXX=g++
     export CC=gcc
+elif [[ "$COMPILER" == "clang" ]]; then
+    export CXX=clang++
+    export CC=clang
+elif [[ "$COMPILER" == "icc" ]]; then
+    export CXX=icpc
+    export CC=icc
+else
+    echo "Error: the compiler '$COMPILER' is not supported. The only options are 'gcc', 'clang' and 'icc'." >&2
+    exit 1
+fi
+
+if [[ "$CUDA_COMPILER" == "nvcc" ]]; then
+    export CUDACXX=nvcc
     # check if the system has a preferred CUDA host compiler via a symlink
     if command -v nvcc > /dev/null; then
         CUDAHOSTCXX="$(dirname "$(command -v nvcc)")"/g++
         if [[ -e "$CUDAHOSTCXX" ]]; then
             export CUDAHOSTCXX
         else
-            export CUDAHOSTCXX=g++
+            export CUDAHOSTCXX="$CXX"
         fi
     else
-        export CUDAHOSTCXX=g++
+        export CUDAHOSTCXX="$CXX"
     fi
-elif [[ "$COMPILER" == "clang" ]]; then
-    export CXX=clang++
-    export CC=clang
-    export CUDAHOSTCXX=clang++
-elif [[ "$COMPILER" == "icc" ]]; then
-    export CXX=icpc
-    export CC=icc
-    export CUDAHOSTCXX=icpc
-else
-    echo "Error: the compiler '$COMPILER' is not supported. The only options are 'gcc', 'clang' and 'icc'." >&2
-    exit 1
+    CMAKE_CXX_FLAGS=""
+    CMAKE_CUDA_FLAGS=""
+    CMAKE_EXE_LINKER_FLAGS=""
+    CMAKE_SHARED_LINKER_FLAGS=""
+elif [[ "$CUDA_COMPILER" == "clang" ]]; then
+    export CUDACXX=clang++
+    # CMake's native GPU arch detection does not work with clang
+    if [[ "$CUDA_ARCH" == "native" ]]; then
+        CUDA_ARCH="70"  # fallback
+    fi
+    # use libc++
+    CMAKE_CXX_FLAGS="-stdlib=libc++"
+    CMAKE_CUDA_FLAGS="-stdlib=libc++"
+    # use the LLVM linker and link to libc++
+    CMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld -lc++ -lc++abi"
+    CMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld -lc++ -lc++abi"
 fi
 
 if [[ ! $(command -v cmake) ]]; then
@@ -207,6 +228,13 @@ cmake -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator" \
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" \
     -DTNL_OFFLINE_BUILD="$OFFLINE_BUILD" \
+    -DCMAKE_C_COMPILER="$CC" \
+    -DCMAKE_CXX_COMPILER="$CXX" \
+    -DCMAKE_CUDA_COMPILER="$CUDACXX" \
+    -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
+    -DCMAKE_CUDA_FLAGS="$CMAKE_CUDA_FLAGS" \
+    -DCMAKE_EXE_LINKER_FLAGS="$CMAKE_EXE_LINKER_FLAGS" \
+    -DCMAKE_SHARED_LINKER_FLAGS="$CMAKE_SHARED_LINKER_FLAGS" \
     -DTNL_USE_CUDA="$USE_CUDA" \
     -DCMAKE_CUDA_ARCHITECTURES="$CUDA_ARCH" \
     -DTNL_USE_OPENMP="$USE_OPENMP" \
