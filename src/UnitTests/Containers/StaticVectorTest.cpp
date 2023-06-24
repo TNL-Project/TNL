@@ -88,6 +88,33 @@ TYPED_TEST( StaticVectorTest, cast )
    EXPECT_EQ( (StaticVector< size, double >) u, u );
 }
 
+TYPED_TEST( StaticVectorTest, lexicographical )
+{
+   using VectorType = typename TestFixture::VectorType;
+   constexpr int size = VectorType::getSize();
+
+   VectorType a;
+   VectorType b;
+   for( int i = 0; i < size; i++ ) {
+      a[ i ] = i;
+      b[ i ] = size - i;
+   }
+
+   EXPECT_LT( a, b );
+   EXPECT_LE( a, b );
+   EXPECT_LE( a, a );
+   EXPECT_GT( b, a );
+   EXPECT_GE( b, a );
+   EXPECT_GE( a, a );
+
+   EXPECT_FALSE( a > a );
+   EXPECT_FALSE( a > b );
+   EXPECT_FALSE( a >= b );
+   EXPECT_FALSE( a < a );
+   EXPECT_FALSE( b < a );
+   EXPECT_FALSE( b <= a );
+}
+
 #endif
 
 #include "../main.h"

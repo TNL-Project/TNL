@@ -521,6 +521,80 @@ operator!=( const ET1& a, const ET2& b )
    return ! operator==( a, b );
 }
 
+////
+// Lexicographical comparison operators
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator<( const ET1& a, const ET2& b )
+{
+   for( int i = 0; i < a.getSize(); i++ ) {
+      if( a[ i ] < b[ i ] )
+         return true;
+      if( b[ i ] < a[ i ] )
+         return false;
+   }
+   return false;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator<=( const ET1& a, const ET2& b )
+{
+   for( int i = 0; i < a.getSize(); i++ ) {
+      if( a[ i ] < b[ i ] )
+         return true;
+      if( b[ i ] < a[ i ] )
+         return false;
+   }
+   return true;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator>( const ET1& a, const ET2& b )
+{
+   for( int i = 0; i < a.getSize(); i++ ) {
+      if( a[ i ] > b[ i ] )
+         return true;
+      if( b[ i ] > a[ i ] )
+         return false;
+   }
+   return false;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator>=( const ET1& a, const ET2& b )
+{
+   for( int i = 0; i < a.getSize(); i++ ) {
+      if( a[ i ] > b[ i ] )
+         return true;
+      if( b[ i ] > a[ i ] )
+         return false;
+   }
+   return true;
+}
+
 #endif  // DOXYGEN_ONLY
 
 ////
@@ -562,6 +636,13 @@ using Expressions::operator, ;
 using Expressions::operator==;
 using Expressions::operator!=;
 
+// lexicographical ordering operators
+using Expressions::operator<;
+using Expressions::operator<=;
+using Expressions::operator>;
+using Expressions::operator>=;
+
+// elementwise comparison
 using Expressions::equalTo;
 using Expressions::greater;
 using Expressions::greaterEqual;

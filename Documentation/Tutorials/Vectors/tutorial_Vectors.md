@@ -98,12 +98,19 @@ The following table shows vertical operations that can be used on vector express
 
 ## Static vectors
 
-Static vectors are derived from static arrays and so they are allocated on the stack and can be created in CUDA kernels as well. Their size is fixed as well and it is given by a template parameter. Static vector is a templated class defined in namespace `TNL::Containers` having two template parameters:
+Static vectors are derived from static arrays and so they are allocated on the stack and can be created in CUDA kernels as well.
+Their size is fixed and given by a template parameter. The \ref TNL::Containers::StaticVector "StaticVector" class template is
+defined in the \ref TNL::Containers namespace and has two template parameters:
 
-* `Size` is the array size.
-* `Real` is type of numbers stored in the array.
+1. `Size` is the vector size.
+2. `Real` is type of elements stored in the vector.
 
-The interface of StaticVectors is smillar to Vector. Probably the most important methods are those related with static vector expressions which are handled by expression templates. They make the use of static vectors simpel and efficient at the same time. See the following simple demonstration:
+The interface of `StaticVector` is smilar to `Vector`. `StaticVector` also supports expression templates, which make the use of
+static vectors simple and efficient at the same time. Additionally, the comparison operators `<`, `<=`, `>`, and `>=` are
+defined for `StaticVector`. The comparison follows the [lexicographic order](https://en.wikipedia.org/wiki/Lexicographic_order)
+and it is performed by an algorithm equivalent to \ref std::lexicographical_compare.
+
+Example:
 
 \include StaticVectorExample.cpp
 
@@ -115,7 +122,7 @@ The output looks as:
 
 \ref TNL::Containers::DistributedVector "DistributedVector" extends \ref TNL::Containers::DistributedArray "DistributedArray" with algebraic operations.
 The functionality is similar to how \ref TNL::Containers::Vector "Vector" extends \ref TNL::Containers::Array "Array".
-_DistributedVector_ also supports expression templates and other operations present in _Vector_.
+`DistributedVector` also supports expression templates and other operations present in `Vector`.
 
 Example:
 
