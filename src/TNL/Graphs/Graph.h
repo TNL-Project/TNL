@@ -153,7 +153,7 @@ struct Graph
                return values_view[ i ];
             return ( ValueType ) 0; },
          TNL::Plus{} );
-      if constexpr( isUndirected() )
+      if constexpr( isUndirected() && ! MatrixType::isSymmetric() )
          return 0.5 * w;
       return w;
    }
