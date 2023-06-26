@@ -15,6 +15,7 @@
 #include <TNL/Graphs/breadthFirstSearch.h>
 #include <TNL/Graphs/singleSourceShortestPath.h>
 #include <TNL/Graphs/minimumSpanningTree.h>
+#include <TNL/Graphs/trees.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
@@ -169,7 +170,7 @@ struct GraphsBenchmark
       }
 
       // Benchmarking minimum spanning tree
-      /*Graph mstGraph;
+      Graph mstGraph;
       IndexVector roots;
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
@@ -184,13 +185,18 @@ struct GraphsBenchmark
       auto filename = this->parameters.getParameter< TNL::String >( "input-file" );
       TNL::Graphs::GraphWriter< Graph >::writeEdgeList( filename + "-tnl-mst.txt", mstGraph );
       Real mstTotalWeight = mstGraph.getTotalWeight();
+      if( ! TNL::Graphs::isForest( mstGraph ) )
+      {
+         std::cout << "ERROR: TNL MST is not a forest!" << std::endl;
+         this->errors++;
+      }
       if( mstTotalWeight != boostMSTTotalWeight )
       {
          std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << std::endl;
          std::cout << "Boost MST total weight: " << boostMSTTotalWeight << std::endl;
          std::cout << "TNL MST total weight: " << mstTotalWeight << std::endl;
          this->errors++;
-      }*/
+      }
    }
 
    void boostBenchmarks( const HostDigraph& digraph,
@@ -250,7 +256,6 @@ struct GraphsBenchmark
                                                           { "device", "sequential" },
                                                           { "format", "N/A" },
                                                           { "algorithm", std::string( "SSSP Boost undir" ) } } ) );
-      //std::vector<Real> boostSSSPDistances( digraph.getNodeCount() );
       auto sssp_boost_undir = [&] () mutable {
          boostGraph.singleSourceShortestPath( 0, boostSSSPDistances );
       };
@@ -277,6 +282,7 @@ struct GraphsBenchmark
         Real weight = boost::get(boost::edge_weight, boostGraph.getGraph(), edge);
         this->boostMSTTotalWeight += weight;
       }
+      //this->boostMSTTotalWeight = 2.0;
       auto filename = this->parameters.getParameter< TNL::String >( "input-file" );
       boostGraph.exportMst( boostMstEdges, filename + "-boost-mst.txt" );
    }
@@ -304,14 +310,14 @@ struct GraphsBenchmark
 
       auto digraph =
         gunrock::graph::build::from_csr<gunrock::memory_space_t::device, gunrock::graph::view_t::csr >(
-            digraphAdjacencyMatrix.getRows(),           // rows
-            digraphAdjacencyMatrix.getColumns(),        // columns
+            digraphAdjacencyMatrix.getRows(),             // rows
+            digraphAdjacencyMatrix.getColumns(),          // columns
             digraphAdjacencyMatrix.getValues().getSize(), // nonzeros
-            d_digraph_row_offsets.data().get(),         // row_offsets
-            d_digraph_column_indices.data().get(),      // column_indices
-            d_digraph_values.data().get(),              // values
-            d_digraph_row_indices.data().get(),         // row_indices
-            d_digraph_column_offsets.data().get()       // column_offsets
+            d_digraph_row_offsets.data().get(),           // row_offsets
+            d_digraph_column_indices.data().get(),        // column_indices
+            d_digraph_values.data().get(),                // values
+            d_digraph_row_indices.data().get(),           // row_indices
+            d_digraph_column_offsets.data().get()         // column_offsets
         );
 
 
@@ -330,14 +336,14 @@ struct GraphsBenchmark
 
       auto graph =
         gunrock::graph::build::from_csr<gunrock::memory_space_t::device, gunrock::graph::view_t::csr >(
-            graphAdjacencyMatrix.getRows(),            // rows
-            graphAdjacencyMatrix.getColumns(),         // columns
+            graphAdjacencyMatrix.getRows(),             // rows
+            graphAdjacencyMatrix.getColumns(),          // columns
             graphAdjacencyMatrix.getValues().getSize(), // nonzeros
-            d_graph_row_offsets.data().get(),          // row_offsets
-            d_graph_column_indices.data().get(),       // column_indices
-            d_graph_values.data().get(),               // values
-            d_graph_row_indices.data().get(),          // row_indices
-            d_graph_column_offsets.data().get()        // column_offsets
+            d_graph_row_offsets.data().get(),           // row_offsets
+            d_graph_column_indices.data().get(),        // column_indices
+            d_graph_values.data().get(),                // values
+            d_graph_row_indices.data().get(),           // row_indices
+            d_graph_column_offsets.data().get()         // column_offsets
         );
 
       GunrockBenchmark< Real, Index > gunrockBenchmark;
