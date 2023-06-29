@@ -125,6 +125,15 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::setElement( 
 }
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
+__cuda_callable__
+auto
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::
+getGlobalIndex( IndexType localIdx ) const -> IndexType
+{
+   return segmentView.getGlobalIndex( localIdx );
+}
+
+template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 template< typename _SegmentView, typename _ValuesView, typename _ColumnsIndexesView >
 __cuda_callable__
 bool

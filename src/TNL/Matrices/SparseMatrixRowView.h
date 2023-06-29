@@ -210,6 +210,15 @@ public:
    setElement( IndexType localIdx, IndexType columnIndex, const RealType& value );
 
    /**
+    * \brief Computes the global index of the matrix element with given rank in the matrix row.
+    *
+    * \param localIdx is the rank of the matrix element in the row.
+    * \return global index of the matrix element.
+    */
+   __cuda_callable__
+   IndexType getGlobalIndex( IndexType localIdx ) const;
+
+   /**
     * \brief Comparison of two matrix rows.
     *
     * The other matrix row can be from any other matrix.
