@@ -441,6 +441,9 @@ protected:
          return DistributedBinaryExpressionTemplate< ET1, ET2, functor >( a, b );                                         \
       }
 
+// NOTE: The list of functions and operators defined for distributed vectors
+// should be kept in sync with the list of functions and operators defined for
+// (normal) vectors - see ExpressionTemplates.h.
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( operator+, TNL::Plus )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( operator-, TNL::Minus )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( operator*, TNL::Multiplies )

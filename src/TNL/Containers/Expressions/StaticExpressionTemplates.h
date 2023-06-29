@@ -265,6 +265,9 @@ protected:
          return StaticBinaryExpressionTemplate< ET1, ET2, functor >( a, b );                                         \
       }
 
+// NOTE: The list of functions and operators defined for static vectors
+// should be kept in sync with the list of functions and operators defined for
+// (normal) vectors - see ExpressionTemplates.h.
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator+, TNL::Plus )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator-, TNL::Minus )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator*, TNL::Multiplies )
