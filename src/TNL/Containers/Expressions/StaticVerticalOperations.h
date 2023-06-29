@@ -96,53 +96,29 @@ StaticExpressionProduct( const Expression& expression )
 }
 
 template< typename Expression >
-constexpr bool
-StaticExpressionLogicalAnd( const Expression& expression )
+constexpr auto
+StaticExpressionAll( const Expression& expression )
 {
-   auto aux = expression[ 0 ];
-   for( int i = 1; i < expression.getSize(); i++ )
-      aux = aux && expression[ i ];
-   return aux;
-}
+   using ResultType = std::decay_t< decltype( expression[ 0 ] && expression[ 0 ] ) >;
 
-template< typename Expression >
-constexpr bool
-StaticExpressionLogicalOr( const Expression& expression )
-{
-   auto aux = expression[ 0 ];
-   for( int i = 1; i < expression.getSize(); i++ )
-      aux = aux || expression[ i ];
-   return aux;
+   static_assert( std::numeric_limits< ResultType >::is_specialized,
+                  "std::numeric_limits is not specialized for the reduction's result type" );
+   ResultType result = std::numeric_limits< ResultType >::max();
+   for( int i = 0; i < expression.getSize(); i++ )
+      result = result && expression[ i ];
+   return result;
 }
 
 template< typename Expression >
 constexpr auto
-StaticExpressionBinaryAnd( const Expression& expression )
+StaticExpressionAny( const Expression& expression )
 {
-   auto aux = expression[ 0 ];
-   for( int i = 1; i < expression.getSize(); i++ )
-      aux = aux & expression[ i ];
-   return aux;
-}
+   using ResultType = std::decay_t< decltype( expression[ 0 ] || expression[ 0 ] ) >;
 
-template< typename Expression >
-constexpr auto
-StaticExpressionBinaryOr( const Expression& expression )
-{
-   auto aux = expression[ 0 ];
-   for( int i = 1; i < expression.getSize(); i++ )
-      aux = aux | expression[ i ];
-   return aux;
-}
-
-template< typename Expression >
-constexpr auto
-StaticExpressionBinaryXor( const Expression& expression )
-{
-   auto aux = expression[ 0 ];
-   for( int i = 1; i < expression.getSize(); i++ )
-      aux = aux ^ expression[ i ];
-   return aux;
+   ResultType result = 0;
+   for( int i = 0; i < expression.getSize(); i++ )
+      result = result || expression[ i ];
+   return result;
 }
 
 }  // namespace TNL::Containers::Expressions

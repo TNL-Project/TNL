@@ -80,7 +80,7 @@ Grid< Dimension, Real, Device, Index >::setDimensions( Dimensions... dimensions 
 {
    this->dimensions = CoordinatesType( dimensions... );
 
-   TNL_ASSERT_GE( this->dimensions, CoordinatesType( 0 ), "Dimension must be positive" );
+   TNL_ASSERT_ALL_GE( this->dimensions, 0, "Dimension must be positive" );
 
    fillNormals();
    fillEntitiesCount();
@@ -98,7 +98,7 @@ Grid< Dimension, Real, Device, Index >::setDimensions(
 {
    this->dimensions = dimensions;
 
-   TNL_ASSERT_GE( this->dimensions, CoordinatesType( 0 ), "Dimension must be positive" );
+   TNL_ASSERT_ALL_GE( this->dimensions, 0, "Dimension must be positive" );
 
    fillNormals();
    fillEntitiesCount();
@@ -409,9 +409,9 @@ Grid< Dimension, Real, Device, Index >::traverseAll( const CoordinatesType& from
                                                      Func func,
                                                      FuncArgs... args ) const
 {
-   TNL_ASSERT_GE( from, CoordinatesType( 0 ), "Traverse rect must be in the grid dimensions" );
-   TNL_ASSERT_LE( to, this->getDimensions(), "Traverse rect be in the grid dimensions" );
-   TNL_ASSERT_LE( from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor" );
+   TNL_ASSERT_ALL_GE( from, 0, "Traverse rect must be in the grid dimensions" );
+   TNL_ASSERT_ALL_LE( to, this->getDimensions(), "Traverse rect be in the grid dimensions" );
+   TNL_ASSERT_ALL_LE( from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor" );
 
    auto exec = [ & ]( const Index orientation, const CoordinatesType& normals )
    {
@@ -437,9 +437,9 @@ Grid< Dimension, Real, Device, Index >::traverseInterior( const CoordinatesType&
                                                           Func func,
                                                           FuncArgs... args ) const
 {
-   TNL_ASSERT_GE( from, CoordinatesType( 0 ), "Traverse rect must be in the grid dimensions" );
-   TNL_ASSERT_LE( to, this->getDimensions(), "Traverse rect be in the grid dimensions" );
-   TNL_ASSERT_LE( from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor" );
+   TNL_ASSERT_ALL_GE( from, 0, "Traverse rect must be in the grid dimensions" );
+   TNL_ASSERT_ALL_LE( to, this->getDimensions(), "Traverse rect be in the grid dimensions" );
+   TNL_ASSERT_ALL_LE( from, to, "Traverse rect must be defined from leading bottom anchor to trailing top anchor" );
 
    auto exec = [ & ]( const Index orientation, const CoordinatesType& normals )
    {

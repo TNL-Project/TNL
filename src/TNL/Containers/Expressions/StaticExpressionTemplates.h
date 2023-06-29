@@ -13,7 +13,6 @@
 #include <TNL/TypeTraits.h>
 #include <TNL/Containers/Expressions/TypeTraits.h>
 #include <TNL/Containers/Expressions/ExpressionVariableType.h>
-#include <TNL/Containers/Expressions/StaticComparison.h>
 #include <TNL/Containers/Expressions/StaticVerticalOperations.h>
 
 namespace TNL {
@@ -266,13 +265,27 @@ protected:
          return StaticBinaryExpressionTemplate< ET1, ET2, functor >( a, b );                                         \
       }
 
+// NOTE: The list of functions and operators defined for static vectors
+// should be kept in sync with the list of functions and operators defined for
+// (normal) vectors - see ExpressionTemplates.h.
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator+, TNL::Plus )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator-, TNL::Minus )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator*, TNL::Multiplies )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator/, TNL::Divides )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator%, TNL::Modulus )
-TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, min, TNL::Min )
-TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, max, TNL::Max )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, equalTo, TNL::EqualTo )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, notEqualTo, TNL::NotEqualTo )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, greater, TNL::Greater )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, less, TNL::Less )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, greaterEqual, TNL::GreaterEqual )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, lessEqual, TNL::LessEqual )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, minimum, TNL::Min )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, maximum, TNL::Max )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, logicalAnd, TNL::LogicalAnd )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, logicalOr, TNL::LogicalOr )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, bitwiseAnd, TNL::BitAnd )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, bitwiseOr, TNL::BitOr )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, bitwiseXor, TNL::BitXor )
 
 TNL_MAKE_STATIC_UNARY_EXPRESSION( constexpr, operator+, TNL::UnaryPlus )
 TNL_MAKE_STATIC_UNARY_EXPRESSION( constexpr, operator-, TNL::UnaryMinus )
@@ -322,60 +335,6 @@ cast( const ET1& a )
 {
    using CastOperation = typename Cast< ResultType >::Operation;
    return StaticUnaryExpressionTemplate< ET1, CastOperation >( a );
-}
-
-////
-// Comparison operator ==
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator==( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::EQ( a, b );
-}
-
-////
-// Comparison operator !=
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator!=( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::NE( a, b );
-}
-
-////
-// Comparison operator <
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator<( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::LT( a, b );
-}
-
-////
-// Comparison operator <=
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator<=( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::LE( a, b );
-}
-
-////
-// Comparison operator >
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator>( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::GT( a, b );
-}
-
-////
-// Comparison operator >=
-template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
-constexpr bool
-operator>=( const ET1& a, const ET2& b )
-{
-   return StaticComparison< ET1, ET2 >::GE( a, b );
 }
 
 ////
@@ -511,37 +470,132 @@ product( const ET1& a )
 
 template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
 constexpr auto
-logicalAnd( const ET1& a )
+all( const ET1& a )
 {
-   return StaticExpressionLogicalAnd( a );
+   return StaticExpressionAll( a );
 }
 
 template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
 constexpr auto
-logicalOr( const ET1& a )
+any( const ET1& a )
 {
-   return StaticExpressionLogicalOr( a );
+   return StaticExpressionAny( a );
 }
 
-template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
-constexpr auto
-binaryAnd( const ET1& a )
+////
+// Comparison operator ==
+template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
+constexpr bool
+operator==( const ET1& a, const ET2& b )
 {
-   return StaticExpressionBinaryAnd( a );
+   if constexpr( getExpressionVariableType< ET1, ET2 >() == VectorExpressionVariable
+                 && getExpressionVariableType< ET2, ET1 >() == VectorExpressionVariable )
+   {
+      if( a.getSize() != b.getSize() )
+         return false;
+      for( int i = 0; i < a.getSize(); i++ )
+         if( ! ( a[ i ] == b[ i ] ) )
+            return false;
+      return true;
+   }
+   else if constexpr( getExpressionVariableType< ET1, ET2 >() == VectorExpressionVariable ) {
+      for( int i = 0; i < a.getSize(); i++ )
+         if( ! ( a[ i ] == b ) )
+            return false;
+      return true;
+   }
+   else if constexpr( getExpressionVariableType< ET2, ET1 >() == VectorExpressionVariable ) {
+      for( int i = 0; i < b.getSize(); i++ )
+         if( ! ( a == b[ i ] ) )
+            return false;
+      return true;
+   }
+   else {
+      return false;
+   }
 }
 
-template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
-constexpr auto
-binaryOr( const ET1& a )
+////
+// Comparison operator !=
+template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
+constexpr bool
+operator!=( const ET1& a, const ET2& b )
 {
-   return StaticExpressionBinaryOr( a );
+   return ! operator==( a, b );
 }
 
-template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
-constexpr auto
-binaryXor( const ET1& a )
+////
+// Lexicographical comparison operators
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator<( const ET1& a, const ET2& b )
 {
-   return StaticExpressionBinaryXor( a );
+   for( int i = 0; i < a.getSize(); i++ ) {
+      if( a[ i ] < b[ i ] )
+         return true;
+      if( b[ i ] < a[ i ] )
+         return false;
+   }
+   return false;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator<=( const ET1& a, const ET2& b )
+{
+   for( int i = 0; i < a.getSize(); i++ ) {
+      if( a[ i ] < b[ i ] )
+         return true;
+      if( b[ i ] < a[ i ] )
+         return false;
+   }
+   return true;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator>( const ET1& a, const ET2& b )
+{
+   for( int i = 0; i < a.getSize(); i++ ) {
+      if( a[ i ] > b[ i ] )
+         return true;
+      if( b[ i ] > a[ i ] )
+         return false;
+   }
+   return false;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator>=( const ET1& a, const ET2& b )
+{
+   for( int i = 0; i < a.getSize(); i++ ) {
+      if( a[ i ] > b[ i ] )
+         return true;
+      if( b[ i ] > a[ i ] )
+         return false;
+   }
+   return true;
 }
 
 #endif  // DOXYGEN_ONLY
@@ -584,23 +638,36 @@ using Expressions::operator%;
 using Expressions::operator, ;
 using Expressions::operator==;
 using Expressions::operator!=;
+
+// lexicographical ordering operators
 using Expressions::operator<;
 using Expressions::operator<=;
 using Expressions::operator>;
 using Expressions::operator>=;
 
+// elementwise comparison
+using Expressions::equalTo;
+using Expressions::greater;
+using Expressions::greaterEqual;
+using Expressions::less;
+using Expressions::lessEqual;
+using Expressions::notEqualTo;
+
 // Make all functions visible in the TNL::Containers namespace
 using Expressions::abs;
 using Expressions::acos;
 using Expressions::acosh;
+using Expressions::all;
+using Expressions::any;
 using Expressions::argMax;
 using Expressions::argMin;
 using Expressions::asin;
 using Expressions::asinh;
 using Expressions::atan;
 using Expressions::atanh;
-using Expressions::binaryAnd;
-using Expressions::binaryOr;
+using Expressions::bitwiseAnd;
+using Expressions::bitwiseOr;
+using Expressions::bitwiseXor;
 using Expressions::cast;
 using Expressions::cbrt;
 using Expressions::ceil;
@@ -618,8 +685,10 @@ using Expressions::logicalAnd;
 using Expressions::logicalOr;
 using Expressions::lpNorm;
 using Expressions::max;
+using Expressions::maximum;
 using Expressions::maxNorm;
 using Expressions::min;
+using Expressions::minimum;
 using Expressions::pow;
 using Expressions::product;
 using Expressions::sign;
@@ -636,24 +705,32 @@ using Expressions::tanh;
 using Containers::abs;
 using Containers::acos;
 using Containers::acosh;
+using Containers::all;
+using Containers::any;
 using Containers::argMax;
 using Containers::argMin;
 using Containers::asin;
 using Containers::asinh;
 using Containers::atan;
 using Containers::atanh;
-using Containers::binaryAnd;
-using Containers::binaryOr;
+using Containers::bitwiseAnd;
+using Containers::bitwiseOr;
+using Containers::bitwiseXor;
 using Containers::cast;
 using Containers::cbrt;
 using Containers::ceil;
 using Containers::cos;
 using Containers::cosh;
 using Containers::dot;
+using Containers::equalTo;
 using Containers::exp;
 using Containers::floor;
+using Containers::greater;
+using Containers::greaterEqual;
 using Containers::l1Norm;
 using Containers::l2Norm;
+using Containers::less;
+using Containers::lessEqual;
 using Containers::log;
 using Containers::log10;
 using Containers::log2;
@@ -661,8 +738,11 @@ using Containers::logicalAnd;
 using Containers::logicalOr;
 using Containers::lpNorm;
 using Containers::max;
+using Containers::maximum;
 using Containers::maxNorm;
 using Containers::min;
+using Containers::minimum;
+using Containers::notEqualTo;
 using Containers::pow;
 using Containers::product;
 using Containers::sign;
@@ -776,3 +856,6 @@ addAndReduceAbs( Vector& lhs,
 }
 
 }  // namespace TNL
+
+// Helper TNL_ASSERT_ALL_* macros
+#include "Assert.h"

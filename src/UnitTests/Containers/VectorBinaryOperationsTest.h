@@ -50,7 +50,10 @@ protected:
    using Right = typename Pair::Right;
    using LeftReal = std::remove_const_t< typename Left::RealType >;
    using RightReal = std::remove_const_t< typename Right::RealType >;
-#ifndef STATIC_VECTOR
+#ifdef STATIC_VECTOR
+   using LeftVector = Left;
+   using RightVector = Right;
+#else
    #ifdef DISTRIBUTED_VECTOR
       using LeftVector = DistributedVector< LeftReal, typename Left::DeviceType, typename Left::IndexType >;
       using RightVector = DistributedVector< RightReal, typename Right::DeviceType, typename Right::IndexType >;
@@ -261,6 +264,22 @@ TYPED_TEST( VectorBinaryOperationsTest, EQ )
    // with zero sizes
    EXPECT_TRUE( Left() == Right() );
 #endif
+
+// This test is not suitable for vector-of-static-vectors where the RealType cannot be cast to bool.
+#ifndef VECTOR_OF_STATIC_VECTORS
+   typename TestFixture::LeftVector all_true;
+   all_true = cast<bool>( L1 );
+
+   // equalTo
+   EXPECT_EQ( equalTo( L1, R1 ), all_true );       // vector or vector view
+   EXPECT_EQ( equalTo( L1, 1 ), all_true );        // right scalar
+   EXPECT_EQ( equalTo( 1, R1 ), all_true );        // left scalar
+   EXPECT_EQ( equalTo( L1, RightReal(1) ), all_true );   // right scalar
+   EXPECT_EQ( equalTo( LeftReal(1), R1 ), all_true );    // left scalar
+   EXPECT_EQ( equalTo( L2, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( equalTo( L1 + L1, R2 ), all_true );  // left expression
+   EXPECT_EQ( equalTo( L1 + L1, R1 + R1 ), all_true );  // two expressions
+#endif
 }
 
 TYPED_TEST( VectorBinaryOperationsTest, NE )
@@ -282,85 +301,125 @@ TYPED_TEST( VectorBinaryOperationsTest, NE )
    // with zero sizes
    EXPECT_FALSE( Left() != Right() );
 #endif
+
+// This test is not suitable for vector-of-static-vectors where the RealType cannot be cast to bool.
+#ifndef VECTOR_OF_STATIC_VECTORS
+   typename TestFixture::LeftVector all_true;
+   all_true = cast<bool>( L1 );
+
+   // notEqualTo
+   EXPECT_EQ( notEqualTo( L1, R2 ), all_true );       // vector or vector view
+   EXPECT_EQ( notEqualTo( L1, 2 ), all_true );        // right scalar
+   EXPECT_EQ( notEqualTo( 2, R1 ), all_true );        // left scalar
+   EXPECT_EQ( notEqualTo( L1, RightReal(2) ), all_true );   // right scalar
+   EXPECT_EQ( notEqualTo( LeftReal(2), R1 ), all_true );    // left scalar
+   EXPECT_EQ( notEqualTo( L1, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( notEqualTo( L1 + L1, R1 ), all_true );  // left expression
+   EXPECT_EQ( notEqualTo( L1 + L1, R2 + R2 ), all_true );  // two expressions
+#endif
 }
 
-TYPED_TEST( VectorBinaryOperationsTest, LT )
+// This test is not suitable for vector-of-static-vectors where the RealType cannot be cast to bool.
+#ifndef VECTOR_OF_STATIC_VECTORS
+TYPED_TEST( VectorBinaryOperationsTest, less )
 {
    SETUP_BINARY_TEST_ALIASES;
 
-   EXPECT_LT( L1, R2 );       // vector or vector view
-   EXPECT_LT( L1, 2 );        // right scalar
-   EXPECT_LT( 1, R2 );        // left scalar
-   EXPECT_LT( L1, RightReal(2) );   // right scalar
-   EXPECT_LT( LeftReal(1), R2 );    // left scalar
-   EXPECT_LT( L1, R1 + R1 );  // right expression
-   EXPECT_LT( L1 - L1, R1 );  // left expression
-   EXPECT_LT( L1 - L1, R1 + R1 );  // two expressions
-}
+   typename TestFixture::LeftVector all_true;
+   all_true = cast<bool>( L1 );
 
-TYPED_TEST( VectorBinaryOperationsTest, GT )
+   EXPECT_EQ( less( L1, R2 ), all_true );       // vector or vector view
+   EXPECT_EQ( less( L1, 2 ), all_true );        // right scalar
+   EXPECT_EQ( less( 1, R2 ), all_true );        // left scalar
+   EXPECT_EQ( less( L1, RightReal(2) ), all_true );   // right scalar
+   EXPECT_EQ( less( LeftReal(1), R2 ), all_true );    // left scalar
+   EXPECT_EQ( less( L1, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( less( L1 - L1, R1 ), all_true );  // left expression
+   EXPECT_EQ( less( L1 - L1, R1 + R1 ), all_true );  // two expressions
+}
+#endif
+
+// This test is not suitable for vector-of-static-vectors where the RealType cannot be cast to bool.
+#ifndef VECTOR_OF_STATIC_VECTORS
+TYPED_TEST( VectorBinaryOperationsTest, greater )
 {
    SETUP_BINARY_TEST_ALIASES;
 
-   EXPECT_GT( L2, R1 );       // vector or vector view
-   EXPECT_GT( L2, 1 );        // right scalar
-   EXPECT_GT( 2, R1 );        // left scalar
-   EXPECT_GT( L2, RightReal(1) );   // right scalar
-   EXPECT_GT( LeftReal(2), R1 );    // left scalar
-   EXPECT_GT( L1, R1 - R1 );  // right expression
-   EXPECT_GT( L1 + L1, R1 );  // left expression
-   EXPECT_GT( L1 + L1, R1 - R1 );  // two expressions
-}
+   typename TestFixture::LeftVector all_true;
+   all_true = cast<bool>( L1 );
 
-TYPED_TEST( VectorBinaryOperationsTest, LE )
+   EXPECT_EQ( greater( L2, R1 ), all_true );       // vector or vector view
+   EXPECT_EQ( greater( L2, 1 ), all_true );        // right scalar
+   EXPECT_EQ( greater( 2, R1 ), all_true );        // left scalar
+   EXPECT_EQ( greater( L2, RightReal(1) ), all_true );   // right scalar
+   EXPECT_EQ( greater( LeftReal(2), R1 ), all_true );    // left scalar
+   EXPECT_EQ( greater( L1, R1 - R1 ), all_true );  // right expression
+   EXPECT_EQ( greater( L1 + L1, R1 ), all_true );  // left expression
+   EXPECT_EQ( greater( L1 + L1, R1 - R1 ), all_true );  // two expressions
+}
+#endif
+
+// This test is not suitable for vector-of-static-vectors where the RealType cannot be cast to bool.
+#ifndef VECTOR_OF_STATIC_VECTORS
+TYPED_TEST( VectorBinaryOperationsTest, lessEqual )
 {
    SETUP_BINARY_TEST_ALIASES;
 
-   // same as LT
-   EXPECT_LE( L1, R2 );       // vector or vector view
-   EXPECT_LE( L1, 2 );        // right scalar
-   EXPECT_LE( 1, R2 );        // left scalar
-   EXPECT_LE( L1, RightReal(2) );   // right scalar
-   EXPECT_LE( LeftReal(1), R2 );    // left scalar
-   EXPECT_LE( L1, R1 + R1 );  // right expression
-   EXPECT_LE( L1 - L1, R1 );  // left expression
-   EXPECT_LE( L1 - L1, R1 + R1 );  // two expressions
+   typename TestFixture::LeftVector all_true;
+   all_true = cast<bool>( L1 );
 
-   // same as EQ
-   EXPECT_LE( L1, R1 );       // vector or vector view
-   EXPECT_LE( L1, 1 );        // right scalar
-   EXPECT_LE( 1, R1 );        // left scalar
-   EXPECT_LE( L1, RightReal(1) );   // right scalar
-   EXPECT_LE( LeftReal(1), R1 );    // left scalar
-   EXPECT_LE( L2, R1 + R1 );  // right expression
-   EXPECT_LE( L1 + L1, R2 );  // left expression
-   EXPECT_LE( L1 + L1, R1 + R2 );  // two expressions
+   // same as less
+   EXPECT_EQ( lessEqual( L1, R2 ), all_true );       // vector or vector view
+   EXPECT_EQ( lessEqual( L1, 2 ), all_true );        // right scalar
+   EXPECT_EQ( lessEqual( 1, R2 ), all_true );        // left scalar
+   EXPECT_EQ( lessEqual( L1, RightReal(2) ), all_true );   // right scalar
+   EXPECT_EQ( lessEqual( LeftReal(1), R2 ), all_true );    // left scalar
+   EXPECT_EQ( lessEqual( L1, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( lessEqual( L1 - L1, R1 ), all_true );  // left expression
+   EXPECT_EQ( lessEqual( L1 - L1, R1 + R1 ), all_true );  // two expressions
+
+   // same as equalTo
+   EXPECT_EQ( lessEqual( L1, R1 ), all_true );       // vector or vector view
+   EXPECT_EQ( lessEqual( L1, 1 ), all_true );        // right scalar
+   EXPECT_EQ( lessEqual( 1, R1 ), all_true );        // left scalar
+   EXPECT_EQ( lessEqual( L1, RightReal(1) ), all_true );   // right scalar
+   EXPECT_EQ( lessEqual( LeftReal(1), R1 ), all_true );    // left scalar
+   EXPECT_EQ( lessEqual( L2, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( lessEqual( L1 + L1, R2 ), all_true );  // left expression
+   EXPECT_EQ( lessEqual( L1 + L1, R1 + R1 ), all_true );  // two expressions
 }
+#endif
 
-TYPED_TEST( VectorBinaryOperationsTest, GE )
+// This test is not suitable for vector-of-static-vectors where the RealType cannot be cast to bool.
+#ifndef VECTOR_OF_STATIC_VECTORS
+TYPED_TEST( VectorBinaryOperationsTest, greaterEqual )
 {
    SETUP_BINARY_TEST_ALIASES;
 
-   // same as GT
-   EXPECT_GE( L2, R1 );       // vector or vector view
-   EXPECT_GE( L2, 1 );        // right scalar
-   EXPECT_GE( 2, R1 );        // left scalar
-   EXPECT_GE( L2, RightReal(1) );   // right scalar
-   EXPECT_GE( LeftReal(2), R1 );    // left scalar
-   EXPECT_GE( L1, R1 - R1 );  // right expression
-   EXPECT_GE( L1 + L1, R1 );  // left expression
-   EXPECT_GE( L1 + L1, R1 - R1 );  // two expressions
+   typename TestFixture::LeftVector all_true;
+   all_true = cast<bool>( L1 );
 
-   // same as EQ
-   EXPECT_LE( L1, R1 );       // vector or vector view
-   EXPECT_LE( L1, 1 );        // right scalar
-   EXPECT_LE( 1, R1 );        // left scalar
-   EXPECT_LE( L1, RightReal(1) );   // right scalar
-   EXPECT_LE( LeftReal(1), R1 );    // left scalar
-   EXPECT_LE( L2, R1 + R1 );  // right expression
-   EXPECT_LE( L1 + L1, R2 );  // left expression
-   EXPECT_LE( L1 + L1, R1 + R2 );  // two expressions
+   // same as greater
+   EXPECT_EQ( greaterEqual( L2, R1 ), all_true );       // vector or vector view
+   EXPECT_EQ( greaterEqual( L2, 1 ), all_true );        // right scalar
+   EXPECT_EQ( greaterEqual( 2, R1 ), all_true );        // left scalar
+   EXPECT_EQ( greaterEqual( L2, RightReal(1) ), all_true );   // right scalar
+   EXPECT_EQ( greaterEqual( LeftReal(2), R1 ), all_true );    // left scalar
+   EXPECT_EQ( greaterEqual( L1, R1 - R1 ), all_true );  // right expression
+   EXPECT_EQ( greaterEqual( L1 + L1, R1 ), all_true );  // left expression
+   EXPECT_EQ( greaterEqual( L1 + L1, R1 - R1 ), all_true );  // two expressions
+
+   // same as equalTo
+   EXPECT_EQ( greaterEqual( L1, R1 ), all_true );       // vector or vector view
+   EXPECT_EQ( greaterEqual( L1, 1 ), all_true );        // right scalar
+   EXPECT_EQ( greaterEqual( 1, R1 ), all_true );        // left scalar
+   EXPECT_EQ( greaterEqual( L1, RightReal(1) ), all_true );   // right scalar
+   EXPECT_EQ( greaterEqual( LeftReal(1), R1 ), all_true );    // left scalar
+   EXPECT_EQ( greaterEqual( L2, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( greaterEqual( L1 + L1, R2 ), all_true );  // left expression
+   EXPECT_EQ( greaterEqual( L1 + L1, R1 + R1 ), all_true );  // two expressions
 }
+#endif
 
 TYPED_TEST( VectorBinaryOperationsTest, addition )
 {
@@ -635,55 +694,55 @@ TYPED_TEST( VectorBinaryOperationsTest, scalarProduct )
    EXPECT_EQ( (2 * L - L, 2 * R - R), expected );
 }
 
-TYPED_TEST( VectorBinaryOperationsTest, min )
+// The TNL::Min functional cannot be applied on StaticVector
+#ifndef VECTOR_OF_STATIC_VECTORS
+TYPED_TEST( VectorBinaryOperationsTest, minimum )
 {
    SETUP_BINARY_TEST_ALIASES;
 
-   // make sure we are testing TNL::min and not std::min (which might take precedence when
-   // both arguments have the same type, see https://stackoverflow.com/q/62847698/4180822
-   using TNL::min;
-
    // with vector or vector view
-   EXPECT_EQ( min(L1, R2), L1 );
+   EXPECT_EQ( minimum(L1, R2), L1 );
    // with scalar
-   EXPECT_EQ( min(L1, 2), L1 );
-   EXPECT_EQ( min(1, R2), L1 );
+   EXPECT_EQ( minimum(L1, 2), L1 );
+   EXPECT_EQ( minimum(1, R2), L1 );
    // with expression
-   EXPECT_EQ( min(L1, R1 + R1), L1 );
-   EXPECT_EQ( min(L1 + L1, R1), R1 );
+   EXPECT_EQ( minimum(L1, R1 + R1), L1 );
+   EXPECT_EQ( minimum(L1 + L1, R1), R1 );
    // with two expressions
-   EXPECT_EQ( min(L1 + L1, R1 + R2), L2 );
+   EXPECT_EQ( minimum(L1 + L1, R1 + R2), L2 );
    // with expression and scalar
-   EXPECT_EQ( min(L1 + L1, 1), L1 );
-   EXPECT_EQ( min(L1 + L1, RightReal(1)), L1 );
-   EXPECT_EQ( min(1, R1 + R1), L1 );
-   EXPECT_EQ( min(LeftReal(1), R1 + R1), L1 );
+   EXPECT_EQ( minimum(L1 + L1, 1), L1 );
+   EXPECT_EQ( minimum(L1 + L1, RightReal(1)), L1 );
+   EXPECT_EQ( minimum(1, R1 + R1), L1 );
+   EXPECT_EQ( minimum(LeftReal(1), R1 + R1), L1 );
 }
+#endif
 
-TYPED_TEST( VectorBinaryOperationsTest, max )
+// The TNL::Max functional cannot be applied on StaticVector
+#ifndef VECTOR_OF_STATIC_VECTORS
+TYPED_TEST( VectorBinaryOperationsTest, maximum )
 {
    SETUP_BINARY_TEST_ALIASES;
 
-   // make sure we are testing TNL::max and not std::max (which might take precedence when
-   // both arguments have the same type, see https://stackoverflow.com/q/62847698/4180822
-   using TNL::max;
-
    // with vector or vector view
-   EXPECT_EQ( max(L1, R2), R2 );
+   EXPECT_EQ( maximum(L1, R2), R2 );
    // with scalar
-   EXPECT_EQ( max(L1, 2), L2 );
-   EXPECT_EQ( max(1, R2), L2 );
+   EXPECT_EQ( maximum(L1, 2), L2 );
+   EXPECT_EQ( maximum(1, R2), L2 );
    // with expression
-   EXPECT_EQ( max(L1, R1 + R1), L2 );
-   EXPECT_EQ( max(L1 + L1, R1), R2 );
+   EXPECT_EQ( maximum(L1, R1 + R1), L2 );
+   EXPECT_EQ( maximum(L1 + L1, R1), R2 );
    // with two expressions
-   EXPECT_EQ( max(L1 - L1, R1 + R1), L2 );
+   EXPECT_EQ( maximum(L1 - L1, R1 + R1), L2 );
    // with expression and scalar
-   EXPECT_EQ( max(L1 + L1, 1), L2 );
-   EXPECT_EQ( max(L1 + L1, RightReal(1)), L2 );
-   EXPECT_EQ( max(1, R1 + R1), L2 );
-   EXPECT_EQ( max(LeftReal(1), R1 + R1), L2 );
+   EXPECT_EQ( maximum(L1 + L1, 1), L2 );
+   EXPECT_EQ( maximum(L1 + L1, RightReal(1)), L2 );
+   EXPECT_EQ( maximum(1, R1 + R1), L2 );
+   EXPECT_EQ( maximum(LeftReal(1), R1 + R1), L2 );
 }
+#endif
+
+// TODO: tests for logicalAnd, logicalOr, bitwiseAnd, bitwiseOr, bitwiseXor
 
 #if defined(__CUDACC__) && !defined(STATIC_VECTOR)
 TYPED_TEST( VectorBinaryOperationsTest, comparisonOnDifferentDevices )

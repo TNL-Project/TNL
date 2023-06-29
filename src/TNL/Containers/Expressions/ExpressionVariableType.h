@@ -21,7 +21,7 @@ template< typename T, typename V = T >
 constexpr ExpressionVariableType
 getExpressionVariableType()
 {
-   if( std::is_arithmetic< T >::value )
+   if( IsScalarType< T >::value )
       return ArithmeticVariable;
    // vectors must be considered as an arithmetic type when used as RealType in another vector
    if( IsArithmeticSubtype< T, V >::value )

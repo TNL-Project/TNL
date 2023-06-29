@@ -7,14 +7,15 @@
 #pragma once
 
 #include <ostream>
+#include <stdexcept>
 #include <utility>
 
 #include <TNL/Functional.h>
 #include <TNL/TypeTraits.h>
 #include <TNL/Containers/Expressions/TypeTraits.h>
 #include <TNL/Containers/Expressions/ExpressionVariableType.h>
-#include <TNL/Containers/Expressions/Comparison.h>
 #include <TNL/Algorithms/reduce.h>
+#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
 
 namespace TNL {
 namespace Containers {
@@ -60,7 +61,8 @@ struct BinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariable, Ve
 
    BinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a.getConstView() ), op2( b.getConstView() )
    {
-      TNL_ASSERT_EQ( op1.getSize(), op2.getSize(), "Attempt to mix operands with different sizes." );
+      if( op1.getSize() != op2.getSize() )
+         throw std::logic_error( "Attempt to mix operands with different sizes." );
    }
 
    [[nodiscard]] RealType
@@ -283,8 +285,23 @@ TNL_MAKE_BINARY_EXPRESSION( operator-, TNL::Minus )
 TNL_MAKE_BINARY_EXPRESSION( operator*, TNL::Multiplies )
 TNL_MAKE_BINARY_EXPRESSION( operator/, TNL::Divides )
 TNL_MAKE_BINARY_EXPRESSION( operator%, TNL::Modulus )
-TNL_MAKE_BINARY_EXPRESSION( min, TNL::Min )
-TNL_MAKE_BINARY_EXPRESSION( max, TNL::Max )
+TNL_MAKE_BINARY_EXPRESSION( equalTo, TNL::EqualTo )
+TNL_MAKE_BINARY_EXPRESSION( notEqualTo, TNL::NotEqualTo )
+TNL_MAKE_BINARY_EXPRESSION( greater, TNL::Greater )
+TNL_MAKE_BINARY_EXPRESSION( less, TNL::Less )
+TNL_MAKE_BINARY_EXPRESSION( greaterEqual, TNL::GreaterEqual )
+TNL_MAKE_BINARY_EXPRESSION( lessEqual, TNL::LessEqual )
+// NOTE: TNL::min and TNL::max would conflict with std::min and std::max
+//       (For expressions like `min(a, b)` where a and b are TNL Vectors,
+//       the ADL consideres even `std::min`, because TNL::Containers::Array
+//       has a template parameter `Allocator` that may be `std::allocator`.)
+TNL_MAKE_BINARY_EXPRESSION( minimum, TNL::Min )
+TNL_MAKE_BINARY_EXPRESSION( maximum, TNL::Max )
+TNL_MAKE_BINARY_EXPRESSION( logicalAnd, TNL::LogicalAnd )
+TNL_MAKE_BINARY_EXPRESSION( logicalOr, TNL::LogicalOr )
+TNL_MAKE_BINARY_EXPRESSION( bitwiseAnd, TNL::BitAnd )
+TNL_MAKE_BINARY_EXPRESSION( bitwiseOr, TNL::BitOr )
+TNL_MAKE_BINARY_EXPRESSION( bitwiseXor, TNL::BitXor )
 
 TNL_MAKE_UNARY_EXPRESSION( operator+, TNL::UnaryPlus )
 TNL_MAKE_UNARY_EXPRESSION( operator-, TNL::UnaryMinus )
@@ -334,60 +351,6 @@ cast( const ET1& a )
 {
    using CastOperation = typename Cast< ResultType >::Operation;
    return UnaryExpressionTemplate< ET1, CastOperation >( a );
-}
-
-////
-// Comparison operator ==
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator==( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::EQ( a, b );
-}
-
-////
-// Comparison operator !=
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator!=( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::NE( a, b );
-}
-
-////
-// Comparison operator <
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator<( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::LT( a, b );
-}
-
-////
-// Comparison operator <=
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator<=( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::LE( a, b );
-}
-
-////
-// Comparison operator >
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator>( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::GT( a, b );
-}
-
-////
-// Comparison operator >=
-template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator>=( const ET1& a, const ET2& b )
-{
-   return Comparison< ET1, ET2 >::GE( a, b );
 }
 
 ////
@@ -489,37 +452,49 @@ product( const ET1& a )
 
 template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
 auto
-logicalAnd( const ET1& a )
+all( const ET1& a )
 {
    return Algorithms::reduce( a, TNL::LogicalAnd{} );
 }
 
 template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
 auto
-logicalOr( const ET1& a )
+any( const ET1& a )
 {
    return Algorithms::reduce( a, TNL::LogicalOr{} );
 }
 
-template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
-auto
-binaryAnd( const ET1& a )
+////
+// Comparison operator ==
+template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
+bool
+operator==( const ET1& a, const ET2& b )
 {
-   return Algorithms::reduce( a, TNL::BitAnd{} );
+   // If both operands are vectors, we compare them using array operations.
+   // It allows to compare vectors on different devices.
+   constexpr bool BothAreNonstaticVectors = IsArrayType< ET1 >::value && IsArrayType< ET2 >::value
+                                         && ! IsStaticArrayType< ET1 >::value && ! IsStaticArrayType< ET2 >::value;
+   if constexpr( BothAreNonstaticVectors ) {
+      if( a.getSize() != b.getSize() )
+         return false;
+      if( a.getSize() == 0 )
+         return true;
+      return Algorithms::MultiDeviceMemoryOperations< typename ET1::DeviceType, typename ET2::DeviceType >::compare(
+         a.getData(), b.getData(), a.getSize() );
+   }
+   else {
+      // If some operand is not a vector, we compare them with parallel reduction.
+      return all( equalTo( a, b ) );
+   }
 }
 
-template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
-auto
-binaryOr( const ET1& a )
+////
+// Comparison operator !=
+template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
+bool
+operator!=( const ET1& a, const ET2& b )
 {
-   return Algorithms::reduce( a, TNL::BitOr{} );
-}
-
-template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
-auto
-binaryXor( const ET1& a )
-{
-   return Algorithms::reduce( a, TNL::BitXor{} );
+   return ! operator==( a, b );
 }
 
 #endif  // DOXYGEN_ONLY
@@ -562,23 +537,29 @@ using Expressions::operator%;
 using Expressions::operator, ;
 using Expressions::operator==;
 using Expressions::operator!=;
-using Expressions::operator<;
-using Expressions::operator<=;
-using Expressions::operator>;
-using Expressions::operator>=;
+
+using Expressions::equalTo;
+using Expressions::greater;
+using Expressions::greaterEqual;
+using Expressions::less;
+using Expressions::lessEqual;
+using Expressions::notEqualTo;
 
 // Make all functions visible in the TNL::Containers namespace
 using Expressions::abs;
 using Expressions::acos;
 using Expressions::acosh;
+using Expressions::all;
+using Expressions::any;
 using Expressions::argMax;
 using Expressions::argMin;
 using Expressions::asin;
 using Expressions::asinh;
 using Expressions::atan;
 using Expressions::atanh;
-using Expressions::binaryAnd;
-using Expressions::binaryOr;
+using Expressions::bitwiseAnd;
+using Expressions::bitwiseOr;
+using Expressions::bitwiseXor;
 using Expressions::cast;
 using Expressions::cbrt;
 using Expressions::ceil;
@@ -596,8 +577,10 @@ using Expressions::logicalAnd;
 using Expressions::logicalOr;
 using Expressions::lpNorm;
 using Expressions::max;
+using Expressions::maximum;
 using Expressions::maxNorm;
 using Expressions::min;
+using Expressions::minimum;
 using Expressions::pow;
 using Expressions::product;
 using Expressions::sign;
@@ -615,24 +598,32 @@ using Expressions::tanh;
 using Containers::abs;
 using Containers::acos;
 using Containers::acosh;
+using Containers::all;
+using Containers::any;
 using Containers::argMax;
 using Containers::argMin;
 using Containers::asin;
 using Containers::asinh;
 using Containers::atan;
 using Containers::atanh;
-using Containers::binaryAnd;
-using Containers::binaryOr;
+using Containers::bitwiseAnd;
+using Containers::bitwiseOr;
+using Containers::bitwiseXor;
 using Containers::cast;
 using Containers::cbrt;
 using Containers::ceil;
 using Containers::cos;
 using Containers::cosh;
 using Containers::dot;
+using Containers::equalTo;
 using Containers::exp;
 using Containers::floor;
+using Containers::greater;
+using Containers::greaterEqual;
 using Containers::l1Norm;
 using Containers::l2Norm;
+using Containers::less;
+using Containers::lessEqual;
 using Containers::log;
 using Containers::log10;
 using Containers::log2;
@@ -640,8 +631,11 @@ using Containers::logicalAnd;
 using Containers::logicalOr;
 using Containers::lpNorm;
 using Containers::max;
+using Containers::maximum;
 using Containers::maxNorm;
 using Containers::min;
+using Containers::minimum;
+using Containers::notEqualTo;
 using Containers::pow;
 using Containers::product;
 using Containers::sign;
@@ -782,3 +776,6 @@ addAndReduceAbs( Vector& lhs,
 }
 
 }  // namespace TNL
+
+// Helper TNL_ASSERT_ALL_* macros
+#include "Assert.h"

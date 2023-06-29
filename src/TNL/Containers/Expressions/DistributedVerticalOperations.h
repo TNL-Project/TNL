@@ -162,8 +162,7 @@ DistributedExpressionProduct( const Expression& expression ) -> std::decay_t< de
 
 template< typename Expression >
 auto
-DistributedExpressionLogicalAnd( const Expression& expression )
-   -> std::decay_t< decltype( expression[ 0 ] && expression[ 0 ] ) >
+DistributedExpressionAll( const Expression& expression ) -> std::decay_t< decltype( expression[ 0 ] && expression[ 0 ] ) >
 {
    using ResultType = std::decay_t< decltype( expression[ 0 ] && expression[ 0 ] ) >;
 
@@ -179,7 +178,7 @@ DistributedExpressionLogicalAnd( const Expression& expression )
 
 template< typename Expression >
 auto
-DistributedExpressionLogicalOr( const Expression& expression ) -> std::decay_t< decltype( expression[ 0 ] || expression[ 0 ] ) >
+DistributedExpressionAny( const Expression& expression ) -> std::decay_t< decltype( expression[ 0 ] || expression[ 0 ] ) >
 {
    using ResultType = std::decay_t< decltype( expression[ 0 ] || expression[ 0 ] ) >;
 
@@ -187,50 +186,6 @@ DistributedExpressionLogicalOr( const Expression& expression ) -> std::decay_t< 
    if( expression.getCommunicator() != MPI_COMM_NULL ) {
       const ResultType localResult = Algorithms::reduce( expression.getConstLocalView(), TNL::LogicalOr{} );
       MPI::Allreduce( &localResult, &result, 1, MPI_LOR, expression.getCommunicator() );
-   }
-   return result;
-}
-
-template< typename Expression >
-auto
-DistributedExpressionBinaryAnd( const Expression& expression ) -> std::decay_t< decltype( expression[ 0 ] & expression[ 0 ] ) >
-{
-   using ResultType = std::decay_t< decltype( expression[ 0 ] & expression[ 0 ] ) >;
-
-   static_assert( std::numeric_limits< ResultType >::is_specialized,
-                  "std::numeric_limits is not specialized for the reduction's result type" );
-   ResultType result = std::numeric_limits< ResultType >::max();
-   if( expression.getCommunicator() != MPI_COMM_NULL ) {
-      const ResultType localResult = Algorithms::reduce( expression.getConstLocalView(), TNL::BitAnd{} );
-      MPI::Allreduce( &localResult, &result, 1, MPI_BAND, expression.getCommunicator() );
-   }
-   return result;
-}
-
-template< typename Expression >
-auto
-DistributedExpressionBinaryOr( const Expression& expression ) -> std::decay_t< decltype( expression[ 0 ] | expression[ 0 ] ) >
-{
-   using ResultType = std::decay_t< decltype( expression[ 0 ] | expression[ 0 ] ) >;
-
-   ResultType result = 0;
-   if( expression.getCommunicator() != MPI_COMM_NULL ) {
-      const ResultType localResult = Algorithms::reduce( expression.getConstLocalView(), TNL::BitOr{} );
-      MPI::Allreduce( &localResult, &result, 1, MPI_BOR, expression.getCommunicator() );
-   }
-   return result;
-}
-
-template< typename Expression >
-auto
-DistributedExpressionBinaryXor( const Expression& expression ) -> std::decay_t< decltype( expression[ 0 ] ^ expression[ 0 ] ) >
-{
-   using ResultType = std::decay_t< decltype( expression[ 0 ] ^ expression[ 0 ] ) >;
-
-   ResultType result = 0;
-   if( expression.getCommunicator() != MPI_COMM_NULL ) {
-      const ResultType localResult = Algorithms::reduce( expression.getConstLocalView(), TNL::BitXor{} );
-      MPI::Allreduce( &localResult, &result, 1, MPI_BXOR, expression.getCommunicator() );
    }
    return result;
 }

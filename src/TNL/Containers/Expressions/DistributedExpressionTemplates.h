@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include <utility>
 #include <memory>
+#include <stdexcept>
+#include <utility>
 
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
-#include <TNL/Containers/Expressions/DistributedComparison.h>
 #include <TNL/Containers/Expressions/DistributedVerticalOperations.h>
 
 namespace TNL {
@@ -64,16 +64,14 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
 
    DistributedBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b )
    {
-      TNL_ASSERT_EQ( op1.getSize(), op2.getSize(), "Attempt to mix operands with different sizes." );
-      TNL_ASSERT_EQ( op1.getLocalRange(),
-                     op2.getLocalRange(),
-                     "Distributed expressions are supported only on vectors which are distributed the same way." );
-      TNL_ASSERT_EQ( op1.getGhosts(),
-                     op2.getGhosts(),
-                     "Distributed expressions are supported only on vectors which are distributed the same way." );
-      TNL_ASSERT_EQ( op1.getCommunicator(),
-                     op2.getCommunicator(),
-                     "Distributed expressions are supported only on vectors within the same communicator." );
+      if( op1.getSize() != op2.getSize() )
+         throw std::logic_error( "Attempt to mix operands with different sizes." );
+      if( op1.getLocalRange() != op2.getLocalRange() )
+         throw std::logic_error( "Distributed expressions are supported only on vectors which are distributed the same way." );
+      if( op1.getGhosts() != op2.getGhosts() )
+         throw std::logic_error( "Distributed expressions are supported only on vectors which are distributed the same way." );
+      if( op1.getCommunicator() != op2.getCommunicator() )
+         throw std::logic_error( "Distributed expressions are supported only on vectors within the same communicator." );
    }
 
    [[nodiscard]] RealType
@@ -443,13 +441,27 @@ protected:
          return DistributedBinaryExpressionTemplate< ET1, ET2, functor >( a, b );                                         \
       }
 
+// NOTE: The list of functions and operators defined for distributed vectors
+// should be kept in sync with the list of functions and operators defined for
+// (normal) vectors - see ExpressionTemplates.h.
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( operator+, TNL::Plus )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( operator-, TNL::Minus )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( operator*, TNL::Multiplies )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( operator/, TNL::Divides )
 TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( operator%, TNL::Modulus )
-TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( min, TNL::Min )
-TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( max, TNL::Max )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( equalTo, TNL::EqualTo )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( notEqualTo, TNL::NotEqualTo )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( greater, TNL::Greater )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( less, TNL::Less )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( greaterEqual, TNL::GreaterEqual )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( lessEqual, TNL::LessEqual )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( minimum, TNL::Min )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( maximum, TNL::Max )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( logicalAnd, TNL::LogicalAnd )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( logicalOr, TNL::LogicalOr )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( bitwiseAnd, TNL::BitAnd )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( bitwiseOr, TNL::BitOr )
+TNL_MAKE_DISTRIBUTED_BINARY_EXPRESSION( bitwiseXor, TNL::BitXor )
 
 TNL_MAKE_DISTRIBUTED_UNARY_EXPRESSION( operator+, TNL::UnaryPlus )
 TNL_MAKE_DISTRIBUTED_UNARY_EXPRESSION( operator-, TNL::UnaryMinus )
@@ -498,60 +510,6 @@ cast( const ET1& a )
 {
    using CastOperation = typename Cast< ResultType >::Operation;
    return DistributedUnaryExpressionTemplate< ET1, CastOperation >( a );
-}
-
-////
-// Comparison operator ==
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator==( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::EQ( a, b );
-}
-
-////
-// Comparison operator !=
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator!=( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::NE( a, b );
-}
-
-////
-// Comparison operator <
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator<( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::LT( a, b );
-}
-
-////
-// Comparison operator <=
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator<=( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::LE( a, b );
-}
-
-////
-// Comparison operator >
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator>( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::GT( a, b );
-}
-
-////
-// Comparison operator >=
-template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
-bool
-operator>=( const ET1& a, const ET2& b )
-{
-   return DistributedComparison< ET1, ET2 >::GE( a, b );
 }
 
 ////
@@ -653,37 +611,61 @@ product( const ET1& a )
 
 template< typename ET1, typename..., EnableIfDistributedUnaryExpression_t< ET1, bool > = true >
 auto
-logicalAnd( const ET1& a )
+all( const ET1& a )
 {
-   return DistributedExpressionLogicalAnd( a );
+   return DistributedExpressionAll( a );
 }
 
 template< typename ET1, typename..., EnableIfDistributedUnaryExpression_t< ET1, bool > = true >
 auto
-logicalOr( const ET1& a )
+any( const ET1& a )
 {
-   return DistributedExpressionLogicalOr( a );
+   return DistributedExpressionAny( a );
 }
 
-template< typename ET1, typename..., EnableIfDistributedUnaryExpression_t< ET1, bool > = true >
-auto
-binaryAnd( const ET1& a )
+////
+// Comparison operator ==
+template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
+bool
+operator==( const ET1& a, const ET2& b )
 {
-   return DistributedExpressionBinaryAnd( a );
+   MPI_Comm communicator = MPI_COMM_NULL;
+
+   // we can't return all( equalTo( a, b ) ) because we want to allow comparison on different devices and
+   // DistributedBinaryExpressionTemplate does not allow that
+   bool localResult = false;
+   if constexpr( getExpressionVariableType< ET1, ET2 >() == VectorExpressionVariable
+                 && getExpressionVariableType< ET2, ET1 >() == VectorExpressionVariable )
+   {
+      // we can't run allreduce if the communicators are different
+      if( a.getCommunicator() != b.getCommunicator() )
+         return false;
+      communicator = a.getCommunicator();
+      localResult = a.getLocalRange() == b.getLocalRange() && a.getGhosts() == b.getGhosts() && a.getSize() == b.getSize() &&
+                    // compare without ghosts
+                    a.getConstLocalView() == b.getConstLocalView();
+   }
+   else if constexpr( getExpressionVariableType< ET1, ET2 >() == VectorExpressionVariable ) {
+      communicator = a.getCommunicator();
+      localResult = a.getConstLocalView() == b;
+   }
+   else if constexpr( getExpressionVariableType< ET2, ET1 >() == VectorExpressionVariable ) {
+      communicator = b.getCommunicator();
+      localResult = a == b.getConstLocalView();
+   }
+   bool result = true;
+   if( communicator != MPI_COMM_NULL )
+      MPI::Allreduce( &localResult, &result, 1, MPI_LAND, communicator );
+   return result;
 }
 
-template< typename ET1, typename..., EnableIfDistributedUnaryExpression_t< ET1, bool > = true >
-auto
-binaryOr( const ET1& a )
+////
+// Comparison operator !=
+template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
+bool
+operator!=( const ET1& a, const ET2& b )
 {
-   return DistributedExpressionBinaryOr( a );
-}
-
-template< typename ET1, typename..., EnableIfDistributedUnaryExpression_t< ET1, bool > = true >
-auto
-binaryXor( const ET1& a )
-{
-   return DistributedExpressionBinaryXor( a );
+   return ! operator==( a, b );
 }
 
 ////
@@ -744,23 +726,29 @@ using Expressions::operator%;
 using Expressions::operator, ;
 using Expressions::operator==;
 using Expressions::operator!=;
-using Expressions::operator<;
-using Expressions::operator<=;
-using Expressions::operator>;
-using Expressions::operator>=;
+
+using Expressions::equalTo;
+using Expressions::greater;
+using Expressions::greaterEqual;
+using Expressions::less;
+using Expressions::lessEqual;
+using Expressions::notEqualTo;
 
 // Make all functions visible in the TNL::Containers namespace
 using Expressions::abs;
 using Expressions::acos;
 using Expressions::acosh;
+using Expressions::all;
+using Expressions::any;
 using Expressions::argMax;
 using Expressions::argMin;
 using Expressions::asin;
 using Expressions::asinh;
 using Expressions::atan;
 using Expressions::atanh;
-using Expressions::binaryAnd;
-using Expressions::binaryOr;
+using Expressions::bitwiseAnd;
+using Expressions::bitwiseOr;
+using Expressions::bitwiseXor;
 using Expressions::cast;
 using Expressions::cbrt;
 using Expressions::ceil;
@@ -778,8 +766,10 @@ using Expressions::logicalAnd;
 using Expressions::logicalOr;
 using Expressions::lpNorm;
 using Expressions::max;
+using Expressions::maximum;
 using Expressions::maxNorm;
 using Expressions::min;
+using Expressions::minimum;
 using Expressions::pow;
 using Expressions::product;
 using Expressions::sign;
@@ -796,24 +786,32 @@ using Expressions::tanh;
 using Containers::abs;
 using Containers::acos;
 using Containers::acosh;
+using Containers::all;
+using Containers::any;
 using Containers::argMax;
 using Containers::argMin;
 using Containers::asin;
 using Containers::asinh;
 using Containers::atan;
 using Containers::atanh;
-using Containers::binaryAnd;
-using Containers::binaryOr;
+using Containers::bitwiseAnd;
+using Containers::bitwiseOr;
+using Containers::bitwiseXor;
 using Containers::cast;
 using Containers::cbrt;
 using Containers::ceil;
 using Containers::cos;
 using Containers::cosh;
 using Containers::dot;
+using Containers::equalTo;
 using Containers::exp;
 using Containers::floor;
+using Containers::greater;
+using Containers::greaterEqual;
 using Containers::l1Norm;
 using Containers::l2Norm;
+using Containers::less;
+using Containers::lessEqual;
 using Containers::log;
 using Containers::log10;
 using Containers::log2;
@@ -821,8 +819,11 @@ using Containers::logicalAnd;
 using Containers::logicalOr;
 using Containers::lpNorm;
 using Containers::max;
+using Containers::maximum;
 using Containers::maxNorm;
 using Containers::min;
+using Containers::minimum;
+using Containers::notEqualTo;
 using Containers::pow;
 using Containers::product;
 using Containers::sign;
@@ -962,3 +963,6 @@ addAndReduceAbs( Vector& lhs,
 }
 
 }  // namespace TNL
+
+// Helper TNL_ASSERT_ALL_* macros
+#include "Assert.h"

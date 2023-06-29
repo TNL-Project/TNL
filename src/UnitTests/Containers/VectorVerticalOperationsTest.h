@@ -366,7 +366,94 @@ TYPED_TEST( VectorVerticalOperationsTest, product )
    EXPECT_EQ( product(2 * V2 - V2), std::exp2(size) );
 }
 
-// TODO: tests for logicalOr, binaryOr, logicalAnd, binaryAnd
+// StaticVector is not contextually convertible to bool
+#ifndef VECTOR_OF_STATIC_VECTORS
+TYPED_TEST( VectorVerticalOperationsTest, all_const_ones )
+{
+#ifdef STATIC_VECTOR
+   setConstantSequence( this->V1, 1 );
+   const typename TestFixture::VectorOrView& V1( this->V1 );
+#else
+   // we have to use _V1 because V1 might be a const view
+   setConstantSequence( this->_V1, 1 );
+   const typename TestFixture::VectorOrView& V1( this->_V1 );
+#endif
+
+   // vector or vector view
+   EXPECT_TRUE( all(V1) );
+   // unary expression
+   EXPECT_TRUE( all(-V1) );
+   // binary expression
+   EXPECT_TRUE( all(V1 + V1) );
+}
+
+TYPED_TEST( VectorVerticalOperationsTest, all_linear )
+{
+#ifdef STATIC_VECTOR
+   setLinearSequence( this->V1 );
+   const typename TestFixture::VectorOrView& V1( this->V1 );
+#else
+   // we have to use _V1 because V1 might be a const view
+   setLinearSequence( this->_V1 );
+   const typename TestFixture::VectorOrView& V1( this->_V1 );
+#endif
+
+   // vector or vector view
+   EXPECT_FALSE( all(V1) );
+   // unary expression
+   EXPECT_FALSE( all(-V1) );
+   // binary expression
+   EXPECT_FALSE( all(V1 + V1) );
+}
+
+TYPED_TEST( VectorVerticalOperationsTest, any_const_zeros )
+{
+#ifdef STATIC_VECTOR
+   setConstantSequence( this->V1, 0 );
+   const typename TestFixture::VectorOrView& V1( this->V1 );
+#else
+   // we have to use _V1 because V1 might be a const view
+   setConstantSequence( this->_V1, 0 );
+   const typename TestFixture::VectorOrView& V1( this->_V1 );
+#endif
+
+   // vector or vector view
+   EXPECT_FALSE( any(V1) );
+   // unary expression
+   EXPECT_FALSE( any(-V1) );
+   // binary expression
+   EXPECT_FALSE( any(V1 + V1) );
+}
+
+TYPED_TEST( VectorVerticalOperationsTest, any_linear )
+{
+#ifdef STATIC_VECTOR
+   setLinearSequence( this->V1 );
+   const typename TestFixture::VectorOrView& V1( this->V1 );
+#else
+   // we have to use _V1 because V1 might be a const view
+   setLinearSequence( this->_V1 );
+   const typename TestFixture::VectorOrView& V1( this->_V1 );
+#endif
+
+   if( V1.getSize() > 1 ) {
+      // vector or vector view
+      EXPECT_TRUE( any(V1) );
+      // unary expression
+      EXPECT_TRUE( any(-V1) );
+      // binary expression
+      EXPECT_TRUE( any(V1 + V1) );
+   }
+   else {
+      // vector or vector view
+      EXPECT_FALSE( any(V1) );
+      // unary expression
+      EXPECT_FALSE( any(-V1) );
+      // binary expression
+      EXPECT_FALSE( any(V1 + V1) );
+   }
+}
+#endif
 
 } // namespace vertical_tests
 

@@ -11,7 +11,7 @@ void expressions()
    using RealType = float;
    using VectorType = Vector< RealType, Device >;
    using ViewType = VectorView< RealType, Device >;
-   
+
    /****
     * Create vectors
     */
@@ -24,24 +24,24 @@ void expressions()
    b.forAllElements( [] __cuda_callable__ ( int i, RealType& value ) { value = i - 5.0; } );
    c = -5;
 
-   std::cout << "a = " << a << std::endl;
-   std::cout << "b = " << b << std::endl;
-   std::cout << "c = " << c << std::endl;
+   std::cout << "a == " << a << std::endl;
+   std::cout << "b == " << b << std::endl;
+   std::cout << "c == " << c << std::endl;
    auto arg_min_a = argMin( a );
    auto arg_max_a = argMax( a );
    auto arg_min_b = argMin( b );
    auto arg_max_b = argMax( b );
-   std::cout << "min( a ) = " << arg_min_a.second << " at " << arg_min_a.first << std::endl;
-   std::cout << "max( a ) = " << arg_max_a.second << " at " << arg_max_a.first << std::endl;
-   std::cout << "min( b ) = " << arg_min_b.second << " at " << arg_min_b.first << std::endl;
-   std::cout << "max( b ) = " << arg_max_b.second << " at " << arg_max_b.first << std::endl;
-   std::cout << "min( abs( b ) ) = " << min( abs( b ) ) << std::endl;
-   std::cout << "sum( b ) = " << sum( b ) << std::endl;
-   std::cout << "sum( abs( b ) ) = " << sum( abs( b ) ) << std::endl;
-   std::cout << "Scalar product: ( a, b ) =  " << ( a, b ) << std::endl;
-   std::cout << "Scalar product: ( a + 3, abs( b ) / 2 ) =  " << ( a + 3, abs( b ) / 2 ) << std::endl;
-   if( abs( a  + b ) <=  abs( a ) + abs( b ) )
-      std::cout << "abs( a  + b ) <=  abs( a ) + abs( b ) holds" << std::endl;
+   std::cout << "min( a ) == " << arg_min_a.second << " at " << arg_min_a.first << std::endl;
+   std::cout << "max( a ) == " << arg_max_a.second << " at " << arg_max_a.first << std::endl;
+   std::cout << "min( b ) == " << arg_min_b.second << " at " << arg_min_b.first << std::endl;
+   std::cout << "max( b ) == " << arg_max_b.second << " at " << arg_max_b.first << std::endl;
+   std::cout << "min( abs( b ) ) == " << min( abs( b ) ) << std::endl;
+   std::cout << "sum( b ) == " << sum( b ) << std::endl;
+   std::cout << "sum( abs( b ) ) == " << sum( abs( b ) ) << std::endl;
+   std::cout << "Scalar product: ( a, b ) == " << ( a, b ) << std::endl;
+   std::cout << "Scalar product: ( a + 3, abs( b ) / 2 ) == " << ( a + 3, abs( b ) / 2 ) << std::endl;
+   const bool cmp = all( lessEqual( abs( a + b ), abs( a ) + abs( b ) ) );
+   std::cout << "all( lessEqual( abs( a + b ), abs( a ) + abs( b ) ) ) == " << (cmp ? "true" : "false") << std::endl;
 }
 
 int main( int argc, char* argv[] )

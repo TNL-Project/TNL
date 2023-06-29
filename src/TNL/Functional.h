@@ -185,6 +185,36 @@ struct BitXor : public std::bit_xor< void >
 using BitNot = std::bit_not< void >;
 
 /**
+ * \brief Function object implementing `x == y`.
+ */
+using EqualTo = std::equal_to< void >;
+
+/**
+ * \brief Function object implementing `x != y`.
+ */
+using NotEqualTo = std::not_equal_to< void >;
+
+/**
+ * \brief Function object implementing `x > y`.
+ */
+using Greater = std::greater< void >;
+
+/**
+ * \brief Function object implementing `x < y`.
+ */
+using Less = std::less< void >;
+
+/**
+ * \brief Function object implementing `x >= y`.
+ */
+using GreaterEqual = std::greater_equal< void >;
+
+/**
+ * \brief Function object implementing `x <= y`.
+ */
+using LessEqual = std::less_equal< void >;
+
+/**
  * \brief Function object implementing `min(x, y)`.
  */
 struct Min

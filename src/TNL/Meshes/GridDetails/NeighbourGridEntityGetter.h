@@ -34,8 +34,8 @@ public:
             ? entity.getNormals()
             : entity.getMesh().template getNormals< NeighbourEntityDimension >( orientation );
 
-      TNL_ASSERT_GE( coordinate, CoordinatesType( 0 ), "wrong coordinate" );
-      TNL_ASSERT_LT( coordinate, entity.getMesh().getDimensions() + normals, "wrong coordinate" );
+      TNL_ASSERT_ALL_GE( coordinate, 0, "wrong coordinate" );
+      TNL_ASSERT_ALL_LT( coordinate, entity.getMesh().getDimensions() + normals, "wrong coordinate" );
 
       return { entity.getMesh(), coordinate, normals, orientation };
    }
@@ -57,8 +57,8 @@ public:
       const CoordinatesType coordinate = entity.getCoordinates() + offset;
       const CoordinatesType normals = NormalsGetterType::template getNormals< Orientation >();
 
-      TNL_ASSERT_GE( coordinate, CoordinatesType( 0 ), "wrong coordinate" );
-      TNL_ASSERT_LT( coordinate, entity.getMesh().getDimensions() + normals, "wrong coordinate" );
+      TNL_ASSERT_ALL_GE( coordinate, 0, "wrong coordinate" );
+      TNL_ASSERT_ALL_LT( coordinate, entity.getMesh().getDimensions() + normals, "wrong coordinate" );
 
       return { entity.getMesh(), coordinate, normals, Orientation };
    }
