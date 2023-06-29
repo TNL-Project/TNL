@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Parameters
-NUM_GRAPHS="1"
-START_NODES="5"
-NODES_INCREMENT="1"
-START_EDGES="10"
-EDGES_INCREMENT="10"
+NUM_GRAPHS="10"
+START_NODES="10"
+NODES_INCREMENT="0"
+START_EDGES="25"
+EDGES_INCREMENT="0"
 EDGE_WEIGHTS_DISTRIBUTION="normal"
 BASE_FILE_NAME="random-graph"
 
@@ -28,6 +28,7 @@ for i in $(seq 1 $NUM_GRAPHS); do
    command="tnl-benchmark-graphs-dbg --input-file  $FILE_NAME --loops 0"
    echo $command
    eval $command
+   retvalue=$?
 
    if [[ -e "$FILE_NAME-boost-mst.txt" ]]; then
       graphs-graphviz.py --graph undirected --file-name $FILE_NAME-boost-mst.txt
@@ -38,4 +39,13 @@ for i in $(seq 1 $NUM_GRAPHS); do
 
    graphs-graphviz.py --graph directed --file-name $FILE_NAME
    graphs-graphviz.py --graph undirected --file-name $FILE_NAME-undirected.txt
+
+   if [ $retvalue  -ne 0 ]; then
+      timestamp=$(date +%s)
+      echo "Error running tnl-benchmark-graphs. Creating file $FILE_NAME to $FILE_NAME-error-$timestamp.txt ..."
+      echo "Test it with: tnl-benchmark-graphs-dbg --input-file $FILE_NAME-error-$timestamp.txt --loops 0"
+      cp $FILE_NAME $FILE_NAME-error-$timestamp.txt
+      exit 1
+   fi
+
 done
