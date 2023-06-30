@@ -73,6 +73,13 @@ class SparseMatrixView : public SparseMatrixBase< Real,
                                                                       SegmentsView< Device, Index > >,
                                                   ComputeReal >
 {
+   static_assert(
+   ! MatrixType_::isSymmetric() || ! std::is_same< Device, Devices::Cuda >::value
+      || ( std::is_same< std::decay_t< Real >, float >::value || std::is_same< std::decay_t< Real >, double >::value
+            || std::is_same< std::decay_t< Real >, int >::value || std::is_same< std::decay_t< Real >, long long int >::value
+            || std::is_same< std::decay_t< Real >, bool >::value ),
+   "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
+
    using Base = SparseMatrixBase< Real,
                                   Device,
                                   Index,
@@ -90,7 +97,7 @@ public:
              typename _Device = Device,
              typename _Index = Index,
              typename _MatrixType = MatrixType,
-             template< typename, typename > class _SegmentsView = SegmentsView,
+             template< typename, typename > class _SegmentsView = SegmentsViewTemplate,
              typename _ComputeReal = ComputeReal >
    using Self = SparseMatrixView< _Real, _Device, _Index, _MatrixType, _SegmentsView, _ComputeReal >;
 

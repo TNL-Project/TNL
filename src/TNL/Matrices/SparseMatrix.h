@@ -64,6 +64,11 @@ class SparseMatrix : public Object,
                                   MatrixType,
                                   typename Segments< Device, Index, IndexAllocator >::ViewType,
                                   ComputeReal >;
+   static_assert(
+      ! MatrixType_::isSymmetric() || ! std::is_same< Device, Devices::Cuda >::value
+         || ( std::is_same< Real, float >::value || std::is_same< Real, double >::value || std::is_same< Real, int >::value
+              || std::is_same< Real, long long int >::value || std::is_same< Real, bool >::value ),
+      "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
 public:
    /**
@@ -80,6 +85,11 @@ public:
     * \brief Type of vector holding values of row capacities.
     */
    using RowCapacitiesVectorType = Containers::Vector< Index, Device, Index, IndexAllocator >;
+
+   /**
+    * \brief The type of matrix - general, symmetric or binary.
+    */
+   using MatrixType = MatrixType_;
 
    /**
     * \brief Templated type of segments, i.e. sparse matrix format.
@@ -130,7 +140,7 @@ public:
              typename _Device = Device,
              typename _Index = Index,
              typename _MatrixType = MatrixType,
-             template< typename, typename, typename > class _Segments = Segments,
+             template< typename, typename, typename > class _Segments = SegmentsTemplate,
              typename _ComputeReal = ComputeReal,
              typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real >,
              typename _IndexAllocator = typename Allocators::Default< _Device >::template Allocator< _Index > >
