@@ -30,6 +30,8 @@ if( TNL_BUILD_MPI )
             DistributedNDArray_semi1D_test
             DistributedNDArrayOverlaps_1D_test
             DistributedNDArrayOverlaps_semi1D_test
+            DistributedNDArray_2D_test
+            DistributedNDArrayOverlaps_2D_test
    )
    if( TNL_BUILD_CUDA )
       foreach( target IN ITEMS ${MPI_TESTS} )
