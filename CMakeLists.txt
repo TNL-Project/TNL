@@ -74,12 +74,23 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
 # set default build options
-if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
+if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror=vla" )
    set( CMAKE_CXX_FLAGS_DEBUG "-g" )
    set( CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" )
 endif()
 set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_DEBUG}" )
+
+if( CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
+   # icpx complains about -g without -O
+   set( CMAKE_CXX_FLAGS_DEBUG "-O0 -g" )
+   # avoid warning: explicit comparison with NaN in fast floating point mode [-Wtautological-constant-compare]
+   # see https://github.com/mfem/mfem/issues/3655#issuecomment-1569294763
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fhonor-infinities -fhonor-nans" )
+endif()
 
 if( TNL_USE_CI_FLAGS )
    # enforce (more or less) warning-free builds
@@ -87,9 +98,14 @@ if( TNL_USE_CI_FLAGS )
 endif()
 
 # warn about redundant semicolons
-if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
+if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra-semi" )
-   if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
+   if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+       CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
+       CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
       set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra-semi-stmt" )
    endif()
 endif()
@@ -100,6 +116,8 @@ if( TNL_USE_MARCH_NATIVE_FLAG )
       # -march=native does not work on macOS with clang less than 15.0
       # https://stackoverflow.com/questions/65966969/why-does-march-native-not-work-on-apple-m1
       set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mcpu=apple-m1" )
+   elseif( CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
+      set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -xhost" )
    else()
       set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -mtune=native" )
    endif()
@@ -123,12 +141,12 @@ if( MSVC )
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-" )
 endif()
 
-if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
-   # disable some unimportant warnings
+# disable some unimportant warnings
+if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas" )
-elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Intel" )
-   # Intel's -Wall is very minimalistic, so add -w3 and disable some specific warnings
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w3 -diag-disable:remark" )
 endif()
 
 # disable GCC's infamous "maybe-uninitialized" warning (it produces mostly false positives)
@@ -168,7 +186,9 @@ endif()
 # force colorized output in continuous integration
 if( DEFINED ENV{GITLAB_CI} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
    message(STATUS "Continuous integration or Ninja detected -- forcing compilers to produce colorized output.")
-   if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+   if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+       CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
+       CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
       set( TNL_COLOR_DIAGNOSTICS_FLAG "-fcolor-diagnostics" )
    elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
       set( TNL_COLOR_DIAGNOSTICS_FLAG "-fdiagnostics-color" )
