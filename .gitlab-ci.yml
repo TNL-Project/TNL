@@ -14,10 +14,8 @@ default:
 stages:
     - lint
     - build
-    - build:cuda-nvcc
-    - build:cuda-clang
-    - build:gcc
-    - build:clang
+    - build:cuda
+    - build:host
     - build:doc
     - deploy
 
@@ -55,7 +53,6 @@ workflow:
 
 # base for Clang builds
 .clang:
-    stage: build:clang
     variables:
         CXX: clang++
         CC: clang
@@ -68,7 +65,7 @@ workflow:
 
 # base for Clang CUDA builds
 .clang_cuda:
-    stage: build:cuda-clang
+    stage: build:cuda
     extends: .clang
     variables:
         CUDACXX: clang++
@@ -76,6 +73,13 @@ workflow:
         CMAKE_CUDA_FLAGS: "-stdlib=libc++"
         # FIXME: this is just a fallback since cmake can't detect the native architecture when using clang
         CUDA_ARCH: 61
+
+# base for Intel oneAPI builds
+.icpx:
+    image: "archlinux/devel-tnl-oneapi:latest"
+    variables:
+        CXX: icpx
+        CC: icx
 
 # template for environment setup before build
 .env_setup:
@@ -202,7 +206,7 @@ cuda-nvcc_tests_Debug:
     extends:
         - .build_template
         - .coverage_template
-    stage: build:cuda-nvcc
+    stage: build:cuda
     tags:
         - docker
         - nvidia
@@ -216,7 +220,7 @@ cuda-nvcc_tests_Release:
     extends:
         - .build_template
         - .tests_report_template
-    stage: build:cuda-nvcc
+    stage: build:cuda
     tags:
         - docker
         - nvidia
@@ -231,7 +235,7 @@ cuda-nvcc_matrix_tests_Debug:
     extends:
         - .build_template
         - .coverage_template
-    stage: build:cuda-nvcc
+    stage: build:cuda
     tags:
         - docker
         - nvidia
@@ -245,7 +249,7 @@ cuda-nvcc_matrix_tests_Release:
     extends:
         - .build_template
         - .tests_report_template
-    stage: build:cuda-nvcc
+    stage: build:cuda
     tags:
         - docker
         - nvidia
@@ -258,7 +262,7 @@ cuda-nvcc_matrix_tests_Release:
 
 cuda-nvcc_nontests_Debug:
     extends: .build_template
-    stage: build:cuda-nvcc
+    stage: build:cuda
     variables:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
@@ -269,7 +273,7 @@ cuda-nvcc_nontests_Debug:
 
 cuda-nvcc_nontests_Release:
     extends: .build_template
-    stage: build:cuda-nvcc
+    stage: build:cuda
     variables:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
@@ -319,7 +323,7 @@ gcc_tests_Debug:
     extends:
         - .build_template
         - .coverage_template
-    stage: build:gcc
+    stage: build:host
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Debug
@@ -329,7 +333,7 @@ gcc_tests_Release:
     extends:
         - .build_template
         - .tests_report_template
-    stage: build:gcc
+    stage: build:host
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Release
@@ -339,7 +343,7 @@ gcc_matrix_tests_Debug:
     extends:
         - .build_template
         - .coverage_template
-    stage: build:gcc
+    stage: build:host
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Debug
@@ -349,7 +353,7 @@ gcc_matrix_tests_Release:
     extends:
         - .build_template
         - .tests_report_template
-    stage: build:gcc
+    stage: build:host
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Release
@@ -357,7 +361,7 @@ gcc_matrix_tests_Release:
 
 gcc_nontests_Debug:
     extends: .build_template
-    stage: build:gcc
+    stage: build:host
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Debug
@@ -367,7 +371,7 @@ gcc_nontests_Debug:
 
 gcc_nontests_Release:
     extends: .build_template
-    stage: build:gcc
+    stage: build:host
     variables:
         <<: *default_cmake_flags
         BUILD_TYPE: Release
@@ -411,9 +415,43 @@ clang_nontests_Release:
 
 
 
+icpx_tests_Debug:
+    extends:
+        - gcc_tests_Debug
+        - .icpx
+
+icpx_tests_Release:
+    extends:
+        - gcc_tests_Release
+        - .icpx
+
+icpx_matrix_tests_Debug:
+    extends:
+        - gcc_matrix_tests_Debug
+        - .icpx
+
+icpx_matrix_tests_Release:
+    extends:
+        - gcc_matrix_tests_Release
+        - .icpx
+
+icpx_nontests_Debug:
+    extends:
+        - gcc_nontests_Debug
+        - .icpx
+
+icpx_nontests_Release:
+    extends:
+        - gcc_nontests_Release
+        - .icpx
+
+
+
+
+
 Ginkgo examples:
     extends: .build_template
-    stage: build:cuda-nvcc
+    stage: build:cuda
     tags:
         - docker
         - nvidia
@@ -440,7 +478,7 @@ Ginkgo examples:
 
 documentation:
     extends: .build_template
-    stage: build:cuda-nvcc
+    stage: build:cuda
     tags:
         - docker
         - nvidia
