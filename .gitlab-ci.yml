@@ -86,8 +86,6 @@ workflow:
         CUDAHOSTCXX: clang++
         CMAKE_CUDA_FLAGS: "-stdlib=libc++"
         USE_CUDA: "yes"
-        # FIXME: this is just a fallback since cmake can't detect the native architecture when using clang
-        CUDA_ARCH: 61
 
 # base for Intel oneAPI builds
 .icpx:
@@ -115,9 +113,12 @@ workflow:
     # running as root does not matter inside Docker containers
     - export OMPI_ALLOW_RUN_AS_ROOT=1
     - export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
-    # fall back to arch 7.0 when the builder has no GPU to avoid building for all GPU architectures
+    # 1. fall back to arch 7.0 when the builder has no GPU to avoid building for all GPU architectures
+    # 2. cmake can't detect the native architecture when using clang
     - if ! nvidia-smi --list-gpus > /dev/null; then
             CUDA_ARCH=70;
+      elif [[ ${CUDACXX} == "clang++" ]]; then
+            CUDA_ARCH=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -n 1 | tr -d '.');
       fi
 
 # template for build jobs
