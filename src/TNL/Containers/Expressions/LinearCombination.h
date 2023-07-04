@@ -8,33 +8,41 @@
 
 #pragma once
 
+namespace TNL::Containers::Expressions {
+
 template< typename T1, typename T2 >
-struct MergeLinearCombinationTypes {
+struct MergeLinearCombinationTypes
+{
    using type = decltype( std::declval< T1 >() + std::declval< T2 >() );
 };
 
 template< typename T1 >
-struct MergeLinearCombinationTypes< T1, void > {
+struct MergeLinearCombinationTypes< T1, void >
+{
    using type = T1;
 };
 
 template< typename T2 >
-struct MergeLinearCombinationTypes< void, T2 > {
+struct MergeLinearCombinationTypes< void, T2 >
+{
    using type = T2;
 };
 
 template<>
-struct MergeLinearCombinationTypes< void, void > {
+struct MergeLinearCombinationTypes< void, void >
+{
    using type = void;
 };
 
 template< typename T1, typename ValueType >
-struct FilterVoid {
+struct FilterVoid
+{
    using type = T1;
 };
 
 template< typename ValueType >
-struct FilterVoid< void, ValueType {
+struct FilterVoid< void, ValueType >
+{
    using type = ValueType;
 };
 
@@ -43,39 +51,43 @@ template< typename Coefficients,
           int Index,
           int Size = Coefficients::getSize(),
           bool Nonzero = ( Coefficients::getValue( Index ) != 0 ) >
-struct LinearCombinationReturnType {
-};
+struct LinearCombinationReturnType
+{};
 
 template< typename Coefficients, typename Vector, int Index, int Size >
-struct LinearCombinationReturnType< Coefficients, Vector, Index, Size, true > {
+struct LinearCombinationReturnType< Coefficients, Vector, Index, Size, true >
+{
    using type = typename MergeLinearCombinationTypes<
       decltype( Coefficients::getValue( Index ) * std::declval< Vector >() ),
       typename LinearCombinationReturnType< Coefficients, Vector, Index + 1 >::type >::type;
 };
 
 template< typename Coefficients, typename Vector, int Index, int Size >
-struct LinearCombinationReturnType< Coefficients, Vector, Index, Size, false > {
+struct LinearCombinationReturnType< Coefficients, Vector, Index, Size, false >
+{
    using type = typename LinearCombinationReturnType< Coefficients, Vector, Index + 1 >::type;
 };
 
 template< typename Coefficients, typename Vector, int Index >
-struct LinearCombinationReturnType< Coefficients, Vector, Index, Index+1, true > {
+struct LinearCombinationReturnType< Coefficients, Vector, Index, Index + 1, true >
+{
    using type = decltype( Coefficients::getValue( Index ) * std::declval< Vector >() );
 };
 
 template< typename Coefficients, typename Vector, int Index >
-struct LinearCombinationReturnType< Coefficients, Vector, Index, Index+1, false > {
+struct LinearCombinationReturnType< Coefficients, Vector, Index, Index + 1, false >
+{
    using type = typename Vector::RealType;
 };
 
-
 template< typename Coefficients, typename Vector, int Index, int Size = Coefficients::getSize() >
-struct LinearCombinationEvaluation {
-
+struct LinearCombinationEvaluation
+{
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, Index >::type;
 
    template< typename OutVector, typename InVector, typename... InVectors >
-   static void evaluate( OutVector& out, const InVector& in, const InVectors&... rest )
+   static void
+   evaluate( OutVector& out, const InVector& in, const InVectors&... rest )
    {
       /*if constexpr( Coefficients::getValue( Index ) != 0 )
          return Coefficients::getValue( Index ) * in +
@@ -85,16 +97,18 @@ struct LinearCombinationEvaluation {
 };
 
 template< typename Coefficients, typename Vector, int Index >
-struct LinearCombinationEvaluation< Coefficients, Index, Index+1 > {
-
+struct LinearCombinationEvaluation< Coefficients, Index, Index + 1 >
+{
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, Index >::type;
 
    template< typename Vector, typename... OtherVectors >
-   static ResultType evaluate( const Vector& in, const OtherVectors&... rest )
+   static ResultType
+   evaluate( const Vector& in, const OtherVectors&... rest )
    {
       if constexpr( Coefficients::getValue( Index ) != 0 )
          return Coefficients::getValue( Index ) * in;
-      else return ( ValueType ) 0.0;
+      else
+         return (ValueType) 0.0;
    }
 };
 
@@ -106,9 +120,12 @@ struct LinearCombination
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, 0 >::type;
 
    template< typename Vector, typename... OtherVectors >
-   static ResultType evaluate( const Vector& v, const OtherVectors&... in )
+   static ResultType
+   evaluate( const Vector& v, const OtherVectors&... in )
    {
-      static_assert( sizeof...( InVectors ) == size, "Number of input vectors must match number of coefficients" );
+      static_assert( sizeof...( OtherVectors ) == size, "Number of input vectors must match number of coefficients" );
       return LinearCombinationEvaluation< Coefficients, Vector, 0 >::evaluate( v, in... );
    }
 };
+
+}  // namespace TNL::Containers::Expressions
