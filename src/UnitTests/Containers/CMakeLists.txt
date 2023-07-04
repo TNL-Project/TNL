@@ -16,6 +16,7 @@ set(CPP_TESTS
     VectorOfStaticVectorsTest
     BlockTest
     BlockPartitioningTest
+    LinearCombinationTest
 )
 set(CUDA_TESTS
     MemoryOperationsTestCuda
