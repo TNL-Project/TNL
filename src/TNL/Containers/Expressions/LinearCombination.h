@@ -34,18 +34,6 @@ struct MergeLinearCombinationTypes< void, void >
    using type = void;
 };
 
-template< typename T1, typename ValueType >
-struct FilterVoid
-{
-   using type = T1;
-};
-
-template< typename ValueType >
-struct FilterVoid< void, ValueType >
-{
-   using type = ValueType;
-};
-
 template< typename Coefficients,
           typename Vector,
           int Index,
@@ -97,18 +85,18 @@ struct LinearCombinationEvaluation
 };
 
 template< typename Coefficients, typename Vector, int Index >
-struct LinearCombinationEvaluation< Coefficients, Index, Index + 1 >
+struct LinearCombinationEvaluation< Coefficients, Vector, Index, Index + 1 >
 {
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, Index >::type;
 
-   template< typename Vector, typename... OtherVectors >
+   template< typename... OtherVectors >
    static ResultType
    evaluate( const Vector& in, const OtherVectors&... rest )
    {
       if constexpr( Coefficients::getValue( Index ) != 0 )
          return Coefficients::getValue( Index ) * in;
       else
-         return (ValueType) 0.0;
+         return 0;
    }
 };
 
@@ -119,7 +107,7 @@ struct LinearCombination
 
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, 0 >::type;
 
-   template< typename Vector, typename... OtherVectors >
+   template< typename... OtherVectors >
    static ResultType
    evaluate( const Vector& v, const OtherVectors&... in )
    {
