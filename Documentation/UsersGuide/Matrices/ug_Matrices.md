@@ -9,7 +9,7 @@ TODO: Add description of forRows and sequentialForRows.
 TNL offers several types of matrices like dense (\ref TNL::Matrices::DenseMatrix), sparse (\ref TNL::Matrices::SparseMatrix), tridiagonal (\ref TNL::Matrices::TridiagonalMatrix), multidiagonal (\ref TNL::Matrices::MultidiagonalMatrix) and lambda matrices (\ref TNL::Matrices::LambdaMatrix). The sparse matrices can be symmetric to lower the memory requirements. The interfaces of given matrix types are designed to be as unified as possible to ensure that the user can easily switch between different matrix types while making no or only a little changes in the source code. All matrix types allows traversing all matrix elements and manipulate them using lambda functions as well as performing flexible reduction in matrix rows. The following text describes particular matrix types and their unified interface in details.
 
 
-## Overview of matrix types
+### Overview of matrix types
 
 \anchor overview-of-matrix-types
 
@@ -99,7 +99,7 @@ In this table:
 
 The multidiagonal matrix type is especially suitable for the finite difference method or similar numerical methods for solution of the partial differential equations.
 
-## Indexing of nonzero matrix elements in sparse matrices
+### Indexing of nonzero matrix elements in sparse matrices
 
 \anchor indexing-of-nonzero-matrix-elements-in-sparse-matrices
 
@@ -141,7 +141,7 @@ In such a form, it is more efficient to refer the nonzero matrix elements in giv
 \right)
 \f]
 
-## Matrix view
+### Matrix view
 
 Matrix views are small reference objects which help accessing the matrix in GPU kernels or lambda functions being executed on GPUs. We describe this in details in section about [Shared pointers and views](../GeneralConcepts/tutorial_GeneralConcepts.md). The problem lies in fact that we cannot pass references to GPU kernels and we do not want to pass there deep copies of matrices. Matrix view is some kind of reference to a matrix. A copy of matrix view is always shallow and so it behaves like a reference.  The following example shows how to obtain the matrix view by means of method `getView` and pass it to a lambda function:
 

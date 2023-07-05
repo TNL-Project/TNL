@@ -8,7 +8,7 @@ if( TNL_BUILD_DOC )
 
    # add subdirectories that contain code examples included in the documentation
    add_subdirectory( Examples )
-   add_subdirectory( Tutorials )
+   add_subdirectory( UsersGuide )
 
    # extract the version string during the configure step
    execute_process( COMMAND ${CMAKE_SOURCE_DIR}/scripts/get-version
