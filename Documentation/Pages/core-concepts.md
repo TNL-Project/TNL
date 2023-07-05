@@ -34,6 +34,49 @@ TNL is based on the following core concepts:
 
 TODO: formalize the concepts involving lambda functions (e.g. in `reduce`)
 
+
+Similarly to the STL, features provided by the TNL can be grouped into
+several modules:
+
+- _Core concepts_.
+  The main concepts used in TNL are the _memory space_, which represents the
+  part of memory where given data is allocated, and the _execution model_,
+  which represents the way how given (typically parallel) algorithm is executed.
+  For example, data can be allocated in the main system memory, in the GPU
+  memory, or using the CUDA Unified Memory which can be accessed from the host
+  as well as from the GPU. On the other hand, algorithms can be executed using
+  either the host CPU or an accelerator (GPU), and for each there are many ways
+  to manage parallel execution. The usage of memory spaces is abstracted with
+  \ref TNL::Allocators "allocators" and the execution model is represented by
+  \ref TNL::Devices "devices". See the [Core concepts](core-concepts.md) page
+  for details.
+- \ref TNL::Containers "Containers".
+  TNL provides generic containers such as array, multidimensional array or array
+  views, which abstract data management and execution of common operations on
+  different hardware architectures.
+- _Linear algebra._
+  TNL provides generic data structures and algorithms for linear algebra, such
+  as \ref TNL::Containers::Vector "vectors",
+  \ref TNL::Matrices "sparse matrices",
+  \ref TNL::Solvers::Linear "Krylov solvers" and
+  \ref TNL::Solvers::Linear::Preconditioners "preconditioners".
+   - Sparse matrix formats: CSR, Ellpack, Sliced Ellpack, Chunked Ellpack, Bisection Ellpack,
+     tridiagonal, multidiagonal
+   - Lambda matrices (matrix elements are defined by C++ lambda functions)
+   - Stationary solvers: Jacobi, SOR
+   - Krylov solvers: CG, BiCGstab, BiCGstab(l), GMRES, TFQMR, IDR(s)
+   - Preconditioners: Jacobi, ILU(0) (CPU only), ILUT (CPU only)
+- \ref TNL::Meshes "Meshes".
+  TNL provides data structures for the representation of structured or
+  unstructured numerical meshes.
+- _Solvers for differential equations._
+  TNL provides a framework for the development of ODE or PDE solvers.
+- \ref TNL::Images "Image processing".
+  TNL provides structures for the representation of image data. Imports and
+  exports from several file formats such as DICOM, PNG, and JPEG are provided
+  using external libraries (see below).
+
+
 ## Programming principles
 
 TNL follows common programming principles and design patterns to maintain a
