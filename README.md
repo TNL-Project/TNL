@@ -8,57 +8,7 @@ paradigms in order to provide flexible and user friendly interface. TNL provides
 native support for modern hardware architectures such as multicore CPUs, GPUs,
 and distributed systems, which can be managed via a unified interface.
 
-Similarly to the STL, features provided by the TNL can be grouped into
-several modules:
-
-- _Core concepts_.
-  The main concepts used in TNL are the _memory space_, which represents the
-  part of memory where given data is allocated, and the _execution model_,
-  which represents the way how given (typically parallel) algorithm is executed.
-  For example, data can be allocated in the main system memory, in the GPU
-  memory, or using the CUDA Unified Memory which can be accessed from the host
-  as well as from the GPU. On the other hand, algorithms can be executed using
-  either the host CPU or an accelerator (GPU), and for each there are many ways
-  to manage parallel execution. The usage of memory spaces is abstracted with
-  [allocators][allocators] and the execution model is represented by
-  [devices][devices]. See the [Core concepts][core concepts] page for details.
-- _[Containers][containers]_.
-  TNL provides generic containers such as array, multidimensional array or array
-  views, which abstract data management and execution of common operations on
-  different hardware architectures.
-- _Linear algebra._
-  TNL provides generic data structures and algorithms for linear algebra, such
-  as [vectors][vectors], [sparse matrices][matrices],
-  [Krylov solvers][linear solvers] and [preconditioners][preconditioners].
-   - Sparse matrix formats: CSR, Ellpack, Sliced Ellpack, Chunked Ellpack, Bisection Ellpack,
-     tridiagonal, multidiagonal
-   - Lambda matrices (matrix elements are defined by C++ lambda functions)
-   - Stationary solvers: Jacobi, SOR
-   - Krylov solvers: CG, BiCGStab, BiCGStab(l), GMRES, TFQMR, IDR(s)
-   - Preconditioners: Jacobi, ILU(0) (CPU only), ILUT (CPU only)
-- _[Meshes][meshes]_.
-  TNL provides data structures for the representation of structured or
-  unstructured numerical meshes.
-- _Solvers for differential equations._
-  TNL provides a framework for the development of ODE or PDE solvers.
-- _[Image processing][image processing]_.
-  TNL provides structures for the representation of image data. Imports and
-  exports from several file formats such as DICOM, PNG, and JPEG are provided
-  using external libraries (see below).
-
-See also [Comparison with other libraries](
-https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/md_Pages_comparison_with_other_libraries.html).
-
-[allocators]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/namespaceTNL_1_1Allocators.html
-[devices]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/namespaceTNL_1_1Devices.html
-[core concepts]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/md_Pages_core_concepts.html
-[containers]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/namespaceTNL_1_1Containers.html
-[vectors]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/classTNL_1_1Containers_1_1Vector.html
-[matrices]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/namespaceTNL_1_1Matrices.html
-[linear solvers]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/namespaceTNL_1_1Solvers_1_1Linear.html
-[preconditioners]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/namespaceTNL_1_1Solvers_1_1Linear_1_1Preconditioners.html
-[meshes]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/namespaceTNL_1_1Meshes.html
-[image processing]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/namespaceTNL_1_1Images.html
+# TNL components
 
 TNL also provides several optional components:
 
@@ -83,7 +33,7 @@ These components can be individually enabled or disabled and installed by a
 convenient `install` script. See the [Installation][installation] section in
 the documentation for details.
 
-## Documentation
+# Documentation
 
 See the [full documentation][full documentation] for information about:
 
@@ -100,7 +50,7 @@ and other documented topics.
 [tutorials]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/Tutorials.html
 [API]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/annotated.html
 
-## Getting involved
+# Getting involved
 
 The TNL project welcomes and encourages participation by everyone. While most of the work for TNL
 involves programming in principle, we value and encourage contributions even from people proficient
@@ -127,7 +77,7 @@ Before contributing, please get accustomed with the [code of conduct][code of co
 [code of conduct]: CODE_OF_CONDUCT.md
 [contact]: https://tnl-project.org/#contact
 
-## Citing
+# Citing
 
 If you use TNL in your scientific projects, please cite the following papers in
 your publications:
@@ -138,13 +88,13 @@ your publications:
   distributed conforming unstructured homogeneous meshes with GPU support](
   https://doi.org/10.1145/3536164), ACM Transactions on Mathematical Software, 2022, 48(3), 1-33.
 
-## Authors
+# Authors
 
 See the [list of team members](https://tnl-project.org/about/) on our website.
 The [overview of contributions](https://gitlab.com/tnl-project/tnl/-/graphs/main)
 can be viewed on GitLab.
 
-## License
+# License
 
 Template Numerical Library is provided under the terms of the [MIT License](
 https://gitlab.com/tnl-project/tnl/blob/main/LICENSE).
