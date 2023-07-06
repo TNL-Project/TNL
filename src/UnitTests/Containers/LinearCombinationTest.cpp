@@ -9,6 +9,7 @@
 using namespace TNL;
 using namespace TNL::Containers;
 using namespace TNL::Containers::Expressions;
+using namespace TNL::Containers::Expressions::detail;
 
 // test fixture for typed tests
 template< typename Vector >
