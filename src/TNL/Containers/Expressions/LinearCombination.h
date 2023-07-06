@@ -10,28 +10,28 @@
 
 namespace TNL::Containers::Expressions {
 
-template< typename T1, typename T2 >
+template< typename T1, typename T2, typename ValueType >
 struct MergeLinearCombinationTypes
 {
    using type = decltype( std::declval< T1 >() + std::declval< T2 >() );
 };
 
-template< typename T1 >
-struct MergeLinearCombinationTypes< T1, void >
+template< typename T1, typename ValueType >
+struct MergeLinearCombinationTypes< T1, ValueType, ValueType >
 {
    using type = T1;
 };
 
-template< typename T2 >
-struct MergeLinearCombinationTypes< void, T2 >
+template< typename T2, typename ValueType >
+struct MergeLinearCombinationTypes< ValueType, T2, ValueType >
 {
    using type = T2;
 };
 
-template<>
-struct MergeLinearCombinationTypes< void, void >
+template< typename ValueType >
+struct MergeLinearCombinationTypes< ValueType, ValueType, ValueType >
 {
-   using type = void;
+   using type = ValueType;
 };
 
 template< typename Coefficients,
@@ -47,7 +47,8 @@ struct LinearCombinationReturnType< Coefficients, Vector, Index, Size, true >
 {
    using type = typename MergeLinearCombinationTypes<
       decltype( Coefficients::getValue( Index ) * std::declval< Vector >() ),
-      typename LinearCombinationReturnType< Coefficients, Vector, Index + 1 >::type >::type;
+      typename LinearCombinationReturnType< Coefficients, Vector, Index + 1 >::type,
+      typename Vector::RealType >::type;
 };
 
 template< typename Coefficients, typename Vector, int Index, int Size >
@@ -73,14 +74,20 @@ struct LinearCombinationEvaluation
 {
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, Index >::type;
 
-   template< typename OutVector, typename InVector, typename... InVectors >
-   static void
-   evaluate( OutVector& out, const InVector& in, const InVectors&... rest )
+   template< typename... OtherVectors >
+   static ResultType
+   evaluate( const Vector& v, const OtherVectors&... others )
    {
-      /*if constexpr( Coefficients::getValue( Index ) != 0 )
-         return Coefficients::getValue( Index ) * in +
-            LinearCombinationEvaluation< Coefficients, Index + 1 >::evaluate( rest... );
-      else return  LinearCombinationEvaluation< Coefficients, Index + 1 >::evaluate( rest... );*/
+      using ValueType = typename Vector::RealType;
+      using AuxResultType = typename LinearCombinationReturnType< Coefficients, Vector, Index + 1 >::type;
+      if constexpr( std::is_same_v< AuxResultType, ValueType > ) { // the rest of coefficients are zero
+         if constexpr( Coefficients::getValue( Index ) != 0 )
+            return Coefficients::getValue( Index ) * v;
+         else return 0;
+      } else if constexpr( Coefficients::getValue( Index ) != 0 )
+         return Coefficients::getValue( Index ) * v +
+            LinearCombinationEvaluation< Coefficients, Vector, Index + 1, Size >::evaluate( others... );
+         else return LinearCombinationEvaluation< Coefficients, Vector, Index + 1, Size >::evaluate( others... );
    }
 };
 
@@ -89,12 +96,11 @@ struct LinearCombinationEvaluation< Coefficients, Vector, Index, Index + 1 >
 {
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, Index >::type;
 
-   template< typename... OtherVectors >
    static ResultType
-   evaluate( const Vector& in, const OtherVectors&... rest )
+   evaluate( const Vector& v )
    {
       if constexpr( Coefficients::getValue( Index ) != 0 )
-         return Coefficients::getValue( Index ) * in;
+         return Coefficients::getValue( Index ) * v;
       else
          return 0;
    }
@@ -103,16 +109,16 @@ struct LinearCombinationEvaluation< Coefficients, Vector, Index, Index + 1 >
 template< typename Coefficients, typename Vector >
 struct LinearCombination
 {
-   static constexpr size_t size = Coefficients::getSize();
+   static constexpr size_t Size = Coefficients::getSize();
 
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, 0 >::type;
 
    template< typename... OtherVectors >
    static ResultType
-   evaluate( const Vector& v, const OtherVectors&... in )
+   evaluate( const OtherVectors&... others )
    {
-      static_assert( sizeof...( OtherVectors ) == size, "Number of input vectors must match number of coefficients" );
-      return LinearCombinationEvaluation< Coefficients, Vector, 0 >::evaluate( v, in... );
+      static_assert( sizeof...( OtherVectors ) == Size, "Number of input vectors must match number of coefficients" );
+      return LinearCombinationEvaluation< Coefficients, Vector, 0, Size >::evaluate( others... );
    }
 };
 
