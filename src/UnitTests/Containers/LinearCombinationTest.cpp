@@ -1,6 +1,7 @@
 #ifdef HAVE_GTEST
 #include <array>
 #include <TNL/Containers/Vector.h>
+#include <TNL/Containers/StaticArray.h>
 #include <TNL/Containers/Expressions/LinearCombination.h>
 
 #include "gtest/gtest.h"
@@ -314,11 +315,14 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), result( size, 1.0 );
+   VectorType v1( size, 1.0 ), result_1( size, 1.0 ), result_2( size, 1.0 );
+   result_1 = LinearCombination< Coefficients_0< RealType >, VectorType >::evaluate( v1 );
+   EXPECT_EQ( result_1, VectorType( size, 0.0 ) );
 
-   result = LinearCombination< Coefficients_0< RealType >, VectorType >::evaluate( v1 );
-
-   EXPECT_EQ( result, VectorType( size, 0.0 ) );
+   TNL::Containers::StaticArray< 1, VectorType > array;
+   array[ 0 ] = v1;
+   result_2 = LinearCombination< Coefficients_0< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, VectorType( size, 0.0 ) );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_1 )
@@ -328,11 +332,14 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), result;
+   VectorType v1( size, 1.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_1< RealType >, VectorType >::evaluate( v1 );
+   EXPECT_EQ( result_1, v1 );
 
-   result = LinearCombination< Coefficients_1< RealType >, VectorType >::evaluate( v1 );
-
-   EXPECT_EQ( result, v1 );
+   TNL::Containers::StaticArray< 1, VectorType > array;
+   array[ 0 ] = v1;
+   result_2 = LinearCombination< Coefficients_1< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v1 );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_0_1 )
@@ -342,11 +349,15 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_1 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), v2( size, 2.0 ), result;
+   VectorType v1( size, 1.0 ), v2( size, 2.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_0_1< RealType >, VectorType >::evaluate( v1, v2 );
+   EXPECT_EQ( result_1, v2 );
 
-   result = LinearCombination< Coefficients_0_1< RealType >, VectorType >::evaluate( v1, v2 );
-
-   EXPECT_EQ( result, v2 );
+   TNL::Containers::StaticArray< 2, VectorType > array;
+   array[ 0 ] = v1;
+   array[ 1 ] = v2;
+   result_2 = LinearCombination< Coefficients_0_1< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v2 );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_1_0 )
@@ -356,11 +367,15 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_0 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), v2( size, 2.0 ), result;
+   VectorType v1( size, 1.0 ), v2( size, 2.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_1_0< RealType >, VectorType >::evaluate( v1, v2 );
+   EXPECT_EQ( result_1, v1 );
 
-   result = LinearCombination< Coefficients_1_0< RealType >, VectorType >::evaluate( v1, v2 );
-
-   EXPECT_EQ( result, v1 );
+   TNL::Containers::StaticArray< 2, VectorType > array;
+   array[ 0 ] = v1;
+   array[ 1 ] = v2;
+   result_2 = LinearCombination< Coefficients_1_0< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v1 );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_1_2 )
@@ -370,11 +385,15 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_2 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), v2( size, 2.0 ), result;
+   VectorType v1( size, 1.0 ), v2( size, 2.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_1_2< RealType >, VectorType >::evaluate( v1, v2 );
+   EXPECT_EQ( result_1, v1 + 2.0 * v2 );
 
-   result = LinearCombination< Coefficients_1_2< RealType >, VectorType >::evaluate( v1, v2 );
-
-   EXPECT_EQ( result, v1 + 2.0 * v2 );
+   TNL::Containers::StaticArray< 2, VectorType > array;
+   array[ 0 ] = v1;
+   array[ 1 ] = v2;
+   result_2 = LinearCombination< Coefficients_1_2< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v1 + 2.0 * v2 );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_1_0_0 )
@@ -384,11 +403,16 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_0_0 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result;
+   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_1_0_0< RealType >, VectorType >::evaluate( v1, v2, v3 );
+   EXPECT_EQ( result_1, v1 );
 
-   result = LinearCombination< Coefficients_1_0_0< RealType >, VectorType >::evaluate( v1, v2, v3 );
-
-   EXPECT_EQ( result, v1 );
+   TNL::Containers::StaticArray< 3, VectorType > array;
+   array[ 0 ] = v1;
+   array[ 1 ] = v2;
+   array[ 2 ] = v3;
+   result_2 = LinearCombination< Coefficients_1_0_0< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v1 );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_0_1_0 )
@@ -398,11 +422,16 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_1_0 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result;
+   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_0_1_0< RealType >, VectorType >::evaluate( v1, v2, v3 );
+   EXPECT_EQ( result_1, v2 );
 
-   result = LinearCombination< Coefficients_0_1_0< RealType >, VectorType >::evaluate( v1, v2, v3 );
-
-   EXPECT_EQ( result, v2 );
+   TNL::Containers::StaticArray< 3, VectorType > array;
+   array[ 0 ] = v1;
+   array[ 1 ] = v2;
+   array[ 2 ] = v3;
+   result_2 = LinearCombination< Coefficients_0_1_0< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v2 );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_0_0_1 )
@@ -412,11 +441,16 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_0_1 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result;
+   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_0_0_1< RealType >, VectorType >::evaluate( v1, v2, v3 );
+   EXPECT_EQ( result_1, v3 );
 
-   result = LinearCombination< Coefficients_0_0_1< RealType >, VectorType >::evaluate( v1, v2, v3 );
-
-   EXPECT_EQ( result, v3 );
+   TNL::Containers::StaticArray< 3, VectorType > array;
+   array[ 0 ] = v1;
+   array[ 1 ] = v2;
+   array[ 2 ] = v3;
+   result_2 = LinearCombination< Coefficients_0_0_1< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v3 );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_1_1_0 )
@@ -426,11 +460,16 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_1_0 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result;
+   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_1_1_0< RealType >, VectorType >::evaluate( v1, v2, v3 );
+   EXPECT_EQ( result_1, v1 + v2 );
 
-   result = LinearCombination< Coefficients_1_1_0< RealType >, VectorType >::evaluate( v1, v2, v3 );
-
-   EXPECT_EQ( result, v1 + v2 );
+   TNL::Containers::StaticArray< 3, VectorType > array;
+   array[ 0 ] = v1;
+   array[ 1 ] = v2;
+   array[ 2 ] = v3;
+   result_2 = LinearCombination< Coefficients_1_1_0< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v1 + v2 );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_1_0_1 )
@@ -440,11 +479,16 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_0_1 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result;
+   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_1_0_1< RealType >, VectorType >::evaluate( v1, v2, v3 );
+   EXPECT_EQ( result_1, v1 + v3 );
 
-   result = LinearCombination< Coefficients_1_0_1< RealType >, VectorType >::evaluate( v1, v2, v3 );
-
-   EXPECT_EQ( result, v1 + v3 );
+   TNL::Containers::StaticArray< 3, VectorType > array;
+   array[ 0 ] = v1;
+   array[ 1 ] = v2;
+   array[ 2 ] = v3;
+   result_2 = LinearCombination< Coefficients_1_0_1< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v1 + v3 );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_0_1_1 )
@@ -454,11 +498,16 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_1_1 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result;
+   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_0_1_1< RealType >, VectorType >::evaluate( v1, v2, v3 );
+   EXPECT_EQ( result_1, v2 + v3 );
 
-   result = LinearCombination< Coefficients_0_1_1< RealType >, VectorType >::evaluate( v1, v2, v3 );
-
-   EXPECT_EQ( result, v2 + v3 );
+   TNL::Containers::StaticArray< 3, VectorType > array;
+   array[ 0 ] = v1;
+   array[ 1 ] = v2;
+   array[ 2 ] = v3;
+   result_2 = LinearCombination< Coefficients_0_1_1< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v2 + v3 );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_1_2_3 )
@@ -468,11 +517,16 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_2_3 )
 
    const int size = 10;
 
-   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result;
+   VectorType v1( size, 1.0 ), v2( size, 2.0 ), v3( size, 3.0 ), result_1, result_2;
+   result_1 = LinearCombination< Coefficients_1_2_3< RealType >, VectorType >::evaluate( v1, v2, v3 );
+   EXPECT_EQ( result_1, v1 + 2.0 * v2 + 3.0 * v3 );
 
-   result = LinearCombination< Coefficients_1_2_3< RealType >, VectorType >::evaluate( v1, v2, v3 );
-
-   EXPECT_EQ( result, v1 + 2.0 * v2 + 3.0 * v3 );
+   TNL::Containers::StaticArray< 3, VectorType > array;
+   array[ 0 ] = v1;
+   array[ 1 ] = v2;
+   array[ 2 ] = v3;
+   result_2 = LinearCombination< Coefficients_1_2_3< RealType >, VectorType >::evaluateArray( array );
+   EXPECT_EQ( result_2, v1 + 2.0 * v2 + 3.0 * v3 );
 }
 
 

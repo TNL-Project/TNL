@@ -89,11 +89,28 @@ struct LinearCombinationEvaluation
             LinearCombinationEvaluation< Coefficients, Vector, Index + 1, Size >::evaluate( others... );
          else return LinearCombinationEvaluation< Coefficients, Vector, Index + 1, Size >::evaluate( others... );
    }
+
+   static ResultType
+   evaluateArray( const Containers::StaticArray< Size, Vector >& vectors )
+   {
+      using ValueType = typename Vector::RealType;
+      using AuxResultType = typename LinearCombinationReturnType< Coefficients, Vector, Index + 1 >::type;
+      if constexpr( std::is_same_v< AuxResultType, ValueType > ) { // the rest of coefficients are zero
+         if constexpr( Coefficients::getValue( Index ) != 0 )
+            return Coefficients::getValue( Index ) * vectors[ Index ];
+         else return 0;
+      } else if constexpr( Coefficients::getValue( Index ) != 0 )
+         return Coefficients::getValue( Index ) * vectors[ Index ] +
+            LinearCombinationEvaluation< Coefficients, Vector, Index + 1, Size >::evaluateArray( vectors );
+         else return LinearCombinationEvaluation< Coefficients, Vector, Index + 1, Size >::evaluateArray( vectors );
+   }
 };
 
 template< typename Coefficients, typename Vector, int Index >
 struct LinearCombinationEvaluation< Coefficients, Vector, Index, Index + 1 >
 {
+   static constexpr size_t Size = Coefficients::getSize();
+
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, Index >::type;
 
    static ResultType
@@ -101,6 +118,15 @@ struct LinearCombinationEvaluation< Coefficients, Vector, Index, Index + 1 >
    {
       if constexpr( Coefficients::getValue( Index ) != 0 )
          return Coefficients::getValue( Index ) * v;
+      else
+         return 0;
+   }
+
+   static ResultType
+   evaluateArray( const Containers::StaticArray< Size, Vector >& vectors )
+   {
+      if constexpr( Coefficients::getValue( Index ) != 0 )
+         return Coefficients::getValue( Index ) * vectors[ Index ];
       else
          return 0;
    }
@@ -119,6 +145,12 @@ struct LinearCombination
    {
       static_assert( sizeof...( OtherVectors ) == Size, "Number of input vectors must match number of coefficients" );
       return LinearCombinationEvaluation< Coefficients, Vector, 0, Size >::evaluate( others... );
+   }
+
+   static ResultType
+   evaluateArray( const Containers::StaticArray< Size, Vector >& vectors )
+   {
+      return LinearCombinationEvaluation< Coefficients, Vector, 0, Size >::evaluateArray( vectors );
    }
 };
 
