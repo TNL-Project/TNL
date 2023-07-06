@@ -38,12 +38,12 @@ template< typename Coefficients,
           typename Vector,
           int Index,
           int Size = Coefficients::getSize(),
-          bool Nonzero = ( Coefficients::getValue( Index ) != 0 ) >
+          bool Zero = ( Coefficients::getValue( Index ) == 0 ) >
 struct LinearCombinationReturnType
 {};
 
 template< typename Coefficients, typename Vector, int Index, int Size >
-struct LinearCombinationReturnType< Coefficients, Vector, Index, Size, true >
+struct LinearCombinationReturnType< Coefficients, Vector, Index, Size, false >
 {
    using type = typename MergeLinearCombinationTypes<
       decltype( Coefficients::getValue( Index ) * std::declval< Vector >() ),
@@ -52,19 +52,19 @@ struct LinearCombinationReturnType< Coefficients, Vector, Index, Size, true >
 };
 
 template< typename Coefficients, typename Vector, int Index, int Size >
-struct LinearCombinationReturnType< Coefficients, Vector, Index, Size, false >
+struct LinearCombinationReturnType< Coefficients, Vector, Index, Size, true >
 {
    using type = typename LinearCombinationReturnType< Coefficients, Vector, Index + 1 >::type;
 };
 
 template< typename Coefficients, typename Vector, int Index >
-struct LinearCombinationReturnType< Coefficients, Vector, Index, Index + 1, true >
+struct LinearCombinationReturnType< Coefficients, Vector, Index, Index + 1, false >
 {
    using type = decltype( Coefficients::getValue( Index ) * std::declval< Vector >() );
 };
 
 template< typename Coefficients, typename Vector, int Index >
-struct LinearCombinationReturnType< Coefficients, Vector, Index, Index + 1, false >
+struct LinearCombinationReturnType< Coefficients, Vector, Index, Index + 1, true >
 {
    using type = typename Vector::RealType;
 };
