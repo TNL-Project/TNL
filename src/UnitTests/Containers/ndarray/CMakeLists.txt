@@ -1,4 +1,9 @@
-set( CPP_TESTS  NDSubarrayTest SlicedNDArrayTest StaticNDArrayTest )
+set( CPP_TESTS
+         NDSubarrayTest
+         SlicedNDArrayTest
+         StaticNDArrayTest
+         SyncDirectionsTest
+)
 set( CUDA_TESTS  StaticNDArrayCudaTest )
 if( TNL_BUILD_CUDA )
    set( CUDA_TESTS  ${CUDA_TESTS} NDArrayTest )

@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <array>
 
+#include <TNL/DiscreteMath.h>
+
 namespace TNL::Containers {
 
 /**
@@ -90,6 +92,19 @@ operator-=( SyncDirection& a, SyncDirection b )
 {
    a = static_cast< SyncDirection >( static_cast< std::uint8_t >( a ) & ~static_cast< std::uint8_t >( b ) );
    return a;
+}
+
+/**
+ * \brief Returns an opposite direction for given direction.
+ */
+inline SyncDirection
+opposite( SyncDirection direction )
+{
+   auto n = static_cast< std::uint8_t >( direction );
+   n = swapBits( n, 0, 1 );
+   n = swapBits( n, 2, 3 );
+   n = swapBits( n, 4, 5 );
+   return static_cast< SyncDirection >( n );
 }
 
 /** \brief Namespace where synchronization patterns for distributed
