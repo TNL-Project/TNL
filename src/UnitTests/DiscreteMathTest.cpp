@@ -273,4 +273,17 @@ TEST( DiscreteMathTest, integerFactorizationTuples_triplets )
               } ) );
 }
 
+TEST( DiscreteMathTest, swapBits )
+{
+   EXPECT_EQ( swapBits( 28, 0, 3 ), 21 );
+   EXPECT_EQ( swapBits( 0b00101101, 0, 1 ), 0b00101110 );
+   EXPECT_EQ( swapBits( 0b00101101, 1, 0 ), 0b00101110 );
+   EXPECT_EQ( swapBits( 0b00101101, 0, 2 ), 0b00101101 );
+   EXPECT_EQ( swapBits( 0b00101101, 0, 3 ), 0b00101101 );
+   EXPECT_EQ( swapBits( 0b00101101, 0, 5 ), 0b00101101 );
+   EXPECT_EQ( swapBits( 0b00101101, 4, 6 ), 0b00101101 );
+   EXPECT_EQ( swapBits( 0b00101101, 5, 7 ), 0b10001101 );
+   EXPECT_EQ( swapBits( 0b11111111111111110000000011111111, 31, 10 ), 0b01111111111111110000010011111111 );
+}
+
 #include "main.h"

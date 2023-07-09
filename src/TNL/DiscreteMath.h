@@ -340,4 +340,27 @@ integerFactorizationTuples( Index number )
    return result;
 }
 
+/**
+ * \brief This function swaps bits at positions \e p1 and \e p2 in an integer \e n.
+ */
+template< typename Index >
+Index
+swapBits( Index n, std::uint8_t p1, std::uint8_t p2 )
+{
+   // move the p1-th bit to the rightmost side
+   const Index bit1 = ( n >> p1 ) & Index( 1 );
+
+   // move the p2-th to rightmost side
+   const Index bit2 = ( n >> p2 ) & Index( 1 );
+
+   // XOR the two bits
+   Index x = bit1 ^ bit2;
+
+   // put the XOR-ed bits back to their original positions
+   x = ( x << p1 ) | ( x << p2 );
+
+   // XOR `x` with the original number so that the two bits are swapped
+   return n ^ x;
+}
+
 }  // namespace TNL
