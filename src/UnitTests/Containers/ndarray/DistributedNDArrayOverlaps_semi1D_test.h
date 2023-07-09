@@ -282,6 +282,7 @@ test_helper_synchronize( DistributedArray& a, int globalSize, int rank, int npro
    a.setValue( -1 );
    a.forAll( setter );
    DistributedNDArraySynchronizer< DistributedArray > s1;
+   s1.setSynchronizationPattern( NDArraySyncPatterns::D1Q3 );
    s1.synchronize( a );
 
    for( int q = 0; q < Q; q++ )
@@ -302,6 +303,7 @@ test_helper_synchronize( DistributedArray& a, int globalSize, int rank, int npro
    a.setValue( -1 );
    a.getView().forAll( setter );
    DistributedNDArraySynchronizer< typename DistributedArray::ViewType > s2;
+   s2.setSynchronizationPattern( NDArraySyncPatterns::D1Q3 );
    auto view = a.getView();
    s2.synchronize( view );
 

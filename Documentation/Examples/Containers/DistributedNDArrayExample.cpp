@@ -62,6 +62,7 @@ distributedNDArrayExample()
 
    // synchronize the ghost regions and output again
    DistributedNDArraySynchronizer< ArrayType > synchronizer;
+   synchronizer.setSynchronizationPattern( NDArraySyncPatterns::D1Q3 );
    synchronizer.synchronize( a );
    std::cout << "Rank " << communicator.rank() << " after synchronization: " << flat_view << std::endl;
 }

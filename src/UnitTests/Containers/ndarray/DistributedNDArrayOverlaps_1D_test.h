@@ -230,6 +230,7 @@ test_helper_synchronize( DistributedArray& a, const int rank, const int nproc )
    a.setValue( -1 );
    a.forAll( setter );
    DistributedNDArraySynchronizer< DistributedArray > s1;
+   s1.setSynchronizationPattern( NDArraySyncPatterns::D1Q3 );
    s1.synchronize( a );
 
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )
@@ -242,6 +243,7 @@ test_helper_synchronize( DistributedArray& a, const int rank, const int nproc )
    a.setValue( -1 );
    a.getView().forAll( setter );
    DistributedNDArraySynchronizer< typename DistributedArray::ViewType > s2;
+   s2.setSynchronizationPattern( NDArraySyncPatterns::D1Q3 );
    auto view = a.getView();
    s2.synchronize( view );
 
