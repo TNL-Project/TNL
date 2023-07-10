@@ -1,8 +1,8 @@
 #ifdef HAVE_GTEST
 #include <array>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Containers/StaticArray.h>
 #include <TNL/Containers/Expressions/LinearCombination.h>
+
 
 #include "gtest/gtest.h"
 
@@ -158,12 +158,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_0 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_0< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = RealType;
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1 )
@@ -171,12 +169,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_1< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_0_1 )
@@ -184,12 +180,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_0_1 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_0_1< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1_0 )
@@ -197,12 +191,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1_0 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_1_0< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1_2 )
@@ -210,12 +202,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1_2 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_1_2< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() + 2.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1_0_0 )
@@ -223,12 +213,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1_0_0 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_1_0_0< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_0_1_0 )
@@ -236,12 +224,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_0_1_0 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_0_1_0< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_0_0_1 )
@@ -249,12 +235,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_0_0_1 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_0_0_1< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1_1_0 )
@@ -262,12 +246,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1_1_0 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_1_1_0< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() + 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1_0_1 )
@@ -275,12 +257,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1_0_1 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_1_0_1< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() + 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_0_1_1 )
@@ -288,12 +268,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_0_1_1 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_0_1_1< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() + 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1_2_3 )
@@ -301,12 +279,10 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1_2_3 )
    using VectorType = typename TestFixture::VectorType;
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_1_2_3< RealType >;
-   using ResultType1 = typename LinearCombinationReturnType< Coefficients, VectorType, 0 >::type;
-   using ResultType2 = typename LinearCombination< Coefficients, VectorType >::ResultType;
+   using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() + ( 2.0 * std::declval< VectorType >() + 3.0 * std::declval< VectorType >() ) );
 
-   static_assert( std::is_same< ResultType1, TrueResultType >::value, "Wrong type." );
-   static_assert( std::is_same< ResultType2, TrueResultType >::value, "Wrong type." );
+   static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
 
 TYPED_TEST( LinearCombinationTest, VectorTests_0 )
@@ -320,7 +296,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0 )
    result_1 = LinearCombination< Coefficients_0< RealType >, VectorType >::evaluate( v1 );
    EXPECT_EQ( result_1, VectorType( size, 0.0 ) );
 
-   TNL::Containers::StaticArray< 1, VectorType > array;
+   std::array< VectorType, 1 > array;
    array[ 0 ] = v1;
    result_2 = LinearCombination< Coefficients_0< RealType >, VectorType >::evaluateArray( array );
    EXPECT_EQ( result_2, VectorType( size, 0.0 ) );
@@ -337,7 +313,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1 )
    result_1 = LinearCombination< Coefficients_1< RealType >, VectorType >::evaluate( v1 );
    EXPECT_EQ( result_1, v1 );
 
-   TNL::Containers::StaticArray< 1, VectorType > array;
+   std::array< VectorType, 1 > array;
    array[ 0 ] = v1;
    result_2 = LinearCombination< Coefficients_1< RealType >, VectorType >::evaluateArray( array );
    EXPECT_EQ( result_2, v1 );
@@ -354,7 +330,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_1 )
    result_1 = LinearCombination< Coefficients_0_1< RealType >, VectorType >::evaluate( v1, v2 );
    EXPECT_EQ( result_1, v2 );
 
-   TNL::Containers::StaticArray< 2, VectorType > array;
+   std::array< VectorType, 2 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    result_2 = LinearCombination< Coefficients_0_1< RealType >, VectorType >::evaluateArray( array );
@@ -372,7 +348,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_0 )
    result_1 = LinearCombination< Coefficients_1_0< RealType >, VectorType >::evaluate( v1, v2 );
    EXPECT_EQ( result_1, v1 );
 
-   TNL::Containers::StaticArray< 2, VectorType > array;
+   std::array< VectorType, 2 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    result_2 = LinearCombination< Coefficients_1_0< RealType >, VectorType >::evaluateArray( array );
@@ -390,7 +366,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_2 )
    result_1 = LinearCombination< Coefficients_1_2< RealType >, VectorType >::evaluate( v1, v2 );
    EXPECT_EQ( result_1, v1 + 2.0 * v2 );
 
-   TNL::Containers::StaticArray< 2, VectorType > array;
+   std::array< VectorType, 2 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    result_2 = LinearCombination< Coefficients_1_2< RealType >, VectorType >::evaluateArray( array );
@@ -408,7 +384,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_0_0 )
    result_1 = LinearCombination< Coefficients_1_0_0< RealType >, VectorType >::evaluate( v1, v2, v3 );
    EXPECT_EQ( result_1, v1 );
 
-   TNL::Containers::StaticArray< 3, VectorType > array;
+   std::array< VectorType, 3 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
@@ -427,7 +403,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_1_0 )
    result_1 = LinearCombination< Coefficients_0_1_0< RealType >, VectorType >::evaluate( v1, v2, v3 );
    EXPECT_EQ( result_1, v2 );
 
-   TNL::Containers::StaticArray< 3, VectorType > array;
+   std::array< VectorType, 3 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
@@ -446,7 +422,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_0_1 )
    result_1 = LinearCombination< Coefficients_0_0_1< RealType >, VectorType >::evaluate( v1, v2, v3 );
    EXPECT_EQ( result_1, v3 );
 
-   TNL::Containers::StaticArray< 3, VectorType > array;
+   std::array< VectorType, 3 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
@@ -465,7 +441,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_1_0 )
    result_1 = LinearCombination< Coefficients_1_1_0< RealType >, VectorType >::evaluate( v1, v2, v3 );
    EXPECT_EQ( result_1, v1 + v2 );
 
-   TNL::Containers::StaticArray< 3, VectorType > array;
+   std::array< VectorType, 3 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
@@ -484,7 +460,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_0_1 )
    result_1 = LinearCombination< Coefficients_1_0_1< RealType >, VectorType >::evaluate( v1, v2, v3 );
    EXPECT_EQ( result_1, v1 + v3 );
 
-   TNL::Containers::StaticArray< 3, VectorType > array;
+   std::array< VectorType, 3 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
@@ -503,7 +479,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_1_1 )
    result_1 = LinearCombination< Coefficients_0_1_1< RealType >, VectorType >::evaluate( v1, v2, v3 );
    EXPECT_EQ( result_1, v2 + v3 );
 
-   TNL::Containers::StaticArray< 3, VectorType > array;
+   std::array< VectorType, 3 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
@@ -522,7 +498,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_2_3 )
    result_1 = LinearCombination< Coefficients_1_2_3< RealType >, VectorType >::evaluate( v1, v2, v3 );
    EXPECT_EQ( result_1, v1 + 2.0 * v2 + 3.0 * v3 );
 
-   TNL::Containers::StaticArray< 3, VectorType > array;
+   std::array< VectorType, 3 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
