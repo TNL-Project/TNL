@@ -10,92 +10,16 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Containers/Expressions/LinearCombination.h>
-
-#include "ODESolver.h"
+#include <TNL/Solvers/ODE/ODESolver.h>
+#include <TNL/Solvers/ODE/detail/ODESolverEvaluator.h>
 
 namespace TNL::Solvers::ODE {
-
-// std::integral_constant is used due to nvcc. In version 12.2, it does not
-// allow  partial specialization with nontype template parameters.
-
-template< typename Method,
-          size_t Stage >
-struct CoefficientsExtractor
-{
-   using ValueType = typename Method::ValueType;
-
-   static constexpr size_t getSize() {
-      return Method::getStages();
-   }
-
-   static constexpr ValueType getValue( size_t i ) {
-      return Method::getCoefficient( Stage, i );
-   }
-};
-
-template< typename Method >
-struct UpdateCoefficientsExtractor
-{
-   static constexpr size_t getSize() {
-      return Method::getStages();
-   }
-
-   using ValueType = typename Method::ValueType;
-
-   static constexpr ValueType getValue( size_t i ) {
-      return Method::getUpdateCoefficient( i );
-   }
-};
-
-template< typename Method,
-          typename Stage = std::integral_constant< size_t, 0 >,
-          typename Stages = std::integral_constant< size_t, Method::getStages() > >
-struct ODESolverEvaluator {
-
-   template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction >
-   static void computeKVectors( std::array< VectorView, Stages::value >& k,
-         const Value& time,
-         const Value& currentTau,
-         const ConstVectorView& u,
-         VectorView aux,
-         RHSFunction&& rhsFunction ) {
-      if constexpr( Stage::value == 0 ) { // k1 = f( t, u )
-         rhsFunction( time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, u, k[ Stage::value ] );
-         ODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors( k, time, currentTau, u, aux, rhsFunction );
-      } else {
-         using Coefficients = CoefficientsExtractor< Method, Stage::value >;
-         using Formula = Containers::Expressions::LinearCombination< Coefficients, VectorView >;
-         aux = u + currentTau * Formula::evaluateArray( k );
-         rhsFunction( time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ] );
-         ODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors( k, time, currentTau, u, aux, rhsFunction );
-      }
-   }
-};
-
-template< typename Method >
-struct ODESolverEvaluator< Method, std::integral_constant< size_t, Method::getStages() >, std::integral_constant< size_t, Method::getStages() > >
-{
-   static constexpr size_t Stages = Method::getStages();
-
-   template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction >
-   static void computeKVectors( std::array< VectorView, Stages >& k_vectors,
-         const Value& time,
-         const Value& currentTau,
-         const ConstVectorView& u,
-         const VectorView& aux,
-         RHSFunction&& rhsFunction ) {}
-};
-
 
 template< typename Method, typename Vector, typename SolverMonitor >
 void
 ODESolver< Method, Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
    ExplicitSolver< RealType, IndexType >::configSetup( config, prefix );
-   config.addEntry< double >( prefix + "merson-adaptivity",
-                              "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
-                              "zero means no adaptivity).",
-                              1.0e-4 );
 }
 
 template< typename Method, typename Vector, typename SolverMonitor >
@@ -103,8 +27,6 @@ bool
 ODESolver< Method, Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
 {
    ExplicitSolver< Vector, SolverMonitor >::setup( parameters, prefix );
-   if( parameters.checkParameter( prefix + "merson-adaptivity" ) )
-      this->setAdaptivity( parameters.getParameter< double >( prefix + "merson-adaptivity" ) );
    return true;
 }
 
@@ -158,7 +80,7 @@ ODESolver< Method, Vector, SolverMonitor >::solve( VectorType& u, RHSFunction&& 
    // Start the main loop
    while( this->checkNextIteration() ) {
 
-      ODESolverEvaluator< Method >::computeKVectors( k_views, time, currentTau, u.getConstView(), kAux.getView(), rhsFunction );
+      detail::ODESolverEvaluator< Method >::computeKVectors( k_views, time, currentTau, u.getConstView(), kAux.getView(), rhsFunction );
 
       /////
       // Compute an error of the approximation.
