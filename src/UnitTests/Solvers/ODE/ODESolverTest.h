@@ -54,7 +54,7 @@ TYPED_TEST( ODESolverTest, LinearFunctionTest )
 
    DofContainerType u( 5, 0.0 );
    solver.solve( u,
-                 []( const Real& time, const Real& tau, auto u, auto fu )
+                 []( const Real& time, const Real& tau, const auto& u, auto& fu )
                  {
                     fu = time;
                  } );
