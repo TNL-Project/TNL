@@ -1,4 +1,4 @@
-set(COMMON_TESTS EulerSolverTest StaticEulerSolverTest MersonSolverTest StaticMersonSolverTest)
+set(COMMON_TESTS EulerSolverTest StaticEulerSolverTest MersonSolverTest NewMersonSolverTest StaticMersonSolverTest)
 
 set(CPP_TESTS)
 
