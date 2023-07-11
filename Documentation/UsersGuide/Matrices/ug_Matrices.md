@@ -1,4 +1,4 @@
-# Matrices tutorial
+# Matrices
 
 [TOC]
 
@@ -143,7 +143,7 @@ In such a form, it is more efficient to refer the nonzero matrix elements in giv
 
 ### Matrix view
 
-Matrix views are small reference objects which help accessing the matrix in GPU kernels or lambda functions being executed on GPUs. We describe this in details in section about [Shared pointers and views](../GeneralConcepts/tutorial_GeneralConcepts.md). The problem lies in fact that we cannot pass references to GPU kernels and we do not want to pass there deep copies of matrices. Matrix view is some kind of reference to a matrix. A copy of matrix view is always shallow and so it behaves like a reference.  The following example shows how to obtain the matrix view by means of method `getView` and pass it to a lambda function:
+Matrix views are small reference objects which help accessing the matrix in GPU kernels or lambda functions being executed on GPUs. We describe this in details in section about [Shared pointers and views](../GeneralConcepts/ug_GeneralConcepts.md). The problem lies in fact that we cannot pass references to GPU kernels and we do not want to pass there deep copies of matrices. Matrix view is some kind of reference to a matrix. A copy of matrix view is always shallow and so it behaves like a reference.  The following example shows how to obtain the matrix view by means of method `getView` and pass it to a lambda function:
 
 \includelineno SparseMatrixViewExample_getRow.cpp
 
@@ -384,7 +384,7 @@ More efficient way of the matrix initialization on GPU consists of calling the m
 
 \includelineno DenseMatrixViewExample_setElement.cpp
 
-Here we get the matrix view (\ref TNL::Matrices::DenseMatrixView) (line 10) to make the matrix accessible in lambda function even on GPU (see [Shared pointers and views](../GeneralConcepts/tutorial_GeneralConcepts.md) ). We first call the `setElement` method from CPU to set the `i`-th diagonal element to `i` (lines 11-12). Next we iterate over the matrix rows with \ref TNL::Algorithms::parallelFor "parallelFor" (line 20) and for each row we call the lambda function `f`. This is done on the same device where the matrix is allocated and so it we get optimal performance even for matrices on GPU. In the lambda function we add one to each matrix element (line 18). The result looks as follows:
+Here we get the matrix view (\ref TNL::Matrices::DenseMatrixView) (line 10) to make the matrix accessible in lambda function even on GPU (see [Shared pointers and views](../GeneralConcepts/ug_GeneralConcepts.md) ). We first call the `setElement` method from CPU to set the `i`-th diagonal element to `i` (lines 11-12). Next we iterate over the matrix rows with \ref TNL::Algorithms::parallelFor "parallelFor" (line 20) and for each row we call the lambda function `f`. This is done on the same device where the matrix is allocated and so it we get optimal performance even for matrices on GPU. In the lambda function we add one to each matrix element (line 18). The result looks as follows:
 
 \include DenseMatrixViewExample_setElement.out
 
@@ -1329,7 +1329,7 @@ We see that in i-th matrix row we have to compute the sum \f$\sum_{j=1}^n a_{ij}
 
 #### Lambda function fetch
 
-This lambda function has the same purpose as the lambda function `fetch` in flexible parallel reduction for arrays and vectors (see [Flexible Parallel Reduction](../ReductionAndScan/tutorial_ReductionAndScan.md)). It is supposed to be declared as follows:
+This lambda function has the same purpose as the lambda function `fetch` in flexible parallel reduction for arrays and vectors (see [Flexible Parallel Reduction](../ReductionAndScan/ug_ReductionAndScan.md)). It is supposed to be declared as follows:
 
 \includelineno snippet_rows_reduction_fetch_declaration.cpp
 

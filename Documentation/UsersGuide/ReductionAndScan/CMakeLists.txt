@@ -39,7 +39,7 @@ else()
    endforeach()
 endif()
 
-add_custom_target( RunTutorialsReductionAndScanExamples ALL DEPENDS ${DOC_OUTPUTS} )
+add_custom_target( RunUGReductionAndScanExamples ALL DEPENDS ${DOC_OUTPUTS} )
 
 # add the dependency to the main target
-add_dependencies( run-doc-examples RunTutorialsReductionAndScanExamples )
+add_dependencies( run-doc-examples RunUGReductionAndScanExamples )

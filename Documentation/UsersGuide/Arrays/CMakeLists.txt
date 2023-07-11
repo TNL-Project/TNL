@@ -32,7 +32,7 @@ foreach( target IN ITEMS ${HOST_EXAMPLES} )
    set( DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
 endforeach()
 
-add_custom_target( RunTutorialsArraysExamples ALL DEPENDS ${DOC_OUTPUTS} )
+add_custom_target( RunUGArraysExamples ALL DEPENDS ${DOC_OUTPUTS} )
 
 # add the dependency to the main target
-add_dependencies( run-doc-examples RunTutorialsArraysExamples )
+add_dependencies( run-doc-examples RunUGArraysExamples )

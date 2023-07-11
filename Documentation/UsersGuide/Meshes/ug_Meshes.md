@@ -1,4 +1,4 @@
-# Unstructured meshes tutorial
+# Unstructured meshes
 
 [TOC]
 
@@ -71,7 +71,7 @@ Given a mesh instance denoted as `mesh`, it can be used like this:
 
 \snippet MeshIterationExample.cpp getEntitiesCount
 
-Note that this member function and all other member functions presented below are marked as [`__cuda_callable__`](../GeneralConcepts/tutorial_GeneralConcepts.md), so they can be called from usual host functions as well as CUDA kernels.
+Note that this member function and all other member functions presented below are marked as [`__cuda_callable__`](../GeneralConcepts/ug_GeneralConcepts.md), so they can be called from usual host functions as well as CUDA kernels.
 
 The entity of given dimension and index can be accessed via a member function template called [getEntity](@ref TNL::Meshes::Mesh::getEntity).
 Again, the entity dimension is specified as a template argument and the index is specified as a method argument.
@@ -124,7 +124,7 @@ For example, the iteration over cells on a mesh allocated on the host can be don
 \snippet MeshIterationExample.cpp Parallel iteration host
 
 The parallel iteration is more complicated for meshes allocated on a GPU, since the lambda expression needs to capture a pointer to the copy of the mesh, which is allocated on the right device.
-This can be achieved with a [smart pointer](../Pointers/tutorial_Pointers.md) as follows:
+This can be achieved with a [smart pointer](../Pointers/ug_Pointers.md) as follows:
 
 \snippet ParallelIterationCuda.h Parallel iteration CUDA
 

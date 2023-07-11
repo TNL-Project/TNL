@@ -1,10 +1,10 @@
-# Arrays tutorial
+# Arrays
 
 [TOC]
 
 ## Introduction
 
-This tutorial introduces arrays in TNL. There are three types - common arrays with dynamic allocation, static arrays allocated on stack and distributed arrays with dynamic allocation. Arrays are one of the most important structures for memory management. Methods implemented in arrays are particularly useful for GPU programming. From this point of view, the reader will learn how to easily allocate memory on GPU, transfer data between GPU and CPU but also, how to initialize data allocated on GPU. In addition, the resulting code is hardware platform independent, so it can be ran on CPU nad GPU without any changes.
+This part introduces arrays in TNL. There are three types - common arrays with dynamic allocation, static arrays allocated on stack and distributed arrays with dynamic allocation. Arrays are one of the most important structures for memory management. Methods implemented in arrays are particularly useful for GPU programming. From this point of view, the reader will learn how to easily allocate memory on GPU, transfer data between GPU and CPU but also, how to initialize data allocated on GPU. In addition, the resulting code is hardware platform independent, so it can be ran on CPU nad GPU without any changes.
 
 ## Dynamic arrays
 
@@ -94,7 +94,7 @@ Output:
 
 ### Arrays and flexible reduction
 
-Arrays also offer simpler way to do the flexible parallel reduction. See the section about [the flexible parallel reduction](../ReductionAndScan/tutorial_ReductionAndScan.md) to understand how it works. Flexible reduction for arrays just simplifies access to the array elements. See the following example:
+Arrays also offer simpler way to do the flexible parallel reduction. See the section about [the flexible parallel reduction](../ReductionAndScan/ug_ReductionAndScan.md) to understand how it works. Flexible reduction for arrays just simplifies access to the array elements. See the following example:
 
 \include reduceArrayExample.cpp
 

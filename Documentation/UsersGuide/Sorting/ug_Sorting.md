@@ -1,4 +1,4 @@
-# Sorting tutorial
+# Sorting
 
 [TOC]
 

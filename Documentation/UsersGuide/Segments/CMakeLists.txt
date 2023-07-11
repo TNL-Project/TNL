@@ -38,7 +38,7 @@ else()
    endforeach()
 endif()
 
-add_custom_target( RunTutorialsSegmentsExamples ALL DEPENDS ${DOC_OUTPUTS} )
+add_custom_target( RunUGSegmentsExamples ALL DEPENDS ${DOC_OUTPUTS} )
 
 # add the dependency to the main target
-add_dependencies( run-doc-examples RunTutorialsSegmentsExamples )
+add_dependencies( run-doc-examples RunUGSegmentsExamples )

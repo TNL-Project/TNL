@@ -16,7 +16,7 @@ if( TNL_BUILD_CUDA )
       set( DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
    endforeach()
 
-   add_custom_target( RunTutorialsVectorsExamples-cuda ALL DEPENDS ${DOC_OUTPUTS} )
+   add_custom_target( RunUGVectorsExamples-cuda ALL DEPENDS ${DOC_OUTPUTS} )
 endif()
 
 foreach( target IN ITEMS ${HOST_EXAMPLES} )
@@ -28,7 +28,7 @@ foreach( target IN ITEMS ${HOST_EXAMPLES} )
    set( DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
 endforeach()
 
-add_custom_target( RunTutorialsVectorsExamples ALL DEPENDS ${DOC_OUTPUTS} )
+add_custom_target( RunUGVectorsExamples ALL DEPENDS ${DOC_OUTPUTS} )
 
 # add the dependency to the main target
-add_dependencies( run-doc-examples RunTutorialsVectorsExamples )
+add_dependencies( run-doc-examples RunUGVectorsExamples )

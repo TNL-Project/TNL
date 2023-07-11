@@ -2,11 +2,11 @@
 
 [TOC]
 
-## Introduction
+## Introduction {#introduction}
 
 In this part we describe some general and core concepts of programming with TNL. Understanding these ideas may significantly help to understand the design of TNL algorithms and data structure and it also helps to use TNL more efficiently. The main goal of TNL is to allow developing high performance algorithms that could run on multicore CPUs and GPUs. TNL offers unified interface and so the developer writes one code for both architectures.
 
-## Devices and allocators
+## Devices and allocators {#devices_and_allocators}
 
 TNL offers unified interface for both CPUs (also referred as a host system) and GPUs (referred as device). Connection between CPU and GPU is usually represented by [PCI-Express bus](https://en.wikipedia.org/wiki/PCI_Express) which is orders of magnitude slower compared to speed of the global memory of GPU. Therefore, the communication between CPU and GPU must be reduced as much as possible. As a result, the programmer operates with two different address spaces, one for CPU and one for GPU. To distinguish between the address spaces, each data structure requiring dynamic allocation of memory needs to now on what device it resides. This is done by a template parameter `Device`. For example the following code creates two arrays, one on CPU and the other on GPU
 
@@ -30,7 +30,7 @@ If we need to specialize some parts of algorithm with respect to its device we c
 
 TODO: Allocators
 
-## Algorithms and lambda functions
+## Algorithms and lambda functions {#algorithms_and_lambda_functions}
 
 Developing a code for GPUs (in [CUDA](https://developer.nvidia.com/CUDA-zone) for example) consists mainly of writing [kernels](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#kernels) which are special functions running on GPU in parallel. This can be very hard and tedious work especially when it comes to debugging. [Parallel reduction](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf) is a perfect example of an algorithm which is relatively hard to understand and implement on one hand but it is necessary to use frequently. Writing tens of lines of code every time we need to sum up some data is exactly what we mean by tedious programming. TNL offers skeletons or patterns of such algorithms and combines them with user defined [lambda functions](https://en.cppreference.com/w/cpp/language/lambda). This approach is not absolutely general, which means that you can use it only in situation when there is a skeleton/pattern (see \ref TNL::Algorithms) suitable for your problem. But when there is, it offers several advantages:
 
@@ -46,7 +46,7 @@ In this example, we assume that all arrays `v1`, `v2` and `sum` were properly al
 
 \includelineno snippet_algorithms_and_lambda_functions_reduction.cpp
 
-We will not explain the parallel reduction in TNL at this moment (see the section about [flexible parallel reduction](../ReductionAndScan/tutorial_ReductionAndScan.md)), we hope that the idea is more or less clear from the code snippet. If `Device` equals to \ref TNL::Devices::Host, the scalar product is evaluated sequentially or in parallel by several OpenMP threads on CPU, if `Device` equals \ref TNL::Devices::Cuda, the [parallel reduction](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf) fine tuned with the lambda functions is performed. Fortunately, there is no performance drop. On the contrary, since it is easy to generate CUDA kernels for particular situations, we may get more efficient code. Consider computing a scalar product of sum of vectors like this
+We will not explain the parallel reduction in TNL at this moment (see the section about [flexible parallel reduction](../ReductionAndScan/ug_ReductionAndScan.md)), we hope that the idea is more or less clear from the code snippet. If `Device` equals to \ref TNL::Devices::Host, the scalar product is evaluated sequentially or in parallel by several OpenMP threads on CPU, if `Device` equals \ref TNL::Devices::Cuda, the [parallel reduction](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf) fine tuned with the lambda functions is performed. Fortunately, there is no performance drop. On the contrary, since it is easy to generate CUDA kernels for particular situations, we may get more efficient code. Consider computing a scalar product of sum of vectors like this
 
 \f[
 s = (u_1 + u_2, v_1 + v_2).
@@ -68,7 +68,7 @@ This could be achieved with the following code:
 
 We believe that C++ lambda functions with properly designed patterns of parallel algorithms could make programming of GPUs significantly easier. We see a parallel with [MPI standard](https://en.wikipedia.org/wiki/Message_Passing_Interface) which in nineties defined frequent communication operations in distributed parallel computing. It made programming of distributed systems much easier and at the same time MPI helps to write efficient programs. We aim to add additional skeletons or patterns to \ref TNL::Algorithms.
 
-## Views and shared pointers
+## Views and shared pointers {#views_and_shared_pointers}
 
 You might notice that in the previous section we used only C style arrays represented by pointers in the lambda functions. There is a difficulty when we want to access TNL arrays or other data structures inside the lambda functions. We may capture the outside variables either by a value or a reference. The first case would be as follows:
 
@@ -83,7 +83,7 @@ This would be correct on CPU (i.e. when `Device` is \ref TNL::Devices::Host ). H
 1. Data structures views
 2. Shared pointers
 
-### Data structures views
+### Data structures views {#data_structures_view}
 
 View is a kind of lightweight reference object which makes only a shallow copy of itself in copy constructor. Therefore view can by captured by value, but because it is, in fact, a reference to another object, everything we do with the view will affect the original object. The example with the array would look as follows:
 
@@ -103,6 +103,6 @@ Note, that changing the data managed by the array after fetching the view is not
 
 On the line 6, we change value of the first element. This causes no data reallocation or change of size and so the view fetched on the line 5 is still valid and up-to-date.
 
-### Shared pointers
+### Shared pointers {#shared_pointers}
 
 TNL offers smart pointers working across different devices (meaning CPU or GPU).

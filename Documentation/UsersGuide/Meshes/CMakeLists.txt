@@ -48,10 +48,10 @@ if( tinyxml2_FOUND )
    endforeach()
 endif()
 
-add_custom_target( RunTutorialsMeshesExamples ALL DEPENDS ${DOC_OUTPUTS} )
+add_custom_target( RunUGMeshesExamples ALL DEPENDS ${DOC_OUTPUTS} )
 
 # add the dependency to the main target
-add_dependencies( run-doc-examples RunTutorialsMeshesExamples )
+add_dependencies( run-doc-examples RunUGMeshesExamples )
 
 
 set( DATA_FILES

@@ -1,4 +1,4 @@
-# Orthogonal grids tutorial
+# Orthogonal grids
 
 [TOC]
 

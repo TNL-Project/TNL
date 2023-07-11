@@ -1,4 +1,4 @@
-# Cross-device smart pointers tutorial
+# Cross-device smart pointers
 
 [TOC]
 

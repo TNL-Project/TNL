@@ -1,10 +1,10 @@
-# For loops tutorial
+# For loops
 
 [TOC]
 
 ## Introduction
 
-This tutorial shows how to use different kind of for-loops implemented in TNL. Namely, they are:
+This part shows how to use different kind of for-loops implemented in TNL. Namely, they are:
 
 * **Parallel for** is a for-loop which can be run in parallel, i.e. all iterations of the loop must be independent. Parallel for can be run on both multicore CPUs and GPUs.
 * **n-dimensional parallel for** is an extension of common parallel for into higher dimensions.

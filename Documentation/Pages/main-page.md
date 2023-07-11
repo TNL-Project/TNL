@@ -175,18 +175,33 @@ Note that [CMake](https://cmake.org/) 3.24 or later is required when using the
 
 ## Usage   {#usage}
 
-TNL can be used with various build systems if you configure the compiler flags
-as explained below. See also our [example projects](
-https://gitlab.com/tnl-project/example-projects). If you use the CMake build
-system, there are two options:
+For the development, TNL can be used in some of the following ways.
+
+### Wrapper tnlcxx
+
+`tnlcxx` is a wrapper which manages compiler set-up in situations when we need
+to compile only one source file (which may include additional header files, of course).
+The wrapper is available at separate [git repository](https://gitlab.com/tnl-project/tnlcxx).
+
+### CMake projects
+Especially for larger projects, use the CMake build system is the recomened option.
+There are two ways how to set-up TNL with CMake:
 
 1. Install TNL system-wide or in your user home directory where CMake can find
    it, and use `find_package(TNL)` in your project.
 2. Add a git submodule for TNL to your project and include it with
    `add_subdirectory(libs/tnl)` in the `CMakeLists.txt` file.
 
+See also our [example projects](https://gitlab.com/tnl-project/example-projects).
+
+### Makefile projects
+To build TNL based projects with `make` or to incorporate TNL into existing projects we reffer
+to our [example projects](https://gitlab.com/tnl-project/example-projects) and also to the following
+section explaining necessary set-up of compiler flags.
+
 ### C++ compiler flags
 
+#### Basic setup of compiler flags
 - Enable the C++17 standard: `-std=c++17`
 - Configure the include path: `-I /path/to/include`
     - If you installed TNL with the install script, the include path is
@@ -208,7 +223,7 @@ system, there are two options:
   file for flags that we use when developing TNL (there are flags for e.g.
   hiding some useless compiler warnings).
 
-### Compiler flags for parallel computing
+#### Compiler flags for parallel computing
 
 Parallel computing platforms in TNL may be enabled automatically when using the
 appropriate compiler, or additional compiler flags may be needed.

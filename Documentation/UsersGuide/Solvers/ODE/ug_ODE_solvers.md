@@ -1,4 +1,4 @@
-# ODE solvers tutorial
+# ODE solvers
 
 [TOC]
 

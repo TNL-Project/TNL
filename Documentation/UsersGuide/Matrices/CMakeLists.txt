@@ -53,7 +53,7 @@ else()
 endif()
 
 
-add_custom_target( RunTutorialsMatricesExamples ALL DEPENDS ${DOC_OUTPUTS} )
+add_custom_target( RunUGMatricesExamples ALL DEPENDS ${DOC_OUTPUTS} )
 
 # add the dependency to the main target
-add_dependencies( run-doc-examples RunTutorialsMatricesExamples )
+add_dependencies( run-doc-examples RunUGMatricesExamples )

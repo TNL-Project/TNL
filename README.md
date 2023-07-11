@@ -39,7 +39,7 @@ See the [full documentation][full documentation] for information about:
 
 - [installation instructions][installation],
 - [usage hints][usage],
-- [tutorials][tutorials],
+- [User's guide][UsersGuide],
 - [API reference manual][API],
 
 and other documented topics.
@@ -47,7 +47,7 @@ and other documented topics.
 [full documentation]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/
 [installation]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/#installation
 [usage]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/#usage
-[tutorials]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/Tutorials.html
+[UsersGuide]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/UsersGuide.html
 [API]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/annotated.html
 
 # Getting involved

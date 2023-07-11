@@ -1,4 +1,4 @@
-# Linear solvers tutorial
+# Linear solvers
 
 [TOC]
 

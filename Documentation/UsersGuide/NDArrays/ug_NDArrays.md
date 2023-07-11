@@ -1,4 +1,4 @@
-# Multidimensional arrays tutorial   {#tutorial_NDArrays}
+# Multidimensional arrays   {#ug_NDArrays}
 
 [TOC]
 
@@ -22,7 +22,7 @@ more combinations of possible array orderings.
 
 For these reasons, we developed several data structures which allow to configure the indexing of
 multidimensional data and thus optimize the data structure for given algorithm and hardware
-architecture.  This tutorial walks through the options available in TNL.
+architecture.  This chapter walks through the options available in TNL.
 
 ## Dynamic N-dimensional array
 

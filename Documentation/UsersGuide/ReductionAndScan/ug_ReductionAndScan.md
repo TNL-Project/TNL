@@ -1,10 +1,10 @@
-# Flexible reduction and prefix-sum tutorial
+# Flexible reduction and prefix-sum
 
 [TOC]
 
 ## Introduction
 
-This tutorial introduces flexible parallel reduction in TNL. It shows how to easily implement parallel reduction with user defined operations which may run on both CPU and GPU. Parallel reduction is a programming pattern appering very often in different kind of algorithms for example in scalar product, vector norms or mean value evaluation but also in sequences or strings comparison.
+This chapter introduces flexible parallel reduction in TNL. It shows how to easily implement parallel reduction with user defined operations which may run on both CPU and GPU. Parallel reduction is a programming pattern appering very often in different kind of algorithms for example in scalar product, vector norms or mean value evaluation but also in sequences or strings comparison.
 
 ## Flexible reduction
 

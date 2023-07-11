@@ -14,7 +14,7 @@ foreach( target IN ITEMS ${CPP_EXAMPLES} )
    set( DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
 endforeach()
 
-add_custom_target( RunTutorialsNDArraysExamples ALL DEPENDS ${DOC_OUTPUTS} )
+add_custom_target( RunUGNDArraysExamples ALL DEPENDS ${DOC_OUTPUTS} )
 
 # add the dependency to the main target
-add_dependencies( run-doc-examples RunTutorialsNDArraysExamples )
+add_dependencies( run-doc-examples RunUGNDArraysExamples )
