@@ -5,7 +5,6 @@
 ## Basic topics
 
 1. [General concepts](./GeneralConcepts/ug_GeneralConcepts.md)
-   1. [Introduction](./GeneralConcepts/ug_GeneralConcepts.md#introduction)
 2. [Arrays](./Arrays/ug_Arrays.md)
 3. [Vectors](./Vectors/ug_Vectors.md)
 4. [Flexible parallel reduction and scan](./ReductionAndScan/ug_ReductionAndScan.md)
