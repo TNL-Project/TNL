@@ -59,69 +59,66 @@ void
 updateUMerson( const Index size, const Real tau, const Real* k1, const Real* k4, const Real* k5, Real* u, Real* blockResidue );
 #endif
 
-template< typename Problem, typename SolverMonitor >
-Merson< Problem, SolverMonitor >::Merson() : adaptivity( 0.00001 )
+template< typename Vector, typename SolverMonitor >
+Merson< Vector, SolverMonitor >::Merson() : adaptivity( 0.00001 )
 {
    if( std::is_same< DeviceType, Devices::Host >::value ) {
       this->openMPErrorEstimateBuffer.setSize( std::max( 1, Devices::Host::getMaxThreadsCount() ) );
    }
 };
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
 void
-Merson< Problem, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+Merson< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
-   //ExplicitSolver< Problem >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "merson-adaptivity",
                               "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
                               "zero means no adaptivity).",
                               1.0e-4 );
 };
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
 bool
-Merson< Problem, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+Merson< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
 {
-   Solvers::ODE::ExplicitSolver< Problem, SolverMonitor >::setup( parameters, prefix );
+   Solvers::ODE::ExplicitSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "merson-adaptivity" ) )
       this->setAdaptivity( parameters.getParameter< double >( prefix + "merson-adaptivity" ) );
    return true;
 }
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
 void
-Merson< Problem, SolverMonitor >::setAdaptivity( const RealType& a )
+Merson< Vector, SolverMonitor >::setAdaptivity( const RealType& a )
 {
    this->adaptivity = a;
 };
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
+template< typename RHSFunction >
 bool
-Merson< Problem, SolverMonitor >::solve( DofVectorPointer& u )
+Merson< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsFunction )
 {
-   if( ! this->problem ) {
-      std::cerr << "No problem was set for the Merson ODE solver." << std::endl;
-      return false;
-   }
    if( this->getTau() == 0.0 ) {
       std::cerr << "The time step for the Merson ODE solver is zero." << std::endl;
       return false;
    }
+
    /****
     * First setup the supporting meshes k1...k5 and kAux.
     */
-   k1->setLike( *u );
-   k2->setLike( *u );
-   k3->setLike( *u );
-   k4->setLike( *u );
-   k5->setLike( *u );
-   kAux->setLike( *u );
-   k1->setValue( 0.0 );
-   k2->setValue( 0.0 );
-   k3->setValue( 0.0 );
-   k4->setValue( 0.0 );
-   k5->setValue( 0.0 );
-   kAux->setValue( 0.0 );
+   k1.setLike( u );
+   k2.setLike( u );
+   k3.setLike( u );
+   k4.setLike( u );
+   k5.setLike( u );
+   kAux.setLike( u );
+   k1.setValue( 0.0 );
+   k2.setValue( 0.0 );
+   k3.setValue( 0.0 );
+   k4.setValue( 0.0 );
+   k5.setValue( 0.0 );
+   kAux.setValue( 0.0 );
 
    /****
     * Set necessary parameters
@@ -142,7 +139,7 @@ Merson< Problem, SolverMonitor >::solve( DofVectorPointer& u )
       /****
        * Compute Runge-Kutta coefficients
        */
-      computeKFunctions( u, time, currentTau );
+      computeKFunctions( u, time, currentTau, rhsFunction );
       if( this->testingMode )
          writeGrids( u );
 
@@ -189,8 +186,6 @@ Merson< Problem, SolverMonitor >::solve( DofVectorPointer& u )
       /****
        * Check stop conditions.
        */
-      //cerr << "residue = " << residue << std::endl;
-      //cerr << "this->getConvergenceResidue() = " << this->getConvergenceResidue() << std::endl;
       if( time >= this->getStopTime()
           || ( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() ) )
          return true;
@@ -198,56 +193,63 @@ Merson< Problem, SolverMonitor >::solve( DofVectorPointer& u )
    return this->checkConvergence();
 };
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
+template< typename RHSFunction >
 void
-Merson< Problem, SolverMonitor >::computeKFunctions( DofVectorPointer& u, const RealType& time, RealType tau )
+Merson< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
+                                                    const RealType& time,
+                                                    RealType tau,
+                                                    RHSFunction&& rhsFunction )
 {
-   IndexType size = u->getSize();
+   IndexType size = u.getSize();
 
-   RealType* _k1 = k1->getData();
-   RealType* _k2 = k2->getData();
-   RealType* _k3 = k3->getData();
-   RealType* _k4 = k4->getData();
-   //RealType* _k5 = k5->getData();
-   RealType* _kAux = kAux->getData();
-   RealType* _u = u->getData();
+   RealType* _k1 = k1.getData();
+   RealType* _k2 = k2.getData();
+   RealType* _k3 = k3.getData();
+   RealType* _k4 = k4.getData();
+   RealType* _kAux = kAux.getData();
+   RealType* _u = u.getData();
+
+   auto k1_view = k1.getView();
+   auto k2_view = k2.getView();
+   auto k3_view = k3.getView();
+   auto k4_view = k4.getView();
+   auto k5_view = k5.getView();
+   auto kAux_view = kAux.getView();
+   auto u_view = u.getView();
 
    RealType tau_3 = tau / 3.0;
 
    if( std::is_same< DeviceType, Devices::Host >::value ) {
-      this->problem->getExplicitUpdate( time, tau, u, k1 );
+      rhsFunction( time, tau, u_view, k1_view );
 
 #ifdef HAVE_OPENMP
-#pragma omp parallel for firstprivate( size, _kAux, _u, _k1, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ )
          _kAux[ i ] = _u[ i ] + tau * ( 1.0 / 3.0 * _k1[ i ] );
-      this->problem->applyBoundaryConditions( time + tau_3, kAux );
-      this->problem->getExplicitUpdate( time + tau_3, tau, kAux, k2 );
+      rhsFunction( time + tau_3, tau, kAux_view, k2_view );
 
 #ifdef HAVE_OPENMP
-#pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k2, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k2, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ )
          _kAux[ i ] = _u[ i ] + tau * 1.0 / 6.0 * ( _k1[ i ] + _k2[ i ] );
-      this->problem->applyBoundaryConditions( time + tau_3, kAux );
-      this->problem->getExplicitUpdate( time + tau_3, tau, kAux, k3 );
+      rhsFunction( time + tau_3, tau, kAux_view, k3_view );
 
 #ifdef HAVE_OPENMP
-#pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k3, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k3, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ )
          _kAux[ i ] = _u[ i ] + tau * ( 0.125 * _k1[ i ] + 0.375 * _k3[ i ] );
-      this->problem->applyBoundaryConditions( time + 0.5 * tau, kAux );
-      this->problem->getExplicitUpdate( time + 0.5 * tau, tau, kAux, k4 );
+      rhsFunction( time + 0.5 * tau, tau, kAux_view, k4_view );
 
 #ifdef HAVE_OPENMP
-#pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k3, _k4, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k3, _k4, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ )
          _kAux[ i ] = _u[ i ] + tau * ( 0.5 * _k1[ i ] - 1.5 * _k3[ i ] + 2.0 * _k4[ i ] );
-      this->problem->applyBoundaryConditions( time + tau, kAux );
-      this->problem->getExplicitUpdate( time + tau, tau, kAux, k5 );
+      rhsFunction( time + tau, tau, kAux_view, k5_view );
    }
    if( std::is_same< DeviceType, Devices::Cuda >::value ) {
 #ifdef __CUDACC__
@@ -257,83 +259,82 @@ Merson< Problem, SolverMonitor >::computeKFunctions( DofVectorPointer& u, const 
       this->cudaBlockResidue.setSize( min( cudaBlocks, Backend::getMaxGridXSize() ) );
       const IndexType threadsPerGrid = Backend::getMaxGridXSize() * cudaBlockSize.x;
 
-      this->problem->getExplicitUpdate( time, tau, u, k1 );
+      rhsFunction( time, tau, u_view, k1_view );
       cudaDeviceSynchronize();
+      TNL_CHECK_CUDA_DEVICE;
 
-      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
-         computeK2Arg<<< cudaBlocks,
-            cudaBlockSize >>>( currentSize, tau, &_u[ gridOffset ], &_k1[ gridOffset ], &_kAux[ gridOffset ] );
+         computeK2Arg< < < cudaBlocks, cudaBlockSize > > >(
+            currentSize, tau, &_u[ gridOffset ], &_k1[ gridOffset ], &_kAux[ gridOffset ] );
       }
       cudaDeviceSynchronize();
-      this->problem->applyBoundaryConditions( time + tau_3, kAux );
-      this->problem->getExplicitUpdate( time + tau_3, tau, kAux, k2 );
+      rhsFunction( time + tau_3, tau, kAux_view, k2_view );
       cudaDeviceSynchronize();
+      TNL_CHECK_CUDA_DEVICE;
 
-      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
-         computeK3Arg<<< cudaBlocks,
-            cudaBlockSize >>>(
-               currentSize, tau, &_u[ gridOffset ], &_k1[ gridOffset ], &_k2[ gridOffset ], &_kAux[ gridOffset ] );
+         computeK3Arg< < < cudaBlocks, cudaBlockSize > > >(
+            currentSize, tau, &_u[ gridOffset ], &_k1[ gridOffset ], &_k2[ gridOffset ], &_kAux[ gridOffset ] );
       }
       cudaDeviceSynchronize();
-      this->problem->applyBoundaryConditions( time + tau_3, kAux );
-      this->problem->getExplicitUpdate( time + tau_3, tau, kAux, k3 );
+      rhsFunction( time + tau_3, tau, kAux_view, k3_view );
       cudaDeviceSynchronize();
+      TNL_CHECK_CUDA_DEVICE;
 
-      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
-         computeK4Arg<<< cudaBlocks,
-            cudaBlockSize >>>(
-               currentSize, tau, &_u[ gridOffset ], &_k1[ gridOffset ], &_k3[ gridOffset ], &_kAux[ gridOffset ] );
+         computeK4Arg< < < cudaBlocks, cudaBlockSize > > >(
+            currentSize, tau, &_u[ gridOffset ], &_k1[ gridOffset ], &_k3[ gridOffset ], &_kAux[ gridOffset ] );
       }
       cudaDeviceSynchronize();
-      this->problem->applyBoundaryConditions( time + 0.5 * tau, kAux );
-      this->problem->getExplicitUpdate( time + 0.5 * tau, tau, kAux, k4 );
+      rhsFunction( time + 0.5 * tau, tau, kAux_view, k4_view );
       cudaDeviceSynchronize();
+      TNL_CHECK_CUDA_DEVICE;
 
-      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
-         computeK5Arg<<< cudaBlocks, cudaBlockSize >>>( currentSize,
-                                                                                     tau,
-                                                                                     &_u[ gridOffset ],
-                                                                                     &_k1[ gridOffset ],
-                                                                                     &_k3[ gridOffset ],
-                                                                                     &_k4[ gridOffset ],
-                                                                                     &_kAux[ gridOffset ] );
+         computeK5Arg< < < cudaBlocks, cudaBlockSize > > >( currentSize,
+                                                            tau,
+                                                            &_u[ gridOffset ],
+                                                            &_k1[ gridOffset ],
+                                                            &_k3[ gridOffset ],
+                                                            &_k4[ gridOffset ],
+                                                            &_kAux[ gridOffset ] );
       }
       cudaDeviceSynchronize();
-      this->problem->applyBoundaryConditions( time + tau, kAux );
-      this->problem->getExplicitUpdate( time + tau, tau, kAux, k5 );
+      rhsFunction( time + tau, tau, kAux_view, k5_view );
       cudaDeviceSynchronize();
+      TNL_CHECK_CUDA_DEVICE;
 #endif
    }
 }
 
-template< typename Problem, typename SolverMonitor >
-typename Problem ::RealType
-Merson< Problem, SolverMonitor >::computeError( const RealType tau )
+template< typename Vector, typename SolverMonitor >
+typename Vector ::RealType
+Merson< Vector, SolverMonitor >::computeError( const RealType tau )
 {
-   const IndexType size = k1->getSize();
-   const RealType* _k1 = k1->getData();
-   const RealType* _k3 = k3->getData();
-   const RealType* _k4 = k4->getData();
-   const RealType* _k5 = k5->getData();
+   const IndexType size = k1.getSize();
+   const RealType* _k1 = k1.getData();
+   const RealType* _k3 = k3.getData();
+   const RealType* _k4 = k4.getData();
+   const RealType* _k5 = k5.getData();
 
    RealType eps( 0.0 ), maxEps( 0.0 );
    if( std::is_same< DeviceType, Devices::Host >::value ) {
       this->openMPErrorEstimateBuffer.setValue( 0.0 );
 #ifdef HAVE_OPENMP
-#pragma omp parallel if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel if( Devices::Host::isOMPEnabled() )
 #endif
       {
          RealType localEps( 0.0 );
 #ifdef HAVE_OPENMP
-#pragma omp for
+   #pragma omp for
 #endif
          for( IndexType i = 0; i < size; i++ ) {
             RealType err =
@@ -346,25 +347,26 @@ Merson< Problem, SolverMonitor >::computeError( const RealType tau )
    }
    if( std::is_same< DeviceType, Devices::Cuda >::value ) {
 #ifdef __CUDACC__
-      RealType* _kAux = kAux->getData();
+      RealType* _kAux = kAux.getData();
       dim3 cudaBlockSize( 512 );
       const IndexType cudaBlocks = Backend::getNumberOfBlocks( size, cudaBlockSize.x );
       const IndexType cudaGrids = Backend::getNumberOfGrids( cudaBlocks, Backend::getMaxGridXSize() );
       this->cudaBlockResidue.setSize( min( cudaBlocks, Backend::getMaxGridXSize() ) );
       const IndexType threadsPerGrid = Backend::getMaxGridXSize() * cudaBlockSize.x;
 
-      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         const IndexType gridOffset = gridIdx * threadsPerGrid;
-         const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
-         computeErrorKernel<<< cudaBlocks, cudaBlockSize >>>( currentSize,
-                                                                                           tau,
-                                                                                           &_k1[ gridOffset ],
-                                                                                           &_k3[ gridOffset ],
-                                                                                           &_k4[ gridOffset ],
-                                                                                           &_k5[ gridOffset ],
-                                                                                           &_kAux[ gridOffset ] );
+      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+         const std::size_t gridOffset = gridIdx * threadsPerGrid;
+         const std::size_t currentSize = min( size - gridOffset, threadsPerGrid );
+         computeErrorKernel< < < cudaBlocks, cudaBlockSize > > >( currentSize,
+                                                                  tau,
+                                                                  &_k1[ gridOffset ],
+                                                                  &_k3[ gridOffset ],
+                                                                  &_k4[ gridOffset ],
+                                                                  &_k5[ gridOffset ],
+                                                                  &_kAux[ gridOffset ] );
          cudaDeviceSynchronize();
-         eps = std::max( eps, VectorOperations::getVectorMax( *kAux ) );
+         TNL_CHECK_CUDA_DEVICE;
+         eps = std::max( eps, VectorOperations::getVectorMax( kAux ) );
       }
 #endif
    }
@@ -372,31 +374,30 @@ Merson< Problem, SolverMonitor >::computeError( const RealType tau )
    return maxEps;
 }
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
 void
-Merson< Problem, SolverMonitor >::computeNewTimeLevel( const RealType time,
-                                                       const RealType tau,
-                                                       DofVectorPointer& u,
-                                                       RealType& currentResidue )
+Merson< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
+                                                      const RealType tau,
+                                                      DofVectorType& u,
+                                                      RealType& currentResidue )
 {
    RealType localResidue = RealType( 0.0 );
-   IndexType size = k1->getSize();
-   RealType* _u = u->getData();
-   RealType* _k1 = k1->getData();
-   RealType* _k4 = k4->getData();
-   RealType* _k5 = k5->getData();
+   IndexType size = k1.getSize();
+   RealType* _u = u.getData();
+   RealType* _k1 = k1.getData();
+   RealType* _k4 = k4.getData();
+   RealType* _k5 = k5.getData();
 
    if( std::is_same< DeviceType, Devices::Host >::value ) {
 #ifdef HAVE_OPENMP
-#pragma omp parallel for reduction(+:localResidue) firstprivate( size, _u, _k1, _k4, _k5, tau ) if(
-//Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for reduction( + : localResidue ) \
+      firstprivate( size, _u, _k1, _k4, _k5, tau ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ ) {
          const RealType add = tau / 6.0 * ( _k1[ i ] + 4.0 * _k4[ i ] + _k5[ i ] );
          _u[ i ] += add;
          localResidue += abs( (RealType) add );
       }
-      this->problem->applyBoundaryConditions( time, u );
    }
    if( std::is_same< DeviceType, Devices::Cuda >::value ) {
 #ifdef __CUDACC__
@@ -407,24 +408,22 @@ Merson< Problem, SolverMonitor >::computeNewTimeLevel( const RealType time,
       const IndexType threadsPerGrid = Backend::getMaxGridXSize() * cudaBlockSize.x;
 
       localResidue = 0.0;
-      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         const IndexType sharedMemory = cudaBlockSize.x * sizeof( RealType );
-         const IndexType gridOffset = gridIdx * threadsPerGrid;
-         const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
+      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+         const std::size_t sharedMemory = cudaBlockSize.x * sizeof( RealType );
+         const std::size_t gridOffset = gridIdx * threadsPerGrid;
+         const std::size_t currentSize = min( size - gridOffset, threadsPerGrid );
 
-         updateUMerson<<< cudaBlocks, cudaBlockSize,
-            sharedMemory >>>( currentSize,
-                                             tau,
-                                             &_k1[ gridOffset ],
-                                             &_k4[ gridOffset ],
-                                             &_k5[ gridOffset ],
-                                             &_u[ gridOffset ],
-                                             this->cudaBlockResidue.getData() );
+         updateUMerson< < < cudaBlocks, cudaBlockSize, sharedMemory > > >( currentSize,
+                                                                           tau,
+                                                                           &_k1[ gridOffset ],
+                                                                           &_k4[ gridOffset ],
+                                                                           &_k5[ gridOffset ],
+                                                                           &_u[ gridOffset ],
+                                                                           this->cudaBlockResidue.getData() );
+         TNL_CHECK_CUDA_DEVICE;
          localResidue += sum( this->cudaBlockResidue );
          cudaDeviceSynchronize();
       }
-      this->problem->applyBoundaryConditions( time, u );
-
 #endif
    }
 
@@ -437,17 +436,17 @@ Merson< Problem, SolverMonitor >::computeNewTimeLevel( const RealType time,
    #endif*/
 }
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
 void
-Merson< Problem, SolverMonitor >::writeGrids( const DofVectorPointer& u )
+Merson< Vector, SolverMonitor >::writeGrids( const DofVectorType& u )
 {
    std::cout << "Writing Merson solver grids ...";
-   File( "Merson-u.tnl", std::ios_base::out ) << *u;
-   File( "Merson-k1.tnl", std::ios_base::out ) << *k1;
-   File( "Merson-k2.tnl", std::ios_base::out ) << *k2;
-   File( "Merson-k3.tnl", std::ios_base::out ) << *k3;
-   File( "Merson-k4.tnl", std::ios_base::out ) << *k4;
-   File( "Merson-k5.tnl", std::ios_base::out ) << *k5;
+   File( "Merson-u.tnl", std::ios_base::out ) << u;
+   File( "Merson-k1.tnl", std::ios_base::out ) << k1;
+   File( "Merson-k2.tnl", std::ios_base::out ) << k2;
+   File( "Merson-k3.tnl", std::ios_base::out ) << k3;
+   File( "Merson-k4.tnl", std::ios_base::out ) << k4;
+   File( "Merson-k5.tnl", std::ios_base::out ) << k5;
    std::cout << " done. PRESS A KEY." << std::endl;
    getchar();
 }

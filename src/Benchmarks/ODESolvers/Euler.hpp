@@ -15,51 +15,52 @@ void
 updateUEuler( const Index size, const RealType tau, const RealType* k1, RealType* u, RealType* cudaBlockResidue );
 #endif
 
-template< typename Problem, typename SolverMonitor >
-Euler< Problem, SolverMonitor >::Euler() : cflCondition( 0.0 ){};
+template< typename Vector, typename SolverMonitor >
+Euler< Vector, SolverMonitor >::Euler() : cflCondition( 0.0 ){};
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
 void
-Euler< Problem, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+Euler< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
-   //ExplicitSolver< Problem >::configSetup( config, prefix );
+   //ExplicitSolver< Vector >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "euler-cfl", "Coefficient C in the Courant–Friedrichs–Lewy condition.", 0.0 );
 };
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
 bool
-Euler< Problem, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+Euler< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
 {
-   Solvers::ODE::ExplicitSolver< Problem, SolverMonitor >::setup( parameters, prefix );
+   Solvers::ODE::ExplicitSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "euler-cfl" ) )
       this->setCFLCondition( parameters.getParameter< double >( prefix + "euler-cfl" ) );
    return true;
 }
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
 void
-Euler< Problem, SolverMonitor >::setCFLCondition( const RealType& cfl )
+Euler< Vector, SolverMonitor >::setCFLCondition( const RealType& cfl )
 {
    this->cflCondition = cfl;
 }
 
-template< typename Problem, typename SolverMonitor >
-const typename Problem ::RealType&
-Euler< Problem, SolverMonitor >::getCFLCondition() const
+template< typename Vector, typename SolverMonitor >
+const typename Vector ::RealType&
+Euler< Vector, SolverMonitor >::getCFLCondition() const
 {
    return this->cflCondition;
 }
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
+template< typename RHSFunction >
 bool
-Euler< Problem, SolverMonitor >::solve( DofVectorPointer& u )
+Euler< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsFunction )
 {
    /****
     * First setup the supporting meshes k1...k5 and k_tmp.
     */
    //timer.start();
-   k1->setLike( *u );
-   k1->setValue( 0.0 );
+   k1.setLike( u );
+   k1.setValue( 0.0 );
 
    /****
     * Set necessary parameters
@@ -80,14 +81,14 @@ Euler< Problem, SolverMonitor >::solve( DofVectorPointer& u )
       /****
        * Compute the RHS
        */
-      //timer.stop();
-      this->problem->getExplicitUpdate( time, currentTau, u, k1 );
-      //timer.start();
+      auto u_view = u.getView();
+      auto k1_view = k1.getView();
+      rhsFunction( time, currentTau, u_view, k1_view );
 
       RealType lastResidue = this->getResidue();
       RealType maxResidue( 0.0 );
       if( this->cflCondition != 0.0 ) {
-         maxResidue = VectorOperations::getVectorAbsMax( *k1 );
+         maxResidue = VectorOperations::getVectorAbsMax( k1 );
          if( currentTau * maxResidue > this->cflCondition ) {
             currentTau *= 0.9;
             continue;
@@ -104,7 +105,7 @@ Euler< Problem, SolverMonitor >::solve( DofVectorPointer& u )
       if( currentTau + time == this->stopTime )
          this->setResidue( lastResidue );
       time += currentTau;
-      this->problem->applyBoundaryConditions( time, u );
+      //this->problem->applyBoundaryConditions( time, u );
 
       if( ! this->nextIteration() )
          return this->checkConvergence();
@@ -131,18 +132,18 @@ Euler< Problem, SolverMonitor >::solve( DofVectorPointer& u )
    }
 };
 
-template< typename Problem, typename SolverMonitor >
+template< typename Vector, typename SolverMonitor >
 void
-Euler< Problem, SolverMonitor >::computeNewTimeLevel( DofVectorPointer& u, RealType tau, RealType& currentResidue )
+Euler< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, RealType tau, RealType& currentResidue )
 {
    RealType localResidue = RealType( 0.0 );
-   const IndexType size = k1->getSize();
-   RealType* _u = u->getData();
-   RealType* _k1 = k1->getData();
+   const IndexType size = k1.getSize();
+   RealType* _u = u.getData();
+   RealType* _k1 = k1.getData();
 
    if( std::is_same< DeviceType, Devices::Host >::value ) {
 #ifdef HAVE_OPENMP
-#pragma omp parallel for reduction(+:localResidue) firstprivate( _u, _k1, tau ) if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for reduction( + : localResidue ) firstprivate( _u, _k1, tau ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ ) {
          const RealType add = tau * _k1[ i ];
@@ -159,15 +160,14 @@ Euler< Problem, SolverMonitor >::computeNewTimeLevel( DofVectorPointer& u, RealT
       const IndexType threadsPerGrid = Backend::getMaxGridXSize() * cudaBlockSize.x;
 
       localResidue = 0.0;
-      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType sharedMemory = cudaBlockSize.x * sizeof( RealType );
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
          const IndexType currentGridSize = Backend::getNumberOfBlocks( currentSize, cudaBlockSize.x );
 
-         updateUEuler<<< currentGridSize, cudaBlockSize,
-            sharedMemory >>>(
-               currentSize, tau, &_k1[ gridOffset ], &_u[ gridOffset ], this->cudaBlockResidue.getData() );
+         updateUEuler< < < currentGridSize, cudaBlockSize, sharedMemory > > >(
+            currentSize, tau, &_k1[ gridOffset ], &_u[ gridOffset ], this->cudaBlockResidue.getData() );
          localResidue += sum( this->cudaBlockResidue );
          cudaDeviceSynchronize();
          TNL_CHECK_CUDA_DEVICE;

@@ -14,17 +14,15 @@
 namespace TNL {
 namespace Benchmarks {
 
-template< typename Problem,
-          typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Problem::RealType, typename Problem::IndexType > >
-class Euler : public Solvers::ODE::ExplicitSolver< Problem, SolverMonitor >
+template< typename Vector,
+          typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
+class Euler : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
-public:
-   using ProblemType = Problem;
-   using DofVectorType = typename Problem::DofVectorType;
-   using RealType = typename Problem::RealType;
-   using DeviceType = typename Problem::DeviceType;
-   using IndexType = typename Problem::IndexType;
-   using DofVectorPointer = Pointers::SharedPointer< DofVectorType, DeviceType >;
+   public:
+   using DofVectorType = Vector;
+   using RealType = typename Vector::RealType;
+   using DeviceType = typename Vector::DeviceType;
+   using IndexType = typename Vector::IndexType;
    using VectorOperations = CommonVectorOperations< DeviceType >;
 
    Euler();
@@ -41,18 +39,21 @@ public:
    const RealType&
    getCFLCondition() const;
 
+   template< typename RHSFunction >
    bool
-   solve( DofVectorPointer& u );
+   solve( DofVectorType& u, RHSFunction&& rhsFunction );
 
-protected:
-   void
-   computeNewTimeLevel( DofVectorPointer& u, RealType tau, RealType& currentResidue );
 
-   DofVectorPointer k1;
+   protected:
+   void computeNewTimeLevel( DofVectorType& u,
+                             RealType tau,
+                             RealType& currentResidue );
+
+   DofVectorType k1;
 
    RealType cflCondition;
 
-   //Timer timer, updateTimer;
+   DofVectorType cudaBlockResidue;
 };
 
 }  // namespace Benchmarks

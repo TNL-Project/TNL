@@ -1,0 +1,4 @@
+
+#!/bin/bash
+
+tnl-benchmark-ode-solvers --precision double --device all

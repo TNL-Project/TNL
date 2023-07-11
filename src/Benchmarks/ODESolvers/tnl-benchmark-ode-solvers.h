@@ -20,8 +20,7 @@
 #include <TNL/Solvers/ODE/Merson.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
-#include "benchmarks.h"
-#include "SimpleProblem.h"
+#include "ODESolversBenchmarkResult.h"
 #include "Euler.h"
 #include "Merson.h"
 
@@ -33,101 +32,127 @@ template< typename Real, typename Index >
 void
 benchmarkODESolvers( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, size_t dofs )
 {
-   using HostVectorType = Containers::Vector< Real, Devices::Host, Index >;
-   using CudaVectorType = Containers::Vector< Real, Devices::Cuda, Index >;
-   using HostVectorPointer = Pointers::SharedPointer< HostVectorType >;
-   using CudaVectorPointer = Pointers::SharedPointer< CudaVectorType >;
-   using HostProblem = SimpleProblem< Real, Devices::Host, Index >;
-   using CudaProblem = SimpleProblem< Real, Devices::Cuda, Index >;
-   using SolverMonitorType = typename Benchmark<>::SolverMonitorType;
-
-   const auto& solvers = parameters.getList< String >( "solvers" );
-   for( auto&& solver : solvers ) {
-      HostVectorPointer host_u( dofs );
-      *host_u = 0.0;
-#ifdef __CUDACC__
-      CudaVectorPointer cuda_u( dofs );
-      *cuda_u = 0.0;
-#endif
-      if( solver == "euler" || solver == "all" ) {
-         using HostSolver = Solvers::ODE::Euler< HostProblem, SolverMonitorType >;
-         benchmark.setOperation( "Euler" );
-         benchmarkSolver< HostSolver >( benchmark, parameters, host_u );
-         using HostSolverNonET = Benchmarks::Euler< HostProblem, SolverMonitorType >;
-         benchmark.setOperation( "Euler non-ET" );
-         benchmarkSolver< HostSolverNonET >( benchmark, parameters, host_u );
-#ifdef __CUDACC__
-         using CudaSolver = Solvers::ODE::Euler< CudaProblem, SolverMonitorType >;
-         benchmark.setOperation( "Euler" );
-         benchmarkSolver< CudaSolver >( benchmark, parameters, cuda_u );
-         using CudaSolverNonET = Benchmarks::Euler< CudaProblem, SolverMonitorType >;
-         benchmark.setOperation( "Euler non-ET" );
-         benchmarkSolver< CudaSolverNonET >( benchmark, parameters, cuda_u );
-#endif
-      }
-
-      if( solver == "merson" || solver == "all" ) {
-         using HostSolver = Solvers::ODE::Merson< HostProblem, SolverMonitorType >;
-         benchmark.setOperation( "Merson" );
-         benchmarkSolver< HostSolver >( benchmark, parameters, host_u );
-         using HostSolverNonET = Benchmarks::Merson< HostProblem, SolverMonitorType >;
-         benchmark.setOperation( "Merson non-ET" );
-         benchmarkSolver< HostSolverNonET >( benchmark, parameters, host_u );
-#ifdef __CUDACC__
-         using CudaSolver = Solvers::ODE::Merson< CudaProblem, SolverMonitorType >;
-         benchmark.setOperation( "Merson" );
-         benchmarkSolver< CudaSolver >( benchmark, parameters, cuda_u );
-         using CudaSolverNonET = Benchmarks::Merson< CudaProblem, SolverMonitorType >;
-         benchmark.setOperation( "Merson non-ET" );
-         benchmarkSolver< CudaSolverNonET >( benchmark, parameters, cuda_u );
-#endif
-      }
-   }
 }
 
-template< typename Real, typename Index >
+template< typename Real, typename Device, typename Index >
 struct ODESolversBenchmark
 {
    using RealType = Real;
+   using DeviceType = Device;
    using IndexType = Index;
-   using VectorType = Containers::Vector< RealType, Devices::Host, IndexType >;
-   using VectorPointer = Pointers::SharedPointer< VectorType >;
+   using VectorType = Containers::Vector< RealType, DeviceType, IndexType >;
+   using VectorView = typename VectorType::ViewType;
+   using SolverMonitorType = typename Benchmark<>::SolverMonitorType;
+
+   template< typename SolverType >
+   static bool
+   benchmarkSolver( Benchmark<>& benchmark,
+                    const Config::ParameterContainer& parameters,
+                    const char* solverName )
+   {
+      std::string device = "host";
+      if( std::is_same< DeviceType, Devices::Cuda >::value ) {
+         device = "cuda";
+      }
+
+      SolverType solver;
+      if constexpr( std::is_same< SolverType, TNL::Solvers::ODE::Merson< VectorType, SolverMonitorType > >::value ||
+                    std::is_same< SolverType, TNL::Benchmarks::Merson< VectorType, SolverMonitorType > >::value ) {
+         solver.setAdaptivity( 0.0 );
+      }
+      RealType tau = 0.1;
+      std::size_t dofs = parameters.getParameter< int >( "size" );
+      VectorType u( dofs, 0.0 );
+      ODESolversBenchmarkResult< RealType, DeviceType, IndexType > benchmarkResult( 1.0, u );
+      for( int eoc_steps = 0; eoc_steps < 5; eoc_steps++ ) {
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< RealType >() },
+                                                             { "index type", TNL::getType< IndexType >() },
+                                                             { "solver", std::string( solverName ) },
+                                                             { "DOFs", convertToString( dofs ) }
+                                                           } ) );
+         solver.setTime( 0.0 );
+         solver.setTau( tau );
+         solver.setStopTime( 1.0 );
+         u = 0;
+         std::size_t iterations = 1.0 / tau + 1;
+         benchmark.setDatasetSize( dofs * sizeof( RealType ) * iterations );
+         auto problem = [=] ( const RealType& t, const RealType& tau, const VectorView& u_view, VectorView& fu_view ) {
+            auto computeF = [=] __cuda_callable__ ( IndexType i ) mutable {
+               fu_view[ i ] = 6.0 * TNL::pow( t, 5.0 );
+            };
+            Algorithms::parallelFor< DeviceType >( 0, u_view.getSize(), computeF );
+         };
+         auto solve = [&]() { solver.solve( u, problem ); };
+         benchmark.time< Devices::Host >( device, solve, benchmarkResult );
+         tau /= 2.0;
+      }
+      return true;
+   }
 
    static bool
    run( Benchmark<>& benchmark, const Config::ParameterContainer& parameters )
    {
-      const String title = ( TNL::MPI::GetSize() > 1 ) ? "Distributed ODE solvers" : "ODE solvers";
-      std::cout << "\n== " << title << " ==\n" << std::endl;
-
-      for( size_t dofs = 25; dofs <= 10000000; dofs *= 2 ) {
-         benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-            { "precision", getType< Real >() },
-            { "DOFs", convertToString( dofs ) },
-         } ) );
-
-         benchmarkODESolvers< Real, Index >( benchmark, parameters, dofs );
+      const auto& solvers = parameters.getList< String >( "solvers" );
+      for( auto&& solver : solvers )
+      {
+         if( solver == "euler" || solver == "all" ) {
+            using Solver = Solvers::ODE::Euler< VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Euler" );
+            using SolverNonET = Benchmarks::Euler< VectorType, SolverMonitorType >;
+            benchmarkSolver< SolverNonET >( benchmark, parameters, "Euler non-ET" );
+         }
+         if( solver == "merson" || solver == "all" ) {
+            using Solver = Solvers::ODE::Merson< VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Merson" );
+            using SolverNonET = Benchmarks::Merson< VectorType, SolverMonitorType >;
+            benchmarkSolver< SolverNonET >( benchmark, parameters, "Merson non-ET");
+         }
       }
       return true;
    }
 };
 
-template< typename Real >
-bool
-resolveIndexType( Benchmark<>& benchmark, Config::ParameterContainer& parameters )
+template< typename Real, typename Device >
+bool resolveIndexType( Benchmark<>& benchmark,
+                       Config::ParameterContainer& parameters )
 {
    const String& index = parameters.getParameter< String >( "index-type" );
-   if( index == "int" )
-      return ODESolversBenchmark< Real, int >::run( benchmark, parameters );
-   return ODESolversBenchmark< Real, long int >::run( benchmark, parameters );
+   if( index == "int" && ! ODESolversBenchmark< Real, Device, int >::run( benchmark, parameters ) )
+      return false;
+   if( index == "long int" && ! ODESolversBenchmark< Real, Device, long int >::run( benchmark, parameters ) )
+      return false;
+   return true;
+}
+
+template< typename Real >
+bool resolveDeviceType( Benchmark<>& benchmark,
+                        Config::ParameterContainer& parameters )
+{
+   const String& device = parameters.getParameter< String >( "device" );
+   if( ( device == "host" || device == "all" ) && ! resolveIndexType< Real, Devices::Host >( benchmark, parameters ) )
+      return false;
+   if( device == "cuda" || device == "all" ) {
+#ifdef __CUDACC__
+      if( ! resolveIndexType< Real, Devices::Cuda >( benchmark, parameters ) )
+         return false;
+#else
+      std::cerr << "CUDA support not compiled in." << std::endl;
+      return false;
+#endif
+   }
+   return true;
 }
 
 bool
 resolveRealTypes( Benchmark<>& benchmark, Config::ParameterContainer& parameters )
 {
-   const String& realType = parameters.getParameter< String >( "real-type" );
-   if( ( realType == "float" || realType == "all" ) && ! resolveIndexType< float >( benchmark, parameters ) )
+   const String& realType = parameters.getParameter< String >( "precision" );
+   if( ( realType == "float" || realType == "all" ) &&
+       ! resolveDeviceType< float >( benchmark, parameters ) )
       return false;
-   if( ( realType == "double" || realType == "all" ) && ! resolveIndexType< double >( benchmark, parameters ) )
+   if( ( realType == "double" || realType == "all" ) &&
+       ! resolveDeviceType< double >( benchmark, parameters ) )
       return false;
    return true;
 }
@@ -146,13 +171,18 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum< String >( "euler" );
    config.addEntryEnum< String >( "merson" );
    config.addEntryEnum< String >( "all" );
-   config.addEntry< String >( "real-type", "Run benchmarks with given precision.", "all" );
-   config.addEntryEnum< String >( "float" );
-   config.addEntryEnum< String >( "double" );
-   config.addEntryEnum< String >( "all" );
+   config.addEntry< String >( "device", "Run benchmarks using given device.", "host" );
+   config.addEntryEnum( "host" );
+   config.addEntryEnum( "cuda" );
+   config.addEntryEnum( "all" );
+   config.addEntry< String >( "precision", "Precision of the arithmetics.", "double" );
+   config.addEntryEnum( "float" );
+   config.addEntryEnum( "double" );
+   config.addEntryEnum( "all" );
    config.addEntry< String >( "index-type", "Run benchmarks with given index type.", "int" );
    config.addEntryEnum< String >( "int" );
    config.addEntryEnum< String >( "long int" );
+   config.addEntry< int >( "size", "Size of the ODE system (all ODEs are the same).", 1<<20 );
    config.addEntry< double >( "final-time", "Final time of the benchmark test.", 1.0 );
    config.addEntry< double >( "time-step", "Time step of the benchmark test.", 1.0e-2 );
 
@@ -163,9 +193,9 @@ configSetup( Config::ConfigDescription& config )
 
    config.addDelimiter( "ODE solver settings:" );
    Solvers::IterativeSolver< double, int >::configSetup( config );
-   using Problem = SimpleProblem< double, Devices::Host, int >;
-   Solvers::ODE::Euler< Problem >::configSetup( config );
-   Solvers::ODE::Merson< Problem >::configSetup( config );
+   using Vector = TNL::Containers::Vector< int>;
+   Solvers::ODE::Euler< Vector >::configSetup( config );
+   Solvers::ODE::Merson< Vector >::configSetup( config );
 }
 
 int

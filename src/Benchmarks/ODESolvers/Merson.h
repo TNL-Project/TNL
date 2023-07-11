@@ -12,17 +12,15 @@
 namespace TNL {
 namespace Benchmarks {
 
-template< class Problem,
-          typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Problem::RealType, typename Problem::IndexType > >
-class Merson : public Solvers::ODE::ExplicitSolver< Problem, SolverMonitor >
+template< typename Vector,
+          typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
+class Merson : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
 public:
-   using ProblemType = Problem;
-   using DofVectorType = typename Problem::DofVectorType;
-   using RealType = typename Problem::RealType;
-   using DeviceType = typename Problem::DeviceType;
-   using IndexType = typename Problem::IndexType;
-   using DofVectorPointer = Pointers::SharedPointer< DofVectorType, DeviceType >;
+   using DofVectorType = Vector;
+   using RealType = typename Vector::RealType;
+   using DeviceType = typename Vector::DeviceType;
+   using IndexType = typename Vector::IndexType;
    using VectorOperations = CommonVectorOperations< DeviceType >;
 
    Merson();
@@ -36,29 +34,34 @@ public:
    void
    setAdaptivity( const RealType& a );
 
-   bool
-   solve( DofVectorPointer& u );
+   template< typename RHSFunction >
+   bool solve( DofVectorType& u, RHSFunction&& rhsFunction );
 
-protected:
+   protected:
+
    //! Compute the Runge-Kutta coefficients
    /****
     * The parameter u is not constant because one often
     * needs to correct u on the boundaries to be able to compute
     * the RHS.
     */
-   void
-   computeKFunctions( DofVectorPointer& u, const RealType& time, RealType tau );
+   template< typename RHSFunction >
+   void computeKFunctions( DofVectorType& u,
+                           const RealType& time,
+                           RealType tau,
+                           RHSFunction&& rhsFunction );
 
    RealType
    computeError( const RealType tau );
 
-   void
-   computeNewTimeLevel( const RealType time, const RealType tau, DofVectorPointer& u, RealType& currentResidue );
+   void computeNewTimeLevel( const RealType time,
+                             const RealType tau,
+                             DofVectorType& u,
+                             RealType& currentResidue );
 
-   void
-   writeGrids( const DofVectorPointer& u );
+   void writeGrids( const DofVectorType& u );
 
-   DofVectorPointer k1, k2, k3, k4, k5, kAux;
+   DofVectorType k1, k2, k3, k4, k5, kAux;
 
    /****
     * This controls the accuracy of the solver
@@ -66,6 +69,8 @@ protected:
    RealType adaptivity;
 
    Containers::Vector< RealType, DeviceType, IndexType > openMPErrorEstimateBuffer;
+
+   DofVectorType cudaBlockResidue;
 };
 
 }  // namespace Benchmarks

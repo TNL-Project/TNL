@@ -26,7 +26,7 @@ template< typename Vector, typename SolverMonitor >
 bool
 Merson< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
-   ExplicitSolver< Vector, SolverMonitor >::setup( parameters, prefix );
+   ExplicitSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "merson-adaptivity" ) )
       this->setAdaptivity( parameters.getParameter< double >( prefix + "merson-adaptivity" ) );
    return true;
