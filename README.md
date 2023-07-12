@@ -7,8 +7,9 @@ efficient numerical solvers. It is implemented in C++ using modern programming
 paradigms in order to provide flexible and user friendly interface. TNL provides
 native support for modern hardware architectures such as multicore CPUs, GPUs,
 and distributed systems, which can be managed via a unified interface.
+Visit the main [TNL web page](https://tnl-project.org/) for details.
 
-# TNL components
+## Components
 
 TNL also provides several optional components:
 
@@ -33,13 +34,13 @@ These components can be individually enabled or disabled and installed by a
 convenient `install` script. See the [Installation][installation] section in
 the documentation for details.
 
-# Documentation
+## Documentation
 
 See the [full documentation][full documentation] for information about:
 
 - [installation instructions][installation],
 - [usage hints][usage],
-- [User's guide][UsersGuide],
+- [Users' guide][UsersGuide],
 - [API reference manual][API],
 
 and other documented topics.
@@ -50,7 +51,7 @@ and other documented topics.
 [UsersGuide]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/UsersGuide.html
 [API]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/annotated.html
 
-# Getting involved
+## Getting involved
 
 The TNL project welcomes and encourages participation by everyone. While most of the work for TNL
 involves programming in principle, we value and encourage contributions even from people proficient
@@ -77,7 +78,7 @@ Before contributing, please get accustomed with the [code of conduct][code of co
 [code of conduct]: CODE_OF_CONDUCT.md
 [contact]: https://tnl-project.org/#contact
 
-# Citing
+## Citing
 
 If you use TNL in your scientific projects, please cite the following papers in
 your publications:
@@ -88,13 +89,13 @@ your publications:
   distributed conforming unstructured homogeneous meshes with GPU support](
   https://doi.org/10.1145/3536164), ACM Transactions on Mathematical Software, 2022, 48(3), 1-33.
 
-# Authors
+## Authors
 
 See the [list of team members](https://tnl-project.org/about/) on our website.
 The [overview of contributions](https://gitlab.com/tnl-project/tnl/-/graphs/main)
 can be viewed on GitLab.
 
-# License
+## License
 
 Template Numerical Library is provided under the terms of the [MIT License](
 https://gitlab.com/tnl-project/tnl/blob/main/LICENSE).

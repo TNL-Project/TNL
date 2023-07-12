@@ -11,7 +11,7 @@ TNL offers several types of matrices like dense (\ref TNL::Matrices::DenseMatrix
 
 ### Overview of matrix types
 
-\anchor overview-of-matrix-types
+\anchor ug_matrices_overview-of-matrix-types
 
 In a lot of numerical algorithms either dense or sparse matrices are used. The dense matrix (\ref TNL::Matrices::DenseMatrix) is such that all or at least most of its matrix elements are nonzero. On the other hand [sparse matrix](https://en.wikipedia.org/wiki/Sparse_matrix) (\ref TNL::Matrices::SparseMatrix) is a matrix which has most of the matrix elements equal to zero. From the implementation point of view, the data structures for the dense matrices allocates all matrix elements while formats for the sparse matrices aim to store explicitly only the nonzero matrix elements. The most popular format for storing the sparse matrices is [CSR format](https://en.wikipedia.org/wiki/Sparse_matrix#Compressed_sparse_row_(CSR,_CRS_or_Yale_format)). However, especially for better data alignment in memory of GPUs, many other formats were designed. In TNL, the user may choose between several different sparse matrix formats. There are also sparse matrices with specific pattern of the nonzero elements like [tridiagonal matrices](https://en.wikipedia.org/wiki/Tridiagonal_matrix) (\ref TNL::Matrices::TridiagonalMatrix) which "has nonzero elements on the main diagonal, the first diagonal below this, and the first diagonal above the main diagonal only". An example of such matrix may look as follows:
 
@@ -448,7 +448,7 @@ Here we create dense matrix having three rows and four columns. We use TNL vecto
 
 ### Sparse matrices
 
-[Sparse matrices](https://en.wikipedia.org/wiki/Sparse_matrix) are extremely important in a lot of numerical algorithms. They are used at situations when we need to operate with matrices having majority of the matrix elements equal to zero. In this case, only the non-zero matrix elements are stored with possibly some *padding zeros* used for memory alignment. This is necessary mainly on GPUs. See the [Overview of matrix types](#overview-of-matrix-types) for the differences in memory requirements.
+[Sparse matrices](https://en.wikipedia.org/wiki/Sparse_matrix) are extremely important in a lot of numerical algorithms. They are used at situations when we need to operate with matrices having majority of the matrix elements equal to zero. In this case, only the non-zero matrix elements are stored with possibly some *padding zeros* used for memory alignment. This is necessary mainly on GPUs. See the [Overview of matrix types](#ug_matrices_overview-of-matrix-types) for the differences in memory requirements.
 
 Major disadvantage of sparse matrices is that there are a lot of different formats for their storage in memory. Though [CSR (Compressed Sparse Row)](https://en.wikipedia.org/wiki/Sparse_matrix#Compressed_sparse_row_(CSR,_CRS_or_Yale_format)) format is the most popular of all, especially for GPUs, there are many other formats. Often their performance differ significantly for various matrices. So it is a good idea to test several sparse matrix formats if you want to get the best performance. In TNL, there is one templated class \ref TNL::Matrices::SparseMatrix representing general sparse matrices. The change of underlying matrix format can be done just by changing one template parameter. The list of the template parameters is as follows:
 

@@ -175,33 +175,34 @@ Note that [CMake](https://cmake.org/) 3.24 or later is required when using the
 
 ## Usage   {#usage}
 
-For the development, TNL can be used in some of the following ways.
+The following shows some of the most convenient ways to use TNL.
 
 ### Wrapper tnlcxx
 
-`tnlcxx` is a wrapper which manages compiler set-up in situations when we need
-to compile only one source file (which may include additional header files, of course).
-The wrapper is available at separate [git repository](https://gitlab.com/tnl-project/tnlcxx).
+`tnlcxx` is a wrapper which configures the build system (CMake) for simple situations where
+the user needs to compile only one `.cpp` or `.cu` source file. The wrapper is available in a
+separate [git repository](https://gitlab.com/tnl-project/tnlcxx).
 
 ### CMake projects
-Especially for larger projects, use the CMake build system is the recomened option.
-There are two ways how to set-up TNL with CMake:
+
+There are two ways to incorporate TNL in a [CMake](https://cmake.org/)-based project:
 
 1. Install TNL system-wide or in your user home directory where CMake can find
    it, and use `find_package(TNL)` in your project.
 2. Add a git submodule for TNL to your project and include it with
    `add_subdirectory(libs/tnl)` in the `CMakeLists.txt` file.
 
-See also our [example projects](https://gitlab.com/tnl-project/example-projects).
+See the [example projects](https://gitlab.com/tnl-project/example-projects) for details.
 
 ### Makefile projects
-To build TNL based projects with `make` or to incorporate TNL into existing projects we reffer
-to our [example projects](https://gitlab.com/tnl-project/example-projects) and also to the following
-section explaining necessary set-up of compiler flags.
 
-### C++ compiler flags
+To incorporate TNL into an existing project using [GNU Make](https://www.gnu.org/software/make/)
+as the build system, see the `Makefile` and `config.mk` files in the relevant
+[example project](https://gitlab.com/tnl-project/example-projects/makefile).
+The compiler flags used in the example project are explained in the following section.
 
-#### Basic setup of compiler flags
+### Important C++ compiler flags
+
 - Enable the C++17 standard: `-std=c++17`
 - Configure the include path: `-I /path/to/include`
     - If you installed TNL with the install script, the include path is
@@ -223,7 +224,7 @@ section explaining necessary set-up of compiler flags.
   file for flags that we use when developing TNL (there are flags for e.g.
   hiding some useless compiler warnings).
 
-#### Compiler flags for parallel computing
+### Compiler flags for parallel computing
 
 Parallel computing platforms in TNL may be enabled automatically when using the
 appropriate compiler, or additional compiler flags may be needed.

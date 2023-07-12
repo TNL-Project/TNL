@@ -1,4 +1,4 @@
-\page UsersGuide User's Guide
+\page UsersGuide Users' Guide
 
 # Table of Content
 
