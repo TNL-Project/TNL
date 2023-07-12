@@ -37,6 +37,8 @@ if( TNL_BUILD_MPI )
             DistributedNDArrayOverlaps_semi1D_test
             DistributedNDArray_2D_test
             DistributedNDArrayOverlaps_2D_test
+            DistributedNDArray_3D_test
+            DistributedNDArrayOverlaps_3D_test
    )
    if( TNL_BUILD_CUDA )
       foreach( target IN ITEMS ${MPI_TESTS} )
@@ -61,7 +63,7 @@ if( TNL_BUILD_MPI )
       # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
       target_link_libraries( ${target} PUBLIC MPI::MPI_CXX )
 
-      add_test_mpi( NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
+      add_test_mpi( NAME ${target} NPROC 12 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
       add_test_mpi( NAME ${target}_nodistr NPROC 1 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
    endforeach()
 endif()
