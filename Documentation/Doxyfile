@@ -790,7 +790,7 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT += Pages
-INPUT += Tutorials
+INPUT += UsersGuide
 INPUT += ../src/TNL
 
 # This tag can be used to specify the character encoding of the source files
@@ -899,9 +899,9 @@ EXCLUDE_PATTERNS       = */Debugging/* \
 # skip 3rd-party files
 EXCLUDE_PATTERNS += */3rdparty/*
 # skip documentation in code snippets
-EXCLUDE_PATTERNS += */Tutorials/*.h
-EXCLUDE_PATTERNS += */Tutorials/*.cpp
-EXCLUDE_PATTERNS += */Tutorials/*.cu
+EXCLUDE_PATTERNS += */UsersGuide/*.h
+EXCLUDE_PATTERNS += */UsersGuide/*.cpp
+EXCLUDE_PATTERNS += */UsersGuide/*.cu
 
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
@@ -922,7 +922,7 @@ EXCLUDE_SYMBOLS += TNL::Assert::*  # internal namespace
 # command).
 
 EXAMPLE_PATH += Examples
-EXAMPLE_PATH += Tutorials
+EXAMPLE_PATH += UsersGuide
 EXAMPLE_PATH += $(OUTPUT_SNIPPETS_PATH)
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the

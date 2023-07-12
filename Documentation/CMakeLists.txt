@@ -8,7 +8,7 @@ if( TNL_BUILD_DOC )
 
    # add subdirectories that contain code examples included in the documentation
    add_subdirectory( Examples )
-   add_subdirectory( Tutorials )
+   add_subdirectory( UsersGuide )
 
    # extract the version string during the configure step
    execute_process( COMMAND ${CMAKE_SOURCE_DIR}/scripts/get-version
@@ -22,7 +22,7 @@ if( TNL_BUILD_DOC )
    file( GLOB_RECURSE TNL_DOC_INPUT_FILES
          ${CMAKE_SOURCE_DIR}/src/TNL/*
          ${CMAKE_SOURCE_DIR}/Documentation/Examples/*
-         ${CMAKE_SOURCE_DIR}/Documentation/Tutorials/*
+         ${CMAKE_SOURCE_DIR}/Documentation/UsersGuide/*
    )
 
    # the documentation cannot be built without warnings when CUDA is disabled
