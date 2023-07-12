@@ -10,6 +10,7 @@
 #include <array>
 
 #include <TNL/DiscreteMath.h>
+#include <TNL/Containers/Block.h>
 
 namespace TNL::Containers {
 
@@ -160,5 +161,42 @@ static constexpr std::array< SyncDirection, 26 > D3Q27 = {
 };
 
 }  // namespace NDArraySyncPatterns
+
+/**
+ * \brief Selects a vertex of a block based on a direction from its center.
+ *
+ * \param block is the block.
+ * \param direction is the direction from the center of the block to one of
+ *                  its vertices.
+ * \returns coordinates of the block vertex.
+ * \throws std::invalid_argument when the direction does not point to a
+ *         vertex. E.g., \ref SyncDirection::BackBottomLeft is valid, but
+ *         \ref SyncDirection::TopRight or \ref SyncDirection::Left are not.
+ */
+template< int D, typename Index >
+typename Block< D, Index >::CoordinatesType
+getBlockVertex( const Block< D, Index >& block, SyncDirection direction )
+{
+   switch( direction ) {
+      case SyncDirection::BackBottomLeft:
+         return block.begin;
+      case SyncDirection::BackBottomRight:
+         return { block.end.x(), block.begin.y(), block.begin.z() };
+      case SyncDirection::BackTopLeft:
+         return { block.begin.x(), block.end.y(), block.begin.z() };
+      case SyncDirection::BackTopRight:
+         return { block.end.x(), block.end.y(), block.begin.z() };
+      case SyncDirection::FrontBottomLeft:
+         return { block.begin.x(), block.begin.y(), block.end.z() };
+      case SyncDirection::FrontBottomRight:
+         return { block.end.x(), block.begin.y(), block.end.z() };
+      case SyncDirection::FrontTopLeft:
+         return { block.begin.x(), block.end.y(), block.end.z() };
+      case SyncDirection::FrontTopRight:
+         return block.end;
+      default:
+         throw std::invalid_argument( "Invalid direction: " + std::to_string( static_cast< std::uint8_t >( direction ) ) );
+   }
+}
 
 }  // namespace TNL::Containers

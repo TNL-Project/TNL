@@ -45,7 +45,8 @@ private:
    }
 
    using DistributedNDArrayView = typename DistributedNDArray::ViewType;
-   using Buffers = std::map< SyncDirection, detail::SynchronizerBuffers< DistributedNDArray > >;
+   using Buffer = detail::SynchronizerBuffers< DistributedNDArray >;
+   using Buffers = std::map< SyncDirection, Buffer >;
 
    DistributedNDArrayView array_view;
    SyncDirection mask = SyncDirection::All;
@@ -122,41 +123,89 @@ public:
       buffers.at( direction ).stream_id = stream_id;
    }
 
-   // TODO: update for multidimensional decomposition (if it makes sense)
-   // special thing for the A-A pattern in LBM
+   /**
+    * \brief Sets the send and receive offsets for all buffer objects.
+    *
+    * This is primarily an internal function, but applications that require
+    * special communication patterns (e.g. the A-A pattern in LBM) can use
+    * it to adjust the behavior.
+    *
+    * \param shift determines by how many cells the offsets are shifted in
+    *              the direction configured for the buffer.
+    */
    void
-   setBuffersShift( int shift )
+   setBufferOffsets( int shift = 0 )
    {
-      constexpr int dim = getFirstDimensionWithOverlap();
-      constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
-      if( overlap == 0 )
-         return;
+      constexpr int dim0 = getDimensionWithOverlap< 0 >();
+      constexpr int overlap0 = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim0 >();
 
-      using LocalBegins = typename DistributedNDArray::LocalBeginsType;
-      using SizesHolder = typename DistributedNDArray::SizesHolderType;
-      const LocalBegins& localBegins = array_view.getLocalBegins();
-      const SizesHolder& localEnds = array_view.getLocalEnds();
+      const auto& localBegins = array_view.getLocalBegins();
+      const auto& localEnds = array_view.getLocalEnds();
 
-      auto& buffer_left = buffers.at( SyncDirection::Left );
-      auto& buffer_right = buffers.at( SyncDirection::Right );
+      for( auto& [ direction, buffer ] : buffers ) {
+         // initialize offsets (local indexing for the local array)
+         buffer.send_offsets = {};
+         buffer.recv_offsets = {};
 
-      // offsets for left-send (local indexing for the local array)
-      buffer_left.send_offsets = LocalBegins{};
-      buffer_left.send_offsets.template setSize< dim >( -shift );
-
-      // offsets for left-receive (local indexing for the local array)
-      buffer_left.recv_offsets = LocalBegins{};
-      buffer_left.recv_offsets.template setSize< dim >( -overlap + shift );
-
-      // offsets for right-send (local indexing for the local array)
-      buffer_right.send_offsets = LocalBegins{};
-      buffer_right.send_offsets.template setSize< dim >( localEnds.template getSize< dim >()
-                                                         - localBegins.template getSize< dim >() - overlap + shift );
-
-      // offsets for right-receive (local indexing for the local array)
-      buffer_right.recv_offsets = LocalBegins{};
-      buffer_right.recv_offsets.template setSize< dim >( localEnds.template getSize< dim >()
-                                                         - localBegins.template getSize< dim >() - shift );
+         if( ( direction & SyncDirection::Left ) != SyncDirection::None ) {
+            buffer.send_offsets.template setSize< dim0 >( -shift );
+            buffer.recv_offsets.template setSize< dim0 >( -overlap0 + shift );
+         }
+         if( ( direction & SyncDirection::Right ) != SyncDirection::None ) {
+            buffer.send_offsets.template setSize< dim0 >( localEnds.template getSize< dim0 >()
+                                                          - localBegins.template getSize< dim0 >() - overlap0 + shift );
+            buffer.recv_offsets.template setSize< dim0 >( localEnds.template getSize< dim0 >()
+                                                          - localBegins.template getSize< dim0 >() - shift );
+         }
+         if( ( direction & SyncDirection::Bottom ) != SyncDirection::None ) {
+            if constexpr( countDimensionsWithOverlap() >= 2 ) {
+               constexpr int dim1 = getDimensionWithOverlap< 1 >();
+               constexpr int overlap1 = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim1 >();
+               buffer.send_offsets.template setSize< dim1 >( -shift );
+               buffer.recv_offsets.template setSize< dim1 >( -overlap1 + shift );
+            }
+            else
+               throw std::logic_error( "trying to use buffers for SyncDirection::Bottom, but the distributed array has "
+                                       "only 1 dimension with overlap" );
+         }
+         if( ( direction & SyncDirection::Top ) != SyncDirection::None ) {
+            if constexpr( countDimensionsWithOverlap() >= 2 ) {
+               constexpr int dim1 = getDimensionWithOverlap< 1 >();
+               constexpr int overlap1 = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim1 >();
+               buffer.send_offsets.template setSize< dim1 >( localEnds.template getSize< dim1 >()
+                                                             - localBegins.template getSize< dim1 >() - overlap1 + shift );
+               buffer.recv_offsets.template setSize< dim1 >( localEnds.template getSize< dim1 >()
+                                                             - localBegins.template getSize< dim1 >() - shift );
+            }
+            else
+               throw std::logic_error( "trying to use buffers for SyncDirection::Top, but the distributed array has "
+                                       "only 1 dimension with overlap" );
+         }
+         if( ( direction & SyncDirection::Back ) != SyncDirection::None ) {
+            if constexpr( countDimensionsWithOverlap() == 3 ) {
+               constexpr int dim2 = getDimensionWithOverlap< 2 >();
+               constexpr int overlap2 = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim2 >();
+               buffer.send_offsets.template setSize< dim2 >( -shift );
+               buffer.recv_offsets.template setSize< dim2 >( -overlap2 + shift );
+            }
+            else
+               throw std::logic_error( "trying to use buffers for SyncDirection::Back, but the distributed array has "
+                                       "only 1 or 2 dimensions with overlap" );
+         }
+         if( ( direction & SyncDirection::Front ) != SyncDirection::None ) {
+            if constexpr( countDimensionsWithOverlap() == 3 ) {
+               constexpr int dim2 = getDimensionWithOverlap< 2 >();
+               constexpr int overlap2 = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim2 >();
+               buffer.send_offsets.template setSize< dim2 >( localEnds.template getSize< dim2 >()
+                                                             - localBegins.template getSize< dim2 >() - overlap2 + shift );
+               buffer.recv_offsets.template setSize< dim2 >( localEnds.template getSize< dim2 >()
+                                                             - localBegins.template getSize< dim2 >() - shift );
+            }
+            else
+               throw std::logic_error( "trying to use buffers for SyncDirection::Front, but the distributed array has "
+                                       "only 1 or 2 dimensions with overlap" );
+         }
+      }
    }
 
    /**
@@ -306,7 +355,7 @@ public:
          this->mask = mask;
 
          // allocate buffers
-         allocateHelper( buffers, array_view, tag_offset );
+         allocateHelper();
       }
       else {
          // only bind to the actual data
@@ -323,7 +372,7 @@ public:
    void
    stage_1()
    {
-      copyHelper( buffers, array_view, true, mask );
+      copyHelper( true, mask );
    }
 
    // stage 2: issue all send and receive async operations
@@ -339,8 +388,31 @@ public:
 
       // issue all send and receive async operations
       requests.clear();
-      const MPI::Comm& communicator = array_view.getCommunicator();
-      sendHelper( buffers, requests, communicator, mask, sent_bytes, recv_bytes, sent_messages, recv_messages );
+      for( auto& [ _, buffer ] : buffers ) {
+         if( ( mask & buffer.direction ) != SyncDirection::None ) {
+            // negative rank and tag IDs are not valid according to the MPI standard and may be used by
+            // applications to skip communication, e.g. over the periodic boundary
+            if( buffer.neighbor >= 0 && buffer.tag_send >= 0 ) {
+               requests.push_back( MPI::Isend( buffer.send_view.getData(),
+                                               buffer.send_view.getStorageSize(),
+                                               buffer.neighbor,
+                                               buffer.tag_send,
+                                               array_view.getCommunicator() ) );
+               sent_bytes += buffer.send_view.getStorageSize() * sizeof( typename DistributedNDArray::ValueType );
+               ++sent_messages;
+            }
+            auto& opp_buffer = buffers.at( opposite( buffer.direction ) );
+            if( opp_buffer.neighbor >= 0 && opp_buffer.tag_recv >= 0 ) {
+               requests.push_back( MPI::Irecv( opp_buffer.recv_view.getData(),
+                                               opp_buffer.recv_view.getStorageSize(),
+                                               opp_buffer.neighbor,
+                                               opp_buffer.tag_recv,
+                                               array_view.getCommunicator() ) );
+               recv_bytes += opp_buffer.recv_view.getStorageSize() * sizeof( typename DistributedNDArray::ValueType );
+               ++recv_messages;
+            }
+         }
+      }
    }
 
    // stage 3: copy data from receive buffers
@@ -351,7 +423,7 @@ public:
       MPI::Waitall( requests.data(), requests.size() );
 
       // copy data from receive buffers
-      copyHelper( buffers, array_view, false, mask );
+      copyHelper( false, mask );
    }
 
    // stage 4: ensure everything has finished
@@ -381,79 +453,103 @@ protected:
       return count;
    }
 
+   static_assert( countDimensionsWithOverlap() > 0, "the distributed array must have at least one dimension with overlap" );
+   static_assert( countDimensionsWithOverlap() <= 3, "at most 3 dimensions with overlap are supported" );
+
+   template< std::size_t order >
    static constexpr int
-   getFirstDimensionWithOverlap()
+   getDimensionWithOverlap()
    {
-      int firstDim = DistributedNDArray::getDimension();
-      Algorithms::staticFor< std::size_t, 0, DistributedNDArray::getDimension() >(
+      static_assert( order < DistributedNDArray::getDimension() );
+
+      // In C++17, a constexpr function must not contain "a definition of a variable for which no initialization is performed".
+      // This restriction is removed in C++20. Until then, we initialize the array using a lambda.
+      // Reference: https://stackoverflow.com/a/56383882
+      std::array< int, order + 1 > dims = []
+      {
+         auto a = decltype( dims ){};
+         for( std::size_t i = 0; i <= order; i++ )
+            a[ i ] = DistributedNDArray::getDimension();
+         return a;
+      }();
+
+      std::size_t i = 0;
+      Algorithms::staticFor< int, 0, DistributedNDArray::getDimension() >(
          [ & ]( auto dim )
          {
             constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
-            if( overlap > 0 && dim < firstDim )
-               firstDim = dim;
+            if( overlap > 0 && i <= order && dim < dims[ i ] )
+               dims[ i++ ] = dim;
          } );
-      return firstDim;
+
+      return dims[ order ];
    }
 
-   static void
-   allocateHelper( Buffers& buffers, const DistributedNDArrayView& array_view, int tag_offset )
+   void
+   allocateHelper()
    {
-      constexpr int dim = getFirstDimensionWithOverlap();
-      constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
-      if( overlap == 0 )
-         return;
+      for( auto& [ direction, buffer ] : buffers ) {
+         const auto& localBegins = array_view.getLocalBegins();
+         const auto& localEnds = array_view.getLocalEnds();
 
-      using LocalBegins = typename DistributedNDArray::LocalBeginsType;
-      using SizesHolder = typename DistributedNDArray::SizesHolderType;
-      const LocalBegins& localBegins = array_view.getLocalBegins();
-      const SizesHolder& localEnds = array_view.getLocalEnds();
+         SizesHolder bufferSize( localEnds - localBegins );
 
-      // TODO: update for multidimensional decomposition
-      SizesHolder bufferSize( localEnds );
-      bufferSize.template setSize< dim >( overlap );
+         if( ( direction & SyncDirection::Left ) != SyncDirection::None
+             || ( direction & SyncDirection::Right ) != SyncDirection::None )
+         {
+            constexpr int dim = getDimensionWithOverlap< 0 >();
+            constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
+            bufferSize.template setSize< dim >( overlap );
+         }
+         if( ( direction & SyncDirection::Bottom ) != SyncDirection::None
+             || ( direction & SyncDirection::Top ) != SyncDirection::None )
+         {
+            if constexpr( countDimensionsWithOverlap() >= 2 ) {
+               constexpr int dim = getDimensionWithOverlap< 1 >();
+               constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
+               bufferSize.template setSize< dim >( overlap );
+            }
+            else
+               throw std::logic_error( "trying to use buffers for SyncDirection::Top, but the distributed array has "
+                                       "only 1 dimension with overlap" );
+         }
+         if( ( direction & SyncDirection::Back ) != SyncDirection::None
+             || ( direction & SyncDirection::Front ) != SyncDirection::None )
+         {
+            if constexpr( countDimensionsWithOverlap() == 3 ) {
+               constexpr int dim = getDimensionWithOverlap< 2 >();
+               constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
+               bufferSize.template setSize< dim >( overlap );
+            }
+            else
+               throw std::logic_error( "trying to use buffers for SyncDirection::Front, but the distributed array has "
+                                       "only 1 or 2 dimensions with overlap" );
+         }
 
-      // allocate buffers
-      auto& buffer_left = buffers.at( SyncDirection::Left );
-      auto& buffer_right = buffers.at( SyncDirection::Right );
-      buffer_left.send_buffer.setSize( bufferSize );
-      buffer_left.recv_buffer.setSize( bufferSize );
-      buffer_right.send_buffer.setSize( bufferSize );
-      buffer_right.recv_buffer.setSize( bufferSize );
+         // allocate buffers
+         buffer.send_buffer.setSize( bufferSize );
+         buffer.recv_buffer.setSize( bufferSize );
 
-      // bind views to the buffers
-      buffer_left.send_view.bind( buffer_left.send_buffer.getView() );
-      buffer_left.recv_view.bind( buffer_left.recv_buffer.getView() );
-      buffer_right.send_view.bind( buffer_right.send_buffer.getView() );
-      buffer_right.recv_view.bind( buffer_right.recv_buffer.getView() );
+         // bind views to the buffers
+         buffer.send_view.bind( buffer.send_buffer.getView() );
+         buffer.recv_view.bind( buffer.recv_buffer.getView() );
+      }
 
-      // TODO: check overlap offsets for 2D and 3D distributions (watch out for the corners - maybe use
-      // SetSizesSubtractOverlapsHelper?)
+      // set the send and receive offsets
+      setBufferOffsets();
 
-      // offsets for left-send (local indexing for the local array)
-      buffer_left.send_offsets = LocalBegins{};
-
-      // offsets for left-receive (local indexing for the local array)
-      buffer_left.recv_offsets = LocalBegins{};
-      buffer_left.recv_offsets.template setSize< dim >( -overlap );
-
-      // offsets for right-send (local indexing for the local array)
-      buffer_right.send_offsets = LocalBegins{};
-      buffer_right.send_offsets.template setSize< dim >( localEnds.template getSize< dim >()
-                                                         - localBegins.template getSize< dim >() - overlap );
-
-      // offsets for right-receive (local indexing for the local array)
-      buffer_right.recv_offsets = LocalBegins{};
-      buffer_right.recv_offsets.template setSize< dim >( localEnds.template getSize< dim >()
-                                                         - localBegins.template getSize< dim >() );
-
-      // set default neighbor IDs
-      const MPI::Comm& communicator = array_view.getCommunicator();
-      const int rank = communicator.rank();
-      const int nproc = communicator.size();
-      if( buffer_left.neighbor < 0 )
-         buffer_left.neighbor = ( rank + nproc - 1 ) % nproc;
-      if( buffer_right.neighbor < 0 )
-         buffer_right.neighbor = ( rank + 1 ) % nproc;
+      // set default neighbor IDs for D1Q3
+      if( buffers.size() == 2 && buffers.count( SyncDirection::Left ) > 0 && buffers.count( SyncDirection::Right ) > 0 ) {
+         const MPI::Comm& communicator = array_view.getCommunicator();
+         const int rank = communicator.rank();
+         const int nproc = communicator.size();
+         auto& buffer_left = buffers.at( SyncDirection::Left );
+         auto& buffer_right = buffers.at( SyncDirection::Right );
+         if( buffer_left.neighbor < 0 )
+            buffer_left.neighbor = ( rank + nproc - 1 ) % nproc;
+         if( buffer_right.neighbor < 0 )
+            buffer_right.neighbor = ( rank + 1 ) % nproc;
+      }
 
       // set default tags from tag_offset
       for( auto& [ direction, buffer ] : buffers ) {
@@ -476,8 +572,8 @@ protected:
       launch_config.blockHostUntilFinished = false;
    }
 
-   static void
-   copyHelper( Buffers& buffers, DistributedNDArrayView& array_view, bool to_buffer, SyncDirection mask )
+   void
+   copyHelper( bool to_buffer, SyncDirection mask )
    {
       for( auto& [ _, buffer ] : buffers ) {
          // check if buffering is needed at runtime
@@ -518,43 +614,6 @@ protected:
       }
    }
 
-   static void
-   sendHelper( Buffers& buffers,
-               RequestsVector& requests,
-               const MPI::Comm& communicator,
-               SyncDirection mask,
-               std::size_t& sent_bytes,
-               std::size_t& recv_bytes,
-               std::size_t& sent_messages,
-               std::size_t& recv_messages )
-   {
-      for( auto& [ _, buffer ] : buffers ) {
-         if( ( mask & buffer.direction ) != SyncDirection::None ) {
-            // negative rank and tag IDs are not valid according to the MPI standard and may be used by
-            // applications to skip communication, e.g. over the periodic boundary
-            if( buffer.neighbor >= 0 && buffer.tag_send >= 0 ) {
-               requests.push_back( MPI::Isend( buffer.send_view.getData(),
-                                               buffer.send_view.getStorageSize(),
-                                               buffer.neighbor,
-                                               buffer.tag_send,
-                                               communicator ) );
-               sent_bytes += buffer.send_view.getStorageSize() * sizeof( typename DistributedNDArray::ValueType );
-               ++sent_messages;
-            }
-            auto& opp_buffer = buffers.at( opposite( buffer.direction ) );
-            if( opp_buffer.neighbor >= 0 && opp_buffer.tag_recv >= 0 ) {
-               requests.push_back( MPI::Irecv( opp_buffer.recv_view.getData(),
-                                               opp_buffer.recv_view.getStorageSize(),
-                                               opp_buffer.neighbor,
-                                               opp_buffer.tag_recv,
-                                               communicator ) );
-               recv_bytes += opp_buffer.recv_view.getStorageSize() * sizeof( typename DistributedNDArray::ValueType );
-               ++recv_messages;
-            }
-         }
-      }
-   }
-
 #ifdef __NVCC__
 public:
 #endif
@@ -581,5 +640,134 @@ public:
       }
    };
 };
+
+/**
+ * \brief Set neighbors for a synchronizer according to given synchronization pattern
+ * and decomposition of a global block.
+ *
+ * \ingroup ndarray
+ *
+ * \tparam Q is the number of elements in \e pattern.
+ * \param synchronizer is an instance of \ref DistributedNDArraySynchronizer.
+ * \param pattern is the synchronization pattern (array of directions
+ *                in which the data will be sent). It must be consistent
+ *                with the partitioning of the distributed array.
+ * \param rank is the ID of the current MPI rank and also an index of the
+ *             corresponding block in \e decomposition.
+ * \param decomposition is a vector of blocks forming a decomposition of the
+ *                      global block. Its size must be equal to the size of
+ *                      the MPI communicator and indices of the blocks in the
+ *                      vector determine the rank IDs of the neighbors.
+ * \param global is the global block (used for setting neighbors over the
+ *               periodic boundary).
+ */
+template< typename DistributedNDArray, std::size_t Q, typename BlockType >
+void
+setNeighbors( DistributedNDArraySynchronizer< DistributedNDArray >& synchronizer,
+              const std::array< SyncDirection, Q >& pattern,
+              int rank,
+              const std::vector< BlockType >& decomposition,
+              const BlockType& global )
+{
+   const BlockType& reference = decomposition.at( rank );
+
+   auto find = [ & ]( SyncDirection direction, typename BlockType::CoordinatesType point, SyncDirection vertexDirection )
+   {
+      // handle periodic boundaries
+      if( ( direction & SyncDirection::Left ) != SyncDirection::None && point.x() == global.begin.x() )
+         point.x() = global.end.x();
+      if( ( direction & SyncDirection::Right ) != SyncDirection::None && point.x() == global.end.x() )
+         point.x() = global.begin.x();
+      if( ( direction & SyncDirection::Bottom ) != SyncDirection::None && point.y() == global.begin.y() )
+         point.y() = global.end.y();
+      if( ( direction & SyncDirection::Top ) != SyncDirection::None && point.y() == global.end.y() )
+         point.y() = global.begin.y();
+      if( ( direction & SyncDirection::Back ) != SyncDirection::None && point.z() == global.begin.z() )
+         point.z() = global.end.z();
+      if( ( direction & SyncDirection::Front ) != SyncDirection::None && point.z() == global.end.z() )
+         point.z() = global.begin.z();
+
+      for( std::size_t i = 0; i < decomposition.size(); i++ ) {
+         const auto vertex = getBlockVertex( decomposition[ i ], vertexDirection );
+         if( point == vertex ) {
+            synchronizer.setNeighbor( direction, i );
+            return;
+         }
+      }
+      throw std::runtime_error( "coordinate [" + std::to_string( point.x() ) + "," + std::to_string( point.y() ) + ","
+                                + std::to_string( point.z() ) + "] was not found in the decomposition" );
+   };
+
+   for( SyncDirection direction : pattern ) {
+      switch( direction ) {
+         case SyncDirection::Left:
+            find( direction, getBlockVertex( reference, SyncDirection::FrontTopLeft ), SyncDirection::FrontTopRight );
+            break;
+         case SyncDirection::Right:
+            find( direction, getBlockVertex( reference, SyncDirection::BackBottomRight ), SyncDirection::BackBottomLeft );
+            break;
+         case SyncDirection::Bottom:
+            find( direction, getBlockVertex( reference, SyncDirection::FrontBottomRight ), SyncDirection::FrontTopRight );
+            break;
+         case SyncDirection::Top:
+            find( direction, getBlockVertex( reference, SyncDirection::BackTopLeft ), SyncDirection::BackBottomLeft );
+            break;
+         case SyncDirection::Back:
+            find( direction, getBlockVertex( reference, SyncDirection::BackTopRight ), SyncDirection::FrontTopRight );
+            break;
+         case SyncDirection::Front:
+            find( direction, getBlockVertex( reference, SyncDirection::FrontTopRight ), SyncDirection::BackTopRight );
+            break;
+         case SyncDirection::BottomLeft:
+            find( direction, getBlockVertex( reference, SyncDirection::FrontBottomLeft ), SyncDirection::FrontTopRight );
+            break;
+         case SyncDirection::BottomRight:
+            find( direction, getBlockVertex( reference, SyncDirection::BackBottomRight ), SyncDirection::BackTopLeft );
+            break;
+         case SyncDirection::TopRight:
+            find( direction, getBlockVertex( reference, SyncDirection::BackTopRight ), SyncDirection::BackBottomLeft );
+            break;
+         case SyncDirection::TopLeft:
+            find( direction, getBlockVertex( reference, SyncDirection::BackTopLeft ), SyncDirection::BackBottomRight );
+            break;
+         case SyncDirection::BackLeft:
+            find( direction, getBlockVertex( reference, SyncDirection::BackBottomLeft ), SyncDirection::FrontBottomRight );
+            break;
+         case SyncDirection::BackRight:
+            find( direction, getBlockVertex( reference, SyncDirection::BackBottomRight ), SyncDirection::FrontBottomLeft );
+            break;
+         case SyncDirection::BackBottom:
+            find( direction, getBlockVertex( reference, SyncDirection::BackBottomLeft ), SyncDirection::FrontTopLeft );
+            break;
+         case SyncDirection::BackTop:
+            find( direction, getBlockVertex( reference, SyncDirection::BackTopLeft ), SyncDirection::FrontBottomLeft );
+            break;
+         case SyncDirection::FrontLeft:
+            find( direction, getBlockVertex( reference, SyncDirection::FrontBottomLeft ), SyncDirection::BackBottomRight );
+            break;
+         case SyncDirection::FrontRight:
+            find( direction, getBlockVertex( reference, SyncDirection::FrontBottomRight ), SyncDirection::BackBottomLeft );
+            break;
+         case SyncDirection::FrontBottom:
+            find( direction, getBlockVertex( reference, SyncDirection::FrontBottomLeft ), SyncDirection::BackTopLeft );
+            break;
+         case SyncDirection::FrontTop:
+            find( direction, getBlockVertex( reference, SyncDirection::FrontTopLeft ), SyncDirection::BackBottomLeft );
+            break;
+         case SyncDirection::BackBottomLeft:
+         case SyncDirection::BackBottomRight:
+         case SyncDirection::BackTopLeft:
+         case SyncDirection::BackTopRight:
+         case SyncDirection::FrontBottomLeft:
+         case SyncDirection::FrontBottomRight:
+         case SyncDirection::FrontTopLeft:
+         case SyncDirection::FrontTopRight:
+            find( direction, getBlockVertex( reference, direction ), opposite( direction ) );
+            break;
+         default:
+            throw std::logic_error( "unhandled direction: " + std::to_string( static_cast< std::uint8_t >( direction ) ) );
+      }
+   }
+}
 
 }  // namespace TNL::Containers

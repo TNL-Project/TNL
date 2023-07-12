@@ -38,14 +38,18 @@ protected:
    const int rank = TNL::MPI::GetRank( communicator );
    const int nproc = TNL::MPI::GetSize( communicator );
 
+   // NOTE: decomposeBlockOptimal does not work for pure 2D blocks,
+   //       working with 3D everywhere is actually simpler
+   using BlockType = Block< 3, IndexType >;
+   using MultiIndex = typename BlockType::CoordinatesType;
+
+   BlockType globalBlock;
+   std::vector< BlockType > decomposition;
+
    DistributedNDArrayOverlaps_2D_test()
    {
-      // TODO: decomposeBlockOptimal does not work for pure 2D blocks
-      using BlockType = Block< 3, IndexType >;
-      using MultiIndex = typename BlockType::CoordinatesType;
-
-      const BlockType globalBlock = { MultiIndex{ 0, 0, 0 }, MultiIndex{ globalSize, globalSize, 1 } };
-      const std::vector< BlockType > decomposition = decomposeBlockOptimal( globalBlock, nproc );
+      globalBlock = { MultiIndex{ 0, 0, 0 }, MultiIndex{ globalSize, globalSize, 1 } };
+      decomposition = decomposeBlockOptimal( globalBlock, nproc );
       const BlockType& localBlock = decomposition.at( rank );
 
       distributedNDArray.setSizes( globalSize, globalSize );
@@ -325,9 +329,13 @@ TYPED_TEST( DistributedNDArrayOverlaps_2D_test, forGhosts )
 
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
-template< typename DistributedArray >
+template< typename DistributedArray, typename BlockType >
 void
-test_helper_synchronize_D2Q5( DistributedArray& a, int globalSize )
+test_helper_synchronize_D2Q5( DistributedArray& a,
+                              int globalSize,
+                              int rank,
+                              const std::vector< BlockType >& decomposition,
+                              const BlockType& globalBlock )
 {
    using IndexType = typename DistributedArray::IndexType;
 
@@ -347,6 +355,7 @@ test_helper_synchronize_D2Q5( DistributedArray& a, int globalSize )
    a.forAll( setter );
    DistributedNDArraySynchronizer< DistributedArray > s1;
    s1.setSynchronizationPattern( NDArraySyncPatterns::D2Q5 );
+   setNeighbors( s1, NDArraySyncPatterns::D2Q5, rank, decomposition, globalBlock );
    s1.synchronize( a );
 
    for( IndexType gi = localRangeX.getBegin() - overlapsX; gi < localRangeX.getEnd() + overlapsX; gi++ ) {
@@ -372,6 +381,7 @@ test_helper_synchronize_D2Q5( DistributedArray& a, int globalSize )
    a.getView().forAll( setter );
    DistributedNDArraySynchronizer< typename DistributedArray::ViewType > s2;
    s2.setSynchronizationPattern( NDArraySyncPatterns::D2Q5 );
+   setNeighbors( s2, NDArraySyncPatterns::D2Q5, rank, decomposition, globalBlock );
    auto view = a.getView();
    s2.synchronize( view );
 
@@ -397,14 +407,19 @@ test_helper_synchronize_D2Q5( DistributedArray& a, int globalSize )
 
 TYPED_TEST( DistributedNDArrayOverlaps_2D_test, synchronize_D2Q5 )
 {
-   test_helper_synchronize_D2Q5( this->distributedNDArray, this->globalSize );
+   test_helper_synchronize_D2Q5(
+      this->distributedNDArray, this->globalSize, this->rank, this->decomposition, this->globalBlock );
 }
 
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
-template< typename DistributedArray >
+template< typename DistributedArray, typename BlockType >
 void
-test_helper_synchronize_D2Q9( DistributedArray& a, int globalSize )
+test_helper_synchronize_D2Q9( DistributedArray& a,
+                              int globalSize,
+                              int rank,
+                              const std::vector< BlockType >& decomposition,
+                              const BlockType& globalBlock )
 {
    using IndexType = typename DistributedArray::IndexType;
 
@@ -424,6 +439,7 @@ test_helper_synchronize_D2Q9( DistributedArray& a, int globalSize )
    a.forAll( setter );
    DistributedNDArraySynchronizer< DistributedArray > s1;
    s1.setSynchronizationPattern( NDArraySyncPatterns::D2Q9 );
+   setNeighbors( s1, NDArraySyncPatterns::D2Q9, rank, decomposition, globalBlock );
    s1.synchronize( a );
 
    for( IndexType gi = localRangeX.getBegin() - overlapsX; gi < localRangeX.getEnd() + overlapsX; gi++ ) {
@@ -443,6 +459,7 @@ test_helper_synchronize_D2Q9( DistributedArray& a, int globalSize )
    a.getView().forAll( setter );
    DistributedNDArraySynchronizer< typename DistributedArray::ViewType > s2;
    s2.setSynchronizationPattern( NDArraySyncPatterns::D2Q9 );
+   setNeighbors( s2, NDArraySyncPatterns::D2Q9, rank, decomposition, globalBlock );
    auto view = a.getView();
    s2.synchronize( view );
 
@@ -462,7 +479,8 @@ test_helper_synchronize_D2Q9( DistributedArray& a, int globalSize )
 
 TYPED_TEST( DistributedNDArrayOverlaps_2D_test, synchronize_D2Q9 )
 {
-   //test_helper_synchronize_D2Q9( this->distributedNDArray, this->globalSize );
+   test_helper_synchronize_D2Q9(
+      this->distributedNDArray, this->globalSize, this->rank, this->decomposition, this->globalBlock );
 }
 
 #endif  // HAVE_GTEST
