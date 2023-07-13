@@ -14,7 +14,6 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/BiEllpack.h>
 
-#include "detail/FetchLambdaAdapter.h"
 #include "BiEllpackKernel.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {

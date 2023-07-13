@@ -14,7 +14,6 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
 
-#include "detail/FetchLambdaAdapter.h"
 #include "ChunkedEllpackKernel.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {

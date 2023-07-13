@@ -8,6 +8,8 @@
 
 #include <TNL/Cuda/LaunchHelpers.h>
 
+#include "detail/FetchLambdaAdapter.h"
+
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Index, typename Device >
@@ -36,7 +38,11 @@ struct ChunkedEllpackKernel
    [[nodiscard]] static std::string
    getKernelType();
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename SegmentsView,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
@@ -44,15 +50,19 @@ struct ChunkedEllpackKernel
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
-                   const Value& identity );
+                   const Value& identity = Reduction::template getIdentity< Value >() );
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename SegmentsView,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
                       ResultKeeper& keeper,
-                      const Value& identity );
+                      const Value& identity = Reduction::template getIdentity< Value >() );
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

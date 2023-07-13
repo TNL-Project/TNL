@@ -1,5 +1,5 @@
 #include <iostream>
-#include <functional>
+#include <TNL/Functional.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/DefaultKernel.h>
@@ -54,9 +54,9 @@ void SegmentsExample()
 
    SegmentsReductionKernel kernel;
    kernel.init( segments );
-   kernel.reduceAllSegments( segments, fetch_full, std::plus<>{}, keep, 0.0 );
+   kernel.reduceAllSegments( segments, fetch_full, TNL::Plus{}, keep );
    std::cout << "The sums with full fetch form are: " << sums << std::endl;
-   kernel.reduceAllSegments( segments, fetch_brief, std::plus<>{}, keep, 0.0 );
+   kernel.reduceAllSegments( segments, fetch_brief, TNL::Plus{}, keep );
    std::cout << "The sums with brief fetch form are: " << sums << std::endl;
 }
 

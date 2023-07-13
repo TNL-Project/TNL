@@ -8,6 +8,8 @@
 
 #include "CSRAdaptiveKernelView.h"
 
+#include "detail/FetchLambdaAdapter.h"
+
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Index, typename Device >
@@ -50,7 +52,11 @@ struct CSRAdaptiveKernel
    ConstViewType
    getConstView() const;
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename SegmentsView,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
@@ -58,15 +64,19 @@ struct CSRAdaptiveKernel
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
-                   const Value& identity ) const;
+                   const Value& identity = Reduction::template getIdentity< Value >() ) const;
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename SegmentsView,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
                       ResultKeeper& keeper,
-                      const Value& identity ) const;
+                      const Value& identity = Reduction::template getIdentity< Value >() ) const;
 
 protected:
    template< int SizeOfValue, typename Offsets >

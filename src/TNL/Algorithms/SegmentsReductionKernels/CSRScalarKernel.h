@@ -8,6 +8,8 @@
 
 #include <TNL/Cuda/LaunchHelpers.h>
 
+#include "detail/FetchLambdaAdapter.h"
+
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Index, typename Device >
@@ -84,13 +86,20 @@ struct CSRScalarKernel
     * where \e segmentIdx is an index of the segment and \e value is the result of the reduction in given segment to be stored.
     *
     * \param identity is the initial value for the reduction operation.
+    *                 If \e Reduction does not have a static member function
+    *                 template \e getIdentity, it must be supplied explicitly
+    *                 by the user.
     *
     * \par Example
     * \include Algorithms/Segments/SegmentsExample_CSR_reduceSegments.cpp
     * \par Output
     * \include SegmentsExample_CSR_reduceSegments.out
     */
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename SegmentsView,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
@@ -98,20 +107,24 @@ struct CSRScalarKernel
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
-                   const Value& identity );
+                   const Value& identity = Reduction::template getIdentity< Value >() );
 
    /**
     * \brief Call \ref reduceSegments for all segments.
     *
     * See \ref reduceSegments for more details.
     */
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename SegmentsView,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
                       ResultKeeper& keeper,
-                      const Value& identity );
+                      const Value& identity = Reduction::template getIdentity< Value >() );
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

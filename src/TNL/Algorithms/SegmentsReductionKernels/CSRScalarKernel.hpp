@@ -10,7 +10,6 @@
 #include <TNL/Algorithms/parallelFor.h>
 
 #include "CSRScalarKernel.h"
-#include "detail/FetchLambdaAdapter.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 

@@ -8,6 +8,8 @@
 
 #include <TNL/Cuda/LaunchHelpers.h>
 
+#include "detail/FetchLambdaAdapter.h"
+
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Index, typename Device, int ThreadsInBlock = 128 >
@@ -36,7 +38,11 @@ struct CSRHybridKernel
    [[nodiscard]] static std::string
    getKernelType();
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename SegmentsView,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
@@ -44,15 +50,19 @@ struct CSRHybridKernel
                    Fetch& fetch,
                    const Reduction& reduction,
                    ResultKeeper& keeper,
-                   const Value& identity ) const;
+                   const Value& identity = Reduction::template getIdentity< Value >() ) const;
 
-   template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename SegmentsView,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
                       ResultKeeper& keeper,
-                      const Value& identity ) const;
+                      const Value& identity = Reduction::template getIdentity< Value >() ) const;
 
 protected:
    int threadsPerSegment = 0;

@@ -11,7 +11,6 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
-#include "detail/FetchLambdaAdapter.h"
 #include "EllpackKernel.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {

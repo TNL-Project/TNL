@@ -10,7 +10,6 @@
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Cuda/LaunchHelpers.h>
 
-#include "detail/FetchLambdaAdapter.h"
 #include "CSRScalarKernel.h"
 #include "CSRVectorKernel.h"
 
