@@ -7,6 +7,7 @@ efficient numerical solvers. It is implemented in C++ using modern programming
 paradigms in order to provide flexible and user friendly interface. TNL provides
 native support for modern hardware architectures such as multicore CPUs, GPUs,
 and distributed systems, which can be managed via a unified interface.
+Visit the main [TNL web page](https://tnl-project.org/) for details.
 
 ## Installation   {#installation}
 

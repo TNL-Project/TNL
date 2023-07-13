@@ -11,7 +11,7 @@ Visit the main [TNL web page](https://tnl-project.org/) for details.
 
 ## Components
 
-TNL also provides several optional components:
+TNL provides several optional components:
 
 - TNL header files in the
   [src/TNL](https://gitlab.com/tnl-project/tnl/tree/main/src/TNL)
@@ -40,7 +40,7 @@ See the [full documentation][full documentation] for information about:
 
 - [installation instructions][installation],
 - [usage hints][usage],
-- [Users' guide][UsersGuide],
+- [Users' Guide][UsersGuide],
 - [API reference manual][API],
 
 and other documented topics.
