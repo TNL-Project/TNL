@@ -23,7 +23,7 @@ void getRowExample()
    /***
     * Fetch lambda function returns diagonal element in each row.
     */
-   auto fetch = [=] __cuda_callable__ ( int rowIdx ) mutable -> double {
+   auto fetch = [=] __cuda_callable__ ( int rowIdx ) -> double {
       auto row = matrixView.getRow( rowIdx );
       return row.getValue( rowIdx );
    };

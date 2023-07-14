@@ -382,9 +382,9 @@ DenseMatrixBase< Real, Device, Index, Organization >::forRows( IndexType begin, 
 {
    const auto values = this->getValues().getConstView();
    using SegmentViewType = typename SegmentsViewType::SegmentViewType;
-   auto f = [ = ] __cuda_callable__( SegmentViewType && segmentView ) mutable
+   auto f = [ = ] __cuda_callable__( const SegmentViewType& segmentView ) mutable
    {
-      const auto rowView = RowViewType( segmentView, values );
+      const auto rowView = ConstRowView( segmentView, values );
       function( rowView );
    };
    this->segments.forSegments( begin, end, f );

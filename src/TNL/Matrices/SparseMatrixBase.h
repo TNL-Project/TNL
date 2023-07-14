@@ -336,14 +336,15 @@ public:
     * \tparam Fetch is a type of lambda function for data fetch declared as
     *
     * ```
-    * auto fetch = [=] __cuda_callable__ ( IndexType rowIdx, IndexType& columnIdx, RealType& elementValue ) -> FetchValue
+    * auto fetch = [] __cuda_callable__ ( IndexType rowIdx, IndexType& columnIdx, RealType& elementValue ) -> FetchValue
+    * { ... };
     * ```
     *
     * The return type of this lambda can be any non void.
     * \tparam Reduce is a type of lambda function for reduction declared as
     *
     * ```
-    * auto reduce = [=] __cuda_callable__ ( const FetchValue& v1, const FetchValue& v2 ) -> FetchValue { ... };
+    * auto reduce = [] __cuda_callable__ ( const FetchValue& v1, const FetchValue& v2 ) -> FetchValue { ... };
     * ```
     *
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
@@ -354,8 +355,8 @@ public:
     *
     * \tparam FetchValue is type returned by the Fetch lambda function.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param fetch is an instance of lambda function for data fetch.
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
@@ -390,15 +391,15 @@ public:
     * \tparam Fetch is a type of lambda function for data fetch declared as
     *
     * ```
-    * auto fetch = [=] __cuda_callable__ ( IndexType rowIdx, IndexType& columnIdx, RealType& elementValue ) -> FetchValue { ...
-    * };
+    * auto fetch = [] __cuda_callable__ ( IndexType rowIdx, IndexType& columnIdx, RealType& elementValue ) -> FetchValue
+    * { ... };
     * ```
     *
     * The return type of this lambda can be any non void.
     * \tparam Reduce is a type of lambda function for reduction declared as
     *
     * ```
-    * auto reduce = [=] __cuda_callable__ ( const FetchValue& v1, const FetchValue& v2 ) -> FetchValue { ... };
+    * auto reduce = [] __cuda_callable__ ( const FetchValue& v1, const FetchValue& v2 ) -> FetchValue { ... };
     * ```
     *
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
@@ -438,23 +439,19 @@ public:
    /**
     * \brief Method for iteration over all matrix rows for constant instances.
     *
-    * \tparam Function is type of lambda function that will operate on matrix elements. It is should have form like
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
     *
     * ```
-    * auto function = [=] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value )
+    * auto function = [] __cuda_callable__
+    *                 ( IndexType rowIdx, IndexType localIdx, const IndexType& columnIdx, const RealType& value )
     * { ... };
     * ```
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin,\e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param function is an instance of the lambda function to be called in each row.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_forRows.out
     */
    template< typename Function >
    void
@@ -463,23 +460,23 @@ public:
    /**
     * \brief Method for iteration over all matrix rows for non-constant instances.
     *
-    * \tparam Function is type of lambda function that will operate on matrix elements. It is should have form like
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
     *
     * ```
-    * auto function = [=] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value )
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
     * { ... };
     * ```
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param function is an instance of the lambda function to be called in each row.
     *
     * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forRows.cpp
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElements.cpp
     * \par Output
-    * \include SparseMatrixExample_forRows.out
+    * \include SparseMatrixExample_forElements.out
     */
    template< typename Function >
    void
@@ -492,11 +489,6 @@ public:
     *
     * \tparam Function is a type of lambda function that will operate on matrix elements.
     * \param function  is an instance of the lambda function to be called in each row.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forAllElements.cpp
-    * \par Output
-    * \include SparseMatrixExample_forAllElements.out
     */
    template< typename Function >
    void
@@ -520,7 +512,7 @@ public:
    forAllElements( Function&& function );
 
    /**
-    * \brief Method for parallel iteration over matrix rows from interval [ \e begin, \e end).
+    * \brief Method for parallel iteration over matrix rows from interval `[begin, end)`.
     *
     * In each row, given lambda function is performed. Each row is processed by at most one thread unlike the method
     * \ref SparseMatrixBase::forElements where more than one thread can be mapped to each row.
@@ -528,12 +520,12 @@ public:
     *
     * \tparam Function is type of the lambda function.
     *
-    * \param begin defines beginning of the range [ \e begin,\e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param function is an instance of the lambda function to be called for each row.
     *
     * ```
-    * auto function = [] __cuda_callable__ ( RowView& row ) mutable { ... };
+    * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
     * ```
     *
     * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrixBase::RowView.
@@ -548,27 +540,22 @@ public:
    forRows( IndexType begin, IndexType end, Function&& function );
 
    /**
-    * \brief Method for parallel iteration over matrix rows from interval [ \e begin, \e end) for constant instances.
+    * \brief Method for parallel iteration over matrix rows from interval `[begin, end)` for constant instances.
     *
     * In each row, given lambda function is performed. Each row is processed by at most one thread unlike the method
     * \ref SparseMatrixBase::forElements where more than one thread can be mapped to each row.
     *
     * \tparam Function is type of the lambda function.
     *
-    * \param begin defines beginning of the range [ \e begin,\e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param function is an instance of the lambda function to be called for each row.
     *
     * ```
-    * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
+    * auto function = [] __cuda_callable__ ( const ConstRowView& row ) { ... };
     * ```
     *
-    * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrixBase::RowView.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_forRows.out
+    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::SparseMatrixBase::ConstRowView.
     */
    template< typename Function >
    void
@@ -585,7 +572,7 @@ public:
     * \param function is an instance of the lambda function to be called for each row.
     *
     * ```
-    * auto function = [] __cuda_callable__ ( RowView& row ) mutable { ... };
+    * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
     * ```
     *
     * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrixBase::RowView.
@@ -610,15 +597,10 @@ public:
     * \param function is an instance of the lambda function to be called for each row.
     *
     * ```
-    * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
+    * auto function = [] __cuda_callable__ ( const ConstRowView& row ) { ... };
     * ```
     *
-    * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrixBase::RowView.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_forRows.cpp
-    * \par Output
-    * \include SparseMatrixExample_forRows.out
+    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::SparseMatrixBase::ConstRowView.
     */
    template< typename Function >
    void
@@ -627,16 +609,16 @@ public:
    /**
     * \brief Method for sequential iteration over all matrix rows for constant instances.
     *
-    * \tparam Function is type of lambda function that will operate on matrix elements. It is should have form like
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
     *
     * ```
-    * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
+    * auto function = [] __cuda_callable__ ( const ConstRowView& row ) { ... };
     * ```
     *
-    * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrixBase::RowView.
+    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::SparseMatrixBase::ConstRowView.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param function is an instance of the lambda function to be called in each row.
     */
    template< typename Function >
@@ -646,7 +628,7 @@ public:
    /**
     * \brief Method for sequential iteration over all matrix rows for non-constant instances.
     *
-    * \tparam Function is type of lambda function that will operate on matrix elements. It is should have form like
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
     *
     * ```
     * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
@@ -654,8 +636,8 @@ public:
     *
     * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrixBase::RowView.
     *
-    * \param begin defines beginning of the range [ \e begin, \e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param function is an instance of the lambda function to be called in each row.
     */
    template< typename Function >

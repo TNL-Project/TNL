@@ -649,8 +649,8 @@ public:
     *          It is declared as `keep( const IndexType rowIdx, const double& value )`.
     * \tparam FetchValue is type returned by the Fetch lambda function.
     *
-    * \param begin defines beginning of the range [begin,end) of rows to be processed.
-    * \param end defines ending of the range [begin,end) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param fetch is an instance of lambda function for data fetch.
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
@@ -686,8 +686,8 @@ public:
     *
     * \tparam Function is type of lambda function that will operate on matrix elements.
     *
-    * \param begin defines beginning of the range [ \e begin,\e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param function is an instance of the lambda function to be called for element of given rows.
     *
     * The lambda function `function` should be declared like follows:
@@ -708,15 +708,15 @@ public:
     *
     * \tparam Function is type of lambda function that will operate on matrix elements.
     *
-    * \param begin defines beginning of the range [ \e begin,\e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param function is an instance of the lambda function to be called for each element of given rows.
     *
     * The lambda function `function` should be declared like follows:
     *
     * ```
-    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value )
-    * mutable { ... }
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value )
+    * { ... }
     * ```
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
@@ -750,19 +750,19 @@ public:
    forAllElements( Function&& function );
 
    /**
-    * \brief Method for parallel iteration over matrix rows from interval [ \e begin, \e end).
+    * \brief Method for parallel iteration over matrix rows from interval `[begin, end)`.
     *
     * In each row, given lambda function is performed. Each row is processed by at most one thread unlike the method
     * \ref SparseMatrix::forElements where more than one thread can be mapped to each row.
     *
     * \tparam Function is type of the lambda function.
     *
-    * \param begin defines beginning of the range [ \e begin,\e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param function is an instance of the lambda function to be called for each row.
     *
     * ```
-    * auto function = [] __cuda_callable__ ( RowView& row ) mutable { ... };
+    * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
     * ```
     *
     * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrix::RowView.
@@ -772,22 +772,22 @@ public:
    forRows( IndexType begin, IndexType end, Function&& function );
 
    /**
-    * \brief Method for parallel iteration over matrix rows from interval [ \e begin, \e end) for constant instances.
+    * \brief Method for parallel iteration over matrix rows from interval `[begin, end)` for constant instances.
     *
     * In each row, given lambda function is performed. Each row is processed by at most one thread unlike the method
     * \ref SparseMatrix::forElements where more than one thread can be mapped to each row.
     *
     * \tparam Function is type of the lambda function.
     *
-    * \param begin defines beginning of the range [ \e begin,\e end ) of rows to be processed.
-    * \param end defines ending of the range [ \e begin, \e end ) of rows to be processed.
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param function is an instance of the lambda function to be called for each row.
     *
     * ```
-    * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
+    * auto function = [] __cuda_callable__ ( const ConstRowView& row ) { ... };
     * ```
     *
-    * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrix::RowView.
+    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::SparseMatrix::ConstRowView.
     */
    template< typename Function >
    void
@@ -804,7 +804,7 @@ public:
     * \param function is an instance of the lambda function to be called for each row.
     *
     * ```
-    * auto function = [] __cuda_callable__ ( RowView& row ) mutable { ... };
+    * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
     * ```
     *
     * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrix::RowView.
@@ -824,10 +824,10 @@ public:
     * \param function is an instance of the lambda function to be called for each row.
     *
     * ```
-    * auto function = [] __cuda_callable__ ( RowView& row ) { ... };
+    * auto function = [] __cuda_callable__ ( const ConstRowView& row ) { ... };
     * ```
     *
-    * \e RowView represents matrix row - see \ref TNL::Matrices::SparseMatrix::RowView.
+    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::SparseMatrix::ConstRowView.
     */
    template< typename Function >
    void
@@ -837,7 +837,7 @@ public:
     * \brief Method for sequential iteration over all matrix rows for constant instances.
     *
     * \tparam Function is type of lambda function that will operate on matrix elements.
-    *    It is should have form like
+    *    It should have form like
     *  `function( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, const RealType& value )`.
     *  The column index repeats twice only for compatibility with sparse matrices.
     *
@@ -853,7 +853,7 @@ public:
     * \brief Method for sequential iteration over all matrix rows for non-constant instances.
     *
     * \tparam Function is type of lambda function that will operate on matrix elements.
-    *    It is should have form like
+    *    It should have form like
     *  `function( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, RealType& value )`.
     *  The column index repeats twice only for compatibility with sparse matrices.
     *

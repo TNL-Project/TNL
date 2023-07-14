@@ -24,7 +24,7 @@ void forElementsExample()
       { -2, -1, 0 } ); // matrix diagonals offsets
    auto view = matrix.getView();
 
-   auto f = [=] __cuda_callable__ ( int rowIdx, int localIdx, int columnIdx, double& value ) {
+   auto f = [] __cuda_callable__ ( int rowIdx, int localIdx, int columnIdx, double& value ) {
       /***
        * 'forElements' method iterates only over matrix elements lying on given subdiagonals
        * and so we do not need to check anything. The element value can be expressed
@@ -41,7 +41,7 @@ void forElementsExample()
        */
       value = 3 - localIdx;
    };
-   view.forElements( 0, matrix.getRows(), f );
+   view.forElements( 0, matrix.getRows(), f );  // or matrix.forElements
    std::cout << matrix << std::endl;
 }
 

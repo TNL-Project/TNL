@@ -21,7 +21,7 @@ void forAllElementsExample()
       5 );    // number of matrix columns
    auto view = matrix.getView();
 
-   auto f = [=] __cuda_callable__ ( int rowIdx, int localIdx, int columnIdx, double& value ) {
+   auto f = [] __cuda_callable__ ( int rowIdx, int localIdx, int columnIdx, double& value ) {
       /***
        * 'forElements' method iterates only over matrix elements lying on given subdiagonals
        * and so we do not need to check anything. The element value can be expressed
@@ -38,7 +38,7 @@ void forAllElementsExample()
        */
       value = 3 - localIdx;
    };
-   view.forAllElements( f );
+   view.forAllElements( f );  // or matrix.forAllElements
    std::cout << matrix << std::endl;
 }
 

@@ -12,12 +12,12 @@ void getRowExample()
      { 2, 0, 1 }, { 2, 1, 2 }, { 2, 2, 3 },
      { 3, 0, 1 }, { 3, 1, 2 }, { 3, 2, 3 }, { 3, 3, 4 },
      { 4, 0, 1 }, { 4, 1, 2 }, { 4, 2, 3 }, { 4, 3, 4 }, { 4, 4, 5 } } );
-   auto matrixView = matrix.getView();
+   const auto matrixView = matrix.getView();
 
    /***
     * Fetch lambda function returns diagonal element in each row.
     */
-   auto fetch = [=] __cuda_callable__ ( int rowIdx ) mutable -> double {
+   auto fetch = [=] __cuda_callable__ ( int rowIdx ) -> double {
       auto row = matrixView.getRow( rowIdx );
       return row.getValue( rowIdx );
    };

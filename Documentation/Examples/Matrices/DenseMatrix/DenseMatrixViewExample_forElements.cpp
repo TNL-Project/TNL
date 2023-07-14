@@ -9,12 +9,12 @@ void forElementsExample()
    TNL::Matrices::DenseMatrix< double, Device > matrix( 5, 5 );
    auto matrixView = matrix.getView();
 
-   auto f = [=] __cuda_callable__ ( int rowIdx, int columnIdx, int globalIdx, double& value ) {
+   auto f = [] __cuda_callable__ ( int rowIdx, int columnIdx, int globalIdx, double& value ) {
       if( columnIdx <= rowIdx )
          value = rowIdx + columnIdx;
    };
 
-   matrixView.forElements( 0, matrix.getRows(), f );
+   matrixView.forElements( 0, matrix.getRows(), f );  // or matrix.forElements
    std::cout << matrix << std::endl;
 }
 

@@ -13,17 +13,17 @@ void addElements()
    auto view = matrix.getView();
 
    for( int i = 0; i < matrixSize; i++ )
-      view.setElement( i, i, i );
+      view.setElement( i, i, i );  // or matrix.setElement
 
    std::cout << "Initial matrix is: " << std::endl << matrix << std::endl;
 
    for( int i = 0; i < matrixSize; i++ )
    {
       if( i > 0 )
-         view.addElement( i, i - 1, 1.0, 5.0 );
-      view.addElement( i, i, 1.0, 5.0 );
+         view.addElement( i, i - 1, 1.0, 5.0 );  // or matrix.addElement
+      view.addElement( i, i, 1.0, 5.0 );  // or matrix.addElement
       if( i < matrixSize - 1 )
-         view.addElement( i, i + 1, 1.0, 5.0 );
+         view.addElement( i, i + 1, 1.0, 5.0 );  // or matrix.addElement
    }
 
    std::cout << "Matrix after addition is: " << std::endl << matrix << std::endl;

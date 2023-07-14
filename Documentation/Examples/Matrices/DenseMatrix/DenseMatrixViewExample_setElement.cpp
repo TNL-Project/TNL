@@ -11,7 +11,7 @@ setElements()
    TNL::Matrices::DenseMatrix< double, Device > matrix( 5, 5 );
    auto matrixView = matrix.getView();
    for( int i = 0; i < 5; i++ )
-      matrixView.setElement( i, i, i );
+      matrixView.setElement( i, i, i );  // or matrix.setElement
 
    std::cout << "Matrix set from the host:" << std::endl;
    std::cout << matrix << std::endl;
