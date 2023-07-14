@@ -254,50 +254,10 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexT
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begin,
-                                                                          IndexType end,
-                                                                          Fetch& fetch,
-                                                                          Reduce& reduce,
-                                                                          Keep& keep,
-                                                                          const FetchReal& identity )
-{
-   using Real_ = decltype( fetch( IndexType(), IndexType(), RealType() ) );
-   const auto values_view = this->values.getConstView();
-   const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
-   const IndexType diagonalsCount = this->diagonalOffsets.getSize();
-   const IndexType columns = this->getColumns();
-   const auto indexer = this->indexer;
-   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
-   {
-      Real_ sum = identity;
-      for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
-         const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
-         if( columnIdx >= 0 && columnIdx < columns )
-            sum = reduce( sum, fetch( rowIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] ) );
-      }
-      keep( rowIdx, sum );
-   };
-   Algorithms::parallelFor< DeviceType >( begin, end, f );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
 MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch& fetch,
                                                                              Reduce& reduce,
                                                                              Keep& keep,
                                                                              const FetchReal& identity ) const
-{
-   this->reduceRows( (IndexType) 0, this->indexer.getNonemptyRowsCount(), fetch, reduce, keep, identity );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch& fetch,
-                                                                             Reduce& reduce,
-                                                                             Keep& keep,
-                                                                             const FetchReal& identity )
 {
    this->reduceRows( (IndexType) 0, this->indexer.getNonemptyRowsCount(), fetch, reduce, keep, identity );
 }

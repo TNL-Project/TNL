@@ -481,40 +481,6 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceRows( IndexTyp
                                                                         Fetch& fetch,
                                                                         const Reduce& reduce,
                                                                         Keep& keep,
-                                                                        const FetchValue& zero )
-{
-   auto columns_view = this->columnIndexes.getView();
-   auto values_view = this->values.getView();
-   auto row_pointers_view = this->rowPointers.getConstView();
-   // SANDBOX_TODO: Replace the following code with the one for computing reduction in rows by your format.
-   //               Note, that this method can be used for implementation of SpMV.
-   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
-   {
-      const auto begin = row_pointers_view[ rowIdx ];
-      const auto end = row_pointers_view[ rowIdx + 1 ];
-      FetchValue sum = zero;
-      for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
-         IndexType& columnIdx = columns_view[ globalIdx ];
-         if( columnIdx != paddingIndex< IndexType > ) {
-            if( isBinary() )
-               sum = reduce( sum, fetch( rowIdx, columnIdx, 1 ) );
-            else
-               sum = reduce( sum, fetch( rowIdx, columnIdx, values_view[ globalIdx ] ) );
-         }
-      }
-      keep( rowIdx, sum );
-   };
-   TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
-void
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceRows( IndexType begin,
-                                                                        IndexType end,
-                                                                        Fetch& fetch,
-                                                                        const Reduce& reduce,
-                                                                        Keep& keep,
                                                                         const FetchValue& zero ) const
 {
    auto columns_view = this->columnIndexes.getConstView();
@@ -539,17 +505,6 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceRows( IndexTyp
       keep( rowIdx, sum );
    };
    TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceAllRows( Fetch& fetch,
-                                                                           const Reduce& reduce,
-                                                                           Keep& keep,
-                                                                           const FetchReal& zero )
-{
-   this->reduceRows( 0, this->getRows(), fetch, reduce, keep, zero );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >

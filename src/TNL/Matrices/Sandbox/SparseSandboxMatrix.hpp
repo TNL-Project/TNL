@@ -392,19 +392,6 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
 void
-SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::reduceRows( IndexType begin,
-                                                                                                   IndexType end,
-                                                                                                   Fetch& fetch,
-                                                                                                   const Reduce& reduce,
-                                                                                                   Keep& keep,
-                                                                                                   const FetchValue& zero )
-{
-   this->view.reduceRows( begin, end, fetch, reduce, keep, zero );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
-void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::reduceRows(
    IndexType begin,
    IndexType end,
@@ -414,17 +401,6 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    const FetchValue& zero ) const
 {
    this->view.reduceRows( begin, end, fetch, reduce, keep, zero );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::reduceAllRows( Fetch&& fetch,
-                                                                                                      const Reduce&& reduce,
-                                                                                                      Keep&& keep,
-                                                                                                      const FetchReal& zero )
-{
-   this->reduceRows( 0, this->getRows(), fetch, reduce, keep, zero );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >

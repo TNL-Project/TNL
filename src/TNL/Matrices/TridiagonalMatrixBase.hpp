@@ -229,62 +229,10 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexTyp
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begin,
-                                                                        IndexType end,
-                                                                        Fetch& fetch,
-                                                                        Reduce& reduce,
-                                                                        Keep& keep,
-                                                                        const FetchReal& identity )
-{
-   using Real_ = decltype( fetch( IndexType(), IndexType(), RealType() ) );
-   auto values_view = this->values.getConstView();
-   const auto indexer = this->indexer;
-   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
-   {
-      Real_ sum = identity;
-      if( rowIdx == 0 ) {
-         sum = reduce( sum, fetch( 0, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
-         sum = reduce( sum, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
-         keep( 0, sum );
-         return;
-      }
-      if( rowIdx + 1 < indexer.getColumns() ) {
-         sum = reduce( sum, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-         sum = reduce( sum, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-         sum = reduce( sum, fetch( rowIdx, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] ) );
-         keep( rowIdx, sum );
-         return;
-      }
-      if( rowIdx < indexer.getColumns() ) {
-         sum = reduce( sum, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-         sum = reduce( sum, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-         keep( rowIdx, sum );
-      }
-      else {
-         keep( rowIdx, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-      }
-   };
-   Algorithms::parallelFor< DeviceType >( begin, end, f );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch& fetch,
                                                                            Reduce& reduce,
                                                                            Keep& keep,
                                                                            const FetchReal& identity ) const
-{
-   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch& fetch,
-                                                                           Reduce& reduce,
-                                                                           Keep& keep,
-                                                                           const FetchReal& identity )
 {
    this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
 }
