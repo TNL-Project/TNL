@@ -42,9 +42,9 @@ public:
     */
    __cuda_callable__
    DenseMatrixElement( RealType& value,
-                       const IndexType& rowIdx,
-                       const IndexType& columnIdx,
-                       const IndexType& localIdx )  // localIdx is here only for compatibility with SparseMatrixElement
+                       IndexType rowIdx,
+                       IndexType columnIdx,
+                       IndexType localIdx )  // localIdx is here only for compatibility with SparseMatrixElement
    : value_( value ), rowIdx( rowIdx ), columnIdx( columnIdx )
    {}
 
@@ -73,36 +73,30 @@ public:
    }
 
    /**
-    * \brief Returns constant reference on matrix element row index.
-    *
-    * \return constant reference on matrix element row index.
+    * \brief Returns the row index of the matrix element.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    rowIndex() const
    {
       return rowIdx;
    }
 
    /**
-    * \brief Returns constant reference on matrix element column index.
-    *
-    * \return constant reference on matrix element column index.
+    * \brief Returns the column index of the matrix element.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    columnIndex() const
    {
       return columnIdx;
    }
 
    /**
-    * \brief Returns constant reference on matrix element column index.
-    *
-    * \return constant reference on matrix element column index.
+    * \brief Returns the column index of the matrix element.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    localIndex() const
    {
       return columnIdx;
@@ -111,7 +105,7 @@ public:
 protected:
    RealType& value_;
 
-   const IndexType& rowIdx;
+   const IndexType rowIdx;
 
    const IndexType columnIdx;
 };

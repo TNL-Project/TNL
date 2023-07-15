@@ -34,7 +34,7 @@ void SegmentsExample()
    std::cout << "Data setup with no check ... " << std::endl;
    std::cout << "Array: " << data << std::endl;
    auto fetch = [=] __cuda_callable__ ( int globalIdx ) -> double { return data_view[ globalIdx ]; };
-   printSegments( segments, fetch, std::cout );
+   printSegments( std::cout, segments, fetch );
 
    /***
     * Insert data into particular segments.
@@ -50,7 +50,7 @@ void SegmentsExample()
     */
    std::cout << "Data setup with check for padding elements..." << std::endl;
    std::cout << "Array: " << data << std::endl;
-   printSegments( segments, fetch, std::cout );
+   printSegments( std::cout, segments, fetch );
 }
 
 int main( int argc, char* argv[] )

@@ -13,7 +13,7 @@ namespace TNL::Algorithms::Segments {
 
 template< typename SegmentView >
 __cuda_callable__
-SegmentViewIterator< SegmentView >::SegmentViewIterator( const SegmentViewType& segmentView, const IndexType& localIdx )
+SegmentViewIterator< SegmentView >::SegmentViewIterator( const SegmentViewType& segmentView, IndexType localIdx )
 : segmentView( segmentView ), localIdx( localIdx )
 {}
 

@@ -7,17 +7,18 @@ template< typename Device >
 void forElementsExample()
 {
    TNL::Matrices::SparseMatrix< double, Device > matrix( { 1, 2, 3, 4, 5 }, 5 );
+   auto matrixView = matrix.getView();
 
-   auto f = [=] __cuda_callable__ ( int rowIdx, int localIdx, int& columnIdx, double& value ) {
-      if( rowIdx >= localIdx )  // This is important, some matrix formats may allocate more matrix elements
-                               // than we requested. These padding elements are processed here as well.
-      {
+   auto f = [] __cuda_callable__ ( int rowIdx, int localIdx, int& columnIdx, double& value ) {
+      // This is important, some matrix formats may allocate more matrix elements
+      // than we requested. These padding elements are processed here as well.
+      if( rowIdx >= localIdx ) {
          columnIdx = localIdx;
          value = rowIdx + localIdx + 1;
       }
    };
 
-   matrix.forElements( 0, matrix.getRows(), f );
+   matrixView.forElements( 0, matrix.getRows(), f );  // or matrix.forElements
    std::cout << matrix << std::endl;
 }
 

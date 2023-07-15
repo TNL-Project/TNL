@@ -51,19 +51,35 @@ public:
     * \param step is stepping between neighbouring elements in the segment.
     */
    __cuda_callable__
-   SegmentView( const IndexType segmentIdx, const IndexType offset, const IndexType size, const IndexType step )
+   SegmentView( IndexType segmentIdx, IndexType offset, IndexType size, IndexType step )
    : segmentIdx( segmentIdx ), segmentOffset( offset ), segmentSize( size ), step( step )
    {}
 
    /**
     * \brief Copy constructor.
-    *
-    * \param view is the source view.
     */
    __cuda_callable__
-   SegmentView( const SegmentView& view )
-   : segmentIdx( view.segmentIdx ), segmentOffset( view.segmentOffset ), segmentSize( view.segmentSize ), step( view.step )
-   {}
+   SegmentView( const SegmentView& ) = default;
+
+   /**
+    * \brief Move constructor.
+    */
+   __cuda_callable__
+   SegmentView( SegmentView&& ) noexcept = default;
+
+   /**
+    * \brief Copy assignment operator.
+    */
+   __cuda_callable__
+   SegmentView&
+   operator=( const SegmentView& ) = default;
+
+   /**
+    * \brief Move assignment operator.
+    */
+   __cuda_callable__
+   SegmentView&
+   operator=( SegmentView&& ) noexcept = default;
 
    /**
     * \brief Get the size of the segment, i.e. number of elements in the segment.
@@ -71,7 +87,7 @@ public:
     * \return number of elements in the segment.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    getSize() const
    {
       return this->segmentSize;
@@ -85,7 +101,7 @@ public:
     */
    [[nodiscard]] __cuda_callable__
    IndexType
-   getGlobalIndex( const IndexType localIndex ) const
+   getGlobalIndex( IndexType localIndex ) const
    {
       TNL_ASSERT_LT( localIndex, segmentSize, "Local index exceeds segment bounds." );
       return segmentOffset + localIndex * step;
@@ -97,7 +113,7 @@ public:
     * \return index of the segment.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    getSegmentIndex() const
    {
       return this->segmentIdx;
@@ -152,7 +168,10 @@ public:
    }
 
 protected:
-   IndexType segmentIdx, segmentOffset, segmentSize, step;
+   IndexType segmentIdx;
+   IndexType segmentOffset;
+   IndexType segmentSize;
+   IndexType step;
 };
 
 template< typename Index >
@@ -175,25 +194,37 @@ public:
     * \param segmentIdx is an index of segment the segment view will point to.
     * \param offset is an offset of the segment in the parent segments.
     * \param size is a size of the segment.
-    * \param step is stepping between neighbouring elements in the segment.
     */
    __cuda_callable__
-   SegmentView( const IndexType segmentIdx,
-                const IndexType offset,
-                const IndexType size,
-                const IndexType step = 1 )  // For compatibility with previous specialization
+   SegmentView( IndexType segmentIdx, IndexType offset, IndexType size )
    : segmentIdx( segmentIdx ), segmentOffset( offset ), segmentSize( size )
    {}
 
    /**
     * \brief Copy constructor.
-    *
-    * \param view is the source view.
     */
    __cuda_callable__
-   SegmentView( const SegmentView& view )
-   : segmentIdx( view.segmentIdx ), segmentOffset( view.segmentOffset ), segmentSize( view.segmentSize )
-   {}
+   SegmentView( const SegmentView& ) = default;
+
+   /**
+    * \brief Move constructor.
+    */
+   __cuda_callable__
+   SegmentView( SegmentView&& ) noexcept = default;
+
+   /**
+    * \brief Copy assignment operator.
+    */
+   __cuda_callable__
+   SegmentView&
+   operator=( const SegmentView& ) = default;
+
+   /**
+    * \brief Move assignment operator.
+    */
+   __cuda_callable__
+   SegmentView&
+   operator=( SegmentView&& ) noexcept = default;
 
    /**
     * \brief Get the size of the segment, i.e. number of elements in the segment.
@@ -201,7 +232,7 @@ public:
     * \return number of elements in the segment.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    getSize() const
    {
       return this->segmentSize;
@@ -215,7 +246,7 @@ public:
     */
    [[nodiscard]] __cuda_callable__
    IndexType
-   getGlobalIndex( const IndexType localIndex ) const
+   getGlobalIndex( IndexType localIndex ) const
    {
       TNL_ASSERT_LT( localIndex, segmentSize, "Local index exceeds segment bounds." );
       return segmentOffset + localIndex;
@@ -227,7 +258,7 @@ public:
     * \return index of the segment.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    getSegmentIndex() const
    {
       return this->segmentIdx;
@@ -282,7 +313,9 @@ public:
    }
 
 protected:
-   IndexType segmentIdx, segmentOffset, segmentSize;
+   IndexType segmentIdx;
+   IndexType segmentOffset;
+   IndexType segmentSize;
 };
 
 }  // namespace TNL::Algorithms::Segments

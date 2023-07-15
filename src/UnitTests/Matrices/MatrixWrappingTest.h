@@ -66,7 +66,7 @@ TYPED_TEST( MatrixTest, WrapMatrix )
    using RealType  = typename DenseMatrix::RealType;
    using DeviceType  = typename DenseMatrix::DeviceType;
    using IndexType  = typename DenseMatrix::IndexType;
-   using CSRMatrix = TNL::Matrices::SparseMatrix< RealType, DeviceType, IndexType,  TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSRScalar >;
+   using CSRMatrix = TNL::Matrices::SparseMatrix< RealType, DeviceType, IndexType,  TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
    using EllpackMatrix = TNL::Matrices::SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, RowMajorEllpack >;
 
    DenseMatrix denseMatrix{

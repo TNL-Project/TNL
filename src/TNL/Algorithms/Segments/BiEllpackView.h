@@ -6,13 +6,7 @@
 
 #pragma once
 
-#include <type_traits>
-
-#include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/ElementsOrganization.h>
-#include <TNL/Algorithms/Segments/BiEllpackSegmentView.h>
-#include <TNL/Algorithms/Segments/detail/BiEllpack.h>
-#include <TNL/Algorithms/Segments/SegmentsPrinting.h>
+#include "BiEllpackBase.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -20,53 +14,42 @@ template< typename Device,
           typename Index,
           ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
           int WarpSize = 32 >
-class BiEllpackView
+class BiEllpackView : public BiEllpackBase< Device, Index, Organization, WarpSize >
 {
+   using Base = BiEllpackBase< Device, Index, Organization, WarpSize >;
+
 public:
-   using DeviceType = Device;
-   using IndexType = std::remove_const_t< Index >;
-   using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
-   using ConstOffsetsView = typename OffsetsView::ConstViewType;
    using ViewType = BiEllpackView;
+
+   using ConstViewType = BiEllpackView< Device, std::add_const_t< Index >, Organization, WarpSize >;
+
    template< typename Device_, typename Index_ >
    using ViewTemplate = BiEllpackView< Device_, Index_, Organization, WarpSize >;
-   using ConstViewType = BiEllpackView< Device, std::add_const_t< Index >, Organization, WarpSize >;
-   using SegmentViewType = BiEllpackSegmentView< IndexType, Organization, WarpSize >;
-
-   [[nodiscard]] static constexpr bool
-   havePadding()
-   {
-      return true;
-   }
 
    __cuda_callable__
    BiEllpackView() = default;
 
    __cuda_callable__
-   BiEllpackView( IndexType size,
-                  IndexType storageSize,
-                  IndexType virtualRows,
-                  const OffsetsView& rowPermArray,
-                  const OffsetsView& groupPointers );
+   BiEllpackView( Index size,
+                  Index storageSize,
+                  typename Base::OffsetsView rowPermArray,
+                  typename Base::OffsetsView groupPointers );
 
    __cuda_callable__
-   BiEllpackView( IndexType size,
-                  IndexType storageSize,
-                  IndexType virtualRows,
-                  const OffsetsView&& rowPermArray,
-                  const OffsetsView&& groupPointers );
+   BiEllpackView( const BiEllpackView& ) = default;
 
    __cuda_callable__
-   BiEllpackView( const BiEllpackView& chunked_ellpack_view ) = default;
+   BiEllpackView( BiEllpackView&& ) noexcept = default;
+
+   BiEllpackView&
+   operator=( const BiEllpackView& ) = delete;
+
+   BiEllpackView&
+   operator=( BiEllpackView&& ) = delete;
 
    __cuda_callable__
-   BiEllpackView( BiEllpackView&& chunked_ellpack_view ) noexcept = default;
-
-   [[nodiscard]] static std::string
-   getSerializationType();
-
-   [[nodiscard]] static String
-   getSegmentsType();
+   void
+   bind( BiEllpackView view );
 
    [[nodiscard]] __cuda_callable__
    ViewType
@@ -76,151 +59,13 @@ public:
    ConstViewType
    getConstView() const;
 
-   /**
-    * \brief Number of segments.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSegmentsCount() const;
-
-   /***
-    * \brief Returns size of the segment number \r segmentIdx
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSegmentSize( IndexType segmentIdx ) const;
-
-   /***
-    * \brief Returns number of elements managed by all segments.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSize() const;
-
-   /***
-    * \brief Returns number of elements that needs to be allocated.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getStorageSize() const;
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getGlobalIndex( Index segmentIdx, Index localIdx ) const;
-
-   [[nodiscard]] __cuda_callable__
-   SegmentViewType
-   getSegmentView( IndexType segmentIdx ) const;
-
-   /***
-    * \brief Go over all segments and for each segment element call
-    * function 'f' with arguments 'args'. The return type of 'f' is bool.
-    * When its true, the for-loop continues. Once 'f' returns false, the for-loop
-    * is terminated.
-    */
-   template< typename Function >
-   void
-   forElements( IndexType first, IndexType last, Function&& f ) const;
-
-   template< typename Function >
-   void
-   forAllElements( Function&& f ) const;
-
-   template< typename Function >
-   void
-   forSegments( IndexType begin, IndexType end, Function&& f ) const;
-
-   template< typename Function >
-   void
-   forAllSegments( Function&& f ) const;
-
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Real& zero ) const;
-
-   BiEllpackView&
-   operator=( const BiEllpackView& view );
-
    void
    save( File& file ) const;
 
    void
    load( File& file );
-
-   template< typename Fetch >
-   SegmentsPrinter< BiEllpackView, Fetch >
-   print( Fetch&& fetch ) const;
-
-   void
-   printStructure( std::ostream& str ) const;
-
-protected:
-   static constexpr int
-   getWarpSize()
-   {
-      return WarpSize;
-   }
-
-   static constexpr int
-   getLogWarpSize()
-   {
-      return std::log2( WarpSize );
-   }
-
-   IndexType size = 0, storageSize = 0;
-
-   IndexType virtualRows = 0;
-
-   OffsetsView rowPermArray;
-
-   OffsetsView groupPointers;
-
-#ifdef __CUDACC__
-   // these methods must be public so they can be called from the __global__ function
-public:
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real, int BlockDim >
-   __device__
-   void
-   reduceSegmentsKernelWithAllParameters( IndexType gridIdx,
-                                          IndexType first,
-                                          IndexType last,
-                                          Fetch fetch,
-                                          Reduction reduction,
-                                          ResultKeeper keeper,
-                                          Real zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real_, int BlockDim >
-   __device__
-   void
-   reduceSegmentsKernel( IndexType gridIdx,
-                         IndexType first,
-                         IndexType last,
-                         Fetch fetch,
-                         Reduction reduction,
-                         ResultKeeper keeper,
-                         Real_ zero ) const;
-#endif
 };
-
-template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
-std::ostream&
-operator<<( std::ostream& str, const BiEllpackView< Device, Index, Organization, WarpSize >& segments )
-{
-   return printSegments( str, segments );
-}
 
 }  // namespace TNL::Algorithms::Segments
 
-#include <TNL/Algorithms/Segments/BiEllpackView.hpp>
+#include "BiEllpackView.hpp"

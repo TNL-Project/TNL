@@ -6,224 +6,100 @@
 
 #pragma once
 
-#include <type_traits>
-
-#include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/SegmentView.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRScalarKernel.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRVectorKernel.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRHybridKernel.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRLightKernel.h>
-#include <TNL/Algorithms/Segments/Kernels/CSRAdaptiveKernel.h>
-#include <TNL/Algorithms/Segments/SegmentsPrinting.h>
+#include "CSRBase.h"
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Device, typename Index, typename Kernel = CSRScalarKernel< std::remove_const_t< Index >, Device > >
-class CSRView
+/**
+ * \brief \e CSRView is provides a non-owning encapsulation of data stored in
+ * the CSR segments format.
+ *
+ * \tparam Device is type of device where the segments will be operating.
+ * \tparam Index is type for indexing of the elements managed by the segments.
+ */
+template< typename Device, typename Index >
+class CSRView : public CSRBase< Device, Index >
 {
+   using Base = CSRBase< Device, Index >;
+
 public:
-   using DeviceType = Device;
-   using IndexType = std::remove_const_t< Index >;
-   using KernelType = Kernel;
-   using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
-   using ConstOffsetsView = typename OffsetsView::ConstViewType;
-   using KernelView = typename Kernel::ViewType;
+   //! \brief Type of segments view.
    using ViewType = CSRView;
+
+   //! \brief Type of constant segments view.
+   using ConstViewType = CSRView< Device, std::add_const_t< Index > >;
+
+   /**
+    * \brief Templated view type.
+    *
+    * \tparam Device_ is alternative device type for the view.
+    * \tparam Index_ is alternative index type for the view.
+    */
    template< typename Device_, typename Index_ >
-   using ViewTemplate = CSRView< Device_, Index_, Kernel >;
-   using ConstViewType = CSRView< Device, std::add_const_t< Index >, Kernel >;
-   using SegmentViewType = SegmentView< IndexType, RowMajorOrder >;
+   using ViewTemplate = CSRView< Device_, Index_ >;
 
-   [[nodiscard]] static constexpr bool
-   havePadding()
-   {
-      return false;
-   }
-
+   //! \brief Default constructor with no parameters to create empty segments view.
    __cuda_callable__
    CSRView() = default;
 
+   //! \brief Copy constructor.
    __cuda_callable__
-   CSRView( const OffsetsView& offsets, const KernelView& kernel );
+   CSRView( const CSRView& ) = default;
 
+   //! \brief Move constructor.
    __cuda_callable__
-   CSRView( OffsetsView&& offsets, KernelView&& kernel );
+   CSRView( CSRView&& ) noexcept = default;
 
+   //! \brief Binds a new CSR view to an offsets vector.
    __cuda_callable__
-   CSRView( const CSRView& csr_view ) = default;
+   CSRView( typename Base::OffsetsView offsets );
 
-   template< typename Index2 >
+   //! \brief Copy-assignment operator.
+   CSRView&
+   operator=( const CSRView& ) = delete;
+
+   //! \brief Move-assignment operator.
+   CSRView&
+   operator=( CSRView&& ) = delete;
+
+   //! \brief Method for rebinding (reinitialization) to another view.
    __cuda_callable__
-   CSRView( const CSRView< Device, Index2, Kernel >& csr_view );
+   void
+   bind( CSRView view );
 
-   __cuda_callable__
-   CSRView( CSRView&& csr_view ) noexcept = default;
-
-   [[nodiscard]] static std::string
-   getSerializationType();
-
-   [[nodiscard]] static String
-   getSegmentsType();
-
+   /**
+    * \brief Returns a view for this instance of CSR segments which can by used
+    * for example in lambda functions running in GPU kernels.
+    */
    [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
+   /**
+    * \brief Returns a constant view for this instance of CSR segments which
+    * can by used for example in lambda functions running in GPU kernels.
+    */
    [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
    /**
-    * \brief Number segments.
+    * \brief Method for saving the segments to a file in a binary form.
+    *
+    * \param file is the target file.
     */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSegmentsCount() const;
-
-   /***
-    * \brief Returns size of the segment number \r segmentIdx
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSegmentSize( IndexType segmentIdx ) const;
-
-   /***
-    * \brief Returns number of elements managed by all segments.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSize() const;
-
-   /***
-    * \brief Returns number of elements that needs to be allocated.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getStorageSize() const;
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getGlobalIndex( Index segmentIdx, Index localIdx ) const;
-
-   [[nodiscard]] __cuda_callable__
-   SegmentViewType
-   getSegmentView( IndexType segmentIdx ) const;
-
-   /***
-    * \brief Go over all segments and for each segment element call
-    * function 'f'. The return type of 'f' is bool.
-    * When its true, the for-loop continues. Once 'f' returns false, the for-loop
-    * is terminated.
-    */
-   template< typename Function >
-   void
-   forElements( IndexType begin, IndexType end, Function&& f ) const;
-
-   template< typename Function >
-   void
-   forAllElements( Function&& f ) const;
-
-   template< typename Function >
-   void
-   forSegments( IndexType begin, IndexType end, Function&& f ) const;
-
-   template< typename Function >
-   void
-   forAllSegments( Function&& f ) const;
-
-   template< typename Function >
-   void
-   sequentialForSegments( IndexType begin, IndexType end, Function&& f ) const;
-
-   template< typename Function >
-   void
-   sequentialForAllSegments( Function&& f ) const;
-
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero ) const;
-
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Real& zero ) const;
-
-   CSRView&
-   operator=( const CSRView& view );
-
    void
    save( File& file ) const;
 
+   /**
+    * \brief Method for loading the segments from a file in a binary form.
+    *
+    * \param file is the source file.
+    */
    void
    load( File& file );
-
-   template< typename Fetch >
-   SegmentsPrinter< CSRView, Fetch >
-   print( Fetch&& fetch ) const;
-
-   [[nodiscard]] OffsetsView
-   getOffsets()
-   {
-      return offsets;
-   }
-
-   [[nodiscard]] ConstOffsetsView
-   getOffsets() const
-   {
-      return offsets.getConstView();
-   }
-
-   [[nodiscard]] KernelType&
-   getKernel()
-   {
-      return kernel;
-   }
-
-   [[nodiscard]] const KernelType&
-   getKernel() const
-   {
-      return kernel;
-   }
-
-protected:
-   OffsetsView offsets;
-
-   KernelView kernel;
 };
-
-template< typename Device, typename Index, typename Kernel >
-std::ostream&
-operator<<( std::ostream& str, const CSRView< Device, Index, Kernel >& segments )
-{
-   return printSegments( str, segments );
-}
-
-template< typename Device, typename Index >
-using CSRViewScalar = CSRView< Device, Index, CSRScalarKernel< std::remove_const_t< Index >, Device > >;
-
-template< typename Device, typename Index >
-using CSRViewVector = CSRView< Device, Index, CSRVectorKernel< std::remove_const_t< Index >, Device > >;
-
-template< typename Device, typename Index, int ThreadsInBlock = 256 >
-using CSRViewHybrid = CSRView< Device, Index, CSRHybridKernel< std::remove_const_t< Index >, Device, ThreadsInBlock > >;
-
-template< typename Device, typename Index >
-using CSRViewLight = CSRView< Device, Index, CSRLightKernel< std::remove_const_t< Index >, Device > >;
-
-template< typename Device, typename Index >
-using CSRViewAdaptive = CSRView< Device, Index, CSRAdaptiveKernel< std::remove_const_t< Index >, Device > >;
-
-template< typename Device, typename Index >
-using CSRViewDefault = CSRViewScalar< Device, Index >;
 
 }  // namespace TNL::Algorithms::Segments
 
-#include <TNL/Algorithms/Segments/CSRView.hpp>
+#include "CSRView.hpp"

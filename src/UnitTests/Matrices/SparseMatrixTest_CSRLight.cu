@@ -1,1 +1,0 @@
-SparseMatrixTest_CSRLight.cpp

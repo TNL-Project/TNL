@@ -40,7 +40,7 @@ public:
    using SegmentElementType = SegmentElement< IndexType >;
 
    __cuda_callable__
-   SegmentViewIterator( const SegmentViewType& segmentView, const IndexType& localIdx );
+   SegmentViewIterator( const SegmentViewType& segmentView, IndexType localIdx );
 
    /**
     * \brief Comparison of two matrix Segment iterators.

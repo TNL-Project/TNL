@@ -11,8 +11,9 @@ void setElements()
    using Matrix = TNL::Matrices::TridiagonalMatrix< double, Device >;
    Matrix matrix( matrixSize, matrixSize );
    auto view = matrix.getView();
+
    for( int i = 0; i < 5; i++ )
-      view.setElement( i, i, i );
+      view.setElement( i, i, i );  // or matrix.setElement
 
    std::cout << "Matrix set from the host:" << std::endl;
    std::cout << matrix << std::endl;

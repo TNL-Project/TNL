@@ -141,12 +141,10 @@ SparseSandboxMatrixRowView< ValuesView, ColumnsIndexesView, isBinary_ >::operato
       ++i;
    }
    for( IndexType j = i; j < getSize(); j++ )
-      // TODO: use ... != getPaddingIndex()
-      if( getColumnIndex( j ) >= 0 )
+      if( getColumnIndex( j ) != paddingIndex< IndexType > )
          return false;
    for( IndexType j = i; j < other.getSize(); j++ )
-      // TODO: use ... != getPaddingIndex()
-      if( other.getColumnIndex( j ) >= 0 )
+      if( other.getColumnIndex( j ) != paddingIndex< IndexType > )
          return false;
    return true;
 }
@@ -191,8 +189,9 @@ operator<<( std::ostream& str, const SparseSandboxMatrixRowView< ValuesView, Col
       std::remove_const_t< typename SparseSandboxMatrixRowView< ValuesView, ColumnsIndexesView, isBinary_ >::IndexType >;
    for( NonConstIndex i = 0; i < row.getSize(); i++ )
       if( isBinary_ )
-         // TODO: check getPaddingIndex(), print only the column indices of non-zeros but not the values
-         str << " [ " << row.getColumnIndex( i ) << " ] = " << ( row.getColumnIndex( i ) >= 0 ) << ", ";
+         // TODO: print only the column indices of non-zeros but not the values
+         str << " [ " << row.getColumnIndex( i )
+             << " ] = " << (row.getColumnIndex( i ) != paddingIndex< NonConstIndex >) << ", ";
       else
          str << " [ " << row.getColumnIndex( i ) << " ] = " << row.getValue( i ) << ", ";
    return str;

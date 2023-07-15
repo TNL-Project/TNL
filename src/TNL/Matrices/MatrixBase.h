@@ -1,0 +1,253 @@
+// Copyright (c) 2004-2023 Tomáš Oberhuber et al.
+//
+// This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+//
+// SPDX-License-Identifier: MIT
+
+#pragma once
+
+#include <type_traits>
+
+#include <TNL/Algorithms/Segments/ElementsOrganization.h>
+#include <TNL/Containers/Vector.h>
+#include <TNL/Containers/VectorView.h>
+#include "MatrixType.h"
+
+/**
+ * \brief Namespace for matrix formats.
+ */
+namespace TNL::Matrices {
+
+using Algorithms::Segments::ElementsOrganization;
+
+/**
+ * \brief Padding index value.
+ *
+ * Padding index is used for column indexes of padding zeros. Padding zeros
+ * are used in some sparse matrix formats for better data alignment in memory.
+ */
+template< typename Index >
+constexpr Index paddingIndex = -1;
+
+/**
+ * \brief Base class for the implementation of concrete matrix types.
+ *
+ * \tparam Real is a type of matrix elements.
+ * \tparam Device is a device where the matrix is allocated.
+ * \tparam Index is a type for indexing of the matrix elements.
+ */
+template< typename Real, typename Device, typename Index, typename MatrixType, ElementsOrganization Organization >
+class MatrixBase
+{
+public:
+   /**
+    * \brief The type of matrix elements.
+    */
+   using RealType = std::remove_const_t< Real >;
+
+   /**
+    * \brief The device where the matrix is allocated.
+    */
+   using DeviceType = Device;
+
+   /**
+    * \brief The type used for matrix elements indexing.
+    */
+   using IndexType = Index;
+
+   /**
+    * \brief Type of vector view holding values of matrix elements.
+    */
+   using ValuesViewType = Containers::VectorView< Real, Device, Index >;
+
+   /**
+    * \brief Type of constant vector view holding values of matrix elements.
+    */
+   using ConstValuesViewType = typename ValuesViewType::ConstViewType;
+
+   // TODO: add documentation for this type (it is also questionable if it should be in MatrixBase or SparseMatrixBase)
+   using RowCapacitiesType = Containers::Vector< Index, Device, Index >;
+   using RowsCapacitiesType [[deprecated]] = RowCapacitiesType;
+
+   /**
+    * \brief Matrix elements organization getter.
+    *
+    * \return matrix elements organization - RowMajorOrder of ColumnMajorOrder.
+    */
+   [[nodiscard]] static constexpr ElementsOrganization
+   getOrganization()
+   {
+      return Organization;
+   }
+
+   /**
+    * \brief Test of binary matrix type.
+    *
+    * \return \e true if the matrix is stored as binary and \e false otherwise.
+    */
+   [[nodiscard]] static constexpr bool
+   isBinary()
+   {
+      return std::is_same< std::decay_t< Real >, bool >::value;
+   }
+
+   /**
+    * \brief Test of symmetric matrix type.
+    *
+    * \return \e true if the matrix is stored as symmetric and \e false otherwise.
+    */
+   [[nodiscard]] static constexpr bool
+   isSymmetric()
+   {
+      return MatrixType::isSymmetric();
+   }
+
+   /**
+    * \brief Basic constructor with no parameters.
+    */
+   __cuda_callable__
+   MatrixBase() = default;
+
+   /**
+    * \brief Constructor with matrix dimensions and matrix elements values.
+    *
+    * The matrix elements values are passed in a form vector view.
+    *
+    * @param rows is a number of matrix rows.
+    * @param columns is a number of matrix columns.
+    * @param values is a vector view with matrix elements values.
+    */
+   __cuda_callable__
+   MatrixBase( IndexType rows, IndexType columns, ValuesViewType values );
+
+   /**
+    * @brief Shallow copy constructor.
+    *
+    * @param view is an input matrix view.
+    */
+   __cuda_callable__
+   MatrixBase( const MatrixBase& view ) = default;
+
+   /**
+    * \brief Move constructor.
+    *
+    * @param view is an input matrix view.
+    */
+   __cuda_callable__
+   MatrixBase( MatrixBase&& view ) noexcept = default;
+
+   /**
+    * \brief Copy-assignment operator.
+    *
+    * It is a deleted function, because matrix assignment in general requires
+    * reallocation.
+    */
+   __cuda_callable__
+   MatrixBase&
+   operator=( const MatrixBase& ) = delete;
+
+   /**
+    * \brief Move-assignment operator.
+    */
+   __cuda_callable__
+   MatrixBase&
+   operator=( MatrixBase&& ) = delete;
+
+   /**
+    * \brief Tells the number of allocated matrix elements.
+    *
+    * In the case of dense matrices, this is just product of the number of rows and the number of columns.
+    * But for other matrix types like sparse matrices, this can be different.
+    *
+    * \return Number of allocated matrix elements.
+    */
+   [[nodiscard]] IndexType
+   getAllocatedElementsCount() const;
+
+   /**
+    * \brief Computes a current number of nonzero matrix elements.
+    *
+    * \return number of nonzero matrix elements.
+    */
+   [[nodiscard]] virtual IndexType
+   getNonzeroElementsCount() const;
+
+   /**
+    * \brief Returns number of matrix rows.
+    *
+    * \return number of matrix row.
+    */
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getRows() const;
+
+   /**
+    * \brief Returns number of matrix columns.
+    *
+    * @return number of matrix columns.
+    */
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getColumns() const;
+
+   /**
+    * \brief Returns a constant reference to a vector with the matrix elements values.
+    *
+    * \return constant reference to a vector with the matrix elements values.
+    */
+   [[nodiscard]] __cuda_callable__
+   const ValuesViewType&
+   getValues() const;
+
+   /**
+    * \brief Returns a reference to a vector with the matrix elements values.
+    *
+    * \return constant reference to a vector with the matrix elements values.
+    */
+   [[nodiscard]] __cuda_callable__
+   ValuesViewType&
+   getValues();
+
+   /**
+    * \brief Comparison operator with another arbitrary matrix view type.
+    *
+    * \param matrix is the right-hand side matrix.
+    * \return \e true if the RHS matrix is equal, \e false otherwise.
+    */
+   template< typename Matrix >
+   [[nodiscard]] bool
+   operator==( const Matrix& matrix ) const;
+
+   /**
+    * \brief Comparison operator with another arbitrary matrix view type.
+    *
+    * \param matrix is the right-hand side matrix.
+    * \return \e true if the RHS matrix is equal, \e false otherwise.
+    */
+
+   template< typename Matrix >
+   [[nodiscard]] bool
+   operator!=( const Matrix& matrix ) const;
+
+protected:
+   IndexType rows = 0;
+   IndexType columns = 0;
+
+   ValuesViewType values;
+
+   /**
+    * \brief Re-initializes the internal attributes of the base class.
+    *
+    * Note that this function is \e protected to ensure that the user cannot
+    * modify the base class of a matrix. For the same reason, in future code
+    * development we also need to make sure that all non-const functions in
+    * the base class return by value and not by reference.
+    */
+   __cuda_callable__
+   void
+   bind( IndexType rows, IndexType columns, ValuesViewType values );
+};
+
+}  // namespace TNL::Matrices
+
+#include "MatrixBase.hpp"

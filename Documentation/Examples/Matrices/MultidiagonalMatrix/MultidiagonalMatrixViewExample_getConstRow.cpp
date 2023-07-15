@@ -23,7 +23,7 @@ void getRowExample()
    /***
     * Fetch lambda function returns diagonal element in each row.
     */
-   auto fetch = [=] __cuda_callable__ ( int rowIdx ) mutable -> double {
+   auto fetch = [=] __cuda_callable__ ( int rowIdx ) -> double {
       auto row = view.getRow( rowIdx );
       return row.getValue( 2 ); // get value from subdiagonal with index 2, i.e. the main diagonal
    };

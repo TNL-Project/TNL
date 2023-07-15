@@ -17,13 +17,14 @@ void forRowsExample()
     */
    const int size( 5 );
    using MatrixType = TNL::Matrices::SparseMatrix< double, Device >;
-   MatrixType matrix( { 1, 3, 3, 3, 1 }, size );
    using RowView = typename MatrixType::RowView;
+   MatrixType matrix( { 1, 3, 3, 3, 1 }, size );
+   auto matrixView = matrix.getView();
 
    /***
     * Set the matrix elements.
     */
-   auto f = [=] __cuda_callable__ ( RowView& row ) mutable {
+   auto f = [] __cuda_callable__ ( RowView& row ) {
       const int rowIdx = row.getRowIndex();
       if( rowIdx == 0 )
          row.setElement( 0, rowIdx, 2.0 );        // diagonal element
@@ -36,14 +37,14 @@ void forRowsExample()
          row.setElement( 2, rowIdx + 1, 1.0 );   // elements above the diagonal
       }
    };
-   matrix.forAllRows( f );
+   matrixView.forAllRows( f );  // or matrix.forAllRows
    std::cout << matrix << std::endl;
 
    /***
     * Divide each matrix row by a sum of all elements in the row - with use of iterators.
     */
-   matrix.forAllRows( [=] __cuda_callable__ ( RowView& row ) mutable {
-      double sum( 0.0 );
+   matrix.forAllRows( [] __cuda_callable__ ( RowView& row ) {
+      double sum = 0.0;
       for( auto element : row )
          sum += element.value();
       for( auto element: row )

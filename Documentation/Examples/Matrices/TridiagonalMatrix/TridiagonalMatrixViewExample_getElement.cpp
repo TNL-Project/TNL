@@ -21,7 +21,7 @@ void getElements()
    for( int i = 0; i < matrixSize; i++ )
    {
       for( int j = 0; j < matrixSize; j++ )
-         std::cout << std::setw( 5 ) << view.getElement( i, j );
+         std::cout << std::setw( 5 ) << view.getElement( i, j );  // or matrix.getElement
       std::cout << std::endl;
    }
 }

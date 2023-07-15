@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/ElementsOrganization.h>
+
 namespace TNL::Algorithms::Segments {
 
 template< typename Index, ElementsOrganization Organization >
@@ -18,19 +20,23 @@ public:
    using IndexType = Index;
 
    __cuda_callable__
-   ChunkedEllpackSegmentView(
-      const IndexType segmentIdx,
-      const IndexType offset,
-      const IndexType size,
-      const IndexType chunkSize,       // this is only for compatibility with the following specialization
-      const IndexType chunksInSlice )  // this one as well - both can be replaced when we could use constexprif in C++17
+   ChunkedEllpackSegmentView( IndexType segmentIdx, IndexType offset, IndexType size )
    : segmentIdx( segmentIdx ), segmentOffset( offset ), segmentSize( size )
    {}
 
    __cuda_callable__
-   ChunkedEllpackSegmentView( const ChunkedEllpackSegmentView& view )
-   : segmentIdx( view.segmentIdx ), segmentOffset( view.segmentOffset ), segmentSize( view.segmentSize )
-   {}
+   ChunkedEllpackSegmentView( const ChunkedEllpackSegmentView& ) = default;
+
+   __cuda_callable__
+   ChunkedEllpackSegmentView( ChunkedEllpackSegmentView&& ) noexcept = default;
+
+   __cuda_callable__
+   ChunkedEllpackSegmentView&
+   operator=( const ChunkedEllpackSegmentView& ) = default;
+
+   __cuda_callable__
+   ChunkedEllpackSegmentView&
+   operator=( ChunkedEllpackSegmentView&& ) noexcept = default;
 
    [[nodiscard]] __cuda_callable__
    IndexType
@@ -41,21 +47,23 @@ public:
 
    [[nodiscard]] __cuda_callable__
    IndexType
-   getGlobalIndex( const IndexType localIndex ) const
+   getGlobalIndex( IndexType localIndex ) const
    {
       TNL_ASSERT_LT( localIndex, segmentSize, "Local index exceeds segment bounds." );
       return segmentOffset + localIndex;
    }
 
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    getSegmentIndex() const
    {
       return this->segmentIdx;
    }
 
 protected:
-   IndexType segmentIdx, segmentOffset, segmentSize;
+   IndexType segmentIdx;
+   IndexType segmentOffset;
+   IndexType segmentSize;
 };
 
 template< typename Index >
@@ -65,20 +73,28 @@ public:
    using IndexType = Index;
 
    __cuda_callable__
-   ChunkedEllpackSegmentView( const IndexType segmentIdx,
-                              const IndexType offset,
-                              const IndexType size,
-                              const IndexType chunkSize,
-                              const IndexType chunksInSlice )
+   ChunkedEllpackSegmentView( IndexType segmentIdx,
+                              IndexType offset,
+                              IndexType size,
+                              IndexType chunkSize,
+                              IndexType chunksInSlice )
    : segmentIdx( segmentIdx ), segmentOffset( offset ), segmentSize( size ), chunkSize( chunkSize ),
      chunksInSlice( chunksInSlice )
    {}
 
    __cuda_callable__
-   ChunkedEllpackSegmentView( const ChunkedEllpackSegmentView& view )
-   : segmentIdx( view.segmentIdx ), segmentOffset( view.segmentOffset ), segmentSize( view.segmentSize ),
-     chunkSize( view.chunkSize ), chunksInSlice( view.chunksInSlice )
-   {}
+   ChunkedEllpackSegmentView( const ChunkedEllpackSegmentView& ) = default;
+
+   __cuda_callable__
+   ChunkedEllpackSegmentView( ChunkedEllpackSegmentView&& ) noexcept = default;
+
+   __cuda_callable__
+   ChunkedEllpackSegmentView&
+   operator=( const ChunkedEllpackSegmentView& ) = default;
+
+   __cuda_callable__
+   ChunkedEllpackSegmentView&
+   operator=( ChunkedEllpackSegmentView&& ) noexcept = default;
 
    [[nodiscard]] __cuda_callable__
    IndexType
@@ -89,7 +105,7 @@ public:
 
    [[nodiscard]] __cuda_callable__
    IndexType
-   getGlobalIndex( const IndexType localIdx ) const
+   getGlobalIndex( IndexType localIdx ) const
    {
       TNL_ASSERT_LT( localIdx, segmentSize, "Local index exceeds segment bounds." );
       const IndexType chunkIdx = localIdx / chunkSize;
@@ -98,26 +114,18 @@ public:
    }
 
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    getSegmentIndex() const
    {
       return this->segmentIdx;
    }
 
-   __cuda_callable__
-   ChunkedEllpackSegmentView&
-   operator=( const ChunkedEllpackSegmentView& view ) const
-   {
-      this->segmentIdx = view.segmentIdx;
-      this->segmentOffset = view.segmentOffset;
-      this->segmentSize = view.segmentSize;
-      this->chunkSize = view.chunkSize;
-      this->chunksInSlice = view.chunksInSlice;
-      return *this;
-   }
-
 protected:
-   IndexType segmentIdx, segmentOffset, segmentSize, chunkSize, chunksInSlice;
+   IndexType segmentIdx;
+   IndexType segmentOffset;
+   IndexType segmentSize;
+   IndexType chunkSize;
+   IndexType chunksInSlice;
 };
 
 }  // namespace TNL::Algorithms::Segments

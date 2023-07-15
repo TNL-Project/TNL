@@ -6,8 +6,7 @@
 
 #pragma once
 
-#include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/Ellpack.h>
+#include "Ellpack.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -15,7 +14,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 template< typename SizesContainer >
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::Ellpack( const SizesContainer& segmentsSizes )
 {
-   this->setSegmentsSizes( segmentsSizes );
+   setSegmentsSizes( segmentsSizes );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
@@ -23,44 +22,53 @@ template< typename ListIndex >
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::Ellpack(
    const std::initializer_list< ListIndex >& segmentsSizes )
 {
-   this->setSegmentsSizes( Containers::Vector< IndexType, DeviceType, IndexType >( segmentsSizes ) );
+   setSegmentsSizes( OffsetsContainer( segmentsSizes ) );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::Ellpack( const IndexType segmentsCount,
-                                                                            const IndexType segmentSize )
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::Ellpack( const Index segmentsCount, const Index segmentSize )
 {
-   this->setSegmentsSizes( segmentsCount, segmentSize );
+   setSegmentsSizes( segmentsCount, segmentSize );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-std::string
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getSerializationType()
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >&
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::operator=( const Ellpack& segments )
 {
-   // FIXME: the serialized data DEPEND on the Organization and Alignment parameters, so it should be reflected in the
-   // serialization type
-   return "Ellpack< [any_device], " + TNL::getSerializationType< IndexType >() + " >";
+   Base::bind( segments.getSegmentsCount(), segments.getSegmentSize( 0 ), segments.getAlignedSize() );
+   return *this;
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-String
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getSegmentsType()
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >&
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::operator=( Ellpack&& segments ) noexcept
 {
-   return ViewType::getSegmentsType();
+   Base::bind( segments.getSegmentsCount(), segments.getSegmentSize( 0 ), segments.getAlignedSize() );
+   return *this;
+}
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
+template< typename Device_, typename Index_, typename IndexAllocator_, ElementsOrganization Organization_, int Alignment_ >
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >&
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::operator=(
+   const Ellpack< Device_, Index_, IndexAllocator_, Organization_, Alignment_ >& segments )
+{
+   setSegmentsSizes( segments.getSegmentsCount(), segments.getSegmentSize( 0 ) );
+   return *this;
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
 auto
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getView() -> ViewType
 {
-   return { size, segmentSize, alignedSize };
+   return { this->segmentsCount, this->segmentSize, this->alignedSize };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
 auto
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getConstView() const -> ConstViewType
 {
-   return { size, segmentSize, alignedSize };
+   return { this->segmentsCount, this->segmentSize, this->alignedSize };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
@@ -68,193 +76,46 @@ template< typename SizesHolder >
 void
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::setSegmentsSizes( const SizesHolder& sizes )
 {
-   this->segmentSize = max( sizes );
-   this->size = sizes.getSize();
-   if( Organization == RowMajorOrder )
-      this->alignedSize = this->size;
-   else
-      this->alignedSize = roundUpDivision( size, this->getAlignment() ) * this->getAlignment();
+   setSegmentsSizes( sizes.getSize(), max( sizes ) );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
 void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::reset()
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::setSegmentsSizes( const Index segmentsCount,
+                                                                                     const Index segmentSize )
 {
-   this->segmentSize = 0;
-   this->size = 0;
-   this->alignedSize = 0;
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::setSegmentsSizes( const IndexType segmentsCount,
-                                                                                     const IndexType segmentSize )
-{
-   this->segmentSize = segmentSize;
-   this->size = segmentsCount;
-   if( Organization == RowMajorOrder )
-      this->alignedSize = this->size;
+   if constexpr( Organization == RowMajorOrder )
+      Base::bind( segmentsCount, segmentSize, segmentsCount );
    else
-      this->alignedSize = roundUpDivision( size, this->getAlignment() ) * this->getAlignment();
+      Base::bind( segmentsCount, segmentSize, roundUpDivision( segmentsCount, this->getAlignment() ) * this->getAlignment() );
    if( integerMultiplyOverflow( this->alignedSize, this->segmentSize ) )
       throw( std::overflow_error( "Ellpack: multiplication overflow - the storage size required for the segments is larger "
                                   "than the maximal value of used index type." ) );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-__cuda_callable__
-auto
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getSegmentsCount() const -> IndexType
-{
-   return this->size;
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-__cuda_callable__
-auto
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getSegmentSize( const IndexType segmentIdx ) const
-   -> IndexType
-{
-   return this->segmentSize;
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-__cuda_callable__
-auto
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getSize() const -> IndexType
-{
-   return this->size * this->segmentSize;
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-__cuda_callable__
-auto
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getStorageSize() const -> IndexType
-{
-   return this->alignedSize * this->segmentSize;
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-__cuda_callable__
-auto
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getGlobalIndex( const Index segmentIdx,
-                                                                                   const Index localIdx ) const -> IndexType
-{
-   if( Organization == RowMajorOrder )
-      return segmentIdx * this->segmentSize + localIdx;
-   else
-      return segmentIdx + this->alignedSize * localIdx;
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-__cuda_callable__
-auto
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::getSegmentView( const IndexType segmentIdx ) const
-   -> SegmentViewType
-{
-   if( Organization == RowMajorOrder )
-      return SegmentViewType( segmentIdx, segmentIdx * this->segmentSize, this->segmentSize, 1 );
-   else
-      return SegmentViewType( segmentIdx, segmentIdx, this->segmentSize, this->alignedSize );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Function >
 void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::forElements( IndexType first,
-                                                                                IndexType last,
-                                                                                Function&& f ) const
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::reset()
 {
-   this->getConstView().forElements( first, last, f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Function >
-void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::forAllElements( Function&& f ) const
-{
-   this->forElements( 0, this->getSegmentsCount(), f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Function >
-void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::forSegments( IndexType begin,
-                                                                                IndexType end,
-                                                                                Function&& f ) const
-{
-   this->getConstView().forSegments( begin, end, f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Function >
-void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::forAllSegments( Function&& f ) const
-{
-   this->getConstView().forAllSegments( f );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::reduceSegments( IndexType first,
-                                                                                   IndexType last,
-                                                                                   Fetch& fetch,
-                                                                                   const Reduction& reduction,
-                                                                                   ResultKeeper& keeper,
-                                                                                   const Real& zero ) const
-{
-   this->getConstView().reduceSegments( first, last, fetch, reduction, keeper, zero );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::reduceAllSegments( Fetch& fetch,
-                                                                                      const Reduction& reduction,
-                                                                                      ResultKeeper& keeper,
-                                                                                      const Real& zero ) const
-{
-   this->reduceSegments( 0, this->getSegmentsCount(), fetch, reduction, keeper, zero );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Device_, typename Index_, typename IndexAllocator_, ElementsOrganization Organization_, int Alignment_ >
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >&
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::operator=(
-   const Ellpack< Device_, Index_, IndexAllocator_, Organization_, Alignment_ >& source )
-{
-   this->segmentSize = source.segmentSize;
-   this->size = source.size;
-   this->alignedSize = roundUpDivision( size, this->getAlignment() ) * this->getAlignment();
-   return *this;
+   Base::bind( 0, 0, 0 );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
 void
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::save( File& file ) const
 {
-   file.save( &segmentSize );
-   file.save( &size );
-   file.save( &alignedSize );
+   file.save( &this->segmentSize );
+   file.save( &this->segmentsCount );
+   file.save( &this->alignedSize );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
 void
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::load( File& file )
 {
-   file.load( &segmentSize );
-   file.load( &size );
-   file.load( &alignedSize );
-}
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename Fetch >
-auto
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::print( Fetch&& fetch ) const
-   -> SegmentsPrinter< Ellpack, Fetch >
-{
-   return SegmentsPrinter< Ellpack, Fetch >( *this, fetch );
+   file.load( &this->segmentSize );
+   file.load( &this->segmentsCount );
+   file.load( &this->alignedSize );
 }
 
 }  // namespace TNL::Algorithms::Segments

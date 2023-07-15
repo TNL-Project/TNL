@@ -6,9 +6,11 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/EllpackView.h>
-#include <TNL/Algorithms/Segments/SegmentView.h>
+
+#include "EllpackView.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -17,34 +19,19 @@ template< typename Device,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
           ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
           int Alignment = 32 >
-class Ellpack
+class Ellpack : public EllpackBase< Device, Index, Organization, Alignment >
 {
+   using Base = EllpackBase< Device, Index, Organization, Alignment >;
+
 public:
-   using DeviceType = Device;
-   using IndexType = std::remove_const_t< Index >;
-   [[nodiscard]] static constexpr int
-   getAlignment()
-   {
-      return Alignment;
-   }
-   [[nodiscard]] static constexpr ElementsOrganization
-   getOrganization()
-   {
-      return Organization;
-   }
-   using OffsetsContainer = Containers::Vector< IndexType, DeviceType, IndexType >;
-   using SegmentsSizes = OffsetsContainer;
+   using ViewType = EllpackView< Device, Index, Organization, Alignment >;
+
+   using ConstViewType = typename ViewType::ConstViewType;
+
    template< typename Device_, typename Index_ >
    using ViewTemplate = EllpackView< Device_, Index_, Organization, Alignment >;
-   using ViewType = EllpackView< Device, Index, Organization, Alignment >;
-   using ConstViewType = typename ViewType::ConstViewType;
-   using SegmentViewType = SegmentView< IndexType, Organization >;
 
-   [[nodiscard]] static constexpr bool
-   havePadding()
-   {
-      return true;
-   }
+   using OffsetsContainer = Containers::Vector< Index, Device, typename Base::IndexType, IndexAllocator >;
 
    Ellpack() = default;
 
@@ -54,17 +41,23 @@ public:
    template< typename ListIndex >
    Ellpack( const std::initializer_list< ListIndex >& segmentsSizes );
 
-   Ellpack( IndexType segmentsCount, IndexType segmentSize );
+   Ellpack( Index segmentsCount, Index segmentSize );
 
    Ellpack( const Ellpack& segments ) = default;
 
    Ellpack( Ellpack&& segments ) noexcept = default;
 
-   [[nodiscard]] static std::string
-   getSerializationType();
+   //! \brief Copy-assignment operator.
+   Ellpack&
+   operator=( const Ellpack& segments );
 
-   [[nodiscard]] static String
-   getSegmentsType();
+   //! \brief Move-assignment operator.
+   Ellpack&
+   operator=( Ellpack&& ) noexcept;
+
+   template< typename Device_, typename Index_, typename IndexAllocator_, ElementsOrganization Organization_, int Alignment_ >
+   Ellpack&
+   operator=( const Ellpack< Device_, Index_, IndexAllocator_, Organization_, Alignment_ >& segments );
 
    [[nodiscard]] ViewType
    getView();
@@ -75,119 +68,23 @@ public:
    /**
     * \brief Set sizes of particular segments.
     */
-   template< typename SizesHolder = OffsetsContainer >
+   template< typename SizesContainer >
    void
-   setSegmentsSizes( const SizesHolder& sizes );
+   setSegmentsSizes( const SizesContainer& sizes );
 
    void
-   setSegmentsSizes( IndexType segmentsCount, IndexType segmentSize );
+   setSegmentsSizes( Index segmentsCount, Index segmentSize );
 
    void
    reset();
-
-   /**
-    * \brief Number segments.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSegmentsCount() const;
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSegmentSize( IndexType segmentIdx ) const;
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getSize() const;
-
-   /**
-    * \brief Returns number of elements that needs to be allocated by a container connected to this segments.
-    *
-    * \return size of container connected to this segments.
-    */
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getStorageSize() const;
-
-   [[nodiscard]] __cuda_callable__
-   IndexType
-   getGlobalIndex( Index segmentIdx, Index localIdx ) const;
-
-   [[nodiscard]] __cuda_callable__
-   SegmentViewType
-   getSegmentView( IndexType segmentIdx ) const;
-
-   /***
-    * \brief Go over all segments and for each segment element call
-    * function 'f' with arguments 'args'. The return type of 'f' is bool.
-    * When its true, the for-loop continues. Once 'f' returns false, the for-loop
-    * is terminated.
-    */
-   template< typename Function >
-   void
-   forElements( IndexType first, IndexType last, Function&& f ) const;
-
-   template< typename Function >
-   void
-   forAllElements( Function&& f ) const;
-
-   template< typename Function >
-   void
-   forSegments( IndexType begin, IndexType end, Function&& f ) const;
-
-   template< typename Function >
-   void
-   forAllSegments( Function&& f ) const;
-
-   /***
-    * \brief Go over all segments and perform a reduction in each of them.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceSegments( IndexType first,
-                   IndexType last,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Real& zero ) const;
-
-   /**
-    * \brief Call \e reduceSegments for all segments.
-    */
-   template< typename Fetch, typename Reduction, typename ResultKeeper, typename Real >
-   void
-   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Real& zero ) const;
-
-   Ellpack&
-   operator=( const Ellpack& source ) = default;
-
-   template< typename Device_, typename Index_, typename IndexAllocator_, ElementsOrganization Organization_, int Alignment_ >
-   Ellpack&
-   operator=( const Ellpack< Device_, Index_, IndexAllocator_, Organization_, Alignment_ >& source );
 
    void
    save( File& file ) const;
 
    void
    load( File& file );
-
-   template< typename Fetch >
-   SegmentsPrinter< Ellpack, Fetch >
-   print( Fetch&& fetch ) const;
-
-protected:
-   IndexType segmentSize = 0;
-   IndexType size = 0;
-   IndexType alignedSize = 0;
 };
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-std::ostream&
-operator<<( std::ostream& str, const Ellpack< Device, Index, IndexAllocator, Organization, Alignment >& segments )
-{
-   return printSegments( segments, str );
-}
 
 }  // namespace TNL::Algorithms::Segments
 
-#include <TNL/Algorithms/Segments/Ellpack.hpp>
+#include "Ellpack.hpp"

@@ -100,7 +100,7 @@ void test_SetSegmentsSizes_EqualSizes_EllpackOnly()
       EXPECT_EQ( segmentsView.getSegmentSize( i ), segmentSize );
 }
 
-template< typename Segments >
+template< typename Segments, typename SegmentsReductionKernel >
 void test_reduceAllSegments_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
@@ -136,13 +136,15 @@ void test_reduceAllSegments_MaximumInSegments()
    auto keep = [=] __cuda_callable__ ( const IndexType i, const IndexType a ) mutable {
       result_view[ i ] = a;
    };
-   segments.reduceAllSegments( fetch, reduce, keep, std::numeric_limits< IndexType >::min() );
+   SegmentsReductionKernel reductionKernel;
+   reductionKernel.init( segments );
+   reductionKernel.reduceAllSegments( segments, fetch, reduce, keep, std::numeric_limits< IndexType >::min() );
 
    for( IndexType i = 0; i < segmentsCount; i++ )
       EXPECT_EQ( result.getElement( i ), ( i + 1 ) * segmentSize );
 
    result_view = 0;
-   segments.getView().reduceAllSegments( fetch, reduce, keep, std::numeric_limits< IndexType >::min() );
+   reductionKernel.reduceAllSegments( segments.getView(), fetch, reduce, keep, std::numeric_limits< IndexType >::min() );
    for( IndexType i = 0; i < segmentsCount; i++ )
       EXPECT_EQ( result.getElement( i ), ( i + 1 ) * segmentSize );
 }

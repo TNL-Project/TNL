@@ -1,10 +1,7 @@
-#include <iostream>
 #include <TNL/Matrices/Sandbox/SparseSandboxMatrix.h>
 
 #ifdef HAVE_GTEST
 #include <gtest/gtest.h>
-
-const char* saveAndLoadFileName = "test_SparseMatrixTest_CSRScalar_segments";
 
 // types for which MatrixTest is instantiated
 using MatrixTypes = ::testing::Types

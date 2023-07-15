@@ -2,20 +2,7 @@ set( COMMON_EXAMPLES
    MultidiagonalMatrixExample_Constructor
     MultidiagonalMatrixExample_Constructor_init_list_1
     MultidiagonalMatrixExample_Constructor_init_list_2
-    MultidiagonalMatrixExample_getSerializationType
     MultidiagonalMatrixExample_setElements
-    MultidiagonalMatrixExample_getCompressedRowLengths
-#    MultidiagonalMatrixExample_getElementsCount
-    MultidiagonalMatrixExample_getConstRow
-    MultidiagonalMatrixExample_getRow
-    MultidiagonalMatrixExample_setElement
-    MultidiagonalMatrixExample_addElement
-    MultidiagonalMatrixExample_getElement
-    MultidiagonalMatrixExample_reduceRows
-    MultidiagonalMatrixExample_reduceAllRows
-    MultidiagonalMatrixExample_forElements
-    MultidiagonalMatrixExample_forAllElements
-    MultidiagonalMatrixExample_forRows
 #    MultidiagonalMatrixViewExample_constructor
     MultidiagonalMatrixViewExample_getCompressedRowLengths
 #    MultidiagonalMatrixViewExample_getElementsCount

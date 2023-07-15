@@ -27,8 +27,32 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::SparseSandboxMatrixV
    const ValuesViewType& values,
    const ColumnsIndexesViewType& columnIndexes,
    const RowPointersView& rowPointers )
-: MatrixView< Real, Device, Index >( rows, columns, values ), columnIndexes( columnIndexes ), rowPointers( rowPointers )
+: BaseType( rows, columns, values ), columnIndexes( columnIndexes ), rowPointers( rowPointers )
 {}
+
+template< typename Real, typename Device, typename Index, typename MatrixType >
+__cuda_callable__
+void
+SparseSandboxMatrixView< Real, Device, Index, MatrixType >::bind( SparseSandboxMatrixView& view )
+{
+   BaseType::operator=( view );
+   this->columnIndexes.bind( view.columnIndexes );
+   // SANDBOX_TODO: Replace the following line with assignment of metadata required by your
+   //               sparse format.
+   this->rowPointers.bind( view.rowPointers );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType >
+__cuda_callable__
+void
+SparseSandboxMatrixView< Real, Device, Index, MatrixType >::bind( SparseSandboxMatrixView&& view )
+{
+   BaseType::bind( view.getRows(), view.getColumns(), view.getValues() );
+   this->columnIndexes.bind( view.columnIndexes );
+   // SANDBOX_TODO: Replace the following line with assignment of metadata required by your
+   //               sparse format.
+   this->rowPointers.bind( view.rowPointers );
+}
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
 __cuda_callable__
@@ -121,11 +145,10 @@ Index
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::getNonzeroElementsCount() const
 {
    const auto columns_view = this->columnIndexes.getConstView();
-   const IndexType paddingIndex = this->getPaddingIndex();
-   if( ! isSymmetric() ) {
+   if constexpr( ! isSymmetric() ) {
       auto fetch = [ = ] __cuda_callable__( const IndexType i ) -> IndexType
       {
-         return ( columns_view[ i ] != paddingIndex );
+         return ( columns_view[ i ] != paddingIndex< IndexType > );
       };
       return Algorithms::reduce< DeviceType >( (IndexType) 0, this->columnIndexes.getSize(), fetch, std::plus<>{}, 0 );
    }
@@ -146,7 +169,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::getNonzeroElementsCo
          IndexType sum( 0 );
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
             const IndexType column = columnIndexesView[ globalIdx ];
-            if( column != paddingIndex )
+            if( column != paddingIndex< IndexType > )
                sum += 1 + ( column != rowIdx && column < rows && rowIdx < columns );
          }
          row_sums_view[ rowIdx ] = sum;
@@ -219,7 +242,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::addElement( IndexTyp
    //               matrix row with indedx `row`. Note that the code works on both host and GPU kernel. To achieve
    //               the same effect, you may use macro __CUDA_ARCH__ as can be seen bellow in this method.
    const IndexType rowSize = this->rowPointers.getElement( row + 1 ) - this->rowPointers.getElement( row );
-   IndexType col( this->getPaddingIndex() );
+   IndexType col = paddingIndex< IndexType >;
    IndexType i;
    IndexType globalIdx = 0;
    for( i = 0; i < rowSize; i++ ) {
@@ -234,7 +257,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::addElement( IndexTyp
             this->values.setElement( globalIdx, thisElementMultiplicator * this->values.getElement( globalIdx ) + value );
          return;
       }
-      if( col == this->getPaddingIndex() || col > column )
+      if( col == paddingIndex< IndexType > || col > column )
          break;
    }
    if( i == rowSize ) {
@@ -247,7 +270,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::addElement( IndexTyp
       return;
 #endif
    }
-   if( col == this->getPaddingIndex() ) {
+   if( col == paddingIndex< IndexType > ) {
       this->columnIndexes.setElement( globalIdx, column );
       if( ! isBinary() )
          this->values.setElement( globalIdx, value );
@@ -337,7 +360,6 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::vectorProduct( const
    const auto valuesView = this->values.getConstView();
    const auto columnIndexesView = this->columnIndexes.getConstView();
    const auto rowPointersView = this->rowPointers.getConstView();
-   const IndexType paddingIndex = this->getPaddingIndex();
 #define HAVE_SANDBOX_SIMPLE_SPMV
    // SANDBOX_TODO: The following is simple direct implementation of SpMV operation with CSR format. We recommend to start by
    //               replacing this part with SpMV based on your sparse format.
@@ -350,7 +372,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::vectorProduct( const
          RealType sum( 0.0 );
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
             const auto columnIdx = this->columnIndexes[ globalIdx ];
-            if( columnIdx != paddingIndex )
+            if( columnIdx != paddingIndex< IndexType > )
                sum += this->values[ globalIdx ] * inVector[ columnIdx ];
          }
          // SANDBOX_TODO:The following is quite inefficient, its better to specialized the code for cases when
@@ -459,46 +481,10 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceRows( IndexTyp
                                                                         Fetch& fetch,
                                                                         const Reduce& reduce,
                                                                         Keep& keep,
-                                                                        const FetchValue& zero )
-{
-   auto columns_view = this->columnIndexes.getView();
-   auto values_view = this->values.getView();
-   auto row_pointers_view = this->rowPointers.getConstView();
-   const IndexType paddingIndex_ = this->getPaddingIndex();
-   // SANDBOX_TODO: Replace the following code with the one for computing reduction in rows by your format.
-   //               Note, that this method can be used for implementation of SpMV.
-   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
-   {
-      const auto begin = row_pointers_view[ rowIdx ];
-      const auto end = row_pointers_view[ rowIdx + 1 ];
-      FetchValue sum = zero;
-      for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
-         IndexType& columnIdx = columns_view[ globalIdx ];
-         if( columnIdx != paddingIndex_ ) {
-            if( isBinary() )
-               sum = reduce( sum, fetch( rowIdx, columnIdx, 1 ) );
-            else
-               sum = reduce( sum, fetch( rowIdx, columnIdx, values_view[ globalIdx ] ) );
-         }
-      }
-      keep( rowIdx, sum );
-   };
-   TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
-void
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceRows( IndexType begin,
-                                                                        IndexType end,
-                                                                        Fetch& fetch,
-                                                                        const Reduce& reduce,
-                                                                        Keep& keep,
                                                                         const FetchValue& zero ) const
 {
    auto columns_view = this->columnIndexes.getConstView();
    auto values_view = this->values.getConstView();
-   const IndexType paddingIndex_ = this->getPaddingIndex();
    // SANDBOX_TODO: Replace the following code with the one for computing reduction in rows by your format.
    //               Note, that this method can be used for implementation of SpMV.
    auto row_pointers_view = this->rowPointers.getConstView();
@@ -509,7 +495,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceRows( IndexTyp
       FetchValue sum = zero;
       for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
          const IndexType& columnIdx = columns_view[ globalIdx ];
-         if( columnIdx != paddingIndex_ ) {
+         if( columnIdx != paddingIndex< IndexType > ) {
             if( isBinary() )
                sum = reduce( sum, fetch( rowIdx, columnIdx, 1 ) );
             else
@@ -519,17 +505,6 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceRows( IndexTyp
       keep( rowIdx, sum );
    };
    TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-void
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::reduceAllRows( Fetch& fetch,
-                                                                           const Reduce& reduce,
-                                                                           Keep& keep,
-                                                                           const FetchReal& zero )
-{
-   this->reduceRows( 0, this->getRows(), fetch, reduce, keep, zero );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -740,19 +715,6 @@ getTransposition( const SparseSandboxMatrixView< Real2, Device, Index2 >& matrix
 }*/
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >&
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::operator=(
-   const SparseSandboxMatrixView< Real, Device, Index, MatrixType >& matrix )
-{
-   MatrixView< Real, Device, Index >::operator=( matrix );
-   this->columnIndexes.bind( matrix.columnIndexes );
-   // SANDBOX_TODO: Replace the following line with assignment of metadata required by your
-   //               sparse format.
-   this->rowPointers.bind( matrix.rowPointers );
-   return *this;
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
 template< typename Matrix >
 bool
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::operator==( const Matrix& m ) const
@@ -774,21 +736,6 @@ bool
 SparseSandboxMatrixView< Real, Device, Index, MatrixType >::operator!=( const Matrix& m ) const
 {
    return ! operator==( m );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-void
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::save( File& file ) const
-{
-   MatrixView< Real, Device, Index >::save( file );
-   file << this->columnIndexes << this->rowPointers;  // SANDBOX_TODO: Replace this with medata required by your format
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-void
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::save( const String& fileName ) const
-{
-   Object::save( fileName );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -817,7 +764,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::print( std::ostream&
             // and `columnIdexes`.
             const IndexType globalIdx = this->rowPointers.getElement( row ) + i;
             const IndexType column = this->columnIndexes.getElement( globalIdx );
-            if( column == this->getPaddingIndex() )
+            if( column == paddingIndex< IndexType > )
                break;
             std::decay_t< RealType > value;
             if( isBinary() )
@@ -832,14 +779,6 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::print( std::ostream&
          }
          str << std::endl;
       }
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-__cuda_callable__
-Index
-SparseSandboxMatrixView< Real, Device, Index, MatrixType >::getPaddingIndex() const
-{
-   return -1;
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >

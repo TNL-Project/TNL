@@ -1,7 +1,6 @@
 #include <iostream>
 #include <sstream>
 #include <TNL/Devices/Host.h>
-#include <TNL/Matrices/Matrix.h>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
 #include <TNL/Algorithms/contains.h>
 #include <TNL/Containers/Array.h>
@@ -39,11 +38,11 @@ template< typename Matrix >
 void test_SetDimensions()
 {
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    const IndexType rows = 9;
    const IndexType cols = 8;
-   const DiagonalsOffsetsType diagonalsOffsets{ -3, -1, 0, 2, 4 };
+   const DiagonalOffsetsType diagonalsOffsets{ -3, -1, 0, 2, 4 };
 
    Matrix m;
    m.setDimensions( rows, cols, diagonalsOffsets );
@@ -56,11 +55,11 @@ template< typename Matrix >
 void test_SetDiagonalsOffsets()
 {
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    const IndexType rows = 9;
    const IndexType cols = 8;
-   const DiagonalsOffsetsType diagonalsOffsets{ -3, -1, 0, 2, 4 };
+   const DiagonalOffsetsType diagonalsOffsets{ -3, -1, 0, 2, 4 };
 
    Matrix m;
    m.setDimensions( rows, cols );
@@ -90,11 +89,11 @@ template< typename Matrix1, typename Matrix2 >
 void test_SetLike()
 {
    using IndexType = typename Matrix1::IndexType;
-   using DiagonalsOffsetsType = typename Matrix1::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix1::DiagonalOffsetsType;
 
    const IndexType rows = 8;
    const IndexType cols = 7;
-   const DiagonalsOffsetsType diagonalsOffsets{ -3, -1, 0, 2, 4 };
+   const DiagonalOffsetsType diagonalsOffsets{ -3, -1, 0, 2, 4 };
 
    Matrix1 m1;
    m1.setDimensions( rows + 1, cols + 2, diagonalsOffsets );
@@ -169,7 +168,7 @@ template< typename Matrix >
 void test_GetCompressedRowLengths()
 {
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    /*
     * Sets up the following 8x8 matrix:
@@ -187,7 +186,7 @@ void test_GetCompressedRowLengths()
    const IndexType rows = 8;
    const IndexType cols = 8;
 
-   Matrix m( rows, cols, DiagonalsOffsetsType({ -2, 0, 3, 5 }) );
+   Matrix m( rows, cols, DiagonalOffsetsType({ -2, 0, 3, 5 }) );
    m.setValue( 1.0 );
    m.setElement( 0, 0, 0.0 );
    m.setElement( 7, 7, 0.0 );
@@ -202,18 +201,18 @@ void test_GetCompressedRowLengths()
 template< typename Matrix >
 void test_GetAllocatedElementsCount()
 {
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    //const IndexType rows = 7;
    //const IndexType cols = 6;
 
-   Matrix m1( 7, 6, DiagonalsOffsetsType( { -2, 0, 3, 5 } ) );
+   Matrix m1( 7, 6, DiagonalOffsetsType( { -2, 0, 3, 5 } ) );
    EXPECT_EQ( m1.getAllocatedElementsCount(), 28 );
 
-   Matrix m2( 8, 6, DiagonalsOffsetsType( { -2, 0, 3, 5 } ) );
+   Matrix m2( 8, 6, DiagonalOffsetsType( { -2, 0, 3, 5 } ) );
    EXPECT_EQ( m2.getAllocatedElementsCount(), 32 );
 
-   Matrix m3( 9, 6, DiagonalsOffsetsType( { -2, 0, 3, 5 } ) );
+   Matrix m3( 9, 6, DiagonalOffsetsType( { -2, 0, 3, 5 } ) );
    EXPECT_EQ( m3.getAllocatedElementsCount(), 32 );
 }
 
@@ -221,7 +220,7 @@ template< typename Matrix >
 void test_GetNonzeroElementsCount()
 {
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    /*
     * Sets up the following 7x6 matrix:
@@ -239,7 +238,7 @@ void test_GetNonzeroElementsCount()
    const IndexType rows = 7;
    const IndexType cols = 6;
 
-   Matrix m( rows, cols, DiagonalsOffsetsType( { -3, 0, 2, 4 } ) );
+   Matrix m( rows, cols, DiagonalOffsetsType( { -3, 0, 2, 4 } ) );
    m.setValue( 1.0 );
    m.setElement( 0, 0, 0.0 );
 
@@ -250,7 +249,7 @@ template< typename Matrix >
 void test_Reset()
 {
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    /*
     * Sets up the following 5x4 matrix:
@@ -264,7 +263,7 @@ void test_Reset()
    const IndexType rows = 5;
    const IndexType cols = 4;
 
-   Matrix m( rows, cols, DiagonalsOffsetsType( { 0, 1, 2, 4 } ) );
+   Matrix m( rows, cols, DiagonalOffsetsType( { 0, 1, 2, 4 } ) );
    m.reset();
 
    EXPECT_EQ( m.getRows(), 0 );
@@ -275,7 +274,7 @@ template< typename Matrix >
 void test_SetValue()
 {
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    /*
     * Sets up the following 7x6 matrix:
@@ -291,7 +290,7 @@ void test_SetValue()
    const IndexType rows = 7;
    const IndexType cols = 6;
 
-   Matrix m( rows, cols, DiagonalsOffsetsType( { -3, 0, 2, 4 } ) );
+   Matrix m( rows, cols, DiagonalOffsetsType( { -3, 0, 2, 4 } ) );
    m.setValue( 1.0 );
 
    EXPECT_EQ( m.getElement( 0, 0 ), 1 );
@@ -349,7 +348,7 @@ void test_SetElement()
 {
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    /*
     * Sets up the following 5x5 matrix:
@@ -362,7 +361,7 @@ void test_SetElement()
     */
    const IndexType rows = 5;
    const IndexType cols = 5;
-   DiagonalsOffsetsType diagonals{-3, 0, 1, 4 };
+   DiagonalOffsetsType diagonals{-3, 0, 1, 4 };
    Matrix m( rows, cols, diagonals );
 
    RealType value = 1;
@@ -411,7 +410,7 @@ void test_AddElement()
 {
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    /*
     * Sets up the following 5x5 matrix:
@@ -424,7 +423,7 @@ void test_AddElement()
     */
    const IndexType rows = 5;
    const IndexType cols = 5;
-   DiagonalsOffsetsType diagonals{-3, 0, 1, 4 };
+   DiagonalOffsetsType diagonals{-3, 0, 1, 4 };
    Matrix m( rows, cols, diagonals );
 
    RealType value = 1;
@@ -532,7 +531,7 @@ void test_SetRow()
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    /*
     * Sets up the following 5x7 matrix:
@@ -546,7 +545,7 @@ void test_SetRow()
    const IndexType rows = 5;
    const IndexType cols = 7;
 
-   Matrix m( rows, cols, DiagonalsOffsetsType({ -1, 0, 2, 4 }) );
+   Matrix m( rows, cols, DiagonalOffsetsType({ -1, 0, 2, 4 }) );
 
    auto matrix_view = m.getView();
    auto f = [=] __cuda_callable__ ( IndexType rowIdx ) mutable {
@@ -609,7 +608,7 @@ void test_AddRow()
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    /*
     * Sets up the following 6x5 matrix:
@@ -624,7 +623,7 @@ void test_AddRow()
 
    const IndexType rows = 6;
    const IndexType cols = 5;
-   DiagonalsOffsetsType diagonals( { -2, 0, 1, 2 } );
+   DiagonalOffsetsType diagonals( { -2, 0, 1, 2 } );
 
    Matrix m( rows, cols, diagonals );
 
@@ -824,7 +823,7 @@ void test_VectorProduct()
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    /*
     * Sets up the following 5x4 matrix:
@@ -837,7 +836,7 @@ void test_VectorProduct()
     */
    const IndexType rows = 5;
    const IndexType cols = 4;
-   DiagonalsOffsetsType diagonals{ -2, 0, 2 };
+   DiagonalOffsetsType diagonals{ -2, 0, 2 };
 
    Matrix m( rows, cols, diagonals );
 
@@ -872,8 +871,8 @@ void test_AddMatrix()
 {
    using RealType = typename Matrix1::RealType;
    using IndexType = typename Matrix1::IndexType;
-   using DiagonalsOffsetsType1 = typename Matrix1::DiagonalsOffsetsType;
-   using DiagonalsOffsetsType2 = typename Matrix2::DiagonalsOffsetsType;
+   using DiagonalOffsetsType1 = typename Matrix1::DiagonalOffsetsType;
+   using DiagonalOffsetsType2 = typename Matrix2::DiagonalOffsetsType;
 
    /*
     * Sets up the following 5x4 matrix:
@@ -886,8 +885,8 @@ void test_AddMatrix()
     */
    const IndexType rows = 5;
    const IndexType cols = 4;
-   DiagonalsOffsetsType1 diagonals1;
-   DiagonalsOffsetsType2 diagonals2;
+   DiagonalOffsetsType1 diagonals1;
+   DiagonalOffsetsType2 diagonals2;
 
    Matrix1 m( rows, cols, diagonals1 );
 
@@ -994,7 +993,7 @@ void test_GetTransposition()
 {
     using RealType = typename Matrix::RealType;
     using IndexType = typename Matrix::IndexType;
-    using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 /*
  * Sets up the following 3x2 matrix:
  *
@@ -1004,7 +1003,7 @@ void test_GetTransposition()
  */
     const IndexType rows = 3;
     const IndexType cols = 2;
-    DiagonalsOffsetsType diagonalsOffsets( { 0, 1, 2 } );
+    DiagonalOffsetsType diagonalsOffsets( { 0, 1, 2 } );
 
     Matrix m( rows, cols, diagonalsOffsets );
 
@@ -1052,13 +1051,13 @@ void test_AssignmentOperator()
 {
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
    constexpr TNL::Algorithms::Segments::ElementsOrganization organization = Matrix::getOrganization();
 
    using MultidiagonalHost = TNL::Matrices::MultidiagonalMatrix< RealType, TNL::Devices::Host, IndexType, organization >;
 
    const IndexType rows( 10 ), columns( 10 );
-   DiagonalsOffsetsType diagonalsOffsets( { -4, -2, 0, 2, 3, 5 } );
+   DiagonalOffsetsType diagonalsOffsets( { -4, -2, 0, 2, 3, 5 } );
    MultidiagonalHost hostMatrix( rows, columns, diagonalsOffsets );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j <  columns; j++ )
@@ -1103,7 +1102,7 @@ void test_SaveAndLoad()
 {
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
-   using DiagonalsOffsetsType = typename Matrix::DiagonalsOffsetsType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
    /*
     * Sets up the following 4x4 matrix:
@@ -1115,7 +1114,7 @@ void test_SaveAndLoad()
     */
    const IndexType rows = 4;
    const IndexType cols = 4;
-   DiagonalsOffsetsType diagonalsOffsets( { -1, 0, 1 } );
+   DiagonalOffsetsType diagonalsOffsets( { -1, 0, 1 } );
 
    Matrix savedMatrix( rows, cols, diagonalsOffsets );
 

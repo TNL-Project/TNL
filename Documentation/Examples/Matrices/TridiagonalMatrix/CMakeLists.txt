@@ -1,19 +1,6 @@
 set( COMMON_EXAMPLES
     TridiagonalMatrixExample_Constructor_init_list_1
-    TridiagonalMatrixExample_getSerializationType
     TridiagonalMatrixExample_setElements
-    TridiagonalMatrixExample_getCompressedRowLengths
-#   TridiagonalMatrixExample_getElementsCount
-    TridiagonalMatrixExample_getConstRow
-    TridiagonalMatrixExample_getRow
-    TridiagonalMatrixExample_setElement
-    TridiagonalMatrixExample_addElement
-    TridiagonalMatrixExample_getElement
-    TridiagonalMatrixExample_reduceRows
-    TridiagonalMatrixExample_reduceAllRows
-    TridiagonalMatrixExample_forElements
-    TridiagonalMatrixExample_forAllElements
-    TridiagonalMatrixExample_forRows
 #   TridiagonalMatrixViewExample_constructor
     TridiagonalMatrixViewExample_getCompressedRowLengths
 #   TridiagonalMatrixViewExample_getElementsCount

@@ -5,11 +5,7 @@ set( COMMON_TESTS
             DenseMatrixCopyTest
             TridiagonalMatrixTest
             MultidiagonalMatrixTest
-            SparseMatrixTest_CSRScalar
-            SparseMatrixTest_CSRVector
-            SparseMatrixTest_CSRHybrid
-            SparseMatrixTest_CSRLight
-            SparseMatrixTest_CSRAdaptive
+            SparseMatrixTest_CSR
             SparseMatrixTest_Ellpack
             SparseMatrixTest_SlicedEllpack
             SparseMatrixTest_ChunkedEllpack
@@ -31,7 +27,8 @@ set( COMMON_TESTS
             SymmetricSparseMatrixTest_CSR
             LambdaMatrixTest
             SparseMatrixTest_SandboxMatrix
-            SparseMatrixVectorProductTest_SandboxMatrix
+            # SpMV with SandboxMatrix is not tested because it does not use segments
+            #SparseMatrixVectorProductTest_SandboxMatrix
             MatrixWrappingTest
 )
 

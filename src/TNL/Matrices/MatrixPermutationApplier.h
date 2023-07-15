@@ -10,6 +10,8 @@
 
 #include <TNL/Algorithms/parallelFor.h>
 
+#include "MatrixBase.h"
+
 namespace TNL::Matrices {
 
 template< typename Matrix, typename PermutationArray >
@@ -75,7 +77,7 @@ permuteMatrixColumns( Matrix& matrix, const PermutationArray& iperm )
       auto row = matrix_view.getRow( i );
       for( IndexType c = 0; c < row.getSize(); c++ ) {
          const IndexType col = row.getColumnIndex( c );
-         if( col == matrix_view.getPaddingIndex() )
+         if( col == paddingIndex< IndexType > )
             break;
          if( row.isBinary() )
             row.setElement( c, iperm_view[ col ], true );  // the value does not matter

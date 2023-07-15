@@ -24,9 +24,8 @@ public:
    [[nodiscard]] static constexpr int
    getLogWarpSize()
    {
-      static_assert( WarpSize == 32, "nvcc does not allow constexpr log2" );
-      return 5;
-   }  // TODO: return std::log2( WarpSize ); };
+      return TNL::discreteLog2( WarpSize );
+   }
 
    [[nodiscard]] static constexpr int
    getGroupsCount()
@@ -46,13 +45,24 @@ public:
     * \param groupsWidth is a static vector containing widths of the strip groups.
     */
    __cuda_callable__
-   BiEllpackSegmentView( const IndexType segmentIdx,
-                         const IndexType offset,
-                         const IndexType inStripIdx,
-                         const GroupsWidthType& groupsWidth )
+   BiEllpackSegmentView( IndexType segmentIdx, IndexType offset, IndexType inStripIdx, const GroupsWidthType& groupsWidth )
    : segmentIdx( segmentIdx ), groupOffset( offset ), inStripIdx( inStripIdx ), segmentSize( TNL::sum( groupsWidth ) ),
      groupsWidth( groupsWidth )
    {}
+
+   __cuda_callable__
+   BiEllpackSegmentView( const BiEllpackSegmentView& ) = default;
+
+   __cuda_callable__
+   BiEllpackSegmentView( BiEllpackSegmentView&& ) noexcept = default;
+
+   __cuda_callable__
+   BiEllpackSegmentView&
+   operator=( const BiEllpackSegmentView& ) = default;
+
+   __cuda_callable__
+   BiEllpackSegmentView&
+   operator=( BiEllpackSegmentView&& ) noexcept = default;
 
    [[nodiscard]] __cuda_callable__
    IndexType
@@ -66,7 +76,9 @@ public:
    getGlobalIndex( IndexType localIdx ) const
    {
       // std::cerr << "SegmentView: localIdx = " << localIdx << " groupWidth = " << groupsWidth << std::endl;
-      IndexType groupIdx( 0 ), offset( groupOffset ), groupHeight( getWarpSize() );
+      IndexType groupIdx = 0;
+      IndexType offset = groupOffset;
+      IndexType groupHeight = getWarpSize();
       while( localIdx >= groupsWidth[ groupIdx ] ) {
          // std::cerr << "ROW: groupIdx = " << groupIdx << " groupWidth = " << groupsWidth[ groupIdx ]
          //           << " groupSize = " << groupsWidth[ groupIdx ] * groupHeight << std::endl;
@@ -75,7 +87,7 @@ public:
          groupHeight /= 2;
       }
       TNL_ASSERT_LE( groupIdx, TNL::log2( getWarpSize() - inStripIdx + 1 ), "Local index exceeds segment bounds." );
-      if( Organization == RowMajorOrder ) {
+      if constexpr( Organization == RowMajorOrder ) {
          // std::cerr << " offset = " << offset << " inStripIdx = " << inStripIdx << " localIdx = " << localIdx
          //           << " return = " << offset + inStripIdx * groupsWidth[ groupIdx ] + localIdx << std::endl;
          return offset + inStripIdx * groupsWidth[ groupIdx ] + localIdx;
@@ -85,15 +97,17 @@ public:
    }
 
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    getSegmentIndex() const
    {
       return this->segmentIdx;
    }
 
 protected:
-   IndexType segmentIdx, groupOffset, inStripIdx, segmentSize;
-
+   IndexType segmentIdx;
+   IndexType groupOffset;
+   IndexType inStripIdx;
+   IndexType segmentSize;
    GroupsWidthType groupsWidth;
 };
 

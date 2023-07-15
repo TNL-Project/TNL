@@ -1,7 +1,3 @@
-// Implemented by: Lukas Cejka
-//      Original implemented by J. Klinkovsky in Benchmarks/BLAS
-//      This is an edited copy of Benchmarks/BLAS/spmv.h by: Lukas Cejka
-
 #pragma once
 
 #include <TNL/Devices/Host.h>
@@ -9,12 +5,6 @@
 #include <TNL/Config/parseCommandLine.h>
 
 #include "spmv.h"
-
-#include <TNL/Matrices/MatrixReader.h>
-
-#ifdef HAVE_PETSC
-#include <petscmat.h>
-#endif
 
 using namespace TNL::Matrices;
 
@@ -60,7 +50,6 @@ setupConfig( Config::ConfigDescription & config )
    config.addDelimiter( "Benchmark settings:" );
    config.addRequiredEntry< String >( "input-file", "Input file name." );
    config.addEntry< bool >( "with-symmetric-matrices", "Perform benchmark even for symmetric matrix formats.", true );
-   config.addEntry< bool >( "with-legacy-matrices", "Perform benchmark even for legacy TNL matrix formats.", true );
    config.addEntry< bool >( "with-ellpack-formats", "Perform benchmark for Ellpack based matrix formats.", true );
    config.addEntry< bool >( "with-all-cpu-tests", "All matrix formats are tested on both CPU and GPU. ", false );
    config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-spmv::" + getCurrDateTime() + ".log");
@@ -83,13 +72,6 @@ setupConfig( Config::ConfigDescription & config )
 int
 main( int argc, char* argv[] )
 {
-#ifdef HAVE_PETSC
-   PetscInitialize( &argc, &argv, nullptr, nullptr );
-#endif
-//#ifdef HAVE_MPI
-//   TNL::MPI::ScopedInitializer mpi( argc, argv );
-//#endif
-
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
@@ -120,13 +102,11 @@ main( int argc, char* argv[] )
    const int verboseMR = parameters.getParameter< int >( "verbose-MReader" );
 
    // open log file
-   if( inputFileName == "" )
-   {
+   if( inputFileName.empty() ) {
       std::cerr << "ERROR: Input file name is required." << std::endl;
       return EXIT_FAILURE;
    }
-   if( std::filesystem::exists(logFileName.getString()) )
-   {
+   if( std::filesystem::exists(logFileName.getString()) ) {
       std::cout << "Log file " << logFileName << " exists and ";
       if( outputMode == "append" )
          std::cout << "new logs will be appended." << std::endl;

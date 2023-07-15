@@ -26,7 +26,7 @@ void forRowsExample()
       { -1, 0, 1 } ); // matrix diagonals offsets
    auto view = matrix.getView();
 
-   auto f = [=] __cuda_callable__ ( typename MatrixType::RowView& row ) {
+   auto f = [] __cuda_callable__ ( typename MatrixType::RowView& row ) {
       const int& rowIdx = row.getRowIndex();
       if( rowIdx > 0 )
          row.setElement( 0, -1.0 );  // elements below the diagonal
@@ -34,7 +34,7 @@ void forRowsExample()
       if( rowIdx < size - 1 )        // elements above the diagonal
          row.setElement( 2, -1.0 );
    };
-   view.forAllRows( f );
+   view.forAllRows( f );  // or matrix.forAllRows
    std::cout << matrix << std::endl;
 }
 

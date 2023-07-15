@@ -21,11 +21,6 @@ namespace TNL::Matrices {
  * See \ref TridiagonalMatrix and \ref TridiagonalMatrixView.
  *
  * \par Example
- * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_getRow.cpp
- * \par Output
- * \include TridiagonalMatrixExample_getRow.out
- *
- * \par Example
  * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_getRow.cpp
  * \par Output
  * \include TridiagonalMatrixViewExample_getRow.out

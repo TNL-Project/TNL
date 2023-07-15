@@ -15,7 +15,7 @@ void forRowsExample()
    /***
     * Set the matrix elements.
     */
-   auto f = [=] __cuda_callable__ ( RowView& row ) mutable {
+   auto f = [] __cuda_callable__ ( RowView& row ) {
       const int& rowIdx = row.getRowIndex();
       if( rowIdx > 0 )
          row.setValue( rowIdx - 1, -1.0 );
@@ -23,13 +23,13 @@ void forRowsExample()
       if( rowIdx < size - 1 )
          row.setValue( rowIdx + 1, -1.0 );
    };
-   view.forAllRows( f );
+   view.forAllRows( f );  // or matrix.forAllRows
    std::cout << matrix << std::endl;
 
    /***
     * Now divide each matrix row by its largest element - with the use of iterators.
     */
-   view.forAllRows( [=] __cuda_callable__ ( RowView& row ) mutable {
+   view.forAllRows( [] __cuda_callable__ ( RowView& row ) {
       double largest = std::numeric_limits< double >::lowest();
       for( auto element : row )
          largest = TNL::max( largest, element.value() );

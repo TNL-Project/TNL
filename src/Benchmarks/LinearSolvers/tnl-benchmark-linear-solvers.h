@@ -491,7 +491,7 @@ struct LinearSolversBenchmark
                                                   DeviceType,
                                                   IndexType,
                                                   TNL::Matrices::GeneralMatrix,
-                                                  Algorithms::Segments::CSRDefault
+                                                  Algorithms::Segments::CSR
                                                 >;
          auto matrixCopy = std::make_shared< CSR >();
          Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );

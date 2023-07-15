@@ -9,28 +9,18 @@
 #include <type_traits>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/BiEllpackSegmentView.h>
-#include <TNL/Algorithms/Segments/detail/CheckLambdas.h>
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename Index,
-          typename Device,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int WarpSize = 32 >
+template< typename Index, typename Device, ElementsOrganization Organization, int WarpSize >
 class BiEllpack
 {
 public:
    using DeviceType = Device;
    using IndexType = Index;
-   [[nodiscard]] static constexpr bool
-   getOrganization()
-   {
-      return Organization;
-   }
    using OffsetsContainer = Containers::Vector< IndexType, DeviceType, IndexType >;
    using OffsetsHolderView = typename OffsetsContainer::ConstViewType;
    using ConstOffsetsHolderView = typename OffsetsHolderView::ConstViewType;
-   using SegmentsSizes = OffsetsContainer;
    using SegmentViewType = BiEllpackSegmentView< IndexType, Organization >;
 
    [[nodiscard]] static constexpr int
@@ -42,7 +32,7 @@ public:
    [[nodiscard]] static constexpr int
    getLogWarpSize()
    {
-      return std::log2( WarpSize );
+      return TNL::discreteLog2( WarpSize );
    }
 
    [[nodiscard]] static constexpr int
@@ -103,6 +93,7 @@ public:
       const IndexType groupOffset = strip * ( getLogWarpSize() + 1 ) + group;
       return groupPointers.getElement( groupOffset + 1 ) - groupPointers.getElement( groupOffset );
    }
+
    [[nodiscard]] __cuda_callable__
    static IndexType
    getSegmentSizeDirect( const OffsetsHolderView& rowPermArray,
@@ -110,13 +101,11 @@ public:
                          const IndexType segmentIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
-      // const IndexType groupIdx = strip * ( getLogWarpSize() + 1 );
-      // const IndexType rowStripPerm = rowPermArray[ segmentIdx ] - strip * getWarpSize();
       const IndexType groupsCount = getActiveGroupsCountDirect( rowPermArray, segmentIdx );
       IndexType groupHeight = getWarpSize();
       IndexType segmentSize = 0;
-      for( IndexType groupIdx = 0; groupIdx < groupsCount; groupIdx++ ) {
-         const IndexType groupSize = getGroupSizeDirect( groupPointers, strip, groupIdx );
+      for( IndexType group = 0; group < groupsCount; group++ ) {
+         const IndexType groupSize = getGroupSizeDirect( groupPointers, strip, group );
          IndexType groupWidth = groupSize / groupHeight;
          segmentSize += groupWidth;
          groupHeight /= 2;
@@ -128,8 +117,6 @@ public:
    getSegmentSize( const OffsetsHolderView& rowPermArray, const OffsetsHolderView& groupPointers, const IndexType segmentIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
-      // const IndexType groupIdx = strip * ( getLogWarpSize() + 1 );
-      // const IndexType rowStripPerm = rowPermArray.getElement( segmentIdx ) - strip * getWarpSize();
       const IndexType groupsCount = getActiveGroupsCount( rowPermArray, segmentIdx );
       IndexType groupHeight = getWarpSize();
       IndexType segmentSize = 0;
@@ -172,7 +159,7 @@ public:
          }
          groupHeight /= 2;
       }
-      TNL_ASSERT_TRUE( false, "Segment capacity exceeded, wrong localIdx." );
+      TNL_ASSERT_TRUE( false, "segment capacity exceeded, wrong localIdx" );
       return -1;  // to avoid compiler warning
    }
 
@@ -206,8 +193,7 @@ public:
          }
          groupHeight /= 2;
       }
-      TNL_ASSERT_TRUE( false, "Segment capacity exceeded, wrong localIdx." );
-      return -1;  // to avoid compiler warning
+      throw std::logic_error( "segment capacity exceeded, wrong localIdx" );
    }
 
    [[nodiscard]] __cuda_callable__
@@ -232,7 +218,7 @@ public:
          // std::cerr << " ROW INIT: groupIdx = " << i << " groupSize = " << groupSize << " groupWidth = " << groupsWidth[ i ]
          // << std::endl;
       }
-      return SegmentViewType( segmentIdx, groupPointers[ groupIdx ], inStripIdx, groupsWidth );
+      return { segmentIdx, groupPointers[ groupIdx ], inStripIdx, groupsWidth };
    }
 
    [[nodiscard]] __cuda_callable__
@@ -252,55 +238,8 @@ public:
          groupsWidth[ i ] = groupSize / groupHeight;
          groupHeight /= 2;
       }
-      return SegmentViewType( segmentIdx, groupPointers[ groupIdx ], inStripIdx, groupsWidth );
-   }
-
-   [[nodiscard]] static Index
-   getStripLength( const ConstOffsetsHolderView& groupPointers, const IndexType strip )
-   {
-      TNL_ASSERT( strip >= 0, std::cerr << "strip = " << strip );
-
-      return groupPointers.getElement( ( strip + 1 ) * ( getLogWarpSize() + 1 ) )
-           - groupPointers.getElement( strip * ( getLogWarpSize() + 1 ) );
-   }
-
-   [[nodiscard]] __cuda_callable__
-   static Index
-   getStripLengthDirect( const ConstOffsetsHolderView& groupPointers, const IndexType strip )
-   {
-      TNL_ASSERT( strip >= 0, std::cerr << "strip = " << strip );
-
-      return groupPointers[ ( strip + 1 ) * ( getLogWarpSize() + 1 ) ] - groupPointers[ strip * ( getLogWarpSize() + 1 ) ];
+      return { segmentIdx, groupPointers[ groupIdx ], inStripIdx, groupsWidth };
    }
 };
-
-template< typename View,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultKeeper,
-          typename Real,
-          int BlockDim,
-          typename... Args >
-__global__
-void
-BiEllpackreduceSegmentsKernel( View biEllpack,
-                               Index gridIdx,
-                               Index first,
-                               Index last,
-                               Fetch fetch,
-                               Reduction reduction,
-                               ResultKeeper keeper,
-                               Real zero,
-                               Args... args )
-{
-   constexpr bool HasAllParameters = detail::CheckFetchLambda< Index, Fetch >::hasAllParameters();
-   if constexpr( HasAllParameters )
-      biEllpack.template reduceSegmentsKernelWithAllParameters< Fetch, Reduction, ResultKeeper, Real, BlockDim, Args... >(
-         gridIdx, first, last, fetch, reduction, keeper, zero, args... );
-   else
-      biEllpack.template reduceSegmentsKernel< Fetch, Reduction, ResultKeeper, Real, BlockDim, Args... >(
-         gridIdx, first, last, fetch, reduction, keeper, zero, args... );
-}
 
 }  // namespace TNL::Algorithms::Segments::detail

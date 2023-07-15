@@ -1,1 +1,0 @@
-SegmentsExample_General.cpp

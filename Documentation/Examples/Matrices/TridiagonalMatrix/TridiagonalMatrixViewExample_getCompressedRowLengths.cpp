@@ -24,7 +24,7 @@ void laplaceOperatorMatrix()
    auto view = matrix.getView();
 
    TNL::Containers::Vector< int, Device > rowLengths;
-   view.getCompressedRowLengths( rowLengths );
+   view.getCompressedRowLengths( rowLengths );  // or matrix.getCompressedRowLengths
    std::cout << "Laplace operator matrix: " << std::endl << matrix << std::endl;
    std::cout << "Compressed row lengths: " << rowLengths << std::endl;
 }

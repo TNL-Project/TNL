@@ -1,1 +1,0 @@
-SparseMatrixViewExample_reduceAllRows.cpp

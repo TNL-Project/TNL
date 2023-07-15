@@ -42,14 +42,14 @@ void reduceAllRows()
    /***
     * Fetch lambda just returns absolute value of matrix elements.
     */
-   auto fetch = [=] __cuda_callable__ ( int rowIdx, int columnIdx, const double& value ) -> double {
+   auto fetch = [] __cuda_callable__ ( int rowIdx, int columnIdx, const double& value ) -> double {
       return TNL::abs( value );
    };
 
    /***
     * Reduce lambda return maximum of given values.
     */
-   auto reduce = [=] __cuda_callable__ ( double& a, const double& b ) -> double {
+   auto reduce = [] __cuda_callable__ ( const double& a, const double& b ) -> double {
       return TNL::max( a, b );
    };
 
@@ -63,7 +63,7 @@ void reduceAllRows()
    /***
     * Compute the largest values in each row.
     */
-   view.reduceAllRows( fetch, reduce, keep, std::numeric_limits< double >::lowest() );
+   view.reduceAllRows( fetch, reduce, keep, std::numeric_limits< double >::lowest() );  // or matrix.reduceAllRows
 
    std::cout << "The matrix reads as: " << std::endl << matrix << std::endl;
    std::cout << "Max. elements in rows are: " << rowMax << std::endl;

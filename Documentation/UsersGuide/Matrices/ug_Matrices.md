@@ -374,11 +374,11 @@ In fact, the constructor takes a list of initializer lists. Each embedded list d
 
 Larger matrices can be setup with methods `setElement` and `addElement` (\ref TNL::Matrices::DenseMatrix::setElement, \ref TNL::Matrices::DenseMatrix::addElement). The following example shows how to call these methods from the host.
 
-\includelineno DenseMatrixExample_addElement.cpp
+\includelineno DenseMatrixViewExample_addElement.cpp
 
 As we can see, both methods can be called from the host no matter where the matrix is allocated. If it is on GPU, each call of `setElement` or `addElement` (\ref TNL::Matrices::DenseMatrix::setElement, \ref TNL::Matrices::DenseMatrix::addElement) causes slow transfer of tha data between CPU and GPU. Use this approach only if the performance is not a priority. The result looks as follows:
 
-\include DenseMatrixExample_addElement.out
+\include DenseMatrixViewExample_addElement.out
 
 More efficient way of the matrix initialization on GPU consists of calling the methods `setElement` and `addElement` (\ref TNL::Matrices::DenseMatrix::setElement, \ref TNL::Matrices::DenseMatrix::addElement) directly from GPU, for example by means of lambda function and \ref TNL::Algorithms::parallelFor "parallelFor". It is demonstrated in the following example (of course it works even on CPU):
 
@@ -409,7 +409,7 @@ The result looks as follows:
 
 This method iterates in parallel over all matrix rows. In fact, it combines \ref TNL::Algorithms::parallelFor and \ref TNL::Matrices::DenseMatrix::getRow method in one. See the following example. It is even a bit simpler compared to the previous one:
 
-\includelineno DenseMatrixExample_forRows.cpp
+\includelineno DenseMatrixViewExample_forRows.cpp
 
 The lambda function `f`, which is called for each matrix row (lines 18-25), have to accept parameter `row` with type `RowView`. This type is defined inside each TNL matrix and in the case of the dense matrix, it is \ref TNL::Matrices::DenseMatrixRowView. We use the method \ref TNL::Matrices::DenseMatrixRowView::getRowIndex to get the index of the matrix row being currently processed and method \ref TNL::Matrices::DenseMatrixRowView::setElement which sets the value of the element with given column index (the first parameter).
 
@@ -417,13 +417,13 @@ Next, on the lines 32-38, we call another lambda function which firstly find the
 
 The result looks as follows:
 
-\include DenseMatrixExample_forRows.out
+\include DenseMatrixViewExample_forRows.out
 
 #### Method `forElements`
 
  The next example demonstrates the method `forElements` (\ref TNL::Matrices::DenseMatrix::forElements) which works in very similar way as the method `getRow` but it is slightly easier to use. It is also compatible with sparse matrices. See the following example:
 
-\includelineno DenseMatrixExample_forElements.cpp
+\includelineno DenseMatrixViewExample_forElements.cpp
 
 We do not need any matrix view and instead of calling \ref TNL::Algorithms::parallelFor "parallelFor" we call just the method `forElements` (line 18). The lambda function `f` (line 11) must accept the following parameters:
 
@@ -434,7 +434,7 @@ We do not need any matrix view and instead of calling \ref TNL::Algorithms::para
 
 The result looks as follows:
 
-\include DenseMatrixExample_forElements.out
+\include DenseMatrixViewExample_forElements.out
 
 #### Wrapping existing data to dense matrix view
 
@@ -575,7 +575,7 @@ Another way of setting the sparse matrix is by means of the methods `setElement`
 
 We first allocate matrix with five rows (it is given by the size of the [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list) and columns and we set capacity each row to one (line 12). The first for-loop (lines 17-19) runs on CPU no matter where the matrix is allocated. After printing the matrix (lines 21-22), we call the lambda function `f` (lines 24-26) with a help of \ref TNL::Algorithms::parallelFor "parallelFor" (line 28) which is device sensitive and so it runs on CPU or GPU depending on where the matrix is allocated. The result looks as follows:
 
-\include SparseMatrixExample_setElement.out
+\include SparseMatrixViewExample_setElement.out
 
 The method `addElement` (\ref TNL::Matrices::SparseMatrix::addElement) adds a value to specific matrix element. Otherwise, it behaves the same as `setElement`. See the following example:
 
@@ -589,7 +589,7 @@ The result looks as follows:
 
 More efficient method, especially for GPUs, is to combine `getRow` (\ref TNL::Matrices::SparseMatrix::getRow) method with \ref TNL::Algorithms::parallelFor "parallelFor" and lambda function as the following example demonstrates:
 
-\includelineno SparseMatrixExample_getRow.cpp
+\includelineno SparseMatrixViewExample_getRow.cpp
 
 On the line 21, we create small matrix having five rows (number of rows is given by the size of the [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list) ) and columns (number of columns is given by the second parameter) and we set each row capacity to one or three (particular elements of the initializer list). On the line 41, we call \ref TNL::Algorithms::parallelFor "parallelFor" to iterate over all matrix rows. Each row is processed by the lambda function `f` (lines 24-36). In the lambda function, we first fetch a sparse matrix row (\ref TNL::Matrices::SparseMatrixRowView) (line 25) which serves for accessing particular matrix elements in the matrix row. This object has a method `setElement` (\ref TNL::Matrices::SparseMatrixRowView::setElement) accepting three parameters:
 
@@ -599,7 +599,7 @@ On the line 21, we create small matrix having five rows (number of rows is given
 
 The result looks as follows:
 
-\include SparseMatrixExample_getRow.out
+\include SparseMatrixViewExample_getRow.out
 
 #### Method `forRows`
 
@@ -885,11 +885,11 @@ Here we create the matrix in two steps. Firstly, we setup the matrix dimensions 
 
 In the following example we create tridiagonal matrix with 5 rows and 5 columns (line 12-14) by the means of a shared pointer (\ref TNL::Pointers::SharedPointer) to make this work even on GPU. We set numbers 0,...,4 on the diagonal (line 16) and we print the matrix (line 18). Next we use a lambda function (lines 21-27) combined with \ref TNL::Algorithms::parallelFor "parallelFor" (line 35), to modify the matrix. The offdiagonal elements are set to 1 (lines 23 and 26) and for the diagonal elements, we change the sign (line 24).
 
-\includelineno TridiagonalMatrixExample_setElement.cpp
+\includelineno TridiagonalMatrixViewExample_setElement.cpp
 
 The result looks as follows:
 
-\include TridiagonalMatrixExample_setElement.out
+\include TridiagonalMatrixViewExample_setElement.out
 
 #### Method getRow
 
@@ -907,7 +907,7 @@ The result looks as follows:
 
 As in the case of other matrix types, the method `forRows` (\ref TNL::Matrices::TridiagonalMatrix::forRows) calls the method `getRow` (\ref TNL::Matrices::TridiagonalMatrix::getRow) in parallel. It is demonstrated by the following example which we may directly compare with the previous one:
 
-\includelineno TridiagonalMatrixExample_forRows.cpp
+\includelineno TridiagonalMatrixViewExample_forRows.cpp
 
 The differences are:
 
@@ -919,7 +919,7 @@ Next, we compute sum of absolute values of matrix elements in each row and store
 
 The result looks as follows:
 
-\include TridiagonalMatrixExample_forRows.out
+\include TridiagonalMatrixViewExample_forRows.out
 
 #### Method forElements
 
@@ -1181,7 +1181,7 @@ We use \ref TNL::Algorithms::parallelFor "parallelFor" to iterate over all nodes
 
 As in the case of other matrix types, the method `forRows` (\ref TNL::Matrices::MultidiagonalMatrix::forRows) calls the method `getRow` (\ref TNL::Matrices::MultidiagonalMatrix::getRow) in parallel. It is demonstrated by the following example:
 
-\includelineno MultidiagonalMatrixExample_forRows.cpp
+\includelineno MultidiagonalMatrixViewExample_forRows.cpp
 
  We call the method `forAllRows` (\ref TNL::Matrices::MultidiagonalMatrix::forAllRows) (line 36) instead of \ref TNL::Algorithms::parallelFor "parallelFor" which is simpler since we do not have to state the device type explicitly. The method `forAllRows` calls the method `forRows` for all matrix rows so we do not have to state explicitly the interval of matrix rows neither. The lambda function `f` (lines 28-35) accepts one parameter `row` of the type `RowView` (\ref TNL::Matrices::MultidiagonalMatrix::RowView which is \ref TNL::Matrices::MultidiagonalMatrixRowView). At the beginning of the lambda function, we call the method `geRowIndex` (\ref TNL::Matrices::MultidiagonalMatrixRowView::getRowIndex) to get the index of the matrix row (line 29).
 
@@ -1189,7 +1189,7 @@ Next, we compute sum of absolute values of matrix elements in each row and store
 
 The result looks as follows:
 
-\include MultidiagonalMatrixExample_forRows.out
+\include MultidiagonalMatrixViewExample_forRows.out
 
 #### Method forElements
 
@@ -1207,7 +1207,7 @@ In this case, we need to provide a lambda function `f` (lines 27-43) which is ca
 
 In this example, the matrix element value depends only on the subdiagonal index `localIdx` (see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices)) as we can see on the line 42. The result looks as follows:
 
-\include MultidiagonalMatrixExample_forElements.out
+\include MultidiagonalMatrixViewExample_forElements.out
 
 ### Lambda matrices
 
@@ -1456,7 +1456,7 @@ In this example, we will compute maximal absolute value in each row of the follo
 
 The source code reads as follows:
 
-\includelineno TridiagonalMatrixExample_reduceRows.cpp
+\includelineno TridiagonalMatrixViewExample_reduceRows.cpp
 
 Here we first set the tridiagonal matrix (lines 10-27). Next we allocate the vector `rowMax` where we will store the results (line 32). The lambda function are:
 
@@ -1466,7 +1466,7 @@ Here we first set the tridiagonal matrix (lines 10-27). Next we allocate the vec
 
 Note, that the idempotent value for the reduction is \ref std::numeric_limits< double >::lowest. The results looks as follows:
 
-\include TridiagonalMatrixExample_reduceRows.out
+\include TridiagonalMatrixViewExample_reduceRows.out
 
 ### Multidiagonal matrices example
 
@@ -1492,7 +1492,7 @@ We first create vector `rowMax` into which we will store the results and fetch i
 
 Finally, we call the method `reduceRows` (\ref TNL::Matrices::MultidiagonalMatrix::reduceRows) with parameters telling the interval of rows to be processed (the first and second parameter), the lambda functions `fetch`, `reduce` and `keep`, and the idempotent element for the reduction operation which is the lowest number of given type (\ref std::numeric_limits< double >::lowest ). The result looks as follows:
 
-\include MultidiagonalMatrixExample_reduceRows.out
+\include MultidiagonalMatrixViewExample_reduceRows.out
 
 ### Lambda matrices example
 

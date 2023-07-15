@@ -1,6 +1,5 @@
 #include <sstream>
 #include <TNL/Devices/Host.h>
-#include <TNL/Matrices/Matrix.h>
 #include <TNL/Matrices/TridiagonalMatrix.h>
 #include <TNL/Containers/Array.h>
 

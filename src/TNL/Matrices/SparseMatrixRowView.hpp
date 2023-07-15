@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Matrices/SparseMatrixRowView.h>
 #include <TNL/Assert.h>
 
@@ -58,21 +59,32 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getColumnInd
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
 auto
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getValue( const IndexType localIdx ) const ->
-   typename ValueGetterType::ConstResultType
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getValue( const IndexType localIdx ) const
+   -> GetValueConstResultType
 {
    TNL_ASSERT_LT( localIdx, this->getSize(), "Local index exceeds matrix row capacity." );
-   return ValueGetterType::getValue( segmentView.getGlobalIndex( localIdx ), values, columnIndexes, this->getPaddingIndex() );
+
+   if constexpr( isBinary() ) {
+      return columnIndexes[ segmentView.getGlobalIndex( localIdx ) ] != paddingIndex< IndexType >;
+   }
+   else {
+      return values[ segmentView.getGlobalIndex( localIdx ) ];
+   }
 }
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
 auto
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getValue( const IndexType localIdx ) ->
-   typename ValueGetterType::ResultType
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getValue( const IndexType localIdx ) -> GetValueResultType
 {
    TNL_ASSERT_LT( localIdx, this->getSize(), "Local index exceeds matrix row capacity." );
-   return ValueGetterType::getValue( segmentView.getGlobalIndex( localIdx ), values, columnIndexes, this->getPaddingIndex() );
+
+   if constexpr( isBinary() ) {
+      return columnIndexes[ segmentView.getGlobalIndex( localIdx ) ] != paddingIndex< IndexType >;
+   }
+   else {
+      return values[ segmentView.getGlobalIndex( localIdx ) ];
+   }
 }
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
@@ -81,7 +93,7 @@ void
 SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::setValue( const IndexType localIdx, const RealType& value )
 {
    TNL_ASSERT_LT( localIdx, this->getSize(), "Local index exceeds matrix row capacity." );
-   if( ! isBinary() ) {
+   if constexpr( ! isBinary() ) {
       const IndexType globalIdx = segmentView.getGlobalIndex( localIdx );
       values[ globalIdx ] = value;
    }
@@ -108,7 +120,7 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::setElement( 
    TNL_ASSERT_LT( localIdx, this->getSize(), "Local index exceeds matrix row capacity." );
    const IndexType globalIdx = segmentView.getGlobalIndex( localIdx );
    columnIndexes[ globalIdx ] = column;
-   if( ! isBinary() )
+   if constexpr( ! isBinary() )
       values[ globalIdx ] = value;
 }
 
@@ -128,12 +140,10 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::operator==(
       ++i;
    }
    for( IndexType j = i; j < getSize(); j++ )
-      // TODO: use ... != getPaddingIndex()
-      if( getColumnIndex( j ) >= 0 )
+      if( getColumnIndex( j ) != paddingIndex< IndexType > )
          return false;
    for( IndexType j = i; j < other.getSize(); j++ )
-      // TODO: use ... != getPaddingIndex()
-      if( other.getColumnIndex( j ) >= 0 )
+      if( other.getColumnIndex( j ) != paddingIndex< IndexType > )
          return false;
    return true;
 }
@@ -177,9 +187,10 @@ operator<<( std::ostream& str, const SparseMatrixRowView< SegmentView, ValuesVie
    using NonConstIndex =
       std::remove_const_t< typename SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::IndexType >;
    for( NonConstIndex i = 0; i < row.getSize(); i++ )
-      if( row.isBinary() )
-         // TODO: check getPaddingIndex(), print only the column indices of non-zeros but not the values
-         str << " [ " << row.getColumnIndex( i ) << " ] = " << ( row.getColumnIndex( i ) >= 0 ) << ", ";
+      if constexpr( row.isBinary() )
+         // TODO: print only the column indices of non-zeros but not the values
+         str << " [ " << row.getColumnIndex( i )
+             << " ] = " << (row.getColumnIndex( i ) != paddingIndex< NonConstIndex >) << ", ";
       else
          str << " [ " << row.getColumnIndex( i ) << " ] = " << row.getValue( i ) << ", ";
    return str;

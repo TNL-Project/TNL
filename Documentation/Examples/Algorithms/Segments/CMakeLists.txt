@@ -1,7 +1,6 @@
 set( COMMON_EXAMPLES
-   SegmentsExample_General
-   SegmentsPrintingExample-1
-   SegmentsPrintingExample-2
+   printSegmentsExample-1
+   printSegmentsExample-2
    SegmentsExample_CSR_constructor_1
    SegmentsExample_CSR_constructor_2
    SegmentsExample_CSR_getSerializationType

@@ -1,1 +1,1 @@
-#include "SparseMatrixVectorProductTest_CSRScalar.h"
+#include "SparseMatrixVectorProductTest_SandboxMatrix.h"

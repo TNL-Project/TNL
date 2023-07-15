@@ -72,18 +72,17 @@ wrapDenseMatrix( const Index& rows, const Index& columns, Real* values )
  * \include SparseMatrixViewExample_wrapCSR.out
  */
 template< typename Device, typename Real, typename Index >
-[[nodiscard]] SparseMatrixView< Real, Device, Index, GeneralMatrix, Algorithms::Segments::CSRViewDefault >
+[[nodiscard]] SparseMatrixView< Real, Device, Index, GeneralMatrix, Algorithms::Segments::CSRView >
 wrapCSRMatrix( const Index& rows, const Index& columns, Index* rowPointers, Real* values, Index* columnIndexes )
 {
-   using MatrixView = SparseMatrixView< Real, Device, Index, GeneralMatrix, Algorithms::Segments::CSRViewDefault >;
+   using MatrixView = SparseMatrixView< Real, Device, Index, GeneralMatrix, Algorithms::Segments::CSRView >;
    using ValuesViewType = typename MatrixView::ValuesViewType;
-   using ColumnIndexesView = typename MatrixView::ColumnsIndexesViewType;
+   using ColumnIndexesView = typename MatrixView::ColumnIndexesViewType;
    using SegmentsView = typename MatrixView::SegmentsViewType;
-   using KernelView = typename SegmentsView::KernelView;
    using RowPointersView = typename SegmentsView::OffsetsView;
    RowPointersView rowPointersView( rowPointers, rows + 1 );
    Index elementsCount = rowPointersView.getElement( rows );
-   SegmentsView segments( rowPointersView, KernelView() );
+   SegmentsView segments( rowPointersView );
    ValuesViewType valuesView( values, elementsCount );
    ColumnIndexesView columnIndexesView( columnIndexes, elementsCount );
    return MatrixView( rows, columns, valuesView, columnIndexesView, segments );
@@ -102,7 +101,7 @@ struct EllpackMatrixWrapper
    wrap( const Index& rows, const Index& columns, const Index& nonzerosPerRow, Real* values, Index* columnIndexes )
    {
       using ValuesViewType = typename MatrixView::ValuesViewType;
-      using ColumnIndexesView = typename MatrixView::ColumnsIndexesViewType;
+      using ColumnIndexesView = typename MatrixView::ColumnIndexesViewType;
       using SegmentsView = Algorithms::Segments::EllpackView< Device, Index, Organization, Alignment >;
       SegmentsView segments( rows, nonzerosPerRow );
       Index elementsCount = segments.getStorageSize();

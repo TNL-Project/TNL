@@ -34,7 +34,7 @@ public:
     * \param globalIdx is an index of the element in the related container.
     */
    __cuda_callable__
-   SegmentElement( const IndexType& segmentIdx, const IndexType& localIdx, const IndexType globalIdx )
+   SegmentElement( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx )
    : segmentIdx( segmentIdx ), localIdx( localIdx ), globalIdx( globalIdx )
    {}
 
@@ -44,7 +44,7 @@ public:
     * \return index of the parent segment.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    segmentIndex() const
    {
       return segmentIdx;
@@ -56,7 +56,7 @@ public:
     * \return rank of the element in the segment.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    localIndex() const
    {
       return localIdx;
@@ -68,17 +68,15 @@ public:
     * \return index of the element in the related container.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   IndexType
    globalIndex() const
    {
       return globalIdx;
    }
 
 protected:
-   const IndexType& segmentIdx;
-
-   const IndexType& localIdx;
-
+   const IndexType segmentIdx;
+   const IndexType localIdx;
    const IndexType globalIdx;
 };
 

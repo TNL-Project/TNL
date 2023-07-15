@@ -3,6 +3,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/DefaultKernel.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -10,6 +11,7 @@ template< typename Segments >
 void SegmentsExample()
 {
    using Device = typename Segments::DeviceType;
+   using SegmentsReductionKernel = typename TNL::Algorithms::SegmentsReductionKernels::DefaultKernel< typename Segments::ViewType >::type;
 
    /***
     * Create segments with given segments sizes.
@@ -36,7 +38,7 @@ void SegmentsExample()
     */
    std::cout << "Values of elements after intial setup: " << std::endl;
    auto fetch = [=] __cuda_callable__ ( int globalIdx ) -> double { return data_view[ globalIdx ]; };
-   printSegments( segments, fetch, std::cout );
+   printSegments( std::cout, segments, fetch );
 
    /***
     * Compute sums of elements in each segment.
@@ -55,12 +57,14 @@ void SegmentsExample()
    auto fetch_brief = [=] __cuda_callable__ ( int globalIdx, bool& compute ) -> double {
       return data_view[ globalIdx ];
    };
-
    auto keep = [=] __cuda_callable__ ( int globalIdx, const double& value  ) mutable {
       sums_view[ globalIdx ] = value; };
-   segments.reduceAllSegments( fetch_full, std::plus<>{}, keep, 0.0 );
+
+   SegmentsReductionKernel kernel;
+   kernel.init( segments );
+   kernel.reduceAllSegments( segments, fetch_full, std::plus<>{}, keep, 0.0 );
    std::cout << "The sums with full fetch form are: " << sums << std::endl;
-   segments.reduceAllSegments( fetch_brief, std::plus<>{}, keep, 0.0 );
+   kernel.reduceAllSegments( segments, fetch_brief, std::plus<>{}, keep, 0.0 );
    std::cout << "The sums with brief fetch form are: " << sums << std::endl << std::endl;
 }
 

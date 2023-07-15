@@ -9,13 +9,13 @@ void addElements()
    auto matrixView = matrix.getView();
 
    for( int i = 0; i < 5; i++ )
-      matrixView.setElement( i, i, i );
+      matrixView.setElement( i, i, i );  // or matrix.setElement
 
    std::cout << "Initial matrix is: " << std::endl << matrix << std::endl;
 
    for( int i = 0; i < 5; i++ )
       for( int j = 0; j < 5; j++ )
-         matrixView.addElement( i, j, 1.0, 5.0 );
+         matrixView.addElement( i, j, 1.0, 5.0 );  // or matrix.addElement
 
    std::cout << "Matrix after addition is: " << std::endl << matrix << std::endl;
 }

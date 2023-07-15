@@ -13,6 +13,7 @@ void reduceRows()
       {  0,  1,  8,  0,  0 },
       {  0,  0,  1,  9,  0 },
       {  0,  0,  0,  0,  1 } };
+   auto matrixView = matrix.getView();
 
    /***
     * Find largest element in each row.
@@ -27,14 +28,14 @@ void reduceRows()
    /***
     * Fetch lambda just returns absolute value of matrix elements.
     */
-   auto fetch = [=] __cuda_callable__ ( int rowIdx, int columnIdx, const double& value ) -> double {
+   auto fetch = [] __cuda_callable__ ( int rowIdx, int columnIdx, const double& value ) -> double {
       return TNL::abs( value );
    };
 
    /***
     * Reduce lambda return maximum of given values.
     */
-   auto reduce = [=] __cuda_callable__ ( double& a, const double& b ) -> double {
+   auto reduce = [] __cuda_callable__ ( const double& a, const double& b ) -> double {
       return TNL::max( a, b );
    };
 
@@ -48,7 +49,7 @@ void reduceRows()
    /***
     * Compute the largest values in each row.
     */
-   matrix.reduceRows( 0, matrix.getRows(), fetch, reduce, keep, std::numeric_limits< double >::lowest() );
+   matrixView.reduceRows( 0, matrix.getRows(), fetch, reduce, keep, std::numeric_limits< double >::lowest() );  // or matrix.reduceRows
 
    std::cout << "Max. elements in rows are: " << rowMax << std::endl;
 }

@@ -1,4 +1,5 @@
 #include <TNL/Algorithms/Segments/Ellpack.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
 
 #include "SegmentsTest.hpp"
 #include <iostream>
@@ -44,8 +45,9 @@ TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes_EllpackOnly )
 TYPED_TEST( EllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
 {
     using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+    using Kernel = TNL::Algorithms::SegmentsReductionKernels::EllpackKernel< typename EllpackSegmentsType::IndexType, typename EllpackSegmentsType::DeviceType >;
 
-    test_reduceAllSegments_MaximumInSegments< EllpackSegmentsType >();
+    test_reduceAllSegments_MaximumInSegments< EllpackSegmentsType, Kernel >();
 }
 
 #endif
