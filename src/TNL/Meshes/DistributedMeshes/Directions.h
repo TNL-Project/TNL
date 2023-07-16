@@ -96,13 +96,13 @@ public:
       int number = neighbor + 1;
       for( int i = 0; i < dim; i++ ) {
          int direction = number % 3;
+         number = number / 3;
          if( direction == 0 )
             res[ i ] = 0;
-         if( direction == 1 )
+         else if( direction == 1 )
             res[ i ] = -1;
-         if( direction == 2 )
+         else if( direction == 2 )
             res[ i ] = 1;
-         number = number / 3;
       }
       return res;
    }

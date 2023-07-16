@@ -1,4 +1,4 @@
-#ifdef HAVE_GTEST  
+#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Meshes/DistributedMeshes/Directions.h>
@@ -51,7 +51,7 @@ TEST(Direction3D, Edges)
     EXPECT_EQ(Directions::getDirection(StaticVector<2,int>(-2, 1)),ZzYmXp) << "Failed";
     EXPECT_EQ(Directions::getDirection(StaticVector<2,int>( 2,-1)),ZzYpXm) << "Failed";
     EXPECT_EQ(Directions::getDirection(StaticVector<2,int>( 2, 1)),ZzYpXp) << "Failed";
-    
+
     EXPECT_EQ(Directions::getDirection(StaticVector<2,int>(-3,-1)),ZmYzXm) << "Failed";
     EXPECT_EQ(Directions::getDirection(StaticVector<2,int>(-3, 1)),ZmYzXp) << "Failed";
     EXPECT_EQ(Directions::getDirection(StaticVector<2,int>(-3,-2)),ZmYmXz) << "Failed";
@@ -69,7 +69,7 @@ TEST(Direction3D, Conners)
     EXPECT_EQ(Directions::getDirection(StaticVector<3,int>(-3,-2, 1)),ZmYmXp) << "Failed";
     EXPECT_EQ(Directions::getDirection(StaticVector<3,int>(-3, 2,-1)),ZmYpXm) << "Failed";
     EXPECT_EQ(Directions::getDirection(StaticVector<3,int>(-3, 2, 1)),ZmYpXp) << "Failed";
-    
+
     EXPECT_EQ(Directions::getDirection(StaticVector<3,int>(3,-2,-1)),ZpYmXm) << "Failed";
     EXPECT_EQ(Directions::getDirection(StaticVector<3,int>(3,-2, 1)),ZpYmXp) << "Failed";
     EXPECT_EQ(Directions::getDirection(StaticVector<3,int>(3, 2,-1)),ZpYpXm) << "Failed";
@@ -97,7 +97,7 @@ TEST(XYZ, 3D )
     EXPECT_EQ( Directions::template getXYZ<3>(ZzYmXz), (StaticVector<3,int>(0,-1,0)) ) << "Failed";
     EXPECT_EQ( Directions::template getXYZ<3>(ZzYpXz), (StaticVector<3,int>(0,1,0)) ) << "Failed";
     EXPECT_EQ( Directions::template getXYZ<3>(ZmYzXz), (StaticVector<3,int>(0,0,-1)) ) << "Failed";
-    EXPECT_EQ( Directions::template getXYZ<3>(ZpYzXz), (StaticVector<3,int>(0,0,1)) ) << "Failed";    
+    EXPECT_EQ( Directions::template getXYZ<3>(ZpYzXz), (StaticVector<3,int>(0,0,1)) ) << "Failed";
 
     EXPECT_EQ( Directions::template getXYZ<3>(ZzYmXm), (StaticVector<3,int>(-1,-1,0)) ) << "Failed";
     EXPECT_EQ( Directions::template getXYZ<3>(ZzYmXp), (StaticVector<3,int>(1,-1,0)) ) << "Failed";

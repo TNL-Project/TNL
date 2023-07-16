@@ -286,18 +286,9 @@ struct SlicedNDArrayBase
       {
          const auto size = sizes.template getSize< dimension >();
          if( SliceInfo::getSliceSize( dimension ) > 0 )
-// icpc does not consider the condition when printing warnings
-#ifdef __INTEL_COMPILER
-   #pragma warning push
-   #pragma warning disable 39   // division by zero
-   #pragma warning disable 179  // right operand of "%" is zero
-#endif
             // round to multiple of SliceSize
             return SliceInfo::getSliceSize( dimension )
                  * ( size / SliceInfo::getSliceSize( dimension ) + ( size % SliceInfo::getSliceSize( dimension ) != 0 ) );
-#ifdef __INTEL_COMPILER
-   #pragma warning pop
-#endif
          // unmodified
          return size;
       }
