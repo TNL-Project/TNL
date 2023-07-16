@@ -1,6 +1,6 @@
 # Template Numerical Library
 
-![TNL logo](tnl-logo.jpg)
+![TNL logo](tnl-logo.png)
 
 TNL is a collection of building blocks that facilitate the development of
 efficient numerical solvers. It is implemented in C++ using modern programming
