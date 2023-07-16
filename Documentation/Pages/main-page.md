@@ -220,10 +220,13 @@ The compiler flags used in the example project are explained in the following se
 
 - Enable optimizations: `-O3 -DNDEBUG` (you can also add
   `-march=native -mtune=native` to enable CPU-specific optimizations).
-- Of course, there are many other useful compiler flags. See, for example, our
-  [CMakeLists.txt](https://gitlab.com/tnl-project/tnl/-/blob/main/CMakeLists.txt)
-  file for flags that we use when developing TNL (there are flags for e.g.
-  hiding some useless compiler warnings).
+- Of course, there are many other useful compiler flags. For example, the
+  flags that we use when developing TNL can be found in the
+  [cxx_flags.cmake][cxx_flags.cmake] and [cuda_flags.cmake][cuda_flags.cmake]
+  files in the Git repository.
+
+[cxx_flags.cmake]: https://gitlab.com/tnl-project/tnl/-/blob/main/cmake/cxx_flags.cmake
+[cuda_flags.cmake]: https://gitlab.com/tnl-project/tnl/-/blob/main/cmake/cuda_flags.cmake
 
 ### Compiler flags for parallel computing
 
