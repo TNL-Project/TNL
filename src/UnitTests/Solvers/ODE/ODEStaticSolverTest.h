@@ -1,6 +1,6 @@
 #pragma once
 
-#include <TNL/Solvers/ODE/Euler.h>
+#include <TNL/Solvers/ODE/StaticEuler.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Algorithms/parallelFor.h>
