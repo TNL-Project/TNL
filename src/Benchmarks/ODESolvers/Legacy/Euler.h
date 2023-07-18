@@ -10,7 +10,7 @@
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 #include <TNL/Config/ParameterContainer.h>
 
-namespace TNL::Solvers::ODE {
+namespace TNL::Benchmarks {
 
 /**
  * \brief Solver of ODEs with the first order of accuracy.
@@ -37,8 +37,8 @@ namespace TNL::Solvers::ODE {
  *    or \ref TNL::Containers::VectorView.
  */
 template< typename Vector,
-          typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
-class Euler : public ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
+          typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
+class Euler : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
 public:
    /**
@@ -149,6 +149,6 @@ protected:
    RealType courantNumber = 0.0;
 };
 
-}  // namespace TNL::Solvers::ODE
+}  // namespace TNL::Benchmarks
 
-#include <TNL/Solvers/ODE/Euler.hpp>
+#include "Euler.hpp"

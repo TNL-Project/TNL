@@ -9,13 +9,13 @@
 
 #include "Merson.h"
 
-namespace TNL::Solvers::ODE {
+namespace TNL::Benchmarks {
 
 template< typename Vector, typename SolverMonitor >
 void
 Merson< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
-   ExplicitSolver< RealType, IndexType >::configSetup( config, prefix );
+   Solvers::ODE::ExplicitSolver< RealType, IndexType >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "merson-adaptivity",
                               "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
                               "zero means no adaptivity).",
@@ -26,7 +26,7 @@ template< typename Vector, typename SolverMonitor >
 bool
 Merson< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
-   ExplicitSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
+   Solvers::ODE::ExplicitSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "merson-adaptivity" ) )
       this->setAdaptivity( parameters.getParameter< double >( prefix + "merson-adaptivity" ) );
    return true;
@@ -190,4 +190,4 @@ Merson< Vector, SolverMonitor >::writeGrids( const DofVectorType& u )
    getchar();
 }
 
-}  // namespace TNL::Solvers::ODE
+}  // namespace TNL::Benchmarks

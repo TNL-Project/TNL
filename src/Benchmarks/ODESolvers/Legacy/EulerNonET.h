@@ -9,14 +9,14 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Timer.h>
 
-#include "../BLAS/CommonVectorOperations.h"
+#include "../../BLAS/CommonVectorOperations.h"
 
 namespace TNL {
 namespace Benchmarks {
 
 template< typename Vector,
           typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
-class Euler : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
+class EulerNonET : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
    public:
    using DofVectorType = Vector;
@@ -25,7 +25,7 @@ class Euler : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, ty
    using IndexType = typename Vector::IndexType;
    using VectorOperations = CommonVectorOperations< DeviceType >;
 
-   Euler();
+   EulerNonET();
 
    static void
    configSetup( Config::ConfigDescription& config, const String& prefix = "" );
@@ -59,4 +59,4 @@ class Euler : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, ty
 }  // namespace Benchmarks
 }  // namespace TNL
 
-#include "Euler.hpp"
+#include "EulerNonET.hpp"

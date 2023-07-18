@@ -7,7 +7,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Config/ParameterContainer.h>
 
-#include "Merson.h"
+#include "MersonNonET.h"
 
 namespace TNL {
 namespace Benchmarks {
@@ -56,11 +56,17 @@ computeErrorKernel( const Index size,
 template< typename Real, typename Index >
 __global__
 void
-updateUMerson( const Index size, const Real tau, const Real* k1, const Real* k4, const Real* k5, Real* u, Real* blockResidue );
+updateUMersonNonET( const Index size,
+                    const Real tau,
+                    const Real* k1,
+                    const Real* k4,
+                    const Real* k5,
+                    Real* u,
+                    Real* blockResidue );
 #endif
 
 template< typename Vector, typename SolverMonitor >
-Merson< Vector, SolverMonitor >::Merson() : adaptivity( 0.00001 )
+MersonNonET< Vector, SolverMonitor >::MersonNonET() : adaptivity( 0.00001 )
 {
    if( std::is_same< DeviceType, Devices::Host >::value ) {
       this->openMPErrorEstimateBuffer.setSize( std::max( 1, Devices::Host::getMaxThreadsCount() ) );
@@ -69,7 +75,7 @@ Merson< Vector, SolverMonitor >::Merson() : adaptivity( 0.00001 )
 
 template< typename Vector, typename SolverMonitor >
 void
-Merson< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+MersonNonET< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
    config.addEntry< double >( prefix + "merson-adaptivity",
                               "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
@@ -79,7 +85,7 @@ Merson< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config,
 
 template< typename Vector, typename SolverMonitor >
 bool
-Merson< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+MersonNonET< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
 {
    Solvers::ODE::ExplicitSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "merson-adaptivity" ) )
@@ -89,7 +95,7 @@ Merson< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parame
 
 template< typename Vector, typename SolverMonitor >
 void
-Merson< Vector, SolverMonitor >::setAdaptivity( const RealType& a )
+MersonNonET< Vector, SolverMonitor >::setAdaptivity( const RealType& a )
 {
    this->adaptivity = a;
 };
@@ -97,10 +103,10 @@ Merson< Vector, SolverMonitor >::setAdaptivity( const RealType& a )
 template< typename Vector, typename SolverMonitor >
 template< typename RHSFunction >
 bool
-Merson< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsFunction )
+MersonNonET< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsFunction )
 {
    if( this->getTau() == 0.0 ) {
-      std::cerr << "The time step for the Merson ODE solver is zero." << std::endl;
+      std::cerr << "The time step for the MersonNonET ODE solver is zero." << std::endl;
       return false;
    }
 
@@ -196,10 +202,10 @@ Merson< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsFunct
 template< typename Vector, typename SolverMonitor >
 template< typename RHSFunction >
 void
-Merson< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
-                                                    const RealType& time,
-                                                    RealType tau,
-                                                    RHSFunction&& rhsFunction )
+MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
+                                                         const RealType& time,
+                                                         RealType tau,
+                                                         RHSFunction&& rhsFunction )
 {
    IndexType size = u.getSize();
 
@@ -224,28 +230,28 @@ Merson< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
       rhsFunction( time, tau, u_view, k1_view );
 
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ )
          _kAux[ i ] = _u[ i ] + tau * ( 1.0 / 3.0 * _k1[ i ] );
       rhsFunction( time + tau_3, tau, kAux_view, k2_view );
 
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k2, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k2, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ )
          _kAux[ i ] = _u[ i ] + tau * 1.0 / 6.0 * ( _k1[ i ] + _k2[ i ] );
       rhsFunction( time + tau_3, tau, kAux_view, k3_view );
 
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k3, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k3, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ )
          _kAux[ i ] = _u[ i ] + tau * ( 0.125 * _k1[ i ] + 0.375 * _k3[ i ] );
       rhsFunction( time + 0.5 * tau, tau, kAux_view, k4_view );
 
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k3, _k4, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for firstprivate( size, _kAux, _u, _k1, _k3, _k4, tau, tau_3 ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ )
          _kAux[ i ] = _u[ i ] + tau * ( 0.5 * _k1[ i ] - 1.5 * _k3[ i ] + 2.0 * _k4[ i ] );
@@ -317,7 +323,7 @@ Merson< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
 
 template< typename Vector, typename SolverMonitor >
 typename Vector ::RealType
-Merson< Vector, SolverMonitor >::computeError( const RealType tau )
+MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
 {
    const IndexType size = k1.getSize();
    const RealType* _k1 = k1.getData();
@@ -329,12 +335,12 @@ Merson< Vector, SolverMonitor >::computeError( const RealType tau )
    if( std::is_same< DeviceType, Devices::Host >::value ) {
       this->openMPErrorEstimateBuffer.setValue( 0.0 );
 #ifdef HAVE_OPENMP
-   #pragma omp parallel if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel if( Devices::Host::isOMPEnabled() )
 #endif
       {
          RealType localEps( 0.0 );
 #ifdef HAVE_OPENMP
-   #pragma omp for
+         #pragma omp for
 #endif
          for( IndexType i = 0; i < size; i++ ) {
             RealType err =
@@ -376,10 +382,10 @@ Merson< Vector, SolverMonitor >::computeError( const RealType tau )
 
 template< typename Vector, typename SolverMonitor >
 void
-Merson< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
-                                                      const RealType tau,
-                                                      DofVectorType& u,
-                                                      RealType& currentResidue )
+MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
+                                                           const RealType tau,
+                                                           DofVectorType& u,
+                                                           RealType& currentResidue )
 {
    RealType localResidue = RealType( 0.0 );
    IndexType size = k1.getSize();
@@ -390,7 +396,7 @@ Merson< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
 
    if( std::is_same< DeviceType, Devices::Host >::value ) {
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for reduction( + : localResidue ) \
+      #pragma omp parallel for reduction( + : localResidue ) \
       firstprivate( size, _u, _k1, _k4, _k5, tau ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ ) {
@@ -413,13 +419,13 @@ Merson< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
          const std::size_t gridOffset = gridIdx * threadsPerGrid;
          const std::size_t currentSize = min( size - gridOffset, threadsPerGrid );
 
-         updateUMerson< < < cudaBlocks, cudaBlockSize, sharedMemory > > >( currentSize,
-                                                                           tau,
-                                                                           &_k1[ gridOffset ],
-                                                                           &_k4[ gridOffset ],
-                                                                           &_k5[ gridOffset ],
-                                                                           &_u[ gridOffset ],
-                                                                           this->cudaBlockResidue.getData() );
+         updateUMersonNonET< < < cudaBlocks, cudaBlockSize, sharedMemory > > >( currentSize,
+                                                                                tau,
+                                                                                &_k1[ gridOffset ],
+                                                                                &_k4[ gridOffset ],
+                                                                                &_k5[ gridOffset ],
+                                                                                &_u[ gridOffset ],
+                                                                                this->cudaBlockResidue.getData() );
          TNL_CHECK_CUDA_DEVICE;
          localResidue += sum( this->cudaBlockResidue );
          cudaDeviceSynchronize();
@@ -438,15 +444,15 @@ Merson< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
 
 template< typename Vector, typename SolverMonitor >
 void
-Merson< Vector, SolverMonitor >::writeGrids( const DofVectorType& u )
+MersonNonET< Vector, SolverMonitor >::writeGrids( const DofVectorType& u )
 {
-   std::cout << "Writing Merson solver grids ...";
-   File( "Merson-u.tnl", std::ios_base::out ) << u;
-   File( "Merson-k1.tnl", std::ios_base::out ) << k1;
-   File( "Merson-k2.tnl", std::ios_base::out ) << k2;
-   File( "Merson-k3.tnl", std::ios_base::out ) << k3;
-   File( "Merson-k4.tnl", std::ios_base::out ) << k4;
-   File( "Merson-k5.tnl", std::ios_base::out ) << k5;
+   std::cout << "Writing MersonNonET solver grids ...";
+   File( "MersonNonET-u.tnl", std::ios_base::out ) << u;
+   File( "MersonNonET-k1.tnl", std::ios_base::out ) << k1;
+   File( "MersonNonET-k2.tnl", std::ios_base::out ) << k2;
+   File( "MersonNonET-k3.tnl", std::ios_base::out ) << k3;
+   File( "MersonNonET-k4.tnl", std::ios_base::out ) << k4;
+   File( "MersonNonET-k5.tnl", std::ios_base::out ) << k5;
    std::cout << " done. PRESS A KEY." << std::endl;
    getchar();
 }
@@ -528,13 +534,13 @@ computeErrorKernel( const Index size,
 template< typename RealType, typename Index >
 __global__
 void
-updateUMerson( const Index size,
-               const RealType tau,
-               const RealType* k1,
-               const RealType* k4,
-               const RealType* k5,
-               RealType* u,
-               RealType* cudaBlockResidue )
+updateUMersonNonET( const Index size,
+                    const RealType tau,
+                    const RealType* k1,
+                    const RealType* k4,
+                    const RealType* k5,
+                    RealType* u,
+                    RealType* cudaBlockResidue )
 {
    extern __shared__ void* d_u[];
    RealType* du = (RealType*) d_u;

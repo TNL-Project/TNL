@@ -8,7 +8,7 @@
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 
-namespace TNL::Solvers::ODE {
+namespace TNL::Benchmarks {
 
 /**
  * \brief Solver of ODEs with the first order of accuracy.
@@ -34,8 +34,8 @@ namespace TNL::Solvers::ODE {
  *    or \ref TNL::Containers::VectorView.
  */
 template< class Vector,
-          typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
-class Merson : public ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
+          typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
+class Merson : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
 public:
    /**
@@ -149,6 +149,6 @@ protected:
    RealType adaptivity = 0.00001;
 };
 
-}  // namespace TNL::Solvers::ODE
+}  // namespace TNL::Benchmarks
 
-#include <TNL/Solvers/ODE/Merson.hpp>
+#include "Merson.hpp"

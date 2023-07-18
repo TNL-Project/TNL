@@ -16,13 +16,17 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/MPI/ScopedInitializer.h>
 #include <TNL/MPI/Config.h>
-#include <TNL/Solvers/ODE/Euler.h>
-#include <TNL/Solvers/ODE/Merson.h>
+#include <TNL/Solvers/ODE/ODESolver.h>
+#include <TNL/Solvers/ODE/Methods/Euler.h>
+#include <TNL/Solvers/ODE/Methods/Merson.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
 #include "ODESolversBenchmarkResult.h"
-#include "Euler.h"
-#include "Merson.h"
+#include "Legacy/EulerNonET.h"
+#include "Legacy/MersonNonET.h"
+#include "Legacy/Euler.h"
+#include "Legacy/Merson.h"
+
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
@@ -56,10 +60,15 @@ struct ODESolversBenchmark
       }
 
       SolverType solver;
-      if constexpr( std::is_same< SolverType, TNL::Solvers::ODE::Merson< VectorType, SolverMonitorType > >::value ||
-                    std::is_same< SolverType, TNL::Benchmarks::Merson< VectorType, SolverMonitorType > >::value ) {
+      if constexpr( std::is_same< SolverType, Merson< VectorType, SolverMonitorType > >::value ||
+                    std::is_same< SolverType, TNL::Benchmarks::MersonNonET< VectorType, SolverMonitorType > >::value ) {
          solver.setAdaptivity( 0.0 );
       }
+      using MersonMethod = TNL::Solvers::ODE::Methods::Merson< RealType >;
+      if constexpr( std::is_same< SolverType, TNL::Solvers::ODE::ODESolver< MersonMethod, VectorType, SolverMonitorType > >::value ) {
+         solver.getMethod().setAdaptivity( 0.0 );
+      }
+
       RealType tau = 0.1;
       std::size_t dofs = parameters.getParameter< int >( "size" );
       VectorType u( dofs, 0.0 );
@@ -97,16 +106,22 @@ struct ODESolversBenchmark
       for( auto&& solver : solvers )
       {
          if( solver == "euler" || solver == "all" ) {
-            using Solver = Solvers::ODE::Euler< VectorType, SolverMonitorType >;
+            using LegacySolverNonET = Benchmarks::EulerNonET< VectorType, SolverMonitorType >;
+            benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Euler non-ET" );
+            using LegacySolver = Euler< VectorType, SolverMonitorType >;
+            benchmarkSolver< LegacySolver >( benchmark, parameters, "Leg. Euler" );
+            using Method = TNL::Solvers::ODE::Methods::Euler< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Euler" );
-            using SolverNonET = Benchmarks::Euler< VectorType, SolverMonitorType >;
-            benchmarkSolver< SolverNonET >( benchmark, parameters, "Euler non-ET" );
          }
          if( solver == "merson" || solver == "all" ) {
-            using Solver = Solvers::ODE::Merson< VectorType, SolverMonitorType >;
+            using LegacySolverNonET = Benchmarks::MersonNonET< VectorType, SolverMonitorType >;
+            benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Merson non-ET");
+            using LegacySolver = Merson< VectorType, SolverMonitorType >;
+            benchmarkSolver< LegacySolver >( benchmark, parameters, "Leg. Merson" );
+            using Method = TNL::Solvers::ODE::Methods::Merson< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Merson" );
-            using SolverNonET = Benchmarks::Merson< VectorType, SolverMonitorType >;
-            benchmarkSolver< SolverNonET >( benchmark, parameters, "Merson non-ET");
          }
       }
       return true;
@@ -194,8 +209,8 @@ configSetup( Config::ConfigDescription& config )
    config.addDelimiter( "ODE solver settings:" );
    Solvers::IterativeSolver< double, int >::configSetup( config );
    using Vector = TNL::Containers::Vector< int>;
-   Solvers::ODE::Euler< Vector >::configSetup( config );
-   Solvers::ODE::Merson< Vector >::configSetup( config );
+   Euler< Vector >::configSetup( config );
+   Merson< Vector >::configSetup( config );
 }
 
 int

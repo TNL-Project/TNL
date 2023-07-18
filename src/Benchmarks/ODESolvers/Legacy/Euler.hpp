@@ -3,9 +3,15 @@
 
 #pragma once
 
-#include <TNL/Solvers/ODE/Euler.h>
+#include "Euler.h"
 
-namespace TNL::Solvers::ODE {
+namespace TNL::Benchmarks {
+
+template< typename Vector, typename SolverMonitor >
+Euler< Vector, SolverMonitor >::Euler()
+{
+   this->setConvergenceResidue( 0.0 );
+}
 
 template< typename Vector, typename SolverMonitor >
 void
@@ -18,7 +24,7 @@ template< typename Vector, typename SolverMonitor >
 bool
 Euler< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
-   ExplicitSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
+   Solvers::ODE::ExplicitSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "euler-cfl" ) )
       this->setCourantNumber( parameters.getParameter< double >( prefix + "euler-cfl" ) );
    return true;
@@ -110,4 +116,4 @@ Euler< Vector, SolverMonitor >::solve( VectorType& _u, RHSFunction&& rhsFunction
    }
 }
 
-}  // namespace TNL::Solvers::ODE
+}  // namespace TNL::Benchmarks

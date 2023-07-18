@@ -12,15 +12,15 @@ namespace Benchmarks {
 template< typename RealType, typename Index >
 __global__
 void
-updateUEuler( const Index size, const RealType tau, const RealType* k1, RealType* u, RealType* cudaBlockResidue );
+updateUEulerNonET( const Index size, const RealType tau, const RealType* k1, RealType* u, RealType* cudaBlockResidue );
 #endif
 
 template< typename Vector, typename SolverMonitor >
-Euler< Vector, SolverMonitor >::Euler() : cflCondition( 0.0 ){};
+EulerNonET< Vector, SolverMonitor >::EulerNonET() : cflCondition( 0.0 ){};
 
 template< typename Vector, typename SolverMonitor >
 void
-Euler< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+EulerNonET< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
    //ExplicitSolver< Vector >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "euler-cfl", "Coefficient C in the Courant–Friedrichs–Lewy condition.", 0.0 );
@@ -28,7 +28,7 @@ Euler< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, 
 
 template< typename Vector, typename SolverMonitor >
 bool
-Euler< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+EulerNonET< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
 {
    Solvers::ODE::ExplicitSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "euler-cfl" ) )
@@ -38,14 +38,14 @@ Euler< Vector, SolverMonitor >::setup( const Config::ParameterContainer& paramet
 
 template< typename Vector, typename SolverMonitor >
 void
-Euler< Vector, SolverMonitor >::setCFLCondition( const RealType& cfl )
+EulerNonET< Vector, SolverMonitor >::setCFLCondition( const RealType& cfl )
 {
    this->cflCondition = cfl;
 }
 
 template< typename Vector, typename SolverMonitor >
 const typename Vector ::RealType&
-Euler< Vector, SolverMonitor >::getCFLCondition() const
+EulerNonET< Vector, SolverMonitor >::getCFLCondition() const
 {
    return this->cflCondition;
 }
@@ -53,7 +53,7 @@ Euler< Vector, SolverMonitor >::getCFLCondition() const
 template< typename Vector, typename SolverMonitor >
 template< typename RHSFunction >
 bool
-Euler< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsFunction )
+EulerNonET< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsFunction )
 {
    /****
     * First setup the supporting meshes k1...k5 and k_tmp.
@@ -134,7 +134,7 @@ Euler< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsFuncti
 
 template< typename Vector, typename SolverMonitor >
 void
-Euler< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, RealType tau, RealType& currentResidue )
+EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, RealType tau, RealType& currentResidue )
 {
    RealType localResidue = RealType( 0.0 );
    const IndexType size = k1.getSize();
@@ -143,7 +143,7 @@ Euler< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, RealType 
 
    if( std::is_same< DeviceType, Devices::Host >::value ) {
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for reduction( + : localResidue ) firstprivate( _u, _k1, tau ) if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for reduction( + : localResidue ) firstprivate( _u, _k1, tau ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ ) {
          const RealType add = tau * _k1[ i ];
@@ -184,7 +184,7 @@ Euler< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, RealType 
 template< typename RealType, typename IndexType >
 __global__
 void
-updateUEuler( const IndexType size, const RealType tau, const RealType* k1, RealType* u, RealType* cudaBlockResidue )
+updateUEulerNonET( const IndexType size, const RealType tau, const RealType* k1, RealType* u, RealType* cudaBlockResidue )
 {
    extern __shared__ void* d_u[];
    RealType* du = (RealType*) d_u;

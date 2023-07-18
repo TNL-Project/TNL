@@ -7,14 +7,14 @@
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 
-#include "../BLAS/CommonVectorOperations.h"
+#include "../../BLAS/CommonVectorOperations.h"
 
 namespace TNL {
 namespace Benchmarks {
 
 template< typename Vector,
           typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
-class Merson : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
+class MersonNonET : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
 public:
    using DofVectorType = Vector;
@@ -23,7 +23,7 @@ public:
    using IndexType = typename Vector::IndexType;
    using VectorOperations = CommonVectorOperations< DeviceType >;
 
-   Merson();
+   MersonNonET();
 
    static void
    configSetup( Config::ConfigDescription& config, const String& prefix = "" );
@@ -76,4 +76,4 @@ public:
 }  // namespace Benchmarks
 }  // namespace TNL
 
-#include "Merson.hpp"
+#include "MersonNonET.hpp"
