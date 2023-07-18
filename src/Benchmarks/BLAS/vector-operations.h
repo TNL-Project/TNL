@@ -29,6 +29,7 @@
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/scan.h>
+#include <TNL/Containers/Expressions/LinearCombination.h>
 #include "CommonVectorOperations.h"
 #include "VectorOperations.h"
 
@@ -53,6 +54,33 @@
 #endif
 
 namespace TNL::Benchmarks {
+
+
+template< typename Real = double >
+struct TwoVectorsCoefficients
+{
+   static constexpr std::size_t getSize() noexcept  {
+      return coefficients.size();
+   }
+
+   static constexpr Real getValue( const std::size_t i ) noexcept  {
+      return coefficients[ i ];
+   }
+   static constexpr std::array< Real, 2 > coefficients = { 1.0, 1.0 };
+};
+
+template< typename Real = double >
+struct ThreeVectorsCoefficients
+{
+   static constexpr std::size_t getSize() noexcept  {
+      return coefficients.size();
+   }
+
+   static constexpr Real getValue( const std::size_t i ) noexcept  {
+      return coefficients[ i ];
+   }
+   static constexpr std::array< Real, 3 > coefficients = { 1.0, 1.0, 1.0 };
+};
 
 template< typename Real = double, typename Index = int >
 class VectorOperationsBenchmark
@@ -1142,12 +1170,29 @@ public:
       benchmark.time< Devices::Host >( resetAll, "CPU legacy", computeLegacy );
       verify( "CPU legacy", hostVector, 3.0 );
 
+      auto computeParallelFor = [ & ]()
+      {
+         Algorithms::parallelFor< Devices::Host >( 0, hostVector.getSize(), [=]( const Index i ) {
+            hostView[ i ] += hostView2[ i ] + hostView3[ i ];
+         } );
+      };
+      benchmark.time< Devices::Host >( resetAll, "CPU par.for", computeParallelFor );
+      verify( "CPU par.for", hostVector, 3.0 );
+
       auto computeET = [ & ]()
       {
          hostView += hostView2 + hostView3;
       };
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
       verify( "CPU ET", hostVector, 3.0 );
+
+      auto computeLinearCombination = [ & ]()
+      {
+         using HostVectorView = typename HostVector::ViewType;
+         hostView += Containers::Expressions::LinearCombination< TwoVectorsCoefficients< Real >, HostVectorView >::evaluate( hostView2, hostView3 );
+      };
+      benchmark.time< Devices::Host >( resetAll, "CPU Lin.Cmb.", computeLinearCombination );
+      verify( "CPU LC", hostVector, 3.0 );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -1169,12 +1214,33 @@ public:
       benchmark.time< Devices::Cuda >( resetAll, "GPU legacy", computeCudaLegacy );
       verify( "GPU legacy", deviceVector, 3.0 );
 
+      // we cannot capture *this (it leads to segfault) in a lambda, so we need to capture the device vector by value
+      auto d1 = deviceVector.getView();
+      auto d2 = deviceVector2.getView();
+      auto d3 = deviceVector3.getView();
+      auto computeCudaParallelFor = [ & ]()
+      {
+         Algorithms::parallelFor< Devices::Cuda >( ( Index ) 0, deviceView.getSize(), [=] __cuda_callable__ ( const Index i ) mutable {
+            d1[ i ] += d2[ i ] + d3[ i ];
+         } );
+      };
+      benchmark.time< Devices::Cuda >( resetAll, "GPU par.for", computeCudaParallelFor );
+      verify( "GPU par.for", deviceVector, 3.0 );
+
       auto computeCudaET = [ & ]()
       {
          deviceView += deviceView2 + deviceView3;
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
       verify( "GPU ET", deviceVector, 3.0 );
+
+      auto computeCudaLinearCombination = [ & ]()
+      {
+         using DeviceVectorView = typename CudaVector::ViewType;
+         deviceView += Containers::Expressions::LinearCombination< TwoVectorsCoefficients< Real >, DeviceVectorView >::evaluate( deviceView2, deviceView3 );
+      };
+      benchmark.time< Devices::Cuda >( resetAll, "GPU Lin.Cmb.", computeCudaLinearCombination );
+      verify( "GPU LC", deviceVector, 3.0 );
 
       auto computeCudaCUBLAS = [ & ]()
       {
@@ -1206,12 +1272,29 @@ public:
       benchmark.time< Devices::Host >( resetAll, "CPU legacy", computeLegacy );
       verify( "CPU legacy", hostVector, 4.0 );
 
+      auto computeParallelFor = [ & ]()
+      {
+         Algorithms::parallelFor< Devices::Host >( 0, hostVector.getSize(), [=] __cuda_callable__ ( const Index i ) {
+            hostView[ i ] += hostView2[ i ] + hostView3[ i ] + hostView4[ i ];
+         } );
+      };
+      benchmark.time< Devices::Host >( resetAll, "CPU par.for", computeParallelFor );
+      verify( "CPU par.for", hostVector, 4.0 );
+
       auto computeET = [ & ]()
       {
          hostView += hostView2 + hostView3 + hostView4;
       };
       benchmark.time< Devices::Host >( resetAll, "CPU ET", computeET );
       verify( "CPU ET", hostVector, 4.0 );
+
+      auto computeLinearCombination = [ & ]()
+      {
+         using HostVectorView = typename HostVector::ViewType;
+         hostView += Containers::Expressions::LinearCombination< ThreeVectorsCoefficients< Real >, HostVectorView >::evaluate( hostView2, hostView3, hostView4 );
+      };
+      benchmark.time< Devices::Host >( resetAll, "CPU Lin.Cmb.", computeLinearCombination );
+      verify( "CPU Lin.Cmb.", hostVector, 4.0 );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -1235,12 +1318,34 @@ public:
       benchmark.time< Devices::Cuda >( resetAll, "GPU legacy", computeCudaLegacy );
       verify( "GPU legacy", deviceVector, 4.0 );
 
+      // we cannot capture *this (it leads to segfault) in a lambda, so we need to capture the device vector by value
+      auto d1 = deviceVector.getView();
+      auto d2 = deviceVector2.getView();
+      auto d3 = deviceVector3.getView();
+      auto d4 = deviceVector4.getView();
+      auto computeCudaParallelFor = [ & ]()
+      {
+         Algorithms::parallelFor< Devices::Cuda >( 0, deviceVector.getSize(), [=] __cuda_callable__ ( const Index i ) mutable {
+            d1[ i ] += d2[ i ] + d3[ i ] + d4[ i ];
+         } );
+      };
+      benchmark.time< Devices::Cuda >( resetAll, "GPU par.for", computeCudaParallelFor );
+      verify( "GPU par.for", deviceVector, 4.0 );
+
       auto computeCudaET = [ & ]()
       {
          deviceView += deviceView2 + deviceView3 + deviceView4;
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU ET", computeCudaET );
       verify( "GPU ET", deviceVector, 4.0 );
+
+      auto computeCudaLinearCombination = [ & ]()
+      {
+         using DeviceVectorView = typename CudaVector::ViewType;
+         deviceView += Containers::Expressions::LinearCombination< ThreeVectorsCoefficients< Real >, DeviceVectorView >::evaluate( deviceView2, deviceView3, deviceView4 );
+      };
+      benchmark.time< Devices::Cuda >( resetAll, "GPU Lin.Cmb.", computeCudaLinearCombination );
+      verify( "GPU Lin.Cmb.", deviceVector, 4.0 );
 
       auto computeCudaCUBLAS = [ & ]()
       {
