@@ -55,7 +55,7 @@ struct ODESolverEvaluator {
          const ConstVectorView& u,
          VectorView aux,
          RHSFunction&& rhsFunction ) {
-      if constexpr( Stage::value == 0 ) { // k1 = f( t, u )
+      if constexpr( Stage::value == 0 ) { // k[ 0 ] = f( t, u )
          rhsFunction( time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, u, k[ Stage::value ] );
          ODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors( k, time, currentTau, u, aux, rhsFunction );
       } else {

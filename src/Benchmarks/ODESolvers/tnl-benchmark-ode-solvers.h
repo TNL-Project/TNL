@@ -19,6 +19,7 @@
 #include <TNL/Solvers/ODE/ODESolver.h>
 #include <TNL/Solvers/ODE/Methods/Euler.h>
 #include <TNL/Solvers/ODE/Methods/Merson.h>
+#include <TNL/Solvers/ODE/Methods/DormandPrince.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
 #include "ODESolversBenchmarkResult.h"
@@ -88,12 +89,12 @@ struct ODESolversBenchmark
          benchmark.setDatasetSize( dofs * sizeof( RealType ) * iterations );
          auto problem = [=] ( const RealType& t, const RealType& tau, const VectorView& u_view, VectorView& fu_view ) {
             auto computeF = [=] __cuda_callable__ ( IndexType i ) mutable {
-               fu_view[ i ] = 6.0 * TNL::pow( t, 5.0 );
+               fu_view[ i ] = 7.0 * TNL::pow( t, 6.0 );
             };
             Algorithms::parallelFor< DeviceType >( 0, u_view.getSize(), computeF );
          };
          auto solve = [&]() { solver.solve( u, problem ); };
-         benchmark.time< Devices::Host >( device, solve, benchmarkResult );
+         benchmark.time< DeviceType >( device, solve, benchmarkResult );
          tau /= 2.0;
       }
       return true;
@@ -122,6 +123,11 @@ struct ODESolversBenchmark
             using Method = TNL::Solvers::ODE::Methods::Merson< RealType >;
             using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Merson" );
+         }
+         if( solver == "dormand-prince" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::DormandPrince< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Dormand-Prince" );
          }
       }
       return true;
