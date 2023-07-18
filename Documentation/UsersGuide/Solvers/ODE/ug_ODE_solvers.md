@@ -249,20 +249,20 @@ The implementation of the solver looks as follows:
 
 \includelineno Solvers/ODE/ODESolver-HeatEquationExample.h
 
-The solver is implemented in separate function `solveHeatEquation` (line 11) having one template parameter `Device` (line 10) defining on what device the solver is supposed to be executed. We first define necessary types:
+The solver is implemented in separate function `solveHeatEquation` (line 12) having one template parameter `Device` (line 11) defining on what device the solver is supposed to be executed. We first define necessary types:
 
-1. `Vector` (line 13) is alias for \ref TNL::Containers::Vector. The number of DOFs can be large and therefore they are stored in the resizable dynamically allocated vector \ref TNL::Containers::Vector rather then in static vector - \ref TNL::Containers::StaticVector.
-2. `VectorView` (line 14) will be used for accessing DOFs within the lambda functions.
-3. `ODESolver` (line 15) is type of the ODE solver which we will use for the computation of the time evolution in the time dependent heat equation.
+1. `Vector` (line 14) is alias for \ref TNL::Containers::Vector. The number of DOFs can be large and therefore they are stored in the resizable dynamically allocated vector \ref TNL::Containers::Vector rather then in static vector - \ref TNL::Containers::StaticVector.
+2. `VectorView` (line 15) will be used for accessing DOFs within the lambda functions.
+3. `ODESolver` (line 17) is type of the ODE solver which we will use for the computation of the time evolution in the time dependent heat equation.
 
 Next we define parameters of the discretization:
 
-1. `final_t` (line 20) represents the size of the time interval \f$ [0,T] \f$.
-2. `output_time_step` (line 21) defines time intervals in which we will write the solution \f$ u \f$ into a file.
-3. `n` (line 22) is the number of DOFs, i.e. number of nodes used for the [finite difference method](https://en.wikipedia.org/wiki/Finite_difference_method).
-4. `h` (line 23) is the space step, i.e. distance between two consecutive nodes.
-5. `tau` (line 24) is the time step used for the integration by the ODE solver. Since we solve the second order parabolic problem, the time step should be proportional to \f$ h^2 \f$.
-6. `h_sqr_inv` (line 25) is auxiliary constant equal to \f$ 1/h^2 \f$ which we use later in finite difference for approximation of the second derivative.
+1. `final_t` (line 22) represents the size of the time interval \f$ [0,T] \f$.
+2. `output_time_step` (line 23) defines time intervals in which we will write the solution \f$ u \f$ into a file.
+3. `n` (line 24) is the number of DOFs, i.e. number of nodes used for the [finite difference method](https://en.wikipedia.org/wiki/Finite_difference_method).
+4. `h` (line 25) is the space step, i.e. distance between two consecutive nodes.
+5. `tau` (line 26) is the time step used for the integration by the ODE solver. Since we solve the second order parabolic problem, the time step should be proportional to \f$ h^2 \f$.
+6. `h_sqr_inv` (line 27) is auxiliary constant equal to \f$ 1/h^2 \f$ which we use later in finite difference for approximation of the second derivative.
 
 Next we set the initial condition \f$ u_{ini} \f$ (lines ) which is given as:
 
@@ -278,19 +278,19 @@ u_{ini}(x) = \left\{
 
 Next we write the initial condition to a file (lines 37-39) using the function `write`  which we will describe later. On the lines (44-46) we create an instance of the ODE solver `solver`, we set the integration time step `tau` of the solver (\ref TNL::Solvers::ODE::ExplicitSolver::setTau ) and we set the initial time to zero (\ref TNL::Solvers::ODE::ExplicitSolver::setTime).
 
-Finally, we proceed to the time loop (lines 51-64) but before we prepare counter of the states to be written into files (`output_idx`). The time loop uses the time variable within the ODE solver (\ref TNL::Solvers::ODE::ExplicitSolver::getTime ) and it iterates until we reach the end of the time interval \f$ [0, T] \f$ given by the variable `final_t`. On the line 53, we set the stop time of the ODE solver (\ref TNL::Solvers::ODE::ExplicitSolver::setStopTime ) to the next checkpoint for storing the state of the heat equation or the end of the time interval depending on what comes first. Next we define the lambda function `f` expressing the discretization of the second derivative of \f$ u \f$ by the central finite difference and the boundary conditions. The function receives the following parameters:
+Finally, we proceed to the time loop (lines 53-66) but before we prepare counter of the states to be written into files (`output_idx`). The time loop uses the time variable within the ODE solver (\ref TNL::Solvers::ODE::ExplicitSolver::getTime ) and it iterates until we reach the end of the time interval \f$ [0, T] \f$ given by the variable `final_t`. On the line 55, we set the stop time of the ODE solver (\ref TNL::Solvers::ODE::ExplicitSolver::setStopTime ) to the next checkpoint for storing the state of the heat equation or the end of the time interval depending on what comes first. Next we define the lambda function `f` expressing the discretization of the second derivative of \f$ u \f$ by the central finite difference and the boundary conditions. The function receives the following parameters:
 
 1. `i` is the index of the node and the related ODE arising from the method of lines. In fact, we have to evaluate the update of \f$ u_i^k \f$ to get to the next time level \f$ u_i^{k+1} \f$.
 2. `u` is vector view representing the state \f$ u_i^k \f$ of the heat equation on the \f$ k- \f$ time level.
 3. `fu` is vector of updates or time derivatives in the method of lines which will bring \f$ u \f$ to the next time level.
 
-As we mentioned above, since `nvcc` does not accept lambda functions defined within another lambda function, we have to define `f` separately and pass the parameters `u` and `fu` explicitly (see the line 61).
+As we mentioned above, since `nvcc` does not accept lambda functions defined within another lambda function, we have to define `f` separately and pass the parameters `u` and `fu` explicitly (see the line 63).
 
-Now look at the code of the lambda function `f`. Since the solution \f$ u \f$ does not change on the boundaries, we return zero on the boundary nodes (lines 55-56) and we evaluate the central difference for approximation of the second derivative on the interior nodes (line 58).
+Now look at the code of the lambda function `f`. Since the solution \f$ u \f$ does not change on the boundaries, we return zero on the boundary nodes (lines 57-58) and we evaluate the central difference for approximation of the second derivative on the interior nodes (line 60).
 
 Next we define the lambda function `time_stepping` (lines ) which is responsible for computing of the updates for all nodes \f$ i = 0, \ldots n-1 \f$. It is done by means of \ref TNL::Algorithms::parallelFor which iterates over all the nodes and calling the function `f` on each of them. It passes the vector views `u` and `fu` explicitly to `f` for the reasons we have mentioned above.
 
-Finally, we run the ODE solver (\ref TNL::Solvers::ODE::Euler::solve ) (line 62) and we pass `u` as the current state of the heat equation and `f` the lambda function controlling the time evolution to the method `solve`. On the line 63, we store the current state to a file.
+Finally, we run the ODE solver (\ref TNL::Solvers::ODE::Euler::solve ) (line 64) and we pass `u` as the current state of the heat equation and `f` the lambda function controlling the time evolution to the method `solve`. On the line 65, we store the current state to a file.
 
 The function `write` which we use for writing the solution of the heat equation reads as follows:
 
@@ -341,8 +341,8 @@ In this section we will show how to connect ODE solver with the solver monitor. 
 
 There are the following differences compared to the previous example:
 
-1. We have to include a header file with the iterative solver monitor (line 5).
-2. We have to setup the solver monitor (lines 45-50). First, we define the monitor type (line 45) and we create an instance of the monitor (line 46). Next we create a separate thread for the monitor (line 47), set the refresh rate to 10 milliseconds (line 48), turn on the verbose mode (line 49) and set the solver stage name (line 50). On the line 58, we connect the monitor with the solver using method \ref TNL::Solvers::IterativeSolver::setSolverMonitor. We stop the monitor after the ODE solver finishes by calling \ref TNL::Solvers::IterativeSolverMonitor::stopMainLoop in the line 77.
+1. We have to include a header file with the iterative solver monitor (line 6).
+2. We have to setup the solver monitor (lines 47-52). First, we define the monitor type (line 47) and we create an instance of the monitor (line 48). Next we create a separate thread for the monitor (line 49), set the refresh rate to 10 milliseconds (line 50), turn on the verbose mode (line 51) and set the solver stage name (line 52). On the line 60, we connect the monitor with the solver using method \ref TNL::Solvers::IterativeSolver::setSolverMonitor. We stop the monitor after the ODE solver finishes by calling \ref TNL::Solvers::IterativeSolverMonitor::stopMainLoop in the line 79.
 
 The result looks as follows:
 

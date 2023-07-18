@@ -1,7 +1,8 @@
 #include <iostream>
 #include <TNL/FileName.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Solvers/ODE/Euler.h>
+#include <TNL/Solvers/ODE/ODESolver.h>
+#include <TNL/Solvers/ODE/Methods/Euler.h>
 #include "write.h"
 
 using Real = double;
@@ -13,7 +14,8 @@ solveHeatEquation( const char* file_name )
 {
    using Vector = TNL::Containers::Vector< Real, Device, Index >;
    using VectorView = typename Vector::ViewType;
-   using ODESolver = TNL::Solvers::ODE::Euler< Vector >;
+   using Method = TNL::Solvers::ODE::Methods::Euler< Real >;
+   using ODESolver = TNL::Solvers::ODE::ODESolver< Method, Vector >;
 
    /***
     * Parameters of the discretisation
