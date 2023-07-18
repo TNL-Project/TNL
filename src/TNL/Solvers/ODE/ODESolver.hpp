@@ -80,7 +80,7 @@ ODESolver< Method, Vector, SolverMonitor >::solve( VectorType& u, RHSFunction&& 
    // Start the main loop
    while( this->checkNextIteration() ) {
 
-      detail::ODESolverEvaluator< Method >::computeKVectors( k_views, time, currentTau, u.getConstView(), kAux.getView(), rhsFunction );
+      detail::ODESolverEvaluator< Method >::computeKVectors( k_views, time, currentTau, u.getView(), kAux.getView(), rhsFunction );
 
       /////
       // Compute an error of the approximation.
@@ -88,17 +88,15 @@ ODESolver< Method, Vector, SolverMonitor >::solve( VectorType& u, RHSFunction&& 
       if constexpr( Method::isAdaptive() )
          error = Method::getError( k_views, currentTau );
 
-      VectorType update( u );
       if( method.acceptStep( error ) ) {
          RealType lastResidue = this->getResidue();
 
-         using UpdateCoefficients = UpdateCoefficientsExtractor< Method >;
+         using UpdateCoefficients = detail::UpdateCoefficientsExtractor< Method >;
          using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Vector >;
          this->setResidue(
             addAndReduceAbs( u, currentTau * UpdateExpression::evaluateArray( k_vectors ), TNL::Plus{}, 0.0 ) /
             ( currentTau * (RealType) u.getSize() ) );
          time += currentTau;
-         update = currentTau * UpdateExpression::evaluateArray( k_vectors );
 
          /////
          // When time is close to stopTime the new residue
@@ -117,8 +115,6 @@ ODESolver< Method, Vector, SolverMonitor >::solve( VectorType& u, RHSFunction&& 
          currentTau = this->getStopTime() - time;  // we don't want to keep such tau
       else
          this->tau = currentTau;
-
-      //std::cout << "time = " << time << ", tau = " << currentTau << ", residue = " << this->getResidue() << " u = " << u << std::endl;
 
       /////
       // Check stop conditions.
