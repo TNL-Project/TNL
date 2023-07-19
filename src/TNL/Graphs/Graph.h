@@ -11,6 +11,7 @@
 #include <ostream>
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/reduce.h>
+#include <TNL/Matrices/MatrixBase.h>
 
 namespace TNL::Graphs {
 
@@ -146,10 +147,9 @@ struct Graph
    ValueType getTotalWeight() const {
       auto values_view = adjacencyMatrix.getValues().getConstView();
       auto column_indexes_view = adjacencyMatrix.getColumnIndexes().getConstView();
-      const auto padding = adjacencyMatrix.getPaddingIndex();
       ValueType w = Algorithms::reduce< DeviceType >( 0, values_view.getSize(),
          [=] __cuda_callable__ ( IndexType i ) {
-            if( column_indexes_view[ i ] != padding )
+            if( column_indexes_view[ i ] != Matrices::paddingIndex< IndexType > )
                return values_view[ i ];
             return ( ValueType ) 0; },
          TNL::Plus{} );

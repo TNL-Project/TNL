@@ -17,6 +17,13 @@
 namespace TNL::Matrices {
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+constexpr bool
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::isSymmetric()
+{
+   return MatrixType::isSymmetric();
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 __cuda_callable__
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::bind( IndexType rows,
@@ -611,6 +618,44 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    return ! operator==( m );
 }
+
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sortColumnIndexes()
+{
+   this->forAllRows( [=] __cuda_callable__ ( RowView& row ) {
+      row.sortColumnIndexes();
+   } );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+__cuda_callable__
+Index
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::findElement( IndexType row, IndexType column ) const
+{
+   TNL_ASSERT_GE( row, 0, "Sparse matrix row index cannot be negative." );
+   TNL_ASSERT_LT( row, this->getRows(), "Sparse matrix row index is larger than number of matrix rows." );
+   TNL_ASSERT_GE( column, 0, "Sparse matrix column index cannot be negative." );
+   TNL_ASSERT_LT( column, this->getColumns(), "Sparse matrix column index is larger than number of matrix columns." );
+
+   if( isSymmetric() && row < column ) {
+      swap( row, column );
+      if( row >= this->getRows() || column >= this->getColumns() )
+         return paddingIndex< IndexType >;
+   }
+
+   const IndexType rowSize = this->segments.getSegmentSize( row );
+   for( IndexType i = 0; i < rowSize; i++ ) {
+      const IndexType globalIdx = this->segments.getGlobalIndex( row, i );
+      TNL_ASSERT_LT( globalIdx, this->columnIndexes.getSize(), "" );
+      const IndexType col = this->columnIndexes.getElement( globalIdx );
+      if( col == column )
+         return globalIdx;
+   }
+   return paddingIndex< IndexType >;
+}
+
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 void

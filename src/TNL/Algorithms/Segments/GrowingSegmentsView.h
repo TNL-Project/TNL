@@ -9,8 +9,8 @@
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/AtomicVectorView.h>
-#include <TNL/Algorithms/Segments/SegmentsPrinting.h>
-#include <TNL/Algorithms/Segments/detail/CheckLambdas.h>
+#include <TNL/Algorithms/Segments/printSegments.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/detail/CheckLambdas.h>
 
 
 namespace TNL {
@@ -87,7 +87,8 @@ struct GrowingSegmentsView : public SegmentsView_
                         const Value& identity ) const
    {
       // NVCC does not allow if constexpr inside lambda
-      if constexpr( detail::CheckFetchLambda< IndexType, Fetch >::hasAllParameters() ) {
+      /*if constexpr( detail::CheckFetchLambda< IndexType, Fetch >::hasAllParameters() ) {
+         // TODO: fix
          auto main_fetch_with_all_params = [=,*this] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool compute ) mutable {
             IndexType end = this->segmentsFilling[ segmentIdx ];
             if( localIdx < end  ) {
@@ -97,7 +98,8 @@ struct GrowingSegmentsView : public SegmentsView_
             }
             else return identity;
          };
-         SegmentsView_::reduceSegments( begin, end, main_fetch_with_all_params, reduction, keeper, identity );
+         // TODO: fix
+         //SegmentsView_::reduceSegments( begin, end, main_fetch_with_all_params, reduction, keeper, identity );
       }
       else {
          auto main_fetch = [=,*this] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool compute ) mutable {
@@ -109,8 +111,9 @@ struct GrowingSegmentsView : public SegmentsView_
             }
             else return identity;
          };
-         SegmentsView_::reduceSegments( begin, end, main_fetch, reduction, keeper, identity );
-      }
+         // TODO: fix
+         //SegmentsView_::reduceSegments( begin, end, main_fetch, reduction, keeper, identity );
+      }*/
    }
 
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
@@ -132,12 +135,12 @@ struct GrowingSegmentsView : public SegmentsView_
       return this->segmentsFilling;
    }
 
-   template< typename Fetch >
+   /*template< typename Fetch >
    auto
    print( Fetch&& fetch ) const -> SegmentsPrinter< SegmentsConstView, Fetch >
    {
       return SegmentsPrinter< SegmentsConstView, Fetch >( *this, fetch );
-   }
+   }*/
 
 private:
    AtomicFillingVectorView segmentsFilling;

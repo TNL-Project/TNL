@@ -8,7 +8,7 @@
 
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/SegmentsPrinting.h>
+#include <TNL/Algorithms/Segments/printSegments.h>
 #include <TNL/Algorithms/Segments/GrowingSegmentsView.h>
 
 
@@ -115,12 +115,12 @@ struct GrowingSegments : public Segments
       return this->segmentsFilling;
    }
 
-   template< typename Fetch >
+   /*template< typename Fetch >
    auto
    print( Fetch&& fetch ) const -> SegmentsPrinter< GrowingSegments, Fetch >
    {
       return SegmentsPrinter< GrowingSegments, Fetch >( *this, std::move( fetch ) );
-   }
+   }*/
 
 private:
    FillingVector segmentsFilling;

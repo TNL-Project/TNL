@@ -107,7 +107,7 @@ void kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector
       const auto row = graph.getAdjacencyMatrix().getRow(i);
       for( Index j = 0; j < row.getSize(); j++ ) {
          const Index& col = row.getColumnIndex( j );
-         if( col < i && col != graph.getAdjacencyMatrix().getPaddingIndex() )
+         if( col < i && col != Matrices::paddingIndex< Index > )
             edges.emplace_back(i, col, row.getValue(j) );
       }
    }

@@ -13,6 +13,7 @@
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Functional.h>
 #include <TNL/Assert.h>
+#include <TNL/Matrices/MatrixBase.h>
 
 namespace TNL::Graphs {
 
@@ -78,7 +79,7 @@ void singleSourceShortestPath( const Graph& graph, Index start, Vector& distance
          for( Index i = 0; i < row.getSize(); i++ ) {
             const auto& edge_weight = row.getValue( i );
             const auto& neighbor = row.getColumnIndex( i );
-            if( neighbor == graph.getAdjacencyMatrix().getPaddingIndex() )
+            if( neighbor == Matrices::paddingIndex< Index > )
                continue;
             double distance = current_distance + edge_weight;
 
@@ -92,7 +93,7 @@ void singleSourceShortestPath( const Graph& graph, Index start, Vector& distance
    else
    {
       typename Graph::MatrixType transposed;
-      transposed.transpose( graph.getAdjacencyMatrix() );
+      transposed.getTransposition( graph.getAdjacencyMatrix() );
       singleSourceShortestPathTransposed( transposed, start, distances );
    }
    distances.forAllElements( [] __cuda_callable__ ( Index i, Real& x ) {

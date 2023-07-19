@@ -67,7 +67,7 @@ struct GraphsBenchmark
    template< typename Device,
       template< typename Device_,
                 typename Index_,
-                typename IndexAllocator_ > class Segments = TNL::Algorithms::Segments::CSRScalar >
+                typename IndexAllocator_ > class Segments = TNL::Algorithms::Segments::CSR >
    void TNLBenchmarks( const HostDigraph& hostDigraph,
                        const HostGraph& hostGraph,
                        TNL::Benchmarks::Benchmark<>& benchmark,
@@ -468,19 +468,20 @@ struct GraphsBenchmark
 #endif
 
       if( device == "sequential" || device == "all" )
-         TNLBenchmarks< TNL::Devices::Sequential, TNL::Algorithms::Segments::CSRScalar >( digraph, graph, benchmark, "sequential", "CSRScalar" );
+         TNLBenchmarks< TNL::Devices::Sequential, TNL::Algorithms::Segments::CSR >( digraph, graph, benchmark, "sequential", "CSRScalar" );
       if( device == "host" || device == "all" )
-         TNLBenchmarks< TNL::Devices::Host, TNL::Algorithms::Segments::CSRScalar >( digraph, graph, benchmark, "host", "CSRScalar" );
+         TNLBenchmarks< TNL::Devices::Host, TNL::Algorithms::Segments::CSR >( digraph, graph, benchmark, "host", "CSRScalar" );
 #ifdef __CUDACC__
       if( device == "cuda" || device == "all" )
       {
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRScalar     >( digraph, graph, benchmark, "cuda", "CSRScalar" );
+         // TODO: Fxi the following
+         /*TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRScalar     >( digraph, graph, benchmark, "cuda", "CSRScalar" );
          TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRVector     >( digraph, graph, benchmark, "cuda", "CSRVector" );
          TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRLight      >( digraph, graph, benchmark, "cuda", "CSRLight" );
          TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSRAdaptive   >( digraph, graph, benchmark, "cuda", "CSRAdaptive" );
          TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::Ellpack       >( digraph, graph, benchmark, "cuda", "Ellpack" );
          TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::SlicedEllpack >( digraph, graph, benchmark, "cuda", "SlicedEllpack" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::BiEllpack     >( digraph, graph, benchmark, "cuda", "BiEllpack" );
+         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::BiEllpack     >( digraph, graph, benchmark, "cuda", "BiEllpack" );*/
       }
 #endif
       if( ! errors )

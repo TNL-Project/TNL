@@ -104,6 +104,11 @@ public:
    using ConstRowView = typename RowView::ConstRowView;
 
    /**
+    * \brief Gives \e true if the matrix is symmetric.
+    */
+   static constexpr bool isSymmetric();
+
+   /**
     * \brief Constructor with no parameters.
     */
    __cuda_callable__
@@ -735,6 +740,22 @@ public:
    template< typename Matrix >
    [[nodiscard]] bool
    operator!=( const Matrix& matrix ) const;
+
+   /**
+    * \brief Sort matrix elements in each row by column indexes in ascending order.
+    */
+   void sortColumnIndexes();
+
+   /**
+    * \brief Finds element in the matrix and returns its position in the arrays with \e values and \e columnIndexes.
+    *
+    * If the element is not found, the method returns the padding index.
+    * \param row is the row index of the element.
+    * \param column is the column index of the element.
+    * \return the position of the element in the arrays with \e values and \e columnIndexes or the padding index if the element is not found.
+    */
+   __cuda_callable__
+   IndexType findElement( IndexType row, IndexType column ) const;
 
    /**
     * \brief Method for printing the matrix to output stream.

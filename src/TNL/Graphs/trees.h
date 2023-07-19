@@ -9,6 +9,8 @@
 #include <queue>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/AtomicOperations.h>
+#include <TNL/Algorithms/find.h>
+#include <TNL/Matrices/MatrixBase.h>
 
 
 namespace TNL::Graphs {
@@ -34,7 +36,6 @@ bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = T
    using ValueType = typename Graph::ValueType;
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
-   using VectorType = Containers::Vector< ValueType, DeviceType, IndexType >;
    using IndexVectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
    using MatrixType = typename Graph::MatrixType;
 
@@ -60,7 +61,7 @@ bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = T
             const auto row = graph.getAdjacencyMatrix().getRow( current );
             for( IndexType i = 0; i < row.getSize(); i++ ) {
                const auto& neighbor = row.getColumnIndex( i );
-               if( neighbor == graph.getAdjacencyMatrix().getPaddingIndex() )
+               if( neighbor == Matrices::paddingIndex< IndexType > )
                   continue;
                if( ! visitNeighbour( current, neighbor, visited, parents, q ) )
                   return false;
@@ -72,7 +73,7 @@ bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = T
                   auto row = graph.getAdjacencyMatrix().getRow( rowIdx );
                   for( IndexType i = 0; i < row.getSize(); i++ ) {
                      const auto& col = row.getColumnIndex( i );
-                     if( col == graph.getAdjacencyMatrix().getPaddingIndex() || col != current )
+                     if( col == Matrices::paddingIndex< IndexType > || col != current )
                         continue;
                      if( ! visitNeighbour( current, rowIdx, visited, parents, q ) )
                         return false;
@@ -123,15 +124,13 @@ bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = T
             start_node = roots.getElement( rootsIdx++ );
          else return false;
       }
-      else start_node = visited.find( 0 );
+      else start_node = Algorithms::find( visited, 0 ).second;
    }
 }
 
 template< typename Graph >
 bool isTree( const Graph& graph, typename Graph::IndexType start_node = 0 )
 {
-   using ValueType = typename Graph::ValueType;
-   using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
 
    Containers::Vector< IndexType > roots( 1, start_node );

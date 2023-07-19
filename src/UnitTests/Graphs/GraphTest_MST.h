@@ -273,7 +273,7 @@ TYPED_TEST( GraphTest, test_MST_large_3 )
    const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
    const auto& v2 = expected_tree.getAdjacencyMatrix().getValues();
    ASSERT_TRUE( TNL::Graphs::isForest( minimum_tree ) ); // node 29 is not connected
-   ASSERT_EQ( sum( max( v1, 0 ) ), sum( max( v2, 0 ) ) );
+   ASSERT_EQ( sum( maximum( v1, 0 ) ), sum( maximum( v2, 0 ) ) );
 }
 
 #endif

@@ -12,6 +12,7 @@
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Functional.h>
 #include <TNL/Assert.h>
+#include <TNL/Matrices/MatrixBase.h>
 
 namespace TNL::Graphs {
 
@@ -132,7 +133,7 @@ void breadthFirstSearch_impl( const Matrix& adjacencyMatrix,
          const auto row = adjacencyMatrix.getRow( current );
          for( Index i = 0; i < row.getSize(); i++ ) {
             const auto& neighbor = row.getColumnIndex( i );
-            if( neighbor == adjacencyMatrix.getPaddingIndex() )
+            if( neighbor == Matrices::paddingIndex< Index > )
                continue;
 
             if constexpr( haveExplorer )
@@ -149,7 +150,7 @@ void breadthFirstSearch_impl( const Matrix& adjacencyMatrix,
    else
    {
       Matrix transposed;
-      transposed.transpose( adjacencyMatrix );
+      transposed.getTransposition( adjacencyMatrix );
       breadthFirstSearchTransposed( transposed, start, distances, visitor, explorer );
    }
 }

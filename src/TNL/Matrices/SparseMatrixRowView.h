@@ -142,7 +142,7 @@ public:
     * \return constant reference to the matrix element column index.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   const typename ColumnsIndexesViewType::ValueType&
    getColumnIndex( IndexType localIdx ) const;
 
    /**
@@ -153,7 +153,7 @@ public:
     * \return non-constant reference to the matrix element column index.
     */
    [[nodiscard]] __cuda_callable__
-   IndexType&
+   typename ColumnsIndexesViewType::ValueType&
    getColumnIndex( IndexType localIdx );
 
    /**

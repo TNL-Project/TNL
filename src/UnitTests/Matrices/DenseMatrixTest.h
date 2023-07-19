@@ -1256,7 +1256,7 @@ void test_GetTransposition()
     // Compute the transposition
     Matrix mTransposed;
     RealType matrixMultiplicator = 1;
-    mTransposed.transpose( m, matrixMultiplicator );
+    mTransposed.getTransposition( m, matrixMultiplicator );
 
 /*
  * Should result in the following 2x3 dense matrix:

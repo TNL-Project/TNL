@@ -1064,21 +1064,20 @@ void test_FindElement()
                        { 4, 1, 11 }, { 4, 2, 1 }, { 4, 3,  1 },
                                      { 5, 2, 1 }, { 5, 3, 12 }, { 5, 4, 1 } } );
       TNL::Containers::StaticVector< 5, Vector > expected{
-         { 1, 0, 0, 1, 0, 0 },
-         { 1, 1, 0, 1, 1, 0 },
-         { 1, 1, 1, 1, 1, 1 },
-         { 0, 1, 1, 0, 1, 1 },
-         { 0, 0, 1, 0, 0, 1 } };
+         Vector{ 1, 0, 0, 1, 0, 0 },
+         Vector{ 1, 1, 0, 1, 1, 0 },
+         Vector{ 1, 1, 1, 1, 1, 1 },
+         Vector{ 0, 1, 1, 0, 1, 1 },
+         Vector{ 0, 0, 1, 0, 0, 1 } };
 
       for( IndexType columnIdx = 0; columnIdx < cols; columnIdx++ ) {
          Vector to_find( rows, columnIdx ), result( rows, 0 );
          auto m_view = m.getConstView();
          auto to_find_view = to_find.getConstView();
          auto result_view = result.getView();
-         IndexType paddingIndex = m.getPaddingIndex();
          TNL::Algorithms::parallelFor< DeviceType >( 0, rows,
             [=] __cuda_callable__ ( IndexType i ) mutable {
-               result_view[i] = m_view.findElement( i, to_find_view[i] ) != paddingIndex;
+               result_view[i] = m_view.findElement( i, to_find_view[i] ) != TNL::Matrices::paddingIndex< IndexType >;
             } );
          EXPECT_EQ( result, expected[columnIdx] );
       }

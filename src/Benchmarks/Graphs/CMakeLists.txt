@@ -15,7 +15,7 @@ if( TNL_BUILD_CUDA )
    find_path(GUNROCK_INCLUDE_DIR gunrock/algorithms/bfs.hxx)
    if( GUNROCK_INCLUDE_DIR )
       message(STATUS "Gunrock found ${GUNROCK_INCLUDE_DIR}")
-      set( GUNROCK_FLAGS -DHAVE_GUNROCK ${Gunrock_INCLUDE_DIR} -D SM_TARGET=86 )
+      set( GUNROCK_FLAGS -DHAVE_GUNROCK_ ${Gunrock_INCLUDE_DIR} -D SM_TARGET=86 ) # TODO: Gunrock is not working currently
    else()
          message(STATUS "Gunrock not found.")
    endif()
