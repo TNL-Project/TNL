@@ -401,6 +401,57 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename InVector, typename OutVector >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::transposedVectorProduct(
+   const InVector& inVector,
+   OutVector& outVector,
+   ComputeRealType matrixMultiplicator,
+   ComputeRealType outVectorMultiplicator,
+   IndexType begin,
+   IndexType end ) const
+{
+   TNL_ASSERT_EQ( this->getRows(), inVector.getSize(), "Matrix rows do not fit with input vector." );
+   TNL_ASSERT_EQ( this->getColumns(), outVector.getSize(), "Matrix columns do not fit with output vector." );
+
+   if constexpr( MatrixType::isSymmetric() ) {
+      this->vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, begin, end );
+      return;
+   }
+
+   using OutVectorReal = typename OutVector::RealType;
+   static_assert(  ! std::is_same< Device, Devices::Cuda >::value
+                  || ( std::is_same< OutVectorReal, float >::value || std::is_same< OutVectorReal, double >::value ||
+                       std::is_same< OutVectorReal, int >::value || std::is_same< OutVectorReal, long long int >::value ||
+                       std::is_same< OutVectorReal, long >::value  ),
+      "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
+
+   const auto inVectorView = inVector.getConstView();
+   auto outVectorView = outVector.getView();
+   const auto valuesView = this->values.getConstView();
+   const auto columnIndexesView = this->columnIndexes.getConstView();
+
+   if( end == 0 )
+      end = this->getColumns();
+
+   if( outVectorMultiplicator != 1.0 )
+      outVector *= outVectorMultiplicator;
+   auto compute =
+      [ valuesView, columnIndexesView, inVectorView, outVectorView, matrixMultiplicator, begin, end ] __cuda_callable__(
+         IndexType row, IndexType localIdx, IndexType column, const RealType& value ) mutable
+   {
+      if( column >= begin && column < end )
+      {
+         if( column != paddingIndex< IndexType > )
+            Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
+                                                           ( OutVectorReal) matrixMultiplicator * inVectorView[ row ] * value );
+      }
+   };
+   this->forAllElements( compute );
+}
+
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows(

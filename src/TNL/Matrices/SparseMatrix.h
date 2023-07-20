@@ -397,37 +397,6 @@ public:
    void
    reset();
 
-   // TODO: refactor this to a free function
-   /**
-    * @brief Computes product of transposed matrix and vector.
-    *
-    * @tparam InVector is type of input vector. It can be
-    *    \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
-    *    \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
-    *   or similar container.
-    * @tparam OutVector is type of output vector. It can be
-    *    \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
-    *    \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
-    *  or similar container.
-    *
-    * @param inVector is input vector.
-    * @param outVector  is output vector.
-    * @param matrixMultiplicator is a factor by which the matrix is multiplied. It is one by default.
-    * @param outVectorMultiplicator is a factor by which the outVector is multiplied before added
-    * @param begin is the beginning of the rows range for which the vector product
-    *    is computed. It is zero by default.
-    * @param end is the end of the rows range for which the vector product
-    *    is computed. It is number if the matrix rows by default.
-    */
-   template< typename InVector, typename OutVector >
-   void
-   transposedVectorProduct( const InVector& inVector,
-                            OutVector& outVector,
-                            ComputeReal matrixMultiplicator = 1.0,
-                            ComputeReal outVectorMultiplicator = 0.0,
-                            Index begin = 0,
-                            Index end = 0 ) const;
-
    /*template< typename Real2, typename Index2 >
    void addMatrix( const SparseMatrix< Real2, Segments, Device, Index2 >& matrix,
                    const RealType& matrixMultiplicator = 1.0,
