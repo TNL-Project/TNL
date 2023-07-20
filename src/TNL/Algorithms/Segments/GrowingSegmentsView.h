@@ -88,7 +88,6 @@ struct GrowingSegmentsView : public SegmentsView_
    {
       // NVCC does not allow if constexpr inside lambda
       /*if constexpr( detail::CheckFetchLambda< IndexType, Fetch >::hasAllParameters() ) {
-         // TODO: fix
          auto main_fetch_with_all_params = [=,*this] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool compute ) mutable {
             IndexType end = this->segmentsFilling[ segmentIdx ];
             if( localIdx < end  ) {
@@ -98,8 +97,7 @@ struct GrowingSegmentsView : public SegmentsView_
             }
             else return identity;
          };
-         // TODO: fix
-         //SegmentsView_::reduceSegments( begin, end, main_fetch_with_all_params, reduction, keeper, identity );
+         SegmentsView_::reduceSegments( begin, end, main_fetch_with_all_params, reduction, keeper, identity );
       }
       else {
          auto main_fetch = [=,*this] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool compute ) mutable {
@@ -111,8 +109,7 @@ struct GrowingSegmentsView : public SegmentsView_
             }
             else return identity;
          };
-         // TODO: fix
-         //SegmentsView_::reduceSegments( begin, end, main_fetch, reduction, keeper, identity );
+         SegmentsView_::reduceSegments( begin, end, main_fetch, reduction, keeper, identity );
       }*/
    }
 
