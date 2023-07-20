@@ -243,6 +243,7 @@ public:
    explicit SparseMatrix( Index rows,
                           Index columns,
                           const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+                          SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart,
                           const RealAllocatorType& realAllocator = RealAllocatorType(),
                           const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
@@ -271,6 +272,7 @@ public:
    explicit SparseMatrix( Index rows,
                           Index columns,
                           const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+                          SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart,
                           const RealAllocatorType& realAllocator = RealAllocatorType(),
                           const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
@@ -368,7 +370,7 @@ public:
     * \include SparseMatrixExample_setElements.out
     */
    void
-   setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data );
+   setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data, SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
 
    /**
     * \brief This method sets the sparse matrix elements from std::map.
@@ -389,7 +391,7 @@ public:
     */
    template< typename MapIndex, typename MapValue >
    void
-   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map );
+   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map, SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
 
    /**
     * \brief Resets the matrix to zero dimensions.

@@ -49,6 +49,13 @@ TYPED_TEST( MatrixTest, setLikeTest )
     test_SetLike< MatrixType, MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, setElementsTest )
+{
+    using MatrixType = typename TestFixture::MatrixType;
+
+    test_SetElements< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, resetTest )
 {
     using MatrixType = typename TestFixture::MatrixType;

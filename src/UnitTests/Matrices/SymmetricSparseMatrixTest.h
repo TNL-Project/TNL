@@ -42,6 +42,13 @@ TYPED_TEST( MatrixTest, getNonzeroElementsCount )
     test_GetNonzeroElementsCount< MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, setElementsTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_SetElements< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, resetTest )
 {
     using MatrixType = typename TestFixture::MatrixType;
@@ -90,13 +97,6 @@ TYPED_TEST( MatrixTest, saveAndLoadTest )
     using MatrixType = typename TestFixture::MatrixType;
 
     test_SaveAndLoad< MatrixType >( saveAndLoadTestFileName );
-}
-
-TYPED_TEST( MatrixTest, printTest )
-{
-    using MatrixType = typename TestFixture::MatrixType;
-
-    test_Print< MatrixType >();
 }
 
 #endif

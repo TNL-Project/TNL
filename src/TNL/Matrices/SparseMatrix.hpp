@@ -121,13 +121,14 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Index rows,
    Index columns,
    const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+   SymmetricMatrixEncoding encoding,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
 : values( realAllocator ), columnIndexes( indexAllocator )
 {
    // update the base
    Base::bind( rows, columns, values.getView(), columnIndexes.getView(), segments.getView() );
-   this->setElements( data );
+   this->setElements( data, encoding );
 }
 
 template< typename Real,
@@ -144,13 +145,14 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Index rows,
    Index columns,
    const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+   SymmetricMatrixEncoding encoding,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
 : values( realAllocator ), columnIndexes( indexAllocator )
 {
    // update the base
    Base::bind( rows, columns, values.getView(), columnIndexes.getView(), segments.getView() );
-   this->setElements( map );
+   this->setElements( map, encoding );
 }
 
 template< typename Real,
@@ -297,12 +299,13 @@ template< typename Real,
           typename IndexAllocator >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setElements(
-   const std::initializer_list< std::tuple< Index, Index, Real > >& data )
+   const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+   SymmetricMatrixEncoding encoding )
 {
    std::map< std::pair< Index, Index >, Real > map;
    for( const auto& [ row, column, value ] : data )
       map[ { row, column } ] = value;
-   this->setElements( map );
+   this->setElements( map, encoding );
 }
 
 template< typename Real,
@@ -317,9 +320,10 @@ template< typename Real,
 template< typename MapIndex, typename MapValue >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setElements(
-   const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map )
+   const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+   SymmetricMatrixEncoding encoding )
 {
-   if constexpr( ! std::is_same_v< Device, Devices::Host > ) {
+   if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
       SparseMatrix< Real, Devices::Host, Index, MatrixType, Segments > hostMatrix( this->getRows(), this->getColumns() );
       hostMatrix.setElements( map );
       *this = hostMatrix;
@@ -327,11 +331,26 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    else {
       RowCapacitiesVectorType rowsCapacities( this->getRows(), 0 );
       for( const auto& [ coordinates, value ] : map ) {
-         const auto& [ rowIdx, columnIdx ] = coordinates;
-         if( Base::isSymmetric() && rowIdx < columnIdx ) {
-            if( map.count( { columnIdx, rowIdx } ) == 0 )
-               throw std::logic_error( "SparseMatrix is configured as symmetric, but the input data is not symmetric." );
-            continue;
+         auto [ rowIdx, columnIdx ] = coordinates;
+         if( Base::isSymmetric() ) {
+            if( encoding == SymmetricMatrixEncoding::Complete ) {
+               auto query = map.find({columnIdx, rowIdx});
+               if( query == map.end() || query->second != value )
+                  throw std::logic_error( "SparseMatrix is configured as symmetric, but the input data is not symmetric." );
+               if( rowIdx < columnIdx )
+                  continue;
+            }
+            if( encoding == SymmetricMatrixEncoding::LowerPart && rowIdx < columnIdx )
+                  throw std::logic_error( "Only lower part of the symmetric matrix is expected." );
+            if( encoding == SymmetricMatrixEncoding::UpperPart ) {
+               if( rowIdx > columnIdx )
+                  throw std::logic_error( "Only upper part of the symmetric matrix is expected." );
+               swap( rowIdx, columnIdx );
+            }
+            if( encoding == SymmetricMatrixEncoding::SparseMixed ) {
+               if( rowIdx < columnIdx )
+                  swap( rowIdx, columnIdx );
+            }
          }
          if( rowIdx >= this->getRows() )
             throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
@@ -341,21 +360,34 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
       }
       this->setRowCapacities( rowsCapacities );
 
-      // The following algorithm is based on the fact that the input std::map
-      // is sorted in a row-major order and that row capacities were already
-      // set. It is much more efficient than calling setElement over and over,
-      // since it avoids the sequential lookups of column indexes in each row.
-      Index lastRowIdx = 0;
-      Index localIdx = 0;
-      for( const auto& [ coordinates, value ] : map ) {
-         const auto& [ rowIdx, columnIdx ] = coordinates;
-         if( Base::isSymmetric() && rowIdx < columnIdx )
-            continue;
-         auto row = this->getRow( rowIdx );
-         if( rowIdx != lastRowIdx )
-            localIdx = 0;
-         row.setElement( localIdx++, columnIdx, value );
-         lastRowIdx = rowIdx;
+      if( ! Base::isSymmetric() || encoding == SymmetricMatrixEncoding::LowerPart ) {
+         // The following algorithm is based on the fact that the input std::map
+         // is sorted in a row-major order and that row capacities were already
+         // set. It is much more efficient than calling setElement over and over,
+         // since it avoids the sequential lookups of column indexes in each row.
+
+         Index lastRowIdx = 0;
+         Index localIdx = 0;
+         for( const auto& [ coordinates, value ] : map ) {
+            const auto& [ rowIdx, columnIdx ] = coordinates;
+            if( Base::isSymmetric() && rowIdx < columnIdx )
+               continue;
+            auto row = this->getRow( rowIdx );
+            if( rowIdx != lastRowIdx )
+               localIdx = 0;
+            row.setElement( localIdx++, columnIdx, value );
+            lastRowIdx = rowIdx;
+         }
+      }
+      else { // symmetric matrix with other coding than lower part
+         for( const auto& [ coordinates, value ] : map ) {
+            auto [ rowIdx, columnIdx ] = coordinates;
+            if( encoding == SymmetricMatrixEncoding::Complete && rowIdx < columnIdx )
+               continue;
+            if( ( encoding == SymmetricMatrixEncoding::UpperPart || encoding == SymmetricMatrixEncoding::SparseMixed ) && rowIdx < columnIdx )
+               swap( rowIdx, columnIdx );
+            this->setElement( rowIdx, columnIdx, value );
+         }
       }
    }
 }

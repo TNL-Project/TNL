@@ -388,6 +388,36 @@ void test_GetNonzeroElementsCount()
 }
 
 template< typename Matrix >
+void test_SetElements()
+{
+   using Index = typename Matrix::IndexType;
+   using Real = typename Matrix::RealType;
+
+   std::map< std::pair< Index, Index >, Real > map {
+      { { 0,0 }, 1 },
+      { { 0,1 }, 2 },
+      { { 0,2 }, 3 },
+      { { 1,0 }, 4 },
+      { { 1,1 }, 5 },
+      { { 1,2 }, 6 },
+      { { 2,0 }, 7 },
+      { { 2,1 }, 8 },
+      { { 2,2 }, 9 },
+   };
+   Matrix m( 3, 3 );
+   m.setElements( map );
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 3 );
+   EXPECT_EQ( m.getElement( 1, 0 ), 4 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 5 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 6 );
+   EXPECT_EQ( m.getElement( 2, 0 ), 7 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 8 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 9 );
+}
+
+template< typename Matrix >
 void test_Reset()
 {
    using IndexType = typename Matrix::IndexType;
