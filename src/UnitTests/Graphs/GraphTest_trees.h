@@ -45,7 +45,7 @@ TYPED_TEST( GraphTest, test_isTree_small )
                                                                                                {3, 7, 1},
                                                                                                            {4, 8, 1},
                                                                                                                        {5, 9, 1}
-        });
+        }, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
 
    ASSERT_TRUE( TNL::Graphs::isTree( graph ) );
 }
@@ -64,7 +64,7 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
                                                                                                {3, 7, 1},
                                                                                                            {4, 8, 1},
             { 5, 0, 1 },                                                                                              {5, 9, 1}
-        });
+        }, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
 
    ASSERT_FALSE( TNL::Graphs::isTree( graph ) );
 
@@ -78,7 +78,7 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
                                                                                                {3, 7, 1},
                                                                                                            {4, 8, 1},
             { 5, 0, 1 }
-        });
+        }, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
 
    ASSERT_FALSE( TNL::Graphs::isTree( graph2 ) );
 }
@@ -116,7 +116,7 @@ TYPED_TEST( GraphTest, test_large_tree )
             {  9, 17, 3.0 },
             { 21, 23, 3.0 },
             {  8, 27, 4.0 }
-         } );
+         }, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
 
    ASSERT_TRUE( TNL::Graphs::isTree( tree ) );
 }
@@ -128,7 +128,7 @@ TYPED_TEST( GraphTest, test_small_forest )
    GraphType graph( 5,
          {  { 0, 3, 1.0 },
             { 0, 4, 1.0 }
-         } );
+         }, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
 
    ASSERT_FALSE( TNL::Graphs::isTree( graph ) );
    ASSERT_TRUE( TNL::Graphs::isForest( graph ) );
