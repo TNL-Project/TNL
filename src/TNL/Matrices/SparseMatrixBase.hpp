@@ -718,7 +718,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          for( IndexType column = 0; column < this->getColumns(); column++ ) {
             auto value = this->getElement( row, column );
             if( value != (RealType) 0 )
-               str << " Col:" << column << "->" << value << "\t";
+               str << column << ":" << value << "\t";
          }
          str << std::endl;
       }
