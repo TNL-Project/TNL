@@ -472,6 +472,18 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=(
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >&
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=(
+   DenseMatrix< Real, Device, Index, Organization, RealAllocator >&& matrix ) noexcept( false )
+{
+   this->values = std::move( matrix.values );
+   this->segments = std::move( matrix.segments );
+   // update the base
+   Base::bind( matrix.getRows(), matrix.getColumns(), values.getView(), segments.getView() );
+   return *this;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename RHSReal, typename RHSDevice, typename RHSIndex, typename RHSRealAllocator >
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >&
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=(
