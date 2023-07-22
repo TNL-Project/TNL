@@ -379,7 +379,11 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
+template< typename InVector,
+          typename OutVector,
+          typename SegmentsReductionKernel,
+          typename...,
+          std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeReal >, bool > >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::vectorProduct(
    const InVector& inVector,
