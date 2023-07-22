@@ -237,7 +237,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
    TNL_ASSERT_EQ( matrix1.getColumns(), matrix2.getRows(), "invalid dimensions of input matrices" );
    setDimensions( matrix1.getRows(), matrix2.getColumns() );
 
-   if constexpr( std::is_same< Device, Devices::Host >::value )
+   if constexpr( std::is_same< Device, Devices::Host >::value ) {
       for( Index i = 0; i < this->getRows(); i += tileDim )
          for( Index j = 0; j < this->getColumns(); j += tileDim ) {
             const Index tileRows = min( tileDim, this->getRows() - i );
@@ -255,6 +255,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
                            matrixMultiplicator * matrix1( i + i1, k1 ) * matrix2( k1, j + j1 );
             }
          }
+   }
    if constexpr( std::is_same< Device, Devices::Cuda >::value ) {
       constexpr Index matrixProductCudaBlockSize = 256;
       constexpr Index cudaBlockRows = matrixProductCudaBlockSize / tileDim;
