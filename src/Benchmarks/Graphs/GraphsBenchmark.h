@@ -88,7 +88,7 @@ struct GraphsBenchmark
       using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::Undirected >;
       using IndexVector = TNL::Containers::Vector<Index, Device, Index>;
       using RealVector = TNL::Containers::Vector<Real, Device, Index>;
-      using KernelType = SegmentsKernel< Index, Device >;
+      //using KernelType = SegmentsKernel< Index, Device >;
 
       // TODO: Find a way how to use various reduction kernels for segments in the algorithms.
 
@@ -203,13 +203,13 @@ struct GraphsBenchmark
       benchmark.time< Device >( device, mst_tnl );
       auto filename = this->parameters.getParameter< TNL::String >( "input-file" );
       TNL::Graphs::GraphWriter< Graph >::writeEdgeList( filename + "-tnl-mst.txt", mstGraph );
-      Real mstTotalWeight = mstGraph.getTotalWeight();
       if( ! TNL::Graphs::isForest( mstGraph ) )
       {
          std::cout << "ERROR: TNL MST is not a forest!" << std::endl;
          this->errors++;
       }
 #ifdef HAVE_BOOST
+      Real mstTotalWeight = mstGraph.getTotalWeight();
       if( mstTotalWeight != boostMSTTotalWeight )
       {
          std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << std::endl;

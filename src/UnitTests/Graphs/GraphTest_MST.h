@@ -37,7 +37,6 @@ TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 TYPED_TEST( GraphTest, test_MST_small )
 {
    using GraphType = typename TestFixture::GraphType;
-   using RealType = typename GraphType::ValueType;
    using IndexType = typename GraphType::IndexType;
 
    // Create a sample graph.
@@ -68,11 +67,7 @@ TYPED_TEST( GraphTest, test_MST_small )
 TYPED_TEST( GraphTest, test_MST_medium )
 {
    using GraphType = typename TestFixture::GraphType;
-   using RealType = typename GraphType::ValueType;
-   using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
-   using EdgeType = TNL::Graphs::Edge< RealType, IndexType >;
-   using EdgeArray = TNL::Containers::Array< EdgeType >;
 
    // Create a sample graph.
    GraphType graph( 9, // number of graph nodes
@@ -111,7 +106,6 @@ TYPED_TEST( GraphTest, test_MST_large )
 {
    using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
-   using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
 
    // Create a sample graph.
@@ -172,8 +166,6 @@ TYPED_TEST( GraphTest, test_MST_large )
 TYPED_TEST( GraphTest, test_MST_large_2 )
 {
    using GraphType = typename TestFixture::GraphType;
-   using RealType = typename GraphType::ValueType;
-   using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
 
    GraphType graph( 10, {
@@ -196,9 +188,7 @@ TYPED_TEST( GraphTest, test_MST_large_3 )
 {
    using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
-   using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
-   using MatrixType = typename GraphType::MatrixType;
 
    // Create a TNL::Matrices::SparseMatrix for a sample graph.
    std::map< std::pair< IndexType, IndexType >, RealType > map{
