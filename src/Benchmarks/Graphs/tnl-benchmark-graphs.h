@@ -29,26 +29,6 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
    return benchmark.runBenchmark();
 }
 
-/*template< typename Real >
-bool resolveDevice( TNL::Config::ParameterContainer& parameters )
-{
-   auto device = parameters.getParameter<TNL::String>( "device" );
-   if( device == "sequential" )
-      return startBenchmark< Real, TNL::Devices::Sequential >( parameters );
-   if( device == "host" )
-      return startBenchmark< Real, TNL::Devices::Host >( parameters );
-   if( device == "cuda" ) {
-#ifdef __CUDACC__
-      return startBenchmark< Real, TNL::Devices::Cuda >( parameters );
-#else
-      std::cerr << "The benchmark was not built with CUDA support." << std::endl;
-      return false;
-#endif
-   }
-   std::cerr << "Unknown device " << device << "." << std::endl;
-   return false;
-}*/
-
 bool resolveReal( TNL::Config::ParameterContainer& parameters )
 {
    auto precision = parameters.getParameter<TNL::String>( "precision" );
