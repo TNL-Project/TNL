@@ -2,15 +2,15 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <TNL/Graphs/Graph.h>
+
+#ifdef HAVE_BOOST
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/kruskal_min_spanning_tree.hpp>
 #include <boost/graph/graph_utility.hpp>
-#include <TNL/Graphs/Graph.h>
-
-using namespace std;
-using namespace boost;
 
 namespace TNL::Benchmarks::Graphs {
 
@@ -20,7 +20,7 @@ struct bfs_distance_visitor : public boost::default_bfs_visitor {
 
   template <typename Edge, typename Graph>
   void tree_edge(Edge e, const Graph& g) const {
-    typename graph_traits<Graph>::vertex_descriptor
+    typename boost::graph_traits<Graph>::vertex_descriptor
         u = source(e, g), v = target(e, g);
     distances_[v] = distances_[u] + 1;
   }
@@ -139,3 +139,5 @@ protected:
 };
 
 } // namespace TNL::Benchmarks::Graphs
+
+#endif

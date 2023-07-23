@@ -559,7 +559,7 @@ void minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVe
    static_assert( InGraph::isUndirected(), "The input graph must be undirected." );
    static_assert( OutGraph::isUndirected(), "The output graph must be undirected." );
 
-   using Device = typename InGraph::DeviceType;
+   //using Device = typename InGraph::DeviceType;
 
    //if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value )
       kruskal( graph, spanning_tree, roots );
