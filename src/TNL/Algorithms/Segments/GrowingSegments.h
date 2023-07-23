@@ -12,9 +12,7 @@
 #include <TNL/Algorithms/Segments/GrowingSegmentsView.h>
 
 
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Segments >
 struct GrowingSegments : public Segments
@@ -127,7 +125,4 @@ private:
    GrowingSegmentsViewType view;
 };
 
-
-} // namespace Segments
-} // namespace Algorithms
-} // namespace TNL
+} // namespace TNL::Algorithms::Segments

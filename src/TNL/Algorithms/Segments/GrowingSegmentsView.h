@@ -12,10 +12,7 @@
 #include <TNL/Algorithms/Segments/printSegments.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/detail/CheckLambdas.h>
 
-
-namespace TNL {
-namespace Algorithms {
-namespace Segments {
+namespace TNL::Algorithms::Segments {
 
 template< typename Segments, typename SegmentsView_ = typename Segments::ViewType >
 struct GrowingSegmentsView : public SegmentsView_
@@ -143,7 +140,4 @@ private:
    AtomicFillingVectorView segmentsFilling;
 };
 
-
-} // namespace Segments
-} // namespace Algorithms
-} // namespace TNL
+} // namespace TNL::Algorithms::Segments
