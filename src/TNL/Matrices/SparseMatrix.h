@@ -407,13 +407,13 @@ public:
 
    // TODO: refactor this to a free function
    /**
-    * @brief Computes transposition of the matrix.
+    * \brief Computes transposition of the matrix.
     *
-    * @tparam Real2 is the real type of the input matrix.
-    * @tparam Index2 is the index type of the input matrix.
-    * @tparam Segments2 is the type of the segments of the input matrix.
-    * @param matrix is the input matrix.
-    * @param matrixMultiplicator is the factor by which the matrix is multiplied.
+    * \tparam Real2 is the real type of the input matrix.
+    * \tparam Index2 is the index type of the input matrix.
+    * \tparam Segments2 is the type of the segments of the input matrix.
+    * \param matrix is the input matrix.
+    * \param matrixMultiplicator is the factor by which the matrix is multiplied.
     */
    template< typename Real2, typename Index2, template< typename, typename, typename > class Segments2 >
    void
