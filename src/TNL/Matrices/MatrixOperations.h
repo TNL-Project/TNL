@@ -409,9 +409,12 @@ public:
 template< typename OutMatrix, typename InMatrix >
 OutMatrix getSymmetricPart( const InMatrix& inMatrix )
 {
+   static_assert( std::is_same_v< typename InMatrix::DeviceType, Devices::Host > ||
+                  std::is_same_v< typename InMatrix::DeviceType, Devices::Sequential >,
+                  "The input matrix must be stored on host, i.e. only Devices::Host and Devices::Sequential devices are allowed." );
    TNL_ASSERT_EQ( inMatrix.getRows(), inMatrix.getColumns(), "The input matrix must be square." );
 
-   // TODO: the following needs to be optimized and it works only for sparse matrices
+   // TODO: the following needs to be optimized and it works only for sparse matrices on host
    using RealType = typename InMatrix::RealType;
    using IndexType = typename InMatrix::IndexType;
 
