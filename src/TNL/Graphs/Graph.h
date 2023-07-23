@@ -20,8 +20,8 @@ struct Directed {};
 struct Undirected {};
 
 template< typename Matrix,
-          typename GraphType_ = Directed >
-          // std::enable_if_t< IsMatrixType< Matrix >::value, bool > = true > TODO: fix check for matrix type
+          typename GraphType_ = Directed,
+          typename = std::enable_if_t< Matrices::IsMatrixType< Matrix >::value > >
 struct Graph
 {
    using MatrixType = Matrix;

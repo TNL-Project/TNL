@@ -91,6 +91,17 @@ public:
    }
 
    /**
+    * \brief Test of matrix type.
+    *
+    * \return \e true.
+    */
+   [[nodiscard]] static constexpr bool
+   isMatrix()
+   {
+      return true;
+   }
+
+   /**
     * \brief Test of binary matrix type.
     *
     * \return \e true if the matrix is stored as binary and \e false otherwise.
@@ -123,17 +134,17 @@ public:
     *
     * The matrix elements values are passed in a form vector view.
     *
-    * @param rows is a number of matrix rows.
-    * @param columns is a number of matrix columns.
-    * @param values is a vector view with matrix elements values.
+    * \param rows is a number of matrix rows.
+    * \param columns is a number of matrix columns.
+    * \param values is a vector view with matrix elements values.
     */
    __cuda_callable__
    MatrixBase( IndexType rows, IndexType columns, ValuesViewType values );
 
    /**
-    * @brief Shallow copy constructor.
+    * \brief Shallow copy constructor.
     *
-    * @param view is an input matrix view.
+    * \param view is an input matrix view.
     */
    __cuda_callable__
    MatrixBase( const MatrixBase& view ) = default;
@@ -141,7 +152,7 @@ public:
    /**
     * \brief Move constructor.
     *
-    * @param view is an input matrix view.
+    * \param view is an input matrix view.
     */
    __cuda_callable__
    MatrixBase( MatrixBase&& view ) noexcept = default;
@@ -194,7 +205,7 @@ public:
    /**
     * \brief Returns number of matrix columns.
     *
-    * @return number of matrix columns.
+    * \return number of matrix columns.
     */
    [[nodiscard]] __cuda_callable__
    IndexType
@@ -257,6 +268,9 @@ protected:
    void
    bind( IndexType rows, IndexType columns, ValuesViewType values );
 };
+
+template< typename T >
+struct IsMatrixType { static constexpr bool value = HasIsMatrixMethod< T >::value; };
 
 }  // namespace TNL::Matrices
 
