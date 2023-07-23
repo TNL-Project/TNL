@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
+// Implemented by: Tomas Oberhuber
 
 #pragma once
 
@@ -59,6 +59,13 @@ public:
    template< typename Real_ >  // template catches both const and non-const qualified Element
    __cuda_callable__
    AtomicVectorView( const ArrayView< Real_, Device, Index >& view ) : BaseType( view ) {}
+
+   __cuda_callable__
+   AtomicVectorView( RealType* data, IndexType size ) : BaseType( data, size ) {}
+
+   ViewType getView() { return ViewType( this->getData(), this->getSize() ); }
+
+   ConstViewType getConstView() const { return ConstViewType( this->getData(), this->getSize() ); }
 
    __cuda_callable__
    Real atomicAdd( IndexType i, RealType value)
