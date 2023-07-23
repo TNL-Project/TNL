@@ -104,11 +104,6 @@ public:
    using ConstRowView = typename RowView::ConstRowView;
 
    /**
-    * \brief Gives \e true if the matrix is symmetric.
-    */
-   static constexpr bool isSymmetric();
-
-   /**
     * \brief Constructor with no parameters.
     */
    __cuda_callable__

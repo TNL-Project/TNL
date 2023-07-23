@@ -10,8 +10,6 @@
 #ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
-//#include "makeSymmetric.h"
-
 // test fixture for typed tests
 template< typename Matrix >
 class GraphTest : public ::testing::Test
@@ -40,10 +38,7 @@ TYPED_TEST( GraphTest, test_MST_small )
 {
    using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
-   using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
-   using EdgeType = TNL::Graphs::Edge< RealType, IndexType >;
-   using EdgeArray = TNL::Containers::Array< EdgeType >;
 
    // Create a sample graph.
    GraphType graph( 6, // number of graph nodes
@@ -107,8 +102,8 @@ TYPED_TEST( GraphTest, test_MST_medium )
    TNL::Containers::Vector< IndexType > roots;
    TNL::Graphs::minimumSpanningTree( graph, minimum_tree, roots );
    minimum_tree.getAdjacencyMatrix().sortColumnIndexes();
-   const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
-   const auto& v2 = expectedTree.getAdjacencyMatrix().getValues();
+   //const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
+   //const auto& v2 = expectedTree.getAdjacencyMatrix().getValues();
    ASSERT_EQ(minimum_tree, expectedTree );
 }
 
@@ -169,8 +164,8 @@ TYPED_TEST( GraphTest, test_MST_large )
    TNL::Containers::Vector< IndexType > roots;
    TNL::Graphs::minimumSpanningTree( graph, minimum_tree, roots );
    minimum_tree.getAdjacencyMatrix().sortColumnIndexes();
-   const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
-   const auto& v2 = expected_tree.getAdjacencyMatrix().getValues();
+   //const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
+   //const auto& v2 = expected_tree.getAdjacencyMatrix().getValues();
    ASSERT_EQ (minimum_tree, expected_tree );
 }
 
@@ -180,7 +175,6 @@ TYPED_TEST( GraphTest, test_MST_large_2 )
    using RealType = typename GraphType::ValueType;
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
-   using MatrixType = typename GraphType::MatrixType;
 
    GraphType graph( 10, {
     {0, 1, 0.5}, {0, 2, 0.7}, {1, 3, 1.0}, {2, 4, 0.3},

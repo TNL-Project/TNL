@@ -21,8 +21,8 @@ struct GraphWriter
    using HostMatrixType = typename MatrixType::Self< ValueType, Devices::Host >;
 
    static void writeEdgeList( std::ostream& str, const Graph& graph ) {
-      if constexpr( ! std::is_same< DeviceType, Devices::Host >::value &&
-         ! std::is_same< DeviceType, Devices::Host >::value ) {
+      if constexpr( ! std::is_same_v< DeviceType, Devices::Host > &&
+         ! std::is_same_v< DeviceType, Devices::Host > ) {
          HostMatrixType hostMatrix;
          hostMatrix = graph.getAdjacencyMatrix();
          writeEdgeList( str, hostMatrix );

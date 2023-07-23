@@ -17,13 +17,6 @@
 namespace TNL::Matrices {
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-constexpr bool
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::isSymmetric()
-{
-   return MatrixType::isSymmetric();
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 __cuda_callable__
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::bind( IndexType rows,
@@ -690,7 +683,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    TNL_ASSERT_GE( column, 0, "Sparse matrix column index cannot be negative." );
    TNL_ASSERT_LT( column, this->getColumns(), "Sparse matrix column index is larger than number of matrix columns." );
 
-   if( isSymmetric() && row < column ) {
+   if( Base::isSymmetric() && row < column ) {
       swap( row, column );
       if( row >= this->getRows() || column >= this->getColumns() )
          return paddingIndex< IndexType >;

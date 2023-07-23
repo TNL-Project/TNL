@@ -399,15 +399,15 @@ public:
 };
 
 /**
- * \brief This function computes ( A + A^T ) / 2, where A is a square matrix.
+ * \brief This function computes \f$( A + A^T ) / 2 \f$, where \f$ A \f$ is a square matrix.
  *
  * \tparam InMatrix is the type of the input matrix.
  * \tparam OutMatrix is the type of the output matrix.
  * \param inMatrix is the input matrix.
- * \param outMatrix is the output matrix.
+ * \return the output matrix.
  */
-template< typename InMatrix, typename OutMatrix >
-void makeSymmetric( const InMatrix& inMatrix, OutMatrix& outMatrix )
+template< typename OutMatrix, typename InMatrix >
+OutMatrix getSymmetricPart( const InMatrix& inMatrix )
 {
    TNL_ASSERT_EQ( inMatrix.getRows(), inMatrix.getColumns(), "The input matrix must be square." );
 
@@ -415,6 +415,7 @@ void makeSymmetric( const InMatrix& inMatrix, OutMatrix& outMatrix )
    using RealType = typename InMatrix::RealType;
    using IndexType = typename InMatrix::IndexType;
 
+   OutMatrix outMatrix;
    std::map< std::pair< IndexType, IndexType >, RealType > map;
    for( IndexType rowIdx = 0; rowIdx < inMatrix.getRows(); rowIdx++ ) {
       auto row = inMatrix.getRow( rowIdx );
@@ -429,6 +430,7 @@ void makeSymmetric( const InMatrix& inMatrix, OutMatrix& outMatrix )
    }
    outMatrix.setDimensions( inMatrix.getRows(), inMatrix.getColumns() );
    outMatrix.setElements( map );
+   return outMatrix;
 }
 
 }  // namespace TNL::Matrices

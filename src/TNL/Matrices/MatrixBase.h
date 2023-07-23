@@ -31,14 +31,13 @@ constexpr Index paddingIndex = static_cast< Index >( -1 );
 
 /**
  * \brief Encoding of the matrix elements of the symmetric matrix.
- *
- * 1. \e Complete - all elements of the matrix are stored.
- * 2. \e LowerPart - only lower part of the matrix is stored.
- * 3. \e UpperPart - only upper part of the matrix is stored.
- * 4. \e SparseMixed - for each couple of non-zero elements a_ij and a_ji, at least one is encoded. It is handy for example for adjacency matrices of undirected graphs.
  */
-enum class SymmetricMatrixEncoding { Complete, LowerPart, UpperPart, SparseMixed };
-
+enum class SymmetricMatrixEncoding {
+   Complete,    //!<  All elements of the matrix are stored.
+   LowerPart,   //!<  Only lower part of the matrix is stored.
+   UpperPart,   //!<  Only upper part of the matrix is stored.
+   SparseMixed  //!<  For each couple of non-zero elements a_ij and a_ji, at least one is encoded. It is handy for example for adjacency matrices of undirected graphs.
+   };
 
 /**
  * \brief Base class for the implementation of concrete matrix types.

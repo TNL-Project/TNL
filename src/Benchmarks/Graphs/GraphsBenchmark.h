@@ -469,8 +469,7 @@ struct GraphsBenchmark
       std::cout << "Reading graph from file " << inputFile << std::endl;
       TNL::Graphs::GraphReader< HostDigraph >::readEdgeList( inputFile, digraph );
 
-      HostMatrix symmetrizedAdjacencyMatrix;
-      TNL::Matrices::makeSymmetric( digraph.getAdjacencyMatrix(), symmetrizedAdjacencyMatrix );
+      HostMatrix symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );
       HostGraph graph( symmetrizedAdjacencyMatrix );
       TNL::Graphs::GraphWriter< HostGraph >::writeEdgeList( inputFile+"-undirected.txt", graph );
 

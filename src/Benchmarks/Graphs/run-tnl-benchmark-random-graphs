@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# exit as soon as there is an error
+set -o errexit
+# abort when an unset variable is used
+set -o nounset
+
 # Parameters
 NUM_GRAPHS="10"
 START_NODES="10"
@@ -22,12 +27,12 @@ for i in $(seq 1 $NUM_GRAPHS); do
 
    # Generate graph
    echo "Generating graph with $NODES nodes and $EDGES edges int file $FILE_NAME ..."
-   python $GENERATE_GRAPH_SCRIPT --nodes $NODES --edges $EDGES --edge-weights-distribution $EDGE_WEIGHTS_DISTRIBUTION --file-name $FILE_NAME
+   $GENERATE_GRAPH_SCRIPT --nodes $NODES --edges $EDGES --edge-weights-distribution $EDGE_WEIGHTS_DISTRIBUTION --file-name $FILE_NAME
 
    # Call tnl-benchmark-graph program
    command="tnl-benchmark-graphs-dbg --input-file  $FILE_NAME --loops 0"
    echo $command
-   eval $command
+   $command
    retvalue=$?
 
    if [[ -e "$FILE_NAME-boost-mst.txt" ]]; then
