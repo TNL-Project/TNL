@@ -719,7 +719,6 @@ public:
              typename SegmentsReductionKernel,
              typename...,
              std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeRealType >, bool > = true >
-   template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
    void
    vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 
