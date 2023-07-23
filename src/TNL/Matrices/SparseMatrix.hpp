@@ -325,7 +325,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
 {
    if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
       SparseMatrix< Real, Devices::Host, Index, MatrixType, Segments > hostMatrix( this->getRows(), this->getColumns() );
-      hostMatrix.setElements( map );
+      hostMatrix.setElements( map, encoding );
       *this = hostMatrix;
    }
    else {
