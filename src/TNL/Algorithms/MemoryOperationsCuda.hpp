@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <stdexcept>
-
 #include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/parallelFor.h>
@@ -101,28 +99,6 @@ MemoryOperations< Devices::Cuda >::set( Element* data, const Element& value, Ind
       data[ i ] = value;
    };
    parallelFor< Devices::Cuda >( 0, size, kernel );
-}
-
-template< typename DestinationElement, typename Index, typename SourceIterator >
-void
-MemoryOperations< Devices::Cuda >::copyFromIterator( DestinationElement* destination,
-                                                     Index destinationSize,
-                                                     SourceIterator first,
-                                                     SourceIterator last )
-{
-   using BaseType = typename std::remove_cv< DestinationElement >::type;
-   const int buffer_size = TNL::min( Cuda::getTransferBufferSize() / sizeof( BaseType ), destinationSize );
-   std::unique_ptr< BaseType[] > buffer{ new BaseType[ buffer_size ] };
-   Index copiedElements = 0;
-   while( copiedElements < destinationSize && first != last ) {
-      Index i = 0;
-      while( i < buffer_size && first != last )
-         buffer[ i++ ] = *first++;
-      copy< Devices::Cuda, void >( &destination[ copiedElements ], buffer.get(), i );
-      copiedElements += i;
-   }
-   if( first != last )
-      throw std::length_error( "Source iterator is larger than the destination array." );
 }
 
 }  // namespace TNL::Algorithms

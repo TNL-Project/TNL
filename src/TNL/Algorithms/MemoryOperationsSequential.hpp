@@ -75,18 +75,4 @@ MemoryOperations< Devices::Sequential >::set( Element* data, const Element& valu
       data[ i ] = value;
 }
 
-template< typename DestinationElement, typename Index, typename SourceIterator >
-void
-MemoryOperations< Devices::Sequential >::copyFromIterator( DestinationElement* destination,
-                                                           Index destinationSize,
-                                                           SourceIterator first,
-                                                           SourceIterator last )
-{
-   Index i = 0;
-   while( i < destinationSize && first != last )
-      destination[ i++ ] = *first++;
-   if( first != last )
-      throw std::length_error( "Source iterator is larger than the destination array." );
-}
-
 }  // namespace TNL::Algorithms

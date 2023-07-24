@@ -23,6 +23,10 @@ struct Copy< Devices::Sequential >
    __cuda_callable__
    static void
    copy( DestinationElement* destination, const SourceElement* source, Index size );
+
+   template< typename DestinationElement, typename Index, typename SourceIterator >
+   static void
+   copy( DestinationElement* destination, Index destinationSize, SourceIterator begin, SourceIterator end );
 };
 
 template<>
@@ -31,6 +35,10 @@ struct Copy< Devices::Host >
    template< typename DestinationElement, typename SourceElement, typename Index >
    static void
    copy( DestinationElement* destination, const SourceElement* source, Index size );
+
+   template< typename DestinationElement, typename Index, typename SourceIterator >
+   static void
+   copy( DestinationElement* destination, Index destinationSize, SourceIterator begin, SourceIterator end );
 };
 
 template<>
@@ -39,6 +47,10 @@ struct Copy< Devices::Cuda >
    template< typename DestinationElement, typename SourceElement, typename Index >
    static void
    copy( DestinationElement* destination, const SourceElement* source, Index size );
+
+   template< typename DestinationElement, typename Index, typename SourceIterator >
+   static void
+   copy( DestinationElement* destination, Index destinationSize, SourceIterator begin, SourceIterator end );
 };
 
 template<>

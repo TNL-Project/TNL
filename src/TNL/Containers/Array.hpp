@@ -110,7 +110,7 @@ Array< Value, Device, Index, Allocator >::Array( const std::list< InValue >& lis
 : allocator( allocator )
 {
    this->setSize( list.size() );
-   Algorithms::MemoryOperations< Device >::copyFromIterator( this->getData(), this->getSize(), list.cbegin(), list.cend() );
+   Algorithms::copy< Device >( this->getData(), this->getSize(), list.cbegin(), list.cend() );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -459,7 +459,7 @@ Array< Value, Device, Index, Allocator >&
 Array< Value, Device, Index, Allocator >::operator=( const std::list< InValue >& list )
 {
    this->setSize( list.size() );
-   Algorithms::MemoryOperations< Device >::copyFromIterator( this->getData(), this->getSize(), list.cbegin(), list.cend() );
+   Algorithms::copy< Device >( this->getData(), this->getSize(), list.cbegin(), list.cend() );
    return *this;
 }
 

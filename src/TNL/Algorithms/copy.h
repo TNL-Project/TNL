@@ -41,6 +41,28 @@ copy( DestinationElement* destination, const SourceElement* source, Index size )
 }
 
 /**
+ * \brief Copies memory from \e source iterator range to \e destination.
+ *
+ * The \e source data must be allocated on the host device. The \e destination
+ * data is allocated on the device specified by \e DestinationDevice.
+ *
+ * \tparam DestinationDevice is the device where the \e destination data is allocated.
+ * \tparam DestinationElement is the type of the \e destination data.
+ * \tparam Index is the type of the size of the data.
+ * \tparam SourceIterator is the iterator type for the \e source data.
+ * \param destination is the pointer to the \e destination data.
+ * \param destinationSize is the size of the \e destination data.
+ * \param begin is the iterator to the first element of the \e source data range.
+ * \param end is the one-past-the-end iterator of the \e source data range.
+ */
+template< typename DestinationDevice, typename DestinationElement, typename Index, typename SourceIterator >
+void
+copy( DestinationElement* destination, Index destinationSize, SourceIterator begin, SourceIterator end )
+{
+   detail::Copy< DestinationDevice >::copy( destination, destinationSize, begin, end );
+}
+
+/**
  * \brief Copies memory from the \e source TNL array-like container to the
  * \e destination STL vector.
  *

@@ -51,10 +51,6 @@ struct MemoryOperations< Devices::Sequential >
    __cuda_callable__
    static void
    set( Element* data, const Element& value, Index size );
-
-   template< typename DestinationElement, typename Index, typename SourceIterator >
-   static void
-   copyFromIterator( DestinationElement* destination, Index destinationSize, SourceIterator first, SourceIterator last );
 };
 
 template<>
@@ -92,10 +88,6 @@ struct MemoryOperations< Devices::Host >
    template< typename Element, typename Index >
    static void
    set( Element* data, const Element& value, Index size );
-
-   template< typename DestinationElement, typename Index, typename SourceIterator >
-   static void
-   copyFromIterator( DestinationElement* destination, Index destinationSize, SourceIterator first, SourceIterator last );
 };
 
 template<>
@@ -130,10 +122,6 @@ struct MemoryOperations< Devices::Cuda >
    template< typename Element, typename Index >
    static void
    set( Element* data, const Element& value, Index size );
-
-   template< typename DestinationElement, typename Index, typename SourceIterator >
-   static void
-   copyFromIterator( DestinationElement* destination, Index destinationSize, SourceIterator first, SourceIterator last );
 };
 
 }  // namespace TNL::Algorithms

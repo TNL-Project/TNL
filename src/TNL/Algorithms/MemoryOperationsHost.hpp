@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <stdexcept>
-
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/MemoryOperations.h>
 
@@ -84,16 +82,6 @@ MemoryOperations< Devices::Host >::set( Element* data, const Element& value, Ind
       data[ i ] = value;
    };
    parallelFor< Devices::Host >( 0, size, kernel );
-}
-
-template< typename DestinationElement, typename Index, typename SourceIterator >
-void
-MemoryOperations< Devices::Host >::copyFromIterator( DestinationElement* destination,
-                                                     Index destinationSize,
-                                                     SourceIterator first,
-                                                     SourceIterator last )
-{
-   MemoryOperations< Devices::Sequential >::copyFromIterator( destination, destinationSize, first, last );
 }
 
 }  // namespace TNL::Algorithms
