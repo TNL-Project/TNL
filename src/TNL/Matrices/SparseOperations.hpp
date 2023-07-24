@@ -298,7 +298,7 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
                   RHSIndexType rowIdx, RHSIndexType localIdx_, RHSIndexType columnIndex, const RHSRealType& value ) mutable
       {
          Index localIdx( rowLocalIndexes_view[ rowIdx ] );
-         if( value != 0.0 && columnIndex != paddingIndex< Index > ) {
+         if( value != 0.0 && columnIndex != paddingIndex< RHSIndexType > ) {
             Index thisGlobalIdx = segments_view.getGlobalIndex( rowIdx, localIdx++ );
             columns_view[ thisGlobalIdx ] = columnIndex;
             if( ! Matrix1::isBinary() )
@@ -337,7 +337,7 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
          auto f1 = [ = ] __cuda_callable__(
                       RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIndex, const RHSRealType& value ) mutable
          {
-            if( columnIndex != paddingIndex< Index > ) {
+            if( columnIndex != paddingIndex< RHSIndexType > ) {
                TNL_ASSERT_LT( rowIdx - baseRow, bufferRowsCount, "" );
                TNL_ASSERT_LT( localIdx, maxRowLength, "" );
                const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;

@@ -27,7 +27,7 @@ using Algorithms::Segments::ElementsOrganization;
  * are used in some sparse matrix formats for better data alignment in memory.
  */
 template< typename Index >
-constexpr Index paddingIndex = -1;
+constexpr Index paddingIndex = static_cast< Index >( -1 );
 
 /**
  * \brief Base class for the implementation of concrete matrix types.
