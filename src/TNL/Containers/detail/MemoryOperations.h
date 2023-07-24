@@ -11,7 +11,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL::Algorithms {
+namespace TNL::Containers::detail {
 
 template< typename DestinationDevice >
 struct MemoryOperations;
@@ -111,8 +111,8 @@ struct MemoryOperations< Devices::Cuda >
    getElement( const Element* data );
 };
 
-}  // namespace TNL::Algorithms
+}  // namespace TNL::Containers::detail
 
-#include <TNL/Algorithms/MemoryOperationsSequential.hpp>
-#include <TNL/Algorithms/MemoryOperationsHost.hpp>
-#include <TNL/Algorithms/MemoryOperationsCuda.hpp>
+#include "MemoryOperationsSequential.hpp"
+#include "MemoryOperationsHost.hpp"
+#include "MemoryOperationsCuda.hpp"

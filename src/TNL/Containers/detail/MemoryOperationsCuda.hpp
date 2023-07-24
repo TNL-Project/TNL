@@ -6,11 +6,12 @@
 
 #pragma once
 
-#include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/parallelFor.h>
 
-namespace TNL::Algorithms {
+#include "MemoryOperations.h"
+
+namespace TNL::Containers::detail {
 
 template< typename Element, typename Index >
 void
@@ -22,7 +23,7 @@ MemoryOperations< Devices::Cuda >::construct( Element* data, Index size )
       // placement-new
       ::new( (void*) ( data + i ) ) Element();
    };
-   parallelFor< Devices::Cuda >( 0, size, kernel );
+   Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
 }
 
 template< typename Element, typename Index, typename... Args >
@@ -40,7 +41,7 @@ MemoryOperations< Devices::Cuda >::construct( Element* data, Index size, const A
       // with CUDA kernels)
       ::new( (void*) ( data + i ) ) Element( args... );
    };
-   parallelFor< Devices::Cuda >( 0, size, kernel, args... );
+   Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel, args... );
 }
 
 template< typename Element, typename Index >
@@ -52,7 +53,7 @@ MemoryOperations< Devices::Cuda >::destruct( Element* data, Index size )
    {
       ( data + i )->~Element();
    };
-   parallelFor< Devices::Cuda >( 0, size, kernel );
+   Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
 }
 
 template< typename Element >
@@ -64,11 +65,7 @@ MemoryOperations< Devices::Cuda >::setElement( Element* data, const Element& val
 #ifdef __CUDA_ARCH__
    *data = value;
 #else
-   // NOTE: calling `MemoryOperations< Devices::Cuda >::set( data, value, 1 );`
-   // does not work here due to `#ifdef __CUDA_ARCH__` above. It would involve
-   // launching a CUDA kernel with an extended lambda, which would be discarded
-   // by nvcc (never called).
-   copy< Devices::Cuda, void >( data, &value, 1 );
+   Algorithms::copy< Devices::Cuda, void >( data, &value, 1 );
 #endif
 }
 
@@ -82,9 +79,9 @@ MemoryOperations< Devices::Cuda >::getElement( const Element* data )
    return *data;
 #else
    Element result;
-   copy< void, Devices::Cuda >( &result, data, 1 );
+   Algorithms::copy< void, Devices::Cuda >( &result, data, 1 );
    return result;
 #endif
 }
 
-}  // namespace TNL::Algorithms
+}  // namespace TNL::Containers::detail

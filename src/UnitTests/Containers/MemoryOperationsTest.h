@@ -3,12 +3,12 @@
 #ifdef HAVE_GTEST
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
-#include <TNL/Algorithms/MemoryOperations.h>
+#include <TNL/Containers/detail/MemoryOperations.h>
 
 #include "gtest/gtest.h"
 
 using namespace TNL;
-using namespace TNL::Algorithms;
+using namespace TNL::Containers::detail;
 
 constexpr int ARRAY_TEST_SIZE = 5000;
 

@@ -150,7 +150,7 @@ Array< Value, Device, Index, Allocator >::releaseData()
    if( this->data ) {
       if( ! std::is_fundamental< ValueType >::value )
          // call the destructor of each element
-         Algorithms::MemoryOperations< Device >::destruct( this->data, this->size );
+         detail::MemoryOperations< Device >::destruct( this->data, this->size );
       allocator.deallocate( this->data, this->size );
    }
    this->data = nullptr;
@@ -178,7 +178,7 @@ Array< Value, Device, Index, Allocator >::reallocate( IndexType size )
       this->data = allocator.allocate( size );
       if( ! std::is_fundamental< ValueType >::value )
          // call the constructor of each element
-         Algorithms::MemoryOperations< Device >::construct( this->data, size );
+         detail::MemoryOperations< Device >::construct( this->data, size );
 
       this->size = size;
       TNL_ASSERT_TRUE( this->data, "This should never happen - allocator did not throw on an error." );
@@ -206,7 +206,7 @@ Array< Value, Device, Index, Allocator >::resize( IndexType size )
    if( old_size < size )
       if( ! std::is_fundamental< ValueType >::value )
          // initialize the appended elements
-         Algorithms::MemoryOperations< Device >::construct( this->data + old_size, size - old_size );
+         detail::MemoryOperations< Device >::construct( this->data + old_size, size - old_size );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -219,7 +219,7 @@ Array< Value, Device, Index, Allocator >::resize( IndexType size, ValueType valu
 
    if( old_size < size )
       // copy value into the appended elements
-      Algorithms::MemoryOperations< Device >::construct( this->data + old_size, size - old_size, value );
+      detail::MemoryOperations< Device >::construct( this->data + old_size, size - old_size, value );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -356,7 +356,7 @@ Array< Value, Device, Index, Allocator >::setElement( IndexType i, ValueType val
 {
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
-   Algorithms::MemoryOperations< Device >::setElement( &( this->data[ i ] ), value );
+   detail::MemoryOperations< Device >::setElement( &( this->data[ i ] ), value );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -366,7 +366,7 @@ Array< Value, Device, Index, Allocator >::getElement( IndexType i ) const
 {
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
-   return Algorithms::MemoryOperations< Device >::getElement( &( this->data[ i ] ) );
+   return detail::MemoryOperations< Device >::getElement( &( this->data[ i ] ) );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >

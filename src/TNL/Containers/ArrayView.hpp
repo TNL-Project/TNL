@@ -10,13 +10,13 @@
 #include <stdexcept>
 
 #include <TNL/TypeInfo.h>
-#include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/equal.h>
 #include <TNL/Algorithms/fill.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/detail/ArrayIO.h>
 #include <TNL/Containers/detail/ArrayAssignment.h>
+#include <TNL/Containers/detail/MemoryOperations.h>
 #include <TNL/Allocators/Default.h>
 
 #include "ArrayView.h"
@@ -181,7 +181,7 @@ ArrayView< Value, Device, Index >::setElement( IndexType i, ValueType value )
 {
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
-   Algorithms::MemoryOperations< Device >::setElement( &this->data[ i ], value );
+   detail::MemoryOperations< Device >::setElement( &this->data[ i ], value );
 }
 
 template< typename Value, typename Device, typename Index >
@@ -191,7 +191,7 @@ ArrayView< Value, Device, Index >::getElement( IndexType i ) const
 {
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
-   return Algorithms::MemoryOperations< Device >::getElement( &data[ i ] );
+   return detail::MemoryOperations< Device >::getElement( &data[ i ] );
 }
 
 template< typename Value, typename Device, typename Index >
