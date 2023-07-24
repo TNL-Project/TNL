@@ -265,7 +265,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    const RowsCapacitiesVector& rowCapacities )
 {
    TNL_ASSERT_EQ(
-      rowCapacities.getSize(), this->getRows(), "Number of matrix rows does not fit with rowCapacities vector size." );
+      (Index) rowCapacities.getSize(), this->getRows(), "Number of matrix rows does not fit with rowCapacities vector size." );
    using RowsCapacitiesVectorDevice = typename RowsCapacitiesVector::DeviceType;
    if constexpr( std::is_same_v< Device, RowsCapacitiesVectorDevice > )
       this->segments.setSegmentsSizes( rowCapacities );

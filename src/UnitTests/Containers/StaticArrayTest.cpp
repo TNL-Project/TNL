@@ -332,7 +332,7 @@ TYPED_TEST( StaticArrayTest, streamOperator )
 {
    using ArrayType = typename TestFixture::ArrayType;
 
-   ArrayType u;
+   ArrayType u = 0;
    std::stringstream testStream;
    testStream << u;
 }
