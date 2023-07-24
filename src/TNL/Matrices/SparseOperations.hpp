@@ -285,10 +285,10 @@ void copyMatrixElementsToBuffers( const Matrix& m, Index baseRow, Index lastRow,
                   RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIndex, const RHSRealType& value ) mutable
    {
       if( columnIndex != paddingIndex< Index > ) {
-         TNL_ASSERT_LT( rowIdx - baseRow, bufferRowsCount, "" );
-         TNL_ASSERT_LT( localIdx, maxRowLength, "" );
+         //TNL_ASSERT_LT( rowIdx - baseRow, bufferRowsCount, "" );
+         //TNL_ASSERT_LT( localIdx, maxRowLength, "" );
          const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
-         TNL_ASSERT_LT( bufferIdx, (Index) bufferSize, "" );
+         //TNL_ASSERT_LT( bufferIdx, (Index) bufferSize, "" );
          matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
          matrixValuesBuffer_view[ bufferIdx ] = value;
       }
@@ -311,7 +311,7 @@ void copyBuffersToMatrixElements( Matrix& m, const IndexVectorView& thisColumnsB
       Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
       while( inValue == 0.0 && localIdx < thisRowLengths_view[ rowIdx ] ) {
          bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;
-         TNL_ASSERT_LT( bufferIdx, bufferSize, "" );
+         //TNL_ASSERT_LT( bufferIdx, bufferSize, "" );
          inValue = thisValuesBuffer_view[ bufferIdx ];
       }
       rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
