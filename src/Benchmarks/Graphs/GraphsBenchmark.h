@@ -47,6 +47,15 @@ struct GraphsBenchmark
    using HostIndexVector = TNL::Containers::Vector<Index, TNL::Devices::Host, Index>;
    using HostRealVector = TNL::Containers::Vector<Real, TNL::Devices::Host, Index>;
 
+   template< typename Device_, typename Index_, typename IndexAllocator_ >
+   using CSRSegments = TNL::Algorithms::Segments::CSR< Device_, Index_, IndexAllocator_ >;
+   template< typename Device_, typename Index_, typename IndexAllocator_ >
+   using EllpackSegments = TNL::Algorithms::Segments::Ellpack< Device_, Index_, IndexAllocator_ >;
+   template< typename Device_, typename Index_, typename IndexAllocator_ >
+   using SlicedEllpackSegments = TNL::Algorithms::Segments::SlicedEllpack< Device_, Index_, IndexAllocator_ >;
+   template< typename Device_, typename Index_, typename IndexAllocator_ >
+   using BiEllpackSegments = TNL::Algorithms::Segments::BiEllpack< Device_, Index_, IndexAllocator_ >;
+
    static void configSetup( TNL::Config::ConfigDescription& config )
    {
       config.addDelimiter("Benchmark settings:");
@@ -201,7 +210,7 @@ struct GraphsBenchmark
          TNL::Graphs::minimumSpanningTree( graph, mstGraph, roots );
       };
       benchmark.time< Device >( device, mst_tnl );
-      auto filename = this->parameters.getParameter< TNL::String >( "input-file" );
+      auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
       TNL::Graphs::GraphWriter< Graph >::writeEdgeList( filename + "-tnl-mst.txt", mstGraph );
       if( ! TNL::Graphs::isForest( mstGraph ) )
       {
@@ -305,7 +314,7 @@ struct GraphsBenchmark
         this->boostMSTTotalWeight += weight;
       }
       //this->boostMSTTotalWeight = 2.0;
-      auto filename = this->parameters.getParameter< TNL::String >( "input-file" );
+      auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
       boostGraph.exportMst( boostMstEdges, filename + "-boost-mst.txt" );
 #endif
    }
@@ -488,19 +497,19 @@ struct GraphsBenchmark
       gunrockBenchmarks( digraph, graph, benchmark );
 
       if( device == "sequential" || device == "all" )
-         TNLBenchmarks< TNL::Devices::Sequential, TNL::Algorithms::Segments::CSR, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >( digraph, graph, benchmark, "sequential", "CSRScalar" );
+         TNLBenchmarks< TNL::Devices::Sequential, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >( digraph, graph, benchmark, "sequential", "CSRScalar" );
       if( device == "host" || device == "all" )
-         TNLBenchmarks< TNL::Devices::Host, TNL::Algorithms::Segments::CSR, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >( digraph, graph, benchmark, "host", "CSRScalar" );
+         TNLBenchmarks< TNL::Devices::Host, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >( digraph, graph, benchmark, "host", "CSRScalar" );
 #ifdef __CUDACC__
       if( device == "cuda" || device == "all" )
       {
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSR,           TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel     >( digraph, graph, benchmark, "cuda", "CSRScalar" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSR,           TNL::Algorithms::SegmentsReductionKernels::CSRVectorKernel     >( digraph, graph, benchmark, "cuda", "CSRVector" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSR,           TNL::Algorithms::SegmentsReductionKernels::CSRLightKernel      >( digraph, graph, benchmark, "cuda", "CSRLight" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::CSR,           TNL::Algorithms::SegmentsReductionKernels::CSRAdaptiveKernel   >( digraph, graph, benchmark, "cuda", "CSRAdaptive" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::Ellpack,       TNL::Algorithms::SegmentsReductionKernels::EllpackKernel       >( digraph, graph, benchmark, "cuda", "Ellpack" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::SlicedEllpack, TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >( digraph, graph, benchmark, "cuda", "SlicedEllpack" );
-         TNLBenchmarks< TNL::Devices::Cuda, TNL::Algorithms::Segments::BiEllpack,     TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel     >( digraph, graph, benchmark, "cuda", "BiEllpack" );
+         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments,           TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel     >( digraph, graph, benchmark, "cuda", "CSRScalar" );
+         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments,           TNL::Algorithms::SegmentsReductionKernels::CSRVectorKernel     >( digraph, graph, benchmark, "cuda", "CSRVector" );
+         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments,           TNL::Algorithms::SegmentsReductionKernels::CSRLightKernel      >( digraph, graph, benchmark, "cuda", "CSRLight" );
+         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments,           TNL::Algorithms::SegmentsReductionKernels::CSRAdaptiveKernel   >( digraph, graph, benchmark, "cuda", "CSRAdaptive" );
+         TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments,       TNL::Algorithms::SegmentsReductionKernels::EllpackKernel       >( digraph, graph, benchmark, "cuda", "Ellpack" );
+         TNLBenchmarks< TNL::Devices::Cuda, SlicedEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >( digraph, graph, benchmark, "cuda", "SlicedEllpack" );
+         TNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments,     TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel     >( digraph, graph, benchmark, "cuda", "BiEllpack" );
       }
 #endif
       if( ! errors )

@@ -421,8 +421,6 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 
    const auto inVectorView = inVector.getConstView();
    auto outVectorView = outVector.getView();
-   const auto valuesView = this->values.getConstView();
-   const auto columnIndexesView = this->columnIndexes.getConstView();
 
    if( end == 0 )
       end = this->getColumns();
@@ -430,7 +428,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    if( outVectorMultiplicator != 1.0 )
       outVector *= outVectorMultiplicator;
    auto compute =
-      [ valuesView, columnIndexesView, inVectorView, outVectorView, matrixMultiplicator, begin, end ] __cuda_callable__(
+      [ inVectorView, outVectorView, matrixMultiplicator, begin, end ] __cuda_callable__(
          IndexType row, IndexType localIdx, IndexType column, const RealType& value ) mutable
    {
       if( column >= begin && column < end )

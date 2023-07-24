@@ -174,7 +174,7 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::sortColumnIn
          getColumnIndex( j ) = getColumnIndex( j - 1 );
          if( ! isBinary() )
             getValue( j ) = getValue( j - 1 );
-      };
+      }
       getColumnIndex( j ) = columnIdx;
       if( ! isBinary() )
          getValue( j ) = value;

@@ -18,7 +18,7 @@ struct GraphWriter
    using ValueType = typename GraphType::ValueType;
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
-   using HostMatrixType = typename MatrixType::Self< ValueType, Devices::Host >;
+   using HostMatrixType = typename MatrixType::template Self< ValueType, Devices::Host >;
 
    static void writeEdgeList( std::ostream& str, const Graph& graph ) {
       if constexpr( ! std::is_same_v< DeviceType, Devices::Host > &&
