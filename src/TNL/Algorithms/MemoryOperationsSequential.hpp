@@ -63,16 +63,4 @@ MemoryOperations< Devices::Sequential >::getElement( const Element* data )
    return *data;
 }
 
-template< typename Element, typename Index >
-__cuda_callable__
-void
-MemoryOperations< Devices::Sequential >::set( Element* data, const Element& value, Index size )
-{
-   if( size == 0 )
-      return;
-   TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
-   for( Index i = 0; i < size; i++ )
-      data[ i ] = value;
-}
-
 }  // namespace TNL::Algorithms

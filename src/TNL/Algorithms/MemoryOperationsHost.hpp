@@ -70,18 +70,4 @@ MemoryOperations< Devices::Host >::getElement( const Element* data )
    return *data;
 }
 
-template< typename Element, typename Index >
-void
-MemoryOperations< Devices::Host >::set( Element* data, const Element& value, Index size )
-{
-   if( size == 0 )
-      return;
-   TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
-   auto kernel = [ data, value ]( Index i )
-   {
-      data[ i ] = value;
-   };
-   parallelFor< Devices::Host >( 0, size, kernel );
-}
-
 }  // namespace TNL::Algorithms

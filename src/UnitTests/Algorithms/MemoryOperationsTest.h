@@ -3,7 +3,6 @@
 #ifdef HAVE_GTEST
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
-#include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/MemoryOperations.h>
 
 #include "gtest/gtest.h"
@@ -53,19 +52,6 @@ TYPED_TEST( MemoryOperationsTest, setElement_host )
    allocator.deallocate( data, ARRAY_TEST_SIZE );
 }
 
-TYPED_TEST( MemoryOperationsTest, set_host )
-{
-   using ValueType = typename TestFixture::ValueType;
-   using Allocator = Allocators::Host< ValueType >;
-
-   Allocator allocator;
-   ValueType* data = allocator.allocate( ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Host >::set( data, (ValueType) 13, ARRAY_TEST_SIZE );
-   for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
-      EXPECT_EQ( data[ i ], 13 );
-   allocator.deallocate( data, ARRAY_TEST_SIZE );
-}
-
 #ifdef __CUDACC__
 TYPED_TEST( MemoryOperationsTest, allocateMemory_cuda )
 {
@@ -104,28 +90,6 @@ TYPED_TEST( MemoryOperationsTest, setElement_cuda )
    allocator.deallocate( data, ARRAY_TEST_SIZE );
    ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
 }
-
-TYPED_TEST( MemoryOperationsTest, set_cuda )
-{
-   using ValueType = typename TestFixture::ValueType;
-   using HostAllocator = Allocators::Host< ValueType >;
-   using CudaAllocator = Allocators::Cuda< ValueType >;
-
-   HostAllocator hostAllocator;
-   CudaAllocator cudaAllocator;
-   ValueType* hostData = hostAllocator.allocate( ARRAY_TEST_SIZE );
-   ValueType* deviceData = cudaAllocator.allocate( ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Host >::set( hostData, (ValueType) 0, ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Cuda >::set( deviceData, (ValueType) 13, ARRAY_TEST_SIZE );
-   ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
-   copy< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE );
-   ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
-   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
-      EXPECT_EQ( hostData[ i ], 13 );
-   hostAllocator.deallocate( hostData, ARRAY_TEST_SIZE );
-   cudaAllocator.deallocate( deviceData, ARRAY_TEST_SIZE );
-}
-
 #endif // __CUDACC__
 #endif // HAVE_GTEST
 

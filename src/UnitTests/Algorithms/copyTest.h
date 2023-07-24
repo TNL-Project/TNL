@@ -6,7 +6,7 @@
 #include <TNL/Allocators/Cuda.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/equal.h>
-#include <TNL/Algorithms/MemoryOperations.h>
+#include <TNL/Algorithms/fill.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/ArrayView.h>
 
@@ -38,7 +38,7 @@ TYPED_TEST( CopyTest, copy_host )
    Allocator allocator;
    ValueType* data1 = allocator.allocate( ARRAY_TEST_SIZE );
    ValueType* data2 = allocator.allocate( ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Host >::set( data1, (ValueType) 13, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data1, (ValueType) 13, ARRAY_TEST_SIZE );
    copy< Devices::Host, Devices::Host >( data2, data1, ARRAY_TEST_SIZE );
    for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
       EXPECT_EQ( data1[ i ], data2[ i ]);
@@ -55,7 +55,7 @@ TYPED_TEST( CopyTest, copyWithConversion_host )
    Allocator2 allocator2;
    int* data1 = allocator1.allocate( ARRAY_TEST_SIZE );
    float* data2 = allocator2.allocate( ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Host >::set( data1, 13, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data1, 13, ARRAY_TEST_SIZE );
    copy< Devices::Host, Devices::Host, float, int, int >( data2, data1, ARRAY_TEST_SIZE );
    for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
       EXPECT_EQ( data1[ i ], data2[ i ] );
@@ -92,7 +92,7 @@ TYPED_TEST( CopyTest, copy_cuda )
    ValueType* hostData2 = hostAllocator.allocate( ARRAY_TEST_SIZE );
    ValueType* deviceData = cudaAllocator.allocate( ARRAY_TEST_SIZE );
    ValueType* deviceData2 = cudaAllocator.allocate( ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Host >::set( hostData, (ValueType) 13, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( hostData, (ValueType) 13, ARRAY_TEST_SIZE );
 
    copy< Devices::Cuda, Devices::Host, ValueType >( deviceData, hostData, ARRAY_TEST_SIZE );
    copy< Devices::Cuda, Devices::Cuda, ValueType, ValueType >( deviceData2, deviceData, ARRAY_TEST_SIZE );
@@ -120,7 +120,7 @@ TYPED_TEST( CopyTest, copyWithConversions_cuda )
    double* hostData2 = hostAllocator2.allocate( ARRAY_TEST_SIZE );
    long* deviceData = cudaAllocator1.allocate( ARRAY_TEST_SIZE );
    float* deviceData2 = cudaAllocator2.allocate( ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Host >::set( hostData, 13, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( hostData, 13, ARRAY_TEST_SIZE );
 
    copy< Devices::Cuda, Devices::Host, long, int >( deviceData, hostData, ARRAY_TEST_SIZE );
    copy< Devices::Cuda, Devices::Cuda, float, long >( deviceData2, deviceData, ARRAY_TEST_SIZE );

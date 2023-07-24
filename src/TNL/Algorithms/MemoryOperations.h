@@ -46,11 +46,6 @@ struct MemoryOperations< Devices::Sequential >
    __cuda_callable__
    static Element
    getElement( const Element* data );
-
-   template< typename Element, typename Index >
-   __cuda_callable__
-   static void
-   set( Element* data, const Element& value, Index size );
 };
 
 template<>
@@ -84,10 +79,6 @@ struct MemoryOperations< Devices::Host >
    __cuda_callable__
    static Element
    getElement( const Element* data );
-
-   template< typename Element, typename Index >
-   static void
-   set( Element* data, const Element& value, Index size );
 };
 
 template<>
@@ -118,10 +109,6 @@ struct MemoryOperations< Devices::Cuda >
    __cuda_callable__
    static Element
    getElement( const Element* data );
-
-   template< typename Element, typename Index >
-   static void
-   set( Element* data, const Element& value, Index size );
 };
 
 }  // namespace TNL::Algorithms

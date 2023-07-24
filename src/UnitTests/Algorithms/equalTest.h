@@ -3,8 +3,8 @@
 #ifdef HAVE_GTEST
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
-#include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/equal.h>
+#include <TNL/Algorithms/fill.h>
 
 #include "gtest/gtest.h"
 
@@ -34,10 +34,10 @@ TYPED_TEST( EqualTest, equal_host )
    Allocator allocator;
    ValueType* data1 = allocator.allocate( ARRAY_TEST_SIZE );
    ValueType* data2 = allocator.allocate( ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Host >::set( data1, (ValueType) 7, ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Host >::set( data2, (ValueType) 0, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data1, (ValueType) 7, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data2, (ValueType) 0, ARRAY_TEST_SIZE );
    EXPECT_FALSE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
-   MemoryOperations< Devices::Host >::set( data2, (ValueType) 7, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data2, (ValueType) 7, ARRAY_TEST_SIZE );
    EXPECT_TRUE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
    allocator.deallocate( data1, ARRAY_TEST_SIZE );
    allocator.deallocate( data2, ARRAY_TEST_SIZE );
@@ -52,10 +52,10 @@ TYPED_TEST( EqualTest, equalWithConversion_host )
    Allocator2 allocator2;
    int* data1 = allocator1.allocate( ARRAY_TEST_SIZE );
    float* data2 = allocator2.allocate( ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Host >::set( data1, 7, ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Host >::set( data2, (float) 0.0, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data1, 7, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data2, (float) 0.0, ARRAY_TEST_SIZE );
    EXPECT_FALSE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
-   MemoryOperations< Devices::Host >::set( data2, (float) 7.0, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data2, (float) 7.0, ARRAY_TEST_SIZE );
    EXPECT_TRUE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
    allocator1.deallocate( data1, ARRAY_TEST_SIZE );
    allocator2.deallocate( data2, ARRAY_TEST_SIZE );
@@ -74,17 +74,17 @@ TYPED_TEST( EqualTest, equal_cuda )
    ValueType* deviceData = cudaAllocator.allocate( ARRAY_TEST_SIZE );
    ValueType* deviceData2 = cudaAllocator.allocate( ARRAY_TEST_SIZE );
 
-   MemoryOperations< Devices::Host >::set( hostData, (ValueType) 7, ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Cuda >::set( deviceData, (ValueType) 8, ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Cuda >::set( deviceData2, (ValueType) 9, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( hostData, (ValueType) 7, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData, (ValueType) 8, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData2, (ValueType) 9, ARRAY_TEST_SIZE );
 
    EXPECT_FALSE(( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ));
    EXPECT_FALSE(( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ));
    EXPECT_FALSE(( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ));
 
 
-   MemoryOperations< Devices::Cuda >::set( deviceData, (ValueType) 7, ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Cuda >::set( deviceData2, (ValueType) 7, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData, (ValueType) 7, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData2, (ValueType) 7, ARRAY_TEST_SIZE );
 
    EXPECT_TRUE(( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ));
    EXPECT_TRUE(( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ));
@@ -109,16 +109,16 @@ TYPED_TEST( EqualTest, equalWithConversions_cuda )
    float* deviceData = cudaAllocator1.allocate( ARRAY_TEST_SIZE );
    double* deviceData2 = cudaAllocator2.allocate( ARRAY_TEST_SIZE );
 
-   MemoryOperations< Devices::Host >::set( hostData, 7, ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Cuda >::set( deviceData, (float) 8, ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Cuda >::set( deviceData2, (double) 9, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( hostData, 7, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData, (float) 8, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData2, (double) 9, ARRAY_TEST_SIZE );
 
    EXPECT_FALSE(( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ));
    EXPECT_FALSE(( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ));
    EXPECT_FALSE(( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ));
 
-   MemoryOperations< Devices::Cuda >::set( deviceData, (float) 7, ARRAY_TEST_SIZE );
-   MemoryOperations< Devices::Cuda >::set( deviceData2, (double) 7, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData, (float) 7, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData2, (double) 7, ARRAY_TEST_SIZE );
 
    EXPECT_TRUE(( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ));
    EXPECT_TRUE(( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ));

@@ -500,7 +500,7 @@ Array< Value, Device, Index, Allocator >::setValue( ValueType v, IndexType begin
 {
    if( end == 0 )
       end = this->getSize();
-   Algorithms::MemoryOperations< Device >::set( &this->getData()[ begin ], v, end - begin );
+   Algorithms::fill< Device >( &this->getData()[ begin ], v, end - begin );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >

@@ -14,6 +14,7 @@
 #include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/equal.h>
+#include <TNL/Algorithms/fill.h>
 #include <TNL/Containers/detail/ArrayIO.h>
 #include <TNL/Containers/detail/ArrayAssignment.h>
 #include <TNL/Allocators/Default.h>
@@ -269,7 +270,7 @@ ArrayView< Value, Device, Index >::setValue( ValueType value, IndexType begin, I
 {
    if( end == 0 )
       end = this->getSize();
-   Algorithms::MemoryOperations< Device >::set( &getData()[ begin ], value, end - begin );
+   Algorithms::fill< Device >( &getData()[ begin ], value, end - begin );
 }
 
 template< typename Value, typename Device, typename Index >

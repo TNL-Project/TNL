@@ -87,18 +87,4 @@ MemoryOperations< Devices::Cuda >::getElement( const Element* data )
 #endif
 }
 
-template< typename Element, typename Index >
-void
-MemoryOperations< Devices::Cuda >::set( Element* data, const Element& value, Index size )
-{
-   if( size == 0 )
-      return;
-   TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
-   auto kernel = [ data, value ] __cuda_callable__( Index i )
-   {
-      data[ i ] = value;
-   };
-   parallelFor< Devices::Cuda >( 0, size, kernel );
-}
-
 }  // namespace TNL::Algorithms

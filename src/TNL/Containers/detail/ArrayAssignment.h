@@ -8,6 +8,7 @@
 
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/copy.h>
+#include <TNL/Algorithms/fill.h>
 
 namespace TNL::Containers::detail {
 
@@ -55,9 +56,7 @@ struct ArrayAssignment< Array, T, false >
       // skip assignment to an empty array
       if( a.getSize() == 0 )
          return;
-      Algorithms::MemoryOperations< typename Array::DeviceType >::template set< typename Array::ValueType,
-                                                                                typename Array::IndexType >(
-         a.getArrayData(), (typename Array::ValueType) t, a.getSize() );
+      Algorithms::fill< typename Array::DeviceType >( a.getArrayData(), (typename Array::ValueType) t, a.getSize() );
    }
 };
 

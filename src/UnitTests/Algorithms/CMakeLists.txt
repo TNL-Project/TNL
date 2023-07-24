@@ -5,6 +5,7 @@ set( COMMON_TESTS
          containsTest
          copyTest
          equalTest
+         fillTest
          MemoryOperationsTest
          MultireductionTest
          parallelForTest
