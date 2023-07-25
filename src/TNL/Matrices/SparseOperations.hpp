@@ -18,9 +18,9 @@
 
 #include "MatrixBase.h"
 
-#define USE_NVCC_WORKAROUND // This is workaround for nvcc 11 and 12 which is not able to compile copySparseToSparseMatrix function
-                            // due to the lambda functions in the code.
-
+#define USE_NVCC_WORKAROUND // This is workaround for nvcc which is not able to compile copySparseToSparseMatrix function
+                            // due to the lambda functions in the code. This issue appears at least with
+                            // nvcc build cuda_11.8.r11.8/compiler.31833905_0 and g++ 11.3.0.
 namespace TNL::Matrices {
 
 template< typename Matrix1, typename Matrix2 >
