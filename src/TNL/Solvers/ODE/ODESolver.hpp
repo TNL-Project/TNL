@@ -92,9 +92,13 @@ ODESolver< Method, Vector, SolverMonitor >::solve( VectorType& u, RHSFunction&& 
       // Compute an error of the approximation.
       RealType error( 0.0 );
       if constexpr( Method::isAdaptive() )
-         error = Method::getError( k_views, currentTau );
+         if( this->adaptivity ) {
+            using ErrorCoefficients = detail::ErrorCoefficientsExtractor< Method >;
+            using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Vector >;
+            error = currentTau * max( abs( ErrorExpression::evaluateArray( k_vectors ) ) );
+      }
 
-      if( method.acceptStep( error ) ) {
+      if( this->adaptivity == 0.0 || error < this->adaptivity ) {
          RealType lastResidue = this->getResidue();
 
          using UpdateCoefficients = detail::UpdateCoefficientsExtractor< Method >;

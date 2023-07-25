@@ -43,6 +43,17 @@ struct UpdateCoefficientsExtractor
    }
 };
 
+template< typename Method >
+struct ErrorCoefficientsExtractor
+{
+   using ValueType = typename Method::ValueType;
+
+   static constexpr ValueType getValue( size_t i ) {
+      return Method::getErrorCoefficient( i );
+   }
+};
+
+
 template< typename Method,
           typename Stage = std::integral_constant< size_t, 0 >,
           typename Stages = std::integral_constant< size_t, Method::getStages() > >

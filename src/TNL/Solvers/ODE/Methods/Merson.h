@@ -101,6 +101,10 @@ struct Merson
       return update_coefficients[ i ];
    }
 
+   static constexpr ValueType getTimeCoefficient( size_t i ) {
+      return error_coefficients[ i ];
+   }
+
    template< typename Vector >
    static ValueType getError( const std::array< Vector, Stages >& k, const ValueType& tau ) {
       return max( tau / 3.0 * abs( 0.2 * k[ 0 ] - 0.9 * k[ 2 ] + 0.8 * k[ 3 ] - 0.1 * k[ 4 ] ) );
@@ -142,6 +146,8 @@ protected:
    static constexpr std::array< Value, Stages > time_coefficients { 0.0, 1.0/3.0, 1.0/3.0, 0.5, 1.0 };
 
    static constexpr std::array< Value, Stages > update_coefficients { 1.0/6.0, 0.0, 0.0, 2.0/3.0, 1.0/6.0 };
+
+   static constexpr std::array< Value, Stages > error_coefficients { 0.2, 0.0, -0.9, 0.8, -0.1 };
 };
 
 } // namespace TNL::Solvers::ODE::Methods
