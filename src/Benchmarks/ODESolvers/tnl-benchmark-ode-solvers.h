@@ -81,8 +81,6 @@ struct ODESolversBenchmark
                                                              { "solver", std::string( solverName ) },
                                                              { "DOFs", convertToString( dofs ) }
                                                            } ) );
-         solver.setTime( 0.0 );
-         solver.setTau( tau );
          solver.setStopTime( 1.0 );
          u = 0;
          std::size_t iterations = 1.0 / tau + 1;
@@ -93,7 +91,12 @@ struct ODESolversBenchmark
             };
             Algorithms::parallelFor< DeviceType >( 0, u_view.getSize(), computeF );
          };
-         auto solve = [&]() { solver.solve( u, problem ); };
+         auto solve = [&]() {
+            solver.setTime( 0.0 );
+            solver.setTau( tau );
+            u = 0; // TODO: reset u in special lambda
+            solver.solve( u, problem );
+         };
          benchmark.time< DeviceType >( device, solve, benchmarkResult );
          tau /= 2.0;
       }
