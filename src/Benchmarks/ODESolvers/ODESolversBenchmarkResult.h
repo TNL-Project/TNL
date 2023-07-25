@@ -38,7 +38,7 @@ struct ODESolversBenchmarkResult
       return std::vector< int >({ 14, 14, 14, 6, 14, 10, 14, 10 });
    }
 
-   virtual RowElements getRowElements() override {
+   virtual RowElements getRowElements() const override {
       auto error = abs( exactSolution - benchmarkResult.getElement( 0 ) );
       RealType eoc = -1.0;
       if( lastError != -1.0 )
@@ -65,7 +65,8 @@ struct ODESolversBenchmarkResult
    void reset() { this->lastError = -1.0; }
 
 protected:
-   RealType exactSolution, lastError = -1.0;
+   RealType exactSolution;
+   mutable RealType lastError = -1.0;
    const BenchmarkVector& benchmarkResult;
 };
 
