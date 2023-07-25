@@ -79,7 +79,7 @@ public:
    /**
     * \brief Default constructor.
     */
-   Euler() = default;
+   Euler();
 
    /**
     * \brief Static method for setup of configuration parameters.

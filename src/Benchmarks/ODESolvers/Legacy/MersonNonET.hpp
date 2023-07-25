@@ -71,7 +71,8 @@ MersonNonET< Vector, SolverMonitor >::MersonNonET() : adaptivity( 0.00001 )
    if( std::is_same< DeviceType, Devices::Host >::value ) {
       this->openMPErrorEstimateBuffer.setSize( std::max( 1, Devices::Host::getMaxThreadsCount() ) );
    }
-};
+   this->setConvergenceResidue( 0.0 );
+}
 
 template< typename Vector, typename SolverMonitor >
 void
@@ -81,7 +82,7 @@ MersonNonET< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& co
                               "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
                               "zero means no adaptivity).",
                               1.0e-4 );
-};
+}
 
 template< typename Vector, typename SolverMonitor >
 bool
@@ -98,7 +99,7 @@ void
 MersonNonET< Vector, SolverMonitor >::setAdaptivity( const RealType& a )
 {
    this->adaptivity = a;
-};
+}
 
 template< typename Vector, typename SolverMonitor >
 template< typename RHSFunction >
@@ -197,7 +198,7 @@ MersonNonET< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhs
          return true;
    }
    return this->checkConvergence();
-};
+}
 
 template< typename Vector, typename SolverMonitor >
 template< typename RHSFunction >

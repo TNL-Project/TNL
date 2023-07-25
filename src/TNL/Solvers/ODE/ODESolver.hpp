@@ -16,6 +16,12 @@
 namespace TNL::Solvers::ODE {
 
 template< typename Method, typename Vector, typename SolverMonitor >
+ODESolver< Method, Vector, SolverMonitor >::ODESolver() {
+   // It is better to turn off the convergence check for the ODE solver by default.
+   this->setConvergenceResidue( 0.0 );
+}
+
+template< typename Method, typename Vector, typename SolverMonitor >
 void
 ODESolver< Method, Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {

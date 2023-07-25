@@ -82,7 +82,7 @@ public:
    /**
     * \brief Default constructor.
     */
-   ODESolver() = default;
+   ODESolver();
 
    /**
     * \brief Static method for setup of configuration parameters.

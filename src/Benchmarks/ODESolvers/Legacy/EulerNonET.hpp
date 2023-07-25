@@ -16,7 +16,10 @@ updateUEulerNonET( const Index size, const RealType tau, const RealType* k1, Rea
 #endif
 
 template< typename Vector, typename SolverMonitor >
-EulerNonET< Vector, SolverMonitor >::EulerNonET() : cflCondition( 0.0 ){};
+EulerNonET< Vector, SolverMonitor >::EulerNonET() : cflCondition( 0.0 )
+{
+   this->setConvergenceResidue( 0.0 );
+}
 
 template< typename Vector, typename SolverMonitor >
 void
@@ -24,7 +27,7 @@ EulerNonET< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& con
 {
    //ExplicitSolver< Vector >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "euler-cfl", "Coefficient C in the Courant–Friedrichs–Lewy condition.", 0.0 );
-};
+}
 
 template< typename Vector, typename SolverMonitor >
 bool
@@ -130,7 +133,7 @@ EulerNonET< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsF
          currentTau = min( currentTau, this->getMaxTau() );
       }
    }
-};
+}
 
 template< typename Vector, typename SolverMonitor >
 void
