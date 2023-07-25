@@ -1,6 +1,7 @@
 ADD_SUBDIRECTORY( ndarray )
 
 set( CPP_TESTS
+         MemoryOperationsTest
          ArrayTest
          ArrayViewTest
          StaticArrayTest
@@ -15,6 +16,7 @@ set( CPP_TESTS
          VectorOfStaticVectorsTest
 )
 set( CUDA_TESTS
+         MemoryOperationsTestCuda
          ArrayTestCuda
          ArrayViewTestCuda
          VectorTestCuda

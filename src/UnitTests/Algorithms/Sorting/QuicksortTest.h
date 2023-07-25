@@ -5,7 +5,6 @@
 
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/MemoryOperations.h>
 #include <TNL/Algorithms/sort.h>
 #include <TNL/Algorithms/Sorting/Quicksort.h>
 

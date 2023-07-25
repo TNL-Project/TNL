@@ -52,7 +52,7 @@ readMeshFunction( MeshFunction& function,
       {
          const auto entitiesCount = function.getMesh().template getEntitiesCount< MeshFunction::getEntitiesDimension() >();
          if( array.size() == (std::size_t) entitiesCount )
-            Algorithms::MultiDeviceMemoryOperations< typename MeshFunction::VectorType::DeviceType, Devices::Host >::copy(
+            Algorithms::copy< typename MeshFunction::VectorType::DeviceType, Devices::Host >(
                function.getData().getData(), array.data(), array.size() );
          else
             throw Exceptions::FileDeserializationError( fileName,
@@ -111,7 +111,7 @@ readDistributedMeshFunction( Meshes::DistributedMeshes::DistributedMesh< typenam
       {
          const auto entitiesCount = function.getMesh().template getEntitiesCount< MeshFunction::getEntitiesDimension() >();
          if( array.size() == (std::size_t) entitiesCount )
-            Algorithms::MultiDeviceMemoryOperations< typename MeshFunction::VectorType::DeviceType, Devices::Host >::copy(
+            Algorithms::copy< typename MeshFunction::VectorType::DeviceType, Devices::Host >(
                function.getData().getData(), array.data(), array.size() );
          else
             throw Exceptions::FileDeserializationError( fileName,

@@ -14,8 +14,8 @@
 #include <TNL/TypeTraits.h>
 #include <TNL/Containers/Expressions/TypeTraits.h>
 #include <TNL/Containers/Expressions/ExpressionVariableType.h>
+#include <TNL/Algorithms/equal.h>
 #include <TNL/Algorithms/reduce.h>
-#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
 
 namespace TNL {
 namespace Containers {
@@ -479,8 +479,7 @@ operator==( const ET1& a, const ET2& b )
          return false;
       if( a.getSize() == 0 )
          return true;
-      return Algorithms::MultiDeviceMemoryOperations< typename ET1::DeviceType, typename ET2::DeviceType >::compare(
-         a.getData(), b.getData(), a.getSize() );
+      return Algorithms::equal< typename ET1::DeviceType, typename ET2::DeviceType >( a.getData(), b.getData(), a.getSize() );
    }
    else {
       // If some operand is not a vector, we compare them with parallel reduction.

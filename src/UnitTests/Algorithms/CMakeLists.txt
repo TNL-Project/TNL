@@ -3,7 +3,9 @@ ADD_SUBDIRECTORY( Sorting )
 
 set( COMMON_TESTS
          containsTest
-         MemoryOperationsTest
+         copyTest
+         equalTest
+         fillTest
          MultireductionTest
          parallelForTest
          staticForTest

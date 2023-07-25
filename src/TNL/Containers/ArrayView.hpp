@@ -10,11 +10,13 @@
 #include <stdexcept>
 
 #include <TNL/TypeInfo.h>
+#include <TNL/Algorithms/copy.h>
+#include <TNL/Algorithms/equal.h>
+#include <TNL/Algorithms/fill.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Algorithms/MemoryOperations.h>
-#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
 #include <TNL/Containers/detail/ArrayIO.h>
 #include <TNL/Containers/detail/ArrayAssignment.h>
+#include <TNL/Containers/detail/MemoryOperations.h>
 #include <TNL/Allocators/Default.h>
 
 #include "ArrayView.h"
@@ -93,7 +95,7 @@ ArrayView< Value, Device, Index >::operator=( const ArrayView& view )
 {
    TNL_ASSERT_EQ( getSize(), view.getSize(), "The sizes of the array views must be equal, views are not resizable." );
    if( getSize() > 0 )
-      Algorithms::MemoryOperations< Device >::copy( getData(), view.getData(), getSize() );
+      Algorithms::copy< Device >( getData(), view.getData(), getSize() );
    return *this;
 }
 
@@ -179,7 +181,7 @@ ArrayView< Value, Device, Index >::setElement( IndexType i, ValueType value )
 {
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
-   Algorithms::MemoryOperations< Device >::setElement( &this->data[ i ], value );
+   detail::MemoryOperations< Device >::setElement( &this->data[ i ], value );
 }
 
 template< typename Value, typename Device, typename Index >
@@ -189,7 +191,7 @@ ArrayView< Value, Device, Index >::getElement( IndexType i ) const
 {
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
-   return Algorithms::MemoryOperations< Device >::getElement( &data[ i ] );
+   return detail::MemoryOperations< Device >::getElement( &data[ i ] );
 }
 
 template< typename Value, typename Device, typename Index >
@@ -251,8 +253,7 @@ ArrayView< Value, Device, Index >::operator==( const ArrayT& array ) const
       return false;
    if( this->getSize() == 0 )
       return true;
-   return Algorithms::MultiDeviceMemoryOperations< DeviceType, typename ArrayT::DeviceType >::compare(
-      this->getData(), array.getData(), array.getSize() );
+   return Algorithms::equal< DeviceType, typename ArrayT::DeviceType >( this->getData(), array.getData(), array.getSize() );
 }
 
 template< typename Value, typename Device, typename Index >
@@ -269,7 +270,7 @@ ArrayView< Value, Device, Index >::setValue( ValueType value, IndexType begin, I
 {
    if( end == 0 )
       end = this->getSize();
-   Algorithms::MemoryOperations< Device >::set( &getData()[ begin ], value, end - begin );
+   Algorithms::fill< Device >( &getData()[ begin ], value, end - begin );
 }
 
 template< typename Value, typename Device, typename Index >

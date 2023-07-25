@@ -11,7 +11,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Cuda/CudaCallable.h>
 
-namespace TNL::Algorithms {
+namespace TNL::Containers::detail {
 
 template< typename DestinationDevice >
 struct MemoryOperations;
@@ -46,25 +46,6 @@ struct MemoryOperations< Devices::Sequential >
    __cuda_callable__
    static Element
    getElement( const Element* data );
-
-   template< typename Element, typename Index >
-   __cuda_callable__
-   static void
-   set( Element* data, const Element& value, Index size );
-
-   template< typename DestinationElement, typename SourceElement, typename Index >
-   __cuda_callable__
-   static void
-   copy( DestinationElement* destination, const SourceElement* source, Index size );
-
-   template< typename DestinationElement, typename Index, typename SourceIterator >
-   static void
-   copyFromIterator( DestinationElement* destination, Index destinationSize, SourceIterator first, SourceIterator last );
-
-   template< typename Element1, typename Element2, typename Index >
-   __cuda_callable__
-   static bool
-   compare( const Element1* destination, const Element2* source, Index size );
 };
 
 template<>
@@ -98,22 +79,6 @@ struct MemoryOperations< Devices::Host >
    __cuda_callable__
    static Element
    getElement( const Element* data );
-
-   template< typename Element, typename Index >
-   static void
-   set( Element* data, const Element& value, Index size );
-
-   template< typename DestinationElement, typename SourceElement, typename Index >
-   static void
-   copy( DestinationElement* destination, const SourceElement* source, Index size );
-
-   template< typename DestinationElement, typename Index, typename SourceIterator >
-   static void
-   copyFromIterator( DestinationElement* destination, Index destinationSize, SourceIterator first, SourceIterator last );
-
-   template< typename Element1, typename Element2, typename Index >
-   static bool
-   compare( const Element1* destination, const Element2* source, Index size );
 };
 
 template<>
@@ -144,26 +109,10 @@ struct MemoryOperations< Devices::Cuda >
    __cuda_callable__
    static Element
    getElement( const Element* data );
-
-   template< typename Element, typename Index >
-   static void
-   set( Element* data, const Element& value, Index size );
-
-   template< typename DestinationElement, typename SourceElement, typename Index >
-   static void
-   copy( DestinationElement* destination, const SourceElement* source, Index size );
-
-   template< typename DestinationElement, typename Index, typename SourceIterator >
-   static void
-   copyFromIterator( DestinationElement* destination, Index destinationSize, SourceIterator first, SourceIterator last );
-
-   template< typename Element1, typename Element2, typename Index >
-   static bool
-   compare( const Element1* destination, const Element2* source, Index size );
 };
 
-}  // namespace TNL::Algorithms
+}  // namespace TNL::Containers::detail
 
-#include <TNL/Algorithms/MemoryOperationsSequential.hpp>
-#include <TNL/Algorithms/MemoryOperationsHost.hpp>
-#include <TNL/Algorithms/MemoryOperationsCuda.hpp>
+#include "MemoryOperationsSequential.hpp"
+#include "MemoryOperationsHost.hpp"
+#include "MemoryOperationsCuda.hpp"

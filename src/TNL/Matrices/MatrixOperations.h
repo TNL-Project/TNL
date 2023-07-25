@@ -21,6 +21,7 @@
 #include <TNL/Math.h>
 #include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Cuda/SharedMemory.h>
+#include <TNL/Algorithms/copy.h>
 #include <TNL/Containers/Vector.h>
 
 namespace TNL::Matrices {
@@ -63,7 +64,7 @@ public:
       if( n == 1 ) {
          if( beta != 0.0 ) {
 #ifdef HAVE_OPENMP
-#pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
+            #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
 #endif
             for( IndexType j = 0; j < m; j++ )
                y[ j ] = A[ j ] * alphax[ 0 ] + beta * y[ j ];
@@ -71,7 +72,7 @@ public:
          else {
 // the vector y might be uninitialized, and 0.0 * NaN = NaN
 #ifdef HAVE_OPENMP
-#pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
+            #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
 #endif
             for( IndexType j = 0; j < m; j++ )
                y[ j ] = A[ j ] * alphax[ 0 ];
@@ -84,13 +85,13 @@ public:
          const IndexType blocks = m / block_size;
 
 #ifdef HAVE_OPENMP
-#pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
+         #pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
 #endif
          {
             RealType aux[ block_size ];
 
 #ifdef HAVE_OPENMP
-#pragma omp for nowait
+            #pragma omp for nowait
 #endif
             for( IndexType b = 0; b < blocks; b++ ) {
                const IndexType block_offset = b * block_size;
@@ -120,7 +121,7 @@ public:
 
 // the first thread that reaches here processes the last, incomplete block
 #ifdef HAVE_OPENMP
-#pragma omp single nowait
+            #pragma omp single nowait
 #endif
             {
                // TODO: unlike the complete blocks, the tail is traversed row-wise
@@ -178,7 +179,7 @@ public:
 
       if( n == 1 ) {
 #ifdef HAVE_OPENMP
-#pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
+         #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
 #endif
          for( IndexType j = 0; j < m; j++ )
             C[ j ] = alpha * A[ j ] + beta * B[ j ];
@@ -190,11 +191,11 @@ public:
          const IndexType blocks = m / block_size;
 
 #ifdef HAVE_OPENMP
-#pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
+         #pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
 #endif
          {
 #ifdef HAVE_OPENMP
-#pragma omp for nowait
+            #pragma omp for nowait
 #endif
             for( IndexType b = 0; b < blocks; b++ ) {
                const IndexType block_offset = b * block_size;
@@ -209,7 +210,7 @@ public:
 
 // the first thread that reaches here processes the last, incomplete block
 #ifdef HAVE_OPENMP
-#pragma omp single nowait
+            #pragma omp single nowait
 #endif
             {
                for( IndexType j = 0; j < n; j++ ) {
@@ -335,8 +336,7 @@ public:
       // TODO: use static storage, e.g. from the CudaReductionBuffer, to avoid frequent reallocations
       Containers::Vector< RealType, Devices::Cuda, IndexType > xDevice;
       xDevice.setSize( n );
-      Algorithms::MultiDeviceMemoryOperations< Devices::Cuda, Devices::Host >::copy< RealType, RealType, IndexType >(
-         xDevice.getData(), x, n );
+      Algorithms::copy< Devices::Cuda, Devices::Host >( xDevice.getData(), x, n );
 
       // desGridSize = blocksPerMultiprocessor * numberOfMultiprocessors
       const int desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );

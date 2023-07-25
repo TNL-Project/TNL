@@ -7,8 +7,8 @@
 #pragma once
 
 #include <TNL/TypeTraits.h>
-#include <TNL/Algorithms/MemoryOperations.h>
-#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
+#include <TNL/Algorithms/copy.h>
+#include <TNL/Algorithms/fill.h>
 
 namespace TNL::Containers::detail {
 
@@ -35,9 +35,7 @@ struct ArrayAssignment< Array, T, true >
       // skip assignment of empty arrays
       if( a.getSize() == 0 )
          return;
-      Algorithms::MultiDeviceMemoryOperations< typename Array::DeviceType, typename T::DeviceType >::
-         template copy< typename Array::ValueType, typename T::ValueType, typename Array::IndexType >(
-            a.getArrayData(), t.getArrayData(), t.getSize() );
+      Algorithms::copy< typename Array::DeviceType, typename T::DeviceType >( a.getArrayData(), t.getArrayData(), t.getSize() );
    }
 };
 
@@ -58,9 +56,7 @@ struct ArrayAssignment< Array, T, false >
       // skip assignment to an empty array
       if( a.getSize() == 0 )
          return;
-      Algorithms::MemoryOperations< typename Array::DeviceType >::template set< typename Array::ValueType,
-                                                                                typename Array::IndexType >(
-         a.getArrayData(), (typename Array::ValueType) t, a.getSize() );
+      Algorithms::fill< typename Array::DeviceType >( a.getArrayData(), (typename Array::ValueType) t, a.getSize() );
    }
 };
 

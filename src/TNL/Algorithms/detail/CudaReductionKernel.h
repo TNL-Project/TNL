@@ -12,8 +12,8 @@
 #include <TNL/Math.h>
 #include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Cuda/KernelLaunch.h>
+#include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
-#include <TNL/Algorithms/MultiDeviceMemoryOperations.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
 namespace TNL::Algorithms::detail {
@@ -555,7 +555,7 @@ struct CudaReductionKernelLauncher
 
       // Copy result on CPU
       Result result;
-      MultiDeviceMemoryOperations< void, Devices::Cuda >::copy( &result, output, 1 );
+      copy< void, Devices::Cuda >( &result, output, 1 );
       return result;
    }
 
@@ -590,8 +590,8 @@ struct CudaReductionKernelLauncher
       ////
       // Copy result on CPU
       std::pair< Result, Index > result;
-      MultiDeviceMemoryOperations< void, Devices::Cuda >::copy( &result.first, output, 1 );
-      MultiDeviceMemoryOperations< void, Devices::Cuda >::copy( &result.second, idxOutput, 1 );
+      copy< void, Devices::Cuda >( &result.first, output, 1 );
+      copy< void, Devices::Cuda >( &result.second, idxOutput, 1 );
       return result;
    }
 
@@ -676,7 +676,6 @@ protected:
 
    const int activeDevice;
    const int desGridSize;
-   // const Index originalSize;
    const Index begin, end;
    Index reducedSize;
 };
