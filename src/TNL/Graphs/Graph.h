@@ -15,12 +15,13 @@
 
 namespace TNL::Graphs {
 
-struct Directed {};
-
-struct Undirected {};
+enum class GraphTypes {
+   Directed,    //!< Directed graphs.
+   Undirected   //!< Undirected graphs.
+};
 
 template< typename Matrix,
-          typename GraphType_ = Directed,
+          GraphTypes GraphType = GraphTypes::Directed,
           typename = std::enable_if_t< Matrices::IsMatrixType< Matrix >::value > >
 struct Graph
 {
@@ -28,11 +29,12 @@ struct Graph
    using IndexType = typename Matrix::IndexType;
    using DeviceType = typename Matrix::DeviceType;
    using ValueType = typename Matrix::RealType;
-   using GraphType = GraphType_;
 
-   static constexpr bool isDirected() { return std::is_same_v< GraphType, Directed >; }
+   static constexpr bool isDirected() { return ( GraphType == GraphTypes::Directed ); } // TODO: Use getGraphType() instead
 
-   static constexpr bool isUndirected() { return std::is_same_v< GraphType, Undirected >; }
+   static constexpr bool isUndirected() { return ( GraphType == GraphTypes::Undirected ); } // TODO: Use getGraphType() instead
+
+   static constexpr GraphTypes getGraphType() { return GraphType; }
 
    Graph() = default;
 
@@ -167,7 +169,7 @@ struct Graph
    MatrixType adjacencyMatrix;
 };
 
-template< typename Matrix, typename GraphType >
+template< typename Matrix, GraphTypes GraphType >
 std::ostream& operator<<( std::ostream& os, const Graph< Matrix, GraphType >& graph ) {
    os << graph.getAdjacencyMatrix();
    return os;

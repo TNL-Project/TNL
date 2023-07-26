@@ -19,7 +19,7 @@ protected:
    using RealType = typename MatrixType::RealType;
    using DeviceType = typename MatrixType::DeviceType;
    using IndexType = typename MatrixType::IndexType;
-   using GraphType = TNL::Graphs::Graph< MatrixType, TNL::Graphs::Undirected >;
+   using GraphType = TNL::Graphs::Graph< MatrixType, TNL::Graphs::GraphTypes::Undirected >;
 };
 
 // types for which MatrixTest is instantiated

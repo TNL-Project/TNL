@@ -14,7 +14,7 @@ class GraphTest : public ::testing::Test
 {
 protected:
    using MatrixType = Matrix;
-   using GraphType = TNL::Graphs::Graph< MatrixType, TNL::Graphs::Undirected >;
+   using GraphType = TNL::Graphs::Graph< MatrixType, TNL::Graphs::GraphTypes::Undirected >;
 };
 
 // types for which MatrixTest is instantiated

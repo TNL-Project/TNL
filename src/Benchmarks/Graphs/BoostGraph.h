@@ -29,7 +29,7 @@ struct bfs_distance_visitor : public boost::default_bfs_visitor {
 };
 
 template< typename Value = double,
-          typename GraphType = TNL::Graphs::Directed >
+          TNL::Graphs::GraphTypes GraphType = TNL::Graphs::GraphTypes::Directed >
 struct BoostAdjacencyList {
    using type = boost::adjacency_list< boost::vecS,
                                        boost::vecS,
@@ -39,7 +39,7 @@ struct BoostAdjacencyList {
 };
 
 template< typename Value >
-struct BoostAdjacencyList< Value, TNL::Graphs::Undirected > {
+struct BoostAdjacencyList< Value, TNL::Graphs::GraphTypes::Undirected > {
    using type = boost::adjacency_list< boost::vecS,
                                        boost::vecS,
                                        boost::undirectedS,
@@ -49,7 +49,7 @@ struct BoostAdjacencyList< Value, TNL::Graphs::Undirected > {
 
 template< typename Index = int,
           typename Real = double,
-          typename GraphType = TNL::Graphs::Directed >
+          TNL::Graphs::GraphTypes GraphType = TNL::Graphs::GraphTypes::Directed >
 struct BoostGraph
 {
    using IndexType = Index;
@@ -58,15 +58,15 @@ struct BoostGraph
    using Vertex = typename boost::graph_traits< AdjacencyList >::vertex_descriptor;
    using Edge = typename boost::graph_traits< AdjacencyList >::edge_descriptor;
 
-   static constexpr bool isDirected() { return std::is_same_v< GraphType, TNL::Graphs::Directed >; }
-   static constexpr bool isUndirected() { return std::is_same_v< GraphType, TNL::Graphs::Undirected >; }
+   static constexpr bool isDirected() { return ( GraphType == TNL::Graphs::GraphTypes::Directed ); }
+   static constexpr bool isUndirected() { return ( GraphType == TNL::Graphs::GraphTypes::Undirected ); }
 
    BoostGraph(){}
 
    template< typename TNLGraph >
    BoostGraph( const TNLGraph& graph )
    {
-      static_assert( std::is_same_v< typename TNLGraph::GraphType, GraphType >, "Graph types must match." );
+      static_assert( TNLGraph::getGraphType() == GraphType, "Graph types must match." );
 
       for( Index rowIdx = 0; rowIdx < graph.getNodeCount(); rowIdx++ )
       {

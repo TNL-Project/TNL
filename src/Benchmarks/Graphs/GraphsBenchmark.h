@@ -42,8 +42,8 @@ struct GraphsBenchmark
    using RealType = Real;
    using IndexType = Index;
    using HostMatrix = TNL::Matrices::SparseMatrix<Real, TNL::Devices::Host, Index>;
-   using HostGraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::Undirected >;
-   using HostDigraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::Directed >;
+   using HostGraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::GraphTypes::Undirected >;
+   using HostDigraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::GraphTypes::Directed >;
    using HostIndexVector = TNL::Containers::Vector<Index, TNL::Devices::Host, Index>;
    using HostRealVector = TNL::Containers::Vector<Real, TNL::Devices::Host, Index>;
 
@@ -92,9 +92,9 @@ struct GraphsBenchmark
                        const TNL::String& segments )
    {
       using Matrix = TNL::Matrices::SparseMatrix<Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
-      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::Undirected >;
-      using Digraph = TNL::Graphs::Graph< Matrix, TNL::Graphs::Directed >;
-      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::Undirected >;
+      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Undirected >;
+      using Digraph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Directed >;
+      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Undirected >;
       using IndexVector = TNL::Containers::Vector<Index, Device, Index>;
       using RealVector = TNL::Containers::Vector<Real, Device, Index>;
       //using KernelType = SegmentsKernel< Index, Device >;
@@ -234,8 +234,8 @@ struct GraphsBenchmark
                          TNL::Benchmarks::Benchmark<>& benchmark )
    {
 #ifdef HAVE_BOOST
-      BoostGraph< Index, Real, TNL::Graphs::Directed > boostDigraph( digraph );
-      BoostGraph< Index, Real, TNL::Graphs::Undirected > boostGraph( graph );
+      BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Directed > boostDigraph( digraph );
+      BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Undirected > boostGraph( graph );
 
       // Benchmarking breadth-first search of directed graph
       benchmark.setMetadataColumns(
@@ -302,7 +302,7 @@ struct GraphsBenchmark
                                                           { "device", "sequential" },
                                                           { "format", "N/A" },
                                                           { "algorithm", std::string( "MST Boost" ) } } ) );
-      using BoostEdge = typename BoostGraph< Index, Real, TNL::Graphs::Undirected >::Edge;
+      using BoostEdge = typename BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Undirected >::Edge;
       std::vector< BoostEdge > boostMstEdges;
       auto mst_boost = [&] () mutable {
          boostGraph.minimumSpanningTree( boostMstEdges );
