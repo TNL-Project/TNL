@@ -37,7 +37,15 @@ target_compile_options( TNL_CUDA INTERFACE
 set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wall" )
 set( CMAKE_CUDA_FLAGS_DEBUG "-g" )
 set( CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG" )
-set( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELEASE} ${CMAKE_CUDA_FLAGS_DEBUG} --generate-line-info" )
+set( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELEASE} ${CMAKE_CUDA_FLAGS_DEBUG}" )
+
+if( CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA" )
+   set( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELWITHDEBINFO} --generate-line-info" )
+   if( TNL_USE_CI_FLAGS )
+      # enforce (more or less) warning-free builds for host code
+      set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Werror -Xcompiler -Wno-error=deprecated -Xcompiler -Wno-error=deprecated-declarations" )
+   endif()
+endif()
 
 if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
    # disable some unimportant warnings
@@ -49,4 +57,15 @@ if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
    # workaround for Clang 15
    # https://github.com/llvm/llvm-project/issues/58491
    set( CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0" )
+endif()
+
+# force colorized output in continuous integration
+if( DEFINED ENV{GITLAB_CI} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
+   message(STATUS "Continuous integration or Ninja detected -- forcing compilers to produce colorized output.")
+   if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
+      set( TNL_COLOR_DIAGNOSTICS_FLAG "-fcolor-diagnostics" )
+   #elseif( CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA" )
+   # nvcc does not support colored diagnostics
+   endif()
+   set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${TNL_COLOR_DIAGNOSTICS_FLAG}" )
 endif()

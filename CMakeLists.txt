@@ -73,9 +73,6 @@ set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
-# set C++ compiler flags
-include( cmake/cxx_flags.cmake )
-
 # make cache variable so it can be used in downstream projects
 set( TNL_INCLUDE_DIRS
      "${CMAKE_CURRENT_LIST_DIR}/src"
@@ -105,6 +102,9 @@ target_compile_options( TNL INTERFACE
 
 # add the std::filesystem library to the interface
 target_link_libraries( TNL INTERFACE std::filesystem )
+
+# set C++ compiler flags
+include( cmake/cxx_flags.cmake )
 
 # gtest has to be built before we add the MPI flags
 if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )

@@ -9,19 +9,6 @@ if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
 endif()
 set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_DEBUG}" )
 
-if( CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
-   # icpx complains about -g without -O
-   set( CMAKE_CXX_FLAGS_DEBUG "-O0 -g" )
-   # avoid warning: explicit comparison with NaN in fast floating point mode [-Wtautological-constant-compare]
-   # see https://github.com/mfem/mfem/issues/3655#issuecomment-1569294763
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fhonor-infinities -fhonor-nans" )
-endif()
-
-if( TNL_USE_CI_FLAGS )
-   # enforce (more or less) warning-free builds
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=uninitialized" )
-endif()
-
 # warn about redundant semicolons
 if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
@@ -33,6 +20,24 @@ if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
        CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
       set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra-semi-stmt" )
    endif()
+endif()
+
+# disable GCC's infamous "maybe-uninitialized" warning (it produces mostly false positives)
+if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized" )
+endif()
+
+if( TNL_USE_CI_FLAGS )
+   # enforce (more or less) warning-free builds
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations" )
+endif()
+
+if( CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
+   # icpx complains about -g without -O
+   set( CMAKE_CXX_FLAGS_DEBUG "-O0 -g" )
+   # avoid warning: explicit comparison with NaN in fast floating point mode [-Wtautological-constant-compare]
+   # see https://github.com/mfem/mfem/issues/3655#issuecomment-1569294763
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fhonor-infinities -fhonor-nans" )
 endif()
 
 # optimize Release builds for the native CPU arch, unless explicitly disabled
@@ -64,24 +69,6 @@ if( MSVC )
    # "/bigobj" avoids problems with large object files due to heavily templated code
    # "/permissive-" enables two-phase name lookup according to the standard, see https://stackoverflow.com/q/74238513
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-" )
-endif()
-
-# disable some unimportant warnings
-if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
-    CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-    CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
-    CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas" )
-endif()
-
-# disable GCC's infamous "maybe-uninitialized" warning (it produces mostly false positives)
-if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized" )
-endif()
-
-# disable false Clang warning: https://stackoverflow.com/q/57645872
-if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-self-assign-overloaded" )
 endif()
 
 # enable sanitizers (does not work with MPI due to many false positives, does not work with nvcc at all)
