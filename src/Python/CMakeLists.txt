@@ -1,8 +1,8 @@
-find_package( PythonInterp 3 )
+find_package( Python 3 COMPONENTS Interpreter )
 
-set( PYTHON_SITE_PACKAGES_DIR lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages )
+set( PYTHON_SITE_PACKAGES_DIR lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages )
 
-if( PYTHONINTERP_FOUND )
+if( Python_Interpreter_FOUND )
    CONFIGURE_FILE( "__init__.py.in" "__init__.py" )
    INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/__init__.py
                   BenchmarkLogs.py
