@@ -75,7 +75,7 @@ struct CSRAdaptiveKernelView
                       const Value& identity = Reduction::template getIdentity< Value >() ) const;
 
    CSRAdaptiveKernelView&
-   operator=( const CSRAdaptiveKernelView< Index, Device >& kernelView );
+   operator=( const CSRAdaptiveKernelView< Index, Device >& kernelView ) = delete;
 
    void
    printBlocks( int idx ) const;
