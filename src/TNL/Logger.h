@@ -64,7 +64,6 @@ public:
     * \param parameters A container with configuration parameters.
     * \param parameterLevel Integer defining the indent used in the log.
     */
-   // TODO: add units
    template< typename ParameterType >
    void
    writeParameter( const String& label,
