@@ -6,36 +6,87 @@
 
 using namespace TNL;
 
-struct MeshRefineConfigTag {};
+struct MeshRefineConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off all grids.
  */
-template<> struct GridRealTag< MeshRefineConfigTag, float > { static constexpr bool enabled = false; };
-template<> struct GridRealTag< MeshRefineConfigTag, double > { static constexpr bool enabled = false; };
-template<> struct GridRealTag< MeshRefineConfigTag, long double > { static constexpr bool enabled = false; };
+template<>
+struct GridRealTag< MeshRefineConfigTag, float >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridRealTag< MeshRefineConfigTag, double >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridRealTag< MeshRefineConfigTag, long double >
+{
+   static constexpr bool enabled = false;
+};
 
 /****
  * Unstructured meshes.
  */
-template<> struct MeshCellTopologyTag< MeshRefineConfigTag, Topologies::Triangle > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MeshRefineConfigTag, Topologies::Quadrangle > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MeshRefineConfigTag, Topologies::Tetrahedron > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MeshRefineConfigTag, Topologies::Hexahedron > { static constexpr bool enabled = true; };
+template<>
+struct MeshCellTopologyTag< MeshRefineConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MeshRefineConfigTag, Topologies::Quadrangle >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MeshRefineConfigTag, Topologies::Tetrahedron >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MeshRefineConfigTag, Topologies::Hexahedron >
+{
+   static constexpr bool enabled = true;
+};
 
 // Meshes are enabled only for the space dimension equal to the cell dimension.
 template< typename CellTopology, int SpaceDimension >
 struct MeshSpaceDimensionTag< MeshRefineConfigTag, CellTopology, SpaceDimension >
-{ static constexpr bool enabled = SpaceDimension == CellTopology::dimension; };
+{
+   static constexpr bool enabled = SpaceDimension == CellTopology::dimension;
+};
 
 // Meshes are enabled only for types explicitly listed below.
-template<> struct MeshRealTag< MeshRefineConfigTag, float > { static constexpr bool enabled = true; };
-template<> struct MeshRealTag< MeshRefineConfigTag, double > { static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MeshRefineConfigTag, long int > { static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MeshRefineConfigTag, int > { static constexpr bool enabled = true; };
-template<> struct MeshLocalIndexTag< MeshRefineConfigTag, short int > { static constexpr bool enabled = true; };
+template<>
+struct MeshRealTag< MeshRefineConfigTag, float >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshRealTag< MeshRefineConfigTag, double >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MeshRefineConfigTag, long int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MeshRefineConfigTag, int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshLocalIndexTag< MeshRefineConfigTag, short int >
+{
+   static constexpr bool enabled = true;
+};
 
 // Config tag specifying the MeshConfig template to use.
 template<>
@@ -48,39 +99,49 @@ struct MeshConfigTemplateTag< MeshRefineConfigTag >
              typename LocalIndex = short int >
    struct MeshConfig : public DefaultConfig< Cell, SpaceDimension, Real, GlobalIndex, LocalIndex >
    {
-      static constexpr bool subentityStorage( int entityDimension, int subentityDimension )
+      static constexpr bool
+      subentityStorage( int entityDimension, int subentityDimension )
       {
          return subentityDimension == 0 && entityDimension == Cell::dimension;
       }
 
-      static constexpr bool superentityStorage( int entityDimension, int superentityDimension )
+      static constexpr bool
+      superentityStorage( int entityDimension, int superentityDimension )
       {
          return false;
       }
 
-      static constexpr bool entityTagsStorage( int entityDimension )
+      static constexpr bool
+      entityTagsStorage( int entityDimension )
       {
          return false;
       }
 
-      static constexpr bool dualGraphStorage()
+      static constexpr bool
+      dualGraphStorage()
       {
          return false;
       }
    };
 };
 
-} // namespace TNL::Meshes::BuildConfigTags
+}  // namespace TNL::Meshes::BuildConfigTags
 
 template< typename Mesh >
-Mesh getRefinedMeshHelper( const Mesh& mesh, const std::string& decompositionType )
+Mesh
+getRefinedMeshHelper( const Mesh& mesh, const std::string& decompositionType )
 {
    using namespace TNL::Meshes;
    return getRefinedMesh< EntityRefinerVersion::EdgeBisection >( mesh );
 }
 
 template< typename Mesh >
-bool refineMesh( Mesh& mesh, const std::string& outputFileName, const std::string& outputFormat, const std::string& decompositionType, int iterations )
+bool
+refineMesh( Mesh& mesh,
+            const std::string& outputFileName,
+            const std::string& outputFormat,
+            const std::string& decompositionType,
+            int iterations )
 {
    for( int i = 1; i <= iterations; i++ ) {
       std::cout << "Refining mesh (iteration " << i << ")" << std::endl;
@@ -93,7 +154,7 @@ bool refineMesh( Mesh& mesh, const std::string& outputFileName, const std::strin
       format = fs::path( outputFileName ).extension().string();
       if( format.length() > 0 )
          // remove dot from the extension
-         format = format.substr(1);
+         format = format.substr( 1 );
    }
 
    if( format == "vtk" ) {
@@ -119,16 +180,23 @@ bool refineMesh( Mesh& mesh, const std::string& outputFileName, const std::strin
    return false;
 }
 
-void configSetup( Config::ConfigDescription& config )
+void
+configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addRequiredEntry< std::string >( "input-file", "Input file with the mesh." );
    config.addEntry< std::string >( "input-file-format", "Input mesh file format.", "auto" );
-   config.addEntry< std::string >( "real-type", "Type to use for the representation of spatial coordinates in the output mesh. When 'auto', the real type from the input mesh is used.", "auto" );
+   config.addEntry< std::string >( "real-type",
+                                   "Type to use for the representation of spatial coordinates in the output mesh. When 'auto', "
+                                   "the real type from the input mesh is used.",
+                                   "auto" );
    config.addEntryEnum( "auto" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
-   config.addEntry< std::string >( "global-index-type", "Type to use for the representation of global indices in the output mesh. When 'auto', the global index type from the input mesh is used.", "auto" );
+   config.addEntry< std::string >( "global-index-type",
+                                   "Type to use for the representation of global indices in the output mesh. When 'auto', the "
+                                   "global index type from the input mesh is used.",
+                                   "auto" );
    config.addEntryEnum( "auto" );
    config.addEntryEnum( "std::int32_t" );
    config.addEntryEnum( "std::int64_t" );
@@ -142,7 +210,8 @@ void configSetup( Config::ConfigDescription& config )
    config.addEntry< int >( "iterations", "Number of mesh refinement iterations.", 1 );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
@@ -161,10 +230,11 @@ int main( int argc, char* argv[] )
    const std::string decompositionType = parameters.getParameter< std::string >( "decomposition-type" );
    const int iterations = parameters.getParameter< int >( "iterations" );
 
-   auto wrapper = [&] ( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {
       return refineMesh( mesh, outputFileName, outputFileFormat, decompositionType, iterations );
    };
-   const bool status = Meshes::resolveAndLoadMesh< MeshRefineConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat, realType, globalIndexType );
+   const bool status = Meshes::resolveAndLoadMesh< MeshRefineConfigTag, Devices::Host >(
+      wrapper, inputFileName, inputFileFormat, realType, globalIndexType );
    return static_cast< int >( ! status );
 }

@@ -12,33 +12,66 @@
 
 using namespace TNL;
 
-struct MyConfigTag {};
+struct MyConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
 struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >
-{ static constexpr bool enabled = false; };
+{
+   static constexpr bool enabled = false;
+};
 
 // Meshes are enabled only for topologies explicitly listed below.
 //template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle > { static constexpr bool enabled = true; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
 //template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron > { static constexpr bool enabled = true; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron >
+{
+   static constexpr bool enabled = true;
+};
 //template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron > { static constexpr bool enabled = true; };
 
 // Meshes are enabled only for the space dimension equal to the cell dimension.
 template< typename CellTopology, int SpaceDimension >
 struct MeshSpaceDimensionTag< MyConfigTag, CellTopology, SpaceDimension >
-{ static constexpr bool enabled = SpaceDimension == CellTopology::dimension; };
+{
+   static constexpr bool enabled = SpaceDimension == CellTopology::dimension;
+};
 
 // Meshes are enabled only for types explicitly listed below.
-template<> struct MeshRealTag< MyConfigTag, float > { static constexpr bool enabled = true; };
-template<> struct MeshRealTag< MyConfigTag, double > { static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MyConfigTag, int > { static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MyConfigTag, long int > { static constexpr bool enabled = true; };
-template<> struct MeshLocalIndexTag< MyConfigTag, short int > { static constexpr bool enabled = true; };
+template<>
+struct MeshRealTag< MyConfigTag, float >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshRealTag< MyConfigTag, double >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MyConfigTag, int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MyConfigTag, long int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshLocalIndexTag< MyConfigTag, short int >
+{
+   static constexpr bool enabled = true;
+};
 
 // Config tag specifying the MeshConfig template to use.
 template<>
@@ -59,25 +92,28 @@ struct MeshConfigTemplateTag< MyConfigTag >
       static constexpr int spaceDimension = SpaceDimension;
       static constexpr int meshDimension = Cell::dimension;
 
-      static constexpr bool subentityStorage( int entityDimension, int subentityDimension )
+      static constexpr bool
+      subentityStorage( int entityDimension, int subentityDimension )
       {
-         return ( subentityDimension == 0 && entityDimension >= meshDimension - 1 )
-               || subentityDimension == meshDimension - 1;
+         return ( subentityDimension == 0 && entityDimension >= meshDimension - 1 ) || subentityDimension == meshDimension - 1;
       }
 
-      static constexpr bool superentityStorage( int entityDimension, int superentityDimension )
+      static constexpr bool
+      superentityStorage( int entityDimension, int superentityDimension )
       {
-//         return false;
-         return (entityDimension == 0 || entityDimension == meshDimension - 1) && superentityDimension >= meshDimension - 1;
+         //         return false;
+         return ( entityDimension == 0 || entityDimension == meshDimension - 1 ) && superentityDimension >= meshDimension - 1;
       }
 
-      static constexpr bool entityTagsStorage( int entityDimension )
+      static constexpr bool
+      entityTagsStorage( int entityDimension )
       {
-//         return false;
+         //         return false;
          return entityDimension == 0 || entityDimension >= meshDimension - 1;
       }
 
-      static constexpr bool dualGraphStorage()
+      static constexpr bool
+      dualGraphStorage()
       {
          return true;
       }
@@ -86,8 +122,7 @@ struct MeshConfigTemplateTag< MyConfigTag >
    };
 };
 
-} // namespace TNL::Meshes::BuildConfigTags
-
+}  // namespace TNL::Meshes::BuildConfigTags
 
 // TODO
 // simple mesh function without SharedPointer for the mesh
@@ -100,59 +135,72 @@ struct MyMeshFunction
    using IndexType = typename LocalMesh::GlobalIndexType;
    using VectorType = Containers::Vector< RealType, DeviceType, IndexType >;
 
-   static constexpr int getEntitiesDimension() { return EntitiesDimension; }
+   static constexpr int
+   getEntitiesDimension()
+   {
+      return EntitiesDimension;
+   }
 
-   static constexpr int getMeshDimension() { return LocalMesh::getMeshDimension(); }
+   static constexpr int
+   getMeshDimension()
+   {
+      return LocalMesh::getMeshDimension();
+   }
 
    MyMeshFunction( const LocalMesh& localMesh )
    {
       data.setSize( localMesh.template getEntitiesCount< getEntitiesDimension() >() );
    }
 
-   const VectorType& getData() const
+   const VectorType&
+   getData() const
    {
       return data;
    }
 
-   VectorType& getData()
+   VectorType&
+   getData()
    {
       return data;
    }
 
-   private:
-      VectorType data;
+private:
+   VectorType data;
 };
-
 
 template< typename Mesh >
 __cuda_callable__
 typename Mesh::LocalIndexType
-getCellsForFace( const Mesh & mesh, const typename Mesh::GlobalIndexType E, typename Mesh::GlobalIndexType* cellIndexes )
+getCellsForFace( const Mesh& mesh, const typename Mesh::GlobalIndexType E, typename Mesh::GlobalIndexType* cellIndexes )
 {
-    using LocalIndexType = typename Mesh::LocalIndexType;
-    const LocalIndexType numCells = mesh.template getSuperentitiesCount< Mesh::getMeshDimension() - 1, Mesh::getMeshDimension() >( E );
-    for( LocalIndexType i = 0; i < numCells; i++ )
-        cellIndexes[ i ] = mesh.template getSuperentityIndex< Mesh::getMeshDimension() - 1, Mesh::getMeshDimension() >( E, i );
-    return numCells;
+   using LocalIndexType = typename Mesh::LocalIndexType;
+   const LocalIndexType numCells =
+      mesh.template getSuperentitiesCount< Mesh::getMeshDimension() - 1, Mesh::getMeshDimension() >( E );
+   for( LocalIndexType i = 0; i < numCells; i++ )
+      cellIndexes[ i ] = mesh.template getSuperentityIndex< Mesh::getMeshDimension() - 1, Mesh::getMeshDimension() >( E, i );
+   return numCells;
 }
 
-
 // TODO: copy this to the DistributedMeshTest.h
-// testing global indices is not enough - entity centers are needed to ensure that the transferred data really match the physical entities
+// testing global indices is not enough - entity centers are needed to ensure that the transferred data really match the
+// physical entities
 template< typename Device, typename EntityType, typename MeshType >
-void testSynchronizerOnDevice( const MeshType& mesh )
+void
+testSynchronizerOnDevice( const MeshType& mesh )
 {
    using LocalMesh = TNL::Meshes::Mesh< typename MeshType::Config, Device >;
    using DeviceMesh = TNL::Meshes::DistributedMeshes::DistributedMesh< LocalMesh >;
    using IndexType = typename MeshType::GlobalIndexType;
    using PointType = typename MeshType::PointType;
    using Array = TNL::Containers::Array< typename LocalMesh::RealType, typename LocalMesh::DeviceType, IndexType >;
-   using Synchronizer = TNL::Meshes::DistributedMeshes::DistributedMeshSynchronizer< DeviceMesh, EntityType::getEntityDimension() >;
+   using Synchronizer =
+      TNL::Meshes::DistributedMeshes::DistributedMeshSynchronizer< DeviceMesh, EntityType::getEntityDimension() >;
 
    // initialize
    DeviceMesh deviceMesh;
    deviceMesh = mesh;
-   Array f( mesh.getLocalMesh().template getEntitiesCount< EntityType::getEntityDimension() >() * MeshType::getMeshDimension() );
+   Array f( mesh.getLocalMesh().template getEntitiesCount< EntityType::getEntityDimension() >()
+            * MeshType::getMeshDimension() );
    f.setValue( 0 );
 
    // set center of each local entity
@@ -172,19 +220,19 @@ void testSynchronizerOnDevice( const MeshType& mesh )
    IndexType errors = 0;
    for( IndexType i = 0; i < mesh.getLocalMesh().template getEntitiesCount< EntityType >(); i++ )
       if( mesh.getLocalMesh().template isGhostEntity< EntityType::getEntityDimension() >( i ) ) {
-         const PointType center = getEntityCenter( mesh.getLocalMesh(), mesh.getLocalMesh().template getEntity< EntityType >( i ) );
+         const PointType center =
+            getEntityCenter( mesh.getLocalMesh(), mesh.getLocalMesh().template getEntity< EntityType >( i ) );
          PointType received;
          for( int d = 0; d < MeshType::getMeshDimension(); d++ )
             received[ d ] = f.getElement( d + MeshType::getMeshDimension() * i );
          if( received != center ) {
-            IndexType cellIndexes[ 2 ] = {0, 0};
+            IndexType cellIndexes[ 2 ] = { 0, 0 };
             const int numCells = getCellsForFace( mesh.getLocalMesh(), i, cellIndexes );
-            std::cerr << "rank " << TNL::MPI::GetRank()
-                      << ": wrong result for entity " << i << " (gid " << mesh.template getGlobalIndices< EntityType::getEntityDimension() >()[i] << ")"
-                      << " of dimension = " << EntityType::getEntityDimension()
-                      << ": received " << received << ", expected = " << center
-                      << ", neighbor cells " << cellIndexes[0] << " " << ((numCells>1) ? cellIndexes[1] : -1)
-                      << std::endl;
+            std::cerr << "rank " << TNL::MPI::GetRank() << ": wrong result for entity " << i << " (gid "
+                      << mesh.template getGlobalIndices< EntityType::getEntityDimension() >()[ i ] << ")"
+                      << " of dimension = " << EntityType::getEntityDimension() << ": received " << received
+                      << ", expected = " << center << ", neighbor cells " << cellIndexes[ 0 ] << " "
+                      << ( ( numCells > 1 ) ? cellIndexes[ 1 ] : -1 ) << std::endl;
             errors++;
          }
       }
@@ -195,7 +243,8 @@ void testSynchronizerOnDevice( const MeshType& mesh )
 }
 
 template< typename Mesh >
-void testSynchronizer( const Mesh& mesh )
+void
+testSynchronizer( const Mesh& mesh )
 {
    testSynchronizerOnDevice< Devices::Host, typename Mesh::Vertex >( mesh );
    testSynchronizerOnDevice< Devices::Host, typename Mesh::Cell >( mesh );
@@ -209,9 +258,9 @@ void testSynchronizer( const Mesh& mesh )
 #endif
 }
 
-
 template< typename Mesh >
-bool testPropagationOverFaces( const Mesh& mesh, int max_iterations )
+bool
+testPropagationOverFaces( const Mesh& mesh, int max_iterations )
 {
    using LocalMesh = typename Mesh::MeshType;
    using Index = typename Mesh::GlobalIndexType;
@@ -226,17 +275,18 @@ bool testPropagationOverFaces( const Mesh& mesh, int max_iterations )
    face_sync.initialize( mesh );
 
    using Real = int;
-   MyMeshFunction< Real, LocalMesh, Mesh::getMeshDimension() >     f_K( localMesh ), f_K_test( localMesh ), f_K_test_aux( localMesh );
+   MyMeshFunction< Real, LocalMesh, Mesh::getMeshDimension() > f_K( localMesh ), f_K_test( localMesh ),
+      f_K_test_aux( localMesh );
    MyMeshFunction< Real, LocalMesh, Mesh::getMeshDimension() - 1 > f_E( localMesh );
    f_K.getData().setValue( 0 );
    f_K_test.getData().setValue( 0 );
    f_K_test_aux.getData().setValue( 0 );
    f_E.getData().setValue( 0 );
 
-   auto make_snapshot = [&] ( Index iteration )
+   auto make_snapshot = [ & ]( Index iteration )
    {
       // create a .pvtu file (only rank 0 actually writes to the file)
-      const std::string mainFilePath = "data_" + std::to_string(iteration) + ".pvtu";
+      const std::string mainFilePath = "data_" + std::to_string( iteration ) + ".pvtu";
       std::ofstream file;
       if( TNL::MPI::GetRank() == 0 )
          file.open( mainFilePath );
@@ -288,12 +338,18 @@ bool testPropagationOverFaces( const Mesh& mesh, int max_iterations )
       f_K_test_aux_view = f_K_test_view;
 
       // iterate over all local cells
-      auto testKernel = [f_K_test_aux_view, f_K_test_view, localMeshPointer] __cuda_callable__ ( Index K ) mutable
+      auto testKernel = [ f_K_test_aux_view, f_K_test_view, localMeshPointer ] __cuda_callable__( Index K ) mutable
       {
          Real max = f_K_test_aux_view[ K ];
-         for( int e = 0; e < localMeshPointer->template getSubentitiesCount< LocalMesh::getMeshDimension(), LocalMesh::getMeshDimension() - 1 >( K ); e++ ) {
-            const Index E = localMeshPointer->template getSubentityIndex< LocalMesh::getMeshDimension(), LocalMesh::getMeshDimension() - 1 >( K, e );
-            Index cellIndexes[ 2 ] = {0, 0};
+         for( int e = 0;
+              e < localMeshPointer
+                     ->template getSubentitiesCount< LocalMesh::getMeshDimension(), LocalMesh::getMeshDimension() - 1 >( K );
+              e++ )
+         {
+            const Index E =
+               localMeshPointer->template getSubentityIndex< LocalMesh::getMeshDimension(), LocalMesh::getMeshDimension() - 1 >(
+                  K, e );
+            Index cellIndexes[ 2 ] = { 0, 0 };
             const int numCells = getCellsForFace( *localMeshPointer, E, cellIndexes );
 
             Real edge_value;
@@ -301,8 +357,10 @@ bool testPropagationOverFaces( const Mesh& mesh, int max_iterations )
                edge_value = boundary_value;
             }
             else {
-               edge_value = std::ceil( 0.5 * ( f_K_test_aux_view[ cellIndexes[ 0 ] ] + f_K_test_aux_view[ cellIndexes[ 1 ] ] ) );
-//               edge_value = TNL::max( f_K_test_aux_view[ cellIndexes[ 0 ] ], f_K_test_aux_view[ cellIndexes[ 1 ] ] );
+               edge_value =
+                  std::ceil( 0.5 * ( f_K_test_aux_view[ cellIndexes[ 0 ] ] + f_K_test_aux_view[ cellIndexes[ 1 ] ] ) );
+               //               edge_value = TNL::max( f_K_test_aux_view[ cellIndexes[ 0 ] ], f_K_test_aux_view[ cellIndexes[ 1
+               //               ] ] );
             }
             if( edge_value > max ) {
                max = edge_value;
@@ -316,16 +374,16 @@ bool testPropagationOverFaces( const Mesh& mesh, int max_iterations )
       cell_sync.synchronize( f_K_test );
 
       // iterate over all local faces
-      auto faceAverageKernel = [f_K_view, f_E_view, localMeshPointer] __cuda_callable__ ( Index E ) mutable
+      auto faceAverageKernel = [ f_K_view, f_E_view, localMeshPointer ] __cuda_callable__( Index E ) mutable
       {
          TNL_ASSERT_FALSE( localMeshPointer->template isGhostEntity< LocalMesh::getMeshDimension() - 1 >( E ),
                            "iterator bug - got a ghost entity" );
 
-         Index cellIndexes[ 2 ] = {0, 0};
+         Index cellIndexes[ 2 ] = { 0, 0 };
          const int numCells = getCellsForFace( *localMeshPointer, E, cellIndexes );
 
          if( numCells == 1 ) {
-            TNL_ASSERT_FALSE( localMeshPointer->template isGhostEntity< LocalMesh::getMeshDimension() >( cellIndexes[0] ),
+            TNL_ASSERT_FALSE( localMeshPointer->template isGhostEntity< LocalMesh::getMeshDimension() >( cellIndexes[ 0 ] ),
                               // NOTE: c_str does not work on GPU
                               //("iterator bug - boundary face " + std::to_string(E) + " on a ghost cell "
                               // + std::to_string(cellIndexes[0])).c_str() );
@@ -334,7 +392,7 @@ bool testPropagationOverFaces( const Mesh& mesh, int max_iterations )
          }
          else {
             f_E_view[ E ] = std::ceil( 0.5 * ( f_K_view[ cellIndexes[ 0 ] ] + f_K_view[ cellIndexes[ 1 ] ] ) );
-//            f_E_view[ E ] = TNL::max( f_K_view[ cellIndexes[ 0 ] ], f_K_view[ cellIndexes[ 1 ] ] );
+            //            f_E_view[ E ] = TNL::max( f_K_view[ cellIndexes[ 0 ] ], f_K_view[ cellIndexes[ 1 ] ] );
          }
       };
       localMesh.template forLocal< LocalMesh::getMeshDimension() - 1 >( faceAverageKernel );
@@ -343,11 +401,17 @@ bool testPropagationOverFaces( const Mesh& mesh, int max_iterations )
       face_sync.synchronize( f_E );
 
       // iterate over all local cells
-      auto kernel = [f_K_view, f_E_view, localMeshPointer] __cuda_callable__ ( Index K ) mutable
+      auto kernel = [ f_K_view, f_E_view, localMeshPointer ] __cuda_callable__( Index K ) mutable
       {
          Real max = f_K_view[ K ];
-         for( int e = 0; e < localMeshPointer->template getSubentitiesCount< LocalMesh::getMeshDimension(), LocalMesh::getMeshDimension() - 1 >( K ); e++ ) {
-            const Index E = localMeshPointer->template getSubentityIndex< LocalMesh::getMeshDimension(), LocalMesh::getMeshDimension() - 1 >( K, e );
+         for( int e = 0;
+              e < localMeshPointer
+                     ->template getSubentitiesCount< LocalMesh::getMeshDimension(), LocalMesh::getMeshDimension() - 1 >( K );
+              e++ )
+         {
+            const Index E =
+               localMeshPointer->template getSubentityIndex< LocalMesh::getMeshDimension(), LocalMesh::getMeshDimension() - 1 >(
+                  K, e );
             if( f_E_view[ E ] > max ) {
                max = f_E_view[ E ];
             }
@@ -367,7 +431,8 @@ bool testPropagationOverFaces( const Mesh& mesh, int max_iterations )
          std::cerr << "ERROR: propatation over faces differs from the propagation over neighbor cells. Differing values are:\n";
          for( Index K = 0; K < f_K_view.getSize(); K++ )
             if( f_K_view[ K ] != f_K_test_view[ K ] )
-               std::cerr << "   rank = " << TNL::MPI::GetRank() << ", K = " << K << ": " << f_K_view[ K ] << " instead of " << f_K_test_view[ K ] << "\n";
+               std::cerr << "   rank = " << TNL::MPI::GetRank() << ", K = " << K << ": " << f_K_view[ K ] << " instead of "
+                         << f_K_test_view[ K ] << "\n";
          std::cerr.flush();
          TNL_ASSERT_TRUE( false, "test failed" );
       }
@@ -375,13 +440,13 @@ bool testPropagationOverFaces( const Mesh& mesh, int max_iterations )
       // check if finished
       const bool done = sum( f_K.getData() ) == prev_sum || iteration > max_iterations;
       TNL::MPI::Allreduce( &done, &all_done, 1, MPI_LAND, mesh.getCommunicator() );
-   }
-   while( ! all_done );
+   } while( ! all_done );
 
    return true;
 }
 
-void configSetup( Config::ConfigDescription& config )
+void
+configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addRequiredEntry< String >( "input-file", "Input file with the mesh." );
@@ -391,14 +456,15 @@ void configSetup( Config::ConfigDescription& config )
    TNL::MPI::configSetup( config );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
    configSetup( conf_desc );
 
-   TNL::MPI::ScopedInitializer mpi(argc, argv);
+   TNL::MPI::ScopedInitializer mpi( argc, argv );
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
@@ -410,9 +476,9 @@ int main( int argc, char* argv[] )
    const String inputFileFormat = parameters.getParameter< String >( "input-file-format" );
    const int max_iterations = parameters.getParameter< int >( "max-iterations" );
 
-   auto wrapper = [&] ( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {
-      using MeshType = std::decay_t< decltype(mesh) >;
+      using MeshType = std::decay_t< decltype( mesh ) >;
 
       // print basic mesh info
       mesh.printInfo( std::cout );
@@ -424,8 +490,9 @@ int main( int argc, char* argv[] )
       testSynchronizer( mesh );
 
       // test simple propagation algorithm
-      return testPropagationOverFaces( std::forward<MeshType>(mesh), max_iterations );
+      return testPropagationOverFaces( std::forward< MeshType >( mesh ), max_iterations );
    };
-   const bool status = Meshes::resolveAndLoadDistributedMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
-   return static_cast< int >( ! status);
+   const bool status =
+      Meshes::resolveAndLoadDistributedMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   return static_cast< int >( ! status );
 }

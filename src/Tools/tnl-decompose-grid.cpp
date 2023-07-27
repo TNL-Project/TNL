@@ -7,24 +7,45 @@
 
 using namespace TNL;
 
-struct DecomposeGridConfigTag {};
+struct DecomposeGridConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn on all grids.
  */
-template<> struct GridRealTag< DecomposeGridConfigTag, float > { static constexpr bool enabled = true; };
-template<> struct GridRealTag< DecomposeGridConfigTag, double > { static constexpr bool enabled = true; };
-template<> struct GridRealTag< DecomposeGridConfigTag, long double > { static constexpr bool enabled = true; };
+template<>
+struct GridRealTag< DecomposeGridConfigTag, float >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct GridRealTag< DecomposeGridConfigTag, double >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct GridRealTag< DecomposeGridConfigTag, long double >
+{
+   static constexpr bool enabled = true;
+};
 
-template<> struct GridIndexTag< DecomposeGridConfigTag, int > { static constexpr bool enabled = true; };
-template<> struct GridIndexTag< DecomposeGridConfigTag, long int > { static constexpr bool enabled = true; };
+template<>
+struct GridIndexTag< DecomposeGridConfigTag, int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct GridIndexTag< DecomposeGridConfigTag, long int >
+{
+   static constexpr bool enabled = true;
+};
 
-} // namespace TNL::Meshes::BuildConfigTags
+}  // namespace TNL::Meshes::BuildConfigTags
 
-
-void configSetup( Config::ConfigDescription& config )
+void
+configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addRequiredEntry< String >( "input-file", "Input file with the grid." );
@@ -34,21 +55,21 @@ void configSetup( Config::ConfigDescription& config )
    config.addEntry< unsigned >( "subdomains-y", "Number of grid subdomains along the y-axis.", 1 );
    config.addEntry< unsigned >( "subdomains-z", "Number of grid subdomains along the z-axis.", 1 );
    config.addEntry< unsigned >( "ghost-levels", "Number of ghost levels by which the subdomains overlap.", 0 );
-// TODO: implement this in the distributed grid (it should configure communication over faces/edges/vertices in the grid synchronizer)
-//   config.addEntry< unsigned >( "min-common-vertices",
-//                                "Specifies the number of common nodes that two elements must have in order to put an "
-//                                "edge between them in the dual graph. By default it is equal to the mesh dimension." );
+   // TODO: implement this in the distributed grid (it should configure communication over faces/edges/vertices in the grid
+   // synchronizer)
+   //   config.addEntry< unsigned >( "min-common-vertices",
+   //                                "Specifies the number of common nodes that two elements must have in order to put an "
+   //                                "edge between them in the dual graph. By default it is equal to the mesh dimension." );
 }
 
 template< typename CoordinatesType >
-CoordinatesType getRankCoordinates( typename CoordinatesType::ValueType rank,
-                                    CoordinatesType decomposition )
+CoordinatesType
+getRankCoordinates( typename CoordinatesType::ValueType rank, CoordinatesType decomposition )
 {
    CoordinatesType coordinates;
    using Index = typename CoordinatesType::ValueType;
    Index size = TNL::product( decomposition );
-   for( int i = decomposition.getSize() - 1; i >= 0; i-- )
-   {
+   for( int i = decomposition.getSize() - 1; i >= 0; i-- ) {
       size = size / decomposition[ i ];
       coordinates[ i ] = rank / size;
       rank = rank % size;
@@ -57,7 +78,8 @@ CoordinatesType getRankCoordinates( typename CoordinatesType::ValueType rank,
 }
 
 template< typename GridType >
-void run( const GridType& globalGrid, const Config::ParameterContainer& parameters )
+void
+run( const GridType& globalGrid, const Config::ParameterContainer& parameters )
 {
    using CoordinatesType = typename GridType::CoordinatesType;
 
@@ -77,13 +99,13 @@ void run( const GridType& globalGrid, const Config::ParameterContainer& paramete
    const std::string pvtiFileName = parameters.template getParameter< String >( "output-file" );
    std::ofstream file( pvtiFileName );
    PVTI pvti( file );
-   pvti.writeImageData( globalGrid, ghost_levels ); // TODO: ..., ncommon );
+   pvti.writeImageData( globalGrid, ghost_levels );  // TODO: ..., ncommon );
    // TODO
-//   if( ghost_levels > 0 ) {
-//      // the PointData and CellData from the individual files should be added here
-//      pvtu.template writePPointData< std::uint8_t >( Meshes::VTK::ghostArrayName() );
-//      pvtu.template writePCellData< std::uint8_t >( Meshes::VTK::ghostArrayName() );
-//   }
+   //   if( ghost_levels > 0 ) {
+   //      // the PointData and CellData from the individual files should be added here
+   //      pvtu.template writePPointData< std::uint8_t >( Meshes::VTK::ghostArrayName() );
+   //      pvtu.template writePCellData< std::uint8_t >( Meshes::VTK::ghostArrayName() );
+   //   }
 
    std::cout << "Writing subdomains..." << std::endl;
    const unsigned nproc = TNL::product( decomposition );
@@ -102,9 +124,10 @@ void run( const GridType& globalGrid, const Config::ParameterContainer& paramete
             ++localSize[ i ];
 
          if( numberOfLarger > rank_coordinates[ i ] )
-             globalBegin[ i ] = rank_coordinates[ i ] * localSize[ i ];
+            globalBegin[ i ] = rank_coordinates[ i ] * localSize[ i ];
          else
-             globalBegin[ i ] = numberOfLarger * (localSize[ i ] + 1) + (rank_coordinates[ i ] - numberOfLarger) * localSize[ i ];
+            globalBegin[ i ] =
+               numberOfLarger * ( localSize[ i ] + 1 ) + ( rank_coordinates[ i ] - numberOfLarger ) * localSize[ i ];
       }
 
       const std::string outputFileName = pvti.addPiece( pvtiFileName, p, globalBegin, globalBegin + localSize );
@@ -114,19 +137,17 @@ void run( const GridType& globalGrid, const Config::ParameterContainer& paramete
       using Writer = Meshes::Writers::VTIWriter< GridType >;
       std::ofstream file( outputFileName );
       Writer writer( file );
-      writer.writeImageData( globalGrid.getOrigin(),
-                             globalBegin,
-                             globalBegin + localSize,
-                             globalGrid.getSpaceSteps() );
+      writer.writeImageData( globalGrid.getOrigin(), globalBegin, globalBegin + localSize, globalGrid.getSpaceSteps() );
       // TODO
-//      if( ghost_levels > 0 ) {
-//         writer.writePointData( pointGhosts, Meshes::VTK::ghostArrayName() );
-//         writer.writeCellData( cellGhosts, Meshes::VTK::ghostArrayName() );
-//      }
+      //      if( ghost_levels > 0 ) {
+      //         writer.writePointData( pointGhosts, Meshes::VTK::ghostArrayName() );
+      //         writer.writeCellData( cellGhosts, Meshes::VTK::ghostArrayName() );
+      //      }
    }
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
@@ -144,12 +165,13 @@ int main( int argc, char* argv[] )
       return EXIT_FAILURE;
    }
 
-   auto wrapper = [&] ( const auto& reader, auto&& grid )
+   auto wrapper = [ & ]( const auto& reader, auto&& grid )
    {
-      using GridType = std::decay_t< decltype(grid) >;
-      run( std::forward<GridType>(grid), parameters );
+      using GridType = std::decay_t< decltype( grid ) >;
+      run( std::forward< GridType >( grid ), parameters );
       return true;
    };
-   const bool status = Meshes::resolveAndLoadMesh< DecomposeGridConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   const bool status =
+      Meshes::resolveAndLoadMesh< DecomposeGridConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
    return static_cast< int >( ! status );
 }

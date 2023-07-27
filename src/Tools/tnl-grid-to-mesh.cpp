@@ -6,27 +6,44 @@
 
 using namespace TNL;
 
-struct GridToMeshConfigTag {};
+struct GridToMeshConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off support for float and long double.
  */
-template<> struct GridRealTag< GridToMeshConfigTag, float > { static constexpr bool enabled = false; };
-template<> struct GridRealTag< GridToMeshConfigTag, long double > { static constexpr bool enabled = false; };
+template<>
+struct GridRealTag< GridToMeshConfigTag, float >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridRealTag< GridToMeshConfigTag, long double >
+{
+   static constexpr bool enabled = false;
+};
 
 /****
  * Turn off support for short int and long int indexing.
  */
-template<> struct GridIndexTag< GridToMeshConfigTag, short int >{ static constexpr bool enabled = false; };
-template<> struct GridIndexTag< GridToMeshConfigTag, long int >{ static constexpr bool enabled = false; };
+template<>
+struct GridIndexTag< GridToMeshConfigTag, short int >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridIndexTag< GridToMeshConfigTag, long int >
+{
+   static constexpr bool enabled = false;
+};
 
 /****
  * Unstructured meshes are disabled, only grids can be on input.
  */
 
-} // namespace TNL::Meshes::BuildConfigTags
+}  // namespace TNL::Meshes::BuildConfigTags
 
 // cannot be deduced from GridType
 using LocalIndexType = short int;
@@ -36,7 +53,8 @@ struct MeshCreator
 {
    using MeshType = Mesh;
 
-   static bool run( const Mesh& meshIn, Mesh& meshOut )
+   static bool
+   run( const Mesh& meshIn, Mesh& meshOut )
    {
       std::cerr << "Got a mesh on the input." << std::endl;
       return false;
@@ -49,13 +67,14 @@ struct MeshCreator< Meshes::Grid< 1, Real, Device, Index > >
    using GridType = Meshes::Grid< 1, Real, Device, Index >;
    using CellTopology = Meshes::Topologies::Edge;
    using MeshConfig = Meshes::DefaultConfig< CellTopology,
-                                                  CellTopology::dimension,
-                                                  typename GridType::RealType,
-                                                  typename GridType::GlobalIndexType,
-                                                  LocalIndexType >;
+                                             CellTopology::dimension,
+                                             typename GridType::RealType,
+                                             typename GridType::GlobalIndexType,
+                                             LocalIndexType >;
    using MeshType = Meshes::Mesh< MeshConfig >;
 
-   static void run( const GridType& grid, MeshType& mesh )
+   static void
+   run( const GridType& grid, MeshType& mesh )
    {
       const Index numberOfVertices = grid.template getEntitiesCount< typename GridType::Vertex >();
       const Index numberOfCells = grid.template getEntitiesCount< typename GridType::Cell >();
@@ -85,13 +104,14 @@ struct MeshCreator< Meshes::Grid< 2, Real, Device, Index > >
    using GridType = Meshes::Grid< 2, Real, Device, Index >;
    using CellTopology = Meshes::Topologies::Quadrangle;
    using MeshConfig = Meshes::DefaultConfig< CellTopology,
-                                                  CellTopology::dimension,
-                                                  typename GridType::RealType,
-                                                  typename GridType::GlobalIndexType,
-                                                  LocalIndexType >;
+                                             CellTopology::dimension,
+                                             typename GridType::RealType,
+                                             typename GridType::GlobalIndexType,
+                                             LocalIndexType >;
    using MeshType = Meshes::Mesh< MeshConfig >;
 
-   static void run( const GridType& grid, MeshType& mesh )
+   static void
+   run( const GridType& grid, MeshType& mesh )
    {
       const Index numberOfVertices = grid.template getEntitiesCount< typename GridType::Vertex >();
       const Index numberOfCells = grid.template getEntitiesCount< typename GridType::Cell >();
@@ -122,13 +142,14 @@ struct MeshCreator< Meshes::Grid< 3, Real, Device, Index > >
    using GridType = Meshes::Grid< 3, Real, Device, Index >;
    using CellTopology = Meshes::Topologies::Hexahedron;
    using MeshConfig = Meshes::DefaultConfig< CellTopology,
-                                                  CellTopology::dimension,
-                                                  typename GridType::RealType,
-                                                  typename GridType::GlobalIndexType,
-                                                  LocalIndexType >;
+                                             CellTopology::dimension,
+                                             typename GridType::RealType,
+                                             typename GridType::GlobalIndexType,
+                                             LocalIndexType >;
    using MeshType = Meshes::Mesh< MeshConfig >;
 
-   static void run( const GridType& grid, MeshType& mesh )
+   static void
+   run( const GridType& grid, MeshType& mesh )
    {
       const Index numberOfVertices = grid.template getEntitiesCount< typename GridType::Vertex >();
       const Index numberOfCells = grid.template getEntitiesCount< typename GridType::Cell >();
@@ -158,7 +179,8 @@ struct MeshCreator< Meshes::Grid< 3, Real, Device, Index > >
 };
 
 template< typename Grid >
-bool convertGrid( Grid& grid, const std::string& outputFileName, const std::string& outputFormat )
+bool
+convertGrid( Grid& grid, const std::string& outputFileName, const std::string& outputFormat )
 {
    using MeshCreator = MeshCreator< Grid >;
    using Mesh = typename MeshCreator::MeshType;
@@ -172,7 +194,7 @@ bool convertGrid( Grid& grid, const std::string& outputFileName, const std::stri
       format = fs::path( outputFileName ).extension().string();
       if( format.length() > 0 )
          // remove dot from the extension
-         format = format.substr(1);
+         format = format.substr( 1 );
    }
 
    if( format == "vtk" ) {
@@ -204,7 +226,8 @@ bool convertGrid( Grid& grid, const std::string& outputFileName, const std::stri
    return false;
 }
 
-void configSetup( Config::ConfigDescription& config )
+void
+configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addRequiredEntry< std::string >( "input-file", "Input file with the mesh." );
@@ -233,10 +256,11 @@ main( int argc, char* argv[] )
    const std::string outputFileName = parameters.getParameter< std::string >( "output-file" );
    const std::string outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
 
-   auto wrapper = [&] ( const auto& reader, auto&& grid )
+   auto wrapper = [ & ]( const auto& reader, auto&& grid )
    {
       return convertGrid( grid, outputFileName, outputFileFormat );
    };
-   const bool status = Meshes::resolveAndLoadMesh< GridToMeshConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   const bool status =
+      Meshes::resolveAndLoadMesh< GridToMeshConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
    return static_cast< int >( ! status );
 }

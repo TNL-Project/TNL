@@ -18,34 +18,104 @@ namespace TNL::Meshes::BuildConfigTags {
 /****
  * Turn off all grids.
  */
-template<> struct GridRealTag< MyConfigTag, float > { static constexpr bool enabled = false; };
-template<> struct GridRealTag< MyConfigTag, double > { static constexpr bool enabled = false; };
-template<> struct GridRealTag< MyConfigTag, long double > { static constexpr bool enabled = false; };
+template<>
+struct GridRealTag< MyConfigTag, float >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridRealTag< MyConfigTag, double >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridRealTag< MyConfigTag, long double >
+{
+   static constexpr bool enabled = false;
+};
 
 /****
  * Unstructured meshes.
  */
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polygon > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Wedge >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Pyramid >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron >{ static constexpr bool enabled = true; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Polygon >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Wedge >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Pyramid >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron >
+{
+   static constexpr bool enabled = true;
+};
 
 // Meshes are enabled only for the world dimension equal to the cell dimension.
 template< typename CellTopology, int WorldDimension >
 struct MeshSpaceDimensionTag< MyConfigTag, CellTopology, WorldDimension >
-{ static constexpr bool enabled = WorldDimension == CellTopology::dimension; };
+{
+   static constexpr bool enabled = WorldDimension == CellTopology::dimension;
+};
 
 // Meshes are enabled only for types explicitly listed below.
-template<> struct MeshRealTag< MyConfigTag, float >{ static constexpr bool enabled = true; };
-template<> struct MeshRealTag< MyConfigTag, double >{ static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MyConfigTag, int >{ static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MyConfigTag, long int >{ static constexpr bool enabled = true; };
-template<> struct MeshLocalIndexTag< MyConfigTag, short int >{ static constexpr bool enabled = true; };
+template<>
+struct MeshRealTag< MyConfigTag, float >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshRealTag< MyConfigTag, double >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MyConfigTag, int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MyConfigTag, long int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshLocalIndexTag< MyConfigTag, short int >
+{
+   static constexpr bool enabled = true;
+};
 
 }  // namespace TNL::Meshes::BuildConfigTags
 

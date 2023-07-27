@@ -6,39 +6,84 @@
 
 using namespace TNL;
 
-struct MeshTriangulatorConfigTag {};
+struct MeshTriangulatorConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 /****
  * Turn off all grids.
  */
-template<> struct GridRealTag< MeshTriangulatorConfigTag, float > { static constexpr bool enabled = false; };
-template<> struct GridRealTag< MeshTriangulatorConfigTag, double > { static constexpr bool enabled = false; };
-template<> struct GridRealTag< MeshTriangulatorConfigTag, long double > { static constexpr bool enabled = false; };
+template<>
+struct GridRealTag< MeshTriangulatorConfigTag, float >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridRealTag< MeshTriangulatorConfigTag, double >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridRealTag< MeshTriangulatorConfigTag, long double >
+{
+   static constexpr bool enabled = false;
+};
 
 /****
  * Unstructured meshes.
  */
-template<> struct MeshCellTopologyTag< MeshTriangulatorConfigTag, Topologies::Polygon > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MeshTriangulatorConfigTag, Topologies::Polyhedron > { static constexpr bool enabled = true; };
+template<>
+struct MeshCellTopologyTag< MeshTriangulatorConfigTag, Topologies::Polygon >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MeshTriangulatorConfigTag, Topologies::Polyhedron >
+{
+   static constexpr bool enabled = true;
+};
 
 // Meshes are enabled only for the space dimension equal to the cell dimension.
 template< typename CellTopology, int SpaceDimension >
 struct MeshSpaceDimensionTag< MeshTriangulatorConfigTag, CellTopology, SpaceDimension >
-{ static constexpr bool enabled = SpaceDimension == CellTopology::dimension; };
+{
+   static constexpr bool enabled = SpaceDimension == CellTopology::dimension;
+};
 
 // Polygonal Meshes are enable for the space dimension equal to 2 or 3
 template< int SpaceDimension >
 struct MeshSpaceDimensionTag< MeshTriangulatorConfigTag, Topologies::Polygon, SpaceDimension >
-{ static constexpr bool enabled = SpaceDimension >= 2 && SpaceDimension <= 3; };
+{
+   static constexpr bool enabled = SpaceDimension >= 2 && SpaceDimension <= 3;
+};
 
 // Meshes are enabled only for types explicitly listed below.
-template<> struct MeshRealTag< MeshTriangulatorConfigTag, float > { static constexpr bool enabled = true; };
-template<> struct MeshRealTag< MeshTriangulatorConfigTag, double > { static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MeshTriangulatorConfigTag, long int > { static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MeshTriangulatorConfigTag, int > { static constexpr bool enabled = true; };
-template<> struct MeshLocalIndexTag< MeshTriangulatorConfigTag, short int > { static constexpr bool enabled = true; };
+template<>
+struct MeshRealTag< MeshTriangulatorConfigTag, float >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshRealTag< MeshTriangulatorConfigTag, double >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MeshTriangulatorConfigTag, long int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MeshTriangulatorConfigTag, int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshLocalIndexTag< MeshTriangulatorConfigTag, short int >
+{
+   static constexpr bool enabled = true;
+};
 
 // Config tag specifying the MeshConfig template to use.
 template<>
@@ -59,61 +104,70 @@ struct MeshConfigTemplateTag< MeshTriangulatorConfigTag >
       static constexpr int spaceDimension = SpaceDimension;
       static constexpr int meshDimension = Cell::dimension;
 
-      static constexpr bool subentityStorage( int entityDimension, int subentityDimension )
+      static constexpr bool
+      subentityStorage( int entityDimension, int subentityDimension )
       {
-         return   (subentityDimension == 0 && entityDimension == meshDimension)
-               || (subentityDimension == meshDimension - 1 && entityDimension == meshDimension )
-               || (subentityDimension == 0 && entityDimension == meshDimension - 1 );
+         return ( subentityDimension == 0 && entityDimension == meshDimension )
+             || ( subentityDimension == meshDimension - 1 && entityDimension == meshDimension )
+             || ( subentityDimension == 0 && entityDimension == meshDimension - 1 );
       }
 
-      static constexpr bool superentityStorage( int entityDimension, int superentityDimension )
-      {
-         return false;
-      }
-
-      static constexpr bool entityTagsStorage( int entityDimension )
+      static constexpr bool
+      superentityStorage( int entityDimension, int superentityDimension )
       {
          return false;
       }
 
-      static constexpr bool dualGraphStorage()
+      static constexpr bool
+      entityTagsStorage( int entityDimension )
+      {
+         return false;
+      }
+
+      static constexpr bool
+      dualGraphStorage()
       {
          return false;
       }
    };
 };
 
-} // namespace TNL::Meshes::BuildConfigTags
+}  // namespace TNL::Meshes::BuildConfigTags
 
 template< typename Mesh >
-auto getDecomposedMeshHelper( const Mesh& mesh, const std::string& decompositionType )
+auto
+getDecomposedMeshHelper( const Mesh& mesh, const std::string& decompositionType )
 {
    using namespace TNL::Meshes;
 
-   if( decompositionType[0] == 'c' ) {
-      if( decompositionType[1] == 'c' ) {
+   if( decompositionType[ 0 ] == 'c' ) {
+      if( decompositionType[ 1 ] == 'c' ) {
          return getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToCentroid,
                                    EntityDecomposerVersion::ConnectEdgesToCentroid >( mesh );
       }
-      else { // decompositionType[1] == 'p'
+      else {  // decompositionType[1] == 'p'
          return getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToCentroid,
                                    EntityDecomposerVersion::ConnectEdgesToPoint >( mesh );
       }
    }
-   else { // decompositionType[0] == 'p'
-      if( decompositionType[1] == 'c' ) {
+   else {  // decompositionType[0] == 'p'
+      if( decompositionType[ 1 ] == 'c' ) {
          return getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToPoint,
                                    EntityDecomposerVersion::ConnectEdgesToCentroid >( mesh );
       }
-      else { // decompositionType[1] == 'p'
-         return getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToPoint,
-                                   EntityDecomposerVersion::ConnectEdgesToPoint >( mesh );
+      else {  // decompositionType[1] == 'p'
+         return getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToPoint, EntityDecomposerVersion::ConnectEdgesToPoint >(
+            mesh );
       }
    }
 }
 
 template< typename Mesh >
-bool triangulateMesh( const Mesh& mesh, const std::string& outputFileName, const std::string& outputFormat, const std::string& decompositionType )
+bool
+triangulateMesh( const Mesh& mesh,
+                 const std::string& outputFileName,
+                 const std::string& outputFormat,
+                 const std::string& decompositionType )
 {
    const auto decomposedMesh = getDecomposedMeshHelper( mesh, decompositionType );
 
@@ -123,7 +177,7 @@ bool triangulateMesh( const Mesh& mesh, const std::string& outputFileName, const
       format = fs::path( outputFileName ).extension().string();
       if( format.length() > 0 )
          // remove dot from the extension
-         format = format.substr(1);
+         format = format.substr( 1 );
    }
 
    if( format == "vtk" ) {
@@ -149,7 +203,8 @@ bool triangulateMesh( const Mesh& mesh, const std::string& outputFileName, const
    return false;
 }
 
-void configSetup( Config::ConfigDescription& config )
+void
+configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addRequiredEntry< std::string >( "input-file", "Input file with the mesh." );
@@ -165,7 +220,8 @@ void configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "pp" );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
@@ -181,10 +237,11 @@ int main( int argc, char* argv[] )
    const std::string outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
    const std::string decompositionType = parameters.getParameter< std::string >( "decomposition-type" );
 
-   auto wrapper = [&] ( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {
       return triangulateMesh( mesh, outputFileName, outputFileFormat, decompositionType );
    };
-   const bool status = Meshes::resolveAndLoadMesh< MeshTriangulatorConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   const bool status =
+      Meshes::resolveAndLoadMesh< MeshTriangulatorConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
    return static_cast< int >( ! status );
 }
