@@ -62,28 +62,21 @@ Logger::writeSystemInformation( bool printGPUInfo )
 
    if( printGPUInfo ) {
       writeParameter< String >( "CUDA GPU info", "" );
-      // TODO: Printing all devices does not make sense until TNL can actually
-      //       use more than one device for computations. Printing only the active
-      //       device for now...
-      //   int devices = getNumberOfDevices();
-      //   writeParameter< int >( "Number of devices", devices, 1 );
-      //   for( int i = 0; i < devices; i++ )
-      //   {
-      //      logger.writeParameter< int >( "Device no.", i, 1 );
+      // TNL supports using more than one device for computations only via MPI.
+      // Hence, we print only the active device here.
       const int i = Cuda::DeviceInfo::getActiveDevice();
-      writeParameter< String >( "Name", Cuda::DeviceInfo::getDeviceName( i ), 2 );
+      writeParameter< String >( "Name", Cuda::DeviceInfo::getDeviceName( i ), 1 );
       const String deviceArch = convertToString( Cuda::DeviceInfo::getArchitectureMajor( i ) ) + "."
                               + convertToString( Cuda::DeviceInfo::getArchitectureMinor( i ) );
-      writeParameter< String >( "Architecture", deviceArch, 2 );
-      writeParameter< int >( "CUDA cores", Cuda::DeviceInfo::getCudaCores( i ), 2 );
+      writeParameter< String >( "Architecture", deviceArch, 1 );
+      writeParameter< int >( "CUDA cores", Cuda::DeviceInfo::getCudaCores( i ), 1 );
       const double clockRate = (double) Cuda::DeviceInfo::getClockRate( i ) / 1.0e3;
-      writeParameter< double >( "Clock rate (in MHz)", clockRate, 2 );
+      writeParameter< double >( "Clock rate (in MHz)", clockRate, 1 );
       const double globalMemory = (double) Cuda::DeviceInfo::getGlobalMemory( i ) / 1.0e9;
-      writeParameter< double >( "Global memory (in GB)", globalMemory, 2 );
+      writeParameter< double >( "Global memory (in GB)", globalMemory, 1 );
       const double memoryClockRate = (double) Cuda::DeviceInfo::getMemoryClockRate( i ) / 1.0e3;
-      writeParameter< double >( "Memory clock rate (in Mhz)", memoryClockRate, 2 );
-      writeParameter< bool >( "ECC enabled", Cuda::DeviceInfo::getECCEnabled( i ), 2 );
-      //   }
+      writeParameter< double >( "Memory clock rate (in Mhz)", memoryClockRate, 1 );
+      writeParameter< bool >( "ECC enabled", Cuda::DeviceInfo::getECCEnabled( i ), 1 );
    }
    return true;
 }

@@ -230,7 +230,7 @@ fatalFailure()
 {
    #ifdef __CUDA_ARCH__
    // https://devtalk.nvidia.com/default/topic/509584/how-to-cancel-a-running-cuda-kernel-/
-   // TODO: it is reported as "illegal instruction", but that leads to an abort as well...
+   // it is reported as "illegal instruction", but that leads to an abort as well...
    asm( "trap;" );
    #else
    throw EXIT_FAILURE;
