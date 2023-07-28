@@ -634,7 +634,7 @@ struct CudaScanKernelLauncher
                       Reduction&& reduction,
                       typename OutputArray::ValueType identity )
    {
-      static_assert( std::is_same< ValueType, typename OutputArray::ValueType >::value, "invalid configuration of ValueType" );
+      static_assert( std::is_same_v< ValueType, typename OutputArray::ValueType >, "invalid configuration of ValueType" );
       using Index = typename InputArray::IndexType;
 
       if( end - begin <= blockSize * valuesPerThread ) {
@@ -841,7 +841,7 @@ struct CudaScanKernelLauncher
                        typename OutputArray::ValueType identity,
                        typename OutputArray::ValueType shift )
    {
-      static_assert( std::is_same< ValueType, typename OutputArray::ValueType >::value, "invalid configuration of ValueType" );
+      static_assert( std::is_same_v< ValueType, typename OutputArray::ValueType >, "invalid configuration of ValueType" );
       using Index = typename InputArray::IndexType;
 
       // if the input was already scanned with just one block in the first phase,

@@ -208,7 +208,7 @@ public:
 #if ! defined( __CUDACC_VER_MAJOR__ ) || __CUDACC_VER_MAJOR__ < 11
    template< typename T,
              typename...,
-             typename = std::enable_if_t< std::is_convertible< T, Real >::value || IsArrayType< T >::value > >
+             typename = std::enable_if_t< std::is_convertible_v< T, Real > || IsArrayType< T >::value > >
    Array< Real, Device, Index, Allocator >&
    operator=( const T& data )
    {

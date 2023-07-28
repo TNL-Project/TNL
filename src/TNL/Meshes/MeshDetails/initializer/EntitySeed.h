@@ -137,9 +137,9 @@ public:
    void
    setCornersCount( const LocalIndexType& cornersCount )
    {
-      if( std::is_same< EntityTopology, Topologies::Polygon >::value )
+      if( std::is_same_v< EntityTopology, Topologies::Polygon > )
          TNL_ASSERT_GE( cornersCount, 3, "polygons must have at least 3 corners" );
-      else if( std::is_same< EntityTopology, Topologies::Polyhedron >::value )
+      else if( std::is_same_v< EntityTopology, Topologies::Polyhedron > )
          TNL_ASSERT_GE( cornersCount, 4, "polyhedron must have at least 4 faces" );
 
       this->cornerIds.setSize( cornersCount );

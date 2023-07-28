@@ -82,12 +82,8 @@ class HasSetSizeMethod
 private:
    template< typename U >
    static constexpr auto check(U*)
-   -> typename
-      std::enable_if_t<
-         std::is_same<
-               decltype( std::declval<U>().setSize(0) ),
-               void
-            >::value,
+   -> std::enable_if_t<
+         std::is_same_v< decltype( std::declval<U>().setSize(0) ), void >,
          std::true_type
       >;
 
@@ -109,12 +105,8 @@ class HasSubscriptOperator
 private:
    template< typename U >
    static constexpr auto check(U*)
-   -> typename
-      std::enable_if_t<
-         ! std::is_same<
-               decltype( std::declval<U>()[ std::declval<U>().getSize() ] ),
-               void
-            >::value,
+   -> std::enable_if_t<
+         ! std::is_same_v< decltype( std::declval<U>()[ std::declval<U>().getSize() ] ), void >,
          std::true_type
       >;
 
@@ -136,12 +128,8 @@ class HasAddAssignmentOperator
 private:
    template< typename U >
    static constexpr auto check(U*)
-   -> typename
-      std::enable_if_t<
-         ! std::is_same<
-               decltype( std::declval<U>() += std::declval<U>() ),
-               void
-            >::value,
+   -> std::enable_if_t<
+         ! std::is_same_v< decltype( std::declval<U>() += std::declval<U>() ), void >,
          std::true_type
       >;
 
@@ -265,10 +253,9 @@ template< typename T >
 struct IsViewType
 {
 private:
-   template< typename C > static constexpr auto test(C)
-      -> std::integral_constant< bool,
-               std::is_same< typename C::ViewType, C >::value
-         >;
+   template< typename C >
+   static constexpr auto test(C) -> std::integral_constant< bool, std::is_same_v< typename C::ViewType, C > >;
+
    static constexpr std::false_type test(...);
 
 public:
@@ -319,9 +306,9 @@ struct copy_const
    template< typename Source >
    struct from
    {
-      using type = typename std::conditional<
-         std::is_const< Source >::value,
-         std::add_const_t< Target >, Target >::type;
+      using type = std::conditional_t<
+         std::is_const_v< Source >,
+         std::add_const_t< Target >, Target >;
    };
 };
 

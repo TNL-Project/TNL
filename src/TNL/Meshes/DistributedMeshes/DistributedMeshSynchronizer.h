@@ -78,7 +78,7 @@ public:
          mesh.getLocalMesh().template forGhost< EntityDimension, Devices::Sequential >(
             [ & ]( GlobalIndexType local_idx )
             {
-               if constexpr( ! std::is_same< DeviceType, Devices::Cuda >::value )
+               if constexpr( ! std::is_same_v< DeviceType, Devices::Cuda > )
                   if( ! mesh.getLocalMesh().template isGhostEntity< EntityDimension >( local_idx ) )
                      throw std::runtime_error( "encountered local entity while iterating over ghost entities - the mesh is "
                                                "probably inconsistent or there is a bug in the DistributedMeshSynchronizer" );
@@ -164,7 +164,7 @@ public:
    {
       static_assert( MeshFunction::getEntitiesDimension() == EntityDimension,
                      "the mesh function's entity dimension does not match" );
-      static_assert( std::is_same< typename MeshFunction::MeshType, typename DistributedMesh::MeshType >::value,
+      static_assert( std::is_same_v< typename MeshFunction::MeshType, typename DistributedMesh::MeshType >,
                      "The type of the mesh function's mesh does not match the local mesh." );
 
       synchronize( function.getData() );
@@ -182,7 +182,7 @@ public:
    void
    synchronizeArray( Array& array, int valuesPerElement = 1 )
    {
-      static_assert( std::is_same< typename Array::DeviceType, DeviceType >::value, "mismatched DeviceType of the array" );
+      static_assert( std::is_same_v< typename Array::DeviceType, DeviceType >, "mismatched DeviceType of the array" );
       using ValueType = typename Array::ValueType;
 
       ByteArrayView view;

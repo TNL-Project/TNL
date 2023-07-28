@@ -282,9 +282,9 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 
    using OutVectorReal = typename OutVector::RealType;
    static_assert(
-      ! MatrixType::isSymmetric() || ! std::is_same< Device, Devices::Cuda >::value
-         || ( std::is_same< OutVectorReal, float >::value || std::is_same< OutVectorReal, double >::value
-              || std::is_same< OutVectorReal, int >::value || std::is_same< OutVectorReal, long long int >::value ),
+      ! MatrixType::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
+         || (std::is_same_v< OutVectorReal, float > || std::is_same_v< OutVectorReal, double >
+             || std::is_same_v< OutVectorReal, int > || std::is_same_v< OutVectorReal, long long int >),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
    const auto inVectorView = inVector.getConstView();

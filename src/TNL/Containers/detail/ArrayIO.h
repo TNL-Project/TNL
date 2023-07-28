@@ -15,7 +15,7 @@
 
 namespace TNL::Containers::detail {
 
-template< typename Value, typename Index, typename Allocator, bool Elementwise = std::is_base_of< Object, Value >::value >
+template< typename Value, typename Index, typename Allocator, bool Elementwise = std::is_base_of_v< Object, Value > >
 struct ArrayIO
 {};
 

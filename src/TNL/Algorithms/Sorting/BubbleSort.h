@@ -21,7 +21,7 @@ struct BubbleSort
    template< typename Device, typename Index, typename Compare, typename Swap >
    void static inplaceSort( const Index begin, const Index end, Compare& compare, Swap& swap )
    {
-      if( std::is_same< Device, Devices::Cuda >::value )
+      if( std::is_same_v< Device, Devices::Cuda > )
          throw Exceptions::NotImplementedError( "inplace bubble sort is not implemented for CUDA" );
 
       Index left = begin;

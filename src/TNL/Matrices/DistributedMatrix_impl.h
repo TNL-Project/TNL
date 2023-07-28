@@ -197,7 +197,7 @@ DistributedMatrix< Matrix >::getRow( IndexType row ) const
 
 template< typename Matrix >
 template< typename InVector, typename OutVector >
-typename std::enable_if< ! HasGetCommunicatorMethod< InVector >::value >::type
+std::enable_if_t< ! HasGetCommunicatorMethod< InVector >::value >
 DistributedMatrix< Matrix >::vectorProduct( const InVector& inVector, OutVector& outVector ) const
 {
    TNL_ASSERT_EQ( inVector.getSize(), getColumns(), "input vector has wrong size" );
@@ -211,7 +211,7 @@ DistributedMatrix< Matrix >::vectorProduct( const InVector& inVector, OutVector&
 
 template< typename Matrix >
 template< typename InVector, typename OutVector >
-typename std::enable_if< HasGetCommunicatorMethod< InVector >::value >::type
+std::enable_if_t< HasGetCommunicatorMethod< InVector >::value >
 DistributedMatrix< Matrix >::vectorProduct( const InVector& inVector, OutVector& outVector ) const
 {
    TNL_ASSERT_EQ( inVector.getLocalRange(), getLocalRowRange(), "input vector has wrong distribution" );

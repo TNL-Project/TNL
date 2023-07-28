@@ -111,7 +111,7 @@ public:
    [[nodiscard]] static constexpr bool
    isBinary()
    {
-      return std::is_same< std::decay_t< Real >, bool >::value;
+      return std::is_same_v< std::decay_t< Real >, bool >;
    }
 
    /**

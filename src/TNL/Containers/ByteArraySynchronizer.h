@@ -76,7 +76,7 @@ public:
       async_start_timer.start();
 
       // GOTCHA: https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
-      if constexpr( std::is_same< Device, Devices::Cuda >::value )
+      if constexpr( std::is_same_v< Device, Devices::Cuda > )
          cudaGetDevice( &gpu_id );
 
       if( policy == AsyncPolicy::threadpool || policy == AsyncPolicy::async ) {
@@ -84,7 +84,7 @@ public:
          auto worker = [ = ]()
          {
             // GOTCHA: https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
-            if constexpr( std::is_same< Device, Devices::Cuda >::value )
+            if constexpr( std::is_same_v< Device, Devices::Cuda > )
                cudaSetDevice( this->gpu_id );
 
             this->synchronizeByteArray( array, bytesPerValue );

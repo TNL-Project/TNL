@@ -45,7 +45,7 @@ public:
       this->pointsSet.setSize( points );
       pointsSet.setValue( false );
 
-      if constexpr( std::is_same< CellTopology, Topologies::Polyhedron >::value ) {
+      if constexpr( std::is_same_v< CellTopology, Topologies::Polyhedron > ) {
          this->faceSeeds.setDimensions( faces, points );
          this->cellSeeds.setDimensions( cells, faces );
       }

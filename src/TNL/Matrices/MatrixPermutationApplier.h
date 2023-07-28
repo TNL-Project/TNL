@@ -18,7 +18,7 @@ template< typename Matrix, typename PermutationArray >
 void
 permuteMatrixRows( Matrix& matrix, const PermutationArray& perm )
 {
-   static_assert( std::is_same< typename Matrix::DeviceType, typename PermutationArray::DeviceType >::value,
+   static_assert( std::is_same_v< typename Matrix::DeviceType, typename PermutationArray::DeviceType >,
                   "The matrix and permutation vector must be stored on the same device." );
    using IndexType = typename Matrix::IndexType;
    using DeviceType = typename Matrix::DeviceType;
@@ -64,7 +64,7 @@ template< typename Matrix, typename PermutationArray >
 void
 permuteMatrixColumns( Matrix& matrix, const PermutationArray& iperm )
 {
-   static_assert( std::is_same< typename Matrix::DeviceType, typename PermutationArray::DeviceType >::value,
+   static_assert( std::is_same_v< typename Matrix::DeviceType, typename PermutationArray::DeviceType >,
                   "The matrix and permutation vector must be stored on the same device." );
    using IndexType = typename Matrix::IndexType;
    using DeviceType = typename Matrix::DeviceType;

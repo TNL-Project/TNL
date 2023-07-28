@@ -13,11 +13,10 @@ namespace TNL::Meshes {
 template< typename MeshConfig, typename Device, typename EntityTopology_ >
 class MeshEntity
 {
-   static_assert(
-      std::is_same<
-         EntityTopology_,
-         typename Mesh< MeshConfig, Device >::template EntityTraits< EntityTopology_::dimension >::EntityTopology >::value,
-      "Specified entity topology is not compatible with the MeshConfig." );
+   static_assert( std::is_same_v<
+                     EntityTopology_,
+                     typename Mesh< MeshConfig, Device >::template EntityTraits< EntityTopology_::dimension >::EntityTopology >,
+                  "Specified entity topology is not compatible with the MeshConfig." );
 
 public:
    using MeshType = Mesh< MeshConfig, Device >;

@@ -230,7 +230,7 @@ public:
     */
    template< typename T,
              typename...,
-             typename = std::enable_if_t< std::is_convertible< T, ValueType >::value || IsArrayType< T >::value > >
+             typename = std::enable_if_t< std::is_convertible_v< T, ValueType > || IsArrayType< T >::value > >
    ArrayView&
    operator=( const T& data );
 

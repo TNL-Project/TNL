@@ -18,7 +18,7 @@ namespace TNL::Containers::detail {
  * Reference:
  * http://stackoverflow.com/questions/20162903/template-parameter-packs-access-nth-type-and-nth-element/37836252#37836252
  */
-template< std::size_t index, typename T, typename... Ts, typename = typename std::enable_if< index == 0 >::type >
+template< std::size_t index, typename T, typename... Ts, typename = std::enable_if_t< index == 0 > >
 constexpr T
 get_from_pack( T&& arg, Ts&&... args )
 {
@@ -28,7 +28,7 @@ get_from_pack( T&& arg, Ts&&... args )
 template< std::size_t index,
           typename T,
           typename... Ts,
-          typename = typename std::enable_if< ( index > 0 ) && index <= sizeof...( Ts ) >::type >
+          typename = std::enable_if_t< ( index > 0 ) && index <= sizeof...( Ts ) > >
 constexpr auto
 get_from_pack( T&& arg, Ts&&... args )
 {
@@ -40,7 +40,7 @@ get_from_pack( T&& arg, Ts&&... args )
 template< long long index,
           typename T,
           typename... Ts,
-          typename = typename std::enable_if< ( index < 0 ) || ( index > sizeof...( Ts ) ) >::type >
+          typename = std::enable_if_t< ( index < 0 ) || ( index > sizeof...( Ts ) ) > >
 constexpr T
 get_from_pack( T&& arg, Ts&&... args )
 {

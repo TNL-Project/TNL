@@ -23,7 +23,7 @@ T
 swapEndianness( T u )
 {
    static_assert( CHAR_BIT == 8, "CHAR_BIT != 8" );
-   static_assert( std::is_fundamental< T >::value, "swap_endian works only for fundamental types" );
+   static_assert( std::is_fundamental_v< T >, "swap_endian works only for fundamental types" );
 
    union
    {

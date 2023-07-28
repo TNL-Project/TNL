@@ -30,7 +30,7 @@ struct BitonicSort
    template< typename Device, typename Index, typename Compare, typename Swap >
    void static inplaceSort( const Index begin, const Index end, const Compare& compare, const Swap& swap )
    {
-      if( std::is_same< Device, Devices::Cuda >::value )
+      if constexpr( std::is_same_v< Device, Devices::Cuda > )
          bitonicSort( begin, end, compare, swap );
       else
          throw Exceptions::NotImplementedError( "inplace bitonic sort is implemented only for CUDA" );

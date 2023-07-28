@@ -374,7 +374,7 @@ SolverStarter< ConfigTag >::writeEpilog( std::ostream& str, const Solver& solver
       return false;
    logger.writeParameter< const char* >( "Compute time:", "" );
    this->computeTimer.writeLog( logger, 1 );
-   if( std::is_same< typename Solver::DeviceType, TNL::Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< typename Solver::DeviceType, TNL::Devices::Cuda > ) {
       logger.writeParameter< const char* >( "GPU synchronization time:", "" );
       Pointers::getSmartPointersSynchronizationTimer< Devices::Cuda >().writeLog( logger, 1 );
    }

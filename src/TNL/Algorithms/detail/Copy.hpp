@@ -122,7 +122,7 @@ Copy< DeviceType, Devices::Cuda >::copy( DestinationElement* destination, const 
    TNL_ASSERT_TRUE( destination, "Attempted to copy data to a nullptr." );
    TNL_ASSERT_TRUE( source, "Attempted to copy data from a nullptr." );
 #ifdef __CUDACC__
-   if( std::is_same< std::remove_cv_t< DestinationElement >, std::remove_cv_t< SourceElement > >::value ) {
+   if constexpr( std::is_same_v< std::remove_cv_t< DestinationElement >, std::remove_cv_t< SourceElement > > ) {
       if( cudaMemcpy( destination, source, size * sizeof( DestinationElement ), cudaMemcpyDeviceToHost ) != cudaSuccess )
          std::cerr << "Transfer of data from CUDA device to host failed." << std::endl;
       TNL_CHECK_CUDA_DEVICE;
@@ -164,7 +164,7 @@ Copy< Devices::Cuda, DeviceType >::copy( DestinationElement* destination, const 
    TNL_ASSERT_TRUE( source, "Attempted to copy data from a nullptr." );
    TNL_ASSERT_GE( size, (Index) 0, "Array size must be non-negative." );
 #ifdef __CUDACC__
-   if( std::is_same< std::remove_cv_t< DestinationElement >, std::remove_cv_t< SourceElement > >::value ) {
+   if constexpr( std::is_same_v< std::remove_cv_t< DestinationElement >, std::remove_cv_t< SourceElement > > ) {
       if( cudaMemcpy( destination, source, size * sizeof( DestinationElement ), cudaMemcpyHostToDevice ) != cudaSuccess )
          std::cerr << "Transfer of data from host to CUDA device failed." << std::endl;
       TNL_CHECK_CUDA_DEVICE;

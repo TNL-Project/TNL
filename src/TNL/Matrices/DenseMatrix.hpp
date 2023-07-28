@@ -237,7 +237,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
    TNL_ASSERT_EQ( matrix1.getColumns(), matrix2.getRows(), "invalid dimensions of input matrices" );
    setDimensions( matrix1.getRows(), matrix2.getColumns() );
 
-   if constexpr( std::is_same< Device, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< Device, Devices::Host > ) {
       for( Index i = 0; i < this->getRows(); i += tileDim )
          for( Index j = 0; j < this->getColumns(); j += tileDim ) {
             const Index tileRows = min( tileDim, this->getRows() - i );
@@ -256,7 +256,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
             }
          }
    }
-   if constexpr( std::is_same< Device, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       constexpr Index matrixProductCudaBlockSize = 256;
       constexpr Index cudaBlockRows = matrixProductCudaBlockSize / tileDim;
       Cuda::LaunchConfiguration launch_config;
@@ -405,7 +405,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTranspositio
 {
    setDimensions( matrix.getColumns(), matrix.getRows() );
 
-   if constexpr( std::is_same< Device, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< Device, Devices::Host > ) {
       const Index& rows = matrix.getRows();
       const Index& columns = matrix.getColumns();
       for( Index i = 0; i < rows; i += tileDim )
@@ -414,7 +414,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTranspositio
                for( Index l = j; l < j + tileDim && l < columns; l++ )
                   this->setElement( l, k, matrixMultiplicator * matrix.getElement( k, l ) );
    }
-   if constexpr( std::is_same< Device, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       constexpr Index matrixProductCudaBlockSize = 256;
       constexpr Index cudaBlockRows = matrixProductCudaBlockSize / tileDim;
       Cuda::LaunchConfiguration launch_config;

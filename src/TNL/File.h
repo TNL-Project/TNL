@@ -157,7 +157,7 @@ protected:
    template< typename Type,
              typename SourceType,
              typename Allocator,
-             typename = std::enable_if_t< ! std::is_same< Allocator, Allocators::Cuda< Type > >::value > >
+             typename = std::enable_if_t< ! std::is_same_v< Allocator, Allocators::Cuda< Type > > > >
    void
    load_impl( Type* buffer, std::streamsize elements );
 
@@ -165,7 +165,7 @@ protected:
    template< typename Type,
              typename SourceType,
              typename Allocator,
-             typename = std::enable_if_t< std::is_same< Allocator, Allocators::Cuda< Type > >::value >,
+             typename = std::enable_if_t< std::is_same_v< Allocator, Allocators::Cuda< Type > > >,
              typename = void >
    void
    load_impl( Type* buffer, std::streamsize elements );
@@ -174,7 +174,7 @@ protected:
    template< typename Type,
              typename TargetType,
              typename Allocator,
-             typename = std::enable_if_t< ! std::is_same< Allocator, Allocators::Cuda< Type > >::value > >
+             typename = std::enable_if_t< ! std::is_same_v< Allocator, Allocators::Cuda< Type > > > >
    void
    save_impl( const Type* buffer, std::streamsize elements );
 
@@ -182,7 +182,7 @@ protected:
    template< typename Type,
              typename TargetType,
              typename Allocator,
-             typename = std::enable_if_t< std::is_same< Allocator, Allocators::Cuda< Type > >::value >,
+             typename = std::enable_if_t< std::is_same_v< Allocator, Allocators::Cuda< Type > > >,
              typename = void >
    void
    save_impl( const Type* buffer, std::streamsize elements );

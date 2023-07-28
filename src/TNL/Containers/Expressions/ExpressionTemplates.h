@@ -56,7 +56,7 @@ struct BinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariable, Ve
    static_assert(
       HasEnabledExpressionTemplates< T2 >::value,
       "Invalid operand in binary expression templates - expression templates are not enabled for the right operand." );
-   static_assert( std::is_same< typename T1::DeviceType, typename T2::DeviceType >::value,
+   static_assert( std::is_same_v< typename T1::DeviceType, typename T2::DeviceType >,
                   "Attempt to mix operands which have different DeviceType." );
 
    BinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a.getConstView() ), op2( b.getConstView() )

@@ -52,7 +52,7 @@ template< typename Real,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
-template< typename Index_t, std::enable_if_t< std::is_integral< Index_t >::value, int > >
+template< typename Index_t, std::enable_if_t< std::is_integral_v< Index_t >, int > >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    Index_t rows,
    Index_t columns,

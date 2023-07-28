@@ -267,7 +267,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    TNL_ASSERT( this->getRows() == matrix.getRows(),
                std::cerr << "This matrix rows: " << this->getRows() << std::endl
                          << "That matrix rows: " << matrix.getRows() << std::endl );
-   if constexpr( std::is_same< Device, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< Device, Devices::Host > ) {
       const Index rows = matrix.getRows();
       for( Index i = 1; i < rows; i++ ) {
          Real aux = matrix.getElement( i, i - 1 );
@@ -276,7 +276,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
          this->setElement( i - 1, i, aux );
       }
    }
-   if constexpr( std::is_same< Device, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       launch_config.gridSize.x = Cuda::getMaxGridXSize();
@@ -338,7 +338,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    if( Organization == Organization_ )
       this->values = matrix.getValues();
    else {
-      if( std::is_same< Device, Device_ >::value ) {
+      if( std::is_same_v< Device, Device_ > ) {
          const auto matrix_view = matrix.getConstView();
          auto f =
             [ = ] __cuda_callable__( const Index& rowIdx, const Index& localIdx, const Index& column, Real& value ) mutable

@@ -87,7 +87,7 @@ getOutwardNormalVector( const Mesh< MeshConfig, Device >& mesh,
    using MeshType = Mesh< MeshConfig, Device >;
    using FaceType = MeshEntity< MeshConfig, Device, Topologies::Edge >;
    using PointType = typename MeshTraits< MeshConfig >::PointType;
-   static_assert( std::is_same< typename MeshType::Face, FaceType >::value,
+   static_assert( std::is_same_v< typename MeshType::Face, FaceType >,
                   "getOutwardNormalVector called for an entity which is not a face" );
    static_assert( MeshConfig::spaceDimension == 2, "TODO: normal vectors for 2D meshes in a 3D space are not implemented yet" );
 
@@ -134,7 +134,7 @@ getOutwardNormalVector( const Mesh< MeshConfig, Device >& mesh,
    using MeshType = Mesh< MeshConfig, Device >;
    using FaceType = MeshEntity< MeshConfig, Device, EntityTopology >;
    using PointType = typename MeshTraits< MeshConfig >::PointType;
-   static_assert( std::is_same< typename MeshType::Face, FaceType >::value,
+   static_assert( std::is_same_v< typename MeshType::Face, FaceType >,
                   "getOutwardNormalVector called for an entity which is not a face" );
    static_assert( MeshConfig::spaceDimension == 3,
                   "general overload intended for 3D was called with the wrong space dimension" );

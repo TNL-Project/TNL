@@ -103,11 +103,10 @@ public:
              std::shared_ptr< Matrix >& matrixPointer,
              DofVectorPointer& bPointer )
    {
-      static_assert( std::is_same< MeshFunction,
-                                   Containers::Vector< typename MeshFunction::RealType,
-                                                       typename MeshFunction::DeviceType,
-                                                       typename MeshFunction::IndexType > >::value
-                        != true,
+      static_assert( ! std::is_same_v< MeshFunction,
+                                       Containers::Vector< typename MeshFunction::RealType,
+                                                           typename MeshFunction::DeviceType,
+                                                           typename MeshFunction::IndexType > >,
                      "Error: I am getting Vector instead of MeshFunction or similar object. You might forget to bind DofVector "
                      "into MeshFunction in you method getExplicitUpdate." );
 

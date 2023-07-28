@@ -44,10 +44,10 @@ public:
 
    // TODO: add documentation for these types
    using IndexerType = details::MultidiagonalMatrixIndexer< Index, Organization == Algorithms::Segments::RowMajorOrder >;
-   using DiagonalOffsetsView = Containers::
-      VectorView< std::conditional_t< std::is_const< Real >::value, std::add_const_t< Index >, Index >, Device, Index >;
+   using DiagonalOffsetsView =
+      Containers::VectorView< std::conditional_t< std::is_const_v< Real >, std::add_const_t< Index >, Index >, Device, Index >;
    using HostDiagonalOffsetsView = Containers::
-      VectorView< std::conditional_t< std::is_const< Real >::value, std::add_const_t< Index >, Index >, Devices::Host, Index >;
+      VectorView< std::conditional_t< std::is_const_v< Real >, std::add_const_t< Index >, Index >, Devices::Host, Index >;
 
    /**
     * \brief Type for accessing matrix rows.

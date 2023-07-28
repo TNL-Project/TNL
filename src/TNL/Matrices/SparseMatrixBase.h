@@ -45,10 +45,10 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 class SparseMatrixBase : public MatrixBase< Real, Device, Index, MatrixType, SegmentsView::getOrganization() >
 {
    static_assert(
-      ! MatrixType::isSymmetric() || ! std::is_same< Device, Devices::Cuda >::value
-         || ( std::is_same< std::decay_t< Real >, float >::value || std::is_same< std::decay_t< Real >, double >::value
-              || std::is_same< std::decay_t< Real >, int >::value || std::is_same< std::decay_t< Real >, long long int >::value
-              || std::is_same< std::decay_t< Real >, bool >::value ),
+      ! MatrixType::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
+         || (std::is_same_v< std::decay_t< Real >, float > || std::is_same_v< std::decay_t< Real >, double >
+             || std::is_same_v< std::decay_t< Real >, int > || std::is_same_v< std::decay_t< Real >, long long int >
+             || std::is_same_v< std::decay_t< Real >, bool >),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
    using Base = MatrixBase< Real, Device, Index, MatrixType, SegmentsView::getOrganization() >;

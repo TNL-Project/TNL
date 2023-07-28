@@ -49,8 +49,7 @@ class HasStaticGetSerializationType
 private:
    template< typename U >
    static constexpr auto
-   check( U* ) ->
-      typename std::enable_if_t< ! std::is_same< decltype( U::getSerializationType() ), void >::value, std::true_type >;
+   check( U* ) -> std::enable_if_t< ! std::is_same_v< decltype( U::getSerializationType() ), void >, std::true_type >;
 
    template< typename >
    static constexpr std::false_type

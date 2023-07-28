@@ -346,7 +346,7 @@ struct TurbulenceGenerator
 private:
    // specialization for host devices
    template< typename RNG, typename Array >
-   static std::enable_if_t< ! std::is_same< typename Array::DeviceType, TNL::Devices::Cuda >::value >
+   static std::enable_if_t< ! std::is_same_v< typename Array::DeviceType, TNL::Devices::Cuda > >
    generateAngles( RNG&& rng, Array& phi, Array& psi, Array& alpha, Array& theta )
    {
       using Value = typename Array::ValueType;
@@ -369,7 +369,7 @@ private:
 
    // specialization for CUDA
    template< typename RNG, typename Array >
-   static std::enable_if_t< std::is_same< typename Array::DeviceType, TNL::Devices::Cuda >::value >
+   static std::enable_if_t< std::is_same_v< typename Array::DeviceType, TNL::Devices::Cuda > >
    generateAngles( RNG&& rng, Array& phi, Array& psi, Array& alpha, Array& theta )
    {
       // create auxiliary host arrays

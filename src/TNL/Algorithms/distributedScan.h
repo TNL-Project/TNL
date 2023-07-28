@@ -53,9 +53,8 @@ distributedInclusiveScan( const InputDistributedArray& input,
                           Reduction&& reduction,
                           typename OutputDistributedArray::ValueType identity )
 {
-   static_assert(
-      std::is_same< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >::value,
-      "The input and output arrays must have the same device type." );
+   static_assert( std::is_same_v< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >,
+                  "The input and output arrays must have the same device type." );
    TNL_ASSERT_EQ(
       input.getCommunicator(), output.getCommunicator(), "The input and output arrays must have the same MPI communicator." );
    TNL_ASSERT_EQ( input.getLocalRange(),
@@ -129,9 +128,8 @@ distributedExclusiveScan( const InputDistributedArray& input,
                           Reduction&& reduction,
                           typename OutputDistributedArray::ValueType identity )
 {
-   static_assert(
-      std::is_same< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >::value,
-      "The input and output arrays must have the same device type." );
+   static_assert( std::is_same_v< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >,
+                  "The input and output arrays must have the same device type." );
    TNL_ASSERT_EQ(
       input.getCommunicator(), output.getCommunicator(), "The input and output arrays must have the same MPI communicator." );
    TNL_ASSERT_EQ( input.getLocalRange(),
