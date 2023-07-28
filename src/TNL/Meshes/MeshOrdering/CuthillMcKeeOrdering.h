@@ -19,8 +19,8 @@ struct CuthillMcKeeOrdering
    static void
    getPermutations( const Mesh& mesh, PermutationArray& perm, PermutationArray& iperm )
    {
-      static_assert( std::is_same< typename Mesh::DeviceType, TNL::Devices::Host >::value, "" );
-      static_assert( std::is_same< typename PermutationArray::DeviceType, TNL::Devices::Host >::value, "" );
+      static_assert( std::is_same_v< typename Mesh::DeviceType, TNL::Devices::Host > );
+      static_assert( std::is_same_v< typename PermutationArray::DeviceType, TNL::Devices::Host > );
 
       // The reverse Cuthill-McKee ordering is implemented only for cells,
       // other entities are ordered from the current order of cells exactly
