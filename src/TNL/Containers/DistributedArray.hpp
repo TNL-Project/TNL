@@ -202,7 +202,8 @@ DistributedArray< Value, Device, Index, Allocator >::setLike( const Array& array
    view.bind( array.getLocalRange(), array.getGhosts(), array.getSize(), array.getCommunicator(), localData.getView() );
    // set, but do not unset, the synchronizer
    if( array.getSynchronizer() )
-      setSynchronizerHelper( view, array );
+      if constexpr( std::is_same_v< typename Array::DeviceType, DeviceType > )
+         view.setSynchronizer( array.getSynchronizer(), array.getValuesPerElement() );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
