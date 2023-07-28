@@ -137,6 +137,21 @@ if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
       set( CUDA_TESTS_FLAGS ${CUDA_TESTS_FLAGS} -Xcompiler --coverage )
       set( TESTS_LINKER_FLAGS ${TESTS_LINKER_FLAGS} --coverage )
    endif()
+
+   # function to simplify adding MPI tests
+   # usage: add_test_mpi(NAME <name> NPROC <nproc> COMMAND <command> [<arg>...])
+   function( add_test_mpi )
+      # parse function arguments
+      set( options )
+      set( oneValueArgs NAME NPROC )
+      set( multiValueArgs COMMAND )
+      cmake_parse_arguments( ADD_TEST_MPI "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+      # set flags for MPIEXEC_EXECUTABLE
+      set( mpiexec_flags "${MPIEXEC_NUMPROC_FLAG}" "${ADD_TEST_MPI_NPROC}" -H "localhost:${ADD_TEST_MPI_NPROC}" )
+      # set OMP_NUM_THREADS=1 to disable OpenMP for MPI tests
+      # (NPROC may be even greater than the number of physical cores, so it would just slow down)
+      add_test( NAME ${ADD_TEST_MPI_NAME} COMMAND "env" "OMP_NUM_THREADS=1" "${MPIEXEC_EXECUTABLE}" ${mpiexec_flags} ${ADD_TEST_MPI_COMMAND} )
+   endfunction()
 endif()
 
 ####
