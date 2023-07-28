@@ -37,8 +37,8 @@ private:
     * but after removing const and volatile qualifiers they are the same.
     */
    template< typename Object_ >
-   using Enabler = std::enable_if< ! std::is_same< Object_, Object >::value
-                                   && std::is_same< typename std::remove_cv< Object >::type, Object_ >::value >;
+   using Enabler =
+      std::enable_if_t< ! std::is_same_v< Object_, Object > && std::is_same_v< std::remove_cv_t< Object >, Object_ > >;
 
    // friend class will be needed for templated assignment operators
    template< typename Object_, typename Device_ >
@@ -123,7 +123,7 @@ public:
     *
     * \param pointer is the source shared pointer.
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    SharedPointer( const SharedPointer< Object_, DeviceType >& pointer )  // conditional constructor for non-const -> const data
    : pd( (PointerData*) pointer.pd )
    {
@@ -148,7 +148,7 @@ public:
     *
     * \param pointer is the source shared pointer.
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    SharedPointer( SharedPointer< Object_, DeviceType >&& pointer )  // conditional constructor for non-const -> const data
    : pd( (PointerData*) pointer.pd )
    {
@@ -321,7 +321,7 @@ public:
     * \param ptr input pointer
     * \return constant reference to \e this
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    const SharedPointer&
    operator=( const SharedPointer< Object_, DeviceType >& ptr )  // conditional operator for non-const -> const data
    {
@@ -357,7 +357,7 @@ public:
     * \param ptr input pointer
     * \return constant reference to \e this
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    const SharedPointer&
    operator=( SharedPointer< Object_, DeviceType >&& ptr )  // conditional operator for non-const -> const data
    {

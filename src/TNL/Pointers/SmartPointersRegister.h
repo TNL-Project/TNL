@@ -111,13 +111,14 @@ bool
 synchronizeSmartPointersOnDevice( int deviceId = -1 )
 {
    // TODO: better way to skip synchronization of host-only smart pointers
-   if( std::is_same< Device, Devices::Sequential >::value || std::is_same< Device, Devices::Host >::value )
+   if constexpr( std::is_same_v< Device, Devices::Sequential > || std::is_same_v< Device, Devices::Host > )
       return true;
-
-   getSmartPointersSynchronizationTimer< Device >().start();
-   bool b = getSmartPointersRegister< Device >().synchronizeDevice( deviceId );
-   getSmartPointersSynchronizationTimer< Device >().stop();
-   return b;
+   else {
+      getSmartPointersSynchronizationTimer< Device >().start();
+      bool b = getSmartPointersRegister< Device >().synchronizeDevice( deviceId );
+      getSmartPointersSynchronizationTimer< Device >().stop();
+      return b;
+   }
 }
 
 }  // namespace TNL::Pointers

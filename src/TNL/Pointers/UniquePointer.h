@@ -432,13 +432,13 @@ public:
    [[nodiscard]] const Object&
    getData() const
    {
-      static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Cuda >::value,
+      static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
                      "Only Devices::Host or Devices::Cuda devices are accepted here." );
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
       TNL_ASSERT_TRUE( this->cuda_pointer, "Attempt to dereference a null pointer" );
-      if( std::is_same< Device, Devices::Host >::value )
+      if( std::is_same_v< Device, Devices::Host > )
          return this->pd->data;
-      if( std::is_same< Device, Devices::Cuda >::value )
+      if( std::is_same_v< Device, Devices::Cuda > )
          return *( this->cuda_pointer );
    }
 
@@ -458,15 +458,15 @@ public:
    [[nodiscard]] Object&
    modifyData()
    {
-      static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Cuda >::value,
+      static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
                      "Only Devices::Host or Devices::Cuda devices are accepted here." );
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
       TNL_ASSERT_TRUE( this->cuda_pointer, "Attempt to dereference a null pointer" );
-      if( std::is_same< Device, Devices::Host >::value ) {
+      if( std::is_same_v< Device, Devices::Host > ) {
          this->pd->maybe_modified = true;
          return this->pd->data;
       }
-      if( std::is_same< Device, Devices::Cuda >::value )
+      if( std::is_same_v< Device, Devices::Cuda > )
          return *( this->cuda_pointer );
    }
 
