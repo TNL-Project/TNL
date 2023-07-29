@@ -16,7 +16,7 @@ namespace TNL::Algorithms {
 
 // TODO: Add example to the documentation.
 /**
- * \brief Find occurrence (not necessarily the first) of the value in the array.
+ * \brief Find the first occurrence of a value in an array.
  *
  * \tparam Container is the type of the container.
  * \tparam ValueType is the type of the value to be found.
@@ -25,10 +25,9 @@ namespace TNL::Algorithms {
  * \param value is the value to be found.
  * \return pair `(found, position)` where \e found is a boolean indicating
  *         if the \e value was found and \e position is the position of the
- *         occurrence in the container.
+ *         first occurrence in the container.
  */
-template< typename Container,
-          typename ValueType >
+template< typename Container, typename ValueType >
 std::pair< bool, typename Container::IndexType >
 find( const Container& container, const ValueType& value )
 {
@@ -41,9 +40,16 @@ find( const Container& container, const ValueType& value )
    };
    auto reduce = [] __cuda_callable__( bool& a, bool b, IndexType& aIdx, IndexType bIdx )
    {
-      if( b )
-         aIdx = bIdx;
-      a = ( a || b );
+      if( b ) {
+         if( ! a ) {
+            aIdx = bIdx;
+            a = true;
+         }
+         else if( bIdx < aIdx )
+            // ensure that the first occurrence is found
+            aIdx = bIdx;
+            // a is already true in this branch
+      }
    };
    return Algorithms::reduceWithArgument< typename Container::DeviceType >(
       (IndexType) 0, view.getSize(), fetch, reduce, false );

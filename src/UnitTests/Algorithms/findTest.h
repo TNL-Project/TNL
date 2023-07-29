@@ -24,6 +24,7 @@ protected:
 
 // types for which ArrayTest is instantiated
 using ContainerTypes = ::testing::Types<
+#ifndef __CUDACC__
    Containers::Array< short int, Devices::Sequential >,
    Containers::Array< int, Devices::Sequential >,
    Containers::Array< long int, Devices::Sequential >,
@@ -34,8 +35,8 @@ using ContainerTypes = ::testing::Types<
    Containers::Array< long int, Devices::Host >,
    Containers::Array< float, Devices::Host >,
    Containers::Array< double, Devices::Host >
-#ifdef __CUDA_CC__
-   ,Containers::Array< short int, Devices::Cuda >,
+#else
+   Containers::Array< short int, Devices::Cuda >,
    Containers::Array< int, Devices::Cuda >,
    Containers::Array< long int, Devices::Cuda >,
    Containers::Array< float, Devices::Cuda >,
@@ -49,7 +50,7 @@ TYPED_TEST( FindTest, find )
 {
    using ArrayType = typename TestFixture::ArrayType;
 
-   ArrayType u{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+   ArrayType u{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
    EXPECT_EQ( find( u,  0 ).first, true );
    EXPECT_EQ( find( u,  0 ).second, 0 );
    EXPECT_EQ( find( u,  5 ).first, true );
