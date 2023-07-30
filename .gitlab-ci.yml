@@ -64,6 +64,16 @@ workflow:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
 
+# base for NVHPC builds
+.nvhpc:
+    image: "archlinux/devel-tnl-nvhpc:latest"
+    variables:
+        <<: *default_cmake_flags
+        USE_CUDA: "yes"
+        CXX: nvc++
+        CC: nvc
+        CUDA_HOST_COMPILER: nvc++
+
 # base for Clang builds
 .clang:
     variables:
@@ -246,6 +256,17 @@ nvcc:
         - .build_template
         - .matrix_template
         - .nvcc
+
+# FIXME: builds with NVHPC 23.7 don't pass due to toolchain bugs
+#nvhpc:
+#    stage: build:cuda
+#    tags:
+#        - docker
+#        - nvidia
+#    extends:
+#        - .build_template
+#        - .matrix_template
+#        - .nvhpc
 
 clang_cuda:
     stage: build:cuda

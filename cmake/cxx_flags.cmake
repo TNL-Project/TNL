@@ -27,7 +27,18 @@ if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized" )
 endif()
 
-if( TNL_USE_CI_FLAGS )
+# disable false compiler warnings for NVHPC - see the cuda_flags.cmake file
+target_compile_options( TNL_CXX INTERFACE
+      $<$<CXX_COMPILER_ID:NVHPC>:
+            --diag_suppress=code_is_unreachable ;
+            --diag_suppress=loop_not_reachable ;
+            --diag_suppress=implicit_return_from_non_void_function ;
+            --diag_suppress=unsigned_compare_with_zero ;
+            --display_error_number ;
+      >
+)
+
+if( TNL_USE_CI_FLAGS AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC" )
    # enforce (more or less) warning-free builds
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations" )
 endif()
@@ -102,7 +113,8 @@ if( DEFINED ENV{GITLAB_CI} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
        CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
       set( TNL_COLOR_DIAGNOSTICS_FLAG "-fcolor-diagnostics" )
-   elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
+   elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
+           CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC" )
       set( TNL_COLOR_DIAGNOSTICS_FLAG "-fdiagnostics-color" )
    endif()
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TNL_COLOR_DIAGNOSTICS_FLAG}" )
