@@ -173,6 +173,6 @@ template< typename Matrix, GraphTypes GraphType >
 std::ostream& operator<<( std::ostream& os, const Graph< Matrix, GraphType >& graph ) {
    os << graph.getAdjacencyMatrix();
    return os;
-};
+}
 
 } // namespace TNL::Graphs

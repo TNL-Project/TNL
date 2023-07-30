@@ -28,11 +28,11 @@ struct GrowingSegments : public Segments
 
    template< typename SizesContainer >
    GrowingSegments( const SizesContainer& segmentsSizes )
-      : SegmentsType( segmentsSizes ), segmentsFilling( segmentsSizes.getSize(), 0 ), view( Segments::getView(), segmentsFilling.getView() ) {};
+      : SegmentsType( segmentsSizes ), segmentsFilling( segmentsSizes.getSize(), 0 ), view( Segments::getView(), segmentsFilling.getView() ) {}
 
    template< typename ListIndex >
    GrowingSegments( const std::initializer_list< ListIndex >& segmentsSizes )
-      : SegmentsType( segmentsSizes ), segmentsFilling( segmentsSizes.size(), 0 ), view( SegmentsType::getView(), segmentsFilling.getView() ) {};
+      : SegmentsType( segmentsSizes ), segmentsFilling( segmentsSizes.size(), 0 ), view( SegmentsType::getView(), segmentsFilling.getView() ) {}
 
    GrowingSegmentsViewType getView()
    {
