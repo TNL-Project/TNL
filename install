@@ -85,10 +85,6 @@ if [[ "$BUILD_DIR" == "" ]]; then
     BUILD_DIR="$ROOT_DIR/build/$BUILD_TYPE"
 fi
 
-# temporary command to remove the old build directory tree ("builddir")
-# TODO: this command can be removed later
-rm -rf "$ROOT_DIR/builddir"
-
 # set the default number of build jobs
 if [[ -z ${BUILD_JOBS} ]]; then
    if [[ $(command -v lscpu) ]]; then
