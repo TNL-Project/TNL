@@ -148,9 +148,9 @@ public:
       Containers::Vector< typename TNL::copy_const< Index >::template from< Real >::type, Device, Index, IndexAllocator >;
    using ColumnsIndexesViewType = typename ColumnsIndexesVectorType::ViewType;
    using ConstColumnsIndexesViewType = typename ColumnsIndexesViewType::ConstViewType;
-   using RowsCapacitiesType = Containers::Vector< std::remove_const_t< Index >, Device, Index, IndexAllocator >;
-   using RowsCapacitiesView = Containers::VectorView< std::remove_const_t< Index >, Device, Index >;
-   using ConstRowsCapacitiesView = typename RowsCapacitiesView::ConstViewType;
+   using RowCapacitiesType = Containers::Vector< std::remove_const_t< Index >, Device, Index, IndexAllocator >;
+   using RowCapacitiesView = Containers::VectorView< std::remove_const_t< Index >, Device, Index >;
+   using ConstRowCapacitiesView = typename RowCapacitiesView::ConstViewType;
 
    /**
     * \brief Test of symmetric matrix type.
@@ -463,15 +463,15 @@ public:
     * the sparse matrix format. Some formats may allocate more elements than
     * required.
     *
-    * \tparam RowsCapacitiesVector is a type of vector/array used for row
+    * \tparam RowCapacitiesVector is a type of vector/array used for row
     *    capacities setting.
     *
     * \param rowCapacities is a vector telling the number of required non-zero
     *    matrix elements in each row.
     */
-   template< typename RowsCapacitiesVector >
+   template< typename RowCapacitiesVector >
    void
-   setRowCapacities( const RowsCapacitiesVector& rowCapacities );
+   setRowCapacities( const RowCapacitiesVector& rowCapacities );
 
    /**
     * \brief Compute capacities of all rows.

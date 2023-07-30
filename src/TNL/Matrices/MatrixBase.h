@@ -79,7 +79,6 @@ public:
 
    // TODO: add documentation for this type (it is also questionable if it should be in MatrixBase or SparseMatrixBase)
    using RowCapacitiesType = Containers::Vector< Index, Device, Index >;
-   using RowsCapacitiesType [[deprecated]] = RowCapacitiesType;
 
    /**
     * \brief Matrix elements organization getter.

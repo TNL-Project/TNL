@@ -32,7 +32,7 @@ permuteMatrixRows( Matrix& matrix, const PermutationArray& perm )
    matrixCopy.setLike( matrix );
 
    // permute the row capacities
-   typename Matrix::RowsCapacitiesType capacities( matrix.getRows() );
+   typename Matrix::RowCapacitiesType capacities( matrix.getRows() );
    auto capacities_view = capacities.getView();
 
    auto kernel_capacities = [ = ] __cuda_callable__( IndexType i ) mutable

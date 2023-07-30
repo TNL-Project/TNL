@@ -332,9 +332,9 @@ public:
       hypre_CSRMatrixInitialize( m );
    }
 
-   template< typename RowsCapacitiesVector >
+   template< typename RowCapacitiesVector >
    void
-   setRowCapacities( const RowsCapacitiesVector& rowCapacities )
+   setRowCapacities( const RowCapacitiesVector& rowCapacities )
    {
       TNL_ASSERT_EQ(
          rowCapacities.getSize(), this->getRows(), "Number of matrix rows does match the rowCapacities vector size." );

@@ -48,7 +48,7 @@ setupUnevenRowSizeMatrix( Matrix& m )
    const int rows = 10;
    const int cols = 6;
    m.setDimensions( rows, cols );
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setValue( 5 );
    rowLengths.setElement( 0, 2 );
@@ -186,7 +186,7 @@ setupAntiTriDiagMatrix( Matrix& m )
    const int cols = 6;
    m.reset();
    m.setDimensions( rows, cols );
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setValue( 3 );
    rowLengths.setElement( 0, 4 );
@@ -276,7 +276,7 @@ setupTriDiagMatrix( Matrix& m )
    const int cols = 6;
    m.reset();
    m.setDimensions( rows, cols );
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setValue( 3 );
    rowLengths.setElement( 0, 4 );
@@ -443,7 +443,7 @@ tridiagonalMatrixAssignment()
 
    Matrix matrix;
    matrix = hostMatrix;
-   using RowCapacitiesType = typename Matrix::RowsCapacitiesType;
+   using RowCapacitiesType = typename Matrix::RowCapacitiesType;
    RowCapacitiesType rowCapacities;
    matrix.getCompressedRowLengths( rowCapacities );
    RowCapacitiesType exactRowLengths{ 1, 3, 3, 3, 3, 3, 3, 3, 3, 2 };
@@ -494,7 +494,7 @@ multidiagonalMatrixAssignment()
 
    Matrix matrix;
    matrix = hostMatrix;
-   using RowCapacitiesType = typename Matrix::RowsCapacitiesType;
+   using RowCapacitiesType = typename Matrix::RowCapacitiesType;
    RowCapacitiesType rowCapacities;
    matrix.getCompressedRowLengths( rowCapacities );
    RowCapacitiesType exactRowLengths{ 3, 4, 5, 5, 6, 5, 5, 4, 4, 3 };
@@ -545,7 +545,7 @@ denseMatrixAssignment()
 
    Matrix matrix;
    matrix = hostMatrix;
-   using RowCapacitiesType = typename Matrix::RowsCapacitiesType;
+   using RowCapacitiesType = typename Matrix::RowCapacitiesType;
    RowCapacitiesType rowCapacities;
    matrix.getCompressedRowLengths( rowCapacities );
    RowCapacitiesType exactRowLengths{ 0, 2, 3, 4, 5, 6, 7, 8, 9, 10 };

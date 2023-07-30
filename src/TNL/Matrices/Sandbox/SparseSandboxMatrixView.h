@@ -61,8 +61,8 @@ public:
    using ColumnsIndexesViewType =
       Containers::VectorView< typename TNL::copy_const< Index >::template from< Real >::type, Device, Index >;
    using ConstColumnsIndexesViewType = typename ColumnsIndexesViewType::ConstViewType;
-   using RowsCapacitiesView = Containers::VectorView< Index, Device, Index >;
-   using ConstRowsCapacitiesView = typename RowsCapacitiesView::ConstViewType;
+   using RowCapacitiesView = Containers::VectorView< Index, Device, Index >;
+   using ConstRowCapacitiesView = typename RowCapacitiesView::ConstViewType;
 
    /**
     * \brief Test of symmetric matrix type.

@@ -97,10 +97,10 @@ MeanCurvatureFlowProblem< Mesh, BoundaryCondition, RightHandSide, DifferentialOp
    Matrix& matrix )
 {
    const IndexType dofs = this->getDofs( mesh );
-   typedef typename MatrixType::RowsCapacitiesType RowsCapacitiesTypeType;
-   RowsCapacitiesTypeType rowLengths;
+   using RowCapacitiesTypeType = typename Matrix::RowCapacitiesType;
+   RowCapacitiesTypeType rowLengths;
    rowLengths.setSize( dofs );
-   MatrixSetter< MeshType, DifferentialOperator, BoundaryCondition, RowsCapacitiesTypeType > matrixSetter;
+   MatrixSetter< MeshType, DifferentialOperator, BoundaryCondition, RowCapacitiesTypeType > matrixSetter;
    matrixSetter.template getCompressedRowLengths< typename Mesh::Cell >(
       mesh, differentialOperator, boundaryCondition, rowLengths );
    matrix.setDimensions( dofs, dofs );

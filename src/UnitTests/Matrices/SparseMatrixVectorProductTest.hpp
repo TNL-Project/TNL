@@ -34,7 +34,7 @@ test_VectorProduct_smallMatrix1()
    Matrix m_1;
    m_1.reset();
    m_1.setDimensions( m_rows_1, m_cols_1 );
-   typename Matrix::RowsCapacitiesType rowLengths_1{ 1, 2, 1, 1 };
+   typename Matrix::RowCapacitiesType rowLengths_1{ 1, 2, 1, 1 };
    m_1.setRowCapacities( rowLengths_1 );
 
    IndexType value_1 = 1;
@@ -102,7 +102,7 @@ test_VectorProduct_smallMatrix2()
    const IndexType m_cols_2 = 4;
 
    Matrix m_2( m_rows_2, m_cols_2 );
-   typename Matrix::RowsCapacitiesType rowLengths_2{ 3, 1, 3, 1 };
+   typename Matrix::RowCapacitiesType rowLengths_2{ 3, 1, 3, 1 };
    m_2.setRowCapacities( rowLengths_2 );
 
    IndexType value_2 = 1;
@@ -172,7 +172,7 @@ test_VectorProduct_smallMatrix3()
    const IndexType m_cols_3 = 4;
 
    Matrix m_3( m_rows_3, m_cols_3 );
-   typename Matrix::RowsCapacitiesType rowLengths_3{ 3, 3, 3, 3 };
+   typename Matrix::RowCapacitiesType rowLengths_3{ 3, 3, 3, 3 };
    m_3.setRowCapacities( rowLengths_3 );
 
    IndexType value_3 = 1;
@@ -247,7 +247,7 @@ test_VectorProduct_mediumSizeMatrix1()
    const IndexType m_cols_4 = 8;
 
    Matrix m_4( m_rows_4, m_cols_4 );
-   typename Matrix::RowsCapacitiesType rowLengths_4{ 4, 4, 5, 4, 4, 4, 5, 5 };
+   typename Matrix::RowCapacitiesType rowLengths_4{ 4, 4, 5, 4, 4, 4, 5, 5 };
    m_4.setRowCapacities( rowLengths_4 );
 
    IndexType value_4 = 1;
@@ -340,7 +340,7 @@ test_VectorProduct_mediumSizeMatrix2()
    const IndexType m_cols_5 = 8;
 
    Matrix m_5( m_rows_5, m_cols_5 );
-   typename Matrix::RowsCapacitiesType rowLengths_5{ 6, 3, 4, 5, 2, 7, 8, 8 };
+   typename Matrix::RowCapacitiesType rowLengths_5{ 6, 3, 4, 5, 2, 7, 8, 8 };
    m_5.setRowCapacities( rowLengths_5 );
 
    IndexType value_5 = 1;
@@ -503,9 +503,9 @@ test_VectorProduct_longRowsMatrix()
    for( auto columns : { 64, 65, 128, 129, 256, 257, 512, 513, 1024, 1025, 2048, 2049, 3000 } ) {
       const int rows = 33;
       Matrix m3( rows, columns );
-      TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowsCapacities( rows );
-      rowsCapacities = columns;
-      m3.setRowCapacities( rowsCapacities );
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowCapacities( rows );
+      rowCapacities = columns;
+      m3.setRowCapacities( rowCapacities );
       auto f = [] __cuda_callable__( IndexType row, IndexType localIdx, IndexType & column, RealType & value )
       {
          column = localIdx;

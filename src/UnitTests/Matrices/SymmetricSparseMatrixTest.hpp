@@ -47,7 +47,7 @@ test_SetRowCapacities()
    const IndexType cols = 11;
 
    Matrix m( rows, cols );
-   typename Matrix::RowsCapacitiesType rowLengths{ 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3 };
+   typename Matrix::RowCapacitiesType rowLengths{ 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3 };
    m.setRowCapacities( rowLengths );
 
    // Insert values into the rows.
@@ -108,7 +108,7 @@ test_SetRowCapacities()
    rowLengths = 0;
    m.getCompressedRowLengths( rowLengths );
 
-   typename Matrix::RowsCapacitiesType correctRowLengths{ 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3 };
+   typename Matrix::RowCapacitiesType correctRowLengths{ 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3 };
    EXPECT_EQ( rowLengths, correctRowLengths );
 }
 
@@ -960,8 +960,8 @@ test_reduceRows()
 
    ////
    // Compute number of non-zero elements in rows.
-   typename Matrix::RowsCapacitiesType rowLengths( m_rows_5 );
-   typename Matrix::RowsCapacitiesType rowLengths_true( { 1, 1, 4, 4, 4, 4, 1, 1 } );
+   typename Matrix::RowCapacitiesType rowLengths( m_rows_5 );
+   typename Matrix::RowCapacitiesType rowLengths_true( { 1, 1, 4, 4, 4, 4, 1, 1 } );
    auto rowLengths_view = rowLengths.getView();
    rowLengths_view = 0;
    auto fetch = [ = ] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) mutable -> IndexType
@@ -978,7 +978,7 @@ test_reduceRows()
 
    EXPECT_EQ( rowLengths_true, rowLengths );
    m_5.getCompressedRowLengths( rowLengths );
-   typename Matrix::RowsCapacitiesType rowLengths_symmetric( { 1, 1, 1, 2, 3, 4, 1, 1 } );
+   typename Matrix::RowCapacitiesType rowLengths_symmetric( { 1, 1, 1, 2, 3, 4, 1, 1 } );
    EXPECT_EQ( rowLengths_symmetric, rowLengths );
 
    ////

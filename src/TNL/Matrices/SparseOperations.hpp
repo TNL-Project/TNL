@@ -546,7 +546,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       // set row lengths
-      typename Matrix1::RowsCapacitiesType rowLengths;
+      typename Matrix1::RowCapacitiesType rowLengths;
       rowLengths.setSize( rows );
 #ifdef HAVE_OPENMP
       #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
@@ -581,7 +581,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       const IndexType desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
       launch_config.gridSize.x = min( desGridSize, Cuda::getNumberOfBlocks( rows, launch_config.blockSize.x ) );
 
-      typename Matrix1::RowsCapacitiesType rowLengths;
+      typename Matrix1::RowCapacitiesType rowLengths;
       rowLengths.setSize( rows );
 
       Pointers::DevicePointer< Matrix1 > Apointer( A );
@@ -590,7 +590,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       // set row lengths
       Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
       constexpr auto kernelRowLenghts =
-         SparseMatrixSetRowLengthsVectorKernel< typename Matrix1::RowsCapacitiesType::ValueType, Matrix2 >;
+         SparseMatrixSetRowLengthsVectorKernel< typename Matrix1::RowCapacitiesType::ValueType, Matrix2 >;
       Cuda::launchKernelSync( kernelRowLenghts,
                               launch_config,
                               rowLengths.getData(),
@@ -668,7 +668,7 @@ copyAdjacencyStructure( const Matrix& A, AdjacencyMatrix& B, bool has_symmetric_
    B.setDimensions( N, N );
 
    // set row lengths
-   typename AdjacencyMatrix::RowsCapacitiesType rowLengths;
+   typename AdjacencyMatrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( N );
    rowLengths.setValue( 0 );
    for( IndexType i = 0; i < A.getRows(); i++ ) {
@@ -723,7 +723,7 @@ reorderSparseMatrix( const Matrix1& matrix1, Matrix2& matrix2, const Permutation
    matrix2.setDimensions( matrix1.getRows(), matrix1.getColumns() );
 
    // set row lengths
-   typename Matrix2::RowsCapacitiesType rowLengths;
+   typename Matrix2::RowCapacitiesType rowLengths;
    rowLengths.setSize( matrix1.getRows() );
    for( IndexType i = 0; i < matrix1.getRows(); i++ ) {
       const auto row = matrix1.getRow( perm[ i ] );

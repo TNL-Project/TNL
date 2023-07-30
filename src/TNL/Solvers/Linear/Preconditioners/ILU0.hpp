@@ -30,8 +30,8 @@ ILU0_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
    U.setDimensions( N, N );
 
    // copy row lengths
-   typename decltype( L )::RowsCapacitiesType L_rowLengths( N );
-   typename decltype( U )::RowsCapacitiesType U_rowLengths( N );
+   typename decltype( L )::RowCapacitiesType L_rowLengths( N );
+   typename decltype( U )::RowCapacitiesType U_rowLengths( N );
    for( IndexType i = 0; i < N; i++ ) {
       const auto row = localMatrix.getRow( i );
       IndexType L_entries = 0;

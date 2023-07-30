@@ -49,8 +49,8 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
 
    // compute row lengths
    //   timer_rowlengths.start();
-   typename decltype( L )::RowsCapacitiesType L_rowLengths( N );
-   typename decltype( U )::RowsCapacitiesType U_rowLengths( N );
+   typename decltype( L )::RowCapacitiesType L_rowLengths( N );
+   typename decltype( U )::RowCapacitiesType U_rowLengths( N );
    for( IndexType i = 0; i < N; i++ ) {
       const auto row = localMatrix.getRow( i );
       IndexType L_entries = 0;

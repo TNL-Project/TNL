@@ -46,7 +46,7 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
 : rows( rowCapacities.size() ), columns( columns ), values( realAllocator ), columnIndexes( indexAllocator ),
   rowPointers( rowCapacities.size() + 1, (IndexType) 0, indexAllocator )
 {
-   this->setRowCapacities( RowsCapacitiesType( rowCapacities ) );
+   this->setRowCapacities( RowCapacitiesType( rowCapacities ) );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
@@ -179,33 +179,33 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
-template< typename RowsCapacitiesVector >
+template< typename RowCapacitiesVector >
 void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::setRowCapacities(
-   const RowsCapacitiesVector& rowsCapacities )
+   const RowCapacitiesVector& rowCapacities )
 {
    TNL_ASSERT_EQ(
-      rowsCapacities.getSize(), this->getRows(), "Number of matrix rows does not fit with rowCapacities vector size." );
-   using RowsCapacitiesVectorDevice = typename RowsCapacitiesVector::DeviceType;
+      rowCapacities.getSize(), this->getRows(), "Number of matrix rows does not fit with rowCapacities vector size." );
+   using RowCapacitiesVectorDevice = typename RowCapacitiesVector::DeviceType;
 
    // SANDBOX_TODO: Replace the following lines with the setup of your sparse matrix format based on
-   //               `rowsCapacities`. This container has the same number of elements as is the number of
+   //               `rowCapacities`. This container has the same number of elements as is the number of
    //               rows of this matrix. Each element says how many nonzero elements the user needs to have
    //               in each row. This number can be increased if the sparse matrix format uses padding zeros.
    this->rowPointers.setSize( this->getRows() + 1 );
-   if( std::is_same< DeviceType, RowsCapacitiesVectorDevice >::value ) {
+   if( std::is_same< DeviceType, RowCapacitiesVectorDevice >::value ) {
       // GOTCHA: when this->getRows() == 0, getView returns a full view with size == 1
       if( this->getRows() > 0 ) {
          auto view = this->rowPointers.getView( 0, this->getRows() );
-         view = rowsCapacities;
+         view = rowCapacities;
       }
    }
    else {
-      RowsCapacitiesType thisRowsCapacities;
-      thisRowsCapacities = rowsCapacities;
+      RowCapacitiesType thisRowCapacities;
+      thisRowCapacities = rowCapacities;
       if( this->getRows() > 0 ) {
          auto view = this->rowPointers.getView( 0, this->getRows() );
-         view = thisRowsCapacities;
+         view = thisRowCapacities;
       }
    }
    this->rowPointers.setElement( this->getRows(), 0 );
@@ -270,18 +270,18 @@ void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::setElements(
    const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map )
 {
-   Containers::Vector< IndexType, Devices::Host, IndexType > rowsCapacities( this->getRows(), 0 );
+   Containers::Vector< IndexType, Devices::Host, IndexType > rowCapacities( this->getRows(), 0 );
    for( auto element : map )
-      rowsCapacities[ element.first.first ]++;
+      rowCapacities[ element.first.first ]++;
    if( ! std::is_same< DeviceType, Devices::Host >::value ) {
       SparseSandboxMatrix< Real, Devices::Host, Index, MatrixType > hostMatrix( this->getRows(), this->getColumns() );
-      hostMatrix.setRowCapacities( rowsCapacities );
+      hostMatrix.setRowCapacities( rowCapacities );
       for( auto element : map )
          hostMatrix.setElement( element.first.first, element.first.second, element.second );
       *this = hostMatrix;
    }
    else {
-      this->setRowCapacities( rowsCapacities );
+      this->setRowCapacities( rowCapacities );
       for( auto element : map )
          this->setElement( element.first.first, element.first.second, element.second );
    }
@@ -553,7 +553,7 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    setDimensions( matrix.getColumns(), matrix.getRows() );
 
    // stage 1: compute row capacities for the transposition
-   RowsCapacitiesType capacities;
+   RowCapacitiesType capacities;
    capacities.resize( this->getRows(), 0 );
    auto capacities_view = capacities.getView();
    using MatrixRowView = typename SparseSandboxMatrix< Real2, Device, Index2, MatrixType >::ConstRowView;
@@ -575,7 +575,7 @@ SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAlloca
    capacities.reset();
 
    // index of the first unwritten element per row
-   RowsCapacitiesType offsets;
+   RowCapacitiesType offsets;
    offsets.resize( this->getRows(), 0 );
    auto offsets_view = offsets.getView();
 

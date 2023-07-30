@@ -60,7 +60,7 @@ test_SetCompressedRowLengths()
    Matrix m;
    m.reset();
    m.setDimensions( rows, cols );
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setValue( 3 );
 
@@ -168,7 +168,7 @@ test_GetNumberOfNonzeroMatrixElements()
 
    m.setDimensions( rows, cols );
 
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setElement( 0, 4 );
    rowLengths.setElement( 1, 3 );
@@ -261,7 +261,7 @@ test_GetRow()
 
    Matrix m( rows, cols );
 
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setElement( 0, 4 );
    rowLengths.setElement( 1, 3 );
@@ -488,7 +488,7 @@ test_SetElement()
 
    m.setDimensions( rows, cols );
 
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setElement( 0, 4 );
    rowLengths.setElement( 1, 3 );
@@ -657,7 +657,7 @@ test_AddElement()
    Matrix m;
    m.reset();
    m.setDimensions( rows, cols );
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setValue( 3 );
    m.setCompressedRowLengths( rowLengths );
@@ -816,7 +816,7 @@ test_SetRow()
    Matrix m;
    m.reset();
    m.setDimensions( rows, cols );
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setValue( 6 );
    rowLengths.setElement( 1, 3 );
@@ -892,7 +892,7 @@ test_VectorProduct()
    Matrix m_1;
    m_1.reset();
    m_1.setDimensions( m_rows_1, m_cols_1 );
-   typename Matrix::RowsCapacitiesType rowLengths_1;
+   typename Matrix::RowCapacitiesType rowLengths_1;
    rowLengths_1.setSize( m_rows_1 );
    rowLengths_1.setElement( 0, 1 );
    rowLengths_1.setElement( 1, 2 );
@@ -942,7 +942,7 @@ test_VectorProduct()
    Matrix m_2;
    m_2.reset();
    m_2.setDimensions( m_rows_2, m_cols_2 );
-   typename Matrix::RowsCapacitiesType rowLengths_2;
+   typename Matrix::RowCapacitiesType rowLengths_2;
    rowLengths_2.setSize( m_rows_2 );
    rowLengths_2.setValue( 3 );
    rowLengths_2.setElement( 1, 1 );
@@ -993,7 +993,7 @@ test_VectorProduct()
    Matrix m_3;
    m_3.reset();
    m_3.setDimensions( m_rows_3, m_cols_3 );
-   typename Matrix::RowsCapacitiesType rowLengths_3;
+   typename Matrix::RowCapacitiesType rowLengths_3;
    rowLengths_3.setSize( m_rows_3 );
    rowLengths_3.setValue( 3 );
    m_3.setCompressedRowLengths( rowLengths_3 );
@@ -1047,7 +1047,7 @@ test_VectorProduct()
    Matrix m_4;
    m_4.reset();
    m_4.setDimensions( m_rows_4, m_cols_4 );
-   typename Matrix::RowsCapacitiesType rowLengths_4;
+   typename Matrix::RowCapacitiesType rowLengths_4;
    rowLengths_4.setSize( m_rows_4 );
    rowLengths_4.setValue( 4 );
    rowLengths_4.setElement( 2, 5 );
@@ -1122,7 +1122,7 @@ test_VectorProduct()
    Matrix m_5;
    m_5.reset();
    m_5.setDimensions( m_rows_5, m_cols_5 );
-   typename Matrix::RowsCapacitiesType rowLengths_5;
+   typename Matrix::RowCapacitiesType rowLengths_5;
    rowLengths_5.setSize( m_rows_5 );
    rowLengths_5.setElement( 0, 6 );
    rowLengths_5.setElement( 1, 3 );
@@ -1228,7 +1228,7 @@ test_VectorProductLarger()
    Matrix m;
    m.reset();
    m.setDimensions( m_rows, m_cols );
-   typename Matrix::RowsCapacitiesType rowLengths( { 11, 2, 4, 0, 6, 4, 1, 2, 20, 18, 6, 20, 10, 0, 20, 10, 2, 20, 10, 12 } );
+   typename Matrix::RowCapacitiesType rowLengths( { 11, 2, 4, 0, 6, 4, 1, 2, 20, 18, 6, 20, 10, 0, 20, 10, 2, 20, 10, 12 } );
    //   rowLengths.setSize( m_rows );
    //   rowLengths.setValue( 20 );
    m.setCompressedRowLengths( rowLengths );
@@ -1366,11 +1366,11 @@ test_VectorProductCSRAdaptive()
    //----------------- Test CSR Stream part ------------------
    Matrix m;
    m.setDimensions( m_rows, m_cols );
-   typename Matrix::RowsCapacitiesType rowLengths( 100, 100 );
+   typename Matrix::RowCapacitiesType rowLengths( 100, 100 );
 
    if( std::is_same< DeviceType, TNL::Devices::Cuda >::value ) {
       typedef typename Matrix::template Self< RealType, TNL::Devices::Host, IndexType > HostMatrixType;
-      typename HostMatrixType::RowsCapacitiesType rowLengths( 100, 100 );
+      typename HostMatrixType::RowCapacitiesType rowLengths( 100, 100 );
       HostMatrixType hostMatrix;
       hostMatrix.setDimensions( m_rows, m_cols );
       hostMatrix.setCompressedRowLengths( rowLengths );
@@ -1401,11 +1401,11 @@ test_VectorProductCSRAdaptive()
 
    m.reset();
    m.setDimensions( m_rows, m_cols );
-   typename Matrix::RowsCapacitiesType rowLengths2 = { m_cols };
+   typename Matrix::RowCapacitiesType rowLengths2 = { m_cols };
 
    if( std::is_same< DeviceType, TNL::Devices::Cuda >::value ) {
       typedef typename Matrix::template Self< RealType, TNL::Devices::Host, IndexType > HostMatrixType;
-      typename HostMatrixType::RowsCapacitiesType rowLengths = { m_cols };
+      typename HostMatrixType::RowCapacitiesType rowLengths = { m_cols };
       HostMatrixType hostMatrix;
       hostMatrix.setDimensions( m_rows, m_cols );
       hostMatrix.setCompressedRowLengths( rowLengths );
@@ -1454,17 +1454,17 @@ test_reduceRows()
 
    Matrix m;
    m.setDimensions( rows, cols );
-   typename Matrix::RowsCapacitiesType rowsCapacities( rows );
+   typename Matrix::RowCapacitiesType rowCapacities( rows );
    //rowLengths.setSize( rows );
-   rowsCapacities.setElement( 0, 6 );
-   rowsCapacities.setElement( 1, 3 );
-   rowsCapacities.setElement( 2, 4 );
-   rowsCapacities.setElement( 3, 5 );
-   rowsCapacities.setElement( 4, 2 );
-   rowsCapacities.setElement( 5, 7 );
-   rowsCapacities.setElement( 6, 8 );
-   rowsCapacities.setElement( 7, 8 );
-   m.setCompressedRowLengths( rowsCapacities );
+   rowCapacities.setElement( 0, 6 );
+   rowCapacities.setElement( 1, 3 );
+   rowCapacities.setElement( 2, 4 );
+   rowCapacities.setElement( 3, 5 );
+   rowCapacities.setElement( 4, 2 );
+   rowCapacities.setElement( 5, 7 );
+   rowCapacities.setElement( 6, 8 );
+   rowCapacities.setElement( 7, 8 );
+   m.setCompressedRowLengths( rowCapacities );
 
    RealType value = 1;
    for( IndexType i = 0; i < 3; i++ )  // 0th row
@@ -1500,7 +1500,7 @@ test_reduceRows()
 
    ////
    // Compute number of non-zero elements in rows.
-   typename Matrix::RowsCapacitiesType rowLengths( rows );
+   typename Matrix::RowCapacitiesType rowLengths( rows );
    auto rowLengths_view = rowLengths.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
    {
@@ -1515,9 +1515,9 @@ test_reduceRows()
       rowLengths_view[ rowIdx ] = value;
    };
    m.reduceAllRows( fetch, reduce, keep, 0 );
-   EXPECT_EQ( rowsCapacities, rowLengths );
+   EXPECT_EQ( rowCapacities, rowLengths );
    m.getCompressedRowLengths( rowLengths );
-   EXPECT_EQ( rowsCapacities, rowLengths );
+   EXPECT_EQ( rowCapacities, rowLengths );
 
    ////
    // Compute max norm
@@ -1576,7 +1576,7 @@ test_OperatorEquals()
 
       m_host.reset();
       m_host.setDimensions( m_rows, m_cols );
-      typename AdELL_host::RowsCapacitiesType rowLengths;
+      typename AdELL_host::RowCapacitiesType rowLengths;
       rowLengths.setSize( m_rows );
       rowLengths.setElement( 0, 6 );
       rowLengths.setElement( 1, 3 );
@@ -1824,7 +1824,7 @@ test_SaveAndLoad( const char* filename )
    Matrix savedMatrix;
    savedMatrix.reset();
    savedMatrix.setDimensions( m_rows, m_cols );
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( m_rows );
    rowLengths.setValue( 3 );
    savedMatrix.setCompressedRowLengths( rowLengths );
@@ -1847,7 +1847,7 @@ test_SaveAndLoad( const char* filename )
    Matrix loadedMatrix;
    loadedMatrix.reset();
    loadedMatrix.setDimensions( m_rows, m_cols );
-   typename Matrix::RowsCapacitiesType rowLengths2;
+   typename Matrix::RowCapacitiesType rowLengths2;
    rowLengths2.setSize( m_rows );
    rowLengths2.setValue( 3 );
    loadedMatrix.setCompressedRowLengths( rowLengths2 );
@@ -1920,7 +1920,7 @@ test_Print()
    Matrix m;
    m.reset();
    m.setDimensions( m_rows, m_cols );
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( m_rows );
    rowLengths.setValue( 3 );
    m.setCompressedRowLengths( rowLengths );

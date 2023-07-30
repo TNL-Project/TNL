@@ -29,7 +29,7 @@ public:
    using IndexType = typename Matrix::IndexType;
    using LocalRangeType = Containers::Subrange< typename Matrix::IndexType >;
 
-   using RowsCapacitiesType = Containers::DistributedVector< IndexType, DeviceType, IndexType >;
+   using RowCapacitiesType = Containers::DistributedVector< IndexType, DeviceType, IndexType >;
 
    using MatrixRow = typename Matrix::RowView;
    using ConstMatrixRow = typename Matrix::ConstRowView;

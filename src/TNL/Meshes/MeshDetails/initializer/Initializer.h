@@ -67,8 +67,8 @@ public:
    using NeighborCountsArray = typename MeshTraitsType::NeighborCountsArray;
 
    template< int Dimension, int Subdimension >
-   using SubentityMatrixRowsCapacitiesType =
-      typename MeshTraitsType::template SubentityMatrixType< Dimension >::RowsCapacitiesType;
+   using SubentityMatrixRowCapacitiesType =
+      typename MeshTraitsType::template SubentityMatrixType< Dimension >::RowCapacitiesType;
 
    // The points and cellSeeds arrays will be reset when not needed to save memory.
    void
