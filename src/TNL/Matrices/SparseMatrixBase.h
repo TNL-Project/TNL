@@ -724,7 +724,7 @@ public:
     *    \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
     *    \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
     *   or similar container.
-    * \param OutVector is type of output vector. It can be
+    * \tparam OutVector is type of output vector. It can be
     *    \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
     *    \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
     *  or similar container.
