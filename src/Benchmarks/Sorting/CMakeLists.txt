@@ -8,15 +8,7 @@ endif()
 if( TNL_BUILD_CUDA )
    add_executable( tnl-benchmark-sort-cuda tnl-benchmark-sort.cu )
    target_link_libraries( tnl-benchmark-sort-cuda PUBLIC TNL::TNL_CUDA )
-   # Source code of reference algorithms causes warnings which turn into errers
-   # with CI/CD compiler flags. Therefore we use -Wno-error to turn it off.
-   target_compile_options( tnl-benchmark-sort-cuda PRIVATE
-         $<$<CUDA_COMPILER_ID:NVIDIA>:
-               -Xcompiler ;
-               -Wno-error=switch,-Wno-error=sign-compare
-         >
-         ${CUDA_SAMPLES_FLAGS}
-   )
+   target_compile_options( tnl-benchmark-sort-cuda PRIVATE ${CUDA_SAMPLES_FLAGS} )
    find_package( CUDAToolkit REQUIRED )
    target_link_libraries( tnl-benchmark-sort-cuda PUBLIC CUDA::cusparse )
    install( TARGETS tnl-benchmark-sort-cuda RUNTIME DESTINATION bin )
