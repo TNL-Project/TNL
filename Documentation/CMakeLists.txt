@@ -27,7 +27,7 @@ if( TNL_BUILD_DOC )
 
    # the documentation cannot be built without warnings when CUDA is disabled
    # (e.g. output of some examples will be missing)
-   if( DEFINED ENV{GITLAB_CI} OR TNL_BUILD_CUDA )
+   if( DEFINED ENV{GITLAB_CI} OR (TNL_USE_CI_FLAGS AND TNL_BUILD_CUDA) )
       set( DOXYGEN_WARN_AS_ERROR "YES" )
    else()
       set( DOXYGEN_WARN_AS_ERROR "NO" )
