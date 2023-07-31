@@ -66,7 +66,7 @@ Euler< Vector, SolverMonitor >::solve( VectorType& _u, RHSFunction&& rhsFunction
 
    /////
    // Start the main loop
-   while( 1 ) {
+   while( true ) {
       /////
       // Compute the RHS
       rhsFunction( time, currentTau, u, k1 );
@@ -111,7 +111,6 @@ Euler< Vector, SolverMonitor >::solve( VectorType& _u, RHSFunction&& rhsFunction
          currentTau = min( currentTau, this->getMaxTau() );
       }
    }
-   return false;  // just to avoid warnings
 }
 
 }  // namespace TNL::Solvers::ODE

@@ -21,17 +21,18 @@ template< typename T, typename V = T >
 constexpr ExpressionVariableType
 getExpressionVariableType()
 {
-   if( IsScalarType< T >::value || is_complex_v< T > )
+   if constexpr( IsScalarType< T >::value || is_complex_v< T > )
       return ArithmeticVariable;
    // vectors must be considered as an arithmetic type when used as RealType in another vector
-   if( IsArithmeticSubtype< T, V >::value )
+   else if constexpr( IsArithmeticSubtype< T, V >::value )
       return ArithmeticVariable;
-   if( HasEnabledExpressionTemplates< T >::value || HasEnabledStaticExpressionTemplates< T >::value
-       || HasEnabledDistributedExpressionTemplates< T >::value )
+   else if constexpr( HasEnabledExpressionTemplates< T >::value || HasEnabledStaticExpressionTemplates< T >::value
+                      || HasEnabledDistributedExpressionTemplates< T >::value )
       return VectorExpressionVariable;
-   if( IsArrayType< T >::value || IsStaticArrayType< T >::value )
+   else if constexpr( IsArrayType< T >::value || IsStaticArrayType< T >::value )
       return VectorExpressionVariable;
-   return OtherVariable;
+   else
+      return OtherVariable;
 }
 
 }  // namespace TNL::Containers::Expressions

@@ -242,10 +242,10 @@ struct NDArrayBase
          const auto size = sizes.template getSize< dimension >();
          // round up the last dynamic dimension to improve performance
          // TODO: aligning is good for GPU, but bad for CPU
-         //         static constexpr decltype(size) mult = 32;
-         //         if( dimension == get< Permutation::size() - 1 >( Permutation{} )
-         //                 && SizesHolder::template getStaticSize< dimension >() == 0 )
-         //             return mult * ( size / mult + ( size % mult != 0 ) );
+         //static constexpr decltype(size) mult = 32;
+         //if( dimension == get< Permutation::size() - 1 >( Permutation{} )
+         //        && SizesHolder::template getStaticSize< dimension >() == 0 )
+         //    return mult * ( size / mult + ( size % mult != 0 ) );
          return size;
       }
    };
@@ -285,12 +285,13 @@ struct SlicedNDArrayBase
       getAlignedSize( const SizesHolder& sizes )
       {
          const auto size = sizes.template getSize< dimension >();
-         if( SliceInfo::getSliceSize( dimension ) > 0 )
+         if constexpr( SliceInfo::getSliceSize( dimension ) > 0 )
             // round to multiple of SliceSize
             return SliceInfo::getSliceSize( dimension )
                  * ( size / SliceInfo::getSliceSize( dimension ) + ( size % SliceInfo::getSliceSize( dimension ) != 0 ) );
-         // unmodified
-         return size;
+         else
+            // unmodified
+            return size;
       }
    };
 

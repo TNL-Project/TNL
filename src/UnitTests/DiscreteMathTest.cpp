@@ -140,7 +140,7 @@ TEST( DiscreteMathTest, detectMultiplicationOverflowTest )
       }
 
    for( unsigned char a = 0; a <= 16; a++ )
-      for( unsigned char b = -16; b < 16; b++ ) {
+      for( unsigned char b = 0; b < 16; b++ ) {
          EXPECT_FALSE( TNL::integerMultiplyOverflow( a, b ) ) << "a = " << +a << ", b = " << +b;
          EXPECT_FALSE( TNL::integerMultiplyOverflow( b, a ) ) << "a = " << +a << ", b = " << +b;
       }

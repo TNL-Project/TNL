@@ -59,7 +59,7 @@ AdaGrad< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&& getGrad
 
    /////
    // Start the main loop
-   while( 1 ) {
+   while( true ) {
       /////
       // Compute the gradient
       getGradient( w_view, gradient_view );
@@ -79,7 +79,6 @@ AdaGrad< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&& getGrad
       if( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() )
          return true;
    }
-   return false;  // just to avoid warnings
 }
 
 }  // namespace TNL::Solvers::Optimization

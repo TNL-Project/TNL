@@ -68,7 +68,7 @@ StaticEuler< Real >::solve( VectorType& u, RHSFunction&& rhsFunction, Args... ar
 
    /////
    // Start the main loop
-   while( 1 ) {
+   while( true ) {
       /////
       // Compute the RHS
       rhsFunction( time, currentTau, u, k1, args... );
@@ -113,7 +113,6 @@ StaticEuler< Real >::solve( VectorType& u, RHSFunction&& rhsFunction, Args... ar
          currentTau = min( currentTau, this->getMaxTau() );
       }
    }
-   return false;  // just to avoid warnings
 }
 
 ////
@@ -175,7 +174,7 @@ StaticEuler< Containers::StaticVector< Size_, Real > >::solve( VectorType& u, RH
 
    /////
    // Start the main loop
-   while( 1 ) {
+   while( true ) {
       /////
       // Compute the RHS
       rhsFunction( time, currentTau, u, k1, args... );
@@ -219,7 +218,6 @@ StaticEuler< Containers::StaticVector< Size_, Real > >::solve( VectorType& u, RH
          currentTau = min( currentTau, this->getMaxTau() );
       }
    }
-   return false;  // just to avoid warnings
 }
 
 }  // namespace TNL::Solvers::ODE

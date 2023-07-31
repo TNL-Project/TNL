@@ -57,7 +57,7 @@ GradientDescent< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&&
 
    /////
    // Start the main loop
-   while( 1 ) {
+   while( true ) {
       /////
       // Compute the gradient
       getGradient( w_view, gradient_view );
@@ -73,7 +73,6 @@ GradientDescent< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&&
       if( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() )
          return true;
    }
-   return false;  // just to avoid warnings
 }
 
 }  // namespace TNL::Solvers::Optimization
