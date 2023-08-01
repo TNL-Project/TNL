@@ -8,7 +8,6 @@
 #include <vector>
 #include <algorithm>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Containers/AtomicVectorView.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Graphs/Edge.h>
@@ -177,7 +176,7 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
                hook_sources( n, ( IndexType ) -1 );
    p.forAllElements( [] __cuda_callable__ ( Index i, Index& value ) { value = i; } );
    IndexVector treeFilling( n, 0 );
-   Containers::AtomicVectorView< IndexType, DeviceType, IndexType > treeFillingView( treeFilling.getView() );
+   Containers::VectorView< IndexType, DeviceType, IndexType > treeFillingView( treeFilling.getView() );
 
    auto hook_candidates_view = hook_candidates.getView();
    auto hook_candidates_weights_view = hook_candidates_weights.getView();
@@ -489,10 +488,12 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
          if( target != -1 ) {
             IndexType row = max( i, target );
             IndexType col = min( i, target );
-            //IndexType localIdx = treeFillingView.atomicAdd( row, 1 );
-            tree_view.getRow( row ).setElement( treeFillingView.atomicAdd( row, 1 ), col, new_links_weight_view[ i ] );
-            if constexpr( ! OutGraph::MatrixType::isSymmetric() )
-               tree_view.getRow( col ).setElement( treeFillingView.atomicAdd( col, 1 ), row, new_links_weight_view[ i ] );
+            IndexType localIdx = Algorithms::AtomicOperations< DeviceType >::add( treeFillingView[ row ], 1 );
+            tree_view.getRow( row ).setElement( localIdx, col, new_links_weight_view[ i ] );
+            if constexpr( ! OutGraph::MatrixType::isSymmetric() ) {
+               IndexType localIdx = Algorithms::AtomicOperations< DeviceType >::add( treeFillingView[ row ], 1 );
+               tree_view.getRow( col ).setElement( localIdx, row, new_links_weight_view[ i ] );
+            }
             //std::cout <<    " Adding edge " << row << " -> " << col << " with weight " << new_links_weight_view[ i ]
             //          << " to the output tree." << std::endl;
          }
