@@ -69,10 +69,10 @@ if( TNL_BUILD_MPI )
    endif()
 
    add_test_mpi( NAME distributedScanTest NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTest${CMAKE_EXECUTABLE_SUFFIX}" )
-   add_test( NAME distributedScanTest_nodistr COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTest${CMAKE_EXECUTABLE_SUFFIX}" )
+   add_test_mpi( NAME distributedScanTest_nodistr NPROC 1 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTest${CMAKE_EXECUTABLE_SUFFIX}" )
 
    if( TNL_BUILD_CUDA )
       add_test_mpi( NAME distributedScanTestCuda NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestCuda${CMAKE_EXECUTABLE_SUFFIX}" )
-      add_test( NAME distributedScanTestCuda_nodistr COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestCuda${CMAKE_EXECUTABLE_SUFFIX}" )
+      add_test_mpi( NAME distributedScanTestCuda_nodistr NPROC 1 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestCuda${CMAKE_EXECUTABLE_SUFFIX}" )
    endif()
 endif()
