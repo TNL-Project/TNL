@@ -78,7 +78,7 @@ done
 pkg-config --exists tinyxml2 || "$ROOT_DIR/scripts/install_tinyxml2" --prefix "$PREFIX"
 
 # configure the build
-./configure --prefix="$PREFIX" --build-type="$BUILD_TYPE" "${CONFIGURE_OPTIONS[@]}"
+./configure --prefix="$PREFIX" --build-type="$BUILD_TYPE" ${CONFIGURE_OPTIONS[@]+"${CONFIGURE_OPTIONS[@]}"}
 
 # set default build directory
 if [[ "$BUILD_DIR" == "" ]]; then
@@ -109,13 +109,14 @@ cmake --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target "all"
 cmake --install "$BUILD_DIR" $VERBOSE
 
 # run the tests
-if [[ " ${CONFIGURE_OPTIONS[*]} " =~ " all " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " =~ " tests " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " =~ " matrix-tests " ]]; then
-    export OMP_NUM_THREADS="$TESTS_JOBS"
-    export CTEST_PARALLEL_LEVEL="$TESTS_JOBS"
-    export CTEST_OUTPUT_ON_FAILURE=1
-    cmake --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target "test"
+if [[ ${#CONFIGURE_OPTIONS[@]} != 0 ]]; then
+    if [[ " ${CONFIGURE_OPTIONS[*]} " =~ " all " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " =~ " tests " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " =~ " matrix-tests " ]]; then
+        export OMP_NUM_THREADS="$TESTS_JOBS"
+        export CTEST_PARALLEL_LEVEL="$TESTS_JOBS"
+        export CTEST_OUTPUT_ON_FAILURE=1
+        cmake --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target "test"
+    fi
 fi
-
 
 if [[ ! "$PATH" =~ "$PREFIX/bin" ]]; then
     cat << EOF
