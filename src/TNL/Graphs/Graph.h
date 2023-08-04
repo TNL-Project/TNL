@@ -137,13 +137,7 @@ struct Graph
    }
 
    template< typename Matrix_ >
-   void setAdjacencyMatrix( const Matrix_& matrix ) {
-      TNL_ASSERT_EQ( matrix.getRows(), matrix.getColumns(), "Adjacency matrix must be square matrix." );
-      adjacencyMatrix = matrix;
-   }
-
-   template< typename Matrix_ >
-   void setAdjacencyMatrix( Matrix_&& matrix ) {
+   void setAdjacencyMatrix( Matrix_ matrix ) {
       TNL_ASSERT_EQ( matrix.getRows(), matrix.getColumns(), "Adjacency matrix must be square matrix." );
       adjacencyMatrix = std::move( matrix );
    }

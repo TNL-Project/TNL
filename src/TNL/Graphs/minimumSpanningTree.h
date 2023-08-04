@@ -142,9 +142,9 @@ template< typename InGraph,
           typename Index = typename InGraph::IndexType >
 void parallelMST(const InGraph& graph, OutGraph& tree )
 {
-   using RealType = typename InGraph::ValueType;
+   using RealType = Real;
    using DeviceType = typename InGraph::DeviceType;
-   using IndexType = typename InGraph::IndexType;
+   using IndexType = Index;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
    using RealVector = Containers::Vector< RealType, DeviceType, IndexType >;
    using InMatrixType = typename InGraph::MatrixType;
@@ -432,7 +432,7 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
       new_links_weight_view = 0.0;
       star_link_source_view = -1; // TODO: this is not necessary
 
-      auto hooking_fetch = [=] __cuda_callable__ ( Index i ) mutable {
+      auto hooking_fetch = [=] __cuda_callable__ ( Index i ) mutable -> RealType {
          auto source = star_hook_sources_view[ i ]; //hook_sources_view[ i ];
          auto target = star_hook_targets_view[ i ]; //hook_targets_view[ i ];
          if( source != -1 ) {
@@ -444,7 +444,7 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
             return hook_weights_view[ i ];
          }
          else
-            return ( Real ) 0.0;
+            return 0;
       };
       sum += Algorithms::reduce< DeviceType >( 0, p.getSize(), hooking_fetch, TNL::Plus{} );
       //Algorithms::parallelFor< DeviceType >( 0, p.getSize(), hooking_fetch );
@@ -454,7 +454,7 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
       std::cout << " Star link source     = " << star_link_source_view << std::endl;*/
 
       // Find cycles
-      auto cycles_fetch = [=] __cuda_callable__ ( Index i ) mutable {
+      auto cycles_fetch = [=] __cuda_callable__ ( Index i ) mutable -> RealType {
          /*auto& new_link_i = new_links_target_view[ i ];
          if( new_link_i != -1 && i < new_link_i && i == new_links_target_view[ new_link_i ] ) {
             std::cout << " Found cycle " << i << " -> " << new_link_i << " -> " << i << std::endl;
@@ -472,7 +472,7 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
             p_i = i;
             return hook_weights_view[ i ];
          }
-         else return ( Real ) 0.0;
+         else return 0;
       };
       auto add = TNL::Algorithms::reduce< DeviceType >( 0, p.getSize(), cycles_fetch, TNL::Plus{} );
       sum -= add;
