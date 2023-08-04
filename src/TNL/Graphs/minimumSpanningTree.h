@@ -197,8 +197,8 @@ void parallelMST(const InGraph& graph, OutGraph& tree )
    auto tree_view = tree.getAdjacencyMatrix().getView();
 
    const IndexType paddingIndex = graph.getAdjacencyMatrix().getPaddingIndex();
-   IndexType iter( 0 );
-   Real sum( 0.0 );
+   IndexType iter = 0;
+   Real sum = 0;
    //std::cout << graph.getAdjacencyMatrix() << std::endl;
    while( p != p_old )
    {
