@@ -106,16 +106,11 @@ if( NOT DEFINED ENV{GITLAB_CI} )
    endif()
 endif()
 
-# force colorized output in continuous integration
-if( DEFINED ENV{GITLAB_CI} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
-   message(STATUS "Continuous integration or Ninja detected -- forcing compilers to produce colorized output.")
-   if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-       CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
-       CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
-      set( TNL_COLOR_DIAGNOSTICS_FLAG "-fcolor-diagnostics" )
-   elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
-           CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC" )
-      set( TNL_COLOR_DIAGNOSTICS_FLAG "-fdiagnostics-color" )
-   endif()
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TNL_COLOR_DIAGNOSTICS_FLAG}" )
-endif()
+# force colorized output (the automatic detection in compilers does not work with Ninja)
+target_compile_options( TNL_CXX INTERFACE
+      $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics> ;
+      $<$<CXX_COMPILER_ID:AppleClang>:-fcolor-diagnostics> ;
+      $<$<CXX_COMPILER_ID:IntelLLVM>:-fcolor-diagnostics> ;
+      $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color> ;
+      $<$<CXX_COMPILER_ID:NVHPC>:-fdiagnostics-color> ;
+)

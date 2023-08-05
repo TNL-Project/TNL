@@ -96,9 +96,6 @@ target_include_directories( TNL ${TNL_SYSTEM}
                                       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> )
 # add compiler features to the interface
 target_compile_features( TNL INTERFACE cxx_std_17 )
-# add some compiler flags to the interface
-target_compile_options( TNL INTERFACE
-                        ${TNL_COLOR_DIAGNOSTICS_FLAG} )
 
 # add the std::filesystem library to the interface
 target_link_libraries( TNL INTERFACE std::filesystem )

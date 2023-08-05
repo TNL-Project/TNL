@@ -59,13 +59,9 @@ if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
    set( CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0" )
 endif()
 
-# force colorized output in continuous integration
-if( DEFINED ENV{GITLAB_CI} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
-   message(STATUS "Continuous integration or Ninja detected -- forcing compilers to produce colorized output.")
-   if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
-      set( TNL_COLOR_DIAGNOSTICS_FLAG "-fcolor-diagnostics" )
-   #elseif( CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA" )
-   # nvcc does not support colored diagnostics
-   endif()
-   set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${TNL_COLOR_DIAGNOSTICS_FLAG}" )
-endif()
+# force colorized output (the automatic detection in compilers does not work with Ninja)
+target_compile_options( TNL_CUDA INTERFACE
+      $<$<CUDA_COMPILER_ID:Clang>:-fcolor-diagnostics> ;
+      # nvcc does not support colored diagnostics
+      #$<$<CUDA_COMPILER_ID:NVIDIA>:> ;
+)
