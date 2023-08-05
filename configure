@@ -23,6 +23,7 @@ CMAKE_OPTIONS=()
 USE_MPI="yes"
 USE_CUDA="yes"
 CUDA_ARCH="native"
+USE_HIP="yes"
 USE_OPENMP="yes"
 USE_GMP="no"
 USE_CI_FLAGS="no"
@@ -69,8 +70,9 @@ Options affecting all targets:
     --compiler=gcc/clang/icpx/nvc++     Selects the compiler for C++ source files. '$COMPILER' by default.
     --cuda-compiler=nvcc/clang          Selects the compiler for CUDA source files. '$CUDA_COMPILER' by default.
     --use-mpi=yes/no                    Enables MPI. '$USE_MPI' by default (OpenMPI required).
-    --use-cuda=yes/no                   Enables CUDA. '$USE_CUDA' by default (CUDA Toolkit is required).
+    --use-cuda=yes/no                   Enables CUDA. '$USE_CUDA' by default (CUDA is required).
     --cuda-arch=all/native/70/75/...    Chooses CUDA architecture. '$CUDA_ARCH' by default.
+    --use-hip=yes/no                    Enables HIP. '$USE_HIP' by default (ROCm/HIP is required).
     --use-openmp=yes/no                 Enables OpenMP. '$USE_OPENMP' by default.
     --use-gmp=yes/no                    Enables the wrapper for GNU Multiple Precision Arithmetic Library. '$USE_GMP' by default.
 
@@ -99,6 +101,7 @@ for option in "$@"; do
         --use-mpi=*           ) USE_MPI="${option#*=}" ;;
         --use-cuda=*          ) USE_CUDA="${option#*=}" ;;
         --cuda-arch=*         ) CUDA_ARCH="${option#*=}";;
+        --use-hip=*           ) USE_HIP="${option#*=}" ;;
         --use-openmp=*        ) USE_OPENMP="${option#*=}" ;;
         --use-gmp=*           ) USE_GMP="${option#*=}" ;;
         --build-coverage=*    ) BUILD_COVERAGE="${option#*=}" ;;
@@ -241,6 +244,7 @@ cmake -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator" \
     -DCMAKE_SHARED_LINKER_FLAGS="$CMAKE_SHARED_LINKER_FLAGS" \
     -DTNL_USE_CUDA="$USE_CUDA" \
     -DCMAKE_CUDA_ARCHITECTURES="$CUDA_ARCH" \
+    -DTNL_USE_HIP="$USE_HIP" \
     -DTNL_USE_OPENMP="$USE_OPENMP" \
     -DTNL_USE_MPI="$USE_MPI" \
     -DTNL_USE_GMP="$USE_GMP" \

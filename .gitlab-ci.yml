@@ -15,6 +15,7 @@ stages:
     - lint
     - build
     - build:cuda
+    - build:hip_rocm
     - build:host
     - build:doc
     - deploy
@@ -35,6 +36,7 @@ workflow:
     # architectures
     USE_CUDA: "no"
     CUDA_ARCH: "native"
+    USE_HIP: "no"
     # MPI is selectively added to targets, so there is no point to have separate jobs without MPI
     USE_MPI: "yes"
     USE_OPENMP: "yes"
@@ -53,6 +55,7 @@ workflow:
 
 # base for GCC builds
 .gcc:
+    stage: build:host
     variables:
         <<: *default_cmake_flags
         CXX: g++
@@ -60,6 +63,10 @@ workflow:
 
 # base for NVCC builds
 .nvcc:
+    stage: build:cuda
+    tags:
+        - docker
+        - nvidia
     variables:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
@@ -76,6 +83,7 @@ workflow:
 
 # base for Clang builds
 .clang:
+    stage: build:host
     variables:
         <<: *default_cmake_flags
         CXX: clang++
@@ -90,6 +98,9 @@ workflow:
 # base for Clang CUDA builds
 .clang_cuda:
     stage: build:cuda
+    tags:
+        - docker
+        - nvidia
     extends: .clang
     variables:
         CUDACXX: clang++
@@ -99,11 +110,24 @@ workflow:
 
 # base for Intel oneAPI builds
 .icpx:
+    stage: build:host
     image: "archlinux/devel-tnl-oneapi:latest"
     variables:
         <<: *default_cmake_flags
         CXX: icpx
         CC: icx
+
+# base for HIP/ROCm builds
+.hip_rocm:
+    stage: build:hip_rocm
+    image: "archlinux/devel-tnl-rocm:latest"
+    tags:
+        - docker
+        - hip-rocm
+    variables:
+        <<: *default_cmake_flags
+        USE_HIP: "yes"
+        USE_OPENMP: "no"   # TODO: enabling OpenMP leads to false warnings due to unused variable
 
 # template for environment setup before build
 .env_setup: &env_setup
@@ -162,6 +186,7 @@ workflow:
                 -DTNL_USE_MPI=${USE_MPI}
                 -DTNL_USE_CUDA=${USE_CUDA}
                 -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCH}
+                -DTNL_USE_HIP=${USE_HIP}
                 -DTNL_BUILD_TESTS=${BUILD_TESTS}
                 -DTNL_BUILD_MATRIX_TESTS=${BUILD_MATRIX_TESTS}
                 -DTNL_BUILD_DOC=${BUILD_DOC}
@@ -177,7 +202,7 @@ workflow:
           fi
     rules:
         - changes:
-            - src/**/*.{h,hpp,cpp,cu}
+            - src/**/*.{h,hpp,cpp,cu,hip}
             - "**/CMakeLists.txt"
             - cmake/*
             - .gitlab-ci.yml
@@ -238,7 +263,7 @@ dummy build job:
     except:
         changes:
             # .build_template
-            - src/**/*.{h,hpp,cpp,cu}
+            - src/**/*.{h,hpp,cpp,cu,hip}
             - "**/CMakeLists.txt"
             - cmake/*
             - .gitlab-ci.yml
@@ -250,10 +275,6 @@ dummy build job:
 
 
 nvcc:
-    stage: build:cuda
-    tags:
-        - docker
-        - nvidia
     extends:
         - .build_template
         - .matrix_template
@@ -271,32 +292,32 @@ nvcc:
 #        - .nvhpc
 
 clang_cuda:
-    stage: build:cuda
-    tags:
-        - docker
-        - nvidia
     extends:
         - .build_template
         - .matrix_template
         - .clang_cuda
 
 
+hip_rocm:
+    extends:
+        - .build_template
+        - .matrix_template
+        - .hip_rocm
+
+
 gcc:
-    stage: build:host
     extends:
         - .build_template
         - .matrix_template
         - .gcc
 
 clang:
-    stage: build:host
     extends:
         - .build_template
         - .matrix_template
         - .clang
 
 icpx:
-    stage: build:host
     extends:
         - .build_template
         - .matrix_template
@@ -382,7 +403,7 @@ clang-format src/TNL:
     stage: lint
     rules:
         - changes:
-            - src/TNL/**/*.{h,hpp,cpp,cu}
+            - src/TNL/**/*.{h,hpp,cpp,cu,hip}
     script:
         - ./scripts/run-clang-format.py
                 --color always
@@ -396,7 +417,7 @@ clang-format src/Benchmarks:
     stage: lint
     rules:
         - changes:
-            - src/Benchmarks/**/*.{h,hpp,cpp,cu}
+            - src/Benchmarks/**/*.{h,hpp,cpp,cu,hip}
     script:
         - ./scripts/run-clang-format.py
                 --color always
@@ -411,7 +432,7 @@ clang-format src/Examples:
     stage: lint
     rules:
         - changes:
-            - src/Examples/**/*.{h,hpp,cpp,cu}
+            - src/Examples/**/*.{h,hpp,cpp,cu,hip}
     script:
         - ./scripts/run-clang-format.py
                 --color always
@@ -426,7 +447,7 @@ clang-format src/Tools:
     stage: lint
     rules:
         - changes:
-            - src/Tools/**/*.{h,hpp,cpp,cu}
+            - src/Tools/**/*.{h,hpp,cpp,cu,hip}
     script:
         - ./scripts/run-clang-format.py
                 --color always
@@ -439,7 +460,7 @@ clang-format src/UnitTests:
     stage: lint
     rules:
         - changes:
-            - src/UnitTests/**/*.{h,hpp,cpp,cu}
+            - src/UnitTests/**/*.{h,hpp,cpp,cu,hip}
     script:
         - ./scripts/run-clang-format.py
                 --color always
@@ -452,7 +473,7 @@ clang-format Documentation:
     stage: lint
     rules:
         - changes:
-            - Documentation/**/*.{h,hpp,cpp,cu}
+            - Documentation/**/*.{h,hpp,cpp,cu,hip}
     script:
         - ./scripts/run-clang-format.py
                 --color always
@@ -467,8 +488,8 @@ clang-tidy:
     stage: lint
     rules:
         - changes:
-            - Documentation/**/*.{h,hpp,cpp,cu}
-            - src/**/*.{h,hpp,cpp,cu}
+            - Documentation/**/*.{h,hpp,cpp,cu,hip}
+            - src/**/*.{h,hpp,cpp,cu,hip}
             - "**/CMakeLists.txt"
             - cmake/*
             - .gitlab-ci.yml

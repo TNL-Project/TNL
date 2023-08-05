@@ -57,6 +57,15 @@ if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
    set( CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0" )
 endif()
 
+# optimize Release builds for the native CPU arch, unless explicitly disabled
+if( TNL_USE_MARCH_NATIVE_FLAG )
+   if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
+      set( CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -march=native -mtune=native" )
+   #elseif( CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA" )
+   # setting the correct flag for the nvcc's host compiler would be too complicated...
+   endif()
+endif()
+
 # force colorized output (the automatic detection in compilers does not work with Ninja)
 target_compile_options( TNL_CUDA INTERFACE
       $<$<CUDA_COMPILER_ID:Clang>:-fcolor-diagnostics> ;
