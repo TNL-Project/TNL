@@ -14,32 +14,90 @@ namespace TNL::Meshes::BuildConfigTags {
 /****
  * Turn off all grids.
  */
-template<> struct GridRealTag< MyConfigTag, float > { static constexpr bool enabled = false; };
-template<> struct GridRealTag< MyConfigTag, double > { static constexpr bool enabled = false; };
-template<> struct GridRealTag< MyConfigTag, long double > { static constexpr bool enabled = false; };
+template<>
+struct GridRealTag< MyConfigTag, float >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridRealTag< MyConfigTag, double >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridRealTag< MyConfigTag, long double >
+{
+   static constexpr bool enabled = false;
+};
 
 /****
  * Unstructured meshes.
  */
 //template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polygon > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron >{ static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron >{ static constexpr bool enabled = true; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Polygon >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron >
+{
+   static constexpr bool enabled = true;
+};
 
 // Meshes are enabled only for the world dimension equal to the cell dimension.
 template< typename CellTopology, int WorldDimension >
 struct MeshSpaceDimensionTag< MyConfigTag, CellTopology, WorldDimension >
-{ static constexpr bool enabled = WorldDimension == CellTopology::dimension; };
+{
+   static constexpr bool enabled = WorldDimension == CellTopology::dimension;
+};
 
 // Meshes are enabled only for types explicitly listed below.
-template<> struct MeshRealTag< MyConfigTag, float >{ static constexpr bool enabled = true; };
-template<> struct MeshRealTag< MyConfigTag, double >{ static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MyConfigTag, int >{ static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MyConfigTag, long int >{ static constexpr bool enabled = true; };
-template<> struct MeshLocalIndexTag< MyConfigTag, short int >{ static constexpr bool enabled = true; };
+template<>
+struct MeshRealTag< MyConfigTag, float >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshRealTag< MyConfigTag, double >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MyConfigTag, int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MyConfigTag, long int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshLocalIndexTag< MyConfigTag, short int >
+{
+   static constexpr bool enabled = true;
+};
 
 }  // namespace TNL::Meshes::BuildConfigTags
 
@@ -64,7 +122,8 @@ printInfo( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName 
    VectorType cellSubfaces( cellsCount );
 
    mesh.template forAll< MeshType::getMeshDimension() >(
-      [&] (GlobalIndexType i) {
+      [ & ]( GlobalIndexType i )
+      {
          const auto cell = mesh.template getEntity< MeshType::getMeshDimension() >( i );
          if( MeshType::getMeshDimension() == 3 )
             diameters[ i ] = std::cbrt( getEntityMeasure( mesh, cell ) * 6 / 3.1415926535897932384626433 );
@@ -77,7 +136,8 @@ printInfo( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName 
       } );
 
    mesh.template forAll< MeshType::getMeshDimension() - 1 >(
-      [&] (GlobalIndexType i) {
+      [ & ]( GlobalIndexType i )
+      {
          const auto face = mesh.template getEntity< MeshType::getMeshDimension() - 1 >( i );
          faceSubvertices[ i ] = face.template getSubentitiesCount< 0 >();
       } );
@@ -117,7 +177,7 @@ main( int argc, char* argv[] )
 
    for( int i = 1; i < argc; i++ ) {
       const std::string fileName = argv[ i ];
-      auto wrapper = [&]( auto& reader, auto&& mesh ) -> bool
+      auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
       {
          return printInfo( mesh, fileName );
       };

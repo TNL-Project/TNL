@@ -10,33 +10,66 @@
 
 using namespace TNL;
 
-struct MyConfigTag {};
+struct MyConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
 struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >
-{ static constexpr bool enabled = false; };
+{
+   static constexpr bool enabled = false;
+};
 
 // Meshes are enabled only for topologies explicitly listed below.
 //template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle > { static constexpr bool enabled = true; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >
+{
+   static constexpr bool enabled = true;
+};
 //template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron > { static constexpr bool enabled = true; };
 //template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron > { static constexpr bool enabled = true; };
 
 // Meshes are enabled only for the space dimension equal to the cell dimension.
 template< typename CellTopology, int SpaceDimension >
 struct MeshSpaceDimensionTag< MyConfigTag, CellTopology, SpaceDimension >
-{ static constexpr bool enabled = SpaceDimension == CellTopology::dimension; };
+{
+   static constexpr bool enabled = SpaceDimension == CellTopology::dimension;
+};
 
 // Meshes are enabled only for types explicitly listed below.
-template<> struct MeshRealTag< MyConfigTag, float > { static constexpr bool enabled = true; };
-template<> struct MeshRealTag< MyConfigTag, double > { static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MyConfigTag, int > { static constexpr bool enabled = true; };
-template<> struct MeshGlobalIndexTag< MyConfigTag, long int > { static constexpr bool enabled = true; };
-template<> struct MeshLocalIndexTag< MyConfigTag, short int > { static constexpr bool enabled = true; };
+template<>
+struct MeshRealTag< MyConfigTag, float >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshRealTag< MyConfigTag, double >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MyConfigTag, int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshGlobalIndexTag< MyConfigTag, long int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshLocalIndexTag< MyConfigTag, short int >
+{
+   static constexpr bool enabled = true;
+};
 
 // Config tag specifying the MeshConfig template to use.
 template<>
@@ -47,27 +80,30 @@ struct MeshConfigTemplateTag< MyConfigTag >
              typename Real = double,
              typename GlobalIndex = int,
              typename LocalIndex = GlobalIndex >
-   struct MeshConfig
-      : public DefaultConfig< Cell, SpaceDimension, Real, GlobalIndex, LocalIndex >
+   struct MeshConfig : public DefaultConfig< Cell, SpaceDimension, Real, GlobalIndex, LocalIndex >
    {
-      static constexpr bool subentityStorage( int entityDimension, int subentityDimension )
+      static constexpr bool
+      subentityStorage( int entityDimension, int subentityDimension )
       {
          return subentityDimension == 0 && entityDimension >= Cell::dimension - 1;
       }
 
-      static constexpr bool superentityStorage( int entityDimension, int superentityDimension )
+      static constexpr bool
+      superentityStorage( int entityDimension, int superentityDimension )
       {
-//         return false;
-         return (entityDimension == 0 || entityDimension == Cell::dimension - 1) && superentityDimension == Cell::dimension;
+         //         return false;
+         return ( entityDimension == 0 || entityDimension == Cell::dimension - 1 ) && superentityDimension == Cell::dimension;
       }
 
-      static constexpr bool entityTagsStorage( int entityDimension )
+      static constexpr bool
+      entityTagsStorage( int entityDimension )
       {
-//         return false;
+         //         return false;
          return entityDimension == 0 || entityDimension >= Cell::dimension - 1;
       }
 
-      static constexpr bool dualGraphStorage()
+      static constexpr bool
+      dualGraphStorage()
       {
          return true;
       }
@@ -76,11 +112,11 @@ struct MeshConfigTemplateTag< MyConfigTag >
    };
 };
 
-} // namespace TNL::Meshes::BuildConfigTags
-
+}  // namespace TNL::Meshes::BuildConfigTags
 
 template< typename Mesh >
-bool runGameOfLife( const Mesh& mesh )
+bool
+runGameOfLife( const Mesh& mesh )
 {
    using LocalMesh = typename Mesh::MeshType;
    using Index = typename Mesh::GlobalIndexType;
@@ -103,21 +139,21 @@ bool runGameOfLife( const Mesh& mesh )
    VectorType f_out( cellsCount );
    f_in.setValue( 0 );
 
-/*
-   // random initial condition
-   std::random_device dev;
-   std::mt19937 rng(dev());
-   std::uniform_int_distribution<> dist(0, 1);
-   for( Index i = 0; i < cellsCount; i++ )
-      f_in[ i ] = dist(rng);
-   sync.synchronize( f_in );
-*/
+   /*
+      // random initial condition
+      std::random_device dev;
+      std::mt19937 rng(dev());
+      std::uniform_int_distribution<> dist(0, 1);
+      for( Index i = 0; i < cellsCount; i++ )
+         f_in[ i ] = dist(rng);
+      sync.synchronize( f_in );
+   */
    // find the rank which contains most points in the box between (0.45, 0.45) and (0.55, 0.55)
-   typename LocalMesh::PointType c1 = {0.48, 0.42};
-   typename LocalMesh::PointType c2 = {0.58, 0.52};
+   typename LocalMesh::PointType c1 = { 0.48, 0.42 };
+   typename LocalMesh::PointType c2 = { 0.58, 0.52 };
    Index count = 0;
    for( Index i = 0; i < pointsCount; i++ ) {
-      auto p = localMesh.getPoint(i);
+      auto p = localMesh.getPoint( i );
       if( p.x() >= c1.x() && p.y() >= c1.y() && p.x() <= c2.x() && p.y() <= c2.y() ) {
          count++;
       }
@@ -144,41 +180,41 @@ bool runGameOfLife( const Mesh& mesh )
    }
    // R-pentomino (stabilizes after 1103 iterations)
    const Index max_iter = 1103;
-   if( count == max_count && localMesh.getCellNeighborsCount(reference_cell) > 6 ) {
-      f_in[reference_cell] = 1;
-      Index n1 = localMesh.getCellNeighborIndex(reference_cell,1);  // bottom
-      Index n2 = localMesh.getCellNeighborIndex(reference_cell,2);  // left
-      Index n3 = localMesh.getCellNeighborIndex(reference_cell,5);  // top
-      Index n4 = localMesh.getCellNeighborIndex(reference_cell,6);  // top-right
-      f_in[n1] = 1;
-      f_in[n2] = 1;
-      f_in[n3] = 1;
-      f_in[n4] = 1;
+   if( count == max_count && localMesh.getCellNeighborsCount( reference_cell ) > 6 ) {
+      f_in[ reference_cell ] = 1;
+      Index n1 = localMesh.getCellNeighborIndex( reference_cell, 1 );  // bottom
+      Index n2 = localMesh.getCellNeighborIndex( reference_cell, 2 );  // left
+      Index n3 = localMesh.getCellNeighborIndex( reference_cell, 5 );  // top
+      Index n4 = localMesh.getCellNeighborIndex( reference_cell, 6 );  // top-right
+      f_in[ n1 ] = 1;
+      f_in[ n2 ] = 1;
+      f_in[ n3 ] = 1;
+      f_in[ n4 ] = 1;
    }
-/*
-   // Acorn (stabilizes after 5206 iterations)
-   const Index max_iter = 5206;
-   if( count == max_count ) {
-      f_in[reference_cell] = 1;
-      Index n1 = localMesh.getCellNeighborIndex(reference_cell,4);
-      f_in[n1] = 1;
-      Index s1 = localMesh.getCellNeighborIndex(n1,4);
-      Index s2 = localMesh.getCellNeighborIndex(s1,4);
-      Index n2 = localMesh.getCellNeighborIndex(s2,4);
-      f_in[n2] = 1;
-      Index n3 = localMesh.getCellNeighborIndex(n2,4);
-      f_in[n3] = 1;
-      Index n4 = localMesh.getCellNeighborIndex(n3,4);
-      f_in[n4] = 1;
-      f_in[localMesh.getCellNeighborIndex(s2,5)] = 1;
-      f_in[localMesh.getCellNeighborIndex(localMesh.getCellNeighborIndex(n1,5),5)] = 1;
-   }
-*/
+   /*
+      // Acorn (stabilizes after 5206 iterations)
+      const Index max_iter = 5206;
+      if( count == max_count ) {
+         f_in[reference_cell] = 1;
+         Index n1 = localMesh.getCellNeighborIndex(reference_cell,4);
+         f_in[n1] = 1;
+         Index s1 = localMesh.getCellNeighborIndex(n1,4);
+         Index s2 = localMesh.getCellNeighborIndex(s1,4);
+         Index n2 = localMesh.getCellNeighborIndex(s2,4);
+         f_in[n2] = 1;
+         Index n3 = localMesh.getCellNeighborIndex(n2,4);
+         f_in[n3] = 1;
+         Index n4 = localMesh.getCellNeighborIndex(n3,4);
+         f_in[n4] = 1;
+         f_in[localMesh.getCellNeighborIndex(s2,5)] = 1;
+         f_in[localMesh.getCellNeighborIndex(localMesh.getCellNeighborIndex(n1,5),5)] = 1;
+      }
+   */
 
-   auto make_snapshot = [&] ( Index iteration )
+   auto make_snapshot = [ & ]( Index iteration )
    {
       // create a .pvtu file (only rank 0 actually writes to the file)
-      const std::string mainFilePath = "GoL." + std::to_string(iteration) + ".pvtu";
+      const std::string mainFilePath = "GoL." + std::to_string( iteration ) + ".pvtu";
       std::ofstream file;
       if( TNL::MPI::GetRank() == 0 )
          file.open( mainFilePath );
@@ -220,7 +256,7 @@ bool runGameOfLife( const Mesh& mesh )
          std::cout << "Computing iteration " << iteration << "..." << std::endl;
 
       // iterate over all local cells
-      auto kernel = [f_in_view, f_out_view, localMeshPointer] __cuda_callable__ ( Index i ) mutable
+      auto kernel = [ f_in_view, f_out_view, localMeshPointer ] __cuda_callable__( Index i ) mutable
       {
          // sum values of the function on the neighbor cells
          typename VectorType::RealType sum = 0;
@@ -268,13 +304,13 @@ bool runGameOfLife( const Mesh& mesh )
       // check if finished
       const bool done = max( f_in ) == 0 || iteration > max_iter || f_in == f_out;
       TNL::MPI::Allreduce( &done, &all_done, 1, MPI_LAND, mesh.getCommunicator() );
-   }
-   while( ! all_done );
+   } while( ! all_done );
 
    return true;
 }
 
-void configSetup( Config::ConfigDescription& config )
+void
+configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addRequiredEntry< String >( "input-file", "Input file with the mesh." );
@@ -283,14 +319,15 @@ void configSetup( Config::ConfigDescription& config )
    TNL::MPI::configSetup( config );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
    configSetup( conf_desc );
 
-   TNL::MPI::ScopedInitializer mpi(argc, argv);
+   TNL::MPI::ScopedInitializer mpi( argc, argv );
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
@@ -301,11 +338,12 @@ int main( int argc, char* argv[] )
    const String inputFileName = parameters.getParameter< String >( "input-file" );
    const String inputFileFormat = parameters.getParameter< String >( "input-file-format" );
 
-   auto wrapper = [&] ( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {
-      using MeshType = std::decay_t< decltype(mesh) >;
-      return runGameOfLife( std::forward<MeshType>(mesh) );
+      using MeshType = std::decay_t< decltype( mesh ) >;
+      return runGameOfLife( std::forward< MeshType >( mesh ) );
    };
-   const bool status = Meshes::resolveAndLoadDistributedMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   const bool status =
+      Meshes::resolveAndLoadDistributedMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
    return static_cast< int >( ! status );
 }

@@ -13,29 +13,24 @@
 
 using namespace TNL;
 
-template< typename MeshType,
-          typename RealType,
-          int xDiff,
-          int yDiff,
-          int zDiff >
-bool renderFunction( const Config::ParameterContainer& parameters )
+template< typename MeshType, typename RealType, int xDiff, int yDiff, int zDiff >
+bool
+renderFunction( const Config::ParameterContainer& parameters )
 {
-   using namespace  Meshes::DistributedMeshes;
-   using DistributedGridType = Meshes::DistributedMeshes::DistributedMesh<MeshType>;
+   using namespace Meshes::DistributedMeshes;
+   using DistributedGridType = Meshes::DistributedMeshes::DistributedMesh< MeshType >;
    DistributedGridType distributedMesh;
    Pointers::SharedPointer< MeshType > meshPointer;
 
    const String meshFile = parameters.getParameter< String >( "mesh" );
    std::cout << "+ -> Loading mesh from " << meshFile << " ... " << std::endl;
 
-   if( TNL::MPI::GetSize() > 1 )
-   {
+   if( TNL::MPI::GetSize() > 1 ) {
       Meshes::Readers::PVTIReader reader( meshFile );
       reader.loadMesh( distributedMesh );
       *meshPointer = distributedMesh.getLocalMesh();
    }
-   else
-   {
+   else {
       Meshes::Readers::VTIReader reader( meshFile );
       reader.loadMesh( *meshPointer );
    }
@@ -59,27 +54,24 @@ bool renderFunction( const Config::ParameterContainer& parameters )
    bool numericalDifferentiation = parameters.getParameter< bool >( "numerical-differentiation" );
    int step( 0 );
    double time( initialTime );
-   const int steps = tau > 0 ? ceil( ( finalTime - initialTime ) / tau ): 0;
+   const int steps = tau > 0 ? ceil( ( finalTime - initialTime ) / tau ) : 0;
 
-   while( step <= steps )
-   {
-      if( numericalDifferentiation )
-      {
-        std::cout << "+ -> Computing the finite differences ... " << std::endl;
+   while( step <= steps ) {
+      if( numericalDifferentiation ) {
+         std::cout << "+ -> Computing the finite differences ... " << std::endl;
          MeshFunctionType auxDiscreteFunction;
          //if( ! auxDiscreteFunction.setSize( mesh.template getEntitiesCount< typename MeshType::Cell >() ) )
          //   return false;
-         //tnlFunctionDiscretizer< MeshType, FunctionType, DiscreteFunctionType >::template discretize< 0, 0, 0 >( mesh, function, auxDiscreteFunction, time );
-         //FiniteDifferences< MeshType >::template getDifference< DiscreteFunctionType, xDiff, yDiff, zDiff, 0, 0, 0 >( mesh, auxDiscreteFunction, discreteFunction );
+         //tnlFunctionDiscretizer< MeshType, FunctionType, DiscreteFunctionType >::template discretize< 0, 0, 0 >( mesh,
+         //function, auxDiscreteFunction, time ); FiniteDifferences< MeshType >::template getDifference< DiscreteFunctionType,
+         //xDiff, yDiff, zDiff, 0, 0, 0 >( mesh, auxDiscreteFunction, discreteFunction );
       }
-      else
-      {
+      else {
          Functions::MeshFunctionEvaluator< MeshFunctionType, FunctionType >::evaluate( meshFunction, function, time );
       }
 
       String outputFile = parameters.getParameter< String >( "output-file" );
-      if( finalTime > 0.0 )
-      {
+      if( finalTime > 0.0 ) {
          String extension = getFileExtension( outputFile );
          outputFile = removeFileNameExtension( outputFile );
          outputFile += "-";
@@ -95,37 +87,32 @@ bool renderFunction( const Config::ParameterContainer& parameters )
 
       const std::string meshFunctionName = parameters.getParameter< std::string >( "mesh-function-name" );
 
-      if( TNL::MPI::GetSize() > 1 )
-      {
+      if( TNL::MPI::GetSize() > 1 ) {
          // TODO: write metadata: step and time
          Functions::writeDistributedMeshFunction( distributedMesh, *meshFunction, meshFunctionName, outputFile );
       }
-      else
-      {
+      else {
          // TODO: write metadata: step and time
          meshFunction->write( meshFunctionName, outputFile, "auto" );
       }
 
       time += tau;
-      step ++;
+      step++;
    }
 
    return true;
 }
 
-template< typename MeshType,
-          typename RealType >
-bool resolveDerivatives( const Config::ParameterContainer& parameters )
+template< typename MeshType, typename RealType >
+bool
+resolveDerivatives( const Config::ParameterContainer& parameters )
 {
    int xDiff = parameters.getParameter< int >( "x-derivative" );
    int yDiff = parameters.getParameter< int >( "y-derivative" );
    int zDiff = parameters.getParameter< int >( "z-derivative" );
-   if( xDiff < 0 || yDiff < 0 || zDiff < 0 || ( xDiff + yDiff + zDiff ) > 4 )
-   {
-      std::cerr << "Wrong orders of partial derivatives: "
-           << xDiff << " " << yDiff << " " << zDiff << ". "
-           << "They can be only non-negative integer numbers in sum not larger than 4."
-           << std::endl;
+   if( xDiff < 0 || yDiff < 0 || zDiff < 0 || ( xDiff + yDiff + zDiff ) > 4 ) {
+      std::cerr << "Wrong orders of partial derivatives: " << xDiff << " " << yDiff << " " << zDiff << ". "
+                << "They can be only non-negative integer numbers in sum not larger than 4." << std::endl;
       return false;
    }
    if( xDiff == 0 && yDiff == 0 && zDiff == 0 )
@@ -202,7 +189,8 @@ bool resolveDerivatives( const Config::ParameterContainer& parameters )
 }
 
 template< typename MeshType >
-bool resolveRealType( const Config::ParameterContainer& parameters )
+bool
+resolveRealType( const Config::ParameterContainer& parameters )
 {
    String realType = parameters.getParameter< String >( "real-type" );
    if( realType == "mesh-real-type" )
@@ -211,7 +199,7 @@ bool resolveRealType( const Config::ParameterContainer& parameters )
       return resolveDerivatives< MeshType, float >( parameters );
    if( realType == "double" )
       return resolveDerivatives< MeshType, double >( parameters );
-//   if( realType == "long-double" )
-//      return resolveDerivatives< MeshType, long double >( parameters );
+   //   if( realType == "long-double" )
+   //      return resolveDerivatives< MeshType, long double >( parameters );
    return false;
 }

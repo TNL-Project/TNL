@@ -10,34 +10,60 @@
 
 using namespace TNL;
 
-struct TnlInitConfigTag {};
+struct TnlInitConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 // Configure real types
-template<> struct GridRealTag< TnlInitConfigTag, float > { static constexpr bool enabled = true; };
-template<> struct GridRealTag< TnlInitConfigTag, double > { static constexpr bool enabled = true; };
-template<> struct GridRealTag< TnlInitConfigTag, long double > { static constexpr bool enabled = false; };
+template<>
+struct GridRealTag< TnlInitConfigTag, float >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct GridRealTag< TnlInitConfigTag, double >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct GridRealTag< TnlInitConfigTag, long double >
+{
+   static constexpr bool enabled = false;
+};
 
 // Configure index types
-template<> struct GridIndexTag< TnlInitConfigTag, short int >{ static constexpr bool enabled = false; };
-template<> struct GridIndexTag< TnlInitConfigTag, int >{ static constexpr bool enabled = true; };
-template<> struct GridIndexTag< TnlInitConfigTag, long int >{ static constexpr bool enabled = true; };
+template<>
+struct GridIndexTag< TnlInitConfigTag, short int >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridIndexTag< TnlInitConfigTag, int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct GridIndexTag< TnlInitConfigTag, long int >
+{
+   static constexpr bool enabled = true;
+};
 
 // Unstructured meshes are disabled, only grids can be on input.
 
-} // namespace TNL::Meshes::BuildConfigTags
+}  // namespace TNL::Meshes::BuildConfigTags
 
-void setupConfig( Config::ConfigDescription& config )
+void
+setupConfig( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addEntry< String >( "mesh", "Input mesh file.", "mesh.vti" );
    config.addEntry< String >( "mesh-function-name", "Name of the mesh function in the VTI files.", "f" );
    config.addEntry< String >( "real-type", "Precision of the function evaluation.", "mesh-real-type" );
-      config.addEntryEnum< String >( "mesh-real-type" );
-      config.addEntryEnum< String >( "float" );
-      config.addEntryEnum< String >( "double" );
-//      config.addEntryEnum< String >( "long-double" );
+   config.addEntryEnum< String >( "mesh-real-type" );
+   config.addEntryEnum< String >( "float" );
+   config.addEntryEnum< String >( "double" );
+   //      config.addEntryEnum< String >( "long-double" );
    config.addEntry< double >( "initial-time", "Initial time for a serie of snapshots of the time-dependent function.", 0.0 );
    config.addEntry< double >( "final-time", "Final time for a serie of snapshots of the time-dependent function.", 0.0 );
    config.addEntry< double >( "snapshot-period", "Period between snapshots in a serie of the time-dependent function.", 0.0 );
@@ -53,7 +79,8 @@ void setupConfig( Config::ConfigDescription& config )
    Functions::TestFunction< 1 >::configSetup( config );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    Config::ParameterContainer parameters;
    Config::ConfigDescription configDescription;
@@ -61,7 +88,7 @@ int main( int argc, char* argv[] )
    setupConfig( configDescription );
    TNL::MPI::configSetup( configDescription );
 
-   TNL::MPI::ScopedInitializer mpi(argc, argv);
+   TNL::MPI::ScopedInitializer mpi( argc, argv );
 
    if( ! parseCommandLine( argc, argv, configDescription, parameters ) )
       return EXIT_FAILURE;
@@ -69,9 +96,9 @@ int main( int argc, char* argv[] )
    const String meshFileName = parameters.getParameter< String >( "mesh" );
    const String meshFileFormat = "auto";
 
-   auto wrapper = [&] ( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {
-      using MeshType = std::decay_t< decltype(mesh) >;
+      using MeshType = std::decay_t< decltype( mesh ) >;
       return resolveRealType< MeshType >( parameters );
    };
    const bool status = Meshes::resolveMeshType< TnlInitConfigTag, Devices::Host >( wrapper, meshFileName, meshFileFormat );
