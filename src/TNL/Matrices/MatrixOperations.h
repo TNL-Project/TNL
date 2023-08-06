@@ -407,11 +407,13 @@ public:
  * \return the output matrix.
  */
 template< typename OutMatrix, typename InMatrix >
-OutMatrix getSymmetricPart( const InMatrix& inMatrix )
+OutMatrix
+getSymmetricPart( const InMatrix& inMatrix )
 {
-   static_assert( std::is_same_v< typename InMatrix::DeviceType, Devices::Host > ||
-                  std::is_same_v< typename InMatrix::DeviceType, Devices::Sequential >,
-                  "The input matrix must be stored on host, i.e. only Devices::Host and Devices::Sequential devices are allowed." );
+   static_assert(
+      std::is_same_v< typename InMatrix::DeviceType, Devices::Host >
+         || std::is_same_v< typename InMatrix::DeviceType, Devices::Sequential >,
+      "The input matrix must be stored on host, i.e. only Devices::Host and Devices::Sequential devices are allowed." );
    TNL_ASSERT_EQ( inMatrix.getRows(), inMatrix.getColumns(), "The input matrix must be square." );
 
    // TODO: the following needs to be optimized and it works only for sparse matrices on host
@@ -422,7 +424,7 @@ OutMatrix getSymmetricPart( const InMatrix& inMatrix )
    std::map< std::pair< IndexType, IndexType >, RealType > map;
    for( IndexType rowIdx = 0; rowIdx < inMatrix.getRows(); rowIdx++ ) {
       auto row = inMatrix.getRow( rowIdx );
-      for ( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
          IndexType columnIdx = row.getColumnIndex( localIdx );
          RealType value = row.getValue( localIdx );
          if( auto element = map.find( std::make_pair( rowIdx, columnIdx ) ); element != map.end() )

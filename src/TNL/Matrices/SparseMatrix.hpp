@@ -334,14 +334,14 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          auto [ rowIdx, columnIdx ] = coordinates;
          if( Base::isSymmetric() ) {
             if( encoding == SymmetricMatrixEncoding::Complete ) {
-               auto query = map.find({columnIdx, rowIdx});
+               auto query = map.find( { columnIdx, rowIdx } );
                if( query == map.end() || query->second != value )
                   throw std::logic_error( "SparseMatrix is configured as symmetric, but the input data is not symmetric." );
                if( rowIdx < columnIdx )
                   continue;
             }
             if( encoding == SymmetricMatrixEncoding::LowerPart && rowIdx < columnIdx )
-                  throw std::logic_error( "Only lower part of the symmetric matrix is expected." );
+               throw std::logic_error( "Only lower part of the symmetric matrix is expected." );
             if( encoding == SymmetricMatrixEncoding::UpperPart ) {
                if( rowIdx > columnIdx )
                   throw std::logic_error( "Only upper part of the symmetric matrix is expected." );
@@ -379,12 +379,13 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
             lastRowIdx = rowIdx;
          }
       }
-      else { // symmetric matrix with other coding than lower part
+      else {  // symmetric matrix with other coding than lower part
          for( const auto& [ coordinates, value ] : map ) {
             auto [ rowIdx, columnIdx ] = coordinates;
             if( encoding == SymmetricMatrixEncoding::Complete && rowIdx < columnIdx )
                continue;
-            if( ( encoding == SymmetricMatrixEncoding::UpperPart || encoding == SymmetricMatrixEncoding::SparseMixed ) && rowIdx < columnIdx )
+            if( ( encoding == SymmetricMatrixEncoding::UpperPart || encoding == SymmetricMatrixEncoding::SparseMixed )
+                && rowIdx < columnIdx )
                swap( rowIdx, columnIdx );
             this->setElement( rowIdx, columnIdx, value );
          }

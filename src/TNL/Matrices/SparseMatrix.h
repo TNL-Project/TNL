@@ -64,6 +64,7 @@ class SparseMatrix : public Object,
                                   MatrixType_,
                                   typename Segments< Device, Index, IndexAllocator >::ViewType,
                                   ComputeReal >;
+
 public:
    /**
     * \brief Type of vector holding values of matrix elements.
@@ -373,7 +374,8 @@ public:
     * \include SparseMatrixExample_setElements.out
     */
    void
-   setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data, SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
+   setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+                SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
 
    /**
     * \brief This method sets the sparse matrix elements from std::map.
@@ -395,7 +397,8 @@ public:
     */
    template< typename MapIndex, typename MapValue >
    void
-   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map, SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
+   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+                SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
 
    /**
     * \brief Resets the matrix to zero dimensions.

@@ -32,12 +32,14 @@ constexpr Index paddingIndex = static_cast< Index >( -1 );
 /**
  * \brief Encoding of the matrix elements of the symmetric matrix.
  */
-enum class SymmetricMatrixEncoding {
+enum class SymmetricMatrixEncoding
+{
    Complete,    //!<  All elements of the matrix are stored.
    LowerPart,   //!<  Only lower part of the matrix is stored.
    UpperPart,   //!<  Only upper part of the matrix is stored.
-   SparseMixed  //!<  For each couple of non-zero elements a_ij and a_ji, at least one is encoded. It is handy for example for adjacency matrices of undirected graphs.
-   };
+   SparseMixed  //!<  For each couple of non-zero elements a_ij and a_ji, at least one is encoded. It is handy for example for
+                //!<  adjacency matrices of undirected graphs.
+};
 
 /**
  * \brief Base class for the implementation of concrete matrix types.
@@ -270,7 +272,10 @@ protected:
 };
 
 template< typename T >
-struct IsMatrixType { static constexpr bool value = HasIsMatrixMethod< T >::value; };
+struct IsMatrixType
+{
+   static constexpr bool value = HasIsMatrixMethod< T >::value;
+};
 
 }  // namespace TNL::Matrices
 

@@ -18,10 +18,13 @@
 namespace TNL::Graphs {
 
 template< typename Matrix, typename Vector, typename Index = typename Matrix::IndexType >
-void singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix, Index start, Vector& distances )
+void
+singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix, Index start, Vector& distances )
 {
-   TNL_ASSERT_TRUE( transposedAdjacencyMatrix.getRows() == transposedAdjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
-   TNL_ASSERT_TRUE( distances.getSize() == transposedAdjacencyMatrix.getRows(), "v must have the same size as the number of rows in adjacencyMatrix" );
+   TNL_ASSERT_TRUE( transposedAdjacencyMatrix.getRows() == transposedAdjacencyMatrix.getColumns(),
+                    "Adjacency matrix must be square matrix." );
+   TNL_ASSERT_TRUE( distances.getSize() == transposedAdjacencyMatrix.getRows(),
+                    "v must have the same size as the number of rows in adjacencyMatrix" );
 
    using Real = typename Matrix::RealType;
    const Index n = transposedAdjacencyMatrix.getRows();
@@ -29,16 +32,17 @@ void singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix
    Vector y( distances.getSize() );
    y = distances;
 
-   for( Index i = 1; i <= n; i++ )
-   {
+   for( Index i = 1; i <= n; i++ ) {
       auto x_view = distances.getView();
       auto y_view = y.getView();
 
-      auto fetch = [=] __cuda_callable__ ( int rowIdx, int columnIdx, const Real& value ) -> Real {
+      auto fetch = [ = ] __cuda_callable__( int rowIdx, int columnIdx, const Real& value ) -> Real
+      {
          return x_view[ columnIdx ] + value;
       };
-      auto keep = [=] __cuda_callable__ ( int rowIdx, const double& value ) mutable {
-            y_view[ rowIdx ] = min( x_view[ rowIdx ], value );
+      auto keep = [ = ] __cuda_callable__( int rowIdx, const double& value ) mutable
+      {
+         y_view[ rowIdx ] = min( x_view[ rowIdx ], value );
       };
       transposedAdjacencyMatrix.reduceAllRows( fetch, TNL::Min{}, keep, std::numeric_limits< Real >::max() );
       if( distances == y )
@@ -48,7 +52,8 @@ void singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix
 }
 
 template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
-void singleSourceShortestPath( const Graph& graph, Index start, Vector& distances )
+void
+singleSourceShortestPath( const Graph& graph, Index start, Vector& distances )
 {
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
@@ -58,20 +63,19 @@ void singleSourceShortestPath( const Graph& graph, Index start, Vector& distance
    distances.setElement( start, 0.0 );
 
    // In the sequential version, we use the Dijkstra algorithm.
-   if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value )
-   {
-
+   if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value ) {
       // The priority queue stores pairs of (distance, vertex)
-      std::priority_queue< std::pair< Real, Index >, std::vector< std::pair< Real, Index > >, std::greater< std::pair< Real, Index >>> pq;
-      pq.emplace(0, start);
+      std::priority_queue < std::pair< Real, Index >, std::vector< std::pair< Real, Index > >, std::greater < std::pair < Real,
+         Index >>> pq;
+      pq.emplace( 0, start );
 
-      while( !pq.empty() ) {
+      while( ! pq.empty() ) {
          Real current_distance;
          Index current;
-         std::tie(current_distance, current) = pq.top();
+         std::tie( current_distance, current ) = pq.top();
          pq.pop();
 
-         if (current_distance > distances[current]) {
+         if( current_distance > distances[ current ] ) {
             continue;
          }
 
@@ -84,21 +88,22 @@ void singleSourceShortestPath( const Graph& graph, Index start, Vector& distance
             double distance = current_distance + edge_weight;
 
             if( distance < distances[ neighbor ] ) {
-               distances[neighbor] = distance;
-               pq.emplace(distance, neighbor);
+               distances[ neighbor ] = distance;
+               pq.emplace( distance, neighbor );
             }
          }
       }
    }
-   else
-   {
+   else {
       typename Graph::MatrixType transposed;
       transposed.getTransposition( graph.getAdjacencyMatrix() );
       singleSourceShortestPathTransposed( transposed, start, distances );
    }
-   distances.forAllElements( [] __cuda_callable__ ( Index i, Real& x ) {
-      x = ( x == std::numeric_limits< Real >::max() ) ? -1.0 : x; }
-   );
+   distances.forAllElements(
+      [] __cuda_callable__( Index i, Real & x )
+      {
+         x = ( x == std::numeric_limits< Real >::max() ) ? -1.0 : x;
+      } );
 }
 
 }  // namespace TNL::Graphs

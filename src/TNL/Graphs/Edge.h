@@ -8,8 +8,7 @@
 
 namespace TNL::Graphs {
 
-template< typename Real = double,
-          typename Index = int >
+template< typename Real = double, typename Index = int >
 struct Edge
 {
    using RealType = Real;
@@ -17,64 +16,89 @@ struct Edge
 
    Edge() = default;
 
-   Edge( Index source, Index target, Real weight )
-      : source( source ), target( target ), weight( weight ) {}
+   Edge( Index source, Index target, Real weight ) : source( source ), target( target ), weight( weight ) {}
 
    Edge( const Edge& ) = default;
 
    Edge( Edge&& ) = default;
 
-   Edge& operator=( const Edge& ) = default;
+   Edge&
+   operator=( const Edge& ) = default;
 
-   Edge& operator=( Edge&& ) = default;
+   Edge&
+   operator=( Edge&& ) = default;
 
    ~Edge() = default;
 
-   bool operator<( const Edge& other ) const {
+   bool
+   operator<( const Edge& other ) const
+   {
       return weight < other.weight;
    }
 
-   bool operator>( const Edge& other ) const {
+   bool
+   operator>( const Edge& other ) const
+   {
       return weight > other.weight;
    }
 
-   bool operator<=( const Edge& other ) const {
+   bool
+   operator<=( const Edge& other ) const
+   {
       return weight <= other.weight;
    }
 
-   bool operator>=( const Edge& other ) const {
+   bool
+   operator>=( const Edge& other ) const
+   {
       return weight >= other.weight;
    }
 
-   bool operator==( const Edge& other ) const {
+   bool
+   operator==( const Edge& other ) const
+   {
       return source == other.source && target == other.target && weight == other.weight;
    }
 
-   bool operator!=( const Edge& other ) const {
-      return !(*this == other);
+   bool
+   operator!=( const Edge& other ) const
+   {
+      return ! ( *this == other );
    }
 
-   const Index& getSource() const {
+   const Index&
+   getSource() const
+   {
       return source;
    }
 
-   Index& getSource() {
+   Index&
+   getSource()
+   {
       return source;
    }
 
-   const Index& getTarget() const {
+   const Index&
+   getTarget() const
+   {
       return target;
    }
 
-   Index& getTarget() {
+   Index&
+   getTarget()
+   {
       return target;
    }
 
-   const Real& getWeight() const {
+   const Real&
+   getWeight() const
+   {
       return weight;
    }
 
-   Real& getWeight() {
+   Real&
+   getWeight()
+   {
       return weight;
    }
 
@@ -85,7 +109,9 @@ protected:
 };
 
 template< typename Real, typename Index >
-std::ostream& operator<<( std::ostream& os, const Edge< Real, Index >& edge ) {
+std::ostream&
+operator<<( std::ostream& os, const Edge< Real, Index >& edge )
+{
    os << "(" << edge.getSource() << ", " << edge.getTarget() << ", " << edge.getWeight() << ")";
    return os;
 }

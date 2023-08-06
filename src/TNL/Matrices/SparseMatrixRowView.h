@@ -216,7 +216,8 @@ public:
     * \return global index of the matrix element.
     */
    __cuda_callable__
-   IndexType getGlobalIndex( IndexType localIdx ) const;
+   IndexType
+   getGlobalIndex( IndexType localIdx ) const;
 
    /**
     * \brief Comparison of two matrix rows.
@@ -235,7 +236,8 @@ public:
     * \brief Sort the matrix row by column indexes in ascending order.
     */
    __cuda_callable__
-   void sortColumnIndexes();
+   void
+   sortColumnIndexes();
 
    /**
     * \brief Returns iterator pointing at the beginning of the matrix row.

@@ -708,7 +708,6 @@ public:
                   IndexType end = 0,
                   const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
-
    template< typename InVector,
              typename OutVector,
              typename SegmentsReductionKernel,
@@ -770,7 +769,8 @@ public:
    /**
     * \brief Sort matrix elements in each row by column indexes in ascending order.
     */
-   void sortColumnIndexes();
+   void
+   sortColumnIndexes();
 
    /**
     * \brief Finds element in the matrix and returns its position in the arrays with \e values and \e columnIndexes.
@@ -778,10 +778,12 @@ public:
     * If the element is not found, the method returns the padding index.
     * \param row is the row index of the element.
     * \param column is the column index of the element.
-    * \return the position of the element in the arrays with \e values and \e columnIndexes or the padding index if the element is not found.
+    * \return the position of the element in the arrays with \e values and \e columnIndexes or the padding index if the element
+    * is not found.
     */
    __cuda_callable__
-   IndexType findElement( IndexType row, IndexType column ) const;
+   IndexType
+   findElement( IndexType row, IndexType column ) const;
 
    /**
     * \brief Method for printing the matrix to output stream.

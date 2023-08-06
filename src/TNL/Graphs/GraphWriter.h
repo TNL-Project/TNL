@@ -20,30 +20,35 @@ struct GraphWriter
    using IndexType = typename GraphType::IndexType;
    using HostMatrixType = typename MatrixType::template Self< ValueType, Devices::Host >;
 
-   static void writeEdgeList( std::ostream& str, const Graph& graph ) {
-      if constexpr( ! std::is_same_v< DeviceType, Devices::Host > &&
-         ! std::is_same_v< DeviceType, Devices::Host > ) {
+   static void
+   writeEdgeList( std::ostream& str, const Graph& graph )
+   {
+      if constexpr( ! std::is_same_v< DeviceType, Devices::Host > && ! std::is_same_v< DeviceType, Devices::Host > ) {
          HostMatrixType hostMatrix;
          hostMatrix = graph.getAdjacencyMatrix();
          writeEdgeList( str, hostMatrix );
       }
-      else writeEdgeList( str, graph.getAdjacencyMatrix() );
+      else
+         writeEdgeList( str, graph.getAdjacencyMatrix() );
    }
 
-   static void writeEdgeList( const TNL::String& fileName, const Graph& graph ) {
+   static void
+   writeEdgeList( const TNL::String& fileName, const Graph& graph )
+   {
       std::ofstream file( fileName.getString() );
       writeEdgeList( file, graph );
    }
 
-   protected:
-
+protected:
    template< typename Matrix >
-   static void writeEdgeList( std::ostream& str, const Matrix& matrix ) {
+   static void
+   writeEdgeList( std::ostream& str, const Matrix& matrix )
+   {
       for( IndexType rowIdx = 0; rowIdx < matrix.getRows(); rowIdx++ ) {
          auto row = matrix.getRow( rowIdx );
          for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
             auto columnIdx = row.getColumnIndex( localIdx );
-            if( columnIdx != Matrices::paddingIndex< IndexType> ) {
+            if( columnIdx != Matrices::paddingIndex< IndexType > ) {
                str << rowIdx << " " << columnIdx << " " << row.getValue( localIdx ) << std::endl;
             }
          }
@@ -51,4 +56,4 @@ struct GraphWriter
    }
 };
 
-} // namespace TNL::Graphs
+}  // namespace TNL::Graphs

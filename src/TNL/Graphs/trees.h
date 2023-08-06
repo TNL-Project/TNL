@@ -12,13 +12,17 @@
 #include <TNL/Algorithms/find.h>
 #include <TNL/Matrices/MatrixBase.h>
 
-
 namespace TNL::Graphs {
 
-enum class TreeType { Tree, Forest };
+enum class TreeType
+{
+   Tree,
+   Forest
+};
 
 template< typename Vector, typename Index = typename Vector::IndexType >
-bool visitNeighbour( const Index current, const Index neighbor, Vector& visited, Vector& parents, std::queue< Index >& q )
+bool
+visitNeighbour( const Index current, const Index neighbor, Vector& visited, Vector& parents, std::queue< Index >& q )
 {
    if( neighbor == parents[ current ] )
       return true;
@@ -31,7 +35,8 @@ bool visitNeighbour( const Index current, const Index neighbor, Vector& visited,
 }
 
 template< typename Graph, typename Vector >
-bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeType::Tree )
+bool
+isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeType::Tree )
 {
    using ValueType = typename Graph::ValueType;
    using DeviceType = typename Graph::DeviceType;
@@ -55,7 +60,7 @@ bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = T
       if( std::is_same_v< DeviceType, Devices::Sequential > ) {
          std::queue< IndexType > q;
          q.push( start_node );
-         while( !q.empty() ) {
+         while( ! q.empty() ) {
             IndexType current = q.front();
             q.pop();
             const auto row = graph.getAdjacencyMatrix().getRow( current );
@@ -66,7 +71,7 @@ bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = T
                if( ! visitNeighbour( current, neighbor, visited, parents, q ) )
                   return false;
             }
-            if constexpr( MatrixType::isSymmetric() ) { // search the adjacency matrix for other neighbours
+            if constexpr( MatrixType::isSymmetric() ) {  // search the adjacency matrix for other neighbours
                for( IndexType rowIdx = 0; rowIdx < graph.getNodeCount(); rowIdx++ ) {
                   if( rowIdx == current )
                      continue;
@@ -83,31 +88,35 @@ bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = T
          }
       }
       else {
-         while( visited_old != visited )
-         {
+         while( visited_old != visited ) {
             visited_old = visited;
             auto visited_view = visited.getView();
             auto visited_old_view = visited_old.getView();
             // NVCC does not support constepxr if inside a lambda
-            auto symmetric_fetch = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType {
+            auto symmetric_fetch =
+               [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType
+            {
                if( ! visited_old_view[ columnIdx ] )
-                     Algorithms::AtomicOperations< DeviceType >::add( visited_view[ columnIdx ], visited_old_view[ rowIdx ] );
+                  Algorithms::AtomicOperations< DeviceType >::add( visited_view[ columnIdx ], visited_old_view[ rowIdx ] );
                if( visited_old_view[ rowIdx ] )
                   return 0;
                return visited_old_view[ columnIdx ] != 0;
             };
-            auto fetch = [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType {
+            auto fetch =
+               [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType
+            {
                if( visited_old_view[ rowIdx ] )
                   return 0;
                return visited_old_view[ columnIdx ] != 0;
             };
-            auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const IndexType value ) mutable {
+            auto keep = [ = ] __cuda_callable__( IndexType rowIdx, const IndexType value ) mutable
+            {
                visited_view[ rowIdx ] = visited_view[ rowIdx ] + value;
             };
             if constexpr( MatrixType::isSymmetric() )
-               graph.getAdjacencyMatrix().reduceAllRows( symmetric_fetch, TNL::Plus{}, keep, ( IndexType ) 0 );
+               graph.getAdjacencyMatrix().reduceAllRows( symmetric_fetch, TNL::Plus{}, keep, (IndexType) 0 );
             else
-               graph.getAdjacencyMatrix().reduceAllRows( fetch, TNL::Plus{}, keep, ( IndexType ) 0 );
+               graph.getAdjacencyMatrix().reduceAllRows( fetch, TNL::Plus{}, keep, (IndexType) 0 );
 
             if( max( visited ) > 1 )
                return false;
@@ -122,14 +131,17 @@ bool isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = T
       if( ! roots.empty() ) {
          if( rootsIdx < roots.getSize() )
             start_node = roots.getElement( rootsIdx++ );
-         else return false;
+         else
+            return false;
       }
-      else start_node = Algorithms::find( visited, 0 ).second;
+      else
+         start_node = Algorithms::find( visited, 0 ).second;
    }
 }
 
 template< typename Graph >
-bool isTree( const Graph& graph, typename Graph::IndexType start_node = 0 )
+bool
+isTree( const Graph& graph, typename Graph::IndexType start_node = 0 )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -138,16 +150,18 @@ bool isTree( const Graph& graph, typename Graph::IndexType start_node = 0 )
 }
 
 template< typename Graph, typename Vector >
-bool isForest( const Graph& graph, const Vector& roots )
+bool
+isForest( const Graph& graph, const Vector& roots )
 {
    return isTree_impl( graph, roots, TreeType::Forest );
 }
 
 template< typename Graph >
-bool isForest( const Graph& graph )
+bool
+isForest( const Graph& graph )
 {
    Containers::Vector< typename Graph::IndexType > roots;
    return isTree_impl( graph, roots, TreeType::Forest );
 }
 
-} // namespace TNL::Graphs
+}  // namespace TNL::Graphs

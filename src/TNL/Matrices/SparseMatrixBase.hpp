@@ -413,10 +413,11 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    }
 
    using OutVectorReal = typename OutVector::RealType;
-   static_assert(  ! std::is_same< Device, Devices::Cuda >::value
-                  || ( std::is_same< OutVectorReal, float >::value || std::is_same< OutVectorReal, double >::value ||
-                       std::is_same< OutVectorReal, int >::value || std::is_same< OutVectorReal, long long int >::value ||
-                       std::is_same< OutVectorReal, long >::value  ),
+   static_assert(
+      ! std::is_same< Device, Devices::Cuda >::value
+         || ( std::is_same< OutVectorReal, float >::value || std::is_same< OutVectorReal, double >::value
+              || std::is_same< OutVectorReal, int >::value || std::is_same< OutVectorReal, long long int >::value
+              || std::is_same< OutVectorReal, long >::value ),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
    const auto inVectorView = inVector.getConstView();
@@ -427,20 +428,17 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 
    if( outVectorMultiplicator != 1.0 )
       outVector *= outVectorMultiplicator;
-   auto compute =
-      [ inVectorView, outVectorView, matrixMultiplicator, begin, end ] __cuda_callable__(
-         IndexType row, IndexType localIdx, IndexType column, const RealType& value ) mutable
+   auto compute = [ inVectorView, outVectorView, matrixMultiplicator, begin, end ] __cuda_callable__(
+                     IndexType row, IndexType localIdx, IndexType column, const RealType& value ) mutable
    {
-      if( column >= begin && column < end )
-      {
+      if( column >= begin && column < end ) {
          if( column != paddingIndex< IndexType > )
-            Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
-                                                           ( OutVectorReal) matrixMultiplicator * inVectorView[ row ] * value );
+            Algorithms::AtomicOperations< DeviceType >::add(
+               outVectorView[ column ], (OutVectorReal) matrixMultiplicator * inVectorView[ row ] * value );
       }
    };
    this->forAllElements( compute );
 }
-
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
@@ -661,20 +659,22 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    return ! operator==( m );
 }
 
-
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sortColumnIndexes()
 {
-   this->forAllRows( [=] __cuda_callable__ ( RowView& row ) {
-      row.sortColumnIndexes();
-   } );
+   this->forAllRows(
+      [ = ] __cuda_callable__( RowView & row )
+      {
+         row.sortColumnIndexes();
+      } );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 __cuda_callable__
 Index
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::findElement( IndexType row, IndexType column ) const
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::findElement( IndexType row,
+                                                                                             IndexType column ) const
 {
    TNL_ASSERT_GE( row, 0, "Sparse matrix row index cannot be negative." );
    TNL_ASSERT_LT( row, this->getRows(), "Sparse matrix row index is larger than number of matrix rows." );
@@ -697,7 +697,6 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    }
    return paddingIndex< IndexType >;
 }
-
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 void

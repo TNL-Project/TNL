@@ -11,7 +11,6 @@
 #include <TNL/Algorithms/Segments/printSegments.h>
 #include <TNL/Algorithms/Segments/GrowingSegmentsView.h>
 
-
 namespace TNL::Algorithms::Segments {
 
 template< typename Segments >
@@ -28,13 +27,18 @@ struct GrowingSegments : public Segments
 
    template< typename SizesContainer >
    GrowingSegments( const SizesContainer& segmentsSizes )
-      : SegmentsType( segmentsSizes ), segmentsFilling( segmentsSizes.getSize(), 0 ), view( Segments::getView(), segmentsFilling.getView() ) {}
+   : SegmentsType( segmentsSizes ), segmentsFilling( segmentsSizes.getSize(), 0 ),
+     view( Segments::getView(), segmentsFilling.getView() )
+   {}
 
    template< typename ListIndex >
    GrowingSegments( const std::initializer_list< ListIndex >& segmentsSizes )
-      : SegmentsType( segmentsSizes ), segmentsFilling( segmentsSizes.size(), 0 ), view( SegmentsType::getView(), segmentsFilling.getView() ) {}
+   : SegmentsType( segmentsSizes ), segmentsFilling( segmentsSizes.size(), 0 ),
+     view( SegmentsType::getView(), segmentsFilling.getView() )
+   {}
 
-   GrowingSegmentsViewType getView()
+   GrowingSegmentsViewType
+   getView()
    {
       return GrowingSegmentsViewType( SegmentsType::getView(), segmentsFilling.getView() );
    }
@@ -44,27 +48,30 @@ struct GrowingSegments : public Segments
    //   return GrowingSegmentsViewType( SegmentsType::getConstView(), segmentsFilling.getConstView() );
    //}
 
-
    __cuda_callable__
-   IndexType newSlot( IndexType segmentIdx )
+   IndexType
+   newSlot( IndexType segmentIdx )
    {
       return this->view.newSlot( segmentIdx );
    }
 
    __cuda_callable__
-   IndexType deleteSlot( IndexType segmentIdx )
+   IndexType
+   deleteSlot( IndexType segmentIdx )
    {
       return this->view.deleteSlot( segmentIdx );
    }
 
    template< typename Function >
-   void forElements( IndexType begin, IndexType end, Function&& f )
+   void
+   forElements( IndexType begin, IndexType end, Function&& f )
    {
       this->view.forElements( begin, end, f );
    }
 
    template< typename Function >
-   void forAllElements( Function&& f )
+   void
+   forAllElements( Function&& f )
    {
       forElements( 0, this->getSegmentsCount(), f );
    }
@@ -84,31 +91,32 @@ struct GrowingSegments : public Segments
    }*/
 
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
-   void reduceSegments( IndexType begin,
-                        IndexType end,
-                        Fetch& fetch,
-                        const Reduction& reduction,
-                        ResultKeeper& keeper,
-                        const Value& identity ) const
+   void
+   reduceSegments( IndexType begin,
+                   IndexType end,
+                   Fetch& fetch,
+                   const Reduction& reduction,
+                   ResultKeeper& keeper,
+                   const Value& identity ) const
    {
       this->view.reduceSegments( begin, end, fetch, reduction, keeper, identity );
    }
 
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
-   void reduceAllSegments( Fetch& fetch,
-                           const Reduction& reduction,
-                           ResultKeeper& keeper,
-                           const Value& identity ) const
+   void
+   reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Value& identity ) const
    {
-      this->reduceSegments( ( IndexType ) 0, this->getSegmentsCount(), fetch, reduction, keeper, identity );
+      this->reduceSegments( (IndexType) 0, this->getSegmentsCount(), fetch, reduction, keeper, identity );
    }
 
-   void clear()
+   void
+   clear()
    {
       this->segmentsFilling = 0;
    }
 
-   const FillingVector& getFilling() const
+   const FillingVector&
+   getFilling() const
    {
       return this->segmentsFilling;
    }
@@ -125,4 +133,4 @@ private:
    GrowingSegmentsViewType view;
 };
 
-} // namespace TNL::Algorithms::Segments
+}  // namespace TNL::Algorithms::Segments
