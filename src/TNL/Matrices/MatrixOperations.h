@@ -398,4 +398,44 @@ public:
    }
 };
 
+/**
+ * \brief This function computes \f$( A + A^T ) / 2 \f$, where \f$ A \f$ is a square matrix.
+ *
+ * \tparam InMatrix is the type of the input matrix.
+ * \tparam OutMatrix is the type of the output matrix.
+ * \param inMatrix is the input matrix.
+ * \return the output matrix.
+ */
+template< typename OutMatrix, typename InMatrix >
+OutMatrix
+getSymmetricPart( const InMatrix& inMatrix )
+{
+   static_assert(
+      std::is_same_v< typename InMatrix::DeviceType, Devices::Host >
+         || std::is_same_v< typename InMatrix::DeviceType, Devices::Sequential >,
+      "The input matrix must be stored on host, i.e. only Devices::Host and Devices::Sequential devices are allowed." );
+   TNL_ASSERT_EQ( inMatrix.getRows(), inMatrix.getColumns(), "The input matrix must be square." );
+
+   // TODO: the following needs to be optimized and it works only for sparse matrices on host
+   using RealType = typename InMatrix::RealType;
+   using IndexType = typename InMatrix::IndexType;
+
+   OutMatrix outMatrix;
+   std::map< std::pair< IndexType, IndexType >, RealType > map;
+   for( IndexType rowIdx = 0; rowIdx < inMatrix.getRows(); rowIdx++ ) {
+      auto row = inMatrix.getRow( rowIdx );
+      for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+         IndexType columnIdx = row.getColumnIndex( localIdx );
+         RealType value = row.getValue( localIdx );
+         if( auto element = map.find( std::make_pair( rowIdx, columnIdx ) ); element != map.end() )
+            value = ( value + element->second ) / 2.0;
+         map[ std::make_pair( rowIdx, columnIdx ) ] = value;
+         map[ std::make_pair( columnIdx, rowIdx ) ] = value;
+      }
+   }
+   outMatrix.setDimensions( inMatrix.getRows(), inMatrix.getColumns() );
+   outMatrix.setElements( map );
+   return outMatrix;
+}
+
 }  // namespace TNL::Matrices

@@ -1,11 +1,8 @@
 set( COMMON_TESTS
-            # FIXME: tests for BiEllpack and ChunkedEllpack fail (but they did not exist before the refactoring)
-            #SegmentsTest_BiEllpack
-            #SegmentsTest_ChunkedEllpack
-            SegmentsTest_CSR
-            SegmentsTest_Ellpack
-            SegmentsTest_SlicedEllpack
-            GrowingSegmentsTest
+            GraphTest_BFS
+            GraphTest_SSSP
+            GraphTest_trees
+            GraphTest_MST
 )
 
 set( CPP_TESTS )

@@ -6,6 +6,7 @@ set( COMMON_TESTS
          copyTest
          equalTest
          fillTest
+         findTest
          MultireductionTest
          parallelForTest
          staticForTest

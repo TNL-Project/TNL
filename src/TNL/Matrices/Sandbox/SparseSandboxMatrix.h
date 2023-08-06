@@ -1096,6 +1096,18 @@ protected:
    RowPointers rowPointers;
 };
 
+template< typename Matrix >
+struct IsSandboxMatrix
+{
+   static const bool value = false;
+};
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
+struct IsSandboxMatrix< SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator > >
+{
+   static const bool value = true;
+};
+
 }  // namespace TNL::Matrices::Sandbox
 
 #include <TNL/Matrices/Sandbox/SparseSandboxMatrix.hpp>

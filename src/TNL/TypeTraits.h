@@ -273,6 +273,24 @@ public:
 };
 
 /**
+ * \brief Type trait for checking if T has getCommunicator method.
+ */
+template< typename T >
+class HasIsMatrixMethod
+{
+private:
+   using YesType = char[1];
+   using NoType = char[2];
+
+   template< typename C > static YesType& test( decltype(std::declval< C >().isMatrix()) );
+   template< typename C > static NoType& test(...);
+
+public:
+   static constexpr bool value = ( sizeof( test< std::decay_t<T> >(0) ) == sizeof( YesType ) );
+};
+
+
+/**
  * \brief Copy const qualifier from Source type to Target type.
  */
 template< typename Target >

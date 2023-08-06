@@ -40,8 +40,8 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getRowIndex(
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
 auto
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getColumnIndex( const IndexType localIdx ) const
-   -> const IndexType&
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getColumnIndex( const IndexType localIdx ) const -> const
+   typename ColumnsIndexesViewType::ValueType&
 {
    TNL_ASSERT_LT( localIdx, this->getSize(), "Local index exceeds matrix row capacity." );
    return columnIndexes[ segmentView.getGlobalIndex( localIdx ) ];
@@ -50,7 +50,8 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getColumnInd
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
 auto
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getColumnIndex( const IndexType localIdx ) -> IndexType&
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getColumnIndex( const IndexType localIdx ) ->
+   typename ColumnsIndexesViewType::ValueType&
 {
    TNL_ASSERT_LT( localIdx, this->getSize(), "Local index exceeds matrix row capacity." );
    return columnIndexes[ segmentView.getGlobalIndex( localIdx ) ];
@@ -125,6 +126,14 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::setElement( 
 }
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
+__cuda_callable__
+auto
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::getGlobalIndex( IndexType localIdx ) const -> IndexType
+{
+   return segmentView.getGlobalIndex( localIdx );
+}
+
+template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 template< typename _SegmentView, typename _ValuesView, typename _ColumnsIndexesView >
 __cuda_callable__
 bool
@@ -146,6 +155,30 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::operator==(
       if( other.getColumnIndex( j ) != paddingIndex< IndexType > )
          return false;
    return true;
+}
+
+template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
+__cuda_callable__
+void
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::sortColumnIndexes()
+{
+   // Sort the row by insertion sort
+   IndexType size = this->getSize();
+   for( IndexType i = 1; i < size; i++ ) {
+      const IndexType columnIdx = getColumnIndex( i );
+      if( columnIdx == paddingIndex< IndexType > )
+         return;
+      const RealType value = getValue( i );
+      IndexType j = i;
+      for( j = i; j > 0 && getColumnIndex( j - 1 ) > columnIdx; j-- ) {
+         getColumnIndex( j ) = getColumnIndex( j - 1 );
+         if( ! isBinary() )
+            getValue( j ) = getValue( j - 1 );
+      }
+      getColumnIndex( j ) = columnIdx;
+      if( ! isBinary() )
+         getValue( j ) = value;
+   }
 }
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >

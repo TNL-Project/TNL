@@ -191,6 +191,62 @@ void test_GetNonzeroElementsCount()
 }
 
 template< typename Matrix >
+void test_SetElements()
+{
+   using Index = typename Matrix::IndexType;
+   using Real = typename Matrix::RealType;
+
+   std::map< std::pair< Index, Index >, Real > map_complete {
+      { { 0,0 }, 1 }, { { 0,1 }, 2 }, { { 0,2 }, 3 }, { { 0,3 }, 5 },
+      { { 1,0 }, 2 }, { { 1,1 }, 1 }, { { 1,2 }, 4 }, { { 1,3 }, 6 },
+      { { 2,0 }, 3 }, { { 2,1 }, 4 }, { { 2,2 }, 1 }, { { 2,3 }, 7 },
+      { { 3,0 }, 5 }, { { 3,1 }, 6 }, { { 3,2 }, 7 }, { { 3,3 }, 3 }
+   };
+
+   std::map< std::pair< Index, Index >, Real > map_complete_non_symmetric {
+      { { 0,0 }, 1 }, { { 0,1 }, 2 }, { { 0,2 }, 3 }, { { 0,3 }, 1 },
+      { { 1,0 }, 2 }, { { 1,1 }, 1 }, { { 1,2 }, 4 }, { { 1,3 }, 1 },
+      { { 2,0 }, 3 }, { { 2,1 }, 4 }, { { 2,2 }, 1 }, { { 2,3 }, 1 },
+      { { 3,0 }, 5 }, { { 3,1 }, 6 }, { { 3,2 }, 7 }, { { 3,3 }, 3 }
+   };
+
+   std::map< std::pair< Index, Index >, Real > map_lower_part {
+      { { 0,0 }, 1 },
+      { { 1,0 }, 2 }, { { 1,1 }, 1 },
+      { { 2,0 }, 3 }, { { 2,1 }, 4 }, { { 2,2 }, 1 },
+      { { 3,0 }, 5 }, { { 3,1 }, 6 }, { { 3,2 }, 7 }, { { 3,3 }, 3 }
+   };
+
+   std::map< std::pair< Index, Index >, Real > map_upper_part {
+      { { 0,0 }, 1 }, { { 0,1 }, 2 }, { { 0,2 }, 3 }, { { 0,3 }, 5 },
+                      { { 1,1 }, 1 }, { { 1,2 }, 4 }, { { 1,3 }, 6 },
+                                      { { 2,2 }, 1 }, { { 2,3 }, 7 },
+                                                      { { 3,3 }, 3 }
+   };
+
+   std::map< std::pair< Index, Index >, Real > map_mixed {
+      { { 0,0 }, 1 }, { { 0,1 }, 2 },
+      { { 1,0 }, 2 }, { { 1,1 }, 1 }, { { 1,2 }, 4 }, { { 1,3 }, 6 },
+      { { 2,0 }, 3 }, { { 2,1 }, 4 }, { { 2,2 }, 1 }, { { 2,3 }, 7 },
+      { { 3,0 }, 5 },                                 { { 3,3 }, 3 }
+   };
+
+   Matrix m1( 4, 4, map_lower_part ), m2( 4, 4 );
+   EXPECT_THROW( m2.setElements( map_complete_non_symmetric ), std::logic_error );
+   EXPECT_THROW( m2.setElements( map_complete, TNL::Matrices::SymmetricMatrixEncoding::LowerPart ), std::logic_error );
+   EXPECT_THROW( m2.setElements( map_complete, TNL::Matrices::SymmetricMatrixEncoding::UpperPart ), std::logic_error );
+
+   m2.setElements( map_lower_part, TNL::Matrices::SymmetricMatrixEncoding::LowerPart );
+   EXPECT_EQ( m1, m2 );
+
+   m2.setElements( map_upper_part, TNL::Matrices::SymmetricMatrixEncoding::UpperPart );
+   EXPECT_EQ( m1, m2 );
+
+   m2.setElements( map_mixed, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
+   EXPECT_EQ( m1, m2 );
+}
+
+template< typename Matrix >
 void test_Reset()
 {
    using IndexType = typename Matrix::IndexType;
@@ -740,9 +796,9 @@ void test_VectorProduct()
    Matrix m_3( m_rows_3, m_cols_3, {
       { 0, 0, 1 }, { 0, 1, 2 }, { 0, 2, 3 }, { 0, 3, 4 },
       { 1, 0, 2 }, { 1, 1, 5 },
-      { 2, 0, 3 }, { 2, 2, 6 },
-      { 3, 0, 4 }, { 3, 3, 7 }
-   } );
+      { 2, 0, 3 },              { 2, 2, 6 },
+      { 3, 0, 4 },                           { 3, 3, 7 }
+   }, TNL::Matrices::SymmetricMatrixEncoding::Complete );
 
    VectorType inVector_3( { 0, 1, 2, 3 } );
    VectorType outVector_3( m_rows_3, 0 );
@@ -1011,48 +1067,6 @@ void test_SaveAndLoad( const char* filename )
    EXPECT_EQ( savedMatrix.getElement( 5, 3 ), loadedMatrix.getElement( 5, 3 ) );
    EXPECT_EQ( savedMatrix.getElement( 5, 4 ), loadedMatrix.getElement( 5, 4 ) );
    EXPECT_EQ( std::remove( filename ), 0 );
-}
-
-template< typename Matrix >
-void test_Print()
-{
-   using IndexType = typename Matrix::IndexType;
-
-   /*
-    * Sets up the following 4x4 sparse matrix:
-    *
-    *    /  4  1  0  0 \
-    *    |  1  4  1  0 |
-    *    |  0  1  4  1 |
-    *    \  0  0  1  4 /
-    */
-
-   const IndexType m_rows = 4;
-   const IndexType m_cols = 4;
-
-   Matrix m( m_rows, m_cols, {
-      { 0, 0, 4 },
-      { 1, 0, 1 }, { 1, 1, 4 },
-                   { 2, 1, 1 }, { 2, 2, 4 },
-                                { 3, 2, 1 }, { 3, 3, 4 }
-   } );
-
-   std::stringstream printed;
-   std::stringstream couted;
-
-   //change the underlying buffer and save the old buffer
-   auto old_buf = std::cout.rdbuf(printed.rdbuf());
-
-   m.print( std::cout ); //all the std::cout goes to ss
-
-   std::cout.rdbuf(old_buf); //reset
-
-   couted << "Row: 0 ->  Col:0->4	 Col:1->1\t\n"
-             "Row: 1 ->  Col:0->1	 Col:1->4	 Col:2->1\t\n"
-             "Row: 2 ->  Col:1->1	 Col:2->4	 Col:3->1\t\n"
-             "Row: 3 ->  Col:2->1	 Col:3->4\t\n";
-
-   EXPECT_EQ( printed.str(), couted.str() );
 }
 
 #endif

@@ -142,7 +142,7 @@ public:
     * \return constant reference to the matrix element column index.
     */
    [[nodiscard]] __cuda_callable__
-   const IndexType&
+   const typename ColumnsIndexesViewType::ValueType&
    getColumnIndex( IndexType localIdx ) const;
 
    /**
@@ -153,7 +153,7 @@ public:
     * \return non-constant reference to the matrix element column index.
     */
    [[nodiscard]] __cuda_callable__
-   IndexType&
+   typename ColumnsIndexesViewType::ValueType&
    getColumnIndex( IndexType localIdx );
 
    /**
@@ -210,6 +210,16 @@ public:
    setElement( IndexType localIdx, IndexType columnIndex, const RealType& value );
 
    /**
+    * \brief Computes the global index of the matrix element with given rank in the matrix row.
+    *
+    * \param localIdx is the rank of the matrix element in the row.
+    * \return global index of the matrix element.
+    */
+   __cuda_callable__
+   IndexType
+   getGlobalIndex( IndexType localIdx ) const;
+
+   /**
     * \brief Comparison of two matrix rows.
     *
     * The other matrix row can be from any other matrix.
@@ -221,6 +231,13 @@ public:
    [[nodiscard]] __cuda_callable__
    bool
    operator==( const SparseMatrixRowView< _SegmentView, _ValuesView, _ColumnsIndexesView >& other ) const;
+
+   /**
+    * \brief Sort the matrix row by column indexes in ascending order.
+    */
+   __cuda_callable__
+   void
+   sortColumnIndexes();
 
    /**
     * \brief Returns iterator pointing at the beginning of the matrix row.

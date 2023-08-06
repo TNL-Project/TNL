@@ -18,6 +18,9 @@
 
 #include "MatrixBase.h"
 
+#define USE_NVCC_WORKAROUND  // This is workaround for nvcc which is not able to compile copySparseToSparseMatrix function
+                             // due to the lambda functions in the code. This issue appears at least with
+                             // nvcc build cuda_11.8.r11.8/compiler.31833905_0 and g++ 11.3.0.
 namespace TNL::Matrices {
 
 template< typename Matrix1, typename Matrix2 >
@@ -267,6 +270,77 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
    }
 }
 
+#ifdef USE_NVCC_WORKAROUND
+template< typename Matrix, typename Index, typename IndexVector, typename ValueVector >
+void
+copyMatrixElementsToBuffers( const Matrix& m,
+                             Index baseRow,
+                             Index lastRow,
+                             Index maxRowLength,
+                             IndexVector& columnsBuffer,
+                             ValueVector& valuesBuffer )
+{
+   using RHSIndexType = typename Matrix::IndexType;
+   using RHSRealType = typename Matrix::RealType;
+
+   auto matrixColumnsBuffer_view = columnsBuffer.getView();
+   auto matrixValuesBuffer_view = valuesBuffer.getView();
+
+   // Copy matrix elements into buffer
+   auto f1 = [ = ] __cuda_callable__(
+                RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIndex, const RHSRealType& value ) mutable
+   {
+      if( columnIndex != paddingIndex< Index > ) {
+         //TNL_ASSERT_LT( rowIdx - baseRow, bufferRowsCount, "" );
+         //TNL_ASSERT_LT( localIdx, maxRowLength, "" );
+         const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
+         //TNL_ASSERT_LT( bufferIdx, (Index) bufferSize, "" );
+         matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
+         matrixValuesBuffer_view[ bufferIdx ] = value;
+      }
+   };
+   m.forElements( baseRow, lastRow, f1 );
+}
+
+template< typename Matrix, typename Index, typename IndexVectorView, typename ValueVectorView, typename RowLengthsVector >
+void
+copyBuffersToMatrixElements( Matrix& m,
+                             const IndexVectorView& thisColumnsBuffer_view,
+                             const ValueVectorView& thisValuesBuffer_view,
+                             Index baseRow,
+                             Index lastRow,
+                             Index maxRowLength,
+                             RowLengthsVector& thisRowLengths,
+                             IndexVectorView rowLocalIndexes_view )
+{
+   using Real = typename Matrix::RealType;
+
+   auto thisRowLengths_view = thisRowLengths.getView();
+
+   auto f2 = [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index & columnIndex, Real & value ) mutable
+   {
+      Real inValue = 0.0;
+      std::size_t bufferIdx;
+      Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
+      while( inValue == 0.0 && localIdx < thisRowLengths_view[ rowIdx ] ) {
+         bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;
+         //TNL_ASSERT_LT( bufferIdx, bufferSize, "" );
+         inValue = thisValuesBuffer_view[ bufferIdx ];
+      }
+      rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
+      if( inValue == 0.0 ) {
+         columnIndex = paddingIndex< Index >;
+         value = 0.0;
+      }
+      else {
+         columnIndex = thisColumnsBuffer_view[ bufferIdx ];  // column - 1;
+         value = inValue;
+      }
+   };
+   m.forElements( baseRow, lastRow, f2 );
+}
+#endif
+
 template< typename Matrix1, typename Matrix2 >
 void
 copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
@@ -333,6 +407,9 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
          thisColumnsBuffer = paddingIndex< Index >;
          matrixColumnsBuffer_view = paddingIndex< Index >;
 
+#ifdef USE_NVCC_WORKAROUND
+         copyMatrixElementsToBuffers( B, baseRow, lastRow, maxRowLength, matrixColumnsBuffer, matrixValuesBuffer );
+#else
          // Copy matrix elements into buffer
          auto f1 = [ = ] __cuda_callable__(
                       RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIndex, const RHSRealType& value ) mutable
@@ -347,11 +424,22 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
             }
          };
          B.forElements( baseRow, lastRow, f1 );
+#endif
 
          // Copy the source matrix buffer to this matrix buffer
          thisValuesBuffer_view = matrixValuesBuffer_view;
          thisColumnsBuffer_view = matrixColumnsBuffer_view;
 
+#ifdef USE_NVCC_WORKAROUND
+         copyBuffersToMatrixElements( A,
+                                      thisColumnsBuffer_view,
+                                      thisValuesBuffer_view,
+                                      baseRow,
+                                      lastRow,
+                                      maxRowLength,
+                                      thisRowLengths,
+                                      rowLocalIndexes_view );
+#else
          // Copy matrix elements from the buffer to the matrix and ignoring
          // zero matrix elements
          // const IndexType matrix_columns = this->getColumns();
@@ -377,6 +465,7 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
             }
          };
          A.forElements( baseRow, lastRow, f2 );
+#endif
          baseRow += bufferRowsCount;
       }
    }

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# exit as soon as there is an error
+set -o errexit
+# abort when an unset variable is used
+set -o nounset
+
+# Parameters
+NUM_GRAPHS="10"
+START_NODES="10"
+NODES_INCREMENT="0"
+START_EDGES="25"
+EDGES_INCREMENT="0"
+EDGE_WEIGHTS_DISTRIBUTION="normal"
+BASE_FILE_NAME="random-graph"
+
+# Python script name for generating graphs
+GENERATE_GRAPH_SCRIPT="tnl-graph-generator.py"
+
+# Loop to generate graphs and run the tnl-benchmark-graph program
+for i in $(seq 1 $NUM_GRAPHS); do
+   # Compute number of nodes and edges
+   NODES=$((START_NODES + (i-1) * NODES_INCREMENT))
+   EDGES=$((START_EDGES + (i-1) * EDGES_INCREMENT))
+
+   FILE_NAME="${BASE_FILE_NAME}-${NODES}N-${EDGES}E.txt"
+
+   # Generate graph
+   echo "Generating graph with $NODES nodes and $EDGES edges int file $FILE_NAME ..."
+   $GENERATE_GRAPH_SCRIPT --nodes $NODES --edges $EDGES --edge-weights-distribution $EDGE_WEIGHTS_DISTRIBUTION --file-name $FILE_NAME
+
+   # Call tnl-benchmark-graph program
+   command="tnl-benchmark-graphs-dbg --input-file  $FILE_NAME --loops 0"
+   echo $command
+   $command
+   retvalue=$?
+
+   if [[ -e "$FILE_NAME-boost-mst.txt" ]]; then
+      graphs-graphviz.py --graph undirected --file-name $FILE_NAME-boost-mst.txt
+   fi
+   if [[ -e "$FILE_NAME-tnl-mst.txt" ]]; then
+      graphs-graphviz.py --graph undirected --file-name $FILE_NAME-tnl-mst.txt
+   fi
+
+   graphs-graphviz.py --graph directed --file-name $FILE_NAME
+   graphs-graphviz.py --graph undirected --file-name $FILE_NAME-undirected.txt
+
+   if [ $retvalue  -ne 0 ]; then
+      timestamp=$(date +%s)
+      echo "Error running tnl-benchmark-graphs. Creating file $FILE_NAME to $FILE_NAME-error-$timestamp.txt ..."
+      echo "Test it with: tnl-benchmark-graphs-dbg --input-file $FILE_NAME-error-$timestamp.txt --loops 0"
+      cp $FILE_NAME $FILE_NAME-error-$timestamp.txt
+      exit 1
+   fi
+
+done

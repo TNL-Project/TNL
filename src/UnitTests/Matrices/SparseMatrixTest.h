@@ -49,6 +49,13 @@ TYPED_TEST( MatrixTest, setLikeTest )
     test_SetLike< MatrixType, MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, setElementsTest )
+{
+    using MatrixType = typename TestFixture::MatrixType;
+
+    test_SetElements< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, resetTest )
 {
     using MatrixType = typename TestFixture::MatrixType;
@@ -77,6 +84,13 @@ TYPED_TEST( MatrixTest, addElementTest )
     test_AddElement< MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, findElementTest )
+{
+    using MatrixType = typename TestFixture::MatrixType;
+
+    test_FindElement< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, forElements )
 {
     using MatrixType = typename TestFixture::MatrixType;
@@ -96,6 +110,13 @@ TYPED_TEST( MatrixTest, reduceRows )
     using MatrixType = typename TestFixture::MatrixType;
 
     test_reduceRows< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, sortColumnIndexes )
+{
+    using MatrixType = typename TestFixture::MatrixType;
+
+    test_SortColumnIndexes< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, saveAndLoad )

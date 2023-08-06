@@ -45,7 +45,7 @@ namespace TNL::Matrices {
 template< typename Real = double,
           typename Device = Devices::Host,
           typename Index = int,
-          typename MatrixType = GeneralMatrix,
+          typename MatrixType_ = GeneralMatrix,
           template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments = Algorithms::Segments::CSR,
           typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
@@ -54,14 +54,14 @@ class SparseMatrix : public Object,
                      public SparseMatrixBase< Real,
                                               Device,
                                               Index,
-                                              MatrixType,
+                                              MatrixType_,
                                               typename Segments< Device, Index, IndexAllocator >::ViewType,
                                               ComputeReal >
 {
    using Base = SparseMatrixBase< Real,
                                   Device,
                                   Index,
-                                  MatrixType,
+                                  MatrixType_,
                                   typename Segments< Device, Index, IndexAllocator >::ViewType,
                                   ComputeReal >;
 
@@ -80,6 +80,11 @@ public:
     * \brief Type of vector holding values of row capacities.
     */
    using RowCapacitiesVectorType = Containers::Vector< Index, Device, Index, IndexAllocator >;
+
+   /**
+    * \brief The type of matrix - general, symmetric or binary.
+    */
+   using MatrixType = MatrixType_;
 
    /**
     * \brief Templated type of segments, i.e. sparse matrix format.
@@ -130,7 +135,7 @@ public:
              typename _Device = Device,
              typename _Index = Index,
              typename _MatrixType = MatrixType,
-             template< typename, typename, typename > class _Segments = Segments,
+             template< typename, typename, typename > class _Segments = SegmentsTemplate,
              typename _ComputeReal = ComputeReal,
              typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real >,
              typename _IndexAllocator = typename Allocators::Default< _Device >::template Allocator< _Index > >
@@ -229,6 +234,7 @@ public:
     * \param columns is number of matrix columns.
     * \param data is a list of matrix elements values.
     * \param realAllocator is used for allocation of matrix elements values.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::SymmetricMatrixEncoding.
     * \param indexAllocator is used for allocation of matrix elements column indexes.
     *
     * \par Example
@@ -239,6 +245,7 @@ public:
    explicit SparseMatrix( Index rows,
                           Index columns,
                           const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+                          SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart,
                           const RealAllocatorType& realAllocator = RealAllocatorType(),
                           const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
@@ -255,6 +262,7 @@ public:
     * \param rows is number of matrix rows.
     * \param columns is number of matrix columns.
     * \param map is std::map containing matrix elements.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::SymmetricMatrixEncoding.
     * \param realAllocator is used for allocation of matrix elements values.
     * \param indexAllocator is used for allocation of matrix elements column indexes.
     *
@@ -267,6 +275,7 @@ public:
    explicit SparseMatrix( Index rows,
                           Index columns,
                           const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+                          SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart,
                           const RealAllocatorType& realAllocator = RealAllocatorType(),
                           const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
@@ -357,6 +366,7 @@ public:
     *
     * \param data is a initializer list of initializer lists representing
     * list of matrix rows.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::SymmetricMatrixEncoding.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_setElements.cpp
@@ -364,7 +374,8 @@ public:
     * \include SparseMatrixExample_setElements.out
     */
    void
-   setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data );
+   setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+                SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
 
    /**
     * \brief This method sets the sparse matrix elements from std::map.
@@ -377,6 +388,7 @@ public:
     * \tparam MapValue is a type for matrix elements values in the map.
     *
     * \param map is std::map containing matrix elements.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::SymmetricMatrixEncoding.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_setElements_map.cpp
@@ -385,7 +397,8 @@ public:
     */
    template< typename MapIndex, typename MapValue >
    void
-   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map );
+   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+                SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
 
    /**
     * \brief Resets the matrix to zero dimensions.
@@ -393,7 +406,22 @@ public:
    void
    reset();
 
+   /*template< typename Real2, typename Index2 >
+   void addMatrix( const SparseMatrix< Real2, Segments, Device, Index2 >& matrix,
+                   const RealType& matrixMultiplicator = 1.0,
+                   const RealType& thisMatrixMultiplicator = 1.0 );
+    */
+
    // TODO: refactor this to a free function
+   /**
+    * \brief Computes transposition of the matrix.
+    *
+    * \tparam Real2 is the real type of the input matrix.
+    * \tparam Index2 is the index type of the input matrix.
+    * \tparam Segments2 is the type of the segments of the input matrix.
+    * \param matrix is the input matrix.
+    * \param matrixMultiplicator is the factor by which the matrix is multiplied.
+    */
    template< typename Real2, typename Index2, template< typename, typename, typename > class Segments2 >
    void
    getTransposition( const SparseMatrix< Real2, Device, Index2, MatrixType, Segments2 >& matrix,

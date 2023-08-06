@@ -394,6 +394,53 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename InVector, typename OutVector >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::transposedVectorProduct(
+   const InVector& inVector,
+   OutVector& outVector,
+   ComputeRealType matrixMultiplicator,
+   ComputeRealType outVectorMultiplicator,
+   IndexType begin,
+   IndexType end ) const
+{
+   TNL_ASSERT_EQ( this->getRows(), inVector.getSize(), "Matrix rows do not fit with input vector." );
+   TNL_ASSERT_EQ( this->getColumns(), outVector.getSize(), "Matrix columns do not fit with output vector." );
+
+   if constexpr( MatrixType::isSymmetric() ) {
+      this->vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, begin, end );
+      return;
+   }
+
+   using OutVectorReal = typename OutVector::RealType;
+   static_assert(
+      ! std::is_same< Device, Devices::Cuda >::value
+         || ( std::is_same< OutVectorReal, float >::value || std::is_same< OutVectorReal, double >::value
+              || std::is_same< OutVectorReal, int >::value || std::is_same< OutVectorReal, long long int >::value
+              || std::is_same< OutVectorReal, long >::value ),
+      "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
+
+   const auto inVectorView = inVector.getConstView();
+   auto outVectorView = outVector.getView();
+
+   if( end == 0 )
+      end = this->getColumns();
+
+   if( outVectorMultiplicator != 1.0 )
+      outVector *= outVectorMultiplicator;
+   auto compute = [ inVectorView, outVectorView, matrixMultiplicator, begin, end ] __cuda_callable__(
+                     IndexType row, IndexType localIdx, IndexType column, const RealType& value ) mutable
+   {
+      if( column >= begin && column < end ) {
+         if( column != paddingIndex< IndexType > )
+            Algorithms::AtomicOperations< DeviceType >::add(
+               outVectorView[ column ], (OutVectorReal) matrixMultiplicator * inVectorView[ row ] * value );
+      }
+   };
+   this->forAllElements( compute );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows(
@@ -614,6 +661,45 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sortColumnIndexes()
+{
+   this->forAllRows(
+      [ = ] __cuda_callable__( RowView & row )
+      {
+         row.sortColumnIndexes();
+      } );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+__cuda_callable__
+Index
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::findElement( IndexType row,
+                                                                                             IndexType column ) const
+{
+   TNL_ASSERT_GE( row, 0, "Sparse matrix row index cannot be negative." );
+   TNL_ASSERT_LT( row, this->getRows(), "Sparse matrix row index is larger than number of matrix rows." );
+   TNL_ASSERT_GE( column, 0, "Sparse matrix column index cannot be negative." );
+   TNL_ASSERT_LT( column, this->getColumns(), "Sparse matrix column index is larger than number of matrix columns." );
+
+   if( Base::isSymmetric() && row < column ) {
+      swap( row, column );
+      if( row >= this->getRows() || column >= this->getColumns() )
+         return paddingIndex< IndexType >;
+   }
+
+   const IndexType rowSize = this->segments.getSegmentSize( row );
+   for( IndexType i = 0; i < rowSize; i++ ) {
+      const IndexType globalIdx = this->segments.getGlobalIndex( row, i );
+      TNL_ASSERT_LT( globalIdx, this->columnIndexes.getSize(), "" );
+      const IndexType col = this->columnIndexes.getElement( globalIdx );
+      if( col == column )
+         return globalIdx;
+   }
+   return paddingIndex< IndexType >;
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::print( std::ostream& str ) const
 {
    if constexpr( Base::isSymmetric() ) {
@@ -622,7 +708,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          for( IndexType column = 0; column < this->getColumns(); column++ ) {
             auto value = this->getElement( row, column );
             if( value != (RealType) 0 )
-               str << " Col:" << column << "->" << value << "\t";
+               str << column << ":" << value << "\t";
          }
          str << std::endl;
       }

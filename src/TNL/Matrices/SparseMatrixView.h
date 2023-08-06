@@ -84,21 +84,21 @@ class SparseMatrixView : public SparseMatrixBase< Real,
 
 public:
    /**
+    * \brief Templated type of segments view, i.e. sparse matrix format.
+    */
+   template< typename Device_, typename Index_ >
+   using SegmentsViewTemplate = SegmentsView< Device_, Index_ >;
+
+   /**
     * \brief Helper type for getting self type or its modifications.
     */
    template< typename _Real = Real,
              typename _Device = Device,
              typename _Index = Index,
              typename _MatrixType = MatrixType,
-             template< typename, typename > class _SegmentsView = SegmentsView,
+             template< typename, typename > class _SegmentsView = SegmentsViewTemplate,
              typename _ComputeReal = ComputeReal >
    using Self = SparseMatrixView< _Real, _Device, _Index, _MatrixType, _SegmentsView, _ComputeReal >;
-
-   /**
-    * \brief Templated type of segments view, i.e. sparse matrix format.
-    */
-   template< typename Device_, typename Index_ >
-   using SegmentsViewTemplate = SegmentsView< Device_, Index_ >;
 
    /**
     * \brief Type of related matrix view.

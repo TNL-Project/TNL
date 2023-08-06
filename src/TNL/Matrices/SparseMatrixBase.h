@@ -717,6 +717,36 @@ public:
    vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 
    /**
+    * \brief Computes product of transposed matrix and vector.
+    *
+    * \tparam InVector is type of input vector. It can be
+    *    \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *    \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *   or similar container.
+    * \tparam OutVector is type of output vector. It can be
+    *    \ref TNL::Containers::Vector, \ref TNL::Containers::VectorView,
+    *    \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
+    *  or similar container.
+    *
+    * \param inVector is input vector.
+    * \param outVector  is output vector.
+    * \param matrixMultiplicator is a factor by which the matrix is multiplied. It is one by default.
+    * \param outVectorMultiplicator is a factor by which the outVector is multiplied before added
+    * \param begin is the beginning of the rows range for which the vector product
+    *    is computed. It is zero by default.
+    * \param end is the end of the rows range for which the vector product
+    *    is computed. It is number if the matrix rows by default.
+    */
+   template< typename InVector, typename OutVector >
+   void
+   transposedVectorProduct( const InVector& inVector,
+                            OutVector& outVector,
+                            ComputeReal matrixMultiplicator = 1.0,
+                            ComputeReal outVectorMultiplicator = 0.0,
+                            Index begin = 0,
+                            Index end = 0 ) const;
+
+   /**
     * \brief Comparison operator with another arbitrary matrix type.
     *
     * \param matrix is the right-hand side matrix.
@@ -735,6 +765,25 @@ public:
    template< typename Matrix >
    [[nodiscard]] bool
    operator!=( const Matrix& matrix ) const;
+
+   /**
+    * \brief Sort matrix elements in each row by column indexes in ascending order.
+    */
+   void
+   sortColumnIndexes();
+
+   /**
+    * \brief Finds element in the matrix and returns its position in the arrays with \e values and \e columnIndexes.
+    *
+    * If the element is not found, the method returns the padding index.
+    * \param row is the row index of the element.
+    * \param column is the column index of the element.
+    * \return the position of the element in the arrays with \e values and \e columnIndexes or the padding index if the element
+    * is not found.
+    */
+   __cuda_callable__
+   IndexType
+   findElement( IndexType row, IndexType column ) const;
 
    /**
     * \brief Method for printing the matrix to output stream.

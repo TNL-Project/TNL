@@ -30,6 +30,18 @@ template< typename Index >
 constexpr Index paddingIndex = static_cast< Index >( -1 );
 
 /**
+ * \brief Encoding of the matrix elements of the symmetric matrix.
+ */
+enum class SymmetricMatrixEncoding
+{
+   Complete,    //!<  All elements of the matrix are stored.
+   LowerPart,   //!<  Only lower part of the matrix is stored.
+   UpperPart,   //!<  Only upper part of the matrix is stored.
+   SparseMixed  //!<  For each couple of non-zero elements a_ij and a_ji, at least one is encoded. It is handy for example for
+                //!<  adjacency matrices of undirected graphs.
+};
+
+/**
  * \brief Base class for the implementation of concrete matrix types.
  *
  * \tparam Real is a type of matrix elements.
@@ -81,6 +93,17 @@ public:
    }
 
    /**
+    * \brief Test of matrix type.
+    *
+    * \return \e true.
+    */
+   [[nodiscard]] static constexpr bool
+   isMatrix()
+   {
+      return true;
+   }
+
+   /**
     * \brief Test of binary matrix type.
     *
     * \return \e true if the matrix is stored as binary and \e false otherwise.
@@ -113,17 +136,17 @@ public:
     *
     * The matrix elements values are passed in a form vector view.
     *
-    * @param rows is a number of matrix rows.
-    * @param columns is a number of matrix columns.
-    * @param values is a vector view with matrix elements values.
+    * \param rows is a number of matrix rows.
+    * \param columns is a number of matrix columns.
+    * \param values is a vector view with matrix elements values.
     */
    __cuda_callable__
    MatrixBase( IndexType rows, IndexType columns, ValuesViewType values );
 
    /**
-    * @brief Shallow copy constructor.
+    * \brief Shallow copy constructor.
     *
-    * @param view is an input matrix view.
+    * \param view is an input matrix view.
     */
    __cuda_callable__
    MatrixBase( const MatrixBase& view ) = default;
@@ -131,7 +154,7 @@ public:
    /**
     * \brief Move constructor.
     *
-    * @param view is an input matrix view.
+    * \param view is an input matrix view.
     */
    __cuda_callable__
    MatrixBase( MatrixBase&& view ) noexcept = default;
@@ -184,7 +207,7 @@ public:
    /**
     * \brief Returns number of matrix columns.
     *
-    * @return number of matrix columns.
+    * \return number of matrix columns.
     */
    [[nodiscard]] __cuda_callable__
    IndexType
@@ -246,6 +269,12 @@ protected:
    __cuda_callable__
    void
    bind( IndexType rows, IndexType columns, ValuesViewType values );
+};
+
+template< typename T >
+struct IsMatrixType
+{
+   static constexpr bool value = HasIsMatrixMethod< T >::value;
 };
 
 }  // namespace TNL::Matrices
