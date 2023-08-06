@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber
-
 #pragma once
 
 #include <TNL/Config/parseCommandLine.h>

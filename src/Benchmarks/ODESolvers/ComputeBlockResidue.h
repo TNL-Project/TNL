@@ -1,6 +1,3 @@
-// Implemented by: Tomas Oberhuber
-
-
 #pragma once
 
 namespace TNL {

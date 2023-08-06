@@ -22,8 +22,6 @@
  * not inherit from std::exception to avoid being caught by normal exception
  * handlers, but the code for Python bindings can use it to translate it to the
  * Python's AssertionError exception.
- *
- * Implemented by: Jakub Klinkovsky
  */
 
 // check the minimum version of the C++ standard required by TNL, otherwise

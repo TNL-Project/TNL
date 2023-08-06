@@ -1,5 +1,3 @@
-// Implemented by: Jakub Klinkovský
-
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
 #include <TNL/Meshes/Writers/VTIWriter.h>

@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber, Jakub Klinkovský
-
 #pragma once
 
 #include <string>

@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Xuan Thang Nguyen, Tomas Oberhuber
-
 #pragma once
 
 #include <TNL/Algorithms/Sorting/detail/bitonicSort.h>

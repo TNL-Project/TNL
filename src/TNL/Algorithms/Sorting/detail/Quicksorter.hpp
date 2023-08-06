@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Xuan Thang Nguyen, Tomas Oberhuber
-
 #pragma once
 
 #include <TNL/DiscreteMath.h>

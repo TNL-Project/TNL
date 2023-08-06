@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber
-
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>

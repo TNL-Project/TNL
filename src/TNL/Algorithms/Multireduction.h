@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include <functional>  // reduction functions like std::plus, std::logical_and, std::logical_or etc.

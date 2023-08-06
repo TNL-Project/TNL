@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomas Oberhuber, Jakub Klinkovsky
-
 #pragma once
 
 // TODO: move this into the detail namespace, create dispatching functions like
