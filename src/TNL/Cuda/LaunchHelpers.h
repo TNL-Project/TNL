@@ -14,13 +14,6 @@
 
 namespace TNL::Cuda {
 
-[[deprecated( "this function is deprecated - use either getMaxGridXSize(), getMaxGridYSize(), or "
-              "getMaxGridZSize()" )]] inline constexpr std::size_t
-getMaxGridSize()
-{
-   return 65535;
-}
-
 inline constexpr std::size_t
 getMaxGridXSize()
 {
