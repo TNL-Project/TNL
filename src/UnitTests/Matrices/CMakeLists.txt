@@ -1,5 +1,3 @@
-ADD_SUBDIRECTORY( Legacy )
-
 set( COMMON_TESTS
             DenseMatrixTest
             DenseMatrixCopyTest
