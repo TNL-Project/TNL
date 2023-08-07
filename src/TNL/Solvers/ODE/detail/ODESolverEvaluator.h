@@ -16,7 +16,7 @@ namespace TNL::Solvers::ODE::detail {
 
 template< typename Method,
           size_t Stage >
-struct CoefficientsExtractor
+struct CoefficientsExtractor // TODO: rename to Proxy
 {
    using ValueType = typename Method::ValueType;
 
@@ -47,6 +47,10 @@ template< typename Method >
 struct ErrorCoefficientsExtractor
 {
    using ValueType = typename Method::ValueType;
+
+   static constexpr size_t getSize() {
+      return Method::getStages();
+   }
 
    static constexpr ValueType getValue( size_t i ) {
       return Method::getErrorCoefficient( i );

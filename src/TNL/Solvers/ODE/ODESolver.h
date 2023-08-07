@@ -105,6 +105,30 @@ public:
    setup( const Config::ParameterContainer& parameters, const String& prefix = "" );
 
    /**
+    * \brief Setter of the parameter controlling the adaptive choice of the integration time step.
+    *
+    * The smaller the parameter is the smaller the integration time step tends to be.
+    * Reasonable values for this parameters are approximately from interval \f$ [10^{-12},10^{-2}] \f$.
+    * \param adaptivity new value of the parameter controlling the adaptive choice of
+    *    integration time step.
+    */
+   __cuda_callable__
+   void setAdaptivity( const RealType& adaptivity ) {
+      this->adaptivity = adaptivity;
+   }
+
+   /**
+    * \brief Getter of the parameter controlling the adaptive choice of the integration time step.
+    *
+    * \returns the current value of the parameter controlling the adaptive choice of
+    *    integration time step.
+    */
+   __cuda_callable__
+   RealType getAdaptivity() const {
+      return adaptivity;
+   }
+
+   /**
     * \brief Gives reference to the underlying method.
     *
     * \return reference to the underlying method.
@@ -158,6 +182,12 @@ public:
    solve( VectorType& u, RHSFunction&& f );
 
 protected:
+
+   /****
+    * Adaptivity controls the accuracy of the solver
+    */
+   RealType adaptivity = 0.00001;
+
    std::array< VectorType, Stages > k_vectors;
 
    VectorType kAux;

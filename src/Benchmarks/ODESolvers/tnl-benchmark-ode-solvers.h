@@ -60,21 +60,20 @@ struct ODESolversBenchmark
          device = "cuda";
       }
 
+      double adaptivity = parameters.getParameter< double >( "adaptivity" );
       SolverType solver;
-      if constexpr( std::is_same< SolverType, Merson< VectorType, SolverMonitorType > >::value ||
-                    std::is_same< SolverType, TNL::Benchmarks::MersonNonET< VectorType, SolverMonitorType > >::value ) {
-         solver.setAdaptivity( 0.0 );
-      }
-      using MersonMethod = TNL::Solvers::ODE::Methods::Merson< RealType >;
-      if constexpr( std::is_same< SolverType, TNL::Solvers::ODE::ODESolver< MersonMethod, VectorType, SolverMonitorType > >::value ) {
-         solver.getMethod().setAdaptivity( 0.0 );
+      if constexpr( ! std::is_same< SolverType, Euler< VectorType, SolverMonitorType > >::value &&
+                    ! std::is_same< SolverType, TNL::Benchmarks::EulerNonET< VectorType, SolverMonitorType > >::value ) {
+         solver.setAdaptivity( adaptivity );
       }
 
       RealType tau = 0.1;
       std::size_t dofs = parameters.getParameter< int >( "size" );
       VectorType u( dofs, 0.0 );
-      ODESolversBenchmarkResult< RealType, DeviceType, IndexType > benchmarkResult( 1.0, u );
-      for( int eoc_steps = 0; eoc_steps < 5; eoc_steps++ ) {
+      RealType correct_solution = exp( 1.0 ) - exp( 0.0 );
+      ODESolversBenchmarkResult< SolverType > benchmarkResult( correct_solution, solver, u );
+      int eoc_steps_count = adaptivity ? 1 : 5;
+      for( int eoc_steps = 0; eoc_steps < eoc_steps_count; eoc_steps++ ) {
          benchmark.setMetadataColumns(
             TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< RealType >() },
                                                              { "index type", TNL::getType< IndexType >() },
@@ -85,19 +84,19 @@ struct ODESolversBenchmark
          u = 0;
          std::size_t iterations = 1.0 / tau + 1;
          benchmark.setDatasetSize( dofs * sizeof( RealType ) * iterations );
+         auto reset_u = [&] () mutable { u = 0.0; };
          auto problem = [=] ( const RealType& t, const RealType& tau, const VectorView& u_view, VectorView& fu_view ) {
             auto computeF = [=] __cuda_callable__ ( IndexType i ) mutable {
-               fu_view[ i ] = 7.0 * TNL::pow( t, 6.0 );
+               fu_view[ i ] = TNL::exp( t );
             };
             Algorithms::parallelFor< DeviceType >( 0, u_view.getSize(), computeF );
          };
          auto solve = [&]() {
             solver.setTime( 0.0 );
             solver.setTau( tau );
-            u = 0; // TODO: reset u in special lambda
             solver.solve( u, problem );
          };
-         benchmark.time< DeviceType >( device, solve, benchmarkResult );
+         benchmark.time< DeviceType >( reset_u, device, solve, benchmarkResult );
          tau /= 2.0;
       }
       return true;
@@ -209,6 +208,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntry< int >( "size", "Size of the ODE system (all ODEs are the same).", 1<<20 );
    config.addEntry< double >( "final-time", "Final time of the benchmark test.", 1.0 );
    config.addEntry< double >( "time-step", "Time step of the benchmark test.", 1.0e-2 );
+   config.addEntry< double >( "adaptivity", "Set adaptive time stepping. Zero means no adaptive time stepping", 0.0 );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );

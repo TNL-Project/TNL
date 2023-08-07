@@ -4,18 +4,17 @@
 
 namespace TNL::Benchmarks {
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename ResultReal = Real,
+template< typename Solver,
+          typename ResultReal = typename Solver::RealType,
           typename Logger = JsonLogging >
 struct ODESolversBenchmarkResult
 : public BenchmarkResult
 {
-   using RealType = Real;
-   using DeviceType = Device;
-   using IndexType = Index;
-   using BenchmarkVector = Containers::Vector< ResultReal, Device, Index >;
+   using SolverType = Solver;
+   using RealType = typename SolverType::RealType;
+   using DeviceType = typename SolverType::DeviceType;
+   using IndexType = typename SolverType::IndexType;
+   using BenchmarkVector = Containers::Vector< ResultReal, DeviceType, IndexType >;
 
    using typename BenchmarkResult::HeaderElements;
    using typename BenchmarkResult::RowElements;
@@ -26,16 +25,17 @@ struct ODESolversBenchmarkResult
 
 
    ODESolversBenchmarkResult( const RealType& exactSolution,
+                              const SolverType& solver,
                               const BenchmarkVector& benchmarkResult )
-   : exactSolution( exactSolution ), benchmarkResult( benchmarkResult )
+   : exactSolution( exactSolution ), solver( solver ), benchmarkResult( benchmarkResult )
    {}
 
    virtual HeaderElements getTableHeader() const override {
-      return HeaderElements({ "time", "stddev", "stddev/time", "loops", "bandwidth", "speed-up", "error", "EOC" });
+      return HeaderElements({ "time", "stddev", "stddev/time", "loops", "bandwidth", "speed-up", "error", "EOC", "iters" });
    }
 
    virtual std::vector< int > getColumnWidthHints() const override {
-      return std::vector< int >({ 14, 14, 14, 6, 14, 10, 14, 10 });
+      return std::vector< int >({ 14, 14, 14, 6, 14, 10, 14, 10, 14 });
    }
 
    virtual RowElements getRowElements() const override {
@@ -59,6 +59,7 @@ struct ODESolversBenchmarkResult
          elements << eoc;
       else
          elements << "N/A";
+      elements << solver.getIterations();
       return elements;
    }
 
@@ -67,6 +68,7 @@ struct ODESolversBenchmarkResult
 protected:
    RealType exactSolution;
    mutable RealType lastError = -1.0;
+   const SolverType& solver;
    const BenchmarkVector& benchmarkResult;
 };
 

@@ -26,6 +26,10 @@ void
 ODESolver< Method, Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
    ExplicitSolver< RealType, IndexType >::configSetup( config, prefix );
+   config.addEntry< double >( prefix + "integrator-adaptivity",
+                              "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
+                              "zero means no adaptivity).",
+                              1.0e-4 );
 }
 
 template< typename Method, typename Vector, typename SolverMonitor >
@@ -33,6 +37,8 @@ bool
 ODESolver< Method, Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
 {
    ExplicitSolver< Vector, SolverMonitor >::setup( parameters, prefix );
+   if( parameters.checkParameter( prefix + "integrator-adaptivity" ) )
+      this->setAdaptivity( parameters.getParameter< double >( prefix + "integrator-adaptivity" ) );
    return true;
 }
 
@@ -53,6 +59,12 @@ template< typename RHSFunction >
 bool
 ODESolver< Method, Vector, SolverMonitor >::solve( VectorType& u, RHSFunction&& rhsFunction )
 {
+   using ErrorCoefficients = detail::ErrorCoefficientsExtractor< Method >;
+   using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Vector >;
+   using UpdateCoefficients = detail::UpdateCoefficientsExtractor< Method >;
+   using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Vector >;
+
+
    if( this->getTau() == 0.0 ) {
       std::cerr << "The time step for the ODE solver is zero." << std::endl;
       return false;
@@ -92,25 +104,19 @@ ODESolver< Method, Vector, SolverMonitor >::solve( VectorType& u, RHSFunction&& 
       // Compute an error of the approximation.
       RealType error( 0.0 );
       if constexpr( Method::isAdaptive() )
-         if( this->adaptivity ) {
-            using ErrorCoefficients = detail::ErrorCoefficientsExtractor< Method >;
-            using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Vector >;
+         if( this->adaptivity )
             error = currentTau * max( abs( ErrorExpression::evaluateArray( k_vectors ) ) );
-      }
 
       if( this->adaptivity == 0.0 || error < this->adaptivity ) {
          RealType lastResidue = this->getResidue();
 
-         using UpdateCoefficients = detail::UpdateCoefficientsExtractor< Method >;
-         using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Vector >;
          this->setResidue(
             addAndReduceAbs( u, currentTau * UpdateExpression::evaluateArray( k_vectors ), TNL::Plus{}, 0.0 ) /
             ( currentTau * (RealType) u.getSize() ) );
          time += currentTau;
 
          /////
-         // When time is close to stopTime the new residue
-         // may be inaccurate significantly.
+         // When time is close to stopTime the new residue may be inaccurate significantly.
          if( abs( time - this->stopTime ) < 1.0e-7 )
             this->setResidue( lastResidue );
 
@@ -120,7 +126,10 @@ ODESolver< Method, Vector, SolverMonitor >::solve( VectorType& u, RHSFunction&& 
 
       /////
       // Compute the new time step.
-      currentTau = min( method.computeTau( error, currentTau ), this->getMaxTau() );
+      RealType newTau = currentTau;
+      if( adaptivity != 0.0 && error != 0.0 )
+         newTau = currentTau * 0.8 * TNL::pow( adaptivity / error, 0.2 );
+      currentTau = min( newTau, this->getMaxTau() );
       if( time + currentTau > this->getStopTime() )
          currentTau = this->getStopTime() - time;  // we don't want to keep such tau
       else
