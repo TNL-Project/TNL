@@ -187,7 +187,8 @@ if [[ "$CUDA_COMPILER" == "nvcc" ]]; then
             export CUDAHOSTCXX="$CXX"
         fi
     else
-        export CUDAHOSTCXX="$CXX"
+        # nvcc not found - clear CUDACXX -> CMAKE_CUDA_COMPILER
+        export CUDACXX=""
     fi
     CMAKE_CXX_FLAGS=""
     CMAKE_CUDA_FLAGS=""
