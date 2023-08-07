@@ -28,8 +28,8 @@
    #if defined( HYPRE_USING_CUDA ) && ! defined( __CUDACC__ )
       #error "__CUDACC__ is required when HYPRE is built with CUDA!"
    #endif
-   #if defined( HYPRE_USING_HIP ) && ! defined( HAVE_HIP )
-      #error "HAVE_HIP is required when HYPRE is built with HIP!"
+   #if defined( HYPRE_USING_HIP ) && ! defined( __HIP__ )
+      #error "__HIP__ is required when HYPRE is built with HIP!"
    #endif
 
 namespace TNL {
