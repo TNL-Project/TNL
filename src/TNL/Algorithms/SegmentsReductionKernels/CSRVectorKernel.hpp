@@ -133,8 +133,7 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          constexpr auto kernel = reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
          Cuda::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
       }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
    }
 }
 

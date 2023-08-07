@@ -489,8 +489,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
                                   matrixMultiplicator,
                                   outVectorMultiplicator );
       }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
       return;
    }
 

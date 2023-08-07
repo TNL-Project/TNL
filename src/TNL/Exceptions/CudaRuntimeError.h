@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include <TNL/Cuda/DummyDefs.h>
+#include <TNL/Backend/Types.h>
 
 #include "CudaSupportMissing.h"
 
@@ -17,25 +17,25 @@ namespace TNL::Exceptions {
 class CudaRuntimeError : public std::runtime_error
 {
 public:
-   CudaRuntimeError( cudaError_t error_code )
+   CudaRuntimeError( Backend::error_t error_code )
    : std::runtime_error( "CUDA ERROR " + std::to_string( (int) error_code ) + " (" + name( error_code )
                          + "): " + description( error_code ) + "." ),
      code_( error_code )
    {}
 
-   CudaRuntimeError( cudaError_t error_code, const std::string& what_arg )
+   CudaRuntimeError( Backend::error_t error_code, const std::string& what_arg )
    : std::runtime_error( "CUDA ERROR " + std::to_string( (int) error_code ) + " (" + name( error_code )
                          + "): " + description( error_code ) + ".\nDetails: " + what_arg ),
      code_( error_code )
    {}
 
-   CudaRuntimeError( cudaError_t error_code, const char* file_name, int line )
+   CudaRuntimeError( Backend::error_t error_code, const char* file_name, int line )
    : std::runtime_error( "CUDA ERROR " + std::to_string( (int) error_code ) + " (" + name( error_code ) + "): "
                          + description( error_code ) + ".\nSource: line " + std::to_string( line ) + " in " + file_name ),
      code_( error_code )
    {}
 
-   [[nodiscard]] cudaError_t
+   [[nodiscard]] Backend::error_t
    code() const
    {
       return code_;
@@ -43,7 +43,7 @@ public:
 
 private:
    static std::string
-   name( cudaError_t error_code )
+   name( Backend::error_t error_code )
    {
 #ifdef __CUDACC__
       return cudaGetErrorName( error_code );
@@ -53,7 +53,7 @@ private:
    }
 
    static std::string
-   description( cudaError_t error_code )
+   description( Backend::error_t error_code )
    {
 #ifdef __CUDACC__
       return cudaGetErrorString( error_code );
@@ -62,7 +62,7 @@ private:
 #endif
    }
 
-   cudaError_t code_;
+   Backend::error_t code_;
 };
 
 }  // namespace TNL::Exceptions

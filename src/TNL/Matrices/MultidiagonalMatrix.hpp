@@ -293,8 +293,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
             MultidiagonalMatrixTranspositionCudaKernel< decltype( matrix.getConstView() ), ViewType, Real, Index >;
          Cuda::launchKernelAsync( kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, gridIdx );
       }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
    }
 }
 

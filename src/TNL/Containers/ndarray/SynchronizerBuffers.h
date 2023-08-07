@@ -29,7 +29,7 @@ struct SynchronizerBuffers
    int tag_recv = -1;
    int tag_send = -1;
 
-   cudaStream_t stream_id = 0;
+   Backend::stream_t stream_id = 0;
 
    SynchronizerBuffers() = delete;
 

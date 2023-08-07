@@ -207,8 +207,7 @@ bitonicSortWithShared( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > v
          }
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
 }
 
 //---------------------------------------------
@@ -230,8 +229,7 @@ bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > view, const
          Cuda::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
 }
 
 //---------------------------------------------
@@ -419,8 +417,7 @@ bitonicSort( int begin, int end, const CMP& Cmp, SWAP Swap )
          Cuda::launchKernelAsync( kernel, launch_config, size, compareWithOffset, swapWithOffset, monotonicSeqLen, bitonicLen );
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
 }
 
 }  // namespace TNL::Algorithms::Sorting

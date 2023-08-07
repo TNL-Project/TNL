@@ -292,8 +292,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
                                      gridIdx_x,
                                      gridIdx_y );
          }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
    }
 }
 
@@ -459,8 +458,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTranspositio
                   kernel, launch_config, getView(), matrix.getConstView(), matrixMultiplicator, gridIdx_x, gridIdx_y );
             }
          }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
    }
 }
 

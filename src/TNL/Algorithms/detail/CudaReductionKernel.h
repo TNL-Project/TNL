@@ -9,6 +9,7 @@
 #include <utility>  // std::pair
 
 #include <TNL/Assert.h>
+#include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Cuda/KernelLaunch.h>
@@ -613,8 +614,8 @@ protected:
 
       // Check just to future-proof the code setting blockSize.x
       if( launch_config.blockSize.x == maxThreadsPerBlock ) {
-         cudaFuncSetCacheConfig( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                 cudaFuncCachePreferShared );
+         Backend::funcSetCacheConfig( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
+                                      Backend::FuncCachePreferShared );
          Cuda::launchKernelSync( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
                                  launch_config,
                                  dataFetcher,
@@ -652,8 +653,9 @@ protected:
 
       // Check just to future-proof the code setting blockSize.x
       if( launch_config.blockSize.x == maxThreadsPerBlock ) {
-         cudaFuncSetCacheConfig( CudaReductionWithArgumentKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                 cudaFuncCachePreferShared );
+         Backend::funcSetCacheConfig(
+            CudaReductionWithArgumentKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
+            Backend::FuncCachePreferShared );
          Cuda::launchKernelSync( CudaReductionWithArgumentKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
                                  launch_config,
                                  dataFetcher,

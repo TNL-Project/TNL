@@ -793,7 +793,7 @@ struct CudaScanKernelLauncher
          }
 
          // synchronize the null-stream after all grids
-         cudaStreamSynchronize( 0 );
+         Backend::streamSynchronize( 0 );
          TNL_CHECK_CUDA_DEVICE;
 
          // blockResults now contains scan results for each block. The first phase
@@ -917,8 +917,7 @@ struct CudaScanKernelLauncher
          }
 
          // synchronize the null-stream after all grids
-         cudaStreamSynchronize( 0 );
-         TNL_CHECK_CUDA_DEVICE;
+         Backend::streamSynchronize( 0 );
       }
    }
 

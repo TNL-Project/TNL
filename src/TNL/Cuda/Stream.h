@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include <TNL/Cuda/DummyDefs.h>
+#include <TNL/Backend/Types.h>
 
 namespace TNL::Cuda {
 
@@ -17,7 +17,7 @@ class Stream
 private:
    struct Wrapper
    {
-      cudaStream_t handle = 0;
+      Backend::stream_t handle = 0;
 
       Wrapper() = default;
       Wrapper( const Wrapper& other ) = delete;
@@ -27,7 +27,7 @@ private:
       Wrapper&
       operator=( Wrapper&& other ) noexcept = default;
 
-      Wrapper( cudaStream_t handle ) : handle( handle ) {}
+      Wrapper( Backend::stream_t handle ) : handle( handle ) {}
 
       ~Wrapper()  // NOLINT
       {
@@ -79,9 +79,9 @@ public:
     *    information about the meaningful stream priorities that can be passed.
     */
    static Stream
-   create( unsigned int flags = cudaStreamDefault, int priority = 0 )
+   create( unsigned int flags = Backend::StreamDefault, int priority = 0 )
    {
-      cudaStream_t stream;
+      Backend::stream_t stream;
 #ifdef __CUDACC__
       cudaStreamCreateWithPriority( &stream, flags, priority );
 #else
@@ -94,20 +94,20 @@ public:
     * \brief Access the CUDA stream handle associated with this object.
     *
     * This routine permits the implicit conversion from \ref Stream to
-    * `cudaStream_t`.
+    * `Backend::stream_t`.
     *
-    * \warning The obtained `cudaStream_t` handle becomes invalid when the
+    * \warning The obtained `Backend::stream_t` handle becomes invalid when the
     * originating \ref Stream object is destroyed. For example, the following
     * code is invalid, because the \ref Stream object managing the lifetime of
-    * the `cudaStream_t` handle is destroyed as soon as it is cast to
-    * `cudaStream_t`:
+    * the `Backend::stream_t` handle is destroyed as soon as it is cast to
+    * `Backend::stream_t`:
     *
     * \code{.cpp}
-    * const cudaStream_t stream = TNL::Cuda::Stream::create();
+    * const Backend::stream_t stream = TNL::Cuda::Stream::create();
     * my_kernel<<< gridSize, blockSize, 0, stream >>>( args... );
     * \endcode
     */
-   operator const cudaStream_t&() const
+   operator const Backend::stream_t&() const
    {
       return wrapper->handle;
    }

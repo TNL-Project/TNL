@@ -8,12 +8,14 @@
 
 //! \file Macros.h
 
+#include "Types.h"
+
 #include <TNL/Exceptions/CudaRuntimeError.h>
 
 namespace TNL::Backend {
 
 inline void
-checkErrorCode( const char* file_name, int line, cudaError_t error )
+checkErrorCode( const char* file_name, int line, error_t error )
 {
 #ifdef __CUDACC__
    if( error != cudaSuccess )
@@ -27,6 +29,13 @@ checkErrorCode( const char* file_name, int line, cudaError_t error )
    #define TNL_CHECK_CUDA_DEVICE ::TNL::Backend::checkErrorCode( __FILE__, __LINE__, cudaGetLastError() )
 #else
    #define TNL_CHECK_CUDA_DEVICE
+#endif
+
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   #define TNL_BACKEND_SAFE_CALL( call ) ::TNL::Backend::checkErrorCode( __FILE__, __LINE__, call )
+#else
+   // the called function may be annotated with [[nodiscard]], so we need to avoid a warning here
+   #define TNL_BACKEND_SAFE_CALL( call ) (void) call
 #endif
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )

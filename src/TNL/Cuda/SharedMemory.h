@@ -37,7 +37,7 @@
 
 #include <cstdint>
 
-#include <TNL/Cuda/DummyDefs.h>
+#include <TNL/Backend/Macros.h>
 
 namespace TNL::Cuda {
 

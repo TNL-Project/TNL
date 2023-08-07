@@ -38,8 +38,8 @@ public:
     * \param priority Priority of the stream.
     *                 See \ref Cuda::Stream::create for details.
     */
-   const cudaStream_t&
-   getStream( int id, unsigned int flags = cudaStreamDefault, int priority = 0 )
+   const Backend::stream_t&
+   getStream( int id, unsigned int flags = Backend::StreamDefault, int priority = 0 )
    {
       const auto& result = pool.find( id );
       if( result != pool.end() )

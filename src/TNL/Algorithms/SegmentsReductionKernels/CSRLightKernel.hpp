@@ -551,8 +551,7 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                      grid, offsets, begin, end, fetch, reduce, keep, identity );
          }*/
       }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
    }
 }
 

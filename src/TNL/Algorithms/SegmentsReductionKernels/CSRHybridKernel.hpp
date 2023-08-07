@@ -334,8 +334,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                                          + std::to_string( this->threadsPerSegment ) );
          }
       }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
    }
 }
 

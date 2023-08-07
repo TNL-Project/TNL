@@ -6,8 +6,7 @@
 
 #pragma once
 
-#include <TNL/Backend/Macros.h>
-#include <TNL/Cuda/DummyDefs.h>
+#include <TNL/Backend.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 #include <TNL/TypeInfo.h>
 
@@ -29,7 +28,7 @@ struct LaunchConfiguration
    std::size_t dynamicSharedMemorySize = 0U;
 
    // stream handle
-   cudaStream_t stream = 0;
+   Backend::stream_t stream = 0;
 
    // indicates whether host execution is blocked until the CUDA kernel execution is finished
    bool blockHostUntilFinished = true;
@@ -41,7 +40,7 @@ struct LaunchConfiguration
    constexpr LaunchConfiguration( dim3 gridSize,
                                   dim3 blockSize,
                                   std::size_t dynamicSharedMemorySize = 0U,
-                                  cudaStream_t stream = 0,
+                                  Backend::stream_t stream = 0,
                                   bool blockHostUntilFinished = true )
    : gridSize( gridSize ), blockSize( blockSize ), dynamicSharedMemorySize( dynamicSharedMemorySize ), stream( stream ),
      blockHostUntilFinished( blockHostUntilFinished )
@@ -92,11 +91,11 @@ launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuratio
    // clang-format on
 
    if( launch_configuration.blockHostUntilFinished )
-      cudaStreamSynchronize( launch_configuration.stream );
+      Backend::StreamSynchronize( launch_configuration.stream );
 
    // use custom error handling instead of TNL_CHECK_CUDA_DEVICE
    // to add the kernel function type to the error message
-   const cudaError_t status = cudaGetLastError();
+   const Backend::error_t status = cudaGetLastError();
    if( status != cudaSuccess ) {
       std::string msg = "detected after launching kernel " + TNL::getType( kernel_function ) + "\nSource: line "
                       + std::to_string( __LINE__ ) + " in " + __FILE__;

@@ -10,7 +10,7 @@
 
 #include <TNL/DiscreteMath.h>
 #include <TNL/Math.h>
-#include <TNL/Cuda/DummyDefs.h>
+#include <TNL/Backend/Types.h>
 
 namespace TNL::Cuda {
 
