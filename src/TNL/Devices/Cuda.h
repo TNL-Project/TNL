@@ -23,11 +23,11 @@ public:
    configSetup( Config::ConfigDescription& config, const String& prefix = "" )
    {
 #ifdef __CUDACC__
-      config.addEntry< int >( prefix + "cuda-device", "Choose CUDA device to run the computation.", 0 );
+      const char* message = "Choose CUDA device to run the computation.";
 #else
-      config.addEntry< int >(
-         prefix + "cuda-device", "Choose CUDA device to run the computation (not supported on this system).", 0 );
+      const char* message = "Choose CUDA device to run the computation (not supported on this system).";
 #endif
+      config.addEntry< int >( prefix + "cuda-device", message, 0 );
    }
 
    static inline bool
