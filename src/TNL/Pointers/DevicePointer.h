@@ -567,9 +567,9 @@ public:
    {
       static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
                      "Only Devices::Host or Devices::Cuda devices are accepted here." );
-      TNL_ASSERT( this->pointer, );
-      TNL_ASSERT( this->pd, );
-      TNL_ASSERT( this->cuda_pointer, );
+      TNL_ASSERT_NE( this->pointer, nullptr, "" );
+      TNL_ASSERT_NE( this->pd, nullptr, "" );
+      TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
       if( std::is_same_v< Device, Devices::Host > )
          return *( this->pointer );
       if( std::is_same_v< Device, Devices::Cuda > )
@@ -595,9 +595,9 @@ public:
    {
       static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
                      "Only Devices::Host or Devices::Cuda devices are accepted here." );
-      TNL_ASSERT( this->pointer, );
-      TNL_ASSERT( this->pd, );
-      TNL_ASSERT( this->cuda_pointer, );
+      TNL_ASSERT_NE( this->pointer, nullptr, "" );
+      TNL_ASSERT_NE( this->pd, nullptr, "" );
+      TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
       if( std::is_same_v< Device, Devices::Host > ) {
          this->pd->maybe_modified = true;
          return *( this->pointer );
@@ -705,8 +705,8 @@ public:
          return true;
 #ifdef __CUDACC__
       if( this->modified() ) {
-         TNL_ASSERT( this->pointer, );
-         TNL_ASSERT( this->cuda_pointer, );
+         TNL_ASSERT_NE( this->pointer, nullptr, "" );
+         TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
          cudaMemcpy( (void*) this->cuda_pointer, (void*) this->pointer, sizeof( ObjectType ), cudaMemcpyHostToDevice );
          TNL_CHECK_CUDA_DEVICE;
          this->set_last_sync_state();
@@ -764,8 +764,8 @@ protected:
    void
    set_last_sync_state()
    {
-      TNL_ASSERT( this->pointer, );
-      TNL_ASSERT( this->pd, );
+      TNL_ASSERT_NE( this->pointer, nullptr, "" );
+      TNL_ASSERT_NE( this->pd, nullptr, "" );
       std::memcpy( (void*) &this->pd->data_image, (void*) this->pointer, sizeof( Object ) );
       this->pd->maybe_modified = false;
    }
@@ -773,8 +773,8 @@ protected:
    bool
    modified()
    {
-      TNL_ASSERT( this->pointer, );
-      TNL_ASSERT( this->pd, );
+      TNL_ASSERT_NE( this->pointer, nullptr, "" );
+      TNL_ASSERT_NE( this->pd, nullptr, "" );
       // optimization: skip bitwise comparison if we're sure that the data is the same
       if( ! this->pd->maybe_modified )
          return false;

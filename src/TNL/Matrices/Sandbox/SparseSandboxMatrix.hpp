@@ -160,7 +160,9 @@ void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::setDimensions( const IndexType rows,
                                                                                                       const IndexType columns )
 {
-   TNL_ASSERT( rows >= 0 && columns >= 0, std::cerr << " rows = " << rows << " columns = " << columns );
+   TNL_ASSERT_GE( rows, 0, "The number of rows cannot be negative." );
+   TNL_ASSERT_GE( columns, 0, "The number of columns cannot be negative." );
+
    this->rows = rows;
    this->columns = columns;
    this->view.bind( this->getView() );

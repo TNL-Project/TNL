@@ -291,12 +291,10 @@ Mesh< MeshConfig, Device >::reorderEntities( const GlobalIndexArray& perm, const
    using View = Containers::VectorView< const GlobalIndexType, DeviceType, GlobalIndexType >;
    const View perm_view = perm.getConstView();
    const View iperm_view = iperm.getConstView();
-   TNL_ASSERT( min( perm_view ) == 0 && max( perm_view ) == entitiesCount - 1,
-               std::cerr << "Given array is not a permutation: min = " << min( perm_view ) << ", max = " << max( perm_view )
-                         << ", number of entities = " << entitiesCount << ", array = " << perm << std::endl; );
-   TNL_ASSERT( min( iperm_view ) == 0 && max( iperm_view ) == entitiesCount - 1,
-               std::cerr << "Given array is not a permutation: min = " << min( iperm_view ) << ", max = " << max( iperm_view )
-                         << ", number of entities = " << entitiesCount << ", array = " << iperm << std::endl; );
+   TNL_ASSERT_EQ( min( perm_view ), 0, "Given array is not a permutation." );
+   TNL_ASSERT_EQ( max( perm_view ), entitiesCount - 1, "Given array is not a permutation." );
+   TNL_ASSERT_EQ( min( iperm_view ), 0, "Given array is not a permutation." );
+   TNL_ASSERT_EQ( max( iperm_view ), entitiesCount - 1, "Given array is not a permutation." );
 #endif
 
    IndexPermutationApplier< Mesh, Dimension >::exec( *this, perm, iperm );

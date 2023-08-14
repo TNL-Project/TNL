@@ -596,8 +596,8 @@ public:
       TNL_ASSERT_LT( begin, end, "begin must be lesser than end" );
       localBegins.template setSize< level >( begin );
       localEnds.template setSize< level >( end );
-      TNL_ASSERT( this->communicator == MPI_COMM_NULL || this->communicator == communicator,
-                  std::cerr << "different communicators cannot be combined for different dimensions" );
+      TNL_ASSERT_TRUE( this->communicator == MPI_COMM_NULL || this->communicator == communicator,
+                       "different communicators cannot be combined for different dimensions" );
       this->communicator = communicator;
    }
 

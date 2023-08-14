@@ -327,9 +327,8 @@ public:
          const RealType beta,
          RealType* y )
    {
-      TNL_ASSERT( m <= lda, );
-      TNL_ASSERT( n <= 256,
-                  std::cerr << "The gemv kernel is optimized only for small 'n' and assumes that n <= 256." << std::endl; );
+      TNL_ASSERT_LE( m, lda, "The size 'm' must be less than or equal to 'lda'." );
+      TNL_ASSERT_LE( n, 256, "The gemv kernel is optimized only for small 'n' and assumes that n <= 256." );
 
       // TODO: use static storage, e.g. from the CudaReductionBuffer, to avoid frequent reallocations
       Containers::Vector< RealType, Devices::Cuda, IndexType > xDevice;

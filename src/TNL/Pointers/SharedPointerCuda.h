@@ -460,7 +460,7 @@ public:
                    << std::endl;
          std::cerr << "   ( " << sizeof( Object ) << " bytes, CUDA adress " << this->cuda_pointer << " )" << std::endl;
    #endif
-         TNL_ASSERT( this->cuda_pointer, );
+         TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
          cudaMemcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), cudaMemcpyHostToDevice );
          TNL_CHECK_CUDA_DEVICE;
          this->set_last_sync_state();

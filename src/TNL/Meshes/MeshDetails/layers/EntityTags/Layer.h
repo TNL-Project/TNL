@@ -225,21 +225,6 @@ public:
    bool
    operator==( const Layer& layer ) const
    {
-      TNL_ASSERT(
-         ( tags == layer.tags && interiorIndices == layer.interiorIndices && boundaryIndices == layer.boundaryIndices
-           && ghostsOffset == layer.ghostsOffset )
-            || ( tags != layer.tags && interiorIndices != layer.interiorIndices && boundaryIndices != layer.boundaryIndices
-                 && ghostsOffset != layer.ghostsOffset ),
-         std::cerr << "The EntityTags layer is in inconsistent state - this is probably a bug in the boundary tags initializer."
-                   << std::endl
-                   << "tags                  = " << tags << std::endl
-                   << "layer.tags            = " << layer.tags << std::endl
-                   << "interiorIndices       = " << interiorIndices << std::endl
-                   << "layer.interiorIndices = " << layer.interiorIndices << std::endl
-                   << "boundaryIndices       = " << boundaryIndices << std::endl
-                   << "layer.boundaryIndices = " << layer.boundaryIndices << std::endl
-                   << "ghostsOffset          = " << ghostsOffset << std::endl
-                   << "layer.ghostsOffset    = " << layer.ghostsOffset << std::endl; );
       return tags == layer.tags;
    }
 

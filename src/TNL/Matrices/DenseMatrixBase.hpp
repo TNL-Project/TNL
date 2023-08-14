@@ -542,11 +542,8 @@ DenseMatrixBase< Real, Device, Index, Organization >::addMatrix( const Matrix& m
                                                                  const RealType& matrixMultiplicator,
                                                                  const RealType& thisMatrixMultiplicator )
 {
-   TNL_ASSERT( this->getColumns() == matrix.getColumns() && this->getRows() == matrix.getRows(),
-               std::cerr << "This matrix columns: " << this->getColumns() << std::endl
-                         << "This matrix rows: " << this->getRows() << std::endl
-                         << "That matrix columns: " << matrix.getColumns() << std::endl
-                         << "That matrix rows: " << matrix.getRows() << std::endl );
+   TNL_ASSERT_EQ( this->getColumns(), matrix.getColumns(), "The matrices must have the same sizes." );
+   TNL_ASSERT_EQ( this->getRows(), matrix.getRows(), "The matrices must have the same sizes." );
 
    if( thisMatrixMultiplicator == RealType{ 1 } )
       this->getValues() += matrixMultiplicator * matrix.getValues();
