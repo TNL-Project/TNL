@@ -30,18 +30,18 @@ TEST( AssertTest, basicTest )
    EXPECT_NO_THROW( TNL_ASSERT_GE( ten, 2, "ten >= 2" ); );
 
    // errors:
-   EXPECT_ANY_THROW( TNL_ASSERT_TRUE( false, "false is true" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_TRUE( fa, "false is true" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_FALSE( true, "true is false" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_FALSE( tr, "true is false" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_NE( two, 2, "two != 2" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_EQ( ten, 2, "ten == 2" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_GE( two, 10, "two >= 10" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_GT( two, 10, "two > 10" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_GT( two, 2, "two > 2" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_LE( ten, 2, "ten <= 2" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_LT( ten, 10, "ten < 10" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_LT( ten, 2, "ten < 2" ); );
+   EXPECT_THROW( TNL_ASSERT_TRUE( false, "false is true" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_TRUE( fa, "false is true" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_FALSE( true, "true is false" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_FALSE( tr, "true is false" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_NE( two, 2, "two != 2" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_EQ( ten, 2, "ten == 2" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_GE( two, 10, "two >= 10" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_GT( two, 10, "two > 10" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_GT( two, 2, "two > 2" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_LE( ten, 2, "ten <= 2" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_LT( ten, 10, "ten < 10" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_LT( ten, 2, "ten < 2" );, TNL::Assert::AssertionError );
 
    // pointers
    const double* data_null = nullptr;
@@ -52,8 +52,8 @@ TEST( AssertTest, basicTest )
    EXPECT_NO_THROW( TNL_ASSERT_TRUE( data_full, "non-nullptr is true" ); );
 
    // errors
-   EXPECT_ANY_THROW( TNL_ASSERT_TRUE( data_null, "nullptr is true" ); );
-   EXPECT_ANY_THROW( TNL_ASSERT_FALSE( data_full, "non-nullptr is false" ); );
+   EXPECT_THROW( TNL_ASSERT_TRUE( data_null, "nullptr is true" );, TNL::Assert::AssertionError );
+   EXPECT_THROW( TNL_ASSERT_FALSE( data_full, "non-nullptr is false" );, TNL::Assert::AssertionError );
 }
 
 #include "main.h"

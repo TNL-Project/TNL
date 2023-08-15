@@ -6,23 +6,31 @@
 
 #pragma once
 
-/****
- * The purpose of this file is to define the TNL_ASSERT_* debugging macros as
- * shown below.
+#include <string>
+#include <stdexcept>
+
+/**
+ * \file Assert.h
  *
- * If the 'NDEBUG' macro is defined, the build is considered to be optimized
+ * \brief The purpose of this file is to define the `TNL_ASSERT_*` debugging
+ * macros.
+ *
+ * If the `NDEBUG` macro is defined, the build is considered to be optimized
  * and all assert macros are empty. Otherwise, the conditions are checked and
- * failures lead to the diagnostics message being printed to std::cerr and
- * program abortion (via 'throw EXIT_FAILURE' statement).
- *
- * For the purpose of providing Python bindings it is possible to change the
- * reporting behaviour by defining the TNL_THROW_ASSERTION_ERROR macro, which
- * leads to throwing the ::TNL::Assert::AssertionError holding the error
- * message (which is not printed in this case). The AssertionError class does
- * not inherit from std::exception to avoid being caught by normal exception
- * handlers, but the code for Python bindings can use it to translate it to the
- * Python's AssertionError exception.
+ * failures lead to the `TNL::Assert::AssertionError` exception containing
+ * the diagnostics message.
  */
+
+//! \brief Internal namespace for helper classes used in the `TNL_ASSERT_*` macros.
+namespace TNL::Assert {
+
+//! \brief Exception that represents an assertion error and its diagnostics.
+struct AssertionError : public std::runtime_error
+{
+   AssertionError( const std::string& msg ) : std::runtime_error( msg ) {}
+};
+
+}  // namespace TNL::Assert
 
 // check the minimum version of the C++ standard required by TNL, otherwise
 // provide a useful error message for each supported compiler/platform
@@ -119,44 +127,23 @@
     */
    #define TNL_ASSERT_GT( val1, val2, msg )
 
-#else /* #ifdef NDEBUG */
+#else  // #ifdef NDEBUG
 
-   #include <sstream>
    #include <iostream>
+   #include <sstream>
    #include <cstdio>
 
    #include <TNL/Cuda/CudaCallable.h>
 
-/**
- * \brief Internal namespace for helper classes used in the TNL_ASSERT_* macros.
- */
 namespace TNL::Assert {
 
-   #ifdef TNL_THROW_ASSERTION_ERROR
-// This will be used by the code for Python bindings to translate assertion
-// failures to the Python's AssertionError exception.
-class AssertionError
-{
-public:
-   AssertionError( const std::string& msg ) : msg( msg ) {}
-
-   const char*
-   what() const
-   {
-      return msg.c_str();
-   }
-
-private:
-   std::string msg;
-};
-
 inline void
-printDiagnosticsHost( const char* assertion,
-                      const char* message,
-                      const char* file,
-                      const char* function,
-                      int line,
-                      const char* diagnostics )
+abortWithDiagnosticsHost( const char* assertion,
+                          const char* message,
+                          const char* file,
+                          const char* function,
+                          int line,
+                          const char* diagnostics )
 {
    std::stringstream str;
    str << "Assertion '" << assertion << "' failed !!!\n"
@@ -166,39 +153,17 @@ printDiagnosticsHost( const char* assertion,
        << "Line: " << line << "\n"
        << "Diagnostics:\n"
        << diagnostics << std::endl;
-
    throw AssertionError( str.str() );
 }
 
-   #else   // TNL_THROW_ASSERTION_ERROR
-
-// This will be used in regular C++ code
-inline void
-printDiagnosticsHost( const char* assertion,
-                      const char* message,
-                      const char* file,
-                      const char* function,
-                      int line,
-                      const char* diagnostics )
-{
-   std::cerr << "Assertion '" << assertion << "' failed !!!\n"
-             << "Message: " << message << "\n"
-             << "File: " << file << "\n"
-             << "Function: " << function << "\n"
-             << "Line: " << line << "\n"
-             << "Diagnostics:\n"
-             << diagnostics << std::endl;
-}
-   #endif  // TNL_THROW_ASSERTION_ERROR
-
 __cuda_callable__
 inline void
-printDiagnosticsCuda( const char* assertion,
-                      const char* message,
-                      const char* file,
-                      const char* function,
-                      int line,
-                      const char* diagnostics )
+abortWithDiagnosticsCuda( const char* assertion,
+                          const char* message,
+                          const char* file,
+                          const char* function,
+                          int line,
+                          const char* diagnostics )
 {
    std::printf( "Assertion '%s' failed !!!\n"
                 "Message: %s\n"
@@ -212,18 +177,11 @@ printDiagnosticsCuda( const char* assertion,
                 function,
                 line,
                 diagnostics );
-}
 
-__cuda_callable__
-inline void
-fatalFailure()
-{
    #ifdef __CUDA_ARCH__
    // https://devtalk.nvidia.com/default/topic/509584/how-to-cancel-a-running-cuda-kernel-/
    // it is reported as "illegal instruction", but that leads to an abort as well...
    asm( "trap;" );
-   #else
-   throw EXIT_FAILURE;
    #endif
 }
 
@@ -233,7 +191,7 @@ struct Formatter
    static std::string
    printToString( const T& value )
    {
-      ::std::stringstream ss;
+      std::stringstream ss;
       ss << value;
       return ss.str();
    }
@@ -258,7 +216,7 @@ struct Formatter< std::pair< T, U > >
    static std::string
    printToString( const std::pair< T, U >& pair )
    {
-      ::std::stringstream ss;
+      std::stringstream ss;
       ss << '(' << pair.first << ',' << pair.second << ')';
       return ss.str();
    }
@@ -281,7 +239,7 @@ cmpHelperOpFailure( const char* assertion,
    #ifdef __CUDA_ARCH__
    // diagnostics is not supported - we don't have the machinery
    // to construct the dynamic error message
-   printDiagnosticsCuda( assertion, message, file, function, line, "Not supported in CUDA kernels." );
+   abortWithDiagnosticsCuda( assertion, message, file, function, line, "Not supported in CUDA kernels." );
    #else
    const std::string formatted_lhs_value = Formatter< T1 >::printToString( lhs_value );
    const std::string formatted_rhs_value = Formatter< T2 >::printToString( rhs_value );
@@ -301,9 +259,8 @@ cmpHelperOpFailure( const char* assertion,
       str << "Expected: (" << lhs_expression << ") " << op << " (" << rhs_expression << "), "
           << "actual: " << formatted_lhs_value << " vs " << formatted_rhs_value << std::endl;
    }
-   printDiagnosticsHost( assertion, message, file, function, line, str.str().c_str() );
+   abortWithDiagnosticsHost( assertion, message, file, function, line, str.str().c_str() );
    #endif
-   fatalFailure();
 }
 
 TNL_NVCC_HD_WARNING_DISABLE
