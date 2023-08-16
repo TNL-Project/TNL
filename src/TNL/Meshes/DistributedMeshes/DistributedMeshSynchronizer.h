@@ -200,9 +200,8 @@ public:
    [[nodiscard]] RequestsVector
    synchronizeByteArrayAsyncWorker( ByteArrayView array, int bytesPerValue ) override
    {
-      TNL_ASSERT_EQ( array.getSize(),
-                     bytesPerValue * ghostOffsets[ ghostOffsets.getSize() - 1 ],
-                     "The array does not have the expected size." );
+      if( array.getSize() != bytesPerValue * ghostOffsets[ ghostOffsets.getSize() - 1 ] )
+         throw std::invalid_argument( "synchronizeByteArrayAsyncWorker: the array does not have the expected size" );
 
       const int rank = communicator.rank();
       const int nproc = communicator.size();
@@ -265,7 +264,8 @@ public:
    [[nodiscard]] auto
    synchronizeSparse( const SparsePattern& pattern, bool assumeConsistentRowCapacities = false )
    {
-      TNL_ASSERT_EQ( pattern.getRows(), ghostOffsets[ ghostOffsets.getSize() - 1 ], "invalid sparse pattern matrix" );
+      if( pattern.getRows() != ghostOffsets[ ghostOffsets.getSize() - 1 ] )
+         throw std::invalid_argument( "synchronizeSparse: invalid sparse pattern matrix" );
 
       const int rank = communicator.rank();
       const int nproc = communicator.size();

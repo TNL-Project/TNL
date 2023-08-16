@@ -17,8 +17,10 @@ template< typename Matrix, typename Real, typename Index >
 void
 ILU0_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& matrixPointer )
 {
-   TNL_ASSERT_GT( matrixPointer->getRows(), 0, "empty matrix" );
-   TNL_ASSERT_EQ( matrixPointer->getRows(), matrixPointer->getColumns(), "matrix must be square" );
+   if( matrixPointer->getRows() == 0 )
+      throw std::invalid_argument( "ILU0::update: the matrix is empty" );
+   if( matrixPointer->getRows() != matrixPointer->getColumns() )
+      throw std::invalid_argument( "ILU0::update: matrix must be square" );
 
    const auto& localMatrix = Traits< Matrix >::getLocalMatrix( *matrixPointer );
    const IndexType N = localMatrix.getRows();
@@ -125,8 +127,10 @@ ILU0_impl< Matrix, Real, Devices::Host, Index >::solve( ConstVectorViewType _b, 
    const auto b = Traits< Matrix >::getConstLocalView( _b );
    auto x = Traits< Matrix >::getLocalView( _x );
 
-   TNL_ASSERT_EQ( b.getSize(), L.getRows(), "The size of the vector b does not match the size of the decomposed matrix." );
-   TNL_ASSERT_EQ( x.getSize(), U.getRows(), "The size of the vector x does not match the size of the decomposed matrix." );
+   if( b.getSize() != L.getRows() )
+      throw std::invalid_argument( "ILU0::solve: the size of the vector b does not match the size of the matrix" );
+   if( x.getSize() != U.getRows() )
+      throw std::invalid_argument( "ILU0::solve: the size of the vector x does not match the size of the matrix" );
 
    // Step 1: solve y from Ly = b
    triangularSolveLower< true >( L, x, b );

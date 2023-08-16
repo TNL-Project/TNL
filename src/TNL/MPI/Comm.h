@@ -16,9 +16,11 @@ namespace TNL::MPI {
 inline int
 GetRank( MPI_Comm communicator = MPI_COMM_WORLD )
 {
-   TNL_ASSERT_NE( communicator, MPI_COMM_NULL, "GetRank cannot be called with MPI_COMM_NULL" );
+   if( communicator == MPI_COMM_NULL )
+      throw std::invalid_argument( "GetRank cannot be called with MPI_COMM_NULL" );
 #ifdef HAVE_MPI
-   TNL_ASSERT_TRUE( Initialized() && ! Finalized(), "Fatal Error - MPI is not initialized" );
+   if( ! Initialized() || Finalized() )
+      throw std::logic_error( "MPI is not initialized" );
    int rank;
    MPI_Comm_rank( communicator, &rank );
    return rank;
@@ -30,9 +32,11 @@ GetRank( MPI_Comm communicator = MPI_COMM_WORLD )
 inline int
 GetSize( MPI_Comm communicator = MPI_COMM_WORLD )
 {
-   TNL_ASSERT_NE( communicator, MPI_COMM_NULL, "GetSize cannot be called with MPI_COMM_NULL" );
+   if( communicator == MPI_COMM_NULL )
+      throw std::invalid_argument( "GetSize cannot be called with MPI_COMM_NULL" );
 #ifdef HAVE_MPI
-   TNL_ASSERT_TRUE( Initialized() && ! Finalized(), "Fatal Error - MPI is not initialized" );
+   if( ! Initialized() || Finalized() )
+      throw std::logic_error( "MPI is not initialized" );
    int size;
    MPI_Comm_size( communicator, &size );
    return size;

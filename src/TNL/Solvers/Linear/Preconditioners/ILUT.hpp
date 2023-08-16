@@ -30,8 +30,10 @@ template< typename Matrix, typename Real, typename Index >
 void
 ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& matrixPointer )
 {
-   TNL_ASSERT_GT( matrixPointer->getRows(), 0, "empty matrix" );
-   TNL_ASSERT_EQ( matrixPointer->getRows(), matrixPointer->getColumns(), "matrix must be square" );
+   if( matrixPointer->getRows() == 0 )
+      throw std::invalid_argument( "ILUT::update: the matrix is empty" );
+   if( matrixPointer->getRows() != matrixPointer->getColumns() )
+      throw std::invalid_argument( "ILUT::update: matrix must be square" );
 
    const auto& localMatrix = Traits< Matrix >::getLocalMatrix( *matrixPointer );
    const IndexType N = localMatrix.getRows();

@@ -75,7 +75,9 @@ template< typename Matrix >
 bool
 GMRES< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
 {
-   TNL_ASSERT_TRUE( this->matrix, "No matrix was set in GMRES. Call setMatrix() before solve()." );
+   if( this->matrix == nullptr )
+      throw std::logic_error( "No matrix was set in GMRES. Call setMatrix() before solve()." );
+
    if( restarting_min <= 0 || restarting_max <= 0 || restarting_min > restarting_max ) {
       std::cerr << "Wrong value for the GMRES restarting parameters: r_min = " << restarting_min
                 << ", r_max = " << restarting_max << std::endl;

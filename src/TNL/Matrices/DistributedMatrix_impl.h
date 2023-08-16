@@ -124,9 +124,12 @@ template< typename RowCapacitiesVector >
 void
 DistributedMatrix< Matrix >::setRowCapacities( const RowCapacitiesVector& rowCapacities )
 {
-   TNL_ASSERT_EQ( rowCapacities.getSize(), getRows(), "row lengths vector has wrong size" );
-   TNL_ASSERT_EQ( rowCapacities.getLocalRange(), getLocalRowRange(), "row lengths vector has wrong distribution" );
-   TNL_ASSERT_EQ( rowCapacities.getCommunicator(), getCommunicator(), "row lengths vector has wrong communicator" );
+   if( rowCapacities.getSize() != getRows() )
+      throw std::invalid_argument( "setRowCapacities: input vector has wrong size" );
+   if( rowCapacities.getLocalRange() != getLocalRowRange() )
+      throw std::invalid_argument( "setRowCapacities: input vector has wrong distribution" );
+   if( rowCapacities.getCommunicator() != getCommunicator() )
+      throw std::invalid_argument( "setRowCapacities: input vector has wrong communicator" );
 
    if( getCommunicator() != MPI_COMM_NULL ) {
       localMatrix.setRowCapacities( rowCapacities.getConstLocalView() );
@@ -198,10 +201,14 @@ template< typename InVector, typename OutVector >
 std::enable_if_t< ! HasGetCommunicatorMethod< InVector >::value >
 DistributedMatrix< Matrix >::vectorProduct( const InVector& inVector, OutVector& outVector ) const
 {
-   TNL_ASSERT_EQ( inVector.getSize(), getColumns(), "input vector has wrong size" );
-   TNL_ASSERT_EQ( outVector.getSize(), getRows(), "output vector has wrong size" );
-   TNL_ASSERT_EQ( outVector.getLocalRange(), getLocalRowRange(), "output vector has wrong distribution" );
-   TNL_ASSERT_EQ( outVector.getCommunicator(), getCommunicator(), "output vector has wrong communicator" );
+   if( inVector.getSize() != getColumns() )
+      throw std::invalid_argument( "vectorProduct: input vector has wrong size" );
+   if( outVector.getSize() != getRows() )
+      throw std::invalid_argument( "vectorProduct: output vector has wrong size" );
+   if( outVector.getLocalRange() != getLocalRowRange() )
+      throw std::invalid_argument( "vectorProduct: output vector has wrong distribution" );
+   if( outVector.getCommunicator() != getCommunicator() )
+      throw std::invalid_argument( "vectorProduct: output vector has wrong communicator" );
 
    auto outView = outVector.getLocalView();
    localMatrix.vectorProduct( inVector, outView );
@@ -212,32 +219,35 @@ template< typename InVector, typename OutVector >
 std::enable_if_t< HasGetCommunicatorMethod< InVector >::value >
 DistributedMatrix< Matrix >::vectorProduct( const InVector& inVector, OutVector& outVector ) const
 {
-   TNL_ASSERT_EQ( inVector.getLocalRange(), getLocalRowRange(), "input vector has wrong distribution" );
-   TNL_ASSERT_EQ( inVector.getCommunicator(), getCommunicator(), "input vector has wrong communicator" );
-   TNL_ASSERT_EQ( outVector.getSize(), getRows(), "output vector has wrong size" );
-   TNL_ASSERT_EQ( outVector.getLocalRange(), getLocalRowRange(), "output vector has wrong distribution" );
-   TNL_ASSERT_EQ( outVector.getCommunicator(), getCommunicator(), "output vector has wrong communicator" );
+   if( inVector.getLocalRange() != getLocalRowRange() )
+      throw std::invalid_argument( "vectorProduct: input vector has wrong distribution" );
+   if( inVector.getCommunicator() != getCommunicator() )
+      throw std::invalid_argument( "vectorProduct: input vector has wrong communicator" );
+   if( outVector.getSize() != getRows() )
+      throw std::invalid_argument( "vectorProduct: output vector has wrong size" );
+   if( outVector.getLocalRange() != getLocalRowRange() )
+      throw std::invalid_argument( "vectorProduct: output vector has wrong distribution" );
+   if( outVector.getCommunicator() != getCommunicator() )
+      throw std::invalid_argument( "vectorProduct: output vector has wrong communicator" );
 
    if( getCommunicator() == MPI_COMM_NULL )
       return;
 
-   TNL_ASSERT_EQ( inVector.getConstLocalViewWithGhosts().getSize(),
-                  localMatrix.getColumns(),
-                  "the matrix uses non-local and non-ghost column indices" );
-   TNL_ASSERT_EQ(
-      inVector.getGhosts(), localMatrix.getColumns() - localMatrix.getRows(), "input vector has wrong ghosts size" );
-   TNL_ASSERT_EQ(
-      outVector.getGhosts(), localMatrix.getColumns() - localMatrix.getRows(), "output vector has wrong ghosts size" );
-   TNL_ASSERT_EQ( outVector.getConstLocalView().getSize(),
-                  localMatrix.getRows(),
-                  "number of local matrix rows does not match the output vector local size" );
+   if( inVector.getConstLocalViewWithGhosts().getSize() != localMatrix.getColumns() )
+      throw std::logic_error( "vectorProduct: the matrix uses non-local and non-ghost column indices" );
+   if( inVector.getGhosts() != localMatrix.getColumns() - localMatrix.getRows() )
+      throw std::invalid_argument( "vectorProduct: input vector has wrong ghosts size" );
+   if( outVector.getGhosts() != localMatrix.getColumns() - localMatrix.getRows() )
+      throw std::invalid_argument( "vectorProduct: output vector has wrong ghosts size" );
+   if( outVector.getConstLocalView().getSize() != localMatrix.getRows() )
+      throw std::invalid_argument( "vectorProduct: number of local matrix rows does not match the output vector local size" );
 
    inVector.waitForSynchronization();
    const auto inView = inVector.getConstLocalViewWithGhosts();
    auto outView = outVector.getLocalView();
    localMatrix.vectorProduct( inView, outView );
    // TODO: synchronization is not always necessary, e.g. when a preconditioning step follows
-   //   outVector.startSynchronization();
+   // outVector.startSynchronization();
 }
 
 }  // namespace TNL::Matrices

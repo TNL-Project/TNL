@@ -108,11 +108,6 @@ template< typename Element1, typename Element2, typename Index >
 bool
 Equal< Devices::Cuda, DeviceType >::equal( const Element1* destination, const Element2* source, Index size )
 {
-   if( size == 0 )
-      return true;
-   TNL_ASSERT_TRUE( destination, "Attempted to compare data through a nullptr." );
-   TNL_ASSERT_TRUE( source, "Attempted to compare data through a nullptr." );
-   TNL_ASSERT_GE( size, (Index) 0, "Array size must be non-negative." );
    return Equal< DeviceType, Devices::Cuda >::equal( source, destination, size );
 }
 

@@ -11,6 +11,7 @@
    #include <TNL/Hypre.h>
    #include <TNL/Containers/HypreVector.h>
    #include <TNL/Matrices/SparseMatrix.h>
+   #include <TNL/Exceptions/NotImplementedError.h>
 
 namespace TNL::Matrices {
 
@@ -240,9 +241,12 @@ public:
          ColumnIndexesViewType columnIndexes,
          ColumnIndexesViewType rowOffsets )
    {
-      TNL_ASSERT_EQ( rowOffsets.getSize(), rows + 1, "wrong size of rowOffsets" );
-      TNL_ASSERT_EQ( values.getSize(), rowOffsets.getElement( rows ), "wrong size of values" );
-      TNL_ASSERT_EQ( columnIndexes.getSize(), rowOffsets.getElement( rows ), "wrong size of columnIndexes" );
+      if( rowOffsets.getSize() != rows + 1 )
+         throw std::invalid_argument( "bind: wrong size of rowOffsets" );
+      if( values.getSize() != rowOffsets.getElement( rows ) )
+         throw std::invalid_argument( "bind: wrong size of values" );
+      if( columnIndexes.getSize() != rowOffsets.getElement( rows ) )
+         throw std::invalid_argument( "bind: wrong size of columnIndexes" );
 
       // drop/deallocate the current data
       reset();
@@ -334,16 +338,16 @@ public:
    void
    setRowCapacities( const RowCapacitiesVector& rowCapacities )
    {
-      TNL_ASSERT_EQ(
-         rowCapacities.getSize(), this->getRows(), "Number of matrix rows does match the rowCapacities vector size." );
+      if( rowCapacities.getSize() != this->getRows() )
+         throw std::invalid_argument( "setRowCapacities: the input vector size does not match the number of matrix rows" );
 
       const IndexType nonzeros = TNL::sum( rowCapacities );
       hypre_CSRMatrixResize( m, getRows(), getColumns(), nonzeros );
 
       // initialize row pointers
       auto rowOffsets = getRowOffsets();
-      TNL_ASSERT_EQ(
-         rowOffsets.getSize(), rowCapacities.getSize() + 1, "The size of the rowOffsets vector does not match rowCapacities" );
+      if( rowOffsets.getSize() != rowCapacities.getSize() + 1 )
+         throw std::logic_error( "setRowCapacities: the size of the rowOffsets vector does not match rowCapacities" );
       // GOTCHA: when rowCapacities.getSize() == 0, getView returns a full view with size == 1
       if( rowCapacities.getSize() > 0 ) {
          auto view = rowOffsets.getView( 0, rowCapacities.getSize() );
@@ -412,8 +416,12 @@ public:
       static_assert( std::is_same< typename OutVector::RealType, RealType >::value, "Wrong value type." );
       static_assert( std::is_same< typename OutVector::IndexType, IndexType >::value, "Wrong index type." );
 
-      TNL_ASSERT_EQ( begin, 0, "Hypre does not allow multiplication of a part of matrix and vector." );
-      TNL_ASSERT_EQ( end, 0, "Hypre does not allow multiplication of a part of matrix and vector." );
+      if( begin != 0 )
+         throw Exceptions::NotImplementedError(
+            "vectorProduct: multiplication of a part of matrix and vector is not implemented for Hypre" );
+      if( end != 0 )
+         throw Exceptions::NotImplementedError(
+            "vectorProduct: multiplication of a part of matrix and vector is not implemented for Hypre" );
 
       TNL::Containers::HypreVector x( const_cast< RealType* >( inVector.getData() ), inVector.getSize() );
       TNL::Containers::HypreVector y( outVector.getData(), outVector.getSize() );

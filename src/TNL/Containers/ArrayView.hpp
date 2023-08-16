@@ -93,9 +93,9 @@ template< typename Value, typename Device, typename Index >
 ArrayView< Value, Device, Index >&
 ArrayView< Value, Device, Index >::operator=( const ArrayView& view )
 {
-   TNL_ASSERT_EQ( getSize(), view.getSize(), "The sizes of the array views must be equal, views are not resizable." );
-   if( getSize() > 0 )
-      Algorithms::copy< Device >( getData(), view.getData(), getSize() );
+   if( getSize() != view.getSize() )
+      throw std::logic_error( "operator=: the sizes of the array views must be equal, views are not resizable." );
+   Algorithms::copy< Device >( getData(), view.getData(), getSize() );
    return *this;
 }
 

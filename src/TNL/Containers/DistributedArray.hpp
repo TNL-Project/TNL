@@ -56,7 +56,8 @@ DistributedArray< Value, Device, Index, Allocator >::setDistribution( LocalRange
                                                                       IndexType globalSize,
                                                                       const MPI::Comm& communicator )
 {
-   TNL_ASSERT_LE( localRange.getEnd(), globalSize, "end of the local range is outside of the global range" );
+   if( localRange.getEnd() > globalSize )
+      throw std::out_of_range( "setDistribution: end of the local range is outside of the global range" );
    if( communicator != MPI_COMM_NULL )
       localData.setSize( localRange.getSize() + ghosts );
    view.bind( localRange, ghosts, globalSize, communicator, localData.getView() );

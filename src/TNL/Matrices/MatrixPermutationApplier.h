@@ -20,7 +20,8 @@ permuteMatrixRows( Matrix& matrix, const PermutationArray& perm )
                   "The matrix and permutation vector must be stored on the same device." );
    using IndexType = typename Matrix::IndexType;
    using DeviceType = typename Matrix::DeviceType;
-   TNL_ASSERT_EQ( matrix.getRows(), perm.getSize(), "permutation size does not match the matrix size" );
+   if( matrix.getRows() != perm.getSize() )
+      throw std::invalid_argument( "permuteMatrixRows: permutation size does not match the matrix size" );
 
    const auto matrix_view = matrix.getConstView();
    const auto perm_view = perm.getConstView();

@@ -452,8 +452,10 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
                                                                      IndexType begin,
                                                                      IndexType end ) const
 {
-   TNL_ASSERT_EQ( this->getColumns(), inVector.getSize(), "Matrix columns count differs with input vector size." );
-   TNL_ASSERT_EQ( this->getRows(), outVector.getSize(), "Matrix rows count differs with output vector size." );
+   if( this->getColumns() != inVector.getSize() )
+      throw std::invalid_argument( "vectorProduct: input vector size differs from the matrix columns count." );
+   if( this->getRows() != outVector.getSize() )
+      throw std::invalid_argument( "vectorProduct: output vector size differs from the matrix rows count." );
 
    const auto inVectorView = inVector.getConstView();
    auto outVectorView = outVector.getView();
@@ -542,8 +544,8 @@ DenseMatrixBase< Real, Device, Index, Organization >::addMatrix( const Matrix& m
                                                                  const RealType& matrixMultiplicator,
                                                                  const RealType& thisMatrixMultiplicator )
 {
-   TNL_ASSERT_EQ( this->getColumns(), matrix.getColumns(), "The matrices must have the same sizes." );
-   TNL_ASSERT_EQ( this->getRows(), matrix.getRows(), "The matrices must have the same sizes." );
+   if( this->getColumns() != matrix.getColumns() || this->getRows() != matrix.getRows() )
+      throw std::invalid_argument( "addMatrix: the matrices must have the same sizes." );
 
    if( thisMatrixMultiplicator == RealType{ 1 } )
       this->getValues() += matrixMultiplicator * matrix.getValues();

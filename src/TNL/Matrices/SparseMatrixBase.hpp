@@ -277,8 +277,10 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    IndexType end,
    const SegmentsReductionKernel& kernel ) const
 {
-   TNL_ASSERT_EQ( this->getColumns(), inVector.getSize(), "Matrix columns do not fit with input vector." );
-   TNL_ASSERT_EQ( this->getRows(), outVector.getSize(), "Matrix rows do not fit with output vector." );
+   if( this->getColumns() != inVector.getSize() )
+      throw std::invalid_argument( "vectorProduct: size of the input vector does not match the number of matrix columns" );
+   if( this->getRows() != outVector.getSize() )
+      throw std::invalid_argument( "vectorProduct: size of the output vector does not match the number of matrix rows" );
 
    using OutVectorReal = typename OutVector::RealType;
    static_assert(
@@ -404,8 +406,12 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    IndexType begin,
    IndexType end ) const
 {
-   TNL_ASSERT_EQ( this->getRows(), inVector.getSize(), "Matrix rows do not fit with input vector." );
-   TNL_ASSERT_EQ( this->getColumns(), outVector.getSize(), "Matrix columns do not fit with output vector." );
+   if( this->getRows() != inVector.getSize() )
+      throw std::invalid_argument(
+         "transposedVectorProduct: size of the input vector does not match the number of matrix rows" );
+   if( this->getColumns() != outVector.getSize() )
+      throw std::invalid_argument(
+         "transposedVectorProduct: size of the output vector does not match the number of matrix columns" );
 
    if constexpr( MatrixType::isSymmetric() ) {
       this->vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, begin, end );

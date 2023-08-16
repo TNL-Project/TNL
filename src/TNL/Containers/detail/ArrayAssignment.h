@@ -32,9 +32,6 @@ struct ArrayAssignment< Array, T, true >
    assign( Array& a, const T& t )
    {
       TNL_ASSERT_EQ( a.getSize(), (decltype( a.getSize() )) t.getSize(), "The sizes of the arrays must be equal." );
-      // skip assignment of empty arrays
-      if( a.getSize() == 0 )
-         return;
       Algorithms::copy< typename Array::DeviceType, typename T::DeviceType >( a.getArrayData(), t.getArrayData(), t.getSize() );
    }
 };
@@ -53,9 +50,6 @@ struct ArrayAssignment< Array, T, false >
    static void
    assign( Array& a, const T& t )
    {
-      // skip assignment to an empty array
-      if( a.getSize() == 0 )
-         return;
       Algorithms::fill< typename Array::DeviceType >( a.getArrayData(), (typename Array::ValueType) t, a.getSize() );
    }
 };

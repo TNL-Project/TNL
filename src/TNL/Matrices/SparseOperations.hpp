@@ -775,8 +775,10 @@ reorderArray( const Array1& src, Array2& dest, const PermutationArray& perm )
                   "Arrays must reside on the same device." );
    static_assert( std::is_same_v< typename Array1::DeviceType, typename PermutationArray::DeviceType >,
                   "Arrays must reside on the same device." );
-   TNL_ASSERT_EQ( src.getSize(), perm.getSize(), "Source array and permutation must have the same size." );
-   TNL_ASSERT_EQ( dest.getSize(), perm.getSize(), "Destination array and permutation must have the same size." );
+   if( src.getSize() != perm.getSize() )
+      throw std::invalid_argument( "reorderArray: source array and permutation must have the same size." );
+   if( dest.getSize() != perm.getSize() )
+      throw std::invalid_argument( "reorderArray: destination array and permutation must have the same size." );
 
    using DeviceType = typename Array1::DeviceType;
    using IndexType = typename Array1::IndexType;

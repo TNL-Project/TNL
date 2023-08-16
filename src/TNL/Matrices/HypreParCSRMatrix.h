@@ -93,11 +93,10 @@ public:
    [[nodiscard]] static HypreParCSRMatrix
    wrapCSRMatrix( hypre_CSRMatrix* matrix )
    {
-      TNL_ASSERT_TRUE( matrix, "invalid input" );
-      // check the memory location of the input
-      TNL_ASSERT_EQ( hypre_CSRMatrixMemoryLocation( matrix ),
-                     getHypreMemoryLocation(),
-                     "memory location of the input Hypre matrix does not match" );
+      if( matrix == nullptr )
+         throw std::invalid_argument( "wrapCSRMatrix: cannot wrap nullptr" );
+      if( hypre_CSRMatrixMemoryLocation( matrix ) != getHypreMemoryLocation() )
+         throw std::invalid_argument( "wrapCSRMatrix: memory location of the input Hypre matrix does not match" );
 
       const IndexType global_num_rows = hypre_CSRMatrixNumRows( matrix );
       const IndexType global_num_cols = hypre_CSRMatrixNumCols( matrix );
@@ -131,9 +130,8 @@ public:
       hypre_MatvecCommPkgCreate( A );
 
       // check the memory location of the result
-      TNL_ASSERT_EQ( hypre_ParCSRMatrixMemoryLocation( A ),
-                     getHypreMemoryLocation(),
-                     "memory location of the output Hypre matrix does not match" );
+      if( hypre_ParCSRMatrixMemoryLocation( A ) != getHypreMemoryLocation() )
+         throw std::logic_error( "wrapCSRMatrix: memory location of the output Hypre matrix does not match" );
 
       // set the diag owner flag
       HypreParCSRMatrix result( A );
@@ -157,13 +155,14 @@ public:
    [[nodiscard]] static HypreParCSRMatrix
    fromMasterRank( MPI_Comm communicator, IndexType* global_row_starts, IndexType* global_col_starts, hypre_CSRMatrix* matrix )
    {
-      TNL_ASSERT_TRUE( global_row_starts, "invalid input" );
-      TNL_ASSERT_TRUE( global_col_starts, "invalid input" );
-      TNL_ASSERT_TRUE( matrix, "invalid input" );
-      // check the memory location of the input
-      TNL_ASSERT_EQ( hypre_CSRMatrixMemoryLocation( matrix ),
-                     getHypreMemoryLocation(),
-                     "memory location of the input Hypre matrix does not match" );
+      if( global_row_starts == nullptr )
+         throw std::invalid_argument( "fromMasterRank: cannot handle nullptr" );
+      if( global_col_starts == nullptr )
+         throw std::invalid_argument( "fromMasterRank: cannot handle nullptr" );
+      if( matrix == nullptr )
+         throw std::invalid_argument( "fromMasterRank: cannot handle nullptr" );
+      if( hypre_CSRMatrixMemoryLocation( matrix ) != getHypreMemoryLocation() )
+         throw std::invalid_argument( "fromMasterRank: memory location of the input Hypre matrix does not match" );
 
       // NOTE: this call creates a matrix on host even when device support is
       // enabled in Hypre
@@ -180,9 +179,8 @@ public:
 
       // check the memory location of the result
       // FIXME: wtf, we get HYPRE_MEMORY_DEVICE even when Hypre is compiled without CUDA
-      // TNL_ASSERT_EQ( hypre_ParCSRMatrixMemoryLocation( A ),
-      //                getHypreMemoryLocation(),
-      //                "memory location of the output Hypre matrix does not match" );
+      // if( hypre_ParCSRMatrixMemoryLocation( A ) != getHypreMemoryLocation() )
+      //    throw std::logic_error( "fromMasterRank: memory location of the output Hypre matrix does not match" );
 
       return HypreParCSRMatrix( A );
    }
@@ -258,11 +256,10 @@ public:
                     LocalRangeType local_col_range,
                     hypre_CSRMatrix* local_A )
    {
-      TNL_ASSERT_TRUE( local_A, "invalid input" );
-      // check the memory location of the input
-      TNL_ASSERT_EQ( hypre_CSRMatrixMemoryLocation( local_A ),
-                     getHypreMemoryLocation(),
-                     "memory location of the input Hypre matrix does not match" );
+      if( local_A == nullptr )
+         throw std::invalid_argument( "fromLocalBlocks: cannot handle nullptr" );
+      if( hypre_CSRMatrixMemoryLocation( local_A ) != getHypreMemoryLocation() )
+         throw std::invalid_argument( "fromLocalBlocks: memory location of the input Hypre matrix does not match" );
 
       IndexType row_starts[ 2 ];
       row_starts[ 0 ] = local_row_range.getBegin();
@@ -295,9 +292,8 @@ public:
       hypre_MatvecCommPkgCreate( A );
 
       // check the memory location of the result
-      TNL_ASSERT_EQ( hypre_ParCSRMatrixMemoryLocation( A ),
-                     getHypreMemoryLocation(),
-                     "memory location of the output Hypre matrix does not match" );
+      if( hypre_ParCSRMatrixMemoryLocation( A ) != getHypreMemoryLocation() )
+         throw std::logic_error( "fromLocalBlocks: memory location of the output Hypre matrix does not match" );
 
       return HypreParCSRMatrix( A );
    }
@@ -453,16 +449,16 @@ public:
          hypre_CSRMatrix* offd,
          IndexType* col_map_offd )
    {
-      TNL_ASSERT_TRUE( diag, "invalid input: diag" );
-      TNL_ASSERT_TRUE( offd, "invalid input: offd" );
-      TNL_ASSERT_TRUE( col_map_offd, "invalid input: col_map_offd" );
-      // check the memory location of the input
-      TNL_ASSERT_EQ( hypre_CSRMatrixMemoryLocation( diag ),
-                     getHypreMemoryLocation(),
-                     "memory location of the input Hypre matrix 'diag' does not match" );
-      TNL_ASSERT_EQ( hypre_CSRMatrixMemoryLocation( offd ),
-                     getHypreMemoryLocation(),
-                     "memory location of the input Hypre matrix 'offd' does not match" );
+      if( diag == nullptr )
+         throw std::invalid_argument( "bind: diag must not be nullptr" );
+      if( offd == nullptr )
+         throw std::invalid_argument( "bind: offd must not be nullptr" );
+      if( col_map_offd == nullptr )
+         throw std::invalid_argument( "bind: col_map_offd must not be nullptr" );
+      if( hypre_CSRMatrixMemoryLocation( diag ) != getHypreMemoryLocation() )
+         throw std::invalid_argument( "bind: memory location of the input Hypre matrix 'diag' does not match" );
+      if( hypre_CSRMatrixMemoryLocation( offd ) != getHypreMemoryLocation() )
+         throw std::invalid_argument( "bind: memory location of the input Hypre matrix 'offd' does not match" );
 
       // drop/deallocate the current data
       reset();
@@ -496,9 +492,8 @@ public:
       hypre_MatvecCommPkgCreate( m );
 
       // check the memory location of the result
-      TNL_ASSERT_EQ( hypre_ParCSRMatrixMemoryLocation( m ),
-                     getHypreMemoryLocation(),
-                     "memory location of the output Hypre matrix does not match" );
+      if( hypre_ParCSRMatrixMemoryLocation( m ) != getHypreMemoryLocation() )
+         throw std::logic_error( "bind: memory location of the output Hypre matrix does not match" );
    }
 
    //! \brief Reset the matrix to empty state.

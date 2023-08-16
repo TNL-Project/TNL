@@ -22,7 +22,8 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    Index columns,
    const Vector& diagonalOffsets )
 {
-   TNL_ASSERT_GT( diagonalOffsets.getSize(), 0, "Cannot construct multidiagonal matrix with no diagonals offsets." );
+   if( diagonalOffsets.getSize() == 0 )
+      throw std::invalid_argument( "Cannot construct multidiagonal matrix with no diagonal offsets." );
    this->setDimensions( rows, columns, diagonalOffsets );
 }
 
@@ -38,8 +39,9 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    Index columns,
    const std::initializer_list< ListIndex > diagonalOffsets )
 {
+   if( std::empty( diagonalOffsets ) )
+      throw std::invalid_argument( "Cannot construct multidiagonal matrix with no diagonal offsets." );
    DiagonalOffsetsType offsets( diagonalOffsets );
-   TNL_ASSERT_GT( offsets.getSize(), 0, "Cannot construct multidiagonal matrix with no diagonals offsets." );
    this->setDimensions( rows, columns, offsets );
 }
 
@@ -55,8 +57,9 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    const std::initializer_list< ListIndex > diagonalOffsets,
    const std::initializer_list< std::initializer_list< ListReal > >& data )
 {
+   if( std::empty( diagonalOffsets ) )
+      throw std::invalid_argument( "Cannot construct multidiagonal matrix with no diagonal offsets." );
    DiagonalOffsetsType offsets( diagonalOffsets );
-   TNL_ASSERT_GT( offsets.getSize(), 0, "Cannot construct multidiagonal matrix with no diagonals offsets." );
    this->setDimensions( data.size(), columns, offsets );
    this->setElements( data );
 }
@@ -124,7 +127,8 @@ void
 MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::setDiagonalOffsets(
    const Vector& diagonalOffsets )
 {
-   TNL_ASSERT_GT( diagonalOffsets.getSize(), 0, "Cannot construct multidiagonal matrix with no diagonals offsets." );
+   if( diagonalOffsets.getSize() == 0 )
+      throw std::invalid_argument( "Cannot construct multidiagonal matrix with no diagonal offsets." );
    this->setDimensions( this->getRows(), this->getColumns(), diagonalOffsets );
 }
 
@@ -139,8 +143,9 @@ void
 MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::setDiagonalOffsets(
    const std::initializer_list< ListIndex > diagonalOffsets )
 {
+   if( std::empty( diagonalOffsets ) )
+      throw std::invalid_argument( "Cannot construct multidiagonal matrix with no diagonal offsets." );
    DiagonalOffsetsType offsets( diagonalOffsets );
-   TNL_ASSERT_GT( offsets.getSize(), 0, "Cannot construct multidiagonal matrix with no diagonals offsets." );
    this->setDimensions( this->getRows(), this->getColumns(), offsets );
 }
 
