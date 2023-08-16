@@ -23,7 +23,8 @@ namespace TNL::Algorithms {
  * \param end The end of the array sub-interval. The default value is 0 which
  *            is, however, replaced with the array size.
  * \return `true` if there is _at least one_ element in the sub-interval
- *         `[begin, end)` which has the value \e value.
+ *         `[begin, end)` which has the value \e value. Returns `false` if the
+ *         range is empty.
  */
 template< typename Array >
 bool
@@ -32,9 +33,14 @@ contains( const Array& array,
           typename Array::IndexType begin = 0,
           typename Array::IndexType end = 0 )
 {
-   TNL_ASSERT_TRUE( array.getData(), "Attempted to check a value of an empty array." );
    if( end == 0 )
       end = array.getSize();
+
+   if( begin < (typename Array::IndexType) 0 || begin > end )
+      throw std::out_of_range( "contains: begin is out of range" );
+   if( end < (typename Array::IndexType) 0 || end > array.getSize() )
+      throw std::out_of_range( "contains: end is out of range" );
+
    return detail::Contains< typename Array::DeviceType >()( array.getData() + begin, end - begin, value );
 }
 
@@ -51,7 +57,7 @@ contains( const Array& array,
  * \param end The end of the array sub-interval. The default value is 0 which
  *            is, however, replaced with the array size.
  * \return `true` if _all_ elements in the sub-interval `[begin, end)` have the
- *         same value \e value.
+ *         same value \e value. Returns `true` if the range is empty.
  */
 template< typename Array >
 bool
@@ -60,9 +66,14 @@ containsOnlyValue( const Array& array,
                    typename Array::IndexType begin = 0,
                    typename Array::IndexType end = 0 )
 {
-   TNL_ASSERT_TRUE( array.getData(), "Attempted to check a value of an empty array." );
    if( end == 0 )
       end = array.getSize();
+
+   if( begin < (typename Array::IndexType) 0 || begin > end )
+      throw std::out_of_range( "containsOnlyValue: begin is out of range" );
+   if( end < (typename Array::IndexType) 0 || end > array.getSize() )
+      throw std::out_of_range( "containsOnlyValue: end is out of range" );
+
    return detail::ContainsOnlyValue< typename Array::DeviceType >()( array.getData() + begin, end - begin, value );
 }
 
