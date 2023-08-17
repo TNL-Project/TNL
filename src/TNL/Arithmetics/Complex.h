@@ -11,6 +11,7 @@
 
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Math.h>
+#include <TNL/TypeTraits.h>
 
 namespace TNL::Arithmetics {
 /**
@@ -388,5 +389,15 @@ std::ostream&
 operator<<( std::ostream& str, const Complex< Value >& c );
 
 }  // namespace TNL::Arithmetics
+
+namespace TNL {
+
+template< class T >
+struct is_complex< Arithmetics::Complex< T > > : public std::true_type
+{};
+
+using Arithmetics::abs;
+
+}  // namespace TNL
 
 #include <TNL/Arithmetics/Complex.hpp>
