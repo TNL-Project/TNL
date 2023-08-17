@@ -8,26 +8,6 @@
 
 #include <gtest/gtest.h>
 
-template< typename MatrixHostFloat, typename MatrixHostInt >
-void
-host_test_GetType()
-{
-   bool testRan = false;
-   EXPECT_TRUE( testRan );
-   std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-   std::cerr << "This test has not been implemented properly yet.\n" << std::endl;
-}
-
-template< typename MatrixCudaFloat, typename MatrixCudaInt >
-void
-cuda_test_GetType()
-{
-   bool testRan = false;
-   EXPECT_TRUE( testRan );
-   std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-   std::cerr << "This test has not been implemented properly yet.\n" << std::endl;
-}
-
 template< typename Matrix >
 void
 test_SetDimensions()
