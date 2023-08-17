@@ -8,8 +8,8 @@
 
 #include <fstream>
 #include <type_traits>
+#include <string>
 
-#include <TNL/String.h>
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
 
@@ -47,7 +47,7 @@ public:
     *
     * All parameters are passed to the \ref open method.
     */
-   File( const String& fileName, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out );
+   File( const std::string& fileName, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out );
 
    /**
     * \brief Open given file.
@@ -62,7 +62,7 @@ public:
     * \param mode Indicates in what mode the file will be opened - see \ref std::ios_base::openmode.
     */
    void
-   open( const String& fileName, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out );
+   open( const std::string& fileName, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out );
 
    /**
     * \brief Closes the file.
@@ -75,7 +75,7 @@ public:
    /**
     * \brief Returns name of the file.
     */
-   const String&
+   const std::string&
    getFileName() const
    {
       return this->fileName;
@@ -188,7 +188,7 @@ protected:
    save_impl( const Type* buffer, std::streamsize elements );
 
    std::fstream file;
-   String fileName;
+   std::string fileName;
 };
 
 /**

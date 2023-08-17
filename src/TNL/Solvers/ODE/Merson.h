@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <string>
+
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 
@@ -86,7 +88,7 @@ public:
     * \param prefix is the prefix of the configuration parameters for this solver.
     */
    static void
-   configSetup( Config::ConfigDescription& config, const String& prefix = "" );
+   configSetup( Config::ConfigDescription& config, const std::string& prefix = "" );
 
    /**
     * \brief Method for setup of the explicit solver based on configuration parameters.
@@ -97,7 +99,7 @@ public:
     * \return false if the method did not succeed to read the configuration parameters.
     */
    bool
-   setup( const Config::ParameterContainer& parameters, const String& prefix = "" );
+   setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" );
 
    /**
     * \brief Setter of the parameter controlling the adaptive choice of the integration time step.

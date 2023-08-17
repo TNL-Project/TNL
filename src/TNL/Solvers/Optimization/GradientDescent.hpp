@@ -12,7 +12,7 @@ namespace TNL::Solvers::Optimization {
 
 template< typename Vector, typename SolverMonitor >
 void
-GradientDescent< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+GradientDescent< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    IterativeSolver< RealType, IndexType, SolverMonitor >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "relaxation", "Relaxation parameter for the gradient descent.", 1.0 );
@@ -20,7 +20,7 @@ GradientDescent< Vector, SolverMonitor >::configSetup( Config::ConfigDescription
 
 template< typename Vector, typename SolverMonitor >
 bool
-GradientDescent< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+GradientDescent< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    this->setRelaxation( parameters.getParameter< double >( prefix + "relaxation" ) );
    return IterativeSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <TNL/Atomic.h>
+#include <TNL/Assert.h>
 
 namespace TNL::Algorithms {
 

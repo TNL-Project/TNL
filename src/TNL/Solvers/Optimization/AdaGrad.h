@@ -28,10 +28,10 @@ public:
    AdaGrad() = default;
 
    static void
-   configSetup( Config::ConfigDescription& config, const String& prefix = "" );
+   configSetup( Config::ConfigDescription& config, const std::string& prefix = "" );
 
    bool
-   setup( const Config::ParameterContainer& parameters, const String& prefix = "" );
+   setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" );
 
    void
    setRelaxation( const RealType& lambda );

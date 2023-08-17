@@ -19,7 +19,7 @@ namespace TNL::Matrices {
 
 template< typename Matrix, typename Device >
 void
-MatrixReader< Matrix, Device >::readMtx( const TNL::String& fileName, Matrix& matrix, bool verbose )
+MatrixReader< Matrix, Device >::readMtx( const std::string& fileName, Matrix& matrix, bool verbose )
 {
    HostMatrix hostMatrix;
    MatrixReader< HostMatrix >::readMtx( fileName, hostMatrix, verbose );
@@ -41,12 +41,12 @@ MatrixReader< Matrix, Device >::readMtx( std::istream& str, Matrix& matrix, bool
 /// \cond
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::readMtx( const String& fileName, Matrix& matrix, bool verbose )
+MatrixReader< Matrix, TNL::Devices::Host >::readMtx( const std::string& fileName, Matrix& matrix, bool verbose )
 {
    std::fstream file;
-   file.open( fileName.getString(), std::ios::in );
+   file.open( fileName, std::ios::in );
    if( ! file )
-      throw std::runtime_error( std::string( "I am not able to open the file " ) + fileName.getString() );
+      throw std::runtime_error( std::string( "I am not able to open the file " ) + fileName );
    readMtx( file, matrix, verbose );
 }
 

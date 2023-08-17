@@ -9,7 +9,7 @@
 #include <ostream>
 
 #include <TNL/Assert.h>
-#include <TNL/String.h>
+#include <TNL/Cuda/CudaCallable.h>
 #include <TNL/TypeInfo.h>
 
 namespace TNL::Containers {

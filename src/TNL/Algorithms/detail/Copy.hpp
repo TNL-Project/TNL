@@ -11,6 +11,7 @@
 #include <stdexcept>    // std::length_error
 #include <type_traits>  // std::remove_cv_t
 
+#include <TNL/Assert.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 

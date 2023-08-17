@@ -38,7 +38,7 @@ class navierStokesSolver
 
    navierStokesSolver();
 
-   String getPrologHeader() const;
+   std::string getPrologHeader() const;
 
    void writeProlog( Logger& logger,
                      const Config::ParameterContainer& parameters ) const;

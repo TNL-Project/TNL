@@ -54,7 +54,7 @@ public:
     * \param verbose controls verbosity of the matrix import.
     */
    static void
-   readMtx( const String& fileName, Matrix& matrix, bool verbose = false );
+   readMtx( const std::string& fileName, Matrix& matrix, bool verbose = false );
 
    /**
     * \brief Method for importing matrix from STL input stream.
@@ -105,7 +105,7 @@ public:
     *
     */
    static void
-   readMtx( const String& fileName, Matrix& matrix, bool verbose = false );
+   readMtx( const std::string& fileName, Matrix& matrix, bool verbose = false );
 
    /**
     * \brief Method for importing matrix from STL input stream.

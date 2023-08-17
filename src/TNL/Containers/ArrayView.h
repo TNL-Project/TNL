@@ -563,7 +563,7 @@ public:
     * \param fileName The output file name.
     */
    void
-   save( const String& fileName ) const;
+   save( const std::string& fileName ) const;
 
    /**
     * \brief Method for loading the data from a binary file \e fileName.
@@ -571,7 +571,7 @@ public:
     * \param fileName The input file name.
     */
    void
-   load( const String& fileName );
+   load( const std::string& fileName );
 
 protected:
    //! Pointer to the data

@@ -14,7 +14,7 @@ namespace TNL::Solvers::ODE {
 
 template< typename Real, typename Index >
 void
-StaticExplicitSolver< Real, Index >::configSetup( Config::ConfigDescription& config, const String& prefix )
+StaticExplicitSolver< Real, Index >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    StaticIterativeSolver< Real, Index >::configSetup( config, prefix );
    StaticIterativeSolver< Real, Index >::configSetup( config, prefix );
@@ -24,7 +24,7 @@ StaticExplicitSolver< Real, Index >::configSetup( Config::ConfigDescription& con
 
 template< typename Real, typename Index >
 bool
-StaticExplicitSolver< Real, Index >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+StaticExplicitSolver< Real, Index >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    this->stopOnSteadyState = parameters.getParameter< bool >( "stop-on-steady-state" );
    return StaticIterativeSolver< RealType, IndexType >::setup( parameters, prefix );

@@ -4,6 +4,7 @@
 
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
 #include "../CoordinateIterator.h"
+#include <TNL/String.h>
 
 template< int Size >
 using Coordinate = TNL::Containers::StaticVector< Size, int >;

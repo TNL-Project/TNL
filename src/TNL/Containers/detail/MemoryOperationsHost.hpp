@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <TNL/Assert.h>
 #include <TNL/Algorithms/parallelFor.h>
 
 #include "MemoryOperations.h"

@@ -8,6 +8,8 @@
 
 #include "SharedPointer.h"
 
+#include <TNL/Assert.h>
+#include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Allocators/Default.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Pointers/SmartPointer.h>

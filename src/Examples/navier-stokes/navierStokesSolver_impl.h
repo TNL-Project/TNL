@@ -5,7 +5,7 @@
 #include "navierStokesSolver.h"
 #include <stdio.h>
 #include <iostream>
-#include <TNL/String.h>
+#include <string>
 #include <TNL/FileName.h>
 #include <TNL/Math.h>
 #include <TNL/Containers/SharedVector.h>
@@ -102,7 +102,7 @@ bool navierStokesSolver< Mesh, EulerScheme >::setup( const Config::ParameterCont
    /****
     * Set-up problem type
     */
-   const String& problemName = parameters. getParameter< String >( "problem-name" );
+   const auto& problemName = parameters.getParameter< std::string >( "problem-name" );
    if( problemName == "riser" )
       problem = riser;
    if( problemName == "cavity" )
@@ -111,7 +111,7 @@ bool navierStokesSolver< Mesh, EulerScheme >::setup( const Config::ParameterCont
    /****
     * Set-up the geometry
     */
-   const String& meshFile = parameters.getParameter< String >( "mesh" );
+   const auto& meshFile = parameters.getParameter< std::string >( "mesh" );
    if( ! this->mesh.load( meshFile ) )
    {
       std::cerr << "I am not able to load the mesh from the file " << meshFile << "." << std::endl;
@@ -136,7 +136,7 @@ bool navierStokesSolver< Mesh, EulerScheme >::setup( const Config::ParameterCont
    if( ! this->initMesh( this->mesh, parameters ) )
       return false;
    mesh.refresh();
-   mesh.save( String( "mesh.tnl" ) );*/
+   mesh.save( std::string( "mesh.tnl" ) );*/
 
    nsSolver.setMesh( this->mesh );
 
@@ -269,17 +269,17 @@ SolverMonitor*
 }
 
 template< typename Mesh, typename EulerScheme >
-String navierStokesSolver< Mesh, EulerScheme > :: getPrologHeader() const
+std::string navierStokesSolver< Mesh, EulerScheme > :: getPrologHeader() const
 {
-   return String( "Navier-Stokes Problem Solver" );
+   return "Navier-Stokes Problem Solver";
 }
 
 template< typename Mesh, typename EulerScheme >
 void navierStokesSolver< Mesh, EulerScheme > :: writeProlog( Logger& logger,
                                                              const Config::ParameterContainer& parameters ) const
 {
-   logger. WriteParameter< String >( "Problem name:", "problem-name", parameters );
-   const String& problemName = parameters. getParameter< String >( "problem-name" );
+   logger. WriteParameter< std::string >( "Problem name:", "problem-name", parameters );
+   const auto& problemName = parameters. getParameter< std::string >( "problem-name" );
    if( problemName == "cavity" )
    {
       logger. WriteParameter< double >( "Max. inflow velocity:", "max-inflow-velocity", parameters, 1 );
@@ -293,7 +293,7 @@ void navierStokesSolver< Mesh, EulerScheme > :: writeProlog( Logger& logger,
    logger. WriteParameter< double >( "Domain width:", mesh. getProportions(). x() - mesh. getOrigin(). x() );
    logger. WriteParameter< double >( "Domain height:", mesh. getProportions(). y() - mesh. getOrigin(). y() );
    logger. WriteSeparator();
-   logger. WriteParameter< String >( "Space discretisation:", "scheme", parameters );
+   logger. WriteParameter< std::string >( "Space discretisation:", "scheme", parameters );
    logger. WriteParameter< int >( "Meshes along x:", mesh. getDimensions(). x() );
    logger. WriteParameter< int >( "Meshes along y:", mesh. getDimensions(). y() );
    logger. WriteParameter< double >( "Space step along x:", mesh. getParametricStep(). x() );

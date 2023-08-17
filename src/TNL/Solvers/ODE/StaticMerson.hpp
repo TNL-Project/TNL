@@ -15,7 +15,7 @@ namespace TNL::Solvers::ODE {
 
 template< typename Real >
 void
-StaticMerson< Real >::configSetup( Config::ConfigDescription& config, const String& prefix )
+StaticMerson< Real >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    StaticExplicitSolver< RealType, IndexType >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "merson-adaptivity",
@@ -26,7 +26,7 @@ StaticMerson< Real >::configSetup( Config::ConfigDescription& config, const Stri
 
 template< typename Real >
 bool
-StaticMerson< Real >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+StaticMerson< Real >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    StaticExplicitSolver< RealType, IndexType >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "merson-adaptivity" ) )
@@ -154,7 +154,8 @@ StaticMerson< Real >::solve( VectorType& u, RHSFunction&& rhsFunction, Args... a
 
 template< int Size_, typename Real >
 void
-StaticMerson< Containers::StaticVector< Size_, Real > >::configSetup( Config::ConfigDescription& config, const String& prefix )
+StaticMerson< Containers::StaticVector< Size_, Real > >::configSetup( Config::ConfigDescription& config,
+                                                                      const std::string& prefix )
 {
    StaticExplicitSolver< RealType, IndexType >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "merson-adaptivity",
@@ -166,7 +167,7 @@ StaticMerson< Containers::StaticVector< Size_, Real > >::configSetup( Config::Co
 template< int Size_, typename Real >
 bool
 StaticMerson< Containers::StaticVector< Size_, Real > >::setup( const Config::ParameterContainer& parameters,
-                                                                const String& prefix )
+                                                                const std::string& prefix )
 {
    StaticExplicitSolver< RealType, IndexType >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "merson-adaptivity" ) )

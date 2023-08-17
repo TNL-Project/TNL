@@ -12,7 +12,7 @@ namespace TNL::Solvers::ODE {
 
 template< typename Real, typename Index, typename SolverMonitor >
 void
-ExplicitSolver< Real, Index, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+ExplicitSolver< Real, Index, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    IterativeSolver< Real, Index >::configSetup( config, prefix );
    config.addEntry< bool >(
@@ -21,7 +21,7 @@ ExplicitSolver< Real, Index, SolverMonitor >::configSetup( Config::ConfigDescrip
 
 template< typename Real, typename Index, typename SolverMonitor >
 bool
-ExplicitSolver< Real, Index, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+ExplicitSolver< Real, Index, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    this->stopOnSteadyState = parameters.getParameter< bool >( "stop-on-steady-state" );
    return IterativeSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );

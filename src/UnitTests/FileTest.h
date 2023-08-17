@@ -15,7 +15,7 @@ TEST( FileTest, OpenInvalid )
 TEST( FileTest, WriteAndRead )
 {
    File file;
-   ASSERT_NO_THROW( file.open( String( TEST_FILE_NAME ), std::ios_base::out ) );
+   ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::out ) );
 
    int intData = 5;
    double doubleData[ 3 ] = { 1.0, 2.0, 3.0 };
@@ -27,7 +27,7 @@ TEST( FileTest, WriteAndRead )
    ASSERT_NO_THROW( file.save( &constDoubleData ) );
    ASSERT_NO_THROW( file.close() );
 
-   ASSERT_NO_THROW( file.open( String( TEST_FILE_NAME ), std::ios_base::in ) );
+   ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::in ) );
    int newIntData;
    double newDoubleData[ 3 ];
    double newConstDoubleData;
@@ -92,14 +92,14 @@ TEST( FileTest, WriteAndReadCUDA )
    cudaMemcpy( (void*) cudaConstDoubleData, &constDoubleData, sizeof( double ), cudaMemcpyHostToDevice );
 
    File file;
-   ASSERT_NO_THROW( file.open( String( TEST_FILE_NAME ), std::ios_base::out ) );
+   ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::out ) );
 
    file.save< int, int, Allocators::Cuda< int > >( cudaIntData );
    file.save< float, float, Allocators::Cuda< float > >( cudaFloatData, 3 );
    file.save< const double, double, Allocators::Cuda< const double > >( cudaConstDoubleData );
    ASSERT_NO_THROW( file.close() );
 
-   ASSERT_NO_THROW( file.open( String( TEST_FILE_NAME ), std::ios_base::in ) );
+   ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::in ) );
    int newIntData;
    float newFloatData[ 3 ];
    double newDoubleData;
@@ -144,15 +144,15 @@ TEST( FileTest, WriteAndReadCUDAWithConversion )
    cudaMemcpy( (void*) cudaConstDoubleData, &constDoubleData, 3 * sizeof( double ), cudaMemcpyHostToDevice );
 
    File file;
-   ASSERT_NO_THROW( file.open( String( TEST_FILE_NAME ), std::ios_base::out | std::ios_base::trunc ) );
+   ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::out | std::ios_base::trunc ) );
    file.save< double, float, Allocators::Cuda< double > >( cudaConstDoubleData, 3 );
    ASSERT_NO_THROW( file.close() );
 
-   ASSERT_NO_THROW( file.open( String( TEST_FILE_NAME ), std::ios_base::in ) );
+   ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::in ) );
    file.load< float, float, Allocators::Cuda< float > >( cudaFloatData, 3 );
    ASSERT_NO_THROW( file.close() );
 
-   ASSERT_NO_THROW( file.open( String( TEST_FILE_NAME ), std::ios_base::in ) );
+   ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::in ) );
    file.load< int, float, Allocators::Cuda< int > >( cudaIntData, 3 );
    ASSERT_NO_THROW( file.close() );
 

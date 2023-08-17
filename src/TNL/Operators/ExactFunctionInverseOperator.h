@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <TNL/String.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Operators/Operator.h>
 #include <TNL/Operators/ExactIdentityOperator.h>

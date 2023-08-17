@@ -7,7 +7,6 @@
 #pragma once
 
 #include <type_traits>
-#include <TNL/String.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/LambdaMatrixRowView.h>
 

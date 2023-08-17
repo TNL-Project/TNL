@@ -7,8 +7,8 @@
 #pragma once
 
 #include <ostream>
+#include <string>
 
-#include <TNL/String.h>
 #include <TNL/Config/ParameterContainer.h>
 
 namespace TNL {
@@ -30,10 +30,10 @@ public:
     *
     * The header usually contains title of the program.
     *
-    * \param title A String containing the header title.
+    * \param title A string containing the header title.
     */
    void
-   writeHeader( const String& title );
+   writeHeader( const std::string& title );
 
    //! \brief Creates separator used as a log structure.
    void
@@ -66,8 +66,8 @@ public:
     */
    template< typename ParameterType >
    void
-   writeParameter( const String& label,
-                   const String& parameterName,
+   writeParameter( const std::string& label,
+                   const std::string& parameterName,
                    const Config::ParameterContainer& parameters,
                    int parameterLevel = 0 );
 
@@ -81,7 +81,7 @@ public:
     */
    template< typename ParameterType >
    void
-   writeParameter( const String& label, const ParameterType& value, int parameterLevel = 0 );
+   writeParameter( const std::string& label, const ParameterType& value, int parameterLevel = 0 );
 
 protected:
    //! \brief Integer defining the width of the log.

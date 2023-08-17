@@ -16,7 +16,7 @@ namespace TNL::Solvers::ODE {
 
 template< typename Vector, typename SolverMonitor >
 void
-Merson< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+Merson< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    ExplicitSolver< RealType, IndexType >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "merson-adaptivity",
@@ -27,7 +27,7 @@ Merson< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config,
 
 template< typename Vector, typename SolverMonitor >
 bool
-Merson< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+Merson< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    ExplicitSolver< Vector, SolverMonitor >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "merson-adaptivity" ) )

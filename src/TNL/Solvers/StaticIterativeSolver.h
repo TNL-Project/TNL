@@ -8,7 +8,6 @@
 
 #include <limits>
 
-#include <TNL/String.h>
 #include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
@@ -53,7 +52,7 @@ public:
     * \param prefix is a prefix of particular configuration entries.
     */
    static void
-   configSetup( Config::ConfigDescription& config, const String& prefix = "" );
+   configSetup( Config::ConfigDescription& config, const std::string& prefix = "" );
 
    /**
     * \brief Method for setup of the iterative solver based on configuration parameters.
@@ -62,7 +61,7 @@ public:
     * \param prefix is a prefix of particular configuration entries.
     */
    bool
-   setup( const Config::ParameterContainer& parameters, const String& prefix = "" );
+   setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" );
 
    /**
     * \brief Sets the maximal number of iterations the solver is \b allowed to perform.

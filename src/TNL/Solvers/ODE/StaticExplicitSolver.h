@@ -7,6 +7,8 @@
 #pragma once
 
 #include <iomanip>
+#include <string>
+
 #include <TNL/Solvers/StaticIterativeSolver.h>
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
@@ -50,13 +52,13 @@ public:
     * \brief This method defines configuration entries for setup of the iterative solver.
     */
    static void
-   configSetup( Config::ConfigDescription& config, const String& prefix = "" );
+   configSetup( Config::ConfigDescription& config, const std::string& prefix = "" );
 
    /**
     * \brief Method for setup of the iterative solver based on configuration parameters.
     */
    bool
-   setup( const Config::ParameterContainer& parameters, const String& prefix = "" );
+   setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" );
 
    /**
     * \brief Settter of the current time of the evolution computed by the solver.

@@ -16,10 +16,10 @@
 namespace TNL {
 
 inline void
-Logger::writeHeader( const String& title )
+Logger::writeHeader( const std::string& title )
 {
    const int fill = stream.fill();
-   const int titleLength = title.getLength();
+   const int titleLength = title.length();
    stream << "+" << std::setfill( '-' ) << std::setw( width ) << "+" << std::endl;
    stream << "|" << std::setfill( ' ' ) << std::setw( width ) << "|" << std::endl;
    stream << "|" << std::setw( width / 2 + titleLength / 2 ) << title << std::setw( width / 2 - titleLength / 2 ) << "|"
@@ -40,35 +40,35 @@ Logger::writeSeparator()
 inline bool
 Logger::writeSystemInformation( bool printGPUInfo )
 {
-   writeParameter< String >( "Host name:", getHostname() );
-   writeParameter< String >( "System:", getSystemName() );
-   writeParameter< String >( "Release:", getSystemRelease() );
-   writeParameter< String >( "Architecture:", getSystemArchitecture() );
-   writeParameter< String >( "TNL compiler:", getCompilerName() );
+   writeParameter< std::string >( "Host name:", getHostname() );
+   writeParameter< std::string >( "System:", getSystemName() );
+   writeParameter< std::string >( "Release:", getSystemRelease() );
+   writeParameter< std::string >( "Architecture:", getSystemArchitecture() );
+   writeParameter< std::string >( "TNL compiler:", getCompilerName() );
    const int threads = getCPUInfo().threads;
    const int cores = getCPUInfo().cores;
    int threadsPerCore = 0;
    if( cores > 0 )
       threadsPerCore = threads / cores;
-   writeParameter< String >( "CPU info", "" );
-   writeParameter< String >( "Model name:", getCPUInfo().modelName, 1 );
+   writeParameter< std::string >( "CPU info", "" );
+   writeParameter< std::string >( "Model name:", getCPUInfo().modelName, 1 );
    writeParameter< int >( "Cores:", cores, 1 );
    writeParameter< int >( "Threads per core:", threadsPerCore, 1 );
    writeParameter< double >( "Max clock rate (in MHz):", getCPUMaxFrequency() / 1000, 1 );
    const CPUCacheSizes cacheSizes = getCPUCacheSizes();
-   const String cacheInfo = convertToString( cacheSizes.L1data ) + ", " + convertToString( cacheSizes.L1instruction ) + ", "
-                          + convertToString( cacheSizes.L2 ) + ", " + convertToString( cacheSizes.L3 );
-   writeParameter< String >( "Cache (L1d, L1i, L2, L3):", cacheInfo, 1 );
+   const auto cacheInfo = std::to_string( cacheSizes.L1data ) + ", " + std::to_string( cacheSizes.L1instruction ) + ", "
+                        + std::to_string( cacheSizes.L2 ) + ", " + std::to_string( cacheSizes.L3 );
+   writeParameter< std::string >( "Cache (L1d, L1i, L2, L3):", cacheInfo, 1 );
 
    if( printGPUInfo ) {
-      writeParameter< String >( "CUDA GPU info", "" );
+      writeParameter< std::string >( "CUDA GPU info", "" );
       // TNL supports using more than one device for computations only via MPI.
       // Hence, we print only the active device here.
       const int i = Cuda::DeviceInfo::getActiveDevice();
-      writeParameter< String >( "Name", Cuda::DeviceInfo::getDeviceName( i ), 1 );
-      const String deviceArch = convertToString( Cuda::DeviceInfo::getArchitectureMajor( i ) ) + "."
-                              + convertToString( Cuda::DeviceInfo::getArchitectureMinor( i ) );
-      writeParameter< String >( "Architecture", deviceArch, 1 );
+      writeParameter< std::string >( "Name", Cuda::DeviceInfo::getDeviceName( i ), 1 );
+      const auto deviceArch = std::to_string( Cuda::DeviceInfo::getArchitectureMajor( i ) ) + "."
+                            + std::to_string( Cuda::DeviceInfo::getArchitectureMinor( i ) );
+      writeParameter< std::string >( "Architecture", deviceArch, 1 );
       writeParameter< int >( "CUDA cores", Cuda::DeviceInfo::getCudaCores( i ), 1 );
       const double clockRate = (double) Cuda::DeviceInfo::getClockRate( i ) / 1.0e3;
       writeParameter< double >( "Clock rate (in MHz)", clockRate, 1 );
@@ -84,13 +84,13 @@ Logger::writeSystemInformation( bool printGPUInfo )
 inline void
 Logger::writeCurrentTime( const char* label )
 {
-   writeParameter< String >( label, getCurrentTime() );
+   writeParameter< std::string >( label, getCurrentTime() );
 }
 
 template< typename T >
 void
-Logger::writeParameter( const String& label,
-                        const String& parameterName,
+Logger::writeParameter( const std::string& label,
+                        const std::string& parameterName,
                         const Config::ParameterContainer& parameters,
                         int parameterLevel )
 {
@@ -99,7 +99,7 @@ Logger::writeParameter( const String& label,
 
 template< typename T >
 void
-Logger::writeParameter( const String& label, const T& value, int parameterLevel )
+Logger::writeParameter( const std::string& label, const T& value, int parameterLevel )
 {
    stream << "| ";
    int i;
@@ -107,7 +107,7 @@ Logger::writeParameter( const String& label, const T& value, int parameterLevel 
       stream << " ";
    std::stringstream str;
    str << value;
-   stream << label << std::setw( width - label.getLength() - parameterLevel - 3 ) << str.str() << " |" << std::endl;
+   stream << label << std::setw( width - label.length() - parameterLevel - 3 ) << str.str() << " |" << std::endl;
 }
 
 }  // namespace TNL

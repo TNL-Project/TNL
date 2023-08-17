@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <TNL/String.h>
 #include <TNL/Containers/Vector.h>
 
 namespace TNL {

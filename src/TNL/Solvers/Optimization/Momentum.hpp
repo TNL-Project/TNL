@@ -12,7 +12,7 @@ namespace TNL::Solvers::Optimization {
 
 template< typename Vector, typename SolverMonitor >
 void
-Momentum< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+Momentum< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    IterativeSolver< RealType, IndexType, SolverMonitor >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "relaxation", "Relaxation parameter for the momentum method.", 1.0 );
@@ -21,7 +21,7 @@ Momentum< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& confi
 
 template< typename Vector, typename SolverMonitor >
 bool
-Momentum< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+Momentum< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    this->setRelaxation( parameters.getParameter< double >( prefix + "relaxation" ) );
    this->setMomentum( parameters.getParameter< double >( prefix + "momentum" ) );

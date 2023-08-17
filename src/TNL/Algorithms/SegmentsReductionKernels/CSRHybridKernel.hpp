@@ -193,7 +193,7 @@ template< typename Index, typename Device, int ThreadsInBlock >
 std::string
 CSRHybridKernel< Index, Device, ThreadsInBlock >::getKernelType()
 {
-   return "Hybrid " + TNL::convertToString( ThreadsInBlock );
+   return "Hybrid " + std::to_string( ThreadsInBlock );
 }
 
 template< typename Index, typename Device, int ThreadsInBlock >

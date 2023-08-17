@@ -22,13 +22,13 @@
 
 namespace TNL {
 
-inline File::File( const String& fileName, std::ios_base::openmode mode )
+inline File::File( const std::string& fileName, std::ios_base::openmode mode )
 {
    open( fileName, mode );
 }
 
 inline void
-File::open( const String& fileName, std::ios_base::openmode mode )
+File::open( const std::string& fileName, std::ios_base::openmode mode )
 {
    // enable exceptions
    file.exceptions( std::fstream::failbit | std::fstream::badbit | std::fstream::eofbit );
@@ -37,7 +37,7 @@ File::open( const String& fileName, std::ios_base::openmode mode )
 
    mode |= std::ios::binary;
    try {
-      file.open( fileName.getString(), mode );
+      file.open( fileName, mode );
    }
    catch( std::ios_base::failure& ) {
       std::stringstream msg;

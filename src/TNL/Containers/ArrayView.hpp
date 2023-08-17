@@ -321,14 +321,14 @@ ArrayView< Value, Device, Index >::forAllElements( Function&& f ) const
 
 template< typename Value, typename Device, typename Index >
 void
-ArrayView< Value, Device, Index >::save( const String& fileName ) const
+ArrayView< Value, Device, Index >::save( const std::string& fileName ) const
 {
    File( fileName, std::ios_base::out ) << *this;
 }
 
 template< typename Value, typename Device, typename Index >
 void
-ArrayView< Value, Device, Index >::load( const String& fileName )
+ArrayView< Value, Device, Index >::load( const std::string& fileName )
 {
    File( fileName, std::ios_base::in ) >> *this;
 }
