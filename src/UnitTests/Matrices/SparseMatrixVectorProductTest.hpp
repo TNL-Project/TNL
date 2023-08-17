@@ -37,7 +37,7 @@ test_VectorProduct_smallMatrix1()
    typename Matrix::RowsCapacitiesType rowLengths_1{ 1, 2, 1, 1 };
    m_1.setRowCapacities( rowLengths_1 );
 
-   RealType value_1 = 1;
+   IndexType value_1 = 1;
    m_1.setElement( 0, 0, value_1++ );  // 0th row
 
    m_1.setElement( 1, 1, value_1++ );  // 1st row
@@ -61,20 +61,23 @@ test_VectorProduct_smallMatrix1()
    kernel.init( m_1.getSegments() );
    m_1.vectorProduct( inVector_1, outVector_1, kernel );
 
-   EXPECT_EQ( outVector_1.getElement( 0 ), 2 );
-   EXPECT_EQ( outVector_1.getElement( 1 ), 10 );
-   EXPECT_EQ( outVector_1.getElement( 2 ), 8 );
-   EXPECT_EQ( outVector_1.getElement( 3 ), 10 );
+   EXPECT_EQ( outVector_1.getElement( 0 ), RealType{ 2 } );
+   EXPECT_EQ( outVector_1.getElement( 1 ), RealType{ 10 } );
+   EXPECT_EQ( outVector_1.getElement( 2 ), RealType{ 8 } );
+   EXPECT_EQ( outVector_1.getElement( 3 ), RealType{ 10 } );
 
    // Test transposedVectorProduct
-   Matrix m_1_transposed;
-   m_1_transposed.getTransposition( m_1 );
-   VectorType inVector_1_transposed( m_rows_1, 1.0 );
-   VectorType outVector_1_transposed( m_cols_1, 0.0 );
-   VectorType outVector_2_transposed( m_cols_1, 0.0 );
-   m_1_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-   m_1.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-   EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   // TODO: implement it for complex types
+   if constexpr( ! TNL::is_complex_v< RealType > ) {
+      Matrix m_1_transposed;
+      m_1_transposed.getTransposition( m_1 );
+      VectorType inVector_1_transposed( m_rows_1, 1.0 );
+      VectorType outVector_1_transposed( m_cols_1, 0.0 );
+      VectorType outVector_2_transposed( m_cols_1, 0.0 );
+      m_1_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+      m_1.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   }
 }
 
 template< typename Matrix, typename Kernel >
@@ -102,7 +105,7 @@ test_VectorProduct_smallMatrix2()
    typename Matrix::RowsCapacitiesType rowLengths_2{ 3, 1, 3, 1 };
    m_2.setRowCapacities( rowLengths_2 );
 
-   RealType value_2 = 1;
+   IndexType value_2 = 1;
    for( IndexType i = 0; i < 3; i++ )  // 0th row
       m_2.setElement( 0, i, value_2++ );
 
@@ -128,20 +131,23 @@ test_VectorProduct_smallMatrix2()
    kernel.init( m_2.getSegments() );
    m_2.vectorProduct( inVector_2, outVector_2, kernel );
 
-   EXPECT_EQ( outVector_2.getElement( 0 ), 12 );
-   EXPECT_EQ( outVector_2.getElement( 1 ), 8 );
-   EXPECT_EQ( outVector_2.getElement( 2 ), 36 );
-   EXPECT_EQ( outVector_2.getElement( 3 ), 16 );
+   EXPECT_EQ( outVector_2.getElement( 0 ), RealType{ 12 } );
+   EXPECT_EQ( outVector_2.getElement( 1 ), RealType{ 8 } );
+   EXPECT_EQ( outVector_2.getElement( 2 ), RealType{ 36 } );
+   EXPECT_EQ( outVector_2.getElement( 3 ), RealType{ 16 } );
 
    // Test transposedVectorProduct
-   Matrix m_2_transposed;
-   m_2_transposed.getTransposition( m_2 );
-   VectorType inVector_1_transposed( m_rows_2, 1.0 );
-   VectorType outVector_1_transposed( m_cols_2, 0.0 );
-   VectorType outVector_2_transposed( m_cols_2, 0.0 );
-   m_2_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-   m_2.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-   EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   // TODO: implement it for complex types
+   if constexpr( ! TNL::is_complex_v< RealType > ) {
+      Matrix m_2_transposed;
+      m_2_transposed.getTransposition( m_2 );
+      VectorType inVector_1_transposed( m_rows_2, 1.0 );
+      VectorType outVector_1_transposed( m_cols_2, 0.0 );
+      VectorType outVector_2_transposed( m_cols_2, 0.0 );
+      m_2_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+      m_2.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   }
 }
 
 template< typename Matrix, typename Kernel >
@@ -169,7 +175,7 @@ test_VectorProduct_smallMatrix3()
    typename Matrix::RowsCapacitiesType rowLengths_3{ 3, 3, 3, 3 };
    m_3.setRowCapacities( rowLengths_3 );
 
-   RealType value_3 = 1;
+   IndexType value_3 = 1;
    for( IndexType i = 0; i < 3; i++ )  // 0th row
       m_3.setElement( 0, i, value_3++ );
 
@@ -196,20 +202,23 @@ test_VectorProduct_smallMatrix3()
    kernel.init( m_3.getSegments() );
    m_3.vectorProduct( inVector_3, outVector_3, kernel );
 
-   EXPECT_EQ( outVector_3.getElement( 0 ), 12 );
-   EXPECT_EQ( outVector_3.getElement( 1 ), 30 );
-   EXPECT_EQ( outVector_3.getElement( 2 ), 48 );
-   EXPECT_EQ( outVector_3.getElement( 3 ), 66 );
+   EXPECT_EQ( outVector_3.getElement( 0 ), RealType{ 12 } );
+   EXPECT_EQ( outVector_3.getElement( 1 ), RealType{ 30 } );
+   EXPECT_EQ( outVector_3.getElement( 2 ), RealType{ 48 } );
+   EXPECT_EQ( outVector_3.getElement( 3 ), RealType{ 66 } );
 
    // Test transposedVectorProduct
-   Matrix m_3_transposed;
-   m_3_transposed.getTransposition( m_3 );
-   VectorType inVector_1_transposed( m_rows_3, 1.0 );
-   VectorType outVector_1_transposed( m_cols_3, 0.0 );
-   VectorType outVector_2_transposed( m_cols_3, 0.0 );
-   m_3_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-   m_3.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-   EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   // TODO: implement it for complex types
+   if constexpr( ! TNL::is_complex_v< RealType > ) {
+      Matrix m_3_transposed;
+      m_3_transposed.getTransposition( m_3 );
+      VectorType inVector_1_transposed( m_rows_3, 1.0 );
+      VectorType outVector_1_transposed( m_cols_3, 0.0 );
+      VectorType outVector_2_transposed( m_cols_3, 0.0 );
+      m_3_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+      m_3.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   }
 }
 
 template< typename Matrix, typename Kernel >
@@ -241,7 +250,7 @@ test_VectorProduct_mediumSizeMatrix1()
    typename Matrix::RowsCapacitiesType rowLengths_4{ 4, 4, 5, 4, 4, 4, 5, 5 };
    m_4.setRowCapacities( rowLengths_4 );
 
-   RealType value_4 = 1;
+   IndexType value_4 = 1;
    for( IndexType i = 0; i < 3; i++ )  // 0th row
       m_4.setElement( 0, i, value_4++ );
 
@@ -282,24 +291,27 @@ test_VectorProduct_mediumSizeMatrix1()
    kernel.init( m_4.getSegments() );
    m_4.vectorProduct( inVector_4, outVector_4, kernel );
 
-   EXPECT_EQ( outVector_4.getElement( 0 ), 20 );
-   EXPECT_EQ( outVector_4.getElement( 1 ), 52 );
-   EXPECT_EQ( outVector_4.getElement( 2 ), 110 );
-   EXPECT_EQ( outVector_4.getElement( 3 ), 124 );
-   EXPECT_EQ( outVector_4.getElement( 4 ), 156 );
-   EXPECT_EQ( outVector_4.getElement( 5 ), 188 );
-   EXPECT_EQ( outVector_4.getElement( 6 ), 280 );
-   EXPECT_EQ( outVector_4.getElement( 7 ), 330 );
+   EXPECT_EQ( outVector_4.getElement( 0 ), RealType{ 20 } );
+   EXPECT_EQ( outVector_4.getElement( 1 ), RealType{ 52 } );
+   EXPECT_EQ( outVector_4.getElement( 2 ), RealType{ 110 } );
+   EXPECT_EQ( outVector_4.getElement( 3 ), RealType{ 124 } );
+   EXPECT_EQ( outVector_4.getElement( 4 ), RealType{ 156 } );
+   EXPECT_EQ( outVector_4.getElement( 5 ), RealType{ 188 } );
+   EXPECT_EQ( outVector_4.getElement( 6 ), RealType{ 280 } );
+   EXPECT_EQ( outVector_4.getElement( 7 ), RealType{ 330 } );
 
    // Test transposedVectorProduct
-   Matrix m_4_transposed;
-   m_4_transposed.getTransposition( m_4 );
-   VectorType inVector_1_transposed( m_rows_4, 1.0 );
-   VectorType outVector_1_transposed( m_cols_4, 0.0 );
-   VectorType outVector_2_transposed( m_cols_4, 0.0 );
-   m_4_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-   m_4.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-   EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   // TODO: implement it for complex types
+   if constexpr( ! TNL::is_complex_v< RealType > ) {
+      Matrix m_4_transposed;
+      m_4_transposed.getTransposition( m_4 );
+      VectorType inVector_1_transposed( m_rows_4, 1.0 );
+      VectorType outVector_1_transposed( m_cols_4, 0.0 );
+      VectorType outVector_2_transposed( m_cols_4, 0.0 );
+      m_4_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+      m_4.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   }
 }
 
 template< typename Matrix, typename Kernel >
@@ -331,7 +343,7 @@ test_VectorProduct_mediumSizeMatrix2()
    typename Matrix::RowsCapacitiesType rowLengths_5{ 6, 3, 4, 5, 2, 7, 8, 8 };
    m_5.setRowCapacities( rowLengths_5 );
 
-   RealType value_5 = 1;
+   IndexType value_5 = 1;
    for( IndexType i = 0; i < 3; i++ )  // 0th row
       m_5.setElement( 0, i, value_5++ );
 
@@ -377,24 +389,27 @@ test_VectorProduct_mediumSizeMatrix2()
    kernel.init( m_5.getSegments() );
    m_5.vectorProduct( inVector_5, outVector_5, kernel );
 
-   EXPECT_EQ( outVector_5.getElement( 0 ), 32 );
-   EXPECT_EQ( outVector_5.getElement( 1 ), 28 );
-   EXPECT_EQ( outVector_5.getElement( 2 ), 56 );
-   EXPECT_EQ( outVector_5.getElement( 3 ), 102 );
-   EXPECT_EQ( outVector_5.getElement( 4 ), 32 );
-   EXPECT_EQ( outVector_5.getElement( 5 ), 224 );
-   EXPECT_EQ( outVector_5.getElement( 6 ), 352 );
-   EXPECT_EQ( outVector_5.getElement( 7 ), 520 );
+   EXPECT_EQ( outVector_5.getElement( 0 ), RealType{ 32 } );
+   EXPECT_EQ( outVector_5.getElement( 1 ), RealType{ 28 } );
+   EXPECT_EQ( outVector_5.getElement( 2 ), RealType{ 56 } );
+   EXPECT_EQ( outVector_5.getElement( 3 ), RealType{ 102 } );
+   EXPECT_EQ( outVector_5.getElement( 4 ), RealType{ 32 } );
+   EXPECT_EQ( outVector_5.getElement( 5 ), RealType{ 224 } );
+   EXPECT_EQ( outVector_5.getElement( 6 ), RealType{ 352 } );
+   EXPECT_EQ( outVector_5.getElement( 7 ), RealType{ 520 } );
 
    // Test transposedVectorProduct
-   Matrix m_5_transposed;
-   m_5_transposed.getTransposition( m_5 );
-   VectorType inVector_1_transposed( m_rows_5, 1.0 );
-   VectorType outVector_1_transposed( m_cols_5, 0.0 );
-   VectorType outVector_2_transposed( m_cols_5, 0.0 );
-   m_5_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-   m_5.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-   EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   // TODO: implement it for complex types
+   if constexpr( ! TNL::is_complex_v< RealType > ) {
+      Matrix m_5_transposed;
+      m_5_transposed.getTransposition( m_5 );
+      VectorType inVector_1_transposed( m_rows_5, 1.0 );
+      VectorType outVector_1_transposed( m_cols_5, 0.0 );
+      VectorType outVector_2_transposed( m_cols_5, 0.0 );
+      m_5_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+      m_5.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   }
 }
 
 template< typename Matrix, typename Kernel >
@@ -404,6 +419,7 @@ test_VectorProduct_largeMatrix()
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
+   using OutRealType = std::conditional_t< TNL::is_complex_v< RealType >, RealType, double >;
 
    /////
    // Large test
@@ -432,13 +448,13 @@ test_VectorProduct_largeMatrix()
       m1.getCompressedRowLengths( rowCapacities );
       EXPECT_EQ( rowCapacities, 1 );
 
-      TNL::Containers::Vector< double, DeviceType, IndexType > in( size, 1.0 ), out( size, 0.0 );
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 ), out( size, 0.0 );
       Kernel kernel;
       kernel.init( m1.getSegments() );
       m1.vectorProduct( in, out, kernel );
       //std::cerr << out << std::endl;
       for( IndexType i = 0; i < size; i++ )
-         EXPECT_EQ( out.getElement( i ), i + 1 );
+         EXPECT_EQ( out.getElement( i ), OutRealType( i + 1 ) );
 
       // Test with large triangular matrix
       const int rows( size ), columns( size );
@@ -468,7 +484,7 @@ test_VectorProduct_largeMatrix()
       kernel.init( m2.getSegments() );
       m2.vectorProduct( in, out, kernel );
       for( IndexType i = 0; i < rows; i++ )
-         EXPECT_EQ( out.getElement( i ), ( i + 1 ) * ( i + 2 ) / 2 );
+         EXPECT_EQ( out.getElement( i ), OutRealType( ( i + 1 ) * ( i + 2 ) / 2 ) );
    }
 }
 
@@ -479,6 +495,7 @@ test_VectorProduct_longRowsMatrix()
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
+   using OutRealType = std::conditional_t< TNL::is_complex_v< RealType >, RealType, double >;
 
    /**
     * Long row test
@@ -495,11 +512,11 @@ test_VectorProduct_longRowsMatrix()
          value = localIdx + row;
       };
       m3.forAllElements( f );
-      TNL::Containers::Vector< double, DeviceType, IndexType > in( columns, 1.0 ), out( rows, 0.0 );
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( columns, 1.0 ), out( rows, 0.0 );
       Kernel kernel;
       kernel.init( m3.getSegments() );
       m3.vectorProduct( in, out, kernel );
       for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
-         EXPECT_EQ( out.getElement( rowIdx ), (double) columns * (double) ( columns - 1 ) / 2.0 + columns * rowIdx );
+         EXPECT_EQ( out.getElement( rowIdx ), OutRealType( columns * ( columns - 1 ) / 2.0 + columns * rowIdx ) );
    }
 }
