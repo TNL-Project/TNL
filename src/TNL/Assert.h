@@ -51,14 +51,6 @@ struct AssertionError : public std::runtime_error
    #endif
 #endif
 
-// wrapper for nvcc pragma which disables warnings about __host__ __device__
-// functions: https://stackoverflow.com/q/55481202
-#ifdef __NVCC__
-   #define TNL_NVCC_HD_WARNING_DISABLE #pragma hd_warning_disable
-#else
-   #define TNL_NVCC_HD_WARNING_DISABLE
-#endif
-
 #ifdef NDEBUG
 
    // empty macros for optimized build
