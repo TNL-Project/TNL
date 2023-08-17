@@ -9,7 +9,7 @@
 #include "SharedPointer.h"
 
 #include <TNL/Devices/Host.h>
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Pointers/SmartPointer.h>
 
 #include <cstddef>    // std::nullptr_t

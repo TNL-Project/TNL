@@ -13,7 +13,7 @@
 
 #include <TNL/File.h>
 #include <TNL/Assert.h>
-#include <TNL/Cuda/CheckDevice.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 #include <TNL/Exceptions/FileSerializationError.h>

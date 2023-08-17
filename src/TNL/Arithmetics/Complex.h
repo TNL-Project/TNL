@@ -9,7 +9,7 @@
 #include <complex>
 #include <type_traits>
 
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Math.h>
 #include <TNL/TypeTraits.h>
 

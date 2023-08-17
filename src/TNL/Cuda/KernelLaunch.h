@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Cuda/CheckDevice.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Cuda/DummyDefs.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 #include <TNL/TypeInfo.h>

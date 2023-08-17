@@ -9,7 +9,7 @@
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Algorithms/reduce.h>
 
 namespace TNL::Algorithms::detail {

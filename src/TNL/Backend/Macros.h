@@ -6,24 +6,45 @@
 
 #pragma once
 
-//! \file CudaCallable.h
+//! \file Macros.h
 
-// The __cuda_callable__ macro has to be in a separate header file to avoid
-// infinite loops by the #include directives.
+#include <TNL/Exceptions/CudaRuntimeError.h>
+
+namespace TNL::Backend {
+
+inline void
+checkErrorCode( const char* file_name, int line, cudaError_t error )
+{
+#ifdef __CUDACC__
+   if( error != cudaSuccess )
+      throw Exceptions::CudaRuntimeError( error, file_name, line );
+#endif
+}
+
+}  // namespace TNL::Backend
+
+#ifdef __CUDACC__
+   #define TNL_CHECK_CUDA_DEVICE ::TNL::Backend::checkErrorCode( __FILE__, __LINE__, cudaGetLastError() )
+#else
+   #define TNL_CHECK_CUDA_DEVICE
+#endif
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    /**
     * This macro serves for annotating functions which are supposed to be
-    * called even from the GPU device. If __CUDACC__ or __HIP__ is defined,
+    * called even from the GPU device. If `__CUDACC__` or `__HIP__` is defined,
     * functions annotated with `__cuda_callable__` are compiled for both CPU
-    * and GPU. If neither __CUDACC__ or __HIP__ is not defined, this macro has
-    * no effect.
+    * and GPU. If neither `__CUDACC__` or `__HIP__` is not defined, this macro
+    * has no effect.
     */
    #define __cuda_callable__ \
       __device__             \
       __host__
 #else
    #define __cuda_callable__
+   #define __host__
+   #define __device__
+   #define __global__
 #endif
 
 // wrapper for nvcc pragma which disables warnings about __host__ __device__

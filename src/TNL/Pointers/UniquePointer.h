@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Assert.h>
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend.h>
 #include <TNL/Allocators/Default.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>

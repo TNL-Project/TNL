@@ -11,7 +11,7 @@
 #include <algorithm>
 
 #include <TNL/TypeTraits.h>
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 
 namespace TNL {
 

@@ -8,7 +8,7 @@
 
 #include <TNL/Exceptions/CudaBadAlloc.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
-#include <TNL/Cuda/CheckDevice.h>
+#include <TNL/Backend/Macros.h>
 
 namespace TNL::Allocators {
 

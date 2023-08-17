@@ -3,7 +3,7 @@
 #endif
 
 #include <TNL/Assert.h>
-#include <TNL/Cuda/CheckDevice.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Exceptions/CudaRuntimeError.h>
 
 #include <gtest/gtest.h>

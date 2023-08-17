@@ -125,7 +125,7 @@ struct AssertionError : public std::runtime_error
    #include <sstream>
    #include <cstdio>
 
-   #include <TNL/Cuda/CudaCallable.h>
+   #include <TNL/Backend/Macros.h>
 
 namespace TNL::Assert {
 

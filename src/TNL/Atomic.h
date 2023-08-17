@@ -8,7 +8,7 @@
 
 #include <atomic>  // std::atomic
 
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Cuda.h>

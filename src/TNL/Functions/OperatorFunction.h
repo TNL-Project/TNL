@@ -7,7 +7,7 @@
 #pragma once
 
 #include <type_traits>
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Functions/MeshFunction.h>
 #include <TNL/Solvers/PDE/BoundaryConditionsSetter.h>
 

@@ -8,7 +8,7 @@
 
 #include <ostream>
 
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Matrices/SparseMatrixElement.h>
 
 namespace TNL::Matrices {
