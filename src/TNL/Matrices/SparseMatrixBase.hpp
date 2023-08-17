@@ -61,7 +61,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    auto rowLengths_view = rowLengths.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
    {
-      return ( value != 0.0 );
+      return value != RealType{ 0 };
    };
    auto keep = [ = ] __cuda_callable__( IndexType rowIdx, IndexType value ) mutable
    {
@@ -296,7 +296,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       end = this->getRows();
 
    if constexpr( Base::isSymmetric() ) {
-      if( outVectorMultiplicator != 1.0 )
+      if( outVectorMultiplicator != ComputeRealType{ 1 } )
          outVector *= outVectorMultiplicator;
       auto fetch = [ valuesView, columnIndexesView, inVectorView, outVectorView, matrixMultiplicator ] __cuda_callable__(
                       IndexType row, IndexType localIdx, IndexType globalIdx, bool& compute ) mutable -> ComputeRealType
@@ -337,14 +337,14 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          if( SegmentsViewType::havePadding() ) {
             compute = ( column != paddingIndex< Index > );
             if( ! compute )
-               return 0.0;
+               return 0;
          }
          if constexpr( Base::isBinary() )
             return inVectorView[ column ];
          return valuesView[ globalIdx ] * inVectorView[ column ];
       };
-      if( outVectorMultiplicator == 0.0 ) {
-         if( matrixMultiplicator == 1.0 ) {
+      if( outVectorMultiplicator == ComputeRealType{ 0 } ) {
+         if( matrixMultiplicator == ComputeRealType{ 1 } ) {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
                outVectorView[ row ] = value;
@@ -360,7 +360,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          }
       }
       else {
-         if( matrixMultiplicator == 1.0 ) {
+         if( matrixMultiplicator == ComputeRealType{ 1 } ) {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
@@ -426,7 +426,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    if( end == 0 )
       end = this->getColumns();
 
-   if( outVectorMultiplicator != 1.0 )
+   if( outVectorMultiplicator != ComputeRealType{ 1 } )
       outVector *= outVectorMultiplicator;
    auto compute = [ inVectorView, outVectorView, matrixMultiplicator, begin, end ] __cuda_callable__(
                      IndexType row, IndexType localIdx, IndexType column, const RealType& value ) mutable

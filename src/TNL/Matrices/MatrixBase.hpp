@@ -44,7 +44,7 @@ MatrixBase< Real, Device, Index, MatrixType, Organization >::getNonzeroElementsC
    const auto values_view = this->values.getConstView();
    auto fetch = [ = ] __cuda_callable__( const IndexType i ) -> IndexType
    {
-      return ( values_view[ i ] != 0.0 );
+      return values_view[ i ] != RealType{ 0 };
    };
    return Algorithms::reduce< DeviceType >( (IndexType) 0, this->values.getSize(), fetch, std::plus<>{}, 0 );
 }
