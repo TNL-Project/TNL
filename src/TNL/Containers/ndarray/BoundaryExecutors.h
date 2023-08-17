@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include <TNL/Backend.h>
 #include <TNL/Containers/ndarray/Executors.h>
-#include <TNL/Cuda/StreamPool.h>
 
 namespace TNL::Containers::detail {
 
@@ -226,12 +226,12 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 3 > >
       const Index end2 = ends.template getSize< get< 2 >( Permutation{} ) >();
 
       // launch each kernel in its own stream to achieve concurrency
-      Backend::stream_t stream_1 = Cuda::StreamPool::getInstance().getStream( 1 );
-      Backend::stream_t stream_2 = Cuda::StreamPool::getInstance().getStream( 2 );
-      Backend::stream_t stream_3 = Cuda::StreamPool::getInstance().getStream( 3 );
-      Backend::stream_t stream_4 = Cuda::StreamPool::getInstance().getStream( 4 );
-      Backend::stream_t stream_5 = Cuda::StreamPool::getInstance().getStream( 5 );
-      Backend::stream_t stream_6 = Cuda::StreamPool::getInstance().getStream( 6 );
+      Backend::stream_t stream_1 = Backend::StreamPool::getInstance().getStream( 1 );
+      Backend::stream_t stream_2 = Backend::StreamPool::getInstance().getStream( 2 );
+      Backend::stream_t stream_3 = Backend::StreamPool::getInstance().getStream( 3 );
+      Backend::stream_t stream_4 = Backend::StreamPool::getInstance().getStream( 4 );
+      Backend::stream_t stream_5 = Backend::StreamPool::getInstance().getStream( 5 );
+      Backend::stream_t stream_6 = Backend::StreamPool::getInstance().getStream( 6 );
 
       // remember the original mode and set non-blocking for the following
       const bool blockHostUntilFinished = launch_configuration.blockHostUntilFinished;
@@ -344,10 +344,10 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 2 > >
       const Index end1 = ends.template getSize< get< 1 >( Permutation{} ) >();
 
       // launch each kernel in its own stream to achieve concurrency
-      Backend::stream_t stream_1 = Cuda::StreamPool::getInstance().getStream( 1 );
-      Backend::stream_t stream_2 = Cuda::StreamPool::getInstance().getStream( 2 );
-      Backend::stream_t stream_3 = Cuda::StreamPool::getInstance().getStream( 3 );
-      Backend::stream_t stream_4 = Cuda::StreamPool::getInstance().getStream( 4 );
+      Backend::stream_t stream_1 = Backend::StreamPool::getInstance().getStream( 1 );
+      Backend::stream_t stream_2 = Backend::StreamPool::getInstance().getStream( 2 );
+      Backend::stream_t stream_3 = Backend::StreamPool::getInstance().getStream( 3 );
+      Backend::stream_t stream_4 = Backend::StreamPool::getInstance().getStream( 4 );
 
       // remember the original mode and set non-blocking for the following
       const bool blockHostUntilFinished = launch_configuration.blockHostUntilFinished;
@@ -420,8 +420,8 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 1 > >
       const auto end = ends.template getSize< get< 0 >( Permutation{} ) >();
 
       // launch each kernel in its own stream to achieve concurrency
-      Backend::stream_t stream_1 = Cuda::StreamPool::getInstance().getStream( 1 );
-      Backend::stream_t stream_2 = Cuda::StreamPool::getInstance().getStream( 2 );
+      Backend::stream_t stream_1 = Backend::StreamPool::getInstance().getStream( 1 );
+      Backend::stream_t stream_2 = Backend::StreamPool::getInstance().getStream( 2 );
 
       // remember the original mode and set non-blocking for the following
       const bool blockHostUntilFinished = launch_configuration.blockHostUntilFinished;

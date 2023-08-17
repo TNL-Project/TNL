@@ -43,6 +43,32 @@ deviceSynchronize()
 #endif
 }
 
+[[nodiscard]] inline stream_t
+streamCreateWithPriority( unsigned int flags, int priority )
+{
+   stream_t stream = 0;
+#if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaStreamCreateWithPriority( &stream, flags, priority ) );
+#elif defined( __HIP__ )
+   TNL_BACKEND_SAFE_CALL( hipStreamCreateWithPriority( &stream, flags, priority ) );
+#endif
+   return stream;
+}
+
+inline void
+streamDestroy( stream_t stream )
+{
+#if defined( __CUDACC__ )
+   // cannot free a null stream
+   if( stream != 0 )
+      TNL_BACKEND_SAFE_CALL( cudaStreamDestroy( stream ) );
+#elif defined( __HIP__ )
+   // cannot free a null stream
+   if( stream != 0 )
+      TNL_BACKEND_SAFE_CALL( hipStreamDestroy( stream ) );
+#endif
+}
+
 inline void
 streamSynchronize( stream_t stream )
 {

@@ -9,3 +9,5 @@
 #include <TNL/Backend/Types.h>
 #include <TNL/Backend/Macros.h>
 #include <TNL/Backend/Functions.h>
+#include <TNL/Backend/Stream.h>
+#include <TNL/Backend/StreamPool.h>

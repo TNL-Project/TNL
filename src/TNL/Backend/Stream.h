@@ -8,16 +8,16 @@
 
 #include <memory>
 
-#include <TNL/Backend/Types.h>
+#include "Functions.h"
 
-namespace TNL::Cuda {
+namespace TNL::Backend {
 
 class Stream
 {
 private:
    struct Wrapper
    {
-      Backend::stream_t handle = 0;
+      stream_t handle = 0;
 
       Wrapper() = default;
       Wrapper( const Wrapper& other ) = delete;
@@ -27,15 +27,11 @@ private:
       Wrapper&
       operator=( Wrapper&& other ) noexcept = default;
 
-      Wrapper( Backend::stream_t handle ) : handle( handle ) {}
+      Wrapper( stream_t handle ) : handle( handle ) {}
 
-      ~Wrapper()  // NOLINT
+      ~Wrapper()
       {
-#ifdef __CUDACC__
-         // cannot free a 0 stream
-         if( handle != 0 )
-            cudaStreamDestroy( handle );
-#endif
+         streamDestroy( handle );
       }
    };
 
@@ -79,38 +75,31 @@ public:
     *    information about the meaningful stream priorities that can be passed.
     */
    static Stream
-   create( unsigned int flags = Backend::StreamDefault, int priority = 0 )
+   create( unsigned int flags = StreamDefault, int priority = 0 )
    {
-      Backend::stream_t stream;
-#ifdef __CUDACC__
-      cudaStreamCreateWithPriority( &stream, flags, priority );
-#else
-      stream = 0;
-#endif
-      return { std::make_shared< Wrapper >( stream ) };
+      return { std::make_shared< Wrapper >( streamCreateWithPriority( flags, priority ) ) };
    }
 
    /**
     * \brief Access the CUDA stream handle associated with this object.
     *
     * This routine permits the implicit conversion from \ref Stream to
-    * `Backend::stream_t`.
+    * `stream_t`.
     *
-    * \warning The obtained `Backend::stream_t` handle becomes invalid when the
+    * \warning The obtained `stream_t` handle becomes invalid when the
     * originating \ref Stream object is destroyed. For example, the following
     * code is invalid, because the \ref Stream object managing the lifetime of
-    * the `Backend::stream_t` handle is destroyed as soon as it is cast to
-    * `Backend::stream_t`:
+    * the `stream_t` handle is destroyed as soon as it is cast to `stream_t`:
     *
     * \code{.cpp}
-    * const Backend::stream_t stream = TNL::Cuda::Stream::create();
+    * const TNL::Backend::stream_t stream = TNL::Backend::Stream::create();
     * my_kernel<<< gridSize, blockSize, 0, stream >>>( args... );
     * \endcode
     */
-   operator const Backend::stream_t&() const
+   operator const stream_t&() const
    {
       return wrapper->handle;
    }
 };
 
-}  // namespace TNL::Cuda
+}  // namespace TNL::Backend

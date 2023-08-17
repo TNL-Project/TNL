@@ -8,9 +8,9 @@
 
 #include <map>
 
-#include <TNL/Cuda/Stream.h>
+#include "Stream.h"
 
-namespace TNL::Cuda {
+namespace TNL::Backend {
 
 class StreamPool
 {
@@ -31,15 +31,15 @@ public:
     * \param id Numeric ID of the requested stream.
     *
     * If the stream with given ID was not created yet, it is created by calling
-    * \ref Cuda::Stream::create with the following parameters:
+    * \ref Stream::create with the following parameters:
     *
     * \param flags Custom flags for stream creation.
-    *              See \ref Cuda::Stream::create for details.
+    *              See \ref Stream::create for details.
     * \param priority Priority of the stream.
-    *                 See \ref Cuda::Stream::create for details.
+    *                 See \ref Stream::create for details.
     */
-   const Backend::stream_t&
-   getStream( int id, unsigned int flags = Backend::StreamDefault, int priority = 0 )
+   const stream_t&
+   getStream( int id, unsigned int flags = StreamDefault, int priority = 0 )
    {
       const auto& result = pool.find( id );
       if( result != pool.end() )
@@ -61,4 +61,4 @@ private:
    MapType pool;
 };
 
-}  // namespace TNL::Cuda
+}  // namespace TNL::Backend
