@@ -114,18 +114,15 @@ if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
    set( CMAKE_CTEST_ARGUMENTS ${CMAKE_CTEST_ARGUMENTS} --output-junit "${CMAKE_BINARY_DIR}/tests-report.xml" )
 
    if( TNL_USE_SYSTEM_GTEST OR TNL_OFFLINE_BUILD )
-      # find gtest installed in the local system
-      find_package(GTest REQUIRED)
-      if( GTEST_FOUND )
-         include_directories( ${GTEST_INCLUDE_DIRS} )
-      endif( GTEST_FOUND )
+      # find GoogleTest installed in the local system
+      find_package( GTest REQUIRED )
    else()
-      # build gtest libs
-      include( BuildGtest )
+      # fetch and build GoogleTest from source
+      include( FetchGoogleTest )
    endif()
    set( CXX_TESTS_FLAGS )
    set( CUDA_TESTS_FLAGS )
-   set( TESTS_LIBRARIES ${GTEST_LIBRARIES} )
+   set( TESTS_LIBRARIES GTest::gtest_main )
    set( TESTS_LINKER_FLAGS "" )
 
    if( TNL_BUILD_COVERAGE AND CMAKE_BUILD_TYPE STREQUAL "Debug" )
