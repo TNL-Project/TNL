@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Cuda/SharedMemory.h>
+#include <TNL/Backend.h>
 
 #include "DenseMatrix.h"
 #include "SparseOperations.h"
@@ -327,7 +327,7 @@ DenseTranspositionAlignedKernel( OutputMatrix resultMatrix,
    const Index readRowPosition = ( gridIdx_y * gridDim.y + blockIdx_y ) * tileDim + threadIdx.y;
    const Index readColumnPosition = ( gridIdx_x * gridDim.x + blockIdx_x ) * tileDim + threadIdx.x;
    for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize ) {
-      tile[ Cuda::getInterleaving( threadIdx.x * tileDim + threadIdx.y + rowBlock ) ] =
+      tile[ Backend::getInterleaving( threadIdx.x * tileDim + threadIdx.y + rowBlock ) ] =
          inputMatrix( readRowPosition + rowBlock, readColumnPosition );
    }
    __syncthreads();
@@ -337,7 +337,7 @@ DenseTranspositionAlignedKernel( OutputMatrix resultMatrix,
    const Index writeColumnPosition = ( gridIdx_y * gridDim.y + blockIdx_y ) * tileDim + threadIdx.x;
    for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize ) {
       resultMatrix( writeRowPosition + rowBlock, writeColumnPosition ) =
-         matrixMultiplicator * tile[ Cuda::getInterleaving( ( threadIdx.y + rowBlock ) * tileDim + threadIdx.x ) ];
+         matrixMultiplicator * tile[ Backend::getInterleaving( ( threadIdx.y + rowBlock ) * tileDim + threadIdx.x ) ];
    }
 #endif
 }
@@ -376,7 +376,7 @@ DenseTranspositionNonAlignedKernel( OutputMatrix resultMatrix,
       // const Index readOffset = readRowPosition * columns + readColumnPosition;
       for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize ) {
          if( readRowPosition + rowBlock < rows )
-            tile[ Cuda::getInterleaving( threadIdx.x * tileDim + threadIdx.y + rowBlock ) ] =
+            tile[ Backend::getInterleaving( threadIdx.x * tileDim + threadIdx.y + rowBlock ) ] =
                inputMatrix( readRowPosition + rowBlock, readColumnPosition );
       }
    }
@@ -390,7 +390,7 @@ DenseTranspositionNonAlignedKernel( OutputMatrix resultMatrix,
       for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize ) {
          if( writeRowPosition + rowBlock < columns )
             resultMatrix( writeRowPosition + rowBlock, writeColumnPosition ) =
-               matrixMultiplicator * tile[ Cuda::getInterleaving( ( threadIdx.y + rowBlock ) * tileDim + threadIdx.x ) ];
+               matrixMultiplicator * tile[ Backend::getInterleaving( ( threadIdx.y + rowBlock ) * tileDim + threadIdx.x ) ];
       }
    }
 #endif
@@ -419,7 +419,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTranspositio
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = tileDim;
       launch_config.blockSize.y = cudaBlockRows;
-      launch_config.dynamicSharedMemorySize = tileDim * tileDim + tileDim * tileDim / Cuda::getNumberOfSharedMemoryBanks();
+      launch_config.dynamicSharedMemorySize = tileDim * tileDim + tileDim * tileDim / Backend::getNumberOfSharedMemoryBanks();
 
       const Index rowTiles = roundUpDivision( this->getRows(), tileDim );
       const Index columnTiles = roundUpDivision( this->getColumns(), tileDim );

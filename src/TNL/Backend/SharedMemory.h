@@ -35,16 +35,17 @@
  * using template class specializations.
  */
 
+#include <climits>
 #include <cstdint>
 
-#include <TNL/Backend/Macros.h>
+#include "Macros.h"
 
-namespace TNL::Cuda {
+namespace TNL::Backend {
 
-#ifdef __CUDACC__
 template< typename T, std::size_t _alignment = CHAR_BIT * sizeof( T ) >
 struct SharedMemory;
 
+#if defined( __CUDACC__ )
 template< typename T >
 struct SharedMemory< T, 8 >
 {
@@ -121,6 +122,85 @@ struct SharedMemory< T, 64 >
    }
 };
 
+#elif defined( __HIP__ )
+
+template< typename T >
+struct SharedMemory< T, 8 >
+{
+   __device__
+   inline
+   operator T*()
+   {
+      HIP_DYNAMIC_SHARED( uint8_t, __smem8 )
+      return reinterpret_cast< T* >( __smem8 );
+   }
+
+   __device__
+   inline operator const T*() const
+   {
+      HIP_DYNAMIC_SHARED( uint8_t, __smem8 )
+      return reinterpret_cast< T* >( __smem8 );
+   }
+};
+
+template< typename T >
+struct SharedMemory< T, 16 >
+{
+   __device__
+   inline
+   operator T*()
+   {
+      HIP_DYNAMIC_SHARED( uint16_t, __smem16 )
+      return reinterpret_cast< T* >( __smem16 );
+   }
+
+   __device__
+   inline operator const T*() const
+   {
+      HIP_DYNAMIC_SHARED( uint16_t, __smem16 )
+      return reinterpret_cast< T* >( __smem16 );
+   }
+};
+
+template< typename T >
+struct SharedMemory< T, 32 >
+{
+   __device__
+   inline
+   operator T*()
+   {
+      HIP_DYNAMIC_SHARED( uint32_t, __smem32 )
+      return reinterpret_cast< T* >( __smem32 );
+   }
+
+   __device__
+   inline operator const T*() const
+   {
+      HIP_DYNAMIC_SHARED( uint32_t, __smem32 )
+      return reinterpret_cast< T* >( __smem32 );
+   }
+};
+
+template< typename T >
+struct SharedMemory< T, 64 >
+{
+   __device__
+   inline
+   operator T*()
+   {
+      HIP_DYNAMIC_SHARED( uint64_t, __smem64 )
+      return reinterpret_cast< T* >( __smem64 );
+   }
+
+   __device__
+   inline operator const T*() const
+   {
+      HIP_DYNAMIC_SHARED( uint64_t, __smem64 )
+      return reinterpret_cast< T* >( __smem64 );
+   }
+};
+#endif
+
 template< typename T >
 __device__
 inline T*
@@ -130,7 +210,6 @@ getSharedMemory()
                   "Requested type has unsupported size." );
    return SharedMemory< T >{};
 }
-#endif
 
 // helper functions for indexing shared memory
 inline constexpr int
@@ -144,7 +223,7 @@ __device__
 Index
 getInterleaving( const Index index )
 {
-   return index + index / Cuda::getNumberOfSharedMemoryBanks();
+   return index + index / getNumberOfSharedMemoryBanks();
 }
 
-}  // namespace TNL::Cuda
+}  // namespace TNL::Backend

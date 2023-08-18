@@ -12,3 +12,4 @@
 #include <TNL/Backend/Stream.h>
 #include <TNL/Backend/StreamPool.h>
 #include <TNL/Backend/DeviceInfo.h>
+#include <TNL/Backend/SharedMemory.h>

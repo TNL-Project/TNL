@@ -17,7 +17,6 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Math.h>
-#include <TNL/Cuda/SharedMemory.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Containers/Vector.h>
 
@@ -248,7 +247,7 @@ GemvCudaKernel( const IndexType m,
    IndexType elementIdx = blockIdx.x * blockDim.x + threadIdx.x;
    const IndexType gridSize = blockDim.x * gridDim.x;
 
-   RealType* shx = Cuda::getSharedMemory< RealType >();
+   RealType* shx = Backend::getSharedMemory< RealType >();
 
    if( threadIdx.x < n )
       shx[ threadIdx.x ] = alpha * x[ threadIdx.x ];

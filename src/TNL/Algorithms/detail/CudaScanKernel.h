@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Cuda/KernelLaunch.h>
-#include <TNL/Cuda/SharedMemory.h>
 #include <TNL/Exceptions/CudaBadAlloc.h>
 #include <TNL/Containers/Array.h>
 #include "ScanType.h"
@@ -31,8 +31,8 @@ struct CudaBlockScan
    // storage to be allocated in shared memory
    struct Storage
    {
-      ValueType
-         chunkResults[ blockSize + blockSize / Cuda::getNumberOfSharedMemoryBanks() ];  // accessed via Cuda::getInterleaving()
+      // accessed via Backend::getInterleaving()
+      ValueType chunkResults[ blockSize + blockSize / Backend::getNumberOfSharedMemoryBanks() ];
       ValueType warpResults[ Cuda::getWarpSize() ];
    };
 
@@ -58,7 +58,7 @@ struct CudaBlockScan
                      "blockSize is too large, it would not be possible to scan warpResults using one warp" );
 
       // store the threadValue in the shared memory
-      const int chunkResultIdx = Cuda::getInterleaving( tid );
+      const int chunkResultIdx = Backend::getInterleaving( tid );
       storage.chunkResults[ chunkResultIdx ] = threadValue;
       __syncthreads();
 
@@ -68,8 +68,8 @@ struct CudaBlockScan
       #pragma unroll
       for( int stride = 1; stride < Cuda::getWarpSize(); stride *= 2 ) {
          if( lane_id >= stride ) {
-            storage.chunkResults[ chunkResultIdx ] = reduction( storage.chunkResults[ chunkResultIdx ],
-                                                                storage.chunkResults[ Cuda::getInterleaving( tid - stride ) ] );
+            storage.chunkResults[ chunkResultIdx ] = reduction(
+               storage.chunkResults[ chunkResultIdx ], storage.chunkResults[ Backend::getInterleaving( tid - stride ) ] );
          }
          __syncwarp();
       }
@@ -98,7 +98,7 @@ struct CudaBlockScan
       if( scanType == ScanType::Exclusive ) {
          storage.chunkResults[ chunkResultIdx ] = threadValue;
          __syncthreads();
-         threadValue = ( tid == 0 ) ? identity : storage.chunkResults[ Cuda::getInterleaving( tid - 1 ) ];
+         threadValue = ( tid == 0 ) ? identity : storage.chunkResults[ Backend::getInterleaving( tid - 1 ) ];
       }
 
       __syncthreads();

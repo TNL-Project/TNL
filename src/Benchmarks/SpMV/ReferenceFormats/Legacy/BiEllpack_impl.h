@@ -1120,7 +1120,7 @@ void BiEllpack< Real, Device, Index >::spmvCuda( const InVector& inVector,
     IndexType bisection = this->warpSize;
     IndexType groupBegin = strip * ( this->logWarpSize + 1 );
 
-    Real* temp = Cuda::getSharedMemory< Real >();
+    Real* temp = Backend::getSharedMemory< Real >();
     __shared__ Real results[ cudaBlockSize ];
     results[ threadIdx.x ] = 0.0;
     IndexType elementPtr = ( this->groupPointers[ groupBegin ] << this->logWarpSize ) + inWarpIdx;

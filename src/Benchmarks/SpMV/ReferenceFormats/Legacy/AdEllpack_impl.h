@@ -1027,7 +1027,7 @@ void AdEllpack< Real, Device, Index >::spmvCuda2( const InVector& inVector,
 	return;
 
     const int blockSize = 256;
-    Real* temp = Cuda::getSharedMemory< Real >();
+    Real* temp = Backend::getSharedMemory< Real >();
     __shared__ IndexType reduceMap[ blockSize ];
     reduceMap[ threadIdx.x ] = this->reduceMap[ globalIdx ];
     temp[ threadIdx.x ] = 0.0;
@@ -1077,7 +1077,7 @@ void AdEllpack< Real, Device, Index >::spmvCuda4( const InVector& inVector,
 	return;
 
     const int blockSize = 192;
-    Real* temp = Cuda::getSharedMemory< Real >();
+    Real* temp = Backend::getSharedMemory< Real >();
     __shared__ IndexType reduceMap[ blockSize ];
     reduceMap[ threadIdx.x ] = this->reduceMap[ globalIdx ];
     temp[ threadIdx.x ] = 0.0;
@@ -1142,7 +1142,7 @@ void AdEllpack< Real, Device, Index >::spmvCuda8( const InVector& inVector,
         return;
 
     const int blockSize = 128;
-    Real* temp = Cuda::getSharedMemory< Real >();
+    Real* temp = Backend::getSharedMemory< Real >();
     __shared__ IndexType reduceMap[ blockSize ];
     reduceMap[ threadIdx.x ] = this->reduceMap[ globalIdx ];
     temp[ threadIdx.x ] = 0.0;
@@ -1220,7 +1220,7 @@ void AdEllpack< Real, Device, Index >::spmvCuda16( const InVector& inVector,
         return;
 
     const int blockSize = 128;
-    Real* temp = Cuda::getSharedMemory< Real >();
+    Real* temp = Backend::getSharedMemory< Real >();
     __shared__ IndexType reduceMap[ blockSize ];
     reduceMap[ threadIdx.x ] = this->reduceMap[ globalIdx ];
     temp[ threadIdx.x ] = 0.0;
@@ -1299,7 +1299,7 @@ void AdEllpack< Real, Device, Index >::spmvCuda32( const InVector& inVector,
 	return;
 
     const int blockSize = 96;
-    Real* temp = Cuda::getSharedMemory< Real >();
+    Real* temp = Backend::getSharedMemory< Real >();
     __shared__ IndexType reduceMap[ blockSize ];
     reduceMap[ threadIdx.x ] = this->reduceMap[ globalIdx ];
     temp[ threadIdx.x ] = 0.0;

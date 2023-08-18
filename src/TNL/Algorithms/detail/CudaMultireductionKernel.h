@@ -11,7 +11,6 @@
 #include <TNL/Math.h>
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Cuda/SharedMemory.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
@@ -28,7 +27,7 @@ CudaMultireductionKernel( const Result identity,
                           const int n,
                           Result* output )
 {
-   Result* sdata = Cuda::getSharedMemory< Result >();
+   Result* sdata = Backend::getSharedMemory< Result >();
 
    // Get the thread id (tid), global thread id (gid) and gridSize.
    const Index tid = threadIdx.y * blockDim.x + threadIdx.x;

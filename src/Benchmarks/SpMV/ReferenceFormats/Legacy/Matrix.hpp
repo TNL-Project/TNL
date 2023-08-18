@@ -8,8 +8,8 @@
 
 #include "Matrix.h"
 #include <TNL/Assert.h>
+#include <TNL/Backend.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Cuda/SharedMemory.h>
 
 namespace TNL::Benchmarks::SpMV::ReferenceFormats::Legacy {
 

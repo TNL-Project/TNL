@@ -7,9 +7,9 @@
 #pragma once
 
 #include <TNL/Assert.h>
+#include <TNL/Backend.h>
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Cuda/SharedMemory.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/BiEllpack.h>
@@ -166,7 +166,7 @@ reduceSegmentsKernel( SegmentsView segments,
       }
    }
    else {
-      ReturnType* temp = Cuda::getSharedMemory< ReturnType >();
+      ReturnType* temp = Backend::getSharedMemory< ReturnType >();
       for( Index group = 0; group < SegmentsView::getLogWarpSize() + 1; group++ ) {
          Index groupBegin = sharedGroupPointers[ sharedGroupOffset + group ];
          Index groupEnd = sharedGroupPointers[ sharedGroupOffset + group + 1 ];

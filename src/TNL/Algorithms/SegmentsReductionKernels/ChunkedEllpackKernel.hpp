@@ -7,9 +7,9 @@
 #pragma once
 
 #include <TNL/Assert.h>
+#include <TNL/Backend.h>
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Cuda/SharedMemory.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
@@ -40,7 +40,7 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
    if( sliceIdx > lastSlice )
       return;
 
-   ReturnType* chunksResults = Cuda::getSharedMemory< ReturnType >();
+   ReturnType* chunksResults = Backend::getSharedMemory< ReturnType >();
    __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
 
    if( threadIdx.x == 0 )

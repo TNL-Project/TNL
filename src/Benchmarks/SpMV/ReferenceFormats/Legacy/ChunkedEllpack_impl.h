@@ -1070,7 +1070,7 @@ __device__ void ChunkedEllpack< Real, Device, Index >::computeSliceVectorProduct
 {
    static_assert( std::is_same < DeviceType, Devices::Cuda >::value, "" );
 
-   RealType* chunkProducts = Cuda::getSharedMemory< RealType >();
+   RealType* chunkProducts = Backend::getSharedMemory< RealType >();
    ChunkedEllpackSliceInfo* sliceInfo = ( ChunkedEllpackSliceInfo* ) & chunkProducts[ blockDim.x ];
 
    if( threadIdx.x == 0 )
