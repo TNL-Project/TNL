@@ -11,7 +11,6 @@
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
-#include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
@@ -494,8 +493,8 @@ struct CudaReductionKernelLauncher
    // However, it seems to be better to map only one CUDA block per multiprocessor,
    // or maybe just slightly more.
    CudaReductionKernelLauncher( const Index begin, const Index end )
-   : activeDevice( Cuda::DeviceInfo::getActiveDevice() ),
-     desGridSize( Cuda::DeviceInfo::getCudaMultiprocessors( activeDevice ) ), begin( begin ), end( end )
+   : activeDevice( Backend::getActiveDevice() ), desGridSize( Backend::getDeviceMultiprocessors( activeDevice ) ),
+     begin( begin ), end( end )
    {}
 
    template< typename DataFetcher, typename Reduction >

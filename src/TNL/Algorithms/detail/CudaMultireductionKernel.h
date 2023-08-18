@@ -7,8 +7,8 @@
 #pragma once
 
 #include <TNL/Assert.h>
+#include <TNL/Backend.h>
 #include <TNL/Math.h>
-#include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Cuda/SharedMemory.h>
@@ -138,8 +138,8 @@ CudaMultireductionKernelLauncher( const Result identity,
    // according to the number of available registers on the multiprocessor.
    // However, it seems to be better to map only one CUDA block per multiprocessor,
    // or maybe just slightly more.
-   const int activeDevice = Cuda::DeviceInfo::getActiveDevice();
-   const int desGridSizeX = Cuda::DeviceInfo::getCudaMultiprocessors( activeDevice );
+   const int activeDevice = Backend::getActiveDevice();
+   const int desGridSizeX = Backend::getDeviceMultiprocessors( activeDevice );
    Cuda::LaunchConfiguration launch_config;
 
    // version A: max 16 rows of threads

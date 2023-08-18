@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include <TNL/Backend.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Math.h>
@@ -97,7 +97,7 @@ struct ParallelFor1D< Devices::Cuda >
       }
       else {
          // decrease the grid size and align to the number of multiprocessors
-         const int desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
+         const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getActiveDevice() );
          launch_config.gridSize.x = TNL::min( desGridSize, Cuda::getNumberOfBlocks( end - begin, launch_config.blockSize.x ) );
          constexpr auto kernel = ParallelFor1DKernel< true, Index, Function, FunctionArgs... >;
          Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );

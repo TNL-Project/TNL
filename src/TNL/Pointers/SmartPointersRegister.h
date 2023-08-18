@@ -11,7 +11,7 @@
 
 #include <TNL/Pointers/SmartPointer.h>
 #include <TNL/Timer.h>
-#include <TNL/Cuda/DeviceInfo.h>
+#include <TNL/Backend.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 
@@ -28,26 +28,26 @@ class SmartPointersRegister
 {
 public:
    /**
-    * Negative deviceId means that \ref TNL::Cuda::DeviceInfo::getActiveDevice
+    * Negative deviceId means that \ref TNL::Backend::getActiveDevice
     * will be called to get the device ID.
     */
    void
    insert( SmartPointer* pointer, int deviceId = -1 )
    {
       if( deviceId < 0 )
-         deviceId = Cuda::DeviceInfo::getActiveDevice();
+         deviceId = Backend::getActiveDevice();
       pointersOnDevices[ deviceId ].insert( pointer );
    }
 
    /**
-    * Negative deviceId means that \ref TNL::Cuda::DeviceInfo::getActiveDevice
+    * Negative deviceId means that \ref TNL::Backend::getActiveDevice
     * will be called to get the device ID.
     */
    void
    remove( SmartPointer* pointer, int deviceId = -1 )
    {
       if( deviceId < 0 )
-         deviceId = Cuda::DeviceInfo::getActiveDevice();
+         deviceId = Backend::getActiveDevice();
       try {
          pointersOnDevices.at( deviceId ).erase( pointer );
       }
@@ -60,14 +60,14 @@ public:
    }
 
    /**
-    * Negative deviceId means that \ref TNL::Cuda::DeviceInfo::getActiveDevice
+    * Negative deviceId means that \ref TNL::Backend::getActiveDevice
     * will be called to get the device ID.
     */
    bool
    synchronizeDevice( int deviceId = -1 )
    {
       if( deviceId < 0 )
-         deviceId = Cuda::DeviceInfo::getActiveDevice();
+         deviceId = Backend::getActiveDevice();
       try {
          const auto& set = pointersOnDevices.at( deviceId );
          for( auto&& it : set )

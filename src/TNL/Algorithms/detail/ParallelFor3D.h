@@ -9,7 +9,6 @@
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Math.h>

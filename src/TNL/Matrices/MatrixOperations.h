@@ -13,11 +13,10 @@
 
 #include <memory>  // std::unique_ptr
 
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Backend.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Math.h>
-#include <TNL/Cuda/DeviceInfo.h>
 #include <TNL/Cuda/SharedMemory.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Containers/Vector.h>
@@ -346,7 +345,7 @@ public:
       Algorithms::copy< Devices::Cuda, Devices::Host >( xDevice.getData(), x, n );
 
       // desGridSize = blocksPerMultiprocessor * numberOfMultiprocessors
-      const int desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
+      const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getActiveDevice() );
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       launch_config.gridSize.x = min( desGridSize, Cuda::getNumberOfBlocks( m, launch_config.blockSize.x ) );
@@ -401,7 +400,7 @@ public:
          launch_config.blockSize.x /= 2;
 
       // desGridSize = blocksPerMultiprocessor * numberOfMultiprocessors
-      const int desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
+      const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getActiveDevice() );
       launch_config.gridSize.x = min( desGridSize, Cuda::getNumberOfBlocks( m, launch_config.blockSize.x ) );
       launch_config.gridSize.y = Cuda::getNumberOfBlocks( n, launch_config.blockSize.y );
 
