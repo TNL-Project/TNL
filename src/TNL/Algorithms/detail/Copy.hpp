@@ -13,7 +13,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
 
 #include "Copy.h"
 
@@ -150,7 +150,7 @@ Copy< DeviceType, Devices::Cuda >::copy( DestinationElement* destination, const 
       }
    }
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -189,7 +189,7 @@ Copy< Devices::Cuda, DeviceType >::copy( DestinationElement* destination, const 
       }
    }
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 

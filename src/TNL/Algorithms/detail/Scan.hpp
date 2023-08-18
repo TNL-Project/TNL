@@ -15,7 +15,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Algorithms/reduce.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
 
 namespace TNL::Algorithms::detail {
 
@@ -322,7 +322,7 @@ Scan< Devices::Cuda, Type, PhaseType >::perform( const InputArray& input,
    detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::perform(
       input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -347,7 +347,7 @@ Scan< Devices::Cuda, Type, PhaseType >::performFirstPhase( const InputArray& inp
    return detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performFirstPhase(
       input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -371,7 +371,7 @@ Scan< Devices::Cuda, Type, PhaseType >::performSecondPhase( const InputArray& in
    detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performSecondPhase(
       input, output, blockShifts, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, shift );
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 

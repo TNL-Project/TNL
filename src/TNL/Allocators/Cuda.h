@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <TNL/Exceptions/CudaBadAlloc.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Exceptions/BackendBadAlloc.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
 #include <TNL/Backend/Macros.h>
 
 namespace TNL::Allocators {
@@ -63,11 +63,11 @@ struct Cuda
       TNL_CHECK_CUDA_DEVICE;
       value_type* result = nullptr;
       if( cudaMalloc( (void**) &result, n * sizeof( value_type ) ) != cudaSuccess )
-         throw Exceptions::CudaBadAlloc();
+         throw Exceptions::BackendBadAlloc();
       TNL_CHECK_CUDA_DEVICE;
       return result;
 #else
-      throw Exceptions::CudaSupportMissing();
+      throw Exceptions::BackendSupportMissing();
 #endif
    }
 
@@ -79,7 +79,7 @@ struct Cuda
       cudaFree( (void*) ptr );
       TNL_CHECK_CUDA_DEVICE;
 #else
-      throw Exceptions::CudaSupportMissing();
+      throw Exceptions::BackendSupportMissing();
 #endif
    }
 };

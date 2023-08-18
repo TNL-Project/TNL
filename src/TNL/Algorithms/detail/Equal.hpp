@@ -9,7 +9,7 @@
 #include <algorithm>  // std::equal
 
 #include <TNL/Algorithms/reduce.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
 
 #include "Equal.h"
 
@@ -99,7 +99,7 @@ Equal< DeviceType, Devices::Cuda >::equal( const Element1* destination, const El
    }
    return true;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 

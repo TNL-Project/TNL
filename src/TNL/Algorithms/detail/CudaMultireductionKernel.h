@@ -10,7 +10,7 @@
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
 
 namespace TNL::Algorithms::detail {
 
@@ -302,7 +302,7 @@ CudaMultireductionKernelLauncher( const Result identity,
    // return the size of the output array on the CUDA device
    return launch_config.gridSize.x;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 

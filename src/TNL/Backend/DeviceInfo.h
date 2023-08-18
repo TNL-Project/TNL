@@ -10,7 +10,7 @@
 #include <unordered_map>
 
 #include "Macros.h"
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
 
 namespace TNL::Backend {
 
@@ -26,7 +26,7 @@ getNumberOfDevices()
    TNL_BACKEND_SAFE_CALL( hipGetDeviceCount( &devices ) );
    return devices;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -43,7 +43,7 @@ getActiveDevice()
    TNL_BACKEND_SAFE_CALL( hipGetDevice( &device ) );
    return device;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -59,7 +59,7 @@ getDeviceName( int deviceNum )
    TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
    return properties.name;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -75,7 +75,7 @@ getArchitectureMajor( int deviceNum )
    TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
    return properties.major;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -91,7 +91,7 @@ getArchitectureMinor( int deviceNum )
    TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
    return properties.minor;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -107,7 +107,7 @@ getClockRate( int deviceNum )
    TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
    return properties.clockRate;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -123,7 +123,7 @@ getGlobalMemorySize( int deviceNum )
    TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
    return properties.totalGlobalMem;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -141,7 +141,7 @@ getFreeGlobalMemory()
    TNL_BACKEND_SAFE_CALL( hipMemGetInfo( &free, &total ) );
    return free;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -157,7 +157,7 @@ getMemoryClockRate( int deviceNum )
    TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
    return properties.memoryClockRate;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -173,7 +173,7 @@ getECCEnabled( int deviceNum )
    TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
    return properties.ECCEnabled;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -196,7 +196,7 @@ getDeviceMultiprocessors( int deviceNum )
    }
    return results[ deviceNum ];
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -251,7 +251,7 @@ getDeviceCoresPerMultiprocessors( int deviceNum )
    // 64 taken from https://en.wikipedia.org/wiki/Graphics_Core_Next#Compute_units
    return 64;
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -278,7 +278,7 @@ getRegistersPerMultiprocessor( int deviceNum )
    // TODO: regsPerMultiprocessor is not part of hipDeviceProp_t yet.
    throw std::runtime_error( "HIP cannot detect number of registers per multiprocessor." );
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 

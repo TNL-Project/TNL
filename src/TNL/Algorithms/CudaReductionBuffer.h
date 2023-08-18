@@ -7,8 +7,8 @@
 #pragma once
 
 #include <TNL/Backend/Macros.h>
-#include <TNL/Exceptions/CudaBadAlloc.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Exceptions/BackendBadAlloc.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
 
 namespace TNL::Algorithms {
 
@@ -33,12 +33,12 @@ public:
          this->reset();
          if( cudaMalloc( (void**) &this->data, size ) != cudaSuccess ) {
             this->data = 0;
-            throw Exceptions::CudaBadAlloc();
+            throw Exceptions::BackendBadAlloc();
          }
          this->size = size;
       }
 #else
-      throw Exceptions::CudaSupportMissing();
+      throw Exceptions::BackendSupportMissing();
 #endif
    }
 

@@ -10,16 +10,19 @@
 
 #include "Types.h"
 
-#include <TNL/Exceptions/CudaRuntimeError.h>
+#include <TNL/Exceptions/BackendRuntimeError.h>
 
 namespace TNL::Backend {
 
 inline void
 checkErrorCode( const char* file_name, int line, error_t error )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    if( error != cudaSuccess )
-      throw Exceptions::CudaRuntimeError( error, file_name, line );
+      throw Exceptions::BackendRuntimeError( error, file_name, line );
+#elif defined( __HIP__ )
+   if( error != hipSuccess )
+      throw Exceptions::BackendRuntimeError( error, file_name, line );
 #endif
 }
 

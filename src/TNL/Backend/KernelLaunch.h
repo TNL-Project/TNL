@@ -8,8 +8,8 @@
 
 #include "Types.h"
 #include "Functions.h"
-#include <TNL/Exceptions/CudaRuntimeError.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Exceptions/BackendRuntimeError.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
 #include <TNL/TypeInfo.h>
 
 namespace TNL::Backend {
@@ -102,18 +102,18 @@ launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuratio
    if( status != cudaSuccess ) {
       std::string msg = "detected after launching kernel " + TNL::getType( kernel_function ) + "\nSource: line "
                       + std::to_string( __LINE__ ) + " in " + __FILE__;
-      throw Exceptions::CudaRuntimeError( status, msg );
+      throw Exceptions::BackendRuntimeError( status, msg );
    }
    #elif defined( __HIP__ )
    const Backend::error_t status = hipGetLastError();
    if( status != hipSuccess ) {
       std::string msg = "detected after launching kernel " + TNL::getType( kernel_function ) + "\nSource: line "
                       + std::to_string( __LINE__ ) + " in " + __FILE__;
-      throw Exceptions::CudaRuntimeError( status, msg );
+      throw Exceptions::BackendRuntimeError( status, msg );
    }
    #endif
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 

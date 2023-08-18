@@ -13,7 +13,6 @@
 #include <TNL/Math.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
 
 namespace TNL::Algorithms::detail {
 

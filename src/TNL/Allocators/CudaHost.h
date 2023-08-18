@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <TNL/Exceptions/CudaBadAlloc.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Exceptions/BackendBadAlloc.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
 #include <TNL/Backend/Macros.h>
 
 namespace TNL::Allocators {
@@ -71,11 +71,11 @@ struct CudaHost
       // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1gc00502b44e5f1bdc0b424487ebb08db0
       if( cudaMallocHost( (void**) &result, n * sizeof( value_type ), cudaHostAllocPortable | cudaHostAllocMapped )
           != cudaSuccess )
-         throw Exceptions::CudaBadAlloc();
+         throw Exceptions::BackendBadAlloc();
       TNL_CHECK_CUDA_DEVICE;
       return result;
 #else
-      throw Exceptions::CudaSupportMissing();
+      throw Exceptions::BackendSupportMissing();
 #endif
    }
 
@@ -87,7 +87,7 @@ struct CudaHost
       cudaFreeHost( (void*) ptr );
       TNL_CHECK_CUDA_DEVICE;
 #else
-      throw Exceptions::CudaSupportMissing();
+      throw Exceptions::BackendSupportMissing();
 #endif
    }
 };

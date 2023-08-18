@@ -14,7 +14,7 @@
 #include <TNL/File.h>
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
 #include <TNL/Exceptions/FileSerializationError.h>
 #include <TNL/Exceptions/FileDeserializationError.h>
 #include <TNL/Exceptions/NotImplementedError.h>
@@ -144,7 +144,7 @@ File::load_impl( Type* buffer, std::streamsize elements )
       }
    }
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -223,7 +223,7 @@ File::save_impl( const Type* buffer, std::streamsize elements )
       }
    }
 #else
-   throw Exceptions::CudaSupportMissing();
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 

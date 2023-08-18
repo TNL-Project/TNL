@@ -4,7 +4,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Backend/Macros.h>
-#include <TNL/Exceptions/CudaRuntimeError.h>
+#include <TNL/Exceptions/BackendRuntimeError.h>
 
 #include <gtest/gtest.h>
 
@@ -61,7 +61,7 @@ TEST( AssertCudaTest, suffix )                                                  
       EXPECT_EQ( output_host, 1 );                                                    \
    }                                                                                  \
    else                                                                               \
-      EXPECT_THROW( TNL_CHECK_CUDA_DEVICE;, TNL::Exceptions::CudaRuntimeError );      \
+      EXPECT_THROW( TNL_CHECK_CUDA_DEVICE;, TNL::Exceptions::BackendRuntimeError );   \
 }
 // clang-format on
 

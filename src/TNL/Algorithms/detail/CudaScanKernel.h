@@ -8,7 +8,6 @@
 
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
-#include <TNL/Exceptions/CudaBadAlloc.h>
 #include <TNL/Containers/Array.h>
 #include "ScanType.h"
 
