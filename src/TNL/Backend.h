@@ -14,3 +14,4 @@
 #include <TNL/Backend/DeviceInfo.h>
 #include <TNL/Backend/SharedMemory.h>
 #include <TNL/Backend/LaunchHelpers.h>
+#include <TNL/Backend/KernelLaunch.h>

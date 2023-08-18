@@ -8,7 +8,6 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
@@ -191,7 +190,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
       }
    }
    if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
-      Devices::Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
       //  TODO: This ignores parameters begin and end
       const IndexType cudaBlocks = segments.getNumberOfSlices();
@@ -206,7 +205,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
          using ConstSegmentsView = typename SegmentsView::ConstViewType;
          constexpr auto kernel =
             ChunkedEllpackReduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
-         Cuda::launchKernelAsync(
+         Backend::launchKernelAsync(
             kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
       }
       Backend::streamSynchronize( launch_config.stream );

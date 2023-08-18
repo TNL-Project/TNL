@@ -465,7 +465,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
 
    // specialization for the case where we can use the CUDA shared memory
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > && Organization == Algorithms::Segments::ColumnMajorOrder ) {
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       constexpr int ThreadsPerRow = 1;
       const std::size_t threadsCount = ( end - begin ) * ThreadsPerRow;
@@ -478,16 +478,16 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
          constexpr auto kernel = ColumnMajorDenseMatrixVectorMultiplicationKernel< DenseMatrixBase,
                                                                                    decltype( inVectorView ),
                                                                                    decltype( outVectorView ) >;
-         Cuda::launchKernelAsync( kernel,
-                                  launch_config,
-                                  *this,
-                                  inVectorView,
-                                  outVectorView,
-                                  begin,
-                                  end,
-                                  gridIdx,
-                                  matrixMultiplicator,
-                                  outVectorMultiplicator );
+         Backend::launchKernelAsync( kernel,
+                                     launch_config,
+                                     *this,
+                                     inVectorView,
+                                     outVectorView,
+                                     begin,
+                                     end,
+                                     gridIdx,
+                                     matrixMultiplicator,
+                                     outVectorMultiplicator );
       }
       Backend::streamSynchronize( launch_config.stream );
       return;

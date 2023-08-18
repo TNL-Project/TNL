@@ -10,7 +10,6 @@
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Math.h>
 
 namespace TNL::Algorithms::detail {
@@ -140,11 +139,11 @@ struct ParallelFor2D< Devices::Cuda >
 
       if( gridCount.x == 1 && gridCount.y == 1 ) {
          constexpr auto kernel = ParallelFor2DKernel< false, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
+         Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else {
          constexpr auto kernel = ParallelFor2DKernel< true, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
+         Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
    }
 };

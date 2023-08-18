@@ -259,7 +259,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
    if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       constexpr Index matrixProductCudaBlockSize = 256;
       constexpr Index cudaBlockRows = matrixProductCudaBlockSize / tileDim;
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = tileDim;
       launch_config.blockSize.y = cudaBlockRows;
       launch_config.dynamicSharedMemorySize = 3 * tileDim * tileDim;
@@ -283,14 +283,14 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
                                                               ViewType,
                                                               typename Matrix1::ConstViewType,
                                                               typename Matrix2::ConstViewType >;
-            Cuda::launchKernelAsync( kernel,
-                                     launch_config,
-                                     getView(),
-                                     matrix1.getConstView(),
-                                     matrix2.getConstView(),
-                                     matrixMultiplicator,
-                                     gridIdx_x,
-                                     gridIdx_y );
+            Backend::launchKernelAsync( kernel,
+                                        launch_config,
+                                        getView(),
+                                        matrix1.getConstView(),
+                                        matrix2.getConstView(),
+                                        matrixMultiplicator,
+                                        gridIdx_x,
+                                        gridIdx_y );
          }
       Backend::streamSynchronize( launch_config.stream );
    }
@@ -416,7 +416,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTranspositio
    if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       constexpr Index matrixProductCudaBlockSize = 256;
       constexpr Index cudaBlockRows = matrixProductCudaBlockSize / tileDim;
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = tileDim;
       launch_config.blockSize.y = cudaBlockRows;
       launch_config.dynamicSharedMemorySize = tileDim * tileDim + tileDim * tileDim / Backend::getNumberOfSharedMemoryBanks();
@@ -444,7 +444,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTranspositio
                                                                         typename Matrix::ConstViewType,
                                                                         Real,
                                                                         Index >;
-               Cuda::launchKernelAsync(
+               Backend::launchKernelAsync(
                   kernel, launch_config, getView(), matrix.getConstView(), matrixMultiplicator, gridIdx_x, gridIdx_y );
             }
             else {
@@ -454,7 +454,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTranspositio
                                                                            typename Matrix::ConstViewType,
                                                                            Real,
                                                                            Index >;
-               Cuda::launchKernelAsync(
+               Backend::launchKernelAsync(
                   kernel, launch_config, getView(), matrix.getConstView(), matrixMultiplicator, gridIdx_x, gridIdx_y );
             }
          }

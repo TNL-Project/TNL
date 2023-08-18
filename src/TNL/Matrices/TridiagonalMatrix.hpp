@@ -160,7 +160,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getTransp
       }
    }
    if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       launch_config.gridSize.x = Backend::getMaxGridXSize();
       const Index cudaBlocks = roundUpDivision( matrix.getRows(), launch_config.blockSize.x );
@@ -170,7 +170,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getTransp
             launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
          constexpr auto kernel =
             TridiagonalMatrixTranspositionCudaKernel< decltype( matrix.getConstView() ), ViewType, Real, Index >;
-         Cuda::launchKernelAsync( kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, gridIdx );
+         Backend::launchKernelAsync( kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, gridIdx );
       }
       Backend::streamSynchronize( launch_config.stream );
    }

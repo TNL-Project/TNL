@@ -467,7 +467,7 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       if( end <= begin )
          return;
 
-      Devices::Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 128;
 
       std::size_t neededThreads = threadsPerSegment * ( end - begin );
@@ -487,37 +487,37 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
 
          if( threadsPerSegment == 1 ) {
             constexpr auto kernel = SpMVCSRVector< 1, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 2 ) {
             constexpr auto kernel = SpMVCSRVector< 2, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 4 ) {
             constexpr auto kernel = SpMVCSRVector< 4, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 8 ) {
             constexpr auto kernel = SpMVCSRVector< 8, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 16 ) {
             constexpr auto kernel = SpMVCSRVector< 16, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 32 ) {
             constexpr auto kernel = SpMVCSRVector< 32, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Cuda::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 64 ) {  // Execute CSR MultiVector
             constexpr auto kernel =
                reduceSegmentsCSRLightMultivectorKernel< 128, 64, OffsetsView, Index, Fetch, Reduction, Keep, Value >;
-            Cuda::launchKernelAsync( kernel, launch_config, grid, offsets, begin, end, fetch, reduction, keep, identity );
+            Backend::launchKernelAsync( kernel, launch_config, grid, offsets, begin, end, fetch, reduction, keep, identity );
          }
          if( threadsPerSegment >= 128 ) {  // Execute CSR MultiVector
             constexpr auto kernel =
                reduceSegmentsCSRLightMultivectorKernel< 128, 128, OffsetsView, Index, Fetch, Reduction, Keep, Value >;
-            Cuda::launchKernelAsync( kernel, launch_config, grid, offsets, begin, end, fetch, reduction, keep, identity );
+            Backend::launchKernelAsync( kernel, launch_config, grid, offsets, begin, end, fetch, reduction, keep, identity );
          }
 
          /*if (threadsPerSegment == 2)

@@ -11,7 +11,6 @@
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
@@ -606,7 +605,7 @@ protected:
            Result* output )
    {
       const Index size = end - begin;
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = maxThreadsPerBlock;
       launch_config.gridSize.x = TNL::min( Backend::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSize );
       // shared memory is allocated statically inside the kernel
@@ -615,14 +614,14 @@ protected:
       if( launch_config.blockSize.x == maxThreadsPerBlock ) {
          Backend::funcSetCacheConfig( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
                                       Backend::FuncCachePreferShared );
-         Cuda::launchKernelSync( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                 launch_config,
-                                 dataFetcher,
-                                 reduction,
-                                 identity,
-                                 begin,
-                                 end,
-                                 output );
+         Backend::launchKernelSync( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
+                                    launch_config,
+                                    dataFetcher,
+                                    reduction,
+                                    identity,
+                                    begin,
+                                    end,
+                                    output );
       }
       else {
          throw std::runtime_error( "Block size was expected to be " + std::to_string( maxThreadsPerBlock ) + ", but "
@@ -645,7 +644,7 @@ protected:
                        const Index* idxInput )
    {
       const Index size = end - begin;
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = maxThreadsPerBlock;
       launch_config.gridSize.x = TNL::min( Backend::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSize );
       // shared memory is allocated statically inside the kernel
@@ -655,16 +654,17 @@ protected:
          Backend::funcSetCacheConfig(
             CudaReductionWithArgumentKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
             Backend::FuncCachePreferShared );
-         Cuda::launchKernelSync( CudaReductionWithArgumentKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                 launch_config,
-                                 dataFetcher,
-                                 reduction,
-                                 identity,
-                                 begin,
-                                 end,
-                                 output,
-                                 idxOutput,
-                                 idxInput );
+         Backend::launchKernelSync(
+            CudaReductionWithArgumentKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
+            launch_config,
+            dataFetcher,
+            reduction,
+            identity,
+            begin,
+            end,
+            output,
+            idxOutput,
+            idxInput );
       }
       else {
          throw std::runtime_error( "Block size was expected to be " + std::to_string( maxThreadsPerBlock ) + ", but "

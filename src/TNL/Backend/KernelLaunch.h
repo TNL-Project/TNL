@@ -6,31 +6,33 @@
 
 #pragma once
 
-#include <TNL/Backend.h>
+#include "Types.h"
+#include "Functions.h"
+#include <TNL/Exceptions/CudaRuntimeError.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 #include <TNL/TypeInfo.h>
 
-namespace TNL::Cuda {
+namespace TNL::Backend {
 
 /**
- * Holds the parameters necessary to "launch" a CUDA kernel (i.e. schedule it for
- * execution on some stream of some device).
+ * \brief Holds the parameters necessary to \e launch a CUDA or HIP kernel
+ * (i.e. schedule it for execution on some stream of some device).
  */
 struct LaunchConfiguration
 {
-   // kernel grid dimensions (in blocks)
+   //! \brief kernel grid dimensions (in blocks)
    dim3 gridSize;
 
-   // kernel block dimensions (in threads)
+   //! \brief kernel block dimensions (in threads)
    dim3 blockSize;
 
-   // size of dynamic shared memory (in bytes per block)
+   //! \brief size of dynamic shared memory (in bytes per block)
    std::size_t dynamicSharedMemorySize = 0U;
 
-   // stream handle
+   //! \brief stream handle
    Backend::stream_t stream = 0;
 
-   // indicates whether host execution is blocked until the CUDA kernel execution is finished
+   //! \brief indicates whether host execution is blocked until the kernel execution is finished
    bool blockHostUntilFinished = true;
 
    LaunchConfiguration() = default;
@@ -78,7 +80,7 @@ launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuratio
    // clang-format on
 #endif
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    // FIXME: clang-format 13.0.0 is still inserting spaces between "<<<" and ">>>":
    // https://github.com/llvm/llvm-project/issues/52881
    // clang-format off
@@ -91,16 +93,25 @@ launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuratio
    // clang-format on
 
    if( launch_configuration.blockHostUntilFinished )
-      Backend::StreamSynchronize( launch_configuration.stream );
+      Backend::streamSynchronize( launch_configuration.stream );
 
    // use custom error handling instead of TNL_CHECK_CUDA_DEVICE
    // to add the kernel function type to the error message
+   #if defined( __CUDACC__ )
    const Backend::error_t status = cudaGetLastError();
    if( status != cudaSuccess ) {
       std::string msg = "detected after launching kernel " + TNL::getType( kernel_function ) + "\nSource: line "
                       + std::to_string( __LINE__ ) + " in " + __FILE__;
       throw Exceptions::CudaRuntimeError( status, msg );
    }
+   #elif defined( __HIP__ )
+   const Backend::error_t status = hipGetLastError();
+   if( status != hipSuccess ) {
+      std::string msg = "detected after launching kernel " + TNL::getType( kernel_function ) + "\nSource: line "
+                      + std::to_string( __LINE__ ) + " in " + __FILE__;
+      throw Exceptions::CudaRuntimeError( status, msg );
+   }
+   #endif
 #else
    throw Exceptions::CudaSupportMissing();
 #endif
@@ -122,4 +133,4 @@ launchKernelAsync( RawKernel kernel_function, LaunchConfiguration launch_configu
    launchKernel( kernel_function, launch_configuration, std::forward< KernelParameters >( parameters )... );
 }
 
-}  // namespace TNL::Cuda
+}  // namespace TNL::Backend

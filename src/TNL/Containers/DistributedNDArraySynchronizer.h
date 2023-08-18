@@ -564,7 +564,7 @@ protected:
    {}
 
    static void
-   setCudaStream( Devices::Cuda::LaunchConfiguration& launch_config, Backend::stream_t stream )
+   setCudaStream( Backend::LaunchConfiguration& launch_config, Backend::stream_t stream )
    {
       launch_config.stream = stream;
       launch_config.blockHostUntilFinished = false;

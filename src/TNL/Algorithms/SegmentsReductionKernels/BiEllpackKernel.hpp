@@ -8,7 +8,6 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/BiEllpack.h>
@@ -351,7 +350,7 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       }
    }
    if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
-      Devices::Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       constexpr int BlockDim = 256;
       launch_config.blockSize.x = BlockDim;
       const IndexType stripsCount = roundUpDivision( end - begin, SegmentsView::getWarpSize() );
@@ -367,7 +366,7 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          using ConstSegmentsView = typename SegmentsView::ConstViewType;
          constexpr auto kernel =
             BiEllpackreduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value, BlockDim >;
-         Cuda::launchKernelAsync(
+         Backend::launchKernelAsync(
             kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
       }
       Backend::streamSynchronize( launch_config.stream );

@@ -200,7 +200,7 @@ Quicksorter< Value, Devices::Cuda >::firstPhase( const CMP& Cmp )
 
       auto& task = iteration % 2 == 0 ? cuda_tasks : cuda_newTasks;
 
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = threadsPerBlock;
       launch_config.gridSize.x = blocksCnt;
       launch_config.dynamicSharedMemorySize = elemPerBlock * sizeof( Value ) + sizeof( Value );  // elems + 1 for pivot
@@ -213,12 +213,12 @@ Quicksorter< Value, Devices::Cuda >::firstPhase( const CMP& Cmp )
        * */
       if( launch_config.dynamicSharedMemorySize <= maxSharable ) {
          constexpr auto kernel = cudaQuickSort1stPhase< Value, CMP, true >;
-         Cuda::launchKernelSync( kernel, launch_config, arr, aux, Cmp, elemPerBlock, task, cuda_blockToTaskMapping );
+         Backend::launchKernelSync( kernel, launch_config, arr, aux, Cmp, elemPerBlock, task, cuda_blockToTaskMapping );
       }
       else {
          launch_config.dynamicSharedMemorySize = sizeof( Value );
          constexpr auto kernel = cudaQuickSort1stPhase< Value, CMP, false >;
-         Cuda::launchKernelSync( kernel, launch_config, arr, aux, Cmp, elemPerBlock, task, cuda_blockToTaskMapping );
+         Backend::launchKernelSync( kernel, launch_config, arr, aux, Cmp, elemPerBlock, task, cuda_blockToTaskMapping );
       }
 
       /**
@@ -233,16 +233,16 @@ Quicksorter< Value, Devices::Cuda >::firstPhase( const CMP& Cmp )
       launch_config.gridSize.x = host_1stPhaseTasksAmount;
       launch_config.dynamicSharedMemorySize = sizeof( Value );
       constexpr auto kernel = cudaWritePivot< Value >;
-      Cuda::launchKernelSync( kernel,
-                              launch_config,
-                              arr,
-                              aux,
-                              desired_2ndPhasElemPerBlock,
-                              task,
-                              newTask,
-                              cuda_newTasksAmount.getData(),
-                              cuda_2ndPhaseTasks,
-                              cuda_2ndPhaseTasksAmount.getData() );
+      Backend::launchKernelSync( kernel,
+                                 launch_config,
+                                 arr,
+                                 aux,
+                                 desired_2ndPhasElemPerBlock,
+                                 task,
+                                 newTask,
+                                 cuda_newTasksAmount.getData(),
+                                 cuda_2ndPhaseTasks,
+                                 cuda_2ndPhaseTasksAmount.getData() );
 
       //----------------------------------------
 
@@ -256,7 +256,7 @@ template< typename CMP >
 void
 Quicksorter< Value, Devices::Cuda >::secondPhase( const CMP& Cmp )
 {
-   Cuda::LaunchConfiguration launch_config;
+   Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = threadsPerBlock;
    launch_config.gridSize.x = host_1stPhaseTasksAmount + host_2ndPhaseTasksAmount;
    constexpr int stackSize = 32;
@@ -275,17 +275,18 @@ Quicksorter< Value, Devices::Cuda >::secondPhase( const CMP& Cmp )
       auto tasks2 = cuda_2ndPhaseTasks.getView( 0, host_2ndPhaseTasksAmount );
 
       constexpr auto kernel = cudaQuickSort2ndPhase2< Value, CMP, stackSize >;
-      Cuda::launchKernelSync( kernel, launch_config, arr, aux, Cmp, tasks, tasks2, elemInShared, desired_2ndPhasElemPerBlock );
+      Backend::launchKernelSync(
+         kernel, launch_config, arr, aux, Cmp, tasks, tasks2, elemInShared, desired_2ndPhasElemPerBlock );
    }
    else if( host_1stPhaseTasksAmount > 0 ) {
       auto tasks = leftoverTasks.getView( 0, host_1stPhaseTasksAmount );
       constexpr auto kernel = cudaQuickSort2ndPhase< Value, CMP, stackSize >;
-      Cuda::launchKernelSync( kernel, launch_config, arr, aux, Cmp, tasks, elemInShared, desired_2ndPhasElemPerBlock );
+      Backend::launchKernelSync( kernel, launch_config, arr, aux, Cmp, tasks, elemInShared, desired_2ndPhasElemPerBlock );
    }
    else {
       auto tasks2 = cuda_2ndPhaseTasks.getView( 0, host_2ndPhaseTasksAmount );
       constexpr auto kernel = cudaQuickSort2ndPhase< Value, CMP, stackSize >;
-      Cuda::launchKernelSync( kernel, launch_config, arr, aux, Cmp, tasks2, elemInShared, desired_2ndPhasElemPerBlock );
+      Backend::launchKernelSync( kernel, launch_config, arr, aux, Cmp, tasks2, elemInShared, desired_2ndPhasElemPerBlock );
    }
 }
 
@@ -364,10 +365,10 @@ Quicksorter< Value, Devices::Cuda >::initTasks( int elemPerBlock, const CMP& Cmp
       return blocksNeeded;
 
    //--------------------------------------------------------
-   Cuda::LaunchConfiguration launch_config;
+   Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = threadsPerBlock;
    launch_config.gridSize.x = host_1stPhaseTasksAmount;
-   Cuda::launchKernelSync(
+   Backend::launchKernelSync(
       cudaInitTask< Value, CMP >,
       launch_config,
       tasks.getView( 0, host_1stPhaseTasksAmount ),                      // task to read from

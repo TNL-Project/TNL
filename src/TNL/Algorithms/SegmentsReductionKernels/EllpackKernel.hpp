@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Backend.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
@@ -120,11 +119,11 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          const Index segmentsCount = end - begin;
          const Index threadsCount = segmentsCount * 32;
          const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
-         Cuda::LaunchConfiguration launch_config;
+         Backend::LaunchConfiguration launch_config;
          launch_config.blockSize.x = 256;
          launch_config.gridSize.x = blocksCount;
          constexpr auto kernel = EllpackCudaReductionKernel< IndexType, Fetch, Reduction, ResultKeeper, ReturnType >;
-         Cuda::launchKernelSync( kernel, launch_config, begin, end, fetch, reduction, keeper, identity, segmentSize );
+         Backend::launchKernelSync( kernel, launch_config, begin, end, fetch, reduction, keeper, identity, segmentSize );
       }
       else {
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable

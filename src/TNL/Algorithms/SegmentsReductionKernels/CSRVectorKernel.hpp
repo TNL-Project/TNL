@@ -7,7 +7,6 @@
 #pragma once
 
 #include <TNL/Assert.h>
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Backend.h>
 
 #include "CSRScalarKernel.h"
@@ -123,7 +122,7 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
 
       const Index warpsCount = end - begin;
       const std::size_t threadsCount = warpsCount * Backend::getWarpSize();
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;
       dim3 gridsCount;
@@ -131,7 +130,7 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
          constexpr auto kernel = reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
-         Cuda::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+         Backend::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
       }
       Backend::streamSynchronize( launch_config.stream );
    }

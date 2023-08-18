@@ -178,7 +178,7 @@ bitonicSortWithShared( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > v
                        int sharedMemLen,
                        int sharedMemSize )
 {
-   Cuda::LaunchConfiguration launch_config;
+   Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = blockDim;
    launch_config.gridSize.x = gridDim;
    launch_config.dynamicSharedMemorySize = sharedMemSize;
@@ -186,7 +186,7 @@ bitonicSortWithShared( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > v
    const int paddedSize = closestPow2( view.getSize() );
 
    constexpr auto kernel = bitoniSort1stStepSharedMemory< Value, CMP >;
-   Cuda::launchKernelAsync( kernel, launch_config, view, Cmp );
+   Backend::launchKernelAsync( kernel, launch_config, view, Cmp );
    // now alternating monotonic sequences with bitonicLenght of sharedMemLen
 
    // \/ has bitonicLength of 2 * sharedMemLen
@@ -195,12 +195,12 @@ bitonicSortWithShared( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > v
          if( bitonicLen > sharedMemLen ) {
             launch_config.dynamicSharedMemorySize = 0;
             constexpr auto kernel = bitonicMergeGlobal< Value, CMP >;
-            Cuda::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
+            Backend::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
          }
          else {
             launch_config.dynamicSharedMemorySize = sharedMemSize;
             constexpr auto kernel = bitonicMergeSharedMemory< Value, CMP >;
-            Cuda::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
+            Backend::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
 
             // simulates sorts until bitonicLen == 2 already, no need to continue this loop
             break;
@@ -217,7 +217,7 @@ void
 bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > view, const CMP& Cmp, int gridDim, int blockDim )
 
 {
-   Cuda::LaunchConfiguration launch_config;
+   Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = blockDim;
    launch_config.gridSize.x = gridDim;
 
@@ -226,7 +226,7 @@ bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > view, const
    for( int monotonicSeqLen = 2; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {
       for( int bitonicLen = monotonicSeqLen; bitonicLen > 1; bitonicLen /= 2 ) {
          constexpr auto kernel = bitonicMergeGlobal< Value, CMP >;
-         Cuda::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
+         Backend::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
       }
    }
    Backend::streamSynchronize( launch_config.stream );
@@ -397,7 +397,7 @@ bitonicSort( int begin, int end, const CMP& Cmp, SWAP Swap )
 
    int threadsNeeded = size / 2 + ( size % 2 != 0 );
 
-   Cuda::LaunchConfiguration launch_config;
+   Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = 512;
    launch_config.gridSize.x = threadsNeeded / launch_config.blockSize.x + ( threadsNeeded % launch_config.blockSize.x != 0 );
 
@@ -414,7 +414,8 @@ bitonicSort( int begin, int end, const CMP& Cmp, SWAP Swap )
    for( int monotonicSeqLen = 2; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {
       for( int bitonicLen = monotonicSeqLen; bitonicLen > 1; bitonicLen /= 2 ) {
          constexpr auto kernel = bitonicMergeGlobalWithSwap< decltype( compareWithOffset ), decltype( swapWithOffset ) >;
-         Cuda::launchKernelAsync( kernel, launch_config, size, compareWithOffset, swapWithOffset, monotonicSeqLen, bitonicLen );
+         Backend::launchKernelAsync(
+            kernel, launch_config, size, compareWithOffset, swapWithOffset, monotonicSeqLen, bitonicLen );
       }
    }
    Backend::streamSynchronize( launch_config.stream );

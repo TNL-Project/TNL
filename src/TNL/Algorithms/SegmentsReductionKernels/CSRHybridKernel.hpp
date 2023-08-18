@@ -7,7 +7,6 @@
 #pragma once
 
 #include <TNL/Assert.h>
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Backend.h>
 
 #include "CSRScalarKernel.h"
@@ -227,7 +226,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
       if( end <= begin )
          return;
 
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = ThreadsInBlock;
       const size_t threadsCount = this->threadsPerSegment * ( end - begin );
       dim3 blocksCount;
@@ -243,7 +242,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                {
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 1, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
-                  Cuda::launchKernelAsync(
+                  Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
@@ -251,7 +250,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                {
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 2, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
-                  Cuda::launchKernelAsync(
+                  Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
@@ -259,7 +258,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                {
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 4, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
-                  Cuda::launchKernelAsync(
+                  Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
@@ -267,7 +266,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                {
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 8, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
-                  Cuda::launchKernelAsync(
+                  Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
@@ -275,7 +274,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                {
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 16, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
-                  Cuda::launchKernelAsync(
+                  Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
@@ -283,7 +282,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                {
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 32, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
-                  Cuda::launchKernelAsync(
+                  Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
@@ -297,7 +296,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                                                                                     Reduction,
                                                                                     ResultKeeper,
                                                                                     Value >;
-                  Cuda::launchKernelAsync(
+                  Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
@@ -311,7 +310,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                                                                                     Reduction,
                                                                                     ResultKeeper,
                                                                                     Value >;
-                  Cuda::launchKernelAsync(
+                  Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
@@ -325,7 +324,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                                                                                     Reduction,
                                                                                     ResultKeeper,
                                                                                     Value >;
-                  Cuda::launchKernelAsync(
+                  Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
