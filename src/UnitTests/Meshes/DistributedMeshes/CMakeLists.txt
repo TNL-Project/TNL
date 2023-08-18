@@ -69,7 +69,7 @@ endforeach()
 
 # external libraries for tests which use mesh readers
 find_package( ZLIB )
-find_package( tinyxml2 QUIET )
+find_package( tinyxml2 )
 
 if( ZLIB_FOUND AND tinyxml2_FOUND )
    # TODO: Fix distributed grid.

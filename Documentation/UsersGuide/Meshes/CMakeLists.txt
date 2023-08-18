@@ -40,7 +40,7 @@ if( ZLIB_FOUND )
    endforeach()
 endif()
 
-find_package( tinyxml2 QUIET )
+find_package( tinyxml2 )
 if( tinyxml2_FOUND )
    foreach( target IN ITEMS ${ALL_EXAMPLES} )
       target_compile_definitions(${target} PUBLIC "-DHAVE_TINYXML2")

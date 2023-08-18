@@ -1,10 +1,6 @@
-if( WIN32 )
-   # we don't support CUDA on Windows, so we can lower the requirement
-   cmake_minimum_required( VERSION 3.23 )
-else()
-   # cmake 3.24 is required for CUDA with "native" architecture selection
-   cmake_minimum_required( VERSION 3.24 )
-endif()
+# cmake 3.24 is required for CUDA with "native" architecture selection
+# cmake 3.25 is required for the "SYSTEM" keyword in FetchContent_Declare
+cmake_minimum_required( VERSION 3.25 )
 
 project( TNL )
 
@@ -61,6 +57,10 @@ find_package( MPI COMPONENTS CXX )
 find_package( Ginkgo QUIET )
 # find the std::filesystem library
 find_package( Filesystem REQUIRED COMPONENTS Final )
+
+# Optionally bundled dependencies (system packages are preferred)
+# Reference: https://cmake.org/cmake/help/latest/guide/using-dependencies/index.html#fetchcontent-and-find-package-integration
+include( FetchTinyXML2 )
 
 # Settings for debug build
 if( CMAKE_BUILD_TYPE STREQUAL "Debug")

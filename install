@@ -74,9 +74,6 @@ for option in "$@"; do
     esac
 done
 
-# install dependencies into $PREFIX if they are not found system-wide
-pkg-config --exists tinyxml2 || "$ROOT_DIR/scripts/install_tinyxml2" --prefix "$PREFIX"
-
 # configure the build
 ./configure --prefix="$PREFIX" --build-type="$BUILD_TYPE" ${CONFIGURE_OPTIONS[@]+"${CONFIGURE_OPTIONS[@]}"}
 
