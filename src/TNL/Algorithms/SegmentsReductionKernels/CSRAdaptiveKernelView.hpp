@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Assert.h>
-#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Backend.h>
 
 #include "CSRScalarKernel.h"
 #include "CSRAdaptiveKernelView.h"
@@ -35,7 +35,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    using BlockType = detail::CSRAdaptiveKernelBlockDescriptor< Index >;
    constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
-   constexpr int WarpSize = Cuda::getWarpSize();
+   constexpr int WarpSize = Backend::getWarpSize();
    constexpr int WarpsCount = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::WarpsCount();
    constexpr size_t StreamedSharedElementsPerWarp =
       detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::StreamedSharedElementsPerWarp();
@@ -44,7 +44,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
    __shared__ ReturnType multivectorShared[ CudaBlockSize / WarpSize ];
    //__shared__ BlockType sharedBlocks[ WarpsCount ];
 
-   const Index index = ( ( gridIdx * TNL::Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x ) + threadIdx.x;
+   const Index index = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x ) + threadIdx.x;
    const Index blockIdx = index / WarpSize;
    if( blockIdx >= blocks.getSize() - 1 )
       return;
@@ -107,8 +107,8 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
 
       TNL_ASSERT_GT( block.getWarpsCount(), 0, "" );
       result = identity;
-      for( Index globalIdx = begin + laneIdx + TNL::Cuda::getWarpSize() * block.getWarpIdx(); globalIdx < end;
-           globalIdx += TNL::Cuda::getWarpSize() * block.getWarpsCount() )
+      for( Index globalIdx = begin + laneIdx + Backend::getWarpSize() * block.getWarpIdx(); globalIdx < end;
+           globalIdx += Backend::getWarpSize() * block.getWarpsCount() )
       {
          result = reduce( result, fetch( globalIdx, compute ) );
       }
@@ -215,11 +215,11 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       Devices::Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
-      constexpr std::size_t maxGridSize = TNL::Cuda::getMaxGridXSize();
+      constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
       // Fill blocks
       const auto& blocks = this->blocksArray[ valueSizeLog ];
-      std::size_t neededThreads = blocks.getSize() * TNL::Cuda::getWarpSize();  // one warp per block
+      std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize();  // one warp per block
 
       // Execute kernels on device
       for( Index gridIdx = 0; neededThreads != 0; gridIdx++ ) {

@@ -9,7 +9,6 @@
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
 #include <TNL/Cuda/KernelLaunch.h>
-#include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/BiEllpack.h>
@@ -38,7 +37,7 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
 {
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   const Index segmentIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
+   const Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
    if( segmentIdx >= end )
       return;
 
@@ -93,7 +92,7 @@ reduceSegmentsKernel( SegmentsView segments,
 {
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   Index segmentIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
+   Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
 
    const Index strip = segmentIdx >> SegmentsView::getLogWarpSize();
    const Index warpStart = strip << SegmentsView::getLogWarpSize();
@@ -357,14 +356,14 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       launch_config.blockSize.x = BlockDim;
       const IndexType stripsCount = roundUpDivision( end - begin, SegmentsView::getWarpSize() );
       const IndexType cudaBlocks = roundUpDivision( stripsCount * SegmentsView::getWarpSize(), launch_config.blockSize.x );
-      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
+      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
       if( SegmentsView::getOrganization() == Segments::ColumnMajorOrder )
          launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         launch_config.gridSize.x = Cuda::getMaxGridXSize();
+         launch_config.gridSize.x = Backend::getMaxGridXSize();
          if( gridIdx == cudaGrids - 1 )
-            launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
+            launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
          using ConstSegmentsView = typename SegmentsView::ConstViewType;
          constexpr auto kernel =
             BiEllpackreduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value, BlockDim >;

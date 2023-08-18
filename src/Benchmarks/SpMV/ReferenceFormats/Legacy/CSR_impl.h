@@ -30,7 +30,7 @@ template< typename Real,
           CSRKernel KernelType >
 CSR< Real, Device, Index, KernelType >::CSR()
 : //spmvCudaKernel( hybrid ),
-  cudaWarpSize( 32 ), //Cuda::getWarpSize() )
+  cudaWarpSize( 32 ), //Backend::getWarpSize() )
   hybridModeSplit( 4 )
 {
 }

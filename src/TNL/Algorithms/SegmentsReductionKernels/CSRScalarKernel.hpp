@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Algorithms/parallelFor.h>
 
 #include "CSRScalarKernel.h"

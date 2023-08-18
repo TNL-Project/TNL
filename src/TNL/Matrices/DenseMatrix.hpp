@@ -266,17 +266,17 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
 
       const Index rowTiles = roundUpDivision( this->getRows(), tileDim );
       const Index columnTiles = roundUpDivision( this->getColumns(), tileDim );
-      const Index rowGrids = roundUpDivision( rowTiles, Cuda::getMaxGridYSize() );
-      const Index columnGrids = roundUpDivision( columnTiles, Cuda::getMaxGridXSize() );
+      const Index rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
+      const Index columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
 
       for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            launch_config.gridSize.x = Cuda::getMaxGridXSize();
-            launch_config.gridSize.y = Cuda::getMaxGridYSize();
+            launch_config.gridSize.x = Backend::getMaxGridXSize();
+            launch_config.gridSize.y = Backend::getMaxGridYSize();
             if( gridIdx_x == columnGrids - 1 )
-               launch_config.gridSize.x = columnTiles % Cuda::getMaxGridXSize();
+               launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
             if( gridIdx_y == rowGrids - 1 )
-               launch_config.gridSize.y = rowTiles % Cuda::getMaxGridYSize();
+               launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
             constexpr auto kernel = DenseMatrixProductKernel< tileDim,
                                                               cudaBlockRows,
@@ -423,17 +423,17 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTranspositio
 
       const Index rowTiles = roundUpDivision( this->getRows(), tileDim );
       const Index columnTiles = roundUpDivision( this->getColumns(), tileDim );
-      const Index rowGrids = roundUpDivision( rowTiles, Cuda::getMaxGridYSize() );
-      const Index columnGrids = roundUpDivision( columnTiles, Cuda::getMaxGridXSize() );
+      const Index rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
+      const Index columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
 
       for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            launch_config.gridSize.x = Cuda::getMaxGridXSize();
-            launch_config.gridSize.y = Cuda::getMaxGridYSize();
+            launch_config.gridSize.x = Backend::getMaxGridXSize();
+            launch_config.gridSize.y = Backend::getMaxGridYSize();
             if( gridIdx_x == columnGrids - 1 )
-               launch_config.gridSize.x = columnTiles % Cuda::getMaxGridXSize();
+               launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
             if( gridIdx_y == rowGrids - 1 )
-               launch_config.gridSize.y = rowTiles % Cuda::getMaxGridYSize();
+               launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
             if( ( gridIdx_x < columnGrids - 1 || matrix.getColumns() % tileDim == 0 )
                 && ( gridIdx_y < rowGrids - 1 || matrix.getRows() % tileDim == 0 ) )

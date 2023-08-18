@@ -9,7 +9,6 @@
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
 #include <TNL/Cuda/KernelLaunch.h>
-#include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
@@ -36,7 +35,7 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
    const Index firstSlice = segments.getRowToSliceMappingView()[ begin ];
    const Index lastSlice = segments.getRowToSliceMappingView()[ end - 1 ];
 
-   const Index sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridXSize() + blockIdx.x;
+   const Index sliceIdx = firstSlice + gridIdx * Backend::getMaxGridXSize() + blockIdx.x;
    if( sliceIdx > lastSlice )
       return;
 
@@ -196,14 +195,14 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
       // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
       //  TODO: This ignores parameters begin and end
       const IndexType cudaBlocks = segments.getNumberOfSlices();
-      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
+      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
       launch_config.blockSize.x = segments.getChunksInSlice();
       launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         launch_config.gridSize.x = Cuda::getMaxGridXSize();
+         launch_config.gridSize.x = Backend::getMaxGridXSize();
          if( gridIdx == cudaGrids - 1 )
-            launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
+            launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
          using ConstSegmentsView = typename SegmentsView::ConstViewType;
          constexpr auto kernel =
             ChunkedEllpackReduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;

@@ -35,7 +35,7 @@ VectorColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
    __shared__ Real result_[ BlockSize ];
 
    constexpr Index rowsPerBlock = 256 / ThreadsPerRow;
-   const Index rowIdx = ( ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x ) / ThreadsPerRow + begin;
+   const Index rowIdx = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x ) / ThreadsPerRow + begin;
    const Index localColIdx = threadIdx.x / rowsPerBlock;
    const Index localRowIdx = threadIdx.x % rowsPerBlock;
 
@@ -109,7 +109,7 @@ ColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );
    __shared__ Real inVectorCache[ inVectorCacheSize ];
 
-   const int rowIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x + begin;
+   const int rowIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x + begin;
 
    Real result = 0;
    Index columnIdx = 0;
@@ -470,11 +470,11 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
       constexpr int ThreadsPerRow = 1;
       const std::size_t threadsCount = ( end - begin ) * ThreadsPerRow;
       const std::size_t blocksCount = roundUpDivision( threadsCount, launch_config.blockSize.x );
-      const std::size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
+      const std::size_t gridsCount = roundUpDivision( blocksCount, Backend::getMaxGridXSize() );
       for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
-         launch_config.gridSize.x = Cuda::getMaxGridXSize();
+         launch_config.gridSize.x = Backend::getMaxGridXSize();
          if( gridIdx == gridsCount - 1 )
-            launch_config.gridSize.x = blocksCount % Cuda::getMaxGridXSize();
+            launch_config.gridSize.x = blocksCount % Backend::getMaxGridXSize();
          constexpr auto kernel = ColumnMajorDenseMatrixVectorMultiplicationKernel< DenseMatrixBase,
                                                                                    decltype( inVectorView ),
                                                                                    decltype( outVectorView ) >;

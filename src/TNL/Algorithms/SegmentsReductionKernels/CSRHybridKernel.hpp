@@ -8,7 +8,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Cuda/KernelLaunch.h>
-#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Backend.h>
 
 #include "CSRScalarKernel.h"
 #include "CSRHybridKernel.h"
@@ -36,7 +36,7 @@ reduceSegmentsCSRHybridVectorKernel( int gridIdx,
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
@@ -48,7 +48,7 @@ reduceSegmentsCSRHybridVectorKernel( int gridIdx,
    bool compute = true;
    for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
       aux = reduce( aux, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
-      localIdx += TNL::Cuda::getWarpSize();
+      localIdx += Backend::getWarpSize();
    }
 
    /****
@@ -92,16 +92,16 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
    __shared__ ReturnType shared[ BlockSize / 32 ];
-   if( threadIdx.x < BlockSize / TNL::Cuda::getWarpSize() )
+   if( threadIdx.x < BlockSize / Backend::getWarpSize() )
       shared[ threadIdx.x ] = identity;
 
-   const int laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );               // & is cheaper than %
-   const int inWarpLaneIdx = threadIdx.x & ( TNL::Cuda::getWarpSize() - 1 );  // & is cheaper than %
+   const int laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
+   const int inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
    const Index beginIdx = offsets[ segmentIdx ];
    const Index endIdx = offsets[ segmentIdx + 1 ];
 
@@ -119,7 +119,7 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
    result += __shfl_down_sync( 0xFFFFFFFF, result, 2 );
    result += __shfl_down_sync( 0xFFFFFFFF, result, 1 );
 
-   const Index warpIdx = threadIdx.x / TNL::Cuda::getWarpSize();
+   const Index warpIdx = threadIdx.x / Backend::getWarpSize();
    if( inWarpLaneIdx == 0 )
       shared[ warpIdx ] = result;
 
@@ -127,7 +127,7 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
    // Reduction in shared
    if( warpIdx == 0 && inWarpLaneIdx < 16 ) {
       // constexpr int totalWarps = BlockSize / WarpSize;
-      constexpr int warpsPerSegment = ThreadsPerSegment / TNL::Cuda::getWarpSize();
+      constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
       if( warpsPerSegment >= 32 ) {
          shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
          __syncwarp();
@@ -169,7 +169,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::init( const Segments& segments
       return;
    const Index elementsInSegment = std::ceil( (double) offsets.getElement( segmentsCount ) / (double) segmentsCount );
    this->threadsPerSegment =
-      TNL::min( std::pow( 2, std::ceil( std::log2( elementsInSegment ) ) ), ThreadsInBlock );  // TNL::Cuda::getWarpSize() );
+      TNL::min( std::pow( 2, std::ceil( std::log2( elementsInSegment ) ) ), ThreadsInBlock );  // Backend::getWarpSize() );
    TNL_ASSERT_GE( threadsPerSegment, 0, "" );
    TNL_ASSERT_LE( threadsPerSegment, ThreadsInBlock, "" );
 }
@@ -232,10 +232,10 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
       const size_t threadsCount = this->threadsPerSegment * ( end - begin );
       dim3 blocksCount;
       dim3 gridsCount;
-      TNL::Cuda::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+      Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
 
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-         TNL::Cuda::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+         Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
          switch( this->threadsPerSegment ) {
             case 0:  // this means zero/empty matrix
                break;

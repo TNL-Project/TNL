@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Cuda/KernelLaunch.h>
-#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Backend.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
@@ -29,10 +29,10 @@ EllpackCudaReductionKernel( Index begin,
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   constexpr int warpSize = TNL::Cuda::getWarpSize();
+   constexpr int warpSize = Backend::getWarpSize();
    const int gridID = 0;
    const Index segmentIdx =
-      begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
+      begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
    if( segmentIdx >= end )
       return;
 
@@ -119,7 +119,7 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
             return;
          const Index segmentsCount = end - begin;
          const Index threadsCount = segmentsCount * 32;
-         const Index blocksCount = Cuda::getNumberOfBlocks( threadsCount, 256 );
+         const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
          Cuda::LaunchConfiguration launch_config;
          launch_config.blockSize.x = 256;
          launch_config.gridSize.x = blocksCount;

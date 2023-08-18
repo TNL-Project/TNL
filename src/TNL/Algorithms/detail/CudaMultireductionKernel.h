@@ -10,7 +10,6 @@
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Cuda/KernelLaunch.h>
-#include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 
@@ -164,12 +163,12 @@ CudaMultireductionKernelLauncher( const Result identity,
    while( launch_config.blockSize.x * launch_config.blockSize.y > maxThreadsPerBlock )
       launch_config.blockSize.x /= 2;
 
-   launch_config.gridSize.x = TNL::min( Cuda::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSizeX );
-   launch_config.gridSize.y = Cuda::getNumberOfBlocks( n, launch_config.blockSize.y );
+   launch_config.gridSize.x = TNL::min( Backend::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSizeX );
+   launch_config.gridSize.y = Backend::getNumberOfBlocks( n, launch_config.blockSize.y );
 
-   if( launch_config.gridSize.y > (unsigned) Cuda::getMaxGridYSize() ) {
+   if( launch_config.gridSize.y > (unsigned) Backend::getMaxGridYSize() ) {
       throw std::logic_error( "Maximum launch_config.gridSize.y limit exceeded (limit is "
-                              + std::to_string( Cuda::getMaxGridYSize() ) + ", attempted "
+                              + std::to_string( Backend::getMaxGridYSize() ) + ", attempted "
                               + std::to_string( launch_config.gridSize.y ) + ")." );
    }
 

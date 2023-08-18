@@ -8,7 +8,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Cuda/KernelLaunch.h>
-#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Backend.h>
 
 #include "CSRScalarKernel.h"
 #include "CSRVectorKernel.h"
@@ -33,21 +33,21 @@ reduceSegmentsCSRKernelVector( int gridIdx,
    /***
     * We map one warp to each segment
     */
-   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / TNL::Cuda::getWarpSize() + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize() + begin;
    if( segmentIdx >= end )
       return;
 
-   const int laneIdx = threadIdx.x & ( TNL::Cuda::getWarpSize() - 1 );  // & is cheaper than %
+   const int laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
    TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
    Index endIdx = offsets[ segmentIdx + 1 ];
 
    Index localIdx( laneIdx );
    ReturnType aux = identity;
    bool compute = true;
-   for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += TNL::Cuda::getWarpSize() ) {
+   for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
       aux = reduce( aux, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
-      localIdx += TNL::Cuda::getWarpSize();
+      localIdx += Backend::getWarpSize();
    }
 
    /****
@@ -122,14 +122,14 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       OffsetsView offsets = segments.getOffsets();
 
       const Index warpsCount = end - begin;
-      const std::size_t threadsCount = warpsCount * TNL::Cuda::getWarpSize();
+      const std::size_t threadsCount = warpsCount * Backend::getWarpSize();
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;
       dim3 gridsCount;
-      TNL::Cuda::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+      Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-         TNL::Cuda::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+         Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
          constexpr auto kernel = reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
          Cuda::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
       }

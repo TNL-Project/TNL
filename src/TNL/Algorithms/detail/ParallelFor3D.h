@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include <TNL/Backend.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Cuda/LaunchHelpers.h>
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Math.h>
 
@@ -164,11 +164,11 @@ struct ParallelFor3D< Devices::Cuda >
          launch_config.blockSize.z = TNL::min( 4, sizeZ );
       }
       launch_config.gridSize.x =
-         TNL::min( Cuda::getMaxGridXSize(), Cuda::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
+         TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
       launch_config.gridSize.y =
-         TNL::min( Cuda::getMaxGridYSize(), Cuda::getNumberOfBlocks( sizeY, launch_config.blockSize.y ) );
+         TNL::min( Backend::getMaxGridYSize(), Backend::getNumberOfBlocks( sizeY, launch_config.blockSize.y ) );
       launch_config.gridSize.z =
-         TNL::min( Cuda::getMaxGridZSize(), Cuda::getNumberOfBlocks( sizeZ, launch_config.blockSize.z ) );
+         TNL::min( Backend::getMaxGridZSize(), Backend::getNumberOfBlocks( sizeZ, launch_config.blockSize.z ) );
 
       dim3 gridCount;
       gridCount.x = roundUpDivision( sizeX, launch_config.blockSize.x * launch_config.gridSize.x );

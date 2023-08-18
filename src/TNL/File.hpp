@@ -13,8 +13,7 @@
 
 #include <TNL/File.h>
 #include <TNL/Assert.h>
-#include <TNL/Backend/Macros.h>
-#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Backend.h>
 #include <TNL/Exceptions/CudaSupportMissing.h>
 #include <TNL/Exceptions/FileSerializationError.h>
 #include <TNL/Exceptions/FileDeserializationError.h>
@@ -92,7 +91,7 @@ File::load_impl( Type* buffer, std::streamsize elements )
       file.read( reinterpret_cast< char* >( buffer ), sizeof( Type ) * elements );
    else {
       const std::streamsize cast_buffer_size =
-         std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( SourceType ), elements );
+         std::min( Backend::getTransferBufferSize() / (std::streamsize) sizeof( SourceType ), elements );
       using BaseType = typename std::remove_cv< SourceType >::type;
       std::unique_ptr< BaseType[] > cast_buffer{ new BaseType[ cast_buffer_size ] };
       std::streamsize readElements = 0;
@@ -112,7 +111,7 @@ File::load_impl( Type* buffer, std::streamsize elements )
 {
 #ifdef __CUDACC__
    const std::streamsize host_buffer_size =
-      std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
+      std::min( Backend::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
    using BaseType = typename std::remove_cv< Type >::type;
    std::unique_ptr< BaseType[] > host_buffer{ new BaseType[ host_buffer_size ] };
 
@@ -129,7 +128,7 @@ File::load_impl( Type* buffer, std::streamsize elements )
    }
    else {
       const std::streamsize cast_buffer_size =
-         std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( SourceType ), elements );
+         std::min( Backend::getTransferBufferSize() / (std::streamsize) sizeof( SourceType ), elements );
       using BaseType = typename std::remove_cv< SourceType >::type;
       std::unique_ptr< BaseType[] > cast_buffer{ new BaseType[ cast_buffer_size ] };
 
@@ -170,7 +169,7 @@ File::save_impl( const Type* buffer, std::streamsize elements )
       file.write( reinterpret_cast< const char* >( buffer ), sizeof( Type ) * elements );
    else {
       const std::streamsize cast_buffer_size =
-         std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( TargetType ), elements );
+         std::min( Backend::getTransferBufferSize() / (std::streamsize) sizeof( TargetType ), elements );
       using BaseType = typename std::remove_cv< TargetType >::type;
       std::unique_ptr< BaseType[] > cast_buffer{ new BaseType[ cast_buffer_size ] };
       std::streamsize writtenElements = 0;
@@ -190,7 +189,7 @@ File::save_impl( const Type* buffer, std::streamsize elements )
 {
 #ifdef __CUDACC__
    const std::streamsize host_buffer_size =
-      std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
+      std::min( Backend::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
    using BaseType = typename std::remove_cv< Type >::type;
    std::unique_ptr< BaseType[] > host_buffer{ new BaseType[ host_buffer_size ] };
 
@@ -207,7 +206,7 @@ File::save_impl( const Type* buffer, std::streamsize elements )
    }
    else {
       const std::streamsize cast_buffer_size =
-         std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( TargetType ), elements );
+         std::min( Backend::getTransferBufferSize() / (std::streamsize) sizeof( TargetType ), elements );
       using BaseType = typename std::remove_cv< TargetType >::type;
       std::unique_ptr< BaseType[] > cast_buffer{ new BaseType[ cast_buffer_size ] };
 

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Backend.h>
 
 namespace TNL::Algorithms::SegmentsReductionKernels::detail {
 
@@ -70,7 +70,7 @@ struct CSRAdaptiveKernelParameters
    [[nodiscard]] static constexpr std::size_t
    WarpsCount()
    {
-      return CudaBlockSize() / Cuda::getWarpSize();
+      return CudaBlockSize() / Backend::getWarpSize();
    }
 
    /**

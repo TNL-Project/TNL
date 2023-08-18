@@ -579,7 +579,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       const IndexType desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getActiveDevice() );
-      launch_config.gridSize.x = min( desGridSize, Cuda::getNumberOfBlocks( rows, launch_config.blockSize.x ) );
+      launch_config.gridSize.x = min( desGridSize, Backend::getNumberOfBlocks( rows, launch_config.blockSize.x ) );
 
       typename Matrix1::RowCapacitiesType rowLengths;
       rowLengths.setSize( rows );

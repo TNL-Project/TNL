@@ -347,7 +347,7 @@ public:
       const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getActiveDevice() );
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      launch_config.gridSize.x = min( desGridSize, Cuda::getNumberOfBlocks( m, launch_config.blockSize.x ) );
+      launch_config.gridSize.x = min( desGridSize, Backend::getNumberOfBlocks( m, launch_config.blockSize.x ) );
       launch_config.dynamicSharedMemorySize = n * sizeof( RealType );
 
       constexpr auto kernel = GemvCudaKernel< RealType, IndexType >;
@@ -400,8 +400,8 @@ public:
 
       // desGridSize = blocksPerMultiprocessor * numberOfMultiprocessors
       const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getActiveDevice() );
-      launch_config.gridSize.x = min( desGridSize, Cuda::getNumberOfBlocks( m, launch_config.blockSize.x ) );
-      launch_config.gridSize.y = Cuda::getNumberOfBlocks( n, launch_config.blockSize.y );
+      launch_config.gridSize.x = min( desGridSize, Backend::getNumberOfBlocks( m, launch_config.blockSize.x ) );
+      launch_config.gridSize.y = Backend::getNumberOfBlocks( n, launch_config.blockSize.y );
 
       constexpr auto kernel = GeamCudaKernel< RealType, IndexType >;
       Cuda::launchKernelSync( kernel, launch_config, m, n, alpha, A, lda, beta, B, ldb, C, ldc );

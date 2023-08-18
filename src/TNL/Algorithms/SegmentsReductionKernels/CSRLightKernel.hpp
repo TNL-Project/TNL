@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Assert.h>
-#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Backend.h>
 
 #include "CSRLightKernel.h"
 #include "CSRScalarKernel.h"
@@ -29,8 +29,7 @@ SpMVCSRLight2( OffsetsView offsets,
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx =
-      begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 2;
+   const Index segmentIdx = begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 2;
    if( segmentIdx >= end )
       return;
 
@@ -66,8 +65,7 @@ SpMVCSRLight4( OffsetsView offsets,
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx =
-      begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 4;
+   const Index segmentIdx = begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 4;
    if( segmentIdx >= end )
       return;
 
@@ -104,8 +102,7 @@ SpMVCSRLight8( OffsetsView offsets,
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx =
-      begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 8;
+   const Index segmentIdx = begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 8;
    if( segmentIdx >= end )
       return;
 
@@ -145,7 +142,7 @@ SpMVCSRLight16( OffsetsView offsets,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx =
-      begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 16;
+      begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 16;
    if( segmentIdx >= end )
       return;
 
@@ -190,7 +187,7 @@ void SpMVCSRVector( OffsetsView offsets,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const int warpSize = 32;
-   const Index warpID = begin + ((gridID * TNL::Cuda::getMaxGridXSize() ) + (blockIdx.x * blockDim.x) + threadIdx.x) / warpSize;
+   const Index warpID = begin + ((gridID * Backend::getMaxGridXSize() ) + (blockIdx.x * blockDim.x) + threadIdx.x) / warpSize;
    if (warpID >= end)
       return;
 
@@ -238,7 +235,7 @@ SpMVCSRVector( OffsetsView offsets,
 
    // const int warpSize = 32;
    const Index warpID =
-      begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+      begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
    if( warpID >= end )
       return;
 
@@ -305,16 +302,16 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
 #ifdef __CUDACC__
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
-   __shared__ ReturnType shared[ BlockSize / 32 ];
-   if( threadIdx.x < BlockSize / TNL::Cuda::getWarpSize() )
+   __shared__ ReturnType shared[ BlockSize / Backend::getWarpSize() ];
+   if( threadIdx.x < BlockSize / Backend::getWarpSize() )
       shared[ threadIdx.x ] = identity;
 
-   const int laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );               // & is cheaper than %
-   const int inWarpLaneIdx = threadIdx.x & ( TNL::Cuda::getWarpSize() - 1 );  // & is cheaper than %
+   const int laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
+   const int inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
    const Index beginIdx = offsets[ segmentIdx ];
    const Index endIdx = offsets[ segmentIdx + 1 ];
 
@@ -332,15 +329,15 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
    result += __shfl_down_sync( 0xFFFFFFFF, result, 2 );
    result += __shfl_down_sync( 0xFFFFFFFF, result, 1 );
 
-   const Index warpIdx = threadIdx.x / TNL::Cuda::getWarpSize();
+   const Index warpIdx = threadIdx.x / Backend::getWarpSize();
    if( inWarpLaneIdx == 0 )
       shared[ warpIdx ] = result;
 
    __syncthreads();
    // Reduction in shared
    if( warpIdx == 0 && inWarpLaneIdx < 16 ) {
-      // constexpr int totalWarps = BlockSize / WarpSize;
-      constexpr int warpsPerSegment = ThreadsPerSegment / TNL::Cuda::getWarpSize();
+      // constexpr int totalWarps = BlockSize / Backend::getWarpSize();
+      constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
       if( warpsPerSegment >= 32 ) {
          shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
          __syncwarp();
@@ -479,13 +476,13 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       OffsetsView offsets = segments.getOffsets();
 
       for( Index grid = 0; neededThreads != 0; ++grid ) {
-         if( TNL::Cuda::getMaxGridXSize() * launch_config.blockSize.x >= neededThreads ) {
+         if( Backend::getMaxGridXSize() * launch_config.blockSize.x >= neededThreads ) {
             launch_config.gridSize.x = roundUpDivision( neededThreads, launch_config.blockSize.x );
             neededThreads = 0;
          }
          else {
-            launch_config.gridSize.x = TNL::Cuda::getMaxGridXSize();
-            neededThreads -= TNL::Cuda::getMaxGridXSize() * launch_config.blockSize.x;
+            launch_config.gridSize.x = Backend::getMaxGridXSize();
+            neededThreads -= Backend::getMaxGridXSize() * launch_config.blockSize.x;
          }
 
          if( threadsPerSegment == 1 ) {

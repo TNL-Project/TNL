@@ -83,7 +83,7 @@ Equal< DeviceType, Devices::Cuda >::equal( const Element1* destination, const El
    TNL_ASSERT_TRUE( source, "Attempted to compare data through a nullptr." );
    TNL_ASSERT_GE( size, (Index) 0, "Array size must be non-negative." );
 #ifdef __CUDACC__
-   const int buffer_size = TNL::min( Cuda::getTransferBufferSize() / sizeof( Element2 ), size );
+   const int buffer_size = TNL::min( Backend::getTransferBufferSize() / sizeof( Element2 ), size );
    std::unique_ptr< Element2[] > host_buffer{ new Element2[ buffer_size ] };
    Index compared = 0;
    while( compared < size ) {

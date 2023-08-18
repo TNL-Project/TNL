@@ -246,8 +246,8 @@ solve( const Meshes::DistributedMeshes::DistributedMesh< MeshType >& distributed
         const int cudaBlockSize( 16 );
 
         // Setting number of threads and blocks for kernel
-        int numBlocksX = Cuda::getNumberOfBlocks( mesh->getDimensions().x() - vecLowerOverlaps[0] - vecUpperOverlaps[0], cudaBlockSize );
-        int numBlocksY = Cuda::getNumberOfBlocks( mesh->getDimensions().y() - vecLowerOverlaps[1] - vecUpperOverlaps[1], cudaBlockSize );
+        int numBlocksX = Backend::getNumberOfBlocks( mesh->getDimensions().x() - vecLowerOverlaps[0] - vecUpperOverlaps[0], cudaBlockSize );
+        int numBlocksY = Backend::getNumberOfBlocks( mesh->getDimensions().y() - vecLowerOverlaps[1] - vecUpperOverlaps[1], cudaBlockSize );
         dim3 blockSize( cudaBlockSize, cudaBlockSize );
         dim3 gridSize( numBlocksX, numBlocksY );
 

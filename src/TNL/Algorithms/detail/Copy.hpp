@@ -99,7 +99,7 @@ void
 Copy< Devices::Cuda >::copy( DestinationElement* destination, Index destinationSize, SourceIterator begin, SourceIterator end )
 {
    using BaseType = typename std::remove_cv_t< DestinationElement >;
-   const int buffer_size = TNL::min( Cuda::getTransferBufferSize() / sizeof( BaseType ), destinationSize );
+   const int buffer_size = TNL::min( Backend::getTransferBufferSize() / sizeof( BaseType ), destinationSize );
    std::unique_ptr< BaseType[] > buffer{ new BaseType[ buffer_size ] };
    Index copiedElements = 0;
    while( copiedElements < destinationSize && begin != end ) {
@@ -130,7 +130,7 @@ Copy< DeviceType, Devices::Cuda >::copy( DestinationElement* destination, const 
    }
    else {
       using BaseType = std::remove_cv_t< SourceElement >;
-      const int buffer_size = TNL::min( Cuda::getTransferBufferSize() / sizeof( BaseType ), size );
+      const int buffer_size = TNL::min( Backend::getTransferBufferSize() / sizeof( BaseType ), size );
       std::unique_ptr< BaseType[] > buffer{ new BaseType[ buffer_size ] };
       Index i = 0;
       while( i < size ) {
@@ -171,7 +171,7 @@ Copy< Devices::Cuda, DeviceType >::copy( DestinationElement* destination, const 
       TNL_CHECK_CUDA_DEVICE;
    }
    else {
-      const int buffer_size = TNL::min( Cuda::getTransferBufferSize() / sizeof( DestinationElement ), size );
+      const int buffer_size = TNL::min( Backend::getTransferBufferSize() / sizeof( DestinationElement ), size );
       std::unique_ptr< DestinationElement[] > buffer{ new DestinationElement[ buffer_size ] };
       Index i = 0;
       while( i < size ) {

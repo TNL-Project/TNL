@@ -246,7 +246,7 @@ MultidiagonalMatrixTranspositionCudaKernel( const InMatrixView inMatrix,
                                             const Index gridIdx )
 {
 #ifdef __CUDACC__
-   const Index rowIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   const Index rowIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( rowIdx < inMatrix.getRows() ) {
       if( rowIdx > 0 )
          outMatrix.setElementFast( rowIdx - 1, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx - 1 ) );
@@ -283,12 +283,12 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      launch_config.gridSize.x = Cuda::getMaxGridXSize();
+      launch_config.gridSize.x = Backend::getMaxGridXSize();
       const Index cudaBlocks = roundUpDivision( matrix.getRows(), launch_config.blockSize.x );
       const Index cudaGrids = roundUpDivision( cudaBlocks, launch_config.gridSize.x );
       for( Index gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          if( gridIdx == cudaGrids - 1 )
-            launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
+            launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
          constexpr auto kernel =
             MultidiagonalMatrixTranspositionCudaKernel< decltype( matrix.getConstView() ), ViewType, Real, Index >;
          Cuda::launchKernelAsync( kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, gridIdx );

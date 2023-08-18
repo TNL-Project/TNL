@@ -13,3 +13,4 @@
 #include <TNL/Backend/StreamPool.h>
 #include <TNL/Backend/DeviceInfo.h>
 #include <TNL/Backend/SharedMemory.h>
+#include <TNL/Backend/LaunchHelpers.h>

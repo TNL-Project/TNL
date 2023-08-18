@@ -33,7 +33,7 @@ struct CudaBlockScan
    {
       // accessed via Backend::getInterleaving()
       ValueType chunkResults[ blockSize + blockSize / Backend::getNumberOfSharedMemoryBanks() ];
-      ValueType warpResults[ Cuda::getWarpSize() ];
+      ValueType warpResults[ Backend::getWarpSize() ];
    };
 
    /* Cooperative scan across the CUDA block - each thread will get the
@@ -54,7 +54,7 @@ struct CudaBlockScan
    {
       // verify the configuration
       TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaBlockScan::scan" );
-      static_assert( blockSize / Cuda::getWarpSize() <= Cuda::getWarpSize(),
+      static_assert( blockSize / Backend::getWarpSize() <= Backend::getWarpSize(),
                      "blockSize is too large, it would not be possible to scan warpResults using one warp" );
 
       // store the threadValue in the shared memory
@@ -63,10 +63,10 @@ struct CudaBlockScan
       __syncthreads();
 
       // perform the parallel scan on chunkResults inside warps
-      const int lane_id = tid % Cuda::getWarpSize();
-      const int warp_id = tid / Cuda::getWarpSize();
+      const int lane_id = tid % Backend::getWarpSize();
+      const int warp_id = tid / Backend::getWarpSize();
       #pragma unroll
-      for( int stride = 1; stride < Cuda::getWarpSize(); stride *= 2 ) {
+      for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          if( lane_id >= stride ) {
             storage.chunkResults[ chunkResultIdx ] = reduction(
                storage.chunkResults[ chunkResultIdx ], storage.chunkResults[ Backend::getInterleaving( tid - stride ) ] );
@@ -76,14 +76,14 @@ struct CudaBlockScan
       threadValue = storage.chunkResults[ chunkResultIdx ];
 
       // the last thread in warp stores the intermediate result in warpResults
-      if( lane_id == Cuda::getWarpSize() - 1 )
+      if( lane_id == Backend::getWarpSize() - 1 )
          storage.warpResults[ warp_id ] = threadValue;
       __syncthreads();
 
       // perform the scan of warpResults using one warp
       if( warp_id == 0 )
          #pragma unroll
-         for( int stride = 1; stride < blockSize / Cuda::getWarpSize(); stride *= 2 ) {
+         for( int stride = 1; stride < blockSize / Backend::getWarpSize(); stride *= 2 ) {
             if( lane_id >= stride )
                storage.warpResults[ tid ] = reduction( storage.warpResults[ tid ], storage.warpResults[ tid - stride ] );
             __syncwarp();
@@ -115,7 +115,7 @@ struct CudaBlockScanShfl
    // storage to be allocated in shared memory
    struct Storage
    {
-      ValueType warpResults[ Cuda::getWarpSize() ];
+      ValueType warpResults[ Backend::getWarpSize() ];
    };
 
    /* Cooperative scan across the CUDA block - each thread will get the
@@ -134,22 +134,22 @@ struct CudaBlockScanShfl
    static ValueType
    scan( const Reduction& reduction, ValueType identity, ValueType threadValue, int tid, Storage& storage )
    {
-      const int lane_id = tid % Cuda::getWarpSize();
-      const int warp_id = tid / Cuda::getWarpSize();
+      const int lane_id = tid % Backend::getWarpSize();
+      const int warp_id = tid / Backend::getWarpSize();
 
       // perform the parallel scan across warps
       ValueType total;
       threadValue = warpScan< scanType >( reduction, identity, threadValue, lane_id, total );
 
       // the last thread in warp stores the result of inclusive scan in warpResults
-      if( lane_id == Cuda::getWarpSize() - 1 )
+      if( lane_id == Backend::getWarpSize() - 1 )
          storage.warpResults[ warp_id ] = total;
       __syncthreads();
 
       // the first warp performs the scan of warpResults
       if( warp_id == 0 ) {
          // read from shared memory only if that warp existed
-         if( tid < blockDim.x / Cuda::getWarpSize() )
+         if( tid < blockDim.x / Backend::getWarpSize() )
             total = storage.warpResults[ lane_id ];
          else
             total = identity;
@@ -180,7 +180,7 @@ struct CudaBlockScanShfl
 
       // perform an inclusive scan
       #pragma unroll
-      for( int stride = 1; stride < Cuda::getWarpSize(); stride *= 2 ) {
+      for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          const ValueType otherValue = __shfl_up_sync( mask, threadValue, stride );
          if( lane_id >= stride )
             threadValue = reduction( threadValue, otherValue );
@@ -732,7 +732,7 @@ struct CudaScanKernelLauncher
          // compute the number of grids
          constexpr int maxElementsInBlock = blockSize * valuesPerThread;
          const Index numberOfBlocks = roundUpDivision( end - begin, maxElementsInBlock );
-         const Index numberOfGrids = Cuda::getNumberOfGrids( numberOfBlocks, maxGridSize() );
+         const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize() );
 
          // allocate array for the block results
          Containers::Array< typename OutputArray::ValueType, Devices::Cuda > blockResults;
@@ -862,7 +862,7 @@ struct CudaScanKernelLauncher
          // compute the number of grids
          constexpr int maxElementsInBlock = blockSize * valuesPerThread;
          const Index numberOfBlocks = roundUpDivision( end - begin, maxElementsInBlock );
-         const Index numberOfGrids = Cuda::getNumberOfGrids( numberOfBlocks, maxGridSize() );
+         const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize() );
 
          // loop over all grids
          for( Index gridIdx = 0; gridIdx < numberOfGrids; gridIdx++ ) {
@@ -926,14 +926,14 @@ struct CudaScanKernelLauncher
    static std::size_t&
    maxGridSize()
    {
-      static std::size_t maxGridSize = Cuda::getMaxGridXSize();
+      static std::size_t maxGridSize = Backend::getMaxGridXSize();
       return maxGridSize;
    }
 
    static void
    resetMaxGridSize()
    {
-      maxGridSize() = Cuda::getMaxGridXSize();
+      maxGridSize() = Backend::getMaxGridXSize();
       gridsCount() = -1;
    }
 

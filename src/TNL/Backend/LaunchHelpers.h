@@ -8,11 +8,11 @@
 
 #include <iostream>
 
+#include "Types.h"
 #include <TNL/DiscreteMath.h>
 #include <TNL/Math.h>
-#include <TNL/Backend/Types.h>
 
-namespace TNL::Cuda {
+namespace TNL::Backend {
 
 inline constexpr std::size_t
 getMaxGridXSize()
@@ -23,13 +23,21 @@ getMaxGridXSize()
 inline constexpr std::size_t
 getMaxGridYSize()
 {
+#if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
    return 65535;
+#else
+   return 2147483647;
+#endif
 }
 
 inline constexpr std::size_t
 getMaxGridZSize()
 {
+#if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
    return 65535;
+#else
+   return 2147483647;
+#endif
 }
 
 inline constexpr int
@@ -47,13 +55,29 @@ getMaxBlockYSize()
 inline constexpr int
 getMaxBlockZSize()
 {
+#if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
    return 64;
+#else
+   return 1024;
+#endif
 }
 
+/*
+ * The warpSize variable is of type int and contains the warp size (in threads)
+ * for the target device. Note that all current Nvidia devices return 32 for
+ * this variable, and all current AMD devices return 64. Device code should use
+ * the warpSize built-in to develop portable wave-aware code.
+ *
+ * https://rocmdocs.amd.com/en/latest/Programming_Guides/HIP-GUIDE.html
+ */
 inline constexpr int
 getWarpSize()
 {
+#if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
    return 32;
+#else
+   return 64;
+#endif
 }
 
 // When we transfer data between the GPU and the CPU we use 1 MiB buffer. This
@@ -65,7 +89,7 @@ getTransferBufferSize()
    return 1 << 20;
 }
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 __device__
 inline int
 getGlobalThreadIdx_x( const dim3& gridIdx )
@@ -195,4 +219,4 @@ printThreadsSetup( const dim3& blockSize,
        << " Grids count: " << gridsCount << std::endl;
 }
 
-}  // namespace TNL::Cuda
+}  // namespace TNL::Backend

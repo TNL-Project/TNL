@@ -115,7 +115,7 @@ struct CudaBlockReduceShfl
    // storage to be allocated in shared memory
    struct Storage
    {
-      ValueType warpResults[ Cuda::getWarpSize() ];
+      ValueType warpResults[ Backend::getWarpSize() ];
    };
 
    /* Cooperative reduction across the CUDA block - each thread will get the
@@ -135,7 +135,7 @@ struct CudaBlockReduceShfl
    reduce( const Reduction& reduction, ValueType identity, ValueType threadValue, int tid, Storage& storage )
    {
       // verify the configuration
-      static_assert( blockSize / Cuda::getWarpSize() <= Cuda::getWarpSize(),
+      static_assert( blockSize / Backend::getWarpSize() <= Backend::getWarpSize(),
                      "blockSize is too large, it would not be possible to reduce warpResults using one warp" );
 
       int lane_id = threadIdx.x % warpSize;
@@ -152,7 +152,7 @@ struct CudaBlockReduceShfl
       // the first warp performs the final reduction
       if( warp_id == 0 ) {
          // read from shared memory only if that warp existed
-         if( tid < blockSize / Cuda::getWarpSize() )
+         if( tid < blockSize / Backend::getWarpSize() )
             threadValue = storage.warpResults[ lane_id ];
          else
             threadValue = identity;
@@ -177,7 +177,7 @@ struct CudaBlockReduceShfl
    {
       constexpr unsigned mask = 0xffffffff;
       #pragma unroll
-      for( int i = Cuda::getWarpSize() / 2; i > 0; i /= 2 ) {
+      for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
          const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
          threadValue = reduction( threadValue, otherValue );
       }
@@ -608,7 +608,7 @@ protected:
       const Index size = end - begin;
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = maxThreadsPerBlock;
-      launch_config.gridSize.x = TNL::min( Cuda::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSize );
+      launch_config.gridSize.x = TNL::min( Backend::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSize );
       // shared memory is allocated statically inside the kernel
 
       // Check just to future-proof the code setting blockSize.x
@@ -647,7 +647,7 @@ protected:
       const Index size = end - begin;
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = maxThreadsPerBlock;
-      launch_config.gridSize.x = TNL::min( Cuda::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSize );
+      launch_config.gridSize.x = TNL::min( Backend::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSize );
       // shared memory is allocated statically inside the kernel
 
       // Check just to future-proof the code setting blockSize.x
