@@ -11,6 +11,7 @@ ADD_SUBDIRECTORY( Solvers )
 
 set( CPP_TESTS  AllocatorsTest
                 AssertTest
+                FileTest
                 base64Test
                 CustomScalarTest
                 DiscreteMathTest
@@ -20,13 +21,12 @@ set( CPP_TESTS  AllocatorsTest
                 StringTest
                 TimerTest
                 TypeInfoTest )
-set( CUDA_TESTS  AllocatorsTestCuda AssertTestCuda )
-set( HIP_TESTS  AllocatorsTestHip AssertTestHip )
-if( TNL_BUILD_CUDA )
-   set( CUDA_TESTS  ${CUDA_TESTS} FileTest )
-else()
-   set( CPP_TESTS  ${CPP_TESTS} FileTest )
-endif()
+set( CUDA_TESTS  AllocatorsTestCuda
+                 AssertTestCuda
+                 FileTestCuda )
+set( HIP_TESTS  AllocatorsTestHip
+                AssertTestHip
+                FileTestHip )
 
 foreach( target IN ITEMS ${CPP_TESTS} )
    add_executable( ${target} ${target}.cpp )
