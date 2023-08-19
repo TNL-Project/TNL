@@ -136,19 +136,6 @@ setupThreads( const dim3& blockSize,
    blocksCount.y = max( 1, yThreads / blockSize.y + static_cast< long long int >( yThreads % blockSize.y != 0 ) );
    blocksCount.z = max( 1, zThreads / blockSize.z + static_cast< long long int >( zThreads % blockSize.z != 0 ) );
 
-   /****
-    * TODO: Fix the following:
-    * I do not known how to get max grid size in kernels :(
-    *
-    * Also, this is very slow. */
-   /*int currentDevice( 0 );
-   cudaGetDevice( currentDevice );
-   cudaDeviceProp properties;
-   cudaGetDeviceProperties( &properties, currentDevice );
-   gridsCount.x = blocksCount.x / properties.maxGridSize[ 0 ] + ( blocksCount.x % properties.maxGridSize[ 0 ] != 0 );
-   gridsCount.y = blocksCount.y / properties.maxGridSize[ 1 ] + ( blocksCount.y % properties.maxGridSize[ 1 ] != 0 );
-   gridsCount.z = blocksCount.z / properties.maxGridSize[ 2 ] + ( blocksCount.z % properties.maxGridSize[ 2 ] != 0 );
-   */
    gridsCount.x =
       blocksCount.x / getMaxGridXSize() + static_cast< unsigned long int >( blocksCount.x % getMaxGridXSize() != 0 );
    gridsCount.y =
@@ -160,29 +147,6 @@ setupThreads( const dim3& blockSize,
 inline void
 setupGrid( const dim3& blocksCount, const dim3& gridsCount, const dim3& gridIdx, dim3& gridSize )
 {
-   /* TODO: this is ext slow!!!!
-   int currentDevice( 0 );
-   cudaGetDevice( &currentDevice );
-   cudaDeviceProp properties;
-   cudaGetDeviceProperties( &properties, currentDevice );*/
-
-   /****
-    * TODO: fix the following
-   if( gridIdx.x < gridsCount.x )
-      gridSize.x = properties.maxGridSize[ 0 ];
-   else
-      gridSize.x = blocksCount.x % properties.maxGridSize[ 0 ];
-
-   if( gridIdx.y < gridsCount.y )
-      gridSize.y = properties.maxGridSize[ 1 ];
-   else
-      gridSize.y = blocksCount.y % properties.maxGridSize[ 1 ];
-
-   if( gridIdx.z < gridsCount.z )
-      gridSize.z = properties.maxGridSize[ 2 ];
-   else
-      gridSize.z = blocksCount.z % properties.maxGridSize[ 2 ];*/
-
    if( gridIdx.x < gridsCount.x - 1 )
       gridSize.x = getMaxGridXSize();
    else
