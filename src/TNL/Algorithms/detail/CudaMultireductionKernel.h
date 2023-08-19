@@ -10,11 +10,9 @@
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
-#include <TNL/Exceptions/BackendSupportMissing.h>
 
 namespace TNL::Algorithms::detail {
 
-#ifdef __CUDACC__
 template< int blockSizeX, typename Result, typename DataFetcher, typename Reduction, typename Index >
 __global__
 void
@@ -25,6 +23,7 @@ CudaMultireductionKernel( const Result identity,
                           const int n,
                           Result* output )
 {
+#ifdef __CUDACC__
    Result* sdata = Backend::getSharedMemory< Result >();
 
    // Get the thread id (tid), global thread id (gid) and gridSize.
@@ -109,8 +108,8 @@ CudaMultireductionKernel( const Result identity,
    if( threadIdx.x == 0 ) {
       output[ blockIdx.x + y * gridDim.x ] = sdata[ tid ];
    }
-}
 #endif
+}
 
 template< typename Result, typename DataFetcher, typename Reduction, typename Index >
 int
@@ -121,7 +120,6 @@ CudaMultireductionKernelLauncher( const Result identity,
                                   const int n,
                                   Result*& output )
 {
-#ifdef __CUDACC__
    // must be a power of 2
    static constexpr int maxThreadsPerBlock = 256;
 
@@ -301,9 +299,6 @@ CudaMultireductionKernelLauncher( const Result identity,
 
    // return the size of the output array on the CUDA device
    return launch_config.gridSize.x;
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
 }
 
 }  // namespace TNL::Algorithms::detail

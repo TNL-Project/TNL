@@ -356,6 +356,7 @@ struct CudaTileScan
       return value;
    }
 };
+#endif
 
 /* CudaScanKernelUpsweep - compute partial reductions per each CUDA block.
  */
@@ -369,6 +370,7 @@ CudaScanKernelUpsweep( const InputView input,
                        ValueType identity,
                        ValueType* reductionResults )
 {
+#ifdef __CUDACC__
    // verify the configuration
    TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaScanKernelUpsweep" );
    static_assert( valuesPerThread % 2,
@@ -429,6 +431,7 @@ CudaScanKernelUpsweep( const InputView input,
    // Store the block result in the global memory.
    if( threadIdx.x == 0 )
       reductionResults[ blockIdx.x ] = value;
+#endif
 }
 
 /* CudaScanKernelDownsweep - scan each tile of the input separately in each CUDA
@@ -447,6 +450,7 @@ CudaScanKernelDownsweep( const InputView input,
                          typename OutputView::ValueType shift,
                          const typename OutputView::ValueType* reductionResults )
 {
+#ifdef __CUDACC__
    using ValueType = typename OutputView::ValueType;
    using TileScan = CudaTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
 
@@ -467,6 +471,7 @@ CudaScanKernelDownsweep( const InputView input,
 
    // scan from input into output
    TileScan::scan( input, output, begin, end, outputBegin, reduction, identity, shift, storage.tileScanStorage );
+#endif
 }
 
 /* CudaScanKernelParallel - scan each tile of the input separately in each CUDA
@@ -485,6 +490,7 @@ CudaScanKernelParallel( const InputView input,
                         typename OutputView::ValueType identity,
                         typename OutputView::ValueType* blockResults )
 {
+#ifdef __CUDACC__
    using ValueType = typename OutputView::ValueType;
    using TileScan = CudaTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
 
@@ -507,6 +513,7 @@ CudaScanKernelParallel( const InputView input,
    // The last thread of the block stores the block result in the global memory.
    if( blockResults && threadIdx.x == blockDim.x - 1 )
       blockResults[ blockIdx.x ] = value;
+#endif
 }
 
 /* CudaScanKernelUniformShift - apply a uniform shift to a pre-scanned output
@@ -527,6 +534,7 @@ CudaScanKernelUniformShift( OutputView output,
                             const typename OutputView::ValueType* blockResults,
                             typename OutputView::ValueType shift )
 {
+#ifdef __CUDACC__
    // load the block result into a __shared__ variable first
    union Shared
    {
@@ -557,6 +565,7 @@ CudaScanKernelUniformShift( OutputView output,
       outputBegin += blockDim.x;
       valueIdx++;
    }
+#endif
 }
 
 /**
@@ -941,7 +950,5 @@ struct CudaScanKernelLauncher
       return gridsCount;
    }
 };
-
-#endif
 
 }  // namespace TNL::Algorithms::detail

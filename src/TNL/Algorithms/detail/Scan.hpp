@@ -15,7 +15,6 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Algorithms/reduce.h>
-#include <TNL/Exceptions/BackendSupportMissing.h>
 
 namespace TNL::Algorithms::detail {
 
@@ -136,7 +135,7 @@ Scan< Devices::Host, Type, PhaseType >::perform( const InputArray& input,
       const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
       Containers::Array< ValueType > block_results( blocks + 1 );
 
-      #pragma omp parallel num_threads(threads)
+      #pragma omp parallel num_threads( threads )
       {
          const int block_idx = omp_get_thread_num();
          const IndexType block_offset = block_idx * block_size;
@@ -219,7 +218,7 @@ Scan< Devices::Host, Type, PhaseType >::performFirstPhase( const InputArray& inp
       const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
       Containers::Array< ValueType, Devices::Sequential > block_results( blocks + 1 );
 
-      #pragma omp parallel num_threads(threads)
+      #pragma omp parallel num_threads( threads )
       {
          const int block_idx = omp_get_thread_num();
          const IndexType block_offset = block_idx * block_size;
@@ -276,7 +275,7 @@ Scan< Devices::Host, Type, PhaseType >::performSecondPhase( const InputArray& in
 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
       const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
-      #pragma omp parallel num_threads(threads)
+      #pragma omp parallel num_threads( threads )
       {
          const int block_idx = omp_get_thread_num();
          const IndexType block_offset = block_idx * block_size;
@@ -315,15 +314,11 @@ Scan< Devices::Cuda, Type, PhaseType >::perform( const InputArray& input,
                                                  Reduction&& reduction,
                                                  typename OutputArray::ValueType identity )
 {
-#ifdef __CUDACC__
    if( end <= begin )
       return;
 
    detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::perform(
       input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
 }
 
 template< ScanType Type, ScanPhaseType PhaseType >
@@ -337,7 +332,6 @@ Scan< Devices::Cuda, Type, PhaseType >::performFirstPhase( const InputArray& inp
                                                            Reduction&& reduction,
                                                            typename OutputArray::ValueType identity )
 {
-#ifdef __CUDACC__
    if( end <= begin ) {
       Containers::Array< typename OutputArray::ValueType, Devices::Cuda > block_results( 1 );
       block_results.setValue( identity );
@@ -346,9 +340,6 @@ Scan< Devices::Cuda, Type, PhaseType >::performFirstPhase( const InputArray& inp
 
    return detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performFirstPhase(
       input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
 }
 
 template< ScanType Type, ScanPhaseType PhaseType >
@@ -364,15 +355,11 @@ Scan< Devices::Cuda, Type, PhaseType >::performSecondPhase( const InputArray& in
                                                             typename OutputArray::ValueType identity,
                                                             typename OutputArray::ValueType shift )
 {
-#ifdef __CUDACC__
    if( end <= begin )
       return;
 
    detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performSecondPhase(
       input, output, blockShifts, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, shift );
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
 }
 
 }  // namespace TNL::Algorithms::detail
