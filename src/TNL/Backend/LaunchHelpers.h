@@ -7,8 +7,11 @@
 #pragma once
 
 #include <iostream>
+#include <memory>       // std::unique_ptr
+#include <type_traits>  // std::remove_cv_t
 
 #include "Types.h"
+#include "Functions.h"
 #include <TNL/DiscreteMath.h>
 #include <TNL/Math.h>
 
@@ -83,10 +86,69 @@ getWarpSize()
 // When we transfer data between the GPU and the CPU we use 1 MiB buffer. This
 // size should ensure good performance.
 // We use the same buffer size even for retyping data during IO operations.
-inline constexpr int
+inline constexpr std::size_t
 getTransferBufferSize()
 {
    return 1 << 20;
+}
+
+template< typename Element, typename FillBuffer, typename PushBuffer >
+void
+bufferedTransfer( std::size_t size, FillBuffer& fill, PushBuffer& push )
+{
+   const std::size_t buffer_size = std::min( Backend::getTransferBufferSize() / sizeof( Element ), size );
+   std::unique_ptr< Element[] > host_buffer{ new Element[ buffer_size ] };
+
+   std::size_t compared = 0;
+   while( compared < size ) {
+      const std::size_t transfer = std::min( size - compared, buffer_size );
+      fill( compared, host_buffer.get(), transfer );
+      bool next_iter = true;
+      push( compared, host_buffer.get(), transfer, next_iter );
+      if( ! next_iter )
+         return;
+      compared += transfer;
+   }
+}
+
+/**
+ * This function creates a buffer on the host, fills it with data transferred
+ * from \e source, which is a pointer to device memory, and the \e push handler
+ * processes the data in the buffer.
+ */
+template< typename Element, typename PushBuffer >
+void
+bufferedTransferToHost( const Element* source, std::size_t size, PushBuffer& push )
+{
+   using BufferType = std::remove_cv_t< Element >;
+   auto fill = [ source ]( std::size_t offset, BufferType* buffer, std::size_t buffer_size )
+   {
+      Backend::memcpy( static_cast< void* >( buffer ),
+                       static_cast< const void* >( source + offset ),
+                       buffer_size * sizeof( Element ),
+                       Backend::MemcpyDeviceToHost );
+   };
+   bufferedTransfer< BufferType >( size, fill, push );
+}
+
+/**
+ * This function creates a buffer on the host, the \e fill handler fills it
+ * with data and this function transfers data from the buffer to the
+ * \e destination, which is a pointer to device memory.
+ */
+template< typename Element, typename FillBuffer >
+void
+bufferedTransferToDevice( Element* destination, std::size_t size, FillBuffer& fill )
+{
+   using BufferType = std::remove_cv_t< Element >;
+   auto push = [ destination ]( std::size_t offset, const BufferType* buffer, std::size_t buffer_size, bool& next_iter )
+   {
+      Backend::memcpy( static_cast< void* >( destination + offset ),
+                       static_cast< const void* >( buffer ),
+                       buffer_size * sizeof( Element ),
+                       Backend::MemcpyHostToDevice );
+   };
+   bufferedTransfer< BufferType >( size, fill, push );
 }
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
