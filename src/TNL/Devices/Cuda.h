@@ -11,6 +11,7 @@
 
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
+#include <TNL/Backend/Functions.h>
 #include <TNL/Backend/KernelLaunch.h>
 
 namespace TNL::Devices {
@@ -35,13 +36,8 @@ public:
    static inline bool
    setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" )
    {
-#ifdef __CUDACC__
-      int cudaDevice = parameters.getParameter< int >( prefix + "cuda-device" );
-      if( cudaSetDevice( cudaDevice ) != cudaSuccess ) {
-         std::cerr << "I cannot activate CUDA device number " << cudaDevice << "." << std::endl;
-         return false;
-      }
-#endif
+      const int cudaDevice = parameters.getParameter< int >( prefix + "cuda-device" );
+      Backend::setDevice( cudaDevice );
       return true;
    }
 };

@@ -95,7 +95,7 @@ struct ParallelFor1D< Devices::Cuda >
       }
       else {
          // decrease the grid size and align to the number of multiprocessors
-         const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getActiveDevice() );
+         const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getDevice() );
          launch_config.gridSize.x =
             TNL::min( desGridSize, Backend::getNumberOfBlocks( end - begin, launch_config.blockSize.x ) );
          constexpr auto kernel = ParallelFor1DKernel< true, Index, Function, FunctionArgs... >;

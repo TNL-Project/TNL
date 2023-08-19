@@ -344,7 +344,7 @@ public:
       Algorithms::copy< Devices::Cuda, Devices::Host >( xDevice.getData(), x, n );
 
       // desGridSize = blocksPerMultiprocessor * numberOfMultiprocessors
-      const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getActiveDevice() );
+      const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getDevice() );
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       launch_config.gridSize.x = min( desGridSize, Backend::getNumberOfBlocks( m, launch_config.blockSize.x ) );
@@ -399,7 +399,7 @@ public:
          launch_config.blockSize.x /= 2;
 
       // desGridSize = blocksPerMultiprocessor * numberOfMultiprocessors
-      const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getActiveDevice() );
+      const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getDevice() );
       launch_config.gridSize.x = min( desGridSize, Backend::getNumberOfBlocks( m, launch_config.blockSize.x ) );
       launch_config.gridSize.y = Backend::getNumberOfBlocks( n, launch_config.blockSize.y );
 

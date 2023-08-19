@@ -8,7 +8,7 @@
 
 #include <cstdlib>  // std::getenv
 
-#include <TNL/Backend/Macros.h>
+#include <TNL/Backend/Functions.h>
 #include <TNL/Debugging/OutputRedirection.h>
 #include <TNL/TypeTraits.h>
 
@@ -48,9 +48,7 @@ restoreRedirection()
 inline void
 selectGPU()
 {
-#ifdef __CUDACC__
-   int gpuCount;
-   cudaGetDeviceCount( &gpuCount );
+   const int gpuCount = Backend::getDeviceCount();
 
    // avoid division by zero
    if( gpuCount == 0 ) {
@@ -63,14 +61,12 @@ selectGPU()
 
    // write debug output before calling cudaSetDevice
    const char* cuda_visible_devices = std::getenv( "CUDA_VISIBLE_DEVICES" );
-   if( ! cuda_visible_devices )
+   if( cuda_visible_devices == nullptr )
       cuda_visible_devices = "";
    std::cout << "Rank " << GetRank() << ": rank on node is " << local_rank << ", using GPU id " << gpuNumber << " of "
              << gpuCount << ", CUDA_VISIBLE_DEVICES=" << cuda_visible_devices << std::endl;
 
-   cudaSetDevice( gpuNumber );
-   TNL_CHECK_CUDA_DEVICE;
-#endif
+   Backend::setDevice( gpuNumber );
 }
 
 /**

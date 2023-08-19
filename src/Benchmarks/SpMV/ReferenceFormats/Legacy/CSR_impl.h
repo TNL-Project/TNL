@@ -1317,7 +1317,7 @@ void SpMVCSRLightPrepare( const Real *inVector,
    cudaMemcpy(kernelRowCnt, &rowCnt, sizeof(*kernelRowCnt), cudaMemcpyHostToDevice);
    /* Get info about GPU */
    cudaDeviceProp properties;
-   cudaGetDeviceProperties( &properties, Backend::getActiveDevice() );
+   cudaGetDeviceProperties( &properties, Backend::getDevice() );
    const Index blocks =
       properties.multiProcessorCount * properties.maxThreadsPerMultiProcessor / threads;
 

@@ -85,7 +85,7 @@ getHardwareMetadata()
    const std::string cacheInfo = std::to_string( cacheSizes.L1data ) + ", " + std::to_string( cacheSizes.L1instruction ) + ", "
                                + std::to_string( cacheSizes.L2 ) + ", " + std::to_string( cacheSizes.L3 );
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const int activeGPU = Backend::getActiveDevice();
+   const int activeGPU = Backend::getDevice();
    const std::string deviceArch = std::to_string( Backend::getArchitectureMajor( activeGPU ) ) + "."
                                 + std::to_string( Backend::getArchitectureMinor( activeGPU ) );
 #endif

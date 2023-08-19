@@ -8,9 +8,24 @@
 
 #include "Macros.h"
 #include "Types.h"
+#include <TNL/Exceptions/BackendSupportMissing.h>
 
 namespace TNL::Backend {
 
+//! \brief Returns the number of devices available in the system.
+[[nodiscard]] inline int
+getDeviceCount()
+{
+   int devices = 0;
+#if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaGetDeviceCount( &devices ) );
+#elif defined( __HIP__ )
+   TNL_BACKEND_SAFE_CALL( hipGetDeviceCount( &devices ) );
+#endif
+   return devices;
+}
+
+//! \brief Returns the ID of the active device.
 [[nodiscard]] inline int
 getDevice()
 {
@@ -19,10 +34,13 @@ getDevice()
    TNL_BACKEND_SAFE_CALL( cudaGetDevice( &device ) );
 #elif defined( __HIP__ )
    TNL_BACKEND_SAFE_CALL( hipGetDevice( &device ) );
+#else
+   throw Exceptions::BackendSupportMissing();
 #endif
    return device;
 }
 
+//! \brief Sets the active device.
 inline void
 setDevice( int device )
 {
@@ -30,6 +48,8 @@ setDevice( int device )
    TNL_BACKEND_SAFE_CALL( cudaSetDevice( device ) );
 #elif defined( __HIP__ )
    TNL_BACKEND_SAFE_CALL( hipSetDevice( device ) );
+#else
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -40,6 +60,8 @@ deviceSynchronize()
    TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
 #elif defined( __HIP__ )
    TNL_BACKEND_SAFE_CALL( hipDeviceSynchronize() );
+#else
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -51,6 +73,8 @@ streamCreateWithPriority( unsigned int flags, int priority )
    TNL_BACKEND_SAFE_CALL( cudaStreamCreateWithPriority( &stream, flags, priority ) );
 #elif defined( __HIP__ )
    TNL_BACKEND_SAFE_CALL( hipStreamCreateWithPriority( &stream, flags, priority ) );
+#else
+   throw Exceptions::BackendSupportMissing();
 #endif
    return stream;
 }
@@ -66,6 +90,8 @@ streamDestroy( stream_t stream )
    // cannot free a null stream
    if( stream != 0 )
       TNL_BACKEND_SAFE_CALL( hipStreamDestroy( stream ) );
+#else
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -76,6 +102,8 @@ streamSynchronize( stream_t stream )
    TNL_BACKEND_SAFE_CALL( cudaStreamSynchronize( stream ) );
 #elif defined( __HIP__ )
    TNL_BACKEND_SAFE_CALL( hipStreamSynchronize( stream ) );
+#else
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 
@@ -88,6 +116,8 @@ funcSetCacheConfig( T* func, enum FuncCache cacheConfig )
 #elif defined( __HIP__ )
    TNL_BACKEND_SAFE_CALL(
       hipFuncSetCacheConfig( reinterpret_cast< const void* >( func ), static_cast< hipFuncCache_t >( cacheConfig ) ) );
+#else
+   throw Exceptions::BackendSupportMissing();
 #endif
 }
 

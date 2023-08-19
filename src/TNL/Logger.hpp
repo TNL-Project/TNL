@@ -64,7 +64,7 @@ Logger::writeSystemInformation( bool printGPUInfo )
       writeParameter< std::string >( "GPU info", "" );
       // TNL supports using more than one device for computations only via MPI.
       // Hence, we print only the active device here.
-      const int i = Backend::getActiveDevice();
+      const int i = Backend::getDevice();
       writeParameter< std::string >( "Name", Backend::getDeviceName( i ), 1 );
       const auto deviceArch =
          std::to_string( Backend::getArchitectureMajor( i ) ) + "." + std::to_string( Backend::getArchitectureMinor( i ) );

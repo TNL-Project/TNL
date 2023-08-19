@@ -14,39 +14,6 @@
 
 namespace TNL::Backend {
 
-[[nodiscard]] inline int
-getNumberOfDevices()
-{
-#if defined( __CUDACC__ )
-   int devices;
-   TNL_BACKEND_SAFE_CALL( cudaGetDeviceCount( &devices ) );
-   return devices;
-#elif defined( __HIP__ )
-   int devices;
-   TNL_BACKEND_SAFE_CALL( hipGetDeviceCount( &devices ) );
-   return devices;
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
-}
-
-//! \brief Returns the ID of the active device.
-[[nodiscard]] inline int
-getActiveDevice()
-{
-#if defined( __CUDACC__ )
-   int device;
-   TNL_BACKEND_SAFE_CALL( cudaGetDevice( &device ) );
-   return device;
-#elif defined( __HIP__ )
-   int device;
-   TNL_BACKEND_SAFE_CALL( hipGetDevice( &device ) );
-   return device;
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
-}
-
 [[nodiscard]] inline std::string
 getDeviceName( int deviceNum )
 {

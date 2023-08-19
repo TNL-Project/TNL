@@ -28,26 +28,26 @@ class SmartPointersRegister
 {
 public:
    /**
-    * Negative deviceId means that \ref TNL::Backend::getActiveDevice
+    * Negative deviceId means that \ref TNL::Backend::getDevice
     * will be called to get the device ID.
     */
    void
    insert( SmartPointer* pointer, int deviceId = -1 )
    {
       if( deviceId < 0 )
-         deviceId = Backend::getActiveDevice();
+         deviceId = Backend::getDevice();
       pointersOnDevices[ deviceId ].insert( pointer );
    }
 
    /**
-    * Negative deviceId means that \ref TNL::Backend::getActiveDevice
+    * Negative deviceId means that \ref TNL::Backend::getDevice
     * will be called to get the device ID.
     */
    void
    remove( SmartPointer* pointer, int deviceId = -1 )
    {
       if( deviceId < 0 )
-         deviceId = Backend::getActiveDevice();
+         deviceId = Backend::getDevice();
       try {
          pointersOnDevices.at( deviceId ).erase( pointer );
       }
@@ -60,14 +60,14 @@ public:
    }
 
    /**
-    * Negative deviceId means that \ref TNL::Backend::getActiveDevice
+    * Negative deviceId means that \ref TNL::Backend::getDevice
     * will be called to get the device ID.
     */
    bool
    synchronizeDevice( int deviceId = -1 )
    {
       if( deviceId < 0 )
-         deviceId = Backend::getActiveDevice();
+         deviceId = Backend::getDevice();
       try {
          const auto& set = pointersOnDevices.at( deviceId );
          for( auto&& it : set )

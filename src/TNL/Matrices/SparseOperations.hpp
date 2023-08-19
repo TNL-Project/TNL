@@ -578,7 +578,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      const IndexType desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getActiveDevice() );
+      const IndexType desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getDevice() );
       launch_config.gridSize.x = min( desGridSize, Backend::getNumberOfBlocks( rows, launch_config.blockSize.x ) );
 
       typename Matrix1::RowCapacitiesType rowLengths;

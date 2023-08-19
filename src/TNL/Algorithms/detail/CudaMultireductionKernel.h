@@ -135,7 +135,7 @@ CudaMultireductionKernelLauncher( const Result identity,
    // according to the number of available registers on the multiprocessor.
    // However, it seems to be better to map only one CUDA block per multiprocessor,
    // or maybe just slightly more.
-   const int activeDevice = Backend::getActiveDevice();
+   const int activeDevice = Backend::getDevice();
    const int desGridSizeX = Backend::getDeviceMultiprocessors( activeDevice );
    Backend::LaunchConfiguration launch_config;
 
