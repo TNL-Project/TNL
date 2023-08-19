@@ -60,7 +60,6 @@ struct CudaHost
    allocate( size_type n )
    {
 #ifdef __CUDACC__
-      TNL_CHECK_CUDA_DEVICE;
       value_type* result = nullptr;
       // cudaHostAllocPortable - The memory returned by this call will be considered as pinned memory by all
       //                       CUDA contexts, not just the one that performed the allocation.
@@ -72,7 +71,6 @@ struct CudaHost
       if( cudaMallocHost( (void**) &result, n * sizeof( value_type ), cudaHostAllocPortable | cudaHostAllocMapped )
           != cudaSuccess )
          throw Exceptions::BackendBadAlloc();
-      TNL_CHECK_CUDA_DEVICE;
       return result;
 #else
       throw Exceptions::BackendSupportMissing();
@@ -83,9 +81,7 @@ struct CudaHost
    deallocate( value_type* ptr, size_type )
    {
 #ifdef __CUDACC__
-      TNL_CHECK_CUDA_DEVICE;
-      cudaFreeHost( (void*) ptr );
-      TNL_CHECK_CUDA_DEVICE;
+      TNL_BACKEND_SAFE_CALL( cudaFreeHost( (void*) ptr ) );
 #else
       throw Exceptions::BackendSupportMissing();
 #endif

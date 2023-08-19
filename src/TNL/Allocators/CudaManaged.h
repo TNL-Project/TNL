@@ -62,11 +62,9 @@ struct CudaManaged
    allocate( size_type n )
    {
 #ifdef __CUDACC__
-      TNL_CHECK_CUDA_DEVICE;
       value_type* result = nullptr;
       if( cudaMallocManaged( &result, n * sizeof( value_type ) ) != cudaSuccess )
          throw Exceptions::BackendBadAlloc();
-      TNL_CHECK_CUDA_DEVICE;
       return result;
 #else
       throw Exceptions::BackendSupportMissing();
@@ -77,9 +75,7 @@ struct CudaManaged
    deallocate( value_type* ptr, size_type )
    {
 #ifdef __CUDACC__
-      TNL_CHECK_CUDA_DEVICE;
-      cudaFree( (void*) ptr );
-      TNL_CHECK_CUDA_DEVICE;
+      TNL_BACKEND_SAFE_CALL( cudaFree( (void*) ptr ) );
 #else
       throw Exceptions::BackendSupportMissing();
 #endif
