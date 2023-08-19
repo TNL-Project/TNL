@@ -518,17 +518,12 @@ public:
    {
       if( ! this->pd )
          return true;
-#ifdef __CUDACC__
       if( this->modified() ) {
-         cudaMemcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), cudaMemcpyHostToDevice );
-         TNL_CHECK_CUDA_DEVICE;
+         Backend::memcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), Backend::MemcpyHostToDevice );
          this->set_last_sync_state();
          return true;
       }
       return true;
-#else
-      return false;
-#endif
    }
 
    /**

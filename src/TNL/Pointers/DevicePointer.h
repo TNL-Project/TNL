@@ -705,19 +705,15 @@ public:
    {
       if( ! this->pd )
          return true;
-#ifdef __CUDACC__
       if( this->modified() ) {
          TNL_ASSERT_NE( this->pointer, nullptr, "" );
          TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
-         cudaMemcpy( (void*) this->cuda_pointer, (void*) this->pointer, sizeof( ObjectType ), cudaMemcpyHostToDevice );
-         TNL_CHECK_CUDA_DEVICE;
+         Backend::memcpy(
+            (void*) this->cuda_pointer, (void*) this->pointer, sizeof( ObjectType ), Backend::MemcpyHostToDevice );
          this->set_last_sync_state();
          return true;
       }
       return true;
-#else
-      return false;
-#endif
    }
 
    /**

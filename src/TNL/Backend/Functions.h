@@ -65,6 +65,18 @@ deviceSynchronize()
 #endif
 }
 
+inline void
+memcpy( void* dst, const void* src, std::size_t sizeBytes, MemcpyKind kind )
+{
+#if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaMemcpy( dst, src, sizeBytes, static_cast< cudaMemcpyKind >( kind ) ) );
+#elif defined( __HIP__ )
+   TNL_BACKEND_SAFE_CALL( hipMemcpy( dst, src, sizeBytes, static_cast< hipMemcpyKind >( kind ) ) );
+#else
+   throw Exceptions::BackendSupportMissing();
+#endif
+}
+
 [[nodiscard]] inline stream_t
 streamCreateWithPriority( unsigned int flags, int priority )
 {

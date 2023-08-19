@@ -37,6 +37,15 @@ namespace TNL::Backend {
 using error_t = cudaError_t;
 using stream_t = cudaStream_t;
 
+enum MemcpyKind
+{
+   MemcpyHostToHost = cudaMemcpyHostToHost,
+   MemcpyHostToDevice = cudaMemcpyHostToDevice,
+   MemcpyDeviceToHost = cudaMemcpyDeviceToHost,
+   MemcpyDeviceToDevice = cudaMemcpyDeviceToDevice,
+   MemcpyDefault = cudaMemcpyDefault,
+};
+
 enum
 {
    StreamDefault = cudaStreamDefault,
@@ -54,6 +63,15 @@ enum FuncCache
 using error_t = hipError_t;
 using stream_t = hipStream_t;
 
+enum MemcpyKind
+{
+   MemcpyHostToHost = hipMemcpyHostToHost,
+   MemcpyHostToDevice = hipMemcpyHostToDevice,
+   MemcpyDeviceToHost = hipMemcpyDeviceToHost,
+   MemcpyDeviceToDevice = hipMemcpyDeviceToDevice,
+   MemcpyDefault = hipMemcpyDefault,
+};
+
 enum
 {
    StreamDefault = hipStreamDefault,
@@ -70,6 +88,15 @@ enum FuncCache
 #else
 using error_t = int;
 using stream_t = int;
+
+enum MemcpyKind
+{
+   MemcpyHostToHost,
+   MemcpyHostToDevice,
+   MemcpyDeviceToHost,
+   MemcpyDeviceToDevice,
+   MemcpyDefault,
+};
 
 enum
 {

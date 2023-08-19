@@ -12,8 +12,8 @@
 #include <type_traits>  // std::remove_cv_t
 
 #include <TNL/Assert.h>
+#include <TNL/Backend.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Exceptions/BackendSupportMissing.h>
 
 #include "Copy.h"
 
@@ -122,11 +122,8 @@ Copy< DeviceType, Devices::Cuda >::copy( DestinationElement* destination, const 
       return;
    TNL_ASSERT_TRUE( destination, "Attempted to copy data to a nullptr." );
    TNL_ASSERT_TRUE( source, "Attempted to copy data from a nullptr." );
-#ifdef __CUDACC__
    if constexpr( std::is_same_v< std::remove_cv_t< DestinationElement >, std::remove_cv_t< SourceElement > > ) {
-      if( cudaMemcpy( destination, source, size * sizeof( DestinationElement ), cudaMemcpyDeviceToHost ) != cudaSuccess )
-         std::cerr << "Transfer of data from CUDA device to host failed." << std::endl;
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::memcpy( destination, source, size * sizeof( DestinationElement ), Backend::MemcpyDeviceToHost );
    }
    else {
       using BaseType = std::remove_cv_t< SourceElement >;
@@ -134,13 +131,10 @@ Copy< DeviceType, Devices::Cuda >::copy( DestinationElement* destination, const 
       std::unique_ptr< BaseType[] > buffer{ new BaseType[ buffer_size ] };
       Index i = 0;
       while( i < size ) {
-         if( cudaMemcpy( (void*) buffer.get(),
-                         (void*) &source[ i ],
-                         TNL::min( size - i, buffer_size ) * sizeof( SourceElement ),
-                         cudaMemcpyDeviceToHost )
-             != cudaSuccess )
-            std::cerr << "Transfer of data from CUDA device to host failed." << std::endl;
-         TNL_CHECK_CUDA_DEVICE;
+         Backend::memcpy( (void*) buffer.get(),
+                          (void*) &source[ i ],
+                          TNL::min( size - i, buffer_size ) * sizeof( SourceElement ),
+                          Backend::MemcpyDeviceToHost );
          int j = 0;
          while( j < buffer_size && i + j < size ) {
             destination[ i + j ] = buffer[ j ];
@@ -149,9 +143,6 @@ Copy< DeviceType, Devices::Cuda >::copy( DestinationElement* destination, const 
          i += j;
       }
    }
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
 }
 
 template< typename DeviceType >
@@ -164,11 +155,8 @@ Copy< Devices::Cuda, DeviceType >::copy( DestinationElement* destination, const 
    TNL_ASSERT_TRUE( destination, "Attempted to copy data to a nullptr." );
    TNL_ASSERT_TRUE( source, "Attempted to copy data from a nullptr." );
    TNL_ASSERT_GE( size, (Index) 0, "Array size must be non-negative." );
-#ifdef __CUDACC__
    if constexpr( std::is_same_v< std::remove_cv_t< DestinationElement >, std::remove_cv_t< SourceElement > > ) {
-      if( cudaMemcpy( destination, source, size * sizeof( DestinationElement ), cudaMemcpyHostToDevice ) != cudaSuccess )
-         std::cerr << "Transfer of data from host to CUDA device failed." << std::endl;
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::memcpy( destination, source, size * sizeof( DestinationElement ), Backend::MemcpyHostToDevice );
    }
    else {
       const int buffer_size = TNL::min( Backend::getTransferBufferSize() / sizeof( DestinationElement ), size );
@@ -180,17 +168,11 @@ Copy< Devices::Cuda, DeviceType >::copy( DestinationElement* destination, const 
             buffer[ j ] = source[ i + j ];
             j++;
          }
-         if( cudaMemcpy(
-                (void*) &destination[ i ], (void*) buffer.get(), j * sizeof( DestinationElement ), cudaMemcpyHostToDevice )
-             != cudaSuccess )
-            std::cerr << "Transfer of data from host to CUDA device failed." << std::endl;
-         TNL_CHECK_CUDA_DEVICE;
+         Backend::memcpy(
+            (void*) &destination[ i ], (void*) buffer.get(), j * sizeof( DestinationElement ), Backend::MemcpyHostToDevice );
          i += j;
       }
    }
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
 }
 
 }  // namespace TNL::Algorithms::detail

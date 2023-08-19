@@ -14,10 +14,8 @@
 #include <TNL/File.h>
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
-#include <TNL/Exceptions/BackendSupportMissing.h>
 #include <TNL/Exceptions/FileSerializationError.h>
 #include <TNL/Exceptions/FileDeserializationError.h>
-#include <TNL/Exceptions/NotImplementedError.h>
 
 namespace TNL {
 
@@ -109,7 +107,6 @@ template< typename Type, typename SourceType, typename Allocator, typename, type
 void
 File::load_impl( Type* buffer, std::streamsize elements )
 {
-#ifdef __CUDACC__
    const std::streamsize host_buffer_size =
       std::min( Backend::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
    using BaseType = typename std::remove_cv< Type >::type;
@@ -120,9 +117,10 @@ File::load_impl( Type* buffer, std::streamsize elements )
       while( readElements < elements ) {
          const std::streamsize transfer = std::min( elements - readElements, host_buffer_size );
          file.read( reinterpret_cast< char* >( host_buffer.get() ), sizeof( Type ) * transfer );
-         cudaMemcpy(
-            (void*) &buffer[ readElements ], (void*) host_buffer.get(), transfer * sizeof( Type ), cudaMemcpyHostToDevice );
-         TNL_CHECK_CUDA_DEVICE;
+         Backend::memcpy( (void*) &buffer[ readElements ],
+                          (void*) host_buffer.get(),
+                          transfer * sizeof( Type ),
+                          Backend::MemcpyHostToDevice );
          readElements += transfer;
       }
    }
@@ -137,15 +135,13 @@ File::load_impl( Type* buffer, std::streamsize elements )
          file.read( reinterpret_cast< char* >( cast_buffer.get() ), sizeof( SourceType ) * transfer );
          for( std::streamsize i = 0; i < transfer; i++ )
             host_buffer[ i ] = static_cast< Type >( cast_buffer[ i ] );
-         cudaMemcpy(
-            (void*) &buffer[ readElements ], (void*) host_buffer.get(), transfer * sizeof( Type ), cudaMemcpyHostToDevice );
-         TNL_CHECK_CUDA_DEVICE;
+         Backend::memcpy( (void*) &buffer[ readElements ],
+                          (void*) host_buffer.get(),
+                          transfer * sizeof( Type ),
+                          Backend::MemcpyHostToDevice );
          readElements += transfer;
       }
    }
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
 }
 
 template< typename Type, typename TargetType, typename Allocator >
@@ -187,7 +183,6 @@ template< typename Type, typename TargetType, typename Allocator, typename, type
 void
 File::save_impl( const Type* buffer, std::streamsize elements )
 {
-#ifdef __CUDACC__
    const std::streamsize host_buffer_size =
       std::min( Backend::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
    using BaseType = typename std::remove_cv< Type >::type;
@@ -197,9 +192,10 @@ File::save_impl( const Type* buffer, std::streamsize elements )
    if constexpr( std::is_same< Type, TargetType >::value ) {
       while( writtenElements < elements ) {
          const std::streamsize transfer = std::min( elements - writtenElements, host_buffer_size );
-         cudaMemcpy(
-            (void*) host_buffer.get(), (void*) &buffer[ writtenElements ], transfer * sizeof( Type ), cudaMemcpyDeviceToHost );
-         TNL_CHECK_CUDA_DEVICE;
+         Backend::memcpy( (void*) host_buffer.get(),
+                          (void*) &buffer[ writtenElements ],
+                          transfer * sizeof( Type ),
+                          Backend::MemcpyDeviceToHost );
          file.write( reinterpret_cast< const char* >( host_buffer.get() ), sizeof( Type ) * transfer );
          writtenElements += transfer;
       }
@@ -212,9 +208,10 @@ File::save_impl( const Type* buffer, std::streamsize elements )
 
       while( writtenElements < elements ) {
          const std::streamsize transfer = std::min( elements - writtenElements, host_buffer_size );
-         cudaMemcpy(
-            (void*) host_buffer.get(), (void*) &buffer[ writtenElements ], transfer * sizeof( Type ), cudaMemcpyDeviceToHost );
-         TNL_CHECK_CUDA_DEVICE;
+         Backend::memcpy( (void*) host_buffer.get(),
+                          (void*) &buffer[ writtenElements ],
+                          transfer * sizeof( Type ),
+                          Backend::MemcpyDeviceToHost );
          for( std::streamsize i = 0; i < transfer; i++ )
             cast_buffer[ i ] = static_cast< TargetType >( host_buffer[ i ] );
 
@@ -222,9 +219,6 @@ File::save_impl( const Type* buffer, std::streamsize elements )
          writtenElements += transfer;
       }
    }
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
 }
 
 template< typename SourceType >
