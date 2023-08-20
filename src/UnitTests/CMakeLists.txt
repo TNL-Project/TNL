@@ -9,7 +9,8 @@ ADD_SUBDIRECTORY( MPI )
 ADD_SUBDIRECTORY( Pointers )
 ADD_SUBDIRECTORY( Solvers )
 
-set( CPP_TESTS  AssertTest
+set( CPP_TESTS  AllocatorsTest
+                AssertTest
                 base64Test
                 CustomScalarTest
                 DiscreteMathTest
@@ -19,12 +20,12 @@ set( CPP_TESTS  AssertTest
                 StringTest
                 TimerTest
                 TypeInfoTest )
-set( CUDA_TESTS  AssertTestCuda )
-set( HIP_TESTS  AssertTestHip )
+set( CUDA_TESTS  AllocatorsTestCuda AssertTestCuda )
+set( HIP_TESTS  AllocatorsTestHip AssertTestHip )
 if( TNL_BUILD_CUDA )
-   set( CUDA_TESTS  ${CUDA_TESTS} AllocatorsTest FileTest )
+   set( CUDA_TESTS  ${CUDA_TESTS} FileTest )
 else()
-   set( CPP_TESTS  ${CPP_TESTS} AllocatorsTest FileTest )
+   set( CPP_TESTS  ${CPP_TESTS} FileTest )
 endif()
 
 foreach( target IN ITEMS ${CPP_TESTS} )

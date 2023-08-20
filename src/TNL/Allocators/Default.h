@@ -8,6 +8,7 @@
 
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
+#include <TNL/Allocators/Hip.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -41,8 +42,13 @@ struct Default< Devices::Host >
 template<>
 struct Default< Devices::Cuda >
 {
+#if defined( __HIP__ )
+   template< typename T >
+   using Allocator = Allocators::Hip< T >;
+#else
    template< typename T >
    using Allocator = Allocators::Cuda< T >;
+#endif
 };
 
 }  // namespace TNL::Allocators

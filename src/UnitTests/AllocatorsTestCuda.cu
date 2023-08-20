@@ -1,20 +1,17 @@
-#pragma once
-
-#include <TNL/Allocators/Host.h>
+#include <TNL/Backend.h>
 #include <TNL/Allocators/Cuda.h>
 #include <TNL/Allocators/CudaHost.h>
 #include <TNL/Allocators/CudaManaged.h>
-#include <TNL/Algorithms/fill.h>
 
 #include "gtest/gtest.h"
 
 using namespace TNL;
 
-constexpr int ARRAY_TEST_SIZE = 5000;
+constexpr int ARRAY_TEST_SIZE = 100;
 
 // test fixture for typed tests
 template< typename Value >
-class AllocatorsTest : public ::testing::Test
+class AllocatorsTestCuda : public ::testing::Test
 {
 protected:
    using ValueType = Value;
@@ -23,28 +20,9 @@ protected:
 // types for which ArrayTest is instantiated
 using ValueTypes = ::testing::Types< short int, int, long, float, double >;
 
-TYPED_TEST_SUITE( AllocatorsTest, ValueTypes );
+TYPED_TEST_SUITE( AllocatorsTestCuda, ValueTypes );
 
-TYPED_TEST( AllocatorsTest, Host )
-{
-   using ValueType = typename TestFixture::ValueType;
-   using Allocator = Allocators::Host< ValueType >;
-
-   Allocator allocator;
-   ValueType* data = allocator.allocate( ARRAY_TEST_SIZE );
-   ASSERT_NE( data, nullptr );
-
-   // do something useful with the data
-   for( int i = 0; i < ARRAY_TEST_SIZE; i++ ) {
-      data[ i ] = 0;
-      EXPECT_EQ( data[ i ], 0 );
-   }
-
-   allocator.deallocate( data, ARRAY_TEST_SIZE );
-}
-
-#ifdef __CUDACC__
-TYPED_TEST( AllocatorsTest, CudaHost )
+TYPED_TEST( AllocatorsTestCuda, CudaHost )
 {
    using ValueType = typename TestFixture::ValueType;
    using Allocator = Allocators::CudaHost< ValueType >;
@@ -62,7 +40,7 @@ TYPED_TEST( AllocatorsTest, CudaHost )
    allocator.deallocate( data, ARRAY_TEST_SIZE );
 }
 
-TYPED_TEST( AllocatorsTest, CudaManaged )
+TYPED_TEST( AllocatorsTestCuda, CudaManaged )
 {
    using ValueType = typename TestFixture::ValueType;
    using Allocator = Allocators::CudaManaged< ValueType >;
@@ -72,8 +50,11 @@ TYPED_TEST( AllocatorsTest, CudaManaged )
    ASSERT_NE( data, nullptr );
 
    // fill data on the device
-   Algorithms::fill< Devices::Cuda >( data, (ValueType) 0, ARRAY_TEST_SIZE );
-   ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
+   ValueType host_data[ ARRAY_TEST_SIZE ];
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
+      host_data[ i ] = 0;
+   Backend::memcpy(
+      static_cast< void* >( data ), static_cast< void* >( host_data ), ARRAY_TEST_SIZE, Backend::MemcpyHostToDevice );
 
    // check values on the host
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
@@ -82,21 +63,23 @@ TYPED_TEST( AllocatorsTest, CudaManaged )
    allocator.deallocate( data, ARRAY_TEST_SIZE );
 }
 
-TYPED_TEST( AllocatorsTest, Cuda )
+TYPED_TEST( AllocatorsTestCuda, Cuda )
 {
    using ValueType = typename TestFixture::ValueType;
-   using Allocator = Allocators::CudaHost< ValueType >;
+   using Allocator = Allocators::Cuda< ValueType >;
 
    Allocator allocator;
    ValueType* data = allocator.allocate( ARRAY_TEST_SIZE );
    ASSERT_NE( data, nullptr );
 
    // fill data on the device
-   Algorithms::fill< Devices::Cuda >( data, (ValueType) 0, ARRAY_TEST_SIZE );
-   ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
+   ValueType host_data[ ARRAY_TEST_SIZE ];
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
+      host_data[ i ] = 0;
+   Backend::memcpy(
+      static_cast< void* >( data ), static_cast< void* >( host_data ), ARRAY_TEST_SIZE, Backend::MemcpyHostToDevice );
 
    allocator.deallocate( data, ARRAY_TEST_SIZE );
 }
-#endif  // __CUDACC__
 
 #include "main.h"
