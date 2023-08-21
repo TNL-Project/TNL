@@ -11,7 +11,7 @@
 #include <string>
 
 #include <TNL/Allocators/Host.h>
-#include <TNL/Allocators/Cuda.h>
+#include <TNL/Allocators/Traits.h>
 
 namespace TNL {
 
@@ -157,15 +157,15 @@ protected:
    template< typename Type,
              typename SourceType,
              typename Allocator,
-             typename = std::enable_if_t< ! std::is_same_v< Allocator, Allocators::Cuda< Type > > > >
+             typename = std::enable_if_t< allocates_host_accessible_data_v< Allocator > > >
    void
    load_impl( Type* destination, std::streamsize elements );
 
-   // implementation for \ref Allocators::Cuda
+   // implementation for allocators that need explicit host-device copies
    template< typename Type,
              typename SourceType,
              typename Allocator,
-             typename = std::enable_if_t< std::is_same_v< Allocator, Allocators::Cuda< Type > > >,
+             typename = std::enable_if_t< ! allocates_host_accessible_data_v< Allocator > >,
              typename = void >
    void
    load_impl( Type* destination, std::streamsize elements );
@@ -174,15 +174,15 @@ protected:
    template< typename Type,
              typename TargetType,
              typename Allocator,
-             typename = std::enable_if_t< ! std::is_same_v< Allocator, Allocators::Cuda< Type > > > >
+             typename = std::enable_if_t< allocates_host_accessible_data_v< Allocator > > >
    void
    save_impl( const Type* source, std::streamsize elements );
 
-   // implementation for \ref Allocators::Cuda
+   // implementation for allocators that need explicit host-device copies
    template< typename Type,
              typename TargetType,
              typename Allocator,
-             typename = std::enable_if_t< std::is_same_v< Allocator, Allocators::Cuda< Type > > >,
+             typename = std::enable_if_t< ! allocates_host_accessible_data_v< Allocator > >,
              typename = void >
    void
    save_impl( const Type* source, std::streamsize elements );

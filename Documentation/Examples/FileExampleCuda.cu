@@ -1,6 +1,6 @@
 #include <iostream>
 #include <TNL/File.h>
-#include <cuda.h>
+#include <TNL/Allocators/Cuda.h>
 
 using namespace TNL;
 

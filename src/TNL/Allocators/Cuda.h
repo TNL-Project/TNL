@@ -9,6 +9,7 @@
 #include <TNL/Exceptions/BackendBadAlloc.h>
 #include <TNL/Exceptions/BackendSupportMissing.h>
 #include <TNL/Backend/Macros.h>
+#include "Traits.h"
 
 namespace TNL::Allocators {
 
@@ -95,3 +96,9 @@ operator!=( const Cuda< T1 >& lhs, const Cuda< T2 >& rhs )
 }
 
 }  // namespace TNL::Allocators
+
+namespace TNL {
+template< class T >
+struct allocates_host_accessible_data< Allocators::Cuda< T > > : public std::false_type
+{};
+}  // namespace TNL
