@@ -1,5 +1,3 @@
-
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Meshes/Readers/VTIReader.h>
@@ -13,22 +11,43 @@ using namespace TNL::Meshes;
 
 static const char* TEST_FILE_NAME = "test_VTIReaderTest.vti";
 
-struct MyConfigTag {};
+struct MyConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 // enable all index types in the GridTypeResolver
-template<> struct GridIndexTag< MyConfigTag, short int >{ static constexpr bool enabled = true; };
-template<> struct GridIndexTag< MyConfigTag, int >{ static constexpr bool enabled = true; };
+template<>
+struct GridIndexTag< MyConfigTag, short int >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct GridIndexTag< MyConfigTag, int >
+{
+   static constexpr bool enabled = true;
+};
 // GOTCHA: the tests work only for integer types that have a fixed-width alias
 // (long int may be a 32-bit type, but different from int (e.g. on Windows), which would make some tests fail)
-template<> struct GridIndexTag< MyConfigTag, std::int64_t >{ static constexpr bool enabled = true; };
+template<>
+struct GridIndexTag< MyConfigTag, std::int64_t >
+{
+   static constexpr bool enabled = true;
+};
 
 // disable float and long double (RealType is not stored in VTI and double is the default)
-template<> struct GridRealTag< MyConfigTag, float > { static constexpr bool enabled = false; };
-template<> struct GridRealTag< MyConfigTag, long double > { static constexpr bool enabled = false; };
+template<>
+struct GridRealTag< MyConfigTag, float >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct GridRealTag< MyConfigTag, long double >
+{
+   static constexpr bool enabled = false;
+};
 
-} // namespace TNL::Meshes::BuildConfigTags
+}  // namespace TNL::Meshes::BuildConfigTags
 
 TEST( VTIReaderTest, Grid1D )
 {
@@ -113,6 +132,5 @@ TEST( VTIReaderTest, Grid3D_vti )
    test_meshfunction< Readers::VTIReader, Writers::VTIWriter >( mesh, TEST_FILE_NAME, "PointData" );
    test_meshfunction< Readers::VTIReader, Writers::VTIWriter >( mesh, TEST_FILE_NAME, "CellData" );
 }
-#endif
 
 #include "../main.h"

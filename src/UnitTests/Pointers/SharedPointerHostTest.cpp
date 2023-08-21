@@ -3,16 +3,13 @@
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Containers/StaticArray.h>
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
-#endif
 
 using namespace TNL;
 
-#ifdef HAVE_GTEST
 TEST( SharedPointerHostTest, ConstructorTest )
 {
-   typedef TNL::Containers::StaticArray< 2, int  > TestType;
+   typedef TNL::Containers::StaticArray< 2, int > TestType;
    Pointers::SharedPointer< TestType, Devices::Host > ptr1;
 
    ptr1->x() = 0;
@@ -51,6 +48,5 @@ TEST( SharedPointerCudaTest, swap )
    ASSERT_EQ( *p1, 2 );
    ASSERT_EQ( *p2, 1 );
 }
-#endif
 
 #include "../main.h"

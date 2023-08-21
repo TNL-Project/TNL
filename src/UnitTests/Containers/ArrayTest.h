@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <type_traits>
 
 #include <TNL/Containers/Array.h>
@@ -24,17 +23,25 @@ struct MyData
    double data;
 
    __cuda_callable__
-   MyData() : data(0) {}
+   MyData() : data( 0 ) {}
 
    __cuda_callable__
-   MyData( double v ) : data(v) {}
+   MyData( double v ) : data( v ) {}
 
    __cuda_callable__
-   bool operator==( const MyData& v ) const { return data == v.data; }
+   bool
+   operator==( const MyData& v ) const
+   {
+      return data == v.data;
+   }
 
    // operator used in tests, not necessary for Array to work
    template< typename T >
-   bool operator==( T v ) const { return data == v; }
+   bool
+   operator==( T v ) const
+   {
+      return data == v;
+   }
 
    // operator used in ArrayIO::loadSubrange (due to casting requested from the tests)
    operator double() const
@@ -43,11 +50,11 @@ struct MyData
    }
 };
 
-std::ostream& operator<<( std::ostream& str, const MyData& v )
+std::ostream&
+operator<<( std::ostream& str, const MyData& v )
 {
    return str << v.data;
 }
-
 
 // test fixture for typed tests
 template< typename Array >
@@ -61,74 +68,73 @@ protected:
 using ArrayTypes = ::testing::Types<
 #ifndef __CUDACC__
    // we can't test all types because the argument list would be too long...
-//   Array< int,    Devices::Sequential, short >,
-//   Array< long,   Devices::Sequential, short >,
-//   Array< float,  Devices::Sequential, short >,
-//   Array< double, Devices::Sequential, short >,
-//   Array< MyData, Devices::Sequential, short >,
-//   Array< int,    Devices::Sequential, int >,
-//   Array< long,   Devices::Sequential, int >,
-//   Array< float,  Devices::Sequential, int >,
-//   Array< double, Devices::Sequential, int >,
-//   Array< MyData, Devices::Sequential, int >,
-   Array< int,    Devices::Sequential, long >,
-   Array< long,   Devices::Sequential, long >,
-   Array< float,  Devices::Sequential, long >,
+   //   Array< int,    Devices::Sequential, short >,
+   //   Array< long,   Devices::Sequential, short >,
+   //   Array< float,  Devices::Sequential, short >,
+   //   Array< double, Devices::Sequential, short >,
+   //   Array< MyData, Devices::Sequential, short >,
+   //   Array< int,    Devices::Sequential, int >,
+   //   Array< long,   Devices::Sequential, int >,
+   //   Array< float,  Devices::Sequential, int >,
+   //   Array< double, Devices::Sequential, int >,
+   //   Array< MyData, Devices::Sequential, int >,
+   Array< int, Devices::Sequential, long >,
+   Array< long, Devices::Sequential, long >,
+   Array< float, Devices::Sequential, long >,
    Array< double, Devices::Sequential, long >,
    Array< MyData, Devices::Sequential, long >,
 
-   Array< int,    Devices::Host, short >,
-   Array< long,   Devices::Host, short >,
-   Array< float,  Devices::Host, short >,
+   Array< int, Devices::Host, short >,
+   Array< long, Devices::Host, short >,
+   Array< float, Devices::Host, short >,
    Array< double, Devices::Host, short >,
    Array< MyData, Devices::Host, short >,
-   Array< int,    Devices::Host, int >,
-   Array< long,   Devices::Host, int >,
-   Array< float,  Devices::Host, int >,
+   Array< int, Devices::Host, int >,
+   Array< long, Devices::Host, int >,
+   Array< float, Devices::Host, int >,
    Array< double, Devices::Host, int >,
    Array< MyData, Devices::Host, int >,
-   Array< int,    Devices::Host, long >,
-   Array< long,   Devices::Host, long >,
-   Array< float,  Devices::Host, long >,
+   Array< int, Devices::Host, long >,
+   Array< long, Devices::Host, long >,
+   Array< float, Devices::Host, long >,
    Array< double, Devices::Host, long >,
    Array< MyData, Devices::Host, long >
 #endif
 #ifdef __CUDACC__
-   Array< int,    Devices::Cuda, short >,
-   Array< long,   Devices::Cuda, short >,
-   Array< float,  Devices::Cuda, short >,
+      Array< int, Devices::Cuda, short >,
+   Array< long, Devices::Cuda, short >,
+   Array< float, Devices::Cuda, short >,
    Array< double, Devices::Cuda, short >,
    Array< MyData, Devices::Cuda, short >,
-   Array< int,    Devices::Cuda, int >,
-   Array< long,   Devices::Cuda, int >,
-   Array< float,  Devices::Cuda, int >,
+   Array< int, Devices::Cuda, int >,
+   Array< long, Devices::Cuda, int >,
+   Array< float, Devices::Cuda, int >,
    Array< double, Devices::Cuda, int >,
    Array< MyData, Devices::Cuda, int >,
-   Array< int,    Devices::Cuda, long >,
-   Array< long,   Devices::Cuda, long >,
-   Array< float,  Devices::Cuda, long >,
+   Array< int, Devices::Cuda, long >,
+   Array< long, Devices::Cuda, long >,
+   Array< float, Devices::Cuda, long >,
    Array< double, Devices::Cuda, long >,
    Array< MyData, Devices::Cuda, long >
 #endif
 
-   // all array tests should also work with Vector
-   // (but we can't test all types because the argument list would be too long...)
+// all array tests should also work with Vector
+// (but we can't test all types because the argument list would be too long...)
 #ifndef __CUDACC__
    ,
-   Vector< float,  Devices::Sequential, long >,
+   Vector< float, Devices::Sequential, long >,
    Vector< double, Devices::Sequential, long >,
-   Vector< float,  Devices::Host, long >,
+   Vector< float, Devices::Host, long >,
    Vector< double, Devices::Host, long >
 #endif
 #ifdef __CUDACC__
    ,
-   Vector< float,  Devices::Cuda, long >,
+   Vector< float, Devices::Cuda, long >,
    Vector< double, Devices::Cuda, long >
 #endif
->;
+   >;
 
 TYPED_TEST_SUITE( ArrayTest, ArrayTypes );
-
 
 TYPED_TEST( ArrayTest, constructors )
 {
@@ -168,7 +174,7 @@ TYPED_TEST( ArrayTest, constructors )
    for( int i = 0; i < 10; i++ )
       EXPECT_EQ( int_array_copy.getElement( i ), 1 );
 
-   ArrayType a1 { 1, 2, 3 };
+   ArrayType a1{ 1, 2, 3 };
    EXPECT_EQ( a1.getElement( 0 ), 1 );
    EXPECT_EQ( a1.getElement( 1 ), 2 );
    EXPECT_EQ( a1.getElement( 2 ), 3 );
@@ -205,7 +211,7 @@ TYPED_TEST( ArrayTest, constructorsWithAllocators )
    EXPECT_EQ( v.getAllocator(), allocator );
 
    // deep copy
-   u = 0;   // floating-point values have to be initialized before comparison, because nan != nan
+   u = 0;  // floating-point values have to be initialized before comparison, because nan != nan
    ArrayType w( u, allocator );
    EXPECT_NE( w.getData(), u.getData() );
    EXPECT_EQ( w.getSize(), u.getSize() );
@@ -236,8 +242,7 @@ TYPED_TEST( ArrayTest, constructorsWithAllocators )
    EXPECT_EQ( a3.getAllocator(), allocator );
 
    // test value-initialization of non-fundamental types
-   if( ! std::is_fundamental< typename ArrayType::ValueType >::value )
-   {
+   if( ! std::is_fundamental< typename ArrayType::ValueType >::value ) {
       const typename ArrayType::ValueType init{};
       ArrayType a( 42 );
       ASSERT_EQ( a.getSize(), 42 );
@@ -288,8 +293,7 @@ TYPED_TEST( ArrayTest, resize )
       EXPECT_EQ( v.getElement( i ), init ) << "i = " << i;
 
    // test value-initialization of non-fundamental types
-   if( ! std::is_fundamental< typename ArrayType::ValueType >::value )
-   {
+   if( ! std::is_fundamental< typename ArrayType::ValueType >::value ) {
       const typename ArrayType::ValueType init{};
       ArrayType w;
       w.resize( 42 );
@@ -305,7 +309,7 @@ TYPED_TEST( ArrayTest, setSize )
 
    ArrayType u;
    const int maxSize = 10;
-   for( int i = 0; i <= maxSize; i ++ ) {
+   for( int i = 0; i <= maxSize; i++ ) {
       u.setSize( i );
       EXPECT_EQ( u.getSize(), i );
    }
@@ -374,7 +378,8 @@ TYPED_TEST( ArrayTest, reset )
 }
 
 template< typename Value, typename Index >
-void testArrayElementwiseAccess( Array< Value, Devices::Sequential, Index >&& u )
+void
+testArrayElementwiseAccess( Array< Value, Devices::Sequential, Index >&& u )
 {
    u.setSize( 10 );
    for( int i = 0; i < 10; i++ ) {
@@ -387,7 +392,8 @@ void testArrayElementwiseAccess( Array< Value, Devices::Sequential, Index >&& u 
 }
 
 template< typename Value, typename Index >
-void testArrayElementwiseAccess( Array< Value, Devices::Host, Index >&& u )
+void
+testArrayElementwiseAccess( Array< Value, Devices::Host, Index >&& u )
 {
    u.setSize( 10 );
    for( int i = 0; i < 10; i++ ) {
@@ -401,8 +407,9 @@ void testArrayElementwiseAccess( Array< Value, Devices::Host, Index >&& u )
 
 #ifdef __CUDACC__
 template< typename ValueType, typename IndexType >
-__global__ void testSetGetElementKernel( Array< ValueType, Devices::Cuda, IndexType >* u,
-                                         Array< ValueType, Devices::Cuda, IndexType >* v )
+__global__
+void
+testSetGetElementKernel( Array< ValueType, Devices::Cuda, IndexType >* u, Array< ValueType, Devices::Cuda, IndexType >* v )
 {
    if( threadIdx.x < u->getSize() )
       ( *u )[ threadIdx.x ] = ( *v )( threadIdx.x ) = threadIdx.x;
@@ -410,14 +417,18 @@ __global__ void testSetGetElementKernel( Array< ValueType, Devices::Cuda, IndexT
 #endif /* __CUDACC__ */
 
 template< typename Value, typename Index >
-void testArrayElementwiseAccess( Array< Value, Devices::Cuda, Index >&& u )
+void
+testArrayElementwiseAccess( Array< Value, Devices::Cuda, Index >&& u )
 {
 #ifdef __CUDACC__
    using ArrayType = Array< Value, Devices::Cuda, Index >;
    u.setSize( 10 );
    ArrayType v( 10 );
    Pointers::DevicePointer< ArrayType > kernel_u( u ), kernel_v( v );
-   testSetGetElementKernel<<< 1, 16 >>>( &kernel_u.template modifyData< Devices::Cuda >(), &kernel_v.template modifyData< Devices::Cuda >() );
+   // clang-format off
+   testSetGetElementKernel<<< 1, 16 >>>( &kernel_u.template modifyData< Devices::Cuda >(),
+                                         &kernel_v.template modifyData< Devices::Cuda >() );
+   // clang-format on
    cudaDeviceSynchronize();
    TNL_CHECK_CUDA_DEVICE;
    for( int i = 0; i < 10; i++ ) {
@@ -435,19 +446,21 @@ TYPED_TEST( ArrayTest, elementwiseAccess )
 }
 
 template< typename Value, typename Index >
-void test_setElement_on_device( const Array< Value, Devices::Sequential, Index >& )
-{
-}
+void
+test_setElement_on_device( const Array< Value, Devices::Sequential, Index >& )
+{}
 
 template< typename Value, typename Index >
-void test_setElement_on_device( const Array< Value, Devices::Host, Index >& )
-{
-}
+void
+test_setElement_on_device( const Array< Value, Devices::Host, Index >& )
+{}
 
 #ifdef __CUDACC__
 template< typename ValueType, typename IndexType >
-__global__ void test_setElement_on_device_kernel( Array< ValueType, Devices::Cuda, IndexType >* a,
-                                                  Array< ValueType, Devices::Cuda, IndexType >* b )
+__global__
+void
+test_setElement_on_device_kernel( Array< ValueType, Devices::Cuda, IndexType >* a,
+                                  Array< ValueType, Devices::Cuda, IndexType >* b )
 {
    if( threadIdx.x < a->getSize() ) {
       a->setElement( threadIdx.x, threadIdx.x );
@@ -457,15 +470,18 @@ __global__ void test_setElement_on_device_kernel( Array< ValueType, Devices::Cud
 #endif /* __CUDACC__ */
 
 template< typename Value, typename Index >
-void test_setElement_on_device( const Array< Value, Devices::Cuda, Index >& )
+void
+test_setElement_on_device( const Array< Value, Devices::Cuda, Index >& )
 {
 #ifdef __CUDACC__
    using ArrayType = Array< Value, Devices::Cuda, Index >;
    ArrayType a( 10, 0 ), b( 10, 0 );
    Pointers::DevicePointer< ArrayType > kernel_a( a );
    Pointers::DevicePointer< ArrayType > kernel_b( b );
+   // clang-format off
    test_setElement_on_device_kernel<<< 1, 16 >>>( &kernel_a.template modifyData< Devices::Cuda >(),
                                                   &kernel_b.template modifyData< Devices::Cuda >() );
+   // clang-format on
    cudaDeviceSynchronize();
    TNL_CHECK_CUDA_DEVICE;
    for( int i = 0; i < 10; i++ ) {
@@ -492,13 +508,18 @@ TYPED_TEST( ArrayTest, setElement )
 // test must be in a plain function because nvcc sucks (extended lambdas are
 // not allowed to be defined in protected class member functions)
 template< typename ArrayType >
-void testArrayForEachElement()
+void
+testArrayForEachElement()
 {
    using IndexType = typename ArrayType::IndexType;
    using ValueType = typename ArrayType::ValueType;
 
    ArrayType a( 10 );
-   a.forAllElements( [] __cuda_callable__ ( IndexType i, ValueType& v ) mutable { v = i; } );
+   a.forAllElements(
+      [] __cuda_callable__( IndexType i, ValueType & v ) mutable
+      {
+         v = i;
+      } );
 
    for( int i = 0; i < 10; i++ )
       EXPECT_EQ( a.getElement( i ), i );
@@ -515,7 +536,7 @@ TYPED_TEST( ArrayTest, comparisonOperator )
 
    ArrayType u( 10 ), v( 10 ), w( 10 );
    HostArrayType u_host( 10 );
-   for( int i = 0; i < 10; i ++ ) {
+   for( int i = 0; i < 10; i++ ) {
       u.setElement( i, i );
       u_host.setElement( i, i );
       v.setElement( i, i );
@@ -595,7 +616,8 @@ TYPED_TEST( ArrayTest, assignmentOperator )
 // test works only for arithmetic types
 template< typename ArrayType,
           typename = typename std::enable_if< std::is_arithmetic< typename ArrayType::ValueType >::value >::type >
-void testArrayAssignmentWithDifferentType()
+void
+testArrayAssignmentWithDifferentType()
 {
    using HostArrayType = typename ArrayType::template Self< typename ArrayType::ValueType, Devices::Sequential >;
 
@@ -626,9 +648,9 @@ void testArrayAssignmentWithDifferentType()
 template< typename ArrayType,
           typename = typename std::enable_if< ! std::is_arithmetic< typename ArrayType::ValueType >::value >::type,
           typename = void >
-void testArrayAssignmentWithDifferentType()
-{
-}
+void
+testArrayAssignmentWithDifferentType()
+{}
 
 TYPED_TEST( ArrayTest, assignmentOperatorWithDifferentType )
 {
@@ -643,7 +665,7 @@ TYPED_TEST( ArrayTest, SaveAndLoad )
 
    ArrayType u, v;
    v.setSize( 100 );
-   for( int i = 0; i < 100; i ++ )
+   for( int i = 0; i < 100; i++ )
       v.setElement( i, 42 );
    ASSERT_NO_THROW( File( TEST_FILE_NAME, std::ios_base::out ) << v );
    ASSERT_NO_THROW( File( TEST_FILE_NAME, std::ios_base::in ) >> u );
@@ -661,7 +683,7 @@ TYPED_TEST( ArrayTest, SaveAndLoadSubrangeWithCast )
 
    ArrayType v;
    v.setSize( 100 );
-   for( int i = 0; i < 100; i ++ )
+   for( int i = 0; i < 100; i++ )
       v.setElement( i, i );
    ASSERT_NO_THROW( File( TEST_FILE_NAME, std::ios_base::out ) << v );
 
@@ -680,7 +702,9 @@ TYPED_TEST( ArrayTest, SaveAndLoadSubrangeWithCast )
       file.load( &elementsInFile );
       EXPECT_EQ( elementsInFile, static_cast< std::size_t >( v.getSize() ) );
       // read data, cast from Value to short int
-      using IO = ArrayIO< CastValue, Index, typename Allocators::Default< typename ArrayType::DeviceType >::template Allocator< CastValue > >;
+      using IO = ArrayIO< CastValue,
+                          Index,
+                          typename Allocators::Default< typename ArrayType::DeviceType >::template Allocator< CastValue > >;
       // hack for the test...
       if( getType< Value >() == "MyData" )
          IO::loadSubrange( file, elementsInFile, offset, array.getData(), array.getSize(), "double" );
@@ -701,7 +725,7 @@ TYPED_TEST( ArrayTest, LoadViaView )
 
    ArrayType v, w;
    v.setSize( 100 );
-   for( int i = 0; i < 100; i ++ )
+   for( int i = 0; i < 100; i++ )
       v.setElement( i, 42 );
    ASSERT_NO_THROW( File( TEST_FILE_NAME, std::ios_base::out ) << v );
 
@@ -721,8 +745,5 @@ TYPED_TEST( ArrayTest, LoadViaView )
 }
 
 // TODO: test all __cuda_callable__ methods from a CUDA kernel
-
-#endif // HAVE_GTEST
-
 
 #include "../main.h"

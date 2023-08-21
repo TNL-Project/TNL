@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include "VectorTestSetup.h"
 
 constexpr int VECTOR_TEST_SIZE = 100;
@@ -45,7 +44,7 @@ TYPED_TEST( VectorTest, constructors )
    v.reset();
    EXPECT_EQ( w.getSize(), 10 );
 
-   VectorType a1 { 1, 2, 3 };
+   VectorType a1{ 1, 2, 3 };
    EXPECT_EQ( a1.getElement( 0 ), 1 );
    EXPECT_EQ( a1.getElement( 1 ), 2 );
    EXPECT_EQ( a1.getElement( 2 ), 3 );
@@ -67,16 +66,15 @@ TYPED_TEST( VectorTest, constructors )
    EXPECT_EQ( a4.getElement( 0 ), 2.0 * a2.getElement( 0 ) + 3 * a3.getElement( 0 ) );
    EXPECT_EQ( a4.getElement( 1 ), 2.0 * a2.getElement( 1 ) + 3 * a3.getElement( 1 ) );
    EXPECT_EQ( a4.getElement( 2 ), 2.0 * a2.getElement( 2 ) + 3 * a3.getElement( 2 ) );
-
 }
 
 TEST( VectorSpecialCasesTest, defaultConstructors )
 {
-   #ifdef __CUDACC__
+#ifdef __CUDACC__
    using DeviceType = TNL::Devices::Cuda;
-   #else
+#else
    using DeviceType = TNL::Devices::Host;
-   #endif
+#endif
    using ArrayType = Containers::Array< int, DeviceType >;
    using VectorViewType = VectorView< int, DeviceType >;
    using ArrayViewType = ArrayView< int, DeviceType >;
@@ -94,16 +92,18 @@ TEST( VectorSpecialCasesTest, defaultConstructors )
 
 TEST( VectorSpecialCasesTest, assignmentThroughView )
 {
-   #ifdef __CUDACC__
+#ifdef __CUDACC__
    using DeviceType = TNL::Devices::Cuda;
-   #else
+#else
    using DeviceType = TNL::Devices::Host;
-   #endif
+#endif
    using VectorType = Containers::Vector< int, DeviceType >;
    using ViewType = VectorView< int, DeviceType >;
 
-   static_assert( HasSubscriptOperator< VectorType >::value, "Subscript operator detection by SFINAE does not work for Vector." );
-   static_assert( HasSubscriptOperator< ViewType >::value, "Subscript operator detection by SFINAE does not work for VectorView." );
+   static_assert( HasSubscriptOperator< VectorType >::value,
+                  "Subscript operator detection by SFINAE does not work for Vector." );
+   static_assert( HasSubscriptOperator< ViewType >::value,
+                  "Subscript operator detection by SFINAE does not work for VectorView." );
 
    VectorType u( 100 ), v( 100 );
    ViewType u_view( u ), v_view( v );
@@ -127,11 +127,11 @@ TEST( VectorSpecialCasesTest, assignmentThroughView )
 
 TEST( VectorSpecialCasesTest, initializationOfVectorViewByArrayView )
 {
-   #ifdef __CUDACC__
+#ifdef __CUDACC__
    using DeviceType = TNL::Devices::Cuda;
-   #else
+#else
    using DeviceType = TNL::Devices::Host;
-   #endif
+#endif
    using ArrayType = Containers::Array< int, DeviceType >;
    using VectorViewType = VectorView< const int, DeviceType >;
    using ArrayViewType = ArrayView< int, DeviceType >;
@@ -147,11 +147,11 @@ TEST( VectorSpecialCasesTest, initializationOfVectorViewByArrayView )
 
 TEST( VectorSpecialCasesTest, sumOfBoolVector )
 {
-   #ifdef __CUDACC__
+#ifdef __CUDACC__
    using DeviceType = TNL::Devices::Cuda;
-   #else
+#else
    using DeviceType = TNL::Devices::Host;
-   #endif
+#endif
    using VectorType = Containers::Vector< bool, DeviceType >;
    using ViewType = typename VectorType::ViewType;
    const double epsilon = 64 * std::numeric_limits< double >::epsilon();
@@ -172,10 +172,10 @@ TEST( VectorSpecialCasesTest, sumOfBoolVector )
    EXPECT_NEAR( l3norm, std::cbrt( size ), epsilon );
 
    // explicit cast to double
-   const auto sum_cast = TNL::sum( cast<double>( v ) );
-   const auto l1norm_cast = l1Norm( cast<double>( v ) );
-   const auto l2norm_cast = l2Norm( cast<double>( v ) );
-   const auto l3norm_cast = lpNorm( cast<double>( v ), 3.0 );
+   const auto sum_cast = TNL::sum( cast< double >( v ) );
+   const auto l1norm_cast = l1Norm( cast< double >( v ) );
+   const auto l2norm_cast = l2Norm( cast< double >( v ) );
+   const auto l3norm_cast = lpNorm( cast< double >( v ), 3.0 );
    EXPECT_EQ( sum_cast, size );
    EXPECT_EQ( l1norm_cast, size );
    EXPECT_EQ( l2norm_cast, std::sqrt( size ) );
@@ -193,23 +193,23 @@ TEST( VectorSpecialCasesTest, sumOfBoolVector )
    EXPECT_NEAR( l3norm_view, std::cbrt( size ), epsilon );
 
    // explicit cast to double
-   const auto sum_view_cast = TNL::sum( cast<double>( v_view ) );
-   const auto l1norm_view_cast = l1Norm( cast<double>( v_view ) );
-   const auto l2norm_view_cast = l2Norm( cast<double>( v_view ) );
-   const auto l3norm_view_cast = lpNorm( cast<double>( v_view ), 3.0 );
+   const auto sum_view_cast = TNL::sum( cast< double >( v_view ) );
+   const auto l1norm_view_cast = l1Norm( cast< double >( v_view ) );
+   const auto l2norm_view_cast = l2Norm( cast< double >( v_view ) );
+   const auto l3norm_view_cast = lpNorm( cast< double >( v_view ), 3.0 );
    EXPECT_EQ( sum_view_cast, size );
-   EXPECT_EQ( l1norm_view_cast, size);
+   EXPECT_EQ( l1norm_view_cast, size );
    EXPECT_EQ( l2norm_view_cast, std::sqrt( size ) );
    EXPECT_NEAR( l3norm_view_cast, std::cbrt( size ), epsilon );
 }
 
 TEST( VectorSpecialCasesTest, reductionOfEmptyVector )
 {
-   #ifdef __CUDACC__
+#ifdef __CUDACC__
    using DeviceType = TNL::Devices::Cuda;
-   #else
+#else
    using DeviceType = TNL::Devices::Host;
-   #endif
+#endif
    using VectorType = Containers::Vector< int, DeviceType >;
    using ViewType = typename VectorType::ViewType;
    constexpr int size = 0;
@@ -218,29 +218,27 @@ TEST( VectorSpecialCasesTest, reductionOfEmptyVector )
    ViewType v_view( v );
    v.setValue( 1 );
 
-   EXPECT_EQ( min(v), std::numeric_limits< int >::max() );
-   EXPECT_EQ( max(v), std::numeric_limits< int >::lowest() );
-   EXPECT_EQ( argMin(v), std::make_pair( std::numeric_limits< int >::max(), 0 ) );
-   EXPECT_EQ( argMax(v), std::make_pair( std::numeric_limits< int >::lowest(), 0 ) );
-   EXPECT_EQ( sum(v), 0 );
-   EXPECT_EQ( product(v), 1 );
+   EXPECT_EQ( min( v ), std::numeric_limits< int >::max() );
+   EXPECT_EQ( max( v ), std::numeric_limits< int >::lowest() );
+   EXPECT_EQ( argMin( v ), std::make_pair( std::numeric_limits< int >::max(), 0 ) );
+   EXPECT_EQ( argMax( v ), std::make_pair( std::numeric_limits< int >::lowest(), 0 ) );
+   EXPECT_EQ( sum( v ), 0 );
+   EXPECT_EQ( product( v ), 1 );
 #ifndef VECTOR_OF_STATIC_VECTORS  // StaticVector is not contextually convertible to bool
-   EXPECT_EQ( all(v), true );
-   EXPECT_EQ( any(v), false );
+   EXPECT_EQ( all( v ), true );
+   EXPECT_EQ( any( v ), false );
 #endif
 
-   EXPECT_EQ( min(v_view), std::numeric_limits< int >::max() );
-   EXPECT_EQ( max(v_view), std::numeric_limits< int >::lowest() );
-   EXPECT_EQ( argMin(v_view), std::make_pair( std::numeric_limits< int >::max(), 0 ) );
-   EXPECT_EQ( argMax(v_view), std::make_pair( std::numeric_limits< int >::lowest(), 0 ) );
-   EXPECT_EQ( sum(v_view), 0 );
-   EXPECT_EQ( product(v_view), 1 );
+   EXPECT_EQ( min( v_view ), std::numeric_limits< int >::max() );
+   EXPECT_EQ( max( v_view ), std::numeric_limits< int >::lowest() );
+   EXPECT_EQ( argMin( v_view ), std::make_pair( std::numeric_limits< int >::max(), 0 ) );
+   EXPECT_EQ( argMax( v_view ), std::make_pair( std::numeric_limits< int >::lowest(), 0 ) );
+   EXPECT_EQ( sum( v_view ), 0 );
+   EXPECT_EQ( product( v_view ), 1 );
 #ifndef VECTOR_OF_STATIC_VECTORS  // StaticVector is not contextually convertible to bool
-   EXPECT_EQ( all(v_view), true );
-   EXPECT_EQ( any(v_view), false );
+   EXPECT_EQ( all( v_view ), true );
+   EXPECT_EQ( any( v_view ), false );
 #endif
 }
-
-#endif // HAVE_GTEST
 
 #include "../main.h"

@@ -1,7 +1,6 @@
 #include <TNL/DiscreteMath.h>
 
-#ifdef HAVE_GTEST
-   #include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 using namespace TNL;
 
@@ -34,8 +33,8 @@ TEST( DiscreteMathTest, PowerTest )
 
 TEST( DiscreteMathTest, Log2Test )
 {
-   static_assert( TNL::discreteLog2( 0 ) == std::numeric_limits<int>::max() );
-   static_assert( TNL::discreteLog2( 0UL ) == std::numeric_limits<unsigned long>::max() );
+   static_assert( TNL::discreteLog2( 0 ) == std::numeric_limits< int >::max() );
+   static_assert( TNL::discreteLog2( 0UL ) == std::numeric_limits< unsigned long >::max() );
 
    static_assert( TNL::discreteLog2( 1 ) == 0 );
    static_assert( TNL::discreteLog2( 2 ) == 1 );
@@ -151,7 +150,5 @@ TEST( DiscreteMathTest, detectMultiplicationOverflowTest )
          EXPECT_TRUE( TNL::integerMultiplyOverflow( b, a ) ) << "a = " << +a << ", b = " << +b;
       }
 }
-
-#endif
 
 #include "main.h"

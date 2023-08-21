@@ -1,8 +1,4 @@
-// Implemented by Nina Dzugasova
-
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
-#endif
 
 #include <TNL/String.h>
 #include <TNL/File.h>
@@ -11,7 +7,6 @@ using namespace TNL;
 
 static const char* TEST_FILE_NAME = "test_StringTest.tnl";
 
-#ifdef HAVE_GTEST
 TEST( StringTest, BasicConstructor )
 {
    String str;
@@ -44,31 +39,31 @@ TEST( StringTest, convertToString )
 
 TEST( StringTest, GetSize )
 {
-    String str1( "string" );
-    String str2( "12345" );
-    String str3( "string3" );
-    String str4( "String_4" );
-    String str5( "Last String" );
+   String str1( "string" );
+   String str2( "12345" );
+   String str3( "string3" );
+   String str4( "String_4" );
+   String str5( "Last String" );
 
-    EXPECT_EQ( str1.getSize(), 6 );
-    EXPECT_EQ( str2.getSize(), 5 );
-    EXPECT_EQ( str3.getSize(), 7 );
-    EXPECT_EQ( str4.getSize(), 8 );
-    EXPECT_EQ( str5.getSize(), 11 );
+   EXPECT_EQ( str1.getSize(), 6 );
+   EXPECT_EQ( str2.getSize(), 5 );
+   EXPECT_EQ( str3.getSize(), 7 );
+   EXPECT_EQ( str4.getSize(), 8 );
+   EXPECT_EQ( str5.getSize(), 11 );
 
-    EXPECT_EQ( str1.getLength(), 6 );
-    EXPECT_EQ( str2.getLength(), 5 );
-    EXPECT_EQ( str3.getLength(), 7 );
-    EXPECT_EQ( str4.getLength(), 8 );
-    EXPECT_EQ( str5.getLength(), 11 );
+   EXPECT_EQ( str1.getLength(), 6 );
+   EXPECT_EQ( str2.getLength(), 5 );
+   EXPECT_EQ( str3.getLength(), 7 );
+   EXPECT_EQ( str4.getLength(), 8 );
+   EXPECT_EQ( str5.getLength(), 11 );
 }
 
 TEST( StringTest, GetAllocatedSize )
 {
-    String str( "MeineKleine" );
+   String str( "MeineKleine" );
 
-    EXPECT_EQ( str.getLength(), 11 );
-    EXPECT_GE( str.getAllocatedSize(), str.getLength() );
+   EXPECT_EQ( str.getLength(), 11 );
+   EXPECT_GE( str.getAllocatedSize(), str.getLength() );
 }
 
 TEST( StringTest, SetSize )
@@ -81,8 +76,8 @@ TEST( StringTest, SetSize )
 
 TEST( StringTest, GetString )
 {
-    String str( "MyString" );
-    EXPECT_EQ( strcmp( str.getString(), "MyString" ), 0 );
+   String str( "MyString" );
+   EXPECT_EQ( strcmp( str.getString(), "MyString" ), 0 );
 }
 
 TEST( StringTest, IndexingOperator )
@@ -117,16 +112,15 @@ TEST( StringTest, CStringOperators )
               " long long long long long long long long long long long long long long"
               " long long long long long long long long long long long long long long";
    EXPECT_STREQ( string1.getString(),
-              "stringstring2"
-              " long long long long long long long long long long long long long long"
-              " long long long long long long long long long long long long long long"
-              " long long long long long long long long long long long long long long"
-              " long long long long long long long long long long long long long long"
-            );
+                 "stringstring2"
+                 " long long long long long long long long long long long long long long"
+                 " long long long long long long long long long long long long long long"
+                 " long long long long long long long long long long long long long long"
+                 " long long long long long long long long long long long long long long" );
 
    // addition
-   EXPECT_STREQ( (String( "foo " ) + "bar").getString(), "foo bar" );
-   EXPECT_STREQ( ("foo" + String( " bar" )).getString(), "foo bar" );
+   EXPECT_STREQ( ( String( "foo " ) + "bar" ).getString(), "foo bar" );
+   EXPECT_STREQ( ( "foo" + String( " bar" ) ).getString(), "foo bar" );
 
    // comparison
    EXPECT_EQ( String( "foo" ), "foo" );
@@ -174,11 +168,11 @@ TEST( StringTest, StringOperators )
                       "long long long long long long long " ) );
    // C string can be terminated in the middle
    EXPECT_STREQ( string3.getString(),
-                      "long long long long long long long long long long long "
-                      "long long long long long long long long long long long "
-                      "long long long long long long long long long long long "
-                      "long long long long long long long long long long long "
-                      "long long long long long long long " );
+                 "long long long long long long long long long long long "
+                 "long long long long long long long long long long long "
+                 "long long long long long long long long long long long "
+                 "long long long long long long long long long long long "
+                 "long long long long long long long " );
 
    // addition
    EXPECT_EQ( String( "foo " ) + String( "bar" ), "foo bar" );
@@ -204,15 +198,14 @@ TEST( StringTest, SingleCharacterOperators )
    ASSERT_EQ( string2.getLength(), 255 );
    string2 += 'B';
    EXPECT_STREQ( string2.getString(),
-                  "long long long long long long long long long long long long long "
-                  "long long long long long long long long long long long long long "
-                  "long long long long long long long long long long long long long "
-                  "long long long long long long long long long long long long B"
-               );
+                 "long long long long long long long long long long long long long "
+                 "long long long long long long long long long long long long long "
+                 "long long long long long long long long long long long long long "
+                 "long long long long long long long long long long long long B" );
 
    // addition
-   EXPECT_STREQ( (String( "A " ) + 'B').getString(), "A B" );
-   EXPECT_STREQ( ('A' + String( " B" )).getString(), "A B" );
+   EXPECT_STREQ( ( String( "A " ) + 'B' ).getString(), "A B" );
+   EXPECT_STREQ( ( 'A' + String( " B" ) ).getString(), "A B" );
 
    // comparison
    EXPECT_EQ( String( "A" ), 'A' );
@@ -365,6 +358,5 @@ TEST( StringTest, endsWith )
    EXPECT_FALSE( str.endsWith( "bbracadabra" ) );
    EXPECT_FALSE( str.endsWith( "babracadabra" ) );
 }
-#endif
 
 #include "main.h"

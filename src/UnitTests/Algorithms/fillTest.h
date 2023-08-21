@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
 #include <TNL/Algorithms/copy.h>
@@ -34,7 +33,7 @@ TYPED_TEST( FillTest, fill_host )
    Allocator allocator;
    ValueType* data = allocator.allocate( ARRAY_TEST_SIZE );
    fill< Devices::Host >( data, (ValueType) 13, ARRAY_TEST_SIZE );
-   for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( data[ i ], 13 );
    allocator.deallocate( data, ARRAY_TEST_SIZE );
 }
@@ -60,8 +59,6 @@ TYPED_TEST( FillTest, fill_cuda )
    hostAllocator.deallocate( hostData, ARRAY_TEST_SIZE );
    cudaAllocator.deallocate( deviceData, ARRAY_TEST_SIZE );
 }
-#endif // __CUDACC__
-#endif // HAVE_GTEST
-
+#endif  // __CUDACC__
 
 #include "../main.h"

@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <type_traits>
 
 #include <TNL/Containers/Array.h>
@@ -19,21 +18,30 @@ struct MyData
    double data;
 
    __cuda_callable__
-   MyData() : data(0) {}
+   MyData() : data( 0 ) {}
 
    template< typename T >
    __cuda_callable__
-   MyData( T v ) : data(v) {}
+   MyData( T v ) : data( v ) {}
 
    __cuda_callable__
-   bool operator==( const MyData& v ) const { return data == v.data; }
+   bool
+   operator==( const MyData& v ) const
+   {
+      return data == v.data;
+   }
 
    // operator used in tests, not necessary for Array to work
    template< typename T >
-   bool operator==( T v ) const { return data == v; }
+   bool
+   operator==( T v ) const
+   {
+      return data == v;
+   }
 };
 
-std::ostream& operator<<( std::ostream& str, const MyData& v )
+std::ostream&
+operator<<( std::ostream& str, const MyData& v )
 {
    return str << v.data;
 }
@@ -51,74 +59,74 @@ protected:
 using ViewTypes = ::testing::Types<
 #ifndef __CUDACC__
    // we can't test all types because the argument list would be too long...
-//    ArrayView< int,    Devices::Sequential, short >
-//   ,ArrayView< long,   Devices::Sequential, short >
-//   ,ArrayView< float,  Devices::Sequential, short >
-//   ,ArrayView< double, Devices::Sequential, short >
-//   ,ArrayView< MyData, Devices::Sequential, short >
-//   ,ArrayView< int,    Devices::Sequential, int >
-//   ,ArrayView< long,   Devices::Sequential, int >
-//   ,ArrayView< float,  Devices::Sequential, int >
-//   ,ArrayView< double, Devices::Sequential, int >
-//   ,ArrayView< MyData, Devices::Sequential, int >
-    ArrayView< int,    Devices::Sequential, long >
-   ,ArrayView< long,   Devices::Sequential, long >
-   ,ArrayView< float,  Devices::Sequential, long >
-   ,ArrayView< double, Devices::Sequential, long >
-   ,ArrayView< MyData, Devices::Sequential, long >
+   //    ArrayView< int,    Devices::Sequential, short >
+   //   ,ArrayView< long,   Devices::Sequential, short >
+   //   ,ArrayView< float,  Devices::Sequential, short >
+   //   ,ArrayView< double, Devices::Sequential, short >
+   //   ,ArrayView< MyData, Devices::Sequential, short >
+   //   ,ArrayView< int,    Devices::Sequential, int >
+   //   ,ArrayView< long,   Devices::Sequential, int >
+   //   ,ArrayView< float,  Devices::Sequential, int >
+   //   ,ArrayView< double, Devices::Sequential, int >
+   //   ,ArrayView< MyData, Devices::Sequential, int >
+   ArrayView< int, Devices::Sequential, long >,
+   ArrayView< long, Devices::Sequential, long >,
+   ArrayView< float, Devices::Sequential, long >,
+   ArrayView< double, Devices::Sequential, long >,
+   ArrayView< MyData, Devices::Sequential, long >
 
-   ,ArrayView< int,    Devices::Host, short >
-   ,ArrayView< long,   Devices::Host, short >
-   ,ArrayView< float,  Devices::Host, short >
-   ,ArrayView< double, Devices::Host, short >
-   ,ArrayView< MyData, Devices::Host, short >
-   ,ArrayView< int,    Devices::Host, int >
-   ,ArrayView< long,   Devices::Host, int >
-   ,ArrayView< float,  Devices::Host, int >
-   ,ArrayView< double, Devices::Host, int >
-   ,ArrayView< MyData, Devices::Host, int >
-   ,ArrayView< int,    Devices::Host, long >
-   ,ArrayView< long,   Devices::Host, long >
-   ,ArrayView< float,  Devices::Host, long >
-   ,ArrayView< double, Devices::Host, long >
-   ,ArrayView< MyData, Devices::Host, long >
+   ,
+   ArrayView< int, Devices::Host, short >,
+   ArrayView< long, Devices::Host, short >,
+   ArrayView< float, Devices::Host, short >,
+   ArrayView< double, Devices::Host, short >,
+   ArrayView< MyData, Devices::Host, short >,
+   ArrayView< int, Devices::Host, int >,
+   ArrayView< long, Devices::Host, int >,
+   ArrayView< float, Devices::Host, int >,
+   ArrayView< double, Devices::Host, int >,
+   ArrayView< MyData, Devices::Host, int >,
+   ArrayView< int, Devices::Host, long >,
+   ArrayView< long, Devices::Host, long >,
+   ArrayView< float, Devices::Host, long >,
+   ArrayView< double, Devices::Host, long >,
+   ArrayView< MyData, Devices::Host, long >
 #endif
 #ifdef __CUDACC__
-    ArrayView< int,    Devices::Cuda, short >
-   ,ArrayView< long,   Devices::Cuda, short >
-   ,ArrayView< float,  Devices::Cuda, short >
-   ,ArrayView< double, Devices::Cuda, short >
-   ,ArrayView< MyData, Devices::Cuda, short >
-   ,ArrayView< int,    Devices::Cuda, int >
-   ,ArrayView< long,   Devices::Cuda, int >
-   ,ArrayView< float,  Devices::Cuda, int >
-   ,ArrayView< double, Devices::Cuda, int >
-   ,ArrayView< MyData, Devices::Cuda, int >
-   ,ArrayView< int,    Devices::Cuda, long >
-   ,ArrayView< long,   Devices::Cuda, long >
-   ,ArrayView< float,  Devices::Cuda, long >
-   ,ArrayView< double, Devices::Cuda, long >
-   ,ArrayView< MyData, Devices::Cuda, long >
+      ArrayView< int, Devices::Cuda, short >,
+   ArrayView< long, Devices::Cuda, short >,
+   ArrayView< float, Devices::Cuda, short >,
+   ArrayView< double, Devices::Cuda, short >,
+   ArrayView< MyData, Devices::Cuda, short >,
+   ArrayView< int, Devices::Cuda, int >,
+   ArrayView< long, Devices::Cuda, int >,
+   ArrayView< float, Devices::Cuda, int >,
+   ArrayView< double, Devices::Cuda, int >,
+   ArrayView< MyData, Devices::Cuda, int >,
+   ArrayView< int, Devices::Cuda, long >,
+   ArrayView< long, Devices::Cuda, long >,
+   ArrayView< float, Devices::Cuda, long >,
+   ArrayView< double, Devices::Cuda, long >,
+   ArrayView< MyData, Devices::Cuda, long >
 #endif
 
-   // all ArrayView tests should also work with VectorView
-   // (but we can't test all types because the argument list would be too long...)
+// all ArrayView tests should also work with VectorView
+// (but we can't test all types because the argument list would be too long...)
 #ifndef __CUDACC__
    ,
-   VectorView< float,  Devices::Sequential, long >,
+   VectorView< float, Devices::Sequential, long >,
    VectorView< double, Devices::Sequential, long >,
-   VectorView< float,  Devices::Host, long >,
+   VectorView< float, Devices::Host, long >,
    VectorView< double, Devices::Host, long >
 #endif
 #ifdef __CUDACC__
    ,
-   VectorView< float,  Devices::Cuda, long >,
+   VectorView< float, Devices::Cuda, long >,
    VectorView< double, Devices::Cuda, long >
 #endif
->;
+   >;
 
 TYPED_TEST_SUITE( ArrayViewTest, ViewTypes );
-
 
 TYPED_TEST( ArrayViewTest, constructors )
 {
@@ -228,7 +236,8 @@ TYPED_TEST( ArrayViewTest, reset )
 }
 
 template< typename Value, typename Index >
-void testArrayViewElementwiseAccess( Array< Value, Devices::Sequential, Index >&& a )
+void
+testArrayViewElementwiseAccess( Array< Value, Devices::Sequential, Index >&& a )
 {
    a.setSize( 10 );
    using ViewType = ArrayView< Value, Devices::Sequential, Index >;
@@ -243,7 +252,8 @@ void testArrayViewElementwiseAccess( Array< Value, Devices::Sequential, Index >&
 }
 
 template< typename Value, typename Index >
-void testArrayViewElementwiseAccess( Array< Value, Devices::Host, Index >&& a )
+void
+testArrayViewElementwiseAccess( Array< Value, Devices::Host, Index >&& a )
 {
    a.setSize( 10 );
    using ViewType = ArrayView< Value, Devices::Host, Index >;
@@ -259,16 +269,19 @@ void testArrayViewElementwiseAccess( Array< Value, Devices::Host, Index >&& a )
 
 #ifdef __CUDACC__
 template< typename ValueType, typename IndexType >
-__global__ void testSetGetElementKernel( ArrayView< ValueType, Devices::Cuda, IndexType > u,
-                                         ArrayView< ValueType, Devices::Cuda, IndexType > v )
+__global__
+void
+testSetGetElementKernel( ArrayView< ValueType, Devices::Cuda, IndexType > u,
+                         ArrayView< ValueType, Devices::Cuda, IndexType > v )
 {
    if( threadIdx.x < v.getSize() )
       u[ threadIdx.x ] = v( threadIdx.x ) = threadIdx.x;
 }
-#endif // __CUDACC__
+#endif  // __CUDACC__
 
 template< typename Value, typename Index >
-void testArrayViewElementwiseAccess( Array< Value, Devices::Cuda, Index >&& a )
+void
+testArrayViewElementwiseAccess( Array< Value, Devices::Cuda, Index >&& a )
 {
 #ifdef __CUDACC__
    using ArrayType = Array< Value, Devices::Cuda, Index >;
@@ -276,7 +289,9 @@ void testArrayViewElementwiseAccess( Array< Value, Devices::Cuda, Index >&& a )
    a.setSize( 10 );
    ArrayType b( 10 );
    ViewType u( a ), v( b );
+   // clang-format off
    testSetGetElementKernel<<< 1, 16 >>>( u, v );
+   // clang-format on
    TNL_CHECK_CUDA_DEVICE;
    for( int i = 0; i < 10; i++ ) {
       EXPECT_EQ( a.getElement( i ), i );
@@ -293,7 +308,8 @@ TYPED_TEST( ArrayViewTest, elementwiseAccess )
 }
 
 template< typename ArrayType >
-void ArrayViewEvaluateTest( ArrayType& u )
+void
+ArrayViewEvaluateTest( ArrayType& u )
 {
    using ValueType = typename ArrayType::ValueType;
    using DeviceType = typename ArrayType::DeviceType;
@@ -301,28 +317,32 @@ void ArrayViewEvaluateTest( ArrayType& u )
    using ViewType = ArrayView< ValueType, DeviceType, IndexType >;
    ViewType v( u );
 
-   v.forAllElements( [] __cuda_callable__ ( IndexType i, ValueType& value ) { value = 3 * i % 4; } );
+   v.forAllElements(
+      [] __cuda_callable__( IndexType i, ValueType & value )
+      {
+         value = 3 * i % 4;
+      } );
 
-   for( int i = 0; i < 10; i++ )
-   {
+   for( int i = 0; i < 10; i++ ) {
       EXPECT_EQ( u.getElement( i ), 3 * i % 4 );
       EXPECT_EQ( v.getElement( i ), 3 * i % 4 );
    }
 }
 
 template< typename ArrayType >
-void test_setElement()
+void
+test_setElement()
 {
    ArrayType a( 10, 0 ), b( 10, 0 );
    auto a_view = a.getView();
    auto b_view = b.getView();
-   auto set = [=] __cuda_callable__ ( int i ) mutable {
+   auto set = [ = ] __cuda_callable__( int i ) mutable
+   {
       a_view.setElement( i, i );
       b_view.setElement( i, a_view.getElement( i ) );
    };
    Algorithms::parallelFor< typename ArrayType::DeviceType >( 0, 10, set );
-   for( int i = 0; i < 10; i++ )
-   {
+   for( int i = 0; i < 10; i++ ) {
       EXPECT_EQ( a.getElement( i ), i );
       EXPECT_EQ( b.getElement( i ), i );
    }
@@ -343,7 +363,6 @@ TYPED_TEST( ArrayViewTest, setElement )
    test_setElement< ArrayType >();
 }
 
-
 TYPED_TEST( ArrayViewTest, evaluate )
 {
    using ArrayType = typename TestFixture::ArrayType;
@@ -359,7 +378,7 @@ TYPED_TEST( ArrayViewTest, comparisonOperator )
 
    ArrayType a( 10 ), b( 10 );
    HostArrayType a_host( 10 );
-   for( int i = 0; i < 10; i ++ ) {
+   for( int i = 0; i < 10; i++ ) {
       a.setElement( i, i );
       a_host.setElement( i, i );
       b.setElement( i, 2 * i );
@@ -430,7 +449,8 @@ TYPED_TEST( ArrayViewTest, assignmentOperator )
 {
    using ArrayType = typename TestFixture::ArrayType;
    using ViewType = typename TestFixture::ViewType;
-   using ConstViewType = VectorView< const typename ArrayType::ValueType, typename ArrayType::DeviceType, typename ArrayType::IndexType >;
+   using ConstViewType =
+      VectorView< const typename ArrayType::ValueType, typename ArrayType::DeviceType, typename ArrayType::IndexType >;
    using HostArrayType = typename ArrayType::template Self< typename ArrayType::ValueType, Devices::Sequential >;
    using HostViewType = typename HostArrayType::ViewType;
 
@@ -477,7 +497,8 @@ TYPED_TEST( ArrayViewTest, assignmentOperator )
 // test works only for arithmetic types
 template< typename ArrayType,
           typename = typename std::enable_if< std::is_arithmetic< typename ArrayType::ValueType >::value >::type >
-void testArrayAssignmentWithDifferentType()
+void
+testArrayAssignmentWithDifferentType()
 {
    using HostArrayType = typename ArrayType::template Self< typename ArrayType::ValueType, Devices::Sequential >;
 
@@ -520,9 +541,9 @@ void testArrayAssignmentWithDifferentType()
 template< typename ArrayType,
           typename = typename std::enable_if< ! std::is_arithmetic< typename ArrayType::ValueType >::value >::type,
           typename = void >
-void testArrayAssignmentWithDifferentType()
-{
-}
+void
+testArrayAssignmentWithDifferentType()
+{}
 
 TYPED_TEST( ArrayViewTest, assignmentOperatorWithDifferentType )
 {
@@ -532,8 +553,5 @@ TYPED_TEST( ArrayViewTest, assignmentOperatorWithDifferentType )
 }
 
 // TODO: test all __cuda_callable__ methods from a CUDA kernel
-
-#endif // HAVE_GTEST
-
 
 #include "../main.h"

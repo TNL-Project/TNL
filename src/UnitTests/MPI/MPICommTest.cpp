@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/MPI/Comm.h>
@@ -120,7 +119,5 @@ TEST( CommTest, split_type )
    EXPECT_EQ( local_comm.compare( MPI_COMM_WORLD ), MPI_CONGRUENT );
 }
 #endif
-
-#endif  // HAVE_GTEST
 
 #include "../main_mpi.h"

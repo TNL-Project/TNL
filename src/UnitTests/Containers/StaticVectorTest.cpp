@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <TNL/Containers/StaticVector.h>
 
 #include "gtest/gtest.h"
@@ -16,36 +15,33 @@ protected:
 };
 
 // types for which VectorTest is instantiated
-using StaticVectorTypes = ::testing::Types<
-   StaticVector< 1, short >,
-   StaticVector< 1, int >,
-   StaticVector< 1, long >,
-   StaticVector< 1, float >,
-   StaticVector< 1, double >,
-   StaticVector< 2, short >,
-   StaticVector< 2, int >,
-   StaticVector< 2, long >,
-   StaticVector< 2, float >,
-   StaticVector< 2, double >,
-   StaticVector< 3, short >,
-   StaticVector< 3, int >,
-   StaticVector< 3, long >,
-   StaticVector< 3, float >,
-   StaticVector< 3, double >,
-   StaticVector< 4, short >,
-   StaticVector< 4, int >,
-   StaticVector< 4, long >,
-   StaticVector< 4, float >,
-   StaticVector< 4, double >,
-   StaticVector< 5, short >,
-   StaticVector< 5, int >,
-   StaticVector< 5, long >,
-   StaticVector< 5, float >,
-   StaticVector< 5, double >
->;
+using StaticVectorTypes = ::testing::Types< StaticVector< 1, short >,
+                                            StaticVector< 1, int >,
+                                            StaticVector< 1, long >,
+                                            StaticVector< 1, float >,
+                                            StaticVector< 1, double >,
+                                            StaticVector< 2, short >,
+                                            StaticVector< 2, int >,
+                                            StaticVector< 2, long >,
+                                            StaticVector< 2, float >,
+                                            StaticVector< 2, double >,
+                                            StaticVector< 3, short >,
+                                            StaticVector< 3, int >,
+                                            StaticVector< 3, long >,
+                                            StaticVector< 3, float >,
+                                            StaticVector< 3, double >,
+                                            StaticVector< 4, short >,
+                                            StaticVector< 4, int >,
+                                            StaticVector< 4, long >,
+                                            StaticVector< 4, float >,
+                                            StaticVector< 4, double >,
+                                            StaticVector< 5, short >,
+                                            StaticVector< 5, int >,
+                                            StaticVector< 5, long >,
+                                            StaticVector< 5, float >,
+                                            StaticVector< 5, double > >;
 
 TYPED_TEST_SUITE( StaticVectorTest, StaticVectorTypes );
-
 
 TYPED_TEST( StaticVectorTest, constructors )
 {
@@ -114,7 +110,5 @@ TYPED_TEST( StaticVectorTest, lexicographical )
    EXPECT_FALSE( b < a );
    EXPECT_FALSE( b <= a );
 }
-
-#endif
 
 #include "../main.h"

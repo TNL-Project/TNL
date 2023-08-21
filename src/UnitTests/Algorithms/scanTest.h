@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Arithmetics/Quad.h>
@@ -50,7 +49,8 @@ protected:
       input_host = expected_host = a;
    }
 
-   void resetWorkingArrays()
+   void
+   resetWorkingArrays()
    {
       a.setSize( size );
       a.setValue( -1 );
@@ -64,8 +64,7 @@ protected:
 
       // make sure that we perform tests with multiple CUDA grids
 #ifdef __CUDACC__
-      if( std::is_same< DeviceType, Devices::Cuda >::value )
-      {
+      if( std::is_same< DeviceType, Devices::Cuda >::value ) {
          CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
          CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::maxGridSize() = 3;
          CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
@@ -79,14 +78,16 @@ protected:
    }
 
    template< Algorithms::detail::ScanType ScanType >
-   void checkResult( const ArrayType& array )
+   void
+   checkResult( const ArrayType& array )
    {
 #ifdef __CUDACC__
       // skip the check for too small arrays
       if( array.getSize() > 256 ) {
          // we don't care which kernel launcher was actually used
-         const auto gridsCount = TNL::max( CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
-                                           CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
+         const auto gridsCount =
+            TNL::max( CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
+                      CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
          EXPECT_GT( gridsCount, 1 );
       }
 #endif
@@ -103,64 +104,67 @@ protected:
 using ArrayTypes = ::testing::Types<
 #ifndef __CUDACC__
    Array< CustomScalar< int >, Devices::Sequential, short >,
-   Array< int,            Devices::Sequential, short >,
-   Array< long,           Devices::Sequential, short >,
-   Array< double,         Devices::Sequential, short >,
+   Array< int, Devices::Sequential, short >,
+   Array< long, Devices::Sequential, short >,
+   Array< double, Devices::Sequential, short >,
    //Array< Quad< float >,  Devices::Sequential, short >,
    //Array< Quad< double >, Devices::Sequential, short >,
    Array< CustomScalar< int >, Devices::Sequential, int >,
-   Array< int,            Devices::Sequential, int >,
-   Array< long,           Devices::Sequential, int >,
-   Array< double,         Devices::Sequential, int >,
+   Array< int, Devices::Sequential, int >,
+   Array< long, Devices::Sequential, int >,
+   Array< double, Devices::Sequential, int >,
    //Array< Quad< float >,  Devices::Sequential, int >,
    //Array< Quad< double >, Devices::Sequential, int >,
    Array< CustomScalar< int >, Devices::Sequential, long >,
-   Array< int,            Devices::Sequential, long >,
-   Array< long,           Devices::Sequential, long >,
-   Array< double,         Devices::Sequential, long >,
+   Array< int, Devices::Sequential, long >,
+   Array< long, Devices::Sequential, long >,
+   Array< double, Devices::Sequential, long >,
    //Array< Quad< float >,  Devices::Sequential, long >,
    //Array< Quad< double >, Devices::Sequential, long >,
 
    Array< CustomScalar< int >, Devices::Host, short >,
-   Array< int,            Devices::Host, short >,
-   Array< long,           Devices::Host, short >,
-   Array< double,         Devices::Host, short >,
+   Array< int, Devices::Host, short >,
+   Array< long, Devices::Host, short >,
+   Array< double, Devices::Host, short >,
    //Array< Quad< float >,  Devices::Host, short >,
    //Array< Quad< double >, Devices::Host, short >,
    Array< CustomScalar< int >, Devices::Host, int >,
-   Array< int,            Devices::Host, int >,
-   Array< long,           Devices::Host, int >,
-   Array< double,         Devices::Host, int >,
+   Array< int, Devices::Host, int >,
+   Array< long, Devices::Host, int >,
+   Array< double, Devices::Host, int >,
    //Array< Quad< float >,  Devices::Host, int >,
    //Array< Quad< double >, Devices::Host, int >,
    Array< CustomScalar< int >, Devices::Host, long >,
-   Array< int,            Devices::Host, long >,
-   Array< long,           Devices::Host, long >,
-   Array< double,         Devices::Host, long >
-   //Array< Quad< float >,  Devices::Host, long >,
-   //Array< Quad< double >, Devices::Host, long >
+   Array< int, Devices::Host, long >,
+   Array< long, Devices::Host, long >,
+   Array< double, Devices::Host, long >
+//Array< Quad< float >,  Devices::Host, long >,
+//Array< Quad< double >, Devices::Host, long >
 #endif
 #ifdef __CUDACC__
-   Array< CustomScalar< int >, Devices::Cuda, short >,  // the scan kernel for CustomScalar is not specialized with __shfl instructions
-   Array< int,            Devices::Cuda, short >,
-   Array< long,           Devices::Cuda, short >,
-   Array< double,         Devices::Cuda, short >,
+      Array< CustomScalar< int >, Devices::Cuda, short >,  // the scan kernel for CustomScalar is not specialized with __shfl
+                                                           // instructions
+   Array< int, Devices::Cuda, short >,
+   Array< long, Devices::Cuda, short >,
+   Array< double, Devices::Cuda, short >,
    //Array< Quad< float >,  Devices::Cuda, short >,
    //Array< Quad< double >, Devices::Cuda, short >,
-   Array< CustomScalar< int >, Devices::Cuda, int >,  // the scan kernel for CustomScalar is not specialized with __shfl instructions
-   Array< int,            Devices::Cuda, int >,
-   Array< long,           Devices::Cuda, int >,
-   Array< double,         Devices::Cuda, int >,
+   Array< CustomScalar< int >, Devices::Cuda, int >,  // the scan kernel for CustomScalar is not specialized with __shfl
+                                                      // instructions
+   Array< int, Devices::Cuda, int >,
+   Array< long, Devices::Cuda, int >,
+   Array< double, Devices::Cuda, int >,
    //Array< Quad< float >,  Devices::Cuda, int >,
    //Array< Quad< double >, Devices::Cuda, int >,
-   Array< CustomScalar< int >, Devices::Cuda, long >,  // the scan kernel for CustomScalar is not specialized with __shfl instructions
-   Array< int,            Devices::Cuda, long >,
-   Array< long,           Devices::Cuda, long >,
-   Array< double,         Devices::Cuda, long >
-   //Array< Quad< float >,  Devices::Cuda, long >,
-   //Array< Quad< double >, Devices::Cuda, long >
+   Array< CustomScalar< int >, Devices::Cuda, long >,  // the scan kernel for CustomScalar is not specialized with __shfl
+                                                       // instructions
+   Array< int, Devices::Cuda, long >,
+   Array< long, Devices::Cuda, long >,
+   Array< double, Devices::Cuda, long >
+//Array< Quad< float >,  Devices::Cuda, long >,
+//Array< Quad< double >, Devices::Cuda, long >
 #endif
->;
+   >;
 
 TYPED_TEST_SUITE( ScanTest, ArrayTypes );
 
@@ -388,7 +392,7 @@ TYPED_TEST( ScanTest, inclusiveScan_linear_sequence )
 
    for( int i = 0; i < this->size; i++ ) {
       this->input_host[ i ] = i;
-      this->expected_host[ i ] = (i * (i + 1)) / 2;
+      this->expected_host[ i ] = ( i * ( i + 1 ) ) / 2;
    }
 
    this->a = this->input_host;
@@ -410,7 +414,7 @@ TYPED_TEST( ScanTest, inplaceInclusiveScan_linear_sequence )
 
    for( int i = 0; i < this->size; i++ ) {
       this->input_host[ i ] = i;
-      this->expected_host[ i ] = (i * (i + 1)) / 2;
+      this->expected_host[ i ] = ( i * ( i + 1 ) ) / 2;
    }
 
    this->a = this->input_host;
@@ -648,7 +652,7 @@ TYPED_TEST( ScanTest, exclusiveScan_linear_sequence )
 
    for( int i = 0; i < this->size; i++ ) {
       this->input_host[ i ] = i;
-      this->expected_host[ i ] = (i * (i - 1)) / 2;
+      this->expected_host[ i ] = ( i * ( i - 1 ) ) / 2;
    }
 
    this->a = this->input_host;
@@ -670,7 +674,7 @@ TYPED_TEST( ScanTest, inplaceExclusiveScan_linear_sequence )
 
    for( int i = 0; i < this->size; i++ ) {
       this->input_host[ i ] = i;
-      this->expected_host[ i ] = (i * (i - 1)) / 2;
+      this->expected_host[ i ] = ( i * ( i - 1 ) ) / 2;
    }
 
    this->a = this->input_host;
@@ -683,7 +687,6 @@ TYPED_TEST( ScanTest, inplaceExclusiveScan_linear_sequence )
    inplaceExclusiveScan( this->a_view, 0, this->size, std::plus<>{}, (ValueType) 0 );
    this->template checkResult< ScanType::Exclusive >( this->a );
 }
-
 
 TYPED_TEST( ScanTest, multiplication )
 {
@@ -804,7 +807,5 @@ TYPED_TEST( ScanTest, vector_expression )
    inclusiveScan( this->av_view - this->bv_view, this->c, 0, this->a.getSize(), 0, TNL::Plus{} );
    this->template checkResult< ScanType::Inclusive >( this->c );
 }
-
-#endif // HAVE_GTEST
 
 #include "../main.h"

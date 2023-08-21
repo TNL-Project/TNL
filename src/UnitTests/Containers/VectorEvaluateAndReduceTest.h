@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <limits>
 
 #include <TNL/Containers/Vector.h>
@@ -18,14 +17,15 @@ using namespace TNL::Arithmetics;
 constexpr int VECTOR_TEST_SIZE = 500;
 
 // NOTE: The following lambdas cannot be inside the test because of nvcc ( v. 10.1.105 )
-// error #3049-D: The enclosing parent function ("TestBody") for an extended __host__ __device__ lambda cannot have private or protected access within its class
+// error #3049-D: The enclosing parent function ("TestBody") for an extended __host__ __device__ lambda cannot have private or
+// protected access within its class
 template< typename VectorView >
 typename VectorView::RealType
 performEvaluateAndReduce( VectorView& u, VectorView& v, VectorView& w )
 {
    using RealType = typename VectorView::RealType;
 
-   return evaluateAndReduce( w, u * v, std::plus<>{}, ( RealType ) 0.0 );
+   return evaluateAndReduce( w, u * v, std::plus<>{}, (RealType) 0.0 );
 }
 
 TYPED_TEST( VectorTest, evaluateAndReduce )
@@ -38,8 +38,7 @@ TYPED_TEST( VectorTest, evaluateAndReduce )
    VectorType _u( size ), _v( size ), _w( size );
    ViewType u( _u ), v( _v ), w( _w );
    RealType aux( 0.0 );
-   for( int i = 0; i < size; i++ )
-   {
+   for( int i = 0; i < size; i++ ) {
       const RealType x = i;
       const RealType y = size / 2 - i;
       u.setElement( i, x );
@@ -52,14 +51,15 @@ TYPED_TEST( VectorTest, evaluateAndReduce )
 }
 
 // NOTE: The following lambdas cannot be inside the test because of nvcc ( v. 10.1.105 )
-// error #3049-D: The enclosing parent function ("TestBody") for an extended __host__ __device__ lambda cannot have private or protected access within its class
+// error #3049-D: The enclosing parent function ("TestBody") for an extended __host__ __device__ lambda cannot have private or
+// protected access within its class
 template< typename VectorView >
 typename VectorView::RealType
 performAddAndReduce1( VectorView& u, VectorView& v, VectorView& w )
 {
    using RealType = typename VectorView::RealType;
 
-   return addAndReduce( w, u * v, std::plus<>{}, ( RealType ) 0.0 );
+   return addAndReduce( w, u * v, std::plus<>{}, (RealType) 0.0 );
 }
 
 template< typename VectorView >
@@ -68,9 +68,8 @@ performAddAndReduce2( VectorView& v, VectorView& w )
 {
    using RealType = typename VectorView::RealType;
 
-   return addAndReduce( w, 5.0 * v, std::plus<>{}, ( RealType ) 0.0 );
+   return addAndReduce( w, 5.0 * v, std::plus<>{}, (RealType) 0.0 );
 }
-
 
 TYPED_TEST( VectorTest, addAndReduce )
 {
@@ -82,8 +81,7 @@ TYPED_TEST( VectorTest, addAndReduce )
    VectorType _u( size ), _v( size ), _w( size );
    ViewType u( _u ), v( _v ), w( _w );
    RealType aux( 0.0 );
-   for( int i = 0; i < size; i++ )
-   {
+   for( int i = 0; i < size; i++ ) {
       const RealType x = i;
       const RealType y = size / 2 - i;
       u.setElement( i, x );
@@ -96,8 +94,7 @@ TYPED_TEST( VectorTest, addAndReduce )
    EXPECT_NEAR( aux, r, 1.0e-5 );
 
    aux = 0.0;
-   for( int i = 0; i < size; i++ )
-   {
+   for( int i = 0; i < size; i++ ) {
       const RealType x = i;
       const RealType y = size / 2 - i;
       u.setElement( i, x );
@@ -108,9 +105,6 @@ TYPED_TEST( VectorTest, addAndReduce )
    r = performAddAndReduce2( v, w );
    EXPECT_TRUE( w == 5.0 * v + u );
    EXPECT_NEAR( aux, r, 1.0e-5 );
-
 }
-
-#endif // HAVE_GTEST
 
 #include "../main.h"

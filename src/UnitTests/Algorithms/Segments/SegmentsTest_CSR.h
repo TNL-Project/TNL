@@ -8,7 +8,6 @@
 #include "SegmentsTest.hpp"
 #include <iostream>
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 // test fixture for typed tests
@@ -20,15 +19,14 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using CSRSegmentsTypes = ::testing::Types<
-   TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int >,
-   TNL::Algorithms::Segments::CSR< TNL::Devices::Host, long >
-   #ifdef __CUDACC__
-   ,
-   TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int >,
-   TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, long >
-   #endif
->;
+using CSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int >,
+                                           TNL::Algorithms::Segments::CSR< TNL::Devices::Host, long >
+#ifdef __CUDACC__
+                                           ,
+                                           TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int >,
+                                           TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, long >
+#endif
+                                           >;
 
 TYPED_TEST_SUITE( CSRSegmentsTest, CSRSegmentsTypes );
 
@@ -42,38 +40,41 @@ TYPED_TEST( CSRSegmentsTest, setSegmentsSizes_EqualSizes )
 TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegments_CSRAdaptive )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   using Kernel = TNL::Algorithms::SegmentsReductionKernels::CSRAdaptiveKernel< typename CSRSegmentsType::IndexType, typename CSRSegmentsType::DeviceType >;
+   using Kernel = TNL::Algorithms::SegmentsReductionKernels::CSRAdaptiveKernel< typename CSRSegmentsType::IndexType,
+                                                                                typename CSRSegmentsType::DeviceType >;
    test_reduceAllSegments_MaximumInSegments< CSRSegmentsType, Kernel >();
 }
 
 TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegments_CSRHybrid )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   using Kernel = TNL::Algorithms::SegmentsReductionKernels::CSRHybridKernel< typename CSRSegmentsType::IndexType, typename CSRSegmentsType::DeviceType >;
+   using Kernel = TNL::Algorithms::SegmentsReductionKernels::CSRHybridKernel< typename CSRSegmentsType::IndexType,
+                                                                              typename CSRSegmentsType::DeviceType >;
    test_reduceAllSegments_MaximumInSegments< CSRSegmentsType, Kernel >();
 }
 
 TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegments_CSRLight )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   using Kernel = TNL::Algorithms::SegmentsReductionKernels::CSRLightKernel< typename CSRSegmentsType::IndexType, typename CSRSegmentsType::DeviceType >;
+   using Kernel = TNL::Algorithms::SegmentsReductionKernels::CSRLightKernel< typename CSRSegmentsType::IndexType,
+                                                                             typename CSRSegmentsType::DeviceType >;
    test_reduceAllSegments_MaximumInSegments< CSRSegmentsType, Kernel >();
 }
 
 TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegments_CSRScalar )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   using Kernel = TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< typename CSRSegmentsType::IndexType, typename CSRSegmentsType::DeviceType >;
+   using Kernel = TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< typename CSRSegmentsType::IndexType,
+                                                                              typename CSRSegmentsType::DeviceType >;
    test_reduceAllSegments_MaximumInSegments< CSRSegmentsType, Kernel >();
 }
 
 TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegments_CSRVector )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   using Kernel = TNL::Algorithms::SegmentsReductionKernels::CSRVectorKernel< typename CSRSegmentsType::IndexType, typename CSRSegmentsType::DeviceType >;
+   using Kernel = TNL::Algorithms::SegmentsReductionKernels::CSRVectorKernel< typename CSRSegmentsType::IndexType,
+                                                                              typename CSRSegmentsType::DeviceType >;
    test_reduceAllSegments_MaximumInSegments< CSRSegmentsType, Kernel >();
 }
-
-#endif
 
 #include "../../main.h"

@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Containers/DistributedArray.h>
@@ -18,8 +17,7 @@ using namespace TNL::MPI;
  * - Communicator is hardcoded as MPI_COMM_WORLD -- it may be changed as needed.
  */
 template< typename DistributedArray >
-class DistributedArrayTest
-: public ::testing::Test
+class DistributedArrayTest : public ::testing::Test
 {
 protected:
    using ValueType = typename DistributedArray::ValueType;
@@ -27,7 +25,8 @@ protected:
    using IndexType = typename DistributedArray::IndexType;
    using DistributedArrayType = DistributedArray;
    using ArrayViewType = typename DistributedArrayType::LocalViewType;
-   using ArrayType = Array< typename ArrayViewType::ValueType, typename ArrayViewType::DeviceType, typename ArrayViewType::IndexType >;
+   using ArrayType =
+      Array< typename ArrayViewType::ValueType, typename ArrayViewType::DeviceType, typename ArrayViewType::IndexType >;
 
    const int globalSize = 97;  // prime number to force non-uniform distribution
 
@@ -35,11 +34,11 @@ protected:
 
    DistributedArrayType distributedArray;
 
-   const int rank = GetRank(communicator);
-   const int nproc = GetSize(communicator);
+   const int rank = GetRank( communicator );
+   const int nproc = GetSize( communicator );
 
    // some arbitrary even value (but must be 0 if not distributed)
-   const int ghosts = (nproc > 1) ? 4 : 0;
+   const int ghosts = ( nproc > 1 ) ? 4 : 0;
 
    DistributedArrayTest()
    {
@@ -48,7 +47,7 @@ protected:
       distributedArray.setDistribution( localRange, ghosts, globalSize, communicator );
 
       using Synchronizer = typename Partitioner< IndexType >::template ArraySynchronizer< DeviceType >;
-      distributedArray.setSynchronizer( std::make_shared<Synchronizer>( localRange, ghosts / 2, communicator ) );
+      distributedArray.setSynchronizer( std::make_shared< Synchronizer >( localRange, ghosts / 2, communicator ) );
 
       EXPECT_EQ( distributedArray.getLocalRange(), localRange );
       EXPECT_EQ( distributedArray.getGhosts(), ghosts );
@@ -57,13 +56,12 @@ protected:
 };
 
 // types for which DistributedArrayTest is instantiated
-using DistributedArrayTypes = ::testing::Types<
-   DistributedArray< double, Devices::Host, int >
+using DistributedArrayTypes = ::testing::Types< DistributedArray< double, Devices::Host, int >
 #ifdef __CUDACC__
-   ,
-   DistributedArray< double, Devices::Cuda, int >
+                                                ,
+                                                DistributedArray< double, Devices::Cuda, int >
 #endif
->;
+                                                >;
 
 TYPED_TEST_SUITE( DistributedArrayTest, DistributedArrayTypes );
 
@@ -71,8 +69,10 @@ TYPED_TEST( DistributedArrayTest, checkLocalSizes )
 {
    EXPECT_EQ( this->distributedArray.getLocalView().getSize(), this->distributedArray.getLocalRange().getSize() );
    EXPECT_EQ( this->distributedArray.getConstLocalView().getSize(), this->distributedArray.getLocalRange().getSize() );
-   EXPECT_EQ( this->distributedArray.getLocalViewWithGhosts().getSize(), this->distributedArray.getLocalRange().getSize() + this->ghosts );
-   EXPECT_EQ( this->distributedArray.getConstLocalViewWithGhosts().getSize(), this->distributedArray.getLocalRange().getSize() + this->ghosts );
+   EXPECT_EQ( this->distributedArray.getLocalViewWithGhosts().getSize(),
+              this->distributedArray.getLocalRange().getSize() + this->ghosts );
+   EXPECT_EQ( this->distributedArray.getConstLocalViewWithGhosts().getSize(),
+              this->distributedArray.getLocalRange().getSize() + this->ghosts );
 }
 
 TYPED_TEST( DistributedArrayTest, checkSumOfLocalSizes )
@@ -105,11 +105,12 @@ TYPED_TEST( DistributedArrayTest, copyFromGlobal )
    // check ghost values
    for( int o = 0; o < this->ghosts / 2; o++ ) {
       const int left_i = localRange.getSize() + o;
-      const int left_gi = ((this->rank > 0) ? localRange.getBegin() : this->globalSize) - this->ghosts / 2 + o;
+      const int left_gi = ( ( this->rank > 0 ) ? localRange.getBegin() : this->globalSize ) - this->ghosts / 2 + o;
       EXPECT_EQ( this->distributedArray.getConstLocalViewWithGhosts().getElement( left_i ), globalArray.getElement( left_gi ) );
       const int right_i = localRange.getSize() + this->ghosts / 2 + o;
-      const int right_gi = ((this->rank < this->nproc - 1) ? localRange.getEnd() : 0) + o;
-      EXPECT_EQ( this->distributedArray.getConstLocalViewWithGhosts().getElement( right_i ), globalArray.getElement( right_gi ) );
+      const int right_gi = ( ( this->rank < this->nproc - 1 ) ? localRange.getEnd() : 0 ) + o;
+      EXPECT_EQ( this->distributedArray.getConstLocalViewWithGhosts().getElement( right_i ),
+                 globalArray.getElement( right_gi ) );
    }
 }
 
@@ -160,8 +161,8 @@ TYPED_TEST( DistributedArrayTest, setValueGhosts )
    expected.setValue( this->rank );
 
    // set expected ghost values
-   const int left = (this->rank > 0) ? this->rank - 1 : this->nproc - 1;
-   const int right = (this->rank < this->nproc - 1) ? this->rank + 1 : 0;
+   const int left = ( this->rank > 0 ) ? this->rank - 1 : this->nproc - 1;
+   const int right = ( this->rank < this->nproc - 1 ) ? this->rank + 1 : 0;
    for( int o = 0; o < this->ghosts / 2; o++ ) {
       expected.setElement( this->distributedArray.getLocalRange().getSize() + o, left );
       expected.setElement( this->distributedArray.getLocalRange().getSize() + this->ghosts / 2 + o, right );
@@ -260,7 +261,7 @@ TYPED_TEST( DistributedArrayTest, comparisonOperators )
    v.setLike( u );
    w.setLike( u );
 
-   for( int i = 0; i < localRange.getSize(); i ++ ) {
+   for( int i = 0; i < localRange.getSize(); i++ ) {
       const IndexType gi = localRange.getGlobalIndex( i );
       u.setElement( gi, i );
       v.setElement( gi, i );
@@ -291,7 +292,5 @@ TYPED_TEST( DistributedArrayTest, empty )
    EXPECT_EQ( this->distributedArray.getSize(), 0 );
    EXPECT_TRUE( this->distributedArray.empty() );
 }
-
-#endif  // HAVE_GTEST
 
 #include "../main_mpi.h"

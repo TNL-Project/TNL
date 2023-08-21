@@ -424,8 +424,6 @@ clang-format src/UnitTests:
                 --recursive
                 src/UnitTests
     interruptible: true
-    # TODO: remove to enforce formatting
-    allow_failure: true
 
 clang-format Documentation:
     stage: lint

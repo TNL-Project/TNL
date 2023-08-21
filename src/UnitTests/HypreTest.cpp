@@ -1,18 +1,16 @@
-#ifdef HAVE_GTEST
-
 #include <gtest/gtest.h>
 #include "Containers/VectorHelperFunctions.h"
 
 #ifdef HAVE_HYPRE
 
-#include <TNL/Containers/HypreVector.h>
-#include <TNL/Containers/HypreParVector.h>
-#include <TNL/Matrices/HypreCSRMatrix.h>
-#include <TNL/Matrices/HypreParCSRMatrix.h>
-#include <TNL/Solvers/Linear/Hypre.h>
+   #include <TNL/Containers/HypreVector.h>
+   #include <TNL/Containers/HypreParVector.h>
+   #include <TNL/Matrices/HypreCSRMatrix.h>
+   #include <TNL/Matrices/HypreParCSRMatrix.h>
+   #include <TNL/Solvers/Linear/Hypre.h>
 
-#include <TNL/Containers/Partitioner.h>
-#include <TNL/Matrices/SparseMatrix.h>
+   #include <TNL/Containers/Partitioner.h>
+   #include <TNL/Matrices/SparseMatrix.h>
 
 using namespace TNL;
 using namespace TNL::Solvers::Linear;
@@ -57,18 +55,21 @@ TEST( HypreTest, AssumedPartitionCheck )
 }
 
 template< typename DistributedArray >
-auto getDistributedArray( MPI_Comm communicator,
-                          typename DistributedArray::IndexType globalSize,
-                          typename DistributedArray::IndexType ghosts )
+auto
+getDistributedArray( MPI_Comm communicator,
+                     typename DistributedArray::IndexType globalSize,
+                     typename DistributedArray::IndexType ghosts )
 {
    DistributedArray array;
 
    using LocalRangeType = typename DistributedArray::LocalRangeType;
-   const LocalRangeType localRange = Containers::Partitioner< typename DistributedArray::IndexType >::splitRange( globalSize, communicator );
+   const LocalRangeType localRange =
+      Containers::Partitioner< typename DistributedArray::IndexType >::splitRange( globalSize, communicator );
    array.setDistribution( localRange, ghosts, globalSize, communicator );
 
-   using Synchronizer = typename Containers::Partitioner< typename DistributedArray::IndexType >::template ArraySynchronizer< typename DistributedArray::DeviceType >;
-   array.setSynchronizer( std::make_shared<Synchronizer>( localRange, ghosts / 2, communicator ) );
+   using Synchronizer = typename Containers::Partitioner< typename DistributedArray::IndexType >::template ArraySynchronizer<
+      typename DistributedArray::DeviceType >;
+   array.setSynchronizer( std::make_shared< Synchronizer >( localRange, ghosts / 2, communicator ) );
 
    return array;
 }
@@ -81,7 +82,7 @@ TEST( HypreTest, ParVector )
    const MPI_Comm communicator = MPI_COMM_WORLD;
    const int globalSize = 97;  // prime number to force non-uniform distribution
    // some arbitrary even value (but must be 0 if not distributed)
-   const int ghosts = (TNL::MPI::GetSize(communicator) > 1) ? 4 : 0;
+   const int ghosts = ( TNL::MPI::GetSize( communicator ) > 1 ) ? 4 : 0;
 
    using DistributedVector = Containers::DistributedVector< HYPRE_Real, HYPRE_Device, HYPRE_BigInt >;
    auto v = getDistributedArray< DistributedVector >( communicator, globalSize, ghosts );
@@ -115,9 +116,11 @@ TEST( HypreTest, ParVector )
  *   \  .    .    .   -1    2.5 /
  */
 template< typename MatrixType >
-MatrixType getGlobalMatrix( int size )
+MatrixType
+getGlobalMatrix( int size )
 {
-   using Vector = Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >;
+   using Vector =
+      Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >;
    MatrixType matrix;
    matrix.setDimensions( size, size );
    Vector capacities( size, 3 );
@@ -125,23 +128,21 @@ MatrixType getGlobalMatrix( int size )
    capacities.setElement( size - 1, 2 );
    matrix.setRowCapacities( capacities );
 
-   auto f = [=] __cuda_callable__ ( typename MatrixType::ViewType::RowView& row ) mutable {
+   auto f = [ = ] __cuda_callable__( typename MatrixType::ViewType::RowView & row ) mutable
+   {
       const int rowIdx = row.getRowIndex();
-      if( rowIdx == 0 )
-      {
-         row.setElement( 0, rowIdx,    2.5 );    // diagonal element
-         row.setElement( 1, rowIdx+1, -1 );      // element above the diagonal
+      if( rowIdx == 0 ) {
+         row.setElement( 0, rowIdx, 2.5 );     // diagonal element
+         row.setElement( 1, rowIdx + 1, -1 );  // element above the diagonal
       }
-      else if( rowIdx == size - 1 )
-      {
-         row.setElement( 0, rowIdx-1, -1.0 );    // element below the diagonal
-         row.setElement( 1, rowIdx,    2.5 );    // diagonal element
+      else if( rowIdx == size - 1 ) {
+         row.setElement( 0, rowIdx - 1, -1.0 );  // element below the diagonal
+         row.setElement( 1, rowIdx, 2.5 );       // diagonal element
       }
-      else
-      {
-         row.setElement( 0, rowIdx-1, -1.0 );    // element below the diagonal
-         row.setElement( 1, rowIdx,    2.5 );    // diagonal element
-         row.setElement( 2, rowIdx+1, -1.0 );    // element above the diagonal
+      else {
+         row.setElement( 0, rowIdx - 1, -1.0 );  // element below the diagonal
+         row.setElement( 1, rowIdx, 2.5 );       // diagonal element
+         row.setElement( 2, rowIdx + 1, -1.0 );  // element above the diagonal
       }
    };
    matrix.getView().forAllRows( f );
@@ -151,10 +152,12 @@ MatrixType getGlobalMatrix( int size )
 
 // returns only a local block of the global matrix created by getGlobalMatrix
 template< typename MatrixType >
-MatrixType getLocalBlock( typename MatrixType::IndexType global_size,
-                          Containers::Subrange< typename MatrixType::IndexType > local_row_range )
+MatrixType
+getLocalBlock( typename MatrixType::IndexType global_size,
+               Containers::Subrange< typename MatrixType::IndexType > local_row_range )
 {
-   using Vector = Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >;
+   using Vector =
+      Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >;
    MatrixType matrix;
    matrix.setDimensions( local_row_range.getSize(), global_size );
    Vector capacities( local_row_range.getSize(), 3 );
@@ -164,24 +167,22 @@ MatrixType getLocalBlock( typename MatrixType::IndexType global_size,
       capacities.setElement( local_row_range.getSize() - 1, 2 );
    matrix.setRowCapacities( capacities );
 
-   auto f = [=] __cuda_callable__ ( typename MatrixType::ViewType::RowView& row ) mutable {
+   auto f = [ = ] __cuda_callable__( typename MatrixType::ViewType::RowView & row ) mutable
+   {
       const int rowIdx = row.getRowIndex();
       const int colIdx = local_row_range.getBegin() + rowIdx;
-      if( colIdx == 0 )
-      {
-         row.setElement( 0, colIdx,    2.5 );    // diagonal element
-         row.setElement( 1, colIdx+1, -1 );      // element above the diagonal
+      if( colIdx == 0 ) {
+         row.setElement( 0, colIdx, 2.5 );     // diagonal element
+         row.setElement( 1, colIdx + 1, -1 );  // element above the diagonal
       }
-      else if( colIdx == global_size - 1 )
-      {
-         row.setElement( 0, colIdx-1, -1.0 );    // element below the diagonal
-         row.setElement( 1, colIdx,    2.5 );    // diagonal element
+      else if( colIdx == global_size - 1 ) {
+         row.setElement( 0, colIdx - 1, -1.0 );  // element below the diagonal
+         row.setElement( 1, colIdx, 2.5 );       // diagonal element
       }
-      else
-      {
-         row.setElement( 0, colIdx-1, -1.0 );    // element below the diagonal
-         row.setElement( 1, colIdx,    2.5 );    // diagonal element
-         row.setElement( 2, colIdx+1, -1.0 );    // element above the diagonal
+      else {
+         row.setElement( 0, colIdx - 1, -1.0 );  // element below the diagonal
+         row.setElement( 1, colIdx, 2.5 );       // diagonal element
+         row.setElement( 2, colIdx + 1, -1.0 );  // element above the diagonal
       }
    };
    matrix.getView().forAllRows( f );
@@ -238,16 +239,16 @@ TEST( HypreTest, ParCSRMatrix_wrapCSRMatrix )
    Matrices::HypreCSRMatrix a_diag = a.getDiagonalBlock();
    // the matrices are not elementwise-equal, ParCSR is reordered such that the
    // diagonal elements are first in the rows
-//   EXPECT_EQ( a_diag.getValues(), matrix.getValues() );
-//   EXPECT_EQ( a_diag.getColumnIndexes(), matrix.getColumnIndexes() );
-//   EXPECT_EQ( a_diag.getRowOffsets(), matrix.getRowOffsets() );
+   //   EXPECT_EQ( a_diag.getValues(), matrix.getValues() );
+   //   EXPECT_EQ( a_diag.getColumnIndexes(), matrix.getColumnIndexes() );
+   //   EXPECT_EQ( a_diag.getRowOffsets(), matrix.getRowOffsets() );
    EXPECT_EQ( a_diag.getValues().getSize(), matrix.getValues().getSize() );
    EXPECT_EQ( a_diag.getColumnIndexes().getSize(), matrix.getColumnIndexes().getSize() );
    EXPECT_EQ( a_diag.getRowOffsets().getSize(), matrix.getRowOffsets().getSize() );
    EXPECT_EQ( a_diag.getRows(), size );
    EXPECT_EQ( a_diag.getColumns(), size );
-//   EXPECT_EQ( a_diag.getConstView(), matrix );
-//   EXPECT_EQ( a_diag.getView(), matrix );
+   //   EXPECT_EQ( a_diag.getConstView(), matrix );
+   //   EXPECT_EQ( a_diag.getView(), matrix );
 
    Matrices::HypreCSRMatrix a_offd = a.getOffdiagonalBlock();
    EXPECT_EQ( a_offd.getValues().getSize(), 0 );
@@ -318,7 +319,8 @@ TEST( HypreTest, ParCSRMatrix_fromLocalBlocks )
 
    Matrices::HypreCSRMatrix matrix = getLocalBlock< Matrices::HypreCSRMatrix >( global_size, x.getLocalRange() );
 
-   auto a = Matrices::HypreParCSRMatrix::fromLocalBlocks( MPI_COMM_WORLD, global_size, global_size, x.getLocalRange(), x.getLocalRange(), matrix );
+   auto a = Matrices::HypreParCSRMatrix::fromLocalBlocks(
+      MPI_COMM_WORLD, global_size, global_size, x.getLocalRange(), x.getLocalRange(), matrix );
    EXPECT_EQ( a.getRows(), global_size );
    EXPECT_EQ( a.getColumns(), global_size );
    EXPECT_EQ( a.getLocalRowRange(), x.getLocalRange() );
@@ -345,29 +347,27 @@ TEST( HypreTest, ParCSRMatrix_fromLocalBlocks )
    EXPECT_EQ( a_local.getNonzeroElementsCount(), matrix.getNonzeroElementsCount() );
    // TODO: the merged local matrix still has the diagonal element as the first entry per row
    // and we can't use hypre_CSRMatrixReorder on the original block, because it is not square
-//   hypre_CSRMatrixReorder( matrix );
-//   EXPECT_EQ( a_local.getView(), matrix.getView() );
+   //   hypre_CSRMatrixReorder( matrix );
+   //   EXPECT_EQ( a_local.getView(), matrix.getView() );
 
    // test move-constructor and move-assignment
    Matrices::HypreParCSRMatrix c = std::move( a );
    a = std::move( c );
 }
 
-
-void solve( Matrices::HypreParCSRMatrix& A,
-            Containers::HypreParVector& x,
-            Containers::HypreParVector& b )
+void
+solve( Matrices::HypreParCSRMatrix& A, Containers::HypreParVector& x, Containers::HypreParVector& b )
 {
    // create the preconditioner
    HypreDiagScale precond;
-//   HypreParaSails precond( A.getCommunicator() );
-//   HypreEuclid precond( A.getCommunicator() );
-//   HypreILU precond;
-//   HypreBoomerAMG precond;
+   //   HypreParaSails precond( A.getCommunicator() );
+   //   HypreEuclid precond( A.getCommunicator() );
+   //   HypreILU precond;
+   //   HypreBoomerAMG precond;
 
    // initialize the Hypre solver
    HyprePCG solver( A.getCommunicator() );
-//   solver.setPrintLevel( 1 );
+   //   solver.setPrintLevel( 1 );
    solver.setPreconditioner( precond );
    solver.setMatrix( A );
    solver.setTol( 1e-9 );
@@ -397,8 +397,8 @@ TEST( HypreTest, solve_seq )
    // bind parallel Hypre vectors
    Containers::HypreParVector hypre_x;
    Containers::HypreParVector hypre_b;
-   hypre_x.bind( {0, size}, 0, size, MPI_COMM_SELF, x.getView() );
-   hypre_b.bind( {0, size}, 0, size, MPI_COMM_SELF, b.getView() );
+   hypre_x.bind( { 0, size }, 0, size, MPI_COMM_SELF, x.getView() );
+   hypre_b.bind( { 0, size }, 0, size, MPI_COMM_SELF, b.getView() );
 
    // convert the matrix to HypreParCSR
    HYPRE_BigInt row_starts[ 2 ];
@@ -470,7 +470,8 @@ TEST( HypreTest, solve_distributed_fromLocalBlock )
    Matrices::HypreCSRMatrix local_matrix = getLocalBlock< Matrices::HypreCSRMatrix >( global_size, x.getLocalRange() );
 
    // create the distributed matrix
-   auto matrix = Matrices::HypreParCSRMatrix::fromLocalBlocks( MPI_COMM_WORLD, global_size, global_size, x.getLocalRange(), x.getLocalRange(), local_matrix );
+   auto matrix = Matrices::HypreParCSRMatrix::fromLocalBlocks(
+      MPI_COMM_WORLD, global_size, global_size, x.getLocalRange(), x.getLocalRange(), local_matrix );
 
    // set the right-hand-side
    x.setValue( 1 );
@@ -484,7 +485,6 @@ TEST( HypreTest, solve_distributed_fromLocalBlock )
    expect_near( x.getLocalView(), 1, 1e-8 );
 }
 
-#endif
 #endif
 
 #include "main_mpi.h"

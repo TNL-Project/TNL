@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Containers/DistributedArray.h>
@@ -31,8 +30,7 @@ static constexpr auto Exclusive = TNL::Algorithms::detail::ScanType::Exclusive;
  * - Communicator is hardcoded as MPI_COMM_WORLD -- it may be changed as needed.
  */
 template< typename DistributedArray >
-class DistributedScanTest
-: public ::testing::Test
+class DistributedScanTest : public ::testing::Test
 {
 protected:
    using ValueType = typename DistributedArray::ValueType;
@@ -53,8 +51,8 @@ protected:
    DistributedVectorView av_view, bv_view, cv_view;
    HostDistributedArrayType array_host, input_host, expected_host;
 
-   const int rank = GetRank(communicator);
-   const int nproc = GetSize(communicator);
+   const int rank = GetRank( communicator );
+   const int nproc = GetSize( communicator );
 
    // should be small enough to have fast tests, but large enough to test
    // scan with multiple CUDA grids
@@ -64,21 +62,22 @@ protected:
    LocalRangeType localRange;
 
    // some arbitrary value (but must be 0 if not distributed)
-   const int ghosts = (nproc > 1) ? 4 : 0;
+   const int ghosts = ( nproc > 1 ) ? 4 : 0;
 
    DistributedScanTest()
    {
       resetWorkingArrays();
       input_host = a;
-      input_host.setSynchronizer( std::make_shared<HostSynchronizer>( a.getLocalRange(), ghosts / 2, communicator ) );
+      input_host.setSynchronizer( std::make_shared< HostSynchronizer >( a.getLocalRange(), ghosts / 2, communicator ) );
       expected_host = input_host;
    }
 
-   void resetWorkingArrays()
+   void
+   resetWorkingArrays()
    {
       localRange = Partitioner< IndexType >::splitRange( globalSize, communicator );
       a.setDistribution( localRange, ghosts, globalSize, communicator );
-      a.setSynchronizer( std::make_shared<Synchronizer>( localRange, ghosts / 2, communicator ) );
+      a.setSynchronizer( std::make_shared< Synchronizer >( localRange, ghosts / 2, communicator ) );
 
       a.setValue( -1 );
       c = b = a;
@@ -91,8 +90,7 @@ protected:
 
       // make sure that we perform tests with multiple CUDA grids
 #ifdef __CUDACC__
-      if( std::is_same< DeviceType, Devices::Cuda >::value )
-      {
+      if( std::is_same< DeviceType, Devices::Cuda >::value ) {
          CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
          CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::maxGridSize() = 3;
          CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
@@ -106,14 +104,16 @@ protected:
    }
 
    template< Algorithms::detail::ScanType ScanType >
-   void checkResult( const DistributedArrayType& array, bool check_cuda_grids = true )
+   void
+   checkResult( const DistributedArrayType& array, bool check_cuda_grids = true )
    {
 #ifdef __CUDACC__
       // skip the check for too small arrays
       if( check_cuda_grids && array.getLocalRange().getSize() > 256 ) {
          // we don't care which kernel launcher was actually used
-         const auto gridsCount = TNL::max( CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
-                                           CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
+         const auto gridsCount =
+            TNL::max( CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
+                      CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
          EXPECT_GT( gridsCount, 1 );
       }
 #endif
@@ -132,9 +132,9 @@ using DistributedArrayTypes = ::testing::Types<
    DistributedArray< double, Devices::Host, int >
 #endif
 #ifdef __CUDACC__
-   DistributedArray< double, Devices::Cuda, int >
+      DistributedArray< double, Devices::Cuda, int >
 #endif
->;
+   >;
 
 TYPED_TEST_SUITE( DistributedScanTest, DistributedArrayTypes );
 
@@ -352,7 +352,7 @@ TYPED_TEST( DistributedScanTest, distributedInclusiveScan_linear_sequence )
 
    for( int i = this->localRange.getBegin(); i < this->localRange.getEnd(); i++ ) {
       this->input_host[ i ] = i;
-      this->expected_host[ i ] = (i * (i + 1)) / 2;
+      this->expected_host[ i ] = ( i * ( i + 1 ) ) / 2;
    }
 
    this->a = this->input_host;
@@ -374,7 +374,7 @@ TYPED_TEST( DistributedScanTest, distributedInplaceInclusiveScan_linear_sequence
 
    for( int i = this->localRange.getBegin(); i < this->localRange.getEnd(); i++ ) {
       this->input_host[ i ] = i;
-      this->expected_host[ i ] = (i * (i + 1)) / 2;
+      this->expected_host[ i ] = ( i * ( i + 1 ) ) / 2;
    }
 
    this->a = this->input_host;
@@ -600,7 +600,7 @@ TYPED_TEST( DistributedScanTest, distributedExclusiveScan_linear_sequence )
 
    for( int i = this->localRange.getBegin(); i < this->localRange.getEnd(); i++ ) {
       this->input_host[ i ] = i;
-      this->expected_host[ i ] = (i * (i - 1)) / 2;
+      this->expected_host[ i ] = ( i * ( i - 1 ) ) / 2;
    }
 
    this->a = this->input_host;
@@ -622,7 +622,7 @@ TYPED_TEST( DistributedScanTest, distributedInplaceExclusiveScan_linear_sequence
 
    for( int i = this->localRange.getBegin(); i < this->localRange.getEnd(); i++ ) {
       this->input_host[ i ] = i;
-      this->expected_host[ i ] = (i * (i - 1)) / 2;
+      this->expected_host[ i ] = ( i * ( i - 1 ) ) / 2;
    }
 
    this->a = this->input_host;
@@ -635,7 +635,6 @@ TYPED_TEST( DistributedScanTest, distributedInplaceExclusiveScan_linear_sequence
    distributedInplaceExclusiveScan( this->a_view, 0, this->globalSize, std::plus<>{}, (ValueType) 0 );
    this->template checkResult< ScanType::Exclusive >( this->a );
 }
-
 
 TYPED_TEST( DistributedScanTest, multiplication )
 {
@@ -680,7 +679,7 @@ TYPED_TEST( DistributedScanTest, custom_begin_end )
 
    // make it span multiple processes
    const IndexType begin = 42;
-   const IndexType end = (this->nproc > 1) ? this->globalSize / this->nproc + begin : this->globalSize - begin;
+   const IndexType end = ( this->nproc > 1 ) ? this->globalSize / this->nproc + begin : this->globalSize - begin;
 
    // exclusive scan test
    this->input_host.setValue( 1 );
@@ -768,7 +767,5 @@ TYPED_TEST( DistributedScanTest, vector_expression )
    distributedInclusiveScan( this->av_view - this->bv_view, this->c, 0, this->a.getSize(), TNL::Plus{} );
    this->template checkResult< ScanType::Inclusive >( this->c );
 }
-
-#endif  // HAVE_GTEST
 
 #include "../main_mpi.h"

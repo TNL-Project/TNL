@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <sstream>
@@ -32,8 +31,16 @@ using namespace TNL::Meshes;
 template< typename... Ts >
 struct TestMeshConfigBase : public DefaultConfig< Ts... >
 {
-   static constexpr bool subentityStorage( int entityDimension, int subentityDimension ) { return true; }
-   static constexpr bool superentityStorage( int entityDimension, int superentityDimension ) { return true; }
+   static constexpr bool
+   subentityStorage( int entityDimension, int subentityDimension )
+   {
+      return true;
+   }
+   static constexpr bool
+   superentityStorage( int entityDimension, int superentityDimension )
+   {
+      return true;
+   }
 };
 
 struct TestTriangleMeshConfig : public TestMeshConfigBase< Topologies::Triangle >
@@ -74,11 +81,7 @@ TEST( MeshGeometryTest, Polygon2DAreaTest )
 
    // Set up a non-convex 2D polygon.
 
-   PointType point0(  3.0,  4.0 ),
-             point1(  5.0, 11.0 ),
-             point2( 12.0,  8.0 ),
-             point3(  9.0,  5.0 ),
-             point4(  5.0,  6.0 );
+   PointType point0( 3.0, 4.0 ), point1( 5.0, 11.0 ), point2( 12.0, 8.0 ), point3( 9.0, 5.0 ), point4( 5.0, 6.0 );
 
    PolygonTestMesh mesh;
    MeshBuilder< PolygonTestMesh > meshBuilder;
@@ -101,9 +104,7 @@ TEST( MeshGeometryTest, Polygon2DAreaTest )
 
    meshBuilder.build( mesh );
 
-   EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 2 >( 0 ) ),
-                30.0,
-                1e-6 );
+   EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 2 >( 0 ) ), 30.0, 1e-6 );
 }
 
 TEST( MeshGeometryTest, Polygon3DAreaTest )
@@ -123,21 +124,18 @@ TEST( MeshGeometryTest, Polygon3DAreaTest )
              point4(  5.0,  6.0, 1.0 );*/
 
    // Above points rotated:
-   PointType point0(  1.25245,  4.16176, 2.66667 ),
-             point1(  0.08280, 10.41230, 6.21105 ),
-             point2(  7.16272, 11.94879, 3.86289 ),
-             point3(  5.86983,  8.12036, 2.56999 ),
-             point4(  2.11438,  6.71405, 3.52860 );
+   PointType point0( 1.25245, 4.16176, 2.66667 ), point1( 0.08280, 10.41230, 6.21105 ), point2( 7.16272, 11.94879, 3.86289 ),
+      point3( 5.86983, 8.12036, 2.56999 ), point4( 2.11438, 6.71405, 3.52860 );
 
    PolygonTestMesh mesh;
    MeshBuilder< PolygonTestMesh > meshBuilder;
    meshBuilder.setEntitiesCount( 5, 1 );
 
-   meshBuilder.setPoint(  0, point0  );
-   meshBuilder.setPoint(  1, point1  );
-   meshBuilder.setPoint(  2, point2  );
-   meshBuilder.setPoint(  3, point3  );
-   meshBuilder.setPoint(  4, point4  );
+   meshBuilder.setPoint( 0, point0 );
+   meshBuilder.setPoint( 1, point1 );
+   meshBuilder.setPoint( 2, point2 );
+   meshBuilder.setPoint( 3, point3 );
+   meshBuilder.setPoint( 4, point4 );
 
    meshBuilder.setCellCornersCounts( { 5 } );
 
@@ -149,9 +147,7 @@ TEST( MeshGeometryTest, Polygon3DAreaTest )
 
    meshBuilder.build( mesh );
 
-   EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 2 >( 0 ) ),
-                30.0,
-                1e-4 );
+   EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 2 >( 0 ) ), 30.0, 1e-4 );
 }
 
 TEST( MeshGeometryTest, WedgeAreaTest )
@@ -161,24 +157,20 @@ TEST( MeshGeometryTest, WedgeAreaTest )
    using VertexMeshEntityType = typename WedgeMeshEntityType::SubentityTraits< 0 >::SubentityType;
    using PointType = typename VertexMeshEntityType::PointType;
 
-   PointType point0( 10.0, 10.0, 10.0 ),
-             point1( 14.0, 10.0, 10.0 ),
-             point2( 12.0, 10.0, 16.0 ),
-             point3( 10.0, 19.0, 10.0 ),
-             point4( 14.0, 19.0, 10.0 ),
-             point5( 12.0, 19.0, 16.0 );
+   PointType point0( 10.0, 10.0, 10.0 ), point1( 14.0, 10.0, 10.0 ), point2( 12.0, 10.0, 16.0 ), point3( 10.0, 19.0, 10.0 ),
+      point4( 14.0, 19.0, 10.0 ), point5( 12.0, 19.0, 16.0 );
 
    WedgeTestMesh mesh;
    MeshBuilder< WedgeTestMesh > meshBuilder;
 
    meshBuilder.setEntitiesCount( 6, 1 );
 
-   meshBuilder.setPoint(  0, point0  );
-   meshBuilder.setPoint(  1, point1  );
-   meshBuilder.setPoint(  2, point2  );
-   meshBuilder.setPoint(  3, point3  );
-   meshBuilder.setPoint(  4, point4  );
-   meshBuilder.setPoint(  5, point5  );
+   meshBuilder.setPoint( 0, point0 );
+   meshBuilder.setPoint( 1, point1 );
+   meshBuilder.setPoint( 2, point2 );
+   meshBuilder.setPoint( 3, point3 );
+   meshBuilder.setPoint( 4, point4 );
+   meshBuilder.setPoint( 5, point5 );
 
    meshBuilder.getCellSeed( 0 ).setCornerId( 0, 0 );
    meshBuilder.getCellSeed( 0 ).setCornerId( 1, 1 );
@@ -189,9 +181,7 @@ TEST( MeshGeometryTest, WedgeAreaTest )
 
    meshBuilder.build( mesh );
 
-   EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 3 >( 0 ) ),
-                108.0,
-                1e-6 );
+   EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 3 >( 0 ) ), 108.0, 1e-6 );
 }
 
 TEST( MeshGeometryTest, PyramidAreaTest )
@@ -203,22 +193,19 @@ TEST( MeshGeometryTest, PyramidAreaTest )
 
    // Set up a pyramid of height 10 with a square base of size 10.
 
-   PointType point0( 10.0, 10.0, 10.0 ),
-             point1( 20.0, 10.0, 10.0 ),
-             point2( 20.0, 20.0, 10.0 ),
-             point3( 10.0, 20.0, 10.0 ),
-             point4( 15.0, 15.0, 20.0 );
+   PointType point0( 10.0, 10.0, 10.0 ), point1( 20.0, 10.0, 10.0 ), point2( 20.0, 20.0, 10.0 ), point3( 10.0, 20.0, 10.0 ),
+      point4( 15.0, 15.0, 20.0 );
 
    PyramidTestMesh mesh;
    MeshBuilder< PyramidTestMesh > meshBuilder;
 
    meshBuilder.setEntitiesCount( 5, 1 );
 
-   meshBuilder.setPoint(  0, point0  );
-   meshBuilder.setPoint(  1, point1  );
-   meshBuilder.setPoint(  2, point2  );
-   meshBuilder.setPoint(  3, point3  );
-   meshBuilder.setPoint(  4, point4  );
+   meshBuilder.setPoint( 0, point0 );
+   meshBuilder.setPoint( 1, point1 );
+   meshBuilder.setPoint( 2, point2 );
+   meshBuilder.setPoint( 3, point3 );
+   meshBuilder.setPoint( 4, point4 );
 
    meshBuilder.getCellSeed( 0 ).setCornerId( 0, 0 );
    meshBuilder.getCellSeed( 0 ).setCornerId( 1, 1 );
@@ -228,9 +215,7 @@ TEST( MeshGeometryTest, PyramidAreaTest )
 
    meshBuilder.build( mesh );
 
-   EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 3 >( 0 ) ),
-                1000.0 / 3.0,
-                1e-6 );
+   EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 3 >( 0 ) ), 1000.0 / 3.0, 1e-6 );
 }
 
 TEST( MeshGeometryTest, PolyhedronAreaTest )
@@ -242,30 +227,24 @@ TEST( MeshGeometryTest, PolyhedronAreaTest )
 
    // Set up a cube of size 10 with a pyramid of height 10 sitting on top.
 
-   PointType point0( 10.0, 10.0, 10.0 ),
-             point1( 20.0, 10.0, 10.0 ),
-             point2( 10.0, 20.0, 10.0 ),
-             point3( 20.0, 20.0, 10.0 ),
-             point4( 10.0, 10.0, 20.0 ),
-             point5( 20.0, 10.0, 20.0 ),
-             point6( 10.0, 20.0, 20.0 ),
-             point7( 20.0, 20.0, 20.0 ),
-             point8( 15.0, 15.0, 30.0 );
+   PointType point0( 10.0, 10.0, 10.0 ), point1( 20.0, 10.0, 10.0 ), point2( 10.0, 20.0, 10.0 ), point3( 20.0, 20.0, 10.0 ),
+      point4( 10.0, 10.0, 20.0 ), point5( 20.0, 10.0, 20.0 ), point6( 10.0, 20.0, 20.0 ), point7( 20.0, 20.0, 20.0 ),
+      point8( 15.0, 15.0, 30.0 );
 
    PolyhedronTestMesh mesh;
    MeshBuilder< PolyhedronTestMesh > meshBuilder;
 
    meshBuilder.setEntitiesCount( 9, 1, 9 );
 
-   meshBuilder.setPoint(  0, point0 );
-   meshBuilder.setPoint(  1, point1 );
-   meshBuilder.setPoint(  2, point2 );
-   meshBuilder.setPoint(  3, point3 );
-   meshBuilder.setPoint(  4, point4 );
-   meshBuilder.setPoint(  5, point5 );
-   meshBuilder.setPoint(  6, point6 );
-   meshBuilder.setPoint(  7, point7 );
-   meshBuilder.setPoint(  8, point8 );
+   meshBuilder.setPoint( 0, point0 );
+   meshBuilder.setPoint( 1, point1 );
+   meshBuilder.setPoint( 2, point2 );
+   meshBuilder.setPoint( 3, point3 );
+   meshBuilder.setPoint( 4, point4 );
+   meshBuilder.setPoint( 5, point5 );
+   meshBuilder.setPoint( 6, point6 );
+   meshBuilder.setPoint( 7, point7 );
+   meshBuilder.setPoint( 8, point8 );
 
    meshBuilder.setFaceCornersCounts( { 4, 4, 4, 4, 4, 3, 3, 3, 3 } );
 
@@ -324,9 +303,7 @@ TEST( MeshGeometryTest, PolyhedronAreaTest )
 
    meshBuilder.build( mesh );
 
-   EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 3 >( 0 ) ),
-                1000.0 + ( 1000.0 / 3.0 ),
-                1e-6 );
+   EXPECT_NEAR( getEntityMeasure( mesh, mesh.template getEntity< 3 >( 0 ) ), 1000.0 + ( 1000.0 / 3.0 ), 1e-6 );
 }
 
 TEST( MeshGeometryTest, Polygon3DIsPlanarTest )
@@ -348,34 +325,28 @@ TEST( MeshGeometryTest, Polygon3DIsPlanarTest )
              point4(  5.0,  6.0, 1.0 );*/
 
    // Above points rotated:
-   PointType point0(  1.25245,  4.16176, 2.66667 ),
-             point1(  0.08280, 10.41230, 6.21105 ),
-             point2(  7.16272, 11.94879, 3.86289 ),
-             point3(  5.86983,  8.12036, 2.56999 ),
-             point4(  2.11438,  6.71405, 3.52860 );
+   PointType point0( 1.25245, 4.16176, 2.66667 ), point1( 0.08280, 10.41230, 6.21105 ), point2( 7.16272, 11.94879, 3.86289 ),
+      point3( 5.86983, 8.12036, 2.56999 ), point4( 2.11438, 6.71405, 3.52860 );
 
    // Previous 5 points deviated by offset:
-   PointType point0_( point0 + offset ),
-             point1_( point1 + offset ),
-             point2_( point2 + offset ),
-             point3_( point3 + offset ),
-             point4_( point4 + offset );
+   PointType point0_( point0 + offset ), point1_( point1 + offset ), point2_( point2 + offset ), point3_( point3 + offset ),
+      point4_( point4 + offset );
 
    PolygonTestMesh mesh;
    MeshBuilder< PolygonTestMesh > meshBuilder;
 
    meshBuilder.setEntitiesCount( 10, 6 );
 
-   meshBuilder.setPoint(  0, point0  );
-   meshBuilder.setPoint(  1, point1  );
-   meshBuilder.setPoint(  2, point2  );
-   meshBuilder.setPoint(  3, point3  );
-   meshBuilder.setPoint(  4, point4  );
-   meshBuilder.setPoint(  5, point0_ );
-   meshBuilder.setPoint(  6, point1_ );
-   meshBuilder.setPoint(  7, point2_ );
-   meshBuilder.setPoint(  8, point3_ );
-   meshBuilder.setPoint(  9, point4_ );
+   meshBuilder.setPoint( 0, point0 );
+   meshBuilder.setPoint( 1, point1 );
+   meshBuilder.setPoint( 2, point2 );
+   meshBuilder.setPoint( 3, point3 );
+   meshBuilder.setPoint( 4, point4 );
+   meshBuilder.setPoint( 5, point0_ );
+   meshBuilder.setPoint( 6, point1_ );
+   meshBuilder.setPoint( 7, point2_ );
+   meshBuilder.setPoint( 8, point3_ );
+   meshBuilder.setPoint( 9, point4_ );
 
    meshBuilder.setCellCornersCounts( { 5, 5, 5, 5, 5, 5 } );
 
@@ -443,16 +414,16 @@ TEST( MeshGeometryTest, PolygonDecompositionTest )
 
    meshBuilder.setEntitiesCount( 16, 7 );
 
-   meshBuilder.setPoint(  0, PointType( 0.250, 0.150 ) );
-   meshBuilder.setPoint(  1, PointType( 0.150, 0.250 ) );
-   meshBuilder.setPoint(  2, PointType( 0.900, 0.500 ) );
-   meshBuilder.setPoint(  3, PointType( 0.750, 0.275 ) );
-   meshBuilder.setPoint(  4, PointType( 0.500, 0.900 ) );
-   meshBuilder.setPoint(  5, PointType( 0.275, 0.750 ) );
-   meshBuilder.setPoint(  6, PointType( 0.000, 0.250 ) );
-   meshBuilder.setPoint(  7, PointType( 0.250, 0.000 ) );
-   meshBuilder.setPoint(  8, PointType( 0.000, 0.000 ) );
-   meshBuilder.setPoint(  9, PointType( 0.750, 0.000 ) );
+   meshBuilder.setPoint( 0, PointType( 0.250, 0.150 ) );
+   meshBuilder.setPoint( 1, PointType( 0.150, 0.250 ) );
+   meshBuilder.setPoint( 2, PointType( 0.900, 0.500 ) );
+   meshBuilder.setPoint( 3, PointType( 0.750, 0.275 ) );
+   meshBuilder.setPoint( 4, PointType( 0.500, 0.900 ) );
+   meshBuilder.setPoint( 5, PointType( 0.275, 0.750 ) );
+   meshBuilder.setPoint( 6, PointType( 0.000, 0.250 ) );
+   meshBuilder.setPoint( 7, PointType( 0.250, 0.000 ) );
+   meshBuilder.setPoint( 8, PointType( 0.000, 0.000 ) );
+   meshBuilder.setPoint( 9, PointType( 0.750, 0.000 ) );
    meshBuilder.setPoint( 10, PointType( 0.000, 0.750 ) );
    meshBuilder.setPoint( 11, PointType( 1.000, 0.500 ) );
    meshBuilder.setPoint( 12, PointType( 1.000, 0.000 ) );
@@ -475,50 +446,50 @@ TEST( MeshGeometryTest, PolygonDecompositionTest )
    meshBuilder.setCellCornersCounts( { 6, 5, 4, 4, 5, 5, 5 } );
 
    //   1     0     3     2     4     5
-   meshBuilder.getCellSeed( 0 ).setCornerId( 0,  1 );
-   meshBuilder.getCellSeed( 0 ).setCornerId( 1,  0 );
-   meshBuilder.getCellSeed( 0 ).setCornerId( 2,  3 );
-   meshBuilder.getCellSeed( 0 ).setCornerId( 3,  2 );
-   meshBuilder.getCellSeed( 0 ).setCornerId( 4,  4 );
-   meshBuilder.getCellSeed( 0 ).setCornerId( 5,  5 );
+   meshBuilder.getCellSeed( 0 ).setCornerId( 0, 1 );
+   meshBuilder.getCellSeed( 0 ).setCornerId( 1, 0 );
+   meshBuilder.getCellSeed( 0 ).setCornerId( 2, 3 );
+   meshBuilder.getCellSeed( 0 ).setCornerId( 3, 2 );
+   meshBuilder.getCellSeed( 0 ).setCornerId( 4, 4 );
+   meshBuilder.getCellSeed( 0 ).setCornerId( 5, 5 );
 
    //   8     7     0     1     6
-   meshBuilder.getCellSeed( 1 ).setCornerId( 0,  8 );
-   meshBuilder.getCellSeed( 1 ).setCornerId( 1,  7 );
-   meshBuilder.getCellSeed( 1 ).setCornerId( 2,  0 );
-   meshBuilder.getCellSeed( 1 ).setCornerId( 3,  1 );
-   meshBuilder.getCellSeed( 1 ).setCornerId( 4,  6 );
+   meshBuilder.getCellSeed( 1 ).setCornerId( 0, 8 );
+   meshBuilder.getCellSeed( 1 ).setCornerId( 1, 7 );
+   meshBuilder.getCellSeed( 1 ).setCornerId( 2, 0 );
+   meshBuilder.getCellSeed( 1 ).setCornerId( 3, 1 );
+   meshBuilder.getCellSeed( 1 ).setCornerId( 4, 6 );
 
    //   9     3     0     7
-   meshBuilder.getCellSeed( 2 ).setCornerId( 0,  9 );
-   meshBuilder.getCellSeed( 2 ).setCornerId( 1,  3 );
-   meshBuilder.getCellSeed( 2 ).setCornerId( 2,  0 );
-   meshBuilder.getCellSeed( 2 ).setCornerId( 3,  7 );
+   meshBuilder.getCellSeed( 2 ).setCornerId( 0, 9 );
+   meshBuilder.getCellSeed( 2 ).setCornerId( 1, 3 );
+   meshBuilder.getCellSeed( 2 ).setCornerId( 2, 0 );
+   meshBuilder.getCellSeed( 2 ).setCornerId( 3, 7 );
 
    //   6     1     5    10
-   meshBuilder.getCellSeed( 3 ).setCornerId( 0,  6 );
-   meshBuilder.getCellSeed( 3 ).setCornerId( 1,  1 );
-   meshBuilder.getCellSeed( 3 ).setCornerId( 2,  5 );
+   meshBuilder.getCellSeed( 3 ).setCornerId( 0, 6 );
+   meshBuilder.getCellSeed( 3 ).setCornerId( 1, 1 );
+   meshBuilder.getCellSeed( 3 ).setCornerId( 2, 5 );
    meshBuilder.getCellSeed( 3 ).setCornerId( 3, 10 );
 
    //  12    11     2     3     9
    meshBuilder.getCellSeed( 4 ).setCornerId( 0, 12 );
    meshBuilder.getCellSeed( 4 ).setCornerId( 1, 11 );
-   meshBuilder.getCellSeed( 4 ).setCornerId( 2,  2 );
-   meshBuilder.getCellSeed( 4 ).setCornerId( 3,  3 );
-   meshBuilder.getCellSeed( 4 ).setCornerId( 4,  9 );
+   meshBuilder.getCellSeed( 4 ).setCornerId( 2, 2 );
+   meshBuilder.getCellSeed( 4 ).setCornerId( 3, 3 );
+   meshBuilder.getCellSeed( 4 ).setCornerId( 4, 9 );
 
    //  13     4     2    11    14
    meshBuilder.getCellSeed( 5 ).setCornerId( 0, 13 );
-   meshBuilder.getCellSeed( 5 ).setCornerId( 1,  4 );
-   meshBuilder.getCellSeed( 5 ).setCornerId( 2,  2 );
+   meshBuilder.getCellSeed( 5 ).setCornerId( 1, 4 );
+   meshBuilder.getCellSeed( 5 ).setCornerId( 2, 2 );
    meshBuilder.getCellSeed( 5 ).setCornerId( 3, 11 );
    meshBuilder.getCellSeed( 5 ).setCornerId( 4, 14 );
 
    //  10     5     4    13    15
    meshBuilder.getCellSeed( 6 ).setCornerId( 0, 10 );
-   meshBuilder.getCellSeed( 6 ).setCornerId( 1,  5 );
-   meshBuilder.getCellSeed( 6 ).setCornerId( 2,  4 );
+   meshBuilder.getCellSeed( 6 ).setCornerId( 1, 5 );
+   meshBuilder.getCellSeed( 6 ).setCornerId( 2, 4 );
    meshBuilder.getCellSeed( 6 ).setCornerId( 3, 13 );
    meshBuilder.getCellSeed( 6 ).setCornerId( 4, 15 );
 
@@ -528,14 +499,14 @@ TEST( MeshGeometryTest, PolygonDecompositionTest )
    {
       const auto triangleMesh = getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToCentroid >( mesh );
       EXPECT_EQ( triangleMesh.getEntitiesCount< 0 >(), 23 );
-      EXPECT_EQ( triangleMesh.getEntitiesCount< 2 >(), 34  );
+      EXPECT_EQ( triangleMesh.getEntitiesCount< 2 >(), 34 );
    }
 
    // Test for the 2nd version
    {
       const auto triangleMesh = getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToPoint >( mesh );
       EXPECT_EQ( triangleMesh.getEntitiesCount< 0 >(), 16 );
-      EXPECT_EQ( triangleMesh.getEntitiesCount< 2 >(), 20  );
+      EXPECT_EQ( triangleMesh.getEntitiesCount< 2 >(), 20 );
    }
 }
 
@@ -546,44 +517,30 @@ TEST( MeshGeometryTest, PolyhedronDecompositionTest )
    using VertexMeshEntityType = typename PolyhedronMeshEntityType::SubentityTraits< 0 >::SubentityType;
    using PointType = typename VertexMeshEntityType::PointType;
 
-   PointType point0 ( -1.25000, 1.16650, 1.20300 ),
-             point1 ( -1.20683, 1.16951, 1.20537 ),
-             point2 ( -1.16843, 1.19337, 1.17878 ),
-             point3 ( -1.21025, 1.21901, 1.15383 ),
-             point4 ( -1.25000, 1.21280, 1.15670 ),
-             point5 ( -1.20816, 1.25000, 1.16756 ),
-             point6 ( -1.25000, 1.25000, 1.18056 ),
-             point7 ( -1.14802, 1.21553, 1.21165 ),
-             point8 ( -1.16186, 1.25000, 1.21385 ),
-             point9 ( -1.20307, 1.17486, 1.25000 ),
-             point10( -1.25000, 1.18056, 1.25000 ),
-             point11( -1.15677, 1.22115, 1.25000 ),
-             point12( -1.18056, 1.25000, 1.25000 ),
-             point13( -1.25000, 1.25000, 1.25000 ),
-             point14( -1.09277, 1.20806, 1.19263 ),
-             point15( -1.07219, 1.22167, 1.17994 ),
-             point16( -1.07215, 1.25000, 1.18679 ),
-             point17( -1.05697, 1.21124, 1.19697 ),
-             point18( -1.04607, 1.21508, 1.22076 ),
-             point19( -1.02140, 1.25000, 1.22293 ),
-             point20( -1.06418, 1.22115, 1.25000 ),
-             point21( -1.04167, 1.25000, 1.25000 );
+   PointType point0( -1.25000, 1.16650, 1.20300 ), point1( -1.20683, 1.16951, 1.20537 ), point2( -1.16843, 1.19337, 1.17878 ),
+      point3( -1.21025, 1.21901, 1.15383 ), point4( -1.25000, 1.21280, 1.15670 ), point5( -1.20816, 1.25000, 1.16756 ),
+      point6( -1.25000, 1.25000, 1.18056 ), point7( -1.14802, 1.21553, 1.21165 ), point8( -1.16186, 1.25000, 1.21385 ),
+      point9( -1.20307, 1.17486, 1.25000 ), point10( -1.25000, 1.18056, 1.25000 ), point11( -1.15677, 1.22115, 1.25000 ),
+      point12( -1.18056, 1.25000, 1.25000 ), point13( -1.25000, 1.25000, 1.25000 ), point14( -1.09277, 1.20806, 1.19263 ),
+      point15( -1.07219, 1.22167, 1.17994 ), point16( -1.07215, 1.25000, 1.18679 ), point17( -1.05697, 1.21124, 1.19697 ),
+      point18( -1.04607, 1.21508, 1.22076 ), point19( -1.02140, 1.25000, 1.22293 ), point20( -1.06418, 1.22115, 1.25000 ),
+      point21( -1.04167, 1.25000, 1.25000 );
 
    PolyhedronTestMesh mesh;
    MeshBuilder< PolyhedronTestMesh > meshBuilder;
 
    meshBuilder.setEntitiesCount( 22, 2, 16 );
 
-   meshBuilder.setPoint(  0, point0  );
-   meshBuilder.setPoint(  1, point1  );
-   meshBuilder.setPoint(  2, point2  );
-   meshBuilder.setPoint(  3, point3  );
-   meshBuilder.setPoint(  4, point4  );
-   meshBuilder.setPoint(  5, point5  );
-   meshBuilder.setPoint(  6, point6  );
-   meshBuilder.setPoint(  7, point7  );
-   meshBuilder.setPoint(  8, point8  );
-   meshBuilder.setPoint(  9, point9  );
+   meshBuilder.setPoint( 0, point0 );
+   meshBuilder.setPoint( 1, point1 );
+   meshBuilder.setPoint( 2, point2 );
+   meshBuilder.setPoint( 3, point3 );
+   meshBuilder.setPoint( 4, point4 );
+   meshBuilder.setPoint( 5, point5 );
+   meshBuilder.setPoint( 6, point6 );
+   meshBuilder.setPoint( 7, point7 );
+   meshBuilder.setPoint( 8, point8 );
+   meshBuilder.setPoint( 9, point9 );
    meshBuilder.setPoint( 10, point10 );
    meshBuilder.setPoint( 11, point11 );
    meshBuilder.setPoint( 12, point12 );
@@ -764,32 +721,36 @@ TEST( MeshGeometryTest, PolyhedronDecompositionTest )
 
    // Test for the 1st version
    {
-      const auto tetrahedronMesh = getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToCentroid,
-                                                      EntityDecomposerVersion::ConnectEdgesToCentroid >( mesh );
+      const auto tetrahedronMesh =
+         getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToCentroid, EntityDecomposerVersion::ConnectEdgesToCentroid >(
+            mesh );
       EXPECT_EQ( tetrahedronMesh.getEntitiesCount< 0 >(), 40 );
       EXPECT_EQ( tetrahedronMesh.getEntitiesCount< 3 >(), 76 );
    }
 
    // Test for the 2nd version
    {
-      const auto tetrahedronMesh = getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToCentroid,
-                                                      EntityDecomposerVersion::ConnectEdgesToPoint >( mesh );
+      const auto tetrahedronMesh =
+         getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToCentroid, EntityDecomposerVersion::ConnectEdgesToPoint >(
+            mesh );
       EXPECT_EQ( tetrahedronMesh.getEntitiesCount< 0 >(), 24 );
       EXPECT_EQ( tetrahedronMesh.getEntitiesCount< 3 >(), 44 );
    }
 
    // Test for the 3rd version
    {
-      const auto tetrahedronMesh = getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToPoint,
-                                                      EntityDecomposerVersion::ConnectEdgesToCentroid >( mesh );
+      const auto tetrahedronMesh =
+         getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToPoint, EntityDecomposerVersion::ConnectEdgesToCentroid >(
+            mesh );
       EXPECT_EQ( tetrahedronMesh.getEntitiesCount< 0 >(), 32 );
       EXPECT_EQ( tetrahedronMesh.getEntitiesCount< 3 >(), 48 );
    }
 
    // Test for the 4th version
    {
-      const auto tetrahedronMesh = getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToPoint,
-                                                      EntityDecomposerVersion::ConnectEdgesToPoint >( mesh );
+      const auto tetrahedronMesh =
+         getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToPoint, EntityDecomposerVersion::ConnectEdgesToPoint >(
+            mesh );
       EXPECT_EQ( tetrahedronMesh.getEntitiesCount< 0 >(), 22 );
       EXPECT_EQ( tetrahedronMesh.getEntitiesCount< 3 >(), 28 );
    }
@@ -806,12 +767,8 @@ TEST( MeshGeometryTest, Polygon3DGetPlanarMeshTest )
 
    // Set up 1 planar and 1 non-planar polygons (quads)
 
-   PointType point0(  0.0, 0.0, 0.0 ),
-             point1(  1.0, 0.0, 0.0 ),
-             point2(  1.0, 1.0, 0.0 ),
-             point3(  0.0, 1.0, 0.0 ),
-             point4(  2.0, 0.0, 0.0 ),
-             point5(  2.0, 1.0, 0.0 );
+   PointType point0( 0.0, 0.0, 0.0 ), point1( 1.0, 0.0, 0.0 ), point2( 1.0, 1.0, 0.0 ), point3( 0.0, 1.0, 0.0 ),
+      point4( 2.0, 0.0, 0.0 ), point5( 2.0, 1.0, 0.0 );
 
    // 5th point deviated by offset:
    point5 += offset;
@@ -821,12 +778,12 @@ TEST( MeshGeometryTest, Polygon3DGetPlanarMeshTest )
 
    meshBuilder.setEntitiesCount( 6, 2 );
 
-   meshBuilder.setPoint(  0, point0 );
-   meshBuilder.setPoint(  1, point1  );
-   meshBuilder.setPoint(  2, point2  );
-   meshBuilder.setPoint(  3, point3  );
-   meshBuilder.setPoint(  4, point4  );
-   meshBuilder.setPoint(  5, point5  );
+   meshBuilder.setPoint( 0, point0 );
+   meshBuilder.setPoint( 1, point1 );
+   meshBuilder.setPoint( 2, point2 );
+   meshBuilder.setPoint( 3, point3 );
+   meshBuilder.setPoint( 4, point4 );
+   meshBuilder.setPoint( 5, point5 );
 
    meshBuilder.setCellCornersCounts( { 4, 4 } );
 
@@ -873,44 +830,30 @@ TEST( MeshGeometryTest, PolyhedronGetPlanarMeshTest )
    using VertexMeshEntityType = typename PolyhedronMeshEntityType::SubentityTraits< 0 >::SubentityType;
    using PointType = typename VertexMeshEntityType::PointType;
 
-   PointType point0 ( -1.25000, 1.16650, 1.20300 ),
-             point1 ( -1.20683, 1.16951, 1.20537 ),
-             point2 ( -1.16843, 1.19337, 1.17878 ),
-             point3 ( -1.21025, 1.21901, 1.15383 ),
-             point4 ( -1.25000, 1.21280, 1.15670 ),
-             point5 ( -1.20816, 1.25000, 1.16756 ),
-             point6 ( -1.25000, 1.25000, 1.18056 ),
-             point7 ( -1.14802, 1.21553, 1.21165 ),
-             point8 ( -1.16186, 1.25000, 1.21385 ),
-             point9 ( -1.20307, 1.17486, 1.25000 ),
-             point10( -1.25000, 1.18056, 1.25000 ),
-             point11( -1.15677, 1.22115, 1.25000 ),
-             point12( -1.18056, 1.25000, 1.25000 ),
-             point13( -1.25000, 1.25000, 1.25000 ),
-             point14( -1.09277, 1.20806, 1.19263 ),
-             point15( -1.07219, 1.22167, 1.17994 ),
-             point16( -1.07215, 1.25000, 1.18679 ),
-             point17( -1.05697, 1.21124, 1.19697 ),
-             point18( -1.04607, 1.21508, 1.22076 ),
-             point19( -1.02140, 1.25000, 1.22293 ),
-             point20( -1.06418, 1.22115, 1.25000 ),
-             point21( -1.04167, 1.25000, 1.25000 );
+   PointType point0( -1.25000, 1.16650, 1.20300 ), point1( -1.20683, 1.16951, 1.20537 ), point2( -1.16843, 1.19337, 1.17878 ),
+      point3( -1.21025, 1.21901, 1.15383 ), point4( -1.25000, 1.21280, 1.15670 ), point5( -1.20816, 1.25000, 1.16756 ),
+      point6( -1.25000, 1.25000, 1.18056 ), point7( -1.14802, 1.21553, 1.21165 ), point8( -1.16186, 1.25000, 1.21385 ),
+      point9( -1.20307, 1.17486, 1.25000 ), point10( -1.25000, 1.18056, 1.25000 ), point11( -1.15677, 1.22115, 1.25000 ),
+      point12( -1.18056, 1.25000, 1.25000 ), point13( -1.25000, 1.25000, 1.25000 ), point14( -1.09277, 1.20806, 1.19263 ),
+      point15( -1.07219, 1.22167, 1.17994 ), point16( -1.07215, 1.25000, 1.18679 ), point17( -1.05697, 1.21124, 1.19697 ),
+      point18( -1.04607, 1.21508, 1.22076 ), point19( -1.02140, 1.25000, 1.22293 ), point20( -1.06418, 1.22115, 1.25000 ),
+      point21( -1.04167, 1.25000, 1.25000 );
 
    PolyhedronTestMesh mesh;
    MeshBuilder< PolyhedronTestMesh > meshBuilder;
 
    meshBuilder.setEntitiesCount( 22, 2, 16 );
 
-   meshBuilder.setPoint(  0, point0  );
-   meshBuilder.setPoint(  1, point1  );
-   meshBuilder.setPoint(  2, point2  );
-   meshBuilder.setPoint(  3, point3  );
-   meshBuilder.setPoint(  4, point4  );
-   meshBuilder.setPoint(  5, point5  );
-   meshBuilder.setPoint(  6, point6  );
-   meshBuilder.setPoint(  7, point7  );
-   meshBuilder.setPoint(  8, point8  );
-   meshBuilder.setPoint(  9, point9  );
+   meshBuilder.setPoint( 0, point0 );
+   meshBuilder.setPoint( 1, point1 );
+   meshBuilder.setPoint( 2, point2 );
+   meshBuilder.setPoint( 3, point3 );
+   meshBuilder.setPoint( 4, point4 );
+   meshBuilder.setPoint( 5, point5 );
+   meshBuilder.setPoint( 6, point6 );
+   meshBuilder.setPoint( 7, point7 );
+   meshBuilder.setPoint( 8, point8 );
+   meshBuilder.setPoint( 9, point9 );
    meshBuilder.setPoint( 10, point10 );
    meshBuilder.setPoint( 11, point11 );
    meshBuilder.setPoint( 12, point12 );
@@ -1130,10 +1073,7 @@ TEST( MeshGeometryTest, TriangleGetRefinedMeshTest )
             point0   edge2        point1
     */
 
-   PointType point0( 0.0, 0.0 ),
-             point1( 1.0, 0.0 ),
-             point2( 0.0, 1.0 ),
-             point3( 1.0, 1.0 );
+   PointType point0( 0.0, 0.0 ), point1( 1.0, 0.0 ), point2( 0.0, 1.0 ), point3( 1.0, 1.0 );
 
    MeshBuilder< TriangleTestMesh > meshBuilder;
    meshBuilder.setEntitiesCount( 4, 2 );
@@ -1154,9 +1094,9 @@ TEST( MeshGeometryTest, TriangleGetRefinedMeshTest )
    meshBuilder.build( mesh );
    const TriangleTestMesh refinedMesh = getRefinedMesh< EntityRefinerVersion::EdgeBisection >( mesh );
 
-   EXPECT_EQ( refinedMesh.getEntitiesCount< 2 >(),  8 );
+   EXPECT_EQ( refinedMesh.getEntitiesCount< 2 >(), 8 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 1 >(), 16 );
-   EXPECT_EQ( refinedMesh.getEntitiesCount< 0 >(),  9 );
+   EXPECT_EQ( refinedMesh.getEntitiesCount< 0 >(), 9 );
 }
 
 TEST( MeshGeometryTest, QuadrangleGetRefinedMeshTest )
@@ -1164,12 +1104,8 @@ TEST( MeshGeometryTest, QuadrangleGetRefinedMeshTest )
    using QuadrangleTestMesh = Mesh< TestQuadrangleMeshConfig >;
    using PointType = typename QuadrangleTestMesh::PointType;
 
-   PointType point0( 0.0, 0.0 ),
-             point1( 1.0, 0.0 ),
-             point2( 0.0, 1.0 ),
-             point3( 1.0, 1.0 ),
-             point4( 0.0, 2.0 ),
-             point5( 1.0, 2.0 );
+   PointType point0( 0.0, 0.0 ), point1( 1.0, 0.0 ), point2( 0.0, 1.0 ), point3( 1.0, 1.0 ), point4( 0.0, 2.0 ),
+      point5( 1.0, 2.0 );
 
    MeshBuilder< QuadrangleTestMesh > meshBuilder;
    meshBuilder.setEntitiesCount( 6, 2 );
@@ -1194,7 +1130,7 @@ TEST( MeshGeometryTest, QuadrangleGetRefinedMeshTest )
    meshBuilder.build( mesh );
    const QuadrangleTestMesh refinedMesh = getRefinedMesh< EntityRefinerVersion::EdgeBisection >( mesh );
 
-   EXPECT_EQ( refinedMesh.getEntitiesCount< 2 >(),  8 );
+   EXPECT_EQ( refinedMesh.getEntitiesCount< 2 >(), 8 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 1 >(), 22 );
    EXPECT_EQ( refinedMesh.getEntitiesCount< 0 >(), 15 );
 }
@@ -1204,11 +1140,8 @@ TEST( MeshGeometryTest, TetrahedronGetRefinedMeshTest )
    using TetrahedronTestMesh = Mesh< TestTetrahedronMeshConfig >;
    using PointType = typename TetrahedronTestMesh::PointType;
 
-   PointType point0( 0.0, 0.0, 0.0 ),
-             point1( 1.0, 0.0, 0.0 ),
-             point2( 0.0, 1.0, 0.0 ),
-             point3( 0.0, 0.0, 1.0 ),
-             point4( 1.0, 1.0, 1.0 );
+   PointType point0( 0.0, 0.0, 0.0 ), point1( 1.0, 0.0, 0.0 ), point2( 0.0, 1.0, 0.0 ), point3( 0.0, 0.0, 1.0 ),
+      point4( 1.0, 1.0, 1.0 );
 
    MeshBuilder< TetrahedronTestMesh > meshBuilder;
    meshBuilder.setEntitiesCount( 5, 2 );
@@ -1243,18 +1176,9 @@ TEST( MeshGeometryTest, HexahedronGetRefinedMeshTest )
    using HexahedronTestMesh = Mesh< TestHexahedronMeshConfig >;
    using PointType = typename HexahedronTestMesh::PointType;
 
-   PointType point0( 0.0, 0.0, 0.0 ),
-             point1( 1.0, 0.0, 0.0 ),
-             point2( 1.0, 1.0, 0.0 ),
-             point3( 0.0, 1.0, 0.0 ),
-             point4( 0.0, 0.0, 1.0 ),
-             point5( 1.0, 0.0, 1.0 ),
-             point6( 1.0, 1.0, 1.0 ),
-             point7( 0.0, 1.0, 1.0 ),
-             point8( 0.0, 0.0, 2.0 ),
-             point9( 1.0, 0.0, 2.0 ),
-             point10( 1.0, 1.0, 2.0 ),
-             point11( 0.0, 1.0, 2.0 );
+   PointType point0( 0.0, 0.0, 0.0 ), point1( 1.0, 0.0, 0.0 ), point2( 1.0, 1.0, 0.0 ), point3( 0.0, 1.0, 0.0 ),
+      point4( 0.0, 0.0, 1.0 ), point5( 1.0, 0.0, 1.0 ), point6( 1.0, 1.0, 1.0 ), point7( 0.0, 1.0, 1.0 ),
+      point8( 0.0, 0.0, 2.0 ), point9( 1.0, 0.0, 2.0 ), point10( 1.0, 1.0, 2.0 ), point11( 0.0, 1.0, 2.0 );
 
    MeshBuilder< HexahedronTestMesh > meshBuilder;
    meshBuilder.setEntitiesCount( 12, 2 );
@@ -1299,6 +1223,4 @@ TEST( MeshGeometryTest, HexahedronGetRefinedMeshTest )
    EXPECT_EQ( refinedMesh.getEntitiesCount< 0 >(), 45 );
 }
 
-} // namespace MeshTest
-
-#endif
+}  // namespace MeshGeometryTest

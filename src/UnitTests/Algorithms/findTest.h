@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <vector>
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
@@ -42,7 +41,7 @@ using ContainerTypes = ::testing::Types<
    Containers::Array< float, Devices::Cuda >,
    Containers::Array< double, Devices::Cuda >
 #endif
->;
+   >;
 
 TYPED_TEST_SUITE( FindTest, ContainerTypes );
 
@@ -51,15 +50,13 @@ TYPED_TEST( FindTest, find )
    using ArrayType = typename TestFixture::ArrayType;
 
    ArrayType u{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-   EXPECT_EQ( find( u,  0 ).first, true );
-   EXPECT_EQ( find( u,  0 ).second, 0 );
-   EXPECT_EQ( find( u,  5 ).first, true );
-   EXPECT_EQ( find( u,  5 ).second, 5 );
-   EXPECT_EQ( find( u,  9 ).first, true );
-   EXPECT_EQ( find( u,  9 ).second, 9 );
+   EXPECT_EQ( find( u, 0 ).first, true );
+   EXPECT_EQ( find( u, 0 ).second, 0 );
+   EXPECT_EQ( find( u, 5 ).first, true );
+   EXPECT_EQ( find( u, 5 ).second, 5 );
+   EXPECT_EQ( find( u, 9 ).first, true );
+   EXPECT_EQ( find( u, 9 ).second, 9 );
    EXPECT_EQ( find( u, 10 ).first, false );
 }
-
-#endif // HAVE_GTEST
 
 #include "../main.h"

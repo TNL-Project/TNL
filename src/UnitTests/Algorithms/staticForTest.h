@@ -6,14 +6,11 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/staticFor.h>
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
-#endif
 
 using namespace TNL;
 using namespace TNL::Algorithms;
 
-#ifdef HAVE_GTEST
 TEST( staticForTest, host_dynamic )
 {
    constexpr int N = 5;
@@ -21,10 +18,10 @@ TEST( staticForTest, host_dynamic )
    a.fill( 0 );
 
    staticFor< int, 0, N >(
-      [&a] ( auto i ) {
+      [ &a ]( auto i )
+      {
          a[ i ] += 1;
-      }
-   );
+      } );
 
    std::array< int, N > expected;
    expected.fill( 1 );
@@ -38,10 +35,10 @@ TEST( staticForTest, host_static )
    a.fill( 0 );
 
    staticFor< int, 0, N >(
-      [&a] ( auto i ) {
+      [ &a ]( auto i )
+      {
          std::get< i >( a ) += 1;
-      }
-   );
+      } );
 
    std::array< int, N > expected;
    expected.fill( 1 );
@@ -53,23 +50,24 @@ TEST( staticForTest, host_empty )
    bool called = false;
 
    staticFor< int, 0, 0 >(
-      [&called] ( auto i ) {
+      [ &called ]( auto i )
+      {
          called = true;
-      }
-   );
+      } );
    EXPECT_FALSE( called );
 
    staticFor< int, 0, -1 >(
-      [&called] ( auto i ) {
+      [ &called ]( auto i )
+      {
          called = true;
-      }
-   );
+      } );
    EXPECT_FALSE( called );
 }
 
 #ifdef __CUDACC__
 // nvcc does not allow __cuda_callable__ lambdas inside private regions
-void test_cuda_dynamic()
+void
+test_cuda_dynamic()
 {
    using Array = Containers::Array< int, Devices::Cuda >;
    using ArrayHost = Containers::Array< int, Devices::Host >;
@@ -78,13 +76,13 @@ void test_cuda_dynamic()
    a.setValue( 0 );
    auto view = a.getView();
 
-   auto kernel = [=] __cuda_callable__ (int j) mutable
+   auto kernel = [ = ] __cuda_callable__( int j ) mutable
    {
       staticFor< int, 0, N >(
-         [&view] ( auto i ) {
+         [ &view ]( auto i )
+         {
             view[ i ] += 1;
-         }
-      );
+         } );
    };
    parallelFor< Devices::Cuda >( 0, 1, kernel );
 
@@ -104,13 +102,15 @@ TEST( staticForTest, cuda_dynamic )
 
 template< int i, typename View >
 __cuda_callable__
-void static_helper( View& view )
+void
+static_helper( View& view )
 {
    view[ i ] += 1;
 }
 
 // nvcc does not allow __cuda_callable__ lambdas inside private regions
-void test_cuda_static()
+void
+test_cuda_static()
 {
    using Array = Containers::Array< int, Devices::Cuda >;
    using ArrayHost = Containers::Array< int, Devices::Host >;
@@ -119,13 +119,13 @@ void test_cuda_static()
    a.setValue( 0 );
    auto view = a.getView();
 
-   auto kernel = [=] __cuda_callable__ (int j) mutable
+   auto kernel = [ = ] __cuda_callable__( int j ) mutable
    {
       staticFor< int, 0, N >(
-         [&view] ( auto i ) {
+         [ &view ]( auto i )
+         {
             static_helper< i >( view );
-         }
-      );
+         } );
    };
    parallelFor< Devices::Cuda >( 0, 1, kernel );
 
@@ -142,7 +142,6 @@ TEST( staticForTest, cuda_static )
 {
    test_cuda_static();
 }
-#endif
 #endif
 
 #include "../main.h"

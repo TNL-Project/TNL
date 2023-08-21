@@ -1,5 +1,7 @@
 #include <iostream>
 #include <sstream>
+#include <type_traits>
+
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
 #include <TNL/Algorithms/contains.h>
@@ -7,6 +9,8 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Math.h>
+
+#include <gtest/gtest.h>
 
 using Multidiagonal_host_float = TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, int >;
 using Multidiagonal_host_int = TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Host, int >;
@@ -16,26 +20,45 @@ using Multidiagonal_cuda_int = TNL::Matrices::MultidiagonalMatrix< int, TNL::Dev
 
 static const char* TEST_FILE_NAME = "test_MultidiagonalMatrixTest.tnl";
 
-#ifdef HAVE_GTEST
-#include <type_traits>
-
-#include <gtest/gtest.h>
-
-void test_GetSerializationType()
+void
+test_GetSerializationType()
 {
    using namespace TNL::Algorithms::Segments;
-   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ), TNL::String( "Matrices::MultidiagonalMatrix< float, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< int,   TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ), TNL::String( "Matrices::MultidiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ), TNL::String( "Matrices::MultidiagonalMatrix< float, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< int,   TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ), TNL::String( "Matrices::MultidiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ), TNL::String( "Matrices::MultidiagonalMatrix< float, [any_device], int, ColumnMajorOrder, [any_allocator], [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< int,   TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ), TNL::String( "Matrices::MultidiagonalMatrix< int, [any_device], int, ColumnMajorOrder, [any_allocator], [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ), TNL::String( "Matrices::MultidiagonalMatrix< float, [any_device], int, ColumnMajorOrder, [any_allocator], [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< int,   TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ), TNL::String( "Matrices::MultidiagonalMatrix< int, [any_device], int, ColumnMajorOrder, [any_allocator], [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String(
+         "Matrices::MultidiagonalMatrix< float, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
+   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
+              TNL::String(
+                 "Matrices::MultidiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String(
+         "Matrices::MultidiagonalMatrix< float, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
+   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
+              TNL::String(
+                 "Matrices::MultidiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String(
+         "Matrices::MultidiagonalMatrix< float, [any_device], int, ColumnMajorOrder, [any_allocator], [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String(
+         "Matrices::MultidiagonalMatrix< int, [any_device], int, ColumnMajorOrder, [any_allocator], [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String(
+         "Matrices::MultidiagonalMatrix< float, [any_device], int, ColumnMajorOrder, [any_allocator], [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String(
+         "Matrices::MultidiagonalMatrix< int, [any_device], int, ColumnMajorOrder, [any_allocator], [any_allocator] >" ) );
 }
 
 template< typename Matrix >
-void test_SetDimensions()
+void
+test_SetDimensions()
 {
    using IndexType = typename Matrix::IndexType;
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
@@ -52,7 +75,8 @@ void test_SetDimensions()
 }
 
 template< typename Matrix >
-void test_SetDiagonalsOffsets()
+void
+test_SetDiagonalsOffsets()
 {
    using IndexType = typename Matrix::IndexType;
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
@@ -70,7 +94,8 @@ void test_SetDiagonalsOffsets()
 }
 
 template< typename Matrix >
-void test_SetDiagonalsOffsets_initalizer_list()
+void
+test_SetDiagonalsOffsets_initalizer_list()
 {
    using IndexType = typename Matrix::IndexType;
 
@@ -86,7 +111,8 @@ void test_SetDiagonalsOffsets_initalizer_list()
 }
 
 template< typename Matrix1, typename Matrix2 >
-void test_SetLike()
+void
+test_SetLike()
 {
    using IndexType = typename Matrix1::IndexType;
    using DiagonalOffsetsType = typename Matrix1::DiagonalOffsetsType;
@@ -108,52 +134,46 @@ void test_SetLike()
 }
 
 template< typename Matrix >
-void test_SetElements()
+void
+test_SetElements()
 {
    const int gridSize( 4 );
    const int matrixSize( gridSize * gridSize );
-   Matrix matrix( matrixSize, matrixSize, { - gridSize, -1, 0, 1, gridSize } );
-   matrix.setElements( {
-      {  0.0,  0.0, 1.0 },
-      {  0.0,  0.0, 1.0 },
-      {  0.0,  0.0, 1.0 },
-      {  0.0,  0.0, 1.0 },
-      {  0.0,  0.0, 1.0 },
-      { -1.0, -1.0, 4.0, -1.0, -1.0 },
-      { -1.0, -1.0, 4.0, -1.0, -1.0 },
-      {  0.0,  0.0, 1.0 },
-      {  0.0,  0.0, 1.0 },
-      { -1.0, -1.0, 4.0, -1.0, -1.0 },
-      { -1.0, -1.0, 4.0, -1.0, -1.0 },
-      {  0.0,  0.0, 1.0 },
-      {  0.0,  0.0, 1.0 },
-      {  0.0,  0.0, 1.0 },
-      {  0.0,  0.0, 1.0 },
-      {  0.0,  0.0, 1.0 }
-   } );
+   Matrix matrix( matrixSize, matrixSize, { -gridSize, -1, 0, 1, gridSize } );
+   matrix.setElements( { { 0.0, 0.0, 1.0 },
+                         { 0.0, 0.0, 1.0 },
+                         { 0.0, 0.0, 1.0 },
+                         { 0.0, 0.0, 1.0 },
+                         { 0.0, 0.0, 1.0 },
+                         { -1.0, -1.0, 4.0, -1.0, -1.0 },
+                         { -1.0, -1.0, 4.0, -1.0, -1.0 },
+                         { 0.0, 0.0, 1.0 },
+                         { 0.0, 0.0, 1.0 },
+                         { -1.0, -1.0, 4.0, -1.0, -1.0 },
+                         { -1.0, -1.0, 4.0, -1.0, -1.0 },
+                         { 0.0, 0.0, 1.0 },
+                         { 0.0, 0.0, 1.0 },
+                         { 0.0, 0.0, 1.0 },
+                         { 0.0, 0.0, 1.0 },
+                         { 0.0, 0.0, 1.0 } } );
 
    for( int i = 0; i < gridSize; i++ )
-      for( int j = 0; j < gridSize; j++ )
-      {
+      for( int j = 0; j < gridSize; j++ ) {
          const int elementIdx = i * gridSize + j;
-         if( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 )  // check matrix elements corresponding to boundary grid nodes
+         if( i == 0 || j == 0 || i == gridSize - 1
+             || j == gridSize - 1 )  // check matrix elements corresponding to boundary grid nodes
          {
-            for( int k = 0; k < matrixSize; k++ )
-            {
+            for( int k = 0; k < matrixSize; k++ ) {
                if( elementIdx == k )
                   EXPECT_EQ( matrix.getElement( elementIdx, k ), 1.0 );
                else
                   EXPECT_EQ( matrix.getElement( elementIdx, k ), 0.0 );
             }
          }
-         else // check matrix elements corresponding to inner grid nodes
+         else  // check matrix elements corresponding to inner grid nodes
          {
-            for( int k = 0; k < matrixSize; k++ )
-            {
-               if( k == elementIdx - gridSize ||
-                   k == elementIdx - 1 ||
-                   k == elementIdx + 1 ||
-                   k == elementIdx + gridSize )
+            for( int k = 0; k < matrixSize; k++ ) {
+               if( k == elementIdx - gridSize || k == elementIdx - 1 || k == elementIdx + 1 || k == elementIdx + gridSize )
                   EXPECT_EQ( matrix.getElement( elementIdx, k ), -1.0 );
                else if( k == elementIdx )
                   EXPECT_EQ( matrix.getElement( elementIdx, k ), 4.0 );
@@ -165,7 +185,8 @@ void test_SetElements()
 }
 
 template< typename Matrix >
-void test_GetCompressedRowLengths()
+void
+test_GetCompressedRowLengths()
 {
    using IndexType = typename Matrix::IndexType;
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
@@ -186,7 +207,7 @@ void test_GetCompressedRowLengths()
    const IndexType rows = 8;
    const IndexType cols = 8;
 
-   Matrix m( rows, cols, DiagonalOffsetsType({ -2, 0, 3, 5 }) );
+   Matrix m( rows, cols, DiagonalOffsetsType( { -2, 0, 3, 5 } ) );
    m.setValue( 1.0 );
    m.setElement( 0, 0, 0.0 );
    m.setElement( 7, 7, 0.0 );
@@ -199,7 +220,8 @@ void test_GetCompressedRowLengths()
 }
 
 template< typename Matrix >
-void test_GetAllocatedElementsCount()
+void
+test_GetAllocatedElementsCount()
 {
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
@@ -217,7 +239,8 @@ void test_GetAllocatedElementsCount()
 }
 
 template< typename Matrix >
-void test_GetNonzeroElementsCount()
+void
+test_GetNonzeroElementsCount()
 {
    using IndexType = typename Matrix::IndexType;
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
@@ -246,7 +269,8 @@ void test_GetNonzeroElementsCount()
 }
 
 template< typename Matrix >
-void test_Reset()
+void
+test_Reset()
 {
    using IndexType = typename Matrix::IndexType;
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
@@ -271,7 +295,8 @@ void test_Reset()
 }
 
 template< typename Matrix >
-void test_SetValue()
+void
+test_SetValue()
 {
    using IndexType = typename Matrix::IndexType;
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
@@ -344,7 +369,8 @@ void test_SetValue()
 }
 
 template< typename Matrix >
-void test_SetElement()
+void
+test_SetElement()
 {
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
@@ -361,7 +387,7 @@ void test_SetElement()
     */
    const IndexType rows = 5;
    const IndexType cols = 5;
-   DiagonalOffsetsType diagonals{-3, 0, 1, 4 };
+   DiagonalOffsetsType diagonals{ -3, 0, 1, 4 };
    Matrix m( rows, cols, diagonals );
 
    RealType value = 1;
@@ -369,44 +395,44 @@ void test_SetElement()
       for( IndexType j = 0; j < cols; j++ )
          if( TNL::Algorithms::contains( diagonals, j - i ) )
             m.setElement( i, j, value++ );
-         else
-         {
+         else {
             EXPECT_THROW( m.setElement( i, j, value++ ), std::logic_error );
          }
 
-   EXPECT_EQ( m.getElement( 0, 0 ),  1 );
-   EXPECT_EQ( m.getElement( 0, 1 ),  2 );
-   EXPECT_EQ( m.getElement( 0, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 4 ),  5 );
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 5 );
 
-   EXPECT_EQ( m.getElement( 1, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 1 ),  7 );
-   EXPECT_EQ( m.getElement( 1, 2 ),  8 );
-   EXPECT_EQ( m.getElement( 1, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 1, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 7 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 8 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
 
-   EXPECT_EQ( m.getElement( 2, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 1 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 0 );
    EXPECT_EQ( m.getElement( 2, 2 ), 13 );
    EXPECT_EQ( m.getElement( 2, 3 ), 14 );
-   EXPECT_EQ( m.getElement( 2, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 0 );
 
    EXPECT_EQ( m.getElement( 3, 0 ), 16 );
-   EXPECT_EQ( m.getElement( 3, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 2 ),  0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 0 );
    EXPECT_EQ( m.getElement( 3, 3 ), 19 );
    EXPECT_EQ( m.getElement( 3, 4 ), 20 );
 
-   EXPECT_EQ( m.getElement( 4, 0 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
    EXPECT_EQ( m.getElement( 4, 1 ), 22 );
-   EXPECT_EQ( m.getElement( 4, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 3 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 0 );
    EXPECT_EQ( m.getElement( 4, 4 ), 25 );
 }
 
 template< typename Matrix >
-void test_AddElement()
+void
+test_AddElement()
 {
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
@@ -423,52 +449,50 @@ void test_AddElement()
     */
    const IndexType rows = 5;
    const IndexType cols = 5;
-   DiagonalOffsetsType diagonals{-3, 0, 1, 4 };
+   DiagonalOffsetsType diagonals{ -3, 0, 1, 4 };
    Matrix m( rows, cols, diagonals );
 
    RealType value = 1;
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < cols; j++ )
-         if( TNL::Algorithms::contains( diagonals, j - i ) )
-         {
+         if( TNL::Algorithms::contains( diagonals, j - i ) ) {
             if( j >= i )
                m.setElement( i, j, value );
             value++;
          }
-         else
-         {
+         else {
             EXPECT_THROW( m.setElement( i, j, value++ ), std::logic_error );
          }
 
    // Check the added elements
-   EXPECT_EQ( m.getElement( 0, 0 ),  1 );
-   EXPECT_EQ( m.getElement( 0, 1 ),  2 );
-   EXPECT_EQ( m.getElement( 0, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 4 ),  5 );
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 5 );
 
-   EXPECT_EQ( m.getElement( 1, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 1 ),  7 );
-   EXPECT_EQ( m.getElement( 1, 2 ),  8 );
-   EXPECT_EQ( m.getElement( 1, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 1, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 7 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 8 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
 
-   EXPECT_EQ( m.getElement( 2, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 1 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 0 );
    EXPECT_EQ( m.getElement( 2, 2 ), 13 );
    EXPECT_EQ( m.getElement( 2, 3 ), 14 );
-   EXPECT_EQ( m.getElement( 2, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 0 );
 
-   EXPECT_EQ( m.getElement( 3, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 2 ),  0 );
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 0 );
    EXPECT_EQ( m.getElement( 3, 3 ), 19 );
    EXPECT_EQ( m.getElement( 3, 4 ), 20 );
 
-   EXPECT_EQ( m.getElement( 4, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 3 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 0 );
    EXPECT_EQ( m.getElement( 4, 4 ), 25 );
 
    // Add new elements to the old elements with a multiplying factor applied to the old elements.
@@ -489,44 +513,44 @@ void test_AddElement()
       for( IndexType j = 0; j < cols; j++ )
          if( TNL::Algorithms::contains( diagonals, j - i ) )
             m.addElement( i, j, value++, multiplicator );
-         else
-         {
+         else {
             EXPECT_THROW( m.addElement( i, j, value++, multiplicator ), std::logic_error );
          }
 
-   EXPECT_EQ( m.getElement( 0, 0 ),  3 );
-   EXPECT_EQ( m.getElement( 0, 1 ),  6 );
-   EXPECT_EQ( m.getElement( 0, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 3 ),  0 );
+   EXPECT_EQ( m.getElement( 0, 0 ), 3 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 6 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
    EXPECT_EQ( m.getElement( 0, 4 ), 15 );
 
-   EXPECT_EQ( m.getElement( 1, 0 ),  0 );
+   EXPECT_EQ( m.getElement( 1, 0 ), 0 );
    EXPECT_EQ( m.getElement( 1, 1 ), 21 );
    EXPECT_EQ( m.getElement( 1, 2 ), 24 );
-   EXPECT_EQ( m.getElement( 1, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
 
-   EXPECT_EQ( m.getElement( 2, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 1 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 0 );
    EXPECT_EQ( m.getElement( 2, 2 ), 39 );
    EXPECT_EQ( m.getElement( 2, 3 ), 42 );
-   EXPECT_EQ( m.getElement( 2, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 0 );
 
    EXPECT_EQ( m.getElement( 3, 0 ), 16 );
-   EXPECT_EQ( m.getElement( 3, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 2 ),  0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 0 );
    EXPECT_EQ( m.getElement( 3, 3 ), 57 );
    EXPECT_EQ( m.getElement( 3, 4 ), 60 );
 
-   EXPECT_EQ( m.getElement( 4, 0 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
    EXPECT_EQ( m.getElement( 4, 1 ), 22 );
-   EXPECT_EQ( m.getElement( 4, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 3 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 0 );
    EXPECT_EQ( m.getElement( 4, 4 ), 75 );
 }
 
 template< typename Matrix >
-void test_SetRow()
+void
+test_SetRow()
 {
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
@@ -545,65 +569,62 @@ void test_SetRow()
    const IndexType rows = 5;
    const IndexType cols = 7;
 
-   Matrix m( rows, cols, DiagonalOffsetsType({ -1, 0, 2, 4 }) );
+   Matrix m( rows, cols, DiagonalOffsetsType( { -1, 0, 2, 4 } ) );
 
    auto matrix_view = m.getView();
-   auto f = [=] __cuda_callable__ ( IndexType rowIdx ) mutable {
-      RealType values[ 5 ][ 4 ] {
-         {  0,  1,  2,  3 },
-         {  4,  5,  6,  7 },
-         {  8,  9, 10, 11 },
-         { 12, 13, 14,  0 },
-         { 15, 16, 17,  0 } };
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+   {
+      RealType values[ 5 ][ 4 ]{ { 0, 1, 2, 3 }, { 4, 5, 6, 7 }, { 8, 9, 10, 11 }, { 12, 13, 14, 0 }, { 15, 16, 17, 0 } };
       auto row = matrix_view.getRow( rowIdx );
       for( IndexType i = 0; i < 4; i++ )
          row.setElement( i, values[ rowIdx ][ i ] );
    };
    TNL::Algorithms::parallelFor< DeviceType >( 0, rows, f );
 
-   EXPECT_EQ( m.getElement( 0, 0 ),  1 );
-   EXPECT_EQ( m.getElement( 0, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 2 ),  2 );
-   EXPECT_EQ( m.getElement( 0, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 4 ),  3 );
-   EXPECT_EQ( m.getElement( 0, 5 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 6 ),  0 );
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 2 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 3 );
+   EXPECT_EQ( m.getElement( 0, 5 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 6 ), 0 );
 
-   EXPECT_EQ( m.getElement( 1, 0 ),  4 );
-   EXPECT_EQ( m.getElement( 1, 1 ),  5 );
-   EXPECT_EQ( m.getElement( 1, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 3 ),  6 );
-   EXPECT_EQ( m.getElement( 1, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 5 ),  7 );
-   EXPECT_EQ( m.getElement( 1, 6 ),  0 );
+   EXPECT_EQ( m.getElement( 1, 0 ), 4 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 5 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 6 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 5 ), 7 );
+   EXPECT_EQ( m.getElement( 1, 6 ), 0 );
 
-   EXPECT_EQ( m.getElement( 2, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 1 ),  8 );
-   EXPECT_EQ( m.getElement( 2, 2 ),  9 );
-   EXPECT_EQ( m.getElement( 2, 3 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 8 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 9 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 0 );
    EXPECT_EQ( m.getElement( 2, 4 ), 10 );
-   EXPECT_EQ( m.getElement( 2, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 5 ), 0 );
    EXPECT_EQ( m.getElement( 2, 6 ), 11 );
 
-   EXPECT_EQ( m.getElement( 3, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 1 ),  0 );
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
    EXPECT_EQ( m.getElement( 3, 2 ), 12 );
    EXPECT_EQ( m.getElement( 3, 3 ), 13 );
-   EXPECT_EQ( m.getElement( 3, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 3, 4 ), 0 );
    EXPECT_EQ( m.getElement( 3, 5 ), 14 );
-   EXPECT_EQ( m.getElement( 3, 6 ),  0 );
+   EXPECT_EQ( m.getElement( 3, 6 ), 0 );
 
-   EXPECT_EQ( m.getElement( 4, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 2 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
    EXPECT_EQ( m.getElement( 4, 3 ), 15 );
    EXPECT_EQ( m.getElement( 4, 4 ), 16 );
-   EXPECT_EQ( m.getElement( 4, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 5 ), 0 );
    EXPECT_EQ( m.getElement( 4, 6 ), 17 );
 }
 
 template< typename Matrix >
-void test_AddRow()
+void
+test_AddRow()
 {
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
@@ -629,50 +650,49 @@ void test_AddRow()
 
    RealType value = 1;
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < cols; j++ )
-      {
+      for( IndexType j = 0; j < cols; j++ ) {
          IndexType offset = j - i;
-         if( TNL::Algorithms::contains( diagonals, offset ) && offset >= 0)
+         if( TNL::Algorithms::contains( diagonals, offset ) && offset >= 0 )
             m.setElement( i, j, value );
          value++;
       }
 
    // Check the added elements
-   EXPECT_EQ( m.getElement( 0, 0 ),  1 );
-   EXPECT_EQ( m.getElement( 0, 1 ),  2 );
-   EXPECT_EQ( m.getElement( 0, 2 ),  3 );
-   EXPECT_EQ( m.getElement( 0, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 3 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 0 );
 
-   EXPECT_EQ( m.getElement( 1, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 1 ),  7 );
-   EXPECT_EQ( m.getElement( 1, 2 ),  8 );
-   EXPECT_EQ( m.getElement( 1, 3 ),  9 );
-   EXPECT_EQ( m.getElement( 1, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 1, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 7 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 8 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 9 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
 
-   EXPECT_EQ( m.getElement( 2, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 1 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 0 );
    EXPECT_EQ( m.getElement( 2, 2 ), 13 );
    EXPECT_EQ( m.getElement( 2, 3 ), 14 );
    EXPECT_EQ( m.getElement( 2, 4 ), 15 );
 
-   EXPECT_EQ( m.getElement( 3, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 2 ),  0 );
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 0 );
    EXPECT_EQ( m.getElement( 3, 3 ), 19 );
    EXPECT_EQ( m.getElement( 3, 4 ), 20 );
 
-   EXPECT_EQ( m.getElement( 4, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 3 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 0 );
    EXPECT_EQ( m.getElement( 4, 4 ), 25 );
 
-   EXPECT_EQ( m.getElement( 5, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 5, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 4 ), 0 );
 
    // Add new elements to the old elements with a multiplying factor applied to the old elements.
    /*
@@ -687,62 +707,58 @@ void test_AddRow()
     */
 
    auto matrix_view = m.getView();
-   auto f = [=] __cuda_callable__ ( IndexType rowIdx ) mutable {
-      RealType values[ 6 ][ 4 ] {
-         {  0, 11, 0,  0 },
-         {  0, 22, 0,  0 },
-         { 33, 33, 0,  0 },
-         { 44, 44, 0,  0 },
-         { 55, 55, 0,  0 },
-         { 66,  0, 0,  0 } };
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+   {
+      RealType values[ 6 ][ 4 ]{ { 0, 11, 0, 0 },  { 0, 22, 0, 0 },  { 33, 33, 0, 0 },
+                                 { 44, 44, 0, 0 }, { 55, 55, 0, 0 }, { 66, 0, 0, 0 } };
       auto row = matrix_view.getRow( rowIdx );
-      for( IndexType i = 0; i < 4; i++ )
-      {
+      for( IndexType i = 0; i < 4; i++ ) {
          RealType& val = row.getValue( i );
          val = rowIdx * val + values[ rowIdx ][ i ];
       }
    };
    TNL::Algorithms::parallelFor< DeviceType >( 0, 6, f );
 
-   EXPECT_EQ( m.getElement( 0, 0 ),  11 );
-   EXPECT_EQ( m.getElement( 0, 1 ),   0 );
-   EXPECT_EQ( m.getElement( 0, 2 ),   0 );
-   EXPECT_EQ( m.getElement( 0, 3 ),   0 );
-   EXPECT_EQ( m.getElement( 0, 4 ),   0 );
+   EXPECT_EQ( m.getElement( 0, 0 ), 11 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 0 );
 
-   EXPECT_EQ( m.getElement( 1, 0 ),   0 );
-   EXPECT_EQ( m.getElement( 1, 1 ),  29 );
-   EXPECT_EQ( m.getElement( 1, 2 ),   8 );
-   EXPECT_EQ( m.getElement( 1, 3 ),   9 );
-   EXPECT_EQ( m.getElement( 1, 4 ),   0 );
+   EXPECT_EQ( m.getElement( 1, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 29 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 8 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 9 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
 
-   EXPECT_EQ( m.getElement( 2, 0 ),  33 );
-   EXPECT_EQ( m.getElement( 2, 1 ),   0 );
-   EXPECT_EQ( m.getElement( 2, 2 ),  59 );
-   EXPECT_EQ( m.getElement( 2, 3 ),  28 );
-   EXPECT_EQ( m.getElement( 2, 4 ),  30  );
+   EXPECT_EQ( m.getElement( 2, 0 ), 33 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 59 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 28 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 30 );
 
-   EXPECT_EQ( m.getElement( 3, 0 ),   0 );
-   EXPECT_EQ( m.getElement( 3, 1 ),  44 );
-   EXPECT_EQ( m.getElement( 3, 2 ),   0 );
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 44 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 0 );
    EXPECT_EQ( m.getElement( 3, 3 ), 101 );
-   EXPECT_EQ( m.getElement( 3, 4 ),  60 );
+   EXPECT_EQ( m.getElement( 3, 4 ), 60 );
 
-   EXPECT_EQ( m.getElement( 4, 0 ),   0 );
-   EXPECT_EQ( m.getElement( 4, 1 ),   0 );
-   EXPECT_EQ( m.getElement( 4, 2 ),  55 );
-   EXPECT_EQ( m.getElement( 4, 3 ),   0 );
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 55 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 0 );
    EXPECT_EQ( m.getElement( 4, 4 ), 155 );
 
-   EXPECT_EQ( m.getElement( 5, 0 ),   0 );
-   EXPECT_EQ( m.getElement( 5, 1 ),   0 );
-   EXPECT_EQ( m.getElement( 5, 2 ),   0 );
-   EXPECT_EQ( m.getElement( 5, 3 ),  66 );
-   EXPECT_EQ( m.getElement( 5, 4 ),   0 );
+   EXPECT_EQ( m.getElement( 5, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 3 ), 66 );
+   EXPECT_EQ( m.getElement( 5, 4 ), 0 );
 }
 
 template< typename Matrix >
-void test_ForRows()
+void
+test_ForRows()
 {
    using IndexType = typename Matrix::IndexType;
 
@@ -761,19 +777,19 @@ void test_ForRows()
 
    /////
    // Test without iterator
-   auto f = [=] __cuda_callable__ ( typename Matrix::RowView& row ) mutable {
+   auto f = [ = ] __cuda_callable__( typename Matrix::RowView & row ) mutable
+   {
       const IndexType rowIdx = row.getRowIndex();
       if( rowIdx > 0 )
          row.setElement( 0, -2.0 );
       row.setElement( 1, 1.0 );
-      if( rowIdx < size -1 )
+      if( rowIdx < size - 1 )
          row.setElement( 2, -2.0 );
    };
    m.forAllRows( f );
 
    for( IndexType row = 0; row < size; row++ )
-      for( IndexType column = 0; column < size; column++ )
-      {
+      for( IndexType column = 0; column < size; column++ ) {
          const IndexType diff = row - column;
          if( diff == 0 )
             EXPECT_EQ( m.getElement( row, column ), 1.0 );
@@ -788,9 +804,9 @@ void test_ForRows()
    /////
    // Test with iterator
    m.getValues() = 0.0;
-   auto f_iter = [=] __cuda_callable__ ( typename Matrix::RowView& row ) mutable {
-      for( auto element : row )
-      {
+   auto f_iter = [ = ] __cuda_callable__( typename Matrix::RowView & row ) mutable
+   {
+      for( auto element : row ) {
          if( element.rowIndex() > 0 && element.localIndex() == 0 )
             element.value() = -2.0;
          if( element.localIndex() == 1 )
@@ -802,8 +818,7 @@ void test_ForRows()
    m.forAllRows( f_iter );
 
    for( IndexType row = 0; row < size; row++ )
-      for( IndexType column = 0; column < size; column++ )
-      {
+      for( IndexType column = 0; column < size; column++ ) {
          const IndexType diff = row - column;
          if( diff == 0 )
             EXPECT_EQ( m.getElement( row, column ), 1.0 );
@@ -814,11 +829,11 @@ void test_ForRows()
          else
             EXPECT_EQ( m.getElement( row, column ), 0.0 );
       }
-
 }
 
 template< typename Matrix >
-void test_VectorProduct()
+void
+test_VectorProduct()
 {
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
@@ -842,8 +857,7 @@ void test_VectorProduct()
 
    RealType value = 1;
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < cols; j++)
-      {
+      for( IndexType j = 0; j < cols; j++ ) {
          if( TNL::Algorithms::contains( diagonals, j - i ) )
             m.setElement( i, j, value );
          value++;
@@ -857,9 +871,9 @@ void test_VectorProduct()
    VectorType outVector( 5 );
    outVector = 0;
 
-   m.vectorProduct( inVector, outVector);
+   m.vectorProduct( inVector, outVector );
 
-   EXPECT_EQ( outVector.getElement( 0 ),  8 );
+   EXPECT_EQ( outVector.getElement( 0 ), 8 );
    EXPECT_EQ( outVector.getElement( 1 ), 28 );
    EXPECT_EQ( outVector.getElement( 2 ), 40 );
    EXPECT_EQ( outVector.getElement( 3 ), 60 );
@@ -867,7 +881,8 @@ void test_VectorProduct()
 }
 
 template< typename Matrix1, typename Matrix2 = Matrix1 >
-void test_AddMatrix()
+void
+test_AddMatrix()
 {
    using RealType = typename Matrix1::RealType;
    using IndexType = typename Matrix1::IndexType;
@@ -892,8 +907,7 @@ void test_AddMatrix()
 
    RealType value = 1;
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < cols; j++)
-      {
+      for( IndexType j = 0; j < cols; j++ ) {
          if( abs( i - j ) <= 1 )
             m.setElement( i, j, value );
          value++;
@@ -912,7 +926,7 @@ void test_AddMatrix()
 
    RealType newValue = 1;
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < cols; j++)
+      for( IndexType j = 0; j < cols; j++ )
          if( abs( i - j ) <= 1 )
             m2.setElement( i, j, newValue++ );
 
@@ -937,117 +951,139 @@ void test_AddMatrix()
 
    mResult.addMatrix( m2, matrixMultiplicator, thisMatrixMultiplicator );
 
-   EXPECT_EQ( mResult.getElement( 0, 0 ), matrixMultiplicator * m2.getElement( 0, 0 ) + thisMatrixMultiplicator * m.getElement( 0, 0 ) );
-   EXPECT_EQ( mResult.getElement( 0, 1 ), matrixMultiplicator * m2.getElement( 0, 1 ) + thisMatrixMultiplicator * m.getElement( 0, 1 ) );
-   EXPECT_EQ( mResult.getElement( 0, 2 ), matrixMultiplicator * m2.getElement( 0, 2 ) + thisMatrixMultiplicator * m.getElement( 0, 2 ) );
-   EXPECT_EQ( mResult.getElement( 0, 3 ), matrixMultiplicator * m2.getElement( 0, 3 ) + thisMatrixMultiplicator * m.getElement( 0, 3 ) );
+   EXPECT_EQ( mResult.getElement( 0, 0 ),
+              matrixMultiplicator * m2.getElement( 0, 0 ) + thisMatrixMultiplicator * m.getElement( 0, 0 ) );
+   EXPECT_EQ( mResult.getElement( 0, 1 ),
+              matrixMultiplicator * m2.getElement( 0, 1 ) + thisMatrixMultiplicator * m.getElement( 0, 1 ) );
+   EXPECT_EQ( mResult.getElement( 0, 2 ),
+              matrixMultiplicator * m2.getElement( 0, 2 ) + thisMatrixMultiplicator * m.getElement( 0, 2 ) );
+   EXPECT_EQ( mResult.getElement( 0, 3 ),
+              matrixMultiplicator * m2.getElement( 0, 3 ) + thisMatrixMultiplicator * m.getElement( 0, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 1, 0 ), matrixMultiplicator * m2.getElement( 1, 0 ) + thisMatrixMultiplicator * m.getElement( 1, 0 ) );
-   EXPECT_EQ( mResult.getElement( 1, 1 ), matrixMultiplicator * m2.getElement( 1, 1 ) + thisMatrixMultiplicator * m.getElement( 1, 1 ) );
-   EXPECT_EQ( mResult.getElement( 1, 2 ), matrixMultiplicator * m2.getElement( 1, 2 ) + thisMatrixMultiplicator * m.getElement( 1, 2 ) );
-   EXPECT_EQ( mResult.getElement( 1, 3 ), matrixMultiplicator * m2.getElement( 1, 3 ) + thisMatrixMultiplicator * m.getElement( 1, 3 ) );
+   EXPECT_EQ( mResult.getElement( 1, 0 ),
+              matrixMultiplicator * m2.getElement( 1, 0 ) + thisMatrixMultiplicator * m.getElement( 1, 0 ) );
+   EXPECT_EQ( mResult.getElement( 1, 1 ),
+              matrixMultiplicator * m2.getElement( 1, 1 ) + thisMatrixMultiplicator * m.getElement( 1, 1 ) );
+   EXPECT_EQ( mResult.getElement( 1, 2 ),
+              matrixMultiplicator * m2.getElement( 1, 2 ) + thisMatrixMultiplicator * m.getElement( 1, 2 ) );
+   EXPECT_EQ( mResult.getElement( 1, 3 ),
+              matrixMultiplicator * m2.getElement( 1, 3 ) + thisMatrixMultiplicator * m.getElement( 1, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 2, 0 ), matrixMultiplicator * m2.getElement( 2, 0 ) + thisMatrixMultiplicator * m.getElement( 2, 0 ) );
-   EXPECT_EQ( mResult.getElement( 2, 1 ), matrixMultiplicator * m2.getElement( 2, 1 ) + thisMatrixMultiplicator * m.getElement( 2, 1 ) );
-   EXPECT_EQ( mResult.getElement( 2, 2 ), matrixMultiplicator * m2.getElement( 2, 2 ) + thisMatrixMultiplicator * m.getElement( 2, 2 ) );
-   EXPECT_EQ( mResult.getElement( 2, 3 ), matrixMultiplicator * m2.getElement( 2, 3 ) + thisMatrixMultiplicator * m.getElement( 2, 3 ) );
+   EXPECT_EQ( mResult.getElement( 2, 0 ),
+              matrixMultiplicator * m2.getElement( 2, 0 ) + thisMatrixMultiplicator * m.getElement( 2, 0 ) );
+   EXPECT_EQ( mResult.getElement( 2, 1 ),
+              matrixMultiplicator * m2.getElement( 2, 1 ) + thisMatrixMultiplicator * m.getElement( 2, 1 ) );
+   EXPECT_EQ( mResult.getElement( 2, 2 ),
+              matrixMultiplicator * m2.getElement( 2, 2 ) + thisMatrixMultiplicator * m.getElement( 2, 2 ) );
+   EXPECT_EQ( mResult.getElement( 2, 3 ),
+              matrixMultiplicator * m2.getElement( 2, 3 ) + thisMatrixMultiplicator * m.getElement( 2, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 3, 0 ), matrixMultiplicator * m2.getElement( 3, 0 ) + thisMatrixMultiplicator * m.getElement( 3, 0 ) );
-   EXPECT_EQ( mResult.getElement( 3, 1 ), matrixMultiplicator * m2.getElement( 3, 1 ) + thisMatrixMultiplicator * m.getElement( 3, 1 ) );
-   EXPECT_EQ( mResult.getElement( 3, 2 ), matrixMultiplicator * m2.getElement( 3, 2 ) + thisMatrixMultiplicator * m.getElement( 3, 2 ) );
-   EXPECT_EQ( mResult.getElement( 3, 3 ), matrixMultiplicator * m2.getElement( 3, 3 ) + thisMatrixMultiplicator * m.getElement( 3, 3 ) );
+   EXPECT_EQ( mResult.getElement( 3, 0 ),
+              matrixMultiplicator * m2.getElement( 3, 0 ) + thisMatrixMultiplicator * m.getElement( 3, 0 ) );
+   EXPECT_EQ( mResult.getElement( 3, 1 ),
+              matrixMultiplicator * m2.getElement( 3, 1 ) + thisMatrixMultiplicator * m.getElement( 3, 1 ) );
+   EXPECT_EQ( mResult.getElement( 3, 2 ),
+              matrixMultiplicator * m2.getElement( 3, 2 ) + thisMatrixMultiplicator * m.getElement( 3, 2 ) );
+   EXPECT_EQ( mResult.getElement( 3, 3 ),
+              matrixMultiplicator * m2.getElement( 3, 3 ) + thisMatrixMultiplicator * m.getElement( 3, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 4, 0 ), matrixMultiplicator * m2.getElement( 4, 0 ) + thisMatrixMultiplicator * m.getElement( 4, 0 ) );
-   EXPECT_EQ( mResult.getElement( 4, 1 ), matrixMultiplicator * m2.getElement( 4, 1 ) + thisMatrixMultiplicator * m.getElement( 4, 1 ) );
-   EXPECT_EQ( mResult.getElement( 4, 2 ), matrixMultiplicator * m2.getElement( 4, 2 ) + thisMatrixMultiplicator * m.getElement( 4, 2 ) );
-   EXPECT_EQ( mResult.getElement( 4, 3 ), matrixMultiplicator * m2.getElement( 4, 3 ) + thisMatrixMultiplicator * m.getElement( 4, 3 ) );
+   EXPECT_EQ( mResult.getElement( 4, 0 ),
+              matrixMultiplicator * m2.getElement( 4, 0 ) + thisMatrixMultiplicator * m.getElement( 4, 0 ) );
+   EXPECT_EQ( mResult.getElement( 4, 1 ),
+              matrixMultiplicator * m2.getElement( 4, 1 ) + thisMatrixMultiplicator * m.getElement( 4, 1 ) );
+   EXPECT_EQ( mResult.getElement( 4, 2 ),
+              matrixMultiplicator * m2.getElement( 4, 2 ) + thisMatrixMultiplicator * m.getElement( 4, 2 ) );
+   EXPECT_EQ( mResult.getElement( 4, 3 ),
+              matrixMultiplicator * m2.getElement( 4, 3 ) + thisMatrixMultiplicator * m.getElement( 4, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 0, 0 ),  3 );
-   EXPECT_EQ( mResult.getElement( 0, 1 ),  6 );
-   EXPECT_EQ( mResult.getElement( 0, 2 ),  0 );
-   EXPECT_EQ( mResult.getElement( 0, 3 ),  0 );
+   EXPECT_EQ( mResult.getElement( 0, 0 ), 3 );
+   EXPECT_EQ( mResult.getElement( 0, 1 ), 6 );
+   EXPECT_EQ( mResult.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( mResult.getElement( 0, 3 ), 0 );
 
    EXPECT_EQ( mResult.getElement( 1, 0 ), 11 );
    EXPECT_EQ( mResult.getElement( 1, 1 ), 14 );
    EXPECT_EQ( mResult.getElement( 1, 2 ), 17 );
-   EXPECT_EQ( mResult.getElement( 1, 3 ),  0 );
+   EXPECT_EQ( mResult.getElement( 1, 3 ), 0 );
 
-   EXPECT_EQ( mResult.getElement( 2, 0 ),  0 );
+   EXPECT_EQ( mResult.getElement( 2, 0 ), 0 );
    EXPECT_EQ( mResult.getElement( 2, 1 ), 22 );
    EXPECT_EQ( mResult.getElement( 2, 2 ), 25 );
    EXPECT_EQ( mResult.getElement( 2, 3 ), 28 );
 
-   EXPECT_EQ( mResult.getElement( 3, 0 ),  0 );
-   EXPECT_EQ( mResult.getElement( 3, 1 ),  0 );
+   EXPECT_EQ( mResult.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( mResult.getElement( 3, 1 ), 0 );
    EXPECT_EQ( mResult.getElement( 3, 2 ), 33 );
    EXPECT_EQ( mResult.getElement( 3, 3 ), 36 );
 
-   EXPECT_EQ( mResult.getElement( 4, 0 ),  0 );
-   EXPECT_EQ( mResult.getElement( 4, 1 ),  0 );
-   EXPECT_EQ( mResult.getElement( 4, 2 ),  0 );
+   EXPECT_EQ( mResult.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( mResult.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( mResult.getElement( 4, 2 ), 0 );
    EXPECT_EQ( mResult.getElement( 4, 3 ), 42 );
 }
 
 template< typename Matrix >
-void test_GetTransposition()
+void
+test_GetTransposition()
 {
-    using RealType = typename Matrix::RealType;
-    using IndexType = typename Matrix::IndexType;
-    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
-/*
- * Sets up the following 3x2 matrix:
- *
- *    /  1  2 \
- *    |  3  4 |
- *    \  5  6 /
- */
-    const IndexType rows = 3;
-    const IndexType cols = 2;
-    DiagonalOffsetsType diagonalsOffsets( { 0, 1, 2 } );
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
+   /*
+    * Sets up the following 3x2 matrix:
+    *
+    *    /  1  2 \
+    *    |  3  4 |
+    *    \  5  6 /
+    */
+   const IndexType rows = 3;
+   const IndexType cols = 2;
+   DiagonalOffsetsType diagonalsOffsets( { 0, 1, 2 } );
 
-    Matrix m( rows, cols, diagonalsOffsets );
+   Matrix m( rows, cols, diagonalsOffsets );
 
-    RealType value = 1;
-    for( IndexType i = 0; i < rows; i++ )
-        for( IndexType j = 0; j < cols; j++ )
-            m.setElement( i, j, value++ );
+   RealType value = 1;
+   for( IndexType i = 0; i < rows; i++ )
+      for( IndexType j = 0; j < cols; j++ )
+         m.setElement( i, j, value++ );
 
-    m.print( std::cout );
+   m.print( std::cout );
 
-/*
- * Sets up the following 2x3 matrix:
- *
- *    /  0  0  0 \
- *    \  0  0  0 /
- */
-    Matrix mTransposed( cols, rows, diagonalsOffsets );
+   /*
+    * Sets up the following 2x3 matrix:
+    *
+    *    /  0  0  0 \
+    *    \  0  0  0 /
+    */
+   Matrix mTransposed( cols, rows, diagonalsOffsets );
 
-    mTransposed.print( std::cout );
+   mTransposed.print( std::cout );
 
-    RealType matrixMultiplicator = 1;
+   RealType matrixMultiplicator = 1;
 
-    mTransposed.getTransposition( m, matrixMultiplicator );
+   mTransposed.getTransposition( m, matrixMultiplicator );
 
-    mTransposed.print( std::cout );
+   mTransposed.print( std::cout );
 
-/*
- * Should result in the following 2x3 matrix:
- *
- *    /  1  3  5 \
- *    \  2  4  6 /
- */
+   /*
+    * Should result in the following 2x3 matrix:
+    *
+    *    /  1  3  5 \
+    *    \  2  4  6 /
+    */
 
-    EXPECT_EQ( mTransposed.getElement( 0, 0 ), 1 );
-    EXPECT_EQ( mTransposed.getElement( 0, 1 ), 3 );
-    EXPECT_EQ( mTransposed.getElement( 0, 2 ), 5 );
+   EXPECT_EQ( mTransposed.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( mTransposed.getElement( 0, 1 ), 3 );
+   EXPECT_EQ( mTransposed.getElement( 0, 2 ), 5 );
 
-    EXPECT_EQ( mTransposed.getElement( 1, 0 ), 2 );
-    EXPECT_EQ( mTransposed.getElement( 1, 1 ), 4 );
-    EXPECT_EQ( mTransposed.getElement( 1, 2 ), 6 );
+   EXPECT_EQ( mTransposed.getElement( 1, 0 ), 2 );
+   EXPECT_EQ( mTransposed.getElement( 1, 1 ), 4 );
+   EXPECT_EQ( mTransposed.getElement( 1, 2 ), 6 );
 }
 
 template< typename Matrix >
-void test_AssignmentOperator()
+void
+test_AssignmentOperator()
 {
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
@@ -1060,23 +1096,27 @@ void test_AssignmentOperator()
    DiagonalOffsetsType diagonalsOffsets( { -4, -2, 0, 2, 3, 5 } );
    MultidiagonalHost hostMatrix( rows, columns, diagonalsOffsets );
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j <  columns; j++ )
+      for( IndexType j = 0; j < columns; j++ )
          if( TNL::Algorithms::contains( diagonalsOffsets, j - i ) )
-            hostMatrix.setElement( i, j,  i + j );
+            hostMatrix.setElement( i, j, i + j );
 
    Matrix matrix( rows, columns, diagonalsOffsets );
    matrix.getValues() = 0.0;
    matrix = hostMatrix;
    for( IndexType i = 0; i < columns; i++ )
       for( IndexType j = 0; j < rows; j++ )
-            if( TNL::Algorithms::contains( diagonalsOffsets, j - i ) )
-               EXPECT_EQ( matrix.getElement( i, j ), i + j );
-            else
-               EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
+         if( TNL::Algorithms::contains( diagonalsOffsets, j - i ) )
+            EXPECT_EQ( matrix.getElement( i, j ), i + j );
+         else
+            EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
 #ifdef __CUDACC__
-   using MultidiagonalCuda = TNL::Matrices::MultidiagonalMatrix< RealType, TNL::Devices::Cuda, IndexType,
-      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder : TNL::Algorithms::Segments::RowMajorOrder >;
+   using MultidiagonalCuda = TNL::Matrices::MultidiagonalMatrix< RealType,
+                                                                 TNL::Devices::Cuda,
+                                                                 IndexType,
+                                                                 organization == TNL::Algorithms::Segments::RowMajorOrder
+                                                                    ? TNL::Algorithms::Segments::ColumnMajorOrder
+                                                                    : TNL::Algorithms::Segments::RowMajorOrder >;
    MultidiagonalCuda cudaMatrix( rows, columns, diagonalsOffsets );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )
@@ -1086,8 +1126,7 @@ void test_AssignmentOperator()
    matrix.getValues() = 0.0;
    matrix = cudaMatrix;
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < columns; j++ )
-      {
+      for( IndexType j = 0; j < columns; j++ ) {
          if( TNL::Algorithms::contains( diagonalsOffsets, j - i ) )
             EXPECT_EQ( matrix.getElement( i, j ), i + j );
          else
@@ -1096,9 +1135,9 @@ void test_AssignmentOperator()
 #endif
 }
 
-
 template< typename Matrix >
-void test_SaveAndLoad()
+void
+test_SaveAndLoad()
 {
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
@@ -1120,8 +1159,7 @@ void test_SaveAndLoad()
 
    RealType value = 1;
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < cols; j++ )
-      {
+      for( IndexType j = 0; j < cols; j++ ) {
          if( TNL::Algorithms::contains( diagonalsOffsets, j - i ) )
             savedMatrix.setElement( i, j, value );
          value++;
@@ -1153,23 +1191,23 @@ void test_SaveAndLoad()
    EXPECT_EQ( savedMatrix.getElement( 3, 2 ), loadedMatrix.getElement( 3, 2 ) );
    EXPECT_EQ( savedMatrix.getElement( 3, 3 ), loadedMatrix.getElement( 3, 3 ) );
 
-   EXPECT_EQ( savedMatrix.getElement( 0, 0 ),  1 );
-   EXPECT_EQ( savedMatrix.getElement( 0, 1 ),  2 );
-   EXPECT_EQ( savedMatrix.getElement( 0, 2 ),  0 );
-   EXPECT_EQ( savedMatrix.getElement( 0, 3 ),  0 );
+   EXPECT_EQ( savedMatrix.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( savedMatrix.getElement( 0, 1 ), 2 );
+   EXPECT_EQ( savedMatrix.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( savedMatrix.getElement( 0, 3 ), 0 );
 
-   EXPECT_EQ( savedMatrix.getElement( 1, 0 ),  5 );
-   EXPECT_EQ( savedMatrix.getElement( 1, 1 ),  6 );
-   EXPECT_EQ( savedMatrix.getElement( 1, 2 ),  7 );
-   EXPECT_EQ( savedMatrix.getElement( 1, 3 ),  0 );
+   EXPECT_EQ( savedMatrix.getElement( 1, 0 ), 5 );
+   EXPECT_EQ( savedMatrix.getElement( 1, 1 ), 6 );
+   EXPECT_EQ( savedMatrix.getElement( 1, 2 ), 7 );
+   EXPECT_EQ( savedMatrix.getElement( 1, 3 ), 0 );
 
-   EXPECT_EQ( savedMatrix.getElement( 2, 0 ),  0 );
+   EXPECT_EQ( savedMatrix.getElement( 2, 0 ), 0 );
    EXPECT_EQ( savedMatrix.getElement( 2, 1 ), 10 );
    EXPECT_EQ( savedMatrix.getElement( 2, 2 ), 11 );
    EXPECT_EQ( savedMatrix.getElement( 2, 3 ), 12 );
 
-   EXPECT_EQ( savedMatrix.getElement( 3, 0 ),  0 );
-   EXPECT_EQ( savedMatrix.getElement( 3, 1 ),  0 );
+   EXPECT_EQ( savedMatrix.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( savedMatrix.getElement( 3, 1 ), 0 );
    EXPECT_EQ( savedMatrix.getElement( 3, 2 ), 15 );
    EXPECT_EQ( savedMatrix.getElement( 3, 3 ), 16 );
 }
@@ -1183,35 +1221,34 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using MatrixTypes = ::testing::Types
-<
-    TNL::Matrices::MultidiagonalMatrix< int,    TNL::Devices::Host, short >,
-    TNL::Matrices::MultidiagonalMatrix< long,   TNL::Devices::Host, short >,
-    TNL::Matrices::MultidiagonalMatrix< float,  TNL::Devices::Host, short >,
-    TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, short >,
-    TNL::Matrices::MultidiagonalMatrix< int,    TNL::Devices::Host, int >,
-    TNL::Matrices::MultidiagonalMatrix< long,   TNL::Devices::Host, int >,
-    TNL::Matrices::MultidiagonalMatrix< float,  TNL::Devices::Host, int >,
-    TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, int >,
-    TNL::Matrices::MultidiagonalMatrix< int,    TNL::Devices::Host, long >,
-    TNL::Matrices::MultidiagonalMatrix< long,   TNL::Devices::Host, long >,
-    TNL::Matrices::MultidiagonalMatrix< float,  TNL::Devices::Host, long >,
-    TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, long >
+using MatrixTypes = ::testing::Types< TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Host, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Host, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Host, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Host, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Host, long >,
+                                      TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Host, long >,
+                                      TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, long >,
+                                      TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, long >
 #ifdef __CUDACC__
-    ,TNL::Matrices::MultidiagonalMatrix< int,    TNL::Devices::Cuda, short >,
-    TNL::Matrices::MultidiagonalMatrix< long,   TNL::Devices::Cuda, short >,
-    TNL::Matrices::MultidiagonalMatrix< float,  TNL::Devices::Cuda, short >,
-    TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Cuda, short >,
-    TNL::Matrices::MultidiagonalMatrix< int,    TNL::Devices::Cuda, int >,
-    TNL::Matrices::MultidiagonalMatrix< long,   TNL::Devices::Cuda, int >,
-    TNL::Matrices::MultidiagonalMatrix< float,  TNL::Devices::Cuda, int >,
-    TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Cuda, int >,
-    TNL::Matrices::MultidiagonalMatrix< int,    TNL::Devices::Cuda, long >,
-    TNL::Matrices::MultidiagonalMatrix< long,   TNL::Devices::Cuda, long >,
-    TNL::Matrices::MultidiagonalMatrix< float,  TNL::Devices::Cuda, long >,
-    TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Cuda, long >
+                                      ,
+                                      TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Cuda, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Cuda, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Cuda, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Cuda, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Cuda, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Cuda, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Cuda, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Cuda, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Cuda, long >,
+                                      TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Cuda, long >,
+                                      TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Cuda, long >,
+                                      TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Cuda, long >
 #endif
->;
+                                      >;
 
 TYPED_TEST_SUITE( MatrixTest, MatrixTypes );
 
@@ -1222,100 +1259,100 @@ TYPED_TEST( MatrixTest, getSerializationType )
 
 TYPED_TEST( MatrixTest, setDimensionsTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_SetDimensions< MatrixType >();
+   test_SetDimensions< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, setLikeTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_SetLike< MatrixType, MatrixType >();
+   test_SetLike< MatrixType, MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, setElements )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_SetElements< MatrixType >();
+   test_SetElements< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, getCompressedRowLengthTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_GetCompressedRowLengths< MatrixType >();
+   test_GetCompressedRowLengths< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, getAllocatedElementsCountTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_GetAllocatedElementsCount< MatrixType >();
+   test_GetAllocatedElementsCount< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, getNumberOfNonzeroMatrixElementsTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_GetNonzeroElementsCount< MatrixType >();
+   test_GetNonzeroElementsCount< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, resetTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_Reset< MatrixType >();
+   test_Reset< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, setValueTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_SetValue< MatrixType >();
+   test_SetValue< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, setElementTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_SetElement< MatrixType >();
+   test_SetElement< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, addElementTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_AddElement< MatrixType >();
+   test_AddElement< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, setRowTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_SetRow< MatrixType >();
+   test_SetRow< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, addRowTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_AddRow< MatrixType >();
+   test_AddRow< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, forRowsTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_ForRows< MatrixType >();
+   test_ForRows< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, vectorProductTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_VectorProduct< MatrixType >();
+   test_VectorProduct< MatrixType >();
 }
 
 /*TYPED_TEST( MatrixTest, addMatrixTest )
@@ -1327,16 +1364,16 @@ TYPED_TEST( MatrixTest, vectorProductTest )
 
 TYPED_TEST( MatrixTest, assignmentOperatorTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_AssignmentOperator< MatrixType >();
+   test_AssignmentOperator< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, saveAndLoadTest )
 {
-    using MatrixType = typename TestFixture::MatrixType;
+   using MatrixType = typename TestFixture::MatrixType;
 
-    test_SaveAndLoad< MatrixType >();
+   test_SaveAndLoad< MatrixType >();
 }
 
 /*
@@ -1347,21 +1384,26 @@ TEST( MultidiagonalMatrixTest, Multidiagonal_getTranspositionTest_Host )
     EXPECT_TRUE( testRan );
     std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
     std::cout << "If launched on CPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h(836): error: no instance of function template \"TNL::Matrices::MultidiagonalTranspositionAlignedKernel\" matches the argument list\n";
-    std::cout << "              argument types are: (TNL::Matrices::Multidiagonal<int, TNL::Devices::Host, int> *, Multidiagonal_host_int *, const int, int, int)\n";
+    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h(836): error: no instance of function template
+\"TNL::Matrices::MultidiagonalTranspositionAlignedKernel\" matches the argument list\n"; std::cout << "              argument
+types are: (TNL::Matrices::Multidiagonal<int, TNL::Devices::Host, int> *, Multidiagonal_host_int *, const int, int, int)\n";
     std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Multidiagonal<Real, Device, Index>::getTransposition(const Matrix &, const TNL::Matrices::Multidiagonal<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host, Index=int, Matrix=Multidiagonal_host_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(977): here\n";
-    std::cout << "                  instantiation of \"void test_GetTransposition<Matrix>() [with Matrix=Multidiagonal_host_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(1420): here\n\n";
-    std::cout << "AND this message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h(852): error: no instance of function template \"TNL::Matrices::MultidiagonalTranspositionNonAlignedKernel\" matches the argument list\n";
-    std::cout << "              argument types are: (TNL::Matrices::Multidiagonal<int, TNL::Devices::Host, int> *, Multidiagonal_host_int *, const int, int, int)\n";
+    std::cout << "              instantiation of \"void TNL::Matrices::Multidiagonal<Real, Device,
+Index>::getTransposition(const Matrix &, const TNL::Matrices::Multidiagonal<Real, Device, Index>::RealType &) [with Real=int,
+Device=TNL::Devices::Host, Index=int, Matrix=Multidiagonal_host_int, tileDim=32]\"\n"; std::cout << "
+/home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(977): here\n"; std::cout << " instantiation of \"void
+test_GetTransposition<Matrix>() [with Matrix=Multidiagonal_host_int]\"\n"; std::cout << "
+/home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(1420): here\n\n"; std::cout << "AND this message: \n";
+    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h(852): error: no instance of function template
+\"TNL::Matrices::MultidiagonalTranspositionNonAlignedKernel\" matches the argument list\n"; std::cout << "              argument
+types are: (TNL::Matrices::Multidiagonal<int, TNL::Devices::Host, int> *, Multidiagonal_host_int *, const int, int, int)\n";
     std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Multidiagonal<Real, Device, Index>::getTransposition(const Matrix &, const TNL::Matrices::Multidiagonal<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host, Index=int, Matrix=Multidiagonal_host_int, tileDim=32]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(977): here\n";
-    std::cout << "                  instantiation of \"void test_GetTransposition<Matrix>() [with Matrix=Multidiagonal_host_int]\"\n";
-    std::cout << "              /home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(1420): here\n\n";
+    std::cout << "              instantiation of \"void TNL::Matrices::Multidiagonal<Real, Device,
+Index>::getTransposition(const Matrix &, const TNL::Matrices::Multidiagonal<Real, Device, Index>::RealType &) [with Real=int,
+Device=TNL::Devices::Host, Index=int, Matrix=Multidiagonal_host_int, tileDim=32]\"\n"; std::cout << "
+/home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(977): here\n"; std::cout << " instantiation of \"void
+test_GetTransposition<Matrix>() [with Matrix=Multidiagonal_host_int]\"\n"; std::cout << "
+/home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(1420): here\n\n";
 }
 
 #ifdef __CUDACC__
@@ -1390,12 +1432,10 @@ TEST( MultidiagonalMatrixTest, Multidiagonal_getTranspositionTest_Cuda )
     std::cout << "      Diagnostics: Not supported with CUDA.\n";
     std::cout << "  terminate called after throwing an instance of 'TNL::Exceptions::CudaRuntimeError'\n";
     std::cout << "          what():  CUDA ERROR 4 (cudaErrorLaunchFailure): unspecified launch failure.\n";
-    std::cout << "  Source: line 57 in /home/lukas/tnl-dev/src/TNL/Containers/Algorithms/ArrayOperationsCuda_impl.h: unspecified launch failure\n";
-    std::cout << "  [1]    4003 abort (core dumped)  ./MultidiagonalMatrixTest-dbg\n";
+    std::cout << "  Source: line 57 in /home/lukas/tnl-dev/src/TNL/Containers/Algorithms/ArrayOperationsCuda_impl.h: unspecified
+launch failure\n"; std::cout << "  [1]    4003 abort (core dumped)  ./MultidiagonalMatrixTest-dbg\n";
 }
 #endif
  * */
-
-#endif // HAVE_GTEST
 
 #include "../main.h"

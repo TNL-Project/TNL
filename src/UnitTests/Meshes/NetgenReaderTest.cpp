@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Meshes/Readers/NetgenReader.h>
@@ -11,23 +10,36 @@ using namespace TNL::Meshes;
 
 static const char* TEST_FILE_NAME = "test_NetgenReaderTest.ng";
 
-struct MyConfigTag {};
+struct MyConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
-struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >{ static constexpr bool enabled = false; };
+struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >
+{
+   static constexpr bool enabled = false;
+};
 
 // enable meshes used in the tests
 //template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron > { static constexpr bool enabled = true; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron >
+{
+   static constexpr bool enabled = true;
+};
 
-} // namespace TNL::Meshes::BuildConfigTags
+}  // namespace TNL::Meshes::BuildConfigTags
 
 template< typename MeshType >
-void test_NetgenReader( const MeshType& mesh )
+void
+test_NetgenReader( const MeshType& mesh )
 {
    // write the mesh into the file (new scope is needed to properly close the file)
    {
@@ -49,7 +61,8 @@ void test_NetgenReader( const MeshType& mesh )
 // 1. resolveMeshType resolves the mesh type correctly
 // 2. resolveAndLoadMesh loads the mesh
 template< typename ConfigTag, typename MeshType >
-void test_resolveAndLoadMesh( const MeshType& mesh )
+void
+test_resolveAndLoadMesh( const MeshType& mesh )
 {
    // write the mesh into the file (new scope is needed to properly close the file)
    {
@@ -58,16 +71,16 @@ void test_resolveAndLoadMesh( const MeshType& mesh )
       writer.writeMesh( mesh, file );
    }
 
-   auto wrapper = [&] ( Readers::MeshReader& reader, auto&& mesh2 )
+   auto wrapper = [ & ]( Readers::MeshReader& reader, auto&& mesh2 )
    {
-      using MeshType2 = std::decay_t< decltype(mesh2) >;
+      using MeshType2 = std::decay_t< decltype( mesh2 ) >;
 
       // static_assert does not work, the wrapper is actually instantiated for all resolved types
-//      static_assert( std::is_same< MeshType2, MeshType >::value, "mesh type was not resolved as expected" );
+      //      static_assert( std::is_same< MeshType2, MeshType >::value, "mesh type was not resolved as expected" );
       EXPECT_EQ( std::string( TNL::getType< MeshType2 >() ), std::string( TNL::getType< MeshType >() ) );
 
       // operator== does not work for instantiations of the wrapper with MeshType2 != MeshType
-//      EXPECT_EQ( mesh2, mesh );
+      //      EXPECT_EQ( mesh2, mesh );
       std::stringstream str1, str2;
       str1 << mesh;
       str2 << mesh2;
@@ -113,6 +126,5 @@ TEST( NetgenReaderTest, tetrahedrons )
    test_NetgenReader( mesh );
    test_resolveAndLoadMesh< MyConfigTag >( mesh );
 }
-#endif
 
 #include "../main.h"

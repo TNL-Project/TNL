@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
 #include <TNL/Algorithms/equal.h>
@@ -78,18 +77,16 @@ TYPED_TEST( EqualTest, equal_cuda )
    fill< Devices::Cuda >( deviceData, (ValueType) 8, ARRAY_TEST_SIZE );
    fill< Devices::Cuda >( deviceData2, (ValueType) 9, ARRAY_TEST_SIZE );
 
-   EXPECT_FALSE(( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ));
-   EXPECT_FALSE(( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ));
-   EXPECT_FALSE(( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ));
-
+   EXPECT_FALSE( ( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ) );
+   EXPECT_FALSE( ( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ) );
+   EXPECT_FALSE( ( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ) );
 
    fill< Devices::Cuda >( deviceData, (ValueType) 7, ARRAY_TEST_SIZE );
    fill< Devices::Cuda >( deviceData2, (ValueType) 7, ARRAY_TEST_SIZE );
 
-   EXPECT_TRUE(( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ));
-   EXPECT_TRUE(( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ));
-   EXPECT_TRUE(( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ));
-
+   EXPECT_TRUE( ( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ) );
+   EXPECT_TRUE( ( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ) );
+   EXPECT_TRUE( ( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ) );
 
    hostAllocator.deallocate( hostData, ARRAY_TEST_SIZE );
    cudaAllocator.deallocate( deviceData, ARRAY_TEST_SIZE );
@@ -113,24 +110,21 @@ TYPED_TEST( EqualTest, equalWithConversions_cuda )
    fill< Devices::Cuda >( deviceData, (float) 8, ARRAY_TEST_SIZE );
    fill< Devices::Cuda >( deviceData2, (double) 9, ARRAY_TEST_SIZE );
 
-   EXPECT_FALSE(( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ));
-   EXPECT_FALSE(( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ));
-   EXPECT_FALSE(( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ));
+   EXPECT_FALSE( ( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ) );
+   EXPECT_FALSE( ( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ) );
+   EXPECT_FALSE( ( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ) );
 
    fill< Devices::Cuda >( deviceData, (float) 7, ARRAY_TEST_SIZE );
    fill< Devices::Cuda >( deviceData2, (double) 7, ARRAY_TEST_SIZE );
 
-   EXPECT_TRUE(( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ));
-   EXPECT_TRUE(( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ));
-   EXPECT_TRUE(( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ));
-
+   EXPECT_TRUE( ( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ) );
+   EXPECT_TRUE( ( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ) );
+   EXPECT_TRUE( ( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ) );
 
    hostAllocator.deallocate( hostData, ARRAY_TEST_SIZE );
    cudaAllocator1.deallocate( deviceData, ARRAY_TEST_SIZE );
    cudaAllocator2.deallocate( deviceData2, ARRAY_TEST_SIZE );
 }
-#endif // __CUDACC__
-#endif // HAVE_GTEST
-
+#endif  // __CUDACC__
 
 #include "../main.h"

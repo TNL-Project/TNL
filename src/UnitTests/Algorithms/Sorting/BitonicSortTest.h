@@ -1,3 +1,5 @@
+#include <gtest/gtest.h>
+
 #include <vector>
 #include <algorithm>
 #include <numeric>
@@ -8,236 +10,288 @@
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
 #include <TNL/Algorithms/sort.h>
 
-#if defined HAVE_GTEST && defined __CUDACC__
-#include <gtest/gtest.h>
-
-
+#if defined __CUDACC__
 using namespace TNL;
 using namespace TNL::Algorithms;
 using namespace TNL::Algorithms::Sorting;
 
-TEST(permutations, allPermutationSize_2_to_7)
+TEST( permutations, allPermutationSize_2_to_7 )
 {
-    for(int i = 2; i<=7; i++ )
-    {
-        int size = i;
-        std::vector<int> orig(size);
-        std::iota(orig.begin(), orig.end(), 0);
+   for( int i = 2; i <= 7; i++ ) {
+      int size = i;
+      std::vector< int > orig( size );
+      std::iota( orig.begin(), orig.end(), 0 );
 
-        do
-        {
-            TNL::Containers::Array<int, TNL::Devices::Cuda> cudaArr(orig);
-            auto view = cudaArr.getView();
+      do {
+         TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( orig );
+         auto view = cudaArr.getView();
 
-            BitonicSort::sort(view);
+         BitonicSort::sort( view );
 
-            EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed " << i << std::endl;
-        }
-        while (std::next_permutation(orig.begin(), orig.end()));
-    }
+         EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed " << i << std::endl;
+      } while( std::next_permutation( orig.begin(), orig.end() ) );
+   }
 }
 
-TEST(permutations, allPermutationSize_8)
+TEST( permutations, allPermutationSize_8 )
 {
-    int size = 9;
-    const int stride = 151;
-    int i = 0;
+   int size = 9;
+   const int stride = 151;
+   int i = 0;
 
-    std::vector<int> orig(size);
-    std::iota(orig.begin(), orig.end(), 0);
+   std::vector< int > orig( size );
+   std::iota( orig.begin(), orig.end(), 0 );
 
-    do
-    {
-        if ((i++) % stride != 0)
-            continue;
+   do {
+      if( ( i++ ) % stride != 0 )
+         continue;
 
-        TNL::Containers::Array<int, TNL::Devices::Cuda> cudaArr(orig);
-        auto view = cudaArr.getView();
+      TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( orig );
+      auto view = cudaArr.getView();
 
-        BitonicSort::sort(view);
+      BitonicSort::sort( view );
 
-        EXPECT_TRUE(Algorithms::isAscending(view)) << "result " << view << std::endl;
-    }
-    while (std::next_permutation(orig.begin(), orig.end()));
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   } while( std::next_permutation( orig.begin(), orig.end() ) );
 }
 
-TEST(permutations, somePermutationSize9)
+TEST( permutations, somePermutationSize9 )
 {
-    int size = 9;
-    const int stride = 227;
-    int i = 0;
+   int size = 9;
+   const int stride = 227;
+   int i = 0;
 
-    std::vector<int> orig(size);
-    std::iota(orig.begin(), orig.end(), 0);
+   std::vector< int > orig( size );
+   std::iota( orig.begin(), orig.end(), 0 );
 
-    do
-    {
-        if ((i++) % stride != 0)
-            continue;
+   do {
+      if( ( i++ ) % stride != 0 )
+         continue;
 
-        TNL::Containers::Array<int, TNL::Devices::Cuda> cudaArr(orig);
-        auto view = cudaArr.getView();
+      TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( orig );
+      auto view = cudaArr.getView();
 
-        BitonicSort::sort(view);
+      BitonicSort::sort( view );
 
-        EXPECT_TRUE(Algorithms::isAscending(view)) << "result " << view << std::endl;
-    }
-    while (std::next_permutation(orig.begin(), orig.end()));
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   } while( std::next_permutation( orig.begin(), orig.end() ) );
 }
 
-TEST(selectedSize, size15)
+TEST( selectedSize, size15 )
 {
-    TNL::Containers::Array<int, TNL::Devices::Cuda> cudaArr{5, 9, 4, 8, 6, 1, 2, 3, 4, 8, 1, 6, 9, 4, 9};
-    auto view = cudaArr.getView();
-    EXPECT_EQ(15, view.getSize()) << "size not 15" << std::endl;
-    BitonicSort::sort(view);
-    EXPECT_TRUE(Algorithms::isAscending(view)) << "result " << view << std::endl;
+   TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr{ 5, 9, 4, 8, 6, 1, 2, 3, 4, 8, 1, 6, 9, 4, 9 };
+   auto view = cudaArr.getView();
+   EXPECT_EQ( 15, view.getSize() ) << "size not 15" << std::endl;
+   BitonicSort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
 }
 
-TEST(multiblock, 32768_decreasingNegative)
+TEST( multiblock, 32768_decreasingNegative )
 {
-    std::vector<int> arr(1<<15);
-    for (size_t i = 0; i < arr.size(); i++)
-        arr[i] = -i;
+   std::vector< int > arr( 1 << 15 );
+   for( size_t i = 0; i < arr.size(); i++ )
+      arr[ i ] = -i;
 
-    TNL::Containers::Array<int, TNL::Devices::Cuda> cudaArr(arr);
-    auto view = cudaArr.getView();
+   TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( arr );
+   auto view = cudaArr.getView();
 
-    BitonicSort::sort(view);
-    EXPECT_TRUE(Algorithms::isAscending(view)) << "result " << view << std::endl;
+   BitonicSort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
 }
 
-TEST(randomGenerated, smallArray_randomVal)
+TEST( randomGenerated, smallArray_randomVal )
 {
-    std::srand(2006);
-    for(int i = 0; i < 100; i++)
-    {
-        std::vector<int> arr(std::rand()%(1<<10));
-        for(auto & x : arr)
-            x = std::rand();
+   std::srand( 2006 );
+   for( int i = 0; i < 100; i++ ) {
+      std::vector< int > arr( std::rand() % ( 1 << 10 ) );
+      for( auto& x : arr )
+         x = std::rand();
 
-        TNL::Containers::Array<int, TNL::Devices::Cuda> cudaArr(arr);
+      TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( arr );
 
-        auto view = cudaArr.getView();
-        BitonicSort::sort(view);
-        EXPECT_TRUE(Algorithms::isAscending(view));
-    }
+      auto view = cudaArr.getView();
+      BitonicSort::sort( view );
+      EXPECT_TRUE( Algorithms::isAscending( view ) );
+   }
 }
 
-TEST(randomGenerated, bigArray_all0)
+TEST( randomGenerated, bigArray_all0 )
 {
-    std::srand(304);
-    for(int i = 0; i < 50; i++)
-    {
-        int size = (1<<20) + (std::rand()% (1<<19));
+   std::srand( 304 );
+   for( int i = 0; i < 50; i++ ) {
+      int size = ( 1 << 20 ) + ( std::rand() % ( 1 << 19 ) );
 
-        TNL::Containers::Array<int, TNL::Devices::Cuda> cudaArr(size);
+      TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( size );
 
-        auto view = cudaArr.getView();
-        BitonicSort::sort(view);
-        EXPECT_TRUE(Algorithms::isAscending(view));
-    }
+      auto view = cudaArr.getView();
+      BitonicSort::sort( view );
+      EXPECT_TRUE( Algorithms::isAscending( view ) );
+   }
 }
 
-TEST(nonIntegerType, float_notPow2)
+TEST( nonIntegerType, float_notPow2 )
 {
-    TNL::Containers::Array<float, TNL::Devices::Cuda> cudaArr{5.0, 9.4, 4.6, 8.9, 6.2, 1.15184, 2.23};
-    auto view = cudaArr.getView();
-    BitonicSort::sort(view);
-    EXPECT_TRUE(Algorithms::isAscending(view)) << "result " << view << std::endl;
+   TNL::Containers::Array< float, TNL::Devices::Cuda > cudaArr{ 5.0, 9.4, 4.6, 8.9, 6.2, 1.15184, 2.23 };
+   auto view = cudaArr.getView();
+   BitonicSort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
 }
 
-TEST(nonIntegerType, double_notPow2)
+TEST( nonIntegerType, double_notPow2 )
 {
-    TNL::Containers::Array<double, TNL::Devices::Cuda> cudaArr{5.0, 9.4, 4.6, 8.9, 6.2, 1.15184, 2.23};
-    auto view = cudaArr.getView();
-    BitonicSort::sort(view);
-    EXPECT_TRUE(Algorithms::isAscending(view)) << "result " << view << std::endl;
+   TNL::Containers::Array< double, TNL::Devices::Cuda > cudaArr{ 5.0, 9.4, 4.6, 8.9, 6.2, 1.15184, 2.23 };
+   auto view = cudaArr.getView();
+   BitonicSort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
 }
 
-
-struct TMPSTRUCT{
-    uint8_t m_data[6];
-    __cuda_callable__ TMPSTRUCT(){m_data[0] = 0;}
-    __cuda_callable__ TMPSTRUCT(int first){m_data[0] = first;};
-    __cuda_callable__ bool operator <(const TMPSTRUCT& other) const { return m_data[0] < other.m_data[0];}
-    __cuda_callable__ TMPSTRUCT& operator =(const TMPSTRUCT& other) {m_data[0] = other.m_data[0]; return *this;}
-
+struct TMPSTRUCT
+{
+   uint8_t m_data[ 6 ];
+   __cuda_callable__
+   TMPSTRUCT()
+   {
+      m_data[ 0 ] = 0;
+   }
+   __cuda_callable__
+   TMPSTRUCT( int first )
+   {
+      m_data[ 0 ] = first;
+   };
+   __cuda_callable__
+   bool
+   operator<( const TMPSTRUCT& other ) const
+   {
+      return m_data[ 0 ] < other.m_data[ 0 ];
+   }
+   __cuda_callable__
+   TMPSTRUCT&
+   operator=( const TMPSTRUCT& other )
+   {
+      m_data[ 0 ] = other.m_data[ 0 ];
+      return *this;
+   }
 };
 
-TEST(nonIntegerType, struct)
+TEST( nonIntegerType, struct )
 {
-    TNL::Containers::Array<TMPSTRUCT, TNL::Devices::Cuda> cudaArr{TMPSTRUCT(5), TMPSTRUCT(6), TMPSTRUCT(9), TMPSTRUCT(1)};
-    auto view = cudaArr.getView();
-    BitonicSort::sort(view);
-    EXPECT_TRUE(Algorithms::isAscending(view));
+   TNL::Containers::Array< TMPSTRUCT, TNL::Devices::Cuda > cudaArr{
+      TMPSTRUCT( 5 ), TMPSTRUCT( 6 ), TMPSTRUCT( 9 ), TMPSTRUCT( 1 )
+   };
+   auto view = cudaArr.getView();
+   BitonicSort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) );
 }
 
-struct TMPSTRUCT_64b{
-    uint8_t m_data[64];
-    __cuda_callable__ TMPSTRUCT_64b(){m_data[0] = 0;}
-    __cuda_callable__ TMPSTRUCT_64b(int first){m_data[0] = first;};
-    __cuda_callable__ bool operator <(const TMPSTRUCT_64b& other) const { return m_data[0] < other.m_data[0];}
-    __cuda_callable__ TMPSTRUCT_64b& operator =(const TMPSTRUCT_64b& other) {m_data[0] = other.m_data[0]; return *this;}
+struct TMPSTRUCT_64b
+{
+   uint8_t m_data[ 64 ];
+   __cuda_callable__
+   TMPSTRUCT_64b()
+   {
+      m_data[ 0 ] = 0;
+   }
+   __cuda_callable__
+   TMPSTRUCT_64b( int first )
+   {
+      m_data[ 0 ] = first;
+   };
+   __cuda_callable__
+   bool
+   operator<( const TMPSTRUCT_64b& other ) const
+   {
+      return m_data[ 0 ] < other.m_data[ 0 ];
+   }
+   __cuda_callable__
+   TMPSTRUCT_64b&
+   operator=( const TMPSTRUCT_64b& other )
+   {
+      m_data[ 0 ] = other.m_data[ 0 ];
+      return *this;
+   }
 };
 
-TEST(nonIntegerType, struct_64b)
+TEST( nonIntegerType, struct_64b )
 {
-    std::srand(61513);
-    int size = std::rand() % (1<<15);
-    std::vector<TMPSTRUCT_64b> vec(size);
-    for(auto & x : vec)
-        x = TMPSTRUCT_64b(std::rand());
+   std::srand( 61513 );
+   int size = std::rand() % ( 1 << 15 );
+   std::vector< TMPSTRUCT_64b > vec( size );
+   for( auto& x : vec )
+      x = TMPSTRUCT_64b( std::rand() );
 
-    TNL::Containers::Array<TMPSTRUCT_64b, TNL::Devices::Cuda> cudaArr(vec);
-    auto view = cudaArr.getView();
-    BitonicSort::sort(view);
-    EXPECT_TRUE(Algorithms::isAscending(view));
+   TNL::Containers::Array< TMPSTRUCT_64b, TNL::Devices::Cuda > cudaArr( vec );
+   auto view = cudaArr.getView();
+   BitonicSort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) );
 }
 
-struct TMPSTRUCT_128b{
-    uint8_t m_data[128];
-    __cuda_callable__ TMPSTRUCT_128b(){m_data[0] = 0;}
-    __cuda_callable__ TMPSTRUCT_128b(int first){m_data[0] = first;};
-    __cuda_callable__ bool operator <(const TMPSTRUCT_128b& other) const { return m_data[0] < other.m_data[0];}
-    __cuda_callable__ TMPSTRUCT_128b& operator =(const TMPSTRUCT_128b& other) {m_data[0] = other.m_data[0]; return *this;}
+struct TMPSTRUCT_128b
+{
+   uint8_t m_data[ 128 ];
+   __cuda_callable__
+   TMPSTRUCT_128b()
+   {
+      m_data[ 0 ] = 0;
+   }
+   __cuda_callable__
+   TMPSTRUCT_128b( int first )
+   {
+      m_data[ 0 ] = first;
+   };
+   __cuda_callable__
+   bool
+   operator<( const TMPSTRUCT_128b& other ) const
+   {
+      return m_data[ 0 ] < other.m_data[ 0 ];
+   }
+   __cuda_callable__
+   TMPSTRUCT_128b&
+   operator=( const TMPSTRUCT_128b& other )
+   {
+      m_data[ 0 ] = other.m_data[ 0 ];
+      return *this;
+   }
 };
 
-TEST(nonIntegerType, struct_128b)
+TEST( nonIntegerType, struct_128b )
 {
-    std::srand(98451);
-    int size = std::rand() % (1<<14);
-    std::vector<TMPSTRUCT_128b> vec(size);
-    for(auto & x : vec)
-        x = TMPSTRUCT_128b(std::rand());
+   std::srand( 98451 );
+   int size = std::rand() % ( 1 << 14 );
+   std::vector< TMPSTRUCT_128b > vec( size );
+   for( auto& x : vec )
+      x = TMPSTRUCT_128b( std::rand() );
 
-    TNL::Containers::Array<TMPSTRUCT_128b, TNL::Devices::Cuda> cudaArr(vec);
-    auto view = cudaArr.getView();
-    BitonicSort::sort(view);
-    EXPECT_TRUE(Algorithms::isAscending(view));
+   TNL::Containers::Array< TMPSTRUCT_128b, TNL::Devices::Cuda > cudaArr( vec );
+   auto view = cudaArr.getView();
+   BitonicSort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) );
 }
 
 //error bypassing
 //https://gitlab.com/tnl-project/tnl/blob/fbc34f6a97c13ec865ef7969b9704533222ed408/src/UnitTests/Containers/VectorTest-8.h
-void descendingSort(TNL::Containers::ArrayView<int, TNL::Devices::Cuda> view)
+void
+descendingSort( TNL::Containers::ArrayView< int, TNL::Devices::Cuda > view )
 {
-    auto cmpDescending = [] __cuda_callable__ (int a, int b) {return a > b;};
-    bitonicSort(view, cmpDescending);
+   auto cmpDescending = [] __cuda_callable__( int a, int b )
+   {
+      return a > b;
+   };
+   bitonicSort( view, cmpDescending );
 }
 
-TEST(sortWithFunction, descending)
+TEST( sortWithFunction, descending )
 {
-    TNL::Containers::Array<int, TNL::Devices::Cuda> cudaArr{6, 9, 4, 2, 3};
-    auto view = cudaArr.getView();
-    descendingSort(view);
+   TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr{ 6, 9, 4, 2, 3 };
+   auto view = cudaArr.getView();
+   descendingSort( view );
 
-    EXPECT_FALSE(Algorithms::isAscending(view)) << "result " << view << std::endl;
+   EXPECT_FALSE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
 
-    EXPECT_TRUE(view.getElement(0) == 9);
-    EXPECT_TRUE(view.getElement(1) == 6);
-    EXPECT_TRUE(view.getElement(2) == 4);
-    EXPECT_TRUE(view.getElement(3) == 3);
-    EXPECT_TRUE(view.getElement(4) == 2);
+   EXPECT_TRUE( view.getElement( 0 ) == 9 );
+   EXPECT_TRUE( view.getElement( 1 ) == 6 );
+   EXPECT_TRUE( view.getElement( 2 ) == 4 );
+   EXPECT_TRUE( view.getElement( 3 ) == 3 );
+   EXPECT_TRUE( view.getElement( 4 ) == 2 );
 }
 
 /*TEST(sortHostArray, hostArray)
@@ -310,76 +364,85 @@ TEST(sortRange, middleMultiBlock)
     EXPECT_TRUE(arr.back() == -1);
 }*/
 
-template<typename TYPE>
-void fetchAndSwapSorter(TNL::Containers::ArrayView<TYPE, TNL::Devices::Cuda> view)
+template< typename TYPE >
+void
+fetchAndSwapSorter( TNL::Containers::ArrayView< TYPE, TNL::Devices::Cuda > view )
 {
-    //auto Fetch = [=]__cuda_callable__(int i){return view[i];};
-    auto Cmp = [=]__cuda_callable__(const int i, const int j ){return view[ i ]  < view[ j ];};
-    auto Swap = [=] __cuda_callable__ (int i, int j) mutable {TNL::swap(view[i], view[j]);};
-    bitonicSort(0, view.getSize(), Cmp, Swap);
+   //auto Fetch = [=]__cuda_callable__(int i){return view[i];};
+   auto Cmp = [ = ] __cuda_callable__( const int i, const int j )
+   {
+      return view[ i ] < view[ j ];
+   };
+   auto Swap = [ = ] __cuda_callable__( int i, int j ) mutable
+   {
+      TNL::swap( view[ i ], view[ j ] );
+   };
+   bitonicSort( 0, view.getSize(), Cmp, Swap );
 }
 
-TEST(fetchAndSwap, oneBlockSort)
+TEST( fetchAndSwap, oneBlockSort )
 {
-    int size = 9;
-    const int stride = 227;
-    int i = 0;
+   int size = 9;
+   const int stride = 227;
+   int i = 0;
 
-    std::vector<int> orig(size);
-    std::iota(orig.begin(), orig.end(), 0);
+   std::vector< int > orig( size );
+   std::iota( orig.begin(), orig.end(), 0 );
 
-    do
-    {
-        if ((i++) % stride != 0)
-            continue;
+   do {
+      if( ( i++ ) % stride != 0 )
+         continue;
 
-        TNL::Containers::Array<int, TNL::Devices::Cuda> cudaArr(orig);
-        auto view = cudaArr.getView();
-        fetchAndSwapSorter(view);
-        EXPECT_TRUE(Algorithms::isAscending(view)) << "result " << view << std::endl;
-    }
-    while (std::next_permutation(orig.begin(), orig.end()));
+      TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( orig );
+      auto view = cudaArr.getView();
+      fetchAndSwapSorter( view );
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   } while( std::next_permutation( orig.begin(), orig.end() ) );
 }
 
-TEST(fetchAndSwap, typeDouble)
+TEST( fetchAndSwap, typeDouble )
 {
-    int size = 5;
-    std::vector<double> orig(size);
-    std::iota(orig.begin(), orig.end(), 0);
+   int size = 5;
+   std::vector< double > orig( size );
+   std::iota( orig.begin(), orig.end(), 0 );
 
-    do
-    {
-        TNL::Containers::Array<double, TNL::Devices::Cuda> cudaArr(orig);
-        auto view = cudaArr.getView();
-        fetchAndSwapSorter(view);
-        EXPECT_TRUE(Algorithms::isAscending(view)) << "result " << view << std::endl;
-    }
-    while (std::next_permutation(orig.begin(), orig.end()));
+   do {
+      TNL::Containers::Array< double, TNL::Devices::Cuda > cudaArr( orig );
+      auto view = cudaArr.getView();
+      fetchAndSwapSorter( view );
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   } while( std::next_permutation( orig.begin(), orig.end() ) );
 }
 
-void fetchAndSwap_sortMiddle(TNL::Containers::ArrayView<int, TNL::Devices::Cuda> view, int from, int to)
+void
+fetchAndSwap_sortMiddle( TNL::Containers::ArrayView< int, TNL::Devices::Cuda > view, int from, int to )
 {
-    //auto Fetch = [=]__cuda_callable__(int i){return view[i];};
-    auto Cmp = [=]__cuda_callable__(const int i, const int j ){ return view[ i ] < view[ j ]; };
-    auto Swap = [=] __cuda_callable__ (int i, int j) mutable { TNL::swap(view[i], view[j]); };
-    bitonicSort(from, to, Cmp, Swap);
+   //auto Fetch = [=]__cuda_callable__(int i){return view[i];};
+   auto Cmp = [ = ] __cuda_callable__( const int i, const int j )
+   {
+      return view[ i ] < view[ j ];
+   };
+   auto Swap = [ = ] __cuda_callable__( int i, int j ) mutable
+   {
+      TNL::swap( view[ i ], view[ j ] );
+   };
+   bitonicSort( from, to, Cmp, Swap );
 }
 
-TEST(fetchAndSwap, sortMiddle)
+TEST( fetchAndSwap, sortMiddle )
 {
-    std::vector<int> orig{5, 9, 4, 54, 21, 6, 7, 9, 0, 9, 42, 4};
-    TNL::Containers::Array<int, TNL::Devices::Cuda> cudaArr(orig);
-    auto view = cudaArr.getView();
-    size_t from = 3, to = 8;
+   std::vector< int > orig{ 5, 9, 4, 54, 21, 6, 7, 9, 0, 9, 42, 4 };
+   TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( orig );
+   auto view = cudaArr.getView();
+   size_t from = 3, to = 8;
 
-    fetchAndSwap_sortMiddle(view, from, to);
-    EXPECT_TRUE(Algorithms::isAscending(view.getView(3, 8))) << "result " << view << std::endl;
+   fetchAndSwap_sortMiddle( view, from, to );
+   EXPECT_TRUE( Algorithms::isAscending( view.getView( 3, 8 ) ) ) << "result " << view << std::endl;
 
-    for(size_t i = 0; i < orig.size(); i++)
-    {
-        if(i < from || i >= to)
-            EXPECT_TRUE(view.getElement(i) == orig[i]);
-    }
+   for( size_t i = 0; i < orig.size(); i++ ) {
+      if( i < from || i >= to )
+         EXPECT_TRUE( view.getElement( i ) == orig[ i ] );
+   }
 }
 
 #endif

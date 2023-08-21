@@ -126,8 +126,8 @@ if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
       # build gtest libs
       include( BuildGtest )
    endif()
-   set( CXX_TESTS_FLAGS -DHAVE_GTEST )
-   set( CUDA_TESTS_FLAGS -DHAVE_GTEST )
+   set( CXX_TESTS_FLAGS )
+   set( CUDA_TESTS_FLAGS )
    set( TESTS_LIBRARIES ${GTEST_LIBRARIES} )
    set( TESTS_LINKER_FLAGS "" )
 
