@@ -1,17 +1,12 @@
-#include <TNL/Arithmetics/Complex.h>
+#include <gtest/gtest.h>
 
 #include <complex>
 
 #include <TNL/Math.h>
-
-#ifdef HAVE_GTEST
-#include <gtest/gtest.h>
-#endif
+#include <TNL/Arithmetics/Complex.h>
 
 using namespace TNL;
 using namespace TNL::Arithmetics;
-
-#ifdef HAVE_GTEST
 
 // test fixture for typed tests
 template< typename Value >
@@ -36,8 +31,8 @@ TYPED_TEST( ComplexTest, constructor )
 
    ComplexType c;
 
-   EXPECT_EQ( c.real(), ( RealType ) 0.0 );
-   EXPECT_EQ( c.imag(), ( RealType ) 0.0 );
+   EXPECT_EQ( c.real(), (RealType) 0.0 );
+   EXPECT_EQ( c.imag(), (RealType) 0.0 );
 }
 
 TYPED_TEST( ComplexTest, constructorWithRealValue )
@@ -45,10 +40,10 @@ TYPED_TEST( ComplexTest, constructorWithRealValue )
    using ComplexType = typename TestFixture::ComplexType;
    using RealType = typename ComplexType::ValueType;
 
-   ComplexType c{ ( RealType ) 1.0 };
+   ComplexType c{ (RealType) 1.0 };
 
-   EXPECT_EQ( c.real(), ( RealType ) 1.0 );
-   EXPECT_EQ( c.imag(), ( RealType ) 0.0 );
+   EXPECT_EQ( c.real(), (RealType) 1.0 );
+   EXPECT_EQ( c.imag(), (RealType) 0.0 );
 }
 
 TYPED_TEST( ComplexTest, constructorWithBothValues )
@@ -56,10 +51,10 @@ TYPED_TEST( ComplexTest, constructorWithBothValues )
    using ComplexType = typename TestFixture::ComplexType;
    using RealType = typename ComplexType::ValueType;
 
-   ComplexType c{ ( RealType ) 1.0, ( RealType ) 2.0 };
+   ComplexType c{ (RealType) 1.0, (RealType) 2.0 };
 
-   EXPECT_EQ( c.real(), ( RealType ) 1.0 );
-   EXPECT_EQ( c.imag(), ( RealType ) 2.0 );
+   EXPECT_EQ( c.real(), (RealType) 1.0 );
+   EXPECT_EQ( c.imag(), (RealType) 2.0 );
 }
 
 TYPED_TEST( ComplexTest, copyConstructors )
@@ -69,14 +64,14 @@ TYPED_TEST( ComplexTest, copyConstructors )
 
    ComplexType u{ 1.0, 2.0 }, c{ u };
 
-   EXPECT_EQ( c.real(), ( RealType ) 1.0 );
-   EXPECT_EQ( c.imag(), ( RealType ) 2.0 );
+   EXPECT_EQ( c.real(), (RealType) 1.0 );
+   EXPECT_EQ( c.imag(), (RealType) 2.0 );
 
    Complex< int > iu( 1, 2 );
    ComplexType ci{ iu };
 
-   EXPECT_EQ( ci.real(), ( RealType ) 1.0 );
-   EXPECT_EQ( ci.imag(), ( RealType ) 2.0 );
+   EXPECT_EQ( ci.real(), (RealType) 1.0 );
+   EXPECT_EQ( ci.imag(), (RealType) 2.0 );
 }
 
 TYPED_TEST( ComplexTest, constructorsFromSTLComplex )
@@ -102,15 +97,15 @@ TYPED_TEST( ComplexTest, assignmentWithReal )
    using ComplexType = typename TestFixture::ComplexType;
    using RealType = typename ComplexType::ValueType;
 
-   ComplexType c1 = ( RealType ) 1.0;
+   ComplexType c1 = (RealType) 1.0;
 
-   EXPECT_EQ( c1.real(), ( RealType ) 1.0 );
-   EXPECT_EQ( c1.imag(), ( RealType ) 0.0 );
+   EXPECT_EQ( c1.real(), (RealType) 1.0 );
+   EXPECT_EQ( c1.imag(), (RealType) 0.0 );
 
    ComplexType c2 = 1;
 
-   EXPECT_EQ( c2.real(), ( RealType ) 1.0 );
-   EXPECT_EQ( c2.imag(), ( RealType ) 0.0 );
+   EXPECT_EQ( c2.real(), (RealType) 1.0 );
+   EXPECT_EQ( c2.imag(), (RealType) 0.0 );
 }
 
 TYPED_TEST( ComplexTest, assignmentWithComplex )
@@ -121,16 +116,16 @@ TYPED_TEST( ComplexTest, assignmentWithComplex )
    ComplexType c1( 1.0, 2.0 ), c2;
    c2 = c1;
 
-   EXPECT_EQ( c2.real(), ( RealType ) 1.0 );
-   EXPECT_EQ( c2.imag(), ( RealType ) 2.0 );
+   EXPECT_EQ( c2.real(), (RealType) 1.0 );
+   EXPECT_EQ( c2.imag(), (RealType) 2.0 );
 
    Complex< int > ic1;
    ic1.real() = 1;
    ic1.imag() = 2;
    Complex ic2 = ic1;
 
-   EXPECT_EQ( ic2.real(), ( RealType ) 1.0 );
-   EXPECT_EQ( ic2.imag(), ( RealType ) 2.0 );
+   EXPECT_EQ( ic2.real(), (RealType) 1.0 );
+   EXPECT_EQ( ic2.imag(), (RealType) 2.0 );
 }
 
 TYPED_TEST( ComplexTest, assignmentWithSTLComplex )
@@ -162,14 +157,13 @@ TYPED_TEST( ComplexTest, addAssignmentOperatorWithReal )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), 0.0 );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), 0.0 );
          ci += cj.real();
          std_ci += std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -184,14 +178,13 @@ TYPED_TEST( ComplexTest, addAssignmentOperatorWithComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci += cj;
          std_ci += std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -206,14 +199,13 @@ TYPED_TEST( ComplexTest, addAssignmentOperatorWithSTLComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci += std_cj;
          std_ci += std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -230,14 +222,13 @@ TYPED_TEST( ComplexTest, subtractAssignmentOperatorWithReal )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), 0.0 );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), 0.0 );
          ci -= cj.real();
          std_ci -= std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -252,14 +243,13 @@ TYPED_TEST( ComplexTest, subtractAssignmentOperatorWithComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci -= cj;
          std_ci -= std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -274,14 +264,13 @@ TYPED_TEST( ComplexTest, subtractAssignmentOperatorWithSTLComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci -= std_cj;
          std_ci -= std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -298,14 +287,13 @@ TYPED_TEST( ComplexTest, multiplyAssignmentOperatorWithReal )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), 0.0 );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), 0.0 );
          ci *= cj.real();
          std_ci *= std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -320,14 +308,13 @@ TYPED_TEST( ComplexTest, multiplyAssignmentOperatorWithComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci *= cj;
          std_ci *= std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
@@ -342,14 +329,13 @@ TYPED_TEST( ComplexTest, multiplyAssignmentOperatorWithSTLComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci *= std_cj;
          std_ci *= std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
@@ -366,14 +352,13 @@ TYPED_TEST( ComplexTest, divideAssignmentOperatorWithReal )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), 0.0 );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), 0.0 );
          ci /= cj.real();
          std_ci /= std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
@@ -388,14 +373,13 @@ TYPED_TEST( ComplexTest, divideAssignmentOperatorWithComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci /= cj;
          std_ci /= std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
@@ -410,14 +394,13 @@ TYPED_TEST( ComplexTest, divideAssignmentOperatorWithSTLComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci /= std_cj;
          std_ci /= std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
@@ -433,9 +416,8 @@ TYPED_TEST( ComplexTest, comparisonOperatorWithReal )
    using RealType = typename ComplexType::ValueType;
 
    const int size = TestFixture::testSize;
-   for( int i = 0; i <= size; i++ )
-   {
-      RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
+   for( int i = 0; i <= size; i++ ) {
+      RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
       ComplexType ci( TNL::cos( phase_i ), 0.0 );
       ComplexType cj( TNL::cos( phase_i ), 1.0 );
       EXPECT_TRUE( ci == TNL::cos( phase_i ) );
@@ -449,14 +431,13 @@ TYPED_TEST( ComplexTest, comparisonOperatorWithComplex )
    using RealType = typename ComplexType::ValueType;
 
    const int size = TestFixture::testSize;
-   for( int i = 0; i <= size; i++ )
-   {
-      RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
+   for( int i = 0; i <= size; i++ ) {
+      RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
       ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
       ComplexType cj( TNL::cos( phase_i ), TNL::sin( phase_i ) );
-      ComplexType d1( TNL::cos( phase_i )+1.0, TNL::sin( phase_i ) );
-      ComplexType d2( TNL::cos( phase_i ), TNL::sin( phase_i )+1.0 );
-      ComplexType d3( TNL::cos( phase_i )+1.0, TNL::sin( phase_i )+1.0 );
+      ComplexType d1( TNL::cos( phase_i ) + 1.0, TNL::sin( phase_i ) );
+      ComplexType d2( TNL::cos( phase_i ), TNL::sin( phase_i ) + 1.0 );
+      ComplexType d3( TNL::cos( phase_i ) + 1.0, TNL::sin( phase_i ) + 1.0 );
       EXPECT_TRUE( ci == cj );
       EXPECT_TRUE( ci != d1 );
       EXPECT_TRUE( ci != d2 );
@@ -470,14 +451,13 @@ TYPED_TEST( ComplexTest, comparisonOperatorWithSTLComplex )
    using RealType = typename ComplexType::ValueType;
 
    const int size = TestFixture::testSize;
-   for( int i = 0; i <= size; i++ )
-   {
-      RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
+   for( int i = 0; i <= size; i++ ) {
+      RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
       ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
       std::complex< RealType > cj( TNL::cos( phase_i ), TNL::sin( phase_i ) );
-      std::complex< RealType > d1( TNL::cos( phase_i )+1.0, TNL::sin( phase_i ) );
-      std::complex< RealType > d2( TNL::cos( phase_i ), TNL::sin( phase_i )+1.0 );
-      std::complex< RealType > d3( TNL::cos( phase_i )+1.0, TNL::sin( phase_i )+1.0 );
+      std::complex< RealType > d1( TNL::cos( phase_i ) + 1.0, TNL::sin( phase_i ) );
+      std::complex< RealType > d2( TNL::cos( phase_i ), TNL::sin( phase_i ) + 1.0 );
+      std::complex< RealType > d3( TNL::cos( phase_i ) + 1.0, TNL::sin( phase_i ) + 1.0 );
       EXPECT_TRUE( ci == cj );
       EXPECT_TRUE( ci != d1 );
       EXPECT_TRUE( ci != d2 );
@@ -494,14 +474,13 @@ TYPED_TEST( ComplexTest, addOperatorWithReal )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), 0.0 );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), 0.0 );
          ci = ci + cj.real();
          std_ci = std_ci + std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -516,14 +495,13 @@ TYPED_TEST( ComplexTest, addOperatorWithComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci = ci + cj;
          std_ci = std_ci + std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -538,14 +516,13 @@ TYPED_TEST( ComplexTest, addOperatorWithSTLComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci = ci + std_cj;
          std_ci = std_ci + std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -562,16 +539,15 @@ TYPED_TEST( ComplexTest, subtractOperatorWithReal )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), 0.0 );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), 0.0 );
          ci = ci - cj.real();
-         std_ci =  std_ci - std_cj;
+         std_ci = std_ci - std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
          EXPECT_EQ( ci.imag(), std_ci.imag() );
       }
@@ -584,14 +560,13 @@ TYPED_TEST( ComplexTest, subtractOperatorWithComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci = ci - cj;
          std_ci = std_ci - std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -606,14 +581,13 @@ TYPED_TEST( ComplexTest, subtractOperatorWithSTLComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci = ci - std_cj;
          std_ci = std_ci - std_cj;
          EXPECT_EQ( ci.real(), std_ci.real() );
@@ -630,14 +604,13 @@ TYPED_TEST( ComplexTest, multiplyOperatorWithReal )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), 0.0 );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), 0.0 );
          ci = ci * cj.real();
          std_ci = std_ci * std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
@@ -652,16 +625,15 @@ TYPED_TEST( ComplexTest, multiplyOperatorWithComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
-         ci =  ci * cj;
-         std_ci =  std_ci * std_cj;
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
+         ci = ci * cj;
+         std_ci = std_ci * std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
          EXPECT_NEAR( ci.imag(), std_ci.imag(), 1.0e-6 );
       }
@@ -674,14 +646,13 @@ TYPED_TEST( ComplexTest, multiplyOperatorWithSTLComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci = ci * std_cj;
          std_ci = std_ci * std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
@@ -698,14 +669,13 @@ TYPED_TEST( ComplexTest, divideOperatorWithReal )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), 0.0 );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), 0.0 );
          ci = ci / cj.real();
          std_ci = std_ci / std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
@@ -720,14 +690,13 @@ TYPED_TEST( ComplexTest, divideOperatorWithComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci = ci / cj;
          std_ci = std_ci / std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
@@ -742,14 +711,13 @@ TYPED_TEST( ComplexTest, divideOperatorWithSTLComplex )
 
    const int size = TestFixture::testSize;
    for( int i = 0; i <= size; i++ )
-      for( int j = 0; j <= size; j++ )
-      {
-         RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-         RealType phase_j = 2.0 * j * TNL::pi / ( RealType ) size;
+      for( int j = 0; j <= size; j++ ) {
+         RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+         RealType phase_j = 2.0 * j * TNL::pi / (RealType) size;
          ComplexType ci( TNL::cos( phase_i ), TNL::sin( phase_i ) );
          ComplexType cj( TNL::cos( phase_j ), TNL::sin( phase_j ) );
-         std::complex< RealType > std_ci( ci. real(), ci.imag() );
-         std::complex< RealType > std_cj( cj. real(), cj.imag() );
+         std::complex< RealType > std_ci( ci.real(), ci.imag() );
+         std::complex< RealType > std_cj( cj.real(), cj.imag() );
          ci = ci / std_cj;
          std_ci = std_ci / std_cj;
          EXPECT_NEAR( ci.real(), std_ci.real(), 1.0e-6 );
@@ -763,10 +731,9 @@ TYPED_TEST( ComplexTest, norm )
    using RealType = typename ComplexType::ValueType;
 
    const int size = TestFixture::testSize;
-   for( int i = 0; i <= size; i++ )
-   {
-      RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-      RealType amp = 0.1 * ( RealType) i;
+   for( int i = 0; i <= size; i++ ) {
+      RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+      RealType amp = 0.1 * (RealType) i;
       ComplexType ci( amp * TNL::cos( phase_i ), amp * TNL::sin( phase_i ) );
       std::complex< RealType > cj( amp * TNL::cos( phase_i ), amp * TNL::sin( phase_i ) );
       EXPECT_EQ( norm( ci ), norm( cj ) );
@@ -779,10 +746,9 @@ TYPED_TEST( ComplexTest, abs )
    using RealType = typename ComplexType::ValueType;
 
    const int size = TestFixture::testSize;
-   for( int i = 0; i <= size; i++ )
-   {
-      RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-      RealType amp = 0.1 * ( RealType) i;
+   for( int i = 0; i <= size; i++ ) {
+      RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+      RealType amp = 0.1 * (RealType) i;
       ComplexType ci( amp * TNL::cos( phase_i ), amp * TNL::sin( phase_i ) );
       std::complex< RealType > cj( amp * TNL::cos( phase_i ), amp * TNL::sin( phase_i ) );
       EXPECT_NEAR( abs( ci ), abs( cj ), 1.0e-6 );
@@ -795,10 +761,9 @@ TYPED_TEST( ComplexTest, arg )
    using RealType = typename ComplexType::ValueType;
 
    const int size = TestFixture::testSize;
-   for( int i = 0; i <= size; i++ )
-   {
-      RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-      RealType amp = 0.1 * ( RealType) i;
+   for( int i = 0; i <= size; i++ ) {
+      RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+      RealType amp = 0.1 * (RealType) i;
       ComplexType ci( amp * TNL::cos( phase_i ), amp * TNL::sin( phase_i ) );
       std::complex< RealType > cj( amp * TNL::cos( phase_i ), amp * TNL::sin( phase_i ) );
       EXPECT_NEAR( arg( ci ), arg( cj ), 1.0e-6 );
@@ -811,18 +776,14 @@ TYPED_TEST( ComplexTest, conj )
    using RealType = typename ComplexType::ValueType;
 
    const int size = TestFixture::testSize;
-   for( int i = 0; i <= size; i++ )
-   {
-      RealType phase_i = 2.0 * i * TNL::pi / ( RealType ) size;
-      RealType amp = 0.1 * ( RealType) i;
+   for( int i = 0; i <= size; i++ ) {
+      RealType phase_i = 2.0 * i * TNL::pi / (RealType) size;
+      RealType amp = 0.1 * (RealType) i;
       ComplexType ci( amp * TNL::cos( phase_i ), amp * TNL::sin( phase_i ) );
       std::complex< RealType > cj( amp * TNL::cos( phase_i ), amp * TNL::sin( phase_i ) );
       EXPECT_EQ( conj( ci ).real(), conj( cj ).real() );
       EXPECT_EQ( conj( ci ).imag(), conj( cj ).imag() );
    }
 }
-
-
-#endif
 
 #include "../main.h"

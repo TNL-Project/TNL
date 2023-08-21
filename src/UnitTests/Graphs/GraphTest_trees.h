@@ -5,8 +5,7 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Graphs/Graph.h>
 
-#ifdef HAVE_GTEST
-   #include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 // test fixture for typed tests
 template< typename Matrix >
@@ -23,11 +22,11 @@ using GraphTestTypes =
                      TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int, TNL::Matrices::SymmetricMatrix >,
                      TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >,
                      TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix >
-   #ifdef __CUDACC__
+#ifdef __CUDACC__
                      ,
                      TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >,
                      TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::SymmetricMatrix >
-   #endif
+#endif
                      >;
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
@@ -113,7 +112,5 @@ TYPED_TEST( GraphTest, test_small_forest )
    ASSERT_FALSE( TNL::Graphs::isTree( graph ) );
    ASSERT_TRUE( TNL::Graphs::isForest( graph ) );
 }
-
-#endif
 
 #include "../main.h"

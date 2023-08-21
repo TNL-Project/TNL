@@ -2,7 +2,6 @@
 
 #include "SparseMatrixVectorProductTest.hpp"
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 // test fixture for typed tests
@@ -71,5 +70,3 @@ TYPED_TEST( MatrixTest, vectorProductTest_longRowsMatrix )
 
    test_VectorProduct_longRowsMatrix< MatrixType, KernelType >();
 }
-
-#endif

@@ -3,20 +3,16 @@
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Containers/Array.h>
-
-#ifdef HAVE_GTEST
-#include <gtest/gtest.h>
-#endif
-
 #include <TNL/Devices/Cuda.h>
+
+#include <gtest/gtest.h>
 
 using namespace TNL;
 
-#ifdef HAVE_GTEST
 TEST( SharedPointerCudaTest, ConstructorTest )
 {
 #ifdef __CUDACC__
-   typedef TNL::Containers::StaticArray< 2, int  > TestType;
+   typedef TNL::Containers::StaticArray< 2, int > TestType;
    Pointers::SharedPointer< TestType, Devices::Cuda > ptr1;
 
    ptr1->x() = 0;
@@ -37,14 +33,14 @@ TEST( SharedPointerCudaTest, ConstructorTest )
 TEST( SharedPointerCudaTest, getDataTest )
 {
 #ifdef __CUDACC__
-   typedef TNL::Containers::StaticArray< 2, int  > TestType;
+   typedef TNL::Containers::StaticArray< 2, int > TestType;
    Pointers::SharedPointer< TestType, Devices::Cuda > ptr1( 1, 2 );
 
    Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
 
    TestType aux;
 
-   cudaMemcpy( ( void*) &aux, &ptr1.getData< Devices::Cuda >(), sizeof( TestType ), cudaMemcpyDeviceToHost );
+   cudaMemcpy( (void*) &aux, &ptr1.getData< Devices::Cuda >(), sizeof( TestType ), cudaMemcpyDeviceToHost );
 
    ASSERT_EQ( aux[ 0 ], 1 );
    ASSERT_EQ( aux[ 1 ], 2 );
@@ -52,20 +48,20 @@ TEST( SharedPointerCudaTest, getDataTest )
 };
 
 #ifdef __CUDACC__
-__global__ void copyArrayKernel( const TNL::Containers::Array< int, Devices::Cuda >* inArray,
-                                 int* outArray )
+__global__
+void
+copyArrayKernel( const TNL::Containers::Array< int, Devices::Cuda >* inArray, int* outArray )
 {
-   if( threadIdx.x < 2 )
-   {
+   if( threadIdx.x < 2 ) {
       outArray[ threadIdx.x ] = ( *inArray )[ threadIdx.x ];
    }
 }
 
-__global__ void copyArrayKernel2( const Pointers::SharedPointer< TNL::Containers::Array< int, Devices::Cuda > > inArray,
-                                  int* outArray )
+__global__
+void
+copyArrayKernel2( const Pointers::SharedPointer< TNL::Containers::Array< int, Devices::Cuda > > inArray, int* outArray )
 {
-   if( threadIdx.x < 2 )
-   {
+   if( threadIdx.x < 2 ) {
       outArray[ threadIdx.x ] = ( *inArray )[ threadIdx.x ];
    }
 }
@@ -74,7 +70,7 @@ __global__ void copyArrayKernel2( const Pointers::SharedPointer< TNL::Containers
 TEST( SharedPointerCudaTest, getDataArrayTest )
 {
 #ifdef __CUDACC__
-   typedef TNL::Containers::Array< int, Devices::Cuda  > TestType;
+   typedef TNL::Containers::Array< int, Devices::Cuda > TestType;
    Pointers::SharedPointer< TestType > ptr;
 
    ptr->setSize( 2 );
@@ -84,15 +80,19 @@ TEST( SharedPointerCudaTest, getDataArrayTest )
    Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
 
    int *testArray_device, *testArray_host;
-   cudaMalloc( ( void** ) &testArray_device, 2 * sizeof( int ) );
+   cudaMalloc( (void**) &testArray_device, 2 * sizeof( int ) );
+   // clang-format off
    copyArrayKernel<<< 1, 2 >>>( &ptr.getData< Devices::Cuda >(), testArray_device );
-   testArray_host = new int [ 2 ];
+   // clang-format on
+   testArray_host = new int[ 2 ];
    cudaMemcpy( testArray_host, testArray_device, 2 * sizeof( int ), cudaMemcpyDeviceToHost );
 
    ASSERT_EQ( testArray_host[ 0 ], 1 );
    ASSERT_EQ( testArray_host[ 1 ], 2 );
 
+   // clang-format off
    copyArrayKernel2<<< 1, 2 >>>( ptr, testArray_device );
+   // clang-format on
    cudaMemcpy( testArray_host, testArray_device, 2 * sizeof( int ), cudaMemcpyDeviceToHost );
 
    ASSERT_EQ( testArray_host[ 0 ], 1 );
@@ -130,8 +130,5 @@ TEST( SharedPointerCudaTest, swap )
    ASSERT_EQ( *p2, 1 );
 #endif
 }
-
-#endif
-
 
 #include "../main.h"

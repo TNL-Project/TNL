@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Containers/DistributedNDArray.h>
@@ -19,8 +18,7 @@ using namespace TNL::Containers::detail;
  * - Communicator is hardcoded as MPI_COMM_WORLD -- it may be changed as needed.
  */
 template< typename DistributedNDArray >
-class DistributedNDArrayOverlaps_1D_test
-: public ::testing::Test
+class DistributedNDArrayOverlaps_1D_test : public ::testing::Test
 {
 protected:
    using ValueType = typename DistributedNDArray::ValueType;
@@ -35,8 +33,8 @@ protected:
 
    DistributedNDArrayType distributedNDArray;
 
-   const int rank = TNL::MPI::GetRank(communicator);
-   const int nproc = TNL::MPI::GetSize(communicator);
+   const int rank = TNL::MPI::GetRank( communicator );
+   const int nproc = TNL::MPI::GetSize( communicator );
 
    DistributedNDArrayOverlaps_1D_test()
    {
@@ -52,23 +50,22 @@ protected:
 };
 
 // types for which DistributedNDArrayOverlaps_1D_test is instantiated
-using DistributedNDArrayTypes = ::testing::Types<
-   DistributedNDArray< NDArray< double,
-                                SizesHolder< int, 0 >,
-                                std::index_sequence< 0 >,
-                                Devices::Host,
-                                int,
-                                std::index_sequence< 2 > > >  // overlaps
+using DistributedNDArrayTypes = ::testing::Types< DistributedNDArray< NDArray< double,
+                                                                               SizesHolder< int, 0 >,
+                                                                               std::index_sequence< 0 >,
+                                                                               Devices::Host,
+                                                                               int,
+                                                                               std::index_sequence< 2 > > >  // overlaps
 #ifdef __CUDACC__
-   ,
-   DistributedNDArray< NDArray< double,
-                                SizesHolder< int, 0 >,
-                                std::index_sequence< 0 >,
-                                Devices::Cuda,
-                                int,
-                                std::index_sequence< 2 > > >  // overlaps
+                                                  ,
+                                                  DistributedNDArray< NDArray< double,
+                                                                               SizesHolder< int, 0 >,
+                                                                               std::index_sequence< 0 >,
+                                                                               Devices::Cuda,
+                                                                               int,
+                                                                               std::index_sequence< 2 > > >  // overlaps
 #endif
->;
+                                                  >;
 
 TYPED_TEST_SUITE( DistributedNDArrayOverlaps_1D_test, DistributedNDArrayTypes );
 
@@ -87,7 +84,8 @@ TYPED_TEST( DistributedNDArrayOverlaps_1D_test, checkSumOfLocalSizes )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_forLocalInterior( DistributedArray& a )
+void
+test_helper_forLocalInterior( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
@@ -95,7 +93,7 @@ void test_helper_forLocalInterior( DistributedArray& a )
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
+   auto setter = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       a_view( i - localRange.getBegin() ) += 1;
    };
@@ -104,27 +102,21 @@ void test_helper_forLocalInterior( DistributedArray& a )
    a.forLocalInterior( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getBegin() + overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
    for( int gi = localRange.getBegin() + overlaps; gi < localRange.getEnd() - overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
    for( int gi = localRange.getEnd() - overlaps; gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
 
    a.setValue( 0 );
    a.getView().forLocalInterior( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getBegin() + overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
    for( int gi = localRange.getBegin() + overlaps; gi < localRange.getEnd() - overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
    for( int gi = localRange.getEnd() - overlaps; gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
 }
 
 TYPED_TEST( DistributedNDArrayOverlaps_1D_test, forLocalInterior )
@@ -135,7 +127,8 @@ TYPED_TEST( DistributedNDArrayOverlaps_1D_test, forLocalInterior )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_forLocalBoundary( DistributedArray& a )
+void
+test_helper_forLocalBoundary( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
@@ -143,7 +136,7 @@ void test_helper_forLocalBoundary( DistributedArray& a )
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
+   auto setter = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       a_view( i - localRange.getBegin() ) += 1;
    };
@@ -152,27 +145,21 @@ void test_helper_forLocalBoundary( DistributedArray& a )
    a.forLocalBoundary( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getBegin() + overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
    for( int gi = localRange.getBegin() + overlaps; gi < localRange.getEnd() - overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
    for( int gi = localRange.getEnd() - overlaps; gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
 
    a.setValue( 0 );
    a.getView().forLocalBoundary( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getBegin() + overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
    for( int gi = localRange.getBegin() + overlaps; gi < localRange.getEnd() - overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
    for( int gi = localRange.getEnd() - overlaps; gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
 }
 
 TYPED_TEST( DistributedNDArrayOverlaps_1D_test, forLocalBoundary )
@@ -183,7 +170,8 @@ TYPED_TEST( DistributedNDArrayOverlaps_1D_test, forLocalBoundary )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_forGhosts( DistributedArray& a )
+void
+test_helper_forGhosts( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
@@ -191,7 +179,7 @@ void test_helper_forGhosts( DistributedArray& a )
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
+   auto setter = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       a_view( i - localRange.getBegin() ) += 1;
    };
@@ -200,27 +188,21 @@ void test_helper_forGhosts( DistributedArray& a )
    a.forGhosts( setter );
 
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
    for( int gi = localRange.getEnd(); gi < localRange.getEnd() + overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
 
    a.setValue( 0 );
    a.getView().forGhosts( setter );
 
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
    for( int gi = localRange.getEnd(); gi < localRange.getEnd() + overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
 }
 
 TYPED_TEST( DistributedNDArrayOverlaps_1D_test, forGhosts )
@@ -231,7 +213,8 @@ TYPED_TEST( DistributedNDArrayOverlaps_1D_test, forGhosts )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_synchronize( DistributedArray& a, const int rank, const int nproc )
+void
+test_helper_synchronize( DistributedArray& a, const int rank, const int nproc )
 {
    using IndexType = typename DistributedArray::IndexType;
 
@@ -239,7 +222,7 @@ void test_helper_synchronize( DistributedArray& a, const int rank, const int npr
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
+   auto setter = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       a_view( i - localRange.getBegin() ) = i;
    };
@@ -250,11 +233,11 @@ void test_helper_synchronize( DistributedArray& a, const int rank, const int npr
    s1.synchronize( a );
 
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), gi + ((rank == 0) ? 97 : 0) );
+      EXPECT_EQ( a.getElement( gi ), gi + ( ( rank == 0 ) ? 97 : 0 ) );
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
       EXPECT_EQ( a.getElement( gi ), gi );
    for( int gi = localRange.getEnd(); gi < localRange.getEnd() + overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), gi - ((rank == nproc-1) ? 97 : 0) );
+      EXPECT_EQ( a.getElement( gi ), gi - ( ( rank == nproc - 1 ) ? 97 : 0 ) );
 
    a.setValue( -1 );
    a.getView().forAll( setter );
@@ -263,19 +246,16 @@ void test_helper_synchronize( DistributedArray& a, const int rank, const int npr
    s2.synchronize( view );
 
    for( int gi = localRange.getBegin() - overlaps; gi < localRange.getBegin(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), gi + ((rank == 0) ? 97 : 0) );
+      EXPECT_EQ( a.getElement( gi ), gi + ( ( rank == 0 ) ? 97 : 0 ) );
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
       EXPECT_EQ( a.getElement( gi ), gi );
    for( int gi = localRange.getEnd(); gi < localRange.getEnd() + overlaps; gi++ )
-      EXPECT_EQ( a.getElement( gi ), gi - ((rank == nproc-1) ? 97 : 0) );
+      EXPECT_EQ( a.getElement( gi ), gi - ( ( rank == nproc - 1 ) ? 97 : 0 ) );
 }
 
 TYPED_TEST( DistributedNDArrayOverlaps_1D_test, synchronize )
 {
    test_helper_synchronize( this->distributedNDArray, this->rank, this->nproc );
 }
-
-#endif  // HAVE_GTEST
-
 
 #include "../../main_mpi.h"

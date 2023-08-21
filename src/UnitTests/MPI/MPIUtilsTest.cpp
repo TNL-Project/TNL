@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Containers/Array.h>
@@ -19,13 +18,12 @@ struct Pair
 };
 
 template< typename Pair >
-class ArrayCommunicationTest
-: public ::testing::Test
+class ArrayCommunicationTest : public ::testing::Test
 {
 protected:
    using SrcArrayType = typename Pair::Left;
    using DestArrayType = typename Pair::Right;
-   using ValueType = std::decay_t< decltype(SrcArrayType{}[0]) >;
+   using ValueType = std::decay_t< decltype( SrcArrayType{}[ 0 ] ) >;
 
    const MPI_Comm communicator = MPI_COMM_WORLD;
 
@@ -36,8 +34,8 @@ protected:
    // destination array
    DestArrayType destArray;
 
-   const int rank = GetRank(communicator);
-   const int nproc = GetSize(communicator);
+   const int rank = GetRank( communicator );
+   const int nproc = GetSize( communicator );
 
    ArrayCommunicationTest()
    {
@@ -50,22 +48,18 @@ protected:
 };
 
 // types for which ArrayCommunicationTest is instantiated
-using ArrayTypes = ::testing::Types<
-   Pair< Array< int >, Array< int > >,
-   Pair< ArrayView< int >, Array< int > >,
-   Pair< String, String >
->;
+using ArrayTypes =
+   ::testing::Types< Pair< Array< int >, Array< int > >, Pair< ArrayView< int >, Array< int > >, Pair< String, String > >;
 
 TYPED_TEST_SUITE( ArrayCommunicationTest, ArrayTypes );
-
 
 TYPED_TEST( ArrayCommunicationTest, send_recv )
 {
    using DestArrayType = typename TestFixture::DestArrayType;
    using ValueType = typename TestFixture::ValueType;
 
-   const int src  = (this->rank - 1 + this->nproc) % this->nproc;
-   const int dest = (this->rank + 1 + this->nproc) % this->nproc;
+   const int src = ( this->rank - 1 + this->nproc ) % this->nproc;
+   const int dest = ( this->rank + 1 + this->nproc ) % this->nproc;
 
    // NOTE: condition avoids a deadlock due to blocking communication
    if( this->rank % 2 ) {
@@ -90,8 +84,8 @@ TYPED_TEST( ArrayCommunicationTest, sendrecv )
    using DestArrayType = typename TestFixture::DestArrayType;
    using ValueType = typename TestFixture::ValueType;
 
-   const int src  = (this->rank - 1 + this->nproc) % this->nproc;
-   const int dest = (this->rank + 1 + this->nproc) % this->nproc;
+   const int src = ( this->rank - 1 + this->nproc ) % this->nproc;
+   const int dest = ( this->rank + 1 + this->nproc ) % this->nproc;
 
    sendrecv( this->srcArray, dest, 0, this->destArray, src, 0, this->communicator );
 
@@ -127,7 +121,5 @@ TYPED_TEST( ArrayCommunicationTest, bcast )
       Barrier( this->communicator );
    }
 }
-
-#endif  // HAVE_GTEST
 
 #include "../main_mpi.h"

@@ -12,26 +12,30 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/contains.h>
 
+#include <gtest/gtest.h>
+
 template< typename Device, typename Index, typename IndexAllocator >
 using EllpackSegments = TNL::Algorithms::Segments::Ellpack< Device, Index, IndexAllocator >;
 
 template< typename Device, typename Index, typename IndexAllocator >
 using SlicedEllpackSegments = TNL::Algorithms::Segments::SlicedEllpack< Device, Index, IndexAllocator >;
 
-using CSR_host = TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
-using CSR_cuda = TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
-using E_host   = TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, EllpackSegments >;
-using E_cuda   = TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, EllpackSegments >;
-using SE_host  = TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SlicedEllpackSegments >;
-using SE_cuda  = TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, SlicedEllpackSegments >;
-using Dense_host               = TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
-using Dense_host_RowMajorOrder = TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >;
-using Dense_cuda               = TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
-using Dense_cuda_RowMajorOrder = TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >;
-
-
-#ifdef HAVE_GTEST
-#include <gtest/gtest.h>
+using CSR_host =
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
+using CSR_cuda =
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
+using E_host = TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, EllpackSegments >;
+using E_cuda = TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, EllpackSegments >;
+using SE_host =
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SlicedEllpackSegments >;
+using SE_cuda =
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, SlicedEllpackSegments >;
+using Dense_host = TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
+using Dense_host_RowMajorOrder =
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >;
+using Dense_cuda = TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
+using Dense_cuda_RowMajorOrder =
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >;
 
 /*
  * Sets up the following 10x6 sparse matrix:
@@ -48,7 +52,8 @@ using Dense_cuda_RowMajorOrder = TNL::Matrices::DenseMatrix< int, TNL::Devices::
  *    \                28 /
  */
 template< typename Matrix >
-void setupUnevenRowSizeMatrix( Matrix& m )
+void
+setupUnevenRowSizeMatrix( Matrix& m )
 {
    const int rows = 10;
    const int cols = 6;
@@ -57,72 +62,73 @@ void setupUnevenRowSizeMatrix( Matrix& m )
    rowLengths.setSize( rows );
    rowLengths.setValue( 5 );
    rowLengths.setElement( 0, 2 );
-   rowLengths.setElement( 1,  3 );
-   rowLengths.setElement( 2,  3 );
-   rowLengths.setElement( 5,  2 );
-   rowLengths.setElement( 6,  1 );
-   rowLengths.setElement( 7,  1 );
-   rowLengths.setElement( 9,  1 );
+   rowLengths.setElement( 1, 3 );
+   rowLengths.setElement( 2, 3 );
+   rowLengths.setElement( 5, 2 );
+   rowLengths.setElement( 6, 1 );
+   rowLengths.setElement( 7, 1 );
+   rowLengths.setElement( 9, 1 );
    m.setRowCapacities( rowLengths );
 
-    int value = 1;
-    for( int i = 0; i < cols - 4; i++ )  // 0th row
-        m.setElement( 0, i, value++ );
+   int value = 1;
+   for( int i = 0; i < cols - 4; i++ )  // 0th row
+      m.setElement( 0, i, value++ );
 
-    for( int i = 3; i < cols; i++ )      // 1st row
-        m.setElement( 1, i, value++ );
+   for( int i = 3; i < cols; i++ )  // 1st row
+      m.setElement( 1, i, value++ );
 
-    for( int i = 0; i < cols - 3; i++ )  // 2nd row
-        m.setElement( 2, i, value++ );
+   for( int i = 0; i < cols - 3; i++ )  // 2nd row
+      m.setElement( 2, i, value++ );
 
-    for( int i = 1; i < cols; i++ )      // 3rd row
-        m.setElement( 3, i, value++ );
+   for( int i = 1; i < cols; i++ )  // 3rd row
+      m.setElement( 3, i, value++ );
 
-    for( int i = 0; i < cols - 1; i++ )  // 4th row
-        m.setElement( 4, i, value++ );
+   for( int i = 0; i < cols - 1; i++ )  // 4th row
+      m.setElement( 4, i, value++ );
 
-    for( int i = 0; i < cols - 4; i++ )  // 5th row
-        m.setElement( 5, i, value++ );
+   for( int i = 0; i < cols - 4; i++ )  // 5th row
+      m.setElement( 5, i, value++ );
 
-    m.setElement( 6, 0, value++ );   // 6th row
+   m.setElement( 6, 0, value++ );  // 6th row
 
-    m.setElement( 7, 0, value++ );   // 7th row
+   m.setElement( 7, 0, value++ );  // 7th row
 
-    for( int i = 0; i < cols - 1; i++ )  // 8th row
-        m.setElement( 8, i, value++ );
+   for( int i = 0; i < cols - 1; i++ )  // 8th row
+      m.setElement( 8, i, value++ );
 
-    m.setElement( 9, 5, value++ );   // 9th row
+   m.setElement( 9, 5, value++ );  // 9th row
 }
 
 template< typename Matrix >
-void checkUnevenRowSizeMatrix( Matrix& m )
+void
+checkUnevenRowSizeMatrix( Matrix& m )
 {
    ASSERT_EQ( m.getRows(), 10 );
    ASSERT_EQ( m.getColumns(), 6 );
 
-   EXPECT_EQ( m.getElement( 0, 0 ),  1 );
-   EXPECT_EQ( m.getElement( 0, 1 ),  2 );
-   EXPECT_EQ( m.getElement( 0, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 5 ),  0);
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 5 ), 0 );
 
-   EXPECT_EQ( m.getElement( 1, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 3 ),  3 );
-   EXPECT_EQ( m.getElement( 1, 4 ),  4 );
-   EXPECT_EQ( m.getElement( 1, 5 ),  5 );
+   EXPECT_EQ( m.getElement( 1, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 3 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 4 );
+   EXPECT_EQ( m.getElement( 1, 5 ), 5 );
 
-   EXPECT_EQ( m.getElement( 2, 0 ),  6 );
-   EXPECT_EQ( m.getElement( 2, 1 ),  7 );
-   EXPECT_EQ( m.getElement( 2, 2 ),  8 );
-   EXPECT_EQ( m.getElement( 2, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 0 ), 6 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 7 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 8 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 5 ), 0 );
 
-   EXPECT_EQ( m.getElement( 3, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 1 ),  9 );
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 9 );
    EXPECT_EQ( m.getElement( 3, 2 ), 10 );
    EXPECT_EQ( m.getElement( 3, 3 ), 11 );
    EXPECT_EQ( m.getElement( 3, 4 ), 12 );
@@ -133,41 +139,41 @@ void checkUnevenRowSizeMatrix( Matrix& m )
    EXPECT_EQ( m.getElement( 4, 2 ), 16 );
    EXPECT_EQ( m.getElement( 4, 3 ), 17 );
    EXPECT_EQ( m.getElement( 4, 4 ), 18 );
-   EXPECT_EQ( m.getElement( 4, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 5 ), 0 );
 
    EXPECT_EQ( m.getElement( 5, 0 ), 19 );
    EXPECT_EQ( m.getElement( 5, 1 ), 20 );
-   EXPECT_EQ( m.getElement( 5, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 5, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 5 ), 0 );
 
    EXPECT_EQ( m.getElement( 6, 0 ), 21 );
-   EXPECT_EQ( m.getElement( 6, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 6, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 5 ), 0 );
 
    EXPECT_EQ( m.getElement( 7, 0 ), 22 );
-   EXPECT_EQ( m.getElement( 7, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 7, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 7, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 7, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 7, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 7, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 7, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 7, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 7, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 7, 5 ), 0 );
 
    EXPECT_EQ( m.getElement( 8, 0 ), 23 );
    EXPECT_EQ( m.getElement( 8, 1 ), 24 );
    EXPECT_EQ( m.getElement( 8, 2 ), 25 );
    EXPECT_EQ( m.getElement( 8, 3 ), 26 );
    EXPECT_EQ( m.getElement( 8, 4 ), 27 );
-   EXPECT_EQ( m.getElement( 8, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 8, 5 ), 0 );
 
-   EXPECT_EQ( m.getElement( 9, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 9, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 9, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 9, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 9, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 9, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 9, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 9, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 9, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 9, 4 ), 0 );
    EXPECT_EQ( m.getElement( 9, 5 ), 28 );
 }
 
@@ -183,7 +189,8 @@ void checkUnevenRowSizeMatrix( Matrix& m )
  *    \ 17                /
  */
 template< typename Matrix >
-void setupAntiTriDiagMatrix( Matrix& m )
+void
+setupAntiTriDiagMatrix( Matrix& m )
 {
    const int rows = 7;
    const int cols = 6;
@@ -191,8 +198,8 @@ void setupAntiTriDiagMatrix( Matrix& m )
    typename Matrix::RowsCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setValue( 3 );
-   rowLengths.setElement( 0, 4);
-   rowLengths.setElement( 1,  4 );
+   rowLengths.setElement( 0, 4 );
+   rowLengths.setElement( 1, 4 );
    m.setRowCapacities( rowLengths );
 
    int value = 1;
@@ -203,59 +210,60 @@ void setupAntiTriDiagMatrix( Matrix& m )
 }
 
 template< typename Matrix >
-void checkAntiTriDiagMatrix( Matrix& m )
+void
+checkAntiTriDiagMatrix( Matrix& m )
 {
    ASSERT_EQ( m.getRows(), 7 );
    ASSERT_EQ( m.getColumns(), 6 );
 
-   EXPECT_EQ( m.getElement( 0, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 4 ),  2 );
-   EXPECT_EQ( m.getElement( 0, 5 ),  1);
+   EXPECT_EQ( m.getElement( 0, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 2 );
+   EXPECT_EQ( m.getElement( 0, 5 ), 1 );
 
-   EXPECT_EQ( m.getElement( 1, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 3 ),  5 );
-   EXPECT_EQ( m.getElement( 1, 4 ),  4 );
-   EXPECT_EQ( m.getElement( 1, 5 ),  3 );
+   EXPECT_EQ( m.getElement( 1, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 5 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 4 );
+   EXPECT_EQ( m.getElement( 1, 5 ), 3 );
 
-   EXPECT_EQ( m.getElement( 2, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 2 ),  8 );
-   EXPECT_EQ( m.getElement( 2, 3 ),  7 );
-   EXPECT_EQ( m.getElement( 2, 4 ),  6 );
-   EXPECT_EQ( m.getElement( 2, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 8 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 7 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 6 );
+   EXPECT_EQ( m.getElement( 2, 5 ), 0 );
 
-   EXPECT_EQ( m.getElement( 3, 0 ),  0 );
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
    EXPECT_EQ( m.getElement( 3, 1 ), 11 );
    EXPECT_EQ( m.getElement( 3, 2 ), 10 );
-   EXPECT_EQ( m.getElement( 3, 3 ),  9 );
-   EXPECT_EQ( m.getElement( 3, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 3, 3 ), 9 );
+   EXPECT_EQ( m.getElement( 3, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 5 ), 0 );
 
    EXPECT_EQ( m.getElement( 4, 0 ), 14 );
    EXPECT_EQ( m.getElement( 4, 1 ), 13 );
    EXPECT_EQ( m.getElement( 4, 2 ), 12 );
-   EXPECT_EQ( m.getElement( 4, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 5 ), 0 );
 
    EXPECT_EQ( m.getElement( 5, 0 ), 16 );
    EXPECT_EQ( m.getElement( 5, 1 ), 15 );
-   EXPECT_EQ( m.getElement( 5, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 5, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 5 ), 0 );
 
    EXPECT_EQ( m.getElement( 6, 0 ), 17 );
-   EXPECT_EQ( m.getElement( 6, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 6, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 5 ), 0 );
 }
 
 /*
@@ -270,7 +278,8 @@ void checkAntiTriDiagMatrix( Matrix& m )
  *    \               17 /
  */
 template< typename Matrix >
-void setupTriDiagMatrix( Matrix& m )
+void
+setupTriDiagMatrix( Matrix& m )
 {
    const int rows = 7;
    const int cols = 6;
@@ -278,10 +287,9 @@ void setupTriDiagMatrix( Matrix& m )
    typename Matrix::RowsCapacitiesType rowLengths;
    rowLengths.setSize( rows );
    rowLengths.setValue( 3 );
-   rowLengths.setElement( 0 , 4 );
-   rowLengths.setElement( 1,  4 );
+   rowLengths.setElement( 0, 4 );
+   rowLengths.setElement( 1, 4 );
    m.setRowCapacities( rowLengths );
-
 
    int value = 1;
    for( int i = 0; i < rows; i++ )
@@ -291,66 +299,68 @@ void setupTriDiagMatrix( Matrix& m )
 }
 
 template< typename Matrix >
-void checkTriDiagMatrix( Matrix& m )
+void
+checkTriDiagMatrix( Matrix& m )
 {
    ASSERT_EQ( m.getRows(), 7 );
    ASSERT_EQ( m.getColumns(), 6 );
 
-   EXPECT_EQ( m.getElement( 0, 0 ),  1 );
-   EXPECT_EQ( m.getElement( 0, 1 ),  2 );
-   EXPECT_EQ( m.getElement( 0, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 0, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 5 ), 0 );
 
-   EXPECT_EQ( m.getElement( 1, 0 ),  3 );
-   EXPECT_EQ( m.getElement( 1, 1 ),  4 );
-   EXPECT_EQ( m.getElement( 1, 2 ),  5 );
-   EXPECT_EQ( m.getElement( 1, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 1, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 1, 0 ), 3 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 4 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 5 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 5 ), 0 );
 
-   EXPECT_EQ( m.getElement( 2, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 1 ),  6 );
-   EXPECT_EQ( m.getElement( 2, 2 ),  7 );
-   EXPECT_EQ( m.getElement( 2, 3 ),  8 );
-   EXPECT_EQ( m.getElement( 2, 4 ),  0 );
-   EXPECT_EQ( m.getElement( 2, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 6 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 7 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 8 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 5 ), 0 );
 
-   EXPECT_EQ( m.getElement( 3, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 3, 2 ),  9 );
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 9 );
    EXPECT_EQ( m.getElement( 3, 3 ), 10 );
    EXPECT_EQ( m.getElement( 3, 4 ), 11 );
-   EXPECT_EQ( m.getElement( 3, 5 ),  0 );
+   EXPECT_EQ( m.getElement( 3, 5 ), 0 );
 
-   EXPECT_EQ( m.getElement( 4, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 4, 2 ),  0 );
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
    EXPECT_EQ( m.getElement( 4, 3 ), 12 );
    EXPECT_EQ( m.getElement( 4, 4 ), 13 );
    EXPECT_EQ( m.getElement( 4, 5 ), 14 );
 
-   EXPECT_EQ( m.getElement( 5, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 5, 3 ),  0 );
+   EXPECT_EQ( m.getElement( 5, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 5, 3 ), 0 );
    EXPECT_EQ( m.getElement( 5, 4 ), 15 );
    EXPECT_EQ( m.getElement( 5, 5 ), 16 );
 
-   EXPECT_EQ( m.getElement( 6, 0 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 1 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 2 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 3 ),  0 );
-   EXPECT_EQ( m.getElement( 6, 4 ),  0 );
+   EXPECT_EQ( m.getElement( 6, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 6, 4 ), 0 );
    EXPECT_EQ( m.getElement( 6, 5 ), 17 );
 }
 
 template< typename Matrix1, typename Matrix2 >
-void testCopyAssignment()
+void
+testCopyAssignment()
 {
    {
-      SCOPED_TRACE("Tri Diagonal Matrix");
+      SCOPED_TRACE( "Tri Diagonal Matrix" );
 
       Matrix1 triDiag1;
       setupTriDiagMatrix( triDiag1 );
@@ -362,7 +372,7 @@ void testCopyAssignment()
       checkTriDiagMatrix( triDiag2 );
    }
    {
-      SCOPED_TRACE("Anti Tri Diagonal Matrix");
+      SCOPED_TRACE( "Anti Tri Diagonal Matrix" );
       Matrix1 antiTriDiag1;
       setupAntiTriDiagMatrix( antiTriDiag1 );
       checkAntiTriDiagMatrix( antiTriDiag1 );
@@ -372,7 +382,7 @@ void testCopyAssignment()
       checkAntiTriDiagMatrix( antiTriDiag2 );
    }
    {
-      SCOPED_TRACE("Uneven Row Size Matrix");
+      SCOPED_TRACE( "Uneven Row Size Matrix" );
       Matrix1 unevenRowSize1;
       setupUnevenRowSizeMatrix( unevenRowSize1 );
       checkUnevenRowSizeMatrix( unevenRowSize1 );
@@ -385,7 +395,8 @@ void testCopyAssignment()
 }
 
 template< typename Matrix >
-void tridiagonalMatrixAssignment()
+void
+tridiagonalMatrixAssignment()
 {
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
@@ -407,8 +418,7 @@ void tridiagonalMatrixAssignment()
    RowCapacitiesType exactRowLengths{ 1, 3, 3, 3, 3, 3, 3, 3, 3, 2 };
    EXPECT_EQ( rowCapacities, exactRowLengths );
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < columns; j++ )
-      {
+      for( IndexType j = 0; j < columns; j++ ) {
          if( abs( i - j ) > 1 )
             EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
          else
@@ -423,8 +433,7 @@ void tridiagonalMatrixAssignment()
    matrix.getCompressedRowLengths( rowCapacities );
    EXPECT_EQ( rowCapacities, exactRowLengths );
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < columns; j++ )
-      {
+      for( IndexType j = 0; j < columns; j++ ) {
          if( abs( i - j ) > 1 )
             EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
          else
@@ -434,7 +443,8 @@ void tridiagonalMatrixAssignment()
 }
 
 template< typename Matrix >
-void multidiagonalMatrixAssignment()
+void
+multidiagonalMatrixAssignment()
 {
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
@@ -459,8 +469,7 @@ void multidiagonalMatrixAssignment()
    RowCapacitiesType exactRowLengths{ 3, 4, 5, 5, 6, 5, 5, 4, 4, 3 };
    EXPECT_EQ( rowCapacities, exactRowLengths );
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < columns; j++ )
-      {
+      for( IndexType j = 0; j < columns; j++ ) {
          if( TNL::Algorithms::contains( diagonals, j - i ) )
             EXPECT_EQ( matrix.getElement( i, j ), i + j );
          else
@@ -475,8 +484,7 @@ void multidiagonalMatrixAssignment()
    matrix.getCompressedRowLengths( rowCapacities );
    EXPECT_EQ( rowCapacities, exactRowLengths );
    for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < columns; j++ )
-      {
+      for( IndexType j = 0; j < columns; j++ ) {
          if( TNL::Algorithms::contains( diagonals, j - i ) )
             EXPECT_EQ( matrix.getElement( i, j ), i + j );
          else
@@ -486,7 +494,8 @@ void multidiagonalMatrixAssignment()
 }
 
 template< typename Matrix >
-void denseMatrixAssignment()
+void
+denseMatrixAssignment()
 {
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
@@ -508,8 +517,7 @@ void denseMatrixAssignment()
    RowCapacitiesType exactRowLengths{ 0, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
    EXPECT_EQ( rowCapacities, exactRowLengths );
    for( IndexType i = 0; i < columns; i++ )
-      for( IndexType j = 0; j < rows; j++ )
-      {
+      for( IndexType j = 0; j < rows; j++ ) {
          if( j > i )
             EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
          else
@@ -524,8 +532,7 @@ void denseMatrixAssignment()
    matrix.getCompressedRowLengths( rowCapacities );
    EXPECT_EQ( rowCapacities, exactRowLengths );
    for( IndexType i = 0; i < columns; i++ )
-      for( IndexType j = 0; j < rows; j++ )
-      {
+      for( IndexType j = 0; j < rows; j++ ) {
          if( j > i )
             EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
          else
@@ -536,38 +543,37 @@ void denseMatrixAssignment()
 
 TEST( DenseMatrixCopyTest, Dense_HostToDense_Host )
 {
-   testCopyAssignment< Dense_host,               Dense_host >();
+   testCopyAssignment< Dense_host, Dense_host >();
    testCopyAssignment< Dense_host_RowMajorOrder, Dense_host >();
-   testCopyAssignment< Dense_host,               Dense_host_RowMajorOrder >();
+   testCopyAssignment< Dense_host, Dense_host_RowMajorOrder >();
    testCopyAssignment< Dense_host_RowMajorOrder, Dense_host_RowMajorOrder >();
 }
 
 #ifdef __CUDACC__
 TEST( DenseMatrixCopyTest, Dense_HostToDense_Cuda )
 {
-   testCopyAssignment< Dense_host,               Dense_cuda >();
+   testCopyAssignment< Dense_host, Dense_cuda >();
    testCopyAssignment< Dense_host_RowMajorOrder, Dense_cuda >();
-   testCopyAssignment< Dense_host,               Dense_cuda_RowMajorOrder >();
+   testCopyAssignment< Dense_host, Dense_cuda_RowMajorOrder >();
    testCopyAssignment< Dense_host_RowMajorOrder, Dense_cuda_RowMajorOrder >();
 }
 
 TEST( DenseMatrixCopyTest, Dense_CudaToDense_Host )
 {
-   testCopyAssignment< Dense_cuda,               Dense_host >();
+   testCopyAssignment< Dense_cuda, Dense_host >();
    testCopyAssignment< Dense_cuda_RowMajorOrder, Dense_host >();
-   testCopyAssignment< Dense_cuda,               Dense_host_RowMajorOrder >();
+   testCopyAssignment< Dense_cuda, Dense_host_RowMajorOrder >();
    testCopyAssignment< Dense_cuda_RowMajorOrder, Dense_host_RowMajorOrder >();
 }
 
 TEST( DenseMatrixCopyTest, Dense_CudaToDense_Cuda )
 {
-   testCopyAssignment< Dense_cuda,               Dense_cuda >();
+   testCopyAssignment< Dense_cuda, Dense_cuda >();
    testCopyAssignment< Dense_cuda_RowMajorOrder, Dense_cuda >();
-   testCopyAssignment< Dense_cuda,               Dense_cuda_RowMajorOrder >();
+   testCopyAssignment< Dense_cuda, Dense_cuda_RowMajorOrder >();
    testCopyAssignment< Dense_cuda_RowMajorOrder, Dense_cuda_RowMajorOrder >();
 }
-#endif // __CUDACC__
-
+#endif  // __CUDACC__
 
 TEST( DenseMatrixCopyTest, CSR_HostToDense_Host )
 {
@@ -609,7 +615,7 @@ TEST( DenseMatrixCopyTest, TridiagonalMatrixAssignment_to_Dense_cuda )
    tridiagonalMatrixAssignment< Dense_cuda >();
    tridiagonalMatrixAssignment< Dense_cuda_RowMajorOrder >();
 }
-#endif // __CUDACC__
+#endif  // __CUDACC__
 
 ////
 // Multidiagonal matrix assignment test
@@ -625,7 +631,7 @@ TEST( DenseMatrixCopyTest, MultidiagonalMatrixAssignment_to_Dense_cuda )
    multidiagonalMatrixAssignment< Dense_cuda >();
    multidiagonalMatrixAssignment< Dense_cuda_RowMajorOrder >();
 }
-#endif // __CUDACC__
+#endif  // __CUDACC__
 
 ////
 // Dense matrix assignment test
@@ -641,8 +647,6 @@ TEST( DenseMatrixCopyTest, DenseMatrixAssignment_to_Dense_cuda )
    denseMatrixAssignment< Dense_cuda >();
    denseMatrixAssignment< Dense_cuda_RowMajorOrder >();
 }
-#endif // __CUDACC__
-
-#endif //HAVE_GTEST
+#endif  // __CUDACC__
 
 #include "../main.h"

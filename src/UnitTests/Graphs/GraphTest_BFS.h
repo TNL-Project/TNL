@@ -5,8 +5,7 @@
 
 #include <iostream>
 
-#ifdef HAVE_GTEST
-   #include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 // test fixture for typed tests
 template< typename Matrix >
@@ -20,10 +19,10 @@ protected:
 // types for which MatrixTest is instantiated
 using GraphTestTypes = ::testing::Types< TNL::Matrices::SparseMatrix< int, TNL::Devices::Sequential, int >,
                                          TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int >
-   #ifdef __CUDACC__
+#ifdef __CUDACC__
                                          ,
                                          TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int >
-   #endif
+#endif
                                          >;
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
@@ -136,7 +135,5 @@ TYPED_TEST( GraphTest, test_BFS_largest )
       ASSERT_EQ( distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
 }
-
-#endif
 
 #include "../main.h"

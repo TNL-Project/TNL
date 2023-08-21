@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <vector>
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
@@ -40,8 +39,8 @@ TYPED_TEST( CopyTest, copy_host )
    ValueType* data2 = allocator.allocate( ARRAY_TEST_SIZE );
    fill< Devices::Host >( data1, (ValueType) 13, ARRAY_TEST_SIZE );
    copy< Devices::Host, Devices::Host >( data2, data1, ARRAY_TEST_SIZE );
-   for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
-      EXPECT_EQ( data1[ i ], data2[ i ]);
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
+      EXPECT_EQ( data1[ i ], data2[ i ] );
    allocator.deallocate( data1, ARRAY_TEST_SIZE );
    allocator.deallocate( data2, ARRAY_TEST_SIZE );
 }
@@ -57,7 +56,7 @@ TYPED_TEST( CopyTest, copyWithConversion_host )
    float* data2 = allocator2.allocate( ARRAY_TEST_SIZE );
    fill< Devices::Host >( data1, 13, ARRAY_TEST_SIZE );
    copy< Devices::Host, Devices::Host, float, int, int >( data2, data1, ARRAY_TEST_SIZE );
-   for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( data1[ i ], data2[ i ] );
    allocator1.deallocate( data1, ARRAY_TEST_SIZE );
    allocator2.deallocate( data2, ARRAY_TEST_SIZE );
@@ -72,10 +71,10 @@ TYPED_TEST( CopyTest, copyArrayToSTLVector_host )
    copy( vector1, array );
    copy( vector2, array.getView() );
 
-   for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( vector1[ i ], array[ i ] );
 
-   for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( vector2[ i ], array[ i ] );
 }
 
@@ -98,7 +97,7 @@ TYPED_TEST( CopyTest, copy_cuda )
    copy< Devices::Cuda, Devices::Cuda, ValueType, ValueType >( deviceData2, deviceData, ARRAY_TEST_SIZE );
    copy< Devices::Host, Devices::Cuda, ValueType, ValueType >( hostData2, deviceData2, ARRAY_TEST_SIZE );
 
-   EXPECT_TRUE( ( equal< Devices::Host, Devices::Host >( hostData, hostData2, ARRAY_TEST_SIZE) ) );
+   EXPECT_TRUE( ( equal< Devices::Host, Devices::Host >( hostData, hostData2, ARRAY_TEST_SIZE ) ) );
    hostAllocator.deallocate( hostData, ARRAY_TEST_SIZE );
    hostAllocator.deallocate( hostData2, ARRAY_TEST_SIZE );
    cudaAllocator.deallocate( deviceData, ARRAY_TEST_SIZE );
@@ -126,7 +125,7 @@ TYPED_TEST( CopyTest, copyWithConversions_cuda )
    copy< Devices::Cuda, Devices::Cuda, float, long >( deviceData2, deviceData, ARRAY_TEST_SIZE );
    copy< Devices::Host, Devices::Cuda, double, float >( hostData2, deviceData2, ARRAY_TEST_SIZE );
 
-   for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( hostData[ i ], hostData2[ i ] );
    hostAllocator1.deallocate( hostData, ARRAY_TEST_SIZE );
    hostAllocator2.deallocate( hostData2, ARRAY_TEST_SIZE );
@@ -143,13 +142,12 @@ TYPED_TEST( CopyTest, copyArrayToSTLVector_cuda )
    copy( vector1, array );
    copy( vector2, array.getView() );
 
-   for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( vector1[ i ], array.getElement( i ) );
 
-   for( int i = 0; i < ARRAY_TEST_SIZE; i ++ )
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( vector2[ i ], array.getElement( i ) );
 }
-#endif // __CUDACC__
-#endif // HAVE_GTEST
+#endif  // __CUDACC__
 
 #include "../main.h"

@@ -6,25 +6,23 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/unrolledFor.h>
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
-#endif
 
 using namespace TNL;
 using namespace TNL::Algorithms;
 
-#ifdef HAVE_GTEST
 template< int N >
-void test_host()
+void
+test_host()
 {
    std::array< int, N > a;
    a.fill( 0 );
 
    unrolledFor< int, 0, N >(
-      [&a] ( auto i ) {
+      [ &a ]( auto i )
+      {
          a[ i ] += 1;
-      }
-   );
+      } );
 
    std::array< int, N > expected;
    expected.fill( 1 );
@@ -33,17 +31,17 @@ void test_host()
 
 TEST( unrolledForTest, host_size_8 )
 {
-   test_host<8>();
+   test_host< 8 >();
 }
 
 TEST( unrolledForTest, host_size_97 )
 {
-   test_host<97>();
+   test_host< 97 >();
 }
 
 TEST( unrolledForTest, host_size_5000 )
 {
-   test_host<5000>();
+   test_host< 5000 >();
 }
 
 TEST( unrolledForTest, host_empty )
@@ -51,23 +49,24 @@ TEST( unrolledForTest, host_empty )
    bool called = false;
 
    unrolledFor< int, 0, 0 >(
-      [&called] ( auto i ) {
+      [ &called ]( auto i )
+      {
          called = true;
-      }
-   );
+      } );
    EXPECT_FALSE( called );
 
    unrolledFor< int, 0, -1 >(
-      [&called] ( auto i ) {
+      [ &called ]( auto i )
+      {
          called = true;
-      }
-   );
+      } );
    EXPECT_FALSE( called );
 }
 
 #ifdef __CUDACC__
 template< int N >
-void test_cuda()
+void
+test_cuda()
 {
    using Array = Containers::Array< int, Devices::Cuda >;
    using ArrayHost = Containers::Array< int, Devices::Host >;
@@ -75,13 +74,13 @@ void test_cuda()
    a.setValue( 0 );
    auto view = a.getView();
 
-   auto kernel = [=] __cuda_callable__ (int j) mutable
+   auto kernel = [ = ] __cuda_callable__( int j ) mutable
    {
       unrolledFor< int, 0, N >(
-         [&view] ( auto i ) {
+         [ &view ]( auto i )
+         {
             view[ i ] += 1;
-         }
-      );
+         } );
    };
    parallelFor< Devices::Cuda >( 0, 1, kernel );
 
@@ -96,19 +95,18 @@ void test_cuda()
 
 TEST( unrolledForTest, cuda_size_8 )
 {
-   test_cuda<8>();
+   test_cuda< 8 >();
 }
 
 TEST( unrolledForTest, cuda_size_97 )
 {
-   test_cuda<97>();
+   test_cuda< 97 >();
 }
 
 TEST( unrolledForTest, cuda_size_5000 )
 {
-   test_cuda<5000>();
+   test_cuda< 5000 >();
 }
-#endif
 #endif
 
 #include "../main.h"

@@ -10,24 +10,24 @@
 namespace TNL::Containers {
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-void PrintTo( const Vector< Value, Device, Index, Allocator >& vec,
-              std::ostream *str )
+void
+PrintTo( const Vector< Value, Device, Index, Allocator >& vec, std::ostream* str )
 {
    *str << vec;
 }
 
 template< typename Value, typename Device, typename Index >
-void PrintTo( const VectorView< Value, Device, Index >& vec,
-              std::ostream *str )
+void
+PrintTo( const VectorView< Value, Device, Index >& vec, std::ostream* str )
 {
    *str << vec;
 }
 
 template< int Size, typename Value >
-void PrintTo( const StaticVector< Size, Value >& vec,
-              std::ostream *str )
+void
+PrintTo( const StaticVector< Size, Value >& vec, std::ostream* str )
 {
    *str << vec;
 }
 
-} // namespace TNL::Containers
+}  // namespace TNL::Containers

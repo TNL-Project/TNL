@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Meshes/Readers/VTUReader.h>
@@ -12,24 +11,52 @@ using namespace TNL::Meshes;
 
 static const char* TEST_FILE_NAME = "test_VTUReaderTest.vtu";
 
-struct MyConfigTag {};
+struct MyConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
-struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >{ static constexpr bool enabled = false; };
+struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >
+{
+   static constexpr bool enabled = false;
+};
 
 // enable meshes used in the tests
 //template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Edge > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polygon > { static constexpr bool enabled = true; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron > { static constexpr bool enabled = true; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Tetrahedron >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Hexahedron >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Polygon >
+{
+   static constexpr bool enabled = true;
+};
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron >
+{
+   static constexpr bool enabled = true;
+};
 
-} // namespace TNL::Meshes::BuildConfigTags
+}  // namespace TNL::Meshes::BuildConfigTags
 
 TEST( VTUReaderTest, empty )
 {
@@ -45,7 +72,7 @@ TEST( VTUReaderTest, empty )
 
    test_reader< Readers::VTUReader, Writers::VTUWriter >( mesh, TEST_FILE_NAME );
    // resolveAndLoadMesh cannot be tested since the empty mesh has Topologies::Vertex as cell topology
-//   test_resolveAndLoadMesh< Writers::VTUWriter, MyConfigTag >( mesh, TEST_FILE_NAME );
+   //   test_resolveAndLoadMesh< Writers::VTUWriter, MyConfigTag >( mesh, TEST_FILE_NAME );
    test_meshfunction< Readers::VTUReader, Writers::VTUWriter >( mesh, TEST_FILE_NAME, "PointData" );
    test_meshfunction< Readers::VTUReader, Writers::VTUWriter >( mesh, TEST_FILE_NAME, "CellData" );
 }
@@ -162,7 +189,8 @@ TEST( VTUReaderTest, triangles_2x2x2_minimized_compressed_tnl )
 TEST( VTUReaderTest, triangles_2x2x2_minimized_compressed_paraview )
 {
    using MeshType = Mesh< DefaultConfig< Topologies::Triangle > >;
-   const MeshType mesh = loadMeshFromFile< MeshType, Readers::VTUReader >( "triangles_2x2x2/minimized_compressed_paraview.vtu" );
+   const MeshType mesh =
+      loadMeshFromFile< MeshType, Readers::VTUReader >( "triangles_2x2x2/minimized_compressed_paraview.vtu" );
 
    // test that the mesh was actually loaded
    const auto vertices = mesh.template getEntitiesCount< 0 >();
@@ -270,8 +298,8 @@ TEST( VTUReaderTest, cube1m_1 )
    test_meshfunction< Readers::VTUReader, Writers::VTUWriter >( mesh, TEST_FILE_NAME, "CellData" );
 }
 
-// TODO: test cases for the appended data block: minimized_appended_binary_compressed.vtu, minimized_appended_binary.vtu, minimized_appended_encoded_compressed.vtu, minimized_appended_encoded.vtu
+// TODO: test cases for the appended data block: minimized_appended_binary_compressed.vtu, minimized_appended_binary.vtu,
+// minimized_appended_encoded_compressed.vtu, minimized_appended_encoded.vtu
 // TODO: test case for mixed 3D mesh: data/polyhedrons/hexahedron_and_two_polyhedra.vtu
-#endif
 
 #include "../main.h"

@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
 #include <TNL/Containers/detail/MemoryOperations.h>
@@ -79,8 +78,7 @@ TYPED_TEST( MemoryOperationsTest, setElement_cuda )
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       MemoryOperations< Devices::Cuda >::setElement( &data[ i ], (ValueType) i );
 
-   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
-   {
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ ) {
       ValueType d;
       ASSERT_EQ( cudaMemcpy( &d, &data[ i ], sizeof( ValueType ), cudaMemcpyDeviceToHost ), cudaSuccess );
       EXPECT_EQ( d, i );
@@ -90,8 +88,6 @@ TYPED_TEST( MemoryOperationsTest, setElement_cuda )
    allocator.deallocate( data, ARRAY_TEST_SIZE );
    ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
 }
-#endif // __CUDACC__
-#endif // HAVE_GTEST
-
+#endif  // __CUDACC__
 
 #include "../main.h"

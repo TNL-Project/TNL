@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include "CustomScalar.h"
@@ -37,7 +36,5 @@ TEST( CustomScalarTest, comparison )
 }
 
 // TODO: test the other operators
-
-#endif
 
 #include "main.h"

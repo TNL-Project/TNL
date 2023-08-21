@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include "gtest/gtest.h"
 
 #include <TNL/Containers/Vector.h>
@@ -12,7 +11,8 @@ using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
 template< typename View >
-void setLinearSequence( View& deviceVector )
+void
+setLinearSequence( View& deviceVector )
 {
    using HostVector = Containers::Vector< typename View::RealType, Devices::Host, typename View::IndexType >;
    HostVector a;
@@ -23,7 +23,8 @@ void setLinearSequence( View& deviceVector )
 }
 
 template< typename View >
-void setNegativeLinearSequence( View& deviceVector )
+void
+setNegativeLinearSequence( View& deviceVector )
 {
    using HostVector = Containers::Vector< typename View::RealType, Devices::Host, typename View::IndexType >;
    HostVector a;
@@ -72,21 +73,21 @@ protected:
 };
 
 // types for which MultireductionTest is instantiated
-using VectorTypes = ::testing::Types<
-   Vector< int,   Devices::Host >,
-   Vector< float, Devices::Host >
+using VectorTypes = ::testing::Types< Vector< int, Devices::Host >,
+                                      Vector< float, Devices::Host >
 #ifdef __CUDACC__
-   ,
-   Vector< int,   Devices::Cuda >,
-   Vector< float, Devices::Cuda >
+                                      ,
+                                      Vector< int, Devices::Cuda >,
+                                      Vector< float, Devices::Cuda >
 #endif
->;
+                                      >;
 
 TYPED_TEST_SUITE( MultireductionTest, VectorTypes );
 
 // idiot nvcc does not allow __cuda_callable__ lambdas inside private or protected regions
 template< typename DeviceVector, typename HostVector >
-void test_multireduction( const DeviceVector& V, const DeviceVector& y, HostVector& result )
+void
+test_multireduction( const DeviceVector& V, const DeviceVector& y, HostVector& result )
 {
    using RealType = typename DeviceVector::RealType;
    using DeviceType = typename DeviceVector::DeviceType;
@@ -98,32 +99,24 @@ void test_multireduction( const DeviceVector& V, const DeviceVector& y, HostVect
    const int n = result.getSize();
    ASSERT_EQ( V.getSize(), size * n );
 
-   auto fetch = [=] __cuda_callable__ ( IndexType i, int k )
+   auto fetch = [ = ] __cuda_callable__( IndexType i, int k )
    {
       TNL_ASSERT_LT( i, size, "BUG: fetcher got invalid index i" );
       TNL_ASSERT_LT( k, n, "BUG: fetcher got invalid index k" );
       return _V[ i + k * size ] * _y[ i ];
    };
-   Multireduction< DeviceType >::reduce
-               ( (RealType) 0,
-                 fetch,
-                 std::plus<>{},
-                 size,
-                 n,
-                 result.getData() );
+   Multireduction< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, n, result.getData() );
 
    for( int i = 0; i < n; i++ ) {
       if( i % 2 == 0 )
          EXPECT_EQ( result[ i ], 0.5 * size * ( size - 1 ) );
       else
-         EXPECT_EQ( result[ i ], - 0.5 * size * ( size - 1 ) );
+         EXPECT_EQ( result[ i ], -0.5 * size * ( size - 1 ) );
    }
 }
 TYPED_TEST( MultireductionTest, scalarProduct )
 {
    test_multireduction( this->V, this->y, this->result );
 }
-#endif // HAVE_GTEST
-
 
 #include "../main.h"

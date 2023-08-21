@@ -4,7 +4,6 @@
 
 #include <TNL/Assert.h>
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 using namespace TNL;
@@ -56,6 +55,5 @@ TEST( AssertTest, basicTest )
    EXPECT_ANY_THROW( TNL_ASSERT_TRUE( data_null, "nullptr is true" ); );
    EXPECT_ANY_THROW( TNL_ASSERT_FALSE( data_full, "non-nullptr is false" ); );
 }
-#endif
 
 #include "main.h"

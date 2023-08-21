@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Meshes/Readers/FPMAReader.h>
@@ -12,18 +11,26 @@ using namespace TNL::Meshes;
 
 static const char* TEST_FILE_NAME = "test_FPMAReaderTest.fpma";
 
-struct MyConfigTag {};
+struct MyConfigTag
+{};
 
 namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
-struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >{ static constexpr bool enabled = false; };
+struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >
+{
+   static constexpr bool enabled = false;
+};
 
 // enable meshes used in the tests
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron > { static constexpr bool enabled = true; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Polyhedron >
+{
+   static constexpr bool enabled = true;
+};
 
-} // namespace TNL::Meshes::BuildConfigTags
+}  // namespace TNL::Meshes::BuildConfigTags
 
 TEST( FPMAReaderTest, two_polyhedra )
 {
@@ -58,7 +65,5 @@ TEST( FPMAReaderTest, cube1m_1 )
    test_reader< Readers::FPMAReader, Writers::FPMAWriter >( mesh, TEST_FILE_NAME );
    test_resolveAndLoadMesh< Writers::FPMAWriter, MyConfigTag >( mesh, TEST_FILE_NAME );
 }
-
-#endif
 
 #include "../main.h"

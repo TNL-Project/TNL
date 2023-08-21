@@ -1,11 +1,9 @@
 
 #pragma once
 
-#ifdef HAVE_GTEST
-
-   #include <gtest/gtest.h>
-   #include "support.h"
-   #include <TNL/Meshes/Grid.h>
+#include <gtest/gtest.h>
+#include "support.h"
+#include <TNL/Meshes/Grid.h>
 
 using Index = int;
 using Real = float;
@@ -113,7 +111,6 @@ TEST( GridCoordinateIteratorTest, Grid2DEntity0DOrientation0Test )
    test( iterator, grid, { 1, 3 }, { 1, 1 }, { 1., 3. }, true, 13, 0., false );
    test( iterator, grid, { 2, 3 }, { 1, 1 }, { 2., 3. }, true, 14, 0., false );
    test( iterator, grid, { 3, 3 }, { 1, 1 }, { 3., 3. }, true, 15, 0., true );
-
 }
 
 TEST( GridCoordinateIteratorTest, Grid2DEntity1DOrientation0Test )
@@ -161,18 +158,18 @@ TEST( GridCoordinateIteratorTest, Grid2DEntity1DOrientation1Test )
 
    Iterator iterator( grid.getDimensions() );
 
-   test( iterator, grid, { 0, 0 }, { 1, 0 }, { 0., 0.5  }, true, 12, 1., false );
-   test( iterator, grid, { 1, 0 }, { 1, 0 }, { 1., 0.5  }, false, 13, 1., false );
+   test( iterator, grid, { 0, 0 }, { 1, 0 }, { 0., 0.5 }, true, 12, 1., false );
+   test( iterator, grid, { 1, 0 }, { 1, 0 }, { 1., 0.5 }, false, 13, 1., false );
    test( iterator, grid, { 2, 0 }, { 1, 0 }, { 2., 0.5 }, false, 14, 1., false );
    test( iterator, grid, { 3, 0 }, { 1, 0 }, { 3., 0.5 }, true, 15, 1., false );
 
-   test( iterator, grid, { 0, 1 }, { 1, 0 }, { 0., 1.5  }, true, 16, 1., false );
-   test( iterator, grid, { 1, 1 }, { 1, 0 }, { 1., 1.5  }, false, 17, 1., false );
+   test( iterator, grid, { 0, 1 }, { 1, 0 }, { 0., 1.5 }, true, 16, 1., false );
+   test( iterator, grid, { 1, 1 }, { 1, 0 }, { 1., 1.5 }, false, 17, 1., false );
    test( iterator, grid, { 2, 1 }, { 1, 0 }, { 2., 1.5 }, false, 18, 1., false );
    test( iterator, grid, { 3, 1 }, { 1, 0 }, { 3., 1.5 }, true, 19, 1., false );
 
-   test( iterator, grid, { 0, 2 }, { 1, 0 }, { 0., 2.5  }, true, 20, 1., false );
-   test( iterator, grid, { 1, 2 }, { 1, 0 }, { 1., 2.5  }, false, 21, 1., false );
+   test( iterator, grid, { 0, 2 }, { 1, 0 }, { 0., 2.5 }, true, 20, 1., false );
+   test( iterator, grid, { 1, 2 }, { 1, 0 }, { 1., 2.5 }, false, 21, 1., false );
    test( iterator, grid, { 2, 2 }, { 1, 0 }, { 2., 2.5 }, false, 22, 1., false );
    test( iterator, grid, { 3, 2 }, { 1, 0 }, { 3., 2.5 }, true, 23, 1., true );
 }
@@ -215,7 +212,7 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity0DOrientation0Test )
    Grid grid;
    grid.setDimensions( 2, 2, 2 );
    grid.setSpaceSteps( 1., 1., 1. );
-   grid.setOrigin( 0., 0., 0.);
+   grid.setOrigin( 0., 0., 0. );
 
    Iterator iterator( grid.getDimensions() );
 
@@ -231,8 +228,7 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity0DOrientation0Test )
    test( iterator, grid, { 1, 2, 0 }, { 1, 1, 1 }, { 1., 2., 0. }, true, 7, 0., false );
    test( iterator, grid, { 2, 2, 0 }, { 1, 1, 1 }, { 2., 2., 0. }, true, 8, 0., false );
 
-
-   test( iterator, grid, { 0, 0, 1 }, { 1, 1, 1 }, { 0., 0., 1. }, true, 9,  0., false );
+   test( iterator, grid, { 0, 0, 1 }, { 1, 1, 1 }, { 0., 0., 1. }, true, 9, 0., false );
    test( iterator, grid, { 1, 0, 1 }, { 1, 1, 1 }, { 1., 0., 1. }, true, 10, 0., false );
    test( iterator, grid, { 2, 0, 1 }, { 1, 1, 1 }, { 2., 0., 1. }, true, 11, 0., false );
 
@@ -243,7 +239,6 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity0DOrientation0Test )
    test( iterator, grid, { 0, 2, 1 }, { 1, 1, 1 }, { 0., 2., 1. }, true, 15, 0., false );
    test( iterator, grid, { 1, 2, 1 }, { 1, 1, 1 }, { 1., 2., 1. }, true, 16, 0., false );
    test( iterator, grid, { 2, 2, 1 }, { 1, 1, 1 }, { 2., 2., 1. }, true, 17, 0., false );
-
 
    test( iterator, grid, { 0, 0, 2 }, { 1, 1, 1 }, { 0., 0., 2. }, true, 18, 0., false );
    test( iterator, grid, { 1, 0, 2 }, { 1, 1, 1 }, { 1., 0., 2. }, true, 19, 0., false );
@@ -281,7 +276,6 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity1DOrientation0Test )
    test( iterator, grid, { 0, 2, 0 }, { 0, 1, 1 }, { 0.5, 2., 0. }, true, 4, 1., false );
    test( iterator, grid, { 1, 2, 0 }, { 0, 1, 1 }, { 1.5, 2., 0. }, true, 5, 1., false );
 
-
    test( iterator, grid, { 0, 0, 1 }, { 0, 1, 1 }, { 0.5, 0., 1. }, true, 6, 1., false );
    test( iterator, grid, { 1, 0, 1 }, { 0, 1, 1 }, { 1.5, 0., 1. }, true, 7, 1., false );
 
@@ -290,7 +284,6 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity1DOrientation0Test )
 
    test( iterator, grid, { 0, 2, 1 }, { 0, 1, 1 }, { 0.5, 2., 1. }, true, 10, 1., false );
    test( iterator, grid, { 1, 2, 1 }, { 0, 1, 1 }, { 1.5, 2., 1. }, true, 11, 1., false );
-
 
    test( iterator, grid, { 0, 0, 2 }, { 0, 1, 1 }, { 0.5, 0., 2. }, true, 12, 1., false );
    test( iterator, grid, { 1, 0, 2 }, { 0, 1, 1 }, { 1.5, 0., 2. }, true, 13, 1., false );
@@ -321,16 +314,16 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity1DOrientation1Test )
    test( iterator, grid, { 2, 0, 0 }, { 1, 0, 1 }, { 2., 0.5, 0. }, true, 20, 1., false );
 
    test( iterator, grid, { 0, 1, 0 }, { 1, 0, 1 }, { 0., 1.5, 0. }, true, 21, 1., false );
-   test( iterator, grid, { 1, 1, 0 }, { 1, 0, 1 }, { 1., 1.5, 0. }, true, 22,  1., false );
-   test( iterator, grid, { 2, 1, 0 }, { 1, 0, 1 }, { 2., 1.5, 0. }, true, 23,  1., false );
+   test( iterator, grid, { 1, 1, 0 }, { 1, 0, 1 }, { 1., 1.5, 0. }, true, 22, 1., false );
+   test( iterator, grid, { 2, 1, 0 }, { 1, 0, 1 }, { 2., 1.5, 0. }, true, 23, 1., false );
 
-   test( iterator, grid, { 0, 0, 1 }, { 1, 0, 1 }, { 0., 0.5, 1. }, true, 24,  1., false );
+   test( iterator, grid, { 0, 0, 1 }, { 1, 0, 1 }, { 0., 0.5, 1. }, true, 24, 1., false );
    test( iterator, grid, { 1, 0, 1 }, { 1, 0, 1 }, { 1., 0.5, 1. }, false, 25, 1., false );
    test( iterator, grid, { 2, 0, 1 }, { 1, 0, 1 }, { 2., 0.5, 1. }, true, 26, 1., false );
 
-   test( iterator, grid, { 0, 1, 1 }, { 1, 0, 1 }, { 0., 1.5, 1. }, true, 27,  1., false );
+   test( iterator, grid, { 0, 1, 1 }, { 1, 0, 1 }, { 0., 1.5, 1. }, true, 27, 1., false );
    test( iterator, grid, { 1, 1, 1 }, { 1, 0, 1 }, { 1., 1.5, 1. }, false, 28, 1., false );
-   test( iterator, grid, { 2, 1, 1 }, { 1, 0, 1 }, { 2., 1.5, 1. }, true, 29,  1., false );
+   test( iterator, grid, { 2, 1, 1 }, { 1, 0, 1 }, { 2., 1.5, 1. }, true, 29, 1., false );
 
    test( iterator, grid, { 0, 0, 2 }, { 1, 0, 1 }, { 0., 0.5, 2. }, true, 30, 1., false );
    test( iterator, grid, { 1, 0, 2 }, { 1, 0, 1 }, { 1., 0.5, 2. }, true, 31, 1., false );
@@ -366,7 +359,6 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity1DOrientation2Test )
    test( iterator, grid, { 0, 2, 0 }, { 1, 1, 0 }, { 0., 2., 0.5 }, true, 42, 1., false );
    test( iterator, grid, { 1, 2, 0 }, { 1, 1, 0 }, { 1., 2., 0.5 }, true, 43, 1., false );
    test( iterator, grid, { 2, 2, 0 }, { 1, 1, 0 }, { 2., 2., 0.5 }, true, 44, 1., false );
-
 
    test( iterator, grid, { 0, 0, 1 }, { 1, 1, 0 }, { 0., 0., 1.5 }, true, 45, 1., false );
    test( iterator, grid, { 1, 0, 1 }, { 1, 1, 0 }, { 1., 0., 1.5 }, true, 46, 1., false );
@@ -504,7 +496,5 @@ TEST( GridCoordinateIteratorTest, Grid3DEntity3DOrientation0Test )
    test( iterator, grid, { 0, 1, 1 }, { 0, 0, 0 }, { 0.5, 1.5, 1.5 }, true, 6, 1., false );
    test( iterator, grid, { 1, 1, 1 }, { 0, 0, 0 }, { 1.5, 1.5, 1.5 }, true, 7, 1., true );
 }
-
-#endif
 
 #include "../../../main.h"

@@ -1,25 +1,35 @@
 #include <TNL/TypeInfo.h>
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
-#endif
 
 using namespace TNL;
 
-#ifdef HAVE_GTEST
+enum MyEnumType
+{
+   foo,
+   bar
+};
+enum class MyEnumClass
+{
+   foo,
+   bar
+};
 
-enum MyEnumType { foo, bar };
-enum class MyEnumClass { foo, bar };
-
-class MyClass {};
+class MyClass
+{};
 class MyClassWithGetSerializationType
 {
 public:
-   static std::string getSerializationType() { return "SomethingElse"; }
+   static std::string
+   getSerializationType()
+   {
+      return "SomethingElse";
+   }
 };
 
 template< typename... >
-class MyClassTemplate {};
+class MyClassTemplate
+{};
 
 class MyPolymorphicBase
 {
@@ -31,7 +41,6 @@ class MyPolymorphicDerived : public MyPolymorphicBase
 public:
    virtual ~MyPolymorphicDerived() {}
 };
-
 
 TEST( TypeInfoTest, getType )
 {
@@ -150,6 +159,5 @@ TEST( TypeInfoTest, getSerializationType )
    using T1 = MyClassTemplate< int, MyClassTemplate< int, int >, MyClass >;
    EXPECT_EQ( getSerializationType< T1 >(), "MyClassTemplate<int, MyClassTemplate<int, int>, MyClass>" );
 }
-#endif
 
 #include "main.h"

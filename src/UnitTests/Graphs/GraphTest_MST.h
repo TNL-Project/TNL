@@ -7,8 +7,7 @@
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Containers/StaticVector.h>
 
-#ifdef HAVE_GTEST
-   #include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 // test fixture for typed tests
 template< typename Matrix >
@@ -25,9 +24,9 @@ protected:
 // types for which MatrixTest is instantiated
 using GraphTestTypes = ::testing::Types< TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
                                          TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >
-   #ifdef __CUDACC__
-   //,TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >
-   #endif
+#ifdef __CUDACC__
+//,TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >
+#endif
                                          >;
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
@@ -223,7 +222,5 @@ TYPED_TEST( GraphTest, test_MST_large_3 )
    ASSERT_TRUE( TNL::Graphs::isForest( minimum_tree ) );  // node 29 is not connected
    ASSERT_EQ( sum( maximum( v1, 0 ) ), sum( maximum( v2, 0 ) ) );
 }
-
-#endif
 
 #include "../main.h"

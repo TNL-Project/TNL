@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Containers/DistributedNDArray.h>
@@ -17,15 +16,18 @@ using namespace TNL::Containers;
  * - Communicator is hardcoded as MPI_COMM_WORLD -- it may be changed as needed.
  */
 template< typename DistributedNDArray >
-class DistributedNDArray_1D_test
-: public ::testing::Test
+class DistributedNDArray_1D_test : public ::testing::Test
 {
 protected:
    using ValueType = typename DistributedNDArray::ValueType;
    using DeviceType = typename DistributedNDArray::DeviceType;
    using IndexType = typename DistributedNDArray::IndexType;
    using DistributedNDArrayType = DistributedNDArray;
-   using LocalArrayType = NDArray< ValueType, typename DistributedNDArrayType::SizesHolderType, typename DistributedNDArrayType::PermutationType, DeviceType, IndexType >;
+   using LocalArrayType = NDArray< ValueType,
+                                   typename DistributedNDArrayType::SizesHolderType,
+                                   typename DistributedNDArrayType::PermutationType,
+                                   DeviceType,
+                                   IndexType >;
 
    const int globalSize = 97;  // prime number to force non-uniform distribution
 
@@ -33,8 +35,8 @@ protected:
 
    DistributedNDArrayType distributedNDArray;
 
-   const int rank = TNL::MPI::GetRank(communicator);
-   const int nproc = TNL::MPI::GetSize(communicator);
+   const int rank = TNL::MPI::GetRank( communicator );
+   const int nproc = TNL::MPI::GetSize( communicator );
 
    DistributedNDArray_1D_test()
    {
@@ -50,19 +52,13 @@ protected:
 };
 
 // types for which DistributedNDArray_1D_test is instantiated
-using DistributedNDArrayTypes = ::testing::Types<
-   DistributedNDArray< NDArray< double,
-                                SizesHolder< int, 0 >,
-                                std::index_sequence< 0 >,
-                                Devices::Host > >
+using DistributedNDArrayTypes =
+   ::testing::Types< DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Host > >
 #ifdef __CUDACC__
-   ,
-   DistributedNDArray< NDArray< double,
-                                SizesHolder< int, 0 >,
-                                std::index_sequence< 0 >,
-                                Devices::Cuda > >
+                     ,
+                     DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Cuda > >
 #endif
->;
+                     >;
 
 TYPED_TEST_SUITE( DistributedNDArray_1D_test, DistributedNDArrayTypes );
 
@@ -155,7 +151,8 @@ TYPED_TEST( DistributedNDArray_1D_test, copyAssignment )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_comparisonOperators( DistributedArray& u, DistributedArray& v, DistributedArray& w )
+void
+test_helper_comparisonOperators( DistributedArray& u, DistributedArray& v, DistributedArray& w )
 {
    using DeviceType = typename DistributedArray::DeviceType;
    using IndexType = typename DistributedArray::IndexType;
@@ -165,7 +162,7 @@ void test_helper_comparisonOperators( DistributedArray& u, DistributedArray& v, 
    auto v_view = v.getLocalView();
    auto w_view = w.getLocalView();
 
-   auto kernel = [=] __cuda_callable__ ( IndexType gi ) mutable
+   auto kernel = [ = ] __cuda_callable__( IndexType gi ) mutable
    {
       u_view( gi - localRange.getBegin() ) = gi;
       v_view( gi - localRange.getBegin() ) = gi;
@@ -204,14 +201,15 @@ TYPED_TEST( DistributedNDArray_1D_test, comparisonOperators )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_forAll( DistributedArray& a )
+void
+test_helper_forAll( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
+   auto setter = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       a_view( i - localRange.getBegin() ) += 1;
    };
@@ -237,14 +235,15 @@ TYPED_TEST( DistributedNDArray_1D_test, forAll )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_forInterior( DistributedArray& a )
+void
+test_helper_forInterior( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
+   auto setter = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       a_view( i - localRange.getBegin() ) += 1;
    };
@@ -252,27 +251,21 @@ void test_helper_forInterior( DistributedArray& a )
    a.setValue( 0 );
    a.forInterior( setter );
 
-   for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-   {
+   for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ ) {
       if( gi == 0 || gi == a.template getSize< 0 >() - 1 )
-         EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+         EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
       else
-         EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+         EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
    }
 
    a.setValue( 0 );
    a.getView().forInterior( setter );
 
-   for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-   {
+   for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ ) {
       if( gi == 0 || gi == a.template getSize< 0 >() - 1 )
-         EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+         EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
       else
-         EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+         EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
    }
 }
 
@@ -284,14 +277,15 @@ TYPED_TEST( DistributedNDArray_1D_test, forInterior )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_forLocalInterior( DistributedArray& a )
+void
+test_helper_forLocalInterior( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
+   auto setter = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       a_view( i - localRange.getBegin() ) += 1;
    };
@@ -301,16 +295,14 @@ void test_helper_forLocalInterior( DistributedArray& a )
    a.forLocalInterior( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
 
    a.setValue( 0 );
    // equivalent to forAll because all overlaps are 0
    a.getView().forLocalInterior( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
 }
 
 TYPED_TEST( DistributedNDArray_1D_test, forLocalInterior )
@@ -321,14 +313,15 @@ TYPED_TEST( DistributedNDArray_1D_test, forLocalInterior )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_forBoundary( DistributedArray& a )
+void
+test_helper_forBoundary( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
+   auto setter = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       a_view( i - localRange.getBegin() ) += 1;
    };
@@ -336,27 +329,21 @@ void test_helper_forBoundary( DistributedArray& a )
    a.setValue( 0 );
    a.forBoundary( setter );
 
-   for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-   {
+   for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ ) {
       if( gi == 0 || gi == a.template getSize< 0 >() - 1 )
-         EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+         EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
       else
-         EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+         EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
    }
 
    a.setValue( 0 );
    a.getView().forBoundary( setter );
 
-   for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-   {
+   for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ ) {
       if( gi == 0 || gi == a.template getSize< 0 >() - 1 )
-         EXPECT_EQ( a.getElement( gi ), 1 )
-            << "gi = " << gi;
+         EXPECT_EQ( a.getElement( gi ), 1 ) << "gi = " << gi;
       else
-         EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+         EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
    }
 }
 
@@ -368,14 +355,15 @@ TYPED_TEST( DistributedNDArray_1D_test, forBoundary )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_forLocalBoundary( DistributedArray& a )
+void
+test_helper_forLocalBoundary( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
+   auto setter = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       a_view( i - localRange.getBegin() ) += 1;
    };
@@ -385,16 +373,14 @@ void test_helper_forLocalBoundary( DistributedArray& a )
    a.forLocalBoundary( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
 
    a.setValue( 0 );
    // empty set because all overlaps are 0
    a.getView().forLocalBoundary( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
 }
 
 TYPED_TEST( DistributedNDArray_1D_test, forLocalBoundary )
@@ -405,14 +391,15 @@ TYPED_TEST( DistributedNDArray_1D_test, forLocalBoundary )
 // separate function because nvcc does not allow __cuda_callable__ lambdas inside
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray >
-void test_helper_forGhosts( DistributedArray& a )
+void
+test_helper_forGhosts( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
    const auto localRange = a.template getLocalRange< 0 >();
    auto a_view = a.getLocalView();
 
-   auto setter = [=] __cuda_callable__ ( IndexType i ) mutable
+   auto setter = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       a_view( i - localRange.getBegin() ) += 1;
    };
@@ -422,24 +409,19 @@ void test_helper_forGhosts( DistributedArray& a )
    a.forGhosts( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
 
    a.setValue( 0 );
    // empty set because all overlaps are 0
    a.getView().forGhosts( setter );
 
    for( int gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ )
-      EXPECT_EQ( a.getElement( gi ), 0 )
-            << "gi = " << gi;
+      EXPECT_EQ( a.getElement( gi ), 0 ) << "gi = " << gi;
 }
 
 TYPED_TEST( DistributedNDArray_1D_test, forGhosts )
 {
    test_helper_forGhosts( this->distributedNDArray );
 }
-
-#endif  // HAVE_GTEST
-
 
 #include "../../main_mpi.h"

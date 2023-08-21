@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include "gtest/gtest.h"
 
 #include <TNL/Matrices/StaticMatrix.h>
@@ -19,12 +18,11 @@ TEST( StaticNDArrayTest, 3x4_row_major )
 
    int v = 0;
    for( int i = 0; i < I; i++ )
-   for( int j = 0; j < J; j++ )
-   {
-      M( i, j ) = v;
-      row_sums[ i ] += v;
-      v++;
-   }
+      for( int j = 0; j < J; j++ ) {
+         M( i, j ) = v;
+         row_sums[ i ] += v;
+         v++;
+      }
 
    a = M * b;
 
@@ -44,12 +42,11 @@ TEST( StaticNDArrayTest, 4x3_row_major )
 
    int v = 0;
    for( int i = 0; i < I; i++ )
-   for( int j = 0; j < J; j++ )
-   {
-      M( i, j ) = v;
-      row_sums[ i ] += v;
-      v++;
-   }
+      for( int j = 0; j < J; j++ ) {
+         M( i, j ) = v;
+         row_sums[ i ] += v;
+         v++;
+      }
 
    a = M * b;
 
@@ -70,12 +67,11 @@ TEST( StaticNDArrayTest, 3x4_column_major )
 
    int v = 0;
    for( int i = 0; i < I; i++ )
-   for( int j = 0; j < J; j++ )
-   {
-      M( i, j ) = v;
-      row_sums[ i ] += v;
-      v++;
-   }
+      for( int j = 0; j < J; j++ ) {
+         M( i, j ) = v;
+         row_sums[ i ] += v;
+         v++;
+      }
 
    a = M * b;
 
@@ -96,12 +92,11 @@ TEST( StaticNDArrayTest, 4x3_column_major )
 
    int v = 0;
    for( int i = 0; i < I; i++ )
-   for( int j = 0; j < J; j++ )
-   {
-      M( i, j ) = v;
-      row_sums[ i ] += v;
-      v++;
-   }
+      for( int j = 0; j < J; j++ ) {
+         M( i, j ) = v;
+         row_sums[ i ] += v;
+         v++;
+      }
 
    a = M * b;
 
@@ -357,7 +352,5 @@ TEST( StaticNDArrayTest, 4x4_linear_system )
    EXPECT_NEAR( exact_solution[ 2 ], solution[ 2 ], 1.0e-5 );
    EXPECT_NEAR( exact_solution[ 3 ], solution[ 3 ], 1.0e-5 );
 }
-
-#endif // HAVE_GTEST
 
 #include "../main.h"

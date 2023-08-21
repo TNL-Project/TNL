@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Algorithms/staticFor.h>
@@ -9,17 +8,20 @@
 namespace EntityTests {
 
 template< typename MeshEntity >
-void testVertex( const MeshEntity& entity )
+void
+testVertex( const MeshEntity& entity )
 {}
 
 template< typename MeshConfig, typename Device >
-void testVertex( const TNL::Meshes::MeshEntity< MeshConfig, Device, TNL::Meshes::Topologies::Vertex >& entity )
+void
+testVertex( const TNL::Meshes::MeshEntity< MeshConfig, Device, TNL::Meshes::Topologies::Vertex >& entity )
 {
    EXPECT_EQ( entity.getPoint(), entity.getMesh().getPoint( entity.getIndex() ) );
 }
 
 template< int subdimension, typename MeshEntity >
-void testSubentities( const MeshEntity& entity )
+void
+testSubentities( const MeshEntity& entity )
 {
    const typename MeshEntity::MeshType mesh = entity.getMesh();
    const typename MeshEntity::GlobalIndexType index = entity.getIndex();
@@ -34,7 +36,8 @@ void testSubentities( const MeshEntity& entity )
 }
 
 template< int superdimension, typename MeshEntity >
-void testSuperentities( const MeshEntity& entity )
+void
+testSuperentities( const MeshEntity& entity )
 {
    const typename MeshEntity::MeshType mesh = entity.getMesh();
    const typename MeshEntity::GlobalIndexType index = entity.getIndex();
@@ -51,23 +54,19 @@ void testSuperentities( const MeshEntity& entity )
 // test if the entity is consistent with its mesh (i.e. all member functions like
 // getSubentityIndex return the same value when called from the entity and the mesh)
 template< typename MeshEntity >
-void testEntity( const MeshEntity& entity )
+void
+testEntity( const MeshEntity& entity )
 {
    // static tests for the MeshEntity type
-   static_assert( std::is_constructible< MeshEntity, typename MeshEntity::MeshType, typename MeshEntity::GlobalIndexType >::value,
-                  "MeshEntity should be constructible from its MeshType and GlobalIndexType" );
-   static_assert( ! std::is_default_constructible< MeshEntity >::value,
-                  "MeshEntity should not be default-constructible" );
-   static_assert( std::is_copy_constructible< MeshEntity >::value,
-                  "MeshEntity should be copy-constructible" );
-   static_assert( std::is_move_constructible< MeshEntity >::value,
-                  "MeshEntity should be move-constructible" );
-   static_assert( std::is_copy_assignable< MeshEntity >::value,
-                  "MeshEntity should be copy-assignable" );
-   static_assert( std::is_move_assignable< MeshEntity >::value,
-                  "MeshEntity should be move-assignable" );
-   static_assert( std::is_trivially_destructible< MeshEntity >::value,
-                  "MeshEntity should be trivially destructible" );
+   static_assert(
+      std::is_constructible< MeshEntity, typename MeshEntity::MeshType, typename MeshEntity::GlobalIndexType >::value,
+      "MeshEntity should be constructible from its MeshType and GlobalIndexType" );
+   static_assert( ! std::is_default_constructible< MeshEntity >::value, "MeshEntity should not be default-constructible" );
+   static_assert( std::is_copy_constructible< MeshEntity >::value, "MeshEntity should be copy-constructible" );
+   static_assert( std::is_move_constructible< MeshEntity >::value, "MeshEntity should be move-constructible" );
+   static_assert( std::is_copy_assignable< MeshEntity >::value, "MeshEntity should be copy-assignable" );
+   static_assert( std::is_move_assignable< MeshEntity >::value, "MeshEntity should be move-assignable" );
+   static_assert( std::is_trivially_destructible< MeshEntity >::value, "MeshEntity should be trivially destructible" );
 
    // dynamic tests for the entity
    const typename MeshEntity::MeshType mesh = entity.getMesh();
@@ -78,19 +77,20 @@ void testEntity( const MeshEntity& entity )
    EXPECT_EQ( entity.getTag(), mesh.template getEntityTag< dimension >( index ) );
 
    TNL::Algorithms::staticFor< int, 0, dimension >(
-      [&entity] ( auto subdimension ) {
+      [ &entity ]( auto subdimension )
+      {
          testSubentities< subdimension >( entity );
-      }
-   );
+      } );
    TNL::Algorithms::staticFor< int, dimension + 1, MeshEntity::MeshType::getMeshDimension() + 1 >(
-      [&entity] ( auto superdimension ) {
+      [ &entity ]( auto superdimension )
+      {
          testSuperentities< superdimension >( entity );
-      }
-   );
+      } );
 }
 
 template< int Dimension, typename Mesh >
-void testEntities( const Mesh& mesh )
+void
+testEntities( const Mesh& mesh )
 {
    using Index = typename Mesh::GlobalIndexType;
    const Index entitiesCount = mesh.template getEntitiesCount< Dimension >();
@@ -100,15 +100,15 @@ void testEntities( const Mesh& mesh )
    }
 }
 
-} // EntityTests
+}  //namespace EntityTests
 
 template< typename Mesh >
-void testEntities( const Mesh& mesh )
+void
+testEntities( const Mesh& mesh )
 {
    TNL::Algorithms::staticFor< int, 0, Mesh::getMeshDimension() >(
-      [&mesh] ( auto Dimension ) {
+      [ &mesh ]( auto Dimension )
+      {
          EntityTests::testEntities< Dimension >( mesh );
-      }
-   );
+      } );
 }
-#endif

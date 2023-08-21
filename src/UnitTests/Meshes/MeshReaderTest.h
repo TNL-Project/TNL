@@ -7,8 +7,9 @@
 
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
 
-template< typename ReaderType, template<typename> class WriterType, typename MeshType >
-void test_reader( const MeshType& mesh, std::string outputFileName )
+template< typename ReaderType, template< typename > class WriterType, typename MeshType >
+void
+test_reader( const MeshType& mesh, std::string outputFileName )
 {
    // write the mesh into the file (new scope is needed to properly close the file)
    {
@@ -30,8 +31,9 @@ void test_reader( const MeshType& mesh, std::string outputFileName )
 // Test that:
 // 1. resolveMeshType resolves the mesh type correctly
 // 2. resolveAndLoadMesh loads the mesh
-template< template<typename> class WriterType, typename ConfigTag, typename MeshType >
-void test_resolveAndLoadMesh( const MeshType& mesh, std::string outputFileName, std::string globalIndexType = "auto" )
+template< template< typename > class WriterType, typename ConfigTag, typename MeshType >
+void
+test_resolveAndLoadMesh( const MeshType& mesh, std::string outputFileName, std::string globalIndexType = "auto" )
 {
    // write the mesh into the file (new scope is needed to properly close the file)
    {
@@ -41,16 +43,16 @@ void test_resolveAndLoadMesh( const MeshType& mesh, std::string outputFileName, 
       writer.writeEntities( mesh );
    }
 
-   auto wrapper = [&] ( TNL::Meshes::Readers::MeshReader& reader, auto&& mesh2 )
+   auto wrapper = [ & ]( TNL::Meshes::Readers::MeshReader& reader, auto&& mesh2 )
    {
-      using MeshType2 = std::decay_t< decltype(mesh2) >;
+      using MeshType2 = std::decay_t< decltype( mesh2 ) >;
 
       // static_assert does not work, the wrapper is actually instantiated for all resolved types
-//      static_assert( std::is_same< MeshType2, MeshType >::value, "mesh type was not resolved as expected" );
+      //      static_assert( std::is_same< MeshType2, MeshType >::value, "mesh type was not resolved as expected" );
       EXPECT_EQ( std::string( TNL::getType< MeshType2 >() ), std::string( TNL::getType< MeshType >() ) );
 
       // operator== does not work for instantiations of the wrapper with MeshType2 != MeshType
-//      EXPECT_EQ( mesh2, mesh );
+      //      EXPECT_EQ( mesh2, mesh );
       std::stringstream str1, str2;
       str1 << mesh;
       str2 << mesh2;
@@ -59,14 +61,16 @@ void test_resolveAndLoadMesh( const MeshType& mesh, std::string outputFileName, 
       return true;
    };
 
-   const bool status = TNL::Meshes::resolveAndLoadMesh< ConfigTag, TNL::Devices::Host >( wrapper, outputFileName, "auto", "auto", globalIndexType );
+   const bool status = TNL::Meshes::resolveAndLoadMesh< ConfigTag, TNL::Devices::Host >(
+      wrapper, outputFileName, "auto", "auto", globalIndexType );
    EXPECT_TRUE( status );
 
    EXPECT_EQ( std::remove( outputFileName.c_str() ), 0 );
 }
 
-template< typename ReaderType, template<typename> class WriterType, typename MeshType >
-void test_meshfunction( const MeshType& mesh, std::string outputFileName, std::string type = "PointData" )
+template< typename ReaderType, template< typename > class WriterType, typename MeshType >
+void
+test_meshfunction( const MeshType& mesh, std::string outputFileName, std::string type = "PointData" )
 {
    using ArrayType = TNL::Containers::Array< std::int32_t >;
    ArrayType array_scalars, array_vectors;
@@ -79,9 +83,9 @@ void test_meshfunction( const MeshType& mesh, std::string outputFileName, std::s
       array_vectors.setSize( 3 * mesh.template getEntitiesCount< MeshType::getMeshDimension() >() );
    }
    for( int i = 0; i < array_scalars.getSize(); i++ )
-      array_scalars[i] = i;
+      array_scalars[ i ] = i;
    for( int i = 0; i < array_vectors.getSize(); i++ )
-      array_vectors[i] = i;
+      array_vectors[ i ] = i;
 
    // write the mesh into the file (new scope is needed to properly close the file)
    {
@@ -116,16 +120,18 @@ void test_meshfunction( const MeshType& mesh, std::string outputFileName, std::s
       variant_vectors = reader.readCellData( "bar" );
    }
    using std::visit;
-   visit( [&array_scalars_in](auto&& vector) {
-            array_scalars_in = vector;
-         },
-         variant_scalars
-      );
-   visit( [&array_vectors_in](auto&& vector) {
-            array_vectors_in = vector;
-         },
-         variant_vectors
-      );
+   visit(
+      [ &array_scalars_in ]( auto&& vector )
+      {
+         array_scalars_in = vector;
+      },
+      variant_scalars );
+   visit(
+      [ &array_vectors_in ]( auto&& vector )
+      {
+         array_vectors_in = vector;
+      },
+      variant_vectors );
    EXPECT_EQ( array_scalars_in, array_scalars );
    EXPECT_EQ( array_vectors_in, array_vectors );
 

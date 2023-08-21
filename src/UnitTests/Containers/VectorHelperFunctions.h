@@ -5,7 +5,8 @@
 #include <TNL/Devices/Host.h>
 
 template< typename Vector >
-void setLinearSequence( Vector& deviceVector )
+void
+setLinearSequence( Vector& deviceVector )
 {
 #ifdef STATIC_VECTOR
    Vector a;
@@ -29,13 +30,15 @@ void setLinearSequence( Vector& deviceVector )
 }
 
 template< typename Vector, typename Value >
-void setConstantSequence( Vector& deviceVector, Value v )
+void
+setConstantSequence( Vector& deviceVector, Value v )
 {
    deviceVector.setValue( typename Vector::ValueType( v ) );
 }
 
 template< typename Vector >
-void setOscilatingLinearSequence( Vector& deviceVector )
+void
+setOscilatingLinearSequence( Vector& deviceVector )
 {
    using HostVector = typename Vector::template Self< typename Vector::ValueType, TNL::Devices::Host >;
    HostVector a;
@@ -46,7 +49,8 @@ void setOscilatingLinearSequence( Vector& deviceVector )
 }
 
 template< typename Vector >
-void setOscilatingConstantSequence( Vector& deviceVector )
+void
+setOscilatingConstantSequence( Vector& deviceVector )
 {
    using HostVector = typename Vector::template Self< typename Vector::ValueType, TNL::Devices::Host >;
    HostVector a;
@@ -57,7 +61,8 @@ void setOscilatingConstantSequence( Vector& deviceVector )
 }
 
 template< typename Vector >
-void setNegativeLinearSequence( Vector& deviceVector )
+void
+setNegativeLinearSequence( Vector& deviceVector )
 {
    using HostVector = typename Vector::template Self< typename Vector::ValueType, TNL::Devices::Host >;
    HostVector a;
@@ -77,7 +82,8 @@ void setNegativeLinearSequence( Vector& deviceVector )
 }
 
 template< typename Vector, typename Value >
-void setOscilatingSequence( Vector& deviceVector, Value v )
+void
+setOscilatingSequence( Vector& deviceVector, Value v )
 {
 #ifdef STATIC_VECTOR
    Vector a;
@@ -100,51 +106,51 @@ void setOscilatingSequence( Vector& deviceVector, Value v )
    deviceVector = a;
 }
 
-
 // specialization for V1 = view
-template< typename V1, typename V2,
-          std::enable_if_t< TNL::IsViewType< V1 >::value, bool > = true >
-void bindOrAssign( V1& v1, V2& v2 )
+template< typename V1, typename V2, std::enable_if_t< TNL::IsViewType< V1 >::value, bool > = true >
+void
+bindOrAssign( V1& v1, V2& v2 )
 {
    v1.bind( v2.getView() );
 }
 
 // specialization for V1 = vector
-template< typename V1, typename V2,
-          std::enable_if_t< ! TNL::IsViewType< V1 >::value, bool > = true >
-void bindOrAssign( V1& v1, V2& v2 )
+template< typename V1, typename V2, std::enable_if_t< ! TNL::IsViewType< V1 >::value, bool > = true >
+void
+bindOrAssign( V1& v1, V2& v2 )
 {
    v1 = v2;
 }
 
-
-#ifdef HAVE_GTEST
 #include "gtest/gtest.h"
 
-template< typename T1, typename T2,
-          std::enable_if_t< ! TNL::HasSubscriptOperator< T1 >::value &&
-                            ! TNL::HasSubscriptOperator< T2 >::value, bool > = true >
-void expect_near( const T1& arg, const T2& expected, double epsilon )
+template<
+   typename T1,
+   typename T2,
+   std::enable_if_t< ! TNL::HasSubscriptOperator< T1 >::value && ! TNL::HasSubscriptOperator< T2 >::value, bool > = true >
+void
+expect_near( const T1& arg, const T2& expected, double epsilon )
 {
    EXPECT_NEAR( arg, expected, epsilon );
 }
 
-template< typename T1, typename T2,
-          std::enable_if_t< TNL::HasSubscriptOperator< T1 >::value &&
-                            ! TNL::HasSubscriptOperator< T2 >::value, bool > = true >
-void expect_near( const T1& arg, const T2& expected, double epsilon )
+template< typename T1,
+          typename T2,
+          std::enable_if_t< TNL::HasSubscriptOperator< T1 >::value && ! TNL::HasSubscriptOperator< T2 >::value, bool > = true >
+void
+expect_near( const T1& arg, const T2& expected, double epsilon )
 {
    for( int i = 0; i < arg.getSize(); i++ )
       expect_near( arg[ i ], expected, epsilon );
 }
 
-template< typename T1, typename T2,
-          std::enable_if_t< TNL::HasSubscriptOperator< T1 >::value &&
-                            TNL::HasSubscriptOperator< T2 >::value, bool > = true >
-void expect_near( const T1& arg, const T2& expected, double epsilon )
+template< typename T1,
+          typename T2,
+          std::enable_if_t< TNL::HasSubscriptOperator< T1 >::value && TNL::HasSubscriptOperator< T2 >::value, bool > = true >
+void
+expect_near( const T1& arg, const T2& expected, double epsilon )
 {
    ASSERT_EQ( arg.getSize(), expected.getSize() );
    for( int i = 0; i < arg.getSize(); i++ )
       expect_near( arg[ i ], expected[ i ], epsilon );
 }
-#endif

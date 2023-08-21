@@ -1,4 +1,3 @@
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
 
 #include <TNL/Matrices/DistributedMatrix.h>
@@ -9,7 +8,8 @@ using namespace TNL;
 using namespace TNL::MPI;
 
 template< typename Vector >
-void setLinearSequence( Vector& deviceVector, typename Vector::RealType offset = 0 )
+void
+setLinearSequence( Vector& deviceVector, typename Vector::RealType offset = 0 )
 {
    using HostVector = typename Vector::template Self< typename Vector::RealType, TNL::Devices::Sequential >;
    HostVector a;
@@ -22,10 +22,13 @@ void setLinearSequence( Vector& deviceVector, typename Vector::RealType offset =
 }
 
 template< typename Matrix, typename RowCapacities >
-void setMatrix( Matrix& matrix, const RowCapacities& rowCapacities )
+void
+setMatrix( Matrix& matrix, const RowCapacities& rowCapacities )
 {
-   using HostMatrix = Matrices::DistributedMatrix< typename Matrix::MatrixType::template Self< typename Matrix::RealType, TNL::Devices::Sequential > >;
-   using HostRowCapacities = typename RowCapacities::template Self< typename RowCapacities::RealType, TNL::Devices::Sequential >;
+   using HostMatrix = Matrices::DistributedMatrix<
+      typename Matrix::MatrixType::template Self< typename Matrix::RealType, TNL::Devices::Sequential > >;
+   using HostRowCapacities =
+      typename RowCapacities::template Self< typename RowCapacities::RealType, TNL::Devices::Sequential >;
 
    HostMatrix hostMatrix;
    HostRowCapacities hostRowCapacities;
@@ -51,8 +54,7 @@ void setMatrix( Matrix& matrix, const RowCapacities& rowCapacities )
  * - Matrix format is hardcoded as CSR.
  */
 template< typename DistributedMatrix >
-class DistributedMatrixTest
-: public ::testing::Test
+class DistributedMatrixTest : public ::testing::Test
 {
 protected:
    using RealType = typename DistributedMatrix::RealType;
@@ -68,8 +70,8 @@ protected:
 
    const MPI_Comm communicator = MPI_COMM_WORLD;
 
-   const int rank = GetRank(communicator);
-   const int nproc = GetSize(communicator);
+   const int rank = GetRank( communicator );
+   const int nproc = GetSize( communicator );
 
    DistributedMatrixType matrix;
 
@@ -90,13 +92,13 @@ protected:
 };
 
 // types for which DistributedMatrixTest is instantiated
-using DistributedMatrixTypes = ::testing::Types<
-   Matrices::DistributedMatrix< Matrices::SparseMatrix< double, Devices::Host, int > >
+using DistributedMatrixTypes =
+   ::testing::Types< Matrices::DistributedMatrix< Matrices::SparseMatrix< double, Devices::Host, int > >
 #ifdef __CUDACC__
-   ,
-   Matrices::DistributedMatrix< Matrices::SparseMatrix< double, Devices::Cuda, int > >
+                     ,
+                     Matrices::DistributedMatrix< Matrices::SparseMatrix< double, Devices::Cuda, int > >
 #endif
->;
+                     >;
 
 TYPED_TEST_SUITE( DistributedMatrixTest, DistributedMatrixTypes );
 
@@ -176,7 +178,7 @@ TYPED_TEST( DistributedMatrixTest, setGetElement )
    for( int i = 0; i < this->matrix.getLocalMatrix().getRows(); i++ ) {
       const auto gi = this->matrix.getLocalRowRange().getGlobalIndex( i );
       for( int j = 0; j < this->rowCapacities.getElement( gi ); j++ )
-         this->matrix.setElement( gi, j,  gi + j );
+         this->matrix.setElement( gi, j, gi + j );
    }
    for( int i = 0; i < this->matrix.getLocalMatrix().getRows(); i++ ) {
       const auto gi = this->matrix.getLocalRowRange().getGlobalIndex( i );
@@ -192,7 +194,6 @@ TYPED_TEST( DistributedMatrixTest, setGetElement )
 // TODO: setRowFast, getRowFast
 
 // TODO: getRow (const and non-const)
-
 
 TYPED_TEST( DistributedMatrixTest, vectorProduct_globalInput )
 {
@@ -229,7 +230,5 @@ TYPED_TEST( DistributedMatrixTest, vectorProduct_globalInput )
 //      << "outVector.getLocalView() = " << outVector.getLocalView()
 //      << ",\nthis->rowCapacities.getLocalView() = " << this->rowCapacities.getLocalView();
 //}
-
-#endif  // HAVE_GTEST
 
 #include "../main_mpi.h"

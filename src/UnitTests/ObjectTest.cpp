@@ -3,15 +3,12 @@
 #include <TNL/File.h>
 #include <TNL/Containers/Array.h>
 
-#ifdef HAVE_GTEST
 #include <gtest/gtest.h>
-#endif
 
 using namespace TNL;
 
 static const char* TEST_FILE_NAME = "test_ObjectTest.tnl";
 
-#ifdef HAVE_GTEST
 TEST( ObjectTest, SaveAndLoadTest )
 {
    Object testObject;
@@ -33,16 +30,16 @@ TEST( ObjectTest, parseObjectTypeTest )
 
    // plain type
    parsed = parseObjectType( "int" );
-   expected = {"int"};
+   expected = { "int" };
    EXPECT_EQ( parsed, expected );
 
    // type with space
    parsed = parseObjectType( "short int" );
-   expected = {"short int"};
+   expected = { "short int" };
    EXPECT_EQ( parsed, expected );
 
    parsed = parseObjectType( "unsigned short int" );
-   expected = {"unsigned short int"};
+   expected = { "unsigned short int" };
    EXPECT_EQ( parsed, expected );
 
    // composed type
@@ -84,6 +81,5 @@ TEST( HeaderTest, SaveAndLoadTest )
 
    EXPECT_EQ( std::remove( TEST_FILE_NAME ), 0 );
 }
-#endif
 
 #include "main.h"
