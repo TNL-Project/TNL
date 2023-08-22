@@ -245,7 +245,7 @@ MultidiagonalMatrixTranspositionCudaKernel( const InMatrixView inMatrix,
                                             const Real matrixMultiplicator,
                                             const Index gridIdx )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index rowIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( rowIdx < inMatrix.getRows() ) {
       if( rowIdx > 0 )

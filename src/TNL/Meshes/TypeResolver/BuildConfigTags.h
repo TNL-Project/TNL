@@ -56,13 +56,24 @@ struct GridRealTag< ConfigTag, double >
 template< typename ConfigTag, typename Device >
 struct GridDeviceTag
 {
+   static constexpr bool enabled = false;
+};
+template< typename ConfigTag >
+struct GridDeviceTag< ConfigTag, Devices::Host >
+{
    static constexpr bool enabled = true;
 };
-#ifndef __CUDACC__
+#if defined( __CUDACC__ )
 template< typename ConfigTag >
 struct GridDeviceTag< ConfigTag, Devices::Cuda >
 {
-   static constexpr bool enabled = false;
+   static constexpr bool enabled = true;
+};
+#elif defined( __HIP__ )
+template< typename ConfigTag >
+struct GridDeviceTag< ConfigTag, Devices::Hip >
+{
+   static constexpr bool enabled = true;
 };
 #endif
 
@@ -114,9 +125,15 @@ struct MeshDeviceTag< ConfigTag, Devices::Host >
 {
    static constexpr bool enabled = true;
 };
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
 template< typename ConfigTag >
 struct MeshDeviceTag< ConfigTag, Devices::Cuda >
+{
+   static constexpr bool enabled = true;
+};
+#elif defined( __HIP__ )
+template< typename ConfigTag >
+struct MeshDeviceTag< ConfigTag, Devices::Hip >
 {
    static constexpr bool enabled = true;
 };

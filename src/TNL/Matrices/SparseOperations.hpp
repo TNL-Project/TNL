@@ -479,7 +479,7 @@ SparseMatrixSetRowLengthsVectorKernel( Vector* rowLengths,
                                        typename Matrix::IndexType rows,
                                        typename Matrix::IndexType cols )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename Matrix::IndexType;
 
    IndexType rowIdx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -507,7 +507,7 @@ SparseMatrixCopyKernel( Matrix1* A,
                         const typename Matrix2::IndexType* rowLengths,
                         typename Matrix2::IndexType rows )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename Matrix2::IndexType;
 
    IndexType rowIdx = blockIdx.x * blockDim.x + threadIdx.x;

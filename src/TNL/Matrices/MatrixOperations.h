@@ -243,7 +243,7 @@ GemvCudaKernel( const IndexType m,
                 const RealType beta,
                 RealType* y )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    IndexType elementIdx = blockIdx.x * blockDim.x + threadIdx.x;
    const IndexType gridSize = blockDim.x * gridDim.x;
 
@@ -289,7 +289,7 @@ GeamCudaKernel( const IndexType m,
                 RealType* C,
                 const IndexType ldc )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    IndexType x = blockIdx.x * blockDim.x + threadIdx.x;
    const IndexType gridSizeX = blockDim.x * gridDim.x;
    const IndexType y = blockIdx.y * blockDim.y + threadIdx.y;

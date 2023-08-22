@@ -466,7 +466,7 @@ public:
    const Object*
    operator->() const
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return this->cuda_pointer;
 #else
       return this->pointer;
@@ -484,7 +484,7 @@ public:
    Object*
    operator->()
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return this->cuda_pointer;
 #else
       this->pd->maybe_modified = true;
@@ -503,7 +503,7 @@ public:
    const Object&
    operator*() const
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return *( this->cuda_pointer );
 #else
       return *( this->pointer );
@@ -521,7 +521,7 @@ public:
    Object&
    operator*()
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return *( this->cuda_pointer );
 #else
       this->pd->maybe_modified = true;

@@ -134,7 +134,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::setElement( IndexTyp
    TNL_ASSERT_GE( column, 0, "" );
    TNL_ASSERT_LT( column, this->getColumns(), "" );
    if( abs( row - column ) > 1 ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       TNL_ASSERT_TRUE( false, "Wrong matrix element coordinates tridiagonal matrix." );
 #else
       std::stringstream msg;
@@ -158,7 +158,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::addElement( IndexTyp
    TNL_ASSERT_GE( column, 0, "" );
    TNL_ASSERT_LT( column, this->getColumns(), "" );
    if( abs( row - column ) > 1 ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       TNL_ASSERT_TRUE( false, "Wrong matrix element coordinates tridiagonal matrix." );
 #else
       std::stringstream msg;

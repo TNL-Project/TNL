@@ -203,7 +203,7 @@ public:
    operator->() const
    {
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return this->cuda_pointer;
 #else
       return &this->pd->data;
@@ -222,7 +222,7 @@ public:
    operator->()
    {
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return this->cuda_pointer;
 #else
       this->pd->maybe_modified = true;
@@ -242,7 +242,7 @@ public:
    operator*() const
    {
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return *( this->cuda_pointer );
 #else
       return this->pd->data;
@@ -261,7 +261,7 @@ public:
    operator*()
    {
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return *( this->cuda_pointer );
 #else
       this->pd->maybe_modified = true;

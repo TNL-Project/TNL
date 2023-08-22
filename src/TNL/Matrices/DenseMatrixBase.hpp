@@ -27,7 +27,7 @@ VectorColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
                                                         typename Matrix::RealType matrixMultiplicator,
                                                         typename Matrix::RealType outVectorMultiplicator )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );
@@ -103,7 +103,7 @@ ColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
                                                   typename Matrix::RealType matrixMultiplicator,
                                                   typename Matrix::RealType outVectorMultiplicator )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );

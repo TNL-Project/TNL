@@ -12,6 +12,7 @@
 #include <TNL/File.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/Hip.h>
 
 namespace TNL::Containers {
 

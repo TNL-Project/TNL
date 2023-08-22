@@ -64,7 +64,7 @@ struct AtomicOperations< Devices::Cuda >
    static Value
    add( Value& v, const Value& a )
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       // atomicAdd is __device__, cannot be used from the host side
       return atomicAdd( &v, a );
 #else

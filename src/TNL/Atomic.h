@@ -13,7 +13,7 @@
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Cuda.h>
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 namespace {
 
 // double-precision atomicAdd function for Maxwell and older GPUs
@@ -208,7 +208,7 @@ public:
    T
    exchange( T desired ) noexcept
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return atomicExch( &value, desired );
 #else
       const T old = value;
@@ -228,7 +228,7 @@ public:
    bool
    compare_exchange_strong( T& expected, T desired ) noexcept
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       const T old = atomicCAS( &value, expected, desired );
       const bool result = old == expected;
       expected = old;
@@ -249,7 +249,7 @@ public:
    T
    fetch_add( T arg )
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return atomicAdd( &value, arg );
 #else
       const T old = value;
@@ -262,7 +262,7 @@ public:
    T
    fetch_sub( T arg )
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return atomicSub( &value, arg );
 #else
       const T old = value;
@@ -275,7 +275,7 @@ public:
    T
    fetch_and( T arg )
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return atomicAnd( &value, arg );
 #else
       const T old = value;
@@ -288,7 +288,7 @@ public:
    T
    fetch_or( T arg )
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return atomicOr( &value, arg );
 #else
       const T old = value;
@@ -301,7 +301,7 @@ public:
    T
    fetch_xor( T arg )
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return atomicXor( &value, arg );
 #else
       const T old = value;
@@ -383,7 +383,7 @@ public:
    T
    fetch_max( T arg ) noexcept
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return atomicMax( &value, arg );
 #else
       const T old = value;
@@ -396,7 +396,7 @@ public:
    T
    fetch_min( T arg ) noexcept
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return atomicMin( &value, arg );
 #else
       const T old = value;
