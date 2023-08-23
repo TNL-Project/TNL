@@ -212,7 +212,7 @@ TEST( NDArrayTest, CopySemantics )
    // TODO
 }
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 TEST( NDArrayTest, CopySemanticsCrossDevice )
 {
    constexpr int I = 3, J = 4;

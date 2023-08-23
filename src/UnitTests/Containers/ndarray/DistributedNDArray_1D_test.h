@@ -54,9 +54,12 @@ protected:
 // types for which DistributedNDArray_1D_test is instantiated
 using DistributedNDArrayTypes =
    ::testing::Types< DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Host > >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
                      ,
                      DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Cuda > >
+#elif defined( __HIP__ )
+                     ,
+                     DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Hip > >
 #endif
                      >;
 

@@ -57,12 +57,15 @@ protected:
 };
 
 // types for which DistributedArrayTest is instantiated
-using DistributedArrayTypes = ::testing::Types< DistributedArray< double, Devices::Host, int >
-#ifdef __CUDACC__
-                                                ,
-                                                DistributedArray< double, Devices::Cuda, int >
+using DistributedArrayTypes = ::testing::Types<
+#if defined( __CUDACC__ )
+   DistributedArray< double, Devices::Cuda, int >
+#elif defined( __HIP__ )
+   DistributedArray< double, Devices::Hip, int >
+#else
+   DistributedArray< double, Devices::Host, int >
 #endif
-                                                >;
+   >;
 
 TYPED_TEST_SUITE( DistributedArrayTest, DistributedArrayTypes );
 

@@ -157,18 +157,24 @@ protected:
 // types for which VectorBinaryOperationsTest is instantiated
 #if defined( DISTRIBUTED_VECTOR )
 using VectorPairs = ::testing::Types<
-   #ifndef __CUDACC__
-   Pair< DistributedVector< int, Devices::Host, int >, DistributedVector< short, Devices::Host, int > >,
-   Pair< DistributedVector< int, Devices::Host, int >, DistributedVectorView< short, Devices::Host, int > >,
-   Pair< DistributedVectorView< int, Devices::Host, int >, DistributedVector< short, Devices::Host, int > >,
-   Pair< DistributedVectorView< CustomScalar< int >, Devices::Host, int >,
-         DistributedVectorView< CustomScalar< short >, Devices::Host, int > >
-   #else
+   #if defined( __CUDACC__ )
    Pair< DistributedVector< int, Devices::Cuda, int >, DistributedVector< short, Devices::Cuda, int > >,
    Pair< DistributedVector< int, Devices::Cuda, int >, DistributedVectorView< short, Devices::Cuda, int > >,
    Pair< DistributedVectorView< int, Devices::Cuda, int >, DistributedVector< short, Devices::Cuda, int > >,
    Pair< DistributedVectorView< CustomScalar< int >, Devices::Cuda, int >,
          DistributedVectorView< CustomScalar< short >, Devices::Cuda, int > >
+   #elif defined( __HIP__ )
+   Pair< DistributedVector< int, Devices::Hip, int >, DistributedVector< short, Devices::Hip, int > >,
+   Pair< DistributedVector< int, Devices::Hip, int >, DistributedVectorView< short, Devices::Hip, int > >,
+   Pair< DistributedVectorView< int, Devices::Hip, int >, DistributedVector< short, Devices::Hip, int > >,
+   Pair< DistributedVectorView< CustomScalar< int >, Devices::Hip, int >,
+         DistributedVectorView< CustomScalar< short >, Devices::Hip, int > >
+   #else
+   Pair< DistributedVector< int, Devices::Host, int >, DistributedVector< short, Devices::Host, int > >,
+   Pair< DistributedVector< int, Devices::Host, int >, DistributedVectorView< short, Devices::Host, int > >,
+   Pair< DistributedVectorView< int, Devices::Host, int >, DistributedVector< short, Devices::Host, int > >,
+   Pair< DistributedVectorView< CustomScalar< int >, Devices::Host, int >,
+         DistributedVectorView< CustomScalar< short >, Devices::Host, int > >
    #endif
    >;
 #elif defined( STATIC_VECTOR )
@@ -196,31 +202,26 @@ using VectorPairs = ::testing::Types< Pair< StaticVector< 1, int >, StaticVector
 #else
    #ifdef VECTOR_OF_STATIC_VECTORS
 using VectorPairs = ::testing::Types<
-      #ifndef __CUDACC__
-   Pair< Vector< StaticVector< 3, int >, Devices::Host >, Vector< StaticVector< 3, short >, Devices::Host > >,
-   Pair< VectorView< StaticVector< 3, int >, Devices::Host >, Vector< StaticVector< 3, short >, Devices::Host > >,
-   Pair< Vector< StaticVector< 3, int >, Devices::Host >, VectorView< StaticVector< 3, short >, Devices::Host > >,
-   Pair< VectorView< StaticVector< 3, int >, Devices::Host >, VectorView< StaticVector< 3, short >, Devices::Host > >
-      #else
+      #if defined( __CUDACC__ )
    Pair< Vector< StaticVector< 3, int >, Devices::Cuda >, Vector< StaticVector< 3, short >, Devices::Cuda > >,
    Pair< VectorView< StaticVector< 3, int >, Devices::Cuda >, Vector< StaticVector< 3, short >, Devices::Cuda > >,
    Pair< Vector< StaticVector< 3, int >, Devices::Cuda >, VectorView< StaticVector< 3, short >, Devices::Cuda > >,
    Pair< VectorView< StaticVector< 3, int >, Devices::Cuda >, VectorView< StaticVector< 3, short >, Devices::Cuda > >
+      #elif defined( __HIP__ )
+   Pair< Vector< StaticVector< 3, int >, Devices::Hip >, Vector< StaticVector< 3, short >, Devices::Hip > >,
+   Pair< VectorView< StaticVector< 3, int >, Devices::Hip >, Vector< StaticVector< 3, short >, Devices::Hip > >,
+   Pair< Vector< StaticVector< 3, int >, Devices::Hip >, VectorView< StaticVector< 3, short >, Devices::Hip > >,
+   Pair< VectorView< StaticVector< 3, int >, Devices::Hip >, VectorView< StaticVector< 3, short >, Devices::Hip > >
+      #else
+   Pair< Vector< StaticVector< 3, int >, Devices::Host >, Vector< StaticVector< 3, short >, Devices::Host > >,
+   Pair< VectorView< StaticVector< 3, int >, Devices::Host >, Vector< StaticVector< 3, short >, Devices::Host > >,
+   Pair< Vector< StaticVector< 3, int >, Devices::Host >, VectorView< StaticVector< 3, short >, Devices::Host > >,
+   Pair< VectorView< StaticVector< 3, int >, Devices::Host >, VectorView< StaticVector< 3, short >, Devices::Host > >
       #endif
    >;
    #else
 using VectorPairs = ::testing::Types<
-      #ifndef __CUDACC__
-   Pair< Vector< int, Devices::Host >, Vector< int, Devices::Host > >,
-   Pair< VectorView< int, Devices::Host >, Vector< int, Devices::Host > >,
-   Pair< VectorView< const int, Devices::Host >, Vector< int, Devices::Host > >,
-   Pair< Vector< CustomScalar< int >, Devices::Host >, VectorView< CustomScalar< double >, Devices::Host > >,
-   Pair< Vector< CustomScalar< int >, Devices::Host >, VectorView< const CustomScalar< double >, Devices::Host > >,
-   Pair< VectorView< CustomScalar< int >, Devices::Host >, VectorView< CustomScalar< double >, Devices::Host > >,
-   Pair< VectorView< const int, Devices::Host >, VectorView< int, Devices::Host > >,
-   Pair< VectorView< const int, Devices::Host >, VectorView< const int, Devices::Host > >,
-   Pair< VectorView< int, Devices::Host >, VectorView< const int, Devices::Host > >
-      #else
+      #if defined( __CUDACC__ )
    Pair< Vector< int, Devices::Cuda >, Vector< int, Devices::Cuda > >,
    Pair< VectorView< int, Devices::Cuda >, Vector< int, Devices::Cuda > >,
    Pair< VectorView< const int, Devices::Cuda >, Vector< int, Devices::Cuda > >,
@@ -230,6 +231,26 @@ using VectorPairs = ::testing::Types<
    Pair< VectorView< const int, Devices::Cuda >, VectorView< int, Devices::Cuda > >,
    Pair< VectorView< const int, Devices::Cuda >, VectorView< const int, Devices::Cuda > >,
    Pair< VectorView< int, Devices::Cuda >, VectorView< const int, Devices::Cuda > >
+      #elif defined( __HIP__ )
+   Pair< Vector< int, Devices::Hip >, Vector< int, Devices::Hip > >,
+   Pair< VectorView< int, Devices::Hip >, Vector< int, Devices::Hip > >,
+   Pair< VectorView< const int, Devices::Hip >, Vector< int, Devices::Hip > >,
+   Pair< Vector< CustomScalar< int >, Devices::Hip >, VectorView< CustomScalar< double >, Devices::Hip > >,
+   Pair< Vector< CustomScalar< int >, Devices::Hip >, VectorView< const CustomScalar< double >, Devices::Hip > >,
+   Pair< VectorView< CustomScalar< int >, Devices::Hip >, VectorView< CustomScalar< double >, Devices::Hip > >,
+   Pair< VectorView< const int, Devices::Hip >, VectorView< int, Devices::Hip > >,
+   Pair< VectorView< const int, Devices::Hip >, VectorView< const int, Devices::Hip > >,
+   Pair< VectorView< int, Devices::Hip >, VectorView< const int, Devices::Hip > >
+      #else
+   Pair< Vector< int, Devices::Host >, Vector< int, Devices::Host > >,
+   Pair< VectorView< int, Devices::Host >, Vector< int, Devices::Host > >,
+   Pair< VectorView< const int, Devices::Host >, Vector< int, Devices::Host > >,
+   Pair< Vector< CustomScalar< int >, Devices::Host >, VectorView< CustomScalar< double >, Devices::Host > >,
+   Pair< Vector< CustomScalar< int >, Devices::Host >, VectorView< const CustomScalar< double >, Devices::Host > >,
+   Pair< VectorView< CustomScalar< int >, Devices::Host >, VectorView< CustomScalar< double >, Devices::Host > >,
+   Pair< VectorView< const int, Devices::Host >, VectorView< int, Devices::Host > >,
+   Pair< VectorView< const int, Devices::Host >, VectorView< const int, Devices::Host > >,
+   Pair< VectorView< int, Devices::Host >, VectorView< const int, Devices::Host > >
       #endif
    >;
    #endif
@@ -746,7 +767,7 @@ TYPED_TEST( VectorBinaryOperationsTest, maximum )
 
 // TODO: tests for operators &&, ||, &, |, ^
 
-#if defined( __CUDACC__ ) && ! defined( STATIC_VECTOR )
+#if( defined( __CUDACC__ ) || defined( __HIP__ ) ) && ! defined( STATIC_VECTOR )
 TYPED_TEST( VectorBinaryOperationsTest, comparisonOnDifferentDevices )
 {
    SETUP_BINARY_TEST_ALIASES;

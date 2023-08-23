@@ -1,5 +1,6 @@
 #include <TNL/Allocators/Host.h>
-#include <TNL/Allocators/Cuda.h>
+#include <TNL/Allocators/Hip.h>
+#include <TNL/Devices/Hip.h>
 #include <TNL/Containers/detail/MemoryOperations.h>
 
 #include "gtest/gtest.h"
@@ -22,41 +23,37 @@ using ValueTypes = ::testing::Types< short int, int, long, float, double >;
 
 TYPED_TEST_SUITE( MemoryOperationsTest, ValueTypes );
 
-TYPED_TEST( MemoryOperationsTest, allocateMemory_cuda )
+TYPED_TEST( MemoryOperationsTest, allocateMemory_hip )
 {
    using ValueType = typename TestFixture::ValueType;
-   using Allocator = Allocators::Cuda< ValueType >;
+   using Allocator = Allocators::Hip< ValueType >;
 
    Allocator allocator;
    ValueType* data = allocator.allocate( ARRAY_TEST_SIZE );
-   ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
    ASSERT_NE( data, nullptr );
 
    allocator.deallocate( data, ARRAY_TEST_SIZE );
-   ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
 }
 
-TYPED_TEST( MemoryOperationsTest, setElement_cuda )
+TYPED_TEST( MemoryOperationsTest, setElement_hip )
 {
    using ValueType = typename TestFixture::ValueType;
-   using Allocator = Allocators::Cuda< ValueType >;
+   using Allocator = Allocators::Hip< ValueType >;
 
    Allocator allocator;
    ValueType* data = allocator.allocate( ARRAY_TEST_SIZE );
-   ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
 
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
-      MemoryOperations< Devices::Cuda >::setElement( &data[ i ], (ValueType) i );
+      MemoryOperations< Devices::Hip >::setElement( &data[ i ], (ValueType) i );
 
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ ) {
       ValueType d;
-      ASSERT_EQ( cudaMemcpy( &d, &data[ i ], sizeof( ValueType ), cudaMemcpyDeviceToHost ), cudaSuccess );
+      ASSERT_EQ( hipMemcpy( &d, &data[ i ], sizeof( ValueType ), hipMemcpyDeviceToHost ), hipSuccess );
       EXPECT_EQ( d, i );
-      EXPECT_EQ( MemoryOperations< Devices::Cuda >::getElement( &data[ i ] ), i );
+      EXPECT_EQ( MemoryOperations< Devices::Hip >::getElement( &data[ i ] ), i );
    }
 
    allocator.deallocate( data, ARRAY_TEST_SIZE );
-   ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
 }
 
 #include "../main.h"
