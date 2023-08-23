@@ -108,10 +108,12 @@ TYPED_TEST( ODENumericSolverTest, ParallelLinearFunctionTest )
    using DofContainerType = typename TestFixture::DofContainerType;
    using SolverType = ODETestSolver< DofContainerType >;
 
-#ifndef __CUDACC__
-   ODENumericSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Host >();
-#else
+#if defined( __CUDACC__ )
    ODENumericSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Cuda >();
+#elif defined( __HIP__ )
+   ODENumericSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Hip >();
+#else
+   ODENumericSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Host >();
 #endif
 }
 
@@ -198,10 +200,12 @@ TYPED_TEST( ODEStaticSolverTest, ParallelLinearFunctionTest )
    using DofContainerType = typename TestFixture::DofContainerType;
    using SolverType = ODETestSolver< DofContainerType >;
 
-#ifndef __CUDACC__
-   ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Host >();
-#else
+#if defined( __CUDACC__ )
    ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Cuda >();
+#elif defined( __HIP__ )
+   ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Hip >();
+#else
+   ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Host >();
 #endif
 }
 
