@@ -21,9 +21,12 @@ class EulerNonET : public Solvers::ODE::ExplicitSolver< typename Vector::RealTyp
    public:
    using DofVectorType = Vector;
    using RealType = typename Vector::RealType;
+   using ValueType = RealType;
    using DeviceType = typename Vector::DeviceType;
    using IndexType = typename Vector::IndexType;
    using VectorOperations = CommonVectorOperations< DeviceType >;
+
+   static constexpr bool isStatic() { return false; }
 
    EulerNonET();
 

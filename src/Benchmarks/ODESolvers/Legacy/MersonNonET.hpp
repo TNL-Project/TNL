@@ -227,7 +227,26 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
 
    RealType tau_3 = tau / 3.0;
 
-   if( std::is_same< DeviceType, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
+      rhsFunction( time, tau, u_view, k1_view );
+
+      for( IndexType i = 0; i < size; i++ )
+         _kAux[ i ] = _u[ i ] + tau * ( 1.0 / 3.0 * _k1[ i ] );
+      rhsFunction( time + tau_3, tau, kAux_view, k2_view );
+
+      for( IndexType i = 0; i < size; i++ )
+         _kAux[ i ] = _u[ i ] + tau * 1.0 / 6.0 * ( _k1[ i ] + _k2[ i ] );
+      rhsFunction( time + tau_3, tau, kAux_view, k3_view );
+
+      for( IndexType i = 0; i < size; i++ )
+         _kAux[ i ] = _u[ i ] + tau * ( 0.125 * _k1[ i ] + 0.375 * _k3[ i ] );
+      rhsFunction( time + 0.5 * tau, tau, kAux_view, k4_view );
+
+      for( IndexType i = 0; i < size; i++ )
+         _kAux[ i ] = _u[ i ] + tau * ( 0.5 * _k1[ i ] - 1.5 * _k3[ i ] + 2.0 * _k4[ i ] );
+      rhsFunction( time + tau, tau, kAux_view, k5_view );
+   }
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       rhsFunction( time, tau, u_view, k1_view );
 
 #ifdef HAVE_OPENMP
@@ -258,7 +277,7 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
          _kAux[ i ] = _u[ i ] + tau * ( 0.5 * _k1[ i ] - 1.5 * _k3[ i ] + 2.0 * _k4[ i ] );
       rhsFunction( time + tau, tau, kAux_view, k5_view );
    }
-   if( std::is_same< DeviceType, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
 #ifdef __CUDACC__
       dim3 cudaBlockSize( 512 );
       const IndexType cudaBlocks = Backend::getNumberOfBlocks( size, cudaBlockSize.x );
@@ -333,7 +352,13 @@ MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
    const RealType* _k5 = k5.getData();
 
    RealType eps( 0.0 ), maxEps( 0.0 );
-   if( std::is_same< DeviceType, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
+      for( IndexType i = 0; i < size; i++ ) {
+         RealType err = (RealType) ( tau / 3.0 * abs( 0.2 * _k1[ i ] + -0.9 * _k3[ i ] + 0.8 * _k4[ i ] + -0.1 * _k5[ i ] ) );
+         eps = max( eps, err );
+      }
+   }
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       this->openMPErrorEstimateBuffer.setValue( 0.0 );
 #ifdef HAVE_OPENMP
       #pragma omp parallel if( Devices::Host::isOMPEnabled() )
@@ -352,7 +377,7 @@ MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
       }
       eps = VectorOperations::getVectorMax( this->openMPErrorEstimateBuffer );
    }
-   if( std::is_same< DeviceType, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
 #ifdef __CUDACC__
       RealType* _kAux = kAux.getData();
       dim3 cudaBlockSize( 512 );
@@ -395,7 +420,14 @@ MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
    RealType* _k4 = k4.getData();
    RealType* _k5 = k5.getData();
 
-   if( std::is_same< DeviceType, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
+      for( IndexType i = 0; i < size; i++ ) {
+         const RealType add = tau / 6.0 * ( _k1[ i ] + 4.0 * _k4[ i ] + _k5[ i ] );
+         _u[ i ] += add;
+         localResidue += abs( (RealType) add );
+      }
+   }
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
 #ifdef HAVE_OPENMP
       #pragma omp parallel for reduction( + : localResidue ) \
       firstprivate( size, _u, _k1, _k4, _k5, tau ) if( Devices::Host::isOMPEnabled() )
@@ -406,7 +438,7 @@ MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
          localResidue += abs( (RealType) add );
       }
    }
-   if( std::is_same< DeviceType, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
 #ifdef __CUDACC__
       dim3 cudaBlockSize( 512 );
       const IndexType cudaBlocks = Backend::getNumberOfBlocks( size, cudaBlockSize.x );

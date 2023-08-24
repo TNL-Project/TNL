@@ -144,7 +144,14 @@ EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, Real
    RealType* _u = u.getData();
    RealType* _k1 = k1.getData();
 
-   if( std::is_same< DeviceType, Devices::Host >::value ) {
+   if( std::is_same_v< DeviceType, Devices::Sequential > ) {
+      for( IndexType i = 0; i < size; i++ ) {
+         const RealType add = tau * _k1[ i ];
+         _u[ i ] += add;
+         localResidue += std::fabs( add );
+      }
+   }
+   if( std::is_same_v< DeviceType, Devices::Host > ) {
 #ifdef HAVE_OPENMP
       #pragma omp parallel for reduction( + : localResidue ) firstprivate( _u, _k1, tau ) if( Devices::Host::isOMPEnabled() )
 #endif
@@ -154,7 +161,7 @@ EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, Real
          localResidue += std::fabs( add );
       }
    }
-   if( std::is_same< DeviceType, Devices::Cuda >::value ) {
+   if( std::is_same_v< DeviceType, Devices::Cuda > ) {
 #ifdef __CUDACC__
       dim3 cudaBlockSize( 512 );
       const IndexType cudaBlocks = Backend::getNumberOfBlocks( size, cudaBlockSize.x );
