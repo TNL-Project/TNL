@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <TNL/Backend.h>
 #include <TNL/DiscreteMath.h>
 #include <TNL/Functional.h>
 #include <TNL/Algorithms/Sorting/detail/task.h>
@@ -23,15 +24,12 @@ template< typename Array, typename Compare >
 void
 Quicksorter< Value, Devices::Cuda >::sort( Array& arr, const Compare& cmp )
 {
-#ifdef __CUDACC__
-   cudaDeviceProp deviceProp;
-   cudaGetDeviceProperties( &deviceProp, 0 );
-
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    /**
     * for every block there is a bit of shared memory reserved, the actual value can slightly differ
     * */
    int sharedReserve = sizeof( int ) * ( 16 + 3 * 32 );
-   int maxSharable = deviceProp.sharedMemPerBlock - sharedReserve;
+   int maxSharable = Backend::getSharedMemoryPerBlock( Backend::getDevice() ) - sharedReserve;
 
    int blockDim = 512;  // best case
 

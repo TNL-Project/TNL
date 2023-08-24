@@ -10,8 +10,21 @@
 
 namespace TNL::Algorithms::Sorting {
 
-#ifdef __CUDACC__
+__cuda_callable__
+inline int
+closestPow2( int x )
+{
+   if( x == 0 )
+      return 0;
 
+   int ret = 1;
+   while( ret < x )
+      ret <<= 1;
+
+   return ret;
+}
+
+#if defined( __CUDACC__ )
 // Inline PTX call to return index of highest non-zero bit in a word
 static __device__
 __forceinline__ unsigned int
@@ -28,21 +41,15 @@ closestPow2_ptx( int bitonicLen )
 {
    return 1 << ( __btflo( (unsigned) bitonicLen - 1U ) + 1 );
 }
-#endif
-
-__cuda_callable__
+#elif defined( __HIP__ )
+// TODO: optimize this for AMD GPUs
+__device__
 inline int
-closestPow2( int x )
+closestPow2_ptx( int bitonicLen )
 {
-   if( x == 0 )
-      return 0;
-
-   int ret = 1;
-   while( ret < x )
-      ret <<= 1;
-
-   return ret;
+   return closestPow2( bitonicLen );
 }
+#endif
 
 template< typename Value, typename CMP >
 __cuda_callable__

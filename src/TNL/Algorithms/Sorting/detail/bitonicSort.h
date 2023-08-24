@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <TNL/Backend.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
@@ -22,7 +23,7 @@ __global__
 void
 bitonicMergeGlobal( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr, CMP Cmp, int monotonicSeqLen, int bitonicLen )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
    int part = i / ( bitonicLen / 2 );  // computes which sorting block this thread belongs to
@@ -62,7 +63,7 @@ bitonicMergeSharedMemory( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda 
                           int monotonicSeqLen,
                           int bitonicLen )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
    Value* sharedMem = (Value*) externMem;
 
@@ -123,7 +124,7 @@ __global__
 void
 bitoniSort1stStepSharedMemory( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr, CMP Cmp )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
 
    Value* sharedMem = (Value*) externMem;
@@ -237,33 +238,29 @@ template< typename Value, typename CMP >
 void
 bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src, int begin, int end, const CMP& Cmp )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    auto view = src.getView( begin, end );
 
-   int threadsNeeded = view.getSize() / 2 + ( view.getSize() % 2 != 0 );
-
-   cudaDeviceProp deviceProp;
-   cudaGetDeviceProperties( &deviceProp, 0 );
-
-   const int maxThreadsPerBlock = 512;
-
+   const int threadsNeeded = TNL::roundUpDivision( view.getSize(), 2 );
+   constexpr int maxThreadsPerBlock = 512;
    int sharedMemLen = maxThreadsPerBlock * 2;
-   size_t sharedMemSize = sharedMemLen * sizeof( Value );
+   std::size_t sharedMemSize = sharedMemLen * sizeof( Value );
+   const std::size_t sharedMemPerBlock = Backend::getSharedMemoryPerBlock( Backend::getDevice() );
 
-   if( sharedMemSize <= deviceProp.sharedMemPerBlock ) {
+   if( sharedMemSize <= sharedMemPerBlock ) {
       int blockDim = maxThreadsPerBlock;
-      int gridDim = threadsNeeded / blockDim + ( threadsNeeded % blockDim != 0 );
+      int gridDim = Backend::getNumberOfBlocks( threadsNeeded, blockDim );
       bitonicSortWithShared( view, Cmp, gridDim, blockDim, sharedMemLen, sharedMemSize );
    }
-   else if( sharedMemSize / 2 <= deviceProp.sharedMemPerBlock ) {
+   else if( sharedMemSize / 2 <= sharedMemPerBlock ) {
       int blockDim = maxThreadsPerBlock / 2;  // 256
-      int gridDim = threadsNeeded / blockDim + ( threadsNeeded % blockDim != 0 );
+      int gridDim = Backend::getNumberOfBlocks( threadsNeeded, blockDim );
       sharedMemSize /= 2;
       sharedMemLen /= 2;
       bitonicSortWithShared( view, Cmp, gridDim, blockDim, sharedMemLen, sharedMemSize );
    }
    else {
-      int gridDim = threadsNeeded / maxThreadsPerBlock + ( threadsNeeded % maxThreadsPerBlock != 0 );
+      int gridDim = Backend::getNumberOfBlocks( threadsNeeded, maxThreadsPerBlock );
       bitonicSort( view, Cmp, gridDim, maxThreadsPerBlock );
    }
 #endif
@@ -364,7 +361,7 @@ __global__
 void
 bitonicMergeGlobalWithSwap( int size, CMP Cmp, SWAP Swap, int monotonicSeqLen, int bitonicLen )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
    int part = i / ( bitonicLen / 2 );  // computes which sorting block this thread belongs to

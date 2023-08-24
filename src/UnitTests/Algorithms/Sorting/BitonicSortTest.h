@@ -10,7 +10,7 @@
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
 #include <TNL/Algorithms/sort.h>
 
-#if defined __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 using namespace TNL;
 using namespace TNL::Algorithms;
 using namespace TNL::Algorithms::Sorting;

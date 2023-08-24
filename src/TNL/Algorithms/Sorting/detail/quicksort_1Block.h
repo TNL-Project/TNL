@@ -13,7 +13,7 @@
 
 namespace TNL::Algorithms::Sorting {
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 
 template< typename Value, typename CMP >
 __device__

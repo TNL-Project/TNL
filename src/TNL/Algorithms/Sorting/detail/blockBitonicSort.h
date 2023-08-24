@@ -10,7 +10,7 @@
 
 namespace TNL::Algorithms::Sorting {
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 
 /**
  * IMPORTANT: all threads in block have to call this function to work properly

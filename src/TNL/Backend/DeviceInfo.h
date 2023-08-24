@@ -249,4 +249,27 @@ getRegistersPerMultiprocessor( int deviceNum )
 #endif
 }
 
+[[nodiscard]] inline std::size_t
+getSharedMemoryPerBlock( int deviceNum )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   // results are cached because they are used for configuration of some kernels
+   static std::unordered_map< int, int > results;
+   if( results.count( deviceNum ) == 0 ) {
+   #if defined( __CUDACC__ )
+      cudaDeviceProp properties;
+      TNL_BACKEND_SAFE_CALL( cudaGetDeviceProperties( &properties, deviceNum ) );
+   #elif defined( __HIP__ )
+      hipDeviceProp_t properties;
+      TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
+   #endif
+      results.emplace( deviceNum, properties.sharedMemPerBlock );
+      return properties.sharedMemPerBlock;
+   }
+   return results[ deviceNum ];
+#else
+   throw Exceptions::BackendSupportMissing();
+#endif
+}
+
 }  // namespace TNL::Backend
