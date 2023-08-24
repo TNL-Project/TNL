@@ -316,7 +316,7 @@ TEST( MeshOrderingTest, OrderingOnHost )
    testMesh( mesh, vertexInversePermutation, edgeInversePermutation, cellInversePermutation );
 }
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 TEST( MeshOrderingTest, OrderingOnCuda )
 {
    using MeshHost = Mesh< TestTriangleMeshConfig, Devices::Host >;

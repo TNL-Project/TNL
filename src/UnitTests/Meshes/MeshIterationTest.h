@@ -212,8 +212,8 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
    testIteration< EdgeMeshEntityType >( meshPointer, array_edges_boundary, array_edges_interior, array_edges_all );
    testIteration< VertexMeshEntityType >( meshPointer, array_vertices_boundary, array_vertices_interior, array_vertices_all );
 
-   // test iteration with CUDA
-#ifdef __CUDACC__
+   // test iteration with CUDA/HIP
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using DeviceMesh = Mesh< TestQuadrangleMeshConfig, Devices::Cuda >;
    Pointers::SharedPointer< DeviceMesh > deviceMeshPointer;
    *deviceMeshPointer = *meshPointer;
@@ -377,8 +377,8 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
    testIteration< EdgeMeshEntityType >( meshPointer, array_edges_boundary, array_edges_interior, array_edges_all );
    testIteration< VertexMeshEntityType >( meshPointer, array_vertices_boundary, array_vertices_interior, array_vertices_all );
 
-   // test iteration with CUDA
-#ifdef __CUDACC__
+   // test iteration with CUDA/HIP
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using DeviceMesh = Mesh< TestHexahedronMeshConfig, Devices::Cuda >;
    Pointers::SharedPointer< DeviceMesh > deviceMeshPointer;
    *deviceMeshPointer = *meshPointer;

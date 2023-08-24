@@ -195,7 +195,7 @@ template< typename Mesh >
 void
 testMeshOnCuda( const Mesh& mesh )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using DeviceMesh = Meshes::Mesh< typename Mesh::Config, Devices::Cuda >;
 
    // test host->CUDA copy

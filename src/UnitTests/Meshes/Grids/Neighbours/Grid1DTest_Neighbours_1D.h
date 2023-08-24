@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "Grid1DTestSuite.h"

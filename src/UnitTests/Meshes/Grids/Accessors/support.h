@@ -204,7 +204,6 @@ public:
       }
    }
 };
-#ifdef __CUDACC__
 
 template<>
 class GridAccessorsTestCase< TNL::Devices::Cuda > : public GridAccessorsTestCaseInterface< TNL::Devices::Cuda >
@@ -361,8 +360,6 @@ public:
       this->executeFromDevice< typename Grid::IndexType >( update, verify );
    }
 };
-
-#endif
 
 template< typename... Parameters >
 std::string
