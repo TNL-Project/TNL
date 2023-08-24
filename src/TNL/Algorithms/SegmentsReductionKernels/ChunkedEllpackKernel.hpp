@@ -28,7 +28,7 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
                                     ResultKeeper keeper,
                                     Value identity )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index firstSlice = segments.getRowToSliceMappingView()[ begin ];

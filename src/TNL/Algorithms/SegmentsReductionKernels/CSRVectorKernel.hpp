@@ -8,6 +8,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
+#include <TNL/Algorithms/detail/CudaReductionKernel.h>
 
 #include "CSRScalarKernel.h"
 #include "CSRVectorKernel.h"
@@ -22,16 +23,14 @@ reduceSegmentsCSRKernelVector( int gridIdx,
                                Index begin,
                                Index end,
                                Fetch fetch,
-                               const Reduction reduce,
+                               const Reduction reduction,
                                ResultKeeper keep,
                                const Value identity )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   /***
-    * We map one warp to each segment
-    */
+   // We map one warp to each segment
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize() + begin;
    if( segmentIdx >= end )
       return;
@@ -40,26 +39,23 @@ reduceSegmentsCSRKernelVector( int gridIdx,
    TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
    Index endIdx = offsets[ segmentIdx + 1 ];
 
-   Index localIdx( laneIdx );
-   ReturnType aux = identity;
+   Index localIdx = laneIdx;
+   ReturnType result = identity;
    bool compute = true;
    for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      aux = reduce( aux, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
+      result = reduction( result,
+                          detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
       localIdx += Backend::getWarpSize();
    }
 
-   /****
-    * Reduction in each warp which means in each segment.
-    */
-   aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 16 ) );
-   aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 8 ) );
-   aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 4 ) );
-   aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 2 ) );
-   aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 1 ) );
+   // Reduction in each warp which means in each segment.
+   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
+   result = BlockReduce::warpReduce( reduction, result );
 
+   // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx, aux );
+      keep( segmentIdx, result );
 #endif
 }
 

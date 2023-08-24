@@ -34,7 +34,7 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
                                        ResultKeeper keeper,
                                        Value identity )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    const Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
    if( segmentIdx >= end )
@@ -89,7 +89,7 @@ reduceSegmentsKernel( SegmentsView segments,
                       ResultKeeper keeper,
                       Value identity )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
 

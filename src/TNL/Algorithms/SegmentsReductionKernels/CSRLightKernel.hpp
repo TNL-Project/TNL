@@ -26,7 +26,7 @@ SpMVCSRLight2( OffsetsView offsets,
                const Value identity,
                const Index gridID )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx = begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 2;
@@ -41,10 +41,10 @@ SpMVCSRLight2( OffsetsView offsets,
    for( Index i = offsets[ segmentIdx ] + inGroupID; i < maxID; i += 2 )
       result = reduce( result, fetch( i, compute ) );
 
-   /* Parallel reduction */
+   // Parallel reduction
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
 
-   /* Write result */
+   // Write the result
    if( inGroupID == 0 )
       keep( segmentIdx, result );
 #endif
@@ -62,7 +62,7 @@ SpMVCSRLight4( OffsetsView offsets,
                const Value identity,
                const Index gridID )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx = begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 4;
@@ -77,11 +77,11 @@ SpMVCSRLight4( OffsetsView offsets,
    for( Index i = offsets[ segmentIdx ] + inGroupID; i < maxID; i += 4 )
       result = reduce( result, fetch( i, compute ) );
 
-   /* Parallel reduction */
+   // Parallel reduction
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
 
-   /* Write result */
+   // Write the result
    if( inGroupID == 0 )
       keep( segmentIdx, result );
 #endif
@@ -99,7 +99,7 @@ SpMVCSRLight8( OffsetsView offsets,
                const Value identity,
                const Index gridID )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx = begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / 8;
@@ -115,12 +115,12 @@ SpMVCSRLight8( OffsetsView offsets,
    for( i = offsets[ segmentIdx ] + inGroupID; i < maxID; i += 8 )
       result = reduce( result, fetch( i, compute ) );
 
-   /* Parallel reduction */
+   // Parallel reduction
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
 
-   /* Write result */
+   // Write the result
    if( inGroupID == 0 )
       keep( segmentIdx, result );
 #endif
@@ -138,7 +138,7 @@ SpMVCSRLight16( OffsetsView offsets,
                 const Value identity,
                 const Index gridID )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx =
@@ -155,13 +155,13 @@ SpMVCSRLight16( OffsetsView offsets,
    for( i = offsets[ segmentIdx ] + inGroupID; i < maxID; i += 16 )
       result = reduce( result, fetch( i, compute ) );
 
-   /* Parallel reduction */
+   // Parallel reduction
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
 
-   /* Write result */
+   // Write the result
    if( inGroupID == 0 )
       keep( segmentIdx, result );
 #endif
@@ -183,30 +183,31 @@ void SpMVCSRVector( OffsetsView offsets,
                     const Value identity,
                     const Index gridID )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const int warpSize = 32;
-   const Index warpID = begin + ((gridID * Backend::getMaxGridXSize() ) + (blockIdx.x * blockDim.x) + threadIdx.x) / warpSize;
+   const Index warpID =
+      begin + ((gridID * Backend::getMaxGridXSize() ) + (blockIdx.x * blockDim.x) + threadIdx.x) / Backend::getWarpSize();
    if (warpID >= end)
       return;
 
    ReturnType result = identity;
-   const Index laneID = threadIdx.x & 31; // & is cheaper than %
+   const Index laneID = threadIdx.x & ( Backend::getWarpSize() - 1 ); // & is cheaper than %
    Index endID = offsets[warpID + 1];
 
    // Calculate result
    bool compute = true;
-   for (Index i = offsets[warpID] + laneID; i < endID; i += warpSize)
+   for (Index i = offsets[warpID] + laneID; i < endID; i += Backend::getWarpSize())
       result = reduce( result, fetch( i, compute ) );
 
-   // Reduction
+   // Parallel reduction
    result = reduce( result, __shfl_down_sync(0xFFFFFFFF, result, 16 ) );
    result = reduce( result, __shfl_down_sync(0xFFFFFFFF, result,  8 ) );
    result = reduce( result, __shfl_down_sync(0xFFFFFFFF, result,  4 ) );
    result = reduce( result, __shfl_down_sync(0xFFFFFFFF, result,  2 ) );
    result = reduce( result, __shfl_down_sync(0xFFFFFFFF, result,  1 ) );
-   // Write result
+
+   // Write the result
    if( laneID == 0 )
       keep( warpID, result );
 #endif
@@ -230,10 +231,9 @@ SpMVCSRVector( OffsetsView offsets,
                const Value identity,
                const Index gridID )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   // const int warpSize = 32;
    const Index warpID =
       begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
    if( warpID >= end )
@@ -248,7 +248,7 @@ SpMVCSRVector( OffsetsView offsets,
    for( Index i = offsets[ warpID ] + laneID; i < endID; i += ThreadsPerSegment )
       result = reduce( result, fetch( i, compute ) );
 
-   // Reduction
+   // Parallel reduction
    if( ThreadsPerSegment > 16 ) {
       result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
       result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
@@ -274,7 +274,7 @@ SpMVCSRVector( OffsetsView offsets,
    else if( ThreadsPerSegment > 1 )
       result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
 
-   // Store result
+   // Write the result
    if( laneID == 0 )
       keep( warpID, result );
 #endif
@@ -299,7 +299,7 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
                                          ResultKeeper keep,
                                          const Value identity )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
@@ -361,7 +361,7 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
       constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
       if( inWarpLaneIdx < segmentsCount && segmentIdx + inWarpLaneIdx < end ) {
          // printf( "Long: segmentIdx %d -> %d \n", segmentIdx, aux );
-         keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * ThreadsPerSegment / 32 ] );
+         keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
       }
    }
 #endif

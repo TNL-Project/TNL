@@ -8,6 +8,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
+#include <TNL/Algorithms/detail/CudaReductionKernel.h>
 
 #include "CSRScalarKernel.h"
 #include "CSRHybridKernel.h"
@@ -28,11 +29,11 @@ reduceSegmentsCSRHybridVectorKernel( int gridIdx,
                                      Index begin,
                                      Index end,
                                      Fetch fetch,
-                                     const Reduction reduce,
+                                     const Reduction reduction,
                                      ResultKeeper keep,
                                      const Value identity )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
@@ -46,23 +47,37 @@ reduceSegmentsCSRHybridVectorKernel( int gridIdx,
    ReturnType aux = identity;
    bool compute = true;
    for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-      aux = reduce( aux, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
+      aux =
+         reduction( aux, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
       localIdx += Backend::getWarpSize();
    }
 
    /****
     * Reduction in each segment.
     */
+   #if defined( __HIP__ )
    if( ThreadsPerSegment == 32 )
-      aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 16 ) );
+      aux = reduction( aux, __shfl_down( aux, 16 ) );
    if( ThreadsPerSegment >= 16 )
-      aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 8 ) );
+      aux = reduction( aux, __shfl_down( aux, 8 ) );
    if( ThreadsPerSegment >= 8 )
-      aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 4 ) );
+      aux = reduction( aux, __shfl_down( aux, 4 ) );
    if( ThreadsPerSegment >= 4 )
-      aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 2 ) );
+      aux = reduction( aux, __shfl_down( aux, 2 ) );
    if( ThreadsPerSegment >= 2 )
-      aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 1 ) );
+      aux = reduction( aux, __shfl_down( aux, 1 ) );
+   #else
+   if( ThreadsPerSegment == 32 )
+      aux = reduction( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 16 ) );
+   if( ThreadsPerSegment >= 16 )
+      aux = reduction( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 8 ) );
+   if( ThreadsPerSegment >= 8 )
+      aux = reduction( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 4 ) );
+   if( ThreadsPerSegment >= 4 )
+      aux = reduction( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 2 ) );
+   if( ThreadsPerSegment >= 2 )
+      aux = reduction( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 1 ) );
+   #endif
 
    if( laneIdx == 0 )
       keep( segmentIdx, aux );
@@ -84,18 +99,18 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
                                           Index begin,
                                           Index end,
                                           Fetch fetch,
-                                          const Reduction reduce,
+                                          const Reduction reduction,
                                           ResultKeeper keep,
                                           const Value identity )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
-   __shared__ ReturnType shared[ BlockSize / 32 ];
+   __shared__ ReturnType shared[ BlockSize / Backend::getWarpSize() ];
    if( threadIdx.x < BlockSize / Backend::getWarpSize() )
       shared[ threadIdx.x ] = identity;
 
@@ -108,15 +123,14 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
    bool compute = true;
    Index localIdx = laneIdx;
    for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx && compute; globalIdx += ThreadsPerSegment ) {
-      result =
-         reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
+      result = reduction( result,
+                          detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
       localIdx += ThreadsPerSegment;
    }
-   result += __shfl_down_sync( 0xFFFFFFFF, result, 16 );
-   result += __shfl_down_sync( 0xFFFFFFFF, result, 8 );
-   result += __shfl_down_sync( 0xFFFFFFFF, result, 4 );
-   result += __shfl_down_sync( 0xFFFFFFFF, result, 2 );
-   result += __shfl_down_sync( 0xFFFFFFFF, result, 1 );
+
+   // Parallel reduction
+   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
+   result = BlockReduce::warpReduce( reduction, result );
 
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
    if( inWarpLaneIdx == 0 )
@@ -128,29 +142,29 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
       // constexpr int totalWarps = BlockSize / WarpSize;
       constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
       if( warpsPerSegment >= 32 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
+         shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
          __syncwarp();
       }
       if( warpsPerSegment >= 16 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 8 ] );
+         shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 8 ] );
          __syncwarp();
       }
       if( warpsPerSegment >= 8 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 4 ] );
+         shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 4 ] );
          __syncwarp();
       }
       if( warpsPerSegment >= 4 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 2 ] );
+         shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 2 ] );
          __syncwarp();
       }
       if( warpsPerSegment >= 2 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 1 ] );
+         shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 1 ] );
          __syncwarp();
       }
       constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
       if( inWarpLaneIdx < segmentsCount && segmentIdx + inWarpLaneIdx < end ) {
          // printf( "Long: segmentIdx %d -> %d \n", segmentIdx, aux );
-         keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * ThreadsPerSegment / 32 ] );
+         keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
       }
    }
 #endif
