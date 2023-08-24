@@ -1,5 +1,3 @@
-#pragma once
-
 #include <array>
 
 #include <TNL/Containers/Array.h>
@@ -11,65 +9,11 @@
 using namespace TNL;
 using namespace TNL::Algorithms;
 
-TEST( staticForTest, host_dynamic )
-{
-   constexpr int N = 5;
-   std::array< int, N > a;
-   a.fill( 0 );
-
-   staticFor< int, 0, N >(
-      [ &a ]( auto i )
-      {
-         a[ i ] += 1;
-      } );
-
-   std::array< int, N > expected;
-   expected.fill( 1 );
-   EXPECT_EQ( a, expected );
-}
-
-TEST( staticForTest, host_static )
-{
-   constexpr int N = 5;
-   std::array< int, N > a;
-   a.fill( 0 );
-
-   staticFor< int, 0, N >(
-      [ &a ]( auto i )
-      {
-         std::get< i >( a ) += 1;
-      } );
-
-   std::array< int, N > expected;
-   expected.fill( 1 );
-   EXPECT_EQ( a, expected );
-}
-
-TEST( staticForTest, host_empty )
-{
-   bool called = false;
-
-   staticFor< int, 0, 0 >(
-      [ &called ]( auto i )
-      {
-         called = true;
-      } );
-   EXPECT_FALSE( called );
-
-   staticFor< int, 0, -1 >(
-      [ &called ]( auto i )
-      {
-         called = true;
-      } );
-   EXPECT_FALSE( called );
-}
-
-#ifdef __CUDACC__
 // nvcc does not allow __cuda_callable__ lambdas inside private regions
 void
-test_cuda_dynamic()
+test_hip_dynamic()
 {
-   using Array = Containers::Array< int, Devices::Cuda >;
+   using Array = Containers::Array< int, Devices::Hip >;
    using ArrayHost = Containers::Array< int, Devices::Host >;
    constexpr int N = 5;
    Array a( N );
@@ -84,7 +28,7 @@ test_cuda_dynamic()
             view[ i ] += 1;
          } );
    };
-   parallelFor< Devices::Cuda >( 0, 1, kernel );
+   parallelFor< Devices::Hip >( 0, 1, kernel );
 
    ArrayHost expected;
    expected.setSize( N );
@@ -95,9 +39,9 @@ test_cuda_dynamic()
    EXPECT_EQ( ah, expected );
 }
 
-TEST( staticForTest, cuda_dynamic )
+TEST( staticForTest, hip_dynamic )
 {
-   test_cuda_dynamic();
+   test_hip_dynamic();
 }
 
 template< int i, typename View >
@@ -110,9 +54,9 @@ static_helper( View& view )
 
 // nvcc does not allow __cuda_callable__ lambdas inside private regions
 void
-test_cuda_static()
+test_hip_static()
 {
-   using Array = Containers::Array< int, Devices::Cuda >;
+   using Array = Containers::Array< int, Devices::Hip >;
    using ArrayHost = Containers::Array< int, Devices::Host >;
    constexpr int N = 5;
    Array a( N );
@@ -127,7 +71,7 @@ test_cuda_static()
             static_helper< i >( view );
          } );
    };
-   parallelFor< Devices::Cuda >( 0, 1, kernel );
+   parallelFor< Devices::Hip >( 0, 1, kernel );
 
    ArrayHost expected;
    expected.setSize( N );
@@ -138,10 +82,9 @@ test_cuda_static()
    EXPECT_EQ( ah, expected );
 }
 
-TEST( staticForTest, cuda_static )
+TEST( staticForTest, hip_static )
 {
-   test_cuda_static();
+   test_hip_static();
 }
-#endif
 
 #include "../main.h"

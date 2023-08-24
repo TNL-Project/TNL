@@ -13,7 +13,7 @@
 
 namespace TNL::Algorithms::detail {
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 /* Template for cooperative scan across the CUDA block of threads.
  * It is a *cooperative* operation - all threads must call the operation,
  * otherwise it will deadlock!
@@ -84,7 +84,11 @@ struct CudaBlockScan
          for( int stride = 1; stride < blockSize / Backend::getWarpSize(); stride *= 2 ) {
             if( lane_id >= stride )
                storage.warpResults[ tid ] = reduction( storage.warpResults[ tid ], storage.warpResults[ tid - stride ] );
+   #if ! defined( __HIP__ )
+            // FIXME: HIP does not have __syncwarp and __syncthreads does not work here,
+            //        because it is collective for the whole block and this branch is only for one warp
             __syncwarp();
+   #endif
          }
       __syncthreads();
 
@@ -174,12 +178,16 @@ struct CudaBlockScanShfl
    static ValueType
    warpScan( const Reduction& reduction, ValueType identity, ValueType threadValue, int lane_id, ValueType& total )
    {
-      constexpr unsigned mask = 0xffffffff;
-
       // perform an inclusive scan
       #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
+   // TODO: HIP does not have __shfl_up_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
+   #ifdef __HIP__
+         const ValueType otherValue = __shfl_up( threadValue, stride );
+   #else
+         constexpr unsigned mask = 0xffffffff;
          const ValueType otherValue = __shfl_up_sync( mask, threadValue, stride );
+   #endif
          if( lane_id >= stride )
             threadValue = reduction( threadValue, otherValue );
       }
@@ -189,7 +197,13 @@ struct CudaBlockScanShfl
 
       // shift the result for exclusive scan
       if( warpScanType == ScanType::Exclusive ) {
+         // TODO: HIP does not have __shfl_up_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
+   #ifdef __HIP__
+         threadValue = __shfl_up( threadValue, 1 );
+   #else
+         constexpr unsigned mask = 0xffffffff;
          threadValue = __shfl_up_sync( mask, threadValue, 1 );
+   #endif
          if( lane_id == 0 )
             threadValue = identity;
       }
@@ -370,7 +384,7 @@ CudaScanKernelUpsweep( const InputView input,
                        ValueType identity,
                        ValueType* reductionResults )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    // verify the configuration
    TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaScanKernelUpsweep" );
    static_assert( valuesPerThread % 2,
@@ -450,7 +464,7 @@ CudaScanKernelDownsweep( const InputView input,
                          typename OutputView::ValueType shift,
                          const typename OutputView::ValueType* reductionResults )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ValueType = typename OutputView::ValueType;
    using TileScan = CudaTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
 
@@ -490,7 +504,7 @@ CudaScanKernelParallel( const InputView input,
                         typename OutputView::ValueType identity,
                         typename OutputView::ValueType* blockResults )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ValueType = typename OutputView::ValueType;
    using TileScan = CudaTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
 
@@ -534,7 +548,7 @@ CudaScanKernelUniformShift( OutputView output,
                             const typename OutputView::ValueType* blockResults,
                             typename OutputView::ValueType shift )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    // load the block result into a __shared__ variable first
    union Shared
    {

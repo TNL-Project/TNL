@@ -16,7 +16,7 @@
 
 namespace TNL::Algorithms::detail {
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 /* Template for cooperative reduction across the CUDA block of threads.
  * It is a *cooperative* operation - all threads must call the operation,
  * otherwise it will deadlock!
@@ -173,10 +173,15 @@ struct CudaBlockReduceShfl
    static ValueType
    warpReduce( const Reduction& reduction, ValueType threadValue )
    {
-      constexpr unsigned mask = 0xffffffff;
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
+         // TODO: HIP does not have __shfl_xor_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
+   #ifdef __HIP__
+         const ValueType otherValue = __shfl_xor( threadValue, i );
+   #else
+         constexpr unsigned mask = 0xffffffff;
          const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
+   #endif
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
@@ -326,7 +331,7 @@ CudaReductionKernel( DataFetcher dataFetcher,
                      Index end,
                      Result* output )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaReductionKernel" );
 
    // allocate shared memory
@@ -388,7 +393,7 @@ CudaReductionWithArgumentKernel( DataFetcher dataFetcher,
                                  Index* idxOutput,
                                  const Index* idxInput = nullptr )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaReductionKernel" );
 
    // allocate shared memory

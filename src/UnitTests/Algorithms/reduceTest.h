@@ -24,7 +24,7 @@ protected:
 // types for which ReduceTest is instantiated
 // TODO: Quad must be fixed
 using ArrayTypes = ::testing::Types<
-#ifndef __CUDACC__
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    Array< CustomScalar< int >, Devices::Sequential, int >,
    Array< int, Devices::Sequential, int >,
    Array< long, Devices::Sequential, int >,
@@ -50,22 +50,36 @@ using ArrayTypes = ::testing::Types<
    Array< double, Devices::Host, long >
 //Array< Quad< float >,  Devices::Host, long >,
 //Array< Quad< double >, Devices::Host, long >
-#endif
-#ifdef __CUDACC__
-      Array< CustomScalar< int >, Devices::Cuda, int >,  // the reduction kernel for CustomScalar is not specialized with __shfl
-                                                         // instructions
+#elif defined( __CUDACC__ )
+   // the reduction kernel for CustomScalar is not specialized with __shfl instructions
+   Array< CustomScalar< int >, Devices::Cuda, int >,
    Array< int, Devices::Cuda, int >,
    Array< long, Devices::Cuda, int >,
    Array< double, Devices::Cuda, int >,
    //Array< Quad< float >,  Devices::Cuda, int >,
    //Array< Quad< double >, Devices::Cuda, int >,
-   Array< CustomScalar< int >, Devices::Cuda, long >,  // the reduction kernel for CustomScalar is not specialized with __shfl
-                                                       // instructions
+   // the reduction kernel for CustomScalar is not specialized with __shfl instructions
+   Array< CustomScalar< int >, Devices::Cuda, long >,
    Array< int, Devices::Cuda, long >,
    Array< long, Devices::Cuda, long >,
    Array< double, Devices::Cuda, long >
 //Array< Quad< float >,  Devices::Cuda, long >,
 //Array< Quad< double >, Devices::Cuda, long >
+#elif defined( __HIP__ )
+   // the reduction kernel for CustomScalar is not specialized with __shfl instructions
+   Array< CustomScalar< int >, Devices::Hip, int >,
+   Array< int, Devices::Hip, int >,
+   Array< long, Devices::Hip, int >,
+   Array< double, Devices::Hip, int >,
+   //Array< Quad< float >,  Devices::Hip, int >,
+   //Array< Quad< double >, Devices::Hip, int >,
+   // the reduction kernel for CustomScalar is not specialized with __shfl instructions
+   Array< CustomScalar< int >, Devices::Hip, long >,
+   Array< int, Devices::Hip, long >,
+   Array< long, Devices::Hip, long >,
+   Array< double, Devices::Hip, long >
+//Array< Quad< float >,  Devices::Hip, long >,
+//Array< Quad< double >, Devices::Hip, long >
 #endif
    >;
 

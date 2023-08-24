@@ -73,7 +73,7 @@ __global__
 void
 ParallelFor3DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs... args )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    // shift begin to the thread's initial position
    begin.x() += blockIdx.x * blockDim.x + threadIdx.x;
    begin.y() += blockIdx.y * blockDim.y + threadIdx.y;

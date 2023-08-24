@@ -1,7 +1,7 @@
-#pragma once
-
 #include <TNL/Allocators/Host.h>
 #include <TNL/Allocators/Cuda.h>
+#include <TNL/Devices/Host.h>
+#include <TNL/Devices/Cuda.h>
 #include <TNL/Algorithms/equal.h>
 #include <TNL/Algorithms/fill.h>
 
@@ -25,42 +25,6 @@ using ValueTypes = ::testing::Types< short int, int, long, float, double >;
 
 TYPED_TEST_SUITE( EqualTest, ValueTypes );
 
-TYPED_TEST( EqualTest, equal_host )
-{
-   using ValueType = typename TestFixture::ValueType;
-   using Allocator = Allocators::Host< ValueType >;
-
-   Allocator allocator;
-   ValueType* data1 = allocator.allocate( ARRAY_TEST_SIZE );
-   ValueType* data2 = allocator.allocate( ARRAY_TEST_SIZE );
-   fill< Devices::Host >( data1, (ValueType) 7, ARRAY_TEST_SIZE );
-   fill< Devices::Host >( data2, (ValueType) 0, ARRAY_TEST_SIZE );
-   EXPECT_FALSE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
-   fill< Devices::Host >( data2, (ValueType) 7, ARRAY_TEST_SIZE );
-   EXPECT_TRUE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
-   allocator.deallocate( data1, ARRAY_TEST_SIZE );
-   allocator.deallocate( data2, ARRAY_TEST_SIZE );
-}
-
-TYPED_TEST( EqualTest, equalWithConversion_host )
-{
-   using Allocator1 = Allocators::Host< int >;
-   using Allocator2 = Allocators::Host< float >;
-
-   Allocator1 allocator1;
-   Allocator2 allocator2;
-   int* data1 = allocator1.allocate( ARRAY_TEST_SIZE );
-   float* data2 = allocator2.allocate( ARRAY_TEST_SIZE );
-   fill< Devices::Host >( data1, 7, ARRAY_TEST_SIZE );
-   fill< Devices::Host >( data2, (float) 0.0, ARRAY_TEST_SIZE );
-   EXPECT_FALSE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
-   fill< Devices::Host >( data2, (float) 7.0, ARRAY_TEST_SIZE );
-   EXPECT_TRUE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
-   allocator1.deallocate( data1, ARRAY_TEST_SIZE );
-   allocator2.deallocate( data2, ARRAY_TEST_SIZE );
-}
-
-#ifdef __CUDACC__
 TYPED_TEST( EqualTest, equal_cuda )
 {
    using ValueType = typename TestFixture::ValueType;
@@ -125,6 +89,5 @@ TYPED_TEST( EqualTest, equalWithConversions_cuda )
    cudaAllocator1.deallocate( deviceData, ARRAY_TEST_SIZE );
    cudaAllocator2.deallocate( deviceData2, ARRAY_TEST_SIZE );
 }
-#endif  // __CUDACC__
 
 #include "../main.h"

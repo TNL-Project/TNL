@@ -75,10 +75,15 @@ protected:
 // types for which MultireductionTest is instantiated
 using VectorTypes = ::testing::Types< Vector< int, Devices::Host >,
                                       Vector< float, Devices::Host >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
                                       ,
                                       Vector< int, Devices::Cuda >,
                                       Vector< float, Devices::Cuda >
+#endif
+#if defined( __HIP__ )
+                                      ,
+                                      Vector< int, Devices::Hip >,
+                                      Vector< float, Devices::Hip >
 #endif
                                       >;
 

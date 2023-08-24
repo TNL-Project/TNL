@@ -57,7 +57,7 @@ __global__
 void
 ParallelFor1DKernel( Index begin, Index end, Function f, FunctionArgs... args )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    Index i = begin + blockIdx.x * blockDim.x + threadIdx.x;
    while( i < end ) {
       f( i, args... );

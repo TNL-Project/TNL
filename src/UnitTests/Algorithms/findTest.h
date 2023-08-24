@@ -1,8 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <TNL/Allocators/Host.h>
-#include <TNL/Allocators/Cuda.h>
 #include <TNL/Algorithms/find.h>
 #include <TNL/Containers/Array.h>
 
@@ -23,7 +20,7 @@ protected:
 
 // types for which ArrayTest is instantiated
 using ContainerTypes = ::testing::Types<
-#ifndef __CUDACC__
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    Containers::Array< short int, Devices::Sequential >,
    Containers::Array< int, Devices::Sequential >,
    Containers::Array< long int, Devices::Sequential >,
@@ -34,12 +31,18 @@ using ContainerTypes = ::testing::Types<
    Containers::Array< long int, Devices::Host >,
    Containers::Array< float, Devices::Host >,
    Containers::Array< double, Devices::Host >
-#else
+#elif defined( __CUDACC__ )
    Containers::Array< short int, Devices::Cuda >,
    Containers::Array< int, Devices::Cuda >,
    Containers::Array< long int, Devices::Cuda >,
    Containers::Array< float, Devices::Cuda >,
    Containers::Array< double, Devices::Cuda >
+#elif defined( __HIP__ )
+   Containers::Array< short int, Devices::Hip >,
+   Containers::Array< int, Devices::Hip >,
+   Containers::Array< long int, Devices::Hip >,
+   Containers::Array< float, Devices::Hip >,
+   Containers::Array< double, Devices::Hip >
 #endif
    >;
 

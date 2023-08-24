@@ -23,7 +23,7 @@ CudaMultireductionKernel( const Result identity,
                           const int n,
                           Result* output )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    Result* sdata = Backend::getSharedMemory< Result >();
 
    // Get the thread id (tid), global thread id (gid) and gridSize.

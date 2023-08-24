@@ -90,7 +90,7 @@ protected:
       cv_view.bind( c );
 
       // make sure that we perform tests with multiple CUDA grids
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       if( std::is_same< DeviceType, Devices::Cuda >::value ) {
          CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
          CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::maxGridSize() = 3;
@@ -108,7 +108,7 @@ protected:
    void
    checkResult( const DistributedArrayType& array, bool check_cuda_grids = true )
    {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       // skip the check for too small arrays
       if( check_cuda_grids && array.getLocalRange().getSize() > 256 ) {
          // we don't care which kernel launcher was actually used
@@ -128,12 +128,13 @@ protected:
 
 // types for which DistributedScanTest is instantiated
 using DistributedArrayTypes = ::testing::Types<
-#ifndef __CUDACC__
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    DistributedArray< double, Devices::Sequential, int >,
    DistributedArray< double, Devices::Host, int >
-#endif
-#ifdef __CUDACC__
-      DistributedArray< double, Devices::Cuda, int >
+#elif defined( __CUDACC__ )
+   DistributedArray< double, Devices::Cuda, int >
+#elif defined( __HIP__ )
+   DistributedArray< double, Devices::Hip, int >
 #endif
    >;
 
