@@ -46,6 +46,8 @@ public:
     */
    using RealType = typename Vector::RealType;
 
+   using ValueType = RealType;
+
    /**
     * \brief Device where the solver is supposed to be executed.
     */
@@ -75,6 +77,12 @@ public:
     * Can be \ref TNL::Solvers::IterativeSolverMonitor.
     */
    using SolverMonitorType = SolverMonitor;
+
+   static constexpr bool
+   isStatic()
+   {
+      return false;
+   }
 
    /**
     * \brief Default constructor.

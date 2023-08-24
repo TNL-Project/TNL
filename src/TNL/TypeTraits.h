@@ -326,6 +326,36 @@ public:
    static constexpr bool value = ( sizeof( test< std::decay_t<T> >(0) ) == sizeof( YesType ) );  // NOLINT(readability-implicit-bool-conversion, modernize-use-nullptr)
 };
 
+template< typename T, bool IsArithmetic = std::is_arithmetic_v< T > >
+struct GetRealType;
+
+template< typename T >
+struct GetRealType< T, false >
+{
+   using type = typename GetRealType< typename T::RealType >::type;
+};
+
+template< typename T >
+struct GetRealType< T, true >
+{
+   using type = T;
+};
+
+template< typename T, bool IsArithemtic = std::is_arithmetic_v< T > >
+struct GetIndexType;
+
+template< typename T >
+struct GetIndexType< T, false >
+{
+   using type = typename T::IndexType;
+};
+
+template< typename T >
+struct GetIndexType< T, true >
+{
+   using type = int;
+};
+
 // clang-format on
 
 }  // namespace TNL

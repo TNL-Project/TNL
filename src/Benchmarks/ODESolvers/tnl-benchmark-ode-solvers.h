@@ -45,8 +45,6 @@ struct ODESolversBenchmark
    using RealType = Real;
    using DeviceType = Device;
    using IndexType = Index;
-   using VectorType = Containers::Vector< RealType, DeviceType, IndexType >;
-   using VectorView = typename VectorType::ViewType;
    using SolverMonitorType = typename Benchmark<>::SolverMonitorType;
 
    template< typename SolverType >
@@ -55,6 +53,10 @@ struct ODESolversBenchmark
                     const Config::ParameterContainer& parameters,
                     const char* solverName )
    {
+      using ValueType = typename SolverType::ValueType;
+      using VectorType = TNL::Containers::Vector< ValueType, DeviceType, IndexType >;
+      using VectorView = typename VectorType::ViewType;
+
       std::string device = "host";
       if( std::is_same< DeviceType, Devices::Cuda >::value ) {
          device = "cuda";
@@ -68,10 +70,10 @@ struct ODESolversBenchmark
       }
 
       RealType tau = 0.1;
-      std::size_t dofs = parameters.getParameter< int >( "size" );
+      std::size_t dofs = parameters.getParameter< int >( "size" ) * sizeof( RealType ) / sizeof( ValueType );
       VectorType u( dofs, 0.0 );
       RealType correct_solution = exp( 1.0 ) - exp( 0.0 );
-      ODESolversBenchmarkResult< SolverType > benchmarkResult( correct_solution, solver, u );
+      ODESolversBenchmarkResult< SolverType, DeviceType, IndexType > benchmarkResult( correct_solution, solver, u );
       int eoc_steps_count = adaptivity ? 1 : 5;
       for( int eoc_steps = 0; eoc_steps < eoc_steps_count; eoc_steps++ ) {
          benchmark.setMetadataColumns(
@@ -83,20 +85,36 @@ struct ODESolversBenchmark
          solver.setStopTime( 1.0 );
          u = 0;
          std::size_t iterations = 1.0 / tau + 1;
-         benchmark.setDatasetSize( dofs * sizeof( RealType ) * iterations );
+         benchmark.setDatasetSize( dofs * sizeof( ValueType ) * iterations );
          auto reset_u = [&] () mutable { u = 0.0; };
-         auto problem = [=] ( const RealType& t, const RealType& tau, const VectorView& u_view, VectorView& fu_view ) {
-            auto computeF = [=] __cuda_callable__ ( IndexType i ) mutable {
-               fu_view[ i ] = TNL::exp( t );
+         if constexpr( SolverType::isStatic() ) {
+            auto u_view = u.getView();
+            auto solve = [&]() {
+               auto problem = [] __cuda_callable__ ( const RealType& t, const RealType& tau, const ValueType& u, ValueType& fu ) {
+                     fu = TNL::exp( t );
+               };
+               TNL::Algorithms::parallelFor< DeviceType >( 0, u.getSize(), [=] __cuda_callable__ ( IndexType i ) mutable {
+                  solver.setTime( 0.0 );
+                  solver.setTau( tau );
+                  solver.solve( u_view[ i ], problem );
+               } );
             };
-            Algorithms::parallelFor< DeviceType >( 0, u_view.getSize(), computeF );
-         };
-         auto solve = [&]() {
-            solver.setTime( 0.0 );
-            solver.setTau( tau );
-            solver.solve( u, problem );
-         };
-         benchmark.time< DeviceType >( reset_u, device, solve, benchmarkResult );
+            benchmark.time< DeviceType >( reset_u, device, solve, benchmarkResult );
+         } else {
+            auto problem = [=] ( const RealType& t, const RealType& tau, const VectorView& u_view, VectorView& fu_view ) {
+               auto computeF = [=] __cuda_callable__ ( IndexType i ) mutable {
+                  fu_view[ i ] = TNL::exp( t );
+               };
+               Algorithms::parallelFor< DeviceType >( 0, u_view.getSize(), computeF );
+            };
+            auto solve = [&]() {
+               solver.setStopTime( 1.0 );
+               solver.setTime( 0.0 );
+               solver.setTau( tau );
+               solver.solve( u, problem );
+            };
+            benchmark.time< DeviceType >( reset_u, device, solve, benchmarkResult );
+         }
          tau /= 2.0;
       }
       return true;
@@ -105,6 +123,7 @@ struct ODESolversBenchmark
    static bool
    run( Benchmark<>& benchmark, const Config::ParameterContainer& parameters )
    {
+      using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
       const auto& solvers = parameters.getList< String >( "solvers" );
       for( auto&& solver : solvers )
       {
@@ -114,8 +133,12 @@ struct ODESolversBenchmark
             using LegacySolver = Euler< VectorType, SolverMonitorType >;
             benchmarkSolver< LegacySolver >( benchmark, parameters, "Leg. Euler" );
             using Method = TNL::Solvers::ODE::Methods::Euler< RealType >;
-            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
-            benchmarkSolver< Solver >( benchmark, parameters, "Euler" );
+            using VectorSolver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< VectorSolver >( benchmark, parameters, "Euler" );
+            using RealSolver = TNL::Solvers::ODE::ODESolver< Method, Real, SolverMonitorType >;
+            benchmarkSolver< RealSolver >( benchmark, parameters, "Euler Num." );
+            using StaticSolver = TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 1, Real >, SolverMonitorType >;
+            benchmarkSolver< StaticSolver >( benchmark, parameters, "Euler SV-1" );
          }
          if( solver == "merson" || solver == "all" ) {
             using LegacySolverNonET = Benchmarks::MersonNonET< VectorType, SolverMonitorType >;
@@ -153,6 +176,8 @@ bool resolveDeviceType( Benchmark<>& benchmark,
                         Config::ParameterContainer& parameters )
 {
    const String& device = parameters.getParameter< String >( "device" );
+   if( ( device == "sequential" || device == "all" ) && ! resolveIndexType< Real, Devices::Sequential >( benchmark, parameters ) )
+      return false;
    if( ( device == "host" || device == "all" ) && ! resolveIndexType< Real, Devices::Host >( benchmark, parameters ) )
       return false;
    if( device == "cuda" || device == "all" ) {
@@ -195,6 +220,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum< String >( "merson" );
    config.addEntryEnum< String >( "all" );
    config.addEntry< String >( "device", "Run benchmarks using given device.", "host" );
+   config.addEntryEnum( "sequential" );
    config.addEntryEnum( "host" );
    config.addEntryEnum( "cuda" );
    config.addEntryEnum( "all" );
