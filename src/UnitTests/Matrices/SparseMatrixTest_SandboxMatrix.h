@@ -15,7 +15,7 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::Sandbox::SparseSandboxMatrix< long, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix >,
    TNL::Matrices::Sandbox::SparseSandboxMatrix< float, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix >,
    TNL::Matrices::Sandbox::SparseSandboxMatrix< double, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    ,
    TNL::Matrices::Sandbox::SparseSandboxMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix >,
    TNL::Matrices::Sandbox::SparseSandboxMatrix< long, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix >,
@@ -25,6 +25,16 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::Sandbox::SparseSandboxMatrix< long, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix >,
    TNL::Matrices::Sandbox::SparseSandboxMatrix< float, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix >,
    TNL::Matrices::Sandbox::SparseSandboxMatrix< double, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix >
+#elif defined( __HIP__ )
+   ,
+   TNL::Matrices::Sandbox::SparseSandboxMatrix< int, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix >,
+   TNL::Matrices::Sandbox::SparseSandboxMatrix< long, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix >,
+   TNL::Matrices::Sandbox::SparseSandboxMatrix< float, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix >,
+   TNL::Matrices::Sandbox::SparseSandboxMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix >,
+   TNL::Matrices::Sandbox::SparseSandboxMatrix< int, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix >,
+   TNL::Matrices::Sandbox::SparseSandboxMatrix< long, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix >,
+   TNL::Matrices::Sandbox::SparseSandboxMatrix< float, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix >,
+   TNL::Matrices::Sandbox::SparseSandboxMatrix< double, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix >
 #endif
    >;
 
