@@ -28,8 +28,10 @@
    #include "blasWrappers.h"
 #endif
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    #include "cublasWrappers.h"
+#elif defined( __HIP__ )
+   #include "hipblasWrappers.h"
 #endif
 
 #ifdef HAVE_THRUST
@@ -85,8 +87,12 @@ class VectorOperationsBenchmark
    std::function< void() > reset4;
    std::function< void() > resetAll;
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    cublasHandle_t cublasHandle;
+   const char* gpuBlasName = "cuBLAS";
+#elif defined( __HIP__ )
+   hipblasHandle_t hipblasHandle;
+   const char* gpuBlasName = "hipBLAS";
 #endif
 
 public:
@@ -97,7 +103,7 @@ public:
       hostVector2.setSize( size );
       hostVector3.setSize( size );
       hostVector4.setSize( size );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       deviceVector.setSize( size );
       deviceVector2.setSize( size );
       deviceVector3.setSize( size );
@@ -108,7 +114,7 @@ public:
       hostView2.bind( hostVector2 );
       hostView3.bind( hostVector3 );
       hostView4.bind( hostVector4 );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       deviceView.bind( deviceVector );
       deviceView2.bind( deviceVector2 );
       deviceView3.bind( deviceVector3 );
@@ -122,7 +128,7 @@ public:
       reset1 = [ & ]()
       {
          hostVector.setValue( 1.0 );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          deviceVector.setValue( 1.0 );
 #endif
          // A relatively harmless call to keep the compiler from realizing we
@@ -133,21 +139,21 @@ public:
       reset2 = [ & ]()
       {
          hostVector2.setValue( 1.0 );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          deviceVector2.setValue( 1.0 );
 #endif
       };
       reset3 = [ & ]()
       {
          hostVector3.setValue( 1.0 );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          deviceVector3.setValue( 1.0 );
 #endif
       };
       reset4 = [ & ]()
       {
          hostVector4.setValue( 1.0 );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          deviceVector4.setValue( 1.0 );
 #endif
       };
@@ -162,15 +168,19 @@ public:
 
       resetAll();
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
       cublasCreate( &cublasHandle );
+#elif defined( __HIP__ )
+      hipblasCreate( &hipblasHandle );
 #endif
    }
 
    ~VectorOperationsBenchmark()
    {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
       cublasDestroy( cublasHandle );
+#elif defined( __HIP__ )
+      hipblasDestroy( hipblasHandle );
 #endif
    }
 
@@ -232,7 +242,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU std::max_element", computeSTL );
       verify( "CPU std::max_element", resultHost, 1.0 );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorMax( deviceVector );
@@ -257,7 +267,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::max_element", computeThrust );
       verify( "CPU thrust::max_element", resultHost, 1.0 );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          resultDevice = *thrust::max_element( thrust::device,
@@ -297,7 +307,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU std::min_element", computeSTL );
       verify( "CPU std::min_element", resultHost, 1.0 );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorMin( deviceVector );
@@ -322,7 +332,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::min_element", computeThrust );
       verify( "CPU thrust::min_element", resultHost, 1.0 );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          resultDevice = *thrust::min_element( thrust::device,
@@ -377,7 +387,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU std::max_element", computeSTL );
       verify( "CPU std::max_element", resultHost, 1.0 );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorAbsMax( deviceVector );
@@ -396,11 +406,15 @@ public:
       auto computeCudaCUBLAS = [ & ]()
       {
          int index = 0;
+   #if defined( __CUDACC__ )
          cublasIgamax( cublasHandle, size, deviceVector.getData(), 1, &index );
+   #elif defined( __HIP__ )
+         hipblasIgamax( hipblasHandle, size, deviceVector.getData(), 1, &index );
+   #endif
          resultDevice = deviceVector.getElement( index );
       };
-      benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
-      verify( "cuBLAS", resultDevice, 1.0 );
+      benchmark.time< Devices::Cuda >( reset1, gpuBlasName, computeCudaCUBLAS );
+      verify( gpuBlasName, resultDevice, 1.0 );
 #endif
 
 #ifdef HAVE_THRUST
@@ -417,7 +431,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::max_element", computeThrust );
       verify( "CPU thrust::max_element", resultHost, 1.0 );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          resultDevice = *thrust::max_element( thrust::device,
@@ -478,7 +492,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU std::min_element", computeSTL );
       verify( "CPU std::min_element", resultHost, 1.0 );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorAbsMin( deviceVector );
@@ -497,11 +511,15 @@ public:
       auto computeCudaCUBLAS = [ & ]()
       {
          int index = 0;
+   #if defined( __CUDACC__ )
          cublasIgamin( cublasHandle, size, deviceVector.getData(), 1, &index );
+   #elif defined( __HIP__ )
+         hipblasIgamin( hipblasHandle, size, deviceVector.getData(), 1, &index );
+   #endif
          resultDevice = deviceVector.getElement( index );
       };
-      benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
-      verify( "cuBLAS", resultDevice, 1.0 );
+      benchmark.time< Devices::Cuda >( reset1, gpuBlasName, computeCudaCUBLAS );
+      verify( gpuBlasName, resultDevice, 1.0 );
 #endif
 
 #ifdef HAVE_THRUST
@@ -518,7 +536,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::min_element", computeThrust );
       verify( "CPU thrust::min_element", resultHost, 1.0 );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          resultDevice = *thrust::min_element( thrust::device,
@@ -562,7 +580,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU std::reduce", computeSTL );
       verify( "CPU std::reduce", resultHost, size );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorSum( deviceVector );
@@ -587,7 +605,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::reduce", computeThrust );
       verify( "CPU thrust::reduce", resultHost, size );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          resultDevice = thrust::reduce( thrust::device,
@@ -642,7 +660,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
       verify( "CPU std::transform_reduce", resultHost, size );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 1.0 );
@@ -659,10 +677,14 @@ public:
 
       auto computeCudaCUBLAS = [ & ]()
       {
+   #if defined( __CUDACC__ )
          cublasGasum( cublasHandle, size, deviceVector.getData(), 1, &resultDevice );
+   #elif defined( __HIP__ )
+         hipblasGasum( hipblasHandle, size, deviceVector.getData(), 1, &resultDevice );
+   #endif
       };
-      benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
-      verify( "cuBLAS", resultDevice, size );
+      benchmark.time< Devices::Cuda >( reset1, gpuBlasName, computeCudaCUBLAS );
+      verify( gpuBlasName, resultDevice, size );
 #endif
 
 #ifdef HAVE_THRUST
@@ -682,7 +704,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::transform_reduce", computeThrust );
       verify( "CPU thrust::transform_reduce", resultHost, size );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          resultDevice = thrust::transform_reduce(
@@ -745,7 +767,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
       verify( "CPU std::transform_reduce", resultHost, std::sqrt( size ) );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 2.0 );
@@ -762,10 +784,14 @@ public:
 
       auto computeCudaCUBLAS = [ & ]()
       {
+   #if defined( __CUDACC__ )
          cublasGnrm2( cublasHandle, size, deviceVector.getData(), 1, &resultDevice );
+   #elif defined( __HIP__ )
+         hipblasGnrm2( hipblasHandle, size, deviceVector.getData(), 1, &resultDevice );
+   #endif
       };
-      benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
-      verify( "cuBLAS", resultDevice, std::sqrt( size ) );
+      benchmark.time< Devices::Cuda >( reset1, gpuBlasName, computeCudaCUBLAS );
+      verify( gpuBlasName, resultDevice, std::sqrt( size ) );
 #endif
 
 #ifdef HAVE_THRUST
@@ -786,7 +812,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::transform_reduce", computeThrust );
       verify( "CPU thrust::transform_reduce", resultHost, std::sqrt( size ) );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          const auto sum = thrust::transform_reduce(
@@ -841,7 +867,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
       verify( "CPU std::transform_reduce", resultHost, std::cbrt( size ) );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getVectorLpNorm( deviceVector, 3.0 );
@@ -875,7 +901,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::transform_reduce", computeThrust );
       verify( "CPU thrust::transform_reduce", resultHost, std::cbrt( size ) );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          const auto sum = thrust::transform_reduce(
@@ -936,7 +962,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
       verify( "CPU std::transform_reduce", resultHost, size );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          resultDevice = Benchmarks::CommonVectorOperations< Devices::Cuda >::getScalarProduct( deviceVector, deviceVector2 );
@@ -953,10 +979,14 @@ public:
 
       auto computeCudaCUBLAS = [ & ]()
       {
+   #if defined( __CUDACC__ )
          cublasGdot( cublasHandle, size, deviceVector.getData(), 1, deviceVector2.getData(), 1, &resultDevice );
+   #elif defined( __HIP__ )
+         hipblasGdot( hipblasHandle, size, deviceVector.getData(), 1, deviceVector2.getData(), 1, &resultDevice );
+   #endif
       };
-      benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
-      verify( "cuBLAS", resultDevice, size );
+      benchmark.time< Devices::Cuda >( reset1, gpuBlasName, computeCudaCUBLAS );
+      verify( gpuBlasName, resultDevice, size );
 #endif
 
 #ifdef HAVE_THRUST
@@ -973,7 +1003,7 @@ public:
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::inner_product", computeThrust );
       verify( "CPU thrust::inner_product", resultHost, size );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          resultDevice = thrust::inner_product( thrust::device,
@@ -1011,7 +1041,7 @@ public:
       verify( "CPU BLAS", hostVector, 0.5 );
 #endif
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaET = [ & ]()
       {
          deviceVector *= 0.5;
@@ -1022,10 +1052,14 @@ public:
       auto computeCudaCUBLAS = [ & ]()
       {
          const Real alpha = 0.5;
+   #if defined( __CUDACC__ )
          cublasGscal( cublasHandle, size, &alpha, deviceVector.getData(), 1 );
+   #elif defined( __HIP__ )
+         hipblasGscal( hipblasHandle, size, &alpha, deviceVector.getData(), 1 );
+   #endif
       };
-      benchmark.time< Devices::Cuda >( reset1, "cuBLAS", computeCudaCUBLAS );
-      verify( "cuBLAS", deviceVector, 0.5 );
+      benchmark.time< Devices::Cuda >( reset1, gpuBlasName, computeCudaCUBLAS );
+      verify( gpuBlasName, deviceVector, 0.5 );
 #endif
    }
 
@@ -1058,7 +1092,7 @@ public:
       verify( "CPU BLAS", hostVector, 2.0 );
 #endif
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector2, (Real) 1.0, (Real) 1.0 );
@@ -1076,10 +1110,14 @@ public:
       auto computeCudaCUBLAS = [ & ]()
       {
          const Real alpha = 1.0;
+   #if defined( __CUDACC__ )
          cublasGaxpy( cublasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
+   #elif defined( __HIP__ )
+         hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
+   #endif
       };
-      benchmark.time< Devices::Cuda >( resetAll, "cuBLAS", computeCudaCUBLAS );
-      verify( "cuBLAS", deviceVector, 2.0 );
+      benchmark.time< Devices::Cuda >( resetAll, gpuBlasName, computeCudaCUBLAS );
+      verify( gpuBlasName, deviceVector, 2.0 );
 #endif
    }
 
@@ -1114,7 +1152,7 @@ public:
       verify( "CPU BLAS", hostVector, 3.0 );
 #endif
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector2, (Real) 1.0, (Real) 1.0 );
@@ -1133,11 +1171,16 @@ public:
       auto computeCudaCUBLAS = [ & ]()
       {
          const Real alpha = 1.0;
+   #if defined( __CUDACC__ )
          cublasGaxpy( cublasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
          cublasGaxpy( cublasHandle, size, &alpha, deviceVector3.getData(), 1, deviceVector.getData(), 1 );
+   #elif defined( __HIP__ )
+         hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
+         hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector3.getData(), 1, deviceVector.getData(), 1 );
+   #endif
       };
-      benchmark.time< Devices::Cuda >( resetAll, "cuBLAS", computeCudaCUBLAS );
-      verify( "cuBLAS", deviceVector, 3.0 );
+      benchmark.time< Devices::Cuda >( resetAll, gpuBlasName, computeCudaCUBLAS );
+      verify( gpuBlasName, deviceVector, 3.0 );
 #endif
    }
 
@@ -1174,7 +1217,7 @@ public:
       verify( "CPU BLAS", hostVector, 4.0 );
 #endif
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
          Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector2, (Real) 1.0, (Real) 1.0 );
@@ -1194,12 +1237,18 @@ public:
       auto computeCudaCUBLAS = [ & ]()
       {
          const Real alpha = 1.0;
+   #if defined( __CUDACC__ )
          cublasGaxpy( cublasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
          cublasGaxpy( cublasHandle, size, &alpha, deviceVector3.getData(), 1, deviceVector.getData(), 1 );
          cublasGaxpy( cublasHandle, size, &alpha, deviceVector4.getData(), 1, deviceVector.getData(), 1 );
+   #elif defined( __HIP__ )
+         hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
+         hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector3.getData(), 1, deviceVector.getData(), 1 );
+         hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector4.getData(), 1, deviceVector.getData(), 1 );
+   #endif
       };
-      benchmark.time< Devices::Cuda >( resetAll, "cuBLAS", computeCudaCUBLAS );
-      verify( "cuBLAS", deviceVector, 4.0 );
+      benchmark.time< Devices::Cuda >( resetAll, gpuBlasName, computeCudaCUBLAS );
+      verify( gpuBlasName, deviceVector, 4.0 );
 #endif
    }
 
@@ -1242,7 +1291,7 @@ public:
       verify( "CPU std::inclusive_scan", hostVector[ 0 ], 1 );
       verify( "CPU std::inclusive_scan", hostVector[ size - 1 ], size );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaET = [ & ]()
       {
          Algorithms::inplaceInclusiveScan( deviceVector );
@@ -1262,7 +1311,7 @@ public:
       verify( "CPU thrust::inclusive_scan", hostVector[ 0 ], 1 );
       verify( "CPU thrust::inclusive_scan", hostVector[ size - 1 ], size );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          thrust::inclusive_scan( thrust::device,
@@ -1307,7 +1356,7 @@ public:
       verify( "CPU ET", hostVector2[ 0 ], 1 );
       verify( "CPU ET", hostVector2[ size - 1 ], size );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaET = [ & ]()
       {
          Algorithms::inclusiveScan( deviceVector, deviceVector2 );
@@ -1327,7 +1376,7 @@ public:
       verify( "CPU thrust::inclusive_scan", hostVector2[ 0 ], 1 );
       verify( "CPU thrust::inclusive_scan", hostVector2[ size - 1 ], size );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          thrust::inclusive_scan( thrust::device,
@@ -1355,7 +1404,7 @@ public:
       verify( "CPU ET", hostVector3[ 0 ], 2 );
       verify( "CPU ET", hostVector3[ size - 1 ], 2 * size );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaET = [ & ]()
       {
          Algorithms::inclusiveScan( deviceVector + deviceVector2, deviceVector3 );
@@ -1378,7 +1427,7 @@ public:
       verify( "CPU ET", hostVector4[ 0 ], 3 );
       verify( "CPU ET", hostVector4[ size - 1 ], 3 * size );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaET = [ & ]()
       {
          Algorithms::inclusiveScan( deviceVector + deviceVector2 + deviceVector3, deviceVector4 );
@@ -1422,7 +1471,7 @@ public:
       // NOTE: this fails due to https://stackoverflow.com/q/74932677
       verify( "CPU std::exclusive_scan", hostVector[ size - 1 ], size - 1 );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaET = [ & ]()
       {
          Algorithms::inplaceExclusiveScan( deviceVector );
@@ -1442,7 +1491,7 @@ public:
       verify( "CPU thrust::exclusive_scan", hostVector[ 0 ], 0 );
       verify( "CPU thrust::exclusive_scan", hostVector[ size - 1 ], size - 1 );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          thrust::exclusive_scan( thrust::device,
@@ -1479,7 +1528,7 @@ public:
       verify( "CPU std::exclusive_scan", hostVector2[ 0 ], 0 );
       verify( "CPU std::exclusive_scan", hostVector2[ size - 1 ], size - 1 );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaET = [ & ]()
       {
          Algorithms::exclusiveScan( deviceVector, deviceVector2 );
@@ -1499,7 +1548,7 @@ public:
       verify( "CPU thrust::exclusive_scan", hostVector2[ 0 ], 0 );
       verify( "CPU thrust::exclusive_scan", hostVector2[ size - 1 ], size - 1 );
 
-   #ifdef __CUDACC__
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
          thrust::exclusive_scan( thrust::device,
@@ -1527,7 +1576,7 @@ public:
       verify( "CPU ET", hostVector3[ 0 ], 0 );
       verify( "CPU ET", hostVector3[ size - 1 ], 2 * ( size - 1 ) );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaET = [ & ]()
       {
          Algorithms::exclusiveScan( deviceVector + deviceVector2, deviceVector3 );
@@ -1551,7 +1600,7 @@ public:
       verify( "CPU ET", hostVector4[ 0 ], 0 );
       verify( "CPU ET", hostVector4[ size - 1 ], 3 * ( size - 1 ) );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaET = [ & ]()
       {
          Algorithms::exclusiveScan( deviceVector + deviceVector2 + deviceVector3, deviceVector4 );

@@ -5,6 +5,8 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Allocators/CudaHost.h>
 #include <TNL/Allocators/CudaManaged.h>
+#include <TNL/Allocators/HipHost.h>
+#include <TNL/Allocators/HipManaged.h>
 
 namespace TNL::Benchmarks {
 
@@ -15,9 +17,15 @@ benchmarkTriad( Benchmark<> & benchmark,
                 const long & size )
 {
    using HostAllocator = Allocators::Host< Real >;
+#if defined( __HIP__ )
+   using CudaAllocator = Allocators::Hip< Real >;
+   using CudaHostAllocator = Allocators::HipHost< Real >;
+   using CudaManagedAllocator = Allocators::HipManaged< Real >;
+#else
    using CudaAllocator = Allocators::Cuda< Real >;
    using CudaHostAllocator = Allocators::CudaHost< Real >;
    using CudaManagedAllocator = Allocators::CudaManaged< Real >;
+#endif
 
    double datasetSize = (double) size * sizeof(Real) / oneGB;
    benchmark.setOperation( "triad", 3 * datasetSize );

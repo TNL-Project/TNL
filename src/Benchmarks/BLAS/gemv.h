@@ -1,12 +1,17 @@
 #pragma once
 
 #include <TNL/Benchmarks/Benchmarks.h>
-#include "cublasWrappers.h"
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Host.h>
+
+#if defined( __CUDACC__ )
+   #include "cublasWrappers.h"
+#elif defined( __HIP__ )
+   #include "hipblasWrappers.h"
+#endif
 
 namespace TNL::Benchmarks {
 
@@ -47,7 +52,7 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    auto reset = [&]() {
       inHostVector = 1.0;
       outHostVector = 0.0;
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       inCudaVector = 1.0;
       //outCudaVector1 = 0.0;
       //outCudaVector2 = 0.0;
@@ -60,7 +65,7 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    };
    benchmark.time< Devices::Host >( reset, "CPU", spmvHost );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    columnMajorCudaMatrix.setDimensions( rows, columns );
    inCudaVector.setSize( columns );
    outCudaVector1.setSize( rows );
@@ -89,6 +94,7 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    columnMajorCudaMatrix.setDimensions( rows, columns );
    setMatrix< ColumnMajorCudaMatrix >( columnMajorCudaMatrix );
 
+   #if defined( __CUDACC__ )
    cublasHandle_t cublasHandle;
    cublasCreate( &cublasHandle );
    auto mvCublas = [&] () {
@@ -99,7 +105,20 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
                   inCudaVector.getData(), 1, &beta,
                   outCudaVector1.getData(), 1 );
    };
-   benchmark.time< Devices::Cuda >( reset, "GPU cublas", mvCublas );
+   benchmark.time< Devices::Cuda >( reset, "GPU hipblas", mvCublas );
+   #else
+   hipblasHandle_t hipblasHandle;
+   hipblasCreate( &hipblasHandle );
+   auto mvHipblas = [&] () {
+      Real alpha = 1.0;
+      Real beta = 0.0;
+      hipblasGemv( hipblasHandle, HIPBLAS_OP_N, rows, columns, &alpha,
+                  columnMajorCudaMatrix.getValues().getData(), rows,
+                  inCudaVector.getData(), 1, &beta,
+                  outCudaVector1.getData(), 1 );
+   };
+   benchmark.time< Devices::Hip >( reset, "GPU hipblas", mvHipblas );
+   #endif
 
    //std::cerr << "Diff. = " << diff << std::endl;
 #endif
