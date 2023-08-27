@@ -58,13 +58,27 @@ selectGPU()
 
    const int local_rank = getRankOnNode();
    const int gpuNumber = local_rank % gpuCount;
-
-   // write debug output before calling cudaSetDevice
-   const char* cuda_visible_devices = std::getenv( "CUDA_VISIBLE_DEVICES" );
-   if( cuda_visible_devices == nullptr )
-      cuda_visible_devices = "";
    std::cout << "Rank " << GetRank() << ": rank on node is " << local_rank << ", using GPU id " << gpuNumber << " of "
-             << gpuCount << ", CUDA_VISIBLE_DEVICES=" << cuda_visible_devices << std::endl;
+             << gpuCount << "\n";
+
+   auto print_env_var = []( const char* key )
+   {
+      const char* value = std::getenv( key );
+      if( value == nullptr )
+         value = "";
+      std::cout << "  " << key << "=" << value << "\n";
+   };
+
+   // write debug output before calling Backend::setDevice
+   std::cout << "Environment:\n";
+   print_env_var( "CUDA_VISIBLE_DEVICES" );
+// HIP has more variables: https://rocm.docs.amd.com/en/latest/understand/gpu_isolation.html
+#if defined( __HIP__ )
+   print_env_var( "GPU_DEVICE_ORDINAL" );
+   print_env_var( "HIP_VISIBLE_DEVICES" );
+   print_env_var( "ROCR_VISIBLE_DEVICES" );
+#endif
+   std::cout.flush();
 
    Backend::setDevice( gpuNumber );
 }

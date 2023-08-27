@@ -46,7 +46,8 @@ setup( const Config::ParameterContainer& parameters, const std::string& prefix =
       const auto outputDirectory = parameters.getParameter< std::string >( "redirect-mpi-output-dir" );
       if( redirect )
          MPI::setupRedirection( outputDirectory );
-   #ifdef __CUDACC__
+
+   #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVDIA__ )
       if( GetSize() > 1 ) {
       #if defined( MPIX_CUDA_AWARE_SUPPORT ) && MPIX_CUDA_AWARE_SUPPORT
          std::cout << "CUDA-aware MPI detected on this system ... " << std::endl;
@@ -57,7 +58,19 @@ setup( const Config::ParameterContainer& parameters, const std::string& prefix =
          std::cerr << "WARNING: TNL cannot detect if you have CUDA-aware MPI. Some problems may occur." << std::endl;
       #endif
       }
-   #endif  // __CUDACC__
+   #elif defined( __HIP__ )
+      if( GetSize() > 1 ) {
+      #if defined( MPIX_ROCM_AWARE_SUPPORT ) && MPIX_ROCM_AWARE_SUPPORT
+         std::cout << "ROCm-aware MPI detected on this system ... " << std::endl;
+      #elif defined( MPIX_ROCM_AWARE_SUPPORT ) && ! MPIX_ROCM_AWARE_SUPPORT
+         std::cerr << "MPI is not ROCm-aware. Please install correct version of MPI." << std::endl;
+         return false;
+      #else
+         std::cerr << "WARNING: TNL cannot detect if you have ROCm-aware MPI. Some problems may occur." << std::endl;
+      #endif
+      }
+   #endif
+
       bool gdbDebug = parameters.getParameter< bool >( "mpi-gdb-debug" );
       int processToAttach = parameters.getParameter< int >( "mpi-process-to-attach" );
 
