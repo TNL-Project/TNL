@@ -17,28 +17,27 @@ namespace TNL::Solvers::ODE {
 
 ////
 // Specialization for static vectors and numbers
-template< typename Method, typename Vector, typename SolverMonitor >
+template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
-ODESolver< Method, Vector, SolverMonitor, true >::ODESolver() {
+ODESolver< Method, Value, SolverMonitor, true >::ODESolver() {
    // It is better to turn off the convergence check for the ODE solver by default.
    this->setConvergenceResidue( 0.0 );
 }
 
-template< typename Method, typename Vector, typename SolverMonitor >
+template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
-ODESolver< Method, Vector, SolverMonitor, true >::
+ODESolver< Method, Value, SolverMonitor, true >::
 ODESolver( const ODESolver& solver )
-: StaticExplicitSolver< typename GetRealType< Vector >::type, typename GetIndexType < Vector >::type >( solver )
+: StaticExplicitSolver< typename GetRealType< Value >::type, typename GetIndexType < Value >::type >( solver )
 {
    // It is better to turn off the convergence check for the ODE solver by default.
    this->setConvergenceResidue( 0.0 );
    this->method = solver.method;
 }
 
-
-template< typename Method, typename Vector, typename SolverMonitor >
+template< typename Method, typename Value, typename SolverMonitor >
 void
-ODESolver< Method, Vector, SolverMonitor, true >::configSetup( Config::ConfigDescription& config, const String& prefix )
+ODESolver< Method, Value, SolverMonitor, true >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
    ExplicitSolver< RealType, IndexType >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "integrator-adaptivity",
@@ -47,40 +46,40 @@ ODESolver< Method, Vector, SolverMonitor, true >::configSetup( Config::ConfigDes
                               1.0e-4 );
 }
 
-template< typename Method, typename Vector, typename SolverMonitor >
+template< typename Method, typename Value, typename SolverMonitor >
 bool
-ODESolver< Method, Vector, SolverMonitor, true >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+ODESolver< Method, Value, SolverMonitor, true >::setup( const Config::ParameterContainer& parameters, const String& prefix )
 {
-   ExplicitSolver< Vector, SolverMonitor >::setup( parameters, prefix );
+   ExplicitSolver< Value, SolverMonitor >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "integrator-adaptivity" ) )
       this->setAdaptivity( parameters.getParameter< double >( prefix + "integrator-adaptivity" ) );
    return true;
 }
 
-template< typename Method, typename Vector, typename SolverMonitor >
+template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
 Method&
-ODESolver< Method, Vector, SolverMonitor, true >::getMethod() {
+ODESolver< Method, Value, SolverMonitor, true >::getMethod() {
    return this->method;
 }
 
-template< typename Method, typename Vector, typename SolverMonitor >
+template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
 const Method&
-ODESolver< Method, Vector, SolverMonitor, true >::getMethod() const {
+ODESolver< Method, Value, SolverMonitor, true >::getMethod() const {
    return this->method;
 }
 
-template< typename Method, typename Vector, typename SolverMonitor >
+template< typename Method, typename Value, typename SolverMonitor >
 template< typename RHSFunction >
 __cuda_callable__
 bool
-ODESolver< Method, Vector, SolverMonitor, true >::solve( VectorType& u, RHSFunction&& rhsFunction )
+ODESolver< Method, Value, SolverMonitor, true >::solve( ValueType& u, RHSFunction&& rhsFunction )
 {
    using ErrorCoefficients = detail::ErrorCoefficientsExtractor< Method >;
-   using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Vector >;
+   using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Value >;
    using UpdateCoefficients = detail::UpdateCoefficientsExtractor< Method >;
-   using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Vector >;
+   using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Value >;
 
 
    if( this->getTau() == 0.0 ) {

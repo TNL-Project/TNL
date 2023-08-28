@@ -21,7 +21,7 @@ template< typename Method,
 struct ODESolver;
 
 /**
- * \brief Solver of ODEs with the first order of accuracy.
+ * \brief Solver of ODEs with the first order of accuracy. TODO: Fix this documentation !!!!!!!!!!!!!!!
  *
  * This solver is based on the [Euler method](https://en.wikipedia.org/wiki/Euler_method) for solving of
  * [ordinary differential equations](https://en.wikipedia.org/wiki/Ordinary_differential_equation) having the
@@ -40,14 +40,13 @@ struct ODESolver;
  *
  * \includelineno Solvers/ODE/ODESolver-HeatEquationExample.h
  *
- * \tparam Vector is type of vector storing \f$ \vec x \in R^n \f$, mostly \ref TNL::Containers::Vector
- *    or \ref TNL::Containers::VectorView.
+ * \tparam Value is numeric type or static vector (\ref TNL::Containers::Vector) storing \f$ \vec x \in R^n \f$.
  */
 template< typename Method,
-          typename Vector,  // TODO: rename to value
+          typename Value,
           typename SolverMonitor >
-struct ODESolver< Method, Vector, SolverMonitor, true > :
-   public StaticExplicitSolver< typename GetRealType< Vector >::type, typename GetIndexType < Vector >::type >
+struct ODESolver< Method, Value, SolverMonitor, true > :
+   public StaticExplicitSolver< typename GetRealType< Value >::type, typename GetIndexType < Value >::type >
 {
 public:
 
@@ -55,19 +54,19 @@ public:
    /**
     * \brief Type of floating-point arithemtics.
     */
-   using RealType = typename GetRealType< Vector >::type;
+   using RealType = typename GetRealType< Value >::type;
 
-   using ValueType = Vector;
+   using ValueType = Value;
 
    /**
     * \brief Type for indexing.
     */
-   using IndexType = typename GetIndexType< Vector >::type;
+   using IndexType = typename GetIndexType< Value >::type;
 
    /**
     * \brief Type of unknown variable \f$ \vec x \f$.
     */
-   using VectorType = Vector;
+   //using VectorType = Vector;
 
    static constexpr bool isStatic() { return true; }
 
@@ -151,7 +150,7 @@ public:
     * \tparam RHSFunction is type of a lambda function representing the right-hand side of the ODE system.
     *    The definition of the lambda function reads as:
     * ```
-    * auto f = [=] ( const Real& t, const Real& tau, const VectorType& u, VectorType& fu ) {...}
+    * auto f = [=] ( const Real& t, const Real& tau, const ValueType& u, ValueType& fu ) {...}
     * ```
     * where `t` is the current time of the evolution, `tau` is the current time step, `u` is the solution at the current time,
     * `fu` is variable/static vector into which the lambda function is suppsed to evaluate the function \f$ f(t, \vec x) \f$ at
@@ -162,7 +161,7 @@ public:
     */
    template< typename RHSFunction >
    __cuda_callable__ bool
-   solve( VectorType& u, RHSFunction&& f );
+   solve( ValueType& u, RHSFunction&& f );
 
 protected:
 
@@ -171,9 +170,9 @@ protected:
     */
    RealType adaptivity = 0.00001;
 
-   std::array< VectorType, Stages > k_vectors;
+   std::array< ValueType, Stages > k_vectors;
 
-   VectorType kAux;
+   ValueType kAux;
 
    Method method;
 };
