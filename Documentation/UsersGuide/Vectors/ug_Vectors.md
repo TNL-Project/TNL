@@ -1,4 +1,4 @@
-# Vectors
+# Vectors  {#ug_Vectors}
 
 [TOC]
 
@@ -14,7 +14,7 @@ This chapter introduces vectors in TNL. `Vector`, in addition to `Array`, offers
 * `Device` is the device where the vector is allocated. Currently it can be either `Devices::Host` for CPU or `Devices::Cuda` for GPU supporting CUDA.
 * `Index` is the type to be used for indexing the vector elements.
 
-`Vector`, unlike `Array`, requires that the `Real` type is numeric or a type for which basic algebraic operations are defined. What kind of algebraic operations is required depends on what vector operations the user will call. `Vector` is derived from `Array` so it inherits all its methods. In the same way the `Array` has its counterpart `ArraView`, `Vector` has `VectorView` which is derived from `ArrayView`. We refer to to [Arrays](../Arrays/ug_Arrays.md) for more details.
+`Vector`, unlike `Array`, requires that the `Real` type is numeric or a type for which basic algebraic operations are defined. What kind of algebraic operations is required depends on what vector operations the user will call. `Vector` is derived from `Array` so it inherits all its methods. In the same way the `Array` has its counterpart `ArraView`, `Vector` has `VectorView` which is derived from `ArrayView`. See [Arrays](#ug_Arrays) for more details.
 
 ### Horizontal operations
 

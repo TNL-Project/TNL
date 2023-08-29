@@ -1,4 +1,4 @@
-# General concepts
+# General concepts  {#ug_GeneralConcepts}
 
 [TOC]
 
@@ -46,7 +46,7 @@ In this example, we assume that all arrays `v1`, `v2` and `sum` were properly al
 
 \includelineno snippet_algorithms_and_lambda_functions_reduction.cpp
 
-We will not explain the parallel reduction in TNL at this moment (see the section about [flexible parallel reduction](../ReductionAndScan/ug_ReductionAndScan.md)), we hope that the idea is more or less clear from the code snippet. If `Device` equals to \ref TNL::Devices::Host, the scalar product is evaluated sequentially or in parallel by several OpenMP threads on CPU, if `Device` equals \ref TNL::Devices::Cuda, the [parallel reduction](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf) fine tuned with the lambda functions is performed. Fortunately, there is no performance drop. On the contrary, since it is easy to generate CUDA kernels for particular situations, we may get more efficient code. Consider computing a scalar product of sum of vectors like this
+We will not explain the parallel reduction in TNL at this moment (see the section about [flexible parallel reduction](ug_ReductionAndScan)), we hope that the idea is more or less clear from the code snippet. If `Device` equals to \ref TNL::Devices::Host, the scalar product is evaluated sequentially or in parallel by several OpenMP threads on CPU, if `Device` equals \ref TNL::Devices::Cuda, the [parallel reduction](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf) fine tuned with the lambda functions is performed. Fortunately, there is no performance drop. On the contrary, since it is easy to generate CUDA kernels for particular situations, we may get more efficient code. Consider computing a scalar product of sum of vectors like this
 
 \f[
 s = (u_1 + u_2, v_1 + v_2).

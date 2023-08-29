@@ -18,6 +18,16 @@ if( TNL_BUILD_DOC )
    # check if Doxygen is installed
    find_package( Doxygen REQUIRED )
 
+   # warn if Doxygen version does not match what we expect
+   set( TNL_EXPECTED_DOXYGEN_VERSION 1.9.8 )
+   if( NOT ${DOXYGEN_VERSION} VERSION_EQUAL ${TNL_EXPECTED_DOXYGEN_VERSION} )
+      message( WARNING "Found Doxygen version ${DOXYGEN_VERSION}, which does "
+            "not match the expected version ${TNL_EXPECTED_DOXYGEN_VERSION}. "
+            "The generated documentation output may be incorrect due to "
+            "various Doxygen quirks and bugs."
+      )
+   endif()
+
    # collect source file dependencies for the doxygen command
    file( GLOB_RECURSE TNL_DOC_INPUT_FILES
          ${CMAKE_SOURCE_DIR}/src/TNL/*

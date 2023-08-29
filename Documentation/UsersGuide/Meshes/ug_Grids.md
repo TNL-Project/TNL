@@ -1,4 +1,4 @@
-# Orthogonal grids
+# Orthogonal grids  {#ug_Grids}
 
 [TOC]
 
