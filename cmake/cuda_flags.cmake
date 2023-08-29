@@ -48,8 +48,6 @@ if( CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA" )
 endif()
 
 if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
-   # disable some unimportant warnings
-   set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-unknown-pragmas" )
    if( TNL_USE_CI_FLAGS )
       # enforce (more or less) warning-free builds
       set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=unknown-cuda-version" )
