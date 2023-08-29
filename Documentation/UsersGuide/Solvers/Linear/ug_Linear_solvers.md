@@ -1,4 +1,4 @@
-# Linear solvers
+# Linear solvers  {#ug_Linear_solvers}
 
 [TOC]
 

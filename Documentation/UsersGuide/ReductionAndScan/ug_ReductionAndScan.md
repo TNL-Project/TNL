@@ -1,4 +1,4 @@
-# Flexible reduction and prefix-sum
+# Flexible reduction and prefix-sum  {#ug_ReductionAndScan}
 
 [TOC]
 

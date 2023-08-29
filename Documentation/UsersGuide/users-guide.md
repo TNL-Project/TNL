@@ -4,23 +4,23 @@
 
 ## Basic topics
 
-1. [General concepts](./GeneralConcepts/ug_GeneralConcepts.md)
-2. [Arrays](./Arrays/ug_Arrays.md)
-3. [Vectors](./Vectors/ug_Vectors.md)
-4. [Flexible parallel reduction and scan](./ReductionAndScan/ug_ReductionAndScan.md)
-5. [For loops](./ForLoops/ug_ForLoops.md)
-6. [Sorting](./Sorting/ug_Sorting.md)
-7. [Cross-device pointers](./Pointers/ug_Pointers.md)
+1. [General concepts](#ug_GeneralConcepts)
+2. [Arrays](#ug_Arrays)
+3. [Vectors](#ug_Vectors)
+4. [Flexible parallel reduction and scan](#ug_ReductionAndScan)
+5. [For loops](#ug_ForLoops)
+6. [Sorting](#ug_Sorting)
+7. [Cross-device pointers](#ug_Pointers)
 
 ## Data structures
 
-1. [Multidimensional arrays](./NDArrays/ug_NDArrays.md)
-2. [Matrices](./Matrices/ug_Matrices.md)
-3. [Segments (sparse formats)](./Segments/ug_Segments.md)
-4. [Orthogonal grids](./Meshes/ug_Grids.md)
-5. [Unstructured meshes](./Meshes/ug_Meshes.md)
+1. [Multidimensional arrays](#ug_NDArrays)
+2. [Matrices](#ug_Matrices)
+3. [Segments (sparse formats)](#ug_Segments)
+4. [Orthogonal grids](#ug_Grids)
+5. [Unstructured meshes](#ug_Meshes)
 
 ## Numerical solvers
 
-1. [Linear solvers](./Solvers/Linear/ug_Linear_solvers.md)
-2. [ODE solvers](./Solvers/ODE/ug_ODE_solvers.md)
+1. [Linear solvers](#ug_Linear_solvers)
+2. [ODE solvers](#ug_ODE_solvers)

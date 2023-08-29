@@ -1,4 +1,4 @@
-# Cross-device smart pointers
+# Cross-device smart pointers  {#ug_Pointers}
 
 [TOC]
 
