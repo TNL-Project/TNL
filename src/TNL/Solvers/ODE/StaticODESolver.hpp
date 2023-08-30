@@ -78,7 +78,7 @@ StaticODESolver< Method, Vector >::solve( VectorType& u, RHSFunction&& rhsFuncti
       if( method.acceptStep( error ) ) {
          RealType lastResidue = this->getResidue();
 
-         using UpdateCoefficients = UpdateCoefficientsExtractor< Method >;
+         using UpdateCoefficients = UpdateCoefficientsProxy< Method >;
          using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Vector >;
          const VectorType update = UpdateExpression::evaluateArray( k_vectors );
          u += currentTau * update;

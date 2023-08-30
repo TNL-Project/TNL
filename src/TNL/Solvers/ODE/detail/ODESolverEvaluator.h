@@ -16,7 +16,7 @@ namespace TNL::Solvers::ODE::detail {
 
 template< typename Method,
           size_t Stage >
-struct CoefficientsExtractor // TODO: rename to Proxy
+struct CoefficientsProxy
 {
    using ValueType = typename Method::ValueType;
 
@@ -30,7 +30,7 @@ struct CoefficientsExtractor // TODO: rename to Proxy
 };
 
 template< typename Method >
-struct UpdateCoefficientsExtractor
+struct UpdateCoefficientsProxy
 {
    static constexpr size_t getSize() {
       return Method::getStages();
@@ -44,7 +44,7 @@ struct UpdateCoefficientsExtractor
 };
 
 template< typename Method >
-struct ErrorCoefficientsExtractor
+struct ErrorCoefficientsProxy
 {
    using ValueType = typename Method::ValueType;
 
@@ -56,7 +56,6 @@ struct ErrorCoefficientsExtractor
       return Method::getErrorCoefficient( i );
    }
 };
-
 
 template< typename Method,
           typename Stage = std::integral_constant< size_t, 0 >,
@@ -74,7 +73,7 @@ struct ODESolverEvaluator {
          rhsFunction( time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, u, k[ Stage::value ] );
          ODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors( k, time, currentTau, u, aux, rhsFunction );
       } else {
-         using Coefficients = CoefficientsExtractor< Method, Stage::value >;
+         using Coefficients = CoefficientsProxy< Method, Stage::value >;
          using Formula = Containers::Expressions::LinearCombination< Coefficients, VectorView >;
          aux = u + currentTau * Formula::evaluateArray( k );
          rhsFunction( time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ] );
