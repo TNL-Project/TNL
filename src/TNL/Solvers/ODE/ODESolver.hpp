@@ -76,9 +76,9 @@ __cuda_callable__
 bool
 ODESolver< Method, Value, SolverMonitor, true >::solve( ValueType& u, RHSFunction&& rhsFunction )
 {
-   using ErrorCoefficients = detail::ErrorCoefficientsExtractor< Method >;
+   using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
    using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Value >;
-   using UpdateCoefficients = detail::UpdateCoefficientsExtractor< Method >;
+   using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
    using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Value >;
 
 
@@ -116,20 +116,13 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( ValueType& u, RHSFunctio
       RealType error( 0.0 );
       if constexpr( Method::isAdaptive() )
          if( this->adaptivity )
-            error = currentTau * max( abs( ErrorExpression::evaluateArray( k_vectors ) ) );
+               error = currentTau * max( abs( ErrorExpression::evaluateArray( k_vectors ) ) );
 
       if( this->adaptivity == 0.0 || error < this->adaptivity ) {
          RealType lastResidue = this->getResidue();
 
-         if constexpr( std::is_arithmetic_v< ValueType > ) {
-            ValueType update = UpdateExpression::evaluateArray( k_vectors );
-            u += currentTau * update;
-            this->setResidue( abs( update ) );
-         }
-         else {
-            this->setResidue(
-               addAndReduceAbs( u, currentTau * UpdateExpression::evaluateArray( k_vectors ), TNL::Plus{}, 0.0 ) / currentTau );
-         }
+         this->setResidue(
+            addAndReduceAbs( u, currentTau * UpdateExpression::evaluateArray( k_vectors ), TNL::Plus{}, 0.0 ) / currentTau );
          time += currentTau;
 
          /////
@@ -207,9 +200,9 @@ template< typename RHSFunction >
 bool
 ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunction&& rhsFunction )
 {
-   using ErrorCoefficients = detail::ErrorCoefficientsExtractor< Method >;
+   using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
    using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Vector >;
-   using UpdateCoefficients = detail::UpdateCoefficientsExtractor< Method >;
+   using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
    using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Vector >;
 
 
