@@ -69,7 +69,7 @@ struct ODESolversBenchmark
          solver.setAdaptivity( adaptivity );
       }
 
-      RealType tau = 0.1;
+      RealType tau = 0.5;
       std::size_t dofs = parameters.getParameter< int >( "size" ) * sizeof( RealType ) / sizeof( ValueType );
       VectorType u( dofs, 0.0 );
       RealType correct_solution = exp( 1.0 ) - exp( 0.0 );
@@ -96,6 +96,7 @@ struct ODESolversBenchmark
                TNL::Algorithms::parallelFor< DeviceType >( 0, u.getSize(), [=] __cuda_callable__ ( IndexType i ) mutable {
                   solver.setTime( 0.0 );
                   solver.setTau( tau );
+                  solver.setAdaptivity( adaptivity );
                   solver.solve( u_view[ i ], problem );
                } );
             };
@@ -135,10 +136,10 @@ struct ODESolversBenchmark
             using Method = TNL::Solvers::ODE::Methods::Euler< RealType >;
             using VectorSolver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< VectorSolver >( benchmark, parameters, "Euler" );
-            using RealSolver = TNL::Solvers::ODE::ODESolver< Method, Real, SolverMonitorType >;
-            benchmarkSolver< RealSolver >( benchmark, parameters, "Euler Num." );
-            using StaticSolver = TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 1, Real >, SolverMonitorType >;
-            benchmarkSolver< StaticSolver >( benchmark, parameters, "Euler SV-1" );
+            using StaticSolver_1 = TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 1, Real >, SolverMonitorType >;
+            benchmarkSolver< StaticSolver_1 >( benchmark, parameters, "Euler SV-1" );
+            using StaticSolver_2 = TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 2, Real >, SolverMonitorType >;
+            benchmarkSolver< StaticSolver_2 >( benchmark, parameters, "Euler SV-2" );
          }
          if( solver == "merson" || solver == "all" ) {
             using LegacySolverNonET = Benchmarks::MersonNonET< VectorType, SolverMonitorType >;
@@ -148,6 +149,10 @@ struct ODESolversBenchmark
             using Method = TNL::Solvers::ODE::Methods::Merson< RealType >;
             using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Merson" );
+            using StaticSolver_1 = TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 1, Real >, SolverMonitorType >;
+            benchmarkSolver< StaticSolver_1 >( benchmark, parameters, "Merson SV-1" );
+            using StaticSolver_2 = TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 2, Real >, SolverMonitorType >;
+            benchmarkSolver< StaticSolver_2 >( benchmark, parameters, "Merson SV-2" );
          }
          if( solver == "dormand-prince" || solver == "all" ) {
             using Method = TNL::Solvers::ODE::Methods::DormandPrince< RealType >;
