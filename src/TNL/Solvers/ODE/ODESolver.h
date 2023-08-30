@@ -14,34 +14,33 @@
 
 namespace TNL::Solvers::ODE {
 
-template< typename Method,
-          typename Vector,
-          typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType >,
-          bool IsStatic = IsStaticArrayType< Vector >() || std::is_arithmetic_v< Vector > >
-struct ODESolver;
-
 /**
- * \brief Solver of ODEs with the first order of accuracy. TODO: Fix this documentation !!!!!!!!!!!!!!!
+ * \brief Integrator or solver of system of ordinary differential equations.
  *
- * This solver is based on the [Euler method](https://en.wikipedia.org/wiki/Euler_method) for solving of
+ * This solver can be used for the numerical solution of
  * [ordinary differential equations](https://en.wikipedia.org/wiki/Ordinary_differential_equation) having the
  * following form:
  *
  * \f$ \frac{d \vec u}{dt} = \vec f( t, \vec u) \text{ on } (0,T) \f$
  *
  * \f$ \vec u( 0 )  = \vec u_{ini} \f$.
- * It is supposed to be used when the unknown \f$ \vec x \in R^n \f$ is expressed by a \ref Containers::Vector.
+ * The unknown vector \f$ \vec x \in R^n \f$ can expressed by a \ref TNL::Containers::Vector or \ref TNL::Containers::StaticVector.
+ * In the later case, the solver can be executed even within GPU kernels. The method which is supposed to be used
+ * by the solver is represented by the template parameter \ref Method.
  *
- * For problems where \f$ \vec x\f$ is represented by \ref TNL::Containers::StaticVector,
- * see \ref TNL::Solvers::ODE::StaticMerson<Containers::StaticVector<Size_,Real>>.
- * For problems where \f$ x\f$ is represented by floating-point number, see \ref TNL::Solvers::ODE::StaticMerson.
- *
- * The following example demonstrates the use the solvers:
+ * The following example demonstrates the use the solver:
  *
  * \includelineno Solvers/ODE/ODESolver-HeatEquationExample.h
  *
- * \tparam Value is numeric type or static vector (\ref TNL::Containers::Vector) storing \f$ \vec x \in R^n \f$.
+ * \tparam Method is a method which is supposed to be used for the numerical integration.
+ * \tparam Value is a vector (\ref TNL::Containers::Vector or \ref TNL::Containers::StaticVector) representing \f$ \vec x \in R^n \f$.
  */
+template< typename Method,
+          typename Vector,
+          typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType >,
+          bool IsStatic = IsStaticArrayType< Vector >() || std::is_arithmetic_v< Vector > >
+struct ODESolver;
+
 template< typename Method,
           typename Value,
           typename SolverMonitor >
