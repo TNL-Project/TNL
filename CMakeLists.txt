@@ -6,15 +6,6 @@ project( TNL )
 
 set( tnlVersion "0.1" )
 
-# check if TNL is being used directly or via add_subdirectory
-if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-   set( TNL_TOP_LEVEL_PROJECT ON )
-   set( TNL_SYSTEM "" )
-else()
-   set( TNL_TOP_LEVEL_PROJECT OFF )
-   set( TNL_SYSTEM SYSTEM )
-endif()
-
 # declare all custom build options
 option( TNL_USE_CUDA "Build with CUDA support" ON )
 option( TNL_USE_OPENMP "Build with OpenMP support" ON )
@@ -91,6 +82,11 @@ target_link_libraries( TNL_CXX INTERFACE TNL )
 target_link_libraries( TNL_CUDA INTERFACE TNL )
 
 # add the include directory to the interface
+if( PROJECT_IS_TOP_LEVEL )
+   set( TNL_SYSTEM "" )
+else()
+   set( TNL_SYSTEM SYSTEM )
+endif()
 target_include_directories( TNL ${TNL_SYSTEM}
                             INTERFACE $<BUILD_INTERFACE:${TNL_INCLUDE_DIRS}>
                                       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> )
@@ -261,7 +257,7 @@ if( TNL_USE_GMP )
    endif()
 endif()
 
-if( TNL_TOP_LEVEL_PROJECT )
+if( PROJECT_IS_TOP_LEVEL )
    # export the interface targets
    install( TARGETS TNL TNL_CXX TNL_CUDA EXPORT TNLTargets )
    # install a CMake file for the interface target
@@ -288,7 +284,7 @@ add_subdirectory( Documentation )
 # https://clang.llvm.org/docs/JSONCompilationDatabase.html
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "" )
 
-if( TNL_TOP_LEVEL_PROJECT )
+if( PROJECT_IS_TOP_LEVEL )
    # Print custom build options
    message( "-- Build options:" )
    message( "   TNL_USE_CUDA = ${TNL_USE_CUDA}" )
