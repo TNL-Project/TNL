@@ -56,7 +56,7 @@ ADD_TEST( MeshGeometryTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MeshGeometryTest${C
 
 # special tests needing external libraries
 find_package( ZLIB )
-find_package( tinyxml2 QUIET )
+find_package( tinyxml2 )
 
 if( ZLIB_FOUND AND tinyxml2_FOUND )
    foreach( target IN ITEMS NetgenReaderTest VTKReaderTest VTUReaderTest VTIReaderTest FPMAReaderTest )

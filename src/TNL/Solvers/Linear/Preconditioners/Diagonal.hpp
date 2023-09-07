@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include "Diagonal.h"
@@ -18,8 +16,10 @@ template< typename Matrix >
 void
 Diagonal< Matrix >::update( const MatrixPointer& matrixPointer )
 {
-   TNL_ASSERT_GT( matrixPointer->getRows(), 0, "empty matrix" );
-   TNL_ASSERT_EQ( matrixPointer->getRows(), matrixPointer->getColumns(), "matrix must be square" );
+   if( matrixPointer->getRows() == 0 )
+      throw std::invalid_argument( "Diagonal::update: the matrix is empty" );
+   if( matrixPointer->getRows() != matrixPointer->getColumns() )
+      throw std::invalid_argument( "Diagonal::update: matrix must be square" );
 
    diagonal.setSize( matrixPointer->getRows() );
 
@@ -50,8 +50,6 @@ Diagonal< Matrices::DistributedMatrix< Matrix > >::update( const MatrixPointer& 
    diagonal.setSize( matrixPointer->getLocalMatrix().getRows() );
 
    LocalViewType diag_view( diagonal );
-   // FIXME: SparseMatrix::getConstView is broken
-   //   const auto matrix_view = matrixPointer->getLocalMatrix().getConstView();
    const auto matrix_view = matrixPointer->getLocalMatrix().getConstView();
 
    if( matrixPointer->getRows() == matrixPointer->getColumns() ) {
@@ -66,9 +64,8 @@ Diagonal< Matrices::DistributedMatrix< Matrix > >::update( const MatrixPointer& 
    }
    else {
       // non-square matrix, assume ghost indexing
-      TNL_ASSERT_LE( matrixPointer->getLocalMatrix().getRows(),
-                     matrixPointer->getLocalMatrix().getColumns(),
-                     "the local matrix should have more columns than rows" );
+      if( matrixPointer->getLocalMatrix().getRows() > matrixPointer->getLocalMatrix().getColumns() )
+         throw std::invalid_argument( "Diagonal::update: the local matrix should have more columns than rows" );
       auto kernel = [ = ] __cuda_callable__( IndexType i ) mutable
       {
          diag_view[ i ] = matrix_view.getElement( i, i );

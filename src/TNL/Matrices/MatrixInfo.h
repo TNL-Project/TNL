@@ -63,12 +63,12 @@ struct MatrixInfo< SparseMatrixView< Real, Device, Index, MatrixType, SegmentsVi
    {
       std::string prefix;
       if( MatrixType::isSymmetric() ) {
-         if( std::is_same< Real, bool >::value )
+         if( std::is_same_v< Real, bool > )
             prefix = "Symmetric Binary ";
          else
             prefix = "Symmetric ";
       }
-      else if( std::is_same< Real, bool >::value )
+      else if( std::is_same_v< Real, bool > )
          prefix = "Binary ";
       return prefix + SegmentsView< Device, Index >::getSegmentsType();
    }

@@ -73,7 +73,7 @@ template< typename Real,
           typename Device,
           typename Index,
           CSRKernel KernelType >
-void CSR< Real, Device, Index, KernelType >::setCompressedRowLengths( ConstRowsCapacitiesTypeView rowLengths )
+void CSR< Real, Device, Index, KernelType >::setCompressedRowLengths( ConstRowCapacitiesTypeView rowLengths )
 {
    TNL_ASSERT_GT( this->getRows(), 0, "cannot set row lengths of an empty matrix" );
    TNL_ASSERT_GT( this->getColumns(), 0, "cannot set row lengths of an empty matrix" );
@@ -107,7 +107,7 @@ template< typename Real,
           typename Device,
           typename Index,
           CSRKernel KernelType >
-void CSR< Real, Device, Index, KernelType >::setRowCapacities( ConstRowsCapacitiesTypeView rowLengths )
+void CSR< Real, Device, Index, KernelType >::setRowCapacities( ConstRowCapacitiesTypeView rowLengths )
 {
    setCompressedRowLengths( rowLengths );
 }
@@ -195,7 +195,7 @@ template< typename Real,
           typename Device,
           typename Index,
           CSRKernel KernelType >
-void CSR< Real, Device, Index, KernelType >::getCompressedRowLengths( RowsCapacitiesTypeView rowLengths ) const
+void CSR< Real, Device, Index, KernelType >::getCompressedRowLengths( RowCapacitiesTypeView rowLengths ) const
 {
    TNL_ASSERT_EQ( rowLengths.getSize(), this->getRows(), "invalid size of the rowLengths vector" );
    for( IndexType row = 0; row < this->getRows(); row++ )
@@ -228,7 +228,7 @@ template< typename Real,
 Index CSR< Real, Device, Index, KernelType >::getNonZeroRowLength( const IndexType row ) const
 {
     // TODO: Fix/Implement
-    TNL_ASSERT( false, std::cerr << "TODO: Fix/Implement" );
+    TNL_ASSERT_TRUE( false, "TODO: Fix/Implement" );
     return 0;
 }
 
@@ -345,12 +345,10 @@ bool CSR< Real, Device, Index, KernelType >::addElement( const IndexType row,
                                                       const RealType& value,
                                                       const RealType& thisElementMultiplicator )
 {
-   TNL_ASSERT( row >= 0 && row < this->rows &&
-               column >= 0 && column < this->columns,
-               std::cerr << " row = " << row
-                    << " column = " << column
-                    << " this->rows = " << this->rows
-                    << " this->columns = " << this->columns );
+   TNL_ASSERT_GE( row, 0, "" );
+   TNL_ASSERT_LT( row, this->rows, "" );
+   TNL_ASSERT_GE( column, 0, "" );
+   TNL_ASSERT_LT( column, this->columns, "" );
 
     IndexType elementPtr = this->rowPointers.getElement( row );
     const IndexType rowEnd = this->rowPointers.getElement( row + 1 );

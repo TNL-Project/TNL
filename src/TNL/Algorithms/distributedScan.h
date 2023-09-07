@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include <utility>  // std::forward
@@ -53,14 +51,15 @@ distributedInclusiveScan( const InputDistributedArray& input,
                           Reduction&& reduction,
                           typename OutputDistributedArray::ValueType identity )
 {
-   static_assert(
-      std::is_same< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >::value,
-      "The input and output arrays must have the same device type." );
-   TNL_ASSERT_EQ(
-      input.getCommunicator(), output.getCommunicator(), "The input and output arrays must have the same MPI communicator." );
-   TNL_ASSERT_EQ( input.getLocalRange(),
-                  output.getLocalRange(),
-                  "The input and output arrays must have the same local range on all ranks." );
+   static_assert( std::is_same_v< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >,
+                  "The input and output arrays must have the same device type." );
+   if( input.getCommunicator() != output.getCommunicator() )
+      throw std::invalid_argument(
+         "distributedInclusiveScan: the input and output arrays must have the same MPI communicator." );
+   if( input.getLocalRange() != output.getLocalRange() )
+      throw std::invalid_argument(
+         "distributedInclusiveScan: the input and output arrays must have the same local range on all ranks." );
+
    // TODO: check if evaluating the input is expensive (e.g. a vector expression), otherwise use WriteInSecondPhase (optimal for
    // array-to-array)
    using Scan = detail::DistributedScan< detail::ScanType::Inclusive, detail::ScanPhaseType::WriteInFirstPhase >;
@@ -129,14 +128,15 @@ distributedExclusiveScan( const InputDistributedArray& input,
                           Reduction&& reduction,
                           typename OutputDistributedArray::ValueType identity )
 {
-   static_assert(
-      std::is_same< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >::value,
-      "The input and output arrays must have the same device type." );
-   TNL_ASSERT_EQ(
-      input.getCommunicator(), output.getCommunicator(), "The input and output arrays must have the same MPI communicator." );
-   TNL_ASSERT_EQ( input.getLocalRange(),
-                  output.getLocalRange(),
-                  "The input and output arrays must have the same local range on all ranks." );
+   static_assert( std::is_same_v< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >,
+                  "The input and output arrays must have the same device type." );
+   if( input.getCommunicator() != output.getCommunicator() )
+      throw std::invalid_argument(
+         "distributedExclusiveScan: the input and output arrays must have the same MPI communicator." );
+   if( input.getLocalRange() != output.getLocalRange() )
+      throw std::invalid_argument(
+         "distributedExclusiveScan: the input and output arrays must have the same local range on all ranks." );
+
    // TODO: check if evaluating the input is expensive (e.g. a vector expression), otherwise use WriteInSecondPhase (optimal for
    // array-to-array)
    using Scan = detail::DistributedScan< detail::ScanType::Exclusive, detail::ScanPhaseType::WriteInFirstPhase >;

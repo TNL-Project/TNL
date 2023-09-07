@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomas Oberhuber, Jakub Klinkovsky
-
 #pragma once
 
 #include <memory>  // std::unique_ptr
@@ -277,7 +275,7 @@ Reduction< Devices::Cuda >::reduce( const Index begin, const Index end, Fetch&& 
    // Only fundamental and pointer types can be safely reduced on host. Complex
    // objects stored on the device might contain pointers into the device memory,
    // in which case reduce on host might fail.
-   constexpr bool can_reduce_later_on_host = std::is_fundamental< Result >::value || std::is_pointer< Result >::value;
+   constexpr bool can_reduce_later_on_host = std::is_fundamental_v< Result > || std::is_pointer_v< Result >;
 
 #ifdef CUDA_REDUCTION_PROFILING
    Timer timer;
@@ -353,7 +351,7 @@ Reduction< Devices::Cuda >::reduceWithArgument( const Index begin,
    // Only fundamental and pointer types can be safely reduced on host. Complex
    // objects stored on the device might contain pointers into the device memory,
    // in which case reduce on host might fail.
-   constexpr bool can_reduce_later_on_host = std::is_fundamental< Result >::value || std::is_pointer< Result >::value;
+   constexpr bool can_reduce_later_on_host = std::is_fundamental_v< Result > || std::is_pointer_v< Result >;
 
 #ifdef CUDA_REDUCTION_PROFILING
    Timer timer;

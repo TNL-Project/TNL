@@ -37,13 +37,13 @@ DeviceInfo::getActiveDevice()
 #endif
 }
 
-inline String
+inline std::string
 DeviceInfo::getDeviceName( int deviceNum )
 {
 #ifdef __CUDACC__
    cudaDeviceProp properties;
    cudaGetDeviceProperties( &properties, deviceNum );
-   return String( properties.name );
+   return properties.name;
 #else
    throw Exceptions::CudaSupportMissing();
 #endif

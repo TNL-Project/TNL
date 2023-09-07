@@ -4,16 +4,13 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky,
-//                 Tomas Oberhuber
-
 #pragma once
 
 #include "JsonLogging.h"
 
 #include <limits>
+#include <string>
 
-#include <TNL/String.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
 namespace TNL::Benchmarks {
@@ -108,7 +105,7 @@ public:
    //  - Order of operations inside a "Benchmark" does not matter, rows can be
    //    easily sorted while converting to HTML.)
    void
-   setOperation( const String& operation,
+   setOperation( const std::string& operation,
                  double datasetSize = 0.0,  // in GB
                  double baseTime = 0.0 );
 
@@ -117,20 +114,20 @@ public:
    // which are further split into "bandwidth", "time" and "speedup" columns.
    template< typename Device, typename ResetFunction, typename ComputeFunction >
    void
-   time( ResetFunction reset, const String& performer, ComputeFunction& compute, BenchmarkResult& result );
+   time( ResetFunction reset, const std::string& performer, ComputeFunction& compute, BenchmarkResult& result );
 
    template< typename Device, typename ResetFunction, typename ComputeFunction >
    BenchmarkResult
-   time( ResetFunction reset, const String& performer, ComputeFunction& compute );
+   time( ResetFunction reset, const std::string& performer, ComputeFunction& compute );
 
    // The same methods as above but without the reset function
    template< typename Device, typename ComputeFunction >
    void
-   time( const String& performer, ComputeFunction& compute, BenchmarkResult& result );
+   time( const std::string& performer, ComputeFunction& compute, BenchmarkResult& result );
 
    template< typename Device, typename ComputeFunction >
    BenchmarkResult
-   time( const String& performer, ComputeFunction& compute );
+   time( const std::string& performer, ComputeFunction& compute );
 
    // Adds an error message to the log. Should be called in places where the
    // "time" method could not be called (e.g. due to failed allocation).

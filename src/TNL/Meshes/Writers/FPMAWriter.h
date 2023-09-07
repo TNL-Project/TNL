@@ -21,7 +21,7 @@ struct MeshEntitiesFPMAWriter;
 template< typename Mesh >
 class FPMAWriter
 {
-   static_assert( std::is_same< typename Mesh::Cell::EntityTopology, Topologies::Polyhedron >::value,
+   static_assert( std::is_same_v< typename Mesh::Cell::EntityTopology, Topologies::Polyhedron >,
                   "The FPMA format supports polyhedral meshes." );
 
    template< int EntityDimension, int SubDimension >

@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include <memory>  // std::unique_ptr
@@ -105,8 +103,10 @@ Multireduction< Devices::Host >::reduce( Result identity,
                                          int n,
                                          Result* result )
 {
-   TNL_ASSERT_GT( size, 0, "The size of datasets must be positive." );
-   TNL_ASSERT_GT( n, 0, "The number of datasets must be positive." );
+   if( size < 0 )
+      throw std::invalid_argument( "Multireduction: The size of datasets must be non-negative." );
+   if( n < 0 )
+      throw std::invalid_argument( "Multireduction: The number of datasets must be non-negative." );
 
 #ifdef HAVE_OPENMP
    constexpr int block_size = 128;
@@ -183,8 +183,10 @@ Multireduction< Devices::Cuda >::reduce( Result identity,
                                          int n,
                                          Result* hostResult )
 {
-   TNL_ASSERT_GT( size, 0, "The size of datasets must be positive." );
-   TNL_ASSERT_GT( n, 0, "The number of datasets must be positive." );
+   if( size < 0 )
+      throw std::invalid_argument( "Multireduction: The size of datasets must be non-negative." );
+   if( n < 0 )
+      throw std::invalid_argument( "Multireduction: The number of datasets must be non-negative." );
 
 #ifdef CUDA_REDUCTION_PROFILING
    Timer timer;

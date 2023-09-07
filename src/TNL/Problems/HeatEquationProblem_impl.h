@@ -121,10 +121,10 @@ HeatEquationProblem< Mesh, BoundaryCondition, RightHandSide, DifferentialOperato
    MatrixPointer& matrixPointer )
 {
    const IndexType dofs = this->getDofs();
-   typedef typename MatrixPointer::element_type::RowsCapacitiesType RowsCapacitiesTypeType;
-   Pointers::SharedPointer< RowsCapacitiesTypeType > rowLengthsPointer;
+   using RowCapacitiesTypeType = typename MatrixPointer::element_type::RowCapacitiesType;
+   Pointers::SharedPointer< RowCapacitiesTypeType > rowLengthsPointer;
    rowLengthsPointer->setSize( dofs );
-   Matrices::MatrixSetter< MeshType, DifferentialOperator, BoundaryCondition, RowsCapacitiesTypeType > matrixSetter;
+   Matrices::MatrixSetter< MeshType, DifferentialOperator, BoundaryCondition, RowCapacitiesTypeType > matrixSetter;
    matrixSetter.template getCompressedRowLengths< typename Mesh::Cell >(
       this->getMesh(), differentialOperatorPointer, boundaryConditionPointer, rowLengthsPointer );
    matrixPointer->setDimensions( dofs, dofs );

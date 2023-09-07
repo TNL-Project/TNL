@@ -4,9 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky,
-//                 Tomas Oberhuber
-
 #pragma once
 
 #include "Logging.h"
@@ -23,7 +20,9 @@ public:
    void
    writeHeader( const HeaderElements& headerElements, const WidthHints& widths )
    {
-      TNL_ASSERT_EQ( headerElements.size(), widths.size(), "elements must have equal sizes" );
+      if( headerElements.size() != widths.size() )
+         throw std::invalid_argument( "writeHeader: elements must have equal sizes" );
+
       if( verbose > 0 && ( header_changed || headerElements != lastHeaderElements ) ) {
          for( const auto& lg : metadataColumns ) {
             const int width = ( metadataWidths.count( lg.first ) > 0 ) ? metadataWidths[ lg.first ] : 14;
@@ -43,8 +42,8 @@ public:
              const WidthHints& widths,
              const std::string& errorMessage )
    {
-      TNL_ASSERT_EQ( headerElements.size(), rowElements.size(), "elements must have equal sizes" );
-      TNL_ASSERT_EQ( headerElements.size(), widths.size(), "elements must have equal sizes" );
+      if( headerElements.size() != rowElements.size() || headerElements.size() != widths.size() )
+         throw std::invalid_argument( "writeRow: elements must have equal sizes" );
 
       log << "{";
 

@@ -277,14 +277,16 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    IndexType end,
    const SegmentsReductionKernel& kernel ) const
 {
-   TNL_ASSERT_EQ( this->getColumns(), inVector.getSize(), "Matrix columns do not fit with input vector." );
-   TNL_ASSERT_EQ( this->getRows(), outVector.getSize(), "Matrix rows do not fit with output vector." );
+   if( this->getColumns() != inVector.getSize() )
+      throw std::invalid_argument( "vectorProduct: size of the input vector does not match the number of matrix columns" );
+   if( this->getRows() != outVector.getSize() )
+      throw std::invalid_argument( "vectorProduct: size of the output vector does not match the number of matrix rows" );
 
    using OutVectorReal = typename OutVector::RealType;
    static_assert(
-      ! MatrixType::isSymmetric() || ! std::is_same< Device, Devices::Cuda >::value
-         || ( std::is_same< OutVectorReal, float >::value || std::is_same< OutVectorReal, double >::value
-              || std::is_same< OutVectorReal, int >::value || std::is_same< OutVectorReal, long long int >::value ),
+      ! MatrixType::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
+         || (std::is_same_v< OutVectorReal, float > || std::is_same_v< OutVectorReal, double >
+             || std::is_same_v< OutVectorReal, int > || std::is_same_v< OutVectorReal, long long int >),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
    const auto inVectorView = inVector.getConstView();
@@ -332,7 +334,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          TNL_ASSERT_GE( globalIdx, 0, "" );
          TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "" );
          const IndexType column = columnIndexesView[ globalIdx ];
-         TNL_ASSERT( (column >= 0 || column == paddingIndex< Index >), std::cerr << "Wrong column index." << std::endl );
+         TNL_ASSERT_TRUE( (column >= 0 || column == paddingIndex< Index >), "Wrong column index." );
          TNL_ASSERT_LT( column, inVectorView.getSize(), "Wrong column index." );
          if( SegmentsViewType::havePadding() ) {
             compute = ( column != paddingIndex< Index > );
@@ -404,8 +406,12 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    IndexType begin,
    IndexType end ) const
 {
-   TNL_ASSERT_EQ( this->getRows(), inVector.getSize(), "Matrix rows do not fit with input vector." );
-   TNL_ASSERT_EQ( this->getColumns(), outVector.getSize(), "Matrix columns do not fit with output vector." );
+   if( this->getRows() != inVector.getSize() )
+      throw std::invalid_argument(
+         "transposedVectorProduct: size of the input vector does not match the number of matrix rows" );
+   if( this->getColumns() != outVector.getSize() )
+      throw std::invalid_argument(
+         "transposedVectorProduct: size of the output vector does not match the number of matrix columns" );
 
    if constexpr( MatrixType::isSymmetric() ) {
       this->vectorProduct( inVector, outVector, matrixMultiplicator, outVectorMultiplicator, begin, end );

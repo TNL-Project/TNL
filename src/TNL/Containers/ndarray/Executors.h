@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include <TNL/Algorithms/parallelFor.h>

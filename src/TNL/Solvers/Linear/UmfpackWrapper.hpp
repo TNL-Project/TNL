@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #ifdef HAVE_UMFPACK
@@ -19,9 +17,12 @@ namespace TNL::Solvers::Linear {
 bool
 UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >::solve( ConstVectorViewType b, VectorViewType x )
 {
-   TNL_ASSERT_EQ( this->matrix->getRows(), this->matrix->getColumns(), "matrix must be square" );
-   TNL_ASSERT_EQ( this->matrix->getColumns(), x.getSize(), "wrong size of the solution vector" );
-   TNL_ASSERT_EQ( this->matrix->getColumns(), b.getSize(), "wrong size of the right hand side" );
+   if( this->matrix->getRows() != this->matrix->getColumns() )
+      throw std::invalid_argument( "UmfpackWrapper::solve: matrix must be square" );
+   if( this->matrix->getColumns() != x.getSize() )
+      throw std::invalid_argument( "UmfpackWrapper::solve: wrong size of the solution vector" );
+   if( this->matrix->getColumns() != b.getSize() )
+      throw std::invalid_argument( "UmfpackWrapper::solve: wrong size of the right hand side" );
 
    const IndexType size = this->matrix->getRows();
 

@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Xuan Thang Nguyen, Tomas Oberhuber
-
 #pragma once
 
 #include <TNL/DiscreteMath.h>
@@ -317,7 +315,7 @@ int
 Quicksorter< Value, Devices::Cuda >::getElemPerBlock() const
 {
    return desiredElemPerBlock;
-
+   /*
    int setsNeeded = getSetsNeeded( desiredElemPerBlock );
 
    if( setsNeeded <= maxBlocks )
@@ -330,6 +328,7 @@ Quicksorter< Value, Devices::Cuda >::getElemPerBlock() const
    setsNeeded = elemPerBlock / threadsPerBlock + static_cast< int >( elemPerBlock % threadsPerBlock != 0 );
 
    return setsNeeded * threadsPerBlock;
+   */
 }
 
 template< typename Value >

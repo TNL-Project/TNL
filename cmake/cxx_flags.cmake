@@ -9,19 +9,6 @@ if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
 endif()
 set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_DEBUG}" )
 
-if( CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
-   # icpx complains about -g without -O
-   set( CMAKE_CXX_FLAGS_DEBUG "-O0 -g" )
-   # avoid warning: explicit comparison with NaN in fast floating point mode [-Wtautological-constant-compare]
-   # see https://github.com/mfem/mfem/issues/3655#issuecomment-1569294763
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fhonor-infinities -fhonor-nans" )
-endif()
-
-if( TNL_USE_CI_FLAGS )
-   # enforce (more or less) warning-free builds
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=uninitialized" )
-endif()
-
 # warn about redundant semicolons
 if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
@@ -33,6 +20,35 @@ if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
        CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
       set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra-semi-stmt" )
    endif()
+endif()
+
+# disable GCC's infamous "maybe-uninitialized" warning (it produces mostly false positives)
+if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized" )
+endif()
+
+# disable false compiler warnings for NVHPC - see the cuda_flags.cmake file
+target_compile_options( TNL_CXX INTERFACE
+      $<$<CXX_COMPILER_ID:NVHPC>:
+            --diag_suppress=code_is_unreachable ;
+            --diag_suppress=loop_not_reachable ;
+            --diag_suppress=implicit_return_from_non_void_function ;
+            --diag_suppress=unsigned_compare_with_zero ;
+            --display_error_number ;
+      >
+)
+
+if( TNL_USE_CI_FLAGS AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC" )
+   # enforce (more or less) warning-free builds
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations" )
+endif()
+
+if( CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
+   # icpx complains about -g without -O
+   set( CMAKE_CXX_FLAGS_DEBUG "-O0 -g" )
+   # avoid warning: explicit comparison with NaN in fast floating point mode [-Wtautological-constant-compare]
+   # see https://github.com/mfem/mfem/issues/3655#issuecomment-1569294763
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fhonor-infinities -fhonor-nans" )
 endif()
 
 # optimize Release builds for the native CPU arch, unless explicitly disabled
@@ -66,24 +82,6 @@ if( MSVC )
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-" )
 endif()
 
-# disable some unimportant warnings
-if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
-    CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-    CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
-    CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas" )
-endif()
-
-# disable GCC's infamous "maybe-uninitialized" warning (it produces mostly false positives)
-if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized" )
-endif()
-
-# disable false Clang warning: https://stackoverflow.com/q/57645872
-if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-self-assign-overloaded" )
-endif()
-
 # enable sanitizers (does not work with MPI due to many false positives, does not work with nvcc at all)
 # sanitizers are not available for Windows: https://github.com/msys2/MINGW-packages/issues/3163
 if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
@@ -108,15 +106,11 @@ if( NOT DEFINED ENV{GITLAB_CI} )
    endif()
 endif()
 
-# force colorized output in continuous integration
-if( DEFINED ENV{GITLAB_CI} OR ${CMAKE_GENERATOR} STREQUAL "Ninja" )
-   message(STATUS "Continuous integration or Ninja detected -- forcing compilers to produce colorized output.")
-   if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-       CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
-       CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
-      set( TNL_COLOR_DIAGNOSTICS_FLAG "-fcolor-diagnostics" )
-   elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
-      set( TNL_COLOR_DIAGNOSTICS_FLAG "-fdiagnostics-color" )
-   endif()
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TNL_COLOR_DIAGNOSTICS_FLAG}" )
-endif()
+# force colorized output (the automatic detection in compilers does not work with Ninja)
+target_compile_options( TNL_CXX INTERFACE
+      $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics> ;
+      $<$<CXX_COMPILER_ID:AppleClang>:-fcolor-diagnostics> ;
+      $<$<CXX_COMPILER_ID:IntelLLVM>:-fcolor-diagnostics> ;
+      $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color> ;
+      $<$<CXX_COMPILER_ID:NVHPC>:-fdiagnostics-color> ;
+)

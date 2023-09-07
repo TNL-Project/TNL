@@ -23,7 +23,7 @@ namespace TNL::Meshes {
 // 3D Polygon Mesh
 template< EntityDecomposerVersion DecomposerVersion,
           typename MeshConfig,
-          std::enable_if_t< std::is_same< typename MeshConfig::CellTopology, Topologies::Polygon >::value, bool > = true,
+          std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polygon >, bool > = true,
           std::enable_if_t< MeshConfig::spaceDimension == 3, bool > = true >
 auto  // returns MeshBuilder
 planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
@@ -151,7 +151,7 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
 // Polyhedral Mesh
 template< EntityDecomposerVersion DecomposerVersion,
           typename MeshConfig,
-          std::enable_if_t< std::is_same< typename MeshConfig::CellTopology, Topologies::Polyhedron >::value, bool > = true >
+          std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polyhedron >, bool > = true >
 auto  // returns MeshBuilder
 planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
 {
@@ -315,8 +315,8 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
 template< EntityDecomposerVersion DecomposerVersion,
           typename MeshConfig,
           std::enable_if_t< MeshConfig::spaceDimension == 3
-                               && ( std::is_same< typename MeshConfig::CellTopology, Topologies::Polygon >::value
-                                    || std::is_same< typename MeshConfig::CellTopology, Topologies::Polyhedron >::value ),
+                               && (std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polygon >
+                                   || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polyhedron >),
                             bool > = true >
 auto  // returns Mesh
 getPlanarMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )

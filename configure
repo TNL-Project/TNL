@@ -66,7 +66,7 @@ General options:
 
 Options affecting all targets:
     --offline-build=yes/no              Disables online updates during the build. '$OFFLINE_BUILD' by default.
-    --compiler=gcc/clang/icpx           Selects the compiler for C++ source files. '$COMPILER' by default.
+    --compiler=gcc/clang/icpx/nvc++     Selects the compiler for C++ source files. '$COMPILER' by default.
     --cuda-compiler=nvcc/clang          Selects the compiler for CUDA source files. '$CUDA_COMPILER' by default.
     --use-mpi=yes/no                    Enables MPI. '$USE_MPI' by default (OpenMPI required).
     --use-cuda=yes/no                   Enables CUDA. '$USE_CUDA' by default (CUDA Toolkit is required).
@@ -171,8 +171,11 @@ elif [[ "$COMPILER" == "clang" ]]; then
 elif [[ "$COMPILER" == "icpx" ]]; then
     export CXX=icpx
     export CC=icx
+elif [[ "$COMPILER" == "nvc++" ]]; then
+    export CXX=nvc++
+    export CC=nvc
 else
-    echo "Error: the compiler '$COMPILER' is not supported. The only options are 'gcc', 'clang' and 'icpx'." >&2
+    echo "Error: the compiler '$COMPILER' is not supported. The only options are 'gcc', 'clang', 'icpx' and 'nvc++." >&2
     exit 1
 fi
 

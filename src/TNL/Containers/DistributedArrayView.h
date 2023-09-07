@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <memory>
@@ -53,10 +51,11 @@ public:
    : localRange( localRange ), ghosts( ghosts ), globalSize( globalSize ), communicator( std::move( communicator ) ),
      localData( localData )
    {
-      TNL_ASSERT_EQ( localData.getSize(),
-                     localRange.getSize() + ghosts,
-                     "The local array size does not match the local range of the distributed array." );
-      TNL_ASSERT_GE( ghosts, 0, "The ghosts count must be non-negative." );
+      if( localData.getSize() != localRange.getSize() + ghosts )
+         throw std::invalid_argument(
+            "DistributedArrayView: the local array size does not match the local range of the distributed array" );
+      if( ghosts < 0 )
+         throw std::invalid_argument( "DistributedArrayView: the ghosts count must be non-negative" );
    }
 
    DistributedArrayView() = default;

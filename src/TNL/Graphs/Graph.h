@@ -174,7 +174,8 @@ struct Graph
    void
    setAdjacencyMatrix( Matrix_ matrix )
    {
-      TNL_ASSERT_EQ( matrix.getRows(), matrix.getColumns(), "Adjacency matrix must be square matrix." );
+      if( matrix.getRows() != matrix.getColumns() )
+         throw std::logic_error( "Graph: adjacency matrix must be square matrix." );
       adjacencyMatrix = std::move( matrix );
    }
 

@@ -1,5 +1,3 @@
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include <TNL/Allocators/CudaHost.h>

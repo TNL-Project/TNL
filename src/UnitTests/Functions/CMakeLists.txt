@@ -8,7 +8,7 @@ endif()
 
 # special tests needing external libraries
 find_package( ZLIB )
-find_package( tinyxml2 QUIET )
+find_package( tinyxml2 )
 
 foreach( target IN ITEMS ${CPP_TESTS} )
    add_executable( ${target} ${target}.cpp )

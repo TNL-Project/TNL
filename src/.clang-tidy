@@ -4,6 +4,7 @@ HeaderFilterRegex: '.*'
 AnalyzeTemporaryDtors: false
 FormatStyle:      file
 User:             user
+UseColor:         true
 Checks:           'readability-*,
                   -readability-else-after-return,
                   -readability-named-parameter,

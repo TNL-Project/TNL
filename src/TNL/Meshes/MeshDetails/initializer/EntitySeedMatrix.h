@@ -60,9 +60,11 @@ public:
       void
       setCornerId( const LocalIndexType& cornerIndex, const GlobalIndexType& pointIndex )
       {
-         TNL_ASSERT_GE( cornerIndex, 0, "corner index must be non-negative" );
-         TNL_ASSERT_LT( cornerIndex, getCornersCount(), "corner index is out of bounds" );
-         TNL_ASSERT_GE( pointIndex, 0, "point index must be non-negative" );
+         if( cornerIndex < 0 || cornerIndex >= getCornersCount() )
+            throw std::out_of_range( "setCornerId: cornerIndex is out of range" );
+         if( pointIndex < 0 )
+            throw std::out_of_range( "setCornerId: pointIndex is out of range" );
+
          this->row.setColumnIndex( cornerIndex, pointIndex );
       }
 
@@ -235,9 +237,11 @@ public:
       void
       setCornerId( const LocalIndexType& cornerIndex, const GlobalIndexType& pointIndex )
       {
-         TNL_ASSERT_GE( cornerIndex, 0, "corner index must be non-negative" );
-         TNL_ASSERT_LT( cornerIndex, getCornersCount(), "corner index is out of bounds" );
-         TNL_ASSERT_GE( pointIndex, 0, "point index must be non-negative" );
+         if( cornerIndex < 0 || cornerIndex >= getCornersCount() )
+            throw std::out_of_range( "setCornerId: cornerIndex is out of range" );
+         if( pointIndex < 0 )
+            throw std::out_of_range( "setCornerId: pointIndex is out of range" );
+
          this->row.setColumnIndex( cornerIndex, pointIndex );
       }
 
@@ -389,9 +393,11 @@ public:
       void
       setCornerId( const LocalIndexType& cornerIndex, const GlobalIndexType& pointIndex )
       {
-         TNL_ASSERT_GE( cornerIndex, 0, "corner index must be non-negative" );
-         TNL_ASSERT_LT( cornerIndex, getCornersCount(), "corner index is out of bounds" );
-         TNL_ASSERT_GE( pointIndex, 0, "point index must be non-negative" );
+         if( cornerIndex < 0 || cornerIndex >= getCornersCount() )
+            throw std::out_of_range( "setCornerId: cornerIndex is out of range" );
+         if( pointIndex < 0 )
+            throw std::out_of_range( "setCornerId: pointIndex is out of range" );
+
          this->row.setColumnIndex( cornerIndex, pointIndex );
       }
 

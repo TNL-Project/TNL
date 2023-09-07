@@ -4,9 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky,
-//                 Tomas Oberhuber
-
 #pragma once
 
 #include <tuple>
@@ -58,14 +55,14 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
       reset();
 
       // Explicit synchronization of the CUDA device
-      if constexpr( std::is_same< Device, Devices::Cuda >::value )
+      if constexpr( std::is_same_v< Device, Devices::Cuda > )
          cudaDeviceSynchronize();
 
       // reset timer before each computation
       timer.reset();
       timer.start();
       compute();
-      if constexpr( std::is_same< Device, Devices::Cuda >::value )
+      if constexpr( std::is_same_v< Device, Devices::Cuda > )
          cudaDeviceSynchronize();
       timer.stop();
 

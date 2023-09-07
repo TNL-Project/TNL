@@ -1,6 +1,7 @@
 #include <iostream>
+#include <string>
+
 #include <TNL/File.h>
-#include <TNL/String.h>
 
 using namespace TNL;
 
@@ -8,13 +9,13 @@ int main()
 {
     File file;
 
-    file.open( String("new-file.tnl"), std::ios_base::out );
-    String title("'string to file'");
+    file.open( std::string("new-file.tnl"), std::ios_base::out );
+    std::string title("'string to file'");
     file << title;
     file.close();
 
-    file.open( String("new-file.tnl"), std::ios_base::in );
-    String restoredString;
+    file.open( std::string("new-file.tnl"), std::ios_base::in );
+    std::string restoredString;
     file >> restoredString;
     file.close();
 

@@ -4,11 +4,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomas Oberhuber, Jakub Klinkovsky
-
 #pragma once
 
 #include <TNL/Atomic.h>
+#include <TNL/Assert.h>
 
 namespace TNL::Algorithms {
 

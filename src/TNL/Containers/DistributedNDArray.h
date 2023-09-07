@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include <TNL/Containers/NDArray.h>
@@ -593,13 +591,14 @@ public:
    {
       static_assert( SizesHolderType::template getStaticSize< level >() == 0,
                      "NDArray cannot be distributed in static dimensions." );
-      TNL_ASSERT_GE( begin, 0, "begin must be non-negative" );
-      TNL_ASSERT_LE( end, globalSizes.template getSize< level >(), "end must not be greater than global size" );
-      TNL_ASSERT_LT( begin, end, "begin must be lesser than end" );
+      if( begin < 0 || begin >= end )
+         throw std::out_of_range( "setDistribution: begin is out of range" );
+      if( end < 0 || end > globalSizes.template getSize< level >() )
+         throw std::out_of_range( "setDistribution: end must not be greater than global size" );
+      if( this->communicator != MPI_COMM_NULL && this->communicator != communicator )
+         throw std::invalid_argument( "setDistribution: different communicators cannot be combined for different dimensions" );
       localBegins.template setSize< level >( begin );
       localEnds.template setSize< level >( end );
-      TNL_ASSERT( this->communicator == MPI_COMM_NULL || this->communicator == communicator,
-                  std::cerr << "different communicators cannot be combined for different dimensions" );
       this->communicator = communicator;
    }
 
@@ -620,9 +619,8 @@ public:
             if( begin == end )
                localSizes.template setSize< level >( globalSizes.template getSize< level >() );
             else {
-               TNL_ASSERT_GE( end - begin,
-                              (decltype( end )) detail::get< level >( OverlapsType{} ),
-                              "local size is less than the size of overlaps" );
+               if( end - begin < (decltype( end )) detail::get< level >( OverlapsType{} ) )
+                  throw std::logic_error( "allocate: local size is less than the size of overlaps" );
                // localSizes.template setSize< level >( end - begin + 2 * detail::get<level>( OverlapsType{} ) );
                localSizes.template setSize< level >( end - begin );
             }

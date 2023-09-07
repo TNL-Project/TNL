@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber, Jakub Klinkovský
-
 #pragma once
 
 #include <string>
@@ -41,21 +39,21 @@ template< typename T >
 struct ParameterTypeCoercion
 {
    using type = std::conditional_t<
-      std::is_same< T, bool >::value,
+      std::is_same_v< T, bool >,
       bool,
       std::conditional_t<
-         std::is_integral< T >::value && std::is_signed< T >::value,
+         std::is_integral_v< T > && std::is_signed_v< T >,
          Integer,
          std::conditional_t<
-            std::is_integral< T >::value && std::is_unsigned< T >::value,
+            std::is_integral_v< T > && std::is_unsigned_v< T >,
             UnsignedInteger,
             std::conditional_t<
-               std::is_floating_point< T >::value,
+               std::is_floating_point_v< T >,
                double,
                std::conditional_t<
-                  std::is_base_of< std::string, T >::value,
+                  std::is_base_of_v< std::string, T >,
                   std::string,
-                  std::conditional_t< std::is_same< std::decay_t< T >, const char* >::value, std::string, T > > > > > >;
+                  std::conditional_t< std::is_same_v< std::decay_t< T >, const char* >, std::string, T > > > > > >;
 
    static type
    convert( const T& v )

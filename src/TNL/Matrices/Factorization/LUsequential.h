@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <TNL/Assert.h>
@@ -45,7 +43,7 @@ void
 LU_sequential_solve_inplace( const Matrix& A, Vector& x )
 {
    using IndexType = typename Matrix::IndexType;
-   static_assert( std::is_signed< IndexType >::value, "LU got a matrix with an unsigned index type (2nd for loop won't work)" );
+   static_assert( std::is_signed_v< IndexType >, "LU got a matrix with an unsigned index type (2nd for loop won't work)" );
 
    TNL_ASSERT_EQ( A.getRows(), A.getColumns(), "LU factorization is possible only for square matrices" );
 

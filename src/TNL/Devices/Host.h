@@ -6,7 +6,9 @@
 
 #pragma once
 
-#include <TNL/String.h>
+#include <iostream>
+#include <string>
+
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
 
@@ -78,7 +80,7 @@ public:
    }
 
    static void
-   configSetup( Config::ConfigDescription& config, const String& prefix = "" )
+   configSetup( Config::ConfigDescription& config, const std::string& prefix = "" )
    {
 #ifdef HAVE_OPENMP
       config.addEntry< bool >( prefix + "openmp-enabled", "Enable support of OpenMP.", true );
@@ -91,7 +93,7 @@ public:
    }
 
    static bool
-   setup( const Config::ParameterContainer& parameters, const String& prefix = "" )
+   setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" )
    {
       if( parameters.getParameter< bool >( prefix + "openmp-enabled" ) ) {
 #ifdef HAVE_OPENMP

@@ -79,7 +79,6 @@ public:
 
    // TODO: add documentation for this type (it is also questionable if it should be in MatrixBase or SparseMatrixBase)
    using RowCapacitiesType = Containers::Vector< Index, Device, Index >;
-   using RowsCapacitiesType [[deprecated]] = RowCapacitiesType;
 
    /**
     * \brief Matrix elements organization getter.
@@ -111,7 +110,7 @@ public:
    [[nodiscard]] static constexpr bool
    isBinary()
    {
-      return std::is_same< std::decay_t< Real >, bool >::value;
+      return std::is_same_v< std::decay_t< Real >, bool >;
    }
 
    /**

@@ -7,7 +7,6 @@
 #pragma once
 
 #include <TNL/Logger.h>
-#include <TNL/String.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/MPI/Config.h>
@@ -111,7 +110,7 @@ public:
       /****
        * Set-up the time discretisation
        */
-      const String& timeDiscretisation = parameters.getParameter< String >( "time-discretisation" );
+      const auto& timeDiscretisation = parameters.getParameter< std::string >( "time-discretisation" );
       if( timeDiscretisation == "explicit" )
          return SolverStarterTimeDiscretisationSetter< Problem, ExplicitTimeDiscretisationTag, ConfigTag >::run( problem,
                                                                                                                  parameters );
@@ -147,7 +146,7 @@ public:
    static bool
    run( Problem& problem, const Config::ParameterContainer& parameters )
    {
-      std::cerr << "The time discretisation " << parameters.getParameter< String >( "time-discretisation" )
+      std::cerr << "The time discretisation " << parameters.getParameter< std::string >( "time-discretisation" )
                 << " is not supported." << std::endl;
       return false;
    }
@@ -160,7 +159,7 @@ public:
    static bool
    run( Problem& problem, const Config::ParameterContainer& parameters )
    {
-      const String& discreteSolver = parameters.getParameter< String >( "discrete-solver" );
+      const auto& discreteSolver = parameters.getParameter< std::string >( "discrete-solver" );
       if( discreteSolver != "euler" && discreteSolver != "merson" ) {
          std::cerr << "Unknown explicit discrete solver " << discreteSolver << ". It can be only: euler or merson."
                    << std::endl;
@@ -194,7 +193,7 @@ public:
    static bool
    run( Problem& problem, const Config::ParameterContainer& parameters )
    {
-      //         const String& discreteSolver = parameters.getParameter< String>( "discrete-solver" );
+      // const std::string& discreteSolver = parameters.getParameter< std::string>( "discrete-solver" );
       return false;
    }
 };
@@ -210,7 +209,7 @@ public:
    static bool
    run( Problem& problem, const Config::ParameterContainer& parameters )
    {
-      std::cerr << "The explicit solver " << parameters.getParameter< String >( "discrete-solver" ) << " is not supported."
+      std::cerr << "The explicit solver " << parameters.getParameter< std::string >( "discrete-solver" ) << " is not supported."
                 << std::endl;
       return false;
    }
@@ -243,8 +242,8 @@ SolverStarter< ConfigTag >::runPDESolver( Problem& problem, const Config::Parame
    /****
     * Open the log file
     */
-   const String logFileName = parameters.getParameter< String >( "log-file" );
-   std::ofstream logFile( logFileName.getString() );
+   const auto logFileName = parameters.getParameter< std::string >( "log-file" );
+   std::ofstream logFile( logFileName );
    if( ! logFile ) {
       std::cerr << "Unable to open the log file " << logFileName << "." << std::endl;
       return false;
@@ -374,7 +373,7 @@ SolverStarter< ConfigTag >::writeEpilog( std::ostream& str, const Solver& solver
       return false;
    logger.writeParameter< const char* >( "Compute time:", "" );
    this->computeTimer.writeLog( logger, 1 );
-   if( std::is_same< typename Solver::DeviceType, TNL::Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< typename Solver::DeviceType, TNL::Devices::Cuda > ) {
       logger.writeParameter< const char* >( "GPU synchronization time:", "" );
       Pointers::getSmartPointersSynchronizationTimer< Devices::Cuda >().writeLog( logger, 1 );
    }

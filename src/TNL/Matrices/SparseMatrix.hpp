@@ -52,7 +52,7 @@ template< typename Real,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
-template< typename Index_t, std::enable_if_t< std::is_integral< Index_t >::value, int > >
+template< typename Index_t, std::enable_if_t< std::is_integral_v< Index_t >, int > >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    Index_t rows,
    Index_t columns,
@@ -261,15 +261,16 @@ template< typename Real,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
-template< typename RowsCapacitiesVector >
+template< typename RowCapacitiesVector >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setRowCapacities(
-   const RowsCapacitiesVector& rowCapacities )
+   const RowCapacitiesVector& rowCapacities )
 {
-   TNL_ASSERT_EQ(
-      (Index) rowCapacities.getSize(), this->getRows(), "Number of matrix rows does not fit with rowCapacities vector size." );
-   using RowsCapacitiesVectorDevice = typename RowsCapacitiesVector::DeviceType;
-   if constexpr( std::is_same_v< Device, RowsCapacitiesVectorDevice > )
+   if( (Index) rowCapacities.getSize() != this->getRows() )
+      throw std::invalid_argument( "setRowCapacities: size of the input vector does not match the number of matrix rows" );
+
+   using RowCapacitiesVectorDevice = typename RowCapacitiesVector::DeviceType;
+   if constexpr( std::is_same_v< Device, RowCapacitiesVectorDevice > )
       this->segments.setSegmentsSizes( rowCapacities );
    else {
       RowCapacitiesVectorType thisRowCapacities;
@@ -329,7 +330,7 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
       *this = hostMatrix;
    }
    else {
-      RowCapacitiesVectorType rowsCapacities( this->getRows(), 0 );
+      RowCapacitiesVectorType capacities( this->getRows(), 0 );
       for( const auto& [ coordinates, value ] : map ) {
          auto [ rowIdx, columnIdx ] = coordinates;
          if( Base::isSymmetric() ) {
@@ -356,9 +357,9 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
             throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
          if( columnIdx >= this->getColumns() )
             throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
-         rowsCapacities[ rowIdx ]++;
+         capacities[ rowIdx ]++;
       }
-      this->setRowCapacities( rowsCapacities );
+      this->setRowCapacities( capacities );
 
       if( ! Base::isSymmetric() || encoding == SymmetricMatrixEncoding::LowerPart ) {
          // The following algorithm is based on the fact that the input std::map

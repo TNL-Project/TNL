@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomas Oberhuber, Jakub Klinkovsky
-
 #pragma once
 
 #include <utility>  // std::forward
@@ -67,7 +65,7 @@ inclusiveScan( const InputArray& input,
                Reduction&& reduction,
                typename OutputArray::ValueType identity )
 {
-   static_assert( std::is_same< typename InputArray::DeviceType, typename OutputArray::DeviceType >::value,
+   static_assert( std::is_same_v< typename InputArray::DeviceType, typename OutputArray::DeviceType >,
                   "The input and output arrays must have the same device type." );
    TNL_ASSERT_EQ( reduction( identity, identity ), identity, "identity is not an identity element of the reduction operation" );
    // TODO: check if evaluating the input is expensive (e.g. a vector expression), otherwise use WriteInSecondPhase (optimal for
@@ -153,7 +151,7 @@ exclusiveScan( const InputArray& input,
                Reduction&& reduction,
                typename OutputArray::ValueType identity )
 {
-   static_assert( std::is_same< typename InputArray::DeviceType, typename OutputArray::DeviceType >::value,
+   static_assert( std::is_same_v< typename InputArray::DeviceType, typename OutputArray::DeviceType >,
                   "The input and output arrays must have the same device type." );
    TNL_ASSERT_EQ( reduction( identity, identity ), identity, "identity is not an identity element of the reduction operation" );
    // TODO: check if evaluating the input is expensive (e.g. a vector expression), otherwise use WriteInSecondPhase (optimal for

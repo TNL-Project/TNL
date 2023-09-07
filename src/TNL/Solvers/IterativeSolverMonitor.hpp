@@ -122,7 +122,7 @@ IterativeSolverMonitor< Real, Index >::refresh()
 
       auto print_item = [ &free ]( const std::string& item, int width = 0 )
       {
-         width = min( free, width > 0 ? width : item.length() );
+         width = std::min( free, width > 0 ? width : (int) item.length() );
          std::cout << std::setw( width ) << item.substr( 0, width );
          free -= width;
       };

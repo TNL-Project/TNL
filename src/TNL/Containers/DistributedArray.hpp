@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include "DistributedArray.h"
@@ -58,7 +56,8 @@ DistributedArray< Value, Device, Index, Allocator >::setDistribution( LocalRange
                                                                       IndexType globalSize,
                                                                       const MPI::Comm& communicator )
 {
-   TNL_ASSERT_LE( localRange.getEnd(), globalSize, "end of the local range is outside of the global range" );
+   if( localRange.getEnd() > globalSize )
+      throw std::out_of_range( "setDistribution: end of the local range is outside of the global range" );
    if( communicator != MPI_COMM_NULL )
       localData.setSize( localRange.getSize() + ghosts );
    view.bind( localRange, ghosts, globalSize, communicator, localData.getView() );
@@ -202,7 +201,8 @@ DistributedArray< Value, Device, Index, Allocator >::setLike( const Array& array
    view.bind( array.getLocalRange(), array.getGhosts(), array.getSize(), array.getCommunicator(), localData.getView() );
    // set, but do not unset, the synchronizer
    if( array.getSynchronizer() )
-      setSynchronizerHelper( view, array );
+      if constexpr( std::is_same_v< typename Array::DeviceType, DeviceType > )
+         view.setSynchronizer( array.getSynchronizer(), array.getValuesPerElement() );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >

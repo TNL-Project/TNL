@@ -64,6 +64,16 @@ workflow:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
 
+# base for NVHPC builds
+.nvhpc:
+    image: "archlinux/devel-tnl-nvhpc:latest"
+    variables:
+        <<: *default_cmake_flags
+        USE_CUDA: "yes"
+        CXX: nvc++
+        CC: nvc
+        CUDA_HOST_COMPILER: nvc++
+
 # base for Clang builds
 .clang:
     variables:
@@ -113,6 +123,8 @@ workflow:
     # running as root does not matter inside Docker containers
     - export OMPI_ALLOW_RUN_AS_ROOT=1
     - export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+    # configure OpenMPI to run without ssh
+    - export OMPI_MCA_plm_rsh_agent=sh
     # 1. fall back to arch 7.0 when the builder has no GPU to avoid building for all GPU architectures
     # 2. cmake can't detect the native architecture when using clang
     - if ! nvidia-smi --list-gpus > /dev/null; then
@@ -246,6 +258,17 @@ nvcc:
         - .build_template
         - .matrix_template
         - .nvcc
+
+# FIXME: builds with NVHPC 23.7 don't pass due to toolchain bugs
+#nvhpc:
+#    stage: build:cuda
+#    tags:
+#        - docker
+#        - nvidia
+#    extends:
+#        - .build_template
+#        - .matrix_template
+#        - .nvhpc
 
 clang_cuda:
     stage: build:cuda

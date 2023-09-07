@@ -127,7 +127,7 @@ MeshFunctionView< Mesh, MeshEntityDimension, Real >::bind( const MeshPointer& me
       data->getSize(),
       offset + meshPointer->template getEntitiesCount< typename MeshType::template EntityType< MeshEntityDimension > >(),
       "The input vector is not large enough for binding to the mesh function." );
-   static_assert( std::is_same< typename Vector::RealType, RealType >::value, "Cannot bind Vector with different Real type." );
+   static_assert( std::is_same_v< typename Vector::RealType, RealType >, "Cannot bind Vector with different Real type." );
 
    this->meshPointer = meshPointer;
    this->data.bind( *data + offset,

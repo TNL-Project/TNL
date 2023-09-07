@@ -45,9 +45,10 @@ public:
    void
    setCornerId( const LocalIndexType& cornerIndex, const GlobalIndexType& pointIndex )
    {
-      TNL_ASSERT_GE( cornerIndex, 0, "corner index must be non-negative" );
-      TNL_ASSERT_LT( cornerIndex, getCornersCount(), "corner index is out of bounds" );
-      TNL_ASSERT_GE( pointIndex, 0, "point index must be non-negative" );
+      if( cornerIndex < 0 || cornerIndex >= getCornersCount() )
+         throw std::out_of_range( "setCornerId: cornerIndex is out of range" );
+      if( pointIndex < 0 )
+         throw std::out_of_range( "setCornerId: pointIndex is out of range" );
 
       this->cornerIds[ cornerIndex ] = pointIndex;
    }
@@ -94,8 +95,10 @@ public:
    void
    setCornerId( const LocalIndexType& cornerIndex, const GlobalIndexType& pointIndex )
    {
-      TNL_ASSERT_EQ( cornerIndex, 0, "corner index must be 0" );
-      TNL_ASSERT_GE( pointIndex, 0, "point index must be non-negative" );
+      if( cornerIndex != 0 )
+         throw std::invalid_argument( "setCornerId: cornerIndex must be 0" );
+      if( pointIndex < 0 )
+         throw std::invalid_argument( "setCornerId: point index must be non-negative" );
 
       this->cornerIds[ cornerIndex ] = pointIndex;
    }
@@ -137,10 +140,14 @@ public:
    void
    setCornersCount( const LocalIndexType& cornersCount )
    {
-      if( std::is_same< EntityTopology, Topologies::Polygon >::value )
-         TNL_ASSERT_GE( cornersCount, 3, "polygons must have at least 3 corners" );
-      else if( std::is_same< EntityTopology, Topologies::Polyhedron >::value )
-         TNL_ASSERT_GE( cornersCount, 4, "polyhedron must have at least 4 faces" );
+      if constexpr( std::is_same_v< EntityTopology, Topologies::Polygon > ) {
+         if( cornersCount < 3 )
+            throw std::invalid_argument( "setCornersCount: polygon must have at least 3 corners" );
+      }
+      else if constexpr( std::is_same_v< EntityTopology, Topologies::Polyhedron > ) {
+         if( cornersCount < 4 )
+            throw std::invalid_argument( "setCornersCount: polyhedron must have at least 4 faces" );
+      }
 
       this->cornerIds.setSize( cornersCount );
    }
@@ -154,9 +161,10 @@ public:
    void
    setCornerId( const LocalIndexType& cornerIndex, const GlobalIndexType& pointIndex )
    {
-      TNL_ASSERT_GE( cornerIndex, 0, "corner index must be non-negative" );
-      TNL_ASSERT_LT( cornerIndex, getCornersCount(), "corner index is out of bounds" );
-      TNL_ASSERT_GE( pointIndex, 0, "point index must be non-negative" );
+      if( cornerIndex < 0 || cornerIndex >= getCornersCount() )
+         throw std::out_of_range( "setCornerId: cornerIndex is out of range" );
+      if( pointIndex < 0 )
+         throw std::out_of_range( "setCornerId: pointIndex is out of range" );
 
       this->cornerIds[ cornerIndex ] = pointIndex;
    }

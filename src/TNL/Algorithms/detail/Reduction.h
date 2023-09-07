@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomas Oberhuber, Jakub Klinkovsky
-
 #pragma once
 
 #include <utility>  // std::pair, std::forward

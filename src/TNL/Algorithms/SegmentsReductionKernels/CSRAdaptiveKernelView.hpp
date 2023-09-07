@@ -256,16 +256,6 @@ CSRAdaptiveKernelView< Index, Device >::reduceAllSegments( const SegmentsView& s
    reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }
 
-// FIXME: JK: operator= should not bind, it should do a shallow copy (or not even exist)
-template< typename Index, typename Device >
-CSRAdaptiveKernelView< Index, Device >&
-CSRAdaptiveKernelView< Index, Device >::operator=( const CSRAdaptiveKernelView< Index, Device >& kernelView )
-{
-   for( int i = 0; i < MaxValueSizeLog; i++ )
-      this->blocksArray[ i ].bind( kernelView.blocksArray[ i ] );
-   return *this;
-}
-
 template< typename Index, typename Device >
 void
 CSRAdaptiveKernelView< Index, Device >::printBlocks( int idx ) const

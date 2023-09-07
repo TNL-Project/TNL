@@ -108,7 +108,7 @@ computing platform, and (optionally) some libraries.
   <tr><td> [TinyXML2](https://github.com/leethomason/tinyxml2/) </td>
       <td> \ref TNL::Meshes::Readers "XML-based mesh readers" </td>
       <td> `-DHAVE_TINYXML2 -ltinyxml2` </td>
-      <td> If TinyXML2 is not found as a system library, the `install` script
+      <td> If TinyXML2 is not found as a system library, CMake
            will download, compile and install TinyXML2 along with TNL. </td>
   </tr>
   <tr><td> [CGAL](https://github.com/CGAL/cgal/) </td>
@@ -251,9 +251,7 @@ If you installed some TNL tools or examples using the `install` script, we
 recommend you to configure several environment variables for convenience. If you
 used the default installation path `~/.local/`:
 
-- `export PATH=$PATH:$HOME/.local/bin`
-- If TinyXML2 was installed by the `install` script and not as a system package,
-  also `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.local/lib`
+    export PATH="$PATH:$HOME/.local/bin"
 
 These commands can be added to the initialization scripts of your favourite
 shell, e.g. `.bash_profile`.

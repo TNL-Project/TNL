@@ -1,5 +1,3 @@
-// Implemented by: Jakub Klinkovský
-
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
 #include <TNL/Meshes/Writers/VTUWriter.h>
@@ -46,11 +44,14 @@ struct GridRealTag< DecomposeMeshConfigTag, long double >
 /****
  * Unstructured meshes.
  */
+// FIXME: nvc++ 23.7 fails - it tries to compile the add_face lambda, even though it is guarded by "if constexpr(is_polyhedral)"
+#ifndef __NVCOMPILER
 template<>
 struct MeshCellTopologyTag< DecomposeMeshConfigTag, Topologies::Edge >
 {
    static constexpr bool enabled = true;
 };
+#endif
 template<>
 struct MeshCellTopologyTag< DecomposeMeshConfigTag, Topologies::Triangle >
 {

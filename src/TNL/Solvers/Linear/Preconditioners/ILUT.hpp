@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include <vector>
@@ -32,8 +30,10 @@ template< typename Matrix, typename Real, typename Index >
 void
 ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& matrixPointer )
 {
-   TNL_ASSERT_GT( matrixPointer->getRows(), 0, "empty matrix" );
-   TNL_ASSERT_EQ( matrixPointer->getRows(), matrixPointer->getColumns(), "matrix must be square" );
+   if( matrixPointer->getRows() == 0 )
+      throw std::invalid_argument( "ILUT::update: the matrix is empty" );
+   if( matrixPointer->getRows() != matrixPointer->getColumns() )
+      throw std::invalid_argument( "ILUT::update: matrix must be square" );
 
    const auto& localMatrix = Traits< Matrix >::getLocalMatrix( *matrixPointer );
    const IndexType N = localMatrix.getRows();
@@ -49,8 +49,8 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
 
    // compute row lengths
    //   timer_rowlengths.start();
-   typename decltype( L )::RowsCapacitiesType L_rowLengths( N );
-   typename decltype( U )::RowsCapacitiesType U_rowLengths( N );
+   typename decltype( L )::RowCapacitiesType L_rowLengths( N );
+   typename decltype( U )::RowCapacitiesType U_rowLengths( N );
    for( IndexType i = 0; i < N; i++ ) {
       const auto row = localMatrix.getRow( i );
       IndexType L_entries = 0;

@@ -12,8 +12,7 @@
 namespace TNL::Functions {
 
 template< typename Mesh >
-class MeshFunctionNormGetter
-{};
+class MeshFunctionNormGetter;
 
 /***
  * Specialization for grids
@@ -34,14 +33,14 @@ public:
    {
       using RealType = typename MeshFunctionType::RealType;
       static constexpr int EntityDimension = MeshFunctionType::getEntitiesDimension();
-      if( EntityDimension == Dimension ) {
+      if constexpr( EntityDimension == Dimension ) {
          if( p == 1.0 )
             return function.getMesh().getCellMeasure() * lpNorm( function.getData(), 1.0 );
          if( p == 2.0 )
             return std::sqrt( function.getMesh().getCellMeasure() ) * lpNorm( function.getData(), 2.0 );
          return std::pow( function.getMesh().getCellMeasure(), 1.0 / p ) * lpNorm( function.getData(), p );
       }
-      if( EntityDimension > 0 ) {
+      else if constexpr( EntityDimension > 0 ) {
          using MeshType = typename MeshFunctionType::MeshType;
          using EntityType = typename MeshType::Face;
          if( p == 1.0 ) {
@@ -68,12 +67,13 @@ public:
          }
          return std::pow( result, 1.0 / p );
       }
-
-      if( p == 1.0 )
-         return lpNorm( function.getData(), 1.0 );
-      if( p == 2.0 )
-         return lpNorm( function.getData(), 2.0 );
-      return lpNorm( function.getData(), p );
+      else {
+         if( p == 1.0 )
+            return lpNorm( function.getData(), 1.0 );
+         if( p == 2.0 )
+            return lpNorm( function.getData(), 2.0 );
+         return lpNorm( function.getData(), p );
+      }
    }
 };
 
@@ -94,22 +94,23 @@ public:
    getNorm( const MeshFunctionType& function, const typename MeshFunctionType::RealType& p )
    {
       static constexpr int EntityDimension = MeshFunctionType::getEntitiesDimension();
-      if( EntityDimension == Dimension ) {
+      if constexpr( EntityDimension == Dimension ) {
          if( p == 1.0 )
             return function.getMesh().getCellMeasure() * function.getData().lpNorm( 1.0 );
          if( p == 2.0 )
             return ::sqrt( function.getMesh().getCellMeasure() ) * function.getData().lpNorm( 2.0 );
          return ::pow( function.getMesh().getCellMeasure(), 1.0 / p ) * function.getData().lpNorm( p );
       }
-      if( EntityDimension > 0 ) {
+      else if constexpr( EntityDimension > 0 ) {
          throw Exceptions::NotImplementedError( "Not implemented yet." );
       }
-
-      if( p == 1.0 )
-         return function.getData().lpNorm( 1.0 );
-      if( p == 2.0 )
-         return function.getData().lpNorm( 2.0 );
-      return function.getData().lpNorm( p );
+      else {
+         if( p == 1.0 )
+            return function.getData().lpNorm( 1.0 );
+         if( p == 2.0 )
+            return function.getData().lpNorm( 2.0 );
+         return function.getData().lpNorm( p );
+      }
    }
 };
 

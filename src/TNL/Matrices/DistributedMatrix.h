@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <type_traits>
@@ -29,7 +27,7 @@ public:
    using IndexType = typename Matrix::IndexType;
    using LocalRangeType = Containers::Subrange< typename Matrix::IndexType >;
 
-   using RowsCapacitiesType = Containers::DistributedVector< IndexType, DeviceType, IndexType >;
+   using RowCapacitiesType = Containers::DistributedVector< IndexType, DeviceType, IndexType >;
 
    using MatrixRow = typename Matrix::RowView;
    using ConstMatrixRow = typename Matrix::ConstRowView;
@@ -110,7 +108,7 @@ public:
 
    // multiplication with a global vector
    template< typename InVector, typename OutVector >
-   typename std::enable_if< ! HasGetCommunicatorMethod< InVector >::value >::type
+   std::enable_if_t< ! HasGetCommunicatorMethod< InVector >::value >
    vectorProduct( const InVector& inVector, OutVector& outVector ) const;
 
    // Optimization for distributed matrix-vector multiplication
@@ -120,7 +118,7 @@ public:
    // multiplication with a distributed vector
    // (not const because it modifies internal bufers)
    template< typename InVector, typename OutVector >
-   typename std::enable_if< HasGetCommunicatorMethod< InVector >::value >::type
+   std::enable_if_t< HasGetCommunicatorMethod< InVector >::value >
    vectorProduct( const InVector& inVector, OutVector& outVector ) const;
 
    // TODO

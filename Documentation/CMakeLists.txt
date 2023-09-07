@@ -28,13 +28,6 @@ if( TNL_BUILD_DOC )
       )
    endif()
 
-   # collect source file dependencies for the doxygen command
-   file( GLOB_RECURSE TNL_DOC_INPUT_FILES
-         ${CMAKE_SOURCE_DIR}/src/TNL/*
-         ${CMAKE_SOURCE_DIR}/Documentation/Examples/*
-         ${CMAKE_SOURCE_DIR}/Documentation/UsersGuide/*
-   )
-
    # the documentation cannot be built without warnings when CUDA is disabled
    # (e.g. output of some examples will be missing)
    if( DEFINED ENV{GITLAB_CI} OR (TNL_USE_CI_FLAGS AND TNL_BUILD_CUDA) )
@@ -42,6 +35,12 @@ if( TNL_BUILD_DOC )
    else()
       set( DOXYGEN_WARN_AS_ERROR "NO" )
    endif()
+
+   # collect source file dependencies for the doxygen command
+   file( GLOB_RECURSE TNL_DOC_INPUT_FILES
+         ${CMAKE_SOURCE_DIR}/src/TNL/*
+         ${CMAKE_SOURCE_DIR}/Documentation/*
+   )
 
    # add custom target to generate the documentation during the build
    set( DOXYGEN_STAMP_FILE ${CMAKE_CURRENT_BINARY_DIR}/doxygen.stamp )
@@ -52,6 +51,7 @@ if( TNL_BUILD_DOC )
                                       WARN_AS_ERROR="${DOXYGEN_WARN_AS_ERROR}"
               ${DOXYGEN_EXECUTABLE}
       COMMAND cmake -E touch "${DOXYGEN_STAMP_FILE}"
+      DEPENDS ${TNL_DOC_INPUT_FILES}
       OUTPUT ${DOXYGEN_STAMP_FILE}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT "Generating documentation with Doxygen" )

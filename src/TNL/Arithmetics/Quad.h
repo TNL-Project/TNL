@@ -13,8 +13,6 @@
 
 #pragma once
 
-#include <TNL/String.h>
-
 namespace TNL::Arithmetics {
 
 template< class T >

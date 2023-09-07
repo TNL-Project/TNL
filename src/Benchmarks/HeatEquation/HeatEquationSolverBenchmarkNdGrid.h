@@ -4,10 +4,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber, Yury Hayeu
-
 #pragma once
-
 
 #include <iostream>
 #include <fstream>
@@ -375,6 +372,7 @@ struct HeatEquationSolverBenchmarkNdGrid : public HeatEquationSolverBenchmark< R
       const Real hy_inv = 1.0 / (hy * hy);
 
       const Container<2, bool> direction{ false, false };
+      (void) direction;  // avoid nvcc warning due to defined but not referenced variable
 
       Real start = 0;
       Index iterations = 0;

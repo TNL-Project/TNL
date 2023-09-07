@@ -4,10 +4,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
+#include <TNL/Assert.h>
+#include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Allocators/Default.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -44,7 +44,7 @@ namespace Pointers {
 template< typename Object, typename Device = typename Object::DeviceType >
 class DevicePointer
 {
-   static_assert( ! std::is_same< Device, void >::value,
+   static_assert( ! std::is_same_v< Device, void >,
                   "The device cannot be void. You need to specify the device explicitly in your code." );
 };
 
@@ -66,8 +66,8 @@ private:
     * but after removing const and volatile qualifiers they are the same.
     */
    template< typename Object_ >
-   using Enabler = std::enable_if< ! std::is_same< Object_, Object >::value
-                                   && std::is_same< typename std::remove_cv< Object >::type, Object_ >::value >;
+   using Enabler =
+      std::enable_if_t< ! std::is_same_v< Object_, Object > && std::is_same_v< std::remove_cv_t< Object >, Object_ > >;
 
    // friend class will be needed for templated assignment operators
    template< typename Object_, typename Device_ >
@@ -115,7 +115,7 @@ public:
     *
     * \param pointer is the source device pointer.
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    DevicePointer( const DevicePointer< Object_, DeviceType >& pointer )  // conditional constructor for non-const -> const data
    : pointer( pointer.pointer )
    {}
@@ -138,7 +138,7 @@ public:
     *
     * \param pointer is the source device pointer.
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    DevicePointer( DevicePointer< Object_, DeviceType >&& pointer )  // conditional constructor for non-const -> const data
    : pointer( pointer.pointer )
    {
@@ -271,7 +271,7 @@ public:
     * \param ptr input pointer
     * \return constant reference to \e this
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    const DevicePointer&
    operator=( const DevicePointer< Object_, DeviceType >& ptr )  // conditional operator for non-const -> const data
    {
@@ -303,7 +303,7 @@ public:
     * \param ptr input pointer
     * \return constant reference to \e this
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    const DevicePointer&
    operator=( DevicePointer< Object_, DeviceType >&& ptr )  // conditional operator for non-const -> const data
    {
@@ -363,8 +363,8 @@ private:
     * but after removing const and volatile qualifiers they are the same.
     */
    template< typename Object_ >
-   using Enabler = std::enable_if< ! std::is_same< Object_, Object >::value
-                                   && std::is_same< typename std::remove_cv< Object >::type, Object_ >::value >;
+   using Enabler =
+      std::enable_if_t< ! std::is_same_v< Object_, Object > && std::is_same_v< std::remove_cv_t< Object >, Object_ > >;
 
    // friend class will be needed for templated assignment operators
    template< typename Object_, typename Device_ >
@@ -419,7 +419,7 @@ public:
     *
     * \param pointer is the source device pointer.
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    DevicePointer( const DevicePointer< Object_, DeviceType >& pointer )  // conditional constructor for non-const -> const data
    : pointer( pointer.pointer ), pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
    {
@@ -446,7 +446,7 @@ public:
     *
     * \param pointer is the source device pointer.
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    DevicePointer( DevicePointer< Object_, DeviceType >&& pointer )  // conditional constructor for non-const -> const data
    : pointer( pointer.pointer ), pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
    {
@@ -567,14 +567,14 @@ public:
    const Object&
    getData() const
    {
-      static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Cuda >::value,
+      static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
                      "Only Devices::Host or Devices::Cuda devices are accepted here." );
-      TNL_ASSERT( this->pointer, );
-      TNL_ASSERT( this->pd, );
-      TNL_ASSERT( this->cuda_pointer, );
-      if( std::is_same< Device, Devices::Host >::value )
+      TNL_ASSERT_NE( this->pointer, nullptr, "" );
+      TNL_ASSERT_NE( this->pd, nullptr, "" );
+      TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
+      if( std::is_same_v< Device, Devices::Host > )
          return *( this->pointer );
-      if( std::is_same< Device, Devices::Cuda >::value )
+      if( std::is_same_v< Device, Devices::Cuda > )
          return *( this->cuda_pointer );
    }
 
@@ -595,16 +595,16 @@ public:
    Object&
    modifyData()
    {
-      static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Cuda >::value,
+      static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
                      "Only Devices::Host or Devices::Cuda devices are accepted here." );
-      TNL_ASSERT( this->pointer, );
-      TNL_ASSERT( this->pd, );
-      TNL_ASSERT( this->cuda_pointer, );
-      if( std::is_same< Device, Devices::Host >::value ) {
+      TNL_ASSERT_NE( this->pointer, nullptr, "" );
+      TNL_ASSERT_NE( this->pd, nullptr, "" );
+      TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
+      if( std::is_same_v< Device, Devices::Host > ) {
          this->pd->maybe_modified = true;
          return *( this->pointer );
       }
-      if( std::is_same< Device, Devices::Cuda >::value )
+      if( std::is_same_v< Device, Devices::Cuda > )
          return *( this->cuda_pointer );
    }
 
@@ -636,7 +636,7 @@ public:
     * \param ptr input pointer
     * \return constant reference to \e this
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    const DevicePointer&
    operator=( const DevicePointer< Object_, DeviceType >& ptr )  // conditional operator for non-const -> const data
    {
@@ -678,7 +678,7 @@ public:
     * \param ptr input pointer
     * \return constant reference to \e this
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    const DevicePointer&
    operator=( DevicePointer< Object_, DeviceType >&& ptr )  // conditional operator for non-const -> const data
    {
@@ -707,8 +707,8 @@ public:
          return true;
 #ifdef __CUDACC__
       if( this->modified() ) {
-         TNL_ASSERT( this->pointer, );
-         TNL_ASSERT( this->cuda_pointer, );
+         TNL_ASSERT_NE( this->pointer, nullptr, "" );
+         TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
          cudaMemcpy( (void*) this->cuda_pointer, (void*) this->pointer, sizeof( ObjectType ), cudaMemcpyHostToDevice );
          TNL_CHECK_CUDA_DEVICE;
          this->set_last_sync_state();
@@ -766,8 +766,8 @@ protected:
    void
    set_last_sync_state()
    {
-      TNL_ASSERT( this->pointer, );
-      TNL_ASSERT( this->pd, );
+      TNL_ASSERT_NE( this->pointer, nullptr, "" );
+      TNL_ASSERT_NE( this->pd, nullptr, "" );
       std::memcpy( (void*) &this->pd->data_image, (void*) this->pointer, sizeof( Object ) );
       this->pd->maybe_modified = false;
    }
@@ -775,8 +775,8 @@ protected:
    bool
    modified()
    {
-      TNL_ASSERT( this->pointer, );
-      TNL_ASSERT( this->pd, );
+      TNL_ASSERT_NE( this->pointer, nullptr, "" );
+      TNL_ASSERT_NE( this->pd, nullptr, "" );
       // optimization: skip bitwise comparison if we're sure that the data is the same
       if( ! this->pd->maybe_modified )
          return false;

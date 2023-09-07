@@ -4,44 +4,38 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include <string>
+
+#include <TNL/Cuda/DummyDefs.h>
 
 #include "CudaSupportMissing.h"
 
 namespace TNL::Exceptions {
 
-#ifdef __CUDACC__
-using CudaStatusType = cudaError;
-#else
-using CudaStatusType = int;
-#endif
-
 class CudaRuntimeError : public std::runtime_error
 {
 public:
-   CudaRuntimeError( CudaStatusType error_code )
+   CudaRuntimeError( cudaError_t error_code )
    : std::runtime_error( "CUDA ERROR " + std::to_string( (int) error_code ) + " (" + name( error_code )
                          + "): " + description( error_code ) + "." ),
      code_( error_code )
    {}
 
-   CudaRuntimeError( CudaStatusType error_code, const std::string& what_arg )
+   CudaRuntimeError( cudaError_t error_code, const std::string& what_arg )
    : std::runtime_error( "CUDA ERROR " + std::to_string( (int) error_code ) + " (" + name( error_code )
                          + "): " + description( error_code ) + ".\nDetails: " + what_arg ),
      code_( error_code )
    {}
 
-   CudaRuntimeError( CudaStatusType error_code, const char* file_name, int line )
+   CudaRuntimeError( cudaError_t error_code, const char* file_name, int line )
    : std::runtime_error( "CUDA ERROR " + std::to_string( (int) error_code ) + " (" + name( error_code ) + "): "
                          + description( error_code ) + ".\nSource: line " + std::to_string( line ) + " in " + file_name ),
      code_( error_code )
    {}
 
-   [[nodiscard]] CudaStatusType
+   [[nodiscard]] cudaError_t
    code() const
    {
       return code_;
@@ -49,7 +43,7 @@ public:
 
 private:
    static std::string
-   name( CudaStatusType error_code )
+   name( cudaError_t error_code )
    {
 #ifdef __CUDACC__
       return cudaGetErrorName( error_code );
@@ -59,7 +53,7 @@ private:
    }
 
    static std::string
-   description( CudaStatusType error_code )
+   description( cudaError_t error_code )
    {
 #ifdef __CUDACC__
       return cudaGetErrorString( error_code );
@@ -68,7 +62,7 @@ private:
 #endif
    }
 
-   CudaStatusType code_;
+   cudaError_t code_;
 };
 
 }  // namespace TNL::Exceptions

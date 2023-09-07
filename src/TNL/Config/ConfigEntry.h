@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber, Jakub Klinkovský
-
 #pragma once
 
 #include <utility>
@@ -21,8 +19,7 @@ namespace TNL::Config {
 template< typename EntryType, typename DefaultValueType = EntryType >
 class ConfigEntry : public ConfigEntryBase
 {
-   static_assert( std::is_same< EntryType, DefaultValueType >::value
-                     || std::is_same< std::vector< EntryType >, DefaultValueType >::value,
+   static_assert( std::is_same_v< EntryType, DefaultValueType > || std::is_same_v< std::vector< EntryType >, DefaultValueType >,
                   "DefaultValueType must be the same as either EntryType or std::vector< EntryType >" );
 
    std::optional< DefaultValueType > defaultValue;

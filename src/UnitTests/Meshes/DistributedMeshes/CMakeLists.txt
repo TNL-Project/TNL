@@ -69,7 +69,7 @@ endforeach()
 
 # external libraries for tests which use mesh readers
 find_package( ZLIB )
-find_package( tinyxml2 QUIET )
+find_package( tinyxml2 )
 
 if( ZLIB_FOUND AND tinyxml2_FOUND )
    # TODO: Fix distributed grid.
@@ -86,24 +86,17 @@ endif()
 
 
 # TODO: Fix distributed grid
-#SET (mpi_test_parameters_1d -np 4 -H localhost:4 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_1D${CMAKE_EXECUTABLE_SUFFIX}")
-#ADD_TEST( NAME DistributedGridTest_1D COMMAND "mpirun" ${mpi_test_parameters_1d})
+#add_test_mpi( NAME DistributedGridTest_1D NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_1D${CMAKE_EXECUTABLE_SUFFIX}" )
+#add_test_mpi( NAME DistributedGridTest_2D NPROC 9 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_2D${CMAKE_EXECUTABLE_SUFFIX}" )
+#add_test_mpi( NAME DistributedGridTest_3D NPROC 27 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_3D${CMAKE_EXECUTABLE_SUFFIX}" )
 
-#SET (mpi_test_parameters_2d -np 9 -H localhost:9 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_2D${CMAKE_EXECUTABLE_SUFFIX}")
-#ADD_TEST( NAME DistributedGridTest_2D COMMAND "mpirun" ${mpi_test_parameters_2d})
-
-#SET (mpi_test_parameters_3d -np 27 -H localhost:27 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_3D${CMAKE_EXECUTABLE_SUFFIX}")
-#ADD_TEST( NAME DistributedGridTest_3D COMMAND "mpirun" ${mpi_test_parameters_3d})
-
-#SET (mpi_test_parameters_CutDistributedGridTest -np 12 -H localhost:12 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutDistributedGridTest${CMAKE_EXECUTABLE_SUFFIX}")
-#ADD_TEST( NAME CutDistributedGridTest COMMAND "mpirun" ${mpi_test_parameters_CutDistributedGridTest})
+#add_test_mpi( NAME CutDistributedGridTest NPROC 12 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutDistributedGridTest${CMAKE_EXECUTABLE_SUFFIX}" )
 
 # TODO: Fix
-#SET (mpi_test_parameters_CutDistributedMeshFunctionTest -np 12 -H localhost:12 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutDistributedMeshFunctionTest${CMAKE_EXECUTABLE_SUFFIX}")
-#ADD_TEST( NAME CutDistributedMeshFunctionTest COMMAND "mpirun" ${mpi_test_parameters_CutDistributedMeshFunctionTest})
+#add_test_mpi( NAME CutDistributedMeshFunctionTest NPROC 12 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutDistributedMeshFunctionTest${CMAKE_EXECUTABLE_SUFFIX}" )
 
-add_test( NAME DistributedMeshTest_2x2 COMMAND mpirun -np 4 -H localhost:4 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX} )
-add_test( NAME DistributedMeshTest_3x3 COMMAND mpirun -np 9 -H localhost:9 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX} )
-add_test( NAME DistributedMeshTest_4x4 COMMAND mpirun -np 16 -H localhost:16 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX} )
+add_test_mpi( NAME DistributedMeshTest_2x2 NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}" )
+add_test_mpi( NAME DistributedMeshTest_3x3 NPROC 9 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}" )
+add_test_mpi( NAME DistributedMeshTest_4x4 NPROC 16 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}" )
 
 endif()

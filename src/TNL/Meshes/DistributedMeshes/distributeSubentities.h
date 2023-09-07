@@ -123,7 +123,7 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
    using LocalIndexType = typename DistributedMesh::LocalIndexType;
    using LocalMesh = typename DistributedMesh::MeshType;
 
-   static_assert( ! std::is_same< DeviceType, Devices::Cuda >::value, "this method can be called only for host meshes" );
+   static_assert( ! std::is_same_v< DeviceType, Devices::Cuda >, "this method can be called only for host meshes" );
    static_assert( 0 < Dimension && Dimension < DistributedMesh::getMeshDimension(),
                   "Vertices and cells cannot be distributed using this method." );
    if( mesh.getGhostLevels() <= 0 )
@@ -220,7 +220,7 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
    // 3. assign global indices to the local entities and a padding index to ghost entities
    //    (later we can check the padding index to know if an index was set or not)
    const GlobalIndexType padding_index =
-      ( std::is_signed< GlobalIndexType >::value ) ? -1 : std::numeric_limits< GlobalIndexType >::max();
+      ( std::is_signed_v< GlobalIndexType > ) ? -1 : std::numeric_limits< GlobalIndexType >::max();
    mesh.template getGlobalIndices< Dimension >().setSize( localMesh.template getEntitiesCount< Dimension >() );
    // also create mapping for ghost entities so that we can efficiently iterate over ghost entities
    // while the entities were not sorted yet on the local mesh

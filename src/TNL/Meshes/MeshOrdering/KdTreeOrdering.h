@@ -26,8 +26,8 @@ struct KdTreeOrdering
    static void
    getPermutations( const Mesh& mesh, PermutationArray& perm, PermutationArray& iperm )
    {
-      static_assert( std::is_same< typename Mesh::DeviceType, TNL::Devices::Host >::value, "" );
-      static_assert( std::is_same< typename PermutationArray::DeviceType, TNL::Devices::Host >::value, "" );
+      static_assert( std::is_same_v< typename Mesh::DeviceType, TNL::Devices::Host > );
+      static_assert( std::is_same_v< typename PermutationArray::DeviceType, TNL::Devices::Host > );
       using GlobalIndexType = typename Mesh::GlobalIndexType;
       using PointType = typename Mesh::PointType;
       using RealType = typename Mesh::RealType;

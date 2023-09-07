@@ -1,5 +1,3 @@
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include <cstdlib>     // srand48
@@ -9,7 +7,12 @@
 #include <functional>  // std::function
 
 #if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
-   #define STDEXEC std::execution::par_unseq,
+   #if defined( __NVCOMPILER )
+      // nvc++ does not support par_unseq for std::max_element: https://gitlab.com/-/snippets/2576260
+      #define STDEXEC std::execution::par,
+   #else
+      #define STDEXEC std::execution::par_unseq,
+   #endif
 #else
    #define STDEXEC
 #endif

@@ -168,7 +168,7 @@ public:
     * \param realAllocator is used for allocation of matrix elements values.
     * \param indexAllocator is used for allocation of matrix elements column indexes.
     */
-   template< typename Index_t, std::enable_if_t< std::is_integral< Index_t >::value, int > = 0 >
+   template< typename Index_t, std::enable_if_t< std::is_integral_v< Index_t >, int > = 0 >
    SparseMatrix( Index_t rows,
                  Index_t columns,
                  const RealAllocatorType& realAllocator = RealAllocatorType(),
@@ -340,7 +340,7 @@ public:
     * the sparse matrix format. Some formats may allocate more elements than
     * required.
     *
-    * \tparam RowsCapacitiesVector is a type of vector/array used for row
+    * \tparam RowCapacitiesVector is a type of vector/array used for row
     *    capacities setting.
     *
     * \param rowCapacities is a vector telling the number of required non-zero
@@ -351,9 +351,9 @@ public:
     * \par Output
     * \include SparseMatrixExample_setRowCapacities.out
     */
-   template< typename RowsCapacitiesVector >
+   template< typename RowCapacitiesVector >
    void
-   setRowCapacities( const RowsCapacitiesVector& rowCapacities );
+   setRowCapacities( const RowCapacitiesVector& rowCapacities );
 
    /**
     * \brief This method sets the sparse matrix elements from initializer list.

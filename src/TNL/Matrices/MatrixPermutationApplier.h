@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <TNL/Algorithms/parallelFor.h>
@@ -18,11 +16,12 @@ template< typename Matrix, typename PermutationArray >
 void
 permuteMatrixRows( Matrix& matrix, const PermutationArray& perm )
 {
-   static_assert( std::is_same< typename Matrix::DeviceType, typename PermutationArray::DeviceType >::value,
+   static_assert( std::is_same_v< typename Matrix::DeviceType, typename PermutationArray::DeviceType >,
                   "The matrix and permutation vector must be stored on the same device." );
    using IndexType = typename Matrix::IndexType;
    using DeviceType = typename Matrix::DeviceType;
-   TNL_ASSERT_EQ( matrix.getRows(), perm.getSize(), "permutation size does not match the matrix size" );
+   if( matrix.getRows() != perm.getSize() )
+      throw std::invalid_argument( "permuteMatrixRows: permutation size does not match the matrix size" );
 
    const auto matrix_view = matrix.getConstView();
    const auto perm_view = perm.getConstView();
@@ -32,7 +31,7 @@ permuteMatrixRows( Matrix& matrix, const PermutationArray& perm )
    matrixCopy.setLike( matrix );
 
    // permute the row capacities
-   typename Matrix::RowsCapacitiesType capacities( matrix.getRows() );
+   typename Matrix::RowCapacitiesType capacities( matrix.getRows() );
    auto capacities_view = capacities.getView();
 
    auto kernel_capacities = [ = ] __cuda_callable__( IndexType i ) mutable
@@ -64,7 +63,7 @@ template< typename Matrix, typename PermutationArray >
 void
 permuteMatrixColumns( Matrix& matrix, const PermutationArray& iperm )
 {
-   static_assert( std::is_same< typename Matrix::DeviceType, typename PermutationArray::DeviceType >::value,
+   static_assert( std::is_same_v< typename Matrix::DeviceType, typename PermutationArray::DeviceType >,
                   "The matrix and permutation vector must be stored on the same device." );
    using IndexType = typename Matrix::IndexType;
    using DeviceType = typename Matrix::DeviceType;

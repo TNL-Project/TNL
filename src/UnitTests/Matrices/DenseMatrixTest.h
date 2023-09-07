@@ -152,10 +152,10 @@ test_GetCompressedRowLengths()
    for( IndexType i = 0; i < 8; i++ )  // 9th row
       m.setElement( 9, i, value++ );
 
-   typename Matrix::RowsCapacitiesType rowLengths;
+   typename Matrix::RowCapacitiesType rowLengths;
    rowLengths = 0;
    m.getCompressedRowLengths( rowLengths );
-   typename Matrix::RowsCapacitiesType correctRowLengths{ 3, 3, 1, 2, 3, 4, 5, 6, 7, 8 };
+   typename Matrix::RowCapacitiesType correctRowLengths{ 3, 3, 1, 2, 3, 4, 5, 6, 7, 8 };
    EXPECT_EQ( rowLengths, correctRowLengths );
 }
 
@@ -869,7 +869,7 @@ test_reduceRows()
                { 0, 16, 17, 18, 19, 20, 21, 1 },
                { 22, 23, 24, 25, 26, 27, 28, 1 },
                { 29, 30, 31, 32, 33, 34, 35, 36 } } );
-   typename Matrix::RowsCapacitiesType rowsCapacities{ 6, 3, 4, 5, 2, 7, 8, 8 };
+   typename Matrix::RowCapacitiesType rowCapacities{ 6, 3, 4, 5, 2, 7, 8, 8 };
 
    IndexType value = 1;
    for( IndexType i = 0; i < 3; i++ )  // 0th row
@@ -905,7 +905,7 @@ test_reduceRows()
 
    ////
    // Compute number of non-zero elements in rows.
-   typename Matrix::RowsCapacitiesType rowLengths( rows );
+   typename Matrix::RowCapacitiesType rowLengths( rows );
    auto rowLengths_view = rowLengths.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
    {
@@ -916,9 +916,9 @@ test_reduceRows()
       rowLengths_view[ rowIdx ] = value;
    };
    m.reduceAllRows( fetch, std::plus<>{}, keep, 0 );
-   EXPECT_EQ( rowsCapacities, rowLengths );
+   EXPECT_EQ( rowCapacities, rowLengths );
    m.getCompressedRowLengths( rowLengths );
-   EXPECT_EQ( rowsCapacities, rowLengths );
+   EXPECT_EQ( rowCapacities, rowLengths );
 
    ////
    // Compute max norm

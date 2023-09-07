@@ -52,7 +52,7 @@ public:
                      || MeshFunctionT::getDomainType() == MeshBoundaryDomain,
                   "Only mesh preimageFnctions may be used in the operator preimageFunction. Use ExactOperatorFunction instead "
                   "of OperatorFunction." );
-   static_assert( std::is_same< typename Operator::MeshType, typename MeshFunctionT::MeshType >::value,
+   static_assert( std::is_same_v< typename Operator::MeshType, typename MeshFunctionT::MeshType >,
                   "Both, operator and mesh preimageFunction must be defined on the same mesh." );
 
    typedef Operator OperatorType;
@@ -150,7 +150,7 @@ public:
                      || PreimageFunction::getDomainType() == MeshBoundaryDomain,
                   "Only mesh preimageFunctions may be used in the operator preimageFunction. Use ExactOperatorFunction instead "
                   "of OperatorFunction." );
-   static_assert( std::is_same< typename Operator::MeshType, typename PreimageFunction::MeshType >::value,
+   static_assert( std::is_same_v< typename Operator::MeshType, typename PreimageFunction::MeshType >,
                   "Both, operator and mesh preimageFunction must be defined on the same mesh." );
 
    typedef Operator OperatorType;
@@ -281,9 +281,9 @@ public:
                      || Function::getDomainType() == MeshBoundaryDomain,
                   "Only mesh preimageFunctions may be used in the operator preimageFunction. Use ExactOperatorFunction instead "
                   "of OperatorFunction." );
-   static_assert( std::is_same< typename Operator::MeshType, typename Function::MeshType >::value,
+   static_assert( std::is_same_v< typename Operator::MeshType, typename Function::MeshType >,
                   "Both, operator and mesh preimageFunction must be defined on the same mesh." );
-   static_assert( std::is_same< typename BoundaryConditions::MeshType, typename Operator::MeshType >::value,
+   static_assert( std::is_same_v< typename BoundaryConditions::MeshType, typename Operator::MeshType >,
                   "The operator and the boundary conditions are defined on different mesh types." );
 
    typedef Operator OperatorType;

@@ -108,7 +108,7 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
    B.getCompressedRowLengths( rowLengths );
    A.setDimensions( B.getRows(), B.getColumns() );
 
-   if constexpr( std::is_same< Device, RHSDeviceType >::value ) {
+   if constexpr( std::is_same_v< Device, RHSDeviceType > ) {
       auto A_view = A.getView();
       auto f = [ = ] __cuda_callable__(
                   RHSIndexType rowIdx, RHSIndexType localIdx_, RHSIndexType columnIdx, const RHSRealType& value ) mutable
@@ -526,14 +526,14 @@ SparseMatrixCopyKernel( Matrix1* A,
 
 // copy on the same device
 template< typename Matrix1, typename Matrix2 >
-typename std::enable_if< std::is_same< typename Matrix1::DeviceType, typename Matrix2::DeviceType >::value >::type
+std::enable_if_t< std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType > >
 copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 {
-   static_assert( std::is_same< typename Matrix1::RealType, typename Matrix2::RealType >::value,
+   static_assert( std::is_same_v< typename Matrix1::RealType, typename Matrix2::RealType >,
                   "The matrices must have the same RealType." );
-   static_assert( std::is_same< typename Matrix1::DeviceType, typename Matrix2::DeviceType >::value,
+   static_assert( std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType >,
                   "The matrices must be allocated on the same device." );
-   static_assert( std::is_same< typename Matrix1::IndexType, typename Matrix2::IndexType >::value,
+   static_assert( std::is_same_v< typename Matrix1::IndexType, typename Matrix2::IndexType >,
                   "The matrices must have the same IndexType." );
 
    using DeviceType = typename Matrix1::DeviceType;
@@ -544,12 +544,12 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 
    A.setDimensions( rows, cols );
 
-   if constexpr( std::is_same< DeviceType, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       // set row lengths
-      typename Matrix1::RowsCapacitiesType rowLengths;
+      typename Matrix1::RowCapacitiesType rowLengths;
       rowLengths.setSize( rows );
 #ifdef HAVE_OPENMP
-#pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < rows; i++ ) {
          const auto row = B.getRow( i );
@@ -564,7 +564,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       A.setRowCapacities( rowLengths );
 
 #ifdef HAVE_OPENMP
-#pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < rows; i++ ) {
          const auto length = rowLengths[ i ];
@@ -575,13 +575,13 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       }
    }
 
-   if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       const IndexType desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
       launch_config.gridSize.x = min( desGridSize, Cuda::getNumberOfBlocks( rows, launch_config.blockSize.x ) );
 
-      typename Matrix1::RowsCapacitiesType rowLengths;
+      typename Matrix1::RowCapacitiesType rowLengths;
       rowLengths.setSize( rows );
 
       Pointers::DevicePointer< Matrix1 > Apointer( A );
@@ -590,7 +590,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       // set row lengths
       Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
       constexpr auto kernelRowLenghts =
-         SparseMatrixSetRowLengthsVectorKernel< typename Matrix1::RowsCapacitiesType::ValueType, Matrix2 >;
+         SparseMatrixSetRowLengthsVectorKernel< typename Matrix1::RowCapacitiesType::ValueType, Matrix2 >;
       Cuda::launchKernelSync( kernelRowLenghts,
                               launch_config,
                               rowLengths.getData(),
@@ -613,8 +613,8 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 
 // cross-device copy (host -> gpu)
 template< typename Matrix1, typename Matrix2 >
-typename std::enable_if< ! std::is_same< typename Matrix1::DeviceType, typename Matrix2::DeviceType >::value
-                         && std::is_same< typename Matrix2::DeviceType, Devices::Host >::value >::type
+std::enable_if_t< ! std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType >
+                  && std::is_same_v< typename Matrix2::DeviceType, Devices::Host > >
 copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 {
    using CudaMatrix2 = typename Matrix2::template Self< typename Matrix2::RealType, Devices::Cuda >;
@@ -625,8 +625,8 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 
 // cross-device copy (gpu -> host)
 template< typename Matrix1, typename Matrix2 >
-typename std::enable_if< ! std::is_same< typename Matrix1::DeviceType, typename Matrix2::DeviceType >::value
-                         && std::is_same< typename Matrix2::DeviceType, Devices::Cuda >::value >::type
+std::enable_if_t< ! std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType >
+                  && std::is_same_v< typename Matrix2::DeviceType, Devices::Cuda > >
 copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 {
    using CudaMatrix1 = typename Matrix1::template Self< typename Matrix1::RealType, Devices::Cuda >;
@@ -646,15 +646,15 @@ template< typename Matrix, typename AdjacencyMatrix >
 void
 copyAdjacencyStructure( const Matrix& A, AdjacencyMatrix& B, bool has_symmetric_pattern, bool ignore_diagonal )
 {
-   static_assert( std::is_same< typename Matrix::DeviceType, Devices::Host >::value,
+   static_assert( std::is_same_v< typename Matrix::DeviceType, Devices::Host >,
                   "The function is not implemented for CUDA matrices - it would require atomic insertions "
                   "of elements into the sparse format." );
-   static_assert( std::is_same< typename Matrix::DeviceType, typename AdjacencyMatrix::DeviceType >::value,
+   static_assert( std::is_same_v< typename Matrix::DeviceType, typename AdjacencyMatrix::DeviceType >,
                   "The matrices must be allocated on the same device." );
-   static_assert( std::is_same< typename Matrix::IndexType, typename AdjacencyMatrix::IndexType >::value,
+   static_assert( std::is_same_v< typename Matrix::IndexType, typename AdjacencyMatrix::IndexType >,
                   "The matrices must have the same IndexType." );
-   //   static_assert( std::is_same< typename AdjacencyMatrix::RealType, bool >::value,
-   //                  "The RealType of the adjacency matrix must be bool." );
+   //static_assert( std::is_same_v< typename AdjacencyMatrix::RealType, bool >,
+   //               "The RealType of the adjacency matrix must be bool." );
 
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
@@ -668,7 +668,7 @@ copyAdjacencyStructure( const Matrix& A, AdjacencyMatrix& B, bool has_symmetric_
    B.setDimensions( N, N );
 
    // set row lengths
-   typename AdjacencyMatrix::RowsCapacitiesType rowLengths;
+   typename AdjacencyMatrix::RowCapacitiesType rowLengths;
    rowLengths.setSize( N );
    rowLengths.setValue( 0 );
    for( IndexType i = 0; i < A.getRows(); i++ ) {
@@ -711,11 +711,11 @@ void
 reorderSparseMatrix( const Matrix1& matrix1, Matrix2& matrix2, const PermutationArray& perm, const PermutationArray& iperm )
 {
    // TODO: implement on GPU
-   static_assert( std::is_same< typename Matrix1::DeviceType, Devices::Host >::value,
+   static_assert( std::is_same_v< typename Matrix1::DeviceType, Devices::Host >,
                   "matrix reordering is implemented only for host" );
-   static_assert( std::is_same< typename Matrix2::DeviceType, Devices::Host >::value,
+   static_assert( std::is_same_v< typename Matrix2::DeviceType, Devices::Host >,
                   "matrix reordering is implemented only for host" );
-   static_assert( std::is_same< typename PermutationArray::DeviceType, Devices::Host >::value,
+   static_assert( std::is_same_v< typename PermutationArray::DeviceType, Devices::Host >,
                   "matrix reordering is implemented only for host" );
 
    using IndexType = typename Matrix1::IndexType;
@@ -723,7 +723,7 @@ reorderSparseMatrix( const Matrix1& matrix1, Matrix2& matrix2, const Permutation
    matrix2.setDimensions( matrix1.getRows(), matrix1.getColumns() );
 
    // set row lengths
-   typename Matrix2::RowsCapacitiesType rowLengths;
+   typename Matrix2::RowCapacitiesType rowLengths;
    rowLengths.setSize( matrix1.getRows() );
    for( IndexType i = 0; i < matrix1.getRows(); i++ ) {
       const auto row = matrix1.getRow( perm[ i ] );
@@ -771,12 +771,14 @@ template< typename Array1, typename Array2, typename PermutationArray >
 void
 reorderArray( const Array1& src, Array2& dest, const PermutationArray& perm )
 {
-   static_assert( std::is_same< typename Array1::DeviceType, typename Array2::DeviceType >::value,
+   static_assert( std::is_same_v< typename Array1::DeviceType, typename Array2::DeviceType >,
                   "Arrays must reside on the same device." );
-   static_assert( std::is_same< typename Array1::DeviceType, typename PermutationArray::DeviceType >::value,
+   static_assert( std::is_same_v< typename Array1::DeviceType, typename PermutationArray::DeviceType >,
                   "Arrays must reside on the same device." );
-   TNL_ASSERT_EQ( src.getSize(), perm.getSize(), "Source array and permutation must have the same size." );
-   TNL_ASSERT_EQ( dest.getSize(), perm.getSize(), "Destination array and permutation must have the same size." );
+   if( src.getSize() != perm.getSize() )
+      throw std::invalid_argument( "reorderArray: source array and permutation must have the same size." );
+   if( dest.getSize() != perm.getSize() )
+      throw std::invalid_argument( "reorderArray: destination array and permutation must have the same size." );
 
    using DeviceType = typename Array1::DeviceType;
    using IndexType = typename Array1::IndexType;

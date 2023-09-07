@@ -157,11 +157,11 @@ template< typename Real,
           typename Index >
 void
 AdEllpack< Real, Device, Index >::
-setCompressedRowLengths( ConstRowsCapacitiesTypeView rowLengths )
+setCompressedRowLengths( ConstRowCapacitiesTypeView rowLengths )
 {
 
-    TNL_ASSERT( this->getRows() > 0, );
-    TNL_ASSERT( this->getColumns() > 0, );
+    TNL_ASSERT_GT( this->getRows(), 0, "" );
+    TNL_ASSERT_GT( this->getColumns(), 0, "" );
 
     if( std::is_same< DeviceType, Devices::Host >::value )
     {
@@ -215,7 +215,7 @@ template< typename Real,
           typename Index >
 void
 AdEllpack< Real, Device, Index >::
-setRowCapacities( ConstRowsCapacitiesTypeView rowLengths )
+setRowCapacities( ConstRowCapacitiesTypeView rowLengths )
 {
    setCompressedRowLengths( rowLengths );
 }
@@ -223,7 +223,7 @@ setRowCapacities( ConstRowsCapacitiesTypeView rowLengths )
 template< typename Real,
           typename Device,
           typename Index >
-void AdEllpack< Real, Device, Index >::getCompressedRowLengths( RowsCapacitiesTypeView rowLengths ) const
+void AdEllpack< Real, Device, Index >::getCompressedRowLengths( RowCapacitiesTypeView rowLengths ) const
 {
    TNL_ASSERT_EQ( rowLengths.getSize(), this->getRows(), "invalid size of the rowLengths vector" );
    for( IndexType row = 0; row < this->getRows(); row++ )
@@ -241,7 +241,7 @@ Index AdEllpack< Real, Device, Index >::getTotalLoad() const
 template< typename Real,
           typename Device,
           typename Index >
-void AdEllpack< Real, Device, Index >::performRowLengthsTest( ConstRowsCapacitiesTypeView rowLengths )
+void AdEllpack< Real, Device, Index >::performRowLengthsTest( ConstRowCapacitiesTypeView rowLengths )
 {
     bool found = false;
     for( IndexType row = 0; row < this->getRows(); row++ )
@@ -397,12 +397,8 @@ template< typename Real,
              typename Index2 >
 bool AdEllpack< Real, Device, Index >::operator == ( const AdEllpack< Real2, Device2, Index2 >& matrix ) const
 {
-   TNL_ASSERT( this->getRows() == matrix.getRows() &&
-               this->getColumns() == matrix.getColumns(),
-               std::cerr << "this->getRows() = " << this->getRows()
-                    << " matrix.getRows() = " << matrix.getRows()
-                    << " this->getColumns() = " << this->getColumns()
-                    << " matrix.getColumns() = " << matrix.getColumns() );
+   TNL_ASSERT_EQ( this->getRows(), matrix.getRows(), "" );
+   TNL_ASSERT_EQ( this->getColumns(), matrix.getColumns(), "" );
 
    TNL_ASSERT_TRUE( false, "operator == is not yet implemented for AdEllpack.");
 
@@ -753,7 +749,7 @@ template< typename Real,
           typename Device,
           typename Index >
 bool AdEllpack< Real, Device, Index >::balanceLoad( const RealType average,
-                                                    ConstRowsCapacitiesTypeView rowLengths,
+                                                    ConstRowCapacitiesTypeView rowLengths,
                                                     warpList< AdEllpack >* list )
 {
     IndexType offset, rowOffset, localLoad, reduceMap[ 32 ];

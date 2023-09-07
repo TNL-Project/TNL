@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #include <type_traits>
@@ -77,7 +75,9 @@ template< typename Matrix >
 bool
 GMRES< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
 {
-   TNL_ASSERT_TRUE( this->matrix, "No matrix was set in GMRES. Call setMatrix() before solve()." );
+   if( this->matrix == nullptr )
+      throw std::logic_error( "No matrix was set in GMRES. Call setMatrix() before solve()." );
+
    if( restarting_min <= 0 || restarting_max <= 0 || restarting_min > restarting_max ) {
       std::cerr << "Wrong value for the GMRES restarting parameters: r_min = " << restarting_min
                 << ", r_max = " << restarting_max << std::endl;
@@ -549,7 +549,7 @@ GMRES< Matrix >::hauseholder_apply_trunc( HostView out, const int i, VectorViewT
    //   const RealType aux = T[ i + i * (restarting_max + 1) ] * (y_i, z);
    constexpr RealType aux = 1.0;
    if( localOffset == 0 ) {
-      if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
+      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
          std::unique_ptr< RealType[] > host_z{ new RealType[ i + 1 ] };
          Algorithms::copy< Devices::Host, Devices::Cuda >( host_z.get(), Traits::getConstLocalView( z ).getData(), i + 1 );
          for( int k = 0; k <= i; k++ )
@@ -766,7 +766,7 @@ void
 GMRES< Matrix >::setSize( const VectorViewType& x )
 {
    this->size = Traits::getConstLocalViewWithGhosts( x ).getSize();
-   if constexpr( std::is_same< DeviceType, Devices::Cuda >::value )
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > )
       // align each column to 256 bytes - optimal for CUDA
       ldSize = roundToMultiple( size, 256 / sizeof( RealType ) );
    else

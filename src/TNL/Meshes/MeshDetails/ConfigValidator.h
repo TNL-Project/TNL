@@ -71,7 +71,7 @@ class ConfigValidatorLayerCell
 
    static_assert( MeshConfig::subentityStorage( CellTopology::dimension, 0 ), "subvertices of cells must be stored" );
 
-   static_assert( ! std::is_same< CellTopology, Topologies::Polyhedron >::value
+   static_assert( ! std::is_same_v< CellTopology, Topologies::Polyhedron >
                      || MeshConfig::subentityStorage( CellTopology::dimension, 2 ),
                   "faces of cells must be stored for polyhedral meshes" );
 };

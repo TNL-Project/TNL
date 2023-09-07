@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #ifdef HAVE_HYPRE
@@ -187,10 +185,10 @@ public:
          MPI_Comm communicator,
          LocalViewType localData )
    {
-      TNL_ASSERT_EQ( localData.getSize(),
-                     localRange.getSize() + ghosts,
-                     "The local array size does not match the local range of the distributed array." );
-      TNL_ASSERT_GE( ghosts, 0, "The ghosts count must be non-negative." );
+      if( localData.getSize() != localRange.getSize() + ghosts )
+         throw std::invalid_argument( "bind: the local array size does not match the local range of the distributed array." );
+      if( ghosts < 0 )
+         throw std::invalid_argument( "bind: the ghosts count must be non-negative." );
 
       // drop/deallocate the current data
       reset();
@@ -286,7 +284,8 @@ public:
    void
    setDistribution( LocalRangeType localRange, IndexType ghosts, IndexType globalSize, const MPI::Comm& communicator )
    {
-      TNL_ASSERT_LE( localRange.getEnd(), globalSize, "end of the local range is outside of the global range" );
+      if( localRange.getEnd() > globalSize )
+         throw std::out_of_range( "setDistribution: end of the local range is outside of the global range" );
 
       // drop/deallocate the current data
       reset();
@@ -343,11 +342,12 @@ public:
    {
       if( ghosts == 0 )
          return;
-      // TODO: assert does not play very nice with automatic synchronizations from operations like
+      // TODO: this check does not play very nice with automatic synchronizations from operations like
       //       assignment of scalars
       // (Maybe we should just drop all automatic syncs? But that's not nice for high-level codes
       // like linear solvers...)
-      TNL_ASSERT_TRUE( synchronizer, "the synchronizer was not set" );
+      if( synchronizer == nullptr )
+         throw std::logic_error( "HypreParVector: the synchronizer was not set" );
 
       typename SynchronizerType::ByteArrayView bytes;
       bytes.bind( reinterpret_cast< std::uint8_t* >( localData.getData() ), sizeof( ValueType ) * localData.getSize() );

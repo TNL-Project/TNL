@@ -14,14 +14,14 @@ namespace TNL::Solvers::ODE {
 // Specialization of the Euler solver for numeric types
 template< typename Real >
 void
-StaticEuler< Real >::configSetup( Config::ConfigDescription& config, const String& prefix )
+StaticEuler< Real >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    config.addEntry< double >( prefix + "euler-cfl", "Coefficient C in the Courant–Friedrichs–Lewy condition.", 0.0 );
 }
 
 template< typename Real >
 bool
-StaticEuler< Real >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+StaticEuler< Real >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    StaticExplicitSolver< RealType, IndexType >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "euler-cfl" ) )
@@ -68,7 +68,7 @@ StaticEuler< Real >::solve( VectorType& u, RHSFunction&& rhsFunction, Args... ar
 
    /////
    // Start the main loop
-   while( 1 ) {
+   while( true ) {
       /////
       // Compute the RHS
       rhsFunction( time, currentTau, u, k1, args... );
@@ -113,14 +113,14 @@ StaticEuler< Real >::solve( VectorType& u, RHSFunction&& rhsFunction, Args... ar
          currentTau = min( currentTau, this->getMaxTau() );
       }
    }
-   return false;  // just to avoid warnings
 }
 
 ////
 // Specialization for static vectors
 template< int Size_, typename Real >
 void
-StaticEuler< Containers::StaticVector< Size_, Real > >::configSetup( Config::ConfigDescription& config, const String& prefix )
+StaticEuler< Containers::StaticVector< Size_, Real > >::configSetup( Config::ConfigDescription& config,
+                                                                     const std::string& prefix )
 {
    config.addEntry< double >( prefix + "euler-cfl", "Coefficient C in the Courant–Friedrichs–Lewy condition.", 0.0 );
 }
@@ -128,7 +128,7 @@ StaticEuler< Containers::StaticVector< Size_, Real > >::configSetup( Config::Con
 template< int Size_, typename Real >
 bool
 StaticEuler< Containers::StaticVector< Size_, Real > >::setup( const Config::ParameterContainer& parameters,
-                                                               const String& prefix )
+                                                               const std::string& prefix )
 {
    StaticExplicitSolver< RealType, IndexType >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "euler-cfl" ) )
@@ -175,7 +175,7 @@ StaticEuler< Containers::StaticVector< Size_, Real > >::solve( VectorType& u, RH
 
    /////
    // Start the main loop
-   while( 1 ) {
+   while( true ) {
       /////
       // Compute the RHS
       rhsFunction( time, currentTau, u, k1, args... );
@@ -219,7 +219,6 @@ StaticEuler< Containers::StaticVector< Size_, Real > >::solve( VectorType& u, RH
          currentTau = min( currentTau, this->getMaxTau() );
       }
    }
-   return false;  // just to avoid warnings
 }
 
 }  // namespace TNL::Solvers::ODE

@@ -4,12 +4,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <atomic>  // std::atomic
 
+#include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Cuda.h>

@@ -45,7 +45,7 @@ public:
       this->pointsSet.setSize( points );
       pointsSet.setValue( false );
 
-      if constexpr( std::is_same< CellTopology, Topologies::Polyhedron >::value ) {
+      if constexpr( std::is_same_v< CellTopology, Topologies::Polyhedron > ) {
          this->faceSeeds.setDimensions( faces, points );
          this->cellSeeds.setDimensions( cells, faces );
       }
@@ -123,8 +123,7 @@ public:
       std::vector< GlobalIndexType > permutation( points.getSize() );
       std::iota( permutation.begin(), permutation.end(), (GlobalIndexType) 0 );
 
-      // workaround for lexicographical sorting
-      // FIXME: https://gitlab.com/tnl-project/tnl/-/issues/79
+      // wrapper for lexicographical sorting of points with numerical threshold
       auto lexless = [ numericalThreshold, this ]( const GlobalIndexType& a, const GlobalIndexType& b ) -> bool
       {
          const PointType& left = this->points[ a ];
@@ -213,8 +212,7 @@ public:
       std::vector< GlobalIndexType > permutation( faceSeeds.getEntitiesCount() );
       std::iota( permutation.begin(), permutation.end(), (GlobalIndexType) 0 );
 
-      // workaround for lexicographical sorting
-      // FIXME: https://gitlab.com/tnl-project/tnl/-/issues/79
+      // wrapper for lexicographical sorting of face seeds
       auto lexless = [ this ]( const GlobalIndexType& a, const GlobalIndexType& b ) -> bool
       {
          const auto& left = this->faceSeeds.getSeed( a );

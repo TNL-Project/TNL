@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #ifdef HAVE_HYPRE
@@ -39,8 +37,8 @@ GenerateDiagAndOffd( hypre_CSRMatrix* A, hypre_ParCSRMatrix* matrix, HYPRE_BigIn
    using IntViewHost = Containers::ArrayView< HYPRE_Int, Devices::Host, HYPRE_Int >;
    using IntArrayHost = Containers::Array< HYPRE_Int, Devices::Host, HYPRE_Int >;
 
-   TNL_ASSERT_EQ(
-      hypre_CSRMatrixMemoryLocation( A ), getHypreMemoryLocation(), "memory location of the input matrix does not match" );
+   if( hypre_CSRMatrixMemoryLocation( A ) != getHypreMemoryLocation() )
+      throw std::invalid_argument( "GenerateDiagAndOffd: memory location of the input matrix does not match" );
 
    HYPRE_Int num_rows = hypre_CSRMatrixNumRows( A );
    HYPRE_Int num_cols = hypre_CSRMatrixNumCols( A );

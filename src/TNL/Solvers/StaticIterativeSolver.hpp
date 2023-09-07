@@ -14,7 +14,7 @@ namespace TNL::Solvers {
 
 template< typename Real, typename Index >
 void
-StaticIterativeSolver< Real, Index >::configSetup( Config::ConfigDescription& config, const String& prefix )
+StaticIterativeSolver< Real, Index >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    if( config.getEntry( prefix + "max-iterations" ) == nullptr )
       config.addEntry< int >( prefix + "max-iterations", "Maximal number of iterations the solver may perform.", 1000000000 );
@@ -33,13 +33,13 @@ StaticIterativeSolver< Real, Index >::configSetup( Config::ConfigDescription& co
       config.addEntry< int >( prefix + "refresh-rate", "Number of milliseconds between solver monitor refreshes.", 500 );
 
    if( config.getEntry( prefix + "residual-history-file" ) == nullptr )
-      config.addEntry< String >(
+      config.addEntry< std::string >(
          prefix + "residual-history-file", "Path to the file where the residual history will be saved.", "" );
 }
 
 template< typename Real, typename Index >
 bool
-StaticIterativeSolver< Real, Index >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+StaticIterativeSolver< Real, Index >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    if( parameters.checkParameter( prefix + "max-iterations" ) )
       this->setMaxIterations( parameters.getParameter< int >( prefix + "max-iterations" ) );
@@ -53,7 +53,7 @@ StaticIterativeSolver< Real, Index >::setup( const Config::ParameterContainer& p
    if( parameters.checkParameter( prefix + "refresh-rate" ) )
       this->setRefreshRate( parameters.getParameter< int >( prefix + "refresh-rate" ) );
    if( parameters.checkParameter( prefix + "residual-history-file" ) ) {
-      this->residualHistoryFileName = parameters.getParameter< String >( prefix + "residual-history-file" );
+      this->residualHistoryFileName = parameters.getParameter< std::string >( prefix + "residual-history-file" );
       if( this->residualHistoryFileName )
          this->residualHistoryFile.open( this->residualHistoryFileName.getString() );
    }

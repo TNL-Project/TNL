@@ -12,7 +12,7 @@ namespace TNL::Solvers::Optimization {
 
 template< typename Vector, typename SolverMonitor >
 void
-AdaGrad< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+AdaGrad< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    IterativeSolver< RealType, IndexType, SolverMonitor >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "relaxation", "Relaxation parameter for the gradient descent.", 1.0 );
@@ -20,7 +20,7 @@ AdaGrad< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config
 
 template< typename Vector, typename SolverMonitor >
 bool
-AdaGrad< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+AdaGrad< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    this->setRelaxation( parameters.getParameter< double >( prefix + "relaxation" ) );
    return IterativeSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
@@ -59,7 +59,7 @@ AdaGrad< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&& getGrad
 
    /////
    // Start the main loop
-   while( 1 ) {
+   while( true ) {
       /////
       // Compute the gradient
       getGradient( w_view, gradient_view );
@@ -79,7 +79,6 @@ AdaGrad< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&& getGrad
       if( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() )
          return true;
    }
-   return false;  // just to avoid warnings
 }
 
 }  // namespace TNL::Solvers::Optimization

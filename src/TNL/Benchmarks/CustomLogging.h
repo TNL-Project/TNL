@@ -4,9 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky,
-//                 Tomas Oberhuber
-
 #pragma once
 
 #include "Logging.h"
@@ -95,8 +92,9 @@ public:
               const WidthHints& columnWidthHints,
               const std::string& errorMessage = "" ) override
    {
-      TNL_ASSERT_EQ( headerElements.size(), rowElements.size(), "elements must have equal sizes" );
-      TNL_ASSERT_EQ( headerElements.size(), columnWidthHints.size(), "elements must have equal sizes" );
+      if( headerElements.size() != rowElements.size() || headerElements.size() != columnWidthHints.size() )
+         throw std::invalid_argument( "logResult: elements must have equal sizes" );
+
       writeTableHeader( performer, headerElements );
       writeTableRow( performer, rowElements, errorMessage );
    }

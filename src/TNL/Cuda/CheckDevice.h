@@ -17,7 +17,7 @@ namespace TNL::Cuda {
  * We recommend to use macro 'TNL_CHECK_CUDA_DEVICE' defined bellow.
  */
 inline void
-checkDevice( const char* file_name, int line, cudaError error )
+checkDevice( const char* file_name, int line, cudaError_t error )
 {
    if( error != cudaSuccess )
       throw Exceptions::CudaRuntimeError( error, file_name, line );

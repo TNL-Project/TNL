@@ -1,5 +1,3 @@
-// Implemented by: Tomas Oberhuber
-
 #pragma once
 
 #include <TNL/Devices/Host.h>

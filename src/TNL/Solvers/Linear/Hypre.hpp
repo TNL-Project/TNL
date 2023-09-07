@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #ifdef HAVE_HYPRE
@@ -425,7 +423,9 @@ HypreBoomerAMG::setSystemsOptions( int dim, bool order_bynodes )
    // The default "system" ordering in Hypre is byVDIM. When using byNODES
    // ordering, we have to specify the ordering explicitly.
    if( order_bynodes ) {
-      TNL_ASSERT_TRUE( A->getRows() % dim == 0, "Ordering does not work as claimed!" );
+      if( A->getRows() % dim != 0 )
+         throw std::logic_error( "HypreBoomerAMG: Ordering does not work as claimed!" );
+
       const HYPRE_Int nnodes = A->getRows() / dim;
 
       // generate DofFunc mapping on the host

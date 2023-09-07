@@ -22,7 +22,8 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    Index columns,
    const Vector& diagonalOffsets )
 {
-   TNL_ASSERT_GT( diagonalOffsets.getSize(), 0, "Cannot construct multidiagonal matrix with no diagonals offsets." );
+   if( diagonalOffsets.getSize() == 0 )
+      throw std::invalid_argument( "Cannot construct multidiagonal matrix with no diagonal offsets." );
    this->setDimensions( rows, columns, diagonalOffsets );
 }
 
@@ -38,8 +39,9 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    Index columns,
    const std::initializer_list< ListIndex > diagonalOffsets )
 {
+   if( std::empty( diagonalOffsets ) )
+      throw std::invalid_argument( "Cannot construct multidiagonal matrix with no diagonal offsets." );
    DiagonalOffsetsType offsets( diagonalOffsets );
-   TNL_ASSERT_GT( offsets.getSize(), 0, "Cannot construct multidiagonal matrix with no diagonals offsets." );
    this->setDimensions( rows, columns, offsets );
 }
 
@@ -55,8 +57,9 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    const std::initializer_list< ListIndex > diagonalOffsets,
    const std::initializer_list< std::initializer_list< ListReal > >& data )
 {
+   if( std::empty( diagonalOffsets ) )
+      throw std::invalid_argument( "Cannot construct multidiagonal matrix with no diagonal offsets." );
    DiagonalOffsetsType offsets( diagonalOffsets );
-   TNL_ASSERT_GT( offsets.getSize(), 0, "Cannot construct multidiagonal matrix with no diagonals offsets." );
    this->setDimensions( data.size(), columns, offsets );
    this->setElements( data );
 }
@@ -124,7 +127,8 @@ void
 MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::setDiagonalOffsets(
    const Vector& diagonalOffsets )
 {
-   TNL_ASSERT_GT( diagonalOffsets.getSize(), 0, "Cannot construct multidiagonal matrix with no diagonals offsets." );
+   if( diagonalOffsets.getSize() == 0 )
+      throw std::invalid_argument( "Cannot construct multidiagonal matrix with no diagonal offsets." );
    this->setDimensions( this->getRows(), this->getColumns(), diagonalOffsets );
 }
 
@@ -139,8 +143,9 @@ void
 MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::setDiagonalOffsets(
    const std::initializer_list< ListIndex > diagonalOffsets )
 {
+   if( std::empty( diagonalOffsets ) )
+      throw std::invalid_argument( "Cannot construct multidiagonal matrix with no diagonal offsets." );
    DiagonalOffsetsType offsets( diagonalOffsets );
-   TNL_ASSERT_GT( offsets.getSize(), 0, "Cannot construct multidiagonal matrix with no diagonals offsets." );
    this->setDimensions( this->getRows(), this->getColumns(), offsets );
 }
 
@@ -264,10 +269,9 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    const MultidiagonalMatrix< Real2, Device, Index2 >& matrix,
    const Real& matrixMultiplicator )
 {
-   TNL_ASSERT( this->getRows() == matrix.getRows(),
-               std::cerr << "This matrix rows: " << this->getRows() << std::endl
-                         << "That matrix rows: " << matrix.getRows() << std::endl );
-   if constexpr( std::is_same< Device, Devices::Host >::value ) {
+   TNL_ASSERT_EQ( this->getRows(), matrix.getRows(), "The matrices must have the same number of rows." );
+
+   if constexpr( std::is_same_v< Device, Devices::Host > ) {
       const Index rows = matrix.getRows();
       for( Index i = 1; i < rows; i++ ) {
          Real aux = matrix.getElement( i, i - 1 );
@@ -276,7 +280,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
          this->setElement( i - 1, i, aux );
       }
    }
-   if constexpr( std::is_same< Device, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       Cuda::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       launch_config.gridSize.x = Cuda::getMaxGridXSize();
@@ -338,7 +342,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    if( Organization == Organization_ )
       this->values = matrix.getValues();
    else {
-      if( std::is_same< Device, Device_ >::value ) {
+      if( std::is_same_v< Device, Device_ > ) {
          const auto matrix_view = matrix.getConstView();
          auto f =
             [ = ] __cuda_callable__( const Index& rowIdx, const Index& localIdx, const Index& column, Real& value ) mutable

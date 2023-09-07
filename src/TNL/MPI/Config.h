@@ -24,12 +24,12 @@
 namespace TNL::MPI {
 
 inline void
-configSetup( Config::ConfigDescription& config, const String& prefix = "" )
+configSetup( Config::ConfigDescription& config, const std::string& prefix = "" )
 {
 #ifdef HAVE_MPI
    config.addEntry< bool >(
       "redirect-mpi-output", "Only process with rank 0 prints to console. Other processes are redirected to files.", true );
-   config.addEntry< String >(
+   config.addEntry< std::string >(
       "redirect-mpi-output-dir", "Directory where ranks will store the files if their output is redirected.", "." );
    config.addEntry< bool >( "mpi-gdb-debug", "Wait for GDB to attach the master MPI process.", false );
    config.addEntry< int >(
@@ -38,12 +38,12 @@ configSetup( Config::ConfigDescription& config, const String& prefix = "" )
 }
 
 [[nodiscard]] inline bool
-setup( const Config::ParameterContainer& parameters, const String& prefix = "" )
+setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" )
 {
 #ifdef HAVE_MPI
    if( Initialized() && ! Finalized() ) {
       const bool redirect = parameters.getParameter< bool >( "redirect-mpi-output" );
-      const String outputDirectory = parameters.getParameter< String >( "redirect-mpi-output-dir" );
+      const auto outputDirectory = parameters.getParameter< std::string >( "redirect-mpi-output-dir" );
       if( redirect )
          MPI::setupRedirection( outputDirectory );
    #ifdef __CUDACC__

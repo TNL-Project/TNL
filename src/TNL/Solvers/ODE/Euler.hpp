@@ -12,14 +12,14 @@ namespace TNL::Solvers::ODE {
 
 template< typename Vector, typename SolverMonitor >
 void
-Euler< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+Euler< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    config.addEntry< double >( prefix + "euler-cfl", "Coefficient C in the Courant–Friedrichs–Lewy condition.", 0.0 );
 }
 
 template< typename Vector, typename SolverMonitor >
 bool
-Euler< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+Euler< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    ExplicitSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
    if( parameters.checkParameter( prefix + "euler-cfl" ) )
@@ -66,7 +66,7 @@ Euler< Vector, SolverMonitor >::solve( VectorType& _u, RHSFunction&& rhsFunction
 
    /////
    // Start the main loop
-   while( 1 ) {
+   while( true ) {
       /////
       // Compute the RHS
       rhsFunction( time, currentTau, u, k1 );
@@ -111,7 +111,6 @@ Euler< Vector, SolverMonitor >::solve( VectorType& _u, RHSFunction&& rhsFunction
          currentTau = min( currentTau, this->getMaxTau() );
       }
    }
-   return false;  // just to avoid warnings
 }
 
 }  // namespace TNL::Solvers::ODE

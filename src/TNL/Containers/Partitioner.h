@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <utility>
@@ -106,7 +104,8 @@ public:
       [[nodiscard]] RequestsVector
       synchronizeByteArrayAsyncWorker( ByteArrayView array, int bytesPerValue ) override
       {
-         TNL_ASSERT_EQ( array.getSize(), bytesPerValue * ( localRange.getSize() + 2 * overlaps ), "unexpected array size" );
+         if( array.getSize() != bytesPerValue * ( localRange.getSize() + 2 * overlaps ) )
+            throw std::logic_error( "synchronizeByteArrayAsyncWorker: unexpected array size" );
 
          const int rank = communicator.rank();
          const int nproc = communicator.size();

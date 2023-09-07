@@ -37,11 +37,17 @@ target_compile_options( TNL_CUDA INTERFACE
 set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wall" )
 set( CMAKE_CUDA_FLAGS_DEBUG "-g" )
 set( CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG" )
-set( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELEASE} ${CMAKE_CUDA_FLAGS_DEBUG} --generate-line-info" )
+set( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELEASE} ${CMAKE_CUDA_FLAGS_DEBUG}" )
+
+if( CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA" )
+   set( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELWITHDEBINFO} --generate-line-info" )
+   if( TNL_USE_CI_FLAGS AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC" )
+      # enforce (more or less) warning-free builds for host code
+      set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Werror -Xcompiler -Wno-error=deprecated -Xcompiler -Wno-error=deprecated-declarations" )
+   endif()
+endif()
 
 if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
-   # disable some unimportant warnings
-   set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-unknown-pragmas" )
    if( TNL_USE_CI_FLAGS )
       # enforce (more or less) warning-free builds
       set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=unknown-cuda-version" )
@@ -50,3 +56,10 @@ if( CMAKE_CUDA_COMPILER_ID STREQUAL "Clang" )
    # https://github.com/llvm/llvm-project/issues/58491
    set( CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0" )
 endif()
+
+# force colorized output (the automatic detection in compilers does not work with Ninja)
+target_compile_options( TNL_CUDA INTERFACE
+      $<$<CUDA_COMPILER_ID:Clang>:-fcolor-diagnostics> ;
+      # nvcc does not support colored diagnostics
+      #$<$<CUDA_COMPILER_ID:NVIDIA>:> ;
+)

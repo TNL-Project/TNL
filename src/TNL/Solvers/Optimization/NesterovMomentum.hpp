@@ -12,7 +12,7 @@ namespace TNL::Solvers::Optimization {
 
 template< typename Vector, typename SolverMonitor >
 void
-NesterovMomentum< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
+NesterovMomentum< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    IterativeSolver< RealType, IndexType, SolverMonitor >::configSetup( config, prefix );
    config.addEntry< double >( prefix + "relaxation", "Relaxation parameter for the momentum method.", 1.0 );
@@ -21,7 +21,7 @@ NesterovMomentum< Vector, SolverMonitor >::configSetup( Config::ConfigDescriptio
 
 template< typename Vector, typename SolverMonitor >
 bool
-NesterovMomentum< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const String& prefix )
+NesterovMomentum< Vector, SolverMonitor >::setup( const Config::ParameterContainer& parameters, const std::string& prefix )
 {
    this->setRelaxation( parameters.getParameter< double >( prefix + "relaxation" ) );
    this->setMomentum( parameters.getParameter< double >( prefix + "momentum" ) );
@@ -78,7 +78,7 @@ NesterovMomentum< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&
 
    /////
    // Start the main loop
-   while( 1 ) {
+   while( true ) {
       /////
       // Compute the gradient
       aux_view = w_view + v_view;
@@ -104,7 +104,6 @@ NesterovMomentum< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&
       if( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() )
          return true;
    }
-   return false;  // just to avoid warnings
 }
 
 }  // namespace TNL::Solvers::Optimization

@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 #ifdef HAVE_UMFPACK
@@ -45,11 +43,11 @@ public:
    {
       if( ! is_csr_matrix< Matrix >::value )
          std::cerr << "The UmfpackWrapper solver is available only for CSR matrices." << std::endl;
-      if( std::is_same< typename Matrix::DeviceType, Devices::Cuda >::value )
+      if( std::is_same_v< typename Matrix::DeviceType, Devices::Cuda > )
          std::cerr << "The UmfpackWrapper solver is not available on CUDA." << std::endl;
-      if( ! std::is_same< RealType, double >::value )
+      if( ! std::is_same_v< RealType, double > )
          std::cerr << "The UmfpackWrapper solver is available only for double precision." << std::endl;
-      if( ! std::is_same< IndexType, int >::value )
+      if( ! std::is_same_v< IndexType, int > )
          std::cerr << "The UmfpackWrapper solver is available only for 'int' index type." << std::endl;
    }
 

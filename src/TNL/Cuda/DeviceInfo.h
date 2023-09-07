@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/String.h>
+#include <string>
 
 namespace TNL::Cuda {
 
@@ -19,7 +19,7 @@ struct DeviceInfo
    static int
    getActiveDevice();
 
-   static String
+   static std::string
    getDeviceName( int deviceNum );
 
    static int

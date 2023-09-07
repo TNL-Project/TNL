@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <TNL/Containers/Array.h>
@@ -312,18 +310,6 @@ public:
 protected:
    ViewType view;
    LocalArrayType localData;
-
-private:
-   template< typename Array, std::enable_if_t< std::is_same< typename Array::DeviceType, DeviceType >::value, bool > = true >
-   static void
-   setSynchronizerHelper( ViewType& view, const Array& array )
-   {
-      view.setSynchronizer( array.getSynchronizer(), array.getValuesPerElement() );
-   }
-   template< typename Array, std::enable_if_t< ! std::is_same< typename Array::DeviceType, DeviceType >::value, bool > = true >
-   static void
-   setSynchronizerHelper( ViewType& view, const Array& array )
-   {}
 };
 
 }  // namespace TNL::Containers

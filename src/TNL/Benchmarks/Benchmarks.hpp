@@ -4,9 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky,
-//                 Tomas Oberhuber
-
 #pragma once
 
 #include "Benchmarks.h"
@@ -94,9 +91,9 @@ Benchmark< Logger >::setDatasetSize( double datasetSize, double baseTime )
 
 template< typename Logger >
 void
-Benchmark< Logger >::setOperation( const String& operation, double datasetSize, double baseTime )
+Benchmark< Logger >::setOperation( const std::string& operation, double datasetSize, double baseTime )
 {
-   monitor.setStage( operation.getString() );
+   monitor.setStage( operation );
    logger.setMetadataElement( { "operation", operation }, 0 );
    setDatasetSize( datasetSize, baseTime );
 }
@@ -104,7 +101,10 @@ Benchmark< Logger >::setOperation( const String& operation, double datasetSize, 
 template< typename Logger >
 template< typename Device, typename ResetFunction, typename ComputeFunction >
 void
-Benchmark< Logger >::time( ResetFunction reset, const String& performer, ComputeFunction& compute, BenchmarkResult& result )
+Benchmark< Logger >::time( ResetFunction reset,
+                           const std::string& performer,
+                           ComputeFunction& compute,
+                           BenchmarkResult& result )
 {
    result.time = std::numeric_limits< double >::quiet_NaN();
    result.stddev = std::numeric_limits< double >::quiet_NaN();
@@ -142,7 +142,7 @@ Benchmark< Logger >::time( ResetFunction reset, const String& performer, Compute
 template< typename Logger >
 template< typename Device, typename ResetFunction, typename ComputeFunction >
 BenchmarkResult
-Benchmark< Logger >::time( ResetFunction reset, const String& performer, ComputeFunction& compute )
+Benchmark< Logger >::time( ResetFunction reset, const std::string& performer, ComputeFunction& compute )
 {
    BenchmarkResult result;
    time< Device >( reset, performer, compute, result );
@@ -152,7 +152,7 @@ Benchmark< Logger >::time( ResetFunction reset, const String& performer, Compute
 template< typename Logger >
 template< typename Device, typename ComputeFunction >
 void
-Benchmark< Logger >::time( const String& performer, ComputeFunction& compute, BenchmarkResult& result )
+Benchmark< Logger >::time( const std::string& performer, ComputeFunction& compute, BenchmarkResult& result )
 {
    auto noReset = []() {};
    time< Device >( noReset, performer, compute, result );
@@ -161,7 +161,7 @@ Benchmark< Logger >::time( const String& performer, ComputeFunction& compute, Be
 template< typename Logger >
 template< typename Device, typename ComputeFunction >
 BenchmarkResult
-Benchmark< Logger >::time( const String& performer, ComputeFunction& compute )
+Benchmark< Logger >::time( const std::string& performer, ComputeFunction& compute )
 {
    BenchmarkResult result;
    time< Device >( performer, compute, result );

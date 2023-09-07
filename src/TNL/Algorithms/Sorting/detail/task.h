@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Xuan Thang Nguyen
-
 #pragma once
 
 #include <ostream>

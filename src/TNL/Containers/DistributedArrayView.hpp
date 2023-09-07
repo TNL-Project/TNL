@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include "DistributedArrayView.h"
@@ -41,10 +39,10 @@ DistributedArrayView< Value, Device, Index >::bind( const LocalRangeType& localR
                                                     const MPI::Comm& communicator,
                                                     LocalViewType localData )
 {
-   TNL_ASSERT_EQ( localData.getSize(),
-                  localRange.getSize() + ghosts,
-                  "The local array size does not match the local range of the distributed array." );
-   TNL_ASSERT_GE( ghosts, 0, "The ghosts count must be non-negative." );
+   if( localData.getSize() != localRange.getSize() + ghosts )
+      throw std::invalid_argument( "bind: the local array size does not match the local range of the distributed array" );
+   if( ghosts < 0 )
+      throw std::invalid_argument( "bind: the ghosts count must be non-negative" );
 
    this->localRange = localRange;
    this->ghosts = ghosts;
@@ -72,9 +70,8 @@ template< typename Value_ >
 void
 DistributedArrayView< Value, Device, Index >::bind( Value_* data, IndexType localSize )
 {
-   TNL_ASSERT_EQ( localSize,
-                  localRange.getSize() + ghosts,
-                  "The local array size does not match the local range of the distributed array." );
+   if( localSize != localRange.getSize() + ghosts )
+      throw std::invalid_argument( "bind: the local array size does not match the local range of the distributed array" );
    localData.bind( data, localSize );
 }
 
@@ -131,7 +128,8 @@ template< typename Value, typename Device, typename Index >
 void
 DistributedArrayView< Value, Device, Index >::copyFromGlobal( ConstLocalViewType globalArray )
 {
-   TNL_ASSERT_EQ( getSize(), globalArray.getSize(), "given global array has different size than the distributed array view" );
+   if( getSize() != globalArray.getSize() )
+      throw std::invalid_argument( "copyFromGlobal: given global array has different size than the distributed array view" );
 
    LocalViewType localView = getLocalView();
    const LocalRangeType localRange = getLocalRange();
@@ -174,11 +172,12 @@ DistributedArrayView< Value, Device, Index >::startSynchronization()
 {
    if( ghosts == 0 )
       return;
-   // TODO: assert does not play very nice with automatic synchronizations from operations like
+   // TODO: this check does not play very nice with automatic synchronizations from operations like
    //       assignment of scalars
    // (Maybe we should just drop all automatic syncs? But that's not nice for high-level codes
    // like linear solvers...)
-   TNL_ASSERT_TRUE( synchronizer, "the synchronizer was not set" );
+   if( synchronizer == nullptr )
+      throw std::logic_error( "DistributedArrayView: the synchronizer was not set" );
 
    typename SynchronizerType::ByteArrayView bytes;
    bytes.bind( reinterpret_cast< std::uint8_t* >( localData.getData() ), sizeof( ValueType ) * localData.getSize() );
@@ -283,10 +282,14 @@ template< typename Value, typename Device, typename Index >
 DistributedArrayView< Value, Device, Index >&
 DistributedArrayView< Value, Device, Index >::operator=( const DistributedArrayView& view )
 {
-   TNL_ASSERT_EQ( getSize(), view.getSize(), "The sizes of the array views must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( getLocalRange(), view.getLocalRange(), "The local ranges must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( getGhosts(), view.getGhosts(), "Ghosts must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( getCommunicator(), view.getCommunicator(), "The communicators of the array views must be equal." );
+   if( getSize() != view.getSize() )
+      throw std::logic_error( "operator=: the sizes of the array views must be equal, views are not resizable." );
+   if( getLocalRange() != view.getLocalRange() )
+      throw std::logic_error( "operator=: the local ranges must be equal, views are not resizable." );
+   if( getGhosts() != view.getGhosts() )
+      throw std::logic_error( "operator=: ghosts must be equal, views are not resizable." );
+   if( getCommunicator() != view.getCommunicator() )
+      throw std::logic_error( "operator=: the communicators of the array views must be equal." );
 
    if( this->getCommunicator() != MPI_COMM_NULL ) {
       // TODO: it might be better to split the local and ghost parts and synchronize in the middle
@@ -302,10 +305,14 @@ template< typename Array, typename..., typename >
 DistributedArrayView< Value, Device, Index >&
 DistributedArrayView< Value, Device, Index >::operator=( const Array& array )
 {
-   TNL_ASSERT_EQ( getSize(), array.getSize(), "The global sizes must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( getLocalRange(), array.getLocalRange(), "The local ranges must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( getGhosts(), array.getGhosts(), "Ghosts must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( getCommunicator(), array.getCommunicator(), "The communicators must be equal." );
+   if( getSize() != array.getSize() )
+      throw std::logic_error( "operator=: the global sizes must be equal, views are not resizable." );
+   if( getLocalRange() != array.getLocalRange() )
+      throw std::logic_error( "operator=: the local ranges must be equal, views are not resizable." );
+   if( getGhosts() != array.getGhosts() )
+      throw std::logic_error( "operator=: ghosts must be equal, views are not resizable." );
+   if( getCommunicator() != array.getCommunicator() )
+      throw std::logic_error( "operator=: the communicators must be equal." );
 
    if( this->getCommunicator() != MPI_COMM_NULL ) {
       // TODO: it might be better to split the local and ghost parts and synchronize in the middle

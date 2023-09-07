@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <TNL/Containers/ArrayView.h>
@@ -66,22 +64,49 @@ public:
    template< typename _Real, typename _Device = Device, typename _Index = Index >
    using Self = VectorView< _Real, _Device, _Index >;
 
-   // constructors and assignment operators inherited from the class ArrayView
-   using ArrayView< Real, Device, Index >::ArrayView;
-   using ArrayView< Real, Device, Index >::operator=;
+   // Inheriting a __cuda_callable__ from ArrayView would result in a __host__-only
+   // constructor in VectorView, so the definition of all __cuda_callable__
+   // constructors must be repeated.
 
-// HACK: clang does not properly inherit the constructor (it is inherited as __host__ only)
-#if defined( __clang__ ) && defined( __CUDA__ )
+   /**
+    * \brief Constructs a vector view by binding to the given data pointer
+    * and size.
+    *
+    * This method can be called from device kernels.
+    *
+    * \param data The data pointer to be bound.
+    * \param size The number of elements in the vector view.
+    */
    __cuda_callable__
    VectorView( RealType* data, IndexType size ) : ArrayView< Real, Device, Index >::ArrayView( data, size ) {}
-#endif
 
-   // In C++14, default constructors cannot be inherited, although Clang
-   // and GCC since version 7.0 inherit them.
-   // https://stackoverflow.com/a/51854172
-   //! \brief Constructs an empty array view with zero size.
+   /**
+    * \brief Constructs an empty vector view.
+    *
+    * This method can be called from device kernels.
+    */
    __cuda_callable__
    VectorView() = default;
+
+   /**
+    * \brief Shallow copy constructor.
+    *
+    * This method can be called from device kernels.
+    *
+    * \param view The vector view to be copied.
+    */
+   __cuda_callable__
+   VectorView( const VectorView& view ) = default;
+
+   /**
+    * \brief Move constructor for initialization from \e rvalues.
+    *
+    * This method can be called from device kernels.
+    *
+    * \param view The vector view to be moved.
+    */
+   __cuda_callable__
+   VectorView( VectorView&& view ) noexcept = default;
 
    /**
     * \brief Constructor for the initialization by a base class object.
@@ -123,6 +148,38 @@ public:
    ConstViewType
    getConstView( IndexType begin = 0, IndexType end = 0 ) const;
 
+   // ArrayView does not have __cuda_callable__ assignment operators, but the
+   // C++ standard itself is unclear regarding templates hiding other templates
+   // brought by using declarations - see https://stackoverflow.com/q/57322624
+   // Let's just avoid inheriting operator= to keep it simple.
+
+   /**
+    * \brief Deep copy assignment operator - same as
+    * \ref TNL::Containers::ArrayView::operator= "ArrayView::operator=".
+    *
+    * \param view Reference to the source vector view.
+    * \return Reference to this vector view.
+    */
+   VectorView&
+   operator=( const VectorView& view ) = default;
+
+   /**
+    * \brief Assigns a value or an array - same as
+    * \ref TNL::Containers::ArrayView::operator= "ArrayView::operator=".
+    *
+    * \tparam T The type of the source array or value.
+    * \param data Reference to the source array or value.
+    * \return Reference to this vector view.
+    */
+   template< typename T,
+             typename...,
+             typename = std::enable_if_t< std::is_convertible_v< T, Real > || IsArrayType< T >::value > >
+   ArrayView< Real, Device, Index >&
+   operator=( const T& data )
+   {
+      return ArrayView< Real, Device, Index >::operator=( data );
+   }
+
    /**
     * \brief Assigns a vector expression to this vector view.
     *
@@ -140,25 +197,6 @@ public:
                                           && ! IsArrayType< VectorExpression >::value > >
    VectorView&
    operator=( const VectorExpression& expression );
-
-   /**
-    * \brief Assigns a value or an array - same as
-    * \ref TNL::Containers::ArrayView::operator= "ArrayView::operator=".
-    *
-    * \return Reference to this vector view.
-    */
-   // operator= from the base class should be hidden according to the C++14 standard,
-   // although GCC does not do that - see https://stackoverflow.com/q/57322624
-#if ! defined( __CUDACC_VER_MAJOR__ ) || __CUDACC_VER_MAJOR__ < 11
-   template< typename T,
-             typename...,
-             typename = std::enable_if_t< std::is_convertible< T, Real >::value || IsArrayType< T >::value > >
-   ArrayView< Real, Device, Index >&
-   operator=( const T& data )
-   {
-      return ArrayView< Real, Device, Index >::operator=( data );
-   }
-#endif
 
    /**
     * \brief Adds elements of this vector view and a vector expression and

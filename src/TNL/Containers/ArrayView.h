@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include <type_traits>  // std::add_const_t
@@ -230,7 +228,7 @@ public:
     */
    template< typename T,
              typename...,
-             typename = std::enable_if_t< std::is_convertible< T, ValueType >::value || IsArrayType< T >::value > >
+             typename = std::enable_if_t< std::is_convertible_v< T, ValueType > || IsArrayType< T >::value > >
    ArrayView&
    operator=( const T& data );
 
@@ -565,7 +563,7 @@ public:
     * \param fileName The output file name.
     */
    void
-   save( const String& fileName ) const;
+   save( const std::string& fileName ) const;
 
    /**
     * \brief Method for loading the data from a binary file \e fileName.
@@ -573,7 +571,7 @@ public:
     * \param fileName The input file name.
     */
    void
-   load( const String& fileName );
+   load( const std::string& fileName );
 
 protected:
    //! Pointer to the data

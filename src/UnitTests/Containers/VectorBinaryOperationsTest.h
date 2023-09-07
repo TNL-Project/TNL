@@ -125,7 +125,7 @@ protected:
    }
 };
 
-#ifdef __CUDACC__
+#if defined( __NVCC__ )
    // ignore useless nvcc warning: https://stackoverflow.com/a/49997636
    // https://developer.nvidia.com/blog/reducing-application-build-times-using-cuda-c-compilation-aids/
    #ifdef __NVCC_DIAG_PRAGMA_SUPPORT__
@@ -765,7 +765,7 @@ TYPED_TEST( VectorBinaryOperationsTest, comparisonOnDifferentDevices )
 }
 #endif
 
-#ifdef __CUDACC__
+#if defined( __NVCC__ )
    #ifdef __NVCC_DIAG_PRAGMA_SUPPORT__
       #pragma nv_diagnostic pop
    #else

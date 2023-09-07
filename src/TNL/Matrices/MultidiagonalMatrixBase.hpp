@@ -416,8 +416,10 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct( con
                                                                              IndexType begin,
                                                                              IndexType end ) const
 {
-   TNL_ASSERT_EQ( this->getColumns(), inVector.getSize(), "Matrix columns do not fit with input vector." );
-   TNL_ASSERT_EQ( this->getRows(), outVector.getSize(), "Matrix rows do not fit with output vector." );
+   if( this->getColumns() != inVector.getSize() )
+      throw std::invalid_argument( "vectorProduct: size of the input vector does not match the number of matrix columns" );
+   if( this->getRows() != outVector.getSize() )
+      throw std::invalid_argument( "vectorProduct: size of the output vector does not match the number of matrix rows" );
 
    const auto inVectorView = inVector.getConstView();
    auto outVectorView = outVector.getView();
@@ -454,8 +456,10 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::addMatrix(
    const RealType& matrixMultiplicator,
    const RealType& thisMatrixMultiplicator )
 {
-   TNL_ASSERT_EQ( this->getRows(), matrix.getRows(), "Matrices rows are not equal." );
-   TNL_ASSERT_EQ( this->getColumns(), matrix.getColumns(), "Matrices columns are not equal." );
+   if( this->getRows() != matrix.getRows() )
+      throw std::invalid_argument( "addMatrix: numbers of matrix rows are not equal" );
+   if( this->getColumns() != matrix.getColumns() )
+      throw std::invalid_argument( "addMatrix: numbers of matrix columns are not equal" );
 
    /*if( Organization == Organization_ )
    {

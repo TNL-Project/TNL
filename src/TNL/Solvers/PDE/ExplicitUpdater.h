@@ -101,11 +101,10 @@ public:
            MeshFunctionPointer& uPointer,
            MeshFunctionPointer& fuPointer )
    {
-      static_assert( std::is_same< MeshFunction,
-                                   Containers::Vector< typename MeshFunction::RealType,
-                                                       typename MeshFunction::DeviceType,
-                                                       typename MeshFunction::IndexType > >::value
-                        != true,
+      static_assert( ! std::is_same_v< MeshFunction,
+                                       Containers::Vector< typename MeshFunction::RealType,
+                                                           typename MeshFunction::DeviceType,
+                                                           typename MeshFunction::IndexType > >,
                      "Error: I am getting Vector instead of MeshFunction or similar object. You might forget to bind DofVector "
                      "into MeshFunction in you method getExplicitUpdate." );
       TNL_ASSERT_GT( uPointer->getData().getSize(), 0, "The first MeshFunction in the parameters was not bound." );

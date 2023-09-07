@@ -4,12 +4,12 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomas Oberhuber, Jakub Klinkovsky
-
 #pragma once
 
 #include "SharedPointer.h"
 
+#include <TNL/Assert.h>
+#include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Allocators/Default.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Pointers/SmartPointer.h>
@@ -39,8 +39,8 @@ private:
     * but after removing const and volatile qualifiers they are the same.
     */
    template< typename Object_ >
-   using Enabler = std::enable_if< ! std::is_same< Object_, Object >::value
-                                   && std::is_same< typename std::remove_cv< Object >::type, Object_ >::value >;
+   using Enabler =
+      std::enable_if_t< ! std::is_same_v< Object_, Object > && std::is_same_v< std::remove_cv_t< Object >, Object_ > >;
 
    // friend class will be needed for templated assignment operators
    template< typename Object_, typename Device_ >
@@ -122,7 +122,7 @@ public:
     *
     * \param pointer is the source shared pointer.
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    SharedPointer( const SharedPointer< Object_, DeviceType >& pointer )  // conditional constructor for non-const -> const data
    : pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
    {
@@ -148,7 +148,7 @@ public:
     *
     * \param pointer is the source shared pointer.
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    SharedPointer( SharedPointer< Object_, DeviceType >&& pointer )  // conditional constructor for non-const -> const data
    : pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
    {
@@ -309,13 +309,13 @@ public:
    const Object&
    getData() const
    {
-      static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Cuda >::value,
+      static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
                      "Only Devices::Host or Devices::Cuda devices are accepted here." );
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
       TNL_ASSERT_TRUE( this->cuda_pointer, "Attempt to dereference a null pointer" );
-      if( std::is_same< Device, Devices::Host >::value )
+      if( std::is_same_v< Device, Devices::Host > )
          return this->pd->data;
-      if( std::is_same< Device, Devices::Cuda >::value )
+      if( std::is_same_v< Device, Devices::Cuda > )
          return *( this->cuda_pointer );
    }
 
@@ -336,15 +336,15 @@ public:
    Object&
    modifyData()
    {
-      static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Cuda >::value,
+      static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
                      "Only Devices::Host or Devices::Cuda devices are accepted here." );
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
       TNL_ASSERT_TRUE( this->cuda_pointer, "Attempt to dereference a null pointer" );
-      if( std::is_same< Device, Devices::Host >::value ) {
+      if( std::is_same_v< Device, Devices::Host > ) {
          this->pd->maybe_modified = true;
          return this->pd->data;
       }
-      if( std::is_same< Device, Devices::Cuda >::value )
+      if( std::is_same_v< Device, Devices::Cuda > )
          return *( this->cuda_pointer );
    }
 
@@ -379,7 +379,7 @@ public:
     * \param ptr input pointer
     * \return constant reference to \e this
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    const SharedPointer&
    operator=( const SharedPointer< Object_, DeviceType >& ptr )  // conditional operator for non-const -> const data
    {
@@ -426,7 +426,7 @@ public:
     * \param ptr input pointer
     * \return constant reference to \e this
     */
-   template< typename Object_, typename = typename Enabler< Object_ >::type >
+   template< typename Object_, typename = Enabler< Object_ > >
    const SharedPointer&
    operator=( SharedPointer< Object_, DeviceType >&& ptr )  // conditional operator for non-const -> const data
    {
@@ -462,7 +462,7 @@ public:
                    << std::endl;
          std::cerr << "   ( " << sizeof( Object ) << " bytes, CUDA adress " << this->cuda_pointer << " )" << std::endl;
    #endif
-         TNL_ASSERT( this->cuda_pointer, );
+         TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
          cudaMemcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), cudaMemcpyHostToDevice );
          TNL_CHECK_CUDA_DEVICE;
          this->set_last_sync_state();

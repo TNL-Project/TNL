@@ -1,23 +1,10 @@
-if( WIN32 )
-   # we don't support CUDA on Windows, so we can lower the requirement
-   cmake_minimum_required( VERSION 3.23 )
-else()
-   # cmake 3.24 is required for CUDA with "native" architecture selection
-   cmake_minimum_required( VERSION 3.24 )
-endif()
+# cmake 3.24 is required for CUDA with "native" architecture selection
+# cmake 3.25 is required for the "SYSTEM" keyword in FetchContent_Declare
+cmake_minimum_required( VERSION 3.25 )
 
 project( TNL )
 
 set( tnlVersion "0.1" )
-
-# check if TNL is being used directly or via add_subdirectory
-if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-   set( TNL_TOP_LEVEL_PROJECT ON )
-   set( TNL_SYSTEM "" )
-else()
-   set( TNL_TOP_LEVEL_PROJECT OFF )
-   set( TNL_SYSTEM SYSTEM )
-endif()
 
 # declare all custom build options
 option( TNL_USE_CUDA "Build with CUDA support" ON )
@@ -62,6 +49,10 @@ find_package( Ginkgo QUIET )
 # find the std::filesystem library
 find_package( Filesystem REQUIRED COMPONENTS Final )
 
+# Optionally bundled dependencies (system packages are preferred)
+# Reference: https://cmake.org/cmake/help/latest/guide/using-dependencies/index.html#fetchcontent-and-find-package-integration
+include( FetchTinyXML2 )
+
 # Settings for debug build
 if( CMAKE_BUILD_TYPE STREQUAL "Debug")
     set( CMAKE_EXECUTABLE_SUFFIX "-dbg${CMAKE_EXECUTABLE_SUFFIX}" )  # suffix for executables
@@ -72,9 +63,6 @@ endif()
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
-
-# set C++ compiler flags
-include( cmake/cxx_flags.cmake )
 
 # make cache variable so it can be used in downstream projects
 set( TNL_INCLUDE_DIRS
@@ -94,17 +82,22 @@ target_link_libraries( TNL_CXX INTERFACE TNL )
 target_link_libraries( TNL_CUDA INTERFACE TNL )
 
 # add the include directory to the interface
+if( PROJECT_IS_TOP_LEVEL )
+   set( TNL_SYSTEM "" )
+else()
+   set( TNL_SYSTEM SYSTEM )
+endif()
 target_include_directories( TNL ${TNL_SYSTEM}
                             INTERFACE $<BUILD_INTERFACE:${TNL_INCLUDE_DIRS}>
                                       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> )
 # add compiler features to the interface
 target_compile_features( TNL INTERFACE cxx_std_17 )
-# add some compiler flags to the interface
-target_compile_options( TNL INTERFACE
-                        ${TNL_COLOR_DIAGNOSTICS_FLAG} )
 
 # add the std::filesystem library to the interface
 target_link_libraries( TNL INTERFACE std::filesystem )
+
+# set C++ compiler flags
+include( cmake/cxx_flags.cmake )
 
 # gtest has to be built before we add the MPI flags
 if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
@@ -117,18 +110,15 @@ if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
    set( CMAKE_CTEST_ARGUMENTS ${CMAKE_CTEST_ARGUMENTS} --output-junit "${CMAKE_BINARY_DIR}/tests-report.xml" )
 
    if( TNL_USE_SYSTEM_GTEST OR TNL_OFFLINE_BUILD )
-      # find gtest installed in the local system
-      find_package(GTest REQUIRED)
-      if( GTEST_FOUND )
-         include_directories( ${GTEST_INCLUDE_DIRS} )
-      endif( GTEST_FOUND )
+      # find GoogleTest installed in the local system
+      find_package( GTest REQUIRED )
    else()
-      # build gtest libs
-      include( BuildGtest )
+      # fetch and build GoogleTest from source
+      include( FetchGoogleTest )
    endif()
    set( CXX_TESTS_FLAGS )
    set( CUDA_TESTS_FLAGS )
-   set( TESTS_LIBRARIES ${GTEST_LIBRARIES} )
+   set( TESTS_LIBRARIES GTest::gtest_main )
    set( TESTS_LINKER_FLAGS "" )
 
    if( TNL_BUILD_COVERAGE AND CMAKE_BUILD_TYPE STREQUAL "Debug" )
@@ -137,6 +127,21 @@ if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
       set( CUDA_TESTS_FLAGS ${CUDA_TESTS_FLAGS} -Xcompiler --coverage )
       set( TESTS_LINKER_FLAGS ${TESTS_LINKER_FLAGS} --coverage )
    endif()
+
+   # function to simplify adding MPI tests
+   # usage: add_test_mpi(NAME <name> NPROC <nproc> COMMAND <command> [<arg>...])
+   function( add_test_mpi )
+      # parse function arguments
+      set( options )
+      set( oneValueArgs NAME NPROC )
+      set( multiValueArgs COMMAND )
+      cmake_parse_arguments( ADD_TEST_MPI "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+      # set flags for MPIEXEC_EXECUTABLE
+      set( mpiexec_flags "${MPIEXEC_NUMPROC_FLAG}" "${ADD_TEST_MPI_NPROC}" -H "localhost:${ADD_TEST_MPI_NPROC}" )
+      # set OMP_NUM_THREADS=1 to disable OpenMP for MPI tests
+      # (NPROC may be even greater than the number of physical cores, so it would just slow down)
+      add_test( NAME ${ADD_TEST_MPI_NAME} COMMAND "env" "OMP_NUM_THREADS=1" "${MPIEXEC_EXECUTABLE}" ${mpiexec_flags} ${ADD_TEST_MPI_COMMAND} )
+   endfunction()
 endif()
 
 ####
@@ -252,7 +257,7 @@ if( TNL_USE_GMP )
    endif()
 endif()
 
-if( TNL_TOP_LEVEL_PROJECT )
+if( PROJECT_IS_TOP_LEVEL )
    # export the interface targets
    install( TARGETS TNL TNL_CXX TNL_CUDA EXPORT TNLTargets )
    # install a CMake file for the interface target
@@ -279,7 +284,7 @@ add_subdirectory( Documentation )
 # https://clang.llvm.org/docs/JSONCompilationDatabase.html
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "" )
 
-if( TNL_TOP_LEVEL_PROJECT )
+if( PROJECT_IS_TOP_LEVEL )
    # Print custom build options
    message( "-- Build options:" )
    message( "   TNL_USE_CUDA = ${TNL_USE_CUDA}" )

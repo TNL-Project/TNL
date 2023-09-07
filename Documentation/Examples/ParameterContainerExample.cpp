@@ -1,12 +1,13 @@
 #include <iostream>
+#include <string>
+
 #include <TNL/Config/ParameterContainer.h>
-#include <TNL/String.h>
 
 using namespace TNL;
 
 int main()
 {
     Config::ParameterContainer parameters;
-    String param = parameters.getParameter< String >( "distributed-grid-io-type" );
-//    parameters.checkParameter< String >( "distributed-grid-io-type" );
+    auto param = parameters.getParameter< std::string >( "distributed-grid-io-type" );
+//    parameters.checkParameter< std::string >( "distributed-grid-io-type" );
 }

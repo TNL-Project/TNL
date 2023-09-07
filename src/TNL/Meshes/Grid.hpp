@@ -5,10 +5,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber, Yury Hayeu
-
 #pragma once
 
+#include <TNL/String.h>
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/GridDetails/GridEntityGetter.h>
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>

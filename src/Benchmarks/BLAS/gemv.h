@@ -1,5 +1,3 @@
-// Implemented by: Jakub Klinkovsky, Tomas Oberhuber
-
 #pragma once
 
 #include <TNL/Benchmarks/Benchmarks.h>

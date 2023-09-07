@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomas Oberhuber, Jakub Klinkovsky
-
 #pragma once
 
 #include <cstring>
@@ -47,7 +45,7 @@ namespace Pointers {
 template< typename Object, typename Device = typename Object::DeviceType >
 class SharedPointer
 {
-   static_assert( ! std::is_same< Device, void >::value,
+   static_assert( ! std::is_same_v< Device, void >,
                   "The device cannot be void. You need to specify the device explicitly in your code." );
 };
 

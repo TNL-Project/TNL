@@ -51,7 +51,7 @@ foreach( target IN ITEMS ${CUDA_MESH_TOOLS} )
 endforeach()
 
 find_package( ZLIB )
-find_package( tinyxml2 QUIET )
+find_package( tinyxml2 )
 foreach( target IN ITEMS ${MESH_TOOLS} )
    if( ZLIB_FOUND )
       target_compile_definitions( ${target} PUBLIC "-DHAVE_ZLIB" )

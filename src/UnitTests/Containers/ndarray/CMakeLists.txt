@@ -54,8 +54,7 @@ if( TNL_BUILD_MPI )
       # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
       target_link_libraries( ${target} PUBLIC MPI::MPI_CXX )
 
-      set( mpi_test_parameters -np 4 -H localhost:4 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
-      add_test( NAME ${target} COMMAND "mpirun" ${mpi_test_parameters})
-      add_test( NAME ${target}_nodistr COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
+      add_test_mpi( NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
+      add_test_mpi( NAME ${target}_nodistr NPROC 1 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
    endforeach()
 endif()

@@ -56,9 +56,9 @@ public:
    {
       const auto& subvertices = mesh.template getSubentitiesMatrix< EntityTopology::dimension, 0 >().getRow( entityIndex );
 
-// FIXME: nvcc 11.8 fails to compile nested staticFor loops with different index types (note that the outer loop is in
-// EntityInitializer.h and it uses `int` to iterate over dimensions)
-#ifdef __NVCC__
+// FIXME: nvcc 11.8 and nvc++ 23.7 fail to compile nested staticFor loops with different index types (note that the outer loop
+// is in EntityInitializer.h and it uses `int` to iterate over dimensions)
+#if defined( __NVCC__ ) || defined( __NVCOMPILER )
       using LocalIndexType = int;
 #endif
 

@@ -93,9 +93,9 @@ template< typename Value, typename Device, typename Index >
 ArrayView< Value, Device, Index >&
 ArrayView< Value, Device, Index >::operator=( const ArrayView& view )
 {
-   TNL_ASSERT_EQ( getSize(), view.getSize(), "The sizes of the array views must be equal, views are not resizable." );
-   if( getSize() > 0 )
-      Algorithms::copy< Device >( getData(), view.getData(), getSize() );
+   if( getSize() != view.getSize() )
+      throw std::logic_error( "operator=: the sizes of the array views must be equal, views are not resizable." );
+   Algorithms::copy< Device >( getData(), view.getData(), getSize() );
    return *this;
 }
 
@@ -321,14 +321,14 @@ ArrayView< Value, Device, Index >::forAllElements( Function&& f ) const
 
 template< typename Value, typename Device, typename Index >
 void
-ArrayView< Value, Device, Index >::save( const String& fileName ) const
+ArrayView< Value, Device, Index >::save( const std::string& fileName ) const
 {
    File( fileName, std::ios_base::out ) << *this;
 }
 
 template< typename Value, typename Device, typename Index >
 void
-ArrayView< Value, Device, Index >::load( const String& fileName )
+ArrayView< Value, Device, Index >::load( const std::string& fileName )
 {
    File( fileName, std::ios_base::in ) >> *this;
 }

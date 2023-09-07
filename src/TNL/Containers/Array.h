@@ -64,7 +64,7 @@ template< typename Value,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class Array
 {
-   static_assert( std::is_same< std::remove_cv_t< Value >, std::remove_cv_t< typename Allocator::value_type > >::value,
+   static_assert( std::is_same_v< std::remove_cv_t< Value >, std::remove_cv_t< typename Allocator::value_type > >,
                   "Mismatch of Array::Value and Allocator::value_type. The type must be the same." );
 
 public:

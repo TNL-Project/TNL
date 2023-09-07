@@ -78,8 +78,11 @@ Array< Value, Device, Index, Allocator >::Array( const Array< Value, Device, Ind
 {
    if( size == 0 )
       size = array.getSize() - begin;
-   TNL_ASSERT_LT( begin, array.getSize(), "Begin of array is out of bounds." );
-   TNL_ASSERT_LE( begin + size, array.getSize(), "End of array is out of bounds." );
+
+   if( begin < (Index) 0 || begin > array.getSize() )
+      throw std::out_of_range( "Array: begin is out of range" );
+   if( size < (Index) 0 || begin + size > array.getSize() )
+      throw std::out_of_range( "Array: size is out of range" );
 
    this->setSize( size );
    Algorithms::copy< Device >( this->getData(), &array.getData()[ begin ], size );
@@ -148,7 +151,7 @@ void
 Array< Value, Device, Index, Allocator >::releaseData()
 {
    if( this->data ) {
-      if( ! std::is_fundamental< ValueType >::value )
+      if( ! std::is_fundamental_v< ValueType > )
          // call the destructor of each element
          detail::MemoryOperations< Device >::destruct( this->data, this->size );
       allocator.deallocate( this->data, this->size );
@@ -161,7 +164,8 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 void
 Array< Value, Device, Index, Allocator >::reallocate( IndexType size )
 {
-   TNL_ASSERT_GE( size, (Index) 0, "Array size must be non-negative." );
+   if( size < (Index) 0 )
+      throw std::invalid_argument( "reallocate: array size must be non-negative" );
 
    if( this->size == size )
       return;
@@ -176,7 +180,7 @@ Array< Value, Device, Index, Allocator >::reallocate( IndexType size )
    // handle initial allocations
    if( this->size == 0 ) {
       this->data = allocator.allocate( size );
-      if( ! std::is_fundamental< ValueType >::value )
+      if( ! std::is_fundamental_v< ValueType > )
          // call the constructor of each element
          detail::MemoryOperations< Device >::construct( this->data, size );
 
@@ -204,7 +208,7 @@ Array< Value, Device, Index, Allocator >::resize( IndexType size )
    reallocate( size );
 
    if( old_size < size )
-      if( ! std::is_fundamental< ValueType >::value )
+      if( ! std::is_fundamental_v< ValueType > )
          // initialize the appended elements
          detail::MemoryOperations< Device >::construct( this->data + old_size, size - old_size );
 }
@@ -226,7 +230,8 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 void
 Array< Value, Device, Index, Allocator >::setSize( IndexType size )
 {
-   TNL_ASSERT_GE( size, (Index) 0, "Array size must be non-negative." );
+   if( size < (Index) 0 )
+      throw std::invalid_argument( "setSize: array size must be non-negative" );
 
    if( this->size == size )
       return;
@@ -257,14 +262,14 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 typename Array< Value, Device, Index, Allocator >::ViewType
 Array< Value, Device, Index, Allocator >::getView( IndexType begin, IndexType end )
 {
-   TNL_ASSERT_GE( begin, (Index) 0, "Parameter 'begin' must be non-negative." );
-   TNL_ASSERT_LE( begin, getSize(), "Parameter 'begin' must be lower or equal to size of the array." );
-   TNL_ASSERT_GE( end, (Index) 0, "Parameter 'end' must be non-negative." );
-   TNL_ASSERT_LE( end, getSize(), "Parameter 'end' must be lower or equal to size of the array." );
-   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
-
    if( end == 0 )
       end = getSize();
+
+   if( begin < (Index) 0 || begin > end )
+      throw std::out_of_range( "getView: begin is out of range" );
+   if( end < (Index) 0 || end > getSize() )
+      throw std::out_of_range( "getView: end is out of range" );
+
    return ViewType( getData() + begin, end - begin );
 }
 
@@ -272,14 +277,14 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 typename Array< Value, Device, Index, Allocator >::ConstViewType
 Array< Value, Device, Index, Allocator >::getConstView( IndexType begin, IndexType end ) const
 {
-   TNL_ASSERT_GE( begin, (Index) 0, "Parameter 'begin' must be non-negative." );
-   TNL_ASSERT_LE( begin, getSize(), "Parameter 'begin' must be lower or equal to size of the array." );
-   TNL_ASSERT_GE( end, (Index) 0, "Parameter 'end' must be non-negative." );
-   TNL_ASSERT_LE( end, getSize(), "Parameter 'end' must be lower or equal to size of the array." );
-   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
-
    if( end == 0 )
       end = getSize();
+
+   if( begin < (Index) 0 || begin > end )
+      throw std::out_of_range( "getConstView: begin is out of range" );
+   if( end < (Index) 0 || end > getSize() )
+      throw std::out_of_range( "getConstView: end is out of range" );
+
    return ConstViewType( getData() + begin, end - begin );
 }
 

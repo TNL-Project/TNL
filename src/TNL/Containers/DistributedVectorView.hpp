@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovský
-
 #pragma once
 
 #include "DistributedVectorView.h"
@@ -63,10 +61,14 @@ template< typename Vector, typename..., typename >
 DistributedVectorView< Real, Device, Index >&
 DistributedVectorView< Real, Device, Index >::operator=( const Vector& vector )
 {
-   TNL_ASSERT_EQ( this->getSize(), vector.getSize(), "The sizes of the array views must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( this->getLocalRange(), vector.getLocalRange(), "The local ranges must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( this->getGhosts(), vector.getGhosts(), "Ghosts must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( this->getCommunicator(), vector.getCommunicator(), "The communicators of the array views must be equal." );
+   if( this->getSize() != vector.getSize() )
+      throw std::logic_error( "operator=: the sizes of the array views must be equal, views are not resizable." );
+   if( this->getLocalRange() != vector.getLocalRange() )
+      throw std::logic_error( "operator=: the local ranges must be equal, views are not resizable." );
+   if( this->getGhosts() != vector.getGhosts() )
+      throw std::logic_error( "operator=: ghosts must be equal, views are not resizable." );
+   if( this->getCommunicator() != vector.getCommunicator() )
+      throw std::logic_error( "operator=: the communicators of the array views must be equal." );
 
    if( this->getCommunicator() != MPI_COMM_NULL ) {
       // TODO: it might be better to split the local and ghost parts and synchronize in the middle
@@ -82,14 +84,14 @@ template< typename Vector, typename..., typename >
 DistributedVectorView< Real, Device, Index >&
 DistributedVectorView< Real, Device, Index >::operator+=( const Vector& vector )
 {
-   TNL_ASSERT_EQ( this->getSize(), vector.getSize(), "Vector sizes must be equal." );
-   TNL_ASSERT_EQ( this->getLocalRange(),
-                  vector.getLocalRange(),
-                  "Multiary operations are supported only on vectors which are distributed the same way." );
-   TNL_ASSERT_EQ( this->getGhosts(), vector.getGhosts(), "Ghosts must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( this->getCommunicator(),
-                  vector.getCommunicator(),
-                  "Multiary operations are supported only on vectors within the same communicator." );
+   if( this->getSize() != vector.getSize() )
+      throw std::logic_error( "operator+=: the sizes of the array views must be equal, views are not resizable." );
+   if( this->getLocalRange() != vector.getLocalRange() )
+      throw std::logic_error( "operator+=: the local ranges must be equal, views are not resizable." );
+   if( this->getGhosts() != vector.getGhosts() )
+      throw std::logic_error( "operator+=: ghosts must be equal, views are not resizable." );
+   if( this->getCommunicator() != vector.getCommunicator() )
+      throw std::logic_error( "operator+=: the communicators of the array views must be equal." );
 
    if( this->getCommunicator() != MPI_COMM_NULL ) {
       // TODO: it might be better to split the local and ghost parts and synchronize in the middle
@@ -105,14 +107,14 @@ template< typename Vector, typename..., typename >
 DistributedVectorView< Real, Device, Index >&
 DistributedVectorView< Real, Device, Index >::operator-=( const Vector& vector )
 {
-   TNL_ASSERT_EQ( this->getSize(), vector.getSize(), "Vector sizes must be equal." );
-   TNL_ASSERT_EQ( this->getLocalRange(),
-                  vector.getLocalRange(),
-                  "Multiary operations are supported only on vectors which are distributed the same way." );
-   TNL_ASSERT_EQ( this->getGhosts(), vector.getGhosts(), "Ghosts must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( this->getCommunicator(),
-                  vector.getCommunicator(),
-                  "Multiary operations are supported only on vectors within the same communicator." );
+   if( this->getSize() != vector.getSize() )
+      throw std::logic_error( "operator-=: the sizes of the array views must be equal, views are not resizable." );
+   if( this->getLocalRange() != vector.getLocalRange() )
+      throw std::logic_error( "operator-=: the local ranges must be equal, views are not resizable." );
+   if( this->getGhosts() != vector.getGhosts() )
+      throw std::logic_error( "operator-=: ghosts must be equal, views are not resizable." );
+   if( this->getCommunicator() != vector.getCommunicator() )
+      throw std::logic_error( "operator-=: the communicators of the array views must be equal." );
 
    if( this->getCommunicator() != MPI_COMM_NULL ) {
       // TODO: it might be better to split the local and ghost parts and synchronize in the middle
@@ -128,14 +130,14 @@ template< typename Vector, typename..., typename >
 DistributedVectorView< Real, Device, Index >&
 DistributedVectorView< Real, Device, Index >::operator*=( const Vector& vector )
 {
-   TNL_ASSERT_EQ( this->getSize(), vector.getSize(), "Vector sizes must be equal." );
-   TNL_ASSERT_EQ( this->getLocalRange(),
-                  vector.getLocalRange(),
-                  "Multiary operations are supported only on vectors which are distributed the same way." );
-   TNL_ASSERT_EQ( this->getGhosts(), vector.getGhosts(), "Ghosts must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( this->getCommunicator(),
-                  vector.getCommunicator(),
-                  "Multiary operations are supported only on vectors within the same communicator." );
+   if( this->getSize() != vector.getSize() )
+      throw std::logic_error( "operator*=: the sizes of the array views must be equal, views are not resizable." );
+   if( this->getLocalRange() != vector.getLocalRange() )
+      throw std::logic_error( "operator*=: the local ranges must be equal, views are not resizable." );
+   if( this->getGhosts() != vector.getGhosts() )
+      throw std::logic_error( "operator*=: ghosts must be equal, views are not resizable." );
+   if( this->getCommunicator() != vector.getCommunicator() )
+      throw std::logic_error( "operator*=: the communicators of the array views must be equal." );
 
    if( this->getCommunicator() != MPI_COMM_NULL ) {
       // TODO: it might be better to split the local and ghost parts and synchronize in the middle
@@ -151,14 +153,14 @@ template< typename Vector, typename..., typename >
 DistributedVectorView< Real, Device, Index >&
 DistributedVectorView< Real, Device, Index >::operator/=( const Vector& vector )
 {
-   TNL_ASSERT_EQ( this->getSize(), vector.getSize(), "Vector sizes must be equal." );
-   TNL_ASSERT_EQ( this->getLocalRange(),
-                  vector.getLocalRange(),
-                  "Multiary operations are supported only on vectors which are distributed the same way." );
-   TNL_ASSERT_EQ( this->getGhosts(), vector.getGhosts(), "Ghosts must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( this->getCommunicator(),
-                  vector.getCommunicator(),
-                  "Multiary operations are supported only on vectors within the same communicator." );
+   if( this->getSize() != vector.getSize() )
+      throw std::logic_error( "operator/=: the sizes of the array views must be equal, views are not resizable." );
+   if( this->getLocalRange() != vector.getLocalRange() )
+      throw std::logic_error( "operator/=: the local ranges must be equal, views are not resizable." );
+   if( this->getGhosts() != vector.getGhosts() )
+      throw std::logic_error( "operator/=: ghosts must be equal, views are not resizable." );
+   if( this->getCommunicator() != vector.getCommunicator() )
+      throw std::logic_error( "operator/=: the communicators of the array views must be equal." );
 
    if( this->getCommunicator() != MPI_COMM_NULL ) {
       // TODO: it might be better to split the local and ghost parts and synchronize in the middle
@@ -174,14 +176,14 @@ template< typename Vector, typename..., typename >
 DistributedVectorView< Real, Device, Index >&
 DistributedVectorView< Real, Device, Index >::operator%=( const Vector& vector )
 {
-   TNL_ASSERT_EQ( this->getSize(), vector.getSize(), "Vector sizes must be equal." );
-   TNL_ASSERT_EQ( this->getLocalRange(),
-                  vector.getLocalRange(),
-                  "Multiary operations are supported only on vectors which are distributed the same way." );
-   TNL_ASSERT_EQ( this->getGhosts(), vector.getGhosts(), "Ghosts must be equal, views are not resizable." );
-   TNL_ASSERT_EQ( this->getCommunicator(),
-                  vector.getCommunicator(),
-                  "Multiary operations are supported only on vectors within the same communicator." );
+   if( this->getSize() != vector.getSize() )
+      throw std::logic_error( "operator%=: the sizes of the array views must be equal, views are not resizable." );
+   if( this->getLocalRange() != vector.getLocalRange() )
+      throw std::logic_error( "operator%=: the local ranges must be equal, views are not resizable." );
+   if( this->getGhosts() != vector.getGhosts() )
+      throw std::logic_error( "operator%=: ghosts must be equal, views are not resizable." );
+   if( this->getCommunicator() != vector.getCommunicator() )
+      throw std::logic_error( "operator%=: the communicators of the array views must be equal." );
 
    if( this->getCommunicator() != MPI_COMM_NULL ) {
       // TODO: it might be better to split the local and ghost parts and synchronize in the middle

@@ -28,10 +28,8 @@ struct Contains< Devices::Sequential >
    bool
    operator()( const Element* data, const Index size, const Element& value )
    {
-      if( size == 0 )
+      if( data == nullptr || size == 0 )
          return false;
-      TNL_ASSERT_TRUE( data, "Attempted to check data through a nullptr." );
-      TNL_ASSERT_GE( size, 0, "" );
 
       for( Index i = 0; i < size; i++ )
          if( data[ i ] == value )
@@ -48,10 +46,8 @@ struct ContainsOnlyValue< Devices::Sequential >
    bool
    operator()( const Element* data, const Index size, const Element& value )
    {
-      if( size == 0 )
-         return false;
-      TNL_ASSERT_TRUE( data, "Attempted to check data through a nullptr." );
-      TNL_ASSERT_GE( size, 0, "" );
+      if( data == nullptr || size == 0 )
+         return true;
 
       for( Index i = 0; i < size; i++ )
          if( ! ( data[ i ] == value ) )
@@ -67,10 +63,8 @@ struct Contains< Devices::Host >
    bool
    operator()( const Element* data, const Index size, const Element& value )
    {
-      if( size == 0 )
+      if( data == nullptr || size == 0 )
          return false;
-      TNL_ASSERT_TRUE( data, "Attempted to check data through a nullptr." );
-      TNL_ASSERT_GE( size, 0, "" );
 
       if( Devices::Host::isOMPEnabled() && Devices::Host::getMaxThreadsCount() > 1 ) {
          auto fetch = [ = ]( Index i ) -> bool
@@ -93,10 +87,8 @@ struct ContainsOnlyValue< Devices::Host >
    bool
    operator()( const Element* data, const Index size, const Element& value )
    {
-      if( size == 0 )
-         return false;
-      TNL_ASSERT_TRUE( data, "Attempted to check data through a nullptr." );
-      TNL_ASSERT_GE( size, 0, "" );
+      if( data == nullptr || size == 0 )
+         return true;
 
       if( Devices::Host::isOMPEnabled() && Devices::Host::getMaxThreadsCount() > 1 ) {
          auto fetch = [ data, value ]( Index i ) -> bool
@@ -119,10 +111,8 @@ struct Contains< Devices::Cuda >
    bool
    operator()( const Element* data, const Index size, const Element& value )
    {
-      if( size == 0 )
+      if( data == nullptr || size == 0 )
          return false;
-      TNL_ASSERT_TRUE( data, "Attempted to check data through a nullptr." );
-      TNL_ASSERT_GE( size, (Index) 0, "" );
 
       auto fetch = [ = ] __cuda_callable__( Index i ) -> bool
       {
@@ -139,10 +129,8 @@ struct ContainsOnlyValue< Devices::Cuda >
    bool
    operator()( const Element* data, const Index size, const Element& value )
    {
-      if( size == 0 )
-         return false;
-      TNL_ASSERT_TRUE( data, "Attempted to check data through a nullptr." );
-      TNL_ASSERT_GE( size, 0, "" );
+      if( data == nullptr || size == 0 )
+         return true;
 
       auto fetch = [ = ] __cuda_callable__( Index i ) -> bool
       {

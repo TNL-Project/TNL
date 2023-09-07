@@ -148,9 +148,8 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getTransp
    const TridiagonalMatrix< Real2, Device, Index2 >& matrix,
    const Real& matrixMultiplicator )
 {
-   TNL_ASSERT( this->getRows() == matrix.getRows(),
-               std::cerr << "This matrix rows: " << this->getRows() << std::endl
-                         << "That matrix rows: " << matrix.getRows() << std::endl );
+   TNL_ASSERT_EQ( this->getRows(), matrix.getRows(), "The matrices must have the same number of rows." );
+
    if constexpr( std::is_same_v< Device, Devices::Host > ) {
       const Index& rows = matrix.getRows();
       for( Index i = 1; i < rows; i++ ) {

@@ -6,7 +6,9 @@
 
 #pragma once
 
-#include <TNL/String.h>
+#include <iostream>
+#include <string>
+
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Cuda/KernelLaunch.h>
@@ -20,18 +22,18 @@ public:
    using LaunchConfiguration = TNL::Cuda::LaunchConfiguration;
 
    static inline void
-   configSetup( Config::ConfigDescription& config, const String& prefix = "" )
+   configSetup( Config::ConfigDescription& config, const std::string& prefix = "" )
    {
 #ifdef __CUDACC__
-      config.addEntry< int >( prefix + "cuda-device", "Choose CUDA device to run the computation.", 0 );
+      const char* message = "Choose CUDA device to run the computation.";
 #else
-      config.addEntry< int >(
-         prefix + "cuda-device", "Choose CUDA device to run the computation (not supported on this system).", 0 );
+      const char* message = "Choose CUDA device to run the computation (not supported on this system).";
 #endif
+      config.addEntry< int >( prefix + "cuda-device", message, 0 );
    }
 
    static inline bool
-   setup( const Config::ParameterContainer& parameters, const String& prefix = "" )
+   setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" )
    {
 #ifdef __CUDACC__
       int cudaDevice = parameters.getParameter< int >( prefix + "cuda-device" );

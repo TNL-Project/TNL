@@ -48,8 +48,7 @@ template< typename ArrayType >
 void
 IndexedMap< Value, Index, Key >::toArray( ArrayType& array ) const
 {
-   TNL_ASSERT( array.getSize() == getSize(),
-               std::cerr << "array.getSize() = " << array.getSize() << " getSize() = " << getSize() );
+   array.setSize( getSize() );
 
    for( STDMapIteratorType iter = map.begin(); iter != map.end(); ++iter )
       array[ iter->second.index ] = iter->second.data;

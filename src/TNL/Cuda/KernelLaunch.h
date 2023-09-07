@@ -52,11 +52,10 @@ template< typename RawKernel, typename... KernelParameters >
 inline void
 launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuration, KernelParameters&&... parameters )
 {
-   static_assert(
-      ::std::is_function< RawKernel >::value
-         || ( ::std::is_pointer< RawKernel >::value && ::std::is_function< ::std::remove_pointer_t< RawKernel > >::value ),
-      "Only a plain function or function pointer can be launched as a CUDA kernel. "
-      "You are attempting to launch something else." );
+   static_assert( std::is_function_v< RawKernel >
+                     || (std::is_pointer_v< RawKernel > && std::is_function_v< ::std::remove_pointer_t< RawKernel > >),
+                  "Only a plain function or function pointer can be launched as a CUDA kernel. "
+                  "You are attempting to launch something else." );
 
    if( kernel_function == nullptr )
       throw std::logic_error( "cannot call a function via nullptr" );

@@ -140,20 +140,31 @@ bool
 SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::operator==(
    const SparseMatrixRowView< _SegmentView, _ValuesView, _ColumnsIndexesView >& other ) const
 {
+   const IndexType minSize = TNL::min( getSize(), other.getSize() );
    IndexType i = 0;
-   while( i < getSize() && i < other.getSize() ) {
+   while( i < minSize ) {
       if( getColumnIndex( i ) != other.getColumnIndex( i ) )
          return false;
-      if( ! isBinary() && getValue( i ) != other.getValue( i ) )
-         return false;
+      if constexpr( ! isBinary() ) {
+         if( getValue( i ) != other.getValue( i ) )
+            return false;
+      }
       ++i;
    }
-   for( IndexType j = i; j < getSize(); j++ )
-      if( getColumnIndex( j ) != paddingIndex< IndexType > )
-         return false;
-   for( IndexType j = i; j < other.getSize(); j++ )
-      if( other.getColumnIndex( j ) != paddingIndex< IndexType > )
-         return false;
+   if( getSize() > other.getSize() ) {
+      while( i < getSize() ) {
+         if( getColumnIndex( i ) != paddingIndex< IndexType > )
+            return false;
+         ++i;
+      }
+   }
+   else if( getSize() < other.getSize() ) {
+      while( i < other.getSize() ) {
+         if( other.getColumnIndex( i ) != paddingIndex< IndexType > )
+            return false;
+         ++i;
+      }
+   }
    return true;
 }
 
@@ -172,11 +183,11 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::sortColumnIn
       IndexType j = i;
       for( j = i; j > 0 && getColumnIndex( j - 1 ) > columnIdx; j-- ) {
          getColumnIndex( j ) = getColumnIndex( j - 1 );
-         if( ! isBinary() )
+         if constexpr( ! isBinary() )
             getValue( j ) = getValue( j - 1 );
       }
       getColumnIndex( j ) = columnIdx;
-      if( ! isBinary() )
+      if constexpr( ! isBinary() )
          getValue( j ) = value;
    }
 }

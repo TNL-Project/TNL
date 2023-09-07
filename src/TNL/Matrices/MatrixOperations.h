@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Jakub Klinkovsky
-
 #pragma once
 
 /*
@@ -53,9 +51,12 @@ public:
          const RealType beta,
          RealType* y )
    {
-      TNL_ASSERT_GT( m, 0, "m must be positive" );
-      TNL_ASSERT_GT( n, 0, "n must be positive" );
-      TNL_ASSERT_GE( lda, m, "lda must be at least m" );
+      if( m <= 0 )
+         throw std::invalid_argument( "gemv: m must be positive" );
+      if( n <= 0 )
+         throw std::invalid_argument( "gemv: n must be positive" );
+      if( lda < m )
+         throw std::invalid_argument( "gemv: lda must be at least m" );
 
       std::unique_ptr< RealType[] > alphax{ new RealType[ n ] };
       for( IndexType k = 0; k < n; k++ )
@@ -171,11 +172,16 @@ public:
          RealType* C,
          const IndexType ldc )
    {
-      TNL_ASSERT_GT( m, 0, "m must be positive" );
-      TNL_ASSERT_GT( n, 0, "n must be positive" );
-      TNL_ASSERT_GE( lda, m, "lda must be at least m" );
-      TNL_ASSERT_GE( ldb, m, "lda must be at least m" );
-      TNL_ASSERT_GE( ldc, m, "lda must be at least m" );
+      if( m <= 0 )
+         throw std::invalid_argument( "geam: m must be positive" );
+      if( n <= 0 )
+         throw std::invalid_argument( "geam: n must be positive" );
+      if( lda < m )
+         throw std::invalid_argument( "geam: lda must be at least m" );
+      if( ldb < m )
+         throw std::invalid_argument( "geam: ldb must be at least m" );
+      if( ldc < m )
+         throw std::invalid_argument( "geam: ldc must be at least m" );
 
       if( n == 1 ) {
 #ifdef HAVE_OPENMP
@@ -329,9 +335,10 @@ public:
          const RealType beta,
          RealType* y )
    {
-      TNL_ASSERT( m <= lda, );
-      TNL_ASSERT( n <= 256,
-                  std::cerr << "The gemv kernel is optimized only for small 'n' and assumes that n <= 256." << std::endl; );
+      if( m > lda )
+         throw std::invalid_argument( "gemv: the size 'm' must be less than or equal to 'lda'." );
+      if( n > 256 )
+         throw std::invalid_argument( "The gemv kernel is optimized only for small 'n' and assumes that n <= 256." );
 
       // TODO: use static storage, e.g. from the CudaReductionBuffer, to avoid frequent reallocations
       Containers::Vector< RealType, Devices::Cuda, IndexType > xDevice;
@@ -373,11 +380,16 @@ public:
          RealType* C,
          const IndexType ldc )
    {
-      TNL_ASSERT_GT( m, 0, "m must be positive" );
-      TNL_ASSERT_GT( n, 0, "n must be positive" );
-      TNL_ASSERT_GE( lda, m, "lda must be at least m" );
-      TNL_ASSERT_GE( ldb, m, "lda must be at least m" );
-      TNL_ASSERT_GE( ldc, m, "lda must be at least m" );
+      if( m <= 0 )
+         throw std::invalid_argument( "geam: m must be positive" );
+      if( n <= 0 )
+         throw std::invalid_argument( "geam: n must be positive" );
+      if( lda < m )
+         throw std::invalid_argument( "geam: lda must be at least m" );
+      if( ldb < m )
+         throw std::invalid_argument( "geam: ldb must be at least m" );
+      if( ldc < m )
+         throw std::invalid_argument( "geam: ldc must be at least m" );
 
       Cuda::LaunchConfiguration launch_config;
 
@@ -414,7 +426,8 @@ getSymmetricPart( const InMatrix& inMatrix )
       std::is_same_v< typename InMatrix::DeviceType, Devices::Host >
          || std::is_same_v< typename InMatrix::DeviceType, Devices::Sequential >,
       "The input matrix must be stored on host, i.e. only Devices::Host and Devices::Sequential devices are allowed." );
-   TNL_ASSERT_EQ( inMatrix.getRows(), inMatrix.getColumns(), "The input matrix must be square." );
+   if( inMatrix.getRows() != inMatrix.getColumns() )
+      throw std::invalid_argument( "getSymmetricPart: the input matrix must be square" );
 
    // TODO: the following needs to be optimized and it works only for sparse matrices on host
    using RealType = typename InMatrix::RealType;

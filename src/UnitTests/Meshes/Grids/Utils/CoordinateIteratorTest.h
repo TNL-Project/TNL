@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 #include "../CoordinateIterator.h"
+#include <TNL/String.h>
 
 template< typename Iterator >
 void

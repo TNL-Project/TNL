@@ -46,9 +46,8 @@ template< typename Real,
 void SlicedEllpack< Real, Device, Index, SliceSize >::setDimensions( const IndexType rows,
                                                                      const IndexType columns )
 {
-   TNL_ASSERT( rows > 0 && columns > 0,
-              std::cerr << "rows = " << rows
-                   << " columns = " << columns << std::endl );
+   TNL_ASSERT_GT( rows, 0, "" );
+   TNL_ASSERT_GT( columns, 0, "" );
    Sparse< Real, Device, Index >::setDimensions( rows, columns );
 }
 
@@ -56,7 +55,7 @@ template< typename Real,
           typename Device,
           typename Index,
           int SliceSize >
-void SlicedEllpack< Real, Device, Index, SliceSize >::setCompressedRowLengths( ConstRowsCapacitiesTypeView rowLengths )
+void SlicedEllpack< Real, Device, Index, SliceSize >::setCompressedRowLengths( ConstRowCapacitiesTypeView rowLengths )
 {
    TNL_ASSERT_GT( this->getRows(), 0, "cannot set row lengths of an empty matrix" );
    TNL_ASSERT_GT( this->getColumns(), 0, "cannot set row lengths of an empty matrix" );
@@ -78,7 +77,7 @@ template< typename Real,
           typename Device,
           typename Index,
           int SliceSize >
-void SlicedEllpack< Real, Device, Index, SliceSize >::setRowCapacities( ConstRowsCapacitiesTypeView rowLengths )
+void SlicedEllpack< Real, Device, Index, SliceSize >::setRowCapacities( ConstRowCapacitiesTypeView rowLengths )
 {
    setCompressedRowLengths( rowLengths );
 }
@@ -87,7 +86,7 @@ template< typename Real,
           typename Device,
           typename Index,
           int SliceSize >
-void SlicedEllpack< Real, Device, Index, SliceSize >::getCompressedRowLengths( RowsCapacitiesTypeView rowLengths ) const
+void SlicedEllpack< Real, Device, Index, SliceSize >::getCompressedRowLengths( RowCapacitiesTypeView rowLengths ) const
 {
    TNL_ASSERT_EQ( rowLengths.getSize(), this->getRows(), "invalid size of the rowLengths vector" );
    for( IndexType row = 0; row < this->getRows(); row++ )
@@ -159,12 +158,8 @@ template< typename Real,
              typename Index2 >
 bool SlicedEllpack< Real, Device, Index, SliceSize >::operator == ( const SlicedEllpack< Real2, Device2, Index2 >& matrix ) const
 {
-   TNL_ASSERT( this->getRows() == matrix.getRows() &&
-              this->getColumns() == matrix.getColumns(),
-              std::cerr << "this->getRows() = " << this->getRows()
-                   << " matrix.getRows() = " << matrix.getRows()
-                   << " this->getColumns() = " << this->getColumns()
-                   << " matrix.getColumns() = " << matrix.getColumns() );
+   TNL_ASSERT_EQ( this->getRows(), matrix.getRows(), "" );
+   TNL_ASSERT_EQ( this->getColumns(), matrix.getColumns(), "" );
    // TODO: implement this
    return false;
 }
@@ -215,12 +210,10 @@ bool SlicedEllpack< Real, Device, Index, SliceSize >::addElementFast( const Inde
                                                                                const RealType& value,
                                                                                const RealType& thisElementMultiplicator )
 {
-   TNL_ASSERT( row >= 0 && row < this->rows &&
-              column >= 0 && column <= this->columns,
-              std::cerr << " row = " << row
-                   << " column = " << column
-                   << " this->rows = " << this->rows
-                   << " this->columns = " << this-> columns );
+   TNL_ASSERT_GE( row, 0, "" );
+   TNL_ASSERT_LT( row, this->rows, "" );
+   TNL_ASSERT_GE( column, 0, "" );
+   TNL_ASSERT_LT( column, this->columns, "" );
 
    Index elementPtr, rowEnd, step;
    DeviceDependentCode::initRowTraverseFast( *this, row, elementPtr, rowEnd, step );
@@ -263,12 +256,10 @@ bool SlicedEllpack< Real, Device, Index, SliceSize >::addElement( const IndexTyp
                                                                            const RealType& value,
                                                                            const RealType& thisElementMultiplicator )
 {
-   TNL_ASSERT( row >= 0 && row < this->rows &&
-              column >= 0 && column <= this->columns,
-              std::cerr << " row = " << row
-                   << " column = " << column
-                   << " this->rows = " << this->rows
-                   << " this->columns = " << this-> columns );
+   TNL_ASSERT_GE( row, 0, "" );
+   TNL_ASSERT_LT( row, this->rows, "" );
+   TNL_ASSERT_GE( column, 0, "" );
+   TNL_ASSERT_LT( column, this->columns, "" );
 
    Index elementPtr, rowEnd, step;
    DeviceDependentCode::initRowTraverse( *this, row, elementPtr, rowEnd, step );
@@ -719,7 +710,7 @@ template< typename Real,
           typename Device,
           typename Index,
           int SliceSize >
-__device__ void SlicedEllpack< Real, Device, Index, SliceSize >::computeMaximalRowLengthInSlicesCuda( ConstRowsCapacitiesTypeView rowLengths,
+__device__ void SlicedEllpack< Real, Device, Index, SliceSize >::computeMaximalRowLengthInSlicesCuda( ConstRowCapacitiesTypeView rowLengths,
                                                                                                       const IndexType sliceIdx )
 {
    Index rowIdx = sliceIdx * SliceSize;
@@ -791,7 +782,7 @@ class SlicedEllpackDeviceDependentCode
                 typename Index,
                 int SliceSize >
       static bool computeMaximalRowLengthInSlices( SlicedEllpack< Real, Device, Index, SliceSize >& matrix,
-                                                   typename SlicedEllpack< Real, Device, Index >::ConstRowsCapacitiesTypeView rowLengths )
+                                                   typename SlicedEllpack< Real, Device, Index >::ConstRowCapacitiesTypeView rowLengths )
       {
          Index row( 0 ), slice( 0 ), sliceRowLength( 0 );
          while( row < matrix.getRows() )
@@ -837,7 +828,7 @@ template< typename Real,
           typename Index,
           int SliceSize >
 __global__ void SlicedEllpack_computeMaximalRowLengthInSlices_CudaKernel( SlicedEllpack< Real, Devices::Cuda, Index, SliceSize >* matrix,
-                                                                          typename SlicedEllpack< Real, Devices::Cuda, Index, SliceSize >::ConstRowsCapacitiesTypeView rowLengths,
+                                                                          typename SlicedEllpack< Real, Devices::Cuda, Index, SliceSize >::ConstRowCapacitiesTypeView rowLengths,
                                                                           int gridIdx )
 {
    const Index sliceIdx = gridIdx * Cuda::getMaxGridXSize() * blockDim.x + blockIdx.x * blockDim.x + threadIdx.x;
@@ -934,7 +925,7 @@ class SlicedEllpackDeviceDependentCode< Devices::Cuda >
                 typename Index,
                 int SliceSize >
       static bool computeMaximalRowLengthInSlices( SlicedEllpack< Real, Device, Index, SliceSize >& matrix,
-                                                   typename SlicedEllpack< Real, Device, Index >::ConstRowsCapacitiesTypeView rowLengths )
+                                                   typename SlicedEllpack< Real, Device, Index >::ConstRowCapacitiesTypeView rowLengths )
       {
 #ifdef __CUDACC__
          typedef SlicedEllpack< Real, Device, Index, SliceSize > Matrix;

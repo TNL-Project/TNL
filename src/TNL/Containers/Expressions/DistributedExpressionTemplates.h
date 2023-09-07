@@ -59,7 +59,7 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
    static_assert( HasEnabledDistributedExpressionTemplates< T2 >::value,
                   "Invalid operand in distributed binary expression templates - distributed expression templates are not "
                   "enabled for the right operand." );
-   static_assert( std::is_same< typename T1::DeviceType, typename T2::DeviceType >::value,
+   static_assert( std::is_same_v< typename T1::DeviceType, typename T2::DeviceType >,
                   "Attempt to mix operands which have different DeviceType." );
 
    DistributedBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b )

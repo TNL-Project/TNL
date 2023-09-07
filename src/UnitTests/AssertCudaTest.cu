@@ -11,9 +11,11 @@
 using namespace TNL;
 
 // ignore useless nvcc warning: https://stackoverflow.com/a/49997636
+#ifdef __NVCC__
 #pragma nv_diagnostic push
 #pragma nv_diag_suppress = declared_but_not_referenced
 #pragma nv_diag_suppress = set_but_not_used
+#endif
 
 // clang-format off
 #define WRAP_ASSERT( suffix, statement, not_failing )                                 \
@@ -99,6 +101,8 @@ WRAP_ASSERT( test26, TNL_ASSERT_LT( ten, 2, "ten < 2" );, false )
 WRAP_ASSERT( test27, TNL_ASSERT_TRUE( data_null, "nullptr is true" );, false )
 WRAP_ASSERT( test28, TNL_ASSERT_FALSE( data_full, "non-nullptr is false" );, false )
 
+#ifdef __NVCC__
 #pragma nv_diagnostic pop
+#endif
 
 #include "main.h"

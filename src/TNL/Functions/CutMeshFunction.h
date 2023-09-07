@@ -65,8 +65,9 @@ public:
       auto fromDistributedGrid = fromMesh.getDistributedMesh();
       if( fromDistributedGrid != nullptr ) {
          auto toDistributedGrid = outMesh.getDistributedMesh();
-         TNL_ASSERT_TRUE( toDistributedGrid != nullptr,
-                          "You are trying cut distributed meshfunction, but output grid is not set up for distribution" );
+         if( toDistributedGrid == nullptr )
+            throw std::logic_error(
+               "You are trying cut distributed meshfunction, but output grid is not set up for distribution" );
 
          inCut = toDistributedGrid->SetupByCut( *fromDistributedGrid, savedDimensions, reducedDimensions, fixedIndexs );
          if( inCut ) {

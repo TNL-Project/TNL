@@ -49,7 +49,7 @@ generateStencilMatrix( Matrix& A_local, Vector& b_local, typename Matrix::IndexT
 
    // Allocate row capacities - this must match exactly the sparsity pattern of
    // the matrix
-   typename Matrix::RowsCapacitiesType capacities;
+   typename Matrix::RowCapacitiesType capacities;
    capacities.setSize( local_size );
    auto capacities_view = capacities.getView();
    TNL::Algorithms::parallelFor< typename Matrix::DeviceType >(

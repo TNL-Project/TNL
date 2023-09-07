@@ -71,13 +71,13 @@ max( T1&& val1, T2&& val2, T3&& val3, Ts&&... vs )
 /**
  * \brief This function returns absolute value of given number \e n.
  */
-template< class T, std::enable_if_t< std::is_arithmetic< T >::value && ! std::is_unsigned< T >::value, bool > = true >
+template< class T, std::enable_if_t< std::is_arithmetic_v< T > && ! std::is_unsigned_v< T >, bool > = true >
 __cuda_callable__
 T
 abs( const T& n )
 {
 #if defined( __CUDA_ARCH__ )
-   if( std::is_integral< T >::value )
+   if( std::is_integral_v< T > )
       return ::abs( n );
    else
       return ::fabs( n );
@@ -89,7 +89,7 @@ abs( const T& n )
 /**
  * \brief This function returns the absolute value of given unsigned number \e n, i.e. \e n.
  */
-template< class T, std::enable_if_t< std::is_unsigned< T >::value, bool > = true >
+template< class T, std::enable_if_t< std::is_unsigned_v< T >, bool > = true >
 __cuda_callable__
 T
 abs( const T& n )
@@ -146,7 +146,7 @@ template< typename T1,
           typename T2,
           typename ResultType = std::common_type_t< T1, T2 >,
           // enable_if is necessary to avoid ambiguity in vector expressions
-          std::enable_if_t< std::is_arithmetic< T1 >::value && std::is_arithmetic< T2 >::value, bool > = true >
+          std::enable_if_t< std::is_arithmetic_v< T1 > && std::is_arithmetic_v< T2 >, bool > = true >
 __cuda_callable__
 ResultType
 pow( const T1& base, const T2& exp )

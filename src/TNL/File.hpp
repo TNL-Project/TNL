@@ -22,13 +22,13 @@
 
 namespace TNL {
 
-inline File::File( const String& fileName, std::ios_base::openmode mode )
+inline File::File( const std::string& fileName, std::ios_base::openmode mode )
 {
    open( fileName, mode );
 }
 
 inline void
-File::open( const String& fileName, std::ios_base::openmode mode )
+File::open( const std::string& fileName, std::ios_base::openmode mode )
 {
    // enable exceptions
    file.exceptions( std::fstream::failbit | std::fstream::badbit | std::fstream::eofbit );
@@ -37,7 +37,7 @@ File::open( const String& fileName, std::ios_base::openmode mode )
 
    mode |= std::ios::binary;
    try {
-      file.open( fileName.getString(), mode );
+      file.open( fileName, mode );
    }
    catch( std::ios_base::failure& ) {
       std::stringstream msg;
@@ -77,12 +77,10 @@ File::load( Type* buffer, std::streamsize elements )
 {
    static_assert( std::is_same< Type, typename Allocator::value_type >::value,
                   "Allocator::value_type must be the same as Type." );
-   TNL_ASSERT_GE( elements, 0, "Number of elements to load must be non-negative." );
-
-   if( ! elements )
-      return;
-
-   load_impl< Type, SourceType, Allocator >( buffer, elements );
+   if( elements < 0 )
+      throw std::invalid_argument( "File::load: number of elements to load must be non-negative." );
+   else if( elements > 0 )
+      load_impl< Type, SourceType, Allocator >( buffer, elements );
 }
 
 // Host allocators
@@ -157,12 +155,10 @@ File::save( const Type* buffer, std::streamsize elements )
 {
    static_assert( std::is_same< std::remove_cv_t< Type >, std::remove_cv_t< typename Allocator::value_type > >::value,
                   "Allocator::value_type must be the same as Type." );
-   TNL_ASSERT_GE( elements, 0, "Number of elements to save must be non-negative." );
-
-   if( ! elements )
-      return;
-
-   save_impl< Type, TargetType, Allocator >( buffer, elements );
+   if( elements < 0 )
+      throw std::invalid_argument( "File::save: number of elements to save must be non-negative." );
+   else if( elements > 0 )
+      save_impl< Type, TargetType, Allocator >( buffer, elements );
 }
 
 // Host allocators
