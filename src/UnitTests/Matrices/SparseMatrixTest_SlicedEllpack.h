@@ -28,7 +28,9 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorSlicedEllpack >,
    TNL::Matrices::SparseMatrix< long, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorSlicedEllpack >,
    TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorSlicedEllpack >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorSlicedEllpack >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorSlicedEllpack >,
+   TNL::Matrices::
+      SparseMatrix< std::complex< float >, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorSlicedEllpack >
 #ifdef __CUDACC__
    ,
    TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, RowMajorSlicedEllpack >,

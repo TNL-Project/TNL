@@ -1,6 +1,7 @@
 #include <iostream>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
 #include <TNL/Matrices/SparseMatrix.h>
+#include <TNL/Arithmetics/Complex.h>
 
 #include <gtest/gtest.h>
 
@@ -28,7 +29,9 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorBiEllpack >,
    TNL::Matrices::SparseMatrix< long, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorBiEllpack >,
    TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorBiEllpack >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorBiEllpack >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorBiEllpack >,
+   TNL::Matrices::
+      SparseMatrix< std::complex< float >, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorBiEllpack >
 #ifdef __CUDACC__
    ,
    TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, RowMajorBiEllpack >,
@@ -39,7 +42,12 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorBiEllpack >,
    TNL::Matrices::SparseMatrix< long, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorBiEllpack >,
    TNL::Matrices::SparseMatrix< float, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorBiEllpack >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorBiEllpack >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorBiEllpack >,
+   TNL::Matrices::SparseMatrix< TNL::Arithmetics::Complex< float >,
+                                TNL::Devices::Cuda,
+                                long,
+                                TNL::Matrices::GeneralMatrix,
+                                ColumnMajorBiEllpack >
 #endif
    >;
 

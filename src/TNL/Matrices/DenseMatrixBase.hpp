@@ -273,7 +273,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::addElement( IndexType row,
                                                                   const RealType& thisElementMultiplicator )
 {
    const IndexType elementIndex = this->getElementIndex( row, column );
-   if( thisElementMultiplicator == 1.0 )
+   if( thisElementMultiplicator == RealType{ 1 } )
       this->getValues().setElement( elementIndex, this->getValues().getElement( elementIndex ) + value );
    else
       this->getValues().setElement( elementIndex,
@@ -517,8 +517,8 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
       outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
    };
 
-   if( outVectorMultiplicator == 0.0 ) {
-      if( matrixMultiplicator == 1.0 )
+   if( outVectorMultiplicator == RealType{ 0 } ) {
+      if( matrixMultiplicator == RealType{ 1 } )
          SegmentsReductionKernel::reduceSegments(
             this->segments, begin, end, fetch, std::plus<>{}, keeperDirect, (RealType) 0.0 );
       else
@@ -526,7 +526,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
             this->segments, begin, end, fetch, std::plus<>{}, keeperMatrixMult, (RealType) 0.0 );
    }
    else {
-      if( matrixMultiplicator == 1.0 )
+      if( matrixMultiplicator == RealType{ 1 } )
          SegmentsReductionKernel::reduceSegments(
             this->segments, begin, end, fetch, std::plus<>{}, keeperVectorMult, (RealType) 0.0 );
       else
@@ -548,7 +548,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::addMatrix( const Matrix& m
                          << "That matrix columns: " << matrix.getColumns() << std::endl
                          << "That matrix rows: " << matrix.getRows() << std::endl );
 
-   if( thisMatrixMultiplicator == 1.0 )
+   if( thisMatrixMultiplicator == RealType{ 1 } )
       this->getValues() += matrixMultiplicator * matrix.getValues();
    else
       this->getValues() = thisMatrixMultiplicator * this->getValues() + matrixMultiplicator * matrix.getValues();

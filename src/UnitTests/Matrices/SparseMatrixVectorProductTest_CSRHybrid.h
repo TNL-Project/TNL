@@ -1,6 +1,7 @@
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/CSRHybridKernel.h>
 #include <TNL/Matrices/SparseMatrix.h>
+#include <TNL/Arithmetics/Complex.h>
 
 #include <gtest/gtest.h>
 
@@ -20,7 +21,8 @@ using MatrixAndKernelTypes = ::testing::Types< MatrixAndKernel< int, TNL::Device
                                                MatrixAndKernel< int, TNL::Devices::Host, long >,
                                                MatrixAndKernel< long, TNL::Devices::Host, long >,
                                                MatrixAndKernel< float, TNL::Devices::Host, long >,
-                                               MatrixAndKernel< double, TNL::Devices::Host, long >
+                                               MatrixAndKernel< double, TNL::Devices::Host, long >,
+                                               MatrixAndKernel< std::complex< float >, TNL::Devices::Host, long >
 #ifdef __CUDACC__
                                                ,
                                                MatrixAndKernel< int, TNL::Devices::Cuda, int >,
@@ -31,6 +33,7 @@ using MatrixAndKernelTypes = ::testing::Types< MatrixAndKernel< int, TNL::Device
                                                MatrixAndKernel< long, TNL::Devices::Cuda, long >,
                                                MatrixAndKernel< float, TNL::Devices::Cuda, long >,
                                                MatrixAndKernel< double, TNL::Devices::Cuda, long >
+//,MatrixAndKernel< TNL::Arithmetics::Complex<float>,   TNL::Devices::Cuda, long >
 #endif
                                                >;
 

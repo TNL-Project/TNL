@@ -50,7 +50,7 @@ copyDenseToDenseMatrix( Matrix1& A, const Matrix2& matrix )
    else {
       const Index maxRowLength = matrix.getColumns();
       const Index bufferRowsCount( 128 );
-      const size_t bufferSize = bufferRowsCount * maxRowLength;
+      const std::size_t bufferSize = bufferRowsCount * maxRowLength;
       Containers::Vector< RHSRealType, RHSDeviceType, RHSIndexType > matrixValuesBuffer( bufferSize );
       Containers::Vector< Real, Device, Index > thisValuesBuffer( bufferSize );
       auto matrixValuesBuffer_view = matrixValuesBuffer.getView();
@@ -121,7 +121,7 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
    else {
       const Index maxRowLength = max( rowLengths );
       const Index bufferRowsCount = 128;
-      const size_t bufferSize = bufferRowsCount * maxRowLength;
+      const std::size_t bufferSize = bufferRowsCount * maxRowLength;
       Containers::Vector< RHSRealType, RHSDeviceType, RHSIndexType, RHSRealAllocatorType > matrixValuesBuffer( bufferSize );
       Containers::Vector< RHSIndexType, RHSDeviceType, RHSIndexType > matrixColumnsBuffer( bufferSize );
       Containers::Vector< Real, Device, Index, RealAllocatorType > thisValuesBuffer( bufferSize );
@@ -217,7 +217,7 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
    else {
       const Index maxRowLength = B.getColumns();
       const Index bufferRowsCount = 4096;
-      const size_t bufferSize = bufferRowsCount * maxRowLength;
+      const std::size_t bufferSize = bufferRowsCount * maxRowLength;
       Containers::Vector< RHSRealType, RHSDeviceType, RHSIndexType, RHSRealAllocatorType > matrixValuesBuffer( bufferSize );
       Containers::Vector< Real, Device, Index, RealAllocatorType > thisValuesBuffer( bufferSize );
       Containers::Vector< Index, Device, Index, IndexAllocatorType > thisColumnsBuffer( bufferSize );
@@ -247,17 +247,17 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
          const Index matrix_columns = A.getColumns();
          auto f2 = [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index & columnIndex, Real & value ) mutable
          {
-            Real inValue = 0.0;
+            Real inValue = 0;
             Index bufferIdx;
             Index column = rowLocalIndexes_view[ rowIdx ];
-            while( inValue == 0.0 && column < matrix_columns ) {
+            while( inValue == Real{ 0 } && column < matrix_columns ) {
                bufferIdx = ( rowIdx - baseRow ) * maxRowLength + column++;
                inValue = thisValuesBuffer_view[ bufferIdx ];
             }
             rowLocalIndexes_view[ rowIdx ] = column;
-            if( inValue == 0.0 ) {
+            if( inValue == Real{ 0 } ) {
                columnIndex = paddingIndex< Index >;
-               value = 0.0;
+               value = 0;
             }
             else {
                columnIndex = column - 1;
@@ -319,18 +319,18 @@ copyBuffersToMatrixElements( Matrix& m,
 
    auto f2 = [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index & columnIndex, Real & value ) mutable
    {
-      Real inValue = 0.0;
+      Real inValue = 0;
       std::size_t bufferIdx;
       Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
-      while( inValue == 0.0 && localIdx < thisRowLengths_view[ rowIdx ] ) {
+      while( inValue == Real{ 0 } && localIdx < thisRowLengths_view[ rowIdx ] ) {
          bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;
          //TNL_ASSERT_LT( bufferIdx, bufferSize, "" );
          inValue = thisValuesBuffer_view[ bufferIdx ];
       }
       rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
-      if( inValue == 0.0 ) {
+      if( inValue == Real{ 0 } ) {
          columnIndex = paddingIndex< Index >;
-         value = 0.0;
+         value = 0;
       }
       else {
          columnIndex = thisColumnsBuffer_view[ bufferIdx ];  // column - 1;
@@ -385,7 +385,7 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
    else {
       const Index maxRowLength = max( rowCapacities );
       const Index bufferRowsCount = 4096;
-      const size_t bufferSize = bufferRowsCount * maxRowLength;
+      const std::size_t bufferSize = bufferRowsCount * maxRowLength;
       Containers::Vector< RHSRealType, RHSDeviceType, RHSIndexType, RHSRealAllocatorType > matrixValuesBuffer( bufferSize );
       Containers::Vector< RHSIndexType, RHSDeviceType, RHSIndexType > matrixColumnsBuffer( bufferSize );
       Containers::Vector< Real, Device, Index, RealAllocatorType > thisValuesBuffer( bufferSize );
@@ -446,18 +446,18 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
          const auto thisRowLengths_view = thisRowLengths.getConstView();
          auto f2 = [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index & columnIndex, Real & value ) mutable
          {
-            Real inValue = 0.0;
+            Real inValue = 0;
             std::size_t bufferIdx;
             Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
-            while( inValue == 0.0 && localIdx < thisRowLengths_view[ rowIdx ] ) {
+            while( inValue == Real{ 0 } && localIdx < thisRowLengths_view[ rowIdx ] ) {
                bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;
                TNL_ASSERT_LT( bufferIdx, bufferSize, "" );
                inValue = thisValuesBuffer_view[ bufferIdx ];
             }
             rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
-            if( inValue == 0.0 ) {
+            if( inValue == Real{ 0 } ) {
                columnIndex = paddingIndex< Index >;
-               value = 0.0;
+               value = 0;
             }
             else {
                columnIndex = thisColumnsBuffer_view[ bufferIdx ];  // column - 1;
@@ -656,6 +656,7 @@ copyAdjacencyStructure( const Matrix& A, AdjacencyMatrix& B, bool has_symmetric_
    //   static_assert( std::is_same< typename AdjacencyMatrix::RealType, bool >::value,
    //                  "The RealType of the adjacency matrix must be bool." );
 
+   using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
 
    if( A.getRows() != A.getColumns() ) {
@@ -679,7 +680,7 @@ copyAdjacencyStructure( const Matrix& A, AdjacencyMatrix& B, bool has_symmetric_
             break;
          length++;
          if( ! has_symmetric_pattern && i != j )
-            if( A.getElement( j, i ) == 0 )
+            if( A.getElement( j, i ) == RealType{ 0 } )
                rowLengths[ j ]++;
       }
       if( ignore_diagonal )
