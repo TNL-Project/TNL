@@ -11,9 +11,8 @@
 namespace TNL::Solvers::ODE::Methods::Matlab {
 
 /**
- * \brief Dormand-Prince method also known as ode45 from Matlab.
- *
- * See [Wikipedia](https://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method) for details.
+ * \brief Fifth order [Dormand-Prince](https://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method) method also known as ode45 from
+ * [Matlab](https://www.mathworks.com/help/simulink/gui/solver.html) with adaptive step size.
  *
  * \tparam Value is arithmetic type used for computations.
  */

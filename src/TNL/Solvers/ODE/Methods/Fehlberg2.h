@@ -14,16 +14,16 @@
 namespace TNL::Solvers::ODE::Methods {
 
 /**
- * \brief Fourth order [Runge-Kutta-Merson](https://encyclopediaofmath.org/wiki/Kutta-Merson_method) method with adaptive step size.
+ * \brief Second order [Fehlbergs's](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method with adaptive time step.
  *
  * \tparam Value is arithmetic type used for computations.
  */
 template< typename Value = double >
-struct Merson
+struct Fehlberg2
 {
    using ValueType = Value;
 
-   static constexpr size_t Stages = 5;
+   static constexpr size_t Stages = 3;
 
    static constexpr size_t getStages() { return Stages; }
 
@@ -38,28 +38,25 @@ struct Merson
    }
 
    static constexpr ValueType getUpdateCoefficient( size_t i ) {
-      return update_coefficients[ i ];
+      return higher_order_update_coefficients[ i ];
    }
 
    static constexpr ValueType getErrorCoefficient( size_t i ) {
-      return error_coefficients[ i ];
+      return higher_order_update_coefficients[ i ] - lower_order_update_coefficients[ i ];
    }
 
 protected:
 
    static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
-      std::array< Value, Stages >{     0.0,     0.0,   0.0, 0.0 },
-      std::array< Value, Stages >{ 1.0/3.0,     0.0,   0.0, 0.0 },
-      std::array< Value, Stages >{ 1.0/6.0, 1.0/6.0,   0.0, 0.0 },
-      std::array< Value, Stages >{   0.125,     0.0, 0.375, 0.0 },
-      std::array< Value, Stages >{     0.5,     0.0,  -1.5, 2.0 }
+      std::array< Value, Stages >{ 0.0,       0.0,         0.0 },
+      std::array< Value, Stages >{ 1.0/  2.0, 0.0,         0.0 },
+      std::array< Value, Stages >{ 1.0/256.0, 255.0/256.0, 0.0 }
    };
 
-   static constexpr std::array< Value, Stages > time_coefficients { 0.0, 1.0/3.0, 1.0/3.0, 0.5, 1.0 };
+   static constexpr std::array< Value, Stages > time_coefficients{ 0.0, 1.0/2.0, 1.0 };
 
-   static constexpr std::array< Value, Stages > update_coefficients { 1.0/6.0, 0.0, 0.0, 2.0/3.0, 1.0/6.0 };
-
-   static constexpr std::array< Value, Stages > error_coefficients { 0.2/3.0, 0.0, -0.3, 0.8/3.0, -0.1/3.0 };
+   static constexpr std::array< Value, Stages > higher_order_update_coefficients { 1.0/512.0, 255.0/256.0, 1.0/512.0 };
+   static constexpr std::array< Value, Stages > lower_order_update_coefficients  { 1.0/256.0, 255.0/256.0, 0.0 };
 };
 
 } // namespace TNL::Solvers::ODE::Methods

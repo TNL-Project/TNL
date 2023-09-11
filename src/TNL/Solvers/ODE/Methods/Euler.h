@@ -8,6 +8,11 @@
 
 namespace TNL::Solvers::ODE::Methods {
 
+/**
+ * \brief First order [Euler](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+ *
+ * \tparam Value is arithmetic type used for computations.
+ */
 template< typename Value = double >
 struct Euler
 {

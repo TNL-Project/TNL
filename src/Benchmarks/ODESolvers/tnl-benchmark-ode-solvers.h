@@ -17,9 +17,28 @@
 #include <TNL/MPI/ScopedInitializer.h>
 #include <TNL/MPI/Config.h>
 #include <TNL/Solvers/ODE/ODESolver.h>
-#include <TNL/Solvers/ODE/Methods/Euler.h>
-#include <TNL/Solvers/ODE/Methods/Merson.h>
+#include <TNL/Solvers/ODE/Methods/BogackiShampin.h>
 #include <TNL/Solvers/ODE/Methods/DormandPrince.h>
+#include <TNL/Solvers/ODE/Methods/Fehlberg2.h>
+#include <TNL/Solvers/ODE/Methods/Heun2.h>
+#include <TNL/Solvers/ODE/Methods/Kutta.h>
+#include <TNL/Solvers/ODE/Methods/Merson.h>
+#include <TNL/Solvers/ODE/Methods/Ralston2.h>
+#include <TNL/Solvers/ODE/Methods/Ralston4.h>
+#include <TNL/Solvers/ODE/Methods/RungeKutta.h>
+#include <TNL/Solvers/ODE/Methods/VanDerHouwenWray.h>
+#include <TNL/Solvers/ODE/Methods/CashKarp.h>
+#include <TNL/Solvers/ODE/Methods/Euler.h>
+#include <TNL/Solvers/ODE/Methods/Fehlberg5.h>
+#include <TNL/Solvers/ODE/Methods/Heun3.h>
+#include <TNL/Solvers/ODE/Methods/Midpoint.h>
+#include <TNL/Solvers/ODE/Methods/Ralston3.h>
+#include <TNL/Solvers/ODE/Methods/Rule38.h>
+#include <TNL/Solvers/ODE/Methods/SSPRK3.h>
+
+//#include <TNL/Solvers/ODE/Methods/Euler.h>
+//#include <TNL/Solvers/ODE/Methods/Merson.h>
+//#include <TNL/Solvers/ODE/Methods/DormandPrince.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
 #include "ODESolversBenchmarkResult.h"

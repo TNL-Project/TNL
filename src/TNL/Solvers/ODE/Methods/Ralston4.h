@@ -14,20 +14,20 @@
 namespace TNL::Solvers::ODE::Methods {
 
 /**
- * \brief Fourth order [Runge-Kutta-Merson](https://encyclopediaofmath.org/wiki/Kutta-Merson_method) method with adaptive step size.
+ * \brief Fourth order [Ralstons's](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
  *
  * \tparam Value is arithmetic type used for computations.
  */
 template< typename Value = double >
-struct Merson
+struct Ralston4
 {
    using ValueType = Value;
 
-   static constexpr size_t Stages = 5;
+   static constexpr size_t Stages = 4;
 
    static constexpr size_t getStages() { return Stages; }
 
-   static constexpr bool isAdaptive() { return true; }
+   static constexpr bool isAdaptive() { return false; }
 
    static constexpr ValueType getCoefficient( const size_t stage, const size_t i ) {
       return k_coefficients[ stage ][ i ];
@@ -41,25 +41,18 @@ struct Merson
       return update_coefficients[ i ];
    }
 
-   static constexpr ValueType getErrorCoefficient( size_t i ) {
-      return error_coefficients[ i ];
-   }
-
 protected:
 
    static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
-      std::array< Value, Stages >{     0.0,     0.0,   0.0, 0.0 },
-      std::array< Value, Stages >{ 1.0/3.0,     0.0,   0.0, 0.0 },
-      std::array< Value, Stages >{ 1.0/6.0, 1.0/6.0,   0.0, 0.0 },
-      std::array< Value, Stages >{   0.125,     0.0, 0.375, 0.0 },
-      std::array< Value, Stages >{     0.5,     0.0,  -1.5, 2.0 }
+      std::array< Value, Stages >{  0.0,         0.0,        0.0,        0.0 },
+      std::array< Value, Stages >{  0.4,         0.0,        0.0,        0.0 },
+      std::array< Value, Stages >{  0.29697761,  0.15875964, 0.0,        0.0 },
+      std::array< Value, Stages >{  0.21810040, -3.05096516, 3.83286476, 0.0 }
    };
 
-   static constexpr std::array< Value, Stages > time_coefficients { 0.0, 1.0/3.0, 1.0/3.0, 0.5, 1.0 };
+   static constexpr std::array< Value, Stages > time_coefficients { 0.0, 0.4, 0.45573725, 1.0 };
 
-   static constexpr std::array< Value, Stages > update_coefficients { 1.0/6.0, 0.0, 0.0, 2.0/3.0, 1.0/6.0 };
-
-   static constexpr std::array< Value, Stages > error_coefficients { 0.2/3.0, 0.0, -0.3, 0.8/3.0, -0.1/3.0 };
+   static constexpr std::array< Value, Stages > update_coefficients { 0.17476028, -0.55148066, 1.20553560, 0.17118478 };
 };
 
 } // namespace TNL::Solvers::ODE::Methods
