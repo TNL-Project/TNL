@@ -320,7 +320,7 @@ protected:
    }
 
    [[nodiscard]] VariantVector
-   readPointOrCellData( const std::string& sectionName, const std::string& arrayName )
+   readPointOrCellData( const std::string& sectionName, const std::string& arrayName ) const
    {
       const tinyxml2::XMLElement* piece = getChildSafe( datasetElement, "Piece" );
       if( piece->NextSiblingElement( "Piece" ) != nullptr )
@@ -401,7 +401,7 @@ public:
    }
 
    [[nodiscard]] VariantVector
-   readPointData( const std::string& arrayName ) override
+   readPointData( const std::string& arrayName ) const override
    {
 #ifdef HAVE_TINYXML2
       return readPointOrCellData( "PointData", arrayName );
@@ -411,7 +411,7 @@ public:
    }
 
    [[nodiscard]] VariantVector
-   readCellData( const std::string& arrayName ) override
+   readCellData( const std::string& arrayName ) const override
    {
 #ifdef HAVE_TINYXML2
       return readPointOrCellData( "CellData", arrayName );

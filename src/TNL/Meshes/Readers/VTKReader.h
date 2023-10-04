@@ -381,13 +381,13 @@ public:
    }
 
    [[nodiscard]] VariantVector
-   readPointData( const std::string& arrayName ) override
+   readPointData( const std::string& arrayName ) const override
    {
       return readPointOrCellData( "POINT_DATA", arrayName );
    }
 
    [[nodiscard]] VariantVector
-   readCellData( const std::string& arrayName ) override
+   readCellData( const std::string& arrayName ) const override
    {
       return readPointOrCellData( "CELL_DATA", arrayName );
    }
@@ -763,7 +763,7 @@ protected:
    }
 
    [[nodiscard]] VariantVector
-   readPointOrCellData( std::string sectionName, const std::string& arrayName )
+   readPointOrCellData( std::string sectionName, const std::string& arrayName ) const
    {
       // NOTE: we must open the file in binary mode to prevent CR/CRLF conversions on Windows
       std::ifstream inputFile( fileName, std::ios_base::binary );
@@ -776,7 +776,7 @@ protected:
       sectionName += "::" + arrayName;
       if( sectionPositions.count( sectionName ) == 0 )
          throw MeshReaderError( "VTKReader", "array " + arrayName + " was not found in the CELL_DATA section" );
-      inputFile.seekg( sectionPositions[ sectionName ] );
+      inputFile.seekg( sectionPositions.at( sectionName ) );
 
       // type: SCALARS, VECTORS, etc.
       // datatype: int, float, double
@@ -824,7 +824,7 @@ protected:
 
    template< typename T >
    [[nodiscard]] std::vector< T >
-   readDataArray( std::istream& str, std::int32_t values )
+   readDataArray( std::istream& str, std::int32_t values ) const
    {
       std::vector< T > vector( values );
       for( std::int32_t i = 0; i < values; i++ )

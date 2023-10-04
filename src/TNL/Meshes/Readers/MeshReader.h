@@ -266,14 +266,14 @@ public:
    }
 
    [[nodiscard]] virtual VariantVector
-   readPointData( const std::string& arrayName )
+   readPointData( const std::string& arrayName ) const
    {
       throw Exceptions::NotImplementedError(
          "readPointData is not implemented in the mesh reader for this specific file format." );
    }
 
    [[nodiscard]] virtual VariantVector
-   readCellData( const std::string& arrayName )
+   readCellData( const std::string& arrayName ) const
    {
       throw Exceptions::NotImplementedError(
          "readCellData is not implemented in the mesh reader for this specific file format." );
