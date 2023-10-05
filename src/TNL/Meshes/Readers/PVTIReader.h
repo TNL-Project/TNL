@@ -305,13 +305,13 @@ public:
    }
 
    [[nodiscard]] VariantVector
-   readPointData( const std::string& arrayName ) override
+   readPointData( const std::string& arrayName ) const override
    {
       return localReader.readPointData( arrayName );
    }
 
    [[nodiscard]] VariantVector
-   readCellData( const std::string& arrayName ) override
+   readCellData( const std::string& arrayName ) const override
    {
       return localReader.readCellData( arrayName );
    }
