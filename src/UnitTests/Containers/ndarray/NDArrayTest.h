@@ -1235,4 +1235,45 @@ TEST( NDArrayTest, isContguousBlock )
    EXPECT_TRUE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 1, 3, 3 ) ) );
 }
 
+TEST( NDArrayTest, isContguousBlock_overlaps )
+{
+   int I = 3, J = 3, K = 3;
+   NDArray< int, SizesHolder< int, 0, 0, 0 >, index_sequence< 0, 1, 2 >, TNL::Devices::Host, int, index_sequence< 0, 1, 2 > > a;
+   a.setSizes( I, J, K );
+   a.setValue( 0 );
+   using SizesHolder = typename decltype( a )::SizesHolderType;
+
+   // 1D blocks
+   EXPECT_TRUE( a.isContiguousBlock( SizesHolder( 1, 1, 1 ), SizesHolder( 2, 2, 3 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 1, 1, 1 ), SizesHolder( 2, 3, 2 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 1, 1, 1 ), SizesHolder( 3, 2, 2 ) ) );
+
+   // 2D blocks - all false due to overlaps
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 1, 1, 1 ), SizesHolder( 2, 3, 3 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 1, 1, 1 ), SizesHolder( 3, 3, 2 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 1, 1, 1 ), SizesHolder( 3, 2, 3 ) ) );
+
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 1, 3, 3 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 1, 2, 3 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 1, 3, 2 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 1, 2, 2 ) ) );
+
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 3, 3, 1 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 3, 2, 1 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 2, 3, 1 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 2, 2, 1 ) ) );
+
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 3, 1, 3 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 3, 1, 2 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 2, 1, 3 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 2, 1, 2 ) ) );
+
+   // 3D blocks - all false due to overlaps
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 1, 1, 1 ), SizesHolder( 3, 3, 3 ) ) );
+
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 3, 3, 3 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 2, 3, 3 ) ) );
+   EXPECT_FALSE( a.isContiguousBlock( SizesHolder( 0, 0, 0 ), SizesHolder( 1, 3, 3 ) ) );
+}
+
 #include "../../main.h"

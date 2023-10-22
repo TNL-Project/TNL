@@ -6,8 +6,14 @@
 
 #pragma once
 
+#include <cstdint>
 #include <limits>
 #include <type_traits>
+#include <vector>
+#include <set>
+#include <array>
+
+#include <TNL/Assert.h>
 
 namespace TNL {
 
@@ -173,6 +179,188 @@ integerMultiplyOverflow( Index a, Index b )
       return false;
    const Index result = a * b;
    return a != result / b;
+}
+
+/**
+ * \brief Calculates the prime factorization of a positive integer.
+ *
+ * The function uses the simple [trial division](https://en.wikipedia.org/wiki/Trial_division)
+ * algorithm, so it is not efficient for large numbers.
+ *
+ * \tparam Index is the integral type of the input number.
+ * \param number is the integer to be factorized.
+ * \return A vector of the prime factors.
+ */
+template< typename Index >
+std::vector< Index >
+primeFactorization( Index number )
+{
+   if( number <= 0 )
+      return {};
+   if( number == 1 )
+      return { 1 };
+
+   std::vector< Index > factors;
+   Index factor = 2;
+   while( number % 2 == 0 ) {
+      factors.push_back( factor );
+      number /= 2;
+   }
+
+   factor = 3;
+   while( factor * factor <= number ) {
+      if( number % factor == 0 ) {
+         factors.push_back( factor );
+         number /= factor;
+      }
+      else {
+         factor += 2;
+      }
+   }
+
+   if( number != 1 )
+      factors.push_back( number );
+
+   return factors;
+}
+
+/**
+ * \brief Calculates the [cartesian power](https://en.wikipedia.org/wiki/Cartesian_product#n-ary_Cartesian_power)
+ * of elements in an array: `array^N`.
+ *
+ * For example, `cartesianPower(std::vector<int>{0,1}, 2)` returns the following set (written in pseudo-code):
+ * `{ { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } }`.
+ *
+ * \tparam T is the type of elements in the \e array.
+ * \param array is the input array/vector of elements.
+ * \param N is the power of the cartesian product.
+ * \return A set of vectors of elements, where each vector contains \e N elements from \e array.
+ */
+template< typename T >
+std::set< std::vector< T > >
+cartesianPower( std::vector< T > array, int N )
+{
+   if( array.empty() || N < 1 )
+      return {};
+   if( array.size() == 1 ) {
+      std::vector< T > tuple( N );
+      return { tuple };
+   }
+
+   std::set< std::vector< T > > result;
+
+   if( N == 1 ) {
+      for( const auto& value : array )
+         result.emplace( std::vector< T >{ value } );
+      return result;
+   }
+
+   std::vector< std::size_t > indices( N, 0 );
+   bool changed = true;
+   while( changed ) {
+      changed = false;
+      // add current tuple
+      std::vector< T > tuple( N );
+      for( int i = 0; i < N; i++ )
+         tuple[ i ] = array[ indices[ i ] ];
+      result.insert( tuple );
+      // loop over the input elements in reverse order
+      for( int i = N - 1; ! changed && i >= 0; i-- ) {
+         // increment
+         indices[ i ]++;
+         if( indices[ i ] < array.size() ) {
+            // we moved to the next character
+            changed = true;
+         }
+         else {
+            // end of string, so roll over
+            indices[ i ] = 0;
+         }
+      }
+   }
+   return result;
+}
+
+/**
+ * \brief Finds all possible integer factorizations of a positive integer into
+ * a product of `N` factors.
+ *
+ * \tparam N is the rank of the tuples (2 for pairs, 3 for triplets, etc.)
+ * \tparam Index is the integral type of the input number.
+ * \param number is the integer to be factorized.
+ * \return A set of \e N-tuples, where the product of all components in each
+ *         tuple is equal to \e number.
+ */
+template< std::size_t N, typename Index >
+std::set< std::array< Index, N > >
+integerFactorizationTuples( Index number )
+{
+   static_assert( N > 1 );
+
+   if( number < 1 )
+      return {};
+
+   // factorize the input
+   const std::vector< Index > prime_factors = primeFactorization( number );
+
+   // create object for the result
+   std::set< std::array< Index, N > > result;
+
+   // generate component indices
+   std::vector< std::uint8_t > identity( N );
+   for( std::size_t i = 0; i < N; i++ )
+      identity[ i ] = i;
+   const auto component_indices = cartesianPower( identity, prime_factors.size() );
+
+   // generate tuples
+   for( const auto& components : component_indices ) {
+      TNL_ASSERT_EQ( prime_factors.size(), components.size(), "got wrong vector size from the cartesian product" );
+
+      // create default tuple
+      std::array< Index, N > tuple;
+      for( std::size_t i = 0; i < N; i++ )
+         tuple[ i ] = 1;
+
+      for( std::size_t i = 0; i < prime_factors.size(); i++ ) {
+         TNL_ASSERT_LT( components[ i ], 3, "got wrong value from the cartesian power" );
+         tuple[ components[ i ] ] *= prime_factors[ i ];
+      }
+
+#ifndef NDEBUG
+      // verify the result
+      Index product = 1;
+      for( std::size_t i = 0; i < N; i++ )
+         product *= tuple[ i ];
+      TNL_ASSERT_EQ( product, number, "integer factorization failed - product is not equal to the input" );
+#endif
+
+      result.insert( std::move( tuple ) );
+   }
+
+   return result;
+}
+
+/**
+ * \brief This function swaps bits at positions \e p1 and \e p2 in an integer \e n.
+ */
+template< typename Index >
+Index
+swapBits( Index n, std::uint8_t p1, std::uint8_t p2 )
+{
+   // move the p1-th bit to the rightmost side
+   const Index bit1 = ( n >> p1 ) & Index( 1 );
+
+   // move the p2-th to rightmost side
+   const Index bit2 = ( n >> p2 ) & Index( 1 );
+
+   // XOR the two bits
+   Index x = bit1 ^ bit2;
+
+   // put the XOR-ed bits back to their original positions
+   x = ( x << p1 ) | ( x << p2 );
+
+   // XOR `x` with the original number so that the two bits are swapped
+   return n ^ x;
 }
 
 }  // namespace TNL

@@ -1,5 +1,5 @@
 #include <iostream>
-#include <TNL/Containers/Partitioner.h>
+#include <TNL/Containers/BlockPartitioning.h>
 #include <TNL/Containers/DistributedNDArray.h>
 #include <TNL/Containers/DistributedNDArraySynchronizer.h>
 #include <TNL/MPI/ScopedInitializer.h>
@@ -28,7 +28,7 @@ distributedNDArrayExample()
 
    // decompose the range of rows
    const LocalRangeType localRange =
-      TNL::Containers::Partitioner< typename LocalArrayType::IndexType >::splitRange( num_rows, communicator );
+      TNL::Containers::splitRange< typename LocalArrayType::IndexType >( num_rows, communicator );
 
    // create the distributed array
    ArrayType a;
@@ -62,6 +62,7 @@ distributedNDArrayExample()
 
    // synchronize the ghost regions and output again
    DistributedNDArraySynchronizer< ArrayType > synchronizer;
+   synchronizer.setSynchronizationPattern( NDArraySyncPatterns::D1Q3 );
    synchronizer.synchronize( a );
    std::cout << "Rank " << communicator.rank() << " after synchronization: " << flat_view << std::endl;
 }

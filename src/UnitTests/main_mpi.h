@@ -48,12 +48,15 @@ main( int argc, char* argv[] )
    ::testing::InitGoogleTest( &argc, argv );
 
 #ifdef HAVE_MPI
-   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
-
-   delete listeners.Release( listeners.default_result_printer() );
-   listeners.Append( new MinimalistBufferedPrinter );
-
    TNL::MPI::ScopedInitializer mpi( argc, argv );
+
+   if( TNL::MPI::GetSize() > 1 ) {
+      ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+
+      delete listeners.Release( listeners.default_result_printer() );
+      listeners.Append( new MinimalistBufferedPrinter );
+   }
 #endif
+
    return RUN_ALL_TESTS();
 }

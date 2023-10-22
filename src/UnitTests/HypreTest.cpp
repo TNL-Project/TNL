@@ -9,7 +9,8 @@
    #include <TNL/Matrices/HypreParCSRMatrix.h>
    #include <TNL/Solvers/Linear/Hypre.h>
 
-   #include <TNL/Containers/Partitioner.h>
+   #include <TNL/Containers/BlockPartitioning.h>
+   #include <TNL/Containers/DistributedArraySynchronizer.h>
    #include <TNL/Matrices/SparseMatrix.h>
 
 using namespace TNL;
@@ -63,12 +64,10 @@ getDistributedArray( MPI_Comm communicator,
    DistributedArray array;
 
    using LocalRangeType = typename DistributedArray::LocalRangeType;
-   const LocalRangeType localRange =
-      Containers::Partitioner< typename DistributedArray::IndexType >::splitRange( globalSize, communicator );
+   const LocalRangeType localRange = Containers::splitRange( globalSize, communicator );
    array.setDistribution( localRange, ghosts, globalSize, communicator );
 
-   using Synchronizer = typename Containers::Partitioner< typename DistributedArray::IndexType >::template ArraySynchronizer<
-      typename DistributedArray::DeviceType >;
+   using Synchronizer = Containers::DistributedArraySynchronizer< DistributedArray >;
    array.setSynchronizer( std::make_shared< Synchronizer >( localRange, ghosts / 2, communicator ) );
 
    return array;

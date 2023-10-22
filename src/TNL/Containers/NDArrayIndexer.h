@@ -195,8 +195,8 @@ public:
          [ & ]( auto i )
          {
             constexpr int dim = TNL::Containers::detail::get< i >( Permutation{} );
-            const auto size = getSize< dim >();
-            const auto blockSize = ends.template getSize< dim >() - begins.template getSize< dim >();
+            const IndexType size = getSize< dim >() + 2 * static_cast< IndexType >( getOverlap< dim >() );
+            const IndexType blockSize = ends.template getSize< dim >() - begins.template getSize< dim >();
             // blockSize can be different from size only in the first dimension,
             // then the sizes must match in all following dimensions
             if( check && blockSize != size )

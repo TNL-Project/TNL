@@ -14,7 +14,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/MPI/ScopedInitializer.h>
 #include <TNL/MPI/Config.h>
-#include <TNL/Containers/Partitioner.h>
+#include <TNL/Containers/BlockPartitioning.h>
 #include <TNL/Containers/DistributedVector.h>
 #include <TNL/Matrices/DistributedMatrix.h>
 #include <TNL/Matrices/SparseOperations.h>
@@ -343,7 +343,6 @@ struct LinearSolversBenchmark
    using IndexType = typename MatrixType::IndexType;
    using VectorType = Containers::Vector< RealType, DeviceType, IndexType >;
 
-   using Partitioner = Containers::Partitioner< IndexType >;
    using DistributedMatrix = Matrices::DistributedMatrix< MatrixType >;
    using DistributedVector = Containers::DistributedVector< RealType, DeviceType, IndexType >;
    using DistributedRowLengths = typename DistributedMatrix::RowCapacitiesType;
@@ -442,7 +441,7 @@ struct LinearSolversBenchmark
    {
       // set up the distributed matrix
       const auto communicator = MPI_COMM_WORLD;
-      const auto localRange = Partitioner::splitRange( matrixPointer->getRows(), communicator );
+      const auto localRange = Containers::splitRange( matrixPointer->getRows(), communicator );
       auto distMatrixPointer = std::make_shared< DistributedMatrix >( localRange, matrixPointer->getRows(), matrixPointer->getColumns(), communicator );
       DistributedVector dist_x0( localRange, 0, matrixPointer->getRows(), communicator );
       DistributedVector dist_b( localRange, 0, matrixPointer->getRows(), communicator );

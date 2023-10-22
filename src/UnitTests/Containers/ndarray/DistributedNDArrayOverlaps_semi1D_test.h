@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <TNL/Containers/BlockPartitioning.h>
 #include <TNL/Containers/DistributedNDArray.h>
 #include <TNL/Containers/DistributedNDArrayView.h>
 #include <TNL/Containers/DistributedNDArraySynchronizer.h>
 #include <TNL/Containers/ArrayView.h>
-#include <TNL/Containers/Partitioner.h>
 
 using namespace TNL;
 using namespace TNL::Containers;
@@ -41,7 +41,7 @@ protected:
    DistributedNDArrayOverlaps_semi1D_test()
    {
       using LocalRangeType = typename DistributedNDArray::LocalRangeType;
-      const LocalRangeType localRange = Partitioner< IndexType >::splitRange( globalSize, communicator );
+      const LocalRangeType localRange = splitRange< IndexType >( globalSize, communicator );
       distributedNDArray.setSizes( 0, globalSize, globalSize / 2 );
       distributedNDArray.template setDistribution< 1 >( localRange.getBegin(), localRange.getEnd(), communicator );
       distributedNDArray.allocate();
@@ -282,6 +282,7 @@ test_helper_synchronize( DistributedArray& a, int globalSize, int rank, int npro
    a.setValue( -1 );
    a.forAll( setter );
    DistributedNDArraySynchronizer< DistributedArray > s1;
+   s1.setSynchronizationPattern( NDArraySyncPatterns::D1Q3 );
    s1.synchronize( a );
 
    for( int q = 0; q < Q; q++ )
@@ -302,6 +303,7 @@ test_helper_synchronize( DistributedArray& a, int globalSize, int rank, int npro
    a.setValue( -1 );
    a.getView().forAll( setter );
    DistributedNDArraySynchronizer< typename DistributedArray::ViewType > s2;
+   s2.setSynchronizationPattern( NDArraySyncPatterns::D1Q3 );
    auto view = a.getView();
    s2.synchronize( view );
 

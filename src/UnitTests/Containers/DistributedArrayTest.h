@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <TNL/Containers/DistributedArray.h>
-#include <TNL/Containers/Partitioner.h>
+#include <TNL/Containers/DistributedArraySynchronizer.h>
+#include <TNL/Containers/BlockPartitioning.h>
 
 #include "VectorHelperFunctions.h"
 
@@ -43,10 +44,10 @@ protected:
    DistributedArrayTest()
    {
       using LocalRangeType = typename DistributedArray::LocalRangeType;
-      const LocalRangeType localRange = Partitioner< IndexType >::splitRange( globalSize, communicator );
+      const LocalRangeType localRange = splitRange< IndexType >( globalSize, communicator );
       distributedArray.setDistribution( localRange, ghosts, globalSize, communicator );
 
-      using Synchronizer = typename Partitioner< IndexType >::template ArraySynchronizer< DeviceType >;
+      using Synchronizer = DistributedArraySynchronizer< DistributedArray >;
       distributedArray.setSynchronizer( std::make_shared< Synchronizer >( localRange, ghosts / 2, communicator ) );
 
       EXPECT_EQ( distributedArray.getLocalRange(), localRange );

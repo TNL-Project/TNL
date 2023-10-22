@@ -4,7 +4,8 @@
 
 #include <TNL/Containers/DistributedArray.h>
 #include <TNL/Containers/DistributedVectorView.h>
-#include <TNL/Containers/Partitioner.h>
+#include <TNL/Containers/DistributedArraySynchronizer.h>
+#include <TNL/Containers/BlockPartitioning.h>
 #include <TNL/Algorithms/distributedScan.h>
 
 #define DISTRIBUTED_VECTOR
@@ -41,8 +42,8 @@ protected:
    using DistributedVectorView = Containers::DistributedVectorView< ValueType, DeviceType, IndexType >;
    using HostDistributedArrayType = typename DistributedArrayType::template Self< ValueType, Devices::Sequential >;
    using LocalRangeType = typename DistributedArray::LocalRangeType;
-   using Synchronizer = typename Partitioner< IndexType >::template ArraySynchronizer< DeviceType >;
-   using HostSynchronizer = typename Partitioner< IndexType >::template ArraySynchronizer< Devices::Sequential >;
+   using Synchronizer = Containers::DistributedArraySynchronizer< DistributedArrayType >;
+   using HostSynchronizer = Containers::DistributedArraySynchronizer< HostDistributedArrayType >;
 
    const MPI_Comm communicator = MPI_COMM_WORLD;
 
@@ -75,7 +76,7 @@ protected:
    void
    resetWorkingArrays()
    {
-      localRange = Partitioner< IndexType >::splitRange( globalSize, communicator );
+      localRange = splitRange< IndexType >( globalSize, communicator );
       a.setDistribution( localRange, ghosts, globalSize, communicator );
       a.setSynchronizer( std::make_shared< Synchronizer >( localRange, ghosts / 2, communicator ) );
 
@@ -638,7 +639,7 @@ TYPED_TEST( DistributedScanTest, distributedInplaceExclusiveScan_linear_sequence
 
 TYPED_TEST( DistributedScanTest, multiplication )
 {
-   this->localRange = Partitioner< typename TestFixture::IndexType >::splitRange( 10, this->communicator );
+   this->localRange = splitRange< typename TestFixture::IndexType >( 10, this->communicator );
    this->input_host.setDistribution( this->localRange, 0, 10, this->communicator );
    this->input_host.setValue( 2 );
    this->expected_host = this->input_host;
@@ -718,7 +719,7 @@ TYPED_TEST( DistributedScanTest, empty_range )
 {
    using IndexType = typename TestFixture::IndexType;
 
-   this->localRange = Partitioner< typename TestFixture::IndexType >::splitRange( 42, this->communicator );
+   this->localRange = splitRange< typename TestFixture::IndexType >( 42, this->communicator );
    this->input_host.setDistribution( this->localRange, 0, 42, this->communicator );
    this->input_host.setValue( 1 );
    this->expected_host = this->input_host;

@@ -3,7 +3,8 @@
 #if defined( DISTRIBUTED_VECTOR )
    #include <TNL/Containers/DistributedVector.h>
    #include <TNL/Containers/DistributedVectorView.h>
-   #include <TNL/Containers/Partitioner.h>
+   #include <TNL/Containers/DistributedArraySynchronizer.h>
+   #include <TNL/Containers/BlockPartitioning.h>
 using namespace TNL::MPI;
 #elif defined( STATIC_VECTOR )
    #include <TNL/Containers/StaticVector.h>
@@ -164,27 +165,25 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       (void) 0  // dummy statement here enforces ';' after the macro use
 
 #elif defined( DISTRIBUTED_VECTOR )
-   #define SETUP_UNARY_VECTOR_TEST( size )                                                                       \
-      using VectorType = typename TestFixture::VectorType;                                                       \
-      using VectorOrView = typename TestFixture::VectorOrView;                                                   \
-      using LocalRangeType = typename VectorOrView::LocalRangeType;                                              \
-      const LocalRangeType localRange =                                                                          \
-         Partitioner< typename VectorOrView::IndexType >::splitRange( size, this->communicator );                \
-      using Synchronizer = typename Partitioner< typename VectorOrView::IndexType >::template ArraySynchronizer< \
-         typename VectorOrView::DeviceType >;                                                                    \
-                                                                                                                 \
-      VectorType _V1, _V2;                                                                                       \
-      _V1.setDistribution( localRange, this->ghosts, size, this->communicator );                                 \
-      _V2.setDistribution( localRange, this->ghosts, size, this->communicator );                                 \
-                                                                                                                 \
-      auto _synchronizer = std::make_shared< Synchronizer >( localRange, this->ghosts / 2, this->communicator ); \
-      _V1.setSynchronizer( _synchronizer );                                                                      \
-      _V2.setSynchronizer( _synchronizer );                                                                      \
-                                                                                                                 \
-      _V1 = 1;                                                                                                   \
-      _V2 = 2;                                                                                                   \
-                                                                                                                 \
-      VectorOrView V1( _V1 ), V2( _V2 );                                                                         \
+   #define SETUP_UNARY_VECTOR_TEST( size )                                                                          \
+      using VectorType = typename TestFixture::VectorType;                                                          \
+      using VectorOrView = typename TestFixture::VectorOrView;                                                      \
+      using LocalRangeType = typename VectorOrView::LocalRangeType;                                                 \
+      const LocalRangeType localRange = splitRange< typename VectorOrView::IndexType >( size, this->communicator ); \
+      using Synchronizer = DistributedArraySynchronizer< VectorOrView >;                                            \
+                                                                                                                    \
+      VectorType _V1, _V2;                                                                                          \
+      _V1.setDistribution( localRange, this->ghosts, size, this->communicator );                                    \
+      _V2.setDistribution( localRange, this->ghosts, size, this->communicator );                                    \
+                                                                                                                    \
+      auto _synchronizer = std::make_shared< Synchronizer >( localRange, this->ghosts / 2, this->communicator );    \
+      _V1.setSynchronizer( _synchronizer );                                                                         \
+      _V2.setSynchronizer( _synchronizer );                                                                         \
+                                                                                                                    \
+      _V1 = 1;                                                                                                      \
+      _V2 = 2;                                                                                                      \
+                                                                                                                    \
+      VectorOrView V1( _V1 ), V2( _V2 );                                                                            \
       (void) 0  // dummy statement here enforces ';' after the macro use
 
    #define SETUP_UNARY_VECTOR_TEST_FUNCTION( size, begin, end, function )                                                    \
@@ -195,10 +194,8 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       using HostVector = typename VectorType::template Self< RealType, Devices::Host >;                                      \
       using HostExpectedVector = typename ExpectedVector::template Self< typename ExpectedVector::RealType, Devices::Host >; \
       using LocalRangeType = typename VectorOrView::LocalRangeType;                                                          \
-      const LocalRangeType localRange =                                                                                      \
-         Partitioner< typename VectorOrView::IndexType >::splitRange( size, this->communicator );                            \
-      using Synchronizer = typename Partitioner< typename VectorOrView::IndexType >::template ArraySynchronizer<             \
-         typename VectorOrView::DeviceType >;                                                                                \
+      const LocalRangeType localRange = splitRange< typename VectorOrView::IndexType >( size, this->communicator );          \
+      using Synchronizer = DistributedArraySynchronizer< VectorOrView >;                                                     \
                                                                                                                              \
       HostVector _V1h;                                                                                                       \
       HostExpectedVector expected_h;                                                                                         \

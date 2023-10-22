@@ -3,7 +3,8 @@
 #if defined( DISTRIBUTED_VECTOR )
    #include <TNL/Containers/DistributedVector.h>
    #include <TNL/Containers/DistributedVectorView.h>
-   #include <TNL/Containers/Partitioner.h>
+   #include <TNL/Containers/DistributedArraySynchronizer.h>
+   #include <TNL/Containers/BlockPartitioning.h>
 using namespace TNL::MPI;
 #elif defined( STATIC_VECTOR )
    #include <TNL/Containers/StaticVector.h>
@@ -73,9 +74,8 @@ protected:
 #else
    #ifdef DISTRIBUTED_VECTOR
       using LocalRangeType = typename VectorOrView::LocalRangeType;
-      using Synchronizer = typename Partitioner< typename VectorOrView::IndexType >::template ArraySynchronizer<
-         typename VectorOrView::DeviceType >;
-      const LocalRangeType localRange = Partitioner< typename VectorOrView::IndexType >::splitRange( size, communicator );
+      using Synchronizer = DistributedArraySynchronizer< VectorOrView >;
+      const LocalRangeType localRange = splitRange< typename VectorOrView::IndexType >( size, communicator );
       _V1.setDistribution( localRange, ghosts, size, communicator );
       _V1.setSynchronizer( std::make_shared< Synchronizer >( localRange, ghosts / 2, communicator ) );
    #else
