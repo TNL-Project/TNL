@@ -744,7 +744,7 @@ TYPED_TEST( VectorBinaryOperationsTest, maximum )
 }
 #endif
 
-// TODO: tests for logicalAnd, logicalOr, bitwiseAnd, bitwiseOr, bitwiseXor
+// TODO: tests for operators &&, ||, &, |, ^
 
 #if defined( __CUDACC__ ) && ! defined( STATIC_VECTOR )
 TYPED_TEST( VectorBinaryOperationsTest, comparisonOnDifferentDevices )

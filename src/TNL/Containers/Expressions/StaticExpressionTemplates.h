@@ -273,6 +273,11 @@ TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator-, TNL::Minus )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator*, TNL::Multiplies )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator/, TNL::Divides )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator%, TNL::Modulus )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator&&, TNL::LogicalAnd )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator||, TNL::LogicalOr )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator&, TNL::BitAnd )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator|, TNL::BitOr )
+TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, operator^, TNL::BitXor )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, equalTo, TNL::EqualTo )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, notEqualTo, TNL::NotEqualTo )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, greater, TNL::Greater )
@@ -281,11 +286,6 @@ TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, greaterEqual, TNL::GreaterEqual )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, lessEqual, TNL::LessEqual )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, minimum, TNL::Min )
 TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, maximum, TNL::Max )
-TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, logicalAnd, TNL::LogicalAnd )
-TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, logicalOr, TNL::LogicalOr )
-TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, bitwiseAnd, TNL::BitAnd )
-TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, bitwiseOr, TNL::BitOr )
-TNL_MAKE_STATIC_BINARY_EXPRESSION( constexpr, bitwiseXor, TNL::BitXor )
 
 TNL_MAKE_STATIC_UNARY_EXPRESSION( constexpr, operator+, TNL::UnaryPlus )
 TNL_MAKE_STATIC_UNARY_EXPRESSION( constexpr, operator-, TNL::UnaryMinus )
@@ -635,6 +635,11 @@ using Expressions::operator-;
 using Expressions::operator*;
 using Expressions::operator/;
 using Expressions::operator%;
+using Expressions::operator&&;
+using Expressions::operator||;
+using Expressions::operator&;
+using Expressions::operator|;
+using Expressions::operator^;
 using Expressions::operator, ;
 using Expressions::operator==;
 using Expressions::operator!=;
@@ -665,9 +670,6 @@ using Expressions::asin;
 using Expressions::asinh;
 using Expressions::atan;
 using Expressions::atanh;
-using Expressions::bitwiseAnd;
-using Expressions::bitwiseOr;
-using Expressions::bitwiseXor;
 using Expressions::cast;
 using Expressions::cbrt;
 using Expressions::ceil;
@@ -681,8 +683,6 @@ using Expressions::l2Norm;
 using Expressions::log;
 using Expressions::log10;
 using Expressions::log2;
-using Expressions::logicalAnd;
-using Expressions::logicalOr;
 using Expressions::lpNorm;
 using Expressions::max;
 using Expressions::maximum;
@@ -713,9 +713,6 @@ using Containers::asin;
 using Containers::asinh;
 using Containers::atan;
 using Containers::atanh;
-using Containers::bitwiseAnd;
-using Containers::bitwiseOr;
-using Containers::bitwiseXor;
 using Containers::cast;
 using Containers::cbrt;
 using Containers::ceil;
@@ -734,8 +731,6 @@ using Containers::lessEqual;
 using Containers::log;
 using Containers::log10;
 using Containers::log2;
-using Containers::logicalAnd;
-using Containers::logicalOr;
 using Containers::lpNorm;
 using Containers::max;
 using Containers::maximum;
