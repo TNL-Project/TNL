@@ -26,15 +26,33 @@ Output is:
 
 \include Expressions.out
 
-The expression is evaluated on the same device where the vectors are allocated, this is done automatically. One cannot, however, mix vectors from different devices in one expression. Vector expression may contain any common function like the following:
+The expression is evaluated on the same device where the vectors are allocated, this is done automatically. One cannot, however, mix vectors from different devices in one expression.
+
+Vector expressions consist of *operands*, *operators*, and *functions*.
+Operands may be \ref TNL::Containers::Vector "vectors", \ref TNL::Containers::VectorView "vector views", or other vector expressions.
+Operators available for vector expressions are listed in the following table, where `v` is a result vector and `expr`, `expr1`, `expr2` are vector expressions:
 
 | Expression                              | Meaning                                          |
 |-----------------------------------------|--------------------------------------------------|
-| `v = TNL::logicalAnd( expr1, expr2 )`   | `v[ i ] = expr1[ i ] && expr2[ i ]`              |
-| `v = TNL::logicalOr( expr1, expr2 )`    | <code>v[ i ] = expr1[ i ] \|\| expr2[ i ]</code> |
-| `v = TNL::bitwiseAnd( expr1, expr2 )`   | `v[ i ] = expr1[ i ] & expr2[ i ]`               |
-| `v = TNL::bitwiseOr( expr1, expr2 )`    | <code>v[ i ] = expr1[ i ] \| expr2[ i ]</code>   |
-| `v = TNL::bitwiseXor( expr1, expr2 )`   | `v[ i ] = expr1[ i ] ^ expr2[ i ]`               |
+| `v = expr1 + expr2`                     | `v[ i ] = expr1[ i ] + expr2[ i ]`               |
+| `v = expr1 - expr2`                     | `v[ i ] = expr1[ i ] - expr2[ i ]`               |
+| `v = expr1 * expr2`                     | `v[ i ] = expr1[ i ] * expr2[ i ]`               |
+| `v = expr1 / expr2`                     | `v[ i ] = expr1[ i ] / expr2[ i ]`               |
+| `v = expr1 / expr2`                     | `v[ i ] = expr1[ i ] / expr2[ i ]`               |
+| `v = expr1 % expr2`                     | `v[ i ] = expr1[ i ] % expr2[ i ]`               |
+| `v = expr1 && expr2`                    | `v[ i ] = expr1[ i ] && expr2[ i ]`              |
+| <code>v = expr1 \|\| expr2</code>       | <code>v[ i ] = expr1[ i ] \|\| expr2[ i ]</code> |
+| `v = expr1 & expr2`                     | `v[ i ] = expr1[ i ] & expr2[ i ]`               |
+| <code>v = expr1 \| expr2</code>         | <code>v[ i ] = expr1[ i ] \| expr2[ i ]</code>   |
+| `v = +expr1`                            | `v[ i ] = +expr1[ i ]`                           |
+| `v = -expr1`                            | `v[ i ] = -expr1[ i ]`                           |
+| `v = !expr1`                            | `v[ i ] = !expr1[ i ]`                           |
+| `v = ~expr1`                            | `v[ i ] = ~expr1[ i ]`                           |
+
+Additionally, vector expressions may contain any function listed in the following table, where `v` is a result vector and `expr`, `expr1`, `expr2` are vector expressions:
+
+| Expression                              | Meaning                                          |
+|-----------------------------------------|--------------------------------------------------|
 | `v = TNL::equalTo( expr1, expr2 )`      | `v[ i ] = expr1[ i ] == expr2[ i ]`              |
 | `v = TNL::notEqualTo( expr1, expr2 )`   | `v[ i ] = expr1[ i ] != expr2[ i ]`              |
 | `v = TNL::greater( expr1, expr2 )`      | `v[ i ] = expr1[ i ] > expr2[ i ]`               |
@@ -66,8 +84,6 @@ The expression is evaluated on the same device where the vectors are allocated, 
 | `v = TNL::floor( expr )`                | `v[ i ] = floor( expr[ i ] )`                    |
 | `v = TNL::ceil( expr )`                 | `v[ i ] = ceil( expr[ i ] )`                     |
 | `v = TNL::sign( expr )`                 | `v[ i ] = sign( expr[ i ] )`                     |
-
-Where `v` is a result vector and `expr`, `expr1` and `expr2` are vector expressions. Vector expressions can be combined with vector views (\ref TNL::Containers::VectorView) as well.
 
 ### Vertical operations
 
