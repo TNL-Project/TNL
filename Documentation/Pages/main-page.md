@@ -71,11 +71,26 @@ In the following, we review the available installation methods:
 In order to use TNL, you need to install a compatible compiler, a parallel
 computing platform, and (optionally) some libraries.
 
+- __Supported operating systems:__
+  TNL is frequently tested on Linux where all features are supported.
+  Additionally, macOS and Windows are partially supported with some features
+  missing (most notably, CUDA and MPI parallelization). Note that support for
+  macOS and Windows is not tested frequently and there might be various
+  compatibility issues. The incompatibilities and known issues related to the
+  Windows operating system are tracked in [GitLab issue](
+  https://gitlab.com/tnl-project/tnl/-/issues/115).
+
 - __Supported compilers:__
   You need a compiler which supports the [C++17](
   https://en.wikipedia.org/wiki/C%2B%2B17) standard, for example [GCC](
   https://gcc.gnu.org/) 8.0 or later or [Clang](http://clang.llvm.org/) 7 or
   later.
+
+  The [Microsoft Visual C++ (MSVC)](https://en.wikipedia.org/wiki/MSVC) compiler
+  is currently [not supported](https://gitlab.com/tnl-project/tnl/-/issues/115).
+  Instead, we recommend to use the [Windows Subsystem for Linux (WSL)](
+  https://learn.microsoft.com/en-us/windows/wsl/) or the [MSYS2](
+  https://www.msys2.org/) platform for developing code with TNL on Windows.
 
 - __Parallel computing platforms:__
   TNL can be used with one or more of the following platforms:
