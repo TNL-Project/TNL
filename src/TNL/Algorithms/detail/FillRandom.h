@@ -22,7 +22,7 @@ struct FillRandom< Devices::Sequential >
    template< typename Element, typename Index >
    //__cuda_callable__
    static void
-   fillRandom( Element* data, Index size );
+   fillRandom( Element* data, Index size, Element min_val, Element max_val );
 };
 
 template<>
@@ -30,7 +30,7 @@ struct FillRandom< Devices::Host >
 {
    template< typename Element, typename Index >
    static void
-   fillRandom( Element* data, Index size );
+   fillRandom( Element* data, Index size, Element min_val, Element max_val );
 };
 
 template<>
@@ -38,7 +38,7 @@ struct FillRandom< Devices::Cuda >
 {
    template< typename Element, typename Index >
    static void
-   fillRandom( Element* data, Index size );
+   fillRandom( Element* data, Index size, Element min_val, Element max_val );
 };
 
 }  // namespace TNL::Algorithms::detail
