@@ -12,10 +12,10 @@
 namespace TNL::Algorithms {
 
 template< typename Device >
-struct Multireduction;
+struct Reduction2D;
 
 template<>
-struct Multireduction< Devices::Sequential >
+struct Reduction2D< Devices::Sequential >
 {
    /**
     * Parameters:
@@ -38,7 +38,7 @@ struct Multireduction< Devices::Sequential >
 };
 
 template<>
-struct Multireduction< Devices::Host >
+struct Reduction2D< Devices::Host >
 {
    /**
     * Parameters:
@@ -61,7 +61,7 @@ struct Multireduction< Devices::Host >
 };
 
 template<>
-struct Multireduction< Devices::Cuda >
+struct Reduction2D< Devices::Cuda >
 {
    /**
     * Parameters:
@@ -85,4 +85,4 @@ struct Multireduction< Devices::Cuda >
 
 }  // namespace TNL::Algorithms
 
-#include "Multireduction.hpp"
+#include "Reduction2D.hpp"

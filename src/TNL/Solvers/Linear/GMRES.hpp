@@ -8,7 +8,7 @@
 #include <memory>  // std::unique_ptr
 
 #include <TNL/Algorithms/copy.h>
-#include <TNL/Algorithms/Multireduction.h>
+#include <TNL/Algorithms/Reduction2D.h>
 #include <TNL/Matrices/MatrixOperations.h>
 
 #include "GMRES.h"
@@ -227,7 +227,7 @@ GMRES< Matrix >::orthogonalize_CGS( const int m, const RealType normb, const Rea
          {
             return _V[ idx + k * ldSize ] * _w[ idx ];
          };
-         Algorithms::Multireduction< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i + 1, H_l.get() );
+         Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i + 1, H_l.get() );
          for( int k = 0; k <= i; k++ )
             H[ k + i * ( m + 1 ) ] += H_l[ k ];
 
@@ -516,7 +516,7 @@ GMRES< Matrix >::hauseholder_generate( const int i, VectorViewType y_i, ConstVec
       {
          return _Y[ idx + k * ldSize ] * _y_i[ idx ];
       };
-      Algorithms::Multireduction< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i, aux.get() );
+      Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i, aux.get() );
       // no-op if the problem is not distributed
       MPI::Allreduce( aux.get(), i, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
 
@@ -608,7 +608,7 @@ GMRES< Matrix >::hauseholder_cwy_transposed( VectorViewType z, const int i, Cons
    {
       return _Y[ idx + k * ldSize ] * _w[ idx ];
    };
-   Algorithms::Multireduction< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i + 1, aux.get() );
+   Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i + 1, aux.get() );
    // no-op if the problem is not distributed
    MPI::Allreduce( aux.get(), i + 1, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
 

@@ -4,7 +4,7 @@
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/Multireduction.h>
+#include <TNL/Algorithms/Reduction2D.h>
 
 using namespace TNL;
 using namespace TNL::Containers;
@@ -36,7 +36,7 @@ setNegativeLinearSequence( View& deviceVector )
 
 // test fixture for typed tests
 template< typename Vector >
-class MultireductionTest : public ::testing::Test
+class Reduction2DTest : public ::testing::Test
 {
 protected:
    using DeviceVector = Vector;
@@ -55,7 +55,7 @@ protected:
    DeviceVector y;
    HostVector result;
 
-   MultireductionTest()
+   Reduction2DTest()
    {
       V.setSize( size * n );
       y.setSize( size );
@@ -72,27 +72,30 @@ protected:
    }
 };
 
-// types for which MultireductionTest is instantiated
-using VectorTypes = ::testing::Types< Vector< int, Devices::Host >,
-                                      Vector< float, Devices::Host >
+// types for which Reduction2DTest is instantiated
+using VectorTypes = ::testing::Types<  //
+   Vector< int, Devices::Host >,
+   Vector< float, Devices::Host >,
+   Vector< int, Devices::Sequential >,
+   Vector< float, Devices::Sequential >
 #if defined( __CUDACC__ )
-                                      ,
-                                      Vector< int, Devices::Cuda >,
-                                      Vector< float, Devices::Cuda >
+   ,
+   Vector< int, Devices::Cuda >,
+   Vector< float, Devices::Cuda >
 #endif
 #if defined( __HIP__ )
-                                      ,
-                                      Vector< int, Devices::Hip >,
-                                      Vector< float, Devices::Hip >
+   ,
+   Vector< int, Devices::Hip >,
+   Vector< float, Devices::Hip >
 #endif
-                                      >;
+   >;
 
-TYPED_TEST_SUITE( MultireductionTest, VectorTypes );
+TYPED_TEST_SUITE( Reduction2DTest, VectorTypes );
 
 // idiot nvcc does not allow __cuda_callable__ lambdas inside private or protected regions
 template< typename DeviceVector, typename HostVector >
 void
-test_multireduction( const DeviceVector& V, const DeviceVector& y, HostVector& result )
+test_Reduction2D( const DeviceVector& V, const DeviceVector& y, HostVector& result )
 {
    using RealType = typename DeviceVector::RealType;
    using DeviceType = typename DeviceVector::DeviceType;
@@ -106,11 +109,11 @@ test_multireduction( const DeviceVector& V, const DeviceVector& y, HostVector& r
 
    auto fetch = [ = ] __cuda_callable__( IndexType i, int k )
    {
-      TNL_ASSERT_LT( i, size, "BUG: fetcher got invalid index i" );
-      TNL_ASSERT_LT( k, n, "BUG: fetcher got invalid index k" );
+      TNL_ASSERT_LT( i, size, "fetcher got invalid index i" );
+      TNL_ASSERT_LT( k, n, "fetcher got invalid index k" );
       return _V[ i + k * size ] * _y[ i ];
    };
-   Multireduction< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, n, result.getData() );
+   Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, n, result.getData() );
 
    for( int i = 0; i < n; i++ ) {
       if( i % 2 == 0 )
@@ -119,9 +122,9 @@ test_multireduction( const DeviceVector& V, const DeviceVector& y, HostVector& r
          EXPECT_EQ( result[ i ], -0.5 * size * ( size - 1 ) );
    }
 }
-TYPED_TEST( MultireductionTest, scalarProduct )
+TYPED_TEST( Reduction2DTest, scalarProduct )
 {
-   test_multireduction( this->V, this->y, this->result );
+   test_Reduction2D( this->V, this->y, this->result );
 }
 
 #include "../main.h"

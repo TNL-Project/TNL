@@ -24,7 +24,7 @@ TNL is based on the following core concepts:
       - Algorithms can be specialized by the `Device` template parameter.
 2. \ref TNL::Algorithms "Algorithms"
    - Basic (container-free) algorithms specialized by `Device`/`Executor`.
-   - `parallelFor`, `reduce`, `MultiReduction`, `sort`, ...
+   - `parallelFor`, `reduce`, `scan`, `sort`, ...
 3. \ref TNL::Containers "Containers"
     TNL provides generic containers such as array, multidimensional array or array
     views, which abstract data management and execution of common operations on

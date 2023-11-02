@@ -1,7 +1,7 @@
 add_subdirectory(Segments)
 add_subdirectory(Sorting)
 
-set(COMMON_TESTS containsTest findTest MultireductionTest)
+set(COMMON_TESTS containsTest findTest Reduction2DTest)
 
 set(CPP_TESTS
     copyTest
