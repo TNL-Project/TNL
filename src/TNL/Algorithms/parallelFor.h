@@ -12,7 +12,7 @@
  * \brief Namespace for fundamental TNL algorithms
  *
  * It contains algorithms like for-loops, memory operations, (parallel) reduction,
- * multireduction, scan etc.
+ * scan, sort, etc.
  */
 namespace TNL::Algorithms {
 

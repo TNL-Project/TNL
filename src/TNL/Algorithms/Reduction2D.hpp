@@ -8,9 +8,9 @@
 //#define CUDA_REDUCTION_PROFILING
 
 #include <TNL/Assert.h>
-#include <TNL/Algorithms/Multireduction.h>
+#include <TNL/Algorithms/Reduction2D.h>
 #include <TNL/Algorithms/copy.h>
-#include <TNL/Algorithms/detail/CudaMultireductionKernel.h>
+#include <TNL/Algorithms/detail/CudaReduction2DKernel.h>
 
 #ifdef CUDA_REDUCTION_PROFILING
    #include <TNL/Timer.h>
@@ -20,12 +20,12 @@
 namespace TNL::Algorithms {
 
 template< typename Result, typename DataFetcher, typename Reduction, typename Index >
-void constexpr Multireduction< Devices::Sequential >::reduce( Result identity,
-                                                              DataFetcher dataFetcher,
-                                                              Reduction reduction,
-                                                              Index size,
-                                                              int n,
-                                                              Result* result )
+void constexpr Reduction2D< Devices::Sequential >::reduce( Result identity,
+                                                           DataFetcher dataFetcher,
+                                                           Reduction reduction,
+                                                           Index size,
+                                                           int n,
+                                                           Result* result )
 {
    TNL_ASSERT_GT( size, 0, "The size of datasets must be positive." );
    TNL_ASSERT_GT( n, 0, "The number of datasets must be positive." );
@@ -93,17 +93,17 @@ void constexpr Multireduction< Devices::Sequential >::reduce( Result identity,
 
 template< typename Result, typename DataFetcher, typename Reduction, typename Index >
 void
-Multireduction< Devices::Host >::reduce( Result identity,
-                                         DataFetcher dataFetcher,
-                                         Reduction reduction,
-                                         Index size,
-                                         int n,
-                                         Result* result )
+Reduction2D< Devices::Host >::reduce( Result identity,
+                                      DataFetcher dataFetcher,
+                                      Reduction reduction,
+                                      Index size,
+                                      int n,
+                                      Result* result )
 {
    if( size < 0 )
-      throw std::invalid_argument( "Multireduction: The size of datasets must be non-negative." );
+      throw std::invalid_argument( "Reduction2D: The size of datasets must be non-negative." );
    if( n < 0 )
-      throw std::invalid_argument( "Multireduction: The number of datasets must be non-negative." );
+      throw std::invalid_argument( "Reduction2D: The number of datasets must be non-negative." );
 
 #ifdef HAVE_OPENMP
    constexpr int block_size = 128;
@@ -168,22 +168,22 @@ Multireduction< Devices::Host >::reduce( Result identity,
    }
    else
 #endif
-      Multireduction< Devices::Sequential >::reduce( identity, dataFetcher, reduction, size, n, result );
+      Reduction2D< Devices::Sequential >::reduce( identity, dataFetcher, reduction, size, n, result );
 }
 
 template< typename Result, typename DataFetcher, typename Reduction, typename Index >
 void
-Multireduction< Devices::Cuda >::reduce( Result identity,
-                                         DataFetcher dataFetcher,
-                                         Reduction reduction,
-                                         Index size,
-                                         int n,
-                                         Result* hostResult )
+Reduction2D< Devices::Cuda >::reduce( Result identity,
+                                      DataFetcher dataFetcher,
+                                      Reduction reduction,
+                                      Index size,
+                                      int n,
+                                      Result* hostResult )
 {
    if( size < 0 )
-      throw std::invalid_argument( "Multireduction: The size of datasets must be non-negative." );
+      throw std::invalid_argument( "Reduction2D: The size of datasets must be non-negative." );
    if( n < 0 )
-      throw std::invalid_argument( "Multireduction: The number of datasets must be non-negative." );
+      throw std::invalid_argument( "Reduction2D: The number of datasets must be non-negative." );
 
 #ifdef CUDA_REDUCTION_PROFILING
    Timer timer;
@@ -193,11 +193,11 @@ Multireduction< Devices::Cuda >::reduce( Result identity,
 
    // start the reduction on the GPU
    Result* deviceAux1 = nullptr;
-   const int reducedSize = detail::CudaMultireductionKernelLauncher( identity, dataFetcher, reduction, size, n, deviceAux1 );
+   const int reducedSize = detail::CudaReduction2DKernelLauncher( identity, dataFetcher, reduction, size, n, deviceAux1 );
 
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
-   std::cout << "   Multireduction of " << n << " datasets on GPU to size " << reducedSize << " took " << timer.getRealTime()
+   std::cout << "   Reduction2D of " << n << " datasets on GPU to size " << reducedSize << " took " << timer.getRealTime()
              << " sec. " << std::endl;
    timer.reset();
    timer.start();
@@ -219,11 +219,11 @@ Multireduction< Devices::Cuda >::reduce( Result identity,
    {
       return resultArray[ i + k * reducedSize ];
    };
-   Multireduction< Devices::Sequential >::reduce( identity, dataFetcherFinish, reduction, reducedSize, n, hostResult );
+   Reduction2D< Devices::Sequential >::reduce( identity, dataFetcherFinish, reduction, reducedSize, n, hostResult );
 
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
-   std::cout << "   Multireduction of small data set on CPU took " << timer.getRealTime() << " sec. " << std::endl;
+   std::cout << "   Reduction2D of small data set on CPU took " << timer.getRealTime() << " sec. " << std::endl;
 #endif
 }
 
