@@ -45,11 +45,11 @@ See the [full documentation][full documentation] for information about:
 
 and other documented topics.
 
-[full documentation]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/
-[installation]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/#installation
-[usage]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/#usage
-[UsersGuide]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/UsersGuide.html
-[API]: https://mmg-gitlab.fjfi.cvut.cz/doc/tnl/annotated.html
+[full documentation]: https://tnl-project.gitlab.io/tnl/
+[installation]: https://tnl-project.gitlab.io/tnl/#installation
+[usage]: https://tnl-project.gitlab.io/tnl/#usage
+[UsersGuide]: https://tnl-project.gitlab.io/tnl/UsersGuide.html
+[API]: https://tnl-project.gitlab.io/tnl/annotated.html
 
 ## Getting involved
 
