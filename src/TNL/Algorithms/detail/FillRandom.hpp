@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <ctime>
+#include "TNL/Devices/Sequential.h"
 #include <random>
 #include <type_traits>
 #ifdef __CUDACC__
@@ -58,7 +58,7 @@ getRandomValue< double >( curandState* state, double min_val, double max_val )
 template< typename T >
 __global__
 void
-fillWithRandomIntegers( T* data, size_t length, T min_val, T max_val, int seed )
+fillWithRandomValues( T* data, size_t length, T min_val, T max_val, int seed )
 {
 #ifdef __CUDACC__
    int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -103,23 +103,36 @@ FillRandom< Devices::Host >::fillRandom( Element* data, Index size, Element min_
    if( size == 0 )
       return;
    TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
-   std::random_device rd;     // a seed source for the random number engine
-   std::mt19937 gen( rd() );  // mersenne_twister_engine seeded with rd()
-   if constexpr( std::is_integral_v< Element > ) {
-      std::uniform_int_distribution< Element > distrib( min_val, max_val );
-      auto kernel = [ &gen, &distrib, data ] __cuda_callable__( Index i )
-      {
-         data[ i ] = distrib( gen );
-      };
-      parallelFor< Devices::Host >( 0, size, kernel );
+   if( Devices::Host::isOMPEnabled() && size > 512 ) {
+      if constexpr( std::is_integral_v< Element > ) {
+#pragma omp parallel
+         {
+            std::random_device rd;
+            std::mt19937 gen( rd() ); // mersenne_twister_engine seeded with rd()
+            std::uniform_int_distribution< Element > distrib( min_val, max_val );
+
+#pragma omp for
+            for( Index i = 0; i < size; ++i ) {
+               data[ i ] = distrib( gen );
+            }
+         }
+      }
+      else {
+#pragma omp parallel
+         {
+            std::random_device rd;
+            std::mt19937 gen( rd() ); // mersenne_twister_engine seeded with rd()
+            std::uniform_real_distribution< Element > distrib( min_val, max_val );
+
+#pragma omp for
+            for( Index i = 0; i < size; ++i ) {
+               data[ i ] = distrib( gen );
+            }
+         }
+      }
    }
    else {
-      std::uniform_real_distribution< Element > distrib( min_val, max_val );
-      auto kernel = [ &gen, &distrib, data ] __cuda_callable__( Index i )
-      {
-         data[ i ] = distrib( gen );
-      };
-      parallelFor< Devices::Host >( 0, size, kernel );
+      FillRandom<Devices::Sequential>::fillRandom( data, size, min_val, max_val );
    }
 }
 
@@ -133,9 +146,9 @@ FillRandom< Devices::Cuda >::fillRandom( Element* data, Index size, Element min_
    TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
    int threadsPerBlock = 256;
    int blocksPerGrid = ( size + threadsPerBlock - 1 ) / threadsPerBlock;
-   // clang-format off
+// clang-format off
    std::random_device rd;     // a seed source for the random number engine
-   fillWithRandomIntegers<<<blocksPerGrid, threadsPerBlock>>>( data, size, min_val, max_val, rd() );
+   fillWithRandomValues<<<blocksPerGrid, threadsPerBlock>>>( data, size, min_val, max_val, rd() );
    TNL_CHECK_CUDA_DEVICE;
 // clang-format on
 #endif

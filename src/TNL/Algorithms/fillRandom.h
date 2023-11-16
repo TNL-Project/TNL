@@ -17,7 +17,6 @@ namespace TNL::Algorithms {
  * \tparam Element is the type of the \e data.
  * \tparam Index is the type of the size of the data.
  * \param data is the pointer to the memory where the value will be set.
- * \param value is the value to be filled.
  * \param size is the size of the data.
  * \param min_val is the minimum random value
  * \param max_val is the maximum random value
