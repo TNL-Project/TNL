@@ -7,8 +7,8 @@
 1. [General concepts](#ug_GeneralConcepts)
 2. [Arrays](#ug_Arrays)
 3. [Vectors](#ug_Vectors)
-4. [Flexible parallel reduction and scan](#ug_ReductionAndScan)
-5. [For loops](#ug_ForLoops)
+4. [For loops](#ug_ForLoops)
+5. [Flexible parallel reduction and scan](#ug_ReductionAndScan)
 6. [Sorting](#ug_Sorting)
 7. [Cross-device pointers](#ug_Pointers)
 
