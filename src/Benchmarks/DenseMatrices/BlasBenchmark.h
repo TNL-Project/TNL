@@ -22,22 +22,23 @@ void matrixMultiplicationBLAS(const TNL::Matrices::DenseMatrix<RealType, DeviceT
     int m = matrix1.getRows();
 
     constexpr auto organization = matrix1.getOrganization();
-    
+
     // Call BLAS function with the matrix data
 if constexpr (std::is_same_v<RealType, float>) {
     cblas_sgemm(organization == TNL::Algorithms::Segments::RowMajorOrder ? CblasRowMajor : CblasColMajor,
             CblasNoTrans, CblasNoTrans, m, n, k, 1.0f,
             matrix1.getValues().getData(), k,
             matrix2.getValues().getData(), n, 0.0f,
-            resultMatrix.getValues().getData(), 
+            resultMatrix.getValues().getData(),
             organization == TNL::Algorithms::Segments::RowMajorOrder ? n : m);
 } else if constexpr (std::is_same_v<RealType, double>) {
     cblas_dgemm(organization == TNL::Algorithms::Segments::RowMajorOrder ? CblasRowMajor : CblasColMajor,
             CblasNoTrans, CblasNoTrans, m, n, k, 1.0,
             matrix1.getValues().getData(), k,
             matrix2.getValues().getData(), n, 0.0,
-            resultMatrix.getValues().getData(), 
+            resultMatrix.getValues().getData(),
             organization == TNL::Algorithms::Segments::RowMajorOrder ? n : m);
 }
 }
+
 #endif
