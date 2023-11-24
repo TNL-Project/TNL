@@ -227,7 +227,7 @@ public:
     * \brief Copy-assignment operator.
     */
    // NOTE: as of nvcc 11.8, the default/implicit copy-assignment operator for std::array (which is based on aggregate
-   // initialization) does not work correctly in device code, so we must defaine our own copy-constructor
+   // initialization) does not work correctly in device code, so we must define our own copy-constructor
    constexpr StaticArray&
    operator=( const StaticArray& v );
 
