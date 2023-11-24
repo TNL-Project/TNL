@@ -121,4 +121,14 @@ StaticExpressionAny( const Expression& expression )
    return result;
 }
 
+template< typename Expression >
+constexpr auto
+StaticExpressionArgAny( const Expression& expression )
+{
+   for( int i = 0; i < expression.getSize(); i++ )
+      if( expression[ i ] )
+         return std::make_pair( true, i );
+   return std::make_pair( false, 0 );
+}
+
 }  // namespace TNL::Containers::Expressions

@@ -464,6 +464,15 @@ any( const ET1& a )
    return Algorithms::reduce( a, TNL::LogicalOr{} );
 }
 
+template< typename ET1, typename..., EnableIfUnaryExpression_t< ET1, bool > = true >
+auto
+argAny( const ET1& a )
+{
+   // TODO: This use of `reduceWithArg` might not be the most efficient. It might be
+   // better to implement some function like `findFirst` for this purpose.
+   return Algorithms::reduceWithArgument( a, TNL::AnyWithArg{} );
+}
+
 ////
 // Comparison operator ==
 template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
@@ -494,6 +503,76 @@ bool
 operator!=( const ET1& a, const ET2& b )
 {
    return ! operator==( a, b );
+}
+
+////
+// Lexicographical comparison operators
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator<( const ET1& a, const ET2& b )
+{
+   // TODO: The use of `argAny` might not be the most efficient. It might be
+   // better to implement some function like `findFirst` for this purpose.
+   auto [ notEqual, idx ] = argAny( notEqualTo( a, b ) );
+   if( notEqual )
+      return a.getElement( idx ) < b.getElement( idx );
+   return false;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator<=( const ET1& a, const ET2& b )
+{
+   // TODO: The use of `argAny` might not be the most efficient. It might be
+   // better to implement some function like `findFirst` for this purpose.
+   auto [ notEqual, idx ] = argAny( notEqualTo( a, b ) );
+   if( notEqual )
+      return a.getElement( idx ) < b.getElement( idx );
+   return true;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator>( const ET1& a, const ET2& b )
+{
+   // TODO: The use of `argAny` might not be the most efficient. It might be
+   // better to implement some function like `findFirst` for this purpose.
+   auto [ notEqual, idx ] = argAny( notEqualTo( a, b ) );
+   if( notEqual )
+      return a.getElement( idx ) > b.getElement( idx );
+   return false;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator>=( const ET1& a, const ET2& b )
+{
+   // TODO: The use of `argAny` might not be the most efficient. It might be
+   // better to implement some function like `findFirst` for this purpose.
+   auto [ notEqual, idx ] = argAny( notEqualTo( a, b ) );
+   if( notEqual )
+      return a.getElement( idx ) > b.getElement( idx );
+   return true;
 }
 
 #endif  // DOXYGEN_ONLY
@@ -541,6 +620,10 @@ using Expressions::operator^;
 using Expressions::operator, ;
 using Expressions::operator==;
 using Expressions::operator!=;
+using Expressions::operator<;
+using Expressions::operator<=;
+using Expressions::operator>;
+using Expressions::operator>=;
 
 using Expressions::equalTo;
 using Expressions::greater;
@@ -555,6 +638,7 @@ using Expressions::acos;
 using Expressions::acosh;
 using Expressions::all;
 using Expressions::any;
+using Expressions::argAny;
 using Expressions::argMax;
 using Expressions::argMin;
 using Expressions::asin;
@@ -599,6 +683,7 @@ using Containers::acos;
 using Containers::acosh;
 using Containers::all;
 using Containers::any;
+using Containers::argAny;
 using Containers::argMax;
 using Containers::argMin;
 using Containers::asin;

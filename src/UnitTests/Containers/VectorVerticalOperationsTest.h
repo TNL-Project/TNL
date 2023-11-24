@@ -464,6 +464,31 @@ TYPED_TEST( VectorVerticalOperationsTest, any_linear )
       EXPECT_FALSE( any( V1 + V1 ) );
    }
 }
+
+TYPED_TEST( VectorVerticalOperationsTest, argAny )
+{
+   using Index = typename TestFixture::VectorOrView::IndexType;
+   #ifdef STATIC_VECTOR
+   setLinearSequence( this->V1 );
+   const typename TestFixture::VectorOrView& V1( this->V1 );
+   const Index step = 1;
+   #else
+   // we have to use _V1 because V1 might be a const view
+   setLinearSequence( this->_V1 );
+   const typename TestFixture::VectorOrView& V1( this->_V1 );
+   const Index step = VECTOR_TEST_REDUCTION_SIZE / 5;
+   #endif
+
+   using Index = typename TestFixture::VectorOrView::IndexType;
+   for( Index i = 0; i < V1.getSize(); i += step ) {
+      auto [ check, idx ] = argAny( greaterEqual( V1, i ) );
+      EXPECT_TRUE( check ) << "i = " << i;
+      EXPECT_EQ( idx, i ) << "i = " << i;
+   }
+   auto [ check, idx ] = argAny( greaterEqual( V1, V1.getSize() ) );
+   EXPECT_FALSE( check );
+}
+
 #endif
 
 }  // namespace vertical_tests

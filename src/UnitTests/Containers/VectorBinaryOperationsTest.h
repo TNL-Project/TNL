@@ -767,6 +767,58 @@ TYPED_TEST( VectorBinaryOperationsTest, maximum )
 
 // TODO: tests for operators &&, ||, &, |, ^
 
+TYPED_TEST( VectorBinaryOperationsTest, comparison )
+{
+   SETUP_BINARY_TEST_ALIASES;
+   using Index = typename TestFixture::Left::IndexType;
+
+   this->reset( VECTOR_TEST_REDUCTION_SIZE );
+#ifdef STATIC_VECTOR
+   const Index size = this->L1.getSize();
+   const Index step = 1;
+#else
+   const Index size = VECTOR_TEST_REDUCTION_SIZE;
+   const Index step = VECTOR_TEST_REDUCTION_SIZE / 5;
+#endif
+   for( Index idx = 0; idx < size; idx += step ) {
+#ifdef STATIC_VECTOR
+      setPerturbedConstantSequence( this->L1, 1, idx, 2 );
+      setConstantSequence( this->R1, 1 );
+
+      typename TestFixture::Left& L( this->L1 );
+      typename TestFixture::Right& R( this->R1 );
+#else
+      // we have to use _L1 and _R1 because L1 and R1 might be a const view
+      setPerturbedConstantSequence( this->_L1, 1, idx, 2 );
+      setConstantSequence( this->_R1, 1 );
+
+      typename TestFixture::Left L( this->_L1 );
+      typename TestFixture::Right R( this->_R1 );
+#endif
+      EXPECT_GT( L, R );
+      EXPECT_LT( R, L );
+      EXPECT_GE( L, R );
+      EXPECT_LE( R, L );
+   }
+
+#ifdef STATIC_VECTOR
+   setConstantSequence( this->L1, 1 );
+   setConstantSequence( this->R1, 1 );
+
+   typename TestFixture::Left& L( this->L1 );
+   typename TestFixture::Right& R( this->R1 );
+#else
+   // we have to use _L1 and _R1 because L1 and R1 might be a const view
+   setConstantSequence( this->_L1, 1 );
+   setConstantSequence( this->_R1, 1 );
+
+   typename TestFixture::Left L( this->_L1 );
+   typename TestFixture::Right R( this->_R1 );
+#endif
+   EXPECT_GE( L, R );
+   EXPECT_LE( R, L );
+}
+
 #if( defined( __CUDACC__ ) || defined( __HIP__ ) ) && ! defined( STATIC_VECTOR )
 TYPED_TEST( VectorBinaryOperationsTest, comparisonOnDifferentDevices )
 {
