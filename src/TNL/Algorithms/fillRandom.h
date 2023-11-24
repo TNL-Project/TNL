@@ -13,10 +13,10 @@ namespace TNL::Algorithms {
 /**
  * \brief Fills memory between `data` and `data + size` with random Element values in the given range.
  *
- * \tparam Device is the device where the \e data is allocated.
- * \tparam Element is the type of the \e data.
+ * \tparam Device is the device where the data is allocated.
+ * \tparam Element is the type of the data.
  * \tparam Index is the type of the size of the data.
- * \param data is the pointer to the memory where the value will be set.
+ * \param data is the pointer to the memory where the random values will be set.
  * \param size is the size of the data.
  * \param min_val is the minimum random value
  * \param max_val is the maximum random value
