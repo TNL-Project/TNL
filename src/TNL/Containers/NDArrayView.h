@@ -64,17 +64,20 @@ public:
    __cuda_callable__
    NDArrayView() = default;
 
-   //! \brief Constructs an array view initialized by a raw data pointer and
-   //! sizes and strides.
+   //! \brief Constructs an array view initialized by a raw data pointer,
+   //! sizes, strides and overlaps.
    __cuda_callable__
-   NDArrayView( Value* data, SizesHolderType sizes, StridesHolderType strides = StridesHolderType{} )
-   : IndexerType( sizes, strides ), array( data )
+   NDArrayView( Value* data,
+                SizesHolderType sizes,
+                StridesHolderType strides = StridesHolderType{},
+                OverlapsType overlaps = OverlapsType{} )
+   : IndexerType( std::move( sizes ), std::move( strides ), std::move( overlaps ) ), array( data )
    {}
 
    //! \brief Constructs an array view initialized by a raw data pointer and an
    //! indexer.
    __cuda_callable__
-   NDArrayView( Value* data, IndexerType indexer ) : IndexerType( indexer ), array( data ) {}
+   NDArrayView( Value* data, IndexerType indexer ) : IndexerType( std::move( indexer ) ), array( data ) {}
 
    /**
     * \brief A shallow-copy copy-constructor.
@@ -211,11 +214,13 @@ public:
    // methods from the base class
    using IndexerType::getDimension;
    using IndexerType::getOverlap;
+   using IndexerType::getOverlaps;
    using IndexerType::getSize;
    using IndexerType::getSizes;
    using IndexerType::getStorageIndex;
    using IndexerType::getStorageSize;
    using IndexerType::getStride;
+   using IndexerType::getStrides;
    using IndexerType::isContiguousBlock;
 
    //! Returns a const-qualified reference to the underlying indexer.
@@ -333,7 +338,7 @@ public:
    operator[]( IndexType&& index )
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexType >( index ) );
       return array[ index ];
    }
 
@@ -351,7 +356,7 @@ public:
    operator[]( IndexType index ) const
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexType >( index ) );
       return array[ index ];
    }
 
@@ -411,7 +416,9 @@ public:
       using Ends = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       Ends ends;
-      detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType >::subtract( ends, getSizes() );
+      using NoOverlapsType = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType, NoOverlapsType >::subtract(
+         ends, getSizes(), NoOverlapsType{} );
       dispatch( Begins{}, ends, launch_configuration, f );
    }
 
@@ -464,7 +471,9 @@ public:
       using SkipEnds = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       SkipEnds skipEnds;
-      detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType >::subtract( skipEnds, getSizes() );
+      using NoOverlapsType = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType, NoOverlapsType >::subtract(
+         skipEnds, getSizes(), NoOverlapsType{} );
 
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( Begins{}, SkipBegins{}, skipEnds, getSizes(), launch_configuration, f );

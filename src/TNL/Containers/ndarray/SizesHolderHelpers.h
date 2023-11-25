@@ -19,24 +19,24 @@ template< typename SizesHolder,
 struct StorageSizeGetter
 {
    [[nodiscard]] static typename SizesHolder::IndexType __cuda_callable__
-   get( const SizesHolder& sizes )
+   get( const SizesHolder& sizes, const Overlaps& overlaps )
    {
-      static constexpr std::size_t overlap = detail::get< LevelTag::value >( Overlaps{} );
+      const auto overlap = overlaps.template getSize< LevelTag::value >();
       const auto size = Alignment::template getAlignedSize< LevelTag::value >( sizes );
       return ( size + 2 * overlap )
-           * StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< LevelTag::value - 1 > >::get( sizes );
+           * StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< LevelTag::value - 1 > >::get( sizes, overlaps );
    }
 
    template< typename Permutation >
    [[nodiscard]] __cuda_callable__
    static typename SizesHolder::IndexType
-   getPermuted( const SizesHolder& sizes, Permutation )
+   getPermuted( const SizesHolder& sizes, const Overlaps& overlaps, Permutation )
    {
       static constexpr std::size_t idx = detail::get< LevelTag::value >( Permutation{} );
-      static constexpr std::size_t overlap = detail::get< idx >( Overlaps{} );
+      const auto overlap = overlaps.template getSize< idx >();
       const auto size = Alignment::template getAlignedSize< idx >( sizes );
       return ( size + 2 * overlap )
-           * StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< LevelTag::value - 1 > >::get( sizes );
+           * StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< LevelTag::value - 1 > >::get( sizes, overlaps );
    }
 };
 
@@ -44,19 +44,19 @@ template< typename SizesHolder, typename Alignment, typename Overlaps >
 struct StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< 0 > >
 {
    [[nodiscard]] static typename SizesHolder::IndexType __cuda_callable__
-   get( const SizesHolder& sizes )
+   get( const SizesHolder& sizes, const Overlaps& overlaps )
    {
-      static constexpr std::size_t overlap = detail::get< 0 >( Overlaps{} );
+      const auto overlap = overlaps.template getSize< 0 >();
       return Alignment::template getAlignedSize< 0 >( sizes ) + 2 * overlap;
    }
 
    template< typename Permutation >
    [[nodiscard]] __cuda_callable__
    static typename SizesHolder::IndexType
-   getPermuted( const SizesHolder& sizes, Permutation )
+   getPermuted( const SizesHolder& sizes, const Overlaps& overlaps, Permutation )
    {
       static constexpr std::size_t idx = detail::get< 0 >( Permutation{} );
-      static constexpr std::size_t overlap = detail::get< idx >( Overlaps{} );
+      const auto overlap = overlaps.template getSize< idx >();
       return Alignment::template getAlignedSize< idx >( sizes ) + 2 * overlap;
    }
 };
@@ -115,7 +115,7 @@ assertIndicesInBounds( const SizesHolder& sizes, const Overlaps& overlaps, Index
    // shouldn't be declared when compiling without assertions
    constexpr std::size_t level = SizesHolder::getDimension() - sizeof...( indices ) - 1;
    const auto size = sizes.template getSize< level >();
-   const decltype( size ) overlap = get< level >( overlaps );
+   const auto overlap = overlaps.template getSize< level >();
    TNL_ASSERT_LE( -overlap, (decltype( size )) i, "Input error - some index is below the lower bound." );
    TNL_ASSERT_LT( (decltype( size )) i, size + overlap, "Input error - some index is above the upper bound." );
 #endif
@@ -145,9 +145,9 @@ assertIndicesInRange( const SizesHolder1& begins,
    constexpr std::size_t level = SizesHolder1::getDimension() - sizeof...( indices ) - 1;
    const auto begin = begins.template getSize< level >();
    const auto end = ends.template getSize< level >();
-   TNL_ASSERT_LE(
-      begin - (decltype( begin )) get< level >( overlaps ), i, "Input error - some index is below the lower bound." );
-   TNL_ASSERT_LT( i, end + (decltype( end )) get< level >( overlaps ), "Input error - some index is above the upper bound." );
+   const auto overlap = overlaps.template getSize< level >();
+   TNL_ASSERT_LE( begin - overlap, i, "Input error - some index is below the lower bound." );
+   TNL_ASSERT_LT( i, end + overlap, "Input error - some index is above the upper bound." );
 #endif
    assertIndicesInRange( begins, ends, overlaps, std::forward< IndexTypes >( indices )... );
 }
@@ -204,16 +204,22 @@ sizesWeakCompare( const SizesHolder1& sizes1, const SizesHolder2& sizes2 )
 template< std::size_t ConstValue,
           typename TargetHolder,
           typename SourceHolder,
-          typename Overlaps = make_constant_index_sequence< TargetHolder::getDimension(), 0 >,
+          typename Overlaps,
           std::size_t level = TargetHolder::getDimension() - 1 >
 struct SetSizesSubtractHelper
 {
    static void
-   subtract( TargetHolder& target, const SourceHolder& source )
+   subtract( TargetHolder& target, const SourceHolder& source, const Overlaps& overlaps )
    {
-      if( source.template getStaticSize< level >() == 0 )
-         target.template setSize< level >( source.template getSize< level >() - ConstValue * ! get< level >( Overlaps{} ) );
-      SetSizesSubtractHelper< ConstValue, TargetHolder, SourceHolder, Overlaps, level - 1 >::subtract( target, source );
+      if constexpr( SourceHolder::template getStaticSize< level >() == 0 ) {
+         const auto overlap = overlaps.template getSize< level >();
+         if( overlap == 0 )
+            target.template setSize< level >( source.template getSize< level >() - ConstValue );
+         else
+            target.template setSize< level >( source.template getSize< level >() );
+      }
+      SetSizesSubtractHelper< ConstValue, TargetHolder, SourceHolder, Overlaps, level - 1 >::subtract(
+         target, source, overlaps );
    }
 };
 
@@ -221,10 +227,15 @@ template< std::size_t ConstValue, typename TargetHolder, typename SourceHolder, 
 struct SetSizesSubtractHelper< ConstValue, TargetHolder, SourceHolder, Overlaps, 0 >
 {
    static void
-   subtract( TargetHolder& target, const SourceHolder& source )
+   subtract( TargetHolder& target, const SourceHolder& source, const Overlaps& overlaps )
    {
-      if( source.template getStaticSize< 0 >() == 0 )
-         target.template setSize< 0 >( source.template getSize< 0 >() - ConstValue * ! get< 0 >( Overlaps{} ) );
+      if constexpr( SourceHolder::template getStaticSize< 0 >() == 0 ) {
+         const auto overlap = overlaps.template getSize< 0 >();
+         if( overlap == 0 )
+            target.template setSize< 0 >( source.template getSize< 0 >() - ConstValue );
+         else
+            target.template setSize< 0 >( source.template getSize< 0 >() );
+      }
    }
 };
 
@@ -232,16 +243,21 @@ struct SetSizesSubtractHelper< ConstValue, TargetHolder, SourceHolder, Overlaps,
 template< std::size_t ConstValue,
           typename TargetHolder,
           typename SourceHolder,
-          typename Overlaps = make_constant_index_sequence< TargetHolder::getDimension(), 0 >,
+          typename Overlaps,
           std::size_t level = TargetHolder::getDimension() - 1 >
 struct SetSizesAddHelper
 {
    static void
-   add( TargetHolder& target, const SourceHolder& source )
+   add( TargetHolder& target, const SourceHolder& source, const Overlaps& overlaps )
    {
-      if( source.template getStaticSize< level >() == 0 )
-         target.template setSize< level >( source.template getSize< level >() + ConstValue * ! get< level >( Overlaps{} ) );
-      SetSizesAddHelper< ConstValue, TargetHolder, SourceHolder, Overlaps, level - 1 >::add( target, source );
+      if constexpr( SourceHolder::template getStaticSize< level >() == 0 ) {
+         const auto overlap = overlaps.template getSize< level >();
+         if( overlap == 0 )
+            target.template setSize< level >( source.template getSize< level >() + ConstValue );
+         else
+            target.template setSize< level >( source.template getSize< level >() );
+      }
+      SetSizesAddHelper< ConstValue, TargetHolder, SourceHolder, Overlaps, level - 1 >::add( target, source, overlaps );
    }
 };
 
@@ -249,26 +265,30 @@ template< std::size_t ConstValue, typename TargetHolder, typename SourceHolder, 
 struct SetSizesAddHelper< ConstValue, TargetHolder, SourceHolder, Overlaps, 0 >
 {
    static void
-   add( TargetHolder& target, const SourceHolder& source )
+   add( TargetHolder& target, const SourceHolder& source, const Overlaps& overlaps )
    {
-      if( source.template getStaticSize< 0 >() == 0 )
-         target.template setSize< 0 >( source.template getSize< 0 >() + ConstValue * ! get< 0 >( Overlaps{} ) );
+      if constexpr( SourceHolder::template getStaticSize< 0 >() == 0 ) {
+         const auto overlap = overlaps.template getSize< 0 >();
+         if( overlap == 0 )
+            target.template setSize< 0 >( source.template getSize< 0 >() + ConstValue );
+         else
+            target.template setSize< 0 >( source.template getSize< 0 >() );
+      }
    }
 };
 
 // helper for the forLocalInterior, forLocalBoundary and forGhosts methods (DistributedNDArray)
-template< typename TargetHolder,
-          typename SourceHolder,
-          typename Overlaps = make_constant_index_sequence< TargetHolder::getDimension(), 0 >,
-          std::size_t level = TargetHolder::getDimension() - 1 >
+template< typename TargetHolder, typename SourceHolder, typename Overlaps, std::size_t level = TargetHolder::getDimension() - 1 >
 struct SetSizesSubtractOverlapsHelper
 {
    static void
-   subtract( TargetHolder& target, const SourceHolder& source )
+   subtract( TargetHolder& target, const SourceHolder& source, const Overlaps& overlaps )
    {
-      if( source.template getStaticSize< level >() == 0 )
-         target.template setSize< level >( source.template getSize< level >() - get< level >( Overlaps{} ) );
-      SetSizesSubtractOverlapsHelper< TargetHolder, SourceHolder, Overlaps, level - 1 >::subtract( target, source );
+      if constexpr( SourceHolder::template getStaticSize< level >() == 0 ) {
+         const auto overlap = overlaps.template getSize< level >();
+         target.template setSize< level >( source.template getSize< level >() - overlap );
+      }
+      SetSizesSubtractOverlapsHelper< TargetHolder, SourceHolder, Overlaps, level - 1 >::subtract( target, source, overlaps );
    }
 };
 
@@ -276,26 +296,27 @@ template< typename TargetHolder, typename SourceHolder, typename Overlaps >
 struct SetSizesSubtractOverlapsHelper< TargetHolder, SourceHolder, Overlaps, 0 >
 {
    static void
-   subtract( TargetHolder& target, const SourceHolder& source )
+   subtract( TargetHolder& target, const SourceHolder& source, const Overlaps& overlaps )
    {
-      if( source.template getStaticSize< 0 >() == 0 )
-         target.template setSize< 0 >( source.template getSize< 0 >() - get< 0 >( Overlaps{} ) );
+      if constexpr( SourceHolder::template getStaticSize< 0 >() == 0 ) {
+         const auto overlap = overlaps.template getSize< 0 >();
+         target.template setSize< 0 >( source.template getSize< 0 >() - overlap );
+      }
    }
 };
 
 // helper for the forLocalInterior, forLocalBoundary and forGhosts methods (DistributedNDArray)
-template< typename TargetHolder,
-          typename SourceHolder,
-          typename Overlaps = make_constant_index_sequence< TargetHolder::getDimension(), 0 >,
-          std::size_t level = TargetHolder::getDimension() - 1 >
+template< typename TargetHolder, typename SourceHolder, typename Overlaps, std::size_t level = TargetHolder::getDimension() - 1 >
 struct SetSizesAddOverlapsHelper
 {
    static void
-   add( TargetHolder& target, const SourceHolder& source )
+   add( TargetHolder& target, const SourceHolder& source, const Overlaps& overlaps )
    {
-      if( source.template getStaticSize< level >() == 0 )
-         target.template setSize< level >( source.template getSize< level >() + get< level >( Overlaps{} ) );
-      SetSizesAddOverlapsHelper< TargetHolder, SourceHolder, Overlaps, level - 1 >::add( target, source );
+      if constexpr( SourceHolder::template getStaticSize< level >() == 0 ) {
+         const auto overlap = overlaps.template getSize< level >();
+         target.template setSize< level >( source.template getSize< level >() + overlap );
+      }
+      SetSizesAddOverlapsHelper< TargetHolder, SourceHolder, Overlaps, level - 1 >::add( target, source, overlaps );
    }
 };
 
@@ -303,10 +324,12 @@ template< typename TargetHolder, typename SourceHolder, typename Overlaps >
 struct SetSizesAddOverlapsHelper< TargetHolder, SourceHolder, Overlaps, 0 >
 {
    static void
-   add( TargetHolder& target, const SourceHolder& source )
+   add( TargetHolder& target, const SourceHolder& source, const Overlaps& overlaps )
    {
-      if( source.template getStaticSize< 0 >() == 0 )
-         target.template setSize< 0 >( source.template getSize< 0 >() + get< 0 >( Overlaps{} ) );
+      if constexpr( SourceHolder::template getStaticSize< 0 >() == 0 ) {
+         const auto overlap = overlaps.template getSize< 0 >();
+         target.template setSize< 0 >( source.template getSize< 0 >() + overlap );
+      }
    }
 };
 
@@ -317,7 +340,7 @@ struct SetSizesMaxHelper
    static void
    max( TargetHolder& target, const SourceHolder& source )
    {
-      if( source.template getStaticSize< level >() == 0 )
+      if constexpr( SourceHolder::template getStaticSize< level >() == 0 )
          target.template setSize< level >( std::max( target.template getSize< level >(), source.template getSize< level >() ) );
       SetSizesMaxHelper< TargetHolder, SourceHolder, level - 1 >::max( target, source );
    }
@@ -329,7 +352,7 @@ struct SetSizesMaxHelper< TargetHolder, SourceHolder, 0 >
    static void
    max( TargetHolder& target, const SourceHolder& source )
    {
-      if( source.template getStaticSize< 0 >() == 0 )
+      if constexpr( SourceHolder::template getStaticSize< 0 >() == 0 )
          target.template setSize< 0 >( std::max( target.template getSize< 0 >(), source.template getSize< 0 >() ) );
    }
 };
@@ -341,7 +364,7 @@ struct SetSizesMinHelper
    static void
    min( TargetHolder& target, const SourceHolder& source )
    {
-      if( source.template getStaticSize< level >() == 0 )
+      if constexpr( SourceHolder::template getStaticSize< level >() == 0 )
          target.template setSize< level >( std::min( target.template getSize< level >(), source.template getSize< level >() ) );
       SetSizesMinHelper< TargetHolder, SourceHolder, level - 1 >::min( target, source );
    }
@@ -353,7 +376,7 @@ struct SetSizesMinHelper< TargetHolder, SourceHolder, 0 >
    static void
    min( TargetHolder& target, const SourceHolder& source )
    {
-      if( source.template getStaticSize< 0 >() == 0 )
+      if constexpr( SourceHolder::template getStaticSize< 0 >() == 0 )
          target.template setSize< 0 >( std::min( target.template getSize< 0 >(), source.template getSize< 0 >() ) );
    }
 };

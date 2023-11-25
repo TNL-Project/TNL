@@ -1238,7 +1238,13 @@ TEST( NDArrayTest, isContguousBlock )
 TEST( NDArrayTest, isContguousBlock_overlaps )
 {
    int I = 3, J = 3, K = 3;
-   NDArray< int, SizesHolder< int, 0, 0, 0 >, index_sequence< 0, 1, 2 >, TNL::Devices::Host, int, index_sequence< 0, 1, 2 > > a;
+   NDArray< int,
+            SizesHolder< int, 0, 0, 0 >,
+            index_sequence< 0, 1, 2 >,
+            TNL::Devices::Host,
+            int,
+            StaticSizesHolder< int, 0, 1, 2 > >
+      a;
    a.setSizes( I, J, K );
    a.setValue( 0 );
    using SizesHolder = typename decltype( a )::SizesHolderType;

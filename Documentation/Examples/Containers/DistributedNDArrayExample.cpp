@@ -10,12 +10,12 @@ void
 distributedNDArrayExample()
 {
    using namespace TNL::Containers;
-   using LocalArrayType = NDArray< int,                          // Value
-                                   SizesHolder< int, 0, 0 >,     // Sizes
-                                   std::index_sequence< 1, 0 >,  // Permutation
-                                   Device,                       // Device
-                                   int,                          // Index
-                                   std::index_sequence< 1, 0 >   // Overlaps
+   using LocalArrayType = NDArray< int,                            // Value
+                                   SizesHolder< int, 0, 0 >,       // Sizes
+                                   std::index_sequence< 1, 0 >,    // Permutation
+                                   Device,                         // Device
+                                   int,                            // Index
+                                   StaticSizesHolder< int, 1, 0 >  // Overlaps
                                    >;
    using ArrayType = DistributedNDArray< LocalArrayType >;
    using LocalRangeType = typename ArrayType::LocalRangeType;

@@ -134,7 +134,7 @@ public:
    setBufferOffsets( int shift = 0 )
    {
       constexpr int dim0 = getDimensionWithOverlap< 0 >();
-      constexpr int overlap0 = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim0 >();
+      const int overlap0 = array_view.template getOverlap< dim0 >();
 
       const auto& localBegins = array_view.getLocalBegins();
       const auto& localEnds = array_view.getLocalEnds();
@@ -155,9 +155,9 @@ public:
                                                           - localBegins.template getSize< dim0 >() - shift );
          }
          if( ( direction & SyncDirection::Bottom ) != SyncDirection::None ) {
-            if constexpr( countDimensionsWithOverlap() >= 2 ) {
+            if( countDimensionsWithOverlap( array_view ) >= 2 ) {
                constexpr int dim1 = getDimensionWithOverlap< 1 >();
-               constexpr int overlap1 = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim1 >();
+               const int overlap1 = array_view.template getOverlap< dim1 >();
                buffer.send_offsets.template setSize< dim1 >( -shift );
                buffer.recv_offsets.template setSize< dim1 >( -overlap1 + shift );
             }
@@ -166,9 +166,9 @@ public:
                                        "only 1 dimension with overlap" );
          }
          if( ( direction & SyncDirection::Top ) != SyncDirection::None ) {
-            if constexpr( countDimensionsWithOverlap() >= 2 ) {
+            if( countDimensionsWithOverlap( array_view ) >= 2 ) {
                constexpr int dim1 = getDimensionWithOverlap< 1 >();
-               constexpr int overlap1 = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim1 >();
+               const int overlap1 = array_view.template getOverlap< dim1 >();
                buffer.send_offsets.template setSize< dim1 >( localEnds.template getSize< dim1 >()
                                                              - localBegins.template getSize< dim1 >() - overlap1 + shift );
                buffer.recv_offsets.template setSize< dim1 >( localEnds.template getSize< dim1 >()
@@ -179,9 +179,9 @@ public:
                                        "only 1 dimension with overlap" );
          }
          if( ( direction & SyncDirection::Back ) != SyncDirection::None ) {
-            if constexpr( countDimensionsWithOverlap() == 3 ) {
+            if( countDimensionsWithOverlap( array_view ) == 3 ) {
                constexpr int dim2 = getDimensionWithOverlap< 2 >();
-               constexpr int overlap2 = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim2 >();
+               const int overlap2 = array_view.template getOverlap< dim2 >();
                buffer.send_offsets.template setSize< dim2 >( -shift );
                buffer.recv_offsets.template setSize< dim2 >( -overlap2 + shift );
             }
@@ -190,9 +190,9 @@ public:
                                        "only 1 or 2 dimensions with overlap" );
          }
          if( ( direction & SyncDirection::Front ) != SyncDirection::None ) {
-            if constexpr( countDimensionsWithOverlap() == 3 ) {
+            if( countDimensionsWithOverlap( array_view ) == 3 ) {
                constexpr int dim2 = getDimensionWithOverlap< 2 >();
-               constexpr int overlap2 = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim2 >();
+               const int overlap2 = array_view.template getOverlap< dim2 >();
                buffer.send_offsets.template setSize< dim2 >( localEnds.template getSize< dim2 >()
                                                              - localBegins.template getSize< dim2 >() - overlap2 + shift );
                buffer.recv_offsets.template setSize< dim2 >( localEnds.template getSize< dim2 >()
@@ -344,6 +344,11 @@ public:
       if constexpr( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
          this->gpu_id = Backend::getDevice();
 
+      if( countDimensionsWithOverlap( array.getView() ) == 0 )
+         throw std::invalid_argument( "the distributed array must have at least one dimension with overlap" );
+      if( countDimensionsWithOverlap( array.getView() ) > 3 )
+         throw std::invalid_argument( "at most 3 dimensions with overlap are supported" );
+
       // skip allocation on repeated calls - compare only sizes, not the actual data
       if( array_view.getCommunicator() != array.getCommunicator() || array_view.getSizes() != array.getSizes()
           || array_view.getLocalBegins() != array.getLocalBegins() || array_view.getLocalEnds() != array.getLocalEnds() )
@@ -434,28 +439,29 @@ public:
    }
 
 protected:
-   static constexpr int
-   countDimensionsWithOverlap()
+   int
+   countDimensionsWithOverlap( const DistributedNDArrayView& array_view ) const
    {
       int count = 0;
       Algorithms::staticFor< std::size_t, 0, DistributedNDArray::getDimension() >(
          [ & ]( auto dim )
          {
-            constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
+            const int overlap = array_view.template getOverlap< dim >();
             if( overlap > 0 )
                count++;
          } );
       return count;
    }
 
-   static_assert( countDimensionsWithOverlap() > 0, "the distributed array must have at least one dimension with overlap" );
-   static_assert( countDimensionsWithOverlap() <= 3, "at most 3 dimensions with overlap are supported" );
-
+   // FIXME: this can't be constexpr if we want dynamic overlaps :-(
    template< std::size_t order >
    static constexpr int
    getDimensionWithOverlap()
    {
-      static_assert( order < DistributedNDArray::getDimension() );
+      // FIXME: we must return a valid index in [0, dimension) otherwise some other static_assert blows up...
+      //static_assert( order < DistributedNDArray::getDimension() );
+      if constexpr( order >= DistributedNDArray::getDimension() )
+         return 0;
 
       // In C++17, a constexpr function must not contain "a definition of a variable for which no initialization is performed".
       // This restriction is removed in C++20. Until then, we initialize the array using a lambda.
@@ -472,12 +478,15 @@ protected:
       Algorithms::staticFor< int, 0, DistributedNDArray::getDimension() >(
          [ & ]( auto dim )
          {
-            constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
+            // FIXME: we want dynamic overlaps!
+            constexpr int overlap = DistributedNDArrayView::OverlapsType::template getStaticSize< dim >();
             if( overlap > 0 && i <= order && dim < dims[ i ] )
                dims[ i++ ] = dim;
          } );
 
-      return dims[ order ];
+      //return dims[ order ];
+      // FIXME: we must return a valid index in [0, dimension) otherwise some other static_assert blows up...
+      return TNL::min( dims[ order ], DistributedNDArray::getDimension() - 1 );
    }
 
    void
@@ -493,15 +502,15 @@ protected:
              || ( direction & SyncDirection::Right ) != SyncDirection::None )
          {
             constexpr int dim = getDimensionWithOverlap< 0 >();
-            constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
+            const int overlap = array_view.template getOverlap< dim >();
             bufferSize.template setSize< dim >( overlap );
          }
          if( ( direction & SyncDirection::Bottom ) != SyncDirection::None
              || ( direction & SyncDirection::Top ) != SyncDirection::None )
          {
-            if constexpr( countDimensionsWithOverlap() >= 2 ) {
+            if( countDimensionsWithOverlap( array_view ) >= 2 ) {
                constexpr int dim = getDimensionWithOverlap< 1 >();
-               constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
+               const int overlap = array_view.template getOverlap< dim >();
                bufferSize.template setSize< dim >( overlap );
             }
             else
@@ -511,9 +520,9 @@ protected:
          if( ( direction & SyncDirection::Back ) != SyncDirection::None
              || ( direction & SyncDirection::Front ) != SyncDirection::None )
          {
-            if constexpr( countDimensionsWithOverlap() == 3 ) {
+            if( countDimensionsWithOverlap( array_view ) == 3 ) {
                constexpr int dim = getDimensionWithOverlap< 2 >();
-               constexpr int overlap = DistributedNDArrayView::LocalViewType::IndexerType::template getOverlap< dim >();
+               const int overlap = array_view.template getOverlap< dim >();
                bufferSize.template setSize< dim >( overlap );
             }
             else

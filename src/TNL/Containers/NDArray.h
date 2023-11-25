@@ -160,11 +160,13 @@ public:
    // methods from the base class
    using IndexerType::getDimension;
    using IndexerType::getOverlap;
+   using IndexerType::getOverlaps;
    using IndexerType::getSize;
    using IndexerType::getSizes;
    using IndexerType::getStorageIndex;
    using IndexerType::getStorageSize;
    using IndexerType::getStride;
+   using IndexerType::getStrides;
    using IndexerType::isContiguousBlock;
 
    //! Returns a const-qualified reference to the underlying indexer.
@@ -180,7 +182,7 @@ public:
    ViewType
    getView()
    {
-      return ViewType( array.getData(), getSizes() );
+      return ViewType( array.getData(), getIndexer() );
    }
 
    //! \brief Returns a non-modifiable view of the array.
@@ -188,7 +190,7 @@ public:
    ConstViewType
    getConstView() const
    {
-      return ConstViewType( array.getData(), getSizes() );
+      return ConstViewType( array.getData(), getIndexer() );
    }
 
    /**
@@ -282,7 +284,7 @@ public:
    operator[]( IndexType index )
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexType >( index ) );
       return array[ index ];
    }
 
@@ -300,7 +302,7 @@ public:
    operator[]( IndexType index ) const
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexType >( index ) );
       return array[ index ];
    }
 
@@ -358,7 +360,9 @@ public:
       using Ends = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       Ends ends;
-      detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType >::subtract( ends, getSizes() );
+      using NoOverlapsType = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType, NoOverlapsType >::subtract(
+         ends, getSizes(), NoOverlapsType{} );
       dispatch( Begins{}, ends, launch_configuration, f );
    }
 
@@ -410,7 +414,9 @@ public:
       using SkipEnds = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       SkipEnds skipEnds;
-      detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType >::subtract( skipEnds, getSizes() );
+      using NoOverlapsType = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType, NoOverlapsType >::subtract(
+         skipEnds, getSizes(), NoOverlapsType{} );
 
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( Begins{}, SkipBegins{}, skipEnds, getSizes(), launch_configuration, f );
@@ -551,7 +557,7 @@ template< typename Value,
           typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
           typename Device = Devices::Host,
           typename Index = typename SizesHolder::IndexType,
-          typename Overlaps = detail::make_constant_index_sequence< SizesHolder::getDimension(), 0 >,
+          typename Overlaps = detail::ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class NDArray : public NDArrayStorage<
                    Array< Value, Device, Index, Allocator >,
@@ -673,7 +679,7 @@ template< typename Value,
           typename SliceInfo = SliceInfo<>,                                                // no slicing by default
           typename Device = Devices::Host,
           typename Index = typename SizesHolder::IndexType,
-          typename Overlaps = detail::make_constant_index_sequence< SizesHolder::getDimension(), 0 >,
+          typename Overlaps = detail::ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class SlicedNDArray
 : public NDArrayStorage<
