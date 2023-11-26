@@ -219,6 +219,20 @@ StaticArray< Size, Value >::z() const noexcept
 }
 
 template< int Size, typename Value >
+constexpr void
+StaticArray< Size, Value >::setElement( IndexType i, ValueType value ) noexcept
+{
+   this->operator[]( i ) = value;
+}
+
+template< int Size, typename Value >
+constexpr Value
+StaticArray< Size, Value >::getElement( IndexType i ) const noexcept
+{
+   return this->operator[]( i );
+}
+
+template< int Size, typename Value >
 constexpr StaticArray< Size, Value >&
 StaticArray< Size, Value >::operator=( const StaticArray& v )
 {
