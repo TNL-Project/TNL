@@ -14,7 +14,7 @@ void configSetup(TNL::Config::ConfigDescription& config) {
 }
 
 template <typename Real>
-bool 
+bool
 runDenseMatricesBenchmark(TNL::Config::ParameterContainer& parameters) {
     TNL::Benchmarks::DenseMatrices::DenseMatricesBenchmark<Real> benchmark(parameters);
     benchmark.runBenchmark();
