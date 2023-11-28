@@ -1309,7 +1309,7 @@ TODO: Write documentation on distributed matrices.
 ## Flexible reduction in matrix rows
 
 Flexible reduction in matrix rows is a powerful tool for many different matrix operations. It is represented by the method `reduceRows` (\ref TNL::Matrices::DenseMatrix::reduceRows,
-\ref TNL::Matrices::SparseMatrix::reduceRows, \ref TNL::Matrices::TridiagonalMatrix::reduceRows, \ref TNL::Matrices::MultidiagonalMatrix::reduceRows, \ref TNL::Matrices::LambdaMatrix::reduceRows) and similar to the method `forElements` it iterates over particular matrix rows. However, it performs *flexible paralell reduction* in addition. For example, the matrix-vector product can be seen as a reduction of products of matrix elements with the input vector in particular matrix rows. The first element of the result vector ios obtained as:
+\ref TNL::Matrices::SparseMatrix::reduceRows, \ref TNL::Matrices::TridiagonalMatrix::reduceRows, \ref TNL::Matrices::MultidiagonalMatrix::reduceRows, \ref TNL::Matrices::LambdaMatrix::reduceRows) and similar to the method `forElements` it iterates over particular matrix rows. However, it performs *flexible parallel reduction* in addition. For example, the matrix-vector product can be seen as a reduction of products of matrix elements with the input vector in particular matrix rows. The first element of the result vector ios obtained as:
 
 \f[
 y_1 = a_{11} x_1 + a_{12} x_2 + \ldots + a_{1n} x_n = \sum_{j=1}^n a_{1j}x_j
