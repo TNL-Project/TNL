@@ -36,7 +36,7 @@ cudaInitTask( Containers::ArrayView< TASK, Devices::Cuda > cuda_tasks,
               Containers::ArrayView< Value, Devices::Cuda > src,
               CMP Cmp )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    if( blockIdx.x >= cuda_tasks.getSize() )
       return;
 
@@ -65,7 +65,7 @@ cudaQuickSort1stPhase( Containers::ArrayView< Value, Devices::Cuda > arr,
                        Containers::ArrayView< TASK, Devices::Cuda > tasks,
                        Containers::ArrayView< int, Devices::Cuda > taskMapping )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
    Value* piv = (Value*) externMem;
    Value* sharedMem = piv + 1;
@@ -103,7 +103,7 @@ cudaWritePivot( Containers::ArrayView< Value, Devices::Cuda > arr,
                 Containers::ArrayView< TASK, Devices::Cuda > secondPhaseTasks,
                 int* secondPhaseTasksCnt )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
    Value* piv = (Value*) externMem;
 
@@ -167,7 +167,7 @@ writeNewTask( Index begin,
               Containers::ArrayView< TASK, Devices::Cuda > secondPhaseTasks,
               int* secondPhaseTasksCnt )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    int size = end - begin;
    if( size < 0 ) {
       printf( "negative size, something went really wrong\n" );
@@ -220,7 +220,7 @@ cudaQuickSort2ndPhase( Containers::ArrayView< Value, Devices::Cuda > arr,
                        int elemInShared,
                        int maxBitonicSize )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
    Value* sharedMem = (Value*) externMem;
 
@@ -255,7 +255,7 @@ cudaQuickSort2ndPhase2( Containers::ArrayView< Value, Devices::Cuda > arr,
                         int elemInShared,
                         int maxBitonicSize )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
    Value* sharedMem = (Value*) externMem;
 

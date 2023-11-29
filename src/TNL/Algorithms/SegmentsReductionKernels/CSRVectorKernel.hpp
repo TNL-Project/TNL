@@ -7,8 +7,8 @@
 #pragma once
 
 #include <TNL/Assert.h>
-#include <TNL/Cuda/KernelLaunch.h>
-#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Backend.h>
+#include <TNL/Algorithms/detail/CudaReductionKernel.h>
 
 #include "CSRScalarKernel.h"
 #include "CSRVectorKernel.h"
@@ -23,44 +23,39 @@ reduceSegmentsCSRKernelVector( int gridIdx,
                                Index begin,
                                Index end,
                                Fetch fetch,
-                               const Reduction reduce,
+                               const Reduction reduction,
                                ResultKeeper keep,
                                const Value identity )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   /***
-    * We map one warp to each segment
-    */
-   const Index segmentIdx = TNL::Cuda::getGlobalThreadIdx_x( gridIdx ) / TNL::Cuda::getWarpSize() + begin;
+   // We map one warp to each segment
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize() + begin;
    if( segmentIdx >= end )
       return;
 
-   const int laneIdx = threadIdx.x & ( TNL::Cuda::getWarpSize() - 1 );  // & is cheaper than %
+   const int laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
    TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
    Index endIdx = offsets[ segmentIdx + 1 ];
 
-   Index localIdx( laneIdx );
-   ReturnType aux = identity;
+   Index localIdx = laneIdx;
+   ReturnType result = identity;
    bool compute = true;
-   for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += TNL::Cuda::getWarpSize() ) {
+   for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      aux = reduce( aux, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
-      localIdx += TNL::Cuda::getWarpSize();
+      result = reduction( result,
+                          detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
+      localIdx += Backend::getWarpSize();
    }
 
-   /****
-    * Reduction in each warp which means in each segment.
-    */
-   aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 16 ) );
-   aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 8 ) );
-   aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 4 ) );
-   aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 2 ) );
-   aux = reduce( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 1 ) );
+   // Reduction in each warp which means in each segment.
+   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
+   result = BlockReduce::warpReduce( reduction, result );
 
+   // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx, aux );
+      keep( segmentIdx, result );
 #endif
 }
 
@@ -122,19 +117,18 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       OffsetsView offsets = segments.getOffsets();
 
       const Index warpsCount = end - begin;
-      const std::size_t threadsCount = warpsCount * TNL::Cuda::getWarpSize();
-      Cuda::LaunchConfiguration launch_config;
+      const std::size_t threadsCount = warpsCount * Backend::getWarpSize();
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;
       dim3 gridsCount;
-      TNL::Cuda::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+      Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-         TNL::Cuda::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+         Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
          constexpr auto kernel = reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
-         Cuda::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+         Backend::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
       }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
    }
 }
 

@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/DiscreteMath.h>
 
 namespace TNL::Matrices::details {

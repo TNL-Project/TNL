@@ -56,7 +56,7 @@ auto
 CSRBase< Device, Index >::getSegmentSize( IndexType segmentIdx ) const -> IndexType
 {
    if( ! std::is_same< DeviceType, Devices::Host >::value ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ];
 #else
       return offsets.getElement( segmentIdx + 1 ) - offsets.getElement( segmentIdx );
@@ -79,7 +79,7 @@ auto
 CSRBase< Device, Index >::getStorageSize() const -> IndexType
 {
    if( ! std::is_same< DeviceType, Devices::Host >::value ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return offsets[ getSegmentsCount() ];
 #else
       return offsets.getElement( getSegmentsCount() );
@@ -94,7 +94,7 @@ auto
 CSRBase< Device, Index >::getGlobalIndex( const Index segmentIdx, const Index localIdx ) const -> IndexType
 {
    if( ! std::is_same< DeviceType, Devices::Host >::value ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return offsets[ segmentIdx ] + localIdx;
 #else
       return offsets.getElement( segmentIdx ) + localIdx;

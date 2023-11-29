@@ -199,11 +199,14 @@ __cuda_callable__
 Value&
 ArrayView< Value, Device, Index >::operator[]( IndexType i )
 {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ )
    TNL_ASSERT_TRUE( ( std::is_same< Device, Devices::Cuda >{}() ),
                     "Attempt to access data not allocated on CUDA device from CUDA device." );
+#elif defined( __HIP_DEVICE_COMPILE__ )
+   TNL_ASSERT_TRUE( (std::is_same_v< Device, Devices::Hip >),
+                    "Attempt to access data not allocated on HIP device from HIP device." );
 #else
-   TNL_ASSERT_FALSE( ( std::is_same< Device, Devices::Cuda >{}() ),
+   TNL_ASSERT_FALSE( (std::is_same_v< Device, Devices::Cuda >),
                      "Attempt to access data not allocated on the host from the host." );
 #endif
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
@@ -216,11 +219,14 @@ __cuda_callable__
 const Value&
 ArrayView< Value, Device, Index >::operator[]( IndexType i ) const
 {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ )
    TNL_ASSERT_TRUE( ( std::is_same< Device, Devices::Cuda >{}() ),
                     "Attempt to access data not allocated on CUDA device from CUDA device." );
+#elif defined( __HIP_DEVICE_COMPILE__ )
+   TNL_ASSERT_TRUE( (std::is_same_v< Device, Devices::Hip >),
+                    "Attempt to access data not allocated on HIP device from HIP device." );
 #else
-   TNL_ASSERT_FALSE( ( std::is_same< Device, Devices::Cuda >{}() ),
+   TNL_ASSERT_FALSE( (std::is_same_v< Device, Devices::Cuda >),
                      "Attempt to access data not allocated on the host from the host." );
 #endif
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );

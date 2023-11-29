@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Assert.h>
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Algorithms/staticFor.h>
 
 #include <TNL/Containers/ndarray/Meta.h>

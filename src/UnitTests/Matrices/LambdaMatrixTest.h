@@ -29,7 +29,7 @@ using LambdaMatrixTypes = ::testing::Types< LambdaMatrixParameters< int, TNL::De
                                             LambdaMatrixParameters< long, TNL::Devices::Host, long >,
                                             LambdaMatrixParameters< float, TNL::Devices::Host, long >,
                                             LambdaMatrixParameters< double, TNL::Devices::Host, long >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
                                             ,
                                             LambdaMatrixParameters< int, TNL::Devices::Cuda, int >,
                                             LambdaMatrixParameters< long, TNL::Devices::Cuda, int >,
@@ -39,6 +39,16 @@ using LambdaMatrixTypes = ::testing::Types< LambdaMatrixParameters< int, TNL::De
                                             LambdaMatrixParameters< long, TNL::Devices::Cuda, long >,
                                             LambdaMatrixParameters< float, TNL::Devices::Cuda, long >,
                                             LambdaMatrixParameters< double, TNL::Devices::Cuda, long >
+#elif defined( __HIP__ )
+                                            ,
+                                            LambdaMatrixParameters< int, TNL::Devices::Hip, int >,
+                                            LambdaMatrixParameters< long, TNL::Devices::Hip, int >,
+                                            LambdaMatrixParameters< float, TNL::Devices::Hip, int >,
+                                            LambdaMatrixParameters< double, TNL::Devices::Hip, int >,
+                                            LambdaMatrixParameters< int, TNL::Devices::Hip, long >,
+                                            LambdaMatrixParameters< long, TNL::Devices::Hip, long >,
+                                            LambdaMatrixParameters< float, TNL::Devices::Hip, long >,
+                                            LambdaMatrixParameters< double, TNL::Devices::Hip, long >
 #endif
                                             >;
 

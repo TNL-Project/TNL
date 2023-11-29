@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Backend.h>
 
 #include "detail/FetchLambdaAdapter.h"
 

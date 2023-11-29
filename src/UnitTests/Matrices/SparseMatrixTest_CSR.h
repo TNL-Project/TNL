@@ -22,7 +22,7 @@ using MatrixTypes = ::testing::Types<
                                 long,
                                 TNL::Matrices::GeneralMatrix,
                                 TNL::Algorithms::Segments::CSR >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    ,
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::SparseMatrix< long, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
@@ -34,6 +34,21 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::SparseMatrix< TNL::Arithmetics::Complex< float >,
                                 TNL::Devices::Cuda,
+                                long,
+                                TNL::Matrices::GeneralMatrix,
+                                TNL::Algorithms::Segments::CSR >
+#elif defined( __HIP__ )
+   ,
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   TNL::Matrices::SparseMatrix< long, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   TNL::Matrices::SparseMatrix< long, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   TNL::Matrices::SparseMatrix< TNL::Arithmetics::Complex< float >,
+                                TNL::Devices::Hip,
                                 long,
                                 TNL::Matrices::GeneralMatrix,
                                 TNL::Algorithms::Segments::CSR >

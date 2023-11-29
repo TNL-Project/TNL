@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <ostream>
 
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 
 namespace TNL::Algorithms::SegmentsReductionKernels::detail {
 

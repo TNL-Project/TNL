@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include <TNL/Exceptions/CudaBadAlloc.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
-#include <TNL/Cuda/CheckDevice.h>
+#include <TNL/Exceptions/BackendBadAlloc.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
+#include <TNL/Backend/Macros.h>
 
 namespace TNL::Allocators {
 
@@ -60,7 +60,6 @@ struct CudaHost
    allocate( size_type n )
    {
 #ifdef __CUDACC__
-      TNL_CHECK_CUDA_DEVICE;
       value_type* result = nullptr;
       // cudaHostAllocPortable - The memory returned by this call will be considered as pinned memory by all
       //                       CUDA contexts, not just the one that performed the allocation.
@@ -71,11 +70,10 @@ struct CudaHost
       // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1gc00502b44e5f1bdc0b424487ebb08db0
       if( cudaMallocHost( (void**) &result, n * sizeof( value_type ), cudaHostAllocPortable | cudaHostAllocMapped )
           != cudaSuccess )
-         throw Exceptions::CudaBadAlloc();
-      TNL_CHECK_CUDA_DEVICE;
+         throw Exceptions::BackendBadAlloc();
       return result;
 #else
-      throw Exceptions::CudaSupportMissing();
+      throw Exceptions::BackendSupportMissing();
 #endif
    }
 
@@ -83,11 +81,9 @@ struct CudaHost
    deallocate( value_type* ptr, size_type )
    {
 #ifdef __CUDACC__
-      TNL_CHECK_CUDA_DEVICE;
-      cudaFreeHost( (void*) ptr );
-      TNL_CHECK_CUDA_DEVICE;
+      TNL_BACKEND_SAFE_CALL( cudaFreeHost( (void*) ptr ) );
 #else
-      throw Exceptions::CudaSupportMissing();
+      throw Exceptions::BackendSupportMissing();
 #endif
    }
 };

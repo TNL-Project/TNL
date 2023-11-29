@@ -89,7 +89,7 @@ solve( const Meshes::DistributedMeshes::DistributedMesh< MeshType >& distributed
          // TODO: CUDA code
 #ifdef __CUDACC__
           const int cudaBlockSize( 16 );
-          int numBlocksX = Cuda::getNumberOfBlocks( mesh->getDimensions().x(), cudaBlockSize );
+          int numBlocksX = Backend::getNumberOfBlocks( mesh->getDimensions().x(), cudaBlockSize );
           dim3 blockSize( cudaBlockSize );
           dim3 gridSize( numBlocksX );
 

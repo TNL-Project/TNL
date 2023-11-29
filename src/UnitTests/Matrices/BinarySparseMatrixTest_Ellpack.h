@@ -30,10 +30,14 @@ using ColumnMajorEllpack =
 using EllpackMatrixTypes = ::testing::Types<
    TNL::Matrices::SparseMatrix< bool, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, RowMajorEllpack, int >,
    TNL::Matrices::SparseMatrix< bool, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorEllpack, int >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    ,
    TNL::Matrices::SparseMatrix< bool, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, ColumnMajorEllpack, int >,
    TNL::Matrices::SparseMatrix< bool, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorEllpack, int >
+#elif defined( __HIP__ )
+   ,
+   TNL::Matrices::SparseMatrix< bool, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, ColumnMajorEllpack, int >,
+   TNL::Matrices::SparseMatrix< bool, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, ColumnMajorEllpack, int >
 #endif
    >;
 

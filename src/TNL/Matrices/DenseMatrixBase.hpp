@@ -27,7 +27,7 @@ VectorColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
                                                         typename Matrix::RealType matrixMultiplicator,
                                                         typename Matrix::RealType outVectorMultiplicator )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );
@@ -35,7 +35,7 @@ VectorColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
    __shared__ Real result_[ BlockSize ];
 
    constexpr Index rowsPerBlock = 256 / ThreadsPerRow;
-   const Index rowIdx = ( ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x ) / ThreadsPerRow + begin;
+   const Index rowIdx = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x ) / ThreadsPerRow + begin;
    const Index localColIdx = threadIdx.x / rowsPerBlock;
    const Index localRowIdx = threadIdx.x % rowsPerBlock;
 
@@ -103,13 +103,13 @@ ColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
                                                   typename Matrix::RealType matrixMultiplicator,
                                                   typename Matrix::RealType outVectorMultiplicator )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );
    __shared__ Real inVectorCache[ inVectorCacheSize ];
 
-   const int rowIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x + begin;
+   const int rowIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x + begin;
 
    Real result = 0;
    Index columnIdx = 0;
@@ -465,32 +465,31 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
 
    // specialization for the case where we can use the CUDA shared memory
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > && Organization == Algorithms::Segments::ColumnMajorOrder ) {
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       constexpr int ThreadsPerRow = 1;
       const std::size_t threadsCount = ( end - begin ) * ThreadsPerRow;
       const std::size_t blocksCount = roundUpDivision( threadsCount, launch_config.blockSize.x );
-      const std::size_t gridsCount = roundUpDivision( blocksCount, Cuda::getMaxGridXSize() );
+      const std::size_t gridsCount = roundUpDivision( blocksCount, Backend::getMaxGridXSize() );
       for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
-         launch_config.gridSize.x = Cuda::getMaxGridXSize();
+         launch_config.gridSize.x = Backend::getMaxGridXSize();
          if( gridIdx == gridsCount - 1 )
-            launch_config.gridSize.x = blocksCount % Cuda::getMaxGridXSize();
+            launch_config.gridSize.x = blocksCount % Backend::getMaxGridXSize();
          constexpr auto kernel = ColumnMajorDenseMatrixVectorMultiplicationKernel< DenseMatrixBase,
                                                                                    decltype( inVectorView ),
                                                                                    decltype( outVectorView ) >;
-         Cuda::launchKernelAsync( kernel,
-                                  launch_config,
-                                  *this,
-                                  inVectorView,
-                                  outVectorView,
-                                  begin,
-                                  end,
-                                  gridIdx,
-                                  matrixMultiplicator,
-                                  outVectorMultiplicator );
+         Backend::launchKernelAsync( kernel,
+                                     launch_config,
+                                     *this,
+                                     inVectorView,
+                                     outVectorView,
+                                     begin,
+                                     end,
+                                     gridIdx,
+                                     matrixMultiplicator,
+                                     outVectorMultiplicator );
       }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
       return;
    }
 

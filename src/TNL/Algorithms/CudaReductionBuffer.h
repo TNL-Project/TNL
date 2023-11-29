@@ -6,9 +6,10 @@
 
 #pragma once
 
-#include <TNL/Cuda/CheckDevice.h>
-#include <TNL/Exceptions/CudaBadAlloc.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <cstddef>  // std::byte
+
+#include <TNL/Assert.h>
+#include <TNL/Allocators/Default.h>
 
 namespace TNL::Algorithms {
 
@@ -26,33 +27,22 @@ public:
    }
 
    void
-   setSize( std::size_t size )  // NOLINT(readability-convert-member-functions-to-static)
+   setSize( std::size_t size )
    {
-#ifdef __CUDACC__
       if( size > this->size ) {
          this->reset();
-         if( cudaMalloc( (void**) &this->data, size ) != cudaSuccess ) {
-            this->data = 0;
-            throw Exceptions::CudaBadAlloc();
-         }
+         this->data = allocator.allocate( size );
          this->size = size;
       }
-#else
-      throw Exceptions::CudaSupportMissing();
-#endif
    }
 
    void
    reset()
    {
-#ifdef __CUDACC__
-      if( data ) {
-         cudaFree( data );
-         data = nullptr;
-         size = 0;
-         TNL_CHECK_CUDA_DEVICE;
-      }
-#endif
+      if( data != nullptr )
+         allocator.deallocate( data, size );
+      data = nullptr;
+      size = 0;
    }
 
    template< typename Type >
@@ -79,11 +69,12 @@ private:
       setSize( size );
    }
 
-   void* data = nullptr;
+   std::byte* data = nullptr;
 
-#ifdef __CUDACC__
    std::size_t size = 0;
-#endif
+
+   using Allocator = Allocators::Default< Devices::Cuda >::template Allocator< std::byte >;
+   Allocator allocator;
 };
 
 }  // namespace TNL::Algorithms

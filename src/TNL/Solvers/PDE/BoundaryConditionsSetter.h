@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Functions/FunctionAdapter.h>
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Meshes/Traverser.h>

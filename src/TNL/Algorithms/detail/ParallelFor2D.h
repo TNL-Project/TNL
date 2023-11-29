@@ -6,12 +6,10 @@
 
 #pragma once
 
+#include <TNL/Backend.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Cuda/DeviceInfo.h>
-#include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Math.h>
 
 namespace TNL::Algorithms::detail {
@@ -73,7 +71,7 @@ __global__
 void
 ParallelFor2DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs... args )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    // shift begin to the thread's initial position
    begin.x() += blockIdx.x * blockDim.x + threadIdx.x;
    begin.y() += blockIdx.y * blockDim.y + threadIdx.y;
@@ -130,9 +128,9 @@ struct ParallelFor2D< Devices::Cuda >
       }
       launch_config.blockSize.z = 1;
       launch_config.gridSize.x =
-         TNL::min( Cuda::getMaxGridXSize(), Cuda::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
+         TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
       launch_config.gridSize.y =
-         TNL::min( Cuda::getMaxGridYSize(), Cuda::getNumberOfBlocks( sizeY, launch_config.blockSize.y ) );
+         TNL::min( Backend::getMaxGridYSize(), Backend::getNumberOfBlocks( sizeY, launch_config.blockSize.y ) );
       launch_config.gridSize.z = 1;
 
       dim3 gridCount;
@@ -141,11 +139,11 @@ struct ParallelFor2D< Devices::Cuda >
 
       if( gridCount.x == 1 && gridCount.y == 1 ) {
          constexpr auto kernel = ParallelFor2DKernel< false, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
+         Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else {
          constexpr auto kernel = ParallelFor2DKernel< true, MultiIndex, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
+         Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
    }
 };

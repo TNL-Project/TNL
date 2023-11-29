@@ -125,7 +125,13 @@ struct AssertionError : public std::runtime_error
    #include <sstream>
    #include <cstdio>
 
-   #include <TNL/Cuda/CudaCallable.h>
+   #include <TNL/Backend/Macros.h>
+
+   // reference: https://github.com/ROCm-Developer-Tools/HIP/issues/2235
+   #if defined( __HIP__ ) && ! defined( HIP_ENABLE_PRINTF )
+      #error \
+         "TNL requires the HIP_ENABLE_PRINTF macro to be defined in debug mode in order to enable assert messages frorm HIP device kernels."
+   #endif
 
 namespace TNL::Assert {
 
@@ -157,6 +163,9 @@ abortWithDiagnosticsCuda( const char* assertion,
                           int line,
                           const char* diagnostics )
 {
+   // NOTE: HIP requires printf instead of std::printf (the latter is not __host__ __device__)
+   // FIXME: using printf in HIP kernels hangs on gfx803
+   #if ! defined( __HIP_DEVICE_COMPILE__ )
    std::printf( "Assertion '%s' failed !!!\n"
                 "Message: %s\n"
                 "File: %s\n"
@@ -169,11 +178,14 @@ abortWithDiagnosticsCuda( const char* assertion,
                 function,
                 line,
                 diagnostics );
+   #endif
 
    #ifdef __CUDA_ARCH__
    // https://devtalk.nvidia.com/default/topic/509584/how-to-cancel-a-running-cuda-kernel-/
    // it is reported as "illegal instruction", but that leads to an abort as well...
    asm( "trap;" );
+   #elif defined __HIP_DEVICE_COMPILE__
+   abort();  // FIXME: unlike CUDA, the ROCm runtime aborts the whole program rather than just the kernel
    #endif
 }
 
@@ -228,7 +240,7 @@ cmpHelperOpFailure( const char* assertion,
                     const T2& rhs_value,
                     const char* op )
 {
-   #ifdef __CUDA_ARCH__
+   #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    // diagnostics is not supported - we don't have the machinery
    // to construct the dynamic error message
    abortWithDiagnosticsCuda( assertion, message, file, function, line, "Not supported in CUDA kernels." );

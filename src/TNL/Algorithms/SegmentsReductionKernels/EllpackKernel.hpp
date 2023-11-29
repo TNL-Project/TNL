@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <TNL/Cuda/KernelLaunch.h>
-#include <TNL/Cuda/LaunchHelpers.h>
+#include <TNL/Backend.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
+#include <TNL/Algorithms/detail/CudaReductionKernel.h>
 
 #include "EllpackKernel.h"
 
@@ -26,42 +26,39 @@ EllpackCudaReductionKernel( Index begin,
                             const Value identity,
                             Index segmentSize )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   constexpr int warpSize = TNL::Cuda::getWarpSize();
-   const int gridID = 0;
+   constexpr int warpSize = Backend::getWarpSize();
+   const int gridIdx = 0;
    const Index segmentIdx =
-      begin + ( ( gridID * TNL::Cuda::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
+      begin + ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
    if( segmentIdx >= end )
       return;
 
    ReturnType result = identity;
    bool compute = true;
-   const Index laneID = threadIdx.x & 31;  // & is cheaper than %
+   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
    begin = segmentIdx * segmentSize;
    end = begin + segmentSize;
 
    // Calculate the result
    if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
-      Index localIdx = laneID;
-      for( Index i = begin + laneID; i < end; i += warpSize, localIdx += warpSize )
+      Index localIdx = laneIdx;
+      for( Index i = begin + laneIdx; i < end; i += warpSize, localIdx += warpSize )
          result = reduction( result, fetch( segmentIdx, localIdx, i, compute ) );
    }
    else {
-      for( Index i = begin + laneID; i < end; i += warpSize )
+      for( Index i = begin + laneIdx; i < end; i += warpSize )
          result = reduction( result, fetch( i, compute ) );
    }
 
    // Reduction
-   result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
-   result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-   result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-   result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-   result = reduction( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
+   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
+   result = BlockReduce::warpReduce( reduction, result );
 
    // Write the result
-   if( laneID == 0 )
+   if( laneIdx == 0 )
       keep( segmentIdx, result );
 #endif
 }
@@ -118,13 +115,13 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          if( end <= begin )
             return;
          const Index segmentsCount = end - begin;
-         const Index threadsCount = segmentsCount * 32;
-         const Index blocksCount = Cuda::getNumberOfBlocks( threadsCount, 256 );
-         Cuda::LaunchConfiguration launch_config;
+         const Index threadsCount = segmentsCount * Backend::getWarpSize();
+         const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
+         Backend::LaunchConfiguration launch_config;
          launch_config.blockSize.x = 256;
          launch_config.gridSize.x = blocksCount;
          constexpr auto kernel = EllpackCudaReductionKernel< IndexType, Fetch, Reduction, ResultKeeper, ReturnType >;
-         Cuda::launchKernelSync( kernel, launch_config, begin, end, fetch, reduction, keeper, identity, segmentSize );
+         Backend::launchKernelSync( kernel, launch_config, begin, end, fetch, reduction, keeper, identity, segmentSize );
       }
       else {
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable

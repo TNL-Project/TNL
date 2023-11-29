@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <gtest/gtest.h>
@@ -7,15 +6,22 @@
 
 #include "support.h"
 
-#ifdef __CUDACC__
-using Implementations = ::testing::Types< TNL::Meshes::Grid< 2, double, TNL::Devices::Host, int >,
-                                          TNL::Meshes::Grid< 2, float, TNL::Devices::Host, int >,
-                                          TNL::Meshes::Grid< 2, double, TNL::Devices::Cuda, int >,
-                                          TNL::Meshes::Grid< 2, float, TNL::Devices::Cuda, int > >;
+using Implementations = ::testing::Types<
+#if defined( __CUDACC__ )
+   TNL::Meshes::Grid< 2, double, TNL::Devices::Host, int >,
+   TNL::Meshes::Grid< 2, float, TNL::Devices::Host, int >,
+   TNL::Meshes::Grid< 2, double, TNL::Devices::Cuda, int >,
+   TNL::Meshes::Grid< 2, float, TNL::Devices::Cuda, int >
+#elif defined( __HIP__ )
+   TNL::Meshes::Grid< 2, double, TNL::Devices::Host, int >,
+   TNL::Meshes::Grid< 2, float, TNL::Devices::Host, int >,
+   TNL::Meshes::Grid< 2, double, TNL::Devices::Hip, int >,
+   TNL::Meshes::Grid< 2, float, TNL::Devices::Hip, int >
 #else
-using Implementations = ::testing::Types< TNL::Meshes::Grid< 2, double, TNL::Devices::Host, int >,
-                                          TNL::Meshes::Grid< 2, float, TNL::Devices::Host, int > >;
+   TNL::Meshes::Grid< 2, double, TNL::Devices::Host, int >,
+   TNL::Meshes::Grid< 2, float, TNL::Devices::Host, int >
 #endif
+   >;
 
 template< class GridType >
 class GridTestSuite : public ::testing::Test
@@ -30,7 +36,7 @@ protected:
                                                                     { 3, 3 },
                                                                     { 100, 1 },
                                                                     { 1, 100 }
-#if defined( __CUDACC__ ) || defined( HAVE_OPENMP )
+#if defined( __CUDACC__ ) || defined( __HIP__ ) || defined( HAVE_OPENMP )
                                                                     ,
                                                                     { 100,
                                                                       100 }
@@ -41,16 +47,6 @@ protected:
                                                            { 1, 0.2 }, { 1, -1 },    { -2, -2 } };
 
    std::vector< typename GridType::PointType > spaceSteps = { { 0.1, 0.1 }, { 2, 2.4 }, { 0.1, 3.1 }, { 1, 4 }, { 12, 2 } };
-
-#ifndef __CUDACC__
-   void
-   SetUp() override
-   {
-      if( std::is_same< typename GridType::DeviceType, TNL::Devices::Cuda >::value ) {
-         GTEST_SKIP() << "No CUDA available on host. Try to compile with CUDA instead";
-      }
-   }
-#endif
 };
 
 TYPED_TEST_SUITE( GridTestSuite, Implementations );

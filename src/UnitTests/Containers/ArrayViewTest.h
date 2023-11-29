@@ -20,9 +20,8 @@ struct MyData
    __cuda_callable__
    MyData() : data( 0 ) {}
 
-   template< typename T >
    __cuda_callable__
-   MyData( T v ) : data( v ) {}
+   MyData( double v ) : data( v ) {}
 
    __cuda_callable__
    bool
@@ -57,7 +56,7 @@ protected:
 
 // types for which ArrayViewTest is instantiated
 using ViewTypes = ::testing::Types<
-#ifndef __CUDACC__
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    // we can't test all types because the argument list would be too long...
    //    ArrayView< int,    Devices::Sequential, short >
    //   ,ArrayView< long,   Devices::Sequential, short >
@@ -91,9 +90,8 @@ using ViewTypes = ::testing::Types<
    ArrayView< float, Devices::Host, long >,
    ArrayView< double, Devices::Host, long >,
    ArrayView< MyData, Devices::Host, long >
-#endif
-#ifdef __CUDACC__
-      ArrayView< int, Devices::Cuda, short >,
+#elif defined( __CUDACC__ )
+   ArrayView< int, Devices::Cuda, short >,
    ArrayView< long, Devices::Cuda, short >,
    ArrayView< float, Devices::Cuda, short >,
    ArrayView< double, Devices::Cuda, short >,
@@ -108,21 +106,40 @@ using ViewTypes = ::testing::Types<
    ArrayView< float, Devices::Cuda, long >,
    ArrayView< double, Devices::Cuda, long >,
    ArrayView< MyData, Devices::Cuda, long >
+#elif defined( __HIP__ )
+   ArrayView< int, Devices::Hip, short >,
+   ArrayView< long, Devices::Hip, short >,
+   ArrayView< float, Devices::Hip, short >,
+   ArrayView< double, Devices::Hip, short >,
+   ArrayView< MyData, Devices::Hip, short >,
+   ArrayView< int, Devices::Hip, int >,
+   ArrayView< long, Devices::Hip, int >,
+   ArrayView< float, Devices::Hip, int >,
+   ArrayView< double, Devices::Hip, int >,
+   ArrayView< MyData, Devices::Hip, int >,
+   ArrayView< int, Devices::Hip, long >,
+   ArrayView< long, Devices::Hip, long >,
+   ArrayView< float, Devices::Hip, long >,
+   ArrayView< double, Devices::Hip, long >,
+   ArrayView< MyData, Devices::Hip, long >
 #endif
 
 // all ArrayView tests should also work with VectorView
 // (but we can't test all types because the argument list would be too long...)
-#ifndef __CUDACC__
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    ,
    VectorView< float, Devices::Sequential, long >,
    VectorView< double, Devices::Sequential, long >,
    VectorView< float, Devices::Host, long >,
    VectorView< double, Devices::Host, long >
-#endif
-#ifdef __CUDACC__
+#elif defined( __CUDACC__ )
    ,
    VectorView< float, Devices::Cuda, long >,
    VectorView< double, Devices::Cuda, long >
+#elif defined( __HIP__ )
+   ,
+   VectorView< float, Devices::Hip, long >,
+   VectorView< double, Devices::Hip, long >
 #endif
    >;
 
@@ -267,7 +284,7 @@ testArrayViewElementwiseAccess( Array< Value, Devices::Host, Index >&& a )
    }
 }
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 template< typename ValueType, typename IndexType >
 __global__
 void
@@ -275,15 +292,15 @@ testSetGetElementKernel( ArrayView< ValueType, Devices::Cuda, IndexType > u,
                          ArrayView< ValueType, Devices::Cuda, IndexType > v )
 {
    if( threadIdx.x < v.getSize() )
-      u[ threadIdx.x ] = v( threadIdx.x ) = threadIdx.x;
+      u[ threadIdx.x ] = v( threadIdx.x ) = ValueType( threadIdx.x );
 }
-#endif  // __CUDACC__
+#endif
 
 template< typename Value, typename Index >
 void
 testArrayViewElementwiseAccess( Array< Value, Devices::Cuda, Index >&& a )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ArrayType = Array< Value, Devices::Cuda, Index >;
    using ViewType = ArrayView< Value, Devices::Cuda, Index >;
    a.setSize( 10 );
@@ -292,7 +309,7 @@ testArrayViewElementwiseAccess( Array< Value, Devices::Cuda, Index >&& a )
    // clang-format off
    testSetGetElementKernel<<< 1, 16 >>>( u, v );
    // clang-format on
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::deviceSynchronize();
    for( int i = 0; i < 10; i++ ) {
       EXPECT_EQ( a.getElement( i ), i );
       EXPECT_EQ( b.getElement( i ), i );

@@ -71,7 +71,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentSize( con
    if constexpr( std::is_same< DeviceType, Devices::Host >::value )
       return this->sliceSegmentSizes[ sliceIdx ];
    else {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return this->sliceSegmentSizes[ sliceIdx ];
 #else
       return this->sliceSegmentSizes.getElement( sliceIdx );
@@ -110,7 +110,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getGlobalIndex( con
       segmentSize = this->sliceSegmentSizes[ sliceIdx ];
    }
    else {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       sliceOffset = this->sliceOffsets[ sliceIdx ];
       segmentSize = this->sliceSegmentSizes[ sliceIdx ];
 #else

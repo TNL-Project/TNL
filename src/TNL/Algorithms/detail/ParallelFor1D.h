@@ -6,12 +6,10 @@
 
 #pragma once
 
+#include <TNL/Backend.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Cuda/DeviceInfo.h>
-#include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Math.h>
 
 namespace TNL::Algorithms::detail {
@@ -59,7 +57,7 @@ __global__
 void
 ParallelFor1DKernel( Index begin, Index end, Function f, FunctionArgs... args )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    Index i = begin + blockIdx.x * blockDim.x + threadIdx.x;
    while( i < end ) {
       f( i, args... );
@@ -87,20 +85,21 @@ struct ParallelFor1D< Devices::Cuda >
       launch_config.blockSize.y = 1;
       launch_config.blockSize.z = 1;
       launch_config.gridSize.x =
-         TNL::min( Cuda::getMaxGridXSize(), Cuda::getNumberOfBlocks( end - begin, launch_config.blockSize.x ) );
+         TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( end - begin, launch_config.blockSize.x ) );
       launch_config.gridSize.y = 1;
       launch_config.gridSize.z = 1;
 
       if( (std::size_t) launch_config.blockSize.x * launch_config.gridSize.x >= (std::size_t) end - begin ) {
          constexpr auto kernel = ParallelFor1DKernel< false, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
+         Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
       else {
          // decrease the grid size and align to the number of multiprocessors
-         const int desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
-         launch_config.gridSize.x = TNL::min( desGridSize, Cuda::getNumberOfBlocks( end - begin, launch_config.blockSize.x ) );
+         const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getDevice() );
+         launch_config.gridSize.x =
+            TNL::min( desGridSize, Backend::getNumberOfBlocks( end - begin, launch_config.blockSize.x ) );
          constexpr auto kernel = ParallelFor1DKernel< true, Index, Function, FunctionArgs... >;
-         Cuda::launchKernel( kernel, launch_config, begin, end, f, args... );
+         Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
    }
 };

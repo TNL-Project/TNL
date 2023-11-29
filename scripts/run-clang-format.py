@@ -34,7 +34,7 @@ except ImportError:
     DEVNULL = open(os.devnull, "wb")
 
 
-DEFAULT_EXTENSIONS = 'c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx'
+DEFAULT_EXTENSIONS = 'c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx,hip'
 DEFAULT_CLANG_FORMAT_IGNORE = '.clang-format-ignore'
 # use a wrapper script which formats #pragmas nicely
 _p_clang_format = os.path.join(os.path.dirname(__file__), "p-clang-format")

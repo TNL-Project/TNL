@@ -13,12 +13,10 @@
 
 #include <memory>  // std::unique_ptr
 
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Backend.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Math.h>
-#include <TNL/Cuda/DeviceInfo.h>
-#include <TNL/Cuda/SharedMemory.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Containers/Vector.h>
 
@@ -245,11 +243,11 @@ GemvCudaKernel( const IndexType m,
                 const RealType beta,
                 RealType* y )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    IndexType elementIdx = blockIdx.x * blockDim.x + threadIdx.x;
    const IndexType gridSize = blockDim.x * gridDim.x;
 
-   RealType* shx = Cuda::getSharedMemory< RealType >();
+   RealType* shx = Backend::getSharedMemory< RealType >();
 
    if( threadIdx.x < n )
       shx[ threadIdx.x ] = alpha * x[ threadIdx.x ];
@@ -291,7 +289,7 @@ GeamCudaKernel( const IndexType m,
                 RealType* C,
                 const IndexType ldc )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    IndexType x = blockIdx.x * blockDim.x + threadIdx.x;
    const IndexType gridSizeX = blockDim.x * gridDim.x;
    const IndexType y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -346,14 +344,14 @@ public:
       Algorithms::copy< Devices::Cuda, Devices::Host >( xDevice.getData(), x, n );
 
       // desGridSize = blocksPerMultiprocessor * numberOfMultiprocessors
-      const int desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
-      Cuda::LaunchConfiguration launch_config;
+      const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getDevice() );
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      launch_config.gridSize.x = min( desGridSize, Cuda::getNumberOfBlocks( m, launch_config.blockSize.x ) );
+      launch_config.gridSize.x = min( desGridSize, Backend::getNumberOfBlocks( m, launch_config.blockSize.x ) );
       launch_config.dynamicSharedMemorySize = n * sizeof( RealType );
 
       constexpr auto kernel = GemvCudaKernel< RealType, IndexType >;
-      Cuda::launchKernelSync( kernel, launch_config, m, n, alpha, A, lda, xDevice.getData(), beta, y );
+      Backend::launchKernelSync( kernel, launch_config, m, n, alpha, A, lda, xDevice.getData(), beta, y );
    }
 
    /*
@@ -391,7 +389,7 @@ public:
       if( ldc < m )
          throw std::invalid_argument( "geam: ldc must be at least m" );
 
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
 
       // max 16 columns of threads
       launch_config.blockSize.y = min( n, 16 );
@@ -401,12 +399,12 @@ public:
          launch_config.blockSize.x /= 2;
 
       // desGridSize = blocksPerMultiprocessor * numberOfMultiprocessors
-      const int desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
-      launch_config.gridSize.x = min( desGridSize, Cuda::getNumberOfBlocks( m, launch_config.blockSize.x ) );
-      launch_config.gridSize.y = Cuda::getNumberOfBlocks( n, launch_config.blockSize.y );
+      const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getDevice() );
+      launch_config.gridSize.x = min( desGridSize, Backend::getNumberOfBlocks( m, launch_config.blockSize.x ) );
+      launch_config.gridSize.y = Backend::getNumberOfBlocks( n, launch_config.blockSize.y );
 
       constexpr auto kernel = GeamCudaKernel< RealType, IndexType >;
-      Cuda::launchKernelSync( kernel, launch_config, m, n, alpha, A, lda, beta, B, ldb, C, ldc );
+      Backend::launchKernelSync( kernel, launch_config, m, n, alpha, A, lda, beta, B, ldb, C, ldc );
    }
 };
 

@@ -10,7 +10,7 @@
 
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Devices/Sequential.h>
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Functional.h>
 #include <TNL/Assert.h>
 #include <TNL/Matrices/MatrixBase.h>

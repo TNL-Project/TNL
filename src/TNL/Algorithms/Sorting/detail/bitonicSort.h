@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <TNL/Backend.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
@@ -22,7 +23,7 @@ __global__
 void
 bitonicMergeGlobal( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr, CMP Cmp, int monotonicSeqLen, int bitonicLen )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
    int part = i / ( bitonicLen / 2 );  // computes which sorting block this thread belongs to
@@ -62,7 +63,7 @@ bitonicMergeSharedMemory( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda 
                           int monotonicSeqLen,
                           int bitonicLen )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
    Value* sharedMem = (Value*) externMem;
 
@@ -123,7 +124,7 @@ __global__
 void
 bitoniSort1stStepSharedMemory( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr, CMP Cmp )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
 
    Value* sharedMem = (Value*) externMem;
@@ -178,7 +179,7 @@ bitonicSortWithShared( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > v
                        int sharedMemLen,
                        int sharedMemSize )
 {
-   Cuda::LaunchConfiguration launch_config;
+   Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = blockDim;
    launch_config.gridSize.x = gridDim;
    launch_config.dynamicSharedMemorySize = sharedMemSize;
@@ -186,7 +187,7 @@ bitonicSortWithShared( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > v
    const int paddedSize = closestPow2( view.getSize() );
 
    constexpr auto kernel = bitoniSort1stStepSharedMemory< Value, CMP >;
-   Cuda::launchKernelAsync( kernel, launch_config, view, Cmp );
+   Backend::launchKernelAsync( kernel, launch_config, view, Cmp );
    // now alternating monotonic sequences with bitonicLenght of sharedMemLen
 
    // \/ has bitonicLength of 2 * sharedMemLen
@@ -195,20 +196,19 @@ bitonicSortWithShared( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > v
          if( bitonicLen > sharedMemLen ) {
             launch_config.dynamicSharedMemorySize = 0;
             constexpr auto kernel = bitonicMergeGlobal< Value, CMP >;
-            Cuda::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
+            Backend::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
          }
          else {
             launch_config.dynamicSharedMemorySize = sharedMemSize;
             constexpr auto kernel = bitonicMergeSharedMemory< Value, CMP >;
-            Cuda::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
+            Backend::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
 
             // simulates sorts until bitonicLen == 2 already, no need to continue this loop
             break;
          }
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
 }
 
 //---------------------------------------------
@@ -218,7 +218,7 @@ void
 bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > view, const CMP& Cmp, int gridDim, int blockDim )
 
 {
-   Cuda::LaunchConfiguration launch_config;
+   Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = blockDim;
    launch_config.gridSize.x = gridDim;
 
@@ -227,11 +227,10 @@ bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > view, const
    for( int monotonicSeqLen = 2; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {
       for( int bitonicLen = monotonicSeqLen; bitonicLen > 1; bitonicLen /= 2 ) {
          constexpr auto kernel = bitonicMergeGlobal< Value, CMP >;
-         Cuda::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
+         Backend::launchKernelAsync( kernel, launch_config, view, Cmp, monotonicSeqLen, bitonicLen );
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
 }
 
 //---------------------------------------------
@@ -239,33 +238,29 @@ template< typename Value, typename CMP >
 void
 bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src, int begin, int end, const CMP& Cmp )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    auto view = src.getView( begin, end );
 
-   int threadsNeeded = view.getSize() / 2 + ( view.getSize() % 2 != 0 );
-
-   cudaDeviceProp deviceProp;
-   cudaGetDeviceProperties( &deviceProp, 0 );
-
-   const int maxThreadsPerBlock = 512;
-
+   const int threadsNeeded = TNL::roundUpDivision( view.getSize(), 2 );
+   constexpr int maxThreadsPerBlock = 512;
    int sharedMemLen = maxThreadsPerBlock * 2;
-   size_t sharedMemSize = sharedMemLen * sizeof( Value );
+   std::size_t sharedMemSize = sharedMemLen * sizeof( Value );
+   const std::size_t sharedMemPerBlock = Backend::getSharedMemoryPerBlock( Backend::getDevice() );
 
-   if( sharedMemSize <= deviceProp.sharedMemPerBlock ) {
+   if( sharedMemSize <= sharedMemPerBlock ) {
       int blockDim = maxThreadsPerBlock;
-      int gridDim = threadsNeeded / blockDim + ( threadsNeeded % blockDim != 0 );
+      int gridDim = Backend::getNumberOfBlocks( threadsNeeded, blockDim );
       bitonicSortWithShared( view, Cmp, gridDim, blockDim, sharedMemLen, sharedMemSize );
    }
-   else if( sharedMemSize / 2 <= deviceProp.sharedMemPerBlock ) {
+   else if( sharedMemSize / 2 <= sharedMemPerBlock ) {
       int blockDim = maxThreadsPerBlock / 2;  // 256
-      int gridDim = threadsNeeded / blockDim + ( threadsNeeded % blockDim != 0 );
+      int gridDim = Backend::getNumberOfBlocks( threadsNeeded, blockDim );
       sharedMemSize /= 2;
       sharedMemLen /= 2;
       bitonicSortWithShared( view, Cmp, gridDim, blockDim, sharedMemLen, sharedMemSize );
    }
    else {
-      int gridDim = threadsNeeded / maxThreadsPerBlock + ( threadsNeeded % maxThreadsPerBlock != 0 );
+      int gridDim = Backend::getNumberOfBlocks( threadsNeeded, maxThreadsPerBlock );
       bitonicSort( view, Cmp, gridDim, maxThreadsPerBlock );
    }
 #endif
@@ -366,7 +361,7 @@ __global__
 void
 bitonicMergeGlobalWithSwap( int size, CMP Cmp, SWAP Swap, int monotonicSeqLen, int bitonicLen )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
    int part = i / ( bitonicLen / 2 );  // computes which sorting block this thread belongs to
@@ -399,7 +394,7 @@ bitonicSort( int begin, int end, const CMP& Cmp, SWAP Swap )
 
    int threadsNeeded = size / 2 + ( size % 2 != 0 );
 
-   Cuda::LaunchConfiguration launch_config;
+   Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = 512;
    launch_config.gridSize.x = threadsNeeded / launch_config.blockSize.x + ( threadsNeeded % launch_config.blockSize.x != 0 );
 
@@ -416,11 +411,11 @@ bitonicSort( int begin, int end, const CMP& Cmp, SWAP Swap )
    for( int monotonicSeqLen = 2; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {
       for( int bitonicLen = monotonicSeqLen; bitonicLen > 1; bitonicLen /= 2 ) {
          constexpr auto kernel = bitonicMergeGlobalWithSwap< decltype( compareWithOffset ), decltype( swapWithOffset ) >;
-         Cuda::launchKernelAsync( kernel, launch_config, size, compareWithOffset, swapWithOffset, monotonicSeqLen, bitonicLen );
+         Backend::launchKernelAsync(
+            kernel, launch_config, size, compareWithOffset, swapWithOffset, monotonicSeqLen, bitonicLen );
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
 }
 
 }  // namespace TNL::Algorithms::Sorting

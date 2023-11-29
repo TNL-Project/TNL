@@ -88,7 +88,7 @@ ChunkedEllpackBase< Device, Index, Organization >::getSegmentSize( IndexType seg
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getSegmentSizeDirect(
          rowToSliceMapping, slices, rowToChunkMapping, segmentIdx );
    if( std::is_same< DeviceType, Devices::Cuda >::value ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getSegmentSizeDirect(
          rowToSliceMapping, slices, rowToChunkMapping, segmentIdx );
 #else
@@ -123,7 +123,7 @@ ChunkedEllpackBase< Device, Index, Organization >::getGlobalIndex( IndexType seg
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getGlobalIndexDirect(
          rowToSliceMapping, slices, rowToChunkMapping, chunksInSlice, segmentIdx, localIdx );
    if( std::is_same< DeviceType, Devices::Cuda >::value ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getGlobalIndexDirect(
          rowToSliceMapping, slices, rowToChunkMapping, chunksInSlice, segmentIdx, localIdx );
 #else
@@ -142,7 +142,7 @@ ChunkedEllpackBase< Device, Index, Organization >::getSegmentView( IndexType seg
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getSegmentViewDirect(
          rowToSliceMapping, slices, rowToChunkMapping, chunksInSlice, segmentIdx );
    if( std::is_same< DeviceType, Devices::Cuda >::value ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getSegmentViewDirect(
          rowToSliceMapping, slices, rowToChunkMapping, chunksInSlice, segmentIdx );
 #else

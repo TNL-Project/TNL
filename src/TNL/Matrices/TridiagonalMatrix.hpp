@@ -129,8 +129,8 @@ TridiagonalMatrixTranspositionCudaKernel( const InMatrixView inMatrix,
                                           Real matrixMultiplicator,
                                           Index gridIdx )
 {
-#ifdef __CUDACC__
-   const Index rowIdx = ( gridIdx * Cuda::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   const Index rowIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( rowIdx < inMatrix.getRows() ) {
       if( rowIdx > 0 )
          outMatrix.setElementFast( rowIdx - 1, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx - 1 ) );
@@ -160,20 +160,19 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getTransp
       }
    }
    if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      launch_config.gridSize.x = Cuda::getMaxGridXSize();
+      launch_config.gridSize.x = Backend::getMaxGridXSize();
       const Index cudaBlocks = roundUpDivision( matrix.getRows(), launch_config.blockSize.x );
       const Index cudaGrids = roundUpDivision( cudaBlocks, launch_config.gridSize.x );
       for( Index gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          if( gridIdx == cudaGrids - 1 )
-            launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
+            launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
          constexpr auto kernel =
             TridiagonalMatrixTranspositionCudaKernel< decltype( matrix.getConstView() ), ViewType, Real, Index >;
-         Cuda::launchKernelAsync( kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, gridIdx );
+         Backend::launchKernelAsync( kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, gridIdx );
       }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
    }
 }
 

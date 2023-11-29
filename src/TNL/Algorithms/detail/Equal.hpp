@@ -8,8 +8,8 @@
 
 #include <algorithm>  // std::equal
 
+#include <TNL/Backend.h>
 #include <TNL/Algorithms/reduce.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
 
 #include "Equal.h"
 
@@ -76,31 +76,19 @@ Equal< DeviceType, Devices::Cuda >::equal( const Element1* destination, const El
 {
    if( size == 0 )
       return true;
-   /***
-    * Here, destination is on host and source is on CUDA device.
-    */
+
+   // Here, destination is on host and source is on CUDA device.
    TNL_ASSERT_TRUE( destination, "Attempted to compare data through a nullptr." );
    TNL_ASSERT_TRUE( source, "Attempted to compare data through a nullptr." );
    TNL_ASSERT_GE( size, (Index) 0, "Array size must be non-negative." );
-#ifdef __CUDACC__
-   const int buffer_size = TNL::min( Cuda::getTransferBufferSize() / sizeof( Element2 ), size );
-   std::unique_ptr< Element2[] > host_buffer{ new Element2[ buffer_size ] };
-   Index compared = 0;
-   while( compared < size ) {
-      const int transfer = TNL::min( size - compared, buffer_size );
-      if( cudaMemcpy(
-             (void*) host_buffer.get(), (void*) &source[ compared ], transfer * sizeof( Element2 ), cudaMemcpyDeviceToHost )
-          != cudaSuccess )
-         std::cerr << "Transfer of data from CUDA device to host failed." << std::endl;
-      TNL_CHECK_CUDA_DEVICE;
-      if( ! Equal< Devices::Host >::equal( &destination[ compared ], host_buffer.get(), transfer ) )
-         return false;
-      compared += transfer;
-   }
-   return true;
-#else
-   throw Exceptions::CudaSupportMissing();
-#endif
+
+   bool result = true;
+   auto push = [ &result, destination ]( std::size_t offset, const Element2* buffer, std::size_t buffer_size, bool& next_iter )
+   {
+      result = next_iter = Equal< Devices::Host >::equal( &destination[ offset ], buffer, buffer_size );
+   };
+   Backend::bufferedTransferToHost( source, size, push );
+   return result;
 }
 
 template< typename DeviceType >

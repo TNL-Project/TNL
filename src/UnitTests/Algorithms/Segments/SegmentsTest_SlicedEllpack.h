@@ -17,10 +17,14 @@ protected:
 // types for which MatrixTest is instantiated
 using SlicedEllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Host, int >,
                                                      TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Host, long >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
                                                      ,
                                                      TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Cuda, int >,
                                                      TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Cuda, long >
+#elif defined( __HIP__ )
+                                                     ,
+                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Hip, int >,
+                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Hip, long >
 #endif
                                                      >;
 

@@ -70,8 +70,10 @@ TYPED_TEST( VectorTest, constructors )
 
 TEST( VectorSpecialCasesTest, defaultConstructors )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    using DeviceType = TNL::Devices::Cuda;
+#elif defined( __HIP__ )
+   using DeviceType = TNL::Devices::Hip;
 #else
    using DeviceType = TNL::Devices::Host;
 #endif
@@ -92,8 +94,10 @@ TEST( VectorSpecialCasesTest, defaultConstructors )
 
 TEST( VectorSpecialCasesTest, assignmentThroughView )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    using DeviceType = TNL::Devices::Cuda;
+#elif defined( __HIP__ )
+   using DeviceType = TNL::Devices::Hip;
 #else
    using DeviceType = TNL::Devices::Host;
 #endif
@@ -127,8 +131,10 @@ TEST( VectorSpecialCasesTest, assignmentThroughView )
 
 TEST( VectorSpecialCasesTest, initializationOfVectorViewByArrayView )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    using DeviceType = TNL::Devices::Cuda;
+#elif defined( __HIP__ )
+   using DeviceType = TNL::Devices::Hip;
 #else
    using DeviceType = TNL::Devices::Host;
 #endif
@@ -147,8 +153,10 @@ TEST( VectorSpecialCasesTest, initializationOfVectorViewByArrayView )
 
 TEST( VectorSpecialCasesTest, sumOfBoolVector )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    using DeviceType = TNL::Devices::Cuda;
+#elif defined( __HIP__ )
+   using DeviceType = TNL::Devices::Hip;
 #else
    using DeviceType = TNL::Devices::Host;
 #endif
@@ -205,8 +213,10 @@ TEST( VectorSpecialCasesTest, sumOfBoolVector )
 
 TEST( VectorSpecialCasesTest, reductionOfEmptyVector )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    using DeviceType = TNL::Devices::Cuda;
+#elif defined( __HIP__ )
+   using DeviceType = TNL::Devices::Hip;
 #else
    using DeviceType = TNL::Devices::Host;
 #endif

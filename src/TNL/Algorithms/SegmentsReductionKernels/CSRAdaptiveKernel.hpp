@@ -132,8 +132,7 @@ template< int SizeOfValue, typename Offsets >
 void
 CSRAdaptiveKernel< Index, Device >::initValueSize( const Offsets& offsets )
 {
-   using HostOffsetsType =
-      TNL::Containers::Vector< typename Offsets::IndexType, TNL::Devices::Host, typename Offsets::IndexType >;
+   using HostOffsetsType = Containers::Vector< typename Offsets::IndexType, Devices::Host, typename Offsets::IndexType >;
    HostOffsetsType hostOffsets;
    hostOffsets = offsets;
    const Index rows = offsets.getSize();
@@ -151,7 +150,7 @@ CSRAdaptiveKernel< Index, Device >::initValueSize( const Offsets& offsets )
       if( type == detail::Type::LONG ) {
          const Index blocksCount = inBlocks.size();
          const Index warpsPerCudaBlock =
-            detail::CSRAdaptiveKernelParameters< SizeOfValue >::CudaBlockSize() / TNL::Cuda::getWarpSize();
+            detail::CSRAdaptiveKernelParameters< SizeOfValue >::CudaBlockSize() / Backend::getWarpSize();
          Index warpsLeft = roundUpDivision( blocksCount, warpsPerCudaBlock ) * warpsPerCudaBlock - blocksCount;
          if( warpsLeft == 0 )
             warpsLeft = warpsPerCudaBlock;

@@ -1,31 +1,34 @@
-set( COMMON_TESTS )
-
-set( CPU_TESTS
+set( COMMON_TESTS
             Grid1DTest_Accessors
             Grid2DTest_Accessors
             Grid3DTest_Accessors
 )
 
-set( CUDA_TESTS )
-if( BUILD_CUDA )
-   set( CUDA_TESTS  ${CUDA_TESTS} ${COMMON_TESTS} )
-else()
-   set( CPU_TESTS  ${CPU_TESTS} ${COMMON_TESTS} )
-endif()
+set( CPP_TESTS ${COMMON_TESTS} )
+set( CUDA_TESTS ${COMMON_TESTS} )
+set( HIP_TESTS ${COMMON_TESTS} )
 
-foreach( target IN ITEMS ${CPU_TESTS} )
-   add_executable( ${target} ${target}.cpp )
-   target_compile_options( ${target} PUBLIC ${CXX_TESTS_FLAGS} )
-   target_link_libraries( ${target} PUBLIC TNL::TNL_CXX ${TESTS_LIBRARIES} )
-   target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
-   add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
-endforeach()
-
-if( BUILD_CUDA )
+if( TNL_BUILD_CUDA )
    foreach( target IN ITEMS ${CUDA_TESTS} )
       add_executable( ${target} ${target}.cu )
       target_compile_options( ${target} PUBLIC ${CUDA_TESTS_FLAGS} )
       target_link_libraries( ${target} PUBLIC TNL::TNL_CUDA ${TESTS_LIBRARIES} )
+      target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
+      add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
+   endforeach()
+elseif( TNL_BUILD_HIP )
+   foreach( target IN ITEMS ${HIP_TESTS} )
+      add_executable( ${target} ${target}.hip )
+      target_compile_options( ${target} PUBLIC ${HIP_TESTS_FLAGS} )
+      target_link_libraries( ${target} PUBLIC TNL::TNL_HIP ${TESTS_LIBRARIES} )
+      target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
+      add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
+   endforeach()
+else()
+   foreach( target IN ITEMS ${CPP_TESTS} )
+      add_executable( ${target} ${target}.cpp )
+      target_compile_options( ${target} PUBLIC ${CXX_TESTS_FLAGS} )
+      target_link_libraries( ${target} PUBLIC TNL::TNL_CXX ${TESTS_LIBRARIES} )
       target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
       add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
    endforeach()

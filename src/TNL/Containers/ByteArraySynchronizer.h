@@ -75,7 +75,7 @@ public:
 
       // GOTCHA: https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
       if constexpr( std::is_same_v< Device, Devices::Cuda > )
-         cudaGetDevice( &gpu_id );
+         gpu_id = Backend::getDevice();
 
       if( policy == AsyncPolicy::threadpool || policy == AsyncPolicy::async ) {
          // everything offloaded to a separate thread
@@ -83,7 +83,7 @@ public:
          {
             // GOTCHA: https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
             if constexpr( std::is_same_v< Device, Devices::Cuda > )
-               cudaSetDevice( this->gpu_id );
+               Backend::setDevice( this->gpu_id );
 
             this->synchronizeByteArray( array, bytesPerValue );
          };

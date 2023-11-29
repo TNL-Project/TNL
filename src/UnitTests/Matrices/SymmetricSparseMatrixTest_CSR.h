@@ -30,7 +30,7 @@ using MatrixTypes = ::testing::Types<
       SparseMatrix< float, TNL::Devices::Host, long, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::
       SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
-#ifdef __CUDACC__  // Commented types are not supported by atomic operations on GPU.
+#if defined( __CUDACC__ )  // Commented types are not supported by atomic operations on GPU.
    //,TNL::Matrices::SparseMatrix< int,     TNL::Devices::Cuda, short, TNL::Matrices::SymmetricMatrix,
    //TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Cuda, short,
    //TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Cuda,
@@ -48,7 +48,25 @@ using MatrixTypes = ::testing::Types<
 //TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Cuda,
 //long,  TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< double,
 //TNL::Devices::Cuda, long,  TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
-#endif  // __CUDACC__
+#elif defined( __HIP__ )  // Commented types are not supported by atomic operations on GPU.
+   //,TNL::Matrices::SparseMatrix< int,     TNL::Devices::Hip, short, TNL::Matrices::SymmetricMatrix,
+   //TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Hip, short,
+   //TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Hip,
+   //short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< double,
+   //TNL::Devices::Hip, short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
+   ,
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Hip, int, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
+   //,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Hip, int,   TNL::Matrices::SymmetricMatrix,
+   //TNL::Algorithms::Segments::CSR >
+   ,
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Hip, int, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
+//,TNL::Matrices::SparseMatrix< int,     TNL::Devices::Hip, long,  TNL::Matrices::SymmetricMatrix,
+//TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Hip, long,
+//TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Hip,
+//long,  TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< double,
+//TNL::Devices::Hip, long,  TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
+#endif
    >;
 
 const char* saveAndLoadTestFileName = "test_SymmetricSparseMatrixTest_CSR_segments";

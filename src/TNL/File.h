@@ -11,7 +11,7 @@
 #include <string>
 
 #include <TNL/Allocators/Host.h>
-#include <TNL/Allocators/Cuda.h>
+#include <TNL/Allocators/Traits.h>
 
 namespace TNL {
 
@@ -93,10 +93,10 @@ public:
     *
     * Throws \ref std::ios_base::failure on failure.
     *
-    * \tparam Type type of data to be loaded to the \e buffer.
+    * \tparam Type type of data to be loaded to the \e destination.
     * \tparam SourceType type of data stored on the file,
-    * \tparam Allocator type of the allocator which was used to allocate \e buffer.
-    * \param buffer Pointer in memory where the elements are loaded and stored after reading.
+    * \tparam Allocator type of the allocator which was used to allocate \e destination.
+    * \param destination Pointer in memory where the elements are loaded and stored after reading.
     * \param elements number of elements to be loaded from the file.
     *
     * The following example shows how to load data directly to GPU.
@@ -114,7 +114,7 @@ public:
     */
    template< typename Type, typename SourceType = Type, typename Allocator = Allocators::Host< Type > >
    void
-   load( Type* buffer, std::streamsize elements = 1 );
+   load( Type* destination, std::streamsize elements = 1 );
 
    /**
     * \brief Method for saving data to the file.
@@ -127,18 +127,18 @@ public:
     *
     * Throws \ref std::ios_base::failure on failure.
     *
-    * \tparam Type type of data in the \e buffer.
+    * \tparam Type type of data in the \e source.
     * \tparam TargetType tells as what type data the buffer shall be saved.
-    * \tparam Allocator type of the allocator which was used to allocate \e buffer.
+    * \tparam Allocator type of the allocator which was used to allocate \e source.
     * \tparam Index type of index by which the elements are indexed.
-    * \param buffer buffer that is going to be saved to the file.
+    * \param source buffer that is going to be saved to the file.
     * \param elements number of elements saved to the file.
     *
     * See \ref File::load for examples.
     */
    template< typename Type, typename TargetType = Type, typename Allocator = Allocators::Host< Type > >
    void
-   save( const Type* buffer, std::streamsize elements = 1 );
+   save( const Type* source, std::streamsize elements = 1 );
 
    /**
     * \brief Extracts and discards characters from the file.
@@ -157,35 +157,35 @@ protected:
    template< typename Type,
              typename SourceType,
              typename Allocator,
-             typename = std::enable_if_t< ! std::is_same_v< Allocator, Allocators::Cuda< Type > > > >
+             typename = std::enable_if_t< allocates_host_accessible_data_v< Allocator > > >
    void
-   load_impl( Type* buffer, std::streamsize elements );
+   load_impl( Type* destination, std::streamsize elements );
 
-   // implementation for \ref Allocators::Cuda
+   // implementation for allocators that need explicit host-device copies
    template< typename Type,
              typename SourceType,
              typename Allocator,
-             typename = std::enable_if_t< std::is_same_v< Allocator, Allocators::Cuda< Type > > >,
+             typename = std::enable_if_t< ! allocates_host_accessible_data_v< Allocator > >,
              typename = void >
    void
-   load_impl( Type* buffer, std::streamsize elements );
+   load_impl( Type* destination, std::streamsize elements );
 
    // implementation for all allocators which allocate data accessible from host
    template< typename Type,
              typename TargetType,
              typename Allocator,
-             typename = std::enable_if_t< ! std::is_same_v< Allocator, Allocators::Cuda< Type > > > >
+             typename = std::enable_if_t< allocates_host_accessible_data_v< Allocator > > >
    void
-   save_impl( const Type* buffer, std::streamsize elements );
+   save_impl( const Type* source, std::streamsize elements );
 
-   // implementation for \ref Allocators::Cuda
+   // implementation for allocators that need explicit host-device copies
    template< typename Type,
              typename TargetType,
              typename Allocator,
-             typename = std::enable_if_t< std::is_same_v< Allocator, Allocators::Cuda< Type > > >,
+             typename = std::enable_if_t< ! allocates_host_accessible_data_v< Allocator > >,
              typename = void >
    void
-   save_impl( const Type* buffer, std::streamsize elements );
+   save_impl( const Type* source, std::streamsize elements );
 
    std::fstream file;
    std::string fileName;

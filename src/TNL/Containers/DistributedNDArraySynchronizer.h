@@ -118,7 +118,7 @@ public:
    }
 
    void
-   setCudaStream( SyncDirection direction, cudaStream_t stream_id )
+   setCudaStream( SyncDirection direction, Backend::stream_t stream_id )
    {
       buffers.at( direction ).stream_id = stream_id;
    }
@@ -256,7 +256,7 @@ public:
             // set the GPU id, see this gotcha:
             // GOTCHA: https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
             if constexpr( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
-               cudaSetDevice( this->gpu_id );
+               Backend::setDevice( this->gpu_id );
 
             // stage 1: fill send buffers
             this->stage_1();
@@ -345,7 +345,7 @@ public:
       // save the GPU id to be restored in async threads, see this gotcha:
       // https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
       if constexpr( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
-         cudaGetDevice( &this->gpu_id );
+         this->gpu_id = Backend::getDevice();
 
       // skip allocation on repeated calls - compare only sizes, not the actual data
       if( array_view.getCommunicator() != array.getCommunicator() || array_view.getSizes() != array.getSizes()
@@ -382,8 +382,7 @@ public:
       // synchronize all CUDA streams to ensure the previous stage is finished
       if constexpr( std::is_same< typename DistributedNDArrayView::DeviceType, Devices::Cuda >::value ) {
          for( auto& [ _, buffer ] : buffers )
-            cudaStreamSynchronize( buffer.stream_id );
-         TNL_CHECK_CUDA_DEVICE;
+            Backend::streamSynchronize( buffer.stream_id );
       }
 
       // issue all send and receive async operations
@@ -433,8 +432,7 @@ public:
       // synchronize all CUDA streams
       if constexpr( std::is_same< typename DistributedNDArrayView::DeviceType, Devices::Cuda >::value ) {
          for( auto& [ _, buffer ] : buffers )
-            cudaStreamSynchronize( buffer.stream_id );
-         TNL_CHECK_CUDA_DEVICE;
+            Backend::streamSynchronize( buffer.stream_id );
       }
    }
 
@@ -562,11 +560,11 @@ protected:
 
    template< typename LaunchConfiguration >
    static void
-   setCudaStream( LaunchConfiguration& launch_config, cudaStream_t stream )
+   setCudaStream( LaunchConfiguration& launch_config, Backend::stream_t stream )
    {}
 
    static void
-   setCudaStream( Devices::Cuda::LaunchConfiguration& launch_config, cudaStream_t stream )
+   setCudaStream( Backend::LaunchConfiguration& launch_config, Backend::stream_t stream )
    {
       launch_config.stream = stream;
       launch_config.blockHostUntilFinished = false;

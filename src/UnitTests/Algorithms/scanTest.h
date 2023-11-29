@@ -63,8 +63,7 @@ protected:
       cv_view.bind( c );
 
       // make sure that we perform tests with multiple CUDA grids
-#ifdef __CUDACC__
-      if( std::is_same< DeviceType, Devices::Cuda >::value ) {
+      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
          CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
          CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::maxGridSize() = 3;
          CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
@@ -74,23 +73,22 @@ protected:
          CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
          CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::maxGridSize() = 3;
       }
-#endif
    }
 
    template< Algorithms::detail::ScanType ScanType >
    void
    checkResult( const ArrayType& array )
    {
-#ifdef __CUDACC__
-      // skip the check for too small arrays
-      if( array.getSize() > 256 ) {
-         // we don't care which kernel launcher was actually used
-         const auto gridsCount =
-            TNL::max( CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
-                      CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
-         EXPECT_GT( gridsCount, 1 );
+      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
+         // skip the check for too small arrays
+         if( array.getSize() > 256 ) {
+            // we don't care which kernel launcher was actually used
+            const auto gridsCount =
+               TNL::max( CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
+                         CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
+            EXPECT_GT( gridsCount, 1 );
+         }
       }
-#endif
 
       array_host = array;
 
@@ -102,7 +100,7 @@ protected:
 // types for which ScanTest is instantiated
 // TODO: Quad must be fixed
 using ArrayTypes = ::testing::Types<
-#ifndef __CUDACC__
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    Array< CustomScalar< int >, Devices::Sequential, short >,
    Array< int, Devices::Sequential, short >,
    Array< long, Devices::Sequential, short >,
@@ -140,29 +138,50 @@ using ArrayTypes = ::testing::Types<
    Array< double, Devices::Host, long >
 //Array< Quad< float >,  Devices::Host, long >,
 //Array< Quad< double >, Devices::Host, long >
-#endif
-#ifdef __CUDACC__
-      Array< CustomScalar< int >, Devices::Cuda, short >,  // the scan kernel for CustomScalar is not specialized with __shfl
-                                                           // instructions
+#elif defined( __CUDACC__ )
+   // the scan kernel for CustomScalar is not specialized with __shfl instructions
+   Array< CustomScalar< int >, Devices::Cuda, short >,
    Array< int, Devices::Cuda, short >,
    Array< long, Devices::Cuda, short >,
    Array< double, Devices::Cuda, short >,
    //Array< Quad< float >,  Devices::Cuda, short >,
    //Array< Quad< double >, Devices::Cuda, short >,
-   Array< CustomScalar< int >, Devices::Cuda, int >,  // the scan kernel for CustomScalar is not specialized with __shfl
-                                                      // instructions
+   // the scan kernel for CustomScalar is not specialized with __shfl instructions
+   Array< CustomScalar< int >, Devices::Cuda, int >,
    Array< int, Devices::Cuda, int >,
    Array< long, Devices::Cuda, int >,
    Array< double, Devices::Cuda, int >,
    //Array< Quad< float >,  Devices::Cuda, int >,
    //Array< Quad< double >, Devices::Cuda, int >,
-   Array< CustomScalar< int >, Devices::Cuda, long >,  // the scan kernel for CustomScalar is not specialized with __shfl
-                                                       // instructions
+   // the scan kernel for CustomScalar is not specialized with __shfl instructions
+   Array< CustomScalar< int >, Devices::Cuda, long >,
    Array< int, Devices::Cuda, long >,
    Array< long, Devices::Cuda, long >,
    Array< double, Devices::Cuda, long >
 //Array< Quad< float >,  Devices::Cuda, long >,
 //Array< Quad< double >, Devices::Cuda, long >
+#elif defined( __HIP__ )
+   // the scan kernel for CustomScalar is not specialized with __shfl instructions
+   Array< CustomScalar< int >, Devices::Hip, short >,
+   Array< int, Devices::Hip, short >,
+   Array< long, Devices::Hip, short >,
+   Array< double, Devices::Hip, short >,
+   //Array< Quad< float >,  Devices::Hip, short >,
+   //Array< Quad< double >, Devices::Hip, short >,
+   // the scan kernel for CustomScalar is not specialized with __shfl instructions
+   Array< CustomScalar< int >, Devices::Hip, int >,
+   Array< int, Devices::Hip, int >,
+   Array< long, Devices::Hip, int >,
+   Array< double, Devices::Hip, int >,
+   //Array< Quad< float >,  Devices::Hip, int >,
+   //Array< Quad< double >, Devices::Hip, int >,
+   // the scan kernel for CustomScalar is not specialized with __shfl instructions
+   Array< CustomScalar< int >, Devices::Hip, long >,
+   Array< int, Devices::Hip, long >,
+   Array< long, Devices::Hip, long >,
+   Array< double, Devices::Hip, long >
+//Array< Quad< float >,  Devices::Hip, long >,
+//Array< Quad< double >, Devices::Hip, long >
 #endif
    >;
 

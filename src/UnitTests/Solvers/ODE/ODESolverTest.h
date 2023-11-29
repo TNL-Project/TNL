@@ -18,18 +18,22 @@ protected:
 
 // types for which DofContainerTest is instantiated
 using DofVectorTypes = ::testing::Types<
-#ifndef __CUDACC__
+#if defined( __CUDACC__ )
+   Vector< float, Devices::Cuda, int >,
+   Vector< double, Devices::Cuda, int >,
+   Vector< float, Devices::Cuda, long >,
+   Vector< double, Devices::Cuda, long >
+#elif defined( __HIP__ )
+   Vector< float, Devices::Hip, int >,
+   Vector< double, Devices::Hip, int >,
+   Vector< float, Devices::Hip, long >,
+   Vector< double, Devices::Hip, long >
+#else
    // we can't test all types because the argument list would be too long...
    Vector< float, Devices::Sequential, int >,
    Vector< double, Devices::Sequential, int >,
    Vector< float, Devices::Sequential, long >,
    Vector< double, Devices::Sequential, long >
-#endif
-#ifdef __CUDACC__
-      Vector< float, Devices::Cuda, int >,
-   Vector< double, Devices::Cuda, int >,
-   Vector< float, Devices::Cuda, long >,
-   Vector< double, Devices::Cuda, long >
 #endif
    >;
 

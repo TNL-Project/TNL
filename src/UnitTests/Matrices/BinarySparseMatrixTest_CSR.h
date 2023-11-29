@@ -20,12 +20,18 @@ using CSRMatrixTypes = ::testing::Types<
       SparseMatrix< bool, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR, int >,
    TNL::Matrices::
       SparseMatrix< bool, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR, int >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    ,
    TNL::Matrices::
       SparseMatrix< bool, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR, int >,
    TNL::Matrices::
       SparseMatrix< bool, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR, int >
+#elif defined( __HIP__ )
+   ,
+   TNL::Matrices::
+      SparseMatrix< bool, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR, int >,
+   TNL::Matrices::
+      SparseMatrix< bool, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR, int >
 #endif
    >;
 

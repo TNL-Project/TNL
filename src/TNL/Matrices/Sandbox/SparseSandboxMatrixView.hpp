@@ -261,13 +261,13 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::addElement( IndexTyp
          break;
    }
    if( i == rowSize ) {
-#ifndef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
+      TNL_ASSERT_TRUE( false, "" );
+      return;
+#else
       std::stringstream msg;
       msg << "The capacity of the sparse matrix row number " << row << " was exceeded.";
       throw std::logic_error( msg.str() );
-#else
-      TNL_ASSERT_TRUE( false, "" );
-      return;
 #endif
    }
    if( col == paddingIndex< IndexType > ) {

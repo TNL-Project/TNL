@@ -1,7 +1,7 @@
 #pragma once
 
-#include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/contains.h>
+#include <TNL/Containers/Array.h>
 
 #include "gtest/gtest.h"
 
@@ -19,7 +19,7 @@ protected:
 
 // types for which ContainsTest is instantiated
 using ArrayTypes = ::testing::Types<
-#ifndef __CUDACC__
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    Array< int, Devices::Sequential, short >,
    Array< long, Devices::Sequential, short >,
    Array< double, Devices::Sequential, short >,
@@ -39,9 +39,8 @@ using ArrayTypes = ::testing::Types<
    Array< int, Devices::Host, long >,
    Array< long, Devices::Host, long >,
    Array< double, Devices::Host, long >
-#endif
-#ifdef __CUDACC__
-      Array< int, Devices::Cuda, short >,
+#elif defined( __CUDACC__ )
+   Array< int, Devices::Cuda, short >,
    Array< long, Devices::Cuda, short >,
    Array< double, Devices::Cuda, short >,
    Array< int, Devices::Cuda, int >,
@@ -50,6 +49,16 @@ using ArrayTypes = ::testing::Types<
    Array< int, Devices::Cuda, long >,
    Array< long, Devices::Cuda, long >,
    Array< double, Devices::Cuda, long >
+#elif defined( __HIP__ )
+   Array< int, Devices::Hip, short >,
+   Array< long, Devices::Hip, short >,
+   Array< double, Devices::Hip, short >,
+   Array< int, Devices::Hip, int >,
+   Array< long, Devices::Hip, int >,
+   Array< double, Devices::Hip, int >,
+   Array< int, Devices::Hip, long >,
+   Array< long, Devices::Hip, long >,
+   Array< double, Devices::Hip, long >
 #endif
    >;
 

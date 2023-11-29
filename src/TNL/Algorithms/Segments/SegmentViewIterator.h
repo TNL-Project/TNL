@@ -8,7 +8,7 @@
 
 #include <ostream>
 
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Algorithms/Segments/SegmentElement.h>
 
 namespace TNL::Algorithms::Segments {

@@ -1,12 +1,10 @@
-set( CPP_TESTS
-         NDSubarrayTest
-         SlicedNDArrayTest
-         StaticNDArrayTest
-         SyncDirectionsTest
-)
-set( CUDA_TESTS  StaticNDArrayCudaTest )
+set( CPP_TESTS  NDSubarrayTest SlicedNDArrayTest StaticNDArrayTest SyncDirectionsTest )
+set( CUDA_TESTS  StaticNDArrayTestCuda )
+set( HIP_TESTS  StaticNDArrayTestHip )
 if( TNL_BUILD_CUDA )
    set( CUDA_TESTS  ${CUDA_TESTS} NDArrayTest )
+elseif( TNL_BUILD_HIP )
+   set( HIP_TESTS  ${HIP_TESTS} NDArrayTest )
 else()
    set( CPP_TESTS  ${CPP_TESTS} NDArrayTest )
 endif()
@@ -29,6 +27,16 @@ if( TNL_BUILD_CUDA )
    endforeach()
 endif()
 
+if( TNL_BUILD_HIP )
+   foreach( target IN ITEMS ${HIP_TESTS} )
+      add_executable( ${target} ${target}.hip )
+      target_compile_options( ${target} PUBLIC ${HIP_TESTS_FLAGS} )
+      target_link_libraries( ${target} PUBLIC TNL::TNL_HIP ${TESTS_LIBRARIES} )
+      target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
+      add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
+   endforeach()
+endif()
+
 if( TNL_BUILD_MPI )
    set( MPI_TESTS
             DistributedNDArray_1D_test
@@ -44,20 +52,26 @@ if( TNL_BUILD_MPI )
       foreach( target IN ITEMS ${MPI_TESTS} )
          add_executable( ${target} ${target}.cu )
          target_compile_options( ${target} PUBLIC ${CUDA_TESTS_FLAGS} )
-         target_link_libraries( ${target} PUBLIC TNL::TNL_CUDA )
+         target_link_libraries( ${target} PUBLIC TNL::TNL_CUDA ${TESTS_LIBRARIES} )
+         target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
+      endforeach()
+   elseif( TNL_BUILD_HIP )
+      foreach( target IN ITEMS ${MPI_TESTS} )
+         add_executable( ${target} ${target}.hip )
+         target_compile_options( ${target} PUBLIC ${HIP_TESTS_FLAGS} )
+         target_link_libraries( ${target} PUBLIC TNL::TNL_HIP ${TESTS_LIBRARIES} )
+         target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
       endforeach()
    else()
       foreach( target IN ITEMS ${MPI_TESTS} )
          add_executable( ${target} ${target}.cpp )
          target_compile_options( ${target} PUBLIC ${CXX_TESTS_FLAGS} )
-         target_link_libraries( ${target} PUBLIC TNL::TNL_CXX )
+         target_link_libraries( ${target} PUBLIC TNL::TNL_CXX ${TESTS_LIBRARIES} )
+         target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
       endforeach()
    endif()
 
    foreach( target IN ITEMS ${MPI_TESTS} )
-      target_link_libraries( ${target} PUBLIC ${TESTS_LIBRARIES} )
-      target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
-
       # enable MPI support in TNL
       target_compile_definitions( ${target} PUBLIC "-DHAVE_MPI" )
       # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html

@@ -25,7 +25,7 @@ protected:
 // types for which VectorTest is instantiated
 // TODO: Quad must be fixed
 using VectorTypes = ::testing::Types<
-#ifndef __CUDACC__
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    Vector< int, Devices::Sequential, short >,
    Vector< long, Devices::Sequential, short >,
    Vector< float, Devices::Sequential, short >,
@@ -63,9 +63,8 @@ using VectorTypes = ::testing::Types<
    Vector< double, Devices::Host, long >
 //Vector< Quad< float >,  Devices::Host, long >,
 //Vector< Quad< double >, Devices::Host, long >
-#endif
-#ifdef __CUDACC__
-      Vector< int, Devices::Cuda, short >,
+#elif defined( __CUDACC__ )
+   Vector< int, Devices::Cuda, short >,
    Vector< long, Devices::Cuda, short >,
    Vector< float, Devices::Cuda, short >,
    Vector< double, Devices::Cuda, short >,
@@ -83,6 +82,25 @@ using VectorTypes = ::testing::Types<
    Vector< double, Devices::Cuda, long >
 //Vector< Quad< float >,  Devices::Cuda, long >,
 //Vector< Quad< double >, Devices::Cuda, long >
+#elif defined( __HIP__ )
+   Vector< int, Devices::Hip, short >,
+   Vector< long, Devices::Hip, short >,
+   Vector< float, Devices::Hip, short >,
+   Vector< double, Devices::Hip, short >,
+   //Vector< Quad< float >,  Devices::Hip, short >,
+   //Vector< Quad< double >, Devices::Hip, short >,
+   Vector< int, Devices::Hip, int >,
+   Vector< long, Devices::Hip, int >,
+   Vector< float, Devices::Hip, int >,
+   Vector< double, Devices::Hip, int >,
+   //Vector< Quad< float >,  Devices::Hip, int >,
+   //Vector< Quad< double >, Devices::Hip, int >,
+   Vector< int, Devices::Hip, long >,
+   Vector< long, Devices::Hip, long >,
+   Vector< float, Devices::Hip, long >,
+   Vector< double, Devices::Hip, long >
+//Vector< Quad< float >,  Devices::Hip, long >,
+//Vector< Quad< double >, Devices::Hip, long >
 #endif
    >;
 

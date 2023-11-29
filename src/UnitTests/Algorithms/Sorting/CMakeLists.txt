@@ -1,16 +1,6 @@
-set( COMMON_TESTS
-         BitonicSortTest
-         BubbleSortTest
-         QuicksortTest
-)
-
-set( CPP_TESTS )
-set( CUDA_TESTS )
-if( TNL_BUILD_CUDA )
-   set( CUDA_TESTS  ${CUDA_TESTS} ${COMMON_TESTS} )
-else()
-   set( CPP_TESTS  ${CPP_TESTS} ${COMMON_TESTS} )
-endif()
+set( CPP_TESTS  BubbleSortTest )
+set( CUDA_TESTS BitonicSortTest QuicksortTest )
+set( HIP_TESTS  BitonicSortTest QuicksortTest )
 
 foreach( target IN ITEMS ${CPP_TESTS} )
    add_executable( ${target} ${target}.cpp )
@@ -25,6 +15,16 @@ if( TNL_BUILD_CUDA )
       add_executable( ${target} ${target}.cu )
       target_compile_options( ${target} PUBLIC ${CUDA_TESTS_FLAGS} )
       target_link_libraries( ${target} PUBLIC TNL::TNL_CUDA ${TESTS_LIBRARIES} )
+      target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
+      add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
+   endforeach()
+endif()
+
+if( TNL_BUILD_HIP )
+   foreach( target IN ITEMS ${HIP_TESTS} )
+      add_executable( ${target} ${target}.hip )
+      target_compile_options( ${target} PUBLIC ${HIP_TESTS_FLAGS} )
+      target_link_libraries( ${target} PUBLIC TNL::TNL_HIP ${TESTS_LIBRARIES} )
       target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
       add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
    endforeach()

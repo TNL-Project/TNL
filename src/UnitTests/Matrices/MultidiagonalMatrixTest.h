@@ -1110,7 +1110,7 @@ test_AssignmentOperator()
          else
             EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using MultidiagonalCuda = TNL::Matrices::MultidiagonalMatrix< RealType,
                                                                  TNL::Devices::Cuda,
                                                                  IndexType,
@@ -1233,7 +1233,7 @@ using MatrixTypes = ::testing::Types< TNL::Matrices::MultidiagonalMatrix< int, T
                                       TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Host, long >,
                                       TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, long >,
                                       TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, long >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
                                       ,
                                       TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Cuda, short >,
                                       TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Cuda, short >,
@@ -1247,6 +1247,20 @@ using MatrixTypes = ::testing::Types< TNL::Matrices::MultidiagonalMatrix< int, T
                                       TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Cuda, long >,
                                       TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Cuda, long >,
                                       TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Cuda, long >
+#elif defined( __HIP__ )
+                                      ,
+                                      TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Hip, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Hip, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Hip, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Hip, short >,
+                                      TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Hip, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Hip, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Hip, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Hip, int >,
+                                      TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Hip, long >,
+                                      TNL::Matrices::MultidiagonalMatrix< long, TNL::Devices::Hip, long >,
+                                      TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Hip, long >,
+                                      TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Hip, long >
 #endif
                                       >;
 

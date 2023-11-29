@@ -1061,7 +1061,7 @@ test_AssignmentOperator()
          else
             EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using TridiagonalCuda = TNL::Matrices::TridiagonalMatrix< RealType,
                                                              TNL::Devices::Cuda,
                                                              IndexType,
@@ -1182,7 +1182,7 @@ using MatrixTypes = ::testing::Types< TNL::Matrices::TridiagonalMatrix< int, TNL
                                       TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Host, long >,
                                       TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, long >,
                                       TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, long >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
                                       ,
                                       TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, short >,
                                       TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, short >,
@@ -1196,6 +1196,20 @@ using MatrixTypes = ::testing::Types< TNL::Matrices::TridiagonalMatrix< int, TNL
                                       TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, long >,
                                       TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, long >,
                                       TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, long >
+#elif defined( __HIP__ )
+                                      ,
+                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, short >,
+                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, short >,
+                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, short >,
+                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, short >,
+                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, int >,
+                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, int >,
+                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, int >,
+                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, int >,
+                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, long >,
+                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, long >,
+                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, long >,
+                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, long >
 #endif
                                       >;
 
@@ -1345,7 +1359,7 @@ TYPED_TEST( MatrixTest, saveAndLoadTest )
 //    host_test_GetType< Tridiagonal_host_float, Tridiagonal_host_int >();
 //}
 //
-//#ifdef __CUDACC__
+//#if defined( __CUDACC__ ) || defined( __HIP__ )
 //TEST( TridiagonalMatrixTest, Tridiagonal_GetTypeTest_Cuda )
 //{
 //    cuda_test_GetType< Tridiagonal_cuda_float, Tridiagonal_cuda_int >();

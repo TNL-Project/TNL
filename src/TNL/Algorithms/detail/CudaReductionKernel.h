@@ -9,16 +9,14 @@
 #include <utility>  // std::pair
 
 #include <TNL/Assert.h>
+#include <TNL/Backend.h>
 #include <TNL/Math.h>
-#include <TNL/Cuda/DeviceInfo.h>
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
 
 namespace TNL::Algorithms::detail {
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 /* Template for cooperative reduction across the CUDA block of threads.
  * It is a *cooperative* operation - all threads must call the operation,
  * otherwise it will deadlock!
@@ -115,7 +113,7 @@ struct CudaBlockReduceShfl
    // storage to be allocated in shared memory
    struct Storage
    {
-      ValueType warpResults[ Cuda::getWarpSize() ];
+      ValueType warpResults[ Backend::getWarpSize() ];
    };
 
    /* Cooperative reduction across the CUDA block - each thread will get the
@@ -135,7 +133,7 @@ struct CudaBlockReduceShfl
    reduce( const Reduction& reduction, ValueType identity, ValueType threadValue, int tid, Storage& storage )
    {
       // verify the configuration
-      static_assert( blockSize / Cuda::getWarpSize() <= Cuda::getWarpSize(),
+      static_assert( blockSize / Backend::getWarpSize() <= Backend::getWarpSize(),
                      "blockSize is too large, it would not be possible to reduce warpResults using one warp" );
 
       int lane_id = threadIdx.x % warpSize;
@@ -152,7 +150,7 @@ struct CudaBlockReduceShfl
       // the first warp performs the final reduction
       if( warp_id == 0 ) {
          // read from shared memory only if that warp existed
-         if( tid < blockSize / Cuda::getWarpSize() )
+         if( tid < blockSize / Backend::getWarpSize() )
             threadValue = storage.warpResults[ lane_id ];
          else
             threadValue = identity;
@@ -175,10 +173,15 @@ struct CudaBlockReduceShfl
    static ValueType
    warpReduce( const Reduction& reduction, ValueType threadValue )
    {
-      constexpr unsigned mask = 0xffffffff;
       #pragma unroll
-      for( int i = Cuda::getWarpSize() / 2; i > 0; i /= 2 ) {
+      for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
+         // TODO: HIP does not have __shfl_xor_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
+   #ifdef __HIP__
+         const ValueType otherValue = __shfl_xor( threadValue, i );
+   #else
+         constexpr unsigned mask = 0xffffffff;
          const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
+   #endif
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
@@ -328,7 +331,7 @@ CudaReductionKernel( DataFetcher dataFetcher,
                      Index end,
                      Result* output )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaReductionKernel" );
 
    // allocate shared memory
@@ -390,7 +393,7 @@ CudaReductionWithArgumentKernel( DataFetcher dataFetcher,
                                  Index* idxOutput,
                                  const Index* idxInput = nullptr )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaReductionKernel" );
 
    // allocate shared memory
@@ -493,8 +496,8 @@ struct CudaReductionKernelLauncher
    // However, it seems to be better to map only one CUDA block per multiprocessor,
    // or maybe just slightly more.
    CudaReductionKernelLauncher( const Index begin, const Index end )
-   : activeDevice( Cuda::DeviceInfo::getActiveDevice() ),
-     desGridSize( Cuda::DeviceInfo::getCudaMultiprocessors( activeDevice ) ), begin( begin ), end( end )
+   : activeDevice( Backend::getDevice() ), desGridSize( Backend::getDeviceMultiprocessors( activeDevice ) ), begin( begin ),
+     end( end )
    {}
 
    template< typename DataFetcher, typename Reduction >
@@ -606,23 +609,23 @@ protected:
            Result* output )
    {
       const Index size = end - begin;
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = maxThreadsPerBlock;
-      launch_config.gridSize.x = TNL::min( Cuda::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSize );
+      launch_config.gridSize.x = TNL::min( Backend::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSize );
       // shared memory is allocated statically inside the kernel
 
       // Check just to future-proof the code setting blockSize.x
       if( launch_config.blockSize.x == maxThreadsPerBlock ) {
-         cudaFuncSetCacheConfig( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                 cudaFuncCachePreferShared );
-         Cuda::launchKernelSync( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                 launch_config,
-                                 dataFetcher,
-                                 reduction,
-                                 identity,
-                                 begin,
-                                 end,
-                                 output );
+         Backend::funcSetCacheConfig( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
+                                      Backend::FuncCachePreferShared );
+         Backend::launchKernelSync( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
+                                    launch_config,
+                                    dataFetcher,
+                                    reduction,
+                                    identity,
+                                    begin,
+                                    end,
+                                    output );
       }
       else {
          throw std::runtime_error( "Block size was expected to be " + std::to_string( maxThreadsPerBlock ) + ", but "
@@ -645,25 +648,27 @@ protected:
                        const Index* idxInput )
    {
       const Index size = end - begin;
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = maxThreadsPerBlock;
-      launch_config.gridSize.x = TNL::min( Cuda::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSize );
+      launch_config.gridSize.x = TNL::min( Backend::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSize );
       // shared memory is allocated statically inside the kernel
 
       // Check just to future-proof the code setting blockSize.x
       if( launch_config.blockSize.x == maxThreadsPerBlock ) {
-         cudaFuncSetCacheConfig( CudaReductionWithArgumentKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                 cudaFuncCachePreferShared );
-         Cuda::launchKernelSync( CudaReductionWithArgumentKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                 launch_config,
-                                 dataFetcher,
-                                 reduction,
-                                 identity,
-                                 begin,
-                                 end,
-                                 output,
-                                 idxOutput,
-                                 idxInput );
+         Backend::funcSetCacheConfig(
+            CudaReductionWithArgumentKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
+            Backend::FuncCachePreferShared );
+         Backend::launchKernelSync(
+            CudaReductionWithArgumentKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
+            launch_config,
+            dataFetcher,
+            reduction,
+            identity,
+            begin,
+            end,
+            output,
+            idxOutput,
+            idxInput );
       }
       else {
          throw std::runtime_error( "Block size was expected to be " + std::to_string( maxThreadsPerBlock ) + ", but "

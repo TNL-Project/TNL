@@ -7,9 +7,7 @@
 #pragma once
 
 #include <TNL/Assert.h>
-#include <TNL/Cuda/KernelLaunch.h>
-#include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Cuda/SharedMemory.h>
+#include <TNL/Backend.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
@@ -30,17 +28,17 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
                                     ResultKeeper keeper,
                                     Value identity )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index firstSlice = segments.getRowToSliceMappingView()[ begin ];
    const Index lastSlice = segments.getRowToSliceMappingView()[ end - 1 ];
 
-   const Index sliceIdx = firstSlice + gridIdx * Cuda::getMaxGridXSize() + blockIdx.x;
+   const Index sliceIdx = firstSlice + gridIdx * Backend::getMaxGridXSize() + blockIdx.x;
    if( sliceIdx > lastSlice )
       return;
 
-   ReturnType* chunksResults = Cuda::getSharedMemory< ReturnType >();
+   ReturnType* chunksResults = Backend::getSharedMemory< ReturnType >();
    __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
 
    if( threadIdx.x == 0 )
@@ -192,26 +190,25 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
       }
    }
    if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
-      Devices::Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
       //  TODO: This ignores parameters begin and end
       const IndexType cudaBlocks = segments.getNumberOfSlices();
-      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Cuda::getMaxGridXSize() );
+      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
       launch_config.blockSize.x = segments.getChunksInSlice();
       launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         launch_config.gridSize.x = Cuda::getMaxGridXSize();
+         launch_config.gridSize.x = Backend::getMaxGridXSize();
          if( gridIdx == cudaGrids - 1 )
-            launch_config.gridSize.x = cudaBlocks % Cuda::getMaxGridXSize();
+            launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
          using ConstSegmentsView = typename SegmentsView::ConstViewType;
          constexpr auto kernel =
             ChunkedEllpackReduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
-         Cuda::launchKernelAsync(
+         Backend::launchKernelAsync(
             kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
       }
-      cudaStreamSynchronize( launch_config.stream );
-      TNL_CHECK_CUDA_DEVICE;
+      Backend::streamSynchronize( launch_config.stream );
    }
 }
 

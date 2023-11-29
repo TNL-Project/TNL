@@ -34,7 +34,7 @@ using MatrixAndKernelTypes = ::testing::Types<
    //MatrixAndKernel< long,    TNL::Devices::Host, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
    //MatrixAndKernel< float,   TNL::Devices::Host, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
    MatrixAndKernel< double, TNL::Devices::Host, long, TNL::Algorithms::Segments::ColumnMajorOrder >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    ,
    MatrixAndKernel< int, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >,
    //MatrixAndKernel< long,    TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::RowMajorOrder >,
@@ -53,6 +53,25 @@ using MatrixAndKernelTypes = ::testing::Types<
    MatrixAndKernel< float, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
    MatrixAndKernel< double, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
    MatrixAndKernel< TNL::Arithmetics::Complex< float >, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >
+#elif defined( __HIP__ )
+   ,
+   MatrixAndKernel< int, TNL::Devices::Hip, int, TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< long,    TNL::Devices::Hip, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< float,   TNL::Devices::Hip, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< double,  TNL::Devices::Hip, int,  TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< int,     TNL::Devices::Hip, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< long,    TNL::Devices::Hip, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   //MatrixAndKernel< float,   TNL::Devices::Hip, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< double, TNL::Devices::Hip, long, TNL::Algorithms::Segments::RowMajorOrder >,
+   MatrixAndKernel< int, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< long, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< float, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< int, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< long, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< float, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< double, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   MatrixAndKernel< TNL::Arithmetics::Complex< float >, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >
 #endif
    >;
 

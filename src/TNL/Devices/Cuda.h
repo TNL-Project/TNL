@@ -6,44 +6,16 @@
 
 #pragma once
 
-#include <iostream>
-#include <string>
-
-#include <TNL/Config/ConfigDescription.h>
-#include <TNL/Config/ParameterContainer.h>
-#include <TNL/Cuda/KernelLaunch.h>
+#include "GPU.h"
 
 namespace TNL::Devices {
 
-class Cuda
-{
-public:
-   //! \brief Alias to the CUDA kernel launch configuration structure.
-   using LaunchConfiguration = TNL::Cuda::LaunchConfiguration;
-
-   static inline void
-   configSetup( Config::ConfigDescription& config, const std::string& prefix = "" )
-   {
-#ifdef __CUDACC__
-      const char* message = "Choose CUDA device to run the computation.";
-#else
-      const char* message = "Choose CUDA device to run the computation (not supported on this system).";
-#endif
-      config.addEntry< int >( prefix + "cuda-device", message, 0 );
-   }
-
-   static inline bool
-   setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" )
-   {
-#ifdef __CUDACC__
-      int cudaDevice = parameters.getParameter< int >( prefix + "cuda-device" );
-      if( cudaSetDevice( cudaDevice ) != cudaSuccess ) {
-         std::cerr << "I cannot activate CUDA device number " << cudaDevice << "." << std::endl;
-         return false;
-      }
-#endif
-      return true;
-   }
-};
+/**
+ * \brief An alias to \ref GPU for convenience.
+ *
+ * It is not possible to build for multiple GPU backends at the same time, so
+ * we can alias the types and avoid a huge amount of code duplication.
+ */
+using Cuda = GPU;
 
 }  // namespace TNL::Devices

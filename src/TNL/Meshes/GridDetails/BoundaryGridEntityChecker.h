@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend/Macros.h>
 
 namespace TNL::Meshes {
 

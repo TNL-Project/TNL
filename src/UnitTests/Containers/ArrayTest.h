@@ -11,8 +11,10 @@
 using namespace TNL;
 using namespace TNL::Containers;
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
 static const char* TEST_FILE_NAME = "test_ArrayTestCuda.tnl";
+#elif defined( __HIP__ )
+static const char* TEST_FILE_NAME = "test_ArrayTestHip.tnl";
 #else
 static const char* TEST_FILE_NAME = "test_ArrayTest.tnl";
 #endif
@@ -66,7 +68,7 @@ protected:
 
 // types for which ArrayTest is instantiated
 using ArrayTypes = ::testing::Types<
-#ifndef __CUDACC__
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    // we can't test all types because the argument list would be too long...
    //   Array< int,    Devices::Sequential, short >,
    //   Array< long,   Devices::Sequential, short >,
@@ -99,9 +101,8 @@ using ArrayTypes = ::testing::Types<
    Array< float, Devices::Host, long >,
    Array< double, Devices::Host, long >,
    Array< MyData, Devices::Host, long >
-#endif
-#ifdef __CUDACC__
-      Array< int, Devices::Cuda, short >,
+#elif defined( __CUDACC__ )
+   Array< int, Devices::Cuda, short >,
    Array< long, Devices::Cuda, short >,
    Array< float, Devices::Cuda, short >,
    Array< double, Devices::Cuda, short >,
@@ -116,21 +117,40 @@ using ArrayTypes = ::testing::Types<
    Array< float, Devices::Cuda, long >,
    Array< double, Devices::Cuda, long >,
    Array< MyData, Devices::Cuda, long >
+#elif defined( __HIP__ )
+   Array< int, Devices::Hip, short >,
+   Array< long, Devices::Hip, short >,
+   Array< float, Devices::Hip, short >,
+   Array< double, Devices::Hip, short >,
+   Array< MyData, Devices::Hip, short >,
+   Array< int, Devices::Hip, int >,
+   Array< long, Devices::Hip, int >,
+   Array< float, Devices::Hip, int >,
+   Array< double, Devices::Hip, int >,
+   Array< MyData, Devices::Hip, int >,
+   Array< int, Devices::Hip, long >,
+   Array< long, Devices::Hip, long >,
+   Array< float, Devices::Hip, long >,
+   Array< double, Devices::Hip, long >,
+   Array< MyData, Devices::Hip, long >
 #endif
 
 // all array tests should also work with Vector
 // (but we can't test all types because the argument list would be too long...)
-#ifndef __CUDACC__
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    ,
    Vector< float, Devices::Sequential, long >,
    Vector< double, Devices::Sequential, long >,
    Vector< float, Devices::Host, long >,
    Vector< double, Devices::Host, long >
-#endif
-#ifdef __CUDACC__
+#elif defined( __CUDACC__ )
    ,
    Vector< float, Devices::Cuda, long >,
    Vector< double, Devices::Cuda, long >
+#elif defined( __HIP__ )
+   ,
+   Vector< float, Devices::Hip, long >,
+   Vector< double, Devices::Hip, long >
 #endif
    >;
 
@@ -405,22 +425,22 @@ testArrayElementwiseAccess( Array< Value, Devices::Host, Index >&& u )
    }
 }
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 template< typename ValueType, typename IndexType >
 __global__
 void
 testSetGetElementKernel( Array< ValueType, Devices::Cuda, IndexType >* u, Array< ValueType, Devices::Cuda, IndexType >* v )
 {
    if( threadIdx.x < u->getSize() )
-      ( *u )[ threadIdx.x ] = ( *v )( threadIdx.x ) = threadIdx.x;
+      ( *u )[ threadIdx.x ] = ( *v )( threadIdx.x ) = ValueType( threadIdx.x );
 }
-#endif /* __CUDACC__ */
+#endif
 
 template< typename Value, typename Index >
 void
 testArrayElementwiseAccess( Array< Value, Devices::Cuda, Index >&& u )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ArrayType = Array< Value, Devices::Cuda, Index >;
    u.setSize( 10 );
    ArrayType v( 10 );
@@ -429,8 +449,7 @@ testArrayElementwiseAccess( Array< Value, Devices::Cuda, Index >&& u )
    testSetGetElementKernel<<< 1, 16 >>>( &kernel_u.template modifyData< Devices::Cuda >(),
                                          &kernel_v.template modifyData< Devices::Cuda >() );
    // clang-format on
-   cudaDeviceSynchronize();
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::deviceSynchronize();
    for( int i = 0; i < 10; i++ ) {
       EXPECT_EQ( u.getElement( i ), i );
       EXPECT_EQ( v.getElement( i ), i );
@@ -455,7 +474,7 @@ void
 test_setElement_on_device( const Array< Value, Devices::Host, Index >& )
 {}
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 template< typename ValueType, typename IndexType >
 __global__
 void
@@ -463,17 +482,17 @@ test_setElement_on_device_kernel( Array< ValueType, Devices::Cuda, IndexType >* 
                                   Array< ValueType, Devices::Cuda, IndexType >* b )
 {
    if( threadIdx.x < a->getSize() ) {
-      a->setElement( threadIdx.x, threadIdx.x );
+      a->setElement( threadIdx.x, ValueType( threadIdx.x ) );
       b->setElement( threadIdx.x, a->getElement( threadIdx.x ) );
    }
 }
-#endif /* __CUDACC__ */
+#endif
 
 template< typename Value, typename Index >
 void
 test_setElement_on_device( const Array< Value, Devices::Cuda, Index >& )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using ArrayType = Array< Value, Devices::Cuda, Index >;
    ArrayType a( 10, 0 ), b( 10, 0 );
    Pointers::DevicePointer< ArrayType > kernel_a( a );
@@ -482,8 +501,7 @@ test_setElement_on_device( const Array< Value, Devices::Cuda, Index >& )
    test_setElement_on_device_kernel<<< 1, 16 >>>( &kernel_a.template modifyData< Devices::Cuda >(),
                                                   &kernel_b.template modifyData< Devices::Cuda >() );
    // clang-format on
-   cudaDeviceSynchronize();
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::deviceSynchronize();
    for( int i = 0; i < 10; i++ ) {
       EXPECT_EQ( a.getElement( i ), i );
       EXPECT_EQ( b.getElement( i ), i );

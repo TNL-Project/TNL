@@ -2,6 +2,8 @@
 
 #include <TNL/Allocators/CudaHost.h>
 #include <TNL/Allocators/CudaManaged.h>
+#include <TNL/Allocators/HipHost.h>
+#include <TNL/Allocators/HipManaged.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Config/parseCommandLine.h>
@@ -39,7 +41,7 @@ runBlasBenchmarks( Benchmark<> & benchmark,
       } ));
       benchmarkArrayOperations< Real >( benchmark, size );
    }
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns({
          { "precision", getType< Real >() },
@@ -56,6 +58,23 @@ runBlasBenchmarks( Benchmark<> & benchmark,
       } ));
       benchmarkArrayOperations< Real, int, Allocators::CudaManaged >( benchmark, size );
    }
+#elif defined( __HIP__ )
+   for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
+      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns({
+         { "precision", getType< Real >() },
+         { "host allocator", "HipHost" },
+         { "size", convertToString( size ) },
+      } ));
+      benchmarkArrayOperations< Real, int, Allocators::HipHost >( benchmark, size );
+   }
+   for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
+      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns({
+         { "precision", getType< Real >() },
+         { "host allocator", "HipManaged" },
+         { "size", convertToString( size ) },
+      } ));
+      benchmarkArrayOperations< Real, int, Allocators::HipManaged >( benchmark, size );
+   }
 #endif
 
    // Vector operations
@@ -69,7 +88,7 @@ runBlasBenchmarks( Benchmark<> & benchmark,
    }
 
    // Triad benchmark: copy from host, compute, copy to host
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    std::cout << "\n== Triad ==\n" << std::endl;
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns({
@@ -91,7 +110,12 @@ runBlasBenchmarks( Benchmark<> & benchmark,
             { "rows", convertToString( rows ) },
             { "columns", convertToString( columns ) }
          } ));
-         benchmarkGemv< Real >( benchmark, rows, columns );
+
+         // don't abort due to out-of-memory errors
+         try {
+            benchmarkGemv< Real >( benchmark, rows, columns );
+         }
+         catch( Exceptions::BackendBadAlloc& ) {}
       }
    }
 }

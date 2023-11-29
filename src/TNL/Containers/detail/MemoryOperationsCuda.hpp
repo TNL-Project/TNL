@@ -62,7 +62,7 @@ void
 MemoryOperations< Devices::Cuda >::setElement( Element* data, const Element& value )
 {
    TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    *data = value;
 #else
    Algorithms::copy< Devices::Cuda, void >( data, &value, 1 );
@@ -75,7 +75,7 @@ Element
 MemoryOperations< Devices::Cuda >::getElement( const Element* data )
 {
    TNL_ASSERT_TRUE( data, "Attempted to get data through a nullptr." );
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    return *data;
 #else
    Element result;

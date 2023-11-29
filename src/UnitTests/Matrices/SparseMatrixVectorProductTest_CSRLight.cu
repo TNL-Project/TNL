@@ -1,1 +1,1 @@
-SparseMatrixVectorProductTest_CSRLight.cpp
+#include "SparseMatrixVectorProductTest_CSRHybrid.h"

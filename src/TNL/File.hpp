@@ -13,12 +13,9 @@
 
 #include <TNL/File.h>
 #include <TNL/Assert.h>
-#include <TNL/Cuda/CheckDevice.h>
-#include <TNL/Cuda/LaunchHelpers.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
+#include <TNL/Backend.h>
 #include <TNL/Exceptions/FileSerializationError.h>
 #include <TNL/Exceptions/FileDeserializationError.h>
-#include <TNL/Exceptions/NotImplementedError.h>
 
 namespace TNL {
 
@@ -73,159 +70,132 @@ File::close()
 
 template< typename Type, typename SourceType, typename Allocator >
 void
-File::load( Type* buffer, std::streamsize elements )
+File::load( Type* destination, std::streamsize elements )
 {
-   static_assert( std::is_same< Type, typename Allocator::value_type >::value,
+   static_assert( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< typename Allocator::value_type > >,
                   "Allocator::value_type must be the same as Type." );
    if( elements < 0 )
       throw std::invalid_argument( "File::load: number of elements to load must be non-negative." );
    else if( elements > 0 )
-      load_impl< Type, SourceType, Allocator >( buffer, elements );
+      load_impl< Type, SourceType, Allocator >( destination, elements );
 }
 
 // Host allocators
 template< typename Type, typename SourceType, typename Allocator, typename >
 void
-File::load_impl( Type* buffer, std::streamsize elements )
+File::load_impl( Type* destination, std::streamsize elements )
 {
-   if constexpr( std::is_same< Type, SourceType >::value )
-      file.read( reinterpret_cast< char* >( buffer ), sizeof( Type ) * elements );
+   if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< SourceType > > )
+      file.read( reinterpret_cast< char* >( destination ), sizeof( Type ) * elements );
    else {
-      const std::streamsize cast_buffer_size =
-         std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( SourceType ), elements );
-      using BaseType = typename std::remove_cv< SourceType >::type;
-      std::unique_ptr< BaseType[] > cast_buffer{ new BaseType[ cast_buffer_size ] };
-      std::streamsize readElements = 0;
-      while( readElements < elements ) {
-         const std::streamsize transfer = std::min( elements - readElements, cast_buffer_size );
-         file.read( reinterpret_cast< char* >( cast_buffer.get() ), sizeof( SourceType ) * transfer );
-         for( std::streamsize i = 0; i < transfer; i++ )
-            buffer[ readElements++ ] = static_cast< Type >( cast_buffer[ i ] );
-      }
+      using BaseType = std::remove_cv_t< SourceType >;
+      auto fill = [ = ]( std::size_t offset, BaseType* buffer, std::size_t buffer_size )
+      {
+         TNL_ASSERT_LE(
+            offset + buffer_size, (std::size_t) elements, "bufferedTransferToDevice supplied wrong offset or buffer size" );
+         this->file.read( reinterpret_cast< char* >( buffer ), sizeof( BaseType ) * buffer_size );
+      };
+      auto push = [ destination ]( std::size_t offset, const BaseType* buffer, std::size_t buffer_size, bool& next_iter )
+      {
+         for( std::size_t i = 0; i < buffer_size; i++ )
+            destination[ offset + i ] = static_cast< Type >( buffer[ i ] );
+      };
+      Backend::bufferedTransfer< BaseType >( elements, fill, push );
    }
 }
 
 // Allocators::Cuda
 template< typename Type, typename SourceType, typename Allocator, typename, typename >
 void
-File::load_impl( Type* buffer, std::streamsize elements )
+File::load_impl( Type* destination, std::streamsize elements )
 {
-#ifdef __CUDACC__
-   const std::streamsize host_buffer_size =
-      std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
-   using BaseType = typename std::remove_cv< Type >::type;
-   std::unique_ptr< BaseType[] > host_buffer{ new BaseType[ host_buffer_size ] };
+   using BaseType = std::remove_cv_t< SourceType >;
+   std::unique_ptr< BaseType[] > cast_buffer = nullptr;
+   std::size_t cast_buffer_size = 0;
 
-   std::streamsize readElements = 0;
-   if constexpr( std::is_same< Type, SourceType >::value ) {
-      while( readElements < elements ) {
-         const std::streamsize transfer = std::min( elements - readElements, host_buffer_size );
-         file.read( reinterpret_cast< char* >( host_buffer.get() ), sizeof( Type ) * transfer );
-         cudaMemcpy(
-            (void*) &buffer[ readElements ], (void*) host_buffer.get(), transfer * sizeof( Type ), cudaMemcpyHostToDevice );
-         TNL_CHECK_CUDA_DEVICE;
-         readElements += transfer;
+   auto fill = [ &, this ]( std::size_t offset, Type* buffer, std::size_t buffer_size )
+   {
+      if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< SourceType > > )
+         this->file.read( reinterpret_cast< char* >( buffer ), sizeof( BaseType ) * buffer_size );
+      else {
+         // increase the cast buffer
+         if( buffer_size > cast_buffer_size ) {
+            cast_buffer = std::make_unique< BaseType[] >( buffer_size );
+            cast_buffer_size = buffer_size;
+         }
+         // read from file to cast buffer
+         this->file.read( reinterpret_cast< char* >( cast_buffer.get() ), sizeof( BaseType ) * buffer_size );
+         // cast the elements in the buffer
+         for( std::size_t i = 0; i < buffer_size; i++ )
+            buffer[ i ] = static_cast< BaseType >( cast_buffer[ i ] );
       }
-   }
-   else {
-      const std::streamsize cast_buffer_size =
-         std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( SourceType ), elements );
-      using BaseType = typename std::remove_cv< SourceType >::type;
-      std::unique_ptr< BaseType[] > cast_buffer{ new BaseType[ cast_buffer_size ] };
-
-      while( readElements < elements ) {
-         const std::streamsize transfer = std::min( elements - readElements, cast_buffer_size );
-         file.read( reinterpret_cast< char* >( cast_buffer.get() ), sizeof( SourceType ) * transfer );
-         for( std::streamsize i = 0; i < transfer; i++ )
-            host_buffer[ i ] = static_cast< Type >( cast_buffer[ i ] );
-         cudaMemcpy(
-            (void*) &buffer[ readElements ], (void*) host_buffer.get(), transfer * sizeof( Type ), cudaMemcpyHostToDevice );
-         TNL_CHECK_CUDA_DEVICE;
-         readElements += transfer;
-      }
-   }
-#else
-   throw Exceptions::CudaSupportMissing();
-#endif
+   };
+   Backend::bufferedTransferToDevice( destination, elements, fill );
 }
 
 template< typename Type, typename TargetType, typename Allocator >
 void
-File::save( const Type* buffer, std::streamsize elements )
+File::save( const Type* source, std::streamsize elements )
 {
-   static_assert( std::is_same< std::remove_cv_t< Type >, std::remove_cv_t< typename Allocator::value_type > >::value,
+   static_assert( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< typename Allocator::value_type > >,
                   "Allocator::value_type must be the same as Type." );
    if( elements < 0 )
       throw std::invalid_argument( "File::save: number of elements to save must be non-negative." );
    else if( elements > 0 )
-      save_impl< Type, TargetType, Allocator >( buffer, elements );
+      save_impl< Type, TargetType, Allocator >( source, elements );
 }
 
 // Host allocators
 template< typename Type, typename TargetType, typename Allocator, typename >
 void
-File::save_impl( const Type* buffer, std::streamsize elements )
+File::save_impl( const Type* source, std::streamsize elements )
 {
-   if constexpr( std::is_same< Type, TargetType >::value )
-      file.write( reinterpret_cast< const char* >( buffer ), sizeof( Type ) * elements );
+   if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< TargetType > > )
+      file.write( reinterpret_cast< const char* >( source ), sizeof( Type ) * elements );
    else {
-      const std::streamsize cast_buffer_size =
-         std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( TargetType ), elements );
-      using BaseType = typename std::remove_cv< TargetType >::type;
-      std::unique_ptr< BaseType[] > cast_buffer{ new BaseType[ cast_buffer_size ] };
-      std::streamsize writtenElements = 0;
-      while( writtenElements < elements ) {
-         const std::streamsize transfer = std::min( elements - writtenElements, cast_buffer_size );
-         for( std::streamsize i = 0; i < transfer; i++ )
-            cast_buffer[ i ] = static_cast< TargetType >( buffer[ writtenElements++ ] );
-         file.write( reinterpret_cast< char* >( cast_buffer.get() ), sizeof( TargetType ) * transfer );
-      }
+      using BaseType = std::remove_cv_t< TargetType >;
+      auto fill = [ = ]( std::size_t offset, BaseType* buffer, std::size_t buffer_size )
+      {
+         TNL_ASSERT_LE(
+            offset + buffer_size, (std::size_t) elements, "bufferedTransferToDevice supplied wrong offset or buffer size" );
+         for( std::size_t i = 0; i < buffer_size; i++ )
+            buffer[ i ] = static_cast< TargetType >( source[ offset + i ] );
+      };
+      auto push = [ this ]( std::size_t offset, const BaseType* buffer, std::size_t buffer_size, bool& next_iter )
+      {
+         this->file.write( reinterpret_cast< const char* >( buffer ), sizeof( TargetType ) * buffer_size );
+      };
+      Backend::bufferedTransfer< BaseType >( elements, fill, push );
    }
 }
 
 // Allocators::Cuda
 template< typename Type, typename TargetType, typename Allocator, typename, typename >
 void
-File::save_impl( const Type* buffer, std::streamsize elements )
+File::save_impl( const Type* source, std::streamsize elements )
 {
-#ifdef __CUDACC__
-   const std::streamsize host_buffer_size =
-      std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( Type ), elements );
-   using BaseType = typename std::remove_cv< Type >::type;
-   std::unique_ptr< BaseType[] > host_buffer{ new BaseType[ host_buffer_size ] };
+   using BaseType = std::remove_cv_t< TargetType >;
+   std::unique_ptr< BaseType[] > cast_buffer = nullptr;
+   std::size_t cast_buffer_size = 0;
 
-   std::streamsize writtenElements = 0;
-   if constexpr( std::is_same< Type, TargetType >::value ) {
-      while( writtenElements < elements ) {
-         const std::streamsize transfer = std::min( elements - writtenElements, host_buffer_size );
-         cudaMemcpy(
-            (void*) host_buffer.get(), (void*) &buffer[ writtenElements ], transfer * sizeof( Type ), cudaMemcpyDeviceToHost );
-         TNL_CHECK_CUDA_DEVICE;
-         file.write( reinterpret_cast< const char* >( host_buffer.get() ), sizeof( Type ) * transfer );
-         writtenElements += transfer;
+   auto push = [ &, this ]( std::size_t offset, const Type* buffer, std::size_t buffer_size, bool& next_iter )
+   {
+      if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< TargetType > > )
+         this->file.write( reinterpret_cast< const char* >( buffer ), sizeof( BaseType ) * buffer_size );
+      else {
+         // increase the cast buffer
+         if( buffer_size > cast_buffer_size ) {
+            cast_buffer = std::make_unique< BaseType[] >( buffer_size );
+            cast_buffer_size = buffer_size;
+         }
+         // cast the elements in the buffer
+         for( std::size_t i = 0; i < buffer_size; i++ )
+            cast_buffer[ i ] = static_cast< BaseType >( buffer[ i ] );
+         // write from cast buffer to file
+         this->file.write( reinterpret_cast< const char* >( cast_buffer.get() ), sizeof( BaseType ) * buffer_size );
       }
-   }
-   else {
-      const std::streamsize cast_buffer_size =
-         std::min( Cuda::getTransferBufferSize() / (std::streamsize) sizeof( TargetType ), elements );
-      using BaseType = typename std::remove_cv< TargetType >::type;
-      std::unique_ptr< BaseType[] > cast_buffer{ new BaseType[ cast_buffer_size ] };
-
-      while( writtenElements < elements ) {
-         const std::streamsize transfer = std::min( elements - writtenElements, host_buffer_size );
-         cudaMemcpy(
-            (void*) host_buffer.get(), (void*) &buffer[ writtenElements ], transfer * sizeof( Type ), cudaMemcpyDeviceToHost );
-         TNL_CHECK_CUDA_DEVICE;
-         for( std::streamsize i = 0; i < transfer; i++ )
-            cast_buffer[ i ] = static_cast< TargetType >( host_buffer[ i ] );
-
-         file.write( reinterpret_cast< const char* >( cast_buffer.get() ), sizeof( TargetType ) * transfer );
-         writtenElements += transfer;
-      }
-   }
-#else
-   throw Exceptions::CudaSupportMissing();
-#endif
+   };
+   Backend::bufferedTransferToHost( source, elements, push );
 }
 
 template< typename SourceType >

@@ -10,7 +10,7 @@
 #include <iomanip>
 
 #include <TNL/Logger.h>
-#include <TNL/Cuda/DeviceInfo.h>
+#include <TNL/Backend.h>
 #include <TNL/SystemInfo.h>
 
 namespace TNL {
@@ -61,22 +61,22 @@ Logger::writeSystemInformation( bool printGPUInfo )
    writeParameter< std::string >( "Cache (L1d, L1i, L2, L3):", cacheInfo, 1 );
 
    if( printGPUInfo ) {
-      writeParameter< std::string >( "CUDA GPU info", "" );
+      writeParameter< std::string >( "GPU info", "" );
       // TNL supports using more than one device for computations only via MPI.
       // Hence, we print only the active device here.
-      const int i = Cuda::DeviceInfo::getActiveDevice();
-      writeParameter< std::string >( "Name", Cuda::DeviceInfo::getDeviceName( i ), 1 );
-      const auto deviceArch = std::to_string( Cuda::DeviceInfo::getArchitectureMajor( i ) ) + "."
-                            + std::to_string( Cuda::DeviceInfo::getArchitectureMinor( i ) );
+      const int i = Backend::getDevice();
+      writeParameter< std::string >( "Name", Backend::getDeviceName( i ), 1 );
+      const auto deviceArch =
+         std::to_string( Backend::getArchitectureMajor( i ) ) + "." + std::to_string( Backend::getArchitectureMinor( i ) );
       writeParameter< std::string >( "Architecture", deviceArch, 1 );
-      writeParameter< int >( "CUDA cores", Cuda::DeviceInfo::getCudaCores( i ), 1 );
-      const double clockRate = (double) Cuda::DeviceInfo::getClockRate( i ) / 1.0e3;
+      writeParameter< int >( "GPU cores", Backend::getDeviceCores( i ), 1 );
+      const double clockRate = Backend::getClockRate( i ) / 1.0e3;
       writeParameter< double >( "Clock rate (in MHz)", clockRate, 1 );
-      const double globalMemory = (double) Cuda::DeviceInfo::getGlobalMemory( i ) / 1.0e9;
+      const double globalMemory = Backend::getGlobalMemorySize( i ) / 1.0e9;
       writeParameter< double >( "Global memory (in GB)", globalMemory, 1 );
-      const double memoryClockRate = (double) Cuda::DeviceInfo::getMemoryClockRate( i ) / 1.0e3;
+      const double memoryClockRate = Backend::getMemoryClockRate( i ) / 1.0e3;
       writeParameter< double >( "Memory clock rate (in Mhz)", memoryClockRate, 1 );
-      writeParameter< bool >( "ECC enabled", Cuda::DeviceInfo::getECCEnabled( i ), 1 );
+      writeParameter< bool >( "ECC enabled", Backend::getECCEnabled( i ), 1 );
    }
    return true;
 }

@@ -168,7 +168,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::setElement( IndexT
          return;
       }
    if( value != 0.0 ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       TNL_ASSERT_TRUE( false, "" );
 #else
       throw std::logic_error( "Wrong matrix element coordinates ( " + std::to_string( row ) + ", " + std::to_string( column )
@@ -197,7 +197,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::addElement( IndexT
          return;
       }
    if( value != 0.0 ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       TNL_ASSERT_TRUE( false, "" );
 #else
       throw std::logic_error( "Wrong matrix element coordinates ( " + std::to_string( row ) + ", " + std::to_string( column )

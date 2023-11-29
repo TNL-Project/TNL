@@ -43,10 +43,11 @@ find( const Container& container, const ValueType& value )
             aIdx = bIdx;
             a = true;
          }
-         else if( bIdx < aIdx )
+         else if( bIdx < aIdx ) {
             // ensure that the first occurrence is found
             aIdx = bIdx;
-         // a is already true in this branch
+            // a is already true in this branch
+         }
       }
    };
    return Algorithms::reduceWithArgument< typename Container::DeviceType >(

@@ -7,7 +7,7 @@
 #pragma once
 
 #include <TNL/Assert.h>
-#include <TNL/Cuda/CudaCallable.h>
+#include <TNL/Backend.h>
 #include <TNL/Allocators/Default.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -466,7 +466,7 @@ public:
    const Object*
    operator->() const
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return this->cuda_pointer;
 #else
       return this->pointer;
@@ -484,7 +484,7 @@ public:
    Object*
    operator->()
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return this->cuda_pointer;
 #else
       this->pd->maybe_modified = true;
@@ -503,7 +503,7 @@ public:
    const Object&
    operator*() const
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return *( this->cuda_pointer );
 #else
       return *( this->pointer );
@@ -521,7 +521,7 @@ public:
    Object&
    operator*()
    {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return *( this->cuda_pointer );
 #else
       this->pd->maybe_modified = true;
@@ -705,19 +705,15 @@ public:
    {
       if( ! this->pd )
          return true;
-#ifdef __CUDACC__
       if( this->modified() ) {
          TNL_ASSERT_NE( this->pointer, nullptr, "" );
          TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
-         cudaMemcpy( (void*) this->cuda_pointer, (void*) this->pointer, sizeof( ObjectType ), cudaMemcpyHostToDevice );
-         TNL_CHECK_CUDA_DEVICE;
+         Backend::memcpy(
+            (void*) this->cuda_pointer, (void*) this->pointer, sizeof( ObjectType ), Backend::MemcpyHostToDevice );
          this->set_last_sync_state();
          return true;
       }
       return true;
-#else
-      return false;
-#endif
    }
 
    /**

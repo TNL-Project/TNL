@@ -85,7 +85,7 @@ endif()
 # enable sanitizers (does not work with MPI due to many false positives, does not work with nvcc at all)
 # sanitizers are not available for Windows: https://github.com/msys2/MINGW-packages/issues/3163
 if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-   if( NOT WIN32 AND NOT TNL_USE_MPI AND NOT TNL_USE_CUDA )
+   if( NOT WIN32 AND NOT TNL_USE_MPI AND NOT TNL_USE_CUDA AND NOT TNL_USE_HIP )
       set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer" )
       set( CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG "${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG} -fsanitize=address -fsanitize=undefined" )
       set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address -fsanitize=undefined" )

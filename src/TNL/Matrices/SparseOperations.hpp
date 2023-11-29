@@ -479,7 +479,7 @@ SparseMatrixSetRowLengthsVectorKernel( Vector* rowLengths,
                                        typename Matrix::IndexType rows,
                                        typename Matrix::IndexType cols )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename Matrix::IndexType;
 
    IndexType rowIdx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -507,7 +507,7 @@ SparseMatrixCopyKernel( Matrix1* A,
                         const typename Matrix2::IndexType* rowLengths,
                         typename Matrix2::IndexType rows )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename Matrix2::IndexType;
 
    IndexType rowIdx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -576,10 +576,10 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
    }
 
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      Cuda::LaunchConfiguration launch_config;
+      Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      const IndexType desGridSize = 32 * Cuda::DeviceInfo::getCudaMultiprocessors( Cuda::DeviceInfo::getActiveDevice() );
-      launch_config.gridSize.x = min( desGridSize, Cuda::getNumberOfBlocks( rows, launch_config.blockSize.x ) );
+      const IndexType desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getDevice() );
+      launch_config.gridSize.x = min( desGridSize, Backend::getNumberOfBlocks( rows, launch_config.blockSize.x ) );
 
       typename Matrix1::RowCapacitiesType rowLengths;
       rowLengths.setSize( rows );
@@ -591,23 +591,23 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
       constexpr auto kernelRowLenghts =
          SparseMatrixSetRowLengthsVectorKernel< typename Matrix1::RowCapacitiesType::ValueType, Matrix2 >;
-      Cuda::launchKernelSync( kernelRowLenghts,
-                              launch_config,
-                              rowLengths.getData(),
-                              &Bpointer.template getData< TNL::Devices::Cuda >(),
-                              rows,
-                              cols );
+      Backend::launchKernelSync( kernelRowLenghts,
+                                 launch_config,
+                                 rowLengths.getData(),
+                                 &Bpointer.template getData< TNL::Devices::Cuda >(),
+                                 rows,
+                                 cols );
       Apointer->setRowCapacities( rowLengths );
 
       // copy rows
       Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
       constexpr auto kernelCopy = SparseMatrixCopyKernel< Matrix1, Matrix2 >;
-      Cuda::launchKernelSync( kernelCopy,
-                              launch_config,
-                              &Apointer.template modifyData< TNL::Devices::Cuda >(),
-                              &Bpointer.template getData< TNL::Devices::Cuda >(),
-                              rowLengths.getData(),
-                              rows );
+      Backend::launchKernelSync( kernelCopy,
+                                 launch_config,
+                                 &Apointer.template modifyData< TNL::Devices::Cuda >(),
+                                 &Bpointer.template getData< TNL::Devices::Cuda >(),
+                                 rowLengths.getData(),
+                                 rows );
    }
 }
 

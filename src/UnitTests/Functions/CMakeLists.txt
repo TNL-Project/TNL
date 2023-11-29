@@ -1,10 +1,4 @@
-set( CPP_TESTS  SaveAndLoadMeshfunctionTest )
-set( CUDA_TESTS )
-if( TNL_BUILD_CUDA )
-   set( CUDA_TESTS  ${CUDA_TESTS} BoundaryMeshFunctionTest MeshFunctionTest )
-else()
-   set( CPP_TESTS  ${CPP_TESTS} BoundaryMeshFunctionTest MeshFunctionTest )
-endif()
+set( CPP_TESTS  SaveAndLoadMeshfunctionTest MeshFunctionTest )
 
 # special tests needing external libraries
 find_package( ZLIB )
@@ -25,13 +19,3 @@ foreach( target IN ITEMS ${CPP_TESTS} )
 
    add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
 endforeach()
-
-if( TNL_BUILD_CUDA )
-   foreach( target IN ITEMS ${CUDA_TESTS} )
-      add_executable( ${target} ${target}.cu )
-      target_compile_options( ${target} PUBLIC ${CUDA_TESTS_FLAGS} )
-      target_link_libraries( ${target} PUBLIC TNL::TNL_CUDA ${TESTS_LIBRARIES} )
-      target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
-      add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
-   endforeach()
-endif()

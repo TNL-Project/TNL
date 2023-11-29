@@ -6,9 +6,10 @@
 
 #pragma once
 
-#include <TNL/Exceptions/CudaBadAlloc.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
-#include <TNL/Cuda/CheckDevice.h>
+#include <TNL/Exceptions/BackendBadAlloc.h>
+#include <TNL/Exceptions/BackendSupportMissing.h>
+#include <TNL/Backend/Macros.h>
+#include "Traits.h"
 
 namespace TNL::Allocators {
 
@@ -60,14 +61,12 @@ struct Cuda
    allocate( size_type n )
    {
 #ifdef __CUDACC__
-      TNL_CHECK_CUDA_DEVICE;
       value_type* result = nullptr;
       if( cudaMalloc( (void**) &result, n * sizeof( value_type ) ) != cudaSuccess )
-         throw Exceptions::CudaBadAlloc();
-      TNL_CHECK_CUDA_DEVICE;
+         throw Exceptions::BackendBadAlloc();
       return result;
 #else
-      throw Exceptions::CudaSupportMissing();
+      throw Exceptions::BackendSupportMissing();
 #endif
    }
 
@@ -75,11 +74,9 @@ struct Cuda
    deallocate( value_type* ptr, size_type )
    {
 #ifdef __CUDACC__
-      TNL_CHECK_CUDA_DEVICE;
-      cudaFree( (void*) ptr );
-      TNL_CHECK_CUDA_DEVICE;
+      TNL_BACKEND_SAFE_CALL( cudaFree( (void*) ptr ) );
 #else
-      throw Exceptions::CudaSupportMissing();
+      throw Exceptions::BackendSupportMissing();
 #endif
    }
 };
@@ -99,3 +96,9 @@ operator!=( const Cuda< T1 >& lhs, const Cuda< T2 >& rhs )
 }
 
 }  // namespace TNL::Allocators
+
+namespace TNL {
+template< class T >
+struct allocates_host_accessible_data< Allocators::Cuda< T > > : public std::false_type
+{};
+}  // namespace TNL

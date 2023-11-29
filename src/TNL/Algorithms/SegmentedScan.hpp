@@ -9,7 +9,6 @@
 #include "SegmentedScan.h"
 
 #include <TNL/Exceptions/NotImplementedError.h>
-#include <TNL/Exceptions/CudaSupportMissing.h>
 
 namespace TNL::Algorithms {
 
@@ -73,11 +72,7 @@ SegmentedScan< Devices::Cuda, Type >::perform( Vector& v,
                                                const Reduction& reduction,
                                                typename Vector::ValueType identity )
 {
-#ifdef __CUDACC__
    throw Exceptions::NotImplementedError( "Segmented scan (prefix sum) is not implemented for CUDA." );
-#else
-   throw Exceptions::CudaSupportMissing();
-#endif
 }
 
 }  // namespace TNL::Algorithms

@@ -590,7 +590,7 @@ testIteration( const Mesh& mesh )
                                                                   array_vertices_all,
                                                                   array_vertices_ghost,
                                                                   array_vertices_local );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    testIterationOnDevice< Devices::Cuda, typename Mesh::Cell >(
       mesh.getLocalMesh(), array_cells_boundary, array_cells_interior, array_cells_all, array_cells_ghost, array_cells_local );
    testIterationOnDevice< Devices::Cuda, typename Mesh::Vertex >( mesh.getLocalMesh(),
@@ -599,6 +599,15 @@ testIteration( const Mesh& mesh )
                                                                   array_vertices_all,
                                                                   array_vertices_ghost,
                                                                   array_vertices_local );
+#elif defined( __HIP__ )
+   testIterationOnDevice< Devices::Hip, typename Mesh::Cell >(
+      mesh.getLocalMesh(), array_cells_boundary, array_cells_interior, array_cells_all, array_cells_ghost, array_cells_local );
+   testIterationOnDevice< Devices::Hip, typename Mesh::Vertex >( mesh.getLocalMesh(),
+                                                                 array_vertices_boundary,
+                                                                 array_vertices_interior,
+                                                                 array_vertices_all,
+                                                                 array_vertices_ghost,
+                                                                 array_vertices_local );
 #endif
 }
 
@@ -721,11 +730,16 @@ testSynchronizer( const Mesh& mesh )
    testSynchronizerOnDevice< Devices::Host, typename Mesh::Vertex >( mesh );
    if( mesh.template getGlobalIndices< 1 >().getSize() > 0 )
       testSynchronizerOnDevice< Devices::Host, typename Mesh::Face >( mesh );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    testSynchronizerOnDevice< Devices::Cuda, typename Mesh::Cell >( mesh );
    testSynchronizerOnDevice< Devices::Cuda, typename Mesh::Vertex >( mesh );
    if( mesh.template getGlobalIndices< 1 >().getSize() > 0 )
       testSynchronizerOnDevice< Devices::Cuda, typename Mesh::Face >( mesh );
+#elif defined( __HIP__ )
+   testSynchronizerOnDevice< Devices::Hip, typename Mesh::Cell >( mesh );
+   testSynchronizerOnDevice< Devices::Hip, typename Mesh::Vertex >( mesh );
+   if( mesh.template getGlobalIndices< 1 >().getSize() > 0 )
+      testSynchronizerOnDevice< Devices::Hip, typename Mesh::Face >( mesh );
 #endif
 }
 

@@ -9,7 +9,9 @@ ADD_SUBDIRECTORY( MPI )
 ADD_SUBDIRECTORY( Pointers )
 ADD_SUBDIRECTORY( Solvers )
 
-set( CPP_TESTS  AssertTest
+set( CPP_TESTS  AllocatorsTest
+                AssertTest
+                FileTest
                 base64Test
                 CustomScalarTest
                 DiscreteMathTest
@@ -19,12 +21,12 @@ set( CPP_TESTS  AssertTest
                 StringTest
                 TimerTest
                 TypeInfoTest )
-set( CUDA_TESTS  AssertCudaTest )
-if( TNL_BUILD_CUDA )
-   set( CUDA_TESTS  ${CUDA_TESTS} AllocatorsTest FileTest )
-else()
-   set( CPP_TESTS  ${CPP_TESTS} AllocatorsTest FileTest )
-endif()
+set( CUDA_TESTS  AllocatorsTestCuda
+                 AssertTestCuda
+                 FileTestCuda )
+set( HIP_TESTS  AllocatorsTestHip
+                AssertTestHip
+                FileTestHip )
 
 foreach( target IN ITEMS ${CPP_TESTS} )
    add_executable( ${target} ${target}.cpp )
@@ -39,6 +41,16 @@ if( TNL_BUILD_CUDA )
       add_executable( ${target} ${target}.cu )
       target_compile_options( ${target} PUBLIC ${CUDA_TESTS_FLAGS} )
       target_link_libraries( ${target} PUBLIC TNL::TNL_CUDA ${TESTS_LIBRARIES} )
+      target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
+      add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
+   endforeach()
+endif()
+
+if( TNL_BUILD_HIP )
+   foreach( target IN ITEMS ${HIP_TESTS} )
+      add_executable( ${target} ${target}.hip )
+      target_compile_options( ${target} PUBLIC ${HIP_TESTS_FLAGS} )
+      target_link_libraries( ${target} PUBLIC TNL::TNL_HIP ${TESTS_LIBRARIES} )
       target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
       add_test( ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX} )
    endforeach()

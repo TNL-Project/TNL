@@ -23,7 +23,7 @@ using MatrixAndKernelTypes = ::testing::Types< MatrixAndKernel< int, TNL::Device
                                                MatrixAndKernel< float, TNL::Devices::Host, long >,
                                                MatrixAndKernel< double, TNL::Devices::Host, long >,
                                                MatrixAndKernel< std::complex< float >, TNL::Devices::Host, long >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
                                                ,
                                                MatrixAndKernel< int, TNL::Devices::Cuda, int >,
                                                MatrixAndKernel< long, TNL::Devices::Cuda, int >,
@@ -34,6 +34,17 @@ using MatrixAndKernelTypes = ::testing::Types< MatrixAndKernel< int, TNL::Device
                                                MatrixAndKernel< float, TNL::Devices::Cuda, long >,
                                                MatrixAndKernel< double, TNL::Devices::Cuda, long >
 //,MatrixAndKernel< TNL::Arithmetics::Complex<float>,   TNL::Devices::Cuda, long >
+#elif defined( __HIP__ )
+                                               ,
+                                               MatrixAndKernel< int, TNL::Devices::Hip, int >,
+                                               MatrixAndKernel< long, TNL::Devices::Hip, int >,
+                                               MatrixAndKernel< float, TNL::Devices::Hip, int >,
+                                               MatrixAndKernel< double, TNL::Devices::Hip, int >,
+                                               MatrixAndKernel< int, TNL::Devices::Hip, long >,
+                                               MatrixAndKernel< long, TNL::Devices::Hip, long >,
+                                               MatrixAndKernel< float, TNL::Devices::Hip, long >,
+                                               MatrixAndKernel< double, TNL::Devices::Hip, long >
+//,MatrixAndKernel< TNL::Arithmetics::Complex<float>,   TNL::Devices::Hip, long >
 #endif
                                                >;
 

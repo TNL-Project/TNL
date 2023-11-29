@@ -14,6 +14,7 @@
 #include <TNL/Meshes/MeshBuilder.h>
 #include <TNL/Meshes/VTKTraits.h>
 #include <TNL/Meshes/Traits.h>
+#include <TNL/Exceptions/NotImplementedError.h>
 
 //! \brief Namespace for mesh readers.
 namespace TNL::Meshes::Readers {

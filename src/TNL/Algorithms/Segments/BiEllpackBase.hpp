@@ -66,7 +66,7 @@ auto
 BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentSize( IndexType segmentIdx ) const -> IndexType
 {
    if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getSegmentSizeDirect(
          rowPermArray, groupPointers, segmentIdx );
 #else
@@ -101,7 +101,7 @@ auto
 BiEllpackBase< Device, Index, Organization, WarpSize >::getGlobalIndex( Index segmentIdx, Index localIdx ) const -> IndexType
 {
    if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getGlobalIndexDirect(
          rowPermArray, groupPointers, segmentIdx, localIdx );
 #else
@@ -120,7 +120,7 @@ auto
 BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentView( IndexType segmentIdx ) const -> SegmentViewType
 {
    if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
-#ifdef __CUDA_ARCH__
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getSegmentViewDirect(
          rowPermArray, groupPointers, segmentIdx );
 #else
