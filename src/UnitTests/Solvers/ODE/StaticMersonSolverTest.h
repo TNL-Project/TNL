@@ -1,8 +1,11 @@
 #pragma once
 
-#include <TNL/Solvers/ODE/StaticMerson.h>
+#include <TNL/Containers/StaticVector.h>
+#include <TNL/Solvers/ODE/ODESolver.h>
+#include <TNL/Solvers/ODE/Methods/Merson.h>
 
-template< typename Real >
-using ODETestSolver = TNL::Solvers::ODE::StaticMerson< Real >;
+template< typename DofVector >
+using StaticODETestSolver =
+   TNL::Solvers::ODE::ODESolver< TNL::Solvers::ODE::Methods::Merson<>, TNL::Containers::StaticVector< 1, Real > >;
 
-#include "ODEStaticSolverTest.h"
+#include "ODESolverTest.h"
