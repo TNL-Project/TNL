@@ -18,27 +18,23 @@
 #include <TNL/MPI/Config.h>
 #include <TNL/Solvers/ODE/ODESolver.h>
 #include <TNL/Solvers/ODE/Methods/BogackiShampin.h>
+#include <TNL/Solvers/ODE/Methods/CashKarp.h>
 #include <TNL/Solvers/ODE/Methods/DormandPrince.h>
+#include <TNL/Solvers/ODE/Methods/Euler.h>
 #include <TNL/Solvers/ODE/Methods/Fehlberg2.h>
+#include <TNL/Solvers/ODE/Methods/Fehlberg5.h>
 #include <TNL/Solvers/ODE/Methods/Heun2.h>
+#include <TNL/Solvers/ODE/Methods/Heun3.h>
 #include <TNL/Solvers/ODE/Methods/Kutta.h>
 #include <TNL/Solvers/ODE/Methods/Merson.h>
-#include <TNL/Solvers/ODE/Methods/Ralston2.h>
-#include <TNL/Solvers/ODE/Methods/Ralston4.h>
-#include <TNL/Solvers/ODE/Methods/RungeKutta.h>
-#include <TNL/Solvers/ODE/Methods/VanDerHouwenWray.h>
-#include <TNL/Solvers/ODE/Methods/CashKarp.h>
-#include <TNL/Solvers/ODE/Methods/Euler.h>
-#include <TNL/Solvers/ODE/Methods/Fehlberg5.h>
-#include <TNL/Solvers/ODE/Methods/Heun3.h>
 #include <TNL/Solvers/ODE/Methods/Midpoint.h>
+#include <TNL/Solvers/ODE/Methods/Ralston2.h>
 #include <TNL/Solvers/ODE/Methods/Ralston3.h>
+#include <TNL/Solvers/ODE/Methods/Ralston4.h>
 #include <TNL/Solvers/ODE/Methods/Rule38.h>
+#include <TNL/Solvers/ODE/Methods/RungeKutta.h>
 #include <TNL/Solvers/ODE/Methods/SSPRK3.h>
-
-//#include <TNL/Solvers/ODE/Methods/Euler.h>
-//#include <TNL/Solvers/ODE/Methods/Merson.h>
-//#include <TNL/Solvers/ODE/Methods/DormandPrince.h>
+#include <TNL/Solvers/ODE/Methods/VanDerHouwenWray.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
 #include "ODESolversBenchmarkResult.h"
@@ -46,7 +42,6 @@
 #include "Legacy/MersonNonET.h"
 #include "Legacy/Euler.h"
 #include "Legacy/Merson.h"
-
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
@@ -68,9 +63,7 @@ struct ODESolversBenchmark
 
    template< typename SolverType >
    static bool
-   benchmarkSolver( Benchmark<>& benchmark,
-                    const Config::ParameterContainer& parameters,
-                    const char* solverName )
+   benchmarkSolver( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, const char* solverName )
    {
       using ValueType = typename SolverType::ValueType;
       using ElementType = typename SolverElementType< SolverType >::type;
@@ -84,10 +77,9 @@ struct ODESolversBenchmark
 
       double adaptivity = parameters.getParameter< double >( "adaptivity" );
       SolverType solver;
-      if constexpr( ! std::is_same< SolverType, Euler< VectorType, SolverMonitorType > >::value &&
-                    ! std::is_same< SolverType, TNL::Benchmarks::EulerNonET< VectorType, SolverMonitorType > >::value ) {
+      if constexpr( ! std::is_same< SolverType, Euler< VectorType, SolverMonitorType > >::value
+                    && ! std::is_same< SolverType, TNL::Benchmarks::EulerNonET< VectorType, SolverMonitorType > >::value )
          solver.setAdaptivity( adaptivity );
-      }
 
       RealType tau = 0.5;
       std::size_t dofs = parameters.getParameter< int >( "size" ) * sizeof( RealType ) / sizeof( ValueType );
@@ -100,35 +92,47 @@ struct ODESolversBenchmark
             TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< RealType >() },
                                                              { "index type", TNL::getType< IndexType >() },
                                                              { "solver", std::string( solverName ) },
-                                                             { "DOFs", convertToString( dofs ) }
-                                                           } ) );
+                                                             { "DOFs", convertToString( dofs ) } } ) );
          solver.setStopTime( 1.0 );
          u = 0;
          std::size_t iterations = 1.0 / tau + 1;
          benchmark.setDatasetSize( dofs * sizeof( ValueType ) * iterations );
-         auto reset_u = [&] () mutable { u = 0.0; };
+         auto reset_u = [ & ]() mutable
+         {
+            u = 0.0;
+         };
          if constexpr( SolverType::isStatic() ) {
             auto u_view = u.getView();
-            auto solve = [&]() {
-               auto problem = [] __cuda_callable__ ( const RealType& t, const RealType& tau, const ElementType& u, ElementType& fu ) {
-                     fu = TNL::exp( t );
+            auto solve = [ & ]()
+            {
+               auto problem =
+                  [] __cuda_callable__( const RealType& t, const RealType& tau, const ElementType& u, ElementType& fu )
+               {
+                  fu = TNL::exp( t );
                };
-               TNL::Algorithms::parallelFor< DeviceType >( 0, u.getSize(), [=] __cuda_callable__ ( IndexType i ) mutable {
-                  solver.setTime( 0.0 );
-                  solver.setTau( tau );
-                  solver.setAdaptivity( adaptivity );
-                  solver.solve( u_view[ i ], problem );
-               } );
+               TNL::Algorithms::parallelFor< DeviceType >( 0,
+                                                           u.getSize(),
+                                                           [ = ] __cuda_callable__( IndexType i ) mutable
+                                                           {
+                                                              solver.setTime( 0.0 );
+                                                              solver.setTau( tau );
+                                                              solver.setAdaptivity( adaptivity );
+                                                              solver.solve( u_view[ i ], problem );
+                                                           } );
             };
             benchmark.time< DeviceType >( reset_u, device, solve, benchmarkResult );
-         } else {
-            auto problem = [=] ( const RealType& t, const RealType& tau, const VectorView& u_view, VectorView& fu_view ) {
-               auto computeF = [=] __cuda_callable__ ( IndexType i ) mutable {
+         }
+         else {
+            auto problem = [ = ]( const RealType& t, const RealType& tau, const VectorView& u_view, VectorView& fu_view )
+            {
+               auto computeF = [ = ] __cuda_callable__( IndexType i ) mutable
+               {
                   fu_view[ i ] = TNL::exp( t );
                };
                Algorithms::parallelFor< DeviceType >( 0, u_view.getSize(), computeF );
             };
-            auto solve = [&]() {
+            auto solve = [ & ]()
+            {
                solver.setStopTime( 1.0 );
                solver.setTime( 0.0 );
                solver.setTau( tau );
@@ -146,8 +150,7 @@ struct ODESolversBenchmark
    {
       using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
       const auto& solvers = parameters.getList< String >( "solvers" );
-      for( auto&& solver : solvers )
-      {
+      for( auto&& solver : solvers ) {
          if( solver == "euler" || solver == "all" ) {
             using LegacySolverNonET = Benchmarks::EulerNonET< VectorType, SolverMonitorType >;
             benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Euler non-ET" );
@@ -156,28 +159,107 @@ struct ODESolversBenchmark
             using Method = TNL::Solvers::ODE::Methods::Euler< RealType >;
             using VectorSolver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< VectorSolver >( benchmark, parameters, "Euler" );
-            using StaticSolver_1 = TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 1, Real >, SolverMonitorType >;
+            using StaticSolver_1 =
+               TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 1, Real >, SolverMonitorType >;
             benchmarkSolver< StaticSolver_1 >( benchmark, parameters, "Euler SV-1" );
-            using StaticSolver_2 = TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 2, Real >, SolverMonitorType >;
+            using StaticSolver_2 =
+               TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 2, Real >, SolverMonitorType >;
             benchmarkSolver< StaticSolver_2 >( benchmark, parameters, "Euler SV-2" );
          }
          if( solver == "merson" || solver == "all" ) {
             using LegacySolverNonET = Benchmarks::MersonNonET< VectorType, SolverMonitorType >;
-            benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Merson non-ET");
+            benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Merson non-ET" );
             using LegacySolver = Merson< VectorType, SolverMonitorType >;
             benchmarkSolver< LegacySolver >( benchmark, parameters, "Leg. Merson" );
             using Method = TNL::Solvers::ODE::Methods::Merson< RealType >;
             using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Merson" );
-            using StaticSolver_1 = TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 1, Real >, SolverMonitorType >;
+            using StaticSolver_1 =
+               TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 1, Real >, SolverMonitorType >;
             benchmarkSolver< StaticSolver_1 >( benchmark, parameters, "Merson SV-1" );
-            using StaticSolver_2 = TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 2, Real >, SolverMonitorType >;
+            using StaticSolver_2 =
+               TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 2, Real >, SolverMonitorType >;
             benchmarkSolver< StaticSolver_2 >( benchmark, parameters, "Merson SV-2" );
+         }
+         if( solver == "bogacki-shampin" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::BogackiShampin< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Bogacki-Shampin" );
          }
          if( solver == "dormand-prince" || solver == "all" ) {
             using Method = TNL::Solvers::ODE::Methods::DormandPrince< RealType >;
             using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Dormand-Prince" );
+         }
+         if( solver == "fehlberg2" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::Fehlberg2< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Fehlberg2" );
+         }
+         if( solver == "fehlberg5" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::Fehlberg5< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Fehlberg5" );
+         }
+         if( solver == "heun2" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::Heun2< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Heun2" );
+         }
+         if( solver == "heun3" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::Heun3< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Heun3" );
+         }
+         if( solver == "kutta" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::Kutta< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Kutta" );
+         }
+         if( solver == "ralston2" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::Ralston2< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Ralston2" );
+         }
+         if( solver == "ralston3" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::Ralston2< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Ralston3" );
+         }
+         if( solver == "ralston4" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::Ralston4< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Ralston4" );
+         }
+         if( solver == "runge-kutta" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::RungeKutta< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Runge-Kutta" );
+         }
+         if( solver == "vanderhouwen-wray" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::VanDerHouwenWray< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "VanDerHouwen-Wray" );
+         }
+         if( solver == "cash-karp" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::CashKarp< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Cash-Karp" );
+         }
+         if( solver == "midpoint" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::Midpoint< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Midpoint" );
+         }
+         if( solver == "rule38" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::Rule38< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "Rule38" );
+         }
+         if( solver == "ssprk3" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::SSPRK3< RealType >;
+            using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
+            benchmarkSolver< Solver >( benchmark, parameters, "SSPRK3" );
          }
       }
       return true;
@@ -185,8 +267,8 @@ struct ODESolversBenchmark
 };
 
 template< typename Real, typename Device >
-bool resolveIndexType( Benchmark<>& benchmark,
-                       Config::ParameterContainer& parameters )
+bool
+resolveIndexType( Benchmark<>& benchmark, Config::ParameterContainer& parameters )
 {
    const String& index = parameters.getParameter< String >( "index-type" );
    if( index == "int" && ! ODESolversBenchmark< Real, Device, int >::run( benchmark, parameters ) )
@@ -197,11 +279,12 @@ bool resolveIndexType( Benchmark<>& benchmark,
 }
 
 template< typename Real >
-bool resolveDeviceType( Benchmark<>& benchmark,
-                        Config::ParameterContainer& parameters )
+bool
+resolveDeviceType( Benchmark<>& benchmark, Config::ParameterContainer& parameters )
 {
    const String& device = parameters.getParameter< String >( "device" );
-   if( ( device == "sequential" || device == "all" ) && ! resolveIndexType< Real, Devices::Sequential >( benchmark, parameters ) )
+   if( ( device == "sequential" || device == "all" )
+       && ! resolveIndexType< Real, Devices::Sequential >( benchmark, parameters ) )
       return false;
    if( ( device == "host" || device == "all" ) && ! resolveIndexType< Real, Devices::Host >( benchmark, parameters ) )
       return false;
@@ -221,11 +304,9 @@ bool
 resolveRealTypes( Benchmark<>& benchmark, Config::ParameterContainer& parameters )
 {
    const String& realType = parameters.getParameter< String >( "precision" );
-   if( ( realType == "float" || realType == "all" ) &&
-       ! resolveDeviceType< float >( benchmark, parameters ) )
+   if( ( realType == "float" || realType == "all" ) && ! resolveDeviceType< float >( benchmark, parameters ) )
       return false;
-   if( ( realType == "double" || realType == "all" ) &&
-       ! resolveDeviceType< double >( benchmark, parameters ) )
+   if( ( realType == "double" || realType == "all" ) && ! resolveDeviceType< double >( benchmark, parameters ) )
       return false;
    return true;
 }
@@ -241,8 +322,24 @@ configSetup( Config::ConfigDescription& config )
    config.addEntry< int >( "loops", "Number of repetitions of the benchmark.", 10 );
    config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    config.addList< String >( "solvers", "List of solvers to run benchmarks for.", { "all" } );
+   config.addEntryEnum< String >( "bogacki-shampin" );
+   config.addEntryEnum< String >( "cash-karp" );
+   config.addEntryEnum< String >( "dormand-prince" );
    config.addEntryEnum< String >( "euler" );
+   config.addEntryEnum< String >( "fehlberg2" );
+   config.addEntryEnum< String >( "fehlberg5" );
+   config.addEntryEnum< String >( "heun2" );
+   config.addEntryEnum< String >( "heun3" );
+   config.addEntryEnum< String >( "kutta" );
    config.addEntryEnum< String >( "merson" );
+   config.addEntryEnum< String >( "midpoint" );
+   config.addEntryEnum< String >( "ralston2" );
+   config.addEntryEnum< String >( "ralston3" );
+   config.addEntryEnum< String >( "ralston4" );
+   config.addEntryEnum< String >( "rule38" );
+   config.addEntryEnum< String >( "rungekutta" );
+   config.addEntryEnum< String >( "ssprk3" );
+   config.addEntryEnum< String >( "vanderhouwen-wray" );
    config.addEntryEnum< String >( "all" );
    config.addEntry< String >( "device", "Run benchmarks using given device.", "host" );
    config.addEntryEnum( "sequential" );
@@ -256,7 +353,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntry< String >( "index-type", "Run benchmarks with given index type.", "int" );
    config.addEntryEnum< String >( "int" );
    config.addEntryEnum< String >( "long int" );
-   config.addEntry< int >( "size", "Size of the ODE system (all ODEs are the same).", 1<<20 );
+   config.addEntry< int >( "size", "Size of the ODE system (all ODEs are the same).", 1 << 20 );
    config.addEntry< double >( "final-time", "Final time of the benchmark test.", 1.0 );
    config.addEntry< double >( "time-step", "Time step of the benchmark test.", 1.0e-2 );
    config.addEntry< double >( "adaptivity", "Set adaptive time stepping. Zero means no adaptive time stepping", 0.0 );
@@ -268,7 +365,7 @@ configSetup( Config::ConfigDescription& config )
 
    config.addDelimiter( "ODE solver settings:" );
    Solvers::IterativeSolver< double, int >::configSetup( config );
-   using Vector = TNL::Containers::Vector< int>;
+   using Vector = TNL::Containers::Vector< int >;
    Euler< Vector >::configSetup( config );
    Merson< Vector >::configSetup( config );
 }
