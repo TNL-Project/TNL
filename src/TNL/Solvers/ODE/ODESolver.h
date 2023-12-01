@@ -24,16 +24,17 @@ namespace TNL::Solvers::ODE {
  * \f$ \frac{d \vec u}{dt} = \vec f( t, \vec u) \text{ on } (0,T) \f$
  *
  * \f$ \vec u( 0 )  = \vec u_{ini} \f$.
- * The unknown vector \f$ \vec x \in R^n \f$ can expressed by a \ref TNL::Containers::Vector or \ref TNL::Containers::StaticVector.
- * In the later case, the solver can be executed even within GPU kernels. The method which is supposed to be used
- * by the solver is represented by the template parameter \ref Method.
+ * The unknown vector \f$ \vec x \in R^n \f$ can expressed by a \ref TNL::Containers::Vector or \ref
+ * TNL::Containers::StaticVector. In the later case, the solver can be executed even within GPU kernels. The method which is
+ * supposed to be used by the solver is represented by the template parameter \ref Method.
  *
  * The following example demonstrates the use the solver:
  *
  * \includelineno Solvers/ODE/ODESolver-HeatEquationExample.h
  *
  * \tparam Method is a method which is supposed to be used for the numerical integration.
- * \tparam Value is a vector (\ref TNL::Containers::Vector or \ref TNL::Containers::StaticVector) representing \f$ \vec x \in R^n \f$.
+ * \tparam Value is a vector (\ref TNL::Containers::Vector or \ref TNL::Containers::StaticVector) representing \f$ \vec x \in
+ * R^n \f$.
  */
 template< typename Method,
           typename Vector,
@@ -41,14 +42,11 @@ template< typename Method,
           bool IsStatic = IsStaticArrayType< Vector >() >
 struct ODESolver;
 
-template< typename Method,
-          typename Vector,
-          typename SolverMonitor >
-struct ODESolver< Method, Vector, SolverMonitor, true > :
-   public StaticExplicitSolver< GetRealType< Vector >, GetIndexType < Vector > >
+template< typename Method, typename Vector, typename SolverMonitor >
+struct ODESolver< Method, Vector, SolverMonitor, true >
+: public StaticExplicitSolver< GetRealType< Vector >, GetIndexType< Vector > >
 {
 public:
-
    static constexpr int Stages = Method::getStages();
    /**
     * \brief Type of floating-point arithemtics.
@@ -57,14 +55,18 @@ public:
 
    using VectorType = Vector;
 
-   using  ValueType = typename VectorType::ValueType;
+   using ValueType = typename VectorType::ValueType;
 
    /**
     * \brief Type for indexing.
     */
    using IndexType = GetIndexType< Vector >;
 
-   static constexpr bool isStatic() { return true; }
+   static constexpr bool
+   isStatic()
+   {
+      return true;
+   }
 
    /**
     * \brief Type of object used for monitoring the convergence.
@@ -76,9 +78,11 @@ public:
    /**
     * \brief Default constructor.
     */
-   __cuda_callable__ ODESolver();
+   __cuda_callable__
+   ODESolver();
 
-   __cuda_callable__ ODESolver( const ODESolver& solver );
+   __cuda_callable__
+   ODESolver( const ODESolver& solver );
 
    /**
     * \brief Static method for setup of configuration parameters.
@@ -109,7 +113,9 @@ public:
     *    integration time step.
     */
    __cuda_callable__
-   void setAdaptivity( const RealType& adaptivity ) {
+   void
+   setAdaptivity( const RealType& adaptivity )
+   {
       this->adaptivity = adaptivity;
    }
 
@@ -120,7 +126,9 @@ public:
     *    integration time step.
     */
    __cuda_callable__
-   RealType getAdaptivity() const {
+   RealType
+   getAdaptivity() const
+   {
       return adaptivity;
    }
 
@@ -130,7 +138,8 @@ public:
     * \return reference to the underlying method.
     */
    __cuda_callable__
-   Method& getMethod();
+   Method&
+   getMethod();
 
    /**
     * \brief Gives constant reference to the underlying method.
@@ -138,7 +147,8 @@ public:
     * \return constant reference to the underlying method.
     */
    __cuda_callable__
-   const Method& getMethod() const;
+   const Method&
+   getMethod() const;
 
    /**
     * \brief Solve ODE given by a lambda function.
@@ -153,14 +163,18 @@ public:
     * the current time \f$ t \f$.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
     * \param f is the lambda function representing the right-hand side of the ODE system.
-    * \return `true` if steady state solution has been reached, `false` otherwise.
+    * \param params are the parameters which are supposed to be passed to the lambda function \e f. This is due to the fact that
+    * the CUDA compiler does not allow nested lambda functions: "An extended __host__ __device__ lambda cannot be defined inside
+    * an extended __host__ __device__  lambda expression". See \ref
+    * Examples/Solvers/ODE/StaticODESolver-LorenzParallelExample.h. \return `true` if steady state solution has been reached,
+    * `false` otherwise.
     */
-   template< typename RHSFunction >
-   __cuda_callable__ bool
-   solve( VectorType& u, RHSFunction&& f );
+   template< typename RHSFunction, typename... Params >
+   __cuda_callable__
+   bool
+   solve( VectorType& u, RHSFunction&& f, Params&&... params );
 
 protected:
-
    /****
     * Adaptivity controls the accuracy of the solver
     */
@@ -173,14 +187,11 @@ protected:
    Method method;
 };
 
-template< typename Method,
-          typename Vector,
-          typename SolverMonitor >
-struct ODESolver< Method, Vector, SolverMonitor, false > :
-   public ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
+template< typename Method, typename Vector, typename SolverMonitor >
+struct ODESolver< Method, Vector, SolverMonitor, false >
+: public ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
 public:
-
    static constexpr int Stages = Method::getStages();
    /**
     * \brief Type of floating-point arithemtics.
@@ -219,7 +230,11 @@ public:
     */
    using SolverMonitorType = SolverMonitor;
 
-   static constexpr bool isStatic() { return false; }
+   static constexpr bool
+   isStatic()
+   {
+      return false;
+   }
 
    /**
     * \brief Default constructor.
@@ -255,7 +270,9 @@ public:
     *    integration time step.
     */
    __cuda_callable__
-   void setAdaptivity( const RealType& adaptivity ) {
+   void
+   setAdaptivity( const RealType& adaptivity )
+   {
       this->adaptivity = adaptivity;
    }
 
@@ -266,7 +283,9 @@ public:
     *    integration time step.
     */
    __cuda_callable__
-   RealType getAdaptivity() const {
+   RealType
+   getAdaptivity() const
+   {
       return adaptivity;
    }
 
@@ -275,14 +294,16 @@ public:
     *
     * \return reference to the underlying method.
     */
-   Method& getMethod();
+   Method&
+   getMethod();
 
    /**
     * \brief Gives constant reference to the underlying method.
     *
     * \return constant reference to the underlying method.
     */
-   const Method& getMethod() const;
+   const Method&
+   getMethod() const;
 
    /**
     * \brief Solve ODE given by a lambda function.
@@ -297,14 +318,17 @@ public:
     * the current time \f$ t \f$.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
     * \param f is the lambda function representing the right-hand side of the ODE system.
-    * \return `true` if steady state solution has been reached, `false` otherwise.
+    * \param params are the parameters which are supposed to be passed to the lambda function \e f. This is due to the fact that
+    * the CUDA compiler does not allow nested lambda functions: "An extended __host__ __device__ lambda cannot be defined inside
+    * an extended __host__ __device__  lambda expression". See \ref
+    * Examples/Solvers/ODE/StaticODESolver-LorenzParallelExample.h. \return `true` if steady state solution has been reached,
+    * `false` otherwise.
     */
-   template< typename RHSFunction >
+   template< typename RHSFunction, typename... Params >
    bool
-   solve( VectorType& u, RHSFunction&& f );
+   solve( VectorType& u, RHSFunction&& f, Params&&... params );
 
 protected:
-
    /****
     * Adaptivity controls the accuracy of the solver
     */
@@ -315,7 +339,6 @@ protected:
    VectorType kAux;
 
    Method method;
-
 };
 
 }  // namespace TNL::Solvers::ODE

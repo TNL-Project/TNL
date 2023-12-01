@@ -19,16 +19,16 @@ namespace TNL::Solvers::ODE {
 // Specialization for static vectors and numbers
 template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
-ODESolver< Method, Value, SolverMonitor, true >::ODESolver() {
+ODESolver< Method, Value, SolverMonitor, true >::ODESolver()
+{
    // It is better to turn off the convergence check for the ODE solver by default.
    this->setConvergenceResidue( 0.0 );
 }
 
 template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
-ODESolver< Method, Value, SolverMonitor, true >::
-ODESolver( const ODESolver& solver )
-: StaticExplicitSolver< GetRealType< Value >, GetIndexType < Value > >( solver )
+ODESolver< Method, Value, SolverMonitor, true >::ODESolver( const ODESolver& solver )
+: StaticExplicitSolver< GetRealType< Value >, GetIndexType< Value > >( solver )
 {
    // It is better to turn off the convergence check for the ODE solver by default.
    this->setConvergenceResidue( 0.0 );
@@ -59,28 +59,29 @@ ODESolver< Method, Value, SolverMonitor, true >::setup( const Config::ParameterC
 template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
 Method&
-ODESolver< Method, Value, SolverMonitor, true >::getMethod() {
+ODESolver< Method, Value, SolverMonitor, true >::getMethod()
+{
    return this->method;
 }
 
 template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
 const Method&
-ODESolver< Method, Value, SolverMonitor, true >::getMethod() const {
+ODESolver< Method, Value, SolverMonitor, true >::getMethod() const
+{
    return this->method;
 }
 
 template< typename Method, typename Value, typename SolverMonitor >
-template< typename RHSFunction >
+template< typename RHSFunction, typename... Params >
 __cuda_callable__
 bool
-ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFunction&& rhsFunction )
+ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFunction&& rhsFunction, Params&&... params )
 {
    using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
    using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Value >;
    using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
    using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Value >;
-
 
    if( this->getTau() == 0.0 ) {
       std::cerr << "The time step for the ODE solver is zero." << std::endl;
@@ -88,7 +89,7 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
    }
 
    for( int i = 0; i < Stages; i++ )
-       k_vectors[ i ] = 0;
+      k_vectors[ i ] = 0;
 
    /////
    // Setup the supporting vectors
@@ -108,21 +109,20 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
    /////
    // Start the main loop
    while( this->checkNextIteration() ) {
-
-      detail::ODESolverEvaluator< Method >::computeKVectors( k_vectors, time, currentTau, u, kAux, rhsFunction );
+      detail::ODESolverEvaluator< Method >::computeKVectors( k_vectors, time, currentTau, u, kAux, rhsFunction, params... );
 
       /////
       // Compute an error of the approximation.
       RealType error( 0.0 );
       if constexpr( Method::isAdaptive() )
          if( this->adaptivity )
-               error = currentTau * max( abs( ErrorExpression::evaluateArray( k_vectors ) ) );
+            error = currentTau * max( abs( ErrorExpression::evaluateArray( k_vectors ) ) );
 
       if( this->adaptivity == 0.0 || error < this->adaptivity ) {
          RealType lastResidue = this->getResidue();
 
-         this->setResidue(
-            addAndReduceAbs( u, currentTau * UpdateExpression::evaluateArray( k_vectors ), TNL::Plus{}, 0.0 ) / currentTau );
+         this->setResidue( addAndReduceAbs( u, currentTau * UpdateExpression::evaluateArray( k_vectors ), TNL::Plus{}, 0.0 )
+                           / currentTau );
          time += currentTau;
 
          /////
@@ -157,7 +157,8 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
 ////
 // Specialization for dynamic vectors
 template< typename Method, typename Vector, typename SolverMonitor >
-ODESolver< Method, Vector, SolverMonitor, false >::ODESolver() {
+ODESolver< Method, Vector, SolverMonitor, false >::ODESolver()
+{
    // It is better to turn off the convergence check for the ODE solver by default.
    this->setConvergenceResidue( 0.0 );
 }
@@ -185,26 +186,27 @@ ODESolver< Method, Vector, SolverMonitor, false >::setup( const Config::Paramete
 
 template< typename Method, typename Vector, typename SolverMonitor >
 Method&
-ODESolver< Method, Vector, SolverMonitor, false >::getMethod() {
+ODESolver< Method, Vector, SolverMonitor, false >::getMethod()
+{
    return this->method;
 }
 
 template< typename Method, typename Vector, typename SolverMonitor >
 const Method&
-ODESolver< Method, Vector, SolverMonitor, false >::getMethod() const {
+ODESolver< Method, Vector, SolverMonitor, false >::getMethod() const
+{
    return this->method;
 }
 
 template< typename Method, typename Vector, typename SolverMonitor >
-template< typename RHSFunction >
+template< typename RHSFunction, typename... Params >
 bool
-ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunction&& rhsFunction )
+ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunction&& rhsFunction, Params&&... params )
 {
    using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
    using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Vector >;
    using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
    using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Vector >;
-
 
    if( this->getTau() == 0.0 ) {
       std::cerr << "The time step for the ODE solver is zero." << std::endl;
@@ -217,9 +219,9 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
    /////
    // Setup the supporting vectors
    for( int i = 0; i < Stages; i++ ) {
-       k_vectors[ i ].setLike( u );
-       k_vectors[ i ] = 0;
-       k_views[ i ].bind( k_vectors[ i ] );
+      k_vectors[ i ].setLike( u );
+      k_vectors[ i ] = 0;
+      k_views[ i ].bind( k_vectors[ i ] );
    }
    kAux.setLike( u );
    kAux = 0;
@@ -238,8 +240,8 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
    /////
    // Start the main loop
    while( this->checkNextIteration() ) {
-
-      detail::ODESolverEvaluator< Method >::computeKVectors( k_views, time, currentTau, u.getView(), kAux.getView(), rhsFunction );
+      detail::ODESolverEvaluator< Method >::computeKVectors(
+         k_views, time, currentTau, u.getView(), kAux.getView(), rhsFunction, params... );
 
       /////
       // Compute an error of the approximation.
@@ -251,9 +253,8 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
       if( this->adaptivity == 0.0 || error < this->adaptivity ) {
          RealType lastResidue = this->getResidue();
 
-         this->setResidue(
-            addAndReduceAbs( u, currentTau * UpdateExpression::evaluateArray( k_vectors ), TNL::Plus{}, 0.0 ) /
-            ( currentTau * (RealType) u.getSize() ) );
+         this->setResidue( addAndReduceAbs( u, currentTau * UpdateExpression::evaluateArray( k_vectors ), TNL::Plus{}, 0.0 )
+                           / ( currentTau * (RealType) u.getSize() ) );
          time += currentTau;
 
          /////
