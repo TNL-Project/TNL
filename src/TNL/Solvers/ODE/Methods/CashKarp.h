@@ -48,12 +48,12 @@ struct CashKarp
 protected:
 
    static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
-      std::array< Value, Stages >{     0.0,            0.0,        0.0,    0.0,     0.0,            0.0,        0.0 },
-      std::array< Value, Stages >{     1.0/    5.0,    0.0,        0.0,    0.0,     0.0,            0.0,        0.0 },
-      std::array< Value, Stages >{     3.0/   40.0,   9.0/ 40.0,   0.0,    0.0,     0.0,            0.0,        0.0 },
-      std::array< Value, Stages >{     3.0/   10.0,  -9.0/ 10.0,   6.0/    5.0,     0.0,            0.0,        0.0 },
-      std::array< Value, Stages >{   -11.0/   54.0,   5.0/  2.0, -70.0/   27.0,    35.0/    27.0,   0.0,        0.0 },
-      std::array< Value, Stages >{  1631.0/55296.0, 175.0/512.0, 575.0/13824.0, 44275.0/110592.0, 253.0/4096.0, 0.0 }
+      std::array< Value, Stages >{     0.0,            0.0,        0.0,    0.0,     0.0,            0.0        },
+      std::array< Value, Stages >{     1.0/    5.0,    0.0,        0.0,    0.0,     0.0,            0.0        },
+      std::array< Value, Stages >{     3.0/   40.0,   9.0/ 40.0,   0.0,    0.0,     0.0,            0.0        },
+      std::array< Value, Stages >{     3.0/   10.0,  -9.0/ 10.0,   6.0/    5.0,     0.0,            0.0        },
+      std::array< Value, Stages >{   -11.0/   54.0,   5.0/  2.0, -70.0/   27.0,    35.0/    27.0,   0.0        },
+      std::array< Value, Stages >{  1631.0/55296.0, 175.0/512.0, 575.0/13824.0, 44275.0/110592.0, 253.0/4096.0 }
    };
 
    static constexpr std::array< Value, Stages > time_coefficients { 0.0, 1.0/5.0, 3.0/10.0, 3.0/5.0, 1.0, 7.0/8.0 };
