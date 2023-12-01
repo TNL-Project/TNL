@@ -4,14 +4,10 @@
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Algorithms/parallelFor.h>
 
-#ifdef HAVE_GTEST
-   #include <gtest/gtest.h>
-#endif
+#include <gtest/gtest.h>
 
 using namespace TNL;
 using namespace TNL::Containers;
-
-#ifdef HAVE_GTEST
 
 template< typename DofContainer >
 class ODEStaticSolverTest : public ::testing::Test
@@ -114,13 +110,53 @@ TYPED_TEST( ODEStaticSolverTest, ParallelLinearFunctionTest )
    using ODEMethodType = typename TestFixture::ODEMethodType;
    using SolverType = TNL::Solvers::ODE::ODESolver< ODEMethodType, DofContainerType >;
 
-   #if defined( __CUDACC__ )
-   ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Cuda >();
-   #elif defined( __HIP__ )
-   ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Hip >();
-   #else
    ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Host >();
-   #endif
 }
 
-   #include "../../main.h"
+template< typename DofContainerType, typename SolverType >
+void
+ODEStaticSolverTest_EOCTest()
+{
+   using StaticVectorType = DofContainerType;
+   using RealType = typename DofContainerType::RealType;
+
+   const RealType final_time = 1.0;
+   auto f =
+      [ = ] __cuda_callable__( const RealType& time, const RealType& tau, const StaticVectorType& u, StaticVectorType& fu )
+   {
+      fu = TNL::exp( time );
+   };
+
+   StaticVectorType u1( 0.0 ), u2( 0.0 );
+   SolverType solver;
+   solver.setStopTime( final_time );
+   solver.setConvergenceResidue( 0.0 );
+   solver.setAdaptivity( 0.0 );
+
+   solver.setTime( 0.0 );
+   solver.setTau( 0.1 );
+   solver.solve( u1, f );
+
+   solver.setTime( 0.0 );
+   solver.setTau( 0.05 );
+   solver.solve( u2, f );
+
+   const RealType exact_solution = exp( 1.0 ) - exp( 0.0 );
+   const RealType error_1 = TNL::max( TNL::abs( u1 - exact_solution ) );
+   const RealType error_2 = TNL::max( TNL::abs( u2 - exact_solution ) );
+   const RealType eoc = log( error_1 / error_2 ) / log( 2.0 );
+   EXPECT_NEAR( eoc, expected_eoc, 0.1 ) << "exact_solution = " << exact_solution << " u1 = " << u1 << " u2 = " << u2
+                                         << " error_1 = " << error_1 << " error_2 = " << error_2 << " eoc = " << eoc;
+}
+
+TYPED_TEST( ODEStaticSolverTest, EOCTest )
+{
+   using DofContainerType = typename TestFixture::DofContainerType;
+   using ODEMethodType = typename TestFixture::ODEMethodType;
+   using SolverType = TNL::Solvers::ODE::ODESolver< ODEMethodType, DofContainerType >;
+
+   if constexpr( std::is_same_v< DofContainerType, StaticVector< 1, double > > )
+      ODEStaticSolverTest_EOCTest< DofContainerType, SolverType >();
+}
+
+#include "../../main.h"

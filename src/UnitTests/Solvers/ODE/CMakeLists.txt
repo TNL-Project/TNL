@@ -1,13 +1,30 @@
-set( COMMON_TESTS
-            EulerSolverTest
-            StaticEulerSolverTest
-            MersonSolverTest
-            StaticMersonSolverTest
+set(COMMON_TESTS
+   ODESolverTest_Euler
+   ODESolverTest_Merson
 )
 
-set(CPP_TESTS)
+set(CPP_TESTS
+   StaticODESolverTest_BogackiShampin
+   StaticODESolverTest_CashKarp
+   StaticODESolverTest_DormandPrince
+   StaticODESolverTest_Euler
+   StaticODESolverTest_Fehlberg2
+   StaticODESolverTest_Fehlberg5
+   StaticODESolverTest_Heun2
+   StaticODESolverTest_Heun3
+   StaticODESolverTest_Kutta
+   StaticODESolverTest_Merson
+   StaticODESolverTest_Midpoint
+   StaticODESolverTest_Ralston2
+   StaticODESolverTest_Ralston3
+   StaticODESolverTest_Ralston4
+   StaticODESolverTest_Rule38
+   StaticODESolverTest_SSPRK3
+   StaticODESolverTest_VanDerHouwenWray
+)
 
-set(CUDA_TESTS)
+set(CUDA_TESTS
+)
 
 if(TNL_BUILD_CUDA)
     set(CUDA_TESTS ${CUDA_TESTS} ${COMMON_TESTS})
