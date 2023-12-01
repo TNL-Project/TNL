@@ -1,9 +1,10 @@
 #include <iostream>
 #include <fstream>
-#include <TNL/Solvers/ODE/StaticEuler.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Containers/StaticArray.h>
+#include <TNL/Containers/StaticVector.h>
+#include <TNL/Solvers/ODE/ODESolver.h>
+#include <TNL/Solvers/ODE/Methods/Euler.h>
 
 using Real = double;
 using MultiIndex = TNL::Containers::StaticArray< 3, int >;
@@ -12,8 +13,10 @@ template< typename Device >
 void
 solveParallelODEs( const char* file_name )
 {
-   using Vector = TNL::Containers::StaticVector< 3, Real >;
-   using ODESolver = TNL::Solvers::ODE::StaticEuler< Vector >;
+   using StaticVector = TNL::Containers::StaticVector< 3, Real >;
+   using Method = TNL::Solvers::ODE::Methods::Euler< Real >;
+   using ODESolver = TNL::Solvers::ODE::ODESolver< Method, StaticVector >;
+
    const Real final_t = 50.0;
    const Real tau = 0.001;
    const Real output_time_step = 0.005;
@@ -25,12 +28,12 @@ solveParallelODEs( const char* file_name )
    const int output_time_steps = ceil( final_t / output_time_step ) + 1;
 
    const int results_size( output_time_steps * parametric_steps * parametric_steps * parametric_steps );
-   TNL::Containers::Vector< Vector, Device > results( results_size, 0.0 );
+   TNL::Containers::Vector< StaticVector, Device > results( results_size, 0.0 );
    auto results_view = results.getView();
    auto f = [ = ] __cuda_callable__( const Real& t,
                                      const Real& tau,
-                                     const Vector& u,
-                                     Vector& fu,
+                                     const StaticVector& u,
+                                     StaticVector& fu,
                                      const Real& sigma_i,
                                      const Real& rho_j,
                                      const Real& beta_k )
@@ -51,7 +54,7 @@ solveParallelODEs( const char* file_name )
       ODESolver solver;
       solver.setTau( tau );
       solver.setTime( 0.0 );
-      Vector u( 1.0, 1.0, 1.0 );
+      StaticVector u( 1.0, 1.0, 1.0 );
       int time_step( 1 );
       results_view[ ( i[ 0 ] * parametric_steps + i[ 1 ] ) * parametric_steps + i[ 2 ] ] = u;
       while( time_step < output_time_steps ) {

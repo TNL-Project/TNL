@@ -1,6 +1,7 @@
 #include <iostream>
 #include <TNL/Containers/StaticVector.h>
-#include <TNL/Solvers/ODE/StaticEuler.h>
+#include <TNL/Solvers/ODE/ODESolver.h>
+#include <TNL/Solvers/ODE/Methods/Euler.h>
 
 using Real = double;
 
@@ -8,7 +9,8 @@ int
 main( int argc, char* argv[] )
 {
    using Vector = TNL::Containers::StaticVector< 3, Real >;
-   using ODESolver = TNL::Solvers::ODE::StaticEuler< Vector >;
+   using Method = TNL::Solvers::ODE::Methods::Euler< Real >;
+   using ODESolver = TNL::Solvers::ODE::ODESolver< Method, Vector >;
    const Real final_t = 25.0;
    const Real tau = 0.001;
    const Real output_time_step = 0.01;
