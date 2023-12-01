@@ -38,14 +38,14 @@ namespace TNL::Solvers::ODE {
 template< typename Method,
           typename Vector,
           typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType >,
-          bool IsStatic = IsStaticArrayType< Vector >() || std::is_arithmetic_v< Vector > >
+          bool IsStatic = IsStaticArrayType< Vector >() >
 struct ODESolver;
 
 template< typename Method,
-          typename Value,
+          typename Vector,
           typename SolverMonitor >
-struct ODESolver< Method, Value, SolverMonitor, true > :
-   public StaticExplicitSolver< typename GetRealType< Value >::type, typename GetIndexType < Value >::type >
+struct ODESolver< Method, Vector, SolverMonitor, true > :
+   public StaticExplicitSolver< GetRealType< Vector >, GetIndexType < Vector > >
 {
 public:
 
@@ -53,19 +53,16 @@ public:
    /**
     * \brief Type of floating-point arithemtics.
     */
-   using RealType = typename GetRealType< Value >::type;
+   using RealType = GetRealType< Vector >;
 
-   using ValueType = Value;
+   using VectorType = Vector;
+
+   using  ValueType = typename VectorType::ValueType;
 
    /**
     * \brief Type for indexing.
     */
-   using IndexType = typename GetIndexType< Value >::type;
-
-   /**
-    * \brief Type of unknown variable \f$ \vec x \f$.
-    */
-   //using VectorType = Vector;
+   using IndexType = GetIndexType< Vector >;
 
    static constexpr bool isStatic() { return true; }
 
@@ -149,7 +146,7 @@ public:
     * \tparam RHSFunction is type of a lambda function representing the right-hand side of the ODE system.
     *    The definition of the lambda function reads as:
     * ```
-    * auto f = [=] ( const Real& t, const Real& tau, const ValueType& u, ValueType& fu ) {...}
+    * auto f = [=] ( const Real& t, const Real& tau, const VectorType& u, VectorType& fu ) {...}
     * ```
     * where `t` is the current time of the evolution, `tau` is the current time step, `u` is the solution at the current time,
     * `fu` is variable/static vector into which the lambda function is suppsed to evaluate the function \f$ f(t, \vec x) \f$ at
@@ -160,7 +157,7 @@ public:
     */
    template< typename RHSFunction >
    __cuda_callable__ bool
-   solve( ValueType& u, RHSFunction&& f );
+   solve( VectorType& u, RHSFunction&& f );
 
 protected:
 
@@ -169,9 +166,9 @@ protected:
     */
    RealType adaptivity = 0.00001;
 
-   std::array< ValueType, Stages > k_vectors;
+   std::array< VectorType, Stages > k_vectors;
 
-   ValueType kAux;
+   VectorType kAux;
 
    Method method;
 };
@@ -188,9 +185,9 @@ public:
    /**
     * \brief Type of floating-point arithemtics.
     */
-   using RealType = typename Vector::RealType;
+   using RealType = GetRealType< Vector >;
 
-   using ValueType = RealType;
+   using ValueType = typename Vector::ValueType;
 
    /**
     * \brief Device where the solver is supposed to be executed.

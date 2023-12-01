@@ -5,6 +5,18 @@
 namespace TNL::Benchmarks {
 
 template< typename Solver,
+          bool isStatic = Solver::isStatic() >
+struct SolverElementType{
+   using type = typename Solver::ValueType;
+};
+
+template< typename Solver >
+struct SolverElementType< Solver, true >{
+   using type = typename Solver::VectorType;
+};
+
+
+template< typename Solver,
           typename Device,
           typename Index,
           typename Logger = JsonLogging >
@@ -16,7 +28,8 @@ struct ODESolversBenchmarkResult
    using ValueType = typename SolverType::ValueType;
    using DeviceType = Device;
    using IndexType = Index;
-   using BenchmarkVector = Containers::Vector< ValueType, DeviceType, IndexType >;
+   using ElementType = typename SolverElementType< SolverType >::type;
+   using BenchmarkVector = Containers::Vector< ElementType, DeviceType, IndexType >;
 
    using typename BenchmarkResult::HeaderElements;
    using typename BenchmarkResult::RowElements;
@@ -42,7 +55,7 @@ struct ODESolversBenchmarkResult
 
    virtual RowElements getRowElements() const override {
       RealType error;
-      if constexpr( SolverType::isStatic() && ! std::is_arithmetic_v< ValueType >)
+      if constexpr( SolverType::isStatic() )
          error  = abs( exactSolution - benchmarkResult.getElement( 0 )[ 0 ] );
       else error = abs( exactSolution - benchmarkResult.getElement( 0 ) );
       RealType eoc = -1.0;

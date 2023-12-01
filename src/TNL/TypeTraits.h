@@ -327,34 +327,40 @@ public:
 };
 
 template< typename T, bool IsArithmetic = std::is_arithmetic_v< T > >
-struct GetRealType;
+struct GetRealType_;
 
 template< typename T >
-struct GetRealType< T, false >
+struct GetRealType_< T, false >
 {
-   using type = typename GetRealType< typename T::RealType >::type;
+   using type = typename GetRealType_< typename T::RealType >::type;
 };
 
 template< typename T >
-struct GetRealType< T, true >
+struct GetRealType_< T, true >
 {
    using type = T;
 };
 
+template< typename T >
+using GetRealType = typename GetRealType_< T >::type;
+
 template< typename T, bool IsArithemtic = std::is_arithmetic_v< T > >
-struct GetIndexType;
+struct GetIndexType_;
 
 template< typename T >
-struct GetIndexType< T, false >
+struct GetIndexType_< T, false >
 {
    using type = typename T::IndexType;
 };
 
 template< typename T >
-struct GetIndexType< T, true >
+struct GetIndexType_< T, true >
 {
    using type = int;
 };
+
+template< typename T >
+using GetIndexType = typename GetIndexType_< T >::type;
 
 // clang-format on
 

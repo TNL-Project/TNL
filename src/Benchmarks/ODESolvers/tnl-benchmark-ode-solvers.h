@@ -73,7 +73,8 @@ struct ODESolversBenchmark
                     const char* solverName )
    {
       using ValueType = typename SolverType::ValueType;
-      using VectorType = TNL::Containers::Vector< ValueType, DeviceType, IndexType >;
+      using ElementType = typename SolverElementType< SolverType >::type;
+      using VectorType = TNL::Containers::Vector< ElementType, DeviceType, IndexType >;
       using VectorView = typename VectorType::ViewType;
 
       std::string device = "host";
@@ -109,7 +110,7 @@ struct ODESolversBenchmark
          if constexpr( SolverType::isStatic() ) {
             auto u_view = u.getView();
             auto solve = [&]() {
-               auto problem = [] __cuda_callable__ ( const RealType& t, const RealType& tau, const ValueType& u, ValueType& fu ) {
+               auto problem = [] __cuda_callable__ ( const RealType& t, const RealType& tau, const ElementType& u, ElementType& fu ) {
                      fu = TNL::exp( t );
                };
                TNL::Algorithms::parallelFor< DeviceType >( 0, u.getSize(), [=] __cuda_callable__ ( IndexType i ) mutable {

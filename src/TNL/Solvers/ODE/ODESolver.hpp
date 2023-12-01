@@ -28,7 +28,7 @@ template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
 ODESolver< Method, Value, SolverMonitor, true >::
 ODESolver( const ODESolver& solver )
-: StaticExplicitSolver< typename GetRealType< Value >::type, typename GetIndexType < Value >::type >( solver )
+: StaticExplicitSolver< GetRealType< Value >, GetIndexType < Value > >( solver )
 {
    // It is better to turn off the convergence check for the ODE solver by default.
    this->setConvergenceResidue( 0.0 );
@@ -74,7 +74,7 @@ template< typename Method, typename Value, typename SolverMonitor >
 template< typename RHSFunction >
 __cuda_callable__
 bool
-ODESolver< Method, Value, SolverMonitor, true >::solve( ValueType& u, RHSFunction&& rhsFunction )
+ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFunction&& rhsFunction )
 {
    using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
    using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Value >;
