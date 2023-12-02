@@ -53,19 +53,6 @@ In the following, we review the available installation methods:
 
    Finally, see [Environment variables](#environment-variables)
 
-3. __Adding a git submodule to another project__
-
-   To include TNL as a git submodule in another project, e.g. in the `libs/tnl`
-   location, execute the following command in the git repository:
-
-       git submodule add https://gitlab.com/tnl-project/tnl.git libs/tnl
-
-   See the [git submodules tutorial](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
-   for details.
-
-   You will need to adjust the build system of your project to use TNL from the
-   submodule. The [Usage](#usage) section for some hints.
-
 ### Dependencies   {#dependencies}
 
 In order to use TNL, you need to install a compatible compiler, a parallel
@@ -190,15 +177,27 @@ prefix that can be viewed by running `./install --help`.
 Note that [CMake](https://cmake.org/) 3.24 or later is required when using the
 `install` script.
 
-## Usage   {#usage}
+## Usage in other projects  {#usage}
 
-The following shows some of the most convenient ways to use TNL.
+To use TNL in another project, you need to make sure that TNL header files are
+available and configure your build system accordingly. To obtain TNL, you can
+either [install it](#installation) as described above, or add it as a git
+submodule in your project as described in the next section. The last two
+sections below provide examples for the configuration in CMake and Makefile
+projects.
 
-### Wrapper tnlcxx
+### Adding a git submodule to another project
 
-`tnlcxx` is a wrapper which configures the build system (CMake) for simple situations where
-the user needs to compile only one `.cpp` or `.cu` source file. The wrapper is available in a
-separate [git repository](https://gitlab.com/tnl-project/tnlcxx).
+To include TNL as a git submodule in another project, e.g. in the `libs/tnl`
+location, execute the following command in the git repository:
+
+    git submodule add https://gitlab.com/tnl-project/tnl.git libs/tnl
+
+See the [git submodules tutorial](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
+for details.
+
+You will need to adjust the build system of your project to use TNL from the
+submodule. The [Usage](#usage) section for some hints.
 
 ### CMake projects
 
@@ -216,9 +215,22 @@ See the [example projects](https://gitlab.com/tnl-project/example-projects) for 
 To incorporate TNL into an existing project using [GNU Make](https://www.gnu.org/software/make/)
 as the build system, see the `Makefile` and `config.mk` files in the relevant
 [example project](https://gitlab.com/tnl-project/example-projects/makefile).
-The compiler flags used in the example project are explained in the following section.
+The compiler flags used in the example project are explained in the
+[Compiler flags](#compiler-flags) section.
 
-### Important C++ compiler flags
+## Tips and tricks
+
+### Wrapper tnlcxx
+
+`tnlcxx` is a wrapper which configures the build system (CMake) for simple situations where
+the user needs to compile only one `.cpp` or `.cu` source file. The wrapper is available in a
+separate [git repository](https://gitlab.com/tnl-project/tnlcxx).
+
+### Compiler flags  {#compiler-flags}
+
+Note that if you use TNL in a CMake project as suggested above, all necessary
+flags are imported from the TNL project and you do not need to specify them
+manually.
 
 - Enable the C++17 standard: `-std=c++17`
 - Configure the include path: `-I /path/to/include`
@@ -231,15 +243,6 @@ The compiler flags used in the example project are explained in the following se
       submodule in your own project.
 - Enable optimizations: `-O3 -DNDEBUG` (you can also add
   `-march=native -mtune=native` to enable CPU-specific optimizations).
-- Of course, there are many other useful compiler flags. For example, the
-  flags that we use when developing TNL can be found in the
-  [cxx_flags.cmake][cxx_flags.cmake] and [cuda_flags.cmake][cuda_flags.cmake]
-  files in the Git repository.
-
-[cxx_flags.cmake]: https://gitlab.com/tnl-project/tnl/-/blob/main/cmake/cxx_flags.cmake
-[cuda_flags.cmake]: https://gitlab.com/tnl-project/tnl/-/blob/main/cmake/cuda_flags.cmake
-
-### Compiler flags for parallel computing
 
 Parallel computing platforms in TNL may be enabled automatically when using the
 appropriate compiler, or additional compiler flags may be needed.
@@ -255,6 +258,14 @@ appropriate compiler, or additional compiler flags may be needed.
 - MPI support must be enabled by defining the `HAVE_MPI` preprocessor macro
   (e.g. with `-D HAVE_MPI`). Use a compiler wrapper such as `mpicxx` or link
   manually against the MPI libraries.
+
+Of course, there are many other useful compiler flags. For example, the
+flags that we use when developing TNL can be found in the
+[cxx_flags.cmake][cxx_flags.cmake] and [cuda_flags.cmake][cuda_flags.cmake]
+files in the Git repository.
+
+[cxx_flags.cmake]: https://gitlab.com/tnl-project/tnl/-/blob/main/cmake/cxx_flags.cmake
+[cuda_flags.cmake]: https://gitlab.com/tnl-project/tnl/-/blob/main/cmake/cuda_flags.cmake
 
 ### Environment variables   {#environment-variables}
 
