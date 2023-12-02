@@ -176,12 +176,13 @@ of targets that can be selected from the following list:
 
 - `all`: Special target which includes all other targets.
 - `benchmarks`: Compile the `src/Benchmarks` directory.
+- `documentation`: Compile code snippets and generate the documentation.
 - `examples`: Compile the `src/Examples` directory.
 - `tools`: Compile the `src/Tools` directory.
-- `tests`: Compile unit tests in the `src/UnitTests` directory (except tests for
-  matrix formats, which have a separate target).
-- `matrix-tests`: Compile unit tests for matrix formats.
-- `doc`: Generate the documentation.
+- `tests`: Compile unit tests in the `src/UnitTests` directory.
+- `matrix-tests`: Compile unit tests in the `src/UnitTests/Matrices` directory.
+- `non-matrix-tests`: Compile unit tests in the `src/UnitTests` directory,
+  except `src/UnitTests/Matrices`.
 
 Additionally, `[options]` can be replaced with a list of options with the `--`
 prefix that can be viewed by running `./install --help`.

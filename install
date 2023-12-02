@@ -20,6 +20,9 @@ BUILD_JOBS=""
 TESTS_JOBS="4"
 VERBOSE=""
 
+# array of build targets
+BUILD_TARGETS=()
+
 # other options to be passed to the configure script
 CONFIGURE_OPTIONS=()
 
@@ -31,11 +34,24 @@ usage: $0 [options] [target ...]
 Configures, builds and installs selected targets into the directory specified
 by the --prefix option.
 
+By default, the script does not select any target. Build targets available for
+selection are listed below.
+
+Targets:
+    all                 Special target which includes all other targets.
+    benchmarks          Compile the 'src/Benchmarks' directory.
+    documentation       Compile code snippets and generate the documentation.
+    examples            Compile the 'src/Examples' directory.
+    tools               Compile the 'src/Tools' directory.
+    tests               Compile unit tests in the 'src/UnitTests' directory.
+    matrix-tests        Compile unit tests in the 'src/UnitTests/Matrices' directory.
+    non-matrix-tests    Compile unit tests in the 'src/UnitTests' directory, except 'src/UnitTests/Matrices'.
+
 Most of the options are shared with the configure script (see below). The
 options specific to the install script are:
-    --build-jobs=NUM                      Number of processes to be used for the build. It is set to the number of available CPU cores by default.
-    --tests-jobs=NUM                      Number of processes to be used for the unit tests. It is $TESTS_JOBS by default.
-    --verbose                             Enables verbose build.
+    --build-jobs=NUM                    Number of processes to be used for the build. It is set to the number of available CPU cores by default.
+    --tests-jobs=NUM                    Number of processes to be used for the unit tests. It is $TESTS_JOBS by default.
+    --verbose                           Enables verbose build.
 
 The usage instructions for the configure script are printed below. Its options
 are automatically usable in this script too.
@@ -68,10 +84,28 @@ for option in "$@"; do
         -B*)
             BUILD_DIR="${option#"-B"}"
             ;;
-        *)
+        -*)
             CONFIGURE_OPTIONS+=("$option")
             ;;
+        *)
+            break
+            ;;
     esac
+    shift
+done
+
+# handle targets
+for target in "$@"; do
+    case "$target" in
+        all | benchmarks | documentation | examples | tools | tests | matrix-tests | non-matrix-tests )
+            BUILD_TARGETS+=("$target")
+            ;;
+        *)
+            echo "Unknown target $target. The available targets are: all, benchmarks, documentation, examples, tools, tests, matrix-tests, non-matrix-tests." >&2
+            echo "Use --help for more information." >&2
+            exit 1
+    esac
+    shift
 done
 
 # configure the build
@@ -84,31 +118,51 @@ fi
 
 # set the default number of build jobs
 if [[ -z ${BUILD_JOBS} ]]; then
-   if [[ $(command -v lscpu) ]]; then
-      # get the number of physical cores present on the system, even with multiple NUMA nodes
-      # see https://unix.stackexchange.com/a/279354
-      BUILD_JOBS=$(lscpu --all --parse=CORE,SOCKET | grep -Ev "^#" | sort -u | wc -l)
-   elif [[ $(command -v sysctl) && $OSTYPE == 'darwin'* ]]; then
-      # get the number of physical cores present on the system for MacOS
-      BUILD_JOBS=$(sysctl -n hw.ncpu)
-   fi
+    if [[ $(command -v lscpu) ]]; then
+        # get the number of physical cores present on the system, even with multiple NUMA nodes
+        # see https://unix.stackexchange.com/a/279354
+        BUILD_JOBS=$(lscpu --all --parse=CORE,SOCKET | grep -Ev "^#" | sort -u | wc -l)
+    elif [[ $(command -v sysctl) && $OSTYPE == 'darwin'* ]]; then
+        # get the number of physical cores present on the system for MacOS
+        BUILD_JOBS=$(sysctl -n hw.ncpu)
+    fi
 fi
 
 # build the targets
 echo "Building TNL in $BUILD_TYPE configuration using $BUILD_JOBS parallel jobs ..."
-cmake --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target "all"
+if [[ ${#BUILD_TARGETS[@]} != 0 ]]; then
+    cmake --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target "${BUILD_TARGETS[@]}"
+fi
 
 # install the targets
-cmake --install "$BUILD_DIR" $VERBOSE
+if [[ " ${BUILD_TARGETS[*]} " =~ " all " ]]; then
+    cmake --install "$BUILD_DIR" $VERBOSE
+else
+    cmake --install "$BUILD_DIR" $VERBOSE --component headers
+    for target in "${BUILD_TARGETS[@]}"; do
+        cmake --install "$BUILD_DIR" $VERBOSE --component "$target"
+    done
+fi
 
 # run the tests
-if [[ ${#CONFIGURE_OPTIONS[@]} != 0 ]]; then
-    if [[ " ${CONFIGURE_OPTIONS[*]} " =~ " all " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " =~ " tests " ]] || [[ " ${CONFIGURE_OPTIONS[*]} " =~ " matrix-tests " ]]; then
-        export OMP_NUM_THREADS="$TESTS_JOBS"
-        export CTEST_PARALLEL_LEVEL="$TESTS_JOBS"
-        export CTEST_OUTPUT_ON_FAILURE=1
-        cmake --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target "test"
+if [[ ${#BUILD_TARGETS[@]} != 0 ]]; then
+    export OMP_NUM_THREADS="$TESTS_JOBS"
+    export CTEST_PARALLEL_LEVEL="$TESTS_JOBS"
+
+    # we have ctest options set in the preset, but ctest does not allow to override the build directory
+    # https://gitlab.kitware.com/cmake/cmake/-/issues/23982
+    sed 's|"binaryDir": "${sourceDir}/build",|"binaryDir": "${sourceDir}",|' CMakePresets.json > "$BUILD_DIR/CMakePresets.json"
+    pushd "$BUILD_DIR"
+
+    if [[ " ${BUILD_TARGETS[*]} " =~ " all " ]] || [[ " ${BUILD_TARGETS[*]} " =~ " tests " ]]; then
+        ctest --preset all-tests #--test-dir "$BUILD_DIR"
+    elif [[ " ${BUILD_TARGETS[*]} " =~ " matrix-tests " ]]; then
+        ctest --preset matrix-tests #--test-dir "$BUILD_DIR"
+    elif [[ " ${BUILD_TARGETS[*]} " =~ " non-matrix-tests " ]]; then
+        ctest --preset non-matrix-tests #--test-dir "$BUILD_DIR"
     fi
+
+    popd
 fi
 
 if [[ ! "$PATH" =~ "$PREFIX/bin" ]]; then
