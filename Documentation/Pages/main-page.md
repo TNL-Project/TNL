@@ -227,13 +227,8 @@ The compiler flags used in the example project are explained in the following se
       `~/.local` by default).
     - If you want to include from the git repository directly, you need to
       specify `<git_repo>/src` as an include paths, where `<git_repo>` is the
-      path where you have cloned the TNL git repository.
-    - Instead of using the `-I` flag, you can set the `CPATH` environment
-      variable to a colon-delimited list of include paths. Note that this may
-      affect the build systems of other projects as well. For example:
-
-          export CPATH="$HOME/.local/include:$CPATH"
-
+      path where you have cloned the TNL git repository. This may be a git
+      submodule in your own project.
 - Enable optimizations: `-O3 -DNDEBUG` (you can also add
   `-march=native -mtune=native` to enable CPU-specific optimizations).
 - Of course, there are many other useful compiler flags. For example, the
