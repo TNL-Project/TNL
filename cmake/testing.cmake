@@ -30,9 +30,19 @@ function( add_test_mpi )
    set( oneValueArgs NAME NPROC )
    set( multiValueArgs COMMAND )
    cmake_parse_arguments( ADD_TEST_MPI "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+
    # set flags for MPIEXEC_EXECUTABLE
    set( mpiexec_flags "${MPIEXEC_NUMPROC_FLAG}" "${ADD_TEST_MPI_NPROC}" -H "localhost:${ADD_TEST_MPI_NPROC}" )
+
+   add_test( NAME ${ADD_TEST_MPI_NAME} COMMAND "${MPIEXEC_EXECUTABLE}" ${mpiexec_flags} ${ADD_TEST_MPI_COMMAND} )
+
    # set OMP_NUM_THREADS=1 to disable OpenMP for MPI tests
    # (NPROC may be even greater than the number of physical cores, so it would just slow down)
-   add_test( NAME ${ADD_TEST_MPI_NAME} COMMAND "env" "OMP_NUM_THREADS=1" "${MPIEXEC_EXECUTABLE}" ${mpiexec_flags} ${ADD_TEST_MPI_COMMAND} )
+   set_property( TEST ${ADD_TEST_MPI_NAME} PROPERTY ENVIRONMENT "OMP_NUM_THREADS=1" )
+
+   # add "MPI" label to the test
+   set_property( TEST ${ADD_TEST_MPI_NAME} PROPERTY LABELS MPI )
+
+   # set the number of processes used by the test
+   set_property( TEST ${ADD_TEST_MPI_NAME} PROPERTY PROCESSORS ${ADD_TEST_MPI_NPROC} )
 endfunction()
