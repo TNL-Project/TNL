@@ -15,13 +15,7 @@ option( TNL_USE_GMP "Build with GMP support" OFF )
 option( TNL_USE_SYSTEM_GTEST "Use GTest installed in the local system and do not download the latest version" OFF )
 option( TNL_USE_CI_FLAGS "Add additional compiler flags like -Werror that are enforced in CI builds" OFF )
 option( TNL_USE_MARCH_NATIVE_FLAG "Add -march=native and -mtune=native to the list of compiler flags for the Release configuration" OFF )
-option( TNL_BUILD_BENCHMARKS "Compile the 'src/Benchmarks' directory" OFF )
-option( TNL_BUILD_EXAMPLES "Compile the 'src/Examples' directory" OFF )
-option( TNL_BUILD_TOOLS "Compile the 'src/Tools' directory" OFF )
-option( TNL_BUILD_TESTS "Build tests" OFF )
-option( TNL_BUILD_MATRIX_TESTS "Build tests for matrix formats" OFF )
 option( TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF )
-option( TNL_BUILD_DOC "Build examples included in the documentation and generate the documentation with Doxygen" OFF )
 option( TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF )
 
 # make cache variables for install destinations
@@ -103,52 +97,8 @@ target_link_libraries( TNL INTERFACE std::filesystem )
 # set C++ compiler flags
 include( cmake/cxx_flags.cmake )
 
-# gtest has to be built before we add the MPI flags
-if( TNL_BUILD_TESTS OR TNL_BUILD_MATRIX_TESTS )
-   enable_testing()
-
-   # repeat failed tests to tolerate sporadic failures
-   set( CMAKE_CTEST_ARGUMENTS ${CMAKE_CTEST_ARGUMENTS} --repeat until-pass:2 )
-
-   # let CTest write test results in the JUnit XML format
-   set( CMAKE_CTEST_ARGUMENTS ${CMAKE_CTEST_ARGUMENTS} --output-junit "${CMAKE_BINARY_DIR}/tests-report.xml" )
-
-   if( TNL_USE_SYSTEM_GTEST OR TNL_OFFLINE_BUILD )
-      # find GoogleTest installed in the local system
-      find_package( GTest REQUIRED )
-   else()
-      # fetch and build GoogleTest from source
-      include( FetchGoogleTest )
-   endif()
-   set( CXX_TESTS_FLAGS )
-   set( CUDA_TESTS_FLAGS )
-   set( HIP_TESTS_FLAGS )
-   set( TESTS_LIBRARIES GTest::gtest_main )
-   set( TESTS_LINKER_FLAGS "" )
-
-   if( TNL_BUILD_COVERAGE AND CMAKE_BUILD_TYPE STREQUAL "Debug" )
-      # set compiler flags needed for code coverage
-      set( CXX_TESTS_FLAGS ${CXX_TESTS_FLAGS} --coverage )
-      set( CUDA_TESTS_FLAGS ${CUDA_TESTS_FLAGS} -Xcompiler --coverage )
-      set( HIP_TESTS_FLAGS ${HIP_TESTS_FLAGS} --coverage )
-      set( TESTS_LINKER_FLAGS ${TESTS_LINKER_FLAGS} --coverage )
-   endif()
-
-   # function to simplify adding MPI tests
-   # usage: add_test_mpi(NAME <name> NPROC <nproc> COMMAND <command> [<arg>...])
-   function( add_test_mpi )
-      # parse function arguments
-      set( options )
-      set( oneValueArgs NAME NPROC )
-      set( multiValueArgs COMMAND )
-      cmake_parse_arguments( ADD_TEST_MPI "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
-      # set flags for MPIEXEC_EXECUTABLE
-      set( mpiexec_flags "${MPIEXEC_NUMPROC_FLAG}" "${ADD_TEST_MPI_NPROC}" -H "localhost:${ADD_TEST_MPI_NPROC}" )
-      # set OMP_NUM_THREADS=1 to disable OpenMP for MPI tests
-      # (NPROC may be even greater than the number of physical cores, so it would just slow down)
-      add_test( NAME ${ADD_TEST_MPI_NAME} COMMAND "env" "OMP_NUM_THREADS=1" "${MPIEXEC_EXECUTABLE}" ${mpiexec_flags} ${ADD_TEST_MPI_COMMAND} )
-   endfunction()
-endif()
+# configure the project for testing with CTest/CDash
+include( testing )
 
 ####
 # Check for threads library
@@ -327,13 +277,7 @@ if( PROJECT_IS_TOP_LEVEL )
    message( "   TNL_USE_MPI = ${TNL_USE_MPI}" )
    message( "   TNL_USE_GMP = ${TNL_USE_GMP}" )
    message( "   TNL_USE_SYSTEM_GTEST= ${TNL_USE_SYSTEM_GTEST}" )
-   message( "   TNL_BUILD_BENCHMARKS = ${TNL_BUILD_BENCHMARKS}" )
-   message( "   TNL_BUILD_EXAMPLES = ${TNL_BUILD_EXAMPLES}" )
-   message( "   TNL_BUILD_TOOLS = ${TNL_BUILD_TOOLS}" )
-   message( "   TNL_BUILD_TESTS = ${TNL_BUILD_TESTS}" )
-   message( "   TNL_BUILD_MATRIX_TESTS = ${TNL_BUILD_MATRIX_TESTS}" )
    message( "   TNL_BUILD_COVERAGE = ${TNL_BUILD_COVERAGE}" )
-   message( "   TNL_BUILD_DOC = ${TNL_BUILD_DOC}" )
    message( "   TNL_OFFLINE_BUILD = ${TNL_OFFLINE_BUILD}" )
    # Print used compilers
    message( "-- Compilers:" )

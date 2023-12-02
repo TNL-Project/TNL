@@ -57,4 +57,4 @@ if( Boost_GRAPH_FOUND )
    target_compile_definitions( tnl-benchmark-graphs PUBLIC "-DHAVE_BOOST" )
 endif()
 
-install( TARGETS tnl-benchmark-graphs RUNTIME DESTINATION bin )
+install( TARGETS tnl-benchmark-graphs RUNTIME DESTINATION bin COMPONENT benchmarks )

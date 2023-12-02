@@ -17,7 +17,7 @@ if( TNL_BUILD_MPI )
          target_include_directories( ${target} SYSTEM PUBLIC ${HYPRE_INCLUDE_DIRS} )
          target_link_libraries( ${target} PUBLIC ${HYPRE_LIBRARIES} -lm )
 
-         install( TARGETS ${target} RUNTIME DESTINATION bin )
+         install( TARGETS ${target} RUNTIME DESTINATION bin COMPONENT examples )
       endforeach()
    endif()
 endif()
