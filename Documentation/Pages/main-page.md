@@ -174,9 +174,6 @@ of targets that can be selected from the following list:
 Additionally, `[options]` can be replaced with a list of options with the `--`
 prefix that can be viewed by running `./install --help`.
 
-Note that [CMake](https://cmake.org/) 3.24 or later is required when using the
-`install` script.
-
 ## Usage in other projects  {#usage}
 
 To use TNL in another project, you need to make sure that TNL header files are
