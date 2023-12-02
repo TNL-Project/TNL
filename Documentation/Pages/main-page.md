@@ -16,44 +16,160 @@ source code (header files) without the usual build step. However, TNL has some
 dependencies and provides several optional components that may be built and
 installed on your system.
 
-In the following, we review the available installation methods:
+In the following subsections, we review the available installation methods.
 
-1. __System-wide installation on Arch Linux__
+### System-wide installation on Arch Linux
 
-   If you have an Arch Linux system, you can install the [tnl-git](
-   https://aur.archlinux.org/packages/tnl-git) package from the AUR. This will
-   do a complete build of TNL including all optional components. The advantage
-   of this approach is that all installed files and dependencies are tracked
-   properly by the package manager.
+If you have an Arch Linux system, you can install the [tnl-git](
+https://aur.archlinux.org/packages/tnl-git) package from the AUR. This will
+do a complete build of TNL including all optional components. The advantage
+of this approach is that all installed files and dependencies are tracked
+properly by the package manager.
 
-   See the [Arch User Repository](
-   https://wiki.archlinux.org/title/Arch_User_Repository) wiki page for details
-   on using the AUR.
+See the [Arch User Repository](
+https://wiki.archlinux.org/title/Arch_User_Repository) wiki page for details
+on using the AUR.
 
-2. __Manual installation to the user home directory__
+### Manual installation to the user home directory
 
-   You can clone the git repository via HTTPS:
+You can clone the git repository via HTTPS:
 
-       git clone https://gitlab.com/tnl-project/tnl.git
+    git clone https://gitlab.com/tnl-project/tnl.git
 
-   or via SSH:
+or via SSH:
 
-       git clone git@gitlab.com:tnl-project/tnl.git
+    git clone git@gitlab.com:tnl-project/tnl.git
 
-   Then execute the `install` script to copy the header files to the final
-   location (`~/.local/include` by default):
+Then execute the `install` script to copy the header files to the final
+location (`~/.local/include` by default):
 
-       cd tnl
-       ./install
+    cd tnl
+    ./install
 
-   However, we also recommend to install at least the `tools` [optional
-   component](#optional-components):
+However, we also recommend to install at least the `tools` [optional
+component](#optional-components):
 
-       ./install tools
+    ./install tools
 
-   Finally, see [Environment variables](#environment-variables)
+Finally, see [Environment variables](#environment-variables).
 
-### Dependencies   {#dependencies}
+### Manual installation with CMake
+
+You can clone the git repository via HTTPS:
+
+    git clone https://gitlab.com/tnl-project/tnl.git
+
+or via SSH:
+
+    git clone git@gitlab.com:tnl-project/tnl.git
+
+Change to the cloned directory as all following commands are expected to be
+run from there:
+
+    cd tnl
+
+The procedure consists of the three usual steps: configure, build, install.
+
+1. The [configure step][cmake-configure]
+   generates a build configuration for a particular build system.
+   We recommend to use [Ninja](https://ninja-build.org/), in which case the
+   configure command looks as follows:
+
+       cmake -B build -S . -G Ninja
+
+   Alternatively, you can use a [CMake preset][CMake preset] to generate a
+   build configuration based on a named collection of options. Presets are
+   defined in two files in the project's root directory: `CMakePresets.json`
+   (a project-wide file tracked in the git repository) and
+   `CMakeUserPresets.json` (user's own presets). For example, to use the
+   preset named `default`:
+
+       cmake --preset default
+
+   All available configure presets can be listed by running the
+   `cmake --list-presets` command.
+
+   In both cases, you can add additional options to the `cmake` command. Note
+   that options specified on the command line take precedence over the options
+   set in the preset. The most common option for the configure step is
+   [-D][cmake -D], which defines a variable in the CMake cache.
+
+   TNL has the following CMake options that can be set with the `-D` option:
+
+   - `TNL_USE_CUDA` – Build with CUDA support (ON by default)
+   - `TNL_USE_HIP` – Build with HIP support (ON by default)
+   - `TNL_USE_OPENMP` – Build with OpenMP support (ON by default)
+   - `TNL_USE_MPI` – Build with MPI support (ON by default)
+   - `TNL_USE_GMP` – Build with GMP support (OFF by default)
+   - `TNL_USE_SYSTEM_GTEST` – Use GTest installed in the local system and do
+     not download the latest version (OFF by default)
+   - `TNL_USE_CI_FLAGS` – Add additional compiler flags like `-Werror` that
+     are enforced in CI builds (OFF by default)
+   - `TNL_USE_MARCH_NATIVE_FLAG` – Add `-march=native` and `-mtune=native` to
+     the list of compiler flags for the Release configuration (OFF by default)
+   - `TNL_BUILD_COVERAGE` – Enable code coverage reports from unit tests (OFF
+     by default)
+   - `TNL_OFFLINE_BUILD` – Offline build (i.e. without downloading libraries
+     such as GTest) (OFF by default)
+
+2. The [build step][cmake-build] invokes the build system and produces the
+   specified targets. For example, to build *all* targets in the project's
+   build tree:
+
+       cmake --build build --target all
+
+   You can replace `all` in the previous command with any of the following
+   *utility targets*:
+
+   - `benchmarks` – Build all targets in the `src/Benchmarks` directory
+   - `documentation` – Build code snippets and generate the documentation
+   - `examples` – Build all targets in the `src/Examples` directory
+   - `tools` – Build all targets in the `src/Tools` directory
+   - `tests` – Build all unit tests in the `src/UnitTests` directory
+   - `matrix-tests` – Build only unit tests in the `src/UnitTests/Matrices`
+     directory
+   - `non-matrix-tests` – Build unit tests in the `src/UnitTests` directory,
+     except `src/UnitTests/Matrices`.
+
+   If you want to run the unit tests, use the following command with the
+   special `test` target:
+
+       cmake --build build test
+
+3. The [install step][cmake-install] copies the already built targets and
+   static files to a destination in the system specified by the `--prefix`
+   option. For example, to install TNL to the user home directory:
+
+       cmake --install build --prefix ~/.local
+
+   Alternatively, you can install only a specific component (this is needed
+   if you did not build the `all` target). The names of the available
+   components are the same as the names of the *utility targets* in the build
+   step, plus the `headers` component, which installs only the C++ header
+   files:
+
+       cmake --install build --component headers --prefix ~/.local
+
+Finally, some notes and tips for TNL developers:
+
+- The configure step is typically run only once. When you need to change some
+  value in CMake cache, only the options with *modified* values need to be
+  specified.
+- The build step is used most frequently and the install step is not needed
+  in the development workflow.
+- The [CMake Tools][CMake Tools] extension for VSCode/VSCodium shows convenient
+  buttons for common actions in the status bar. The CMake Tools extension
+  supports CMake presets and allows to select the aforementioned *utility
+  targets* for the build step.
+
+[cmake-configure]: https://cmake.org/cmake/help/latest/manual/cmake.1.html#generate-a-project-buildsystem
+[cmake -D]: https://cmake.org/cmake/help/latest/manual/cmake.1.html#cmdoption-cmake-D
+[cmake-build]: https://cmake.org/cmake/help/latest/manual/cmake.1.html#build-a-project
+[cmake-install]: https://cmake.org/cmake/help/latest/manual/cmake.1.html#install-a-project
+[CMake preset]: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html
+[CMake Tools]: https://open-vsx.org/extension/ms-vscode/cmake-tools
+
+## Dependencies   {#dependencies}
 
 In order to use TNL, you need to install a compatible compiler, a parallel
 computing platform, and (optionally) some libraries.
