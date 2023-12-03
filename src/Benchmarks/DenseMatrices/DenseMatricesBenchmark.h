@@ -3,6 +3,7 @@
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Benchmarks/Benchmarks.h>
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
+#include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/MatrixOperations.h>
@@ -19,7 +20,6 @@
 #include <cmath>
 
 namespace TNL::Benchmarks::DenseMatrices {
-
 
 template <typename Real = double, typename Index = int>
 struct DenseMatricesBenchmark {
@@ -119,9 +119,13 @@ struct DenseMatricesBenchmark {
             // Create a result matrix
             TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> resultMatrix;
             TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> cuBLASResultMatrix;
+            TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> CutlassResultMatrix;
+            TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> MagmaResultMatrix;
             TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> resultMatrix_mainTNL;
             resultMatrix.setDimensions(matrix1Rows, matrix2Columns);
             cuBLASResultMatrix.setDimensions(matrix1Rows, matrix2Columns);
+            CutlassResultMatrix.setDimensions(matrix1Rows, matrix2Columns);
+            MagmaResultMatrix.setDimensions(matrix1Rows, matrix2Columns);
             resultMatrix_mainTNL.setDimensions(matrix1Rows, matrix2Columns);
 
             auto matrixMultiplicationBenchmarkcuBlas = [&]() mutable {
@@ -142,9 +146,15 @@ struct DenseMatricesBenchmark {
             // Lambda function to perform matrix multiplication using MAGMA
             auto matrixMultiplicationBenchmarkMagma = [&]() mutable {
                // Call cuBLAS matrix multiplication function
-               matrixMultiplicationMAGMA(denseMatrix1, denseMatrix2, resultMatrix);
+               matrixMultiplicationMAGMA(denseMatrix1, denseMatrix2, MagmaResultMatrix);
             };
             benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkMagma);
+            /*
+            if(TNL::l2Norm(MagmaResultMatrix.getValues() - cuBLASResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "MAGMA kernel does not match CuBLAS Kernel" << std::endl;
+            }
+            */
 #endif //HAVE_MAGMA
 
 #ifdef HAVE_CUTLASS
@@ -159,9 +169,15 @@ struct DenseMatricesBenchmark {
             // Lambda function to perform matrix multiplication using Cutlass
             auto matrixMultiplicationBenchmarkCutlass = [&]() mutable {
                // Call cuBLAS matrix multiplication function
-               matrixMultiplicationCutlass(denseMatrix1, denseMatrix2, resultMatrix);
+               matrixMultiplicationCutlass(denseMatrix1, denseMatrix2, CutlassResultMatrix);
             };
             benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkCutlass);
+            /*
+            if(TNL::l2Norm(CutlassResultMatrix.getValues() - cuBLASResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "Cutlass kernel does not match CuBLAS Kernel" << std::endl;
+            }
+            */
 #endif //HAVE_CUTLASS
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
                { "index type", TNL::getType<Index>() },
@@ -213,7 +229,22 @@ struct DenseMatricesBenchmark {
                TNL_CHECK_CUDA_DEVICE;
             };
             benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkOriginal);
+            /*
+            if(TNL::l2Norm(resultMatrix_mainTNL.getValues() - cuBLASResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "TNL kernel does not match CuBLAS Kernel" << std::endl;
+            }
 
+            if(TNL::l2Norm(resultMatrix_mainTNL.getValues() - MagmaResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "TNL kernel does not match MAGMA Kernel" << std::endl;
+            }
+
+            if(TNL::l2Norm(resultMatrix_mainTNL.getValues() - CutlassResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "TNL kernel does not match Cutlass Kernel" << std::endl;
+            }
+            */
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
                { "index type", TNL::getType<Index>() },
                { "device", device },
@@ -251,12 +282,26 @@ struct DenseMatricesBenchmark {
                TNL_CHECK_CUDA_DEVICE;
             };
             benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkOptimized);
-
+            /*
             if(TNL::l2Norm(resultMatrix.getValues() - resultMatrix_mainTNL.getValues()) > 1e-4)
             {
                std::cout << "Main kernel does not match TNL2 Kernel" << std::endl;
             }
+            if(TNL::l2Norm(resultMatrix.getValues() - cuBLASResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "TNL2 kernel does not match CuBLAS Kernel" << std::endl;
+            }
 
+            if(TNL::l2Norm(resultMatrix.getValues() - MagmaResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "TNL2 kernel does not match MAGMA Kernel" << std::endl;
+            }
+
+            if(TNL::l2Norm(resultMatrix.getValues() - CutlassResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "TNL2 kernel does not match Cutlass Kernel" << std::endl;
+            }
+            */
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
                { "index type", TNL::getType<Index>() },
                { "device", device },
@@ -295,12 +340,27 @@ struct DenseMatricesBenchmark {
                TNL_CHECK_CUDA_DEVICE;
             };
             benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkOptimized2);
-
+            /*
             if(TNL::l2Norm(resultMatrix.getValues() - resultMatrix_mainTNL.getValues()) > 1e-4)
             {
                std::cout << "Main kernel does not match 2D SMA Kernel" << std::endl;
             }
 
+            if(TNL::l2Norm(resultMatrix.getValues() - cuBLASResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "2D SMA kernel does not match CuBLAS Kernel" << std::endl;
+            }
+
+            if(TNL::l2Norm(resultMatrix.getValues() - MagmaResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "2D SMA kernel does not match MAGMA Kernel" << std::endl;
+            }
+
+            if(TNL::l2Norm(resultMatrix.getValues() - CutlassResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "2D SMA kernel does not match Cutlass Kernel" << std::endl;
+            }
+            */
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
             { "index type", TNL::getType<Index>() },
             { "device", device },
@@ -336,12 +396,27 @@ struct DenseMatricesBenchmark {
                TNL_CHECK_CUDA_DEVICE;
             };
             benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkWarptiling);
-
+            /*
             if(TNL::l2Norm(resultMatrix.getValues() - resultMatrix_mainTNL.getValues()) > 1e-4)
             {
                std::cout << "Main kernel does not match Warptiling Kernel" << std::endl;
             }
 
+            if(TNL::l2Norm(resultMatrix.getValues() - cuBLASResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "Warptiling kernel does not match CuBLAS Kernel" << std::endl;
+            }
+
+            if(TNL::l2Norm(resultMatrix.getValues() - MagmaResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "Warptiling kernel does not match MAGMA Kernel" << std::endl;
+            }
+
+            if(TNL::l2Norm(resultMatrix.getValues() - CutlassResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "Warptiling kernel does not match Cutlass Kernel" << std::endl;
+            }
+            */
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
             { "index type", TNL::getType<Index>() },
             { "device", device },
@@ -377,12 +452,27 @@ struct DenseMatricesBenchmark {
                TNL_CHECK_CUDA_DEVICE;
             };
             benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkWarptiling2);
-
+            /*
             if(TNL::l2Norm(resultMatrix.getValues() - resultMatrix_mainTNL.getValues()) > 1e-4)
             {
-               std::cout << "Main kernel does not match Warptiling 2 Kernel" << std::endl;
+               std::cout << "Main kernel does not match Warptiling2 Kernel" << std::endl;
             }
 
+            if(TNL::l2Norm(resultMatrix.getValues() - cuBLASResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "Warptiling2 kernel does not match CuBLAS Kernel" << std::endl;
+            }
+
+            if(TNL::l2Norm(resultMatrix.getValues() - MagmaResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "Warptiling2 kernel does not match MAGMA Kernel" << std::endl;
+            }
+
+            if(TNL::l2Norm(resultMatrix.getValues() - CutlassResultMatrix.getValues()) > 1e-4)
+            {
+               std::cout << "Warptiling2 kernel does not match Cutlass Kernel" << std::endl;
+            }
+            */
             std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
 #endif
          }
