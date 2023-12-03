@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Solvers of linear systems are one of the most important algorithms in scientific computations. TNL offers the followiing iterative methods:
+Solvers of linear systems are one of the most important algorithms in scientific computations. TNL offers the following iterative methods:
 
 1. Stationary methods
    1. [Jacobi method](https://en.wikipedia.org/wiki/Jacobi_method) (\ref TNL::Solvers::Linear::Jacobi)
@@ -50,7 +50,7 @@ A = \left(
 \right)
 \f]
 
-The right-hand side vector \f$\vec b \f$ is set to \f$( 1.5, 0.5, 0.5, 0.5, 1.5 )^T \f$ so that the exact solution is \f$ \vec x = ( 1, 1, 1, 1, 1 )^T\f$. The matrix elements of \f$A $\f$ is set on the lines 12-51 by the means of the method \ref TNL::Matrices::SparseMatrix::forAllElements. In this example, we use the sparse matrix but any other matrix type can be used as well (see the namespace \ref TNL::Matrices). Next we set the solution vector \f$ \vec x = ( 1, 1, 1, 1, 1 )^T\f$ (line 57) and multiply it with matrix \f$ A \f$ to get the right-hand side vector \f$\vec b\f$ (lines 58-59). Finally, we reset the vector \f$\vec x \f$ to zero vector.
+The right-hand side vector \f$\vec b \f$ is set to \f$( 1.5, 0.5, 0.5, 0.5, 1.5 )^T \f$ so that the exact solution is \f$ \vec x = ( 1, 1, 1, 1, 1 )^T\f$. The matrix elements of \f$A \f$ is set on the lines 12-51 by the means of the method \ref TNL::Matrices::SparseMatrix::forAllElements. In this example, we use the sparse matrix but any other matrix type can be used as well (see the namespace \ref TNL::Matrices). Next we set the solution vector \f$ \vec x = ( 1, 1, 1, 1, 1 )^T\f$ (line 57) and multiply it with matrix \f$ A \f$ to get the right-hand side vector \f$\vec b\f$ (lines 58-59). Finally, we reset the vector \f$\vec x \f$ to zero vector.
 
 To solve the linear system, we use TFQMR method (line 66), as an example. Other solvers can be used as well (see the namespace \ref TNL::Solvers::Linear). The solver needs only one template parameter which is the matrix type. Next we create an instance of the solver (line 67 ) and set the matrix of the linear system (line 68). Note, that matrix is passed to the solver as a shared smart pointer (\ref std::shared_ptr). This is why we created an instance of the smart pointer on the line 24 instead of the sparse matrix itself. On the line 69, we set the value of residue under which the convergence occur and the solver is stopped. It serves as a convergence criterion. The solver is executed on the line 70 by calling the method \ref TNL::Solvers::Linear::LinearSolver::solve. The method accepts the right-hand side vector \f$ \vec b\f$ and the solution vector \f$ \vec x\f$.
 
