@@ -28,33 +28,12 @@ USE_OPENMP="yes"
 USE_GMP="no"
 USE_CI_FLAGS="no"
 USE_SYSTEM_GTEST="no"
-
-# targets
-BUILD_BENCHMARKS="no"
-BUILD_EXAMPLES="no"
-BUILD_TOOLS="no"
-BUILD_TESTS="no"
-BUILD_MATRIX_TESTS="no"
 BUILD_COVERAGE="no"
-BUILD_DOC="no"
 
 function print_usage()
 {
     cat << EOF
-usage: $0 [options] [target ...]
-
-By default, the script does not select any target. Build targets available for
-selection are listed below.
-
-Targets:
-    all             Special target which includes all other targets.
-    benchmarks      Compile the 'src/Benchmarks' directory.
-    examples        Compile the 'src/Examples' directory.
-    tools           Compile the 'src/Tools' directory.
-    tests           Compile unit tests in the 'src/UnitTests' directory (except
-                    tests for matrix formats, which have a separate target).
-    matrix-tests    Compile unit tests for matrix formats.
-    doc             Generate the documentation.
+usage: $0 [options]
 
 General options:
     --help                              Write this help list and exit.
@@ -125,13 +104,11 @@ for option in "$@"; do
         -D*)
             CMAKE_OPTIONS+=("$option")
             ;;
-        -*)
+        *)
             echo "Unknown option $option. Use --help for more information." >&2
             exit 1
             ;;
-        *) break ;;
     esac
-    shift
 done
 
 # check the build type
@@ -139,31 +116,6 @@ if [[ ! "Release Debug RelWithDebInfo" =~ "$BUILD_TYPE" ]]; then
     echo "Unknown build type: $BUILD_TYPE. The available build types are: Release, Debug, RelWithDebInfo." >&2
     exit 1
 fi
-
-# handle targets
-for target in "$@"; do
-    case "$target" in
-        all)
-            BUILD_BENCHMARKS="yes"
-            BUILD_EXAMPLES="yes"
-            BUILD_TOOLS="yes"
-            BUILD_TESTS="yes"
-            BUILD_MATRIX_TESTS="yes"
-            BUILD_DOC="yes"
-            ;;
-        benchmarks)     BUILD_BENCHMARKS="yes" ;;
-        examples)       BUILD_EXAMPLES="yes" ;;
-        tools)          BUILD_TOOLS="yes" ;;
-        tests)          BUILD_TESTS="yes" ;;
-        matrix-tests)   BUILD_MATRIX_TESTS="yes" ;;
-        doc)            BUILD_DOC="yes" ;;
-        *)
-            echo "Unknown target $target. The available targets are: all, benchmarks, examples, tools, tests, matrix-tests, doc." >&2
-            echo "Use --help for more information." >&2
-            exit 1
-    esac
-    shift
-done
 
 if [[ "$COMPILER" == "gcc" ]]; then
     export CXX=g++
@@ -250,12 +202,6 @@ cmake -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator" \
     -DTNL_USE_GMP="$USE_GMP" \
     -DTNL_USE_CI_FLAGS="$USE_CI_FLAGS" \
     -DTNL_USE_SYSTEM_GTEST="$USE_SYSTEM_GTEST" \
-    -DTNL_BUILD_BENCHMARKS="$BUILD_BENCHMARKS" \
-    -DTNL_BUILD_EXAMPLES="$BUILD_EXAMPLES" \
-    -DTNL_BUILD_TOOLS="$BUILD_TOOLS" \
-    -DTNL_BUILD_TESTS="$BUILD_TESTS" \
-    -DTNL_BUILD_MATRIX_TESTS="$BUILD_MATRIX_TESTS" \
     -DTNL_BUILD_COVERAGE="$BUILD_COVERAGE" \
-    -DTNL_BUILD_DOC="$BUILD_DOC" \
     ${CMAKE_OPTIONS[@]+"${CMAKE_OPTIONS[@]}"}
     # NOTE: empty array expansion with `set -u` gotcha: https://stackoverflow.com/a/61551944

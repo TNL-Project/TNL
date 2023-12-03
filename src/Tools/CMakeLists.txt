@@ -62,7 +62,7 @@ foreach( target IN ITEMS ${MESH_TOOLS} )
       target_compile_definitions( ${target} PUBLIC "-DHAVE_TINYXML2" )
       target_link_libraries( ${target} PUBLIC tinyxml2::tinyxml2 )
    endif()
-   install( TARGETS ${target} DESTINATION bin )
+   install( TARGETS ${target} DESTINATION bin COMPONENT tools )
 endforeach()
 
 if( TNL_BUILD_MPI )
@@ -99,13 +99,13 @@ if( TNL_BUILD_CPP_TARGETS AND METIS_FOUND )
       target_compile_definitions( tnl-decompose-mesh PUBLIC "-DHAVE_TINYXML2" )
       target_link_libraries( tnl-decompose-mesh PUBLIC tinyxml2::tinyxml2 )
    endif()
-   install( TARGETS tnl-decompose-mesh DESTINATION bin )
+   install( TARGETS tnl-decompose-mesh DESTINATION bin COMPONENT tools )
 endif()
 
 
 if( TNL_BUILD_CUDA )
    add_executable( tnl-cuda-arch tnl-cuda-arch.cu )
-   install( TARGETS tnl-cuda-arch DESTINATION bin )
+   install( TARGETS tnl-cuda-arch DESTINATION bin COMPONENT tools )
 endif()
 
 
@@ -136,10 +136,10 @@ if( TNL_BUILD_CPP_TARGETS )
                     tnl-grid-setup
                     tnl-image-converter
                     tnl-dicom-reader
-            DESTINATION bin )
+            DESTINATION bin COMPONENT tools )
 
    install( PROGRAMS tnl-err2eoc
                      tnl-benchmark-to-html.py
                      tnl-log-to-html.py
-            DESTINATION bin )
+            DESTINATION bin COMPONENT tools )
 endif()

@@ -22,7 +22,7 @@ if( TNL_BUILD_HIP )
 endif()
 
 foreach( target IN ITEMS ${BENCHMARKS} )
-   install( TARGETS ${target} RUNTIME DESTINATION bin )
+   install( TARGETS ${target} RUNTIME DESTINATION bin COMPONENT benchmarks )
 endforeach()
 
 find_library( CBLAS_LIBRARY NAMES cblas )

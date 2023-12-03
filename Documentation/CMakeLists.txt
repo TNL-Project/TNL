@@ -1,23 +1,18 @@
-if( TNL_BUILD_DOC )
-   # create the directory where the output of running code examples will be collected
-   set( TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH "${CMAKE_CURRENT_BINARY_DIR}/output_snippets" )
-   file( MAKE_DIRECTORY ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH} )
+# create the directory where the output of running code examples will be collected
+set( TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH "${CMAKE_CURRENT_BINARY_DIR}/output_snippets" )
+file( MAKE_DIRECTORY ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH} )
 
-   # add a target that will collect all commands to run the code examples
-   add_custom_target( run-doc-examples ALL )
+# add a target that will collect all commands to run the code examples
+add_custom_target( run-doc-examples ALL )
 
-   # add subdirectories that contain code examples included in the documentation
-   add_subdirectory( Examples )
-   add_subdirectory( UsersGuide )
+# add subdirectories that contain code examples included in the documentation
+add_subdirectory( Examples )
+add_subdirectory( UsersGuide )
 
-   # extract the version string during the configure step
-   execute_process( COMMAND ${CMAKE_SOURCE_DIR}/scripts/get-version
-                    OUTPUT_VARIABLE TNL_DOC_VERSION
-                    OUTPUT_STRIP_TRAILING_WHITESPACE )
+# check if Doxygen is installed
+find_package( Doxygen )
 
-   # check if Doxygen is installed
-   find_package( Doxygen REQUIRED )
-
+if( DOXYGEN_FOUND )
    # warn if Doxygen version does not match what we expect
    set( TNL_EXPECTED_DOXYGEN_VERSION 1.9.8 )
    if( NOT ${DOXYGEN_VERSION} VERSION_EQUAL ${TNL_EXPECTED_DOXYGEN_VERSION} )
@@ -27,6 +22,11 @@ if( TNL_BUILD_DOC )
             "various Doxygen quirks and bugs."
       )
    endif()
+
+   # extract the version string during the configure step
+   execute_process( COMMAND ${CMAKE_SOURCE_DIR}/scripts/get-version
+                    OUTPUT_VARIABLE TNL_DOC_VERSION
+                    OUTPUT_STRIP_TRAILING_WHITESPACE )
 
    # the documentation cannot be built without warnings when CUDA is disabled
    # (e.g. output of some examples will be missing)
@@ -64,10 +64,20 @@ if( TNL_BUILD_DOC )
    add_dependencies( doxygen run-doc-examples )
 
    # remove existing files under the install prefix
-   install( CODE "MESSAGE( \"-- Removing existing documentation: ${CMAKE_INSTALL_PREFIX}/share/doc/tnl/\")" )
-   install( CODE "file( REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/share/doc/tnl\" )" )
+   install( CODE "MESSAGE( \"-- Removing existing documentation: ${CMAKE_INSTALL_PREFIX}/share/doc/tnl/\")" COMPONENT documentation )
+   install( CODE "file( REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/share/doc/tnl\" )" COMPONENT documentation )
 
    # install the newly built documentation
-   install( CODE "MESSAGE( \"-- Installing documentation: ${CMAKE_INSTALL_PREFIX}/share/doc/tnl/html/\")" )
-   install( DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html" DESTINATION "share/doc/tnl" MESSAGE_NEVER )
+   install( CODE "MESSAGE( \"-- Installing documentation: ${CMAKE_INSTALL_PREFIX}/share/doc/tnl/html/\")" COMPONENT documentation )
+   install( DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html" DESTINATION "share/doc/tnl" MESSAGE_NEVER COMPONENT documentation )
+else()
+   message( WARNING "Doxygen was not found, the documentation will not be built." )
 endif()
+
+# collect targets defined in this directory
+include( get_all_targets )
+get_all_targets( TNL_DOCUMENTATION_TARGETS ${CMAKE_CURRENT_LIST_DIR} )
+
+# add utility target for this directory
+add_custom_target( documentation )
+add_dependencies( documentation ${TNL_DOCUMENTATION_TARGETS} )

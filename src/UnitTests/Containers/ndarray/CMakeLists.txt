@@ -77,7 +77,14 @@ if( TNL_BUILD_MPI )
       # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
       target_link_libraries( ${target} PUBLIC MPI::MPI_CXX )
 
-      add_test_mpi( NAME ${target} NPROC 12 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
+      # 4 ranks are enough for 1D tests
+      if( ${target} MATCHES "1D" )
+         set( _nproc 4 )
+      else()
+         set( _nproc 12 )
+      endif()
+
+      add_test_mpi( NAME ${target} NPROC ${_nproc} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
       add_test_mpi( NAME ${target}_nodistr NPROC 1 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" )
    endforeach()
 endif()

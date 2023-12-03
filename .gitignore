@@ -1,6 +1,9 @@
 # build/output directories
 /build/
 
+# user-specific CMake presets
+/CMakeUserPresets.json
+
 # Netbeans project stuff
 /nbproject
 

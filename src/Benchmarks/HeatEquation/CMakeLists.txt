@@ -10,4 +10,4 @@ else()
    target_link_libraries( tnl-benchmark-heat-equation PUBLIC TNL::TNL_CXX )
 endif()
 
-install( TARGETS tnl-benchmark-heat-equation RUNTIME DESTINATION bin )
+install( TARGETS tnl-benchmark-heat-equation RUNTIME DESTINATION bin COMPONENT benchmarks )
