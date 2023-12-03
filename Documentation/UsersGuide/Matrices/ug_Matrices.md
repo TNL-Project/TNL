@@ -266,8 +266,8 @@ Here:
 * **STL Map** tests show that use of STL Map can be very slow on large matrices and, of course, they need to allocate the map containing all the matrix elements. This can be memory consuming. On the other hand, it is the only way which does not require knowing the matrix row capacities in advance.
 * **setElement on host** tests are much faster compared to STL map, it does not need to allocate anything else except the sparse matrix. However, matrix row capacities must be known in advance.
 * **setElement with parallelFor** tests run in parallel in several OpenMP threads and so this can be faster for larger matrices.
-* **getRow** tests perform the same as "setElement with parallelFor".
-* **forElements** tests perform the same as both "setElement with parallelFor" and "forElements".
+* **getRow** tests perform the same as `setElement` with `parallelFor`.
+* **forElements** tests perform the same as both `setElement` with `parallelFor` and `getRow`.
 
 We see, that the use of STL map makes sense only in situation when it is hard to estimate necessary row capacities. Otherwise very easy setup with `setElement` method is much faster. If the performance is the highest priority, `getRow` method should be preferred. The results for GPU are in the following table:
 
@@ -317,9 +317,9 @@ Finally, the following tables show the times of the same test performed with mul
 Here:
 
 * **setElement on host** tests show that this method is fairly efficient.
-* **setElement with parallelFor** tests run in parallel in several OpenMP threads compared to "setElement on host" tests. For larger matrices, this way of matrix setup performs better.
-* **getRow** tests perform more or less the same as "setElement with parallelFor" and `forElements`.
-* **forElements** tests perform more or less the same as "setElement with parallelFor" and `getRow`.
+* **setElement with parallelFor** tests run in parallel in several OpenMP threads compared to `setElement` on host tests. For larger matrices, this way of matrix setup performs better.
+* **getRow** tests perform more or less the same as `setElement` with parallelFor and `forElements`.
+* **forElements** tests perform more or less the same as `setElement` with `parallelFor` and `getRow`.
 
 Note, that setup of multidiagonal matrix is faster compared to the same matrix stored in general sparse format. Results for GPU are in the following table:
 
@@ -346,7 +346,7 @@ Note that multidiagonal matrix performs better compared to general sparse matrix
 
 You can see the source code of the previous benchmark in [Appendix](#benchmark-of-multidiagonal-matrix-setup).
 
-In the following parts we will describe hoe to setup particular matrix types by means of the methods mentioned above.
+In the following parts we will describe how to setup particular matrix types by means of the methods mentioned above.
 
 ### Dense matrices
 
