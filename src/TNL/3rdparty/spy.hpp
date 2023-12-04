@@ -99,9 +99,15 @@ namespace spy::detail
   }
   template<template<int,int,int> class Wrapper, char ...c> constexpr auto literal_wrap()
   {
-    constexpr int b0 = 0     , e0 = find<c...>(0);
-    constexpr int b1 = e0 + 1, e1 = find<c...>(b1);
-    constexpr int b2 = e1+1  , e2 = sizeof...(c);
+    constexpr int b0 = 0;
+    constexpr int e0 = find<c...>(0);
+
+    constexpr int b1 = e0 + 1;
+    constexpr int e1 = find<c...>(b1);
+
+    constexpr int b2 = e1+1;
+    constexpr int e2 = sizeof...(c);
+
     return Wrapper<parse<c...>(b0,e0),parse<c...>(b1,e1),parse<c...>(b2,e2)>{};
   }
   template<int M, int N, int P> struct version_id
@@ -309,14 +315,22 @@ namespace spy::detail
   template<int Short, int Integer, int Long, int Pointer>
   std::ostream& operator<<(std::ostream& os, data_model_info<Short, Integer, Long, Pointer> const&)
   {
-          if constexpr(Pointer == 4 && Integer == 4) return os << "ILP32";
-    else  if constexpr(Pointer == 4 && Integer == 2) return os << "LP32";
-    else  if constexpr(Pointer == 8 && Long == 8 && Integer == 8 && Short == 8)  return os << "IntegerLP64";
-    else  if constexpr(Pointer == 8 && Short == 8 && Integer == 8 && Short == 2)  return os << "ILP64";
-    else  if constexpr(Pointer == 8 && Long == 4 && Integer == 8 && Short == 2)  return os << "LLP64";
-    else  if constexpr(Pointer == 8 && Long == 8 && Integer == 4 && Short == 2)  return os << "LP64";
-    else  return os << "Unknown data model";
+    if constexpr (Pointer == 4 && Integer == 4)
+      return os << "ILP32";
+    else if constexpr (Pointer == 4 && Integer == 2)
+      return os << "LP32";
+    else if constexpr (Pointer == 8 && Long == 8 && Integer == 8 && Short == 8)
+      return os << "IntegerLP64";
+    else if constexpr (Pointer == 8 && Short == 8 && Integer == 8 && Short == 2)
+      return os << "ILP64";
+    else if constexpr (Pointer == 8 && Long == 4 && Integer == 8 && Short == 2)
+      return os << "LLP64";
+    else if constexpr (Pointer == 8 && Long == 8 && Integer == 4 && Short == 2)
+      return os << "LP64";
+    else
+      return os << "Unknown data model";
   }
+
 }
 namespace spy
 {
@@ -888,10 +902,13 @@ namespace spy::detail
                   ||  (Version >= simd_version::sse1_ && Version <= simd_version::sse42_)
                   ||  Version == simd_version::neon_ || Version == simd_version::asimd_
                   ||  (Version >= simd_version::vmx_2_03_ && Version <= simd_version::vsx_3_01_)
-                  )                                                                       return 128;
-      else  if constexpr(Version == simd_version::avx_ || Version == simd_version::avx2_) return 256;
-      else  if constexpr(Version == simd_version::avx512_     )                           return 512;
-      else  if constexpr(Version == simd_version::fixed_sve_  )
+                  )
+        return 128;
+      else if constexpr(Version == simd_version::avx_ || Version == simd_version::avx2_)
+        return 256;
+      else if constexpr(Version == simd_version::avx512_     )
+        return 512;
+      else if constexpr(Version == simd_version::fixed_sve_  )
       {
 #if defined(__ARM_FEATURE_SVE_BITS)
         return __ARM_FEATURE_SVE_BITS;
@@ -903,36 +920,53 @@ namespace spy::detail
     }();
     friend std::ostream& operator<<(std::ostream& os, simd_info const&)
     {
-            if constexpr ( Version == simd_version::simd128_  ) os << "WASM SIMD128";
-      else  if constexpr ( Version == simd_version::sse1_     ) os << "X86 SSE";
-      else  if constexpr ( Version == simd_version::sse2_     ) os << "X86 SSE2";
-      else  if constexpr ( Version == simd_version::sse3_     ) os << "X86 SSE3";
-      else  if constexpr ( Version == simd_version::ssse3_    ) os << "X86 SSSE3";
-      else  if constexpr ( Version == simd_version::sse41_    ) os << "X86 SSE4.1";
-      else  if constexpr ( Version == simd_version::sse42_    ) os << "X86 SSE4.2";
-      else  if constexpr ( Version == simd_version::avx_      ) os << "X86 AVX";
-      else  if constexpr ( Version == simd_version::avx2_     ) os << "X86 AVX2";
-      else  if constexpr ( Version == simd_version::avx512_   ) os << "X86 AVX512";
-      else  if constexpr ( Version >= simd_version::vmx_2_03_ && Version <= simd_version::vmx_3_01_)
+      if constexpr ( Version == simd_version::simd128_ )
+        os << "WASM SIMD128";
+      else if constexpr ( Version == simd_version::sse1_ )
+        os << "X86 SSE";
+      else if constexpr ( Version == simd_version::sse2_ )
+        os << "X86 SSE2";
+      else if constexpr ( Version == simd_version::sse3_ )
+        os << "X86 SSE3";
+      else if constexpr ( Version == simd_version::ssse3_ )
+        os << "X86 SSSE3";
+      else if constexpr ( Version == simd_version::sse41_ )
+        os << "X86 SSE4.1";
+      else if constexpr ( Version == simd_version::sse42_ )
+        os << "X86 SSE4.2";
+      else if constexpr ( Version == simd_version::avx_ )
+        os << "X86 AVX";
+      else if constexpr ( Version == simd_version::avx2_ )
+        os << "X86 AVX2";
+      else if constexpr ( Version == simd_version::avx512_ )
+        os << "X86 AVX512";
+      else if constexpr ( Version >= simd_version::vmx_2_03_ && Version <= simd_version::vmx_3_01_ )
       {
         constexpr auto v = static_cast<int>(Version);
         os << "PPC VMX with ISA v" << ((v-2000)/100.);
       }
-      else  if constexpr ( Version >= simd_version::vsx_2_06_ && Version <= simd_version::vsx_3_01_)
+      else if constexpr ( Version >= simd_version::vsx_2_06_ && Version <= simd_version::vsx_3_01_ )
       {
         constexpr auto v = static_cast<int>(Version);
         os << "PPC VSX with ISA v" << ((v-3000)/100.);
       }
-      else  if constexpr ( Version == simd_version::neon_     ) os  << "ARM NEON";
-      else  if constexpr ( Version == simd_version::asimd_    ) os  << "ARM ASIMD";
-      else  if constexpr ( Version == simd_version::sve_      ) os  << "ARM SVE (dyn. bits)";
-      else  if constexpr ( Version == simd_version::fixed_sve_) os  << "ARM SVE ("
-                                                                    << simd_info::width
-                                                                    << " bits)";
-      else return os << "Undefined SIMD instructions set";
-      if constexpr (spy::supports::fma_)     os << " (with FMA3 support)";
-      if constexpr (spy::supports::fma4_)    os << " (with FMA4 support)";
-      if constexpr (spy::supports::xop_)     os << " (with XOP support)";
+      else if constexpr ( Version == simd_version::neon_ )
+        os << "ARM NEON";
+      else if constexpr ( Version == simd_version::asimd_ )
+        os  << "ARM ASIMD";
+      else if constexpr ( Version == simd_version::sve_      )
+        os << "ARM SVE (dyn. bits)";
+      else if constexpr ( Version == simd_version::fixed_sve_)
+        os << "ARM SVE (" << simd_info::width << " bits)";
+      else
+        return os << "Undefined SIMD instructions set";
+
+      if constexpr (spy::supports::fma_)
+        os << " (with FMA3 support)";
+      if constexpr (spy::supports::fma4_)
+        os << " (with FMA4 support)";
+      if constexpr (spy::supports::xop_)
+        os << " (with XOP support)";
       return os;
     }
     template<simd_isa OInsSetArch>
