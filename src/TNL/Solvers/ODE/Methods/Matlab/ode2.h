@@ -4,19 +4,19 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include <TNL/Solvers/ODE/Methods/DormandPrince.h>
+#include <TNL/Solvers/ODE/Methods/Heun2.h>
 
 #pragma once
 
 namespace TNL::Solvers::ODE::Methods::Matlab {
 
 /**
- * \brief Fifth order [Dormand-Prince](https://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method) method also known as ode45
+ * \brief Second order [Heun](https://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method) method also known as ode2
  * from [Matlab](https://www.mathworks.com/help/simulink/gui/solver.html) with adaptive step size.
  *
  * \tparam Value is arithmetic type used for computations.
  */
 template< typename Value = double >
-using ode45 = DormandPrince< Value >;
+using ode2 = Heun2< Value >;
 
 }  // namespace TNL::Solvers::ODE::Methods::Matlab

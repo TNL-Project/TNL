@@ -4,19 +4,18 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include <TNL/Solvers/ODE/Methods/DormandPrince.h>
+#include <TNL/Solvers/ODE/Methods/Euler.h>
 
 #pragma once
 
 namespace TNL::Solvers::ODE::Methods::Matlab {
 
 /**
- * \brief Fifth order [Dormand-Prince](https://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method) method also known as ode45
- * from [Matlab](https://www.mathworks.com/help/simulink/gui/solver.html) with adaptive step size.
+ * \brief First order [Euler](https://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method) method also known as ode1.
  *
  * \tparam Value is arithmetic type used for computations.
  */
 template< typename Value = double >
-using ode45 = DormandPrince< Value >;
+using ode1 = Euler< Value >;
 
 }  // namespace TNL::Solvers::ODE::Methods::Matlab
