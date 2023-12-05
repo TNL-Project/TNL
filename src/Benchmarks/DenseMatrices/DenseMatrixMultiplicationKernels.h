@@ -4,7 +4,7 @@
 #include <TNL/Benchmarks/Benchmarks.h>
 #include <TNL/Matrices/MatrixOperations.h>
 #include <TNL/Matrices/DenseMatrix.h>
-#include <TNL/Cuda/SharedMemory.h>
+#include <TNL/Backend/SharedMemory.h>
 #include <TNL/Matrices/MatrixBase.h>
 
 namespace TNL::Benchmarks::DenseMatrices {

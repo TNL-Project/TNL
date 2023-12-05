@@ -1,9 +1,3 @@
-# Include the CUTLASS headers
-include_directories(/home/krastale/.local/include/cutlass/include)
-
-# Include the MAGMA headers
-include_directories(/home/krastale/.local/include/magma/include)
-
 # CUDA Setup
 find_package(CUDAToolkit REQUIRED)
 
@@ -18,26 +12,26 @@ endif()
 if(TNL_BUILD_CUDA)
     add_executable(tnl-benchmark-densematrices-cuda tnl-benchmark-densematrices.cu)
     target_link_libraries(tnl-benchmark-densematrices-cuda PUBLIC TNL::TNL)
-    target_include_directories(tnl-benchmark-densematrices-cuda PUBLIC /home/krastale/.local/include/cutlass/include)
-    target_include_directories(tnl-benchmark-densematrices-cuda PUBLIC /home/krastale/.local/include/magma/include)
+    target_include_directories(tnl-benchmark-densematrices-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
+    target_include_directories(tnl-benchmark-densematrices-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
     target_link_libraries(tnl-benchmark-densematrices-cuda PUBLIC CUDA::cublas)
 
     # Linking MAGMA
-    find_library(MAGMA_LIBRARY NAMES cutlass PATHS /home/krastale/.local/include/cutlass/build/lib)
+    find_library(MAGMA_LIBRARY NAMES magma PATHS /opt/cuda/targets/x86_64-linux/lib)
     if(MAGMA_LIBRARY)
-        target_link_libraries(tnl-benchmark-densematrices-cuda PUBLIC ${CUTLASS_LIBRARY})
-        add_definitions(-DHAVE_CUTLASS)
+         target_link_libraries(tnl-benchmark-densematrices-cuda PUBLIC ${MAGMA_LIBRARY})
+         add_definitions(-DHAVE_MAGMA)
     else()
-        message(WARNING "CUTLASS library not found.")
+         message(WARNING "MAGMA library not found.")
     endif()
 
     # Linking Cutlass
-    find_library(CUTLASS_LIBRARY NAMES magma PATHS /home/krastale/.local/include/magma/lib)
-    if(MAGMA_LIBRARY)
-        target_link_libraries(tnl-benchmark-densematrices-cuda PUBLIC ${MAGMA_LIBRARY})
-        add_definitions(-DHAVE_MAGMA)
+    find_package(NvidiaCutlass)
+    if(NvidiaCutlass_FOUND)
+      #target_link_libraries(tnl-benchmark-densematrices-cuda PUBLIC nvidia::cutlass::cutlass)
+      target_compile_definitions(tnl-benchmark-densematrices-cuda PUBLIC -DHAVE_CUTLASS)
     else()
-        message(WARNING "MAGMA library not found.")
+         message(WARNING "CUTLASS library not found.")
     endif()
 
     set(BENCHMARKS ${BENCHMARKS} tnl-benchmark-densematrices-cuda)
@@ -45,7 +39,7 @@ endif()
 
 # Installation
 foreach(target IN ITEMS ${BENCHMARKS})
-    install(TARGETS ${target} RUNTIME DESTINATION bin)
+    install(TARGETS ${target} RUNTIME DESTINATION bin COMPONENT benchmarks)
 endforeach()
 
 # BLAS Libraries

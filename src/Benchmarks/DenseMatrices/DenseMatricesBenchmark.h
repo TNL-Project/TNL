@@ -3,12 +3,10 @@
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Benchmarks/Benchmarks.h>
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
-#include <TNL/Cuda/CudaCallable.h>
-#include <TNL/Cuda/KernelLaunch.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/MatrixOperations.h>
 #include <TNL/Matrices/DenseMatrix.h>
-#include <TNL/Cuda/SharedMemory.h>
+#include <TNL/Backend/SharedMemory.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/detail/ParallelFor2D.h>
 
@@ -68,9 +66,9 @@ struct DenseMatricesBenchmark {
       std::cout << std::endl;
 
       const int numMatrices = 100; //Number of matrices for the cycle
-      int matrix1Rows = 20; // Number of rows in matrix1
+      int matrix1Rows = 30; // Number of rows in matrix1
       int matrix1Columns = 10; // Number of columns in matrix1 && rows in matrix 2
-      int matrix2Columns = 30; // Number of columns in matrix2
+      int matrix2Columns = 20; // Number of columns in matrix2
 
       for (int i = 0; i < numMatrices; ++i) {
 
@@ -99,19 +97,21 @@ struct DenseMatricesBenchmark {
             denseMatrix2.setDimensions(matrix1Columns, matrix2Columns);
 
             // Fill the matrices
-            const double h_x = 1.0 / 100;
-            const double h_y = 1.0 / 100;
+            //const double h_x = 1.0 / 100;
+            //const double h_y = 1.0 / 100;
 
             for (int i = 0; i < matrix1Rows; i++) {
                for (int j = 0; j < matrix1Columns; j++) {
-                  double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
+                  //double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
+                  double value = 3;
                   denseMatrix1.setElement(i, j, value);
                }
             }
 
             for (int i = 0; i < matrix1Columns; i++) {
                for (int j = 0; j < matrix2Columns; j++) {
-                  double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
+                  //double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
+                  double value = 2;
                   denseMatrix2.setElement(i, j, value);
                }
             }
@@ -190,32 +190,32 @@ struct DenseMatricesBenchmark {
             constexpr Index tileDim = 16; // Example tile dimension, adjust as needed
             constexpr Index matrixProductCudaBlockSize = 256;
             constexpr Index cudaBlockRows = matrixProductCudaBlockSize / tileDim;
-            Cuda::LaunchConfiguration launch_config;
+            Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = tileDim;
             launch_config.blockSize.y = cudaBlockRows;
             launch_config.dynamicSharedMemorySize = 3 * tileDim * tileDim;
 
             const Index rowTiles = roundUpDivision(matrix1Rows, tileDim);
             const Index columnTiles = roundUpDivision(matrix2Columns, tileDim);
-            const Index rowGrids = roundUpDivision(rowTiles, Cuda::getMaxGridYSize());
-            const Index columnGrids = roundUpDivision(columnTiles, Cuda::getMaxGridXSize());
+            const Index rowGrids = roundUpDivision(rowTiles, Backend::getMaxGridYSize());
+            const Index columnGrids = roundUpDivision(columnTiles, Backend::getMaxGridXSize());
 
             // Lambda function for the first kernel launch
             auto matrixMultiplicationBenchmarkOriginal = [&]() mutable {
                for (Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++) {
                      for (Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++) {
-                        launch_config.gridSize.x = Cuda::getMaxGridXSize();
-                        launch_config.gridSize.y = Cuda::getMaxGridYSize();
+                        launch_config.gridSize.x = Backend::getMaxGridXSize();
+                        launch_config.gridSize.y = Backend::getMaxGridYSize();
                         if (gridIdx_x == columnGrids - 1)
-                           launch_config.gridSize.x = columnTiles % Cuda::getMaxGridXSize();
+                           launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
                         if (gridIdx_y == rowGrids - 1)
-                           launch_config.gridSize.y = rowTiles % Cuda::getMaxGridYSize();
+                           launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
                         auto resultMatrixView = resultMatrix_mainTNL.getView();
                         auto denseMatrix1View = denseMatrix1.getConstView();
                         auto denseMatrix2View = denseMatrix2.getConstView();
 
-                        Cuda::launchKernelAsync(DenseMatrixProductKernel<tileDim, cudaBlockRows, decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
+                        Backend::launchKernelAsync(DenseMatrixProductKernel<tileDim, cudaBlockRows, decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
                                                 launch_config,
                                                 resultMatrixView,
                                                 denseMatrix1View,
@@ -257,18 +257,18 @@ struct DenseMatricesBenchmark {
             auto matrixMultiplicationBenchmarkOptimized = [&]() mutable {
                for (Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++) {
                      for (Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++) {
-                        launch_config.gridSize.x = Cuda::getMaxGridXSize();
-                        launch_config.gridSize.y = Cuda::getMaxGridYSize();
+                        launch_config.gridSize.x = Backend::getMaxGridXSize();
+                        launch_config.gridSize.y = Backend::getMaxGridYSize();
                         if (gridIdx_x == columnGrids - 1)
-                           launch_config.gridSize.x = columnTiles % Cuda::getMaxGridXSize();
+                           launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
                         if (gridIdx_y == rowGrids - 1)
-                           launch_config.gridSize.y = rowTiles % Cuda::getMaxGridYSize();
+                           launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
                         auto resultMatrixView = resultMatrix.getView();
                         auto denseMatrix1View = denseMatrix1.getConstView();
                         auto denseMatrix2View = denseMatrix2.getConstView();
 
-                        Cuda::launchKernelAsync(OptimizedDenseMatrixProductKernel<tileDim, cudaBlockRows, decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
+                        Backend::launchKernelAsync(OptimizedDenseMatrixProductKernel<tileDim, cudaBlockRows, decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
                                                 launch_config,
                                                 resultMatrixView,
                                                 denseMatrix1View,
@@ -314,19 +314,19 @@ struct DenseMatricesBenchmark {
             auto matrixMultiplicationBenchmarkOptimized2 = [&]() mutable {
                for (Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++) {
                      for (Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++) {
-                        launch_config.gridSize.x = Cuda::getMaxGridXSize();
-                        launch_config.gridSize.y = Cuda::getMaxGridYSize();
+                        launch_config.gridSize.x = Backend::getMaxGridXSize();
+                        launch_config.gridSize.y = Backend::getMaxGridYSize();
                         if (gridIdx_x == columnGrids - 1)
-                           launch_config.gridSize.x = columnTiles % Cuda::getMaxGridXSize();
+                           launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
                         if (gridIdx_y == rowGrids - 1)
-                           launch_config.gridSize.y = rowTiles % Cuda::getMaxGridYSize();
+                           launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
                         auto resultMatrixView = resultMatrix.getView();
                         auto denseMatrix1View = denseMatrix1.getConstView();
                         auto denseMatrix2View = denseMatrix2.getConstView();
 
 
-                        Cuda::launchKernelAsync(Optimized2DenseMatrixProductKernel<tileDim, cudaBlockRows, decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
+                        Backend::launchKernelAsync(Optimized2DenseMatrixProductKernel<tileDim, cudaBlockRows, decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
                                                 launch_config,
                                                 resultMatrixView,
                                                 denseMatrix1View,
@@ -373,18 +373,18 @@ struct DenseMatricesBenchmark {
             auto matrixMultiplicationBenchmarkWarptiling = [&]() mutable {
                for (Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++) {
                   for (Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++) {
-                        launch_config.gridSize.x = Cuda::getMaxGridXSize();
-                        launch_config.gridSize.y = Cuda::getMaxGridYSize();
+                        launch_config.gridSize.x = Backend::getMaxGridXSize();
+                        launch_config.gridSize.y = Backend::getMaxGridYSize();
                         if (gridIdx_x == columnGrids - 1)
-                           launch_config.gridSize.x = columnTiles % Cuda::getMaxGridXSize();
+                           launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
                         if (gridIdx_y == rowGrids - 1)
-                           launch_config.gridSize.y = rowTiles % Cuda::getMaxGridYSize();
+                           launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
                         auto resultMatrixView = resultMatrix.getView();
                         auto denseMatrix1View = denseMatrix1.getConstView();
                         auto denseMatrix2View = denseMatrix2.getConstView();
 
-                        Cuda::launchKernelAsync(WarpTilingDenseMatrixProductKernel<tileDim, decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
+                        Backend::launchKernelAsync(WarpTilingDenseMatrixProductKernel<tileDim, decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
                                                 launch_config,
                                                 resultMatrixView,
                                                 denseMatrix1View,
@@ -429,18 +429,18 @@ struct DenseMatricesBenchmark {
             auto matrixMultiplicationBenchmarkWarptiling2 = [&]() mutable {
                for (Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++) {
                   for (Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++) {
-                        launch_config.gridSize.x = Cuda::getMaxGridXSize();
-                        launch_config.gridSize.y = Cuda::getMaxGridYSize();
+                        launch_config.gridSize.x = Backend::getMaxGridXSize();
+                        launch_config.gridSize.y = Backend::getMaxGridYSize();
                         if (gridIdx_x == columnGrids - 1)
-                           launch_config.gridSize.x = columnTiles % Cuda::getMaxGridXSize();
+                           launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
                         if (gridIdx_y == rowGrids - 1)
-                           launch_config.gridSize.y = rowTiles % Cuda::getMaxGridYSize();
+                           launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
                         auto resultMatrixView = resultMatrix.getView();
                         auto denseMatrix1View = denseMatrix1.getConstView();
                         auto denseMatrix2View = denseMatrix2.getConstView();
 
-                        Cuda::launchKernelAsync(OptimizedWarpTilingDenseMatrixProductKernel<tileDim, decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
+                        Backend::launchKernelAsync(OptimizedWarpTilingDenseMatrixProductKernel<tileDim, decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
                                                 launch_config,
                                                 resultMatrixView,
                                                 denseMatrix1View,
