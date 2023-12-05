@@ -13,8 +13,35 @@ following form:
 
 TNL offers the following ODE solvers:
 
-1. \ref TNL::Solvers::ODE::Euler - the Euler method with the 1-st order of accuracy.
-2. \ref TNL::Solvers::ODE::Merson - the Runge-Kutta-Merson solver with the 4-th order of accuracy and adaptive choice of the time step.
+**1-order accuracy methods:**
+1. \ref TNL::Solvers::ODE::Methods::Euler or \ref TNL::Solvers::ODE::Methods::Matlab::ode1 - the [forward Euler](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+2. \ref TNL::Solvers::ODE::Methods::Midpoint - the [explicit midpoint](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+
+**2-nd order accuracy methods**
+1. \ref TNL::Solvers::ODE::Methods::Heun2 or \ref TNL::Solvers::ODE::Methods::Matlab::ode2 - the [Heun](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method with adaptive choice of the time step.
+2. \ref TNL::Solvers::ODE::Methods::Ralston2 - the [Ralston](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+3. \ref TNL::Solvers::ODE::Methods::Fehlberg2 - the [Fehlberg](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method with adaptive choice of the time step.
+
+
+**3-rd order accuracy methods**
+1. \ref TNL::Solvers::ODE::Methods::Kutta - the [Kutta](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+2. \ref TNL::Solvers::ODE::Methods::Heun3 - the [Heun](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+3. \ref TNL::Solvers::ODE::Methods::VanDerHouwenWray - the [Van der Houwen/Wray](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+4. \ref TNL::Solvers::ODE::Methods::Ralston3 - the [Ralston](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+5. \ref TNL::Solvers::ODE::Methods::SSPRK3 - the [Strong Stability Preserving Runge-Kutta](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+6. \ref TNL::Solvers::ODE::Methods::BogackiShampin or \ref TNL::Solvers::ODE::Methods::Matlab::ode23- [Bogacki-Shampin](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method with adaptive choice of the time step.
+
+**4-th order accuracy method**
+1. \ref TNL::Solvers::ODE::Methods::RungeKutta - the ["original" Runge-Kutta](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+2. \ref TNL::Solvers::ODE::Methods::Rule38 - [3/8 rule](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+3. \ref TNL::Solvers::ODE::Methods::Ralston4 - the [Ralston](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
+4. \ref TNL::Solvers::ODE::Methods::Merson - the [Runge-Kutta-Merson](https://encyclopediaofmath.org/wiki/Kutta-Merson_method) method with adaptive choice of the time step.
+
+**5-th order accuracy method**
+1. \ref TNL::Solvers::ODE::Methods::CashKarp - the [Cash-Karp](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method with adaptive choice of the time step.
+2. \ref TNL::Solvers::ODE::Methods::DormandPrince or \ref TNL::Solvers::ODE::Methods::Matlab::ode45- the [Dormand-Prince](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) with adaptive choice of the time step.
+3. \ref TNL::Solvers::ODE::Methods::Fehlberg5 - the [Fehlberg](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method with adaptive choice of the time step.
+
 
 Each solver has its static counterpart which can be run even in the GPU kernels which means that it can be combined with \ref TNL::Algorithms::parallelFor for example. The static ODE solvers are the following:
 
