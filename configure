@@ -22,7 +22,6 @@ CMAKE_OPTIONS=()
 
 USE_MPI="yes"
 USE_CUDA="yes"
-CUDA_ARCH="native"
 USE_HIP="yes"
 USE_OPENMP="yes"
 USE_GMP="no"
@@ -50,7 +49,6 @@ Options affecting all targets:
     --cuda-compiler=nvcc/clang          Selects the compiler for CUDA source files. '$CUDA_COMPILER' by default.
     --use-mpi=yes/no                    Enables MPI. '$USE_MPI' by default (OpenMPI required).
     --use-cuda=yes/no                   Enables CUDA. '$USE_CUDA' by default (CUDA is required).
-    --cuda-arch=all/native/70/75/...    Chooses CUDA architecture. '$CUDA_ARCH' by default.
     --use-hip=yes/no                    Enables HIP. '$USE_HIP' by default (ROCm/HIP is required).
     --use-openmp=yes/no                 Enables OpenMP. '$USE_OPENMP' by default.
     --use-gmp=yes/no                    Enables the wrapper for GNU Multiple Precision Arithmetic Library. '$USE_GMP' by default.
@@ -79,7 +77,6 @@ for option in "$@"; do
         --cuda-compiler=*     ) CUDA_COMPILER="${option#*=}" ;;
         --use-mpi=*           ) USE_MPI="${option#*=}" ;;
         --use-cuda=*          ) USE_CUDA="${option#*=}" ;;
-        --cuda-arch=*         ) CUDA_ARCH="${option#*=}";;
         --use-hip=*           ) USE_HIP="${option#*=}" ;;
         --use-openmp=*        ) USE_OPENMP="${option#*=}" ;;
         --use-gmp=*           ) USE_GMP="${option#*=}" ;;
@@ -154,10 +151,6 @@ if [[ "$CUDA_COMPILER" == "nvcc" ]]; then
     CMAKE_SHARED_LINKER_FLAGS=""
 elif [[ "$CUDA_COMPILER" == "clang" ]]; then
     export CUDACXX=clang++
-    # CMake's native GPU arch detection does not work with clang
-    if [[ "$CUDA_ARCH" == "native" ]]; then
-        CUDA_ARCH="70"  # fallback
-    fi
     # use libc++
     CMAKE_CXX_FLAGS="-stdlib=libc++"
     CMAKE_CUDA_FLAGS="-stdlib=libc++"
@@ -195,7 +188,6 @@ cmake -B "$BUILD_DIR" -S "$ROOT_DIR" -G "$generator" \
     -DCMAKE_EXE_LINKER_FLAGS="$CMAKE_EXE_LINKER_FLAGS" \
     -DCMAKE_SHARED_LINKER_FLAGS="$CMAKE_SHARED_LINKER_FLAGS" \
     -DTNL_USE_CUDA="$USE_CUDA" \
-    -DCMAKE_CUDA_ARCHITECTURES="$CUDA_ARCH" \
     -DTNL_USE_HIP="$USE_HIP" \
     -DTNL_USE_OPENMP="$USE_OPENMP" \
     -DTNL_USE_MPI="$USE_MPI" \
