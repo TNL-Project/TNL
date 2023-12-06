@@ -35,7 +35,6 @@ workflow:
 .default_cmake_flags: &default_cmake_flags
     # architectures
     USE_CUDA: "no"
-    CUDA_ARCH: "native"
     USE_HIP: "no"
     # MPI is selectively added to targets, so there is no point to have separate jobs without MPI
     USE_MPI: "yes"
@@ -142,13 +141,6 @@ workflow:
     - export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
     # configure OpenMPI to run without ssh
     - export OMPI_MCA_plm_rsh_agent=sh
-    # 1. fall back to arch 7.0 when the builder has no GPU to avoid building for all GPU architectures
-    # 2. cmake can't detect the native architecture when using clang
-    - if ! nvidia-smi --list-gpus > /dev/null; then
-            CUDA_ARCH=70;
-      elif [[ ${CUDACXX} == "clang++" ]]; then
-            CUDA_ARCH=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -n 1 | tr -d '.');
-      fi
 
 # template for build jobs
 .build_template:
@@ -178,7 +170,6 @@ workflow:
                 -DTNL_USE_OPENMP=${USE_OPENMP}
                 -DTNL_USE_MPI=${USE_MPI}
                 -DTNL_USE_CUDA=${USE_CUDA}
-                -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCH}
                 -DTNL_USE_HIP=${USE_HIP}
                 -DTNL_BUILD_COVERAGE=${BUILD_COVERAGE}
                 -DTNL_USE_CI_FLAGS=yes
