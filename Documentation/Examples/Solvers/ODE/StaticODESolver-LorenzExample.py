@@ -2,7 +2,6 @@
 
 import sys
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d, Axes3D
 import numpy as np
 
 ###
@@ -30,10 +29,8 @@ z = np.array(z_lst)
 
 ###
 # Draw the graph of u(t) using Matplotlib
-fig = plt.figure()
-ax = Axes3D(fig)
-theta = np.linspace(-4 * np.pi, 4 * np.pi, 100)
-ax.plot(x, y, z, label="Lorenz attractor")
+fig, ax = plt.subplots()
+ax.plot(x, y, label='Lorenz attractor')
 ax.legend()
 plt.savefig(sys.argv[2])
 plt.close(fig)

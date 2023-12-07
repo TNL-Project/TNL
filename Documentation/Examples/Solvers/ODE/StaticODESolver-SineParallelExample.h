@@ -11,28 +11,43 @@ template< typename Device >
 void
 solveParallelODEs( const char* file_name )
 {
+   //! [Types definition]
    using StaticVector = TNL::Containers::StaticVector< 1, Real >;
    using Vector = TNL::Containers::Vector< StaticVector, Device >;
    using Method = TNL::Solvers::ODE::Methods::Euler<>;
    using ODESolver = TNL::Solvers::ODE::ODESolver< Method, StaticVector >;
+   //! [Types definition]
 
+   //! [Time variables]
    const Real final_t = 10.0;
    const Real tau = 0.001;
    const Real output_time_step = 0.1;
+   //! [Time variables]
+
+   //! [Problem parameters]
    const Real c_min = 1.0;
    const Real c_max = 5.0;
    const int c_vals = 5.0;
    const Real c_step = ( c_max - c_min ) / ( c_vals - 1 );
-   const int output_time_steps = ceil( final_t / output_time_step ) + 1;
+   //! [Problem parameters]
 
+   //! [Vector for results]
+   const int output_time_steps = ceil( final_t / output_time_step ) + 1;
    Vector results( output_time_steps * c_vals, 0.0 );
    auto results_view = results.getView();
+   //! [Vector for results]
+
+   //! [Lambda function for ODE]
    auto f = [ = ] __cuda_callable__( const Real& t, const Real& tau, const StaticVector& u, StaticVector& fu, const Real& c )
    {
       fu = t * sin( c * t );
    };
+   //! [Lambda function for ODE]
+
+   //! [Lambda function for solving ODE]
    auto solve = [ = ] __cuda_callable__( int idx ) mutable
    {
+      //! [Solver setup]
       const Real c = c_min + idx * c_step;
       ODESolver solver;
       solver.setTau( tau );
@@ -40,14 +55,20 @@ solveParallelODEs( const char* file_name )
       StaticVector u = 0.0;
       int time_step( 1 );
       results_view[ idx ] = u;
+      //! [Solver setup]
+
+      //! [Time loop]
       while( time_step < output_time_steps ) {
          solver.setStopTime( TNL::min( solver.getTime() + output_time_step, final_t ) );
          solver.solve( u, f, c );
          results_view[ time_step++ * c_vals + idx ] = u;
       }
+      //! [Time loop]
    };
    TNL::Algorithms::parallelFor< Device >( 0, c_vals, solve );
+   //! [Lambda function for solving ODE]
 
+   //! [Write results to file]
    std::fstream file;
    file.open( file_name, std::ios::out );
    for( int i = 0; i < c_vals; i++ ) {
@@ -56,6 +77,7 @@ solveParallelODEs( const char* file_name )
          file << k * output_time_step << " " << results.getElement( k * c_vals + i )[ i ] << std::endl;
       file << std::endl;
    }
+   //! [Write results to file]
 }
 
 int

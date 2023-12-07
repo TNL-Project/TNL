@@ -48,12 +48,14 @@ solveHeatEquation( const char* file_name )
    /***
     * Setup monitor for the ODE solver.
     */
+   //! [Monitor setup]
    using IterativeSolverMonitorType = TNL::Solvers::IterativeSolverMonitor< Real, Index >;
    IterativeSolverMonitorType monitor;
    TNL::Solvers::SolverMonitorThread monitorThread( monitor );
    monitor.setRefreshRate( 10 );  // refresh rate in miliseconds
    monitor.setVerbose( 1 );
    monitor.setStage( "ODE solver stage:" );
+   //! [Monitor setup]
 
    /***
     * Setup of the solver

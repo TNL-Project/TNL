@@ -12,24 +12,29 @@ template< typename Device >
 void
 solveHeatEquation( const char* file_name )
 {
+   //! [Types definition]
    using Vector = TNL::Containers::Vector< Real, Device, Index >;
    using VectorView = typename Vector::ViewType;
    using Method = TNL::Solvers::ODE::Methods::Euler< Real >;
    using ODESolver = TNL::Solvers::ODE::ODESolver< Method, Vector >;
+   //! [Types definition]
 
    /***
     * Parameters of the discretisation
     */
+   //! [Parameters of the discretisation]
    const Real final_t = 0.05;
    const Real output_time_step = 0.005;
    const Index n = 41;
    const Real h = 1.0 / ( n - 1 );
    const Real tau = 0.1 * h * h;
    const Real h_sqr_inv = 1.0 / ( h * h );
+   //! [Parameters of the discretisation]
 
    /***
     * Initial condition
     */
+   //! [Initial condition]
    Vector u( n );
    u.forAllElements(
       [ = ] __cuda_callable__( Index i, Real & value )
@@ -43,19 +48,24 @@ solveHeatEquation( const char* file_name )
    std::fstream file;
    file.open( file_name, std::ios::out );
    write( file, u, n, h, (Real) 0.0 );
+   //! [Initial condition]
 
    /***
     * Setup of the solver
     */
+   //! [Solver setup]
    ODESolver solver;
    solver.setTau( tau );
    solver.setTime( 0.0 );
+   //! [Solver setup]
 
    /***
     * Time loop
     */
+   //! [Time loop]
    while( solver.getTime() < final_t ) {
       solver.setStopTime( TNL::min( solver.getTime() + output_time_step, final_t ) );
+      //! [Lambda function f]
       auto f = [ = ] __cuda_callable__( Index i, const VectorView& u, VectorView& fu ) mutable
       {
          if( i == 0 || i == n - 1 )  // boundary nodes -> boundary conditions
@@ -63,13 +73,19 @@ solveHeatEquation( const char* file_name )
          else  // interior nodes -> approximation of the second derivative
             fu[ i ] = h_sqr_inv * ( u[ i - 1 ] - 2.0 * u[ i ] + u[ i + 1 ] );
       };
+      //! [Lambda function f]
+      //! [Lambda function time_stepping]
       auto time_stepping = [ = ]( const Real& t, const Real& tau, const VectorView& u, VectorView& fu )
       {
+         //! [Parallel for call]
          TNL::Algorithms::parallelFor< Device >( 0, n, f, u, fu );
+         //! [Parallel for call]
       };
+      //! [Lambda function time_stepping]
       solver.solve( u, time_stepping );
       write( file, u, n, h, solver.getTime() );  // write the current state to a file
    }
+   //! [Time loop]
 }
 
 int
