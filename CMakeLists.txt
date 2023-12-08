@@ -131,6 +131,9 @@ endif()
 # Check for CUDA
 #
 if( TNL_USE_CUDA )
+   # set our default CUDA GPU architecture before CMake
+   include( cuda_default_architecture )
+
    include( CheckLanguage )
    # check_language(CUDA) or enable_language(CUDA) does not work with CMAKE_EXECUTABLE_SUFFIX
    # see https://gitlab.kitware.com/cmake/cmake/-/issues/23887
