@@ -10,34 +10,44 @@
 #include <cublas_v2.h>
 
 // Function to perform matrix multiplication using CuBLAS
-template <typename RealType, typename DeviceType, typename IndexType>
-void matrixMultiplicationCuBLAS(const TNL::Matrices::DenseMatrix<RealType, DeviceType, IndexType>& matrix1,
-                                const TNL::Matrices::DenseMatrix<RealType, DeviceType, IndexType>& matrix2,
-                                TNL::Matrices::DenseMatrix<RealType, DeviceType, IndexType>& resultMatrix) {
-    cublasHandle_t handle;
-    cublasCreate(&handle);
+template <typename DenseMatrix>
+void matrixMultiplicationCuBLAS(const DenseMatrix& matrix1,
+                                const DenseMatrix& matrix2,
+                                DenseMatrix& resultMatrix) {
 
-    // Ensure proper dimensions for matrix multiplication
-    int m = matrix1.getRows();    // number of rows of matrix 1 and result
-    int k = matrix1.getColumns(); // number of columns of matrix 1 and rows of matrix 2
-    int n = matrix2.getColumns(); // number of columns of matrix 2 and result
+   using RealType = typename DenseMatrix::RealType;
+   using IndexType = typename DenseMatrix::IndexType;
 
-    // Call CuBLAS function with the matrix data
-    if constexpr( std::is_same_v< RealType, float > ) {
-        float alpha = 1.0f;
-        float beta = 0.0f;
-        cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, m, k, &alpha,
-                    matrix2.getValues().getData(), n,
-                    matrix1.getValues().getData(), k, &beta,
-                    resultMatrix.getValues().getData(), n);
-    } else if constexpr( std::is_same_v< RealType, double > ) {
-        double alpha = 1.0;
-        double beta = 0.0;
-        cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, m, k, &alpha,
-                    matrix2.getValues().getData(), n,
-                    matrix1.getValues().getData(), k, &beta,
-                    resultMatrix.getValues().getData(), n);
-    }
+   cublasHandle_t handle;
+   cublasCreate(&handle);
 
+   // Matrix dimensions
+   IndexType m = matrix1.getRows();    // number of rows in matrix1 (and result)
+   IndexType n = matrix2.getColumns(); // number of columns in matrix2 (and result)
+   IndexType k = matrix1.getColumns(); // number of columns in matrix1 (and rows in matrix2)
+
+   // Setting up the parameters for cuBLAS
+   RealType alpha = 1.0;
+   RealType beta = 0.0;
+
+   // Leading dimensions based on column-major format
+   IndexType lda = m; // Leading dimension of matrix1
+   IndexType ldb = k; // Leading dimension of matrix2
+   IndexType ldc = m; // Leading dimension of resultMatrix
+
+   // Perform the matrix multiplication using cuBLAS
+   if constexpr(std::is_same_v<RealType, float>) {
+      cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha,
+                  matrix1.getValues().getData(), lda,
+                  matrix2.getValues().getData(), ldb, &beta,
+                  resultMatrix.getValues().getData(), ldc);
+   } else if constexpr(std::is_same_v<RealType, double>) {
+      cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha,
+q                 matrix1.getValues().getData(), lda,
+                  matrix2.getValues().getData(), ldb, &beta,
+                  resultMatrix.getValues().getData(), ldc);
+   }
+   cublasDestroy(handle);
 }
+
 #endif

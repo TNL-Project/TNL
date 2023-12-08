@@ -13,6 +13,18 @@ def read_log_file(file_path):
             log_entries.append(entry)
         return log_entries
 
+def round_scientific(notation, precision=2):
+    """Round a number expressed in scientific notation to a given precision."""
+    if isinstance(notation, str):
+        try:
+            number = float(notation)
+            return f"{number:.{precision}e}"
+        except ValueError:
+            return notation  # Return original string if it's not a number
+    else:
+        return f"{notation:.{precision}e}"
+
+
 def process_data(log_data):
     data = {}
     for entry in log_data:
@@ -22,7 +34,19 @@ def process_data(log_data):
 
         if matrix_sizes not in data:
             data[matrix_sizes] = {}
-        data[matrix_sizes][algorithm] = time
+        if algorithm not in data[matrix_sizes]:
+            data[matrix_sizes][algorithm] = {'time': time}
+        #l2Norm
+        data[matrix_sizes][algorithm]['Diff.L2 1'] = round_scientific(entry.get("Diff.L2 1", 'N/A'))
+        data[matrix_sizes][algorithm]['Diff.L2 2']= round_scientific(entry.get("Diff.L2 2", 'N/A'))
+        data[matrix_sizes][algorithm]['Diff.L2 3'] = round_scientific(entry.get("Diff.L2 3", 'N/A'))
+
+        #MaxNorm
+        data[matrix_sizes][algorithm]['Diff.Max 1'] = round_scientific(entry.get("Diff.Max 1", 'N/A'))
+        data[matrix_sizes][algorithm]['Diff.Max 2']= round_scientific(entry.get("Diff.Max 2", 'N/A'))
+        data[matrix_sizes][algorithm]['Diff.Max 3'] = round_scientific(entry.get("Diff.Max 3", 'N/A'))
+
+
 
     return data
 
@@ -46,12 +70,12 @@ def create_html_table(data):
         th, td {
             border: 1px solid #ddd;
             text-align: left;
-            padding: 8px;
-            min-width: 120px; /* Set minimum width for each column */
+            padding: 6px;
+            min-width: 125px;
         }
         th {
             background-color: #f2f2f2;
-            color: black.
+            color: black;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
@@ -63,69 +87,65 @@ def create_html_table(data):
     '''
     title = "<h2>Dense Matrix Multiplication</h2>"
     html = style + title
-    html += "<table>\n<tr><th>Matrix 1</th><th>Matrix 2</th>"
+    html += "<table>\n"
 
     # Define primary and secondary algorithms
     primary_algorithms = ['cuBLAS', 'Magma', 'Cutlass']
     secondary_algorithms = ['TNL', 'TNL2', '2D SMA', 'Warptiling', 'Warptiling2']
+    all_algorithms = primary_algorithms + secondary_algorithms
 
-    # Add primary algorithm columns and their comparisons
-    html += "<th>cuBLAS</th><th>Magma</th><th>cuBLAS vs Magma</th><th>Cutlass</th><th>cuBLAS vs Cutlass</th>"
-
-    # Add secondary algorithms and their comparison with primary algorithms
-    for algo in secondary_algorithms:
-        html += f"<th>{algo}</th>"
-        html += f"<th>cuBLAS vs {algo}</th>"
-        html += f"<th>Magma vs {algo}</th>"
-        html += f"<th>Cutlass vs {algo}</th>"
-
+    # Header row 1: Algorithm names
+    html += "<tr><th rowspan='2'>Matrix 1</th><th rowspan='2'>Matrix 2</th>"
+    for algo in all_algorithms:
+        colspan = '6' if algo in secondary_algorithms else '1'  # Adjust colspan for secondary algorithms
+        html += f"<th colspan='{colspan}'>{algo}</th>"
     html += "</tr>\n"
 
+    # Header row 2: Time and Speedup columns
+    html += "<tr>"  # Start the second header row
+    for algo in primary_algorithms:
+        html += "<th>Time</th>"  # Time columns for primary algorithms
+    for algo in secondary_algorithms:
+        html += "<th>Time</th>"  # Time column for secondary algorithms
+        for primary_algo in primary_algorithms:
+            html += f"<th> vs {primary_algo}</th>"  # Speedup columns for secondary algorithms
+        html += "<th>l2Norm</th>"  # Additional cell for Diff.L2
+        html += "<th>MaxNorm</th>"
+    html += "</tr>\n"
+
+    # Data rows
     for sizes, algos in data.items():
-        matrix1_row, matrix1_col = sizes[0].split('x')
-        matrix2_row, matrix2_col = sizes[1].split('x')
-        html += f"<tr><td>{matrix1_row}x{matrix1_col}</td><td>{matrix2_row}x{matrix2_col}</td>"
+        matrix1_size, matrix2_size = sizes
+        html += f"<tr><td>{matrix1_size}</td><td>{matrix2_size}</td>"
 
-        # Fetch and format times for primary algorithms
-        cublas_time = algos.get('cuBLAS')
-        magma_time = algos.get('Magma')
-        cutlass_time = algos.get('Cutlass')
-        formatted_cublas_time = format_time(cublas_time) if cublas_time is not None else 'N/A'
-        formatted_magma_time = format_time(magma_time) if magma_time is not None else 'N/A'
-        formatted_cutlass_time = format_time(cutlass_time) if cutlass_time is not None else 'N/A'
-
-        # Add times and speedup comparisons for primary algorithms
-        html += f"<td>{formatted_cublas_time}</td>"
-        html += f"<td>{formatted_magma_time}</td>"
-        magma_cublas_speedup = calculate_speedup(cublas_time, magma_time)
-        formatted_magma_cublas_speedup = f"{magma_cublas_speedup:.2f}x" if magma_cublas_speedup is not None else 'N/A'
-        html += f"<td>{formatted_magma_cublas_speedup}</td>"
-        html += f"<td>{formatted_cutlass_time}</td>"
-        cutlass_cublas_speedup = calculate_speedup(cublas_time, cutlass_time)
-        formatted_cutlass_cublas_speedup = f"{cutlass_cublas_speedup:.2f}x" if cutlass_cublas_speedup is not None else 'N/A'
-        html += f"<td>{formatted_cutlass_cublas_speedup}</td>"
-
-        # Add tnl algorithms and their comparison with primary algorithms
-        for algo in secondary_algorithms:
-            algo_time = algos.get(algo)
-            formatted_time = format_time(algo_time) if algo_time is not None else 'N/A'
+        for algo in all_algorithms:
+            algo_data = algos.get(algo, {'time': 'N/A', 'Diff.L2 1': 'N/A', 'Diff.Max 1':'N/A' })
+            # Time for each algorithm
+            formatted_time = format_time(algo_data['time']) if algo_data['time'] != 'N/A' else 'N/A'
             html += f"<td>{formatted_time}</td>"
 
-            algo_cublas_speedup = calculate_speedup(cublas_time, algo_time)
-            formatted_algo_cublas_speedup = f"{algo_cublas_speedup:.2f}x" if algo_cublas_speedup is not None else 'N/A'
-            html += f"<td>{formatted_algo_cublas_speedup}</td>"
+            if algo in secondary_algorithms:
+                # Speedup calculations for secondary algorithms
+                for primary_algo in primary_algorithms:
+                    primary_time = algos.get(primary_algo, {}).get('time', None)
+                    speedup = calculate_speedup(primary_time, algo_data['time'])
+                    formatted_speedup = f"{speedup:.2f}x" if speedup else 'N/A'
+                    html += f"<td>{formatted_speedup}</td>"
 
-            algo_magma_speedup = calculate_speedup(magma_time, algo_time)
-            formatted_algo_magma_speedup = f"{algo_magma_speedup:.2f}x" if algo_magma_speedup is not None else 'N/A'
-            html += f"<td>{formatted_algo_magma_speedup}</td>"
+                # Adding 'Diff.L2 1' data in the additional cell
+                diff_l2_1 = algo_data['Diff.L2 1']
+                diff_l2_2 = algo_data['Diff.L2 2']
+                diff_l2_3 = algo_data['Diff.L2 3']
+                html += f"<td>Cublas:{diff_l2_1} Magma:{diff_l2_2} Cutlass:{diff_l2_3}</td>"
 
-            algo_cutlass_speedup = calculate_speedup(cutlass_time, algo_time)
-            formatted_algo_cutlass_speedup = f"{algo_cutlass_speedup:.2f}x" if algo_cutlass_speedup is not None else 'N/A'
-            html += f"<td>{formatted_algo_cutlass_speedup}</td>"
+                diff_Max_1 = algo_data['Diff.Max 1']
+                diff_Max_2 = algo_data['Diff.Max 2']
+                diff_Max_3 = algo_data['Diff.Max 3']
+                html += f"<td>Cublas:{diff_Max_1} Magma:{diff_Max_2} Cutlass:{diff_Max_3}</td>"
 
-        html += "</tr>\n"
+        html += "</tr>\n"  # End of the data row
 
-    html += "</table>"
+    html += "</table>"  # End of the table
     return html
 
 log_file_path = 'tnl-benchmark-dense-matrices.log'
@@ -154,4 +174,3 @@ with open(output_file_path, 'w') as file:
     file.write(html_table)
 
 print(f"HTML table saved as {output_file_path}")
-
