@@ -5,15 +5,17 @@
 #include <TNL/Devices/Host.h>
 
 template< typename Device >
-void reduceRows()
+void
+reduceRows()
 {
+   // clang-format off
    TNL::Matrices::DenseMatrix< double, Device > matrix {
       {  1,  0,  0,  0,  0 },
       {  1,  2,  0,  0,  0 },
       {  0,  1,  8,  0,  0 },
       {  0,  0,  1,  9,  0 },
       {  0,  0,  0,  0,  1 } };
-
+   // clang-format on
    /***
     * Find largest element in each row.
     */
@@ -27,21 +29,24 @@ void reduceRows()
    /***
     * Fetch lambda just returns absolute value of matrix elements.
     */
-   auto fetch = [=] __cuda_callable__ ( int rowIdx, int columnIdx, const double& value ) -> double {
+   auto fetch = [ = ] __cuda_callable__( int rowIdx, int columnIdx, const double& value ) -> double
+   {
       return TNL::abs( value );
    };
 
    /***
     * Reduce lambda return maximum of given values.
     */
-   auto reduce = [=] __cuda_callable__ ( double& a, const double& b ) -> double {
+   auto reduce = [ = ] __cuda_callable__( double& a, const double& b ) -> double
+   {
       return TNL::max( a, b );
    };
 
    /***
     * Keep lambda store the largest value in each row to the vector rowMax.
     */
-   auto keep = [=] __cuda_callable__ ( int rowIdx, const double& value ) mutable {
+   auto keep = [ = ] __cuda_callable__( int rowIdx, const double& value ) mutable
+   {
       rowMaxView[ rowIdx ] = value;
    };
 
@@ -54,7 +59,8 @@ void reduceRows()
    std::cout << "Max. matrix norm is: " << TNL::max( rowMax ) << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Rows reduction on host:" << std::endl;
    reduceRows< TNL::Devices::Host >();
