@@ -1,3 +1,5 @@
+add_subdirectory(Factorization)
+
 set(COMMON_TESTS
     DenseMatrixTest
     DenseMatrixCopyTest
