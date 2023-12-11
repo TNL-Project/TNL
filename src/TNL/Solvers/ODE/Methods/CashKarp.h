@@ -14,7 +14,8 @@
 namespace TNL::Solvers::ODE::Methods {
 
 /**
- * \brief Fifth order [Cash-Karp](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method with adaptive time step.
+ * \brief Fifth order [Cash-Karp](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method with adaptive time
+ * step.
  *
  * \tparam Value is arithmetic type used for computations.
  */
@@ -25,28 +26,44 @@ struct CashKarp
 
    static constexpr size_t Stages = 6;
 
-   static constexpr size_t getStages() { return Stages; }
+   static constexpr size_t
+   getStages()
+   {
+      return Stages;
+   }
 
-   static constexpr bool isAdaptive() { return true; }
+   static constexpr bool
+   isAdaptive()
+   {
+      return true;
+   }
 
-   static constexpr ValueType getCoefficient( const size_t stage, const size_t i ) {
+   static constexpr ValueType
+   getCoefficient( const size_t stage, const size_t i )
+   {
       return k_coefficients[ stage ][ i ];
    }
 
-   static constexpr ValueType getTimeCoefficient( size_t i ) {
+   static constexpr ValueType
+   getTimeCoefficient( size_t i )
+   {
       return time_coefficients[ i ];
    }
 
-   static constexpr ValueType getUpdateCoefficient( size_t i ) {
+   static constexpr ValueType
+   getUpdateCoefficient( size_t i )
+   {
       return higher_order_update_coefficients[ i ];
    }
 
-   static constexpr ValueType getErrorCoefficient( size_t i ) {
+   static constexpr ValueType
+   getErrorCoefficient( size_t i )
+   {
       return higher_order_update_coefficients[ i ] - lower_order_update_coefficients[ i ];
    }
 
 protected:
-
+   // clang-format off
    static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
       std::array< Value, Stages >{     0.0,            0.0,        0.0,    0.0,     0.0,            0.0        },
       std::array< Value, Stages >{     1.0/    5.0,    0.0,        0.0,    0.0,     0.0,            0.0        },
@@ -58,8 +75,9 @@ protected:
 
    static constexpr std::array< Value, Stages > time_coefficients { 0.0, 1.0/5.0, 3.0/10.0, 3.0/5.0, 1.0, 7.0/8.0 };
 
-   static constexpr std::array< Value, Stages > higher_order_update_coefficients{ 37.0/378.0, 0.0, 250.0/621.0, 125.0/594.0, 0.0, 512.0/1771.0 };
+   static constexpr std::array< Value, Stages > higher_order_update_coefficients{ 37.0/378.0,     0.0, 250.0/621.0,     125.0/594.0,     0.0,           512.0/1771.0 };
    static constexpr std::array< Value, Stages > lower_order_update_coefficients { 2825.0/27648.0, 0.0, 18575.0/48384.0, 13525.0/55296.0, 277.0/14336.0, 1.0/4.0 };
+   // clang-format on
 };
 
-} // namespace TNL::Solvers::ODE::Methods
+}  // namespace TNL::Solvers::ODE::Methods

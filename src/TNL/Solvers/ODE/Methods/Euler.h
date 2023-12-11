@@ -18,9 +18,17 @@ struct Euler
 {
    using ValueType = Value;
 
-   static constexpr size_t getStages() { return 1; }
+   static constexpr size_t
+   getStages()
+   {
+      return 1;
+   }
 
-   static constexpr bool isAdaptive() { return false; }
+   static constexpr bool
+   isAdaptive()
+   {
+      return false;
+   }
 
    /**
     * \brief Static method for setup of configuration parameters.
@@ -28,7 +36,9 @@ struct Euler
     * \param config is the config description.
     * \param prefix is the prefix of the configuration parameters for this solver.
     */
-   static void configSetup( Config::ConfigDescription& config, const String& prefix ) {}
+   static void
+   configSetup( Config::ConfigDescription& config, const String& prefix )
+   {}
 
    /**
     * \brief Method for setup of the explicit solver based on configuration parameters.
@@ -38,19 +48,43 @@ struct Euler
     * \return true if the parameters where parsed successfully.
     * \return false if the method did not succeed to read the configuration parameters.
     */
-   bool setup( const Config::ParameterContainer& parameters, const String& prefix ) { return true; }
+   bool
+   setup( const Config::ParameterContainer& parameters, const String& prefix )
+   {
+      return true;
+   }
 
-   static constexpr ValueType getCoefficients( const size_t stage, const size_t i ) { return 1; }
+   static constexpr ValueType
+   getCoefficients( const size_t stage, const size_t i )
+   {
+      return 1;
+   }
 
-   static constexpr ValueType getTimeCoefficient( size_t i ) { return 0; }
+   static constexpr ValueType
+   getTimeCoefficient( size_t i )
+   {
+      return 0;
+   }
 
-   static constexpr ValueType getUpdateCoefficient( size_t i ) { return 1; }
+   static constexpr ValueType
+   getUpdateCoefficient( size_t i )
+   {
+      return 1;
+   }
 
    __cuda_callable__
-   bool acceptStep( const ValueType& error ) { return true; }
+   bool
+   acceptStep( const ValueType& error )
+   {
+      return true;
+   }
 
    __cuda_callable__
-   ValueType computeTau( const ValueType& error, const ValueType& currentTau ) { return currentTau; }
+   ValueType
+   computeTau( const ValueType& error, const ValueType& currentTau )
+   {
+      return currentTau;
+   }
 };
 
-} // namespace TNL::Solvers::ODE::Methods
+}  // namespace TNL::Solvers::ODE::Methods
