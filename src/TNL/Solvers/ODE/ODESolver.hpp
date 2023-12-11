@@ -13,6 +13,7 @@
 #include <TNL/Solvers/ODE/ODESolver.h>
 #include <TNL/Solvers/ODE/detail/ODESolverEvaluator.h>
 
+#ifndef DOXYGEN_ONLY
 namespace TNL::Solvers::ODE {
 
 ////
@@ -287,3 +288,4 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
 }
 
 }  // namespace TNL::Solvers::ODE
+#endif // DOXYGEN_ONLY

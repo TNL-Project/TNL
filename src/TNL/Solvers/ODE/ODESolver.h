@@ -12,29 +12,50 @@
 #include <TNL/Solvers/ODE/StaticExplicitSolver.h>
 #include <TNL/TypeTraits.h>
 
+/***
+ * \brief Namespace for solvers of ordinary differential equations.
+ */
 namespace TNL::Solvers::ODE {
 
 /**
- * \brief Integrator or solver of system of ordinary differential equations.
+ * \brief Integrator or solver of systems of ordinary differential equations.
  *
  * This solver can be used for the numerical solution of
  * [ordinary differential equations](https://en.wikipedia.org/wiki/Ordinary_differential_equation) having the
  * following form:
  *
- * \f$ \frac{d \vec u}{dt} = \vec f( t, \vec u) \text{ on } (0,T) \f$
+ * \f$ \frac{d \vec u}{dt} = \vec f( t, \vec u) \text{ on } (0,T), \f$
+ *
+ * and the initial condition
  *
  * \f$ \vec u( 0 )  = \vec u_{ini} \f$.
- * The unknown vector \f$ \vec x \in R^n \f$ can expressed by a \ref TNL::Containers::Vector or \ref
- * TNL::Containers::StaticVector. In the later case, the solver can be executed even within GPU kernels. The method which is
- * supposed to be used by the solver is represented by the template parameter \ref Method.
  *
- * The following example demonstrates the use the solver:
+ * The vector \f$ \vec u(t) \f$ can be represented using different types of containers, depending on the size and
+ * nature of the ODE system:
+ *
+ * 1. **Static vectors** (\ref TNL::Containers::StaticVector): This is suitable for small systems of ODEs with a fixed number of
+ * unknowns. Utilizing `StaticVector` allows the ODE solver to be executed within GPU kernels. This capability is particularly
+ * useful for scenarios like running multiple sequential solvers in parallel, as in the case of \ref
+ * TNL::Algorithms::parallelFor.
+ * 2. **Dynamic vectors** (\ref TNL::Containers::Vector or \ref TNL::Containers::VectorView): These are preferred when dealing
+ * with large systems of ODEs, such as those arising in the solution of [parabolic partial differential
+ * equations](https://en.wikipedia.org/wiki/Parabolic_partial_differential_equation) using the
+ * [method of lines](https://en.wikipedia.org/wiki/Method_of_lines). In these instances, the solver typically handles a single,
+ * large-scale problem that can be executed in parallel internally.
+ *
+ * The method, which is supposed to be used by the solver, is represented by the template parameter \e Method.
+ *
+ * The following examples demonstrates the use the solver with the static vector
+ *
+ * \includelineno Solvers/ODE/StaticODESolver-LorenzParallelExample.h
+ *
+ * and with the dynamic vector
  *
  * \includelineno Solvers/ODE/ODESolver-HeatEquationExample.h
  *
- * \tparam Method is a method which is supposed to be used for the numerical integration.
- * \tparam Value is a vector (\ref TNL::Containers::Vector or \ref TNL::Containers::StaticVector) representing \f$ \vec x \in
- * R^n \f$.
+ * \tparam Method is a method (one from \ref TNL::Solvers::ODE namespace) which is supposed to be used
+ * for the numerical integration. \tparam Vector is a vector (\ref TNL::Containers::Vector, \ref TNL::Containers::VectorView, or
+ * \ref TNL::Containers::StaticVector) representing \f$ \vec x \in R^n \f$.
  */
 template< typename Method,
           typename Vector,
@@ -165,9 +186,13 @@ public:
     * \param f is the lambda function representing the right-hand side of the ODE system.
     * \param params are the parameters which are supposed to be passed to the lambda function \e f. This is due to the fact that
     * the CUDA compiler does not allow nested lambda functions: "An extended __host__ __device__ lambda cannot be defined inside
-    * an extended __host__ __device__  lambda expression". See \ref
-    * Examples/Solvers/ODE/StaticODESolver-LorenzParallelExample.h. \return `true` if steady state solution has been reached,
-    * `false` otherwise.
+    * an extended __host__ __device__  lambda expression".
+    * \return `true` if steady state solution has been reached, false` otherwise.
+    *
+    * \par Example
+    * \include Solvers/ODE/StaticODESolver-SineExample.h
+    *
+    * \include Solvers/ODE/StaticODESolver-LorenzParallelExample.h.
     */
    template< typename RHSFunction, typename... Params >
    __cuda_callable__
@@ -320,9 +345,13 @@ public:
     * \param f is the lambda function representing the right-hand side of the ODE system.
     * \param params are the parameters which are supposed to be passed to the lambda function \e f. This is due to the fact that
     * the CUDA compiler does not allow nested lambda functions: "An extended __host__ __device__ lambda cannot be defined inside
-    * an extended __host__ __device__  lambda expression". See \ref
-    * Examples/Solvers/ODE/StaticODESolver-LorenzParallelExample.h. \return `true` if steady state solution has been reached,
-    * `false` otherwise.
+    * an extended __host__ __device__  lambda expression".
+    * \return `true` if steady state solution has been reached, `false` otherwise.
+    *
+    * \par Example
+    * \include Solvers/ODE/ODESolver-HeatEquationWithMonitorExample.h
+    *
+    * \include Solvers/ODE/StaticODESolver-LorenzParallelExample.h.
     */
    template< typename RHSFunction, typename... Params >
    bool
