@@ -9,7 +9,7 @@
 
 template< typename ReaderType, template< typename > class WriterType, typename MeshType >
 void
-test_reader( const MeshType& mesh, std::string outputFileName )
+test_reader( const MeshType& mesh, const std::string& outputFileName )
 {
    // write the mesh into the file (new scope is needed to properly close the file)
    {
@@ -33,7 +33,7 @@ test_reader( const MeshType& mesh, std::string outputFileName )
 // 2. resolveAndLoadMesh loads the mesh
 template< template< typename > class WriterType, typename ConfigTag, typename MeshType >
 void
-test_resolveAndLoadMesh( const MeshType& mesh, std::string outputFileName, std::string globalIndexType = "auto" )
+test_resolveAndLoadMesh( const MeshType& mesh, const std::string& outputFileName, const std::string& globalIndexType = "auto" )
 {
    // write the mesh into the file (new scope is needed to properly close the file)
    {
@@ -53,7 +53,8 @@ test_resolveAndLoadMesh( const MeshType& mesh, std::string outputFileName, std::
 
       // operator== does not work for instantiations of the wrapper with MeshType2 != MeshType
       //      EXPECT_EQ( mesh2, mesh );
-      std::stringstream str1, str2;
+      std::stringstream str1;
+      std::stringstream str2;
       str1 << mesh;
       str2 << mesh2;
       EXPECT_EQ( str2.str(), str1.str() );
@@ -70,10 +71,11 @@ test_resolveAndLoadMesh( const MeshType& mesh, std::string outputFileName, std::
 
 template< typename ReaderType, template< typename > class WriterType, typename MeshType >
 void
-test_meshfunction( const MeshType& mesh, std::string outputFileName, std::string type = "PointData" )
+test_meshfunction( const MeshType& mesh, const std::string& outputFileName, const std::string& type = "PointData" )
 {
    using ArrayType = TNL::Containers::Array< std::int32_t >;
-   ArrayType array_scalars, array_vectors;
+   ArrayType array_scalars;
+   ArrayType array_vectors;
    if( type == "PointData" ) {
       array_scalars.setSize( 1 * mesh.template getEntitiesCount< 0 >() );
       array_vectors.setSize( 3 * mesh.template getEntitiesCount< 0 >() );
@@ -109,8 +111,10 @@ test_meshfunction( const MeshType& mesh, std::string outputFileName, std::string
    reader.loadMesh( mesh_in );
    EXPECT_EQ( mesh_in, mesh );
 
-   ArrayType array_scalars_in, array_vectors_in;
-   typename ReaderType::VariantVector variant_scalars, variant_vectors;
+   ArrayType array_scalars_in;
+   ArrayType array_vectors_in;
+   typename ReaderType::VariantVector variant_scalars;
+   typename ReaderType::VariantVector variant_vectors;
    if( type == "PointData" ) {
       variant_scalars = reader.readPointData( "foo" );
       variant_vectors = reader.readPointData( "bar" );
