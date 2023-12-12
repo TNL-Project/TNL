@@ -84,10 +84,7 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
    using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
    using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Value >;
 
-   if( this->getTau() == 0.0 ) {
-      std::cerr << "The time step for the ODE solver is zero." << std::endl;
-      return false;
-   }
+   TNL_ASSERT_GT( this->getTau(), 0.0, "The time step for the ODE solver is zero." );
 
    for( int i = 0; i < Stages; i++ )
       k_vectors[ i ] = 0;
