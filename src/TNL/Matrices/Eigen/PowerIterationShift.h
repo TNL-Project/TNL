@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Matrices/Eigen/PowerIteration.h>
+#include <TNL/Matrices/LambdaMatrix.h>
 
 namespace TNL::Matrices::Eigen {
 
@@ -37,10 +38,23 @@ static std::tuple< T, TNL::Containers::Vector< T, Device >, uint >
 powerIterationShiftTuple( const MatrixType& matrix, const T& precision, const T& shiftValue )
 {
    int size = matrix.getColumns();
-   MatrixType shiftedMatrix( size, size );
-   for( int i = 0; i < size; i++ )
-      shiftedMatrix.setElement( i, i, shiftValue );
-   shiftedMatrix.addMatrix( matrix );
+   auto rowLengths = [=] __cuda_callable__ ( const int rows, const int columns, const int rowIdx ) -> int {
+      if(shiftValue!=0 && matrix.getElement(rowIdx,rowIdx) == 0)
+      {
+         return matrix.getRowCapacity(rowIdx) + 1;
+      }
+      else {
+         return matrix.getRowCapacity(rowIdx);
+      }
+      };
+   auto matrixElements = [=] __cuda_callable__ ( const int rows, const int columns, const int rowIdx, const int localIdx, int& columnIdx, T& value ) {
+      if(columnIdx==rowIdx)
+         value = matrix.getElement(rowIdx,columnIdx) + shiftValue;
+      else
+         value = matrix.getElement(rowIdx,columnIdx);
+   };
+   using MatrixFactory = TNL::Matrices::LambdaMatrixFactory< T, Device, int >;
+   auto shiftedMatrix = MatrixFactory::create( size, size, matrixElements, rowLengths );
    std::tuple< T, TNL::Containers::Vector< T, Device >, uint > tuple =
       TNL::Matrices::Eigen::powerIterationTuple< T, Device >( shiftedMatrix, precision );
    return std::make_tuple(std::get<0>(tuple) - shiftValue, std::get<1>(tuple), std::get<2>(tuple));
