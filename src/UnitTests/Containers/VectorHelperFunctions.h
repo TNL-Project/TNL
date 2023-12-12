@@ -41,14 +41,7 @@ void
 setPerturbedConstantSequence( Vector& deviceVector, Value v, Index perturbation_position, Value perturbation_value )
 {
    deviceVector.setValue( typename Vector::ValueType( v ) );
-#ifdef DISTRIBUTED_VECTOR
-   auto range = deviceVector.getLocalRange();
-   if( perturbation_position >= range.getBegin() && perturbation_position < range.getEnd() )
-      deviceVector.getLocalView().setElement( typename Vector::IndexType( perturbation_position - range.getBegin() ),
-                                              typename Vector::ValueType( perturbation_value ) );
-#else
    deviceVector.setElement( perturbation_position, typename Vector::ValueType( perturbation_value ) );
-#endif
 }
 
 template< typename Vector >
