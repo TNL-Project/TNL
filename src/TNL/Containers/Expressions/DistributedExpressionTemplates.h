@@ -694,7 +694,7 @@ operator<( const ET1& a, const ET2& b )
       bool localResult = false;
       if( idx >= range.getBegin() && idx < range.getEnd() )
          localResult = ( a.getElement( idx ) < b.getElement( idx ) );
-      bool result( false );
+      bool result = false;
       MPI::Allreduce( &localResult, &result, 1, MPI_LOR, a.getCommunicator() );
       return result;
    }
@@ -730,7 +730,7 @@ operator>( const ET1& a, const ET2& b )
       bool localResult = false;
       if( idx >= range.getBegin() && idx < range.getEnd() )
          localResult = ( a.getElement( idx ) > b.getElement( idx ) );
-      bool result( false );
+      bool result = false;
       MPI::Allreduce( &localResult, &result, 1, MPI_LOR, a.getCommunicator() );
       return result;
    }
