@@ -767,7 +767,7 @@ TYPED_TEST( VectorBinaryOperationsTest, maximum )
 
 // TODO: tests for operators &&, ||, &, |, ^
 
-TYPED_TEST( VectorBinaryOperationsTest, comparison )
+TYPED_TEST( VectorBinaryOperationsTest, lexicographicComparison )
 {
    SETUP_BINARY_TEST_ALIASES;
    using Index = typename TestFixture::Left::IndexType;
