@@ -16,6 +16,10 @@ This chapter introduces vectors in TNL. `Vector`, in addition to `Array`, offers
 
 `Vector`, unlike `Array`, requires that the `Real` type is numeric or a type for which basic algebraic operations are defined. What kind of algebraic operations is required depends on what vector operations the user will call. `Vector` is derived from `Array` so it inherits all its methods. In the same way the `Array` has its counterpart `ArraView`, `Vector` has `VectorView` which is derived from `ArrayView`. See [Arrays](#ug_Arrays) for more details.
 
+In addition to the comparison operators `==` and `!=` defined for `Array` and `ArrayView`, the comparison operators `<`, `<=`, `>`, and `>=` are
+available for `Vector` and `VectorView`. The comparison follows the [lexicographic order](https://en.wikipedia.org/wiki/Lexicographic_order)
+and it is performed by an algorithm equivalent to \ref std::lexicographical_compare.
+
 ### Horizontal operations
 
 By *horizontal* operations we mean vector expressions where we have one or more vectors as an input and a vector as an output. In TNL, this kind of operations is performed by the [Expression Templates](https://en.wikipedia.org/wiki/Expression_templates). It makes algebraic operations with vectors easy to do and very efficient at the same time. In some cases, one get even more efficient code compared to [Blas](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms) and [cuBlas](https://developer.nvidia.com/cublas). See the following example.
@@ -32,58 +36,58 @@ Vector expressions consist of *operands*, *operators*, and *functions*.
 Operands may be \ref TNL::Containers::Vector "vectors", \ref TNL::Containers::VectorView "vector views", or other vector expressions.
 Operators available for vector expressions are listed in the following table, where `v` is a result vector and `expr`, `expr1`, `expr2` are vector expressions:
 
-| Expression                              | Meaning                                          |
-|-----------------------------------------|--------------------------------------------------|
-| `v = expr1 + expr2`                     | `v[ i ] = expr1[ i ] + expr2[ i ]`               |
-| `v = expr1 - expr2`                     | `v[ i ] = expr1[ i ] - expr2[ i ]`               |
-| `v = expr1 * expr2`                     | `v[ i ] = expr1[ i ] * expr2[ i ]`               |
-| `v = expr1 / expr2`                     | `v[ i ] = expr1[ i ] / expr2[ i ]`               |
-| `v = expr1 / expr2`                     | `v[ i ] = expr1[ i ] / expr2[ i ]`               |
-| `v = expr1 % expr2`                     | `v[ i ] = expr1[ i ] % expr2[ i ]`               |
-| `v = expr1 && expr2`                    | `v[ i ] = expr1[ i ] && expr2[ i ]`              |
-| <code>v = expr1 \|\| expr2</code>       | <code>v[ i ] = expr1[ i ] \|\| expr2[ i ]</code> |
-| `v = expr1 & expr2`                     | `v[ i ] = expr1[ i ] & expr2[ i ]`               |
-| <code>v = expr1 \| expr2</code>         | <code>v[ i ] = expr1[ i ] \| expr2[ i ]</code>   |
-| `v = +expr1`                            | `v[ i ] = +expr1[ i ]`                           |
-| `v = -expr1`                            | `v[ i ] = -expr1[ i ]`                           |
-| `v = !expr1`                            | `v[ i ] = !expr1[ i ]`                           |
-| `v = ~expr1`                            | `v[ i ] = ~expr1[ i ]`                           |
+| Expression                        | Meaning                                          |
+| --------------------------------- | ------------------------------------------------ |
+| `v = expr1 + expr2`               | `v[ i ] = expr1[ i ] + expr2[ i ]`               |
+| `v = expr1 - expr2`               | `v[ i ] = expr1[ i ] - expr2[ i ]`               |
+| `v = expr1 * expr2`               | `v[ i ] = expr1[ i ] * expr2[ i ]`               |
+| `v = expr1 / expr2`               | `v[ i ] = expr1[ i ] / expr2[ i ]`               |
+| `v = expr1 / expr2`               | `v[ i ] = expr1[ i ] / expr2[ i ]`               |
+| `v = expr1 % expr2`               | `v[ i ] = expr1[ i ] % expr2[ i ]`               |
+| `v = expr1 && expr2`              | `v[ i ] = expr1[ i ] && expr2[ i ]`              |
+| <code>v = expr1 \|\| expr2</code> | <code>v[ i ] = expr1[ i ] \|\| expr2[ i ]</code> |
+| `v = expr1 & expr2`               | `v[ i ] = expr1[ i ] & expr2[ i ]`               |
+| <code>v = expr1 \| expr2</code>   | <code>v[ i ] = expr1[ i ] \| expr2[ i ]</code>   |
+| `v = +expr1`                      | `v[ i ] = +expr1[ i ]`                           |
+| `v = -expr1`                      | `v[ i ] = -expr1[ i ]`                           |
+| `v = !expr1`                      | `v[ i ] = !expr1[ i ]`                           |
+| `v = ~expr1`                      | `v[ i ] = ~expr1[ i ]`                           |
 
 Additionally, vector expressions may contain any function listed in the following table, where `v` is a result vector and `expr`, `expr1`, `expr2` are vector expressions:
 
-| Expression                              | Meaning                                          |
-|-----------------------------------------|--------------------------------------------------|
-| `v = TNL::equalTo( expr1, expr2 )`      | `v[ i ] = expr1[ i ] == expr2[ i ]`              |
-| `v = TNL::notEqualTo( expr1, expr2 )`   | `v[ i ] = expr1[ i ] != expr2[ i ]`              |
-| `v = TNL::greater( expr1, expr2 )`      | `v[ i ] = expr1[ i ] > expr2[ i ]`               |
-| `v = TNL::greaterEqual( expr1, expr2 )` | `v[ i ] = expr1[ i ] >= expr2[ i ]`              |
-| `v = TNL::less( expr1, expr2 )`         | `v[ i ] = expr1[ i ] < expr2[ i ]`               |
-| `v = TNL::lessEqual( expr1, expr2 )`    | `v[ i ] = expr1[ i ] <= expr2[ i ]`              |
-| `v = TNL::minimum( expr1, expr2 )`      | `v[ i ] = min( expr1[ i ], expr2[ i ] )`         |
-| `v = TNL::maximum( expr1, expr2 )`      | `v[ i ] = max( expr1[ i ], expr2[ i ] )`         |
-| `v = TNL::abs( expr )`                  | `v[ i ] = abs( expr[ i ] )`                      |
-| `v = TNL::sin( expr )`                  | `v[ i ] = sin( expr[ i ] )`                      |
-| `v = TNL::cos( expr )`                  | `v[ i ] = cos( expr[ i ] )`                      |
-| `v = TNL::tan( expr )`                  | `v[ i ] = tan( expr[ i ] )`                      |
-| `v = TNL::asin( expr )`                 | `v[ i ] = asin( expr[ i ] )`                     |
-| `v = TNL::acos( expr )`                 | `v[ i ] = acos( expr[ i ] )`                     |
-| `v = TNL::atan( expr )`                 | `v[ i ] = atan( expr[ i ] )`                     |
-| `v = TNL::sinh( expr )`                 | `v[ i ] = sinh( expr[ i ] )`                     |
-| `v = TNL::cosh( expr )`                 | `v[ i ] = cosh( expr[ i ] )`                     |
-| `v = TNL::tanh( expr )`                 | `v[ i ] = tanh( expr[ i ] )`                     |
-| `v = TNL::asinh( expr )`                | `v[ i ] = asinh( expr[ i ] )`                    |
-| `v = TNL::acosh( expr )`                | `v[ i ] = acosh( expr[ i ] )`                    |
-| `v = TNL::atanh( expr )`                | `v[ i ] = atanh( expr[ i ] )`                    |
-| `v = TNL::exp( expr )`                  | `v[ i ] = exp( expr[ i ] )`                      |
-| `v = TNL::log( expr )`                  | `v[ i ] = log( expr[ i ] )`                      |
-| `v = TNL::log10( expr )`                | `v[ i ] = log10( expr[ i ] )`                    |
-| `v = TNL::log2( expr )`                 | `v[ i ] = log2( expr[ i ] )`                     |
-| `v = TNL::sqrt( expr )`                 | `v[ i ] = sqrt( expr[ i ] )`                     |
-| `v = TNL::cbrt( expr )`                 | `v[ i ] = cbrt( expr[ i ] )`                     |
-| `v = TNL::pow( expr )`                  | `v[ i ] = pow( expr[ i ] )`                      |
-| `v = TNL::floor( expr )`                | `v[ i ] = floor( expr[ i ] )`                    |
-| `v = TNL::ceil( expr )`                 | `v[ i ] = ceil( expr[ i ] )`                     |
-| `v = TNL::sign( expr )`                 | `v[ i ] = sign( expr[ i ] )`                     |
+| Expression                              | Meaning                                  |
+| --------------------------------------- | ---------------------------------------- |
+| `v = TNL::equalTo( expr1, expr2 )`      | `v[ i ] = expr1[ i ] == expr2[ i ]`      |
+| `v = TNL::notEqualTo( expr1, expr2 )`   | `v[ i ] = expr1[ i ] != expr2[ i ]`      |
+| `v = TNL::greater( expr1, expr2 )`      | `v[ i ] = expr1[ i ] > expr2[ i ]`       |
+| `v = TNL::greaterEqual( expr1, expr2 )` | `v[ i ] = expr1[ i ] >= expr2[ i ]`      |
+| `v = TNL::less( expr1, expr2 )`         | `v[ i ] = expr1[ i ] < expr2[ i ]`       |
+| `v = TNL::lessEqual( expr1, expr2 )`    | `v[ i ] = expr1[ i ] <= expr2[ i ]`      |
+| `v = TNL::minimum( expr1, expr2 )`      | `v[ i ] = min( expr1[ i ], expr2[ i ] )` |
+| `v = TNL::maximum( expr1, expr2 )`      | `v[ i ] = max( expr1[ i ], expr2[ i ] )` |
+| `v = TNL::abs( expr )`                  | `v[ i ] = abs( expr[ i ] )`              |
+| `v = TNL::sin( expr )`                  | `v[ i ] = sin( expr[ i ] )`              |
+| `v = TNL::cos( expr )`                  | `v[ i ] = cos( expr[ i ] )`              |
+| `v = TNL::tan( expr )`                  | `v[ i ] = tan( expr[ i ] )`              |
+| `v = TNL::asin( expr )`                 | `v[ i ] = asin( expr[ i ] )`             |
+| `v = TNL::acos( expr )`                 | `v[ i ] = acos( expr[ i ] )`             |
+| `v = TNL::atan( expr )`                 | `v[ i ] = atan( expr[ i ] )`             |
+| `v = TNL::sinh( expr )`                 | `v[ i ] = sinh( expr[ i ] )`             |
+| `v = TNL::cosh( expr )`                 | `v[ i ] = cosh( expr[ i ] )`             |
+| `v = TNL::tanh( expr )`                 | `v[ i ] = tanh( expr[ i ] )`             |
+| `v = TNL::asinh( expr )`                | `v[ i ] = asinh( expr[ i ] )`            |
+| `v = TNL::acosh( expr )`                | `v[ i ] = acosh( expr[ i ] )`            |
+| `v = TNL::atanh( expr )`                | `v[ i ] = atanh( expr[ i ] )`            |
+| `v = TNL::exp( expr )`                  | `v[ i ] = exp( expr[ i ] )`              |
+| `v = TNL::log( expr )`                  | `v[ i ] = log( expr[ i ] )`              |
+| `v = TNL::log10( expr )`                | `v[ i ] = log10( expr[ i ] )`            |
+| `v = TNL::log2( expr )`                 | `v[ i ] = log2( expr[ i ] )`             |
+| `v = TNL::sqrt( expr )`                 | `v[ i ] = sqrt( expr[ i ] )`             |
+| `v = TNL::cbrt( expr )`                 | `v[ i ] = cbrt( expr[ i ] )`             |
+| `v = TNL::pow( expr )`                  | `v[ i ] = pow( expr[ i ] )`              |
+| `v = TNL::floor( expr )`                | `v[ i ] = floor( expr[ i ] )`            |
+| `v = TNL::ceil( expr )`                 | `v[ i ] = ceil( expr[ i ] )`             |
+| `v = TNL::sign( expr )`                 | `v[ i ] = sign( expr[ i ] )`             |
 
 ### Vertical operations
 
@@ -97,21 +101,21 @@ Output is:
 
 The following table shows vertical operations that can be used on vector expressions:
 
-| Expression                            | Meaning                                                                                                                         |
-|---------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| `v = TNL::min( expr )`                | `v` is the minimum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                 |
-| `auto [ v, i ] = TNL::argMin( expr )` | `v` is the minimum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`, `i` is the index of the smallest element.                       |
-| `v = TNL::max( expr )`                | `v` is the maximum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                 |
-| `auto [ v, i ] = TNL::argMax( expr )` | `v` is the maximum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`, `i` is the index of the largest element.                        |
-| `v = TNL::sum( expr )`                | `v` is the sum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                     |
-| `v = TNL::maxNorm( expr )`            | `v` is the maximum norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                            |
-| `v = TNL::l1Norm( expr )`             | `v` is the l1 norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                 |
-| `v = TNL::l2Norm( expr )`             | `v` is the l2 norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                 |
-| `v = TNL::lpNorm( expr, p )`          | `v` is the lp norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                 |
-| `v = TNL::product( expr )`            | `v` is product of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                     |
-| `v = TNL::all( expr )`                | `v` is the result of `expr[ 0 ] && expr[ 1 ] && ... && expr[ n-1 ]`.                                                            |
-| `v = TNL::any( expr )`                | `v` is the result of <code>expr[ 0 ] \|\| expr[ 1 ] \|\| ... \|\| expr[ n-1 ]</code>.                                           |
-| `auto [ v, i ] = TNL::argAny( expr )` | `v` is the result of <code>expr[ 0 ] \|\| expr[ 1 ] \|\| ... \|\| expr[ n-1 ]</code>, `i` is the index of the largest element.  |
+| Expression                            | Meaning                                                                                                                             |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `v = TNL::min( expr )`                | `v` is the minimum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                     |
+| `auto [ v, i ] = TNL::argMin( expr )` | `v` is the minimum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`, `i` is the index of the smallest element.                           |
+| `v = TNL::max( expr )`                | `v` is the maximum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                     |
+| `auto [ v, i ] = TNL::argMax( expr )` | `v` is the maximum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`, `i` is the index of the largest element.                            |
+| `v = TNL::sum( expr )`                | `v` is the sum of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                         |
+| `v = TNL::maxNorm( expr )`            | `v` is the maximum norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                |
+| `v = TNL::l1Norm( expr )`             | `v` is the l1 norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                     |
+| `v = TNL::l2Norm( expr )`             | `v` is the l2 norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                     |
+| `v = TNL::lpNorm( expr, p )`          | `v` is the lp norm of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                     |
+| `v = TNL::product( expr )`            | `v` is product of `expr[ 0 ], expr[ 1 ], ..., expr[ n-1 ]`.                                                                         |
+| `v = TNL::all( expr )`                | `v` is the result of `expr[ 0 ] && expr[ 1 ] && ... && expr[ n-1 ]`.                                                                |
+| `v = TNL::any( expr )`                | `v` is the result of <code>expr[ 0 ] \|\| expr[ 1 ] \|\| ... \|\| expr[ n-1 ]</code>.                                               |
+| `auto [ v, i ] = TNL::argAny( expr )` | `v` is the result of <code>expr[ 0 ] \|\| expr[ 1 ] \|\| ... \|\| expr[ n-1 ]</code>, `i` is the index of the first `true` element. |
 
 ## Static vectors
 
@@ -123,9 +127,8 @@ defined in the \ref TNL::Containers namespace and has two template parameters:
 2. `Real` is type of elements stored in the vector.
 
 The interface of `StaticVector` is smilar to `Vector`. `StaticVector` also supports expression templates, which make the use of
-static vectors simple and efficient at the same time. Additionally, the comparison operators `<`, `<=`, `>`, and `>=` are
-defined for `StaticVector`. The comparison follows the [lexicographic order](https://en.wikipedia.org/wiki/Lexicographic_order)
-and it is performed by an algorithm equivalent to \ref std::lexicographical_compare.
+static vectors simple and efficient at the same time, together with [lexicographic comparison](https://en.wikipedia.org/wiki/Lexicographic_order)
+by operators `<`, `<=`, `>` and `>=`.
 
 Example:
 
