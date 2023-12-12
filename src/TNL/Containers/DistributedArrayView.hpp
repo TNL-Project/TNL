@@ -248,14 +248,16 @@ template< typename Value, typename Device, typename Index >
 void
 DistributedArrayView< Value, Device, Index >::setElement( IndexType i, ValueType value )
 {
-   const IndexType li = localRange.getLocalIndex( i );
-   localData.setElement( li, value );
+   if( localRange.isLocal( i ) )
+      localData.setElement( localRange.getLocalIndex( i ), value );
 }
 
 template< typename Value, typename Device, typename Index >
 Value
 DistributedArrayView< Value, Device, Index >::getElement( IndexType i ) const
 {
+   // TODO: this works only when getElement is called from correct MPI process
+   // What to do otherwise? Throw an exception?
    const IndexType li = localRange.getLocalIndex( i );
    return localData.getElement( li );
 }
