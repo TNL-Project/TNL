@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2023
+// Copyright (c) 2004-2023 Tomáš Oberhuber et al.
 //
 // This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 //
@@ -104,28 +104,29 @@ FillRandom< Devices::Host >::fillRandom( Element* data, Index size, Element min_
    if( size == 0 )
       return;
    TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
+#ifdef HAVE_OPENMP
    if( Devices::Host::isOMPEnabled() && size > 512 ) {
       if constexpr( std::is_integral_v< Element > ) {
-#pragma omp parallel
+         #pragma omp parallel
          {
             std::random_device rd;
-            std::mt19937 gen( rd() ); // mersenne_twister_engine seeded with rd()
+            std::mt19937 gen( rd() );  // mersenne_twister_engine seeded with rd()
             std::uniform_int_distribution< Element > distrib( min_val, max_val );
 
-#pragma omp for
+            #pragma omp for
             for( Index i = 0; i < size; ++i ) {
                data[ i ] = distrib( gen );
             }
          }
       }
       else {
-#pragma omp parallel
+         #pragma omp parallel
          {
             std::random_device rd;
-            std::mt19937 gen( rd() ); // mersenne_twister_engine seeded with rd()
+            std::mt19937 gen( rd() );  // mersenne_twister_engine seeded with rd()
             std::uniform_real_distribution< Element > distrib( min_val, max_val );
 
-#pragma omp for
+            #pragma omp for
             for( Index i = 0; i < size; ++i ) {
                data[ i ] = distrib( gen );
             }
@@ -133,28 +134,30 @@ FillRandom< Devices::Host >::fillRandom( Element* data, Index size, Element min_
       }
    }
    else {
-      FillRandom<Devices::Sequential>::fillRandom( data, size, min_val, max_val );
+      FillRandom< Devices::Sequential >::fillRandom( data, size, min_val, max_val );
    }
+#else
+   FillRandom< Devices::Sequential >::fillRandom( data, size, min_val, max_val );
+#endif
 }
 
 template< typename Element, typename Index >
 void
-FillRandom< Devices::Cuda >::fillRandom( Element* data, Index size, Element min_val, Element max_val )
+FillRandom< Devices::GPU >::fillRandom( Element* data, Index size, Element min_val, Element max_val )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    if( size == 0 )
       return;
    TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
    int threadsPerBlock = 256;
    int blocksPerGrid = ( size + threadsPerBlock - 1 ) / threadsPerBlock;
-// clang-format off
-   std::random_device rd;     // a seed source for the random number engine
+   std::random_device rd;  // a seed source for the random number engine
+   // clang-format off
    fillWithRandomValues<<<blocksPerGrid, threadsPerBlock>>>( data, size, min_val, max_val, rd() );
    TNL_CHECK_CUDA_DEVICE;
-// clang-format on
-#endif
-#ifdef __HIP__
-   throw TNL::Exceptions::NotImplementedError("Function fillRandom is not implemented for HIP device");
+   // clang-format on
+#elif defined( __HIP__ )
+   throw TNL::Exceptions::NotImplementedError( "Function fillRandom is not implemented for HIP device" );
 #endif
 }
 
