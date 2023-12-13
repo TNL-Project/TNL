@@ -37,27 +37,39 @@ template< typename T, typename Device, typename MatrixType >
 static std::tuple< T, TNL::Containers::Vector< T, Device >, uint >
 powerIterationShiftTuple( const MatrixType& matrix, const T& precision, const T& shiftValue )
 {
+   using IndexType = typename MatrixType::IndexType;
    int size = matrix.getColumns();
-   auto rowLengths = [=] __cuda_callable__ ( const int rows, const int columns, const int rowIdx ) -> int {
-      if(shiftValue!=0 && matrix.getElement(rowIdx,rowIdx) == 0)
-      {
-         return matrix.getRowCapacity(rowIdx) + 1;
+   auto rowLengths = [ = ] __cuda_callable__( const IndexType rows, const IndexType  columns, const IndexType  rowIdx ) -> int
+   {
+      if( shiftValue != 0 && matrix.getElement( rowIdx, rowIdx ) == 0 ) {
+         return matrix.getRowCapacity( rowIdx ) + 1;
       }
       else {
-         return matrix.getRowCapacity(rowIdx);
+         return matrix.getRowCapacity( rowIdx );
       }
-      };
-   auto matrixElements = [=] __cuda_callable__ ( const int rows, const int columns, const int rowIdx, const int localIdx, int& columnIdx, T& value ) {
-      if(columnIdx==rowIdx)
-         value = matrix.getElement(rowIdx,columnIdx) + shiftValue;
-      else
-         value = matrix.getElement(rowIdx,columnIdx);
+   };
+   auto matrixElements = [ = ] __cuda_callable__(
+                            const IndexType  rows, const IndexType  columns, const IndexType  rowIdx, const IndexType  localIdx, IndexType & columnIdx, T& value )
+   {
+      auto row = matrix.getRow( rowIdx );
+      IndexType size = row.getSize();
+      if( size == localIdx ) {
+         columnIdx = rowIdx;
+         value = shiftValue;
+      }
+      else {
+         columnIdx = row.getColumnIndex( localIdx );
+         if( columnIdx == rowIdx )
+            value = row.getValue( localIdx ) + shiftValue;
+         else
+            value = row.getValue( localIdx );
+      }
    };
    using MatrixFactory = TNL::Matrices::LambdaMatrixFactory< T, Device, int >;
    auto shiftedMatrix = MatrixFactory::create( size, size, matrixElements, rowLengths );
    std::tuple< T, TNL::Containers::Vector< T, Device >, uint > tuple =
       TNL::Matrices::Eigen::powerIterationTuple< T, Device >( shiftedMatrix, precision );
-   return std::make_tuple(std::get<0>(tuple) - shiftValue, std::get<1>(tuple), std::get<2>(tuple));
+   return std::make_tuple( std::get< 0 >( tuple ) - shiftValue, std::get< 1 >( tuple ), std::get< 2 >( tuple ) );
 }
 
 /**
