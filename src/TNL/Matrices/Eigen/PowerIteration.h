@@ -45,7 +45,8 @@ template< typename T, typename Device, typename MatrixType >
 static std::tuple< T, TNL::Containers::Vector< T, Device >, uint >
 powerIterationTuple( const MatrixType& matrix, const T& precision )
 {
-   int vecSize = matrix.getColumns();
+   using IndexType = typename MatrixType::IndexType;
+   IndexType vecSize = matrix.getColumns();
    TNL::Containers::Vector< T, Device > eigenVec( vecSize );
    TNL::Containers::Vector< T, Device > eigenVecOut( vecSize );
    if constexpr( std::is_integral_v< T > ) {
