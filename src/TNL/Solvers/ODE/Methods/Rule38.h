@@ -8,7 +8,6 @@
 
 #include <array>
 #include <cstddef>
-#include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Math.h>
 
 namespace TNL::Solvers::ODE::Methods {

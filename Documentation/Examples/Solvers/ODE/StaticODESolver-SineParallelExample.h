@@ -74,7 +74,7 @@ solveParallelODEs( const char* file_name )
    for( int i = 0; i < c_vals; i++ ) {
       file << "# c = " << c_min + i * c_step << std::endl;
       for( int k = 0; k < output_time_steps; k++ )
-         file << k * output_time_step << " " << results.getElement( k * c_vals + i )[ i ] << std::endl;
+         file << k * output_time_step << " " << results.getElement( k * c_vals + i )[ 0 ] << std::endl;
       file << std::endl;
    }
    //! [Write results to file]

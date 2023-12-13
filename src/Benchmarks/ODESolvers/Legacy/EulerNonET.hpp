@@ -176,8 +176,13 @@ EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, Real
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
          const IndexType currentGridSize = Backend::getNumberOfBlocks( currentSize, cudaBlockSize.x );
 
-         updateUEuler< < < currentGridSize, cudaBlockSize, sharedMemory > > >(
-            currentSize, tau, &_k1[ gridOffset ], &_u[ gridOffset ], this->cudaBlockResidue.getData() );
+         Backend::launchKernel( updateUEulerNonET< RealType, IndexType >,
+                                Backend::LaunchConfiguration( dim3( currentGridSize ), dim3( cudaBlockSize ), sharedMemory ),
+                                currentSize,
+                                tau,
+                                &_k1[ gridOffset ],
+                                &_u[ gridOffset ],
+                                this->cudaBlockResidue.getData() );
          localResidue += sum( this->cudaBlockResidue );
          cudaDeviceSynchronize();
          TNL_CHECK_CUDA_DEVICE;
