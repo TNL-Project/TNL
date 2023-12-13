@@ -7,6 +7,7 @@
 #pragma once
 
 #include "TNL/Devices/Sequential.h"
+#include "TNL/Exceptions/NotImplementedError.h"
 #include <random>
 #include <type_traits>
 #ifdef __CUDACC__
@@ -151,6 +152,9 @@ FillRandom< Devices::Cuda >::fillRandom( Element* data, Index size, Element min_
    fillWithRandomValues<<<blocksPerGrid, threadsPerBlock>>>( data, size, min_val, max_val, rd() );
    TNL_CHECK_CUDA_DEVICE;
 // clang-format on
+#endif
+#ifdef __HIP__
+   throw TNL::Exceptions::NotImplementedError("Function fillRandom is not implemented for HIP device");
 #endif
 }
 
