@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Containers/ndarray/LocalBeginsHolder.h>
 #include <TNL/Containers/NDArrayView.h>
 #include <TNL/Containers/Subrange.h>
 #include <TNL/MPI/Comm.h>
@@ -40,7 +41,7 @@ public:
 
    //! \brief Type which represents the position of the first local element in
    //! the global N-dimensional array. It has all static sizes set to 0.
-   using LocalBeginsType = detail::LocalBeginsHolder< typename NDArrayView::SizesHolderType >;
+   using LocalBeginsType = LocalBeginsHolder< typename NDArrayView::SizesHolderType >;
 
    //! \brief Type which represents an integer range `[a, b)`.
    using LocalRangeType = Subrange< IndexType >;
@@ -444,7 +445,7 @@ public:
       const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // add static sizes
-      using Begins = detail::LocalBeginsHolder< SizesHolderType, 1 >;
+      using Begins = LocalBeginsHolder< SizesHolderType, 1 >;
       // add dynamic sizes
       Begins begins;
       detail::SetSizesAddHelper< 1, Begins, SizesHolderType, OverlapsType >::add( begins, SizesHolderType{}, getOverlaps() );
@@ -498,7 +499,7 @@ public:
       const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // add static sizes
-      using SkipBegins = detail::LocalBeginsHolder< SizesHolderType, 1 >;
+      using SkipBegins = LocalBeginsHolder< SizesHolderType, 1 >;
       // add dynamic sizes
       SkipBegins skipBegins;
       detail::SetSizesAddHelper< 1, SkipBegins, SizesHolderType, OverlapsType >::add(

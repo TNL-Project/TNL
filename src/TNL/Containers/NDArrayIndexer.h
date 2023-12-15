@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Containers/ndarray/Indexing.h>
+#include <TNL/Containers/ndarray/StaticSizesHolder.h>   // ConstStaticSizesHolder
 #include <TNL/Containers/ndarray/SizesHolderHelpers.h>  // StorageSizeGetter
 #include <TNL/Containers/ndarray/Subarrays.h>           // DummyStrideBase
 
@@ -40,8 +41,7 @@ template< typename SizesHolder,
           typename Permutation,
           typename Base,
           typename StridesHolder = detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
-          typename Overlaps =
-             detail::ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
+          typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
 class NDArrayIndexer : public StridesHolder, public Overlaps
 {
 protected:

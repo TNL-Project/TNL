@@ -328,7 +328,7 @@ public:
            const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       dispatch( Begins{}, getSizes(), launch_configuration, f );
    }
 
@@ -355,12 +355,12 @@ public:
       const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
+      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
       // subtract static sizes
       using Ends = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       Ends ends;
-      using NoOverlapsType = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using NoOverlapsType = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType, NoOverlapsType >::subtract(
          ends, getSizes(), NoOverlapsType{} );
       dispatch( Begins{}, ends, launch_configuration, f );
@@ -408,13 +408,13 @@ public:
       Func f,
       const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
-      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
-      using SkipBegins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
+      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using SkipBegins = ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
       // subtract static sizes
       using SkipEnds = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       SkipEnds skipEnds;
-      using NoOverlapsType = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using NoOverlapsType = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType, NoOverlapsType >::subtract(
          skipEnds, getSizes(), NoOverlapsType{} );
 
@@ -438,7 +438,7 @@ public:
       const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // TODO: assert "skipBegins <= sizes", "skipEnds <= sizes"
-      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( Begins{}, skipBegins, skipEnds, getSizes(), launch_configuration, f );
    }
@@ -557,7 +557,7 @@ template< typename Value,
           typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
           typename Device = Devices::Host,
           typename Index = typename SizesHolder::IndexType,
-          typename Overlaps = detail::ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
+          typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class NDArray : public NDArrayStorage<
                    Array< Value, Device, Index, Allocator >,
@@ -679,7 +679,7 @@ template< typename Value,
           typename SliceInfo = SliceInfo<>,                                                // no slicing by default
           typename Device = Devices::Host,
           typename Index = typename SizesHolder::IndexType,
-          typename Overlaps = detail::ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
+          typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class SlicedNDArray
 : public NDArrayStorage<
