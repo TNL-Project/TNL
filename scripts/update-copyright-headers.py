@@ -20,7 +20,7 @@ default_template = """\
 TYPE_SETTINGS = {
     # All the languages with C style comments:
     "cpp": {
-        "extensions": [".h", ".hpp", ".hxx", ".cpp", ".cu", ".cc", ".cxx"],
+        "extensions": [".h", ".hpp", ".hxx", ".cpp", ".cc", ".cxx", ".cu", ".hip"],
         "keepFirst": None,
         "blockCommentStartPattern": re.compile(r'^\s*/\*'),
         "blockCommentEndPattern": re.compile(r'\*/\s*$'),
