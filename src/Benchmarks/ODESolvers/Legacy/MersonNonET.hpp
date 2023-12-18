@@ -289,7 +289,7 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
       cudaDeviceSynchronize();
       TNL_CHECK_CUDA_DEVICE;
 
-      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
          Backend::launchKernel( computeK2Arg< RealType, IndexType >,
@@ -307,7 +307,7 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
       cudaDeviceSynchronize();
       TNL_CHECK_CUDA_DEVICE;
 
-      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
          Backend::launchKernel( computeK3Arg< RealType, IndexType >,
@@ -326,7 +326,7 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
       cudaDeviceSynchronize();
       TNL_CHECK_CUDA_DEVICE;
 
-      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
          Backend::launchKernel( computeK4Arg< RealType, IndexType >,
@@ -345,7 +345,7 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
       cudaDeviceSynchronize();
       TNL_CHECK_CUDA_DEVICE;
 
-      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
          Backend::launchKernel( computeK5Arg< RealType, IndexType >,
@@ -418,9 +418,9 @@ MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
       this->cudaBlockResidue.setSize( min( cudaBlocks, Backend::getMaxGridXSize() ) );
       const IndexType threadsPerGrid = Backend::getMaxGridXSize() * cudaBlockSize.x;
 
-      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         const std::size_t gridOffset = gridIdx * threadsPerGrid;
-         const std::size_t currentSize = min( size - gridOffset, threadsPerGrid );
+      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+         const IndexType gridOffset = gridIdx * threadsPerGrid;
+         const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
          Backend::launchKernel( computeErrorKernel< RealType, IndexType >,
                                 Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
                                 currentSize,
@@ -488,10 +488,10 @@ MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
       const IndexType threadsPerGrid = Backend::getMaxGridXSize() * cudaBlockSize.x;
 
       localResidue = 0.0;
-      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         const std::size_t sharedMemory = cudaBlockSize.x * sizeof( RealType );
-         const std::size_t gridOffset = gridIdx * threadsPerGrid;
-         const std::size_t currentSize = min( size - gridOffset, threadsPerGrid );
+      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+         const IndexType sharedMemory = cudaBlockSize.x * sizeof( RealType );
+         const IndexType gridOffset = gridIdx * threadsPerGrid;
+         const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
 
          Backend::launchKernel( updateUMersonNonET< RealType, IndexType >,
                                 Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ), sharedMemory ),

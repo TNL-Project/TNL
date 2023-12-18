@@ -170,7 +170,7 @@ EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, Real
       const IndexType threadsPerGrid = Backend::getMaxGridXSize() * cudaBlockSize.x;
 
       localResidue = 0.0;
-      for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType sharedMemory = cudaBlockSize.x * sizeof( RealType );
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
