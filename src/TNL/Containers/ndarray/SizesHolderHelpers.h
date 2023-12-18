@@ -83,19 +83,17 @@ struct StaticStorageSizeGetter< SizesHolder, IndexTag< 0 > >
    }
 };
 
-template< std::size_t level = 0, typename SizesHolder, typename Index, typename... IndexTypes >
+template< typename SizesHolder, typename... IndexTypes >
 void
-setSizesHelper( SizesHolder& holder, Index&& size, IndexTypes&&... otherSizes )
+setSizesHelper( SizesHolder& holder, IndexTypes&&... otherSizes )
 {
-   holder.template setSize< level >( std::forward< Index >( size ) );
-   setSizesHelper< level + 1 >( holder, std::forward< IndexTypes >( otherSizes )... );
-}
+   static_assert( SizesHolder::getDimension() == sizeof...( otherSizes ), "invalid number of sizes passed to setSizesHelper" );
 
-template< std::size_t level = 0, typename SizesHolder, typename Index >
-void
-setSizesHelper( SizesHolder& holder, Index&& size )
-{
-   holder.template setSize< level >( std::forward< Index >( size ) );
+   Algorithms::staticFor< std::size_t, 0, sizeof...( otherSizes ) >(
+      [ &holder, &otherSizes... ]( auto i )
+      {
+         holder.template setSize< i >( detail::get_from_pack< i >( std::forward< IndexTypes >( otherSizes )... ) );
+      } );
 }
 
 // A variadic bounds-checker for indices
