@@ -133,8 +133,8 @@ public:
    void
    setBufferOffsets( int shift = 0 )
    {
-      constexpr int dim0 = getDimensionWithOverlap< 0 >();
-      const int overlap0 = array_view.template getOverlap< dim0 >();
+      const int dim0 = getDimensionWithOverlap< 0 >( array_view );
+      const int overlap0 = array_view.getOverlaps()[ dim0 ];
 
       const auto& localBegins = array_view.getLocalBegins();
       const auto& localEnds = array_view.getLocalEnds();
@@ -145,62 +145,44 @@ public:
          buffer.recv_offsets = {};
 
          if( ( direction & SyncDirection::Left ) != SyncDirection::None ) {
-            buffer.send_offsets.template setSize< dim0 >( -shift );
-            buffer.recv_offsets.template setSize< dim0 >( -overlap0 + shift );
+            buffer.send_offsets[ dim0 ] = -shift;
+            buffer.recv_offsets[ dim0 ] = -overlap0 + shift;
          }
          if( ( direction & SyncDirection::Right ) != SyncDirection::None ) {
-            buffer.send_offsets.template setSize< dim0 >( localEnds.template getSize< dim0 >()
-                                                          - localBegins.template getSize< dim0 >() - overlap0 + shift );
-            buffer.recv_offsets.template setSize< dim0 >( localEnds.template getSize< dim0 >()
-                                                          - localBegins.template getSize< dim0 >() - shift );
+            buffer.send_offsets[ dim0 ] = localEnds[ dim0 ] - localBegins[ dim0 ] - overlap0 + shift;
+            buffer.recv_offsets[ dim0 ] = localEnds[ dim0 ] - localBegins[ dim0 ] - shift;
          }
          if( ( direction & SyncDirection::Bottom ) != SyncDirection::None ) {
             if( countDimensionsWithOverlap( array_view ) >= 2 ) {
-               constexpr int dim1 = getDimensionWithOverlap< 1 >();
-               const int overlap1 = array_view.template getOverlap< dim1 >();
-               buffer.send_offsets.template setSize< dim1 >( -shift );
-               buffer.recv_offsets.template setSize< dim1 >( -overlap1 + shift );
+               const int dim1 = getDimensionWithOverlap< 1 >( array_view );
+               const int overlap1 = array_view.getOverlaps()[ dim1 ];
+               buffer.send_offsets[ dim1 ] = -shift;
+               buffer.recv_offsets[ dim1 ] = -overlap1 + shift;
             }
-            else
-               throw std::logic_error( "trying to use buffers for SyncDirection::Bottom, but the distributed array has "
-                                       "only 1 dimension with overlap" );
          }
          if( ( direction & SyncDirection::Top ) != SyncDirection::None ) {
             if( countDimensionsWithOverlap( array_view ) >= 2 ) {
-               constexpr int dim1 = getDimensionWithOverlap< 1 >();
-               const int overlap1 = array_view.template getOverlap< dim1 >();
-               buffer.send_offsets.template setSize< dim1 >( localEnds.template getSize< dim1 >()
-                                                             - localBegins.template getSize< dim1 >() - overlap1 + shift );
-               buffer.recv_offsets.template setSize< dim1 >( localEnds.template getSize< dim1 >()
-                                                             - localBegins.template getSize< dim1 >() - shift );
+               const int dim1 = getDimensionWithOverlap< 1 >( array_view );
+               const int overlap1 = array_view.getOverlaps()[ dim1 ];
+               buffer.send_offsets[ dim1 ] = localEnds[ dim1 ] - localBegins[ dim1 ] - overlap1 + shift;
+               buffer.recv_offsets[ dim1 ] = localEnds[ dim1 ] - localBegins[ dim1 ] - shift;
             }
-            else
-               throw std::logic_error( "trying to use buffers for SyncDirection::Top, but the distributed array has "
-                                       "only 1 dimension with overlap" );
          }
          if( ( direction & SyncDirection::Back ) != SyncDirection::None ) {
             if( countDimensionsWithOverlap( array_view ) == 3 ) {
-               constexpr int dim2 = getDimensionWithOverlap< 2 >();
-               const int overlap2 = array_view.template getOverlap< dim2 >();
-               buffer.send_offsets.template setSize< dim2 >( -shift );
-               buffer.recv_offsets.template setSize< dim2 >( -overlap2 + shift );
+               const int dim2 = getDimensionWithOverlap< 2 >( array_view );
+               const int overlap2 = array_view.getOverlaps()[ dim2 ];
+               buffer.send_offsets[ dim2 ] = -shift;
+               buffer.recv_offsets[ dim2 ] = -overlap2 + shift;
             }
-            else
-               throw std::logic_error( "trying to use buffers for SyncDirection::Back, but the distributed array has "
-                                       "only 1 or 2 dimensions with overlap" );
          }
          if( ( direction & SyncDirection::Front ) != SyncDirection::None ) {
             if( countDimensionsWithOverlap( array_view ) == 3 ) {
-               constexpr int dim2 = getDimensionWithOverlap< 2 >();
-               const int overlap2 = array_view.template getOverlap< dim2 >();
-               buffer.send_offsets.template setSize< dim2 >( localEnds.template getSize< dim2 >()
-                                                             - localBegins.template getSize< dim2 >() - overlap2 + shift );
-               buffer.recv_offsets.template setSize< dim2 >( localEnds.template getSize< dim2 >()
-                                                             - localBegins.template getSize< dim2 >() - shift );
+               const int dim2 = getDimensionWithOverlap< 2 >( array_view );
+               const int overlap2 = array_view.getOverlaps()[ dim2 ];
+               buffer.send_offsets[ dim2 ] = localEnds[ dim2 ] - localBegins[ dim2 ] - overlap2 + shift;
+               buffer.recv_offsets[ dim2 ] = localEnds[ dim2 ] - localBegins[ dim2 ] - shift;
             }
-            else
-               throw std::logic_error( "trying to use buffers for SyncDirection::Front, but the distributed array has "
-                                       "only 1 or 2 dimensions with overlap" );
          }
       }
    }
@@ -439,54 +421,39 @@ public:
    }
 
 protected:
-   int
-   countDimensionsWithOverlap( const DistributedNDArrayView& array_view ) const
+   static int
+   countDimensionsWithOverlap( const DistributedNDArrayView& array_view )
    {
       int count = 0;
-      Algorithms::staticFor< std::size_t, 0, DistributedNDArray::getDimension() >(
-         [ & ]( auto dim )
-         {
-            const int overlap = array_view.template getOverlap< dim >();
-            if( overlap > 0 )
-               count++;
-         } );
+      for( std::size_t dim = 0; dim < DistributedNDArray::getDimension(); dim++ ) {
+         const int overlap = array_view.getOverlaps()[ dim ];
+         if( overlap > 0 )
+            count++;
+      }
       return count;
    }
 
-   // FIXME: this can't be constexpr if we want dynamic overlaps :-(
    template< std::size_t order >
-   static constexpr int
-   getDimensionWithOverlap()
+   static int
+   getDimensionWithOverlap( const DistributedNDArrayView& array_view )
    {
-      // FIXME: we must return a valid index in [0, dimension) otherwise some other static_assert blows up...
-      //static_assert( order < DistributedNDArray::getDimension() );
+      // we must return a valid index in [0, dimension), even if order is invalid
       if constexpr( order >= DistributedNDArray::getDimension() )
          return 0;
 
-      // In C++17, a constexpr function must not contain "a definition of a variable for which no initialization is performed".
-      // This restriction is removed in C++20. Until then, we initialize the array using a lambda.
-      // Reference: https://stackoverflow.com/a/56383882
-      std::array< int, order + 1 > dims = []
-      {
-         auto a = decltype( dims ){};
-         for( std::size_t i = 0; i <= order; i++ )
-            a[ i ] = DistributedNDArray::getDimension();
-         return a;
-      }();
+      // find the order-th dimension that has overlap > 0
+      int i = 0;
+      for( std::size_t dim = 0; dim < DistributedNDArray::getDimension(); dim++ ) {
+         const int overlap = array_view.getOverlaps()[ dim ];
+         if( overlap > 0 ) {
+            if( i == order )
+               return dim;
+            i++;
+         }
+      }
 
-      std::size_t i = 0;
-      Algorithms::staticFor< int, 0, DistributedNDArray::getDimension() >(
-         [ & ]( auto dim )
-         {
-            // FIXME: we want dynamic overlaps!
-            constexpr int overlap = DistributedNDArrayView::OverlapsType::template getStaticSize< dim >();
-            if( overlap > 0 && i <= order && dim < dims[ i ] )
-               dims[ i++ ] = dim;
-         } );
-
-      //return dims[ order ];
-      // FIXME: we must return a valid index in [0, dimension) otherwise some other static_assert blows up...
-      return TNL::min( dims[ order ], DistributedNDArray::getDimension() - 1 );
+      // we must return a valid index in [0, dimension), even if order is invalid
+      return 0;
    }
 
    void
@@ -501,33 +468,33 @@ protected:
          if( ( direction & SyncDirection::Left ) != SyncDirection::None
              || ( direction & SyncDirection::Right ) != SyncDirection::None )
          {
-            constexpr int dim = getDimensionWithOverlap< 0 >();
-            const int overlap = array_view.template getOverlap< dim >();
-            bufferSize.template setSize< dim >( overlap );
+            const int dim = getDimensionWithOverlap< 0 >( array_view );
+            const int overlap = array_view.getOverlaps()[ dim ];
+            bufferSize[ dim ] = overlap;
          }
          if( ( direction & SyncDirection::Bottom ) != SyncDirection::None
              || ( direction & SyncDirection::Top ) != SyncDirection::None )
          {
             if( countDimensionsWithOverlap( array_view ) >= 2 ) {
-               constexpr int dim = getDimensionWithOverlap< 1 >();
-               const int overlap = array_view.template getOverlap< dim >();
-               bufferSize.template setSize< dim >( overlap );
+               const int dim = getDimensionWithOverlap< 1 >( array_view );
+               const int overlap = array_view.getOverlaps()[ dim ];
+               bufferSize[ dim ] = overlap;
             }
             else
-               throw std::logic_error( "trying to use buffers for SyncDirection::Top, but the distributed array has "
-                                       "only 1 dimension with overlap" );
+               // skip allocation if the array does not have overlap for these directions
+               continue;
          }
          if( ( direction & SyncDirection::Back ) != SyncDirection::None
              || ( direction & SyncDirection::Front ) != SyncDirection::None )
          {
             if( countDimensionsWithOverlap( array_view ) == 3 ) {
-               constexpr int dim = getDimensionWithOverlap< 2 >();
-               const int overlap = array_view.template getOverlap< dim >();
-               bufferSize.template setSize< dim >( overlap );
+               const int dim = getDimensionWithOverlap< 2 >( array_view );
+               const int overlap = array_view.getOverlaps()[ dim ];
+               bufferSize[ dim ] = overlap;
             }
             else
-               throw std::logic_error( "trying to use buffers for SyncDirection::Front, but the distributed array has "
-                                       "only 1 or 2 dimensions with overlap" );
+               // skip allocation if the array does not have overlap for these directions
+               continue;
          }
 
          // allocate buffers
