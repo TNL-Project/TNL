@@ -1,7 +1,6 @@
 #include <TNL/Containers/Block.h>
 
-#ifdef HAVE_GTEST
-   #include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 using namespace TNL;
 using namespace TNL::Containers;
@@ -292,7 +291,5 @@ TEST( BlockPartitioningTest, getInterfaceArea_in_3D )
       EXPECT_EQ( getInterfaceArea( blocks ), 6 );
    }
 }
-
-#endif
 
 #include "../main.h"

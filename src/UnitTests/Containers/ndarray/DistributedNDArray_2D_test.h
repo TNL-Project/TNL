@@ -1,10 +1,9 @@
-#ifdef HAVE_GTEST
-   #include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
-   #include <TNL/Containers/BlockPartitioning.h>
-   #include <TNL/Containers/DistributedNDArray.h>
-   #include <TNL/Containers/DistributedNDArrayView.h>
-   #include <TNL/Containers/ArrayView.h>
+#include <TNL/Containers/BlockPartitioning.h>
+#include <TNL/Containers/DistributedNDArray.h>
+#include <TNL/Containers/DistributedNDArrayView.h>
+#include <TNL/Containers/ArrayView.h>
 
 using namespace TNL;
 using namespace TNL::Containers;
@@ -57,13 +56,13 @@ using DistributedNDArrayTypes =
                                                   SizesHolder< int, 0, 0 >,     // X, Y
                                                   std::index_sequence< 0, 1 >,  // permutation - should not matter
                                                   Devices::Host > >
-   #ifdef __CUDACC__
+#ifdef __CUDACC__
                      ,
                      DistributedNDArray< NDArray< double,
                                                   SizesHolder< int, 0, 0 >,     // X, Y
                                                   std::index_sequence< 0, 1 >,  // permutation - should not matter
                                                   Devices::Cuda > >
-   #endif
+#endif
                      >;
 
 TYPED_TEST_SUITE( DistributedNDArray_2D_test, DistributedNDArrayTypes );
@@ -474,7 +473,5 @@ TYPED_TEST( DistributedNDArray_2D_test, forGhosts )
 {
    test_helper_forGhosts( this->distributedNDArray );
 }
-
-#endif  // HAVE_GTEST
 
 #include "../../main_mpi.h"

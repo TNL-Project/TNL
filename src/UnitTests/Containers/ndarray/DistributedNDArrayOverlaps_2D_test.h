@@ -1,11 +1,10 @@
-#ifdef HAVE_GTEST
-   #include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
-   #include <TNL/Containers/BlockPartitioning.h>
-   #include <TNL/Containers/DistributedNDArray.h>
-   #include <TNL/Containers/DistributedNDArrayView.h>
-   #include <TNL/Containers/DistributedNDArraySynchronizer.h>
-   #include <TNL/Containers/ArrayView.h>
+#include <TNL/Containers/BlockPartitioning.h>
+#include <TNL/Containers/DistributedNDArray.h>
+#include <TNL/Containers/DistributedNDArrayView.h>
+#include <TNL/Containers/DistributedNDArraySynchronizer.h>
+#include <TNL/Containers/ArrayView.h>
 
 using namespace TNL;
 using namespace TNL::Containers;
@@ -67,7 +66,7 @@ using DistributedNDArrayTypes =
                                                   Devices::Host,
                                                   int,
                                                   std::index_sequence< 2, 3 > > >  // overlaps
-   #ifdef __CUDACC__
+#ifdef __CUDACC__
                      ,
                      DistributedNDArray< NDArray< double,
                                                   SizesHolder< int, 0, 0 >,     // X, Y
@@ -75,7 +74,7 @@ using DistributedNDArrayTypes =
                                                   Devices::Cuda,
                                                   int,
                                                   std::index_sequence< 2, 3 > > >  // overlaps
-   #endif
+#endif
                      >;
 
 TYPED_TEST_SUITE( DistributedNDArrayOverlaps_2D_test, DistributedNDArrayTypes );
@@ -482,7 +481,5 @@ TYPED_TEST( DistributedNDArrayOverlaps_2D_test, synchronize_D2Q9 )
    test_helper_synchronize_D2Q9(
       this->distributedNDArray, this->globalSize, this->rank, this->decomposition, this->globalBlock );
 }
-
-#endif  // HAVE_GTEST
 
 #include "../../main_mpi.h"

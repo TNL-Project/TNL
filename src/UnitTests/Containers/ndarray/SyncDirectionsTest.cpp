@@ -1,7 +1,6 @@
-#ifdef HAVE_GTEST
-   #include "gtest/gtest.h"
+#include "gtest/gtest.h"
 
-   #include <TNL/Containers/DistributedNDArraySyncDirections.h>
+#include <TNL/Containers/DistributedNDArraySyncDirections.h>
 
 using namespace TNL::Containers;
 
@@ -39,7 +38,5 @@ TEST( SyncDirectionsTest, opposite )
    EXPECT_EQ( opposite( SyncDirection::FrontTopRight ), SyncDirection::BackBottomLeft );
    EXPECT_EQ( opposite( SyncDirection::BackTopRight ), SyncDirection::FrontBottomLeft );
 }
-
-#endif  // HAVE_GTEST
 
 #include "../../main.h"
