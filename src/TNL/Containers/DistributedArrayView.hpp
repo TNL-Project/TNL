@@ -256,10 +256,10 @@ template< typename Value, typename Device, typename Index >
 Value
 DistributedArrayView< Value, Device, Index >::getElement( IndexType i ) const
 {
-   // TODO: this works only when getElement is called from correct MPI process
-   // What to do otherwise? Throw an exception?
-   const IndexType li = localRange.getLocalIndex( i );
-   return localData.getElement( li );
+   if( localRange.isLocal( i ) )
+      return localData.getElement( localRange.getLocalIndex( i ) );
+   else
+      throw std::out_of_range( "DistributedArrayView: the given index is not local for this MPI process." );
 }
 
 template< typename Value, typename Device, typename Index >
