@@ -224,7 +224,7 @@ public:
    z() const noexcept;
 
    /**
-    * \brief Sets the value of the \e i-th element to \e v.
+    * \brief Sets the value of the \e i-th element to \e value.
     *
     * \param i The index of the element to be set.
     * \param value The new value of the element.
