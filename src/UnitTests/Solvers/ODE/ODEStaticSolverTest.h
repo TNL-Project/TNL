@@ -110,7 +110,17 @@ TYPED_TEST( ODEStaticSolverTest, ParallelLinearFunctionTest )
    using ODEMethodType = typename TestFixture::ODEMethodType;
    using SolverType = TNL::Solvers::ODE::ODESolver< ODEMethodType, DofContainerType >;
 
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Host >();
+#endif
+
+#ifdef __CUDACC__
+   ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Cuda >();
+#endif
+
+#ifdef __HIP__
+   ODEStaticSolverTest_ParallelLinearFunctionTest< DofContainerType, SolverType, TNL::Devices::Hip >();
+#endif
 }
 
 template< typename DofContainerType, typename SolverType >

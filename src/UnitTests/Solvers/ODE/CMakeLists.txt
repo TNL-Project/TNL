@@ -1,6 +1,7 @@
 set(COMMON_TESTS
    ODESolverTest_Euler
    ODESolverTest_Merson
+   StaticODESolverTest_Merson # This is to test the static ODE solver for CUDA and HIP
 )
 
 set(CPP_TESTS
@@ -13,7 +14,6 @@ set(CPP_TESTS
    StaticODESolverTest_Heun2
    StaticODESolverTest_Heun3
    StaticODESolverTest_Kutta
-   StaticODESolverTest_Merson
    StaticODESolverTest_Midpoint
    StaticODESolverTest_Ralston2
    StaticODESolverTest_Ralston3
@@ -21,9 +21,6 @@ set(CPP_TESTS
    StaticODESolverTest_Rule38
    StaticODESolverTest_SSPRK3
    StaticODESolverTest_VanDerHouwenWray
-)
-
-set(CUDA_TESTS
 )
 
 if(TNL_BUILD_CUDA)

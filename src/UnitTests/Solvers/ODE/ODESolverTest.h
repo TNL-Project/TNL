@@ -61,7 +61,6 @@ TYPED_TEST( ODESolverTest, LinearFunctionTest )
 
    Real exact_solution = 0.5 * final_time * final_time;
    EXPECT_NEAR( TNL::max( TNL::abs( u - exact_solution ) ), (Real) 0.0, 0.1 );
-   //std::cout << u << std::endl;
 }
 
 #include "../../main.h"
