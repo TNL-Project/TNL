@@ -1,7 +1,6 @@
 #include <TNL/Containers/BlockPartitioning.h>
 
-#ifdef HAVE_GTEST
-   #include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 using namespace TNL;
 using namespace TNL::Containers;
@@ -339,7 +338,5 @@ TEST( BlockPartitioningTest, decomposeBlockOptimal_along_x )
    EXPECT_EQ( result[ 2 ].begin, idx3d( 200, global.begin.y(), global.begin.z() ) );
    EXPECT_EQ( result[ 2 ].end, global.end );
 }
-
-#endif
 
 #include "../main.h"
