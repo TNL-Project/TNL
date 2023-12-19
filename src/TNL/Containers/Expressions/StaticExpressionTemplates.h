@@ -482,6 +482,13 @@ any( const ET1& a )
    return StaticExpressionAny( a );
 }
 
+template< typename ET1, typename..., EnableIfStaticUnaryExpression_t< ET1, bool > = true >
+constexpr auto
+argAny( const ET1& a )
+{
+   return StaticExpressionArgAny( a );
+}
+
 ////
 // Comparison operator ==
 template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
@@ -526,12 +533,7 @@ operator!=( const ET1& a, const ET2& b )
 
 ////
 // Lexicographical comparison operators
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
 constexpr bool
 operator<( const ET1& a, const ET2& b )
 {
@@ -544,12 +546,7 @@ operator<( const ET1& a, const ET2& b )
    return false;
 }
 
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
 constexpr bool
 operator<=( const ET1& a, const ET2& b )
 {
@@ -562,12 +559,7 @@ operator<=( const ET1& a, const ET2& b )
    return true;
 }
 
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
 constexpr bool
 operator>( const ET1& a, const ET2& b )
 {
@@ -580,12 +572,7 @@ operator>( const ET1& a, const ET2& b )
    return false;
 }
 
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template< typename ET1, typename ET2, typename..., EnableIfStaticBinaryExpression_t< ET1, ET2, bool > = true >
 constexpr bool
 operator>=( const ET1& a, const ET2& b )
 {

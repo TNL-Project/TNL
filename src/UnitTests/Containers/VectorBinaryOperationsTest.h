@@ -767,6 +767,73 @@ TYPED_TEST( VectorBinaryOperationsTest, maximum )
 
 // TODO: tests for operators &&, ||, &, |, ^
 
+TYPED_TEST( VectorBinaryOperationsTest, lexicographicComparison )
+{
+   SETUP_BINARY_TEST_ALIASES;
+   using Index = typename TestFixture::Left::IndexType;
+
+   this->reset( VECTOR_TEST_REDUCTION_SIZE );
+#ifdef STATIC_VECTOR
+   const Index size = this->L1.getSize();
+   const Index step = 1;
+#else
+   const Index size = VECTOR_TEST_REDUCTION_SIZE;
+   const Index step = VECTOR_TEST_REDUCTION_SIZE / 5;
+#endif
+   for( Index idx = 0; idx < size; idx += step ) {
+#ifdef STATIC_VECTOR
+      setPerturbedConstantSequence( this->L1, 1, idx, 2 );
+      setConstantSequence( this->R1, 1 );
+
+      typename TestFixture::Left& L( this->L1 );
+      typename TestFixture::Right& R( this->R1 );
+#else
+      // we have to use _L1 and _R1 because L1 and R1 might be a const view
+      setPerturbedConstantSequence( this->_L1, 1, idx, 2 );
+      setConstantSequence( this->_R1, 1 );
+
+      typename TestFixture::Left L( this->_L1 );
+      typename TestFixture::Right R( this->_R1 );
+#endif
+
+#if ! defined( STATIC_VECTOR ) && ! defined( DISTRIBUTED_VECTOR )
+      using LeftDeviceType = typename TestFixture::Left::DeviceType;
+      // test with std::lexicographical_compare
+      if constexpr( std::is_same_v< LeftDeviceType, TNL::Devices::Host > ) {
+         std::vector< std::remove_cv_t< typename TestFixture::Left::ValueType > > L_v( L.getSize() );
+         std::vector< std::remove_cv_t< typename TestFixture::Right::ValueType > > R_v( R.getSize() );
+         for( Index i = 0; i < L.getSize(); ++i ) {
+            L_v[ i ] = L[ i ];
+            R_v[ i ] = R[ i ];
+         }
+         EXPECT_TRUE( std::lexicographical_compare( R_v.begin(), R_v.end(), L_v.begin(), L_v.end() ) );
+      }
+#endif
+
+      EXPECT_GT( L, R );
+      EXPECT_LT( R, L );
+      EXPECT_GE( L, R );
+      EXPECT_LE( R, L );
+   }
+
+#ifdef STATIC_VECTOR
+   setConstantSequence( this->L1, 1 );
+   setConstantSequence( this->R1, 1 );
+
+   typename TestFixture::Left& L( this->L1 );
+   typename TestFixture::Right& R( this->R1 );
+#else
+   // we have to use _L1 and _R1 because L1 and R1 might be a const view
+   setConstantSequence( this->_L1, 1 );
+   setConstantSequence( this->_R1, 1 );
+
+   typename TestFixture::Left L( this->_L1 );
+   typename TestFixture::Right R( this->_R1 );
+#endif
+   EXPECT_GE( L, R );
+   EXPECT_LE( R, L );
+}
+
 #if( defined( __CUDACC__ ) || defined( __HIP__ ) ) && ! defined( STATIC_VECTOR )
 TYPED_TEST( VectorBinaryOperationsTest, comparisonOnDifferentDevices )
 {

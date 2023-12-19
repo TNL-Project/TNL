@@ -224,10 +224,27 @@ public:
    z() const noexcept;
 
    /**
+    * \brief Sets the value of the \e i-th element to \e value.
+    *
+    * \param i The index of the element to be set.
+    * \param value The new value of the element.
+    */
+   constexpr void
+   setElement( IndexType i, ValueType value ) noexcept;
+
+   /**
+    * \brief Returns the value of the \e i-th element.
+    *
+    * \param i The index of the element to be returned.
+    */
+   [[nodiscard]] constexpr Value
+   getElement( IndexType i ) const noexcept;
+
+   /**
     * \brief Copy-assignment operator.
     */
    // NOTE: as of nvcc 11.8, the default/implicit copy-assignment operator for std::array (which is based on aggregate
-   // initialization) does not work correctly in device code, so we must defaine our own copy-constructor
+   // initialization) does not work correctly in device code, so we must define our own copy-constructor
    constexpr StaticArray&
    operator=( const StaticArray& v );
 

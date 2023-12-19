@@ -623,6 +623,13 @@ any( const ET1& a )
    return DistributedExpressionAny( a );
 }
 
+template< typename ET1, typename..., EnableIfDistributedUnaryExpression_t< ET1, bool > = true >
+auto
+argAny( const ET1& a )
+{
+   return DistributedExpressionArgAny( a );
+}
+
 ////
 // Comparison operator ==
 template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpression_t< ET1, ET2, bool > = true >
@@ -666,6 +673,80 @@ bool
 operator!=( const ET1& a, const ET2& b )
 {
    return ! operator==( a, b );
+}
+
+////
+// Lexicographical comparison operators
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator<( const ET1& a, const ET2& b )
+{
+   // TODO: The use of `argAny` might not be the most efficient. It might be
+   // better to implement some function like `findFirst` for this purpose.
+   auto [ notEqual, idx ] = argAny( notEqualTo( a, b ) );
+   if( notEqual ) {
+      auto range = a.getLocalRange();
+      bool localResult = false;
+      if( idx >= range.getBegin() && idx < range.getEnd() )
+         localResult = ( a.getElement( idx ) < b.getElement( idx ) );
+      bool result = false;
+      MPI::Allreduce( &localResult, &result, 1, MPI_LOR, a.getCommunicator() );
+      return result;
+   }
+   return false;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator<=( const ET1& a, const ET2& b )
+{
+   return ! operator>( a, b );
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator>( const ET1& a, const ET2& b )
+{
+   // TODO: The use of `argAny` might not be the most efficient. It might be
+   // better to implement some function like `findFirst` for this purpose.
+   auto [ notEqual, idx ] = argAny( notEqualTo( a, b ) );
+   if( notEqual ) {
+      auto range = a.getLocalRange();
+      bool localResult = false;
+      if( idx >= range.getBegin() && idx < range.getEnd() )
+         localResult = ( a.getElement( idx ) > b.getElement( idx ) );
+      bool result = false;
+      MPI::Allreduce( &localResult, &result, 1, MPI_LOR, a.getCommunicator() );
+      return result;
+   }
+   return false;
+}
+
+template< typename ET1,
+          typename ET2,
+          typename...,
+          std::enable_if_t< HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
+                               && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
+                            bool > = true >
+constexpr bool
+operator>=( const ET1& a, const ET2& b )
+{
+   return ! operator<( a, b );
 }
 
 ////
@@ -731,6 +812,10 @@ using Expressions::operator^;
 using Expressions::operator, ;
 using Expressions::operator==;
 using Expressions::operator!=;
+using Expressions::operator<;
+using Expressions::operator<=;
+using Expressions::operator>;
+using Expressions::operator>=;
 
 using Expressions::equalTo;
 using Expressions::greater;
@@ -745,6 +830,7 @@ using Expressions::acos;
 using Expressions::acosh;
 using Expressions::all;
 using Expressions::any;
+using Expressions::argAny;
 using Expressions::argMax;
 using Expressions::argMin;
 using Expressions::asin;
@@ -788,6 +874,7 @@ using Containers::acos;
 using Containers::acosh;
 using Containers::all;
 using Containers::any;
+using Containers::argAny;
 using Containers::argMax;
 using Containers::argMin;
 using Containers::asin;

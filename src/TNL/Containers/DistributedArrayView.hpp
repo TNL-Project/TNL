@@ -248,16 +248,18 @@ template< typename Value, typename Device, typename Index >
 void
 DistributedArrayView< Value, Device, Index >::setElement( IndexType i, ValueType value )
 {
-   const IndexType li = localRange.getLocalIndex( i );
-   localData.setElement( li, value );
+   if( localRange.isLocal( i ) )
+      localData.setElement( localRange.getLocalIndex( i ), value );
 }
 
 template< typename Value, typename Device, typename Index >
 Value
 DistributedArrayView< Value, Device, Index >::getElement( IndexType i ) const
 {
-   const IndexType li = localRange.getLocalIndex( i );
-   return localData.getElement( li );
+   if( localRange.isLocal( i ) )
+      return localData.getElement( localRange.getLocalIndex( i ) );
+   else
+      throw std::out_of_range( "DistributedArrayView: the given index is not local for this MPI process." );
 }
 
 template< typename Value, typename Device, typename Index >

@@ -36,6 +36,14 @@ setConstantSequence( Vector& deviceVector, Value v )
    deviceVector.setValue( typename Vector::ValueType( v ) );
 }
 
+template< typename Vector, typename Value, typename Index >
+void
+setPerturbedConstantSequence( Vector& deviceVector, Value v, Index perturbation_position, Value perturbation_value )
+{
+   deviceVector.setValue( typename Vector::ValueType( v ) );
+   deviceVector.setElement( perturbation_position, typename Vector::ValueType( perturbation_value ) );
+}
+
 template< typename Vector >
 void
 setOscilatingLinearSequence( Vector& deviceVector )

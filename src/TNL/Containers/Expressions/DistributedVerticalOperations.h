@@ -190,4 +190,47 @@ DistributedExpressionAny( const Expression& expression ) -> std::decay_t< declty
    return result;
 }
 
+template< typename Expression >
+auto
+DistributedExpressionArgAny( const Expression& expression )
+   -> std::pair< std::decay_t< decltype( expression[ 0 ] ) >, typename Expression::IndexType >
+{
+   using RealType = std::decay_t< decltype( expression[ 0 ] ) >;
+   using IndexType = typename Expression::IndexType;
+   using ResultType = std::pair< RealType, IndexType >;
+
+   ResultType result( -1, false );
+   const MPI::Comm& communicator = expression.getCommunicator();
+   if( communicator != MPI_COMM_NULL ) {
+      // compute local argAny
+      // TODO: This use of `reduceWithArg` might not be the most efficient. It might be
+      // better to implement some function like `findFirst` for this purpose.
+      ResultType localResult = Algorithms::reduceWithArgument( expression.getConstLocalView(), TNL::AnyWithArg{} );
+      // transform local index to global index
+      localResult.second += expression.getLocalRange().getBegin();
+
+      // scatter local result to all processes and gather their results
+      const int nproc = MPI::GetSize( communicator );
+      std::unique_ptr< ResultType[] > dataForScatter{ new ResultType[ nproc ] };
+      for( int i = 0; i < nproc; i++ )
+         dataForScatter[ i ] = localResult;
+      std::unique_ptr< ResultType[] > gatheredResults{ new ResultType[ nproc ] };
+      // NOTE: exchanging general data types does not work with MPI
+      // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
+      MPI::Alltoall( (char*) dataForScatter.get(),
+                     sizeof( ResultType ),
+                     (char*) gatheredResults.get(),
+                     sizeof( ResultType ),
+                     communicator );
+
+      auto fetch = [ &gatheredResults ]( IndexType i )
+      {
+         return gatheredResults[ i ].first;
+      };
+      result = Algorithms::reduceWithArgument< Devices::Host >( (IndexType) 0, (IndexType) nproc, fetch, TNL::AnyWithArg{} );
+      result.second = gatheredResults[ result.second ].second;
+   }
+   return result;
+}
+
 }  // namespace TNL::Containers::Expressions

@@ -338,6 +338,36 @@ struct MaxWithArg
    }
 };
 
+/**
+ * \brief Function object implementing `argany(x, y, i, j)` for use with \ref TNL::Algorithms::reduceWithArgument.
+ */
+struct AnyWithArg
+{
+   /**
+    * \brief Returns the [identity element](https://en.wikipedia.org/wiki/Identity_element) of the operation.
+    *
+    * Suitable for \ref TNL::Algorithms::reduce.
+    */
+   template< typename T >
+   static constexpr T
+   getIdentity()
+   {
+      return false;
+   }
+
+   template< typename Index >
+   constexpr void
+   operator()( bool& lhs, const bool& rhs, Index& lhsIdx, const Index& rhsIdx ) const
+   {
+      if( ! lhs && rhs ) {
+         lhs = true;
+         lhsIdx = rhsIdx;
+      }
+      else if( lhs && rhs && rhsIdx < lhsIdx )
+         lhsIdx = rhsIdx;
+   }
+};
+
 #define TNL_MAKE_UNARY_FUNCTIONAL( name, function )               \
    struct name                                                    \
    {                                                              \
