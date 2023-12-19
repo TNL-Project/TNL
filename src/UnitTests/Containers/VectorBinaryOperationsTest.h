@@ -795,6 +795,21 @@ TYPED_TEST( VectorBinaryOperationsTest, lexicographicComparison )
       typename TestFixture::Left L( this->_L1 );
       typename TestFixture::Right R( this->_R1 );
 #endif
+
+#if ! defined( STATIC_VECTOR ) && ! defined( DISTRIBUTED_VECTOR )
+      using LeftDeviceType = typename TestFixture::Left::DeviceType;
+      // test with std::lexicographical_compare
+      if constexpr( std::is_same_v< LeftDeviceType, TNL::Devices::Host > ) {
+         std::vector< std::remove_cv_t< typename TestFixture::Left::ValueType > > L_v( L.getSize() );
+         std::vector< std::remove_cv_t< typename TestFixture::Right::ValueType > > R_v( R.getSize() );
+         for( Index i = 0; i < L.getSize(); ++i ) {
+            L_v[ i ] = L[ i ];
+            R_v[ i ] = R[ i ];
+         }
+         EXPECT_TRUE( std::lexicographical_compare( R_v.begin(), R_v.end(), L_v.begin(), L_v.end() ) );
+      }
+#endif
+
       EXPECT_GT( L, R );
       EXPECT_LT( R, L );
       EXPECT_GE( L, R );
