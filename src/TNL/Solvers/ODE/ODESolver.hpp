@@ -17,7 +17,8 @@
 namespace TNL::Solvers::ODE {
 
 ////
-// Specialization for static vectors and numbers
+// Specialization for static vectors
+
 template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
 ODESolver< Method, Value, SolverMonitor, true >::ODESolver()
@@ -107,7 +108,8 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
    /////
    // Start the main loop
    while( this->checkNextIteration() ) {
-      detail::ODESolverEvaluator< Method >::computeKVectors( k_vectors, time, currentTau, u, kAux, rhsFunction, params... );
+      detail::StaticODESolverEvaluator< Method >::computeKVectors(
+         k_vectors, time, currentTau, u, kAux, rhsFunction, params... );
 
       /////
       // Compute an error of the approximation.

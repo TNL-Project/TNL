@@ -71,6 +71,61 @@ struct ErrorCoefficientsProxy
 template< typename Method,
           typename Stage = std::integral_constant< size_t, 0 >,
           typename Stages = std::integral_constant< size_t, Method::getStages() > >
+struct StaticODESolverEvaluator
+{
+   template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
+   static void __cuda_callable__
+   computeKVectors( std::array< VectorView, Stages::value >& k,
+                    const Value& time,
+                    const Value& currentTau,
+                    const ConstVectorView& u,
+                    VectorView aux,
+                    RHSFunction&& rhsFunction,
+                    Params&&... params )
+   {
+      static_assert( IsStaticArrayType< VectorView >::value, "VectorView must be a static array type" );
+      if constexpr( Stage::value == 0 ) {  // k[ 0 ] = f( t, u )
+         rhsFunction(
+            time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, u, k[ Stage::value ], params... );
+         StaticODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors(
+            k, time, currentTau, u, aux, rhsFunction, params... );
+      }
+      else {
+         using Coefficients = CoefficientsProxy< Method, Stage::value >;
+         using Formula = Containers::Expressions::LinearCombination< Coefficients, VectorView >;
+         aux = u + currentTau * Formula::evaluateArray( k );
+         rhsFunction(
+            time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ], params... );
+         StaticODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors(
+            k, time, currentTau, u, aux, rhsFunction, params... );
+      }
+   }
+};
+
+template< typename Method >
+struct StaticODESolverEvaluator< Method,
+                                 std::integral_constant< size_t, Method::getStages() >,
+                                 std::integral_constant< size_t, Method::getStages() > >
+{
+   static constexpr size_t Stages = Method::getStages();
+
+   template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
+   static void __cuda_callable__
+   computeKVectors( std::array< VectorView, Stages >& k_vectors,
+                    const Value& time,
+                    const Value& currentTau,
+                    const ConstVectorView& u,
+                    const VectorView& aux,
+                    RHSFunction&& rhsFunction,
+                    Params&&... params )
+   {}
+};
+
+/////
+// Dynamic ODE solver evaluator
+template< typename Method,
+          typename Stage = std::integral_constant< size_t, 0 >,
+          typename Stages = std::integral_constant< size_t, Method::getStages() > >
 struct ODESolverEvaluator
 {
    template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
@@ -83,6 +138,7 @@ struct ODESolverEvaluator
                     RHSFunction&& rhsFunction,
                     Params&&... params )
    {
+      static_assert( ! IsStaticArrayType< VectorView >::value, "VectorView must NOT be a static array type" );
       if constexpr( Stage::value == 0 ) {  // k[ 0 ] = f( t, u )
          rhsFunction(
             time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, u, k[ Stage::value ], params... );
