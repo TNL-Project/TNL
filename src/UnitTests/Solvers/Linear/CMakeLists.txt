@@ -1,4 +1,4 @@
-set(COMMON_TESTS)
+set(COMMON_TESTS GEMSolverTest)
 
 set(CPP_TESTS UmfpackWrapperTest)
 
