@@ -234,7 +234,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
    TNL_ASSERT_EQ( matrix1.getColumns(), matrix2.getRows(), "invalid dimensions of input matrices" );
    setDimensions( matrix1.getRows(), matrix2.getColumns() );
 
-   if constexpr( std::is_same_v< Device, Devices::Host > ) {
+   if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > ) {
       for( Index i = 0; i < this->getRows(); i += tileDim )
          for( Index j = 0; j < this->getColumns(); j += tileDim ) {
             const Index tileRows = min( tileDim, this->getRows() - i );
