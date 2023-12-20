@@ -1,4 +1,4 @@
-set( PROJECT_NAME  smallEigenIterationRandomDense bigEigenIterationRandomDense bigEigenIterationRandomSparse smallEigenIterationShiftRandomDense eigenIterationFileSparse)
+set( PROJECT_NAME  smallEigenIterationRandomDense bigEigenIterationRandomDense bigEigenIterationRandomSparse smallEigenIterationShiftRandomDense eigenIterationFileSparse eigenQR)
 
 if(TNL_BUILD_CUDA)
    foreach( target IN ITEMS ${PROJECT_NAME} )
