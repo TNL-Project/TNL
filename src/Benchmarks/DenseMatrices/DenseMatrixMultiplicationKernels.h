@@ -81,7 +81,7 @@ namespace TNL::Benchmarks::DenseMatrices {
          if( matrixCRow < matrixCRows && matrixCColumn < matrixCColumns )
             resultMatrix( matrixCRow, matrixCColumn ) = tileC[ ( row + threadIdx.y ) * tileDim + threadIdx.x ];
       }
-#endif
+#endif //__CUDACC__
    }
 
    //kernel 2 (Optimizes the calculation of the linear thread index to access elements in the shared memory)
@@ -148,7 +148,7 @@ namespace TNL::Benchmarks::DenseMatrices {
       const IndexType& matrixCColumns = resultMatrix.getColumns();
       if( resultTileRow + row < matrixCRows && resultTileColumn + col < matrixCColumns )
          resultMatrix( resultTileRow + row, resultTileColumn + col ) = tileC[ row * tileDim + col ];
-#endif
+#endif //__CUDACC__
    }
 
    //kernel 3 (Optimizes memory access patterns using 2D shared memory arrays instead of 1D arrays)
@@ -217,7 +217,7 @@ namespace TNL::Benchmarks::DenseMatrices {
 
       if (resultTileRow + threadIdx.y < matrixCRows && resultTileColumn + threadIdx.x < matrixCColumns)
          resultMatrix(resultTileRow + threadIdx.y, resultTileColumn + threadIdx.x) = tileC[threadIdx.y][threadIdx.x];
-#endif
+#endif //__CUDACC__
    }
 
    //kernel 4 (each warp is responsible for computing a subset of a tile)
@@ -267,7 +267,7 @@ namespace TNL::Benchmarks::DenseMatrices {
       // Write the result to the global memory
       if (row < resultMatrix.getRows() && col < resultMatrix.getColumns())
          resultMatrix(row, col) = CValue * matrixMultiplicator;
-#endif
+#endif //__CUDACC__
    }
 
    //kernel 5 (padding in shared memory to reduce conflicts in shared memory)
@@ -312,8 +312,77 @@ namespace TNL::Benchmarks::DenseMatrices {
 
       if (row < resultMatrix.getRows() && col < resultMatrix.getColumns())
          resultMatrix(row, col) = CValue * matrixMultiplicator;
-#endif
+#endif //__CUDACC__
    }
+
+
+
+   //kernel 6 (Fermi, adapted for column-major matrices)
+   template<int tileDim, int blockSize, typename ResultMatrix, typename Matrix1, typename Matrix2>
+   __global__ void optimizedFermiGemmKernel(ResultMatrix resultMatrix,
+                                        const Matrix1 matrixA,
+                                        const Matrix2 matrixB,
+                                        const typename ResultMatrix::RealType matrixMultiplicator) {
+#ifdef __CUDACC__
+    // Define shared memory tiles
+    __shared__ typename ResultMatrix::RealType tileA[tileDim][tileDim];
+    __shared__ typename ResultMatrix::RealType tileB[tileDim][tileDim];
+
+    int bx = blockIdx.x, by = blockIdx.y;
+    int tx = threadIdx.x, ty = threadIdx.y;
+
+    // Calculate the row and column index for the element to be computed in the result matrix
+    int row = by * blockSize + ty;
+    int col = bx * blockSize + tx;
+
+    typename ResultMatrix::RealType CValue[4][4] = {0};
+
+   // Loop over the tiles of A and B matrices
+   for (int m = 0; m < (tileDim + matrixA.getColumns() - 1) / tileDim; ++m) {
+      // Load tiles from A and B into shared memory
+      int aRow = m * tileDim + ty;
+      int aCol = col;
+      int bRow = row;
+      int bCol = m * tileDim + tx;
+
+      // Adjust for column-major order
+      if (aRow < matrixA.getRows() && aCol < matrixA.getColumns()) {
+         tileA[ty][tx] = matrixA(aRow, aCol);
+      } else {
+         tileA[ty][tx] = 0.0;
+      }
+
+      if (bRow < matrixB.getRows() && bCol < matrixB.getColumns()) {
+         tileB[ty][tx] = matrixB(bRow, bCol);
+      } else {
+         tileB[ty][tx] = 0.0;
+      }
+
+      __syncthreads();
+
+      // Register blocking computation
+      for (int k = 0; k < tileDim; ++k) {
+         for (int i = 0; i < 4; ++i) {
+               for (int j = 0; j < 4; ++j) {
+                  CValue[i][j] += tileA[ty + i * (blockSize / 4)][k] * tileB[k][tx + j * (blockSize / 4)];
+               }
+         }
+      }
+
+      __syncthreads();
+   }
+
+   // Write the result to the global memory
+   for (int i = 0; i < 4; ++i) {
+      for (int j = 0; j < 4; ++j) {
+         int cRow = row + i * (blockSize / 4);
+         int cCol = col + j * (blockSize / 4);
+         if (cRow < resultMatrix.getRows() && cCol < resultMatrix.getColumns()) {
+               resultMatrix(cRow, cCol) = CValue[i][j] * matrixMultiplicator;
+         }
+      }
+   }
+#endif // __CUDACC__
 }
 
-
+}
