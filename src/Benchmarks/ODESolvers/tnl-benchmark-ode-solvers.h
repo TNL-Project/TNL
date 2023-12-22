@@ -71,14 +71,14 @@ struct ODESolversBenchmark
       using VectorView = typename VectorType::ViewType;
 
       std::string device = "host";
-      if( std::is_same< DeviceType, Devices::Cuda >::value ) {
+      if( std::is_same_v< DeviceType, Devices::Cuda > ) {
          device = "cuda";
       }
 
       double adaptivity = parameters.getParameter< double >( "adaptivity" );
       SolverType solver;
-      if constexpr( ! std::is_same< SolverType, Euler< VectorType, SolverMonitorType > >::value
-                    && ! std::is_same< SolverType, TNL::Benchmarks::EulerNonET< VectorType, SolverMonitorType > >::value )
+      if constexpr( ! std::is_same_v< SolverType, Euler< VectorType, SolverMonitorType > >
+                    && ! std::is_same_v< SolverType, TNL::Benchmarks::EulerNonET< VectorType, SolverMonitorType > > )
          solver.setAdaptivity( adaptivity );
 
       RealType tau = 0.5;
