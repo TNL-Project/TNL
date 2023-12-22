@@ -49,7 +49,7 @@ public:
       using RowView = typename SubentityMatrixType::RowView;
 
    public:
-      EntitySeedMatrixSeed( const RowView& matrixRow ) : row( matrixRow ) {}
+      EntitySeedMatrixSeed( RowView matrixRow ) : row( std::move( matrixRow ) ) {}
 
       [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
@@ -106,7 +106,7 @@ public:
       using ConstRowView = typename SubentityMatrixType::ConstRowView;
 
    public:
-      ConstEntitySeedMatrixSeed( const ConstRowView& matrixRow ) : row( matrixRow ) {}
+      ConstEntitySeedMatrixSeed( ConstRowView matrixRow ) : row( std::move( matrixRow ) ) {}
 
       [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
@@ -226,7 +226,7 @@ public:
       using RowView = typename SubentityMatrixType::RowView;
 
    public:
-      EntitySeedMatrixSeed( const RowView& matrixRow ) : row( matrixRow ) {}
+      EntitySeedMatrixSeed( RowView matrixRow ) : row( std::move( matrixRow ) ) {}
 
       [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
@@ -260,7 +260,7 @@ public:
       using ConstRowView = typename SubentityMatrixType::ConstRowView;
 
    public:
-      ConstEntitySeedMatrixSeed( const ConstRowView& matrixRow ) : row( matrixRow ) {}
+      ConstEntitySeedMatrixSeed( ConstRowView matrixRow ) : row( std::move( matrixRow ) ) {}
 
       [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
@@ -380,8 +380,8 @@ public:
       using RowView = typename SubentityMatrixType::RowView;
 
    public:
-      EntitySeedMatrixSeed( const RowView& matrixRow, const LocalIndexType& corners )
-      : row( matrixRow ), cornersCount( corners )
+      EntitySeedMatrixSeed( RowView matrixRow, LocalIndexType corners )
+      : row( std::move( matrixRow ) ), cornersCount( std::move( corners ) )
       {}
 
       [[nodiscard]] LocalIndexType
@@ -417,8 +417,8 @@ public:
       using ConstRowView = typename SubentityMatrixType::ConstRowView;
 
    public:
-      ConstEntitySeedMatrixSeed( const ConstRowView& matrixRow, const LocalIndexType& corners )
-      : row( matrixRow ), cornersCount( corners )
+      ConstEntitySeedMatrixSeed( ConstRowView matrixRow, LocalIndexType corners )
+      : row( std::move( matrixRow ) ), cornersCount( std::move( corners ) )
       {}
 
       [[nodiscard]] LocalIndexType
