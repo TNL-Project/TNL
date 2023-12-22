@@ -116,12 +116,12 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
       RealType error( 0.0 );
       if constexpr( Method::isAdaptive() )
          if( this->adaptivity )
-            error = currentTau * max( abs( ErrorExpression::evaluateArray( k_vectors ) ) );
+            error = currentTau * max( abs( ErrorExpression::evaluate( k_vectors ) ) );
 
       if( this->adaptivity == 0.0 || error < this->adaptivity ) {
          RealType lastResidue = this->getResidue();
 
-         this->setResidue( addAndReduceAbs( u, currentTau * UpdateExpression::evaluateArray( k_vectors ), TNL::Plus{}, 0.0 )
+         this->setResidue( addAndReduceAbs( u, currentTau * UpdateExpression::evaluate( k_vectors ), TNL::Plus{}, 0.0 )
                            / currentTau );
          time += currentTau;
 
@@ -248,12 +248,12 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
       RealType error( 0.0 );
       if constexpr( Method::isAdaptive() )
          if( this->adaptivity )
-            error = currentTau * max( abs( ErrorExpression::evaluateArray( k_vectors ) ) );
+            error = currentTau * max( abs( ErrorExpression::evaluate( k_vectors ) ) );
 
       if( this->adaptivity == 0.0 || error < this->adaptivity ) {
          RealType lastResidue = this->getResidue();
 
-         this->setResidue( addAndReduceAbs( u, currentTau * UpdateExpression::evaluateArray( k_vectors ), TNL::Plus{}, 0.0 )
+         this->setResidue( addAndReduceAbs( u, currentTau * UpdateExpression::evaluate( k_vectors ), TNL::Plus{}, 0.0 )
                            / ( currentTau * (RealType) u.getSize() ) );
          time += currentTau;
 

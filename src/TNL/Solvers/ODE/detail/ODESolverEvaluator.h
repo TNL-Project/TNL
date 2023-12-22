@@ -93,7 +93,7 @@ struct StaticODESolverEvaluator
       else {
          using Coefficients = CoefficientsProxy< Method, Stage::value >;
          using Formula = Containers::Expressions::LinearCombination< Coefficients, VectorView >;
-         aux = u + currentTau * Formula::evaluateArray( k );
+         aux = u + currentTau * Formula::evaluate( k );
          rhsFunction(
             time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ], params... );
          StaticODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors(
@@ -148,7 +148,7 @@ struct ODESolverEvaluator
       else {
          using Coefficients = CoefficientsProxy< Method, Stage::value >;
          using Formula = Containers::Expressions::LinearCombination< Coefficients, VectorView >;
-         aux = u + currentTau * Formula::evaluateArray( k );
+         aux = u + currentTau * Formula::evaluate( k );
          rhsFunction(
             time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ], params... );
          ODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors(

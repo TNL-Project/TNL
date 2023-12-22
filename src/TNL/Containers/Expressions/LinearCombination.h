@@ -67,7 +67,7 @@ struct LinearCombination< Coefficients, Vector, false >
     * \return expression template representing the linear combination.
     */
    static ResultType
-   evaluateArray( const std::array< Vector, Size >& vectors )
+   evaluate( const std::array< Vector, Size >& vectors )
    {
       return detail::LinearCombinationEvaluation< Coefficients,
                                                   Vector,
@@ -110,7 +110,7 @@ struct LinearCombination< Coefficients, Vector, true >
     */
    __cuda_callable__
    static ResultType
-   evaluateArray( const std::array< Vector, Size >& vectors )
+   evaluate( const std::array< Vector, Size >& vectors )
    {
       return detail::LinearCombinationEvaluation< Coefficients,
                                                   Vector,
