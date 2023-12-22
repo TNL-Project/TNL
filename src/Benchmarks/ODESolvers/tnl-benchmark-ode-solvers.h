@@ -28,11 +28,11 @@
 #include <TNL/Solvers/ODE/Methods/Kutta.h>
 #include <TNL/Solvers/ODE/Methods/Merson.h>
 #include <TNL/Solvers/ODE/Methods/Midpoint.h>
+#include <TNL/Solvers/ODE/Methods/OriginalRungeKutta.h>
 #include <TNL/Solvers/ODE/Methods/Ralston2.h>
 #include <TNL/Solvers/ODE/Methods/Ralston3.h>
 #include <TNL/Solvers/ODE/Methods/Ralston4.h>
 #include <TNL/Solvers/ODE/Methods/Rule38.h>
-#include <TNL/Solvers/ODE/Methods/RungeKutta.h>
 #include <TNL/Solvers/ODE/Methods/SSPRK3.h>
 #include <TNL/Solvers/ODE/Methods/VanDerHouwenWray.h>
 
@@ -231,8 +231,8 @@ struct ODESolversBenchmark
             using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Ralston4" );
          }
-         if( solver == "runge-kutta" || solver == "all" ) {
-            using Method = TNL::Solvers::ODE::Methods::RungeKutta< RealType >;
+         if( solver == "original-runge-kutta" || solver == "all" ) {
+            using Method = TNL::Solvers::ODE::Methods::OriginalRungeKutta< RealType >;
             using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Runge-Kutta" );
          }
@@ -337,7 +337,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum< String >( "ralston3" );
    config.addEntryEnum< String >( "ralston4" );
    config.addEntryEnum< String >( "rule38" );
-   config.addEntryEnum< String >( "rungekutta" );
+   config.addEntryEnum< String >( "original-runge-kutta" );
    config.addEntryEnum< String >( "ssprk3" );
    config.addEntryEnum< String >( "vanderhouwen-wray" );
    config.addEntryEnum< String >( "all" );

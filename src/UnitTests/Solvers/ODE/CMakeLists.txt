@@ -15,6 +15,7 @@ set(CPP_TESTS
    StaticODESolverTest_Heun3
    StaticODESolverTest_Kutta
    StaticODESolverTest_Midpoint
+   StaticODESolverTest_OriginalRungeKutta
    StaticODESolverTest_Ralston2
    StaticODESolverTest_Ralston3
    StaticODESolverTest_Ralston4

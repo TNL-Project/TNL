@@ -18,7 +18,7 @@ namespace TNL::Solvers::ODE::Methods {
  * \tparam Value is arithmetic type used for computations.
  */
 template< typename Value = double >
-struct RungeKutta
+struct OriginalRungeKutta
 {
    using ValueType = Value;
 
