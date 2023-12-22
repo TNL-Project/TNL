@@ -22,8 +22,6 @@ struct Heun3
 {
    using ValueType = Value;
 
-   static constexpr size_t Stages = 3;
-
    static constexpr size_t
    getStages()
    {
@@ -55,6 +53,8 @@ struct Heun3
    }
 
 protected:
+   static constexpr size_t Stages = 3;
+
    // clang-format off
    static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
       std::array< Value, Stages >{     0.0,     0.0, 0.0 },

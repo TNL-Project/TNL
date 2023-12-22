@@ -23,8 +23,6 @@ struct DormandPrince
 {
    using ValueType = Value;
 
-   static constexpr size_t Stages = 7;
-
    static constexpr size_t
    getStages()
    {
@@ -62,6 +60,8 @@ struct DormandPrince
    }
 
 protected:
+   static constexpr size_t Stages = 7;
+
    // clang-format off
    static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
       std::array< Value, Stages >{           0.0,              0.0,            0.0,           0.0,             0.0,       0.0 },

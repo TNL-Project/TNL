@@ -22,8 +22,6 @@ struct Ralston4
 {
    using ValueType = Value;
 
-   static constexpr size_t Stages = 4;
-
    static constexpr size_t
    getStages()
    {
@@ -55,6 +53,8 @@ struct Ralston4
    }
 
 protected:
+   static constexpr size_t Stages = 4;
+
    // clang-format off
    static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
       std::array< Value, Stages >{  0.0,         0.0,        0.0,        0.0 },
