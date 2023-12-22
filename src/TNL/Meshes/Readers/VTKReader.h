@@ -681,7 +681,12 @@ protected:
                if( type == "SCALARS" ) {
                   // parse the rest of the line: SCALARS <array_name> <datatype>
                   iss >> array_name >> datatype;
-                  sectionPositions.insert( { name + "::" + array_name, currentPosition } );
+
+                  std::string full_name = name;
+                  full_name += "::";
+                  full_name += array_name;
+                  sectionPositions.insert( { full_name, currentPosition } );
+
                   // skip the LOOKUP_TABLE line
                   getline( str, line );
                }
@@ -689,13 +694,21 @@ protected:
                   values_per_element = 3;
                   // parse the rest of the line: VECTORS <array_name> <datatype>
                   iss >> array_name >> datatype;
-                  sectionPositions.insert( { name + "::" + array_name, currentPosition } );
+
+                  std::string full_name = name;
+                  full_name += "::";
+                  full_name += array_name;
+                  sectionPositions.insert( { full_name, currentPosition } );
                }
                else if( type == "TENSORS" ) {
                   values_per_element = 9;
                   // parse the rest of the line: TENSORS <array_name> <datatype>
                   iss >> array_name >> datatype;
-                  sectionPositions.insert( { name + "::" + array_name, currentPosition } );
+
+                  std::string full_name = name;
+                  full_name += "::";
+                  full_name += array_name;
+                  sectionPositions.insert( { full_name, currentPosition } );
                }
                else if( type == "FIELD" ) {
                   // parse the rest of the line: FIELD FieldData <count>
@@ -726,7 +739,12 @@ protected:
                      if( ! iss )
                         throw MeshReaderError( "VTKReader",
                                                "failed to extract FieldData information from line '" + line + "'" );
-                     sectionPositions.insert( { name + "::" + array_name, currentPosition } );
+
+                     std::string full_name = name;
+                     full_name += "::";
+                     full_name += array_name;
+                     sectionPositions.insert( { full_name, currentPosition } );
+
                      // skip the points coordinates
                      for( std::int32_t j = 0; j < components * tuples; j++ )
                         skipValue( dataFormat, str, datatype );
