@@ -205,7 +205,9 @@ TYPED_TEST( StaticArrayTest, ComparisonOperator )
    using ArrayType = typename TestFixture::ArrayType;
    constexpr int size = ArrayType::getSize();
 
-   ArrayType u1, u2, u3;
+   ArrayType u1;
+   ArrayType u2;
+   ArrayType u3;
 
    for( int i = 0; i < size; i++ ) {
       u1[ i ] = 1;
@@ -235,7 +237,9 @@ TYPED_TEST( StaticArrayTest, AssignmentOperator )
    using ArrayType = typename TestFixture::ArrayType;
    constexpr int size = ArrayType::getSize();
 
-   ArrayType u1, u2, u3;
+   ArrayType u1;
+   ArrayType u2;
+   ArrayType u3;
 
    for( int i = 0; i < size; i++ ) {
       u1[ i ] = 1;
@@ -291,7 +295,8 @@ TYPED_TEST( StaticArrayTest, SaveAndLoad )
 {
    using ArrayType = typename TestFixture::ArrayType;
 
-   ArrayType u1( 7 ), u2;
+   ArrayType u1( 7 );
+   ArrayType u2;
    File file;
    ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::out ) );
    ASSERT_NO_THROW( u1.save( file ) );
