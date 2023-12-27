@@ -77,9 +77,9 @@ Grid< Dimension, Real, Device, Index >::getSizes() const noexcept
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-__cuda_callable__
+[[nodiscard]] __cuda_callable__
 Index
-Grid< Dimension, Real, Device, Index >::getEntitiesCount( IndexType entityDimension ) const
+Grid< Dimension, Real, Device, Index >::getEntitiesCount( IndexType entityDimension ) const noexcept
 {
    TNL_ASSERT_GE( entityDimension, 0, "Entity dimension must be greater than or equal to 0" );
    TNL_ASSERT_LE( entityDimension, Dimension, "Entity dimension must be less than or equal to Dimension" );
@@ -89,7 +89,7 @@ Grid< Dimension, Real, Device, Index >::getEntitiesCount( IndexType entityDimens
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension >
-__cuda_callable__
+[[nodiscard]] __cuda_callable__
 Index
 Grid< Dimension, Real, Device, Index >::getEntitiesCount() const noexcept
 {
@@ -101,9 +101,9 @@ Grid< Dimension, Real, Device, Index >::getEntitiesCount() const noexcept
 
 template< int Dimension, typename Real, typename Device, typename Index >
 template< typename EntityType_ >
-__cuda_callable__
+[[nodiscard]] __cuda_callable__
 Index
-Grid< Dimension, Real, Device, Index >::getEntitiesCount() const
+Grid< Dimension, Real, Device, Index >::getEntitiesCount() const noexcept
 {
    static_assert( EntityType_::getEntityDimension() >= 0, "Entity dimension must be greater than or equal to 0" );
    static_assert( EntityType_::getEntityDimension() <= Dimension, "Entity dimension must be less than or equal to Dimension" );
@@ -187,7 +187,8 @@ Grid< Dimension, Real, Device, Index >::getBasis( Index totalOrientationIdx ) co
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-__cuda_callable__
+template< int EntityDimension >
+[[nodiscard]] __cuda_callable__
 Index
 Grid< Dimension, Real, Device, Index >::getOrientationIndex( const NormalsType& normals ) const noexcept
 {
@@ -759,9 +760,10 @@ Grid< Dimension, Real, Device, Index >::writeProlog( TNL::Logger& logger ) const
    TNL::Algorithms::staticFor< IndexType, 0, Dimension + 1 >(
       [ & ]( auto entityDim )
       {
-         for( IndexType entityOrientation = 0; entityOrientation < getEntityOrientationsCount( entityDim() );
-              entityOrientation++ ) {
-            auto normals = this->getBasis< entityDim >( entityOrientation );
+         for( IndexType entityOrientationIdx = 0; entityOrientationIdx < this->getEntityOrientationsCount( entityDim() );
+              entityOrientationIdx++ )
+         {
+            auto normals = this->getBasis< entityDim >( entityOrientationIdx );
             TNL::String tmp = TNL::String( "Entities count with basis " ) + TNL::convertToString( normals ) + ":";
             logger.writeParameter( tmp, this->getOrientedEntitiesCount( entityDim, entityOrientationIdx ) );
          }
@@ -855,14 +857,18 @@ Grid< Dimension, Real, Device, Index >::forEntities( const CoordinatesType& begi
 {
    using GridEntityType = typename Grid::template EntityType< EntityDimension >;
    if constexpr( EntityDimension == getMeshDimension() || EntityDimension == 0 ) {
-      auto exec = [ = ] __cuda_callable__( GridEntityType & entity, const Grid& grid, FuncArgs... args ) mutable
+      auto exec = [ = ] __cuda_callable__( GridEntityType & entity, const Grid& grid, Func f, FuncArgs... args ) mutable
       {
          entity.setGrid( grid );
          entity.refresh();
-         function( entity, args... );
+         f( entity, args... );
       };
-      Algorithms::ParallelForND< Device, false >::exec(
-         GridEntityType( begin_ ), GridEntityType( end_ + CoordinatesType( EntityDimension == 0 ) ), exec, *this, args... );
+      Algorithms::ParallelForND< Device, false >::exec( GridEntityType( begin_ ),
+                                                        GridEntityType( end_ + CoordinatesType( EntityDimension == 0 ) ),
+                                                        exec,
+                                                        *this,
+                                                        function,
+                                                        args... );
    }
    else {
       /*auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid,

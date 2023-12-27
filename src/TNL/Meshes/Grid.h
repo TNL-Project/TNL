@@ -181,7 +181,7 @@ public:
     */
    [[nodiscard]] __cuda_callable__
    Index
-   getEntitiesCount( IndexType dimension ) const;
+   getEntitiesCount( IndexType dimension ) const noexcept;
 
    /**
     * \brief Returns number of entities of specific dimension given as a template parameter.
@@ -190,8 +190,7 @@ public:
     *
     * \return Number of grid entities with given dimension.
     */
-   template< int EntityDimension,
-             std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true >
+   template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
    Index
    getEntitiesCount() const noexcept; // TODO: remove this if it is not necessary for compatibility with Mesh
@@ -203,8 +202,7 @@ public:
     *
     * \return Number of grid entities with given dimension.
     */
-   template< typename Entity,
-             std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension ), bool > = true >
+   template< typename Entity >
    [[nodiscard]] __cuda_callable__
    Index
    getEntitiesCount() const noexcept; // TODO: remove this if it is not necessary for compatibility with Mesh

@@ -290,7 +290,6 @@ public:
     *            orientation 0.
     * \return neighbour grid entity.
     */
-   template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
    GridEntity< Grid, EntityDimension >
    getEntity( const CoordinatesType& offset ) const;
@@ -299,14 +298,13 @@ public:
    IndexType
    getEntityIndex( const CoordinatesType& offset ) const;
 
-
    /**
     * brief Returns the neighbour grid entity. TODO: FIX - CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
     *
-    * tparam Dimension is a dimension of the neighbour grid entity.
-    * tparam Orientation is an orientation index of the grid entity.
-    * param offset is a offset of coordinates of the neighbour entity relative to this grid entity.
-    * return neighbour grid entity.
+    * \tparam Dimension is a dimension of the neighbour grid entity.
+    * \tparam Orientation is an orientation index of the grid entity.
+    * \param offset is a offset of coordinates of the neighbour entity relative to this grid entity.
+    * \return neighbour grid entity.
     */
    template< int NeighbourEntityDimension >
    [[nodiscard]] __cuda_callable__
@@ -368,9 +366,9 @@ public:
    const Grid&
    getGrid() const;
 
-   bool operator>( const GridEntity& e ) const {
-      return Containers::Expressions::StaticComparison< GridEntity, GridEntity >::GT( *this, e );
-   }
+   //bool operator>( const GridEntity& e ) const {
+   //   return Containers::Expressions::operator>( *this, e ); // TODO: check if it works
+   //}
 
 protected:
    const Grid* grid;

@@ -226,7 +226,7 @@ GridEntity< Grid, EntityDimension >::getBasis() const -> NormalsType
 }
 
 template< class Grid, int EntityDimension >
-__cuda_callable__
+[[nodiscard]] __cuda_callable__
 GridEntity< Grid, EntityDimension >
 GridEntity< Grid, EntityDimension >::
 getEntity( const CoordinatesType& offset ) const
@@ -246,8 +246,8 @@ getEntityIndex( const CoordinatesType& offset ) const -> IndexType
 }
 
 template< class Grid, int EntityDimension >
-template< int NeighbourEntityDimension >
-__cuda_callable__
+   template< int NeighbourEntityDimension >
+[[nodiscard]] __cuda_callable__
 GridEntity< Grid, NeighbourEntityDimension >
 GridEntity< Grid, EntityDimension >::
 getEntity( const CoordinatesType& offset,

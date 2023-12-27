@@ -129,7 +129,7 @@ combinationsCount( Index k, Index n )
 {
    if( k < 0 )
       return 0;
-   return product< Index >( k + 1, n ) / product< Index >( 1, n - k );
+   return discreteProduct< Index >( k + 1, n ) / discreteProduct< Index >( 1, n - k );
 }
 
 /**

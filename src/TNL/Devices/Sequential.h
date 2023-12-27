@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 //! \brief Namespace for TNL execution models
 namespace TNL::Devices {
 
@@ -17,6 +19,10 @@ struct Sequential
  * \brief Returns true if the device type is Sequential.
  */
 template< typename Device >
-constexpr bool isSequential() { return std::is_same< Device, Sequential >::value; }
+constexpr bool
+isSequential()
+{
+   return std::is_same< Device, Sequential >::value;
+}
 
 }  // namespace TNL::Devices

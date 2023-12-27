@@ -54,10 +54,11 @@ public:
             std::cout << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
       }
 
-      Entity entity( f1.getMesh() );
+      Entity entity;
       for( entity.getCoordinates().x() = 0; entity.getCoordinates().x() < f1.getMesh().getSizes().x();
            entity.getCoordinates().x()++ )
       {
+         entity.setGrid( f1.getMesh() );
          entity.refresh();
          if( f1.getValue( entity ) != f2.getValue( entity ) ) {
             outputFile << f1Name << " and " << f2Name << " differs at " << entity.getCoordinates() << " "
@@ -92,7 +93,7 @@ public:
             std::cout << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
       }
 
-      Entity entity( f1.getMesh() );
+      Entity entity;
       for( entity.getCoordinates().y() = 0; entity.getCoordinates().y() < f1.getMesh().getSizes().y();
            entity.getCoordinates().y()++ )
          for( entity.getCoordinates().x() = 0; entity.getCoordinates().x() < f1.getMesh().getSizes().x();
@@ -133,7 +134,7 @@ public:
             std::cout << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
       }
 
-      Entity entity( f1.getMesh() );
+      Entity entity;
       for( entity.getCoordinates().z() = 0; entity.getCoordinates().z() < f1.getMesh().getSizes().z();
            entity.getCoordinates().z()++ )
          for( entity.getCoordinates().y() = 0; entity.getCoordinates().y() < f1.getMesh().getSizes().y();
