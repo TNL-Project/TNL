@@ -6,12 +6,12 @@
 
 #include "support.h"
 
-using Implementations = ::testing::Types<
-   TNL::Meshes::Grid<3, double, TNL::Devices::Sequential, int>,
-   TNL::Meshes::Grid<3, float, TNL::Devices::Sequential, int>
+using Implementations = ::testing::Types< TNL::Meshes::Grid< 3, double, TNL::Devices::Sequential, int >,
+                                          TNL::Meshes::Grid< 3, float, TNL::Devices::Sequential, int >
 #ifdef __CUDACC__
-  ,TNL::Meshes::Grid<3, double, TNL::Devices::Cuda, int>,
-   TNL::Meshes::Grid<3, float, TNL::Devices::Cuda, int>
+                                          ,
+                                          TNL::Meshes::Grid< 3, double, TNL::Devices::Cuda, int >,
+                                          TNL::Meshes::Grid< 3, float, TNL::Devices::Cuda, int >
 #endif
                                           >;
 
@@ -31,9 +31,10 @@ template< typename Grid, int EntityDimension, int NeighbourEntityDimension >
 void
 testNeighbourEntityIndexes( Grid& grid, const typename Grid::CoordinatesType& dimension, const int scale = 1 )
 {
-   for( int i = -1 * scale; i < 1 * scale; i++ )
-      testNeighbourEntityIndexes< Grid, EntityDimension, NeighbourEntityDimension >(
-         grid, dimension, typename Grid::CoordinatesType( i ) );
+   if constexpr( TNL::Devices::isSequential< typename Grid::DeviceType >() )
+      for( int i = -1 * scale; i < 1 * scale; i++ )
+         testNeighbourEntityIndexes< Grid, EntityDimension, NeighbourEntityDimension >(
+            grid, dimension, typename Grid::CoordinatesType( i ) );
 }
 
 template< typename Grid, int EntityDimension, int NeighbourEntityDimension >

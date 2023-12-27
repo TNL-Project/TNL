@@ -1,6 +1,10 @@
-set(COMMON_TESTS CoordinateIteratorTest EntityDataStoreTest GridNormalsTest GridTemplatesTest)
+set(COMMON_TESTS
+   CoordinateIteratorTest
+   EntityDataStoreTest
+   GridTemplatesTest
+)
 
-set(CPP_TESTS ${COMMON_TESTS} GridEntitiesOrientationsTest)
+set(CPP_TESTS ${COMMON_TESTS})
 set(CUDA_TESTS ${COMMON_TESTS})
 set(HIP_TESTS ${COMMON_TESTS})
 

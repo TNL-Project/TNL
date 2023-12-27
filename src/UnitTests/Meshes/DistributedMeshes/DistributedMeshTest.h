@@ -113,7 +113,8 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
             return;
          if( y < 0 || y > grid.getSizes().y() )
             return;
-         typename GridType::Vertex vertex( grid );
+         typename GridType::Vertex vertex;
+         vertex.setGrid( grid );
          vertex.setCoordinates( { x, y } );
          vertex.refresh();
          if( vert_global_to_local.count( vertex.getIndex() ) == 0 ) {
@@ -128,7 +129,8 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
             return;
          if( y < 0 || y >= grid.getSizes().y() )
             return;
-         typename GridType::Cell cell( grid );
+         typename GridType::Cell cell;
+         cell.setGrid( grid );
          cell.setCoordinates( { x, y } );
          cell.refresh();
          if( cell_global_to_local.count( cell.getIndex() ) == 0 ) {
@@ -300,7 +302,8 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
 
             for( Index y = vert_begin.y(); y < vert_end.y(); y++ )
                for( Index x = vert_begin.x(); x < vert_end.x(); x++ ) {
-                  typename GridType::Vertex vertex( grid );
+                  typename GridType::Vertex vertex;
+                  vertex.setGrid( grid );
                   vertex.setCoordinates( { x, y } );
                   vertex.refresh();
                   result.insert( { vertex.getIndex(), idx } );
@@ -324,7 +327,8 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
 
             for( Index y = cell_begin.y(); y < cell_end.y(); y++ )
                for( Index x = cell_begin.x(); x < cell_end.x(); x++ ) {
-                  typename GridType::Cell cell( grid );
+                  typename GridType::Cell cell;
+                  cell.setGrid( grid );
                   cell.setCoordinates( { x, y } );
                   cell.refresh();
                   result.insert( { cell.getIndex(), idx } );

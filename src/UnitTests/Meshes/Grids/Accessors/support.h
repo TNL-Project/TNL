@@ -6,61 +6,24 @@
 
 #include "../CoordinateIterator.h"
 
-template<typename Device>
-class GridAccessorsTestCaseInterface {
-};
+template< typename Device >
+class GridAccessorsTestCaseInterface
+{};
 
-template<typename Device>
-class GridAccessorsTestCase: public GridAccessorsTestCaseInterface<Device> {};
+template< typename Device >
+class GridAccessorsTestCase : public GridAccessorsTestCaseInterface< Device >
+{};
 
 template<>
-class GridAccessorsTestCase<TNL::Devices::Sequential>: public GridAccessorsTestCaseInterface<TNL::Devices::Sequential> {
-   public:
-      template<typename Grid>
-      void verifyDimensionGetters(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
-         this->verifyDimensionByCoordinateGetter<Grid>(grid, dimensions);
-      }
-
-      template<typename Grid>
-      void verifyEntitiesCountGetters(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
-         this->verifyEntitiesCountByContainerGetter<Grid>(grid, entitiesCounts);
-         this->verifyEntitiesCountByIndexGetter<Grid>(grid, entitiesCounts);
-      }
-
-      template<typename Grid>
-      void verifyOriginGetter(const Grid& grid, const typename Grid::PointType& coordinates) const {
-         auto result = grid.getOrigin();
-
-         EXPECT_EQ(coordinates, result) << "Verify, that the origin was correctly set";
-      }
-
-      template<typename Grid>
-      void verifySpaceStepsGetter(const Grid& grid, const typename Grid::PointType& spaceSteps) const {
-         auto result = grid.getSpaceSteps();
-
-         EXPECT_EQ(spaceSteps, result) << "Verify, that space steps were correctly set";
-      }
-
-      template<typename Grid>
-      void verifyDimensionByCoordinateGetter(const Grid& grid, const typename Grid::CoordinatesType& dimensions) const {
-         auto result = grid.getSizes();
-
-         EXPECT_EQ(dimensions, result) << "Verify, that dimension container accessor returns valid dimension";
-      }
-
-      template<typename Grid>
-      void verifyEntitiesCountByContainerGetter(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
-         auto result = grid.getEntitiesCounts();
-
-         EXPECT_EQ(entitiesCounts, result) << "Verify, that returns expected entities counts";
-      }
-
-      template<typename Grid>
-      void verifyEntitiesCountByIndexGetter(const Grid& grid, const TNL::Containers::StaticVector<Grid::getMeshDimension() + 1, typename Grid::IndexType>& entitiesCounts) const {
-         for (typename Grid::IndexType i = 0; i < entitiesCounts.getSize(); i++)
-            EXPECT_EQ(grid.getEntitiesCount(i), entitiesCounts[i]) << "Verify, that index access is correct.";
-      }
-};
+class GridAccessorsTestCase< TNL::Devices::Sequential > : public GridAccessorsTestCaseInterface< TNL::Devices::Sequential >
+{
+public:
+   template< typename Grid >
+   void
+   verifyDimensionGetters( const Grid& grid, const typename Grid::CoordinatesType& dimensions ) const
+   {
+      this->verifyDimensionByCoordinateGetter< Grid >( grid, dimensions );
+   }
 
    template< typename Grid >
    void
@@ -94,7 +57,7 @@ class GridAccessorsTestCase<TNL::Devices::Sequential>: public GridAccessorsTestC
    void
    verifyDimensionByCoordinateGetter( const Grid& grid, const typename Grid::CoordinatesType& dimensions ) const
    {
-      auto result = grid.getDimensions();
+      auto result = grid.getSizes();
 
       EXPECT_EQ( dimensions, result ) << "Verify, that dimension container accessor returns valid dimension";
    }
@@ -279,9 +242,11 @@ makeString( Parameters... parameters )
    return s.str();
 }
 
-template<typename Grid, typename... T>
-void testDimensionSetByCoordinate(Grid& grid, const typename Grid::CoordinatesType& dimensions) {
-   EXPECT_NO_THROW(grid.setSizes(dimensions)) << "Verify, that the set of" << dimensions << " doesn't cause assert";
+template< typename Grid, typename... T >
+void
+testDimensionSetByCoordinate( Grid& grid, const typename Grid::CoordinatesType& dimensions )
+{
+   EXPECT_NO_THROW( grid.setSizes( dimensions ) ) << "Verify, that the set of" << dimensions << " doesn't cause assert";
 
    SCOPED_TRACE( "Test dimension set by coordinate" );
    SCOPED_TRACE( "Dimension: " + TNL::convertToString( dimensions ) );
@@ -311,9 +276,11 @@ testEntitiesCounts(
    support.template verifyEntitiesCountGetters< Grid >( grid, entitiesCounts );
 }
 
-template<typename Grid>
-void testOriginSetByCoordinate(Grid& grid, const typename Grid::PointType& coordinates) {
-   EXPECT_NO_THROW(grid.setOrigin(coordinates)) << "Verify, that the set of " << coordinates << " doesn't cause assert";
+template< typename Grid >
+void
+testOriginSetByCoordinate( Grid& grid, const typename Grid::PointType& coordinates )
+{
+   EXPECT_NO_THROW( grid.setOrigin( coordinates ) ) << "Verify, that the set of " << coordinates << " doesn't cause assert";
 
    SCOPED_TRACE( "Test origin set by index" );
    SCOPED_TRACE( "Coordinates: " + TNL::convertToString( coordinates ) );

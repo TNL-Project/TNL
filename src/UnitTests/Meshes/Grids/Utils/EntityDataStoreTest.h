@@ -22,7 +22,7 @@ testTraverse( const Grid& grid, DataStore& dataStore, int entitiesCount )
 
          coordinate = i;
 
-      GridEntity entity(grid, coordinate, orientation);
+         GridEntity entity( grid, coordinate, orientation );
 
          view.store( entity, i );
 
@@ -30,14 +30,14 @@ testTraverse( const Grid& grid, DataStore& dataStore, int entitiesCount )
 
          SCOPED_TRACE( "Prototype: " + TNL::convertToString( prototype ) );
 
-      EXPECT_EQ(1, prototype.calls);
-      EXPECT_EQ(entity.getCoordinates(), prototype.coordinate);
-      EXPECT_EQ(entity.getNormals(), prototype.normals);
-      EXPECT_EQ(entity.getIndex(), prototype.index);
-      EXPECT_EQ(entity.getOrientationIndex(), prototype.orientation);
-      EXPECT_EQ(entity.isBoundary(), prototype.isBoundary);
-      EXPECT_EQ(entity.getCenter(), prototype.center);
-      EXPECT_EQ(entity.getMeasure(), prototype.measure);
+         EXPECT_EQ( 1, prototype.calls );
+         EXPECT_EQ( entity.getCoordinates(), prototype.coordinate );
+         EXPECT_EQ( entity.getNormals(), prototype.normals );
+         EXPECT_EQ( entity.getIndex(), prototype.index );
+         EXPECT_EQ( entity.getOrientationIndex(), prototype.orientation );
+         EXPECT_EQ( entity.isBoundary(), prototype.isBoundary );
+         EXPECT_EQ( entity.getCenter(), prototype.center );
+         EXPECT_EQ( entity.getMeasure(), prototype.measure );
 
          view.clear( i );
 
@@ -96,8 +96,8 @@ TEST( EntityDataStoreTest, DataStore2DTest )
    Index entitiesCount = 10;
 
    Grid grid;
-   grid.setSize( entitiesCount + 1, entitiesCount + 1 );
-   grid.setSpaceSteps( 1., 1. );
+   grid.setSizes( { entitiesCount + 1, entitiesCount + 1 } );
+   grid.setSpaceSteps( { 1., 1. } );
 
    DataStore store( entitiesCount );
 
@@ -121,8 +121,8 @@ TEST( EntityDataStoreTest, DataStore3DTest )
    Index entitiesCount = 10;
 
    Grid grid;
-   grid.setSizes( entitiesCount + 1, entitiesCount + 1, entitiesCount + 1 );
-   grid.setSpaceSteps( 1., 1., 1. );
+   grid.setSizes( { entitiesCount + 1, entitiesCount + 1, entitiesCount + 1 } );
+   grid.setSpaceSteps( { 1., 1., 1. } );
 
    DataStore store( entitiesCount );
 

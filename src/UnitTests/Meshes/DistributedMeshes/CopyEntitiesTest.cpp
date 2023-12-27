@@ -178,7 +178,7 @@ public:
 
       originOut.setValue( 0.5 );
       proportionsOut.setValue( 8 );
-      gridOutPtr->setDimensions( proportionsOut );
+      gridOutPtr->setSizes( proportionsOut );
       gridOutPtr->setDomain( originOut, proportionsOut );
       DofType outDof( gridOutPtr->template getEntitiesCount< Cell >() );
 

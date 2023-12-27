@@ -299,38 +299,18 @@ public:
 
       ASSERT_GT( orientationsCount, 0 ) << "Every entity must have at least one orientation";
 
-      auto verify = [&](const auto orientation) {
-         Iterator<orientation> iterator(grid.getSizes());
-         if (!iterator.canIterate()) {
-            SCOPED_TRACE("Skip iteration");
-            EXPECT_EQ(hostStore.getCallsView().getSize(), 0) << "Expect, that we can't iterate, when grid is empty";
-            return;
-         }
-         do {
-            verifyEntity(grid, iterator, hostStoreView, !(iterator.isBoundary(grid)));
-         } while (!iterator.next());
-      };
-      TNL::Algorithms::staticFor< int, 0, orientationsCount >(verify);
-   }
-   private:
-      template<int Orientation>
-      void verifyEntity(const Grid& grid,
-                        const Iterator<Orientation>& iterator,
-                        typename HostDataStore::View& dataStore,
-                        bool expectCall) const {
-         static Real precision = 9e-5;
-
+      auto verify = [ & ]( const auto orientation )
+      {
+         Iterator< orientation > iterator( grid.getSizes() );
          if( ! iterator.canIterate() ) {
             SCOPED_TRACE( "Skip iteration" );
             EXPECT_EQ( hostStore.getCallsView().getSize(), 0 ) << "Expect, that we can't iterate, when grid is empty";
             return;
          }
-
          do {
-            verifyEntity( grid, iterator, hostStoreView, ! iterator.isBoundary( grid ) );
+            verifyEntity( grid, iterator, hostStoreView, ! ( iterator.isBoundary( grid ) ) );
          } while( ! iterator.next() );
       };
-
       TNL::Algorithms::staticFor< int, 0, orientationsCount >( verify );
    }
 
