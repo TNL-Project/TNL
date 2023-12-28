@@ -9,18 +9,6 @@
 
 namespace TNL::Solvers::ODE {
 
-/*template< typename Real, typename Index, typename SolverMonitor >
-__cuda_callable__
-ExplicitSolver< Real, Index, SolverMonitor >::ExplicitSolver( const ExplicitSolver& solver )
-: IterativeSolver< Real, Index, SolverMonitor >( solver ),
-   time( solver.tima ),
-   stopTime( solver.stopTime ),
-   tau( solver.tau ),
-   maxTau( solver.maxTau ),
-   stopOnSteadyState( solver.stopOnSteadyState ),
-   testingMode( solver.testingMode )
-{}*/
-
 template< typename Real, typename Index, typename SolverMonitor >
 void
 ExplicitSolver< Real, Index, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )

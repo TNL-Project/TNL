@@ -138,9 +138,9 @@ The graph depicting the solution of the scalar ODE problem is illustrated below:
 
 In this example, we demonstrate the application of the static ODE solver in solving a system of ODEs, specifically the [Lorenz system](https://en.wikipedia.org/wiki/Lorenz_system). The Lorenz system is a set of three coupled, nonlinear differential equations defined as follows:
 
-\f[ \frac{dx}{dt} = \sigma( x - y),\ \rm{ on }\ (0,T) \f],
-\f[ \frac{dy}{dt} = x(\rho - z ) - y,\ \rm{ on }\ (0,T)  \f],
-\f[ \frac{dz}{dt} = xy - \beta z,\ \rm{ on }\ (0,T) \f],
+\f[ \frac{dx}{dt} = \sigma( x - y),\ \rm{ on }\ (0,T), \f]
+\f[ \frac{dy}{dt} = x(\rho - z ) - y,\ \rm{ on }\ (0,T),  \f]
+\f[ \frac{dz}{dt} = xy - \beta z,\ \rm{ on }\ (0,T), \f]
 
 with the inital condition
 
@@ -548,6 +548,21 @@ We have to setup the solver monitor:
 \snippetlineno Solvers/ODE/ODESolver-HeatEquationWithMonitorExample.h Monitor setup
 
  First, we define the monitor type `IterativeSolverMonitorType ` and we create an instance of the monitor. A separate thread (`monitorThread`) is created for the monitor. The refresh rate of the monitor is set to 10 milliseconds with `setRefreshRate` and verbose mode is enabled with `setVerbose` for detailed monitoring. The solver stage name is specified with `setStage`. The monitor is connected to the solver using \ref TNL::Solvers::IterativeSolver::setSolverMonitor. Subsequently, the numerical computation is performed and after it finishes, the monitor is stopped by calling \ref TNL::Solvers::IterativeSolverMonitor::stopMainLoop.
+
+## Use of the iterate method
+
+The ODE solvers in TNL provide an `iterate` method for performing just one iteration. This is particularly useful when there is a need for enhanced control over the time loop, or when developing a hybrid solver that combines multiple integration methods. The usage of this method is demonstrated in the following example:
+
+\includelineno Solvers/ODE/StaticODESolver-SineExample_iterate.h
+
+For simplicity, we demonstrate the use of `iterate` with a static solver, but the process is similar for dynamic solvers. There are two main differences compared to using the solve method:
+
+1. **Initialization:** Before calling `iterate`, it's necessary to initialize the solver using the `init` method. This step sets up auxiliary vectors within the solver. For ODE solvers with dynamic vectors, the internal vectors of the solver are allocated based on the size of the vector `u`.
+
+\snippetlineno Solvers/ODE/StaticODESolver-SineExample_iterate.h Solver setup
+2. **Time Loop:** Within the time loop, the `iterate` method is called. It requires the vector `u`, the right-hand side function `f` of the ODE, and also the variables `time` and `tau`, representing the current time \f$ t \f$ and the integration time step, respectively. The variable `time` is incremented by `tau` with each iteration. Additionally, `tau` can be adjusted if the solver performs adaptive time step selection. It's important to adjust `tau` to ensure that the `next_output_time` is reached exactly.
+
+\snippetlineno Solvers/ODE/StaticODESolver-SineExample_iterate.h Time loop
 
 ## User defined methods
 

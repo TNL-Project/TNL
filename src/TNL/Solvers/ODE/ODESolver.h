@@ -199,6 +199,45 @@ public:
    bool
    solve( VectorType& u, RHSFunction&& f, Params&&... params );
 
+   /**
+    * \brief Setup auxiliary vectors of the solver.
+    *
+    * This method is supposed to be called before the first call of the method \ref iterate. It is
+    * not necessary to call this method before the method \ref solve is used.
+    *
+    * \param u this parameter is only for consistency with the ODE solver for dynamic vectors.
+    */
+   void __cuda_callable__
+   init( const VectorType& u );
+
+   /**
+    * \brief Performs one iteration of the solver.
+    *
+    * This method can be used for hybrid solvers which combine various ODE solvers. Otherwise, use of \ref solve
+    * is recommended. Before the first call of this method, the method \ref init has to be called.
+    *
+    * \tparam RHSFunction is type of a lambda function representing the right-hand side of the ODE system.
+    * \tparam Params are the parameters which are supposed to be passed to the lambda function \e f.
+    * \param u is a variable/static vector representing the solution of the ODE system at current time.
+    * \param time is the current time of the evolution. The variable is increased by \e tau.
+    * \param tau is the current time step. It can be changed by the solver if the adaptive time step control is used.
+    * \param f is the lambda function representing the right-hand side of the ODE system.  The definition of the lambda function
+    *    is the same as in the method \ref solve.
+    * \param params are the parameters which are supposed to be passed to the lambda function \e f.
+    *
+    * \par Example
+    * \include Solvers/ODE/StaticODESolver-SineExample_iterate.h
+    */
+   template< typename RHSFunction, typename... Params >
+   void __cuda_callable__
+   iterate( VectorType& u, RealType& time, RealType& tau, RHSFunction&& f, Params&&... params );
+
+   /**
+    * \brief This method is just for consistency with the ODE solver for dynamic vectors.
+    */
+   void __cuda_callable__
+   reset();
+
 protected:
    /****
     * Adaptivity controls the accuracy of the solver
@@ -350,12 +389,53 @@ public:
     *
     * \par Example
     * \include Solvers/ODE/ODESolver-HeatEquationWithMonitorExample.h
-    *
-    * \include Solvers/ODE/StaticODESolver-LorenzParallelExample.h.
     */
    template< typename RHSFunction, typename... Params >
    bool
    solve( VectorType& u, RHSFunction&& f, Params&&... params );
+
+   /**
+    * \brief Setup auxiliary vectors of the solver.
+    *
+    * This method is supposed to be called before the first call of the method \ref iterate. It is
+    * not necessary to call this method before the method \ref solve is used. Also this methods
+    * neeeds to be called everytime the size of \e u changes.
+    *
+    * \param u is a variable/dynamic vector representing the solution of the ODE system at current time.
+    */
+   void
+   init( const VectorType& u );
+
+   /**
+    * \brief Performs one iteration of the solver.
+    *
+    * This method can be used for hybrid solvers which combine various ODE solvers. Otherwise, use of \ref solve
+    * is recommended. Before the first call of this method, the method \ref init has to be called.
+    *
+    * \tparam RHSFunction is type of a lambda function representing the right-hand side of the ODE system.
+    * \tparam Params are the parameters which are supposed to be passed to the lambda function \e f.
+    * \param u is a variable/static vector representing the solution of the ODE system at current time.
+    * \param time is the current time of the evolution. The variable is increased by \e tau.
+    * \param tau is the current time step. It can be changed by the solver if the adaptive time step control is used.
+    * \param f is the lambda function representing the right-hand side of the ODE system. The definition of the lambda function
+    *    is the same as in the method \ref solve.
+    * \param params are the parameters which are supposed to be passed to the lambda function \e f.
+    *
+    * \par Example
+    * \include Solvers/ODE/StaticODESolver-SineExample_iterate.h
+    */
+   template< typename RHSFunction, typename... Params >
+   void
+   iterate( VectorType& u, RealType& time, RealType& tau, RHSFunction&& f, Params&&... params );
+
+   /**
+    * \brief Resets the solver.
+    *
+    * This method frees memory allocated by the solver. If it is called, the method \ref init has to be called before
+    * the next call of the method \ref iterate.
+    */
+   void
+   reset();
 
 protected:
    /****

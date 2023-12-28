@@ -169,4 +169,57 @@ TYPED_TEST( ODEStaticSolverTest, EOCTest )
       ODEStaticSolverTest_EOCTest< DofContainerType, SolverType >();
 }
 
+template< typename DofContainerType, typename SolverType >
+void
+ODEStaticSolverTest_EOCTest_iterate()
+{
+   using StaticVectorType = DofContainerType;
+   using RealType = typename DofContainerType::RealType;
+
+   const RealType final_time = 1.0;
+   auto f =
+      [ = ] __cuda_callable__( const RealType& time, const RealType& tau, const StaticVectorType& u, StaticVectorType& fu )
+   {
+      fu = TNL::exp( time );
+   };
+
+   StaticVectorType u1( 0.0 ), u2( 0.0 );
+   SolverType solver;
+   solver.init( u1 );
+   solver.setConvergenceResidue( 0.0 );
+   solver.setAdaptivity( 0.0 );
+
+   RealType time( 0.0 ), tau( 0.1 );
+   while( time < final_time ) {
+      solver.iterate( u1, time, tau, f );
+      if( time + tau > final_time )
+         tau = final_time - time;
+   }
+   time = 0.0;
+   tau = 0.05;
+   while( time < final_time ) {
+      solver.iterate( u2, time, tau, f );
+      if( time + tau > final_time )
+         tau = final_time - time;
+   }
+   solver.reset();
+
+   const RealType exact_solution = exp( 1.0 ) - exp( 0.0 );
+   const RealType error_1 = TNL::max( TNL::abs( u1 - exact_solution ) );
+   const RealType error_2 = TNL::max( TNL::abs( u2 - exact_solution ) );
+   const RealType eoc = log( error_1 / error_2 ) / log( 2.0 );
+   EXPECT_NEAR( eoc, expected_eoc, 0.1 ) << "exact_solution = " << exact_solution << " u1 = " << u1 << " u2 = " << u2
+                                         << " error_1 = " << error_1 << " error_2 = " << error_2 << " eoc = " << eoc;
+}
+
+TYPED_TEST( ODEStaticSolverTest, EOCTest_iterate )
+{
+   using DofContainerType = typename TestFixture::DofContainerType;
+   using ODEMethodType = typename TestFixture::ODEMethodType;
+   using SolverType = TNL::Solvers::ODE::ODESolver< ODEMethodType, DofContainerType >;
+
+   if constexpr( std::is_same_v< DofContainerType, StaticVector< 1, double > > )
+      ODEStaticSolverTest_EOCTest< DofContainerType, SolverType >();
+}
+
 #include "../../main.h"

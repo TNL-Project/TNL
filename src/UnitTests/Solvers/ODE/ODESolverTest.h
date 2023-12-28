@@ -63,4 +63,36 @@ TYPED_TEST( ODESolverTest, LinearFunctionTest )
    EXPECT_NEAR( TNL::max( TNL::abs( u - exact_solution ) ), (Real) 0.0, 0.1 );
 }
 
+TYPED_TEST( ODESolverTest, LinearFunctionTest_iterate )
+{
+   using DofContainerType = typename TestFixture::DofContainerType;
+   using SolverType = ODETestSolver< DofContainerType >;
+   using Real = typename DofContainerType::RealType;
+
+   const Real final_time = 10.0;
+   SolverType solver;
+   solver.setTime( 0.0 );
+   solver.setStopTime( final_time );
+   solver.setTau( 0.005 );
+   solver.setConvergenceResidue( 0.0 );
+
+   DofContainerType u( 5, 0.0 );
+   Real time( 0.0 ), tau( 0.005 );
+   solver.init( u );
+   while( time < final_time ) {
+      solver.iterate( u,
+                      time,
+                      tau,
+                      []( const Real& time, const Real& tau, const auto& u, auto& fu )
+                      {
+                         fu = time;
+                      } );
+      if( time + tau > final_time )
+         tau = final_time - time;
+   }
+   solver.reset();
+   Real exact_solution = 0.5 * final_time * final_time;
+   EXPECT_NEAR( TNL::max( TNL::abs( u - exact_solution ) ), (Real) 0.0, 0.1 );
+}
+
 #include "../../main.h"

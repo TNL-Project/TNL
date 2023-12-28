@@ -138,7 +138,7 @@ protected:
    /****
     * The method solve will stop when reaching the stopTime.
     */
-   RealType stopTime;
+   RealType stopTime = 0.0;
 
    /****
     * Current time step.

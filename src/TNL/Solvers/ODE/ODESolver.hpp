@@ -80,19 +80,9 @@ __cuda_callable__
 bool
 ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFunction&& rhsFunction, Params&&... params )
 {
-   using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
-   using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Value >;
-   using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
-   using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Value >;
-
    TNL_ASSERT_GT( this->getTau(), 0.0, "The time step for the ODE solver is zero." );
 
-   for( int i = 0; i < Stages; i++ )
-      k_vectors[ i ] = 0;
-
-   /////
-   // Setup the supporting vectors
-   kAux = 0;
+   this->init( u );
 
    /////
    // Set necessary parameters
@@ -108,12 +98,56 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
    /////
    // Start the main loop
    while( this->checkNextIteration() ) {
-      detail::StaticODESolverEvaluator< Method >::computeKVectors(
-         k_vectors, time, currentTau, u, kAux, rhsFunction, params... );
+      this->iterate( u, time, currentTau, rhsFunction, params... );
+      if( ! this->nextIteration() )
+         return false;
 
       /////
-      // Compute an error of the approximation.
-      RealType error( 0.0 );
+      // Tune the new time step.
+      if( time + currentTau > this->getStopTime() )
+         currentTau = this->getStopTime() - time;  // we don't want to keep such tau
+      else
+         this->tau = currentTau;
+
+      /////
+      // Check stop conditions.
+      if( time >= this->getStopTime()
+          || ( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() ) )
+         return true;
+   }
+   return this->checkConvergence();
+}
+
+template< typename Method, typename Value, typename SolverMonitor >
+__cuda_callable__
+void
+ODESolver< Method, Value, SolverMonitor, true >::init( const VectorType& u )
+{
+   for( int i = 0; i < Stages; i++ )
+      k_vectors[ i ] = 0;
+   kAux = 0;
+}
+
+template< typename Method, typename Value, typename SolverMonitor >
+template< typename RHSFunction, typename... Params >
+__cuda_callable__
+void
+ODESolver< Method, Value, SolverMonitor, true >::iterate( VectorType& u,
+                                                          RealType& time,
+                                                          RealType& currentTau,
+                                                          RHSFunction&& rhsFunction,
+                                                          Params&&... params )
+{
+   using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
+   using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Value >;
+   using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
+   using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Value >;
+
+   RealType error( 0.0 );
+   bool compute( true );
+   while( compute ) {
+      detail::StaticODESolverEvaluator< Method >::computeKVectors(
+         k_vectors, time, currentTau, u, kAux, rhsFunction, params... );
       if constexpr( Method::isAdaptive() )
          if( this->adaptivity )
             error = currentTau * max( abs( ErrorExpression::evaluate( k_vectors ) ) );
@@ -129,30 +163,23 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
          // When time is close to stopTime the new residue may be inaccurate significantly.
          if( abs( time - this->stopTime ) < 1.0e-7 )
             this->setResidue( lastResidue );
-
-         if( ! this->nextIteration() )
-            return false;
+         compute = false;
       }
 
       /////
       // Compute the new time step.
       RealType newTau = currentTau;
-      if( adaptivity != 0.0 && error != 0.0 )
-         newTau = currentTau * 0.8 * TNL::pow( adaptivity / error, 0.2 );
+      if( this->adaptivity != 0.0 && error != 0.0 )
+         newTau = currentTau * 0.8 * TNL::pow( this->adaptivity / error, 0.2 );
       currentTau = min( newTau, this->getMaxTau() );
-      if( time + currentTau > this->getStopTime() )
-         currentTau = this->getStopTime() - time;  // we don't want to keep such tau
-      else
-         this->tau = currentTau;
-
-      /////
-      // Check stop conditions.
-      if( time >= this->getStopTime()
-          || ( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() ) )
-         return true;
    }
-   return this->checkConvergence();
 }
+
+template< typename Method, typename Value, typename SolverMonitor >
+__cuda_callable__
+void
+ODESolver< Method, Value, SolverMonitor, true >::reset()
+{}
 
 ////
 // Specialization for dynamic vectors
@@ -203,28 +230,12 @@ template< typename RHSFunction, typename... Params >
 bool
 ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunction&& rhsFunction, Params&&... params )
 {
-   using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
-   using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Vector >;
-   using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
-   using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Vector >;
-
    if( this->getTau() == 0.0 ) {
       std::cerr << "The time step for the ODE solver is zero." << std::endl;
       return false;
    }
 
-   using VectorView = typename Vector::ViewType;
-   std::array< VectorView, Stages > k_views;
-
-   /////
-   // Setup the supporting vectors
-   for( int i = 0; i < Stages; i++ ) {
-      k_vectors[ i ].setLike( u );
-      k_vectors[ i ] = 0;
-      k_views[ i ].bind( k_vectors[ i ] );
-   }
-   kAux.setLike( u );
-   kAux = 0;
+   this->init( u );
 
    /////
    // Set necessary parameters
@@ -240,12 +251,68 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
    /////
    // Start the main loop
    while( this->checkNextIteration() ) {
+      this->iterate( u, time, currentTau, rhsFunction, params... );
+      if( ! this->nextIteration() )
+         return false;
+
+      /////
+      // Tune the new time step.
+      if( time + currentTau > this->getStopTime() )
+         currentTau = this->getStopTime() - time;  // we don't want to keep such tau
+      else
+         this->tau = currentTau;
+
+      /////
+      // Check stop conditions.
+      if( time >= this->getStopTime()
+          || ( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() ) )
+         return true;
+   }
+   return this->checkConvergence();
+}
+
+template< typename Method, typename Vector, typename SolverMonitor >
+void
+ODESolver< Method, Vector, SolverMonitor, false >::init( const VectorType& u )
+{
+   for( int i = 0; i < Stages; i++ ) {
+      k_vectors[ i ].setLike( u );
+      k_vectors[ i ] = 0;
+   }
+   kAux.setLike( u );
+   kAux = 0;
+}
+
+template< typename Method, typename Vector, typename SolverMonitor >
+template< typename RHSFunction, typename... Params >
+void
+ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u,
+                                                            RealType& time,
+                                                            RealType& currentTau,
+                                                            RHSFunction&& rhsFunction,
+                                                            Params&&... params )
+{
+   using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
+   using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Vector >;
+   using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
+   using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Vector >;
+
+   using VectorView = typename Vector::ViewType;
+   std::array< VectorView, Stages > k_views;
+
+   /////
+   // Setup the supporting vectors
+   // TODO: the views are not necessary probably
+   for( int i = 0; i < Stages; i++ ) {
+      k_views[ i ].bind( k_vectors[ i ] );
+   }
+
+   RealType error( 0.0 );
+   bool compute( true );
+   while( compute ) {
       detail::ODESolverEvaluator< Method >::computeKVectors(
          k_views, time, currentTau, u.getView(), kAux.getView(), rhsFunction, params... );
 
-      /////
-      // Compute an error of the approximation.
-      RealType error( 0.0 );
       if constexpr( Method::isAdaptive() )
          if( this->adaptivity )
             error = currentTau * max( abs( ErrorExpression::evaluate( k_vectors ) ) );
@@ -261,29 +328,26 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
          // When time is close to stopTime the new residue may be inaccurate significantly.
          if( abs( time - this->stopTime ) < 1.0e-7 )
             this->setResidue( lastResidue );
-
-         if( ! this->nextIteration() )
-            return false;
+         compute = false;
       }
 
       /////
       // Compute the new time step.
       RealType newTau = currentTau;
-      if( adaptivity != 0.0 && error != 0.0 )
-         newTau = currentTau * 0.8 * TNL::pow( adaptivity / error, 0.2 );
+      if( this->adaptivity != 0.0 && error != 0.0 )
+         newTau = currentTau * 0.8 * TNL::pow( this->adaptivity / error, 0.2 );
       currentTau = min( newTau, this->getMaxTau() );
-      if( time + currentTau > this->getStopTime() )
-         currentTau = this->getStopTime() - time;  // we don't want to keep such tau
-      else
-         this->tau = currentTau;
-
-      /////
-      // Check stop conditions.
-      if( time >= this->getStopTime()
-          || ( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() ) )
-         return true;
    }
-   return this->checkConvergence();
+}
+
+template< typename Method, typename Vector, typename SolverMonitor >
+void
+ODESolver< Method, Vector, SolverMonitor, false >::reset()
+{
+   for( int i = 0; i < Stages; i++ ) {
+      k_vectors[ i ].reset();
+   }
+   kAux.reset();
 }
 
 }  // namespace TNL::Solvers::ODE
