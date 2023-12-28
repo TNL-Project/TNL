@@ -9,24 +9,24 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Timer.h>
 
-#include "../../BLAS/CommonVectorOperations.h"
-
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 template< typename Vector,
           typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
 class EulerNonET : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
-   public:
+public:
    using DofVectorType = Vector;
    using RealType = typename Vector::RealType;
    using ValueType = RealType;
    using DeviceType = typename Vector::DeviceType;
    using IndexType = typename Vector::IndexType;
-   using VectorOperations = CommonVectorOperations< DeviceType >;
 
-   static constexpr bool isStatic() { return false; }
+   static constexpr bool
+   isStatic()
+   {
+      return false;
+   }
 
    EulerNonET();
 
@@ -46,11 +46,9 @@ class EulerNonET : public Solvers::ODE::ExplicitSolver< typename Vector::RealTyp
    bool
    solve( DofVectorType& u, RHSFunction&& rhsFunction );
 
-
-   protected:
-   void computeNewTimeLevel( DofVectorType& u,
-                             RealType tau,
-                             RealType& currentResidue );
+protected:
+   void
+   computeNewTimeLevel( DofVectorType& u, RealType tau, RealType& currentResidue );
 
    DofVectorType k1;
 
@@ -59,7 +57,6 @@ class EulerNonET : public Solvers::ODE::ExplicitSolver< typename Vector::RealTyp
    DofVectorType cudaBlockResidue;
 };
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks
 
 #include "EulerNonET.hpp"

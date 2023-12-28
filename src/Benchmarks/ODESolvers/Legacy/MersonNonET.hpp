@@ -9,8 +9,7 @@
 
 #include "MersonNonET.h"
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 /****
  * In this code we do not use constants and references as we would like to.
@@ -299,8 +298,6 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
                                 &_u[ gridOffset ],
                                 &_k1[ gridOffset ],
                                 &_kAux[ gridOffset ] );
-         //computeK2Arg< < < cudaBlocks, cudaBlockSize > > >(
-         //   currentSize, tau, &_u[ gridOffset ], &_k1[ gridOffset ], &_kAux[ gridOffset ] );
       }
       cudaDeviceSynchronize();
       rhsFunction( time + tau_3, tau, kAux_view, k2_view );
@@ -318,8 +315,6 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
                                 &_k1[ gridOffset ],
                                 &_k2[ gridOffset ],
                                 &_kAux[ gridOffset ] );
-         //computeK3Arg< < < cudaBlocks, cudaBlockSize > > >(
-         //   currentSize, tau, &_u[ gridOffset ], &_k1[ gridOffset ], &_k2[ gridOffset ], &_kAux[ gridOffset ] );
       }
       cudaDeviceSynchronize();
       rhsFunction( time + tau_3, tau, kAux_view, k3_view );
@@ -337,8 +332,6 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
                                 &_k1[ gridOffset ],
                                 &_k3[ gridOffset ],
                                 &_kAux[ gridOffset ] );
-         //computeK4Arg< < < cudaBlocks, cudaBlockSize > > >(
-         //   currentSize, tau, &_u[ gridOffset ], &_k1[ gridOffset ], &_k3[ gridOffset ], &_kAux[ gridOffset ] );
       }
       cudaDeviceSynchronize();
       rhsFunction( time + 0.5 * tau, tau, kAux_view, k4_view );
@@ -357,13 +350,6 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
                                 &_k3[ gridOffset ],
                                 &_k4[ gridOffset ],
                                 &_kAux[ gridOffset ] );
-         /*computeK5Arg< < < cudaBlocks, cudaBlockSize > > >( currentSize,
-                                                            tau,
-                                                            &_u[ gridOffset ],
-                                                            &_k1[ gridOffset ],
-                                                            &_k3[ gridOffset ],
-                                                            &_k4[ gridOffset ],
-                                                            &_kAux[ gridOffset ] );*/
       }
       cudaDeviceSynchronize();
       rhsFunction( time + tau, tau, kAux_view, k5_view );
@@ -407,7 +393,7 @@ MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
          }
          this->openMPErrorEstimateBuffer[ Devices::Host::getThreadIdx() ] = localEps;
       }
-      eps = VectorOperations::getVectorMax( this->openMPErrorEstimateBuffer );
+      eps = TNL::max( this->openMPErrorEstimateBuffer );
    }
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
 #ifdef __CUDACC__
@@ -430,16 +416,9 @@ MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
                                 &_k4[ gridOffset ],
                                 &_k5[ gridOffset ],
                                 &_kAux[ gridOffset ] );
-         /*computeErrorKernel< < < cudaBlocks, cudaBlockSize > > >( currentSize,
-                                                                  tau,
-                                                                  &_k1[ gridOffset ],
-                                                                  &_k3[ gridOffset ],
-                                                                  &_k4[ gridOffset ],
-                                                                  &_k5[ gridOffset ],
-                                                                  &_kAux[ gridOffset ] );*/
          cudaDeviceSynchronize();
          TNL_CHECK_CUDA_DEVICE;
-         eps = std::max( eps, VectorOperations::getVectorMax( kAux ) );
+         eps = std::max( eps, TNL::max( kAux ) );
       }
 #endif
    }
@@ -502,13 +481,6 @@ MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
                                 &_k5[ gridOffset ],
                                 &_u[ gridOffset ],
                                 this->cudaBlockResidue.getData() );
-         /*updateUMersonNonET< < < cudaBlocks, cudaBlockSize, sharedMemory > > >( currentSize,
-                                                                                tau,
-                                                                                &_k1[ gridOffset ],
-                                                                                &_k4[ gridOffset ],
-                                                                                &_k5[ gridOffset ],
-                                                                                &_u[ gridOffset ],
-                                                                                this->cudaBlockResidue.getData() );*/
          TNL_CHECK_CUDA_DEVICE;
          localResidue += sum( this->cudaBlockResidue );
          cudaDeviceSynchronize();
@@ -644,5 +616,4 @@ updateUMersonNonET( const Index size,
 
 #endif
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks

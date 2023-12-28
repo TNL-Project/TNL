@@ -5,8 +5,7 @@
 
 #include "ComputeBlockResidue.h"
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 #ifdef __CUDACC__
 template< typename RealType, typename Index >
@@ -91,7 +90,7 @@ EulerNonET< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsF
       RealType lastResidue = this->getResidue();
       RealType maxResidue( 0.0 );
       if( this->cflCondition != 0.0 ) {
-         maxResidue = VectorOperations::getVectorAbsMax( k1 );
+         maxResidue = TNL::max( abs( k1 ) );
          if( currentTau * maxResidue > this->cflCondition ) {
             currentTau *= 0.9;
             continue;
@@ -219,5 +218,4 @@ updateUEulerNonET( const IndexType size, const RealType tau, const RealType* k1,
 }
 #endif
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks

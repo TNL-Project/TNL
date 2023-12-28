@@ -7,10 +7,7 @@
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 
-#include "../../BLAS/CommonVectorOperations.h"
-
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 template< typename Vector,
           typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
@@ -22,9 +19,12 @@ public:
    using ValueType = RealType;
    using DeviceType = typename Vector::DeviceType;
    using IndexType = typename Vector::IndexType;
-   using VectorOperations = CommonVectorOperations< DeviceType >;
 
-   static constexpr bool isStatic() { return false; }
+   static constexpr bool
+   isStatic()
+   {
+      return false;
+   }
 
    MersonNonET();
 
@@ -38,31 +38,27 @@ public:
    setAdaptivity( const RealType& a );
 
    template< typename RHSFunction >
-   bool solve( DofVectorType& u, RHSFunction&& rhsFunction );
+   bool
+   solve( DofVectorType& u, RHSFunction&& rhsFunction );
 
-   protected:
-
-   //! Compute the Runge-Kutta coefficients
+protected:
    /****
     * The parameter u is not constant because one often
     * needs to correct u on the boundaries to be able to compute
     * the RHS.
     */
    template< typename RHSFunction >
-   void computeKFunctions( DofVectorType& u,
-                           const RealType& time,
-                           RealType tau,
-                           RHSFunction&& rhsFunction );
+   void
+   computeKFunctions( DofVectorType& u, const RealType& time, RealType tau, RHSFunction&& rhsFunction );
 
    RealType
    computeError( const RealType tau );
 
-   void computeNewTimeLevel( const RealType time,
-                             const RealType tau,
-                             DofVectorType& u,
-                             RealType& currentResidue );
+   void
+   computeNewTimeLevel( const RealType time, const RealType tau, DofVectorType& u, RealType& currentResidue );
 
-   void writeGrids( const DofVectorType& u );
+   void
+   writeGrids( const DofVectorType& u );
 
    DofVectorType k1, k2, k3, k4, k5, kAux;
 
@@ -76,7 +72,6 @@ public:
    DofVectorType cudaBlockResidue;
 };
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks
 
 #include "MersonNonET.hpp"
