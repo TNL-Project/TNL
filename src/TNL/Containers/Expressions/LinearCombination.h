@@ -38,7 +38,12 @@ struct LinearCombination;
 template< typename Coefficients, typename Vector >
 struct LinearCombination< Coefficients, Vector, false >
 {
-   static constexpr size_t Size = Coefficients::getSize();
+   static constexpr size_t
+   getSize()
+   {
+      return Coefficients::getSize();
+   }
+
    using ResultType =
       typename detail::LinearCombinationReturnType< Coefficients, Vector, std::integral_constant< size_t, 0 > >::type;
 
@@ -53,11 +58,11 @@ struct LinearCombination< Coefficients, Vector, false >
    static ResultType
    evaluate( const OtherVectors&... others )
    {
-      static_assert( sizeof...( OtherVectors ) == Size, "Number of input vectors must match number of coefficients" );
+      static_assert( sizeof...( OtherVectors ) == getSize(), "Number of input vectors must match number of coefficients" );
       return detail::LinearCombinationEvaluation< Coefficients,
                                                   Vector,
                                                   std::integral_constant< size_t, 0 >,
-                                                  std::integral_constant< size_t, Size > >::evaluate( others... );
+                                                  std::integral_constant< size_t, getSize() > >::evaluate( others... );
    }
 
    /**
@@ -67,19 +72,24 @@ struct LinearCombination< Coefficients, Vector, false >
     * \return expression template representing the linear combination.
     */
    static ResultType
-   evaluate( const std::array< Vector, Size >& vectors )
+   evaluate( const std::array< Vector, getSize() >& vectors )
    {
       return detail::LinearCombinationEvaluation< Coefficients,
                                                   Vector,
                                                   std::integral_constant< size_t, 0 >,
-                                                  std::integral_constant< size_t, Size > >::evaluateArray( vectors );
+                                                  std::integral_constant< size_t, getSize() > >::evaluateArray( vectors );
    }
 };
 
 template< typename Coefficients, typename Vector >
 struct LinearCombination< Coefficients, Vector, true >
 {
-   static constexpr size_t Size = Coefficients::getSize();
+   static constexpr size_t
+   getSize()
+   {
+      return Coefficients::getSize();
+   }
+
    using ResultType =
       typename detail::LinearCombinationReturnType< Coefficients, Vector, std::integral_constant< size_t, 0 > >::type;
 
@@ -95,11 +105,11 @@ struct LinearCombination< Coefficients, Vector, true >
    static ResultType
    evaluate( const OtherVectors&... others )
    {
-      static_assert( sizeof...( OtherVectors ) == Size, "Number of input vectors must match number of coefficients" );
+      static_assert( sizeof...( OtherVectors ) == getSize(), "Number of input vectors must match number of coefficients" );
       return detail::LinearCombinationEvaluation< Coefficients,
                                                   Vector,
                                                   std::integral_constant< size_t, 0 >,
-                                                  std::integral_constant< size_t, Size > >::evaluate( others... );
+                                                  std::integral_constant< size_t, getSize() > >::evaluate( others... );
    }
 
    /**
@@ -110,12 +120,12 @@ struct LinearCombination< Coefficients, Vector, true >
     */
    __cuda_callable__
    static ResultType
-   evaluate( const std::array< Vector, Size >& vectors )
+   evaluate( const std::array< Vector, getSize() >& vectors )
    {
       return detail::LinearCombinationEvaluation< Coefficients,
                                                   Vector,
                                                   std::integral_constant< size_t, 0 >,
-                                                  std::integral_constant< size_t, Size > >::evaluateArray( vectors );
+                                                  std::integral_constant< size_t, getSize() > >::evaluateArray( vectors );
    }
 };
 
