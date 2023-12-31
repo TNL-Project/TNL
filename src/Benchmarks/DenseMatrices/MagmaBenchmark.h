@@ -90,4 +90,4 @@ void denseMatrixTransposeMAGMA(const TNL::Matrices::DenseMatrix<RealType, Device
 }
 
 #endif //HAVE_MAGMA
-#endif
+#endif //__CUDACC__

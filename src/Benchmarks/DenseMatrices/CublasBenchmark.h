@@ -43,11 +43,11 @@ void matrixMultiplicationCuBLAS(const DenseMatrix& matrix1,
                   resultMatrix.getValues().getData(), ldc);
    } else if constexpr(std::is_same_v<RealType, double>) {
       cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha,
-q                 matrix1.getValues().getData(), lda,
+                  matrix1.getValues().getData(), lda,
                   matrix2.getValues().getData(), ldb, &beta,
                   resultMatrix.getValues().getData(), ldc);
    }
    cublasDestroy(handle);
 }
 
-#endif
+#endif //__CUDACC__

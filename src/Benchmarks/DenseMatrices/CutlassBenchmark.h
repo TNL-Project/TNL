@@ -49,4 +49,4 @@ void matrixMultiplicationCutlass(const DenseMatrix& matrix1,
    }
 }
 #endif //HAVE_CUTLASS
-#endif
+#endif //__CUDACC__

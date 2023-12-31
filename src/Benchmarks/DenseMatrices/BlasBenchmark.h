@@ -11,15 +11,18 @@
 #include <cblas.h>
 
 // Function to perform matrix multiplication using BLAS
-template <typename RealType, typename DeviceType, typename IndexType>
-void matrixMultiplicationBLAS(const TNL::Matrices::DenseMatrix<RealType, DeviceType, IndexType>& matrix1,
-                              const TNL::Matrices::DenseMatrix<RealType, DeviceType, IndexType>& matrix2,
-                              TNL::Matrices::DenseMatrix<RealType, DeviceType, IndexType>& resultMatrix) {
+template <typename DenseMatrix>
+void matrixMultiplicationBLAS(const DenseMatrix& matrix1,
+                              const DenseMatrix& matrix2,
+                              DenseMatrix& resultMatrix) {
+
+    using RealType = typename DenseMatrix::RealType;
+    using IndexType = typename DenseMatrix::IndexType;
 
     // Ensure proper dimensions for matrix multiplication
-    int n = matrix2.getColumns();
-    int k = matrix1.getColumns();
-    int m = matrix1.getRows();
+    IndexType n = matrix2.getColumns();
+    IndexType k = matrix1.getColumns();
+    IndexType m = matrix1.getRows();
 
     constexpr auto organization = matrix1.getOrganization();
 
@@ -41,4 +44,4 @@ if constexpr (std::is_same_v<RealType, float>) {
 }
 }
 
-#endif
+#endif //HAVE_BLAS

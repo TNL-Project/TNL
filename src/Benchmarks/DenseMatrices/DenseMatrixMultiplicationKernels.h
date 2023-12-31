@@ -23,9 +23,9 @@ namespace TNL::Benchmarks::DenseMatrices {
 #ifdef __CUDACC__
       // Here we compute product C = A * B. To profit from the fast
       // shared memory we do it by tiles.
-
       using IndexType = typename ResultMatrix::IndexType;
       using RealType = typename ResultMatrix::RealType;
+
       __shared__ RealType tileA[ tileDim * tileDim ];
       __shared__ RealType tileB[ tileDim * tileDim ];
       __shared__ RealType tileC[ tileDim * tileDim ];
@@ -96,9 +96,9 @@ namespace TNL::Benchmarks::DenseMatrices {
 #ifdef __CUDACC__
       // Here we compute product C = A * B. To profit from the fast
       // shared memory we do it by tiles.
-
       using IndexType = typename ResultMatrix::IndexType;
       using RealType = typename ResultMatrix::RealType;
+
       __shared__ RealType tileA[ tileDim * tileDim ];
       __shared__ RealType tileB[ tileDim * tileDim ];
       __shared__ RealType tileC[ tileDim * tileDim ];
@@ -227,23 +227,26 @@ namespace TNL::Benchmarks::DenseMatrices {
                                                       const Matrix2 matrixB,
                                                       const typename ResultMatrix::RealType matrixMultiplicator) {
 #ifdef __CUDACC__
+      using IndexType = typename ResultMatrix::IndexType;
+      using RealType = typename ResultMatrix::RealType;
+
       // Define shared memory tiles
-      __shared__ typename ResultMatrix::RealType tileA[tileDim][tileDim];
-      __shared__ typename ResultMatrix::RealType tileB[tileDim][tileDim];
+      __shared__ RealType tileA[tileDim][tileDim];
+      __shared__ RealType tileB[tileDim][tileDim];
 
       // Calculate thread and block indices
-      int bx = blockIdx.x, by = blockIdx.y;
-      int tx = threadIdx.x, ty = threadIdx.y;
+      IndexType bx = blockIdx.x, by = blockIdx.y;
+      IndexType tx = threadIdx.x, ty = threadIdx.y;
 
       // Calculate the row and column index
-      int row = by * tileDim + ty;
-      int col = bx * tileDim + tx;
+      IndexType row = by * tileDim + ty;
+      IndexType col = bx * tileDim + tx;
 
       // Initialize the accumulator for C
       typename ResultMatrix::RealType CValue = 0;
 
       // Loop over the tiles of the input matrices
-      for (int m = 0; m < (tileDim + matrixA.getColumns() - 1)/tileDim; ++m) {
+      for (IndexType m = 0; m < (tileDim + matrixA.getColumns() - 1)/tileDim; ++m) {
          // Load A and B tiles into shared memory
          if (m * tileDim + tx < matrixA.getColumns() && row < matrixA.getRows())
                tileA[ty][tx] = matrixA(row, m * tileDim + tx);
@@ -258,7 +261,7 @@ namespace TNL::Benchmarks::DenseMatrices {
          __syncthreads();
 
          // Compute product for this tile
-         for (int k = 0; k < tileDim; ++k)
+         for (IndexType k = 0; k < tileDim; ++k)
                CValue += tileA[ty][k] * tileB[k][tx];
 
          __syncthreads();
@@ -277,15 +280,18 @@ namespace TNL::Benchmarks::DenseMatrices {
                                                                const Matrix2 matrixB,
                                                                const typename ResultMatrix::RealType matrixMultiplicator) {
 #ifdef __CUDACC__
+      using IndexType = typename ResultMatrix::IndexType;
+      using RealType = typename ResultMatrix::RealType;
+
       // Define shared memory tiles with padding to avoid bank conflicts
-      __shared__ typename ResultMatrix::RealType tileA[tileDim][tileDim + 1];
-      __shared__ typename ResultMatrix::RealType tileB[tileDim][tileDim + 1];
+      __shared__ RealType tileA[tileDim][tileDim + 1];
+      __shared__ RealType tileB[tileDim][tileDim + 1];
 
-      int bx = blockIdx.x, by = blockIdx.y;
-      int tx = threadIdx.x, ty = threadIdx.y;
+      IndexType bx = blockIdx.x, by = blockIdx.y;
+      IndexType tx = threadIdx.x, ty = threadIdx.y;
 
-      int row = by * tileDim + ty;
-      int col = bx * tileDim + tx;
+      IndexType row = by * tileDim + ty;
+      IndexType col = bx * tileDim + tx;
       typename ResultMatrix::RealType CValue = 0;
 
       for (int m = 0; m < (tileDim + matrixA.getColumns() - 1) / tileDim; ++m) {
@@ -303,7 +309,7 @@ namespace TNL::Benchmarks::DenseMatrices {
 
          // Unroll the loop for a fixed tile size
    #pragma unroll
-         for (int k = 0; k < tileDim; ++k) {
+         for (IndexType k = 0; k < tileDim; ++k) {
                CValue += tileA[ty][k] * tileB[k][tx];
          }
 
@@ -317,72 +323,74 @@ namespace TNL::Benchmarks::DenseMatrices {
 
 
 
-   //kernel 6 (Fermi, adapted for column-major matrices)
    template<int tileDim, int blockSize, typename ResultMatrix, typename Matrix1, typename Matrix2>
-   __global__ void optimizedFermiGemmKernel(ResultMatrix resultMatrix,
-                                        const Matrix1 matrixA,
-                                        const Matrix2 matrixB,
-                                        const typename ResultMatrix::RealType matrixMultiplicator) {
+__global__ void optimizedFermiGemmKernel(ResultMatrix resultMatrix,
+                                         const Matrix1 matrixA,
+                                         const Matrix2 matrixB,
+                                         const typename ResultMatrix::RealType matrixMultiplicator) {
 #ifdef __CUDACC__
-    // Define shared memory tiles
-    __shared__ typename ResultMatrix::RealType tileA[tileDim][tileDim];
-    __shared__ typename ResultMatrix::RealType tileB[tileDim][tileDim];
 
-    int bx = blockIdx.x, by = blockIdx.y;
-    int tx = threadIdx.x, ty = threadIdx.y;
+    using IndexType = typename ResultMatrix::IndexType;
+    using RealType = typename ResultMatrix::RealType;
+    // Define shared memory tiles
+    __shared__ RealType tileA[tileDim][tileDim];
+    __shared__ RealType tileB[tileDim][tileDim];
+
+    IndexType bx = blockIdx.x, by = blockIdx.y;
+    IndexType tx = threadIdx.x, ty = threadIdx.y;
 
     // Calculate the row and column index for the element to be computed in the result matrix
-    int row = by * blockSize + ty;
-    int col = bx * blockSize + tx;
+    // Adjusted for column-major indexing
+    IndexType row = bx * blockSize + tx;
+    IndexType col = by * blockSize + ty;
 
     typename ResultMatrix::RealType CValue[4][4] = {0};
 
-   // Loop over the tiles of A and B matrices
-   for (int m = 0; m < (tileDim + matrixA.getColumns() - 1) / tileDim; ++m) {
-      // Load tiles from A and B into shared memory
-      int aRow = m * tileDim + ty;
-      int aCol = col;
-      int bRow = row;
-      int bCol = m * tileDim + tx;
+    // Loop over the tiles of A and B matrices
+    for (IndexType m = 0; m < (tileDim + matrixA.getRows() - 1) / tileDim; ++m) {
+        // Load tiles from A and B into shared memory
+        IndexType aRow = m * tileDim + tx;
+        IndexType aCol = col;
+        if (aRow < matrixA.getRows() && aCol < matrixA.getColumns()) {
+            tileA[tx][ty] = matrixA(aRow, aCol);
+        } else {
+            tileA[tx][ty] = 0.0;
+        }
 
-      // Adjust for column-major order
-      if (aRow < matrixA.getRows() && aCol < matrixA.getColumns()) {
-         tileA[ty][tx] = matrixA(aRow, aCol);
-      } else {
-         tileA[ty][tx] = 0.0;
-      }
+        IndexType bRow = row;
+        IndexType bCol = m * tileDim + ty;
+        if (bRow < matrixB.getRows() && bCol < matrixB.getColumns()) {
+            tileB[tx][ty] = matrixB(bRow, bCol);
+        } else {
+            tileB[tx][ty] = 0.0;
+        }
 
-      if (bRow < matrixB.getRows() && bCol < matrixB.getColumns()) {
-         tileB[ty][tx] = matrixB(bRow, bCol);
-      } else {
-         tileB[ty][tx] = 0.0;
-      }
+        __syncthreads();
 
-      __syncthreads();
+        // Register blocking computation
+        for (IndexType k = 0; k < tileDim; ++k) {
+            for (IndexType i = 0; i < 4; ++i) {
+                for (IndexType j = 0; j < 4; ++j) {
+                    CValue[i][j] += tileA[tx + i * (blockSize / 4)][k] * tileB[k][ty + j * (blockSize / 4)];
+                }
+            }
+        }
 
-      // Register blocking computation
-      for (int k = 0; k < tileDim; ++k) {
-         for (int i = 0; i < 4; ++i) {
-               for (int j = 0; j < 4; ++j) {
-                  CValue[i][j] += tileA[ty + i * (blockSize / 4)][k] * tileB[k][tx + j * (blockSize / 4)];
-               }
-         }
-      }
+        __syncthreads();
+    }
 
-      __syncthreads();
-   }
-
-   // Write the result to the global memory
-   for (int i = 0; i < 4; ++i) {
-      for (int j = 0; j < 4; ++j) {
-         int cRow = row + i * (blockSize / 4);
-         int cCol = col + j * (blockSize / 4);
-         if (cRow < resultMatrix.getRows() && cCol < resultMatrix.getColumns()) {
-               resultMatrix(cRow, cCol) = CValue[i][j] * matrixMultiplicator;
-         }
-      }
-   }
+    // Write the result to the global memory
+    for (IndexType i = 0; i < 4; ++i) {
+        for (IndexType j = 0; j < 4; ++j) {
+            IndexType cRow = row + i * (blockSize / 4);
+            IndexType cCol = col + j * (blockSize / 4);
+            if (cRow < resultMatrix.getRows() && cCol < resultMatrix.getColumns()) {
+                resultMatrix(cRow, cCol) = CValue[i][j] * matrixMultiplicator;
+            }
+        }
+    }
 #endif // __CUDACC__
 }
+
 
 }
