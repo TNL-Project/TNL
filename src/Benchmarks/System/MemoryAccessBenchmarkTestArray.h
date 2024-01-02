@@ -4,8 +4,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber
-
 #pragma once
 
 #include <cstring>
@@ -19,11 +17,12 @@
 
 #include <TNL/Containers/Array.h>
 
-
 template< int Size >
 struct MemoryAccessBenchmarkTestElement
 {
-   long int& operator[]( int i ) {
+   long int&
+   operator[]( int i )
+   {
       return data[ i ];
    }
 
@@ -36,7 +35,9 @@ struct MemoryAccessBenchmarkTestElement
 template<>
 struct MemoryAccessBenchmarkTestElement< 1 >
 {
-   long int& operator[]( int i ) {
+   long int&
+   operator[]( int i )
+   {
       std::cerr << "Calling of operator [] for TestArrayElement with Size = 1 does not make sense." << std::endl;
       abort();
    }
@@ -46,70 +47,79 @@ struct MemoryAccessBenchmarkTestElement< 1 >
 
 // We do not allow array element with no data.
 template<>
-class MemoryAccessBenchmarkTestElement< 0 >{};
+class MemoryAccessBenchmarkTestElement< 0 >
+{};
 
 template< int Size >
 class MemoryAccessBenchmarkTestArray
 {
-   public:
+public:
+   using ElementType = MemoryAccessBenchmarkTestElement< Size >;
+   using ArrayType = TNL::Containers::Array< ElementType >;
+   using PtrArrayType = TNL::Containers::Array< ElementType* >;
+   using ArrayView = typename ArrayType::ViewType;
 
-      using ElementType = MemoryAccessBenchmarkTestElement< Size >;
-      using ArrayType = TNL::Containers::Array< ElementType >;
-      using PtrArrayType = TNL::Containers::Array< ElementType* >;
-      using ArrayView = typename ArrayType::ViewType;
+   MemoryAccessBenchmarkTestArray( unsigned long long int size );
 
-      MemoryAccessBenchmarkTestArray( unsigned long long int size );
+   void
+   setThreadsCount( int threads_count );
 
-      void setThreadsCount( int threads_count );
+   unsigned long long int
+   getElementsCount() const;
 
-      unsigned long long int getElementsCount() const;
+   void
+   setElementsPerTest( long long int elementsPerTest );
 
-      void setElementsPerTest( long long int elementsPerTest );
+   void
+   setWriteTest( bool writeTest );
 
-      void setWriteTest( bool writeTest );
+   void
+   setReadTest( bool readTest );
 
-      void setReadTest( bool readTest );
+   void
+   setCentralDataAccess( bool centralDataAccess );
 
-      void setCentralDataAccess( bool centralDataAccess );
+   void
+   setInterleaving( bool interleaving );
 
-      void setInterleaving( bool interleaving );
+   bool
+   setupRandomTest( int tlbTestBlockSize = 0, const int numThreads = 1 );
 
-      bool setupRandomTest( int tlbTestBlockSize = 0,
-                            const int numThreads = 1 );
+   void
+   setupSequentialTest( const int numThreads = 1, bool interleaving = true );
 
-      void setupSequentialTest( const int numThreads = 1,
-                                bool interleaving = true );
+   void
+   performTest();
 
-      void performTest();
+   unsigned long long int
+   getTestedElementsCount();
 
-      unsigned long long int getTestedElementsCount();
+   unsigned long long int
+   getTestedElementsCountPerThread();
 
-      unsigned long long int getTestedElementsCountPerThread();
-   protected:
+protected:
+   bool
+   setupRandomTLBWorstTest();
 
-      bool setupRandomTLBWorstTest();
+   bool
+   setupRandomTestBlock( const unsigned long long int blockSize, PtrArrayType& blockLink, const int numThreads = 1 );
 
-      bool setupRandomTestBlock( const unsigned long long int blockSize,
-                                 PtrArrayType& blockLink,
-                                 const int numThreads = 1 );
+   template< bool readTest, bool writeTest, bool accessCentralData >
+   void
+   testLoop();
 
-      template< bool readTest,
-                bool writeTest,
-                bool accessCentralData >
-      void testLoop();
+   ArrayType allocation;
+   ArrayView array;
 
-      ArrayType allocation;
-      ArrayView array;
+   unsigned long long int numberOfElements;
 
-      unsigned long long int numberOfElements;
+   bool readTest = true, writeTest = false, accessCentralData = false, interleaving = false;
 
-      bool readTest = true, writeTest = false, accessCentralData = false, interleaving = false;
+   int num_threads = 1;
 
-      int num_threads = 1;
+   unsigned long long int elementsPerTest, testedElementsCount;
 
-      unsigned long long int elementsPerTest, testedElementsCount;
-
-      unsigned long long int sum = 0;
+   unsigned long long int sum = 0;
 };
 
 #include "MemoryAccessBenchmarkTestArray.hpp"

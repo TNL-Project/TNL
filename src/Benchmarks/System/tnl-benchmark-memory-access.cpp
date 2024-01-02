@@ -4,17 +4,15 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Implemented by: Tomáš Oberhuber
-
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/parseCommandLine.h>
 #include "MemoryAccessBenchmark.h"
 
-bool resolveElementSize( const TNL::Config::ParameterContainer& parameters )
+bool
+resolveElementSize( const TNL::Config::ParameterContainer& parameters )
 {
    int element_size = parameters.getParameter< int >( "element-size" );
-   switch( element_size )
-   {
+   switch( element_size ) {
       case 1:
          return MemoryAccessBenchmark::performBenchmark< 1 >( parameters );
       case 2:
@@ -34,18 +32,20 @@ bool resolveElementSize( const TNL::Config::ParameterContainer& parameters )
       case 256:
          return MemoryAccessBenchmark::performBenchmark< 256 >( parameters );
    }
-   std::cerr << "Element size " << element_size << " is not allowed. It can be only 1, 2, 4, 8, 16, 32, 64, 128, 256." << std::endl;
+   std::cerr << "Element size " << element_size << " is not allowed. It can be only 1, 2, 4, 8, 16, 32, 64, 128, 256."
+             << std::endl;
    return false;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    TNL::Config::ConfigDescription config;
    MemoryAccessBenchmark::configSetup( config );
 
    TNL::Config::ParameterContainer parameters;
 
-   if( !parseCommandLine( argc, argv, config, parameters ) )
+   if( ! parseCommandLine( argc, argv, config, parameters ) )
       return EXIT_FAILURE;
 
    return resolveElementSize( parameters ) ? EXIT_SUCCESS : EXIT_FAILURE;
