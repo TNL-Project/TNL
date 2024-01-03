@@ -4,7 +4,6 @@
 #pragma once
 
 #include <chrono>
-#include <TNL/PerformanceCounter.h>
 
 namespace TNL {
 
@@ -13,7 +12,7 @@ class Logger;
 /**
  * \brief Class for real time, CPU time and CPU cycles measuring.
  *
- * It measures the elapsed real time, CPU time (in seconds) and CPU cycles
+ * It measures the elapsed real time and CPU time (in seconds)
  * elapsed on the timer. The timer can be paused by calling \ref stop and \ref
  * start methods and reseted by calling \ref reset.
  *
@@ -25,36 +24,21 @@ class Logger;
 class Timer
 {
 public:
-   /**
-    * \brief Basic constructor.
-    *
-    * This function creates a new timer and resets it.
-    */
+   //! \brief Basic constructor creating a new timer and resets it.
    Timer();
 
-   /**
-    * \brief Resets timer.
-    *
-    * Resets all time and cycle measurements such as real time, CPU time and
-    * CPU cycles. Sets all of them to zero.
-    */
+   //! \brief Reset the CPU and real-time timers.
    void
    reset();
 
-   /**
-    * \brief Stops (pauses) the timer.
-    *
-    * Pauses all time and cycle measurements such as real time, CPU time and
-    * CPU cycles, but does not set them to zero.
-    */
+   //!  \brief Stops (pauses) the CPU and the real-time timers, but does not set them to zero.
    void
    stop();
 
    /**
     * \brief Starts timer.
     *
-    * Starts all time and cycle measurements such as real time, CPU time and
-    * CPU cycles. This method can be used also after using the \ref stop
+    * Starts the CPU and real-time timers. This method can be used also after using the \ref stop
     * method. The timer then continues measuring the time without reseting.
     */
    void
@@ -82,15 +66,6 @@ public:
    getCPUTime() const;
 
    /**
-    * \brief Returns the number of CPU cycles (machine cycles) elapsed on this timer.
-    *
-    * CPU cycles are counted by adding the number of CPU cycles between
-    * \ref start and \ref stop methods together.
-    */
-   [[nodiscard]] unsigned long long int
-   getCPUCycles() const;
-
-   /**
     * \brief Writes a record into the \e logger.
     *
     * \param logger Name of Logger object.
@@ -108,27 +83,15 @@ protected:
    using TimePoint = typename std::chrono::high_resolution_clock::time_point;
    using Duration = typename std::chrono::high_resolution_clock::duration;
 
-   /**
-    * \brief Function for measuring the real time.
-    */
+   //! \brief Function for measuring the real time.
    static TimePoint
    readRealTime();
 
-   /**
-    * \brief Function for measuring the CPU time.
-    */
+   //! \brief Function for measuring the CPU time.
    static double
    readCPUTime();
 
-   /**
-    * \brief Function for counting the number of CPU cycles (machine cycles).
-    */
-   static unsigned long long int
-   readCPUCycles();
-
-   /**
-    * \brief Converts the real time into seconds as a floating point number.
-    */
+   //! \brief Converts the real time into seconds as a floating point number.
    static double
    durationToDouble( const Duration& duration );
 
@@ -138,14 +101,8 @@ protected:
 
    double initialCPUTime, totalCPUTime;
 
-   unsigned long long int initialCPUCycles, totalCPUCycles;
-
    bool stopState;
-
-   static PerformanceCounter performanceCounter;
 };
-
-inline PerformanceCounter Timer::performanceCounter;
 
 }  // namespace TNL
 

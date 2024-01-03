@@ -25,8 +25,6 @@ Timer::reset()
    this->totalCPUTime = 0.0;
    this->initialRealTime = TimePoint();
    this->totalRealTime = Duration();
-   this->initialCPUCycles = 0;
-   this->totalCPUCycles = 0;
    this->stopState = true;
 }
 
@@ -36,7 +34,6 @@ Timer::stop()
    if( ! this->stopState ) {
       this->totalRealTime += readRealTime() - this->initialRealTime;
       this->totalCPUTime += readCPUTime() - this->initialCPUTime;
-      this->totalCPUCycles += performanceCounter.getCPUCycles() - this->initialCPUCycles;
       this->stopState = true;
    }
 }
@@ -46,7 +43,6 @@ Timer::start()
 {
    this->initialRealTime = readRealTime();
    this->initialCPUTime = readCPUTime();
-   this->initialCPUCycles = performanceCounter.getCPUCycles();
    this->stopState = false;
 }
 
@@ -66,20 +62,11 @@ Timer::getCPUTime() const
    return this->totalCPUTime;
 }
 
-inline unsigned long long int
-Timer::getCPUCycles() const
-{
-   if( ! this->stopState )
-      return performanceCounter.getCPUCycles() - this->initialCPUCycles;
-   return this->totalCPUCycles;
-}
-
 inline bool
 Timer::writeLog( Logger& logger, int logLevel ) const
 {
    logger.writeParameter< double >( "Real time:", this->getRealTime(), logLevel );
    logger.writeParameter< double >( "CPU time:", this->getCPUTime(), logLevel );
-   logger.writeParameter< unsigned long long int >( "CPU Cycles:", this->getCPUCycles(), logLevel );
    return true;
 }
 
@@ -99,12 +86,6 @@ Timer::readCPUTime()
 #else
    return -1;
 #endif
-}
-
-inline unsigned long long int
-Timer::readCPUCycles()
-{
-   return performanceCounter.getCPUCycles();
 }
 
 inline double

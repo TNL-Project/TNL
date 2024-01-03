@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include <TNL/Timer.h>
+#include <TNL/PerformanceCounter.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
@@ -38,12 +39,14 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
    // set timer to the monitor
    monitor.setTimer( timer );
 
+   PerformanceCounter performanceCounter;
+
    // warm up
    reset();
    compute();
 
    Containers::Vector< double > results_time( maxLoops, 0.0 );
-   Containers::Vector< long long int > results_cpu_cycles( maxLoops, 0.0 );
+   Containers::Vector< long long int > results_cpu_cycles( maxLoops, 0 );
 
    int loops;
    for( loops = 0; loops < maxLoops || sum( results_time ) < minTime; loops++ ) {
@@ -55,18 +58,20 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
       if constexpr( std::is_same_v< Device, Devices::Cuda > )
          Backend::deviceSynchronize();
 
-      // reset timer before each computation
+      // reset timer and performance counters before each computation
       timer.reset();
+      performanceCounter.reset();
       timer.start();
+      performanceCounter.start();
       compute();
       if constexpr( std::is_same_v< Device, Devices::Cuda > )
          Backend::deviceSynchronize();
       timer.stop();
+      performanceCounter.stop();
 
       results_time[ loops ] = timer.getRealTime();
-      if constexpr( std::is_same< Device, Devices::Sequential >::value ||
-         std::is_same< Device, Devices::Host >::value )
-         results_cpu_cycles[ loops ] = timer.getCPUCycles();
+      if constexpr( std::is_same< Device, Devices::Sequential >::value || std::is_same< Device, Devices::Host >::value )
+         results_cpu_cycles[ loops ] = performanceCounter.getCPUCycles();
    }
 
    const double mean_time = sum( results_time ) / (double) loops;
