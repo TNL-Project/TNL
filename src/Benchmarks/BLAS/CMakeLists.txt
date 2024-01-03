@@ -93,6 +93,10 @@ if( Thrust_FOUND )
    endif()
    foreach( target IN ITEMS ${BENCHMARKS} )
       target_compile_definitions( ${target} PUBLIC -DHAVE_THRUST )
+      # HACK: Thrust adds its include directory as non-system directory, which leads
+      # to warnings (and thus errors with TNL_USE_CI_FLAGS=ON) due to -Wextra-semi:
+      # https://github.com/NVIDIA/cccl/issues/826
+      target_include_directories( ${target} SYSTEM PUBLIC ${_THRUST_INCLUDE_DIR} )
    endforeach()
    if( TNL_BUILD_CPP_TARGETS )
       target_link_libraries( tnl-benchmark-blas PUBLIC ThrustHost )
