@@ -103,6 +103,10 @@ workflow:
         CUDAHOSTCXX: clang++
         CMAKE_CUDA_FLAGS: "-stdlib=libc++"
         USE_CUDA: "yes"
+        # use CUDA 11.8 from the Arch Linux-based Docker image
+        "CUDA_PATH": "/opt/cuda-11.8"
+        "Thrust_DIR": "${CUDA_PATH}/lib64/cmake/thrust/"
+        "CUB_DIR": "${CUDA_PATH}/lib64/cmake/cub/"
 
 # base for Intel oneAPI builds
 .icpx:
@@ -127,8 +131,13 @@ workflow:
 
 # template for environment setup before build
 .env_setup: &env_setup
+    - CUDA_PATH_BACKUP=$CUDA_PATH
     # make sure that $PATH and other essential variables are set correctly
     - source /etc/profile
+    # restore $CUDA_PATH if it was set as a variable in the CI
+    - if [[ -n ${CUDA_PATH_BACKUP} ]]; then
+            export CUDA_PATH=${CUDA_PATH_BACKUP};
+      fi
     # all cores including hyperthreading
     #- export NUM_CORES=$(grep "core id" /proc/cpuinfo | wc -l)
     # all pyhsical cores
