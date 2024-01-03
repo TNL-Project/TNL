@@ -283,7 +283,7 @@ MemoryAccessBenchmarkTestArray< Size >::testLoop()
       const int tid = 0;
 #endif
       testedElementsCount = 0;
-      if( tid < this->numberOfElements )
+      if( (unsigned long long int) tid < this->numberOfElements )
          while( testedElementsCount < elementsPerTestPerThread ) {
             ElementType* elementPtr = &this->array[ tid ];
             int elements( 0 );
