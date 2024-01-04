@@ -49,7 +49,7 @@ midpoint](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) met
  * method.
  * 3. \ref TNL::Solvers::ODE::Methods::Ralston4 - the
  * [Ralston](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
- * 4. \ref TNL::Solvers::ODE::Methods::Merson - the
+ * 4. \ref TNL::Solvers::ODE::Methods::KuttaMerson - the
 [Runge-Kutta-Merson](https://encyclopediaofmath.org/wiki/Kutta-Merson_method) * method with adaptive choice of the time step.
 
  * **5-th order accuracy method**

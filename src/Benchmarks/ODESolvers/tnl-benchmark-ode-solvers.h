@@ -26,7 +26,7 @@
 #include <TNL/Solvers/ODE/Methods/Heun2.h>
 #include <TNL/Solvers/ODE/Methods/Heun3.h>
 #include <TNL/Solvers/ODE/Methods/Kutta.h>
-#include <TNL/Solvers/ODE/Methods/Merson.h>
+#include <TNL/Solvers/ODE/Methods/KuttaMerson.h>
 #include <TNL/Solvers/ODE/Methods/Midpoint.h>
 #include <TNL/Solvers/ODE/Methods/OriginalRungeKutta.h>
 #include <TNL/Solvers/ODE/Methods/Ralston2.h>
@@ -166,20 +166,20 @@ struct ODESolversBenchmark
                TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 2, Real >, SolverMonitorType >;
             benchmarkSolver< StaticSolver_2 >( benchmark, parameters, "Euler SV-2" );
          }
-         if( solver == "merson" || solver == "all" ) {
+         if( solver == "kutta-merson" || solver == "all" ) {
             using LegacySolverNonET = Benchmarks::MersonNonET< VectorType, SolverMonitorType >;
-            benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Merson non-ET" );
+            benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Kutta-Merson non-ET" );
             using LegacySolver = Merson< VectorType, SolverMonitorType >;
-            benchmarkSolver< LegacySolver >( benchmark, parameters, "Leg. Merson" );
-            using Method = TNL::Solvers::ODE::Methods::Merson< RealType >;
+            benchmarkSolver< LegacySolver >( benchmark, parameters, "Leg. Kutta-Merson" );
+            using Method = TNL::Solvers::ODE::Methods::KuttaMerson< RealType >;
             using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
-            benchmarkSolver< Solver >( benchmark, parameters, "Merson" );
+            benchmarkSolver< Solver >( benchmark, parameters, "Kutta-Merson" );
             using StaticSolver_1 =
                TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 1, Real >, SolverMonitorType >;
-            benchmarkSolver< StaticSolver_1 >( benchmark, parameters, "Merson SV-1" );
+            benchmarkSolver< StaticSolver_1 >( benchmark, parameters, "Kutta-Merson SV-1" );
             using StaticSolver_2 =
                TNL::Solvers::ODE::ODESolver< Method, Containers::StaticVector< 2, Real >, SolverMonitorType >;
-            benchmarkSolver< StaticSolver_2 >( benchmark, parameters, "Merson SV-2" );
+            benchmarkSolver< StaticSolver_2 >( benchmark, parameters, "Kutta-Merson SV-2" );
          }
          if( solver == "bogacki-shampin" || solver == "all" ) {
             using Method = TNL::Solvers::ODE::Methods::BogackiShampin< RealType >;
@@ -331,7 +331,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum< String >( "heun2" );
    config.addEntryEnum< String >( "heun3" );
    config.addEntryEnum< String >( "kutta" );
-   config.addEntryEnum< String >( "merson" );
+   config.addEntryEnum< String >( "kutta-merson" );
    config.addEntryEnum< String >( "midpoint" );
    config.addEntryEnum< String >( "ralston2" );
    config.addEntryEnum< String >( "ralston3" );

@@ -44,7 +44,7 @@ TNL provides several methods for ODE solution, categorized based on their order 
 1. \ref TNL::Solvers::ODE::Methods::OriginalRungeKutta - the ["original" Runge-Kutta](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
 2. \ref TNL::Solvers::ODE::Methods::Rule38 - [3/8 rule](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
 3. \ref TNL::Solvers::ODE::Methods::Ralston4 - the [Ralston](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method.
-4. \ref TNL::Solvers::ODE::Methods::Merson - the [Runge-Kutta-Merson](https://encyclopediaofmath.org/wiki/Kutta-Merson_method) method with adaptive choice of the time step.
+4. \ref TNL::Solvers::ODE::Methods::KuttaMerson - the [Runge-Kutta-Merson](https://encyclopediaofmath.org/wiki/Kutta-Merson_method) method with adaptive choice of the time step.
 
 **5-th order accuracy method**
 1. \ref TNL::Solvers::ODE::Methods::CashKarp - the [Cash-Karp](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods) method with adaptive choice of the time step.
