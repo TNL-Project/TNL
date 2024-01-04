@@ -1,19 +1,6 @@
 add_subdirectory( Ginkgo )
 add_subdirectory( Hypre )
 
-#add_subdirectory( simple-examples )
-#add_subdirectory( Hamilton-Jacobi )
-#add_subdirectory( heat-equation )
-#add_subdirectory( transport-equation )
-#add_subdirectory( navier-stokes )
-#add_subdirectory( inviscid-flow )
-#add_subdirectory( inviscid-flow-sw )
-#add_subdirectory( inviscid-flow-vl )
-##add_subdirectory( mean-curvature-flow )
-#add_subdirectory( flow )
-#add_subdirectory( flow-sw )
-#add_subdirectory( flow-vl )
-
 set( CPP_TARGETS  tnl-optimize-ranks tnl-turbulence-generator )
 set( CUDA_TARGETS  tnl-optimize-ranks-cuda tnl-turbulence-generator-cuda )
 
