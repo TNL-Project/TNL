@@ -7,12 +7,10 @@
 
 namespace TNL::Benchmarks {
 
-#ifdef __CUDACC__
 template< typename RealType, typename Index >
 __global__
 void
 updateUEulerNonET( const Index size, const RealType tau, const RealType* k1, RealType* u, RealType* cudaBlockResidue );
-#endif
 
 template< typename Vector, typename SolverMonitor >
 EulerNonET< Vector, SolverMonitor >::EulerNonET() : cflCondition( 0.0 )
@@ -161,7 +159,6 @@ EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, Real
       }
    }
    if( std::is_same_v< DeviceType, Devices::Cuda > ) {
-#ifdef __CUDACC__
       dim3 cudaBlockSize( 512 );
       const IndexType cudaBlocks = Backend::getNumberOfBlocks( size, cudaBlockSize.x );
       const IndexType cudaGrids = Backend::getNumberOfGrids( cudaBlocks, Backend::getMaxGridXSize() );
@@ -175,18 +172,16 @@ EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, Real
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
          const IndexType currentGridSize = Backend::getNumberOfBlocks( currentSize, cudaBlockSize.x );
 
-         Backend::launchKernel( updateUEulerNonET< RealType, IndexType >,
-                                Backend::LaunchConfiguration( dim3( currentGridSize ), dim3( cudaBlockSize ), sharedMemory ),
-                                currentSize,
-                                tau,
-                                &_k1[ gridOffset ],
-                                &_u[ gridOffset ],
-                                this->cudaBlockResidue.getData() );
+         Backend::launchKernelSync(
+            updateUEulerNonET< RealType, IndexType >,
+            Backend::LaunchConfiguration( dim3( currentGridSize ), dim3( cudaBlockSize ), sharedMemory ),
+            currentSize,
+            tau,
+            &_k1[ gridOffset ],
+            &_u[ gridOffset ],
+            this->cudaBlockResidue.getData() );
          localResidue += sum( this->cudaBlockResidue );
-         cudaDeviceSynchronize();
-         TNL_CHECK_CUDA_DEVICE;
       }
-#endif
    }
 
    localResidue /= tau * (RealType) size;
@@ -194,12 +189,12 @@ EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, Real
    //std::cerr << "Local residue = " << localResidue << " - globalResidue = " << currentResidue << std::endl;
 }
 
-#ifdef __CUDACC__
 template< typename RealType, typename IndexType >
 __global__
 void
 updateUEulerNonET( const IndexType size, const RealType tau, const RealType* k1, RealType* u, RealType* cudaBlockResidue )
 {
+#ifdef __CUDACC__
    extern __shared__ void* d_u[];
    RealType* du = (RealType*) d_u;
    const IndexType blockOffset = blockIdx.x * blockDim.x;
@@ -215,7 +210,7 @@ updateUEulerNonET( const IndexType size, const RealType tau, const RealType* k1,
    IndexType n = rest < blockDim.x ? rest : blockDim.x;
 
    computeBlockResidue( du, cudaBlockResidue, n );
-}
 #endif
+}
 
 }  // namespace TNL::Benchmarks
