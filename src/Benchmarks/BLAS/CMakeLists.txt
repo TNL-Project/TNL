@@ -85,12 +85,16 @@ endif()
 find_package( Thrust )
 if( Thrust_FOUND )
    # https://github.com/NVIDIA/thrust/blob/main/thrust/cmake/README.md
-   thrust_create_target( ThrustHost HOST OMP DEVICE OMP )
    if( TBB_FOUND )
-      thrust_create_target( ThrustCuda HOST TBB DEVICE CUDA )
+      set( _thrust_host_device TBB )
+   elseif( TNL_USE_OPENMP )
+      set( _thrust_host_device OMP )
    else()
-      thrust_create_target( ThrustCuda HOST OMP DEVICE CUDA )
+      set( _thrust_host_device CPP )
    endif()
+   thrust_create_target( ThrustHost HOST ${_thrust_host_device} DEVICE ${_thrust_host_device} )
+   thrust_create_target( ThrustCuda HOST CPP DEVICE CUDA )  # NOTE: OMP does not work with CUDA
+
    foreach( target IN ITEMS ${BENCHMARKS} )
       target_compile_definitions( ${target} PUBLIC -DHAVE_THRUST )
       # HACK: Thrust adds its include directory as non-system directory, which leads
