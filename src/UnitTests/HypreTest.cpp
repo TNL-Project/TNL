@@ -371,6 +371,7 @@ solve( Matrices::HypreParCSRMatrix& A, Containers::HypreParVector& x, Containers
    solver.setMatrix( A );
    solver.setTol( 1e-9 );
    solver.setResidualConvergenceOptions( -1, 1e-9 );
+   solver.setPrintLevel( 3 );
 
    // solve the linear system
    solver.solve( b, x );
@@ -438,6 +439,8 @@ TEST( HypreTest, solve_distributed_fromMasterRank )
 
    // set the right-hand-side
    x.setValue( 1 );
+   // FIXME: HYPRE_ParCSRMatrixMatvec does not set the ghost values and the solver then complains when it finds nan or +/-inf
+   b.setValue( 0 );
    HYPRE_ParCSRMatrixMatvec( 1.0, matrix, hypre_x, 0.0, hypre_b );
    x.setValue( 0 );
 
@@ -474,6 +477,8 @@ TEST( HypreTest, solve_distributed_fromLocalBlock )
 
    // set the right-hand-side
    x.setValue( 1 );
+   // FIXME: HYPRE_ParCSRMatrixMatvec does not set the ghost values and the solver then complains when it finds nan or +/-inf
+   b.setValue( 0 );
    HYPRE_ParCSRMatrixMatvec( 1.0, matrix, hypre_x, 0.0, hypre_b );
    x.setValue( 0 );
 

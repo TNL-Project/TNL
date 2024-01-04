@@ -1326,6 +1326,13 @@ template< typename Matrix >
 void
 test_SortColumnIndexes()
 {
+// FIXME: sortColumnIndexes does not work with HIP/ROCm 5.7.1 on gfx803
+// HSA_STATUS_ERROR_EXCEPTION: An HSAIL operation resulted in a hardware exception. code: 0x1016
+#ifdef __HIP__
+   if constexpr( std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Hip > )
+      return;
+#endif
+
    if constexpr( ! TNL::Matrices::Sandbox::IsSandboxMatrix< Matrix >::value ) {
       using IndexType = typename Matrix::IndexType;
 

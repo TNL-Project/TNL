@@ -248,10 +248,9 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
          auto f2 = [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index & columnIndex, Real & value ) mutable
          {
             Real inValue = 0;
-            Index bufferIdx;
             Index column = rowLocalIndexes_view[ rowIdx ];
             while( inValue == Real{ 0 } && column < matrix_columns ) {
-               bufferIdx = ( rowIdx - baseRow ) * maxRowLength + column++;
+               const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + column++;
                inValue = thisValuesBuffer_view[ bufferIdx ];
             }
             rowLocalIndexes_view[ rowIdx ] = column;
@@ -320,7 +319,7 @@ copyBuffersToMatrixElements( Matrix& m,
    auto f2 = [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index & columnIndex, Real & value ) mutable
    {
       Real inValue = 0;
-      std::size_t bufferIdx;
+      std::size_t bufferIdx = 0;
       Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
       while( inValue == Real{ 0 } && localIdx < thisRowLengths_view[ rowIdx ] ) {
          bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;
