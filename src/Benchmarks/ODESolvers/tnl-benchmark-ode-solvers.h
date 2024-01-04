@@ -50,8 +50,7 @@ using namespace TNL::Pointers;
 template< typename Real, typename Index >
 void
 benchmarkODESolvers( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, size_t dofs )
-{
-}
+{}
 
 template< typename Real, typename Device, typename Index >
 struct ODESolversBenchmark
@@ -150,12 +149,15 @@ struct ODESolversBenchmark
    {
       using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
       const auto& solvers = parameters.getList< String >( "solvers" );
+      const bool legacy_solvers = parameters.getParameter< bool >( "legacy-solvers" );
       for( auto&& solver : solvers ) {
          if( solver == "euler" || solver == "all" ) {
-            using LegacySolverNonET = Benchmarks::EulerNonET< VectorType, SolverMonitorType >;
-            benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Euler non-ET" );
-            using LegacySolver = Euler< VectorType, SolverMonitorType >;
-            benchmarkSolver< LegacySolver >( benchmark, parameters, "Leg. Euler" );
+            if( legacy_solvers ) {
+               using LegacySolverNonET = Benchmarks::EulerNonET< VectorType, SolverMonitorType >;
+               benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Euler non-ET" );
+               using LegacySolver = Euler< VectorType, SolverMonitorType >;
+               benchmarkSolver< LegacySolver >( benchmark, parameters, "Leg. Euler" );
+            }
             using Method = TNL::Solvers::ODE::Methods::Euler< RealType >;
             using VectorSolver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< VectorSolver >( benchmark, parameters, "Euler" );
@@ -167,10 +169,12 @@ struct ODESolversBenchmark
             benchmarkSolver< StaticSolver_2 >( benchmark, parameters, "Euler SV-2" );
          }
          if( solver == "kutta-merson" || solver == "all" ) {
-            using LegacySolverNonET = Benchmarks::MersonNonET< VectorType, SolverMonitorType >;
-            benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Kutta-Merson non-ET" );
-            using LegacySolver = Merson< VectorType, SolverMonitorType >;
-            benchmarkSolver< LegacySolver >( benchmark, parameters, "Leg. Kutta-Merson" );
+            if( legacy_solvers ) {
+               using LegacySolverNonET = Benchmarks::MersonNonET< VectorType, SolverMonitorType >;
+               benchmarkSolver< LegacySolverNonET >( benchmark, parameters, "Leg. Kutta-Merson non-ET" );
+               using LegacySolver = Merson< VectorType, SolverMonitorType >;
+               benchmarkSolver< LegacySolver >( benchmark, parameters, "Leg. Kutta-Merson" );
+            }
             using Method = TNL::Solvers::ODE::Methods::KuttaMerson< RealType >;
             using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Kutta-Merson" );
@@ -357,6 +361,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntry< double >( "final-time", "Final time of the benchmark test.", 1.0 );
    config.addEntry< double >( "time-step", "Time step of the benchmark test.", 1.0e-2 );
    config.addEntry< double >( "adaptivity", "Set adaptive time stepping. Zero means no adaptive time stepping", 0.0 );
+   config.addEntry< bool >( "legacy-solvers", "Run benchmarks even for legacy implementations of the solvers.", false );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
