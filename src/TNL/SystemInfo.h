@@ -364,7 +364,7 @@ getCPUCacheSizes( int cpu_id )
       else if( level == 3 )
          sizes.L3 = size;
    }
-   sizes.cacheLineSize = detail::readFile< int >( "/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size" );
+   sizes.cacheLineSize = sysconf( _SC_LEVEL1_DCACHE_LINESIZE );
    return sizes;
 #elif defined( SPY_OS_IS_MACOS )
    CPUCacheSizes sizes;
@@ -392,6 +392,10 @@ getCPUCacheSizes( int cpu_id )
       throw std::runtime_error( "Failed to parse output of sysctl to detect the cache line size." );
 
    return sizes;
+#elif defined( SPY_OS_IS_WINDOWS )
+   CPUCacheSizes sizes;
+   // The following might work even for WSL - https://stackoverflow.com/a/2795984
+   sizes.cacheLineSize = sysconf( _SC_LEVEL1_DCACHE_LINESIZE );
 #else
    return {};
 #endif
