@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import argparse
 import json
 import pandas as pd
 from pandas.io.json import json_normalize
@@ -45,7 +46,7 @@ def get_multiindex():
 
 
 ####
-# Process dataframe for given precision - float or double
+# Process dataframe
 def processDf( df ):
     multicolumns, df_data = get_multiindex()
 
@@ -425,16 +426,21 @@ def writeElementSizeComparisonFigures( df ):
 
 #####
 # Parse input files
+parser = argparse.ArgumentParser(description="Scritp for processing TNL benchmark memory access results.")
+parser.add_argument("-i", "--input-file", dest="input_files", nargs='+', required=True, help="The input file to be processed")
+args = parser.parse_args()
+
 parsed_lines = []
-filename = f"tnl-benchmark-memory-access.log"
-if not exists( filename ):
-    print( f"Skipping non-existing input file {filename} ...." )
-print( f"Parsing input file {filename} ...." )
-with open( filename ) as f:
-    lines = f.readlines()
-    for line in lines:
-        parsed_line = json.loads(line)
-        parsed_lines.append( parsed_line )
+
+for filename in args.input_files:
+    if not exists( filename ):
+        print( f"Skipping non-existing input file {filename} ...." )
+    print( f"Parsing input file {filename} ...." )
+    with open( filename ) as f:
+        lines = f.readlines()
+        for line in lines:
+            parsed_line = json.loads(line)
+            parsed_lines.append( parsed_line )
 
 df = pd.DataFrame(parsed_lines)
 if not threads:
