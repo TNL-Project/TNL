@@ -119,6 +119,27 @@ def get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size
             print( f'Warning wrong value of CPU cycles: {cycles} for threads count {threads_count}, access {access}, test type {test_type}, ordering {ordering}, element size {element_size} ')
     return cpu_cycles
 
+###
+# Helper function for writting of figures
+def writeFigure( file_name, data_set, legend, legend_location, sizes, y_lim ):
+    fig, axs = plt.subplots( 1, 1 )
+    for data in data_set:
+        axs.plot( sizes, data, '-o', ms=6, lw=2 )
+    axs.legend( legend, loc=legend_location )
+    axs.set_ylabel( 'Effective bandwidth in GB/sec' )
+    axs.set_xlabel( 'Array size in bytes' )
+    axs.set_xscale( 'log' )
+    axs.set_yscale( 'linear' )
+    if y_lim:
+        axs.set_ylim( y_lim )
+    axs.grid()
+    plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "sans-serif",
+    "font.size" : font_size })
+    plt.savefig( file_name )
+    plt.close(fig)
+
 ####
 # Write figures for particular benchmark tests
 def writeGeneralFigures( df ):
@@ -131,44 +152,24 @@ def writeGeneralFigures( df ):
                     orderings.append( 'interleaving' )
                 for ordering in orderings:
                     for element_size in element_sizes:
-                        print( f'Writing figure for benchmark: {access} threads={threads_count} {test_type} {ordering} element size = {element_size}:' )
+                        print( f'Writing figures for benchmark: {access} threads={threads_count} {test_type} {ordering} element size = {element_size}:' )
                         bandwidth = get_bandwidth( df, threads_count, access, test_type, ordering, element_size )
                         cpu_cycles = get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size )
                         print( f'   BW: {bandwidth}' )
                         print( f'   CPU cycles: {cpu_cycles}' )
                         max_bandwidth = max( bandwidth )
 
-                        fig, axs = plt.subplots( 1, 1 )
-                        axs.plot( sizes, bandwidth, '-o', ms=6, lw=2 )
-                        axs.legend( [ f'{access} access {threads_count} threads' ], loc='upper right' )
-                        axs.set_ylabel( 'Effective bandwidth in GB/sec' )
-                        axs.set_xlabel( 'Array size in bytes' )
-                        axs.set_xscale( 'log' )
-                        axs.set_yscale( 'linear' )
-                        axs.set_ylim( [0, 1.2*max_bandwidth ])
-                        axs.grid()
-                        plt.rcParams.update({
-                        "text.usetex": True,
-                        "font.family": "sans-serif",
-                        "font.size" : font_size })
-                        plt.savefig( f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-bw.pdf")
-                        plt.close(fig)
+                        file_name = f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-bw.pdf"
+                        data_set = [ bandwidth ]
+                        legend = [ f'{access} access {threads_count} threads' ]
+                        legend_location = 'upper right'
+                        writeFigure( file_name, data_set, legend, legend_location, sizes, [0, 1.2*max_bandwidth ] )
 
-                        print( f'WRITING CPU_CYCLES: {cpu_cycles} to file \n {access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf' )
-                        fig, axs = plt.subplots( 1, 1 )
-                        axs.plot( sizes, cpu_cycles, '-o', ms=6, lw=2 )
-                        axs.legend( [ f'{access} access {threads_count} threads' ], loc='upper left' )
-                        axs.set_ylabel( 'CPU cycles per element' )
-                        axs.set_xlabel( 'Array size in bytes' )
-                        axs.set_xscale( 'log' )
-                        axs.set_yscale( 'linear' )
-                        axs.grid()
-                        plt.rcParams.update({
-                        "text.usetex": True,
-                        "font.family": "sans-serif",
-                        "font.size" : font_size})
-                        plt.savefig( f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf")
-                        plt.close(fig)
+                        file_name = f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf"
+                        data_set = [ cpu_cycles ]
+                        legend = [ f'{access} access {threads_count} threads' ]
+                        legend_location = 'upper left'
+                        writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
 
 ####
 # Write figures for comparison of sequential and random access
@@ -181,43 +182,23 @@ def writeSequentialRandomComparisonFigures( df ):
 
                 print( f'Writing figure for comparison of sequential and random access: {test_type} element size = {element_size}:' )
 
-                fig, axs = plt.subplots( 1, 1 )
+                file_name = f"sequential-random-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf"
+                data_set = []
                 legend = []
                 for access in accesses:
-                    bandwidth = get_bandwidth( df, threads_count, access, test_type, ordering, element_size )
-                    axs.plot( sizes, bandwidth, '-o', ms=4, lw=1 )
                     legend.append( access )
-                axs.legend( legend, loc='lower left' )
-                axs.set_ylabel( 'Effective bandwidth in GB/sec' )
-                axs.set_xlabel( 'Array size in bytes' )
-                axs.set_xscale( 'log' )
-                axs.set_yscale( 'linear' )
-                axs.grid()
-                #axs.set_ylim( [0, 1.2*max_bandwidth ])
-                plt.rcParams.update({
-                "text.usetex": True,
-                "font.family": "sans-serif",
-                "font.size" : font_size})
-                plt.savefig( f"sequential-random-comparison-{access}-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf")
-                plt.close(fig)
+                    data_set.append( get_bandwidth( df, threads_count, access, test_type, ordering, element_size ) )
+                legend_location = 'lower left'
+                writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
 
-                fig, axs = plt.subplots( 1, 1 )
+                file_name = f"sequential-random-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf"
+                data_set = []
+                legend = []
                 for access in accesses:
-                    cpu_cycles = get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size )
-                    axs.plot( sizes, cpu_cycles, '-o', ms=4, lw=1 )
-                axs.legend( legend, loc='upper left' )
-                axs.set_ylabel( 'CPU cycles per element' )
-                axs.set_xlabel( 'Array size in bytes' )
-                axs.set_xscale( 'log' )
-                axs.set_yscale( 'linear' )
-                axs.grid()
-                plt.rcParams.update({
-                "text.usetex": True,
-                "font.family": "sans-serif",
-                "font.size" : font_size})
-                plt.savefig( f"sequential-random-comparison-{access}-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf")
-                plt.close(fig)
-
+                    legend.append( access )
+                    data_set.append( get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size ) )
+                legend_location = 'upper left'
+                writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
 
 ####
 # Write figures for comparison with different threads count
@@ -233,47 +214,27 @@ def writeThreadsCountComparisonFigures( df ):
 
                     print( f'Writing figure for threads count comparison: {access} {test_type} {ordering} element size = {element_size}:' )
 
-                    fig, axs = plt.subplots( 1, 1 )
+                    file_name = f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-bw.pdf"
+                    data_set = []
                     legend = []
                     for threads_count in threads:
                         if ordering == 'interleaving' and threads_count == '1':
                             continue
-                        bandwidth = get_bandwidth( df, threads_count, access, test_type, ordering, element_size )
-                        axs.plot( sizes, bandwidth, '-o', ms=4, lw=1 )
                         legend.append( f'{threads_count} threads' )
-                    axs.legend( legend, loc='upper right' )
-                    axs.set_ylabel( 'Effective bandwidth in GB/sec' )
-                    axs.set_xlabel( 'Array size in bytes' )
-                    axs.set_xscale( 'log' )
-                    axs.set_yscale( 'linear' )
-                    axs.grid()
-                    #axs.set_ylim( [0, 1.2*max_bandwidth ])
-                    plt.rcParams.update({
-                    "text.usetex": True,
-                    "font.family": "sans-serif",
-                    "font.size" : font_size})
-                    plt.savefig( f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-bw.pdf")
-                    plt.close(fig)
+                        data_set.append( get_bandwidth( df, threads_count, access, test_type, ordering, element_size ) )
+                    legend_location = 'upper right'
+                    writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
 
-                    fig, axs = plt.subplots( 1, 1 )
+                    file_name = f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf"
+                    data_set = []
+                    legend = []
                     for threads_count in threads:
                         if ordering == 'interleaving' and threads_count == '1':
                             continue
-                        cpu_cycles = get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size )
-                        axs.plot( sizes, cpu_cycles, '-o', ms=4, lw=1 )
-                    axs.legend( legend, loc='upper left' )
-                    axs.set_ylabel( 'CPU cycles per element' )
-                    axs.set_xlabel( 'Array size in bytes' )
-                    axs.set_xscale( 'log' )
-                    axs.set_yscale( 'linear' )
-                    axs.grid()
-                    plt.rcParams.update({
-                    "text.usetex": True,
-                    "font.family": "sans-serif",
-                    "font.size" : font_size})
-                    plt.savefig( f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf")
-                    plt.close(fig)
-
+                        legend.append( f'{threads_count} threads' )
+                        data_set.append( get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size ) )
+                    legend_location = 'upper right'
+                    writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
 
 ####
 # Write figures for comparison of read and write access
@@ -286,42 +247,24 @@ def writeReadWriteComparisonFigures( df ):
 
                 print( f'Writing figure for comparison of read and write access: {access} {ordering} element size = {element_size}:' )
 
-                fig, axs = plt.subplots( 1, 1 )
+                file_name = f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-bw.pdf"
+                data_set = []
                 legend = []
                 for test_type in [ 'read', 'write']:
-                    bandwidth = get_bandwidth( df, threads_count, access, test_type, ordering, element_size )
-                    axs.plot( sizes, bandwidth, '-o', ms=4, lw=1 )
                     legend.append( test_type )
-                axs.legend( legend, loc='lower left' )
-                axs.set_ylabel( 'Effective bandwidth in GB/sec' )
-                axs.set_xlabel( 'Array size in bytes' )
-                axs.set_xscale( 'log' )
-                axs.set_yscale( 'linear' )
-                axs.grid()
-                #axs.set_ylim( [0, 1.2*max_bandwidth ])
-                plt.rcParams.update({
-                "text.usetex": True,
-                "font.family": "sans-serif",
-                "font.size" : font_size})
-                plt.savefig( f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-bw.pdf")
-                plt.close(fig)
+                    data_set.append( get_bandwidth( df, threads_count, access, test_type, ordering, element_size ) )
+                legend_location = 'lower left'
+                writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
 
-                fig, axs = plt.subplots( 1, 1 )
+                file_name = f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-cycles.pdf"
+                data_set = []
+                legend = []
                 for test_type in [ 'read', 'write']:
-                    cpu_cycles = get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size )
-                    axs.plot( sizes, cpu_cycles, '-o', ms=4, lw=1 )
-                axs.legend( legend, loc='upper left' )
-                axs.set_ylabel( 'CPU cycles per element' )
-                axs.set_xlabel( 'Array size in bytes' )
-                axs.set_xscale( 'log' )
-                axs.set_yscale( 'linear' )
-                axs.grid()
-                plt.rcParams.update({
-                "text.usetex": True,
-                "font.family": "sans-serif",
-                "font.size" : font_size})
-                plt.savefig( f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-cycles.pdf")
-                plt.close(fig)
+                    legend.append( test_type )
+                    data_set.append( get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size ) )
+                legend_location = 'upper left'
+                writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
+
 
 
 ####
@@ -337,42 +280,23 @@ def writeBlocksInterleavingComparisonFigures( df ):
                 access = "sequential"
                 print( f'Writing figure for comparison of interleaved and blocked ordering: {test_type} element size = {element_size}:' )
 
-                fig, axs = plt.subplots( 1, 1 )
+                file_name = f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf"
+                data_set = []
                 legend = []
                 for ordering in orderings:
-                    bandwidth = get_bandwidth( df, threads_count, access, test_type, ordering, element_size )
-                    axs.plot( sizes, bandwidth, '-o', ms=4, lw=1 )
                     legend.append( ordering )
-                axs.legend( legend, loc='lower left' )
-                axs.set_ylabel( 'Effective bandwidth in GB/sec' )
-                axs.set_xlabel( 'Array size in bytes' )
-                axs.set_xscale( 'log' )
-                axs.set_yscale( 'linear' )
-                axs.grid()
-                #axs.set_ylim( [0, 1.2*max_bandwidth ])
-                plt.rcParams.update({
-                "text.usetex": True,
-                "font.family": "sans-serif",
-                "font.size" : font_size})
-                plt.savefig( f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf")
-                plt.close(fig)
+                    data_set.append( get_bandwidth( df, threads_count, access, test_type, ordering, element_size ) )
+                legend_location = 'upper right'
+                writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
 
-                fig, axs = plt.subplots( 1, 1 )
+                file_name = f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf"
+                data_set = []
+                legend = []
                 for ordering in orderings:
-                    cpu_cycles = get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size )
-                    axs.plot( sizes, cpu_cycles, '-o', ms=4, lw=1 )
-                axs.legend( legend, loc='upper left' )
-                axs.set_ylabel( 'CPU cycles per element' )
-                axs.set_xlabel( 'Array size in bytes' )
-                axs.set_xscale( 'log' )
-                axs.set_yscale( 'linear' )
-                axs.grid()
-                plt.rcParams.update({
-                "text.usetex": True,
-                "font.family": "sans-serif",
-                "font.size" : font_size})
-                plt.savefig( f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf")
-                plt.close(fig)
+                    legend.append( ordering )
+                    data_set.append( get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size ) )
+                legend_location = 'upper left'
+                writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
 
 ####
 # Write figures for comparison with different element sizes
@@ -388,41 +312,23 @@ def writeElementSizeComparisonFigures( df ):
 
                     print( f'Writing figure for element size comparison: {threads_count } threads {access} {test_type} {ordering}:' )
 
-                    fig, axs = plt.subplots( 1, 1 )
+                    file_name = f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-bw.pdf"
+                    data_set = []
                     legend = []
                     for element_size in element_sizes:
-                        bandwidth = get_bandwidth( df, threads_count, access, test_type, ordering, element_size )
-                        axs.plot( sizes, bandwidth, '-o', ms=4, lw=1 )
                         legend.append( f'el.size {element_size}' )
-                    axs.legend( legend, loc='upper right' )
-                    axs.set_ylabel( 'Effective bandwidth in GB/sec' )
-                    axs.set_xlabel( 'Array size in bytes' )
-                    axs.set_xscale( 'log' )
-                    axs.set_yscale( 'linear' )
-                    #axs.set_ylim( [0, 1.2*max_bandwidth ])
-                    plt.rcParams.update({
-                    "text.usetex": True,
-                    "font.family": "sans-serif",
-                    "font.size" : font_size})
-                    plt.savefig( f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-bw.pdf")
-                    plt.close(fig)
+                        data_set.append( get_bandwidth( df, threads_count, access, test_type, ordering, element_size ) )
+                    legend_location = 'upper right'
+                    writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
 
-                    fig, axs = plt.subplots( 1, 1 )
+                    file_name = f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-cycles.pdf"
+                    data_set = []
+                    legend = []
                     for element_size in element_sizes:
-                        cpu_cycles = get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size )
-                        axs.plot( sizes, cpu_cycles, '-o', ms=4, lw=1 )
-                    axs.legend( legend, loc='upper left' )
-                    axs.set_ylabel( 'CPU cycles per element' )
-                    axs.set_xlabel( 'Array size in bytes' )
-                    axs.set_xscale( 'log' )
-                    axs.set_yscale( 'linear' )
-                    axs.grid()
-                    plt.rcParams.update({
-                    "text.usetex": True,
-                    "font.family": "sans-serif",
-                    "font.size" : font_size})
-                    plt.savefig( f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-cycles.pdf")
-                    plt.close(fig)
+                        legend.append( f'el.size {element_size}' )
+                        data_set.append( get_cpu_cycles( df, threads_count, access, test_type, ordering, element_size ) )
+                    legend_location = 'upper left'
+                    writeFigure( file_name, data_set, legend, legend_location, sizes, [] )
 
 #####
 # Parse input files
@@ -465,6 +371,7 @@ frame.to_html( f'tnl-benchmark-memory-access.html' )
 writeGeneralFigures( frame )
 writeSequentialRandomComparisonFigures( frame )
 writeThreadsCountComparisonFigures( frame )
+writeReadWriteComparisonFigures( frame )
 writeBlocksInterleavingComparisonFigures( frame )
 writeElementSizeComparisonFigures( frame )
-writeReadWriteComparisonFigures( frame )
+
