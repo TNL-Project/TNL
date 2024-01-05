@@ -242,7 +242,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
 
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = ThreadsInBlock;
-      const size_t threadsCount = this->threadsPerSegment * ( end - begin );
+      const std::size_t threadsCount = this->threadsPerSegment * ( end - begin );
       dim3 blocksCount;
       dim3 gridsCount;
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );

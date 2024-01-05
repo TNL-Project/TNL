@@ -59,7 +59,7 @@ getRandomValue< double >( curandState* state, double min_val, double max_val )
 template< typename T >
 __global__
 void
-fillWithRandomValues( T* data, size_t length, T min_val, T max_val, int seed )
+fillWithRandomValues( T* data, std::size_t length, T min_val, T max_val, int seed )
 {
 #ifdef __CUDACC__
    int tid = threadIdx.x + blockIdx.x * blockDim.x;

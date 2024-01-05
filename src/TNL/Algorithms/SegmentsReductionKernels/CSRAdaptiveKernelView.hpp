@@ -38,7 +38,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
    constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
    constexpr int WarpSize = Backend::getWarpSize();
    constexpr int WarpsCount = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::WarpsCount();
-   constexpr size_t StreamedSharedElementsPerWarp =
+   constexpr std::size_t StreamedSharedElementsPerWarp =
       detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::StreamedSharedElementsPerWarp();
 
    __shared__ ReturnType streamShared[ WarpsCount ][ StreamedSharedElementsPerWarp ];

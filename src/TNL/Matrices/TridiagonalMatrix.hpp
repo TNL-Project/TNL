@@ -90,7 +90,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::setElemen
    if( std::is_same_v< Device, Devices::Host > ) {
       this->getValues() = 0.0;
       auto row_it = data.begin();
-      for( size_t rowIdx = 0; rowIdx < data.size(); rowIdx++ ) {
+      for( std::size_t rowIdx = 0; rowIdx < data.size(); rowIdx++ ) {
          auto data_it = row_it->begin();
          Index i = 0;
          while( data_it != row_it->end() )
