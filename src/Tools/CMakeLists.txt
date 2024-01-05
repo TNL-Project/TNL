@@ -1,6 +1,5 @@
 # Mesh tools: will link to zlib and tinyxml2
 set( MESH_TOOLS
-         tnl-init
          tnl-diff
          tnl-decompose-grid
          tnl-grid-to-mesh
@@ -27,7 +26,6 @@ set( CGAL_TOOLS
 
 # MPI tools: will link to MPI
 set( MPI_TOOLS
-         tnl-init
          tnl-game-of-life
          tnl-test-distributed-mesh
 )

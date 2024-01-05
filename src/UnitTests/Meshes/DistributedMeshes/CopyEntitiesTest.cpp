@@ -1,14 +1,14 @@
 #include <TNL/Meshes/DistributedMeshes/CopyEntitiesHelper.h>
 #include <TNL/Functions/MeshFunctionView.h>
+#include <TNL/Pointers/SharedPointer.h>
 
 #include <gtest/gtest.h>
-
-#include "../../Functions/Functions.h"
 
 using namespace TNL::Containers;
 using namespace TNL::Meshes;
 using namespace TNL::Functions;
 using namespace TNL::Devices;
+using namespace TNL::Pointers;
 using namespace TNL::Meshes::DistributedMeshes;
 
 //================================TEST RESULT============================================
@@ -157,7 +157,7 @@ public:
 
       PointType origin;
       PointType proportions;
-      Pointers::SharedPointer< MeshType > gridptr;
+      SharedPointer< MeshType > gridptr;
 
       origin.setValue( -0.5 );
       proportions.setValue( 10 );
@@ -174,7 +174,7 @@ public:
 
       PointType originOut;
       PointType proportionsOut;
-      Pointers::SharedPointer< MeshType > gridOutPtr;
+      SharedPointer< MeshType > gridOutPtr;
 
       originOut.setValue( 0.5 );
       proportionsOut.setValue( 8 );
