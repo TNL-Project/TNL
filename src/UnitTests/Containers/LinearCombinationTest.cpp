@@ -1,8 +1,6 @@
-#ifdef HAVE_GTEST
 #include <array>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/Expressions/LinearCombination.h>
-
 
 #include "gtest/gtest.h"
 
@@ -21,136 +19,237 @@ protected:
 };
 
 // types for which VectorTest is instantiated
-using VectorTypes = ::testing::Types<
-   Vector< double >
->;
+using VectorTypes = ::testing::Types< Vector< double > >;
 
 TYPED_TEST_SUITE( LinearCombinationTest, VectorTypes );
 
 template< typename Value >
-struct Coefficients_0 {
-
+struct Coefficients_0
+{
    static constexpr std::array< Value, 1 > array{ 0.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 
-
 template< typename Value >
-struct Coefficients_1 {
-
+struct Coefficients_1
+{
    static constexpr std::array< Value, 1 > array{ 1.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 
 template< typename Value >
-struct Coefficients_1_0 {
-
+struct Coefficients_1_0
+{
    static constexpr std::array< Value, 2 > array{ 1.0, 0.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 
 template< typename Value >
-struct Coefficients_0_1 {
-
+struct Coefficients_0_1
+{
    static constexpr std::array< Value, 2 > array{ 0.0, 1.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 
 template< typename Value >
-struct Coefficients_0_0 {
-
+struct Coefficients_0_0
+{
    static constexpr std::array< Value, 2 > array{ 0.0, 0.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 
 template< typename Value >
-struct Coefficients_1_2 {
-
+struct Coefficients_1_2
+{
    static constexpr std::array< Value, 2 > array{ 1.0, 2.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 
 template< typename Value >
-struct Coefficients_1_0_0 {
-
+struct Coefficients_1_0_0
+{
    static constexpr std::array< Value, 3 > array{ 1.0, 0.0, 0.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 template< typename Value >
-struct Coefficients_0_1_0 {
-
+struct Coefficients_0_1_0
+{
    static constexpr std::array< Value, 3 > array{ 0.0, 1.0, 0.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 template< typename Value >
-struct Coefficients_0_0_1 {
-
+struct Coefficients_0_0_1
+{
    static constexpr std::array< Value, 3 > array{ 0.0, 0.0, 1.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 template< typename Value >
-struct Coefficients_1_1_0 {
-
+struct Coefficients_1_1_0
+{
    static constexpr std::array< Value, 3 > array{ 1.0, 1.0, 0.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 template< typename Value >
-struct Coefficients_1_0_1 {
-
+struct Coefficients_1_0_1
+{
    static constexpr std::array< Value, 3 > array{ 1.0, 0.0, 1.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 template< typename Value >
-struct Coefficients_0_1_1 {
-
+struct Coefficients_0_1_1
+{
    static constexpr std::array< Value, 3 > array{ 0.0, 1.0, 1.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 
 template< typename Value >
-struct Coefficients_1_2_3 {
-
+struct Coefficients_1_2_3
+{
    static constexpr std::array< Value, 3 > array{ 1.0, 2.0, 3.0 };
 
-   static constexpr int getSize() { return array.size(); }
+   static constexpr int
+   getSize()
+   {
+      return array.size();
+   }
 
-   static constexpr Value getValue( int i ) { return array[ i ]; }
+   static constexpr Value
+   getValue( int i )
+   {
+      return array[ i ];
+   }
 };
 
 TYPED_TEST( LinearCombinationTest, TypeTest_0 )
@@ -280,7 +379,8 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1_2_3 )
    using RealType = typename TestFixture::RealType;
    using Coefficients = Coefficients_1_2_3< RealType >;
    using ResultType = typename LinearCombination< Coefficients, VectorType >::ResultType;
-   using TrueResultType = decltype( 1.0 * std::declval< VectorType >() + ( 2.0 * std::declval< VectorType >() + 3.0 * std::declval< VectorType >() ) );
+   using TrueResultType = decltype( 1.0 * std::declval< VectorType >()
+                                    + ( 2.0 * std::declval< VectorType >() + 3.0 * std::declval< VectorType >() ) );
 
    static_assert( std::is_same< ResultType, TrueResultType >::value, "Wrong type." );
 }
@@ -298,7 +398,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0 )
 
    std::array< VectorType, 1 > array;
    array[ 0 ] = v1;
-   result_2 = LinearCombination< Coefficients_0< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_0< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, VectorType( size, 0.0 ) );
 }
 
@@ -315,7 +415,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1 )
 
    std::array< VectorType, 1 > array;
    array[ 0 ] = v1;
-   result_2 = LinearCombination< Coefficients_1< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_1< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v1 );
 }
 
@@ -333,7 +433,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_1 )
    std::array< VectorType, 2 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
-   result_2 = LinearCombination< Coefficients_0_1< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_0_1< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v2 );
 }
 
@@ -351,7 +451,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_0 )
    std::array< VectorType, 2 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
-   result_2 = LinearCombination< Coefficients_1_0< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_1_0< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v1 );
 }
 
@@ -369,7 +469,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_2 )
    std::array< VectorType, 2 > array;
    array[ 0 ] = v1;
    array[ 1 ] = v2;
-   result_2 = LinearCombination< Coefficients_1_2< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_1_2< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v1 + 2.0 * v2 );
 }
 
@@ -388,7 +488,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_0_0 )
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
-   result_2 = LinearCombination< Coefficients_1_0_0< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_1_0_0< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v1 );
 }
 
@@ -407,7 +507,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_1_0 )
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
-   result_2 = LinearCombination< Coefficients_0_1_0< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_0_1_0< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v2 );
 }
 
@@ -426,7 +526,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_0_1 )
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
-   result_2 = LinearCombination< Coefficients_0_0_1< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_0_0_1< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v3 );
 }
 
@@ -445,7 +545,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_1_0 )
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
-   result_2 = LinearCombination< Coefficients_1_1_0< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_1_1_0< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v1 + v2 );
 }
 
@@ -464,7 +564,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_0_1 )
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
-   result_2 = LinearCombination< Coefficients_1_0_1< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_1_0_1< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v1 + v3 );
 }
 
@@ -483,7 +583,7 @@ TYPED_TEST( LinearCombinationTest, VectorTests_0_1_1 )
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
-   result_2 = LinearCombination< Coefficients_0_1_1< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_0_1_1< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v2 + v3 );
 }
 
@@ -502,11 +602,8 @@ TYPED_TEST( LinearCombinationTest, VectorTests_1_2_3 )
    array[ 0 ] = v1;
    array[ 1 ] = v2;
    array[ 2 ] = v3;
-   result_2 = LinearCombination< Coefficients_1_2_3< RealType >, VectorType >::evaluateArray( array );
+   result_2 = LinearCombination< Coefficients_1_2_3< RealType >, VectorType >::evaluate( array );
    EXPECT_EQ( result_2, v1 + 2.0 * v2 + 3.0 * v3 );
 }
-
-
-#endif
 
 #include "../main.h"
