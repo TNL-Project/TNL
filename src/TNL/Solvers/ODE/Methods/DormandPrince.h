@@ -23,7 +23,7 @@ struct DormandPrince
 {
    using ValueType = Value;
 
-   static constexpr size_t
+   static constexpr std::size_t
    getStages()
    {
       return Stages;
@@ -36,31 +36,31 @@ struct DormandPrince
    }
 
    static constexpr ValueType
-   getCoefficient( const size_t stage, const size_t i )
+   getCoefficient( const std::size_t stage, const std::size_t i )
    {
       return k_coefficients[ stage ][ i ];
    }
 
    static constexpr ValueType
-   getTimeCoefficient( size_t i )
+   getTimeCoefficient( std::size_t i )
    {
       return time_coefficients[ i ];
    }
 
    static constexpr ValueType
-   getUpdateCoefficient( size_t i )
+   getUpdateCoefficient( std::size_t i )
    {
       return higher_order_update_coefficients[ i ];
    }
 
    static constexpr ValueType
-   getErrorCoefficient( size_t i )
+   getErrorCoefficient( std::size_t i )
    {
       return higher_order_update_coefficients[ i ] - lower_order_update_coefficients[ i ];
    }
 
 protected:
-   static constexpr size_t Stages = 7;
+   static constexpr std::size_t Stages = 7;
 
    // clang-format off
    static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {

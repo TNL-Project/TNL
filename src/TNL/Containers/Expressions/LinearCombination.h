@@ -4,10 +4,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include <TNL/Containers/Expressions/detail/LinearCombination.h>
-#include <TNL/TypeTraits.h>
-
 #pragma once
+
+#include <TNL/TypeTraits.h>
+#include "detail/LinearCombination.h"
 
 namespace TNL::Containers::Expressions {
 
@@ -38,14 +38,14 @@ struct LinearCombination;
 template< typename Coefficients, typename Vector >
 struct LinearCombination< Coefficients, Vector, false >
 {
-   static constexpr size_t
+   static constexpr std::size_t
    getSize()
    {
       return Coefficients::getSize();
    }
 
    using ResultType =
-      typename detail::LinearCombinationReturnType< Coefficients, Vector, std::integral_constant< size_t, 0 > >::type;
+      typename detail::LinearCombinationReturnType< Coefficients, Vector, std::integral_constant< std::size_t, 0 > >::type;
 
    /**
     * \brief Evaluate the linear combination for vectors given as a parameter pack.
@@ -61,8 +61,8 @@ struct LinearCombination< Coefficients, Vector, false >
       static_assert( sizeof...( OtherVectors ) == getSize(), "Number of input vectors must match number of coefficients" );
       return detail::LinearCombinationEvaluation< Coefficients,
                                                   Vector,
-                                                  std::integral_constant< size_t, 0 >,
-                                                  std::integral_constant< size_t, getSize() > >::evaluate( others... );
+                                                  std::integral_constant< std::size_t, 0 >,
+                                                  std::integral_constant< std::size_t, getSize() > >::evaluate( others... );
    }
 
    /**
@@ -76,22 +76,22 @@ struct LinearCombination< Coefficients, Vector, false >
    {
       return detail::LinearCombinationEvaluation< Coefficients,
                                                   Vector,
-                                                  std::integral_constant< size_t, 0 >,
-                                                  std::integral_constant< size_t, getSize() > >::evaluateArray( vectors );
+                                                  std::integral_constant< std::size_t, 0 >,
+                                                  std::integral_constant< std::size_t, getSize() > >::evaluateArray( vectors );
    }
 };
 
 template< typename Coefficients, typename Vector >
 struct LinearCombination< Coefficients, Vector, true >
 {
-   static constexpr size_t
+   static constexpr std::size_t
    getSize()
    {
       return Coefficients::getSize();
    }
 
    using ResultType =
-      typename detail::LinearCombinationReturnType< Coefficients, Vector, std::integral_constant< size_t, 0 > >::type;
+      typename detail::LinearCombinationReturnType< Coefficients, Vector, std::integral_constant< std::size_t, 0 > >::type;
 
    /**
     * \brief Evaluate the linear combination for vectors given as a parameter pack.
@@ -108,8 +108,8 @@ struct LinearCombination< Coefficients, Vector, true >
       static_assert( sizeof...( OtherVectors ) == getSize(), "Number of input vectors must match number of coefficients" );
       return detail::LinearCombinationEvaluation< Coefficients,
                                                   Vector,
-                                                  std::integral_constant< size_t, 0 >,
-                                                  std::integral_constant< size_t, getSize() > >::evaluate( others... );
+                                                  std::integral_constant< std::size_t, 0 >,
+                                                  std::integral_constant< std::size_t, getSize() > >::evaluate( others... );
    }
 
    /**
@@ -124,8 +124,8 @@ struct LinearCombination< Coefficients, Vector, true >
    {
       return detail::LinearCombinationEvaluation< Coefficients,
                                                   Vector,
-                                                  std::integral_constant< size_t, 0 >,
-                                                  std::integral_constant< size_t, getSize() > >::evaluateArray( vectors );
+                                                  std::integral_constant< std::size_t, 0 >,
+                                                  std::integral_constant< std::size_t, getSize() > >::evaluateArray( vectors );
    }
 };
 

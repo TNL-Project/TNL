@@ -6,27 +6,27 @@
 
 #pragma once
 
-#include <type_traits>
-#include <cstddef>
+#include <TNL/TypeTraits.h>
+#include <TNL/Containers/Expressions/LinearCombination.h>
 
 namespace TNL::Solvers::ODE::detail {
 
 // std::integral_constant is used due to nvcc. In version 12.2, it does not
 // allow  partial specialization with nontype template parameters.
 
-template< typename Method, size_t Stage >
+template< typename Method, std::size_t Stage >
 struct CoefficientsProxy
 {
    using ValueType = typename Method::ValueType;
 
-   static constexpr size_t
+   static constexpr std::size_t
    getSize()
    {
       return Method::getStages();
    }
 
    static constexpr ValueType
-   getValue( size_t i )
+   getValue( std::size_t i )
    {
       return Method::getCoefficient( Stage, i );
    }
@@ -35,7 +35,7 @@ struct CoefficientsProxy
 template< typename Method >
 struct UpdateCoefficientsProxy
 {
-   static constexpr size_t
+   static constexpr std::size_t
    getSize()
    {
       return Method::getStages();
@@ -44,7 +44,7 @@ struct UpdateCoefficientsProxy
    using ValueType = typename Method::ValueType;
 
    static constexpr ValueType
-   getValue( size_t i )
+   getValue( std::size_t i )
    {
       return Method::getUpdateCoefficient( i );
    }
@@ -55,22 +55,22 @@ struct ErrorCoefficientsProxy
 {
    using ValueType = typename Method::ValueType;
 
-   static constexpr size_t
+   static constexpr std::size_t
    getSize()
    {
       return Method::getStages();
    }
 
    static constexpr ValueType
-   getValue( size_t i )
+   getValue( std::size_t i )
    {
       return Method::getErrorCoefficient( i );
    }
 };
 
 template< typename Method,
-          typename Stage = std::integral_constant< size_t, 0 >,
-          typename Stages = std::integral_constant< size_t, Method::getStages() > >
+          typename Stage = std::integral_constant< std::size_t, 0 >,
+          typename Stages = std::integral_constant< std::size_t, Method::getStages() > >
 struct StaticODESolverEvaluator
 {
    template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
@@ -87,7 +87,7 @@ struct StaticODESolverEvaluator
       if constexpr( Stage::value == 0 ) {  // k[ 0 ] = f( t, u )
          rhsFunction(
             time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, u, k[ Stage::value ], params... );
-         StaticODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors(
+         StaticODESolverEvaluator< Method, std::integral_constant< std::size_t, Stage::value + 1 > >::computeKVectors(
             k, time, currentTau, u, aux, rhsFunction, params... );
       }
       else {
@@ -96,7 +96,7 @@ struct StaticODESolverEvaluator
          aux = u + currentTau * Formula::evaluate( k );
          rhsFunction(
             time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ], params... );
-         StaticODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors(
+         StaticODESolverEvaluator< Method, std::integral_constant< std::size_t, Stage::value + 1 > >::computeKVectors(
             k, time, currentTau, u, aux, rhsFunction, params... );
       }
    }
@@ -104,10 +104,10 @@ struct StaticODESolverEvaluator
 
 template< typename Method >
 struct StaticODESolverEvaluator< Method,
-                                 std::integral_constant< size_t, Method::getStages() >,
-                                 std::integral_constant< size_t, Method::getStages() > >
+                                 std::integral_constant< std::size_t, Method::getStages() >,
+                                 std::integral_constant< std::size_t, Method::getStages() > >
 {
-   static constexpr size_t Stages = Method::getStages();
+   static constexpr std::size_t Stages = Method::getStages();
 
    template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
    static void __cuda_callable__
@@ -124,8 +124,8 @@ struct StaticODESolverEvaluator< Method,
 /////
 // Dynamic ODE solver evaluator
 template< typename Method,
-          typename Stage = std::integral_constant< size_t, 0 >,
-          typename Stages = std::integral_constant< size_t, Method::getStages() > >
+          typename Stage = std::integral_constant< std::size_t, 0 >,
+          typename Stages = std::integral_constant< std::size_t, Method::getStages() > >
 struct ODESolverEvaluator
 {
    template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
@@ -142,7 +142,7 @@ struct ODESolverEvaluator
       if constexpr( Stage::value == 0 ) {  // k[ 0 ] = f( t, u )
          rhsFunction(
             time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, u, k[ Stage::value ], params... );
-         ODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors(
+         ODESolverEvaluator< Method, std::integral_constant< std::size_t, Stage::value + 1 > >::computeKVectors(
             k, time, currentTau, u, aux, rhsFunction, params... );
       }
       else {
@@ -151,7 +151,7 @@ struct ODESolverEvaluator
          aux = u + currentTau * Formula::evaluate( k );
          rhsFunction(
             time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ], params... );
-         ODESolverEvaluator< Method, std::integral_constant< size_t, Stage::value + 1 > >::computeKVectors(
+         ODESolverEvaluator< Method, std::integral_constant< std::size_t, Stage::value + 1 > >::computeKVectors(
             k, time, currentTau, u, aux, rhsFunction, params... );
       }
    }
@@ -159,10 +159,10 @@ struct ODESolverEvaluator
 
 template< typename Method >
 struct ODESolverEvaluator< Method,
-                           std::integral_constant< size_t, Method::getStages() >,
-                           std::integral_constant< size_t, Method::getStages() > >
+                           std::integral_constant< std::size_t, Method::getStages() >,
+                           std::integral_constant< std::size_t, Method::getStages() > >
 {
-   static constexpr size_t Stages = Method::getStages();
+   static constexpr std::size_t Stages = Method::getStages();
 
    template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
    static void

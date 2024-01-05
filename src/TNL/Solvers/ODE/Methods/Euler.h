@@ -18,7 +18,7 @@ struct Euler
 {
    using ValueType = Value;
 
-   static constexpr size_t
+   static constexpr std::size_t
    getStages()
    {
       return 1;
@@ -31,19 +31,19 @@ struct Euler
    }
 
    static constexpr ValueType
-   getCoefficients( const size_t stage, const size_t i )
+   getCoefficients( const std::size_t stage, const std::size_t i )
    {
       return 1;
    }
 
    static constexpr ValueType
-   getTimeCoefficient( size_t i )
+   getTimeCoefficient( std::size_t i )
    {
       return 0;
    }
 
    static constexpr ValueType
-   getUpdateCoefficient( size_t i )
+   getUpdateCoefficient( std::size_t i )
    {
       return 1;
    }
