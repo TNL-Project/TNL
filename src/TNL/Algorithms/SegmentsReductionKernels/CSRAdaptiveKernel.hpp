@@ -97,13 +97,9 @@ CSRAdaptiveKernel< Index, Device >::reduceAllSegments( const SegmentsView& segme
 template< typename Index, typename Device >
 template< int SizeOfValue, typename Offsets >
 Index
-CSRAdaptiveKernel< Index, Device >::findLimit( const Index start,
-                                               const Offsets& offsets,
-                                               const Index size,
-                                               detail::Type& type,
-                                               size_t& sum )
+CSRAdaptiveKernel< Index, Device >::findLimit( const Index start, const Offsets& offsets, const Index size, detail::Type& type )
 {
-   sum = 0;
+   std::size_t sum = 0;
    for( Index current = start; current < size - 1; current++ ) {
       Index elements = offsets[ current + 1 ] - offsets[ current ];
       sum += elements;
@@ -136,9 +132,8 @@ CSRAdaptiveKernel< Index, Device >::initValueSize( const Offsets& offsets )
    HostOffsetsType hostOffsets;
    hostOffsets = offsets;
    const Index rows = offsets.getSize();
-   Index start( 0 );
-   Index nextStart( 0 );
-   size_t sum;
+   Index start = 0;
+   Index nextStart = 0;
 
    // Fill blocks
    std::vector< detail::CSRAdaptiveKernelBlockDescriptor< Index > > inBlocks;
@@ -146,7 +141,7 @@ CSRAdaptiveKernel< Index, Device >::initValueSize( const Offsets& offsets )
 
    while( nextStart != rows - 1 ) {
       detail::Type type;
-      nextStart = findLimit< SizeOfValue >( start, hostOffsets, rows, type, sum );
+      nextStart = findLimit< SizeOfValue >( start, hostOffsets, rows, type );
       if( type == detail::Type::LONG ) {
          const Index blocksCount = inBlocks.size();
          const Index warpsPerCudaBlock =
