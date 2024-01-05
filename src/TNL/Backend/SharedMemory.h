@@ -22,7 +22,7 @@
  *
  * Until CUDA 8.0, it was possible to use reinterpret_cast this way:
  *
- *    template< typename T, size_t Alignment >
+ *    template< typename T, std::size_t Alignment >
  *    __device__ T* getSharedMemory()
  *    {
  *       extern __shared__ __align__ ( Alignment ) unsigned char __sdata[];

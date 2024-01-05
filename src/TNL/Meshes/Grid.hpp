@@ -726,12 +726,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 void
 Grid< Dimension, Real, Device, Index >::fillProportions()
 {
-   Index i = 0;
-
-   while( i != Dimension ) {
-      this->proportions[ i ] = this->spaceSteps[ i ] * this->dimensions[ i ];
-      i++;
-   }
+   this->proportions = this->spaceSteps * this->dimensions;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -748,9 +743,7 @@ Grid< Dimension, Real, Device, Index >::fillSpaceSteps()
    }
 
    if( ! hasAnyInvalidDimension ) {
-      for( Index i = 0; i < Dimension; i++ )
-         this->spaceSteps[ i ] = this->proportions[ i ] / this->dimensions[ i ];
-
+      this->spaceSteps = this->proportions / this->dimensions;
       fillSpaceStepsPowers();
    }
 }
