@@ -32,11 +32,8 @@ namespace TNL::Containers::Expressions {
  *    expression templates i.e. \ref TNL::Containers::StaticVector, \ref TNL::Containers::Vector or
  *    \ref TNL::Containers::DistributedVector.
  */
-template< typename Coefficients, typename Vector, bool isStatic = IsStaticArrayType< Vector >::value >
-struct LinearCombination;
-
 template< typename Coefficients, typename Vector >
-struct LinearCombination< Coefficients, Vector, false >
+struct LinearCombination
 {
    using ResultType =
       typename detail::LinearCombinationReturnType< Coefficients, Vector, std::integral_constant< std::size_t, 0 > >::type;
@@ -49,7 +46,7 @@ struct LinearCombination< Coefficients, Vector, false >
     * \return expression template representing the linear combination.
     */
    template< typename... OtherVectors >
-   static ResultType
+   constexpr static ResultType
    evaluate( const OtherVectors&... others )
    {
       static_assert( sizeof...( OtherVectors ) == Coefficients::getSize(),
@@ -67,59 +64,14 @@ struct LinearCombination< Coefficients, Vector, false >
     * \param vectors is an array with input vectors.
     * \return expression template representing the linear combination.
     */
-   static ResultType
+   constexpr static ResultType
    evaluate( const std::array< Vector, Coefficients::getSize() >& vectors )
    {
       return detail::LinearCombinationEvaluation<
          Coefficients,
          Vector,
          std::integral_constant< std::size_t, 0 >,
-         std::integral_constant< std::size_t, Coefficients::getSize() > >::evaluateArray( vectors );
-   }
-};
-
-template< typename Coefficients, typename Vector >
-struct LinearCombination< Coefficients, Vector, true >
-{
-   using ResultType =
-      typename detail::LinearCombinationReturnType< Coefficients, Vector, std::integral_constant< std::size_t, 0 > >::type;
-
-   /**
-    * \brief Evaluate the linear combination for vectors given as a parameter pack.
-    *
-    * \tparam OtherVectors type of parameter pack.
-    * \param others input vectors.
-    * \return expression template representing the linear combination.
-    */
-   template< typename... OtherVectors >
-   __cuda_callable__
-   static ResultType
-   evaluate( const OtherVectors&... others )
-   {
-      static_assert( sizeof...( OtherVectors ) == Coefficients::getSize(),
-                     "Number of input vectors must match number of coefficients" );
-      return detail::LinearCombinationEvaluation<
-         Coefficients,
-         Vector,
-         std::integral_constant< std::size_t, 0 >,
-         std::integral_constant< std::size_t, Coefficients::getSize() > >::evaluate( others... );
-   }
-
-   /**
-    * \brief Evaluate the linear combination for vectors given by a static array.
-    *
-    * \param vectors is an array with input vectors.
-    * \return expression template representing the linear combination.
-    */
-   __cuda_callable__
-   static ResultType
-   evaluate( const std::array< Vector, Coefficients::getSize() >& vectors )
-   {
-      return detail::LinearCombinationEvaluation<
-         Coefficients,
-         Vector,
-         std::integral_constant< std::size_t, 0 >,
-         std::integral_constant< std::size_t, Coefficients::getSize() > >::evaluateArray( vectors );
+         std::integral_constant< std::size_t, Coefficients::getSize() > >::evaluate( vectors );
    }
 };
 

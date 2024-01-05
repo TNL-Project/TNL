@@ -90,20 +90,13 @@ struct LinearCombinationReturnType< Coefficients,
 template< typename Coefficients,
           typename Vector,
           typename CoefficientIndex,
-          typename Size = std::integral_constant< std::size_t, Coefficients::getSize() >,
-          bool isStatic = IsStaticArrayType< Vector >::value >
-struct LinearCombinationEvaluation;
-
-/////
-// Static linear combination evaluation
-template< typename Coefficients, typename Vector, typename CoefficientIndex, typename Size >
-struct LinearCombinationEvaluation< Coefficients, Vector, CoefficientIndex, Size, true >
+          typename Size = std::integral_constant< std::size_t, Coefficients::getSize() > >
+struct LinearCombinationEvaluation
 {
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, CoefficientIndex >::type;
 
    template< typename... OtherVectors >
-   static __cuda_callable__
-   ResultType
+   constexpr static ResultType
    evaluate( const Vector& v, const OtherVectors&... others )
    {
       using ValueType = typename Vector::RealType;
@@ -130,9 +123,8 @@ struct LinearCombinationEvaluation< Coefficients, Vector, CoefficientIndex, Size
                                              Size >::evaluate( others... );
    }
 
-   static __cuda_callable__
-   ResultType
-   evaluateArray( const std::array< Vector, Size::value >& vectors )
+   constexpr static ResultType
+   evaluate( const std::array< Vector, Size::value >& vectors )
    {
       using ValueType = typename Vector::RealType;
       using AuxResultType =
@@ -150,12 +142,12 @@ struct LinearCombinationEvaluation< Coefficients, Vector, CoefficientIndex, Size
               + LinearCombinationEvaluation< Coefficients,
                                              Vector,
                                              std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
-                                             Size >::evaluateArray( vectors );
+                                             Size >::evaluate( vectors );
       else
          return LinearCombinationEvaluation< Coefficients,
                                              Vector,
                                              std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
-                                             Size >::evaluateArray( vectors );
+                                             Size >::evaluate( vectors );
    }
 };
 
@@ -163,15 +155,13 @@ template< typename Coefficients, typename Vector, typename CoefficientIndex >
 struct LinearCombinationEvaluation< Coefficients,
                                     Vector,
                                     CoefficientIndex,
-                                    std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
-                                    true >
+                                    std::integral_constant< std::size_t, CoefficientIndex::value + 1 > >
 {
    static constexpr std::size_t Size = Coefficients::getSize();
 
    using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, CoefficientIndex >::type;
 
-   static __cuda_callable__
-   ResultType
+   constexpr static ResultType
    evaluate( const Vector& v )
    {
       if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 )
@@ -180,102 +170,8 @@ struct LinearCombinationEvaluation< Coefficients,
          return 0;
    }
 
-   static __cuda_callable__
-   ResultType
-   evaluateArray( const std::array< Vector, Size >& vectors )
-   {
-      if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 )
-         return Coefficients::getValue( CoefficientIndex::value ) * vectors[ CoefficientIndex::value ];
-      else
-         return 0;
-   }
-};
-
-/////
-// Dynamic linear combination evaluation
-template< typename Coefficients, typename Vector, typename CoefficientIndex, typename Size >
-struct LinearCombinationEvaluation< Coefficients, Vector, CoefficientIndex, Size, false >
-{
-   using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, CoefficientIndex >::type;
-
-   template< typename... OtherVectors >
-   static ResultType
-   evaluate( const Vector& v, const OtherVectors&... others )
-   {
-      using ValueType = typename Vector::RealType;
-      using AuxResultType =
-         typename LinearCombinationReturnType< Coefficients,
-                                               Vector,
-                                               std::integral_constant< std::size_t, CoefficientIndex::value + 1 > >::type;
-      if constexpr( std::is_same_v< AuxResultType, ValueType > ) {  // the rest of coefficients are zero
-         if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 )
-            return Coefficients::getValue( CoefficientIndex::value ) * v;
-         else
-            return 0;
-      }
-      else if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 )
-         return Coefficients::getValue( CoefficientIndex::value ) * v
-              + LinearCombinationEvaluation< Coefficients,
-                                             Vector,
-                                             std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
-                                             Size >::evaluate( others... );
-      else
-         return LinearCombinationEvaluation< Coefficients,
-                                             Vector,
-                                             std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
-                                             Size >::evaluate( others... );
-   }
-
-   static ResultType
-   evaluateArray( const std::array< Vector, Size::value >& vectors )
-   {
-      using ValueType = typename Vector::RealType;
-      using AuxResultType =
-         typename LinearCombinationReturnType< Coefficients,
-                                               Vector,
-                                               std::integral_constant< std::size_t, CoefficientIndex::value + 1 > >::type;
-      if constexpr( std::is_same_v< AuxResultType, ValueType > ) {  // the rest of coefficients are zero
-         if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 )
-            return Coefficients::getValue( CoefficientIndex::value ) * vectors[ CoefficientIndex::value ];
-         else
-            return 0;
-      }
-      else if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 )
-         return Coefficients::getValue( CoefficientIndex::value ) * vectors[ CoefficientIndex::value ]
-              + LinearCombinationEvaluation< Coefficients,
-                                             Vector,
-                                             std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
-                                             Size >::evaluateArray( vectors );
-      else
-         return LinearCombinationEvaluation< Coefficients,
-                                             Vector,
-                                             std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
-                                             Size >::evaluateArray( vectors );
-   }
-};
-
-template< typename Coefficients, typename Vector, typename CoefficientIndex >
-struct LinearCombinationEvaluation< Coefficients,
-                                    Vector,
-                                    CoefficientIndex,
-                                    std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
-                                    false >
-{
-   static constexpr std::size_t Size = Coefficients::getSize();
-
-   using ResultType = typename LinearCombinationReturnType< Coefficients, Vector, CoefficientIndex >::type;
-
-   static ResultType
-   evaluate( const Vector& v )
-   {
-      if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 )
-         return Coefficients::getValue( CoefficientIndex::value ) * v;
-      else
-         return 0;
-   }
-
-   static ResultType
-   evaluateArray( const std::array< Vector, Size >& vectors )
+   constexpr static ResultType
+   evaluate( const std::array< Vector, Size >& vectors )
    {
       if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 )
          return Coefficients::getValue( CoefficientIndex::value ) * vectors[ CoefficientIndex::value ];
