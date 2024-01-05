@@ -21,16 +21,16 @@ namespace TNL::Containers::Expressions {
  * \f]
  *
  * The coefficients \f$ \alpha_i \f$ are given as a Coefficients object, which must provide a
- * static method \c getValue( int i ) that returns the i-th coefficient. The vectors are given
+ * static method `getValue( int i )` that returns the i-th coefficient. The vectors are given
  * as arguments to the \c evaluate() method. The vectors can by given in a form of
- * \c Containers::StaticArray or as a parameter pack. The transformation to the expression
- * template is done at the compile time and so the coefficients must be static.
+ * \ref std::array or as a parameter pack. The transformation to the expression template is done
+ * at compile time and so the coefficients must be static.
  *
  * \tparam Coefficients object with static parameters of the linear combination. It has to implement
- *    static method getValue( int i ) that returns the i-th coefficient..
+ *    static method `getValue( int i )` that returns the i-th coefficient.
  * \tparam Vector is type of the vectors in the linear combination. Can be any type supporrted by the
- *  expression templates i.e. \c Containers::StaticArray, \c Containers::Vector or
- *  \c Containers::DistributedVector.
+ *    expression templates i.e. \ref TNL::Containers::StaticVector, \ref TNL::Containers::Vector or
+ *    \ref TNL::Containers::DistributedVector.
  */
 template< typename Coefficients, typename Vector, bool isStatic = IsStaticArrayType< Vector >::value >
 struct LinearCombination;
