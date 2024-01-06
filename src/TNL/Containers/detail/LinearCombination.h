@@ -9,12 +9,11 @@
 #include <type_traits>
 
 #include <TNL/Containers/ndarray/Meta.h>
-#include <TNL/Containers/Expressions/ExpressionTemplates.h>
 
 // std::integral_constant is used due to nvcc. In version 12.2, it does not
 // allow  partial specialization with nontype template parameters.
 
-namespace TNL::Containers::Expressions::detail {
+namespace TNL::Containers::detail {
 
 template< typename T1, typename T2, typename ValueType >
 struct MergeLinearCombinationTypes
@@ -199,4 +198,4 @@ struct LinearCombinationEvaluation< Coefficients,
    }
 };
 
-}  // namespace TNL::Containers::Expressions::detail
+}  // namespace TNL::Containers::detail

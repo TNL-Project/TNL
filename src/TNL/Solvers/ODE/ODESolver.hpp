@@ -9,7 +9,7 @@
 #include <TNL/Math.h>
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Containers/StaticArray.h>
-#include <TNL/Containers/Expressions/LinearCombination.h>
+#include <TNL/Containers/LinearCombination.h>
 #include <TNL/Solvers/ODE/ODESolver.h>
 #include <TNL/Solvers/ODE/detail/ODESolverEvaluator.h>
 
@@ -140,7 +140,7 @@ ODESolver< Method, Value, SolverMonitor, true >::iterate( VectorType& u,
 {
    using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
    using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
-   using Containers::Expressions::linearCombination;
+   using Containers::linearCombination;
 
    RealType error( 0.0 );
    bool compute( true );
@@ -295,7 +295,7 @@ ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u,
 {
    using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
    using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
-   using Containers::Expressions::linearCombination;
+   using Containers::linearCombination;
 
    using VectorView = typename Vector::ViewType;
    std::array< VectorView, Stages > k_views;

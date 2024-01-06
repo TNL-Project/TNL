@@ -7,7 +7,8 @@
 #pragma once
 
 #include <TNL/TypeTraits.h>
-#include <TNL/Containers/Expressions/LinearCombination.h>
+#include <TNL/Backend/Macros.h>
+#include <TNL/Containers/LinearCombination.h>
 
 namespace TNL::Solvers::ODE::detail {
 
@@ -92,7 +93,7 @@ struct StaticODESolverEvaluator
       }
       else {
          using Coefficients = CoefficientsProxy< Method, Stage::value >;
-         aux = u + currentTau * Containers::Expressions::linearCombination< Coefficients >( k );
+         aux = u + currentTau * Containers::linearCombination< Coefficients >( k );
          rhsFunction(
             time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ], params... );
          StaticODESolverEvaluator< Method, std::integral_constant< std::size_t, Stage::value + 1 > >::computeKVectors(
@@ -146,7 +147,7 @@ struct ODESolverEvaluator
       }
       else {
          using Coefficients = CoefficientsProxy< Method, Stage::value >;
-         aux = u + currentTau * Containers::Expressions::linearCombination< Coefficients >( k );
+         aux = u + currentTau * Containers::linearCombination< Coefficients >( k );
          rhsFunction(
             time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ], params... );
          ODESolverEvaluator< Method, std::integral_constant< std::size_t, Stage::value + 1 > >::computeKVectors(

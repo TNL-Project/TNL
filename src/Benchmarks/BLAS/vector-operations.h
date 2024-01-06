@@ -29,7 +29,7 @@
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/scan.h>
-#include <TNL/Containers/Expressions/LinearCombination.h>
+#include <TNL/Containers/LinearCombination.h>
 #include "CommonVectorOperations.h"
 #include "VectorOperations.h"
 
@@ -1198,7 +1198,7 @@ public:
 
       auto computeLinearCombination = [ & ]()
       {
-         hostView += Containers::Expressions::linearCombination< TwoVectorsCoefficients< Real > >( hostView2, hostView3 );
+         hostView += Containers::linearCombination< TwoVectorsCoefficients< Real > >( hostView2, hostView3 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU lin.comb.", computeLinearCombination );
       verify( "CPU lin.comb", hostVector, 3.0 );
@@ -1248,7 +1248,7 @@ public:
 
       auto computeCudaLinearCombination = [ & ]()
       {
-         deviceView += Containers::Expressions::linearCombination< TwoVectorsCoefficients< Real > >( deviceView2, deviceView3 );
+         deviceView += Containers::linearCombination< TwoVectorsCoefficients< Real > >( deviceView2, deviceView3 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU lin.comb.", computeCudaLinearCombination );
       verify( "GPU LC", deviceVector, 3.0 );
@@ -1304,8 +1304,7 @@ public:
 
       auto computeLinearCombination = [ & ]()
       {
-         hostView +=
-            Containers::Expressions::linearCombination< ThreeVectorsCoefficients< Real > >( hostView2, hostView3, hostView4 );
+         hostView += Containers::linearCombination< ThreeVectorsCoefficients< Real > >( hostView2, hostView3, hostView4 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU lin.comb.", computeLinearCombination );
       verify( "CPU lin.comb.", hostVector, 4.0 );
@@ -1358,8 +1357,8 @@ public:
 
       auto computeCudaLinearCombination = [ & ]()
       {
-         deviceView += Containers::Expressions::linearCombination< ThreeVectorsCoefficients< Real > >(
-            deviceView2, deviceView3, deviceView4 );
+         deviceView +=
+            Containers::linearCombination< ThreeVectorsCoefficients< Real > >( deviceView2, deviceView3, deviceView4 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU lin.comb.", computeCudaLinearCombination );
       verify( "GPU lin.comb.", deviceVector, 4.0 );

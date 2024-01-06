@@ -1,13 +1,12 @@
 #include <array>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Containers/Expressions/LinearCombination.h>
+#include <TNL/Containers/LinearCombination.h>
 
 #include "gtest/gtest.h"
 
 using namespace TNL;
 using namespace TNL::Containers;
-using namespace TNL::Containers::Expressions;
-using namespace TNL::Containers::Expressions::detail;
+using namespace TNL::Containers::detail;
 
 // test fixture for typed tests
 template< typename Vector >

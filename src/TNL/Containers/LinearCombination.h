@@ -9,7 +9,7 @@
 #include <TNL/TypeTraits.h>
 #include "detail/LinearCombination.h"
 
-namespace TNL::Containers::Expressions {
+namespace TNL::Containers {
 
 /**
  * \brief Generates an expression for a linear combination of vectors.
@@ -88,4 +88,4 @@ linearCombination( const Vectors&... vectors ) ->
       std::integral_constant< std::size_t, Coefficients::getSize() > >::evaluate( vectors... );
 }
 
-}  // namespace TNL::Containers::Expressions
+}  // namespace TNL::Containers
