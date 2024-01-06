@@ -139,9 +139,8 @@ ODESolver< Method, Value, SolverMonitor, true >::iterate( VectorType& u,
                                                           Params&&... params )
 {
    using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
-   using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Value >;
    using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
-   using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Value >;
+   using Containers::Expressions::linearCombination;
 
    RealType error( 0.0 );
    bool compute( true );
@@ -150,13 +149,15 @@ ODESolver< Method, Value, SolverMonitor, true >::iterate( VectorType& u,
          k_vectors, time, currentTau, u, kAux, rhsFunction, params... );
       if constexpr( Method::isAdaptive() )
          if( this->adaptivity )
-            error = currentTau * max( abs( ErrorExpression::evaluate( k_vectors ) ) );
+            error = currentTau * max( abs( linearCombination< ErrorCoefficients >( k_vectors ) ) );
 
       if( this->adaptivity == 0.0 || error < this->adaptivity ) {
          RealType lastResidue = this->getResidue();
 
-         this->setResidue( addAndReduceAbs( u, currentTau * UpdateExpression::evaluate( k_vectors ), TNL::Plus{}, 0.0 )
-                           / currentTau );
+         this->setResidue(
+            addAndReduceAbs(
+               u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
+            / currentTau );
          time += currentTau;
 
          /////
@@ -293,9 +294,8 @@ ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u,
                                                             Params&&... params )
 {
    using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
-   using ErrorExpression = Containers::Expressions::LinearCombination< ErrorCoefficients, Vector >;
    using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
-   using UpdateExpression = Containers::Expressions::LinearCombination< UpdateCoefficients, Vector >;
+   using Containers::Expressions::linearCombination;
 
    using VectorView = typename Vector::ViewType;
    std::array< VectorView, Stages > k_views;
@@ -315,13 +315,15 @@ ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u,
 
       if constexpr( Method::isAdaptive() )
          if( this->adaptivity )
-            error = currentTau * max( abs( ErrorExpression::evaluate( k_vectors ) ) );
+            error = currentTau * max( abs( linearCombination< ErrorCoefficients >( k_vectors ) ) );
 
       if( this->adaptivity == 0.0 || error < this->adaptivity ) {
          RealType lastResidue = this->getResidue();
 
-         this->setResidue( addAndReduceAbs( u, currentTau * UpdateExpression::evaluate( k_vectors ), TNL::Plus{}, 0.0 )
-                           / ( currentTau * (RealType) u.getSize() ) );
+         this->setResidue(
+            addAndReduceAbs(
+               u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
+            / ( currentTau * (RealType) u.getSize() ) );
          time += currentTau;
 
          /////

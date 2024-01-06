@@ -1198,9 +1198,7 @@ public:
 
       auto computeLinearCombination = [ & ]()
       {
-         using HostVectorView = typename HostVector::ViewType;
-         hostView += Containers::Expressions::LinearCombination< TwoVectorsCoefficients< Real >, HostVectorView >::evaluate(
-            hostView2, hostView3 );
+         hostView += Containers::Expressions::linearCombination< TwoVectorsCoefficients< Real > >( hostView2, hostView3 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU lin.comb.", computeLinearCombination );
       verify( "CPU lin.comb", hostVector, 3.0 );
@@ -1250,9 +1248,7 @@ public:
 
       auto computeCudaLinearCombination = [ & ]()
       {
-         using DeviceVectorView = typename CudaVector::ViewType;
-         deviceView += Containers::Expressions::LinearCombination< TwoVectorsCoefficients< Real >, DeviceVectorView >::evaluate(
-            deviceView2, deviceView3 );
+         deviceView += Containers::Expressions::linearCombination< TwoVectorsCoefficients< Real > >( deviceView2, deviceView3 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU lin.comb.", computeCudaLinearCombination );
       verify( "GPU LC", deviceVector, 3.0 );
@@ -1308,9 +1304,8 @@ public:
 
       auto computeLinearCombination = [ & ]()
       {
-         using HostVectorView = typename HostVector::ViewType;
-         hostView += Containers::Expressions::LinearCombination< ThreeVectorsCoefficients< Real >, HostVectorView >::evaluate(
-            hostView2, hostView3, hostView4 );
+         hostView +=
+            Containers::Expressions::linearCombination< ThreeVectorsCoefficients< Real > >( hostView2, hostView3, hostView4 );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU lin.comb.", computeLinearCombination );
       verify( "CPU lin.comb.", hostVector, 4.0 );
@@ -1363,10 +1358,8 @@ public:
 
       auto computeCudaLinearCombination = [ & ]()
       {
-         using DeviceVectorView = typename CudaVector::ViewType;
-         deviceView +=
-            Containers::Expressions::LinearCombination< ThreeVectorsCoefficients< Real >, DeviceVectorView >::evaluate(
-               deviceView2, deviceView3, deviceView4 );
+         deviceView += Containers::Expressions::linearCombination< ThreeVectorsCoefficients< Real > >(
+            deviceView2, deviceView3, deviceView4 );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU lin.comb.", computeCudaLinearCombination );
       verify( "GPU lin.comb.", deviceVector, 4.0 );
