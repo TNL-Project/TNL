@@ -9,8 +9,8 @@ import sys
 from string import Template
 
 default_template = """\
-// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
-// SPDX-License-Identifier: MIT
+${lineCommentToken} SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+${lineCommentToken} SPDX-License-Identifier: MIT
 """
 
 # for each processing type, the detailed settings of how to process files of that type
@@ -23,6 +23,7 @@ TYPE_SETTINGS = {
         "blockCommentEndPattern": re.compile(r"\*/\s*$"),
         "lineCommentStartPattern": re.compile(r"^\s*//"),
         "lineCommentEndPattern": None,
+        "lineCommentToken": "//",
     },
     "python": {
         "extensions": [".py"],
@@ -33,6 +34,7 @@ TYPE_SETTINGS = {
         "blockCommentEndPattern": None,
         "lineCommentStartPattern": re.compile(r"^\s*#"),
         "lineCommentEndPattern": None,
+        "lineCommentToken": "#",
     },
 }
 
@@ -296,7 +298,15 @@ def read_file(file, args, settings):
         }
 
 
-def process_file(file, arguments, type_settings, ext2type, name2type, template_lines):
+def process_file(
+    file,
+    arguments,
+    type_settings,
+    ext2type,
+    name2type,
+    template_lines,
+    template_settings,
+):
     # skip symbolic links (they may lead to a different source tree)
     if os.path.islink(file):
         return
@@ -336,6 +346,19 @@ def process_file(file, arguments, type_settings, ext2type, name2type, template_l
     # skip updates in dry mode
     if arguments.dry:
         return
+
+    # format the template lines
+    if arguments.remove_header is False:
+        template_settings["lineCommentToken"] = settings["lineCommentToken"]
+        if arguments.safesubst:
+            template_lines = [
+                Template(line).safe_substitute(template_settings)
+                for line in template_lines
+            ]
+        else:
+            template_lines = [
+                Template(line).substitute(template_settings) for line in template_lines
+            ]
 
     # replace or add
     with open(file, "w") as fw:
@@ -413,15 +436,6 @@ def main():
             template_settings["projectname"] = arguments.projectname
         if arguments.projecturl:
             template_settings["projecturl"] = arguments.projecturl
-        if arguments.safesubst:
-            template_lines = [
-                Template(line).safe_substitute(template_settings)
-                for line in template_lines
-            ]
-        else:
-            template_lines = [
-                Template(line).substitute(template_settings) for line in template_lines
-            ]
 
     # maps each extension to its processing type
     ext2type = {}
@@ -460,7 +474,13 @@ def main():
     for file in paths:
         file = os.path.normpath(file)
         process_file(
-            file, arguments, TYPE_SETTINGS, ext2type, name2type, template_lines
+            file,
+            arguments,
+            TYPE_SETTINGS,
+            ext2type,
+            name2type,
+            template_lines,
+            template_settings,
         )
 
     return 0
