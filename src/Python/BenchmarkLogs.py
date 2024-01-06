@@ -13,6 +13,7 @@ import os.path
 import json
 import pandas
 
+
 def dict_to_html_table(data):
     html = "<table border=1>\n"
     html += "<tbody>\n"
@@ -21,6 +22,7 @@ def dict_to_html_table(data):
     html += "</tbody>\n"
     html += "</table>\n"
     return html
+
 
 def get_benchmark_metadata(filename):
     """
@@ -41,6 +43,7 @@ def get_benchmark_metadata(filename):
     print(f"Metadata file {filename} does not exist")
     return None
 
+
 def get_benchmark_dataframe(logFile):
     """
     Get pandas dataframe with benchmark results stored in the given log file.
@@ -56,6 +59,7 @@ def get_benchmark_dataframe(logFile):
             df["speedup"] = pandas.to_numeric(df["speedup"], errors="coerce")
 
     return df
+
 
 def gen_dataframes_per_operation(logFile, header_elements=None):
     """
@@ -100,7 +104,7 @@ def gen_dataframes_per_operation(logFile, header_elements=None):
     # set as index of the dataframe
     if header_elements is None:
         header_elements = list(main_df.columns)
-        header_elements = header_elements[header_elements.index("time"):]
+        header_elements = header_elements[header_elements.index("time") :]
         # FIXME: the "rows" and "columns" (in the gemv operation) are parsed after the correct header elements, because the preceding operations don't have these metadata columns
         # TODO: each benchmark should record the header elements in the metadata file
         header_elements = [e for e in header_elements if e not in ["rows", "columns"]]
@@ -113,7 +117,9 @@ def gen_dataframes_per_operation(logFile, header_elements=None):
         # remove the operation column (index)
         df = df.reset_index(drop=True)
         # prepare index_columns and make sure that performer is the last
-        index_columns = [c for c in df.columns if c not in header_elements and c != "performer"]
+        index_columns = [
+            c for c in df.columns if c not in header_elements and c != "performer"
+        ]
         index_columns.append("performer")
         # set new index for the df: all columns except header_elements
         df = df.set_index(index_columns)
