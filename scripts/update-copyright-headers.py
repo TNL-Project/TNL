@@ -9,10 +9,7 @@ import sys
 from string import Template
 
 default_template = """\
-// Copyright (c) 2004-${current_year} Tomáš Oberhuber et al.
-//
-// This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
-//
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 """
 
