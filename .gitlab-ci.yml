@@ -402,8 +402,6 @@ clang-format src/Examples:
                 --recursive
                 src/Examples
     interruptible: true
-    # TODO: remove to enforce formatting
-    allow_failure: true
 
 clang-format src/Tools:
     stage: lint

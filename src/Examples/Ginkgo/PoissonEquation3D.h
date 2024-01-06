@@ -28,8 +28,8 @@ generateStencilMatrix( Matrix& A_local, Vector& b_local, typename Matrix::IndexT
    // Preliminaries: we want at least one rank per row
    if( n * n * n < num_procs )
       n = std::cbrt( num_procs ) + 1;
-   const Index N = n * n * n;          // global number of rows
-   const double h = 1.0 / ( n + 1 );   // mesh cell size
+   const Index N = n * n * n;         // global number of rows
+   const double h = 1.0 / ( n + 1 );  // mesh cell size
 
    /* Each rank knows only of its own rows - the range is denoted by ilower
       and upper.  Here we partition the rows. We account for the fact that

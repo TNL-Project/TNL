@@ -5,14 +5,15 @@
 #include <TNL/MPI/optimizeRanks.h>
 
 #ifdef __CUDACC__
-   using DeviceType = TNL::Devices::Cuda;
+using DeviceType = TNL::Devices::Cuda;
 #else
-   using DeviceType = TNL::Devices::Host;
+using DeviceType = TNL::Devices::Host;
 #endif
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
-   TNL::MPI::ScopedInitializer mpi(argc, argv);
+   TNL::MPI::ScopedInitializer mpi( argc, argv );
 
    const int rank = TNL::MPI::GetRank();
    const int nproc = TNL::MPI::GetSize();
