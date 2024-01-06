@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+# SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+# SPDX-License-Identifier: MIT
 
 import sys
 import os.path

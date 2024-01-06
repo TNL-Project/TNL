@@ -1,3 +1,6 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/FileName.h>
 #include <TNL/Meshes/Grid.h>
