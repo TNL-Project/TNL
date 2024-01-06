@@ -30,7 +30,7 @@ ODESolver< Method, Value, SolverMonitor, true >::ODESolver()
 template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
 ODESolver< Method, Value, SolverMonitor, true >::ODESolver( const ODESolver& solver )
-: StaticExplicitSolver< GetRealType< Value >, GetIndexType< Value > >( solver )
+: StaticExplicitSolver< GetRealType< Value >, std::size_t >( solver )
 {
    // It is better to turn off the convergence check for the ODE solver by default.
    this->setConvergenceResidue( 0.0 );
@@ -155,8 +155,7 @@ ODESolver< Method, Value, SolverMonitor, true >::iterate( VectorType& u,
          RealType lastResidue = this->getResidue();
 
          this->setResidue(
-            addAndReduceAbs(
-               u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
+            addAndReduceAbs( u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
             / currentTau );
          time += currentTau;
 
@@ -321,8 +320,7 @@ ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u,
          RealType lastResidue = this->getResidue();
 
          this->setResidue(
-            addAndReduceAbs(
-               u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
+            addAndReduceAbs( u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
             / ( currentTau * (RealType) u.getSize() ) );
          time += currentTau;
 

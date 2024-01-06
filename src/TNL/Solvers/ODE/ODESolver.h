@@ -64,8 +64,7 @@ template< typename Method,
 struct ODESolver;
 
 template< typename Method, typename Vector, typename SolverMonitor >
-struct ODESolver< Method, Vector, SolverMonitor, true >
-: public StaticExplicitSolver< GetRealType< Vector >, GetIndexType< Vector > >
+struct ODESolver< Method, Vector, SolverMonitor, true > : public StaticExplicitSolver< GetRealType< Vector >, std::size_t >
 {
 public:
    static constexpr int Stages = Method::getStages();
@@ -81,7 +80,7 @@ public:
    /**
     * \brief Type for indexing.
     */
-   using IndexType = GetIndexType< Vector >;
+   using IndexType = std::size_t;
 
    static constexpr bool
    isStatic()

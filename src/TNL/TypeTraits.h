@@ -341,26 +341,21 @@ struct GetRealType_< T, true >
    using type = T;
 };
 
+/**
+ * \brief Get the underlying real type of T.
+ *
+ * This type resolver is used to determine the underlying arithmetic precision type of T.
+ * For instance, in some algorithms (see \ref TNL::Solvers::ODE::ODESolver), if T is a
+ * vector type such as:
+ *
+ * ```cpp
+ * TNL::Containers::Vector< 1, TNL::Arithmetics::Complex<double> >
+ * ```
+ *
+ * this will return `double`, recognizing it as the base real type.
+ */
 template< typename T >
 using GetRealType = typename GetRealType_< T >::type;
-
-template< typename T, bool IsArithemtic = std::is_arithmetic_v< T > >
-struct GetIndexType_;
-
-template< typename T >
-struct GetIndexType_< T, false >
-{
-   using type = typename T::IndexType;
-};
-
-template< typename T >
-struct GetIndexType_< T, true >
-{
-   using type = int;
-};
-
-template< typename T >
-using GetIndexType = typename GetIndexType_< T >::type;
 
 // clang-format on
 
