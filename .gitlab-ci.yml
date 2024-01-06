@@ -394,6 +394,23 @@ pages:
         paths:
             - public
 
+copyright-headers:
+    stage: lint
+    rules:
+        - changes:
+            - src/**/*.{h,hpp,cpp,cu,hip}
+            - scripts/updage-copyright-headers.py
+    script:
+        - ./scripts/update-copyright-headers.py
+                --dir src/
+                --exclude
+                    'src/TNL/3rdparty/*'
+                    'src/UnitTests/*'
+                    'src/Benchmarks/Sorting/ReferenceAlgorithms/*'
+                    'src/Examples/Hypre/*'
+        - git --no-pager diff --color=always --exit-code
+    interruptible: true
+
 clang-format src/TNL:
     stage: lint
     rules:
