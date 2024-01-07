@@ -1,5 +1,4 @@
 set( COMMON_TESTS
-            # FIXME: tests for BiEllpack and ChunkedEllpack fail (but they did not exist before the refactoring)
             SegmentsTest_BiEllpack
             SegmentsTest_ChunkedEllpack
             SegmentsTest_CSR

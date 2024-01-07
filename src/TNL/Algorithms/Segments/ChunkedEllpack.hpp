@@ -151,11 +151,12 @@ void
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSegmentsSizes( const SizesContainer& segmentsSizes )
 {
    if constexpr( std::is_same< Device, Devices::Host >::value ) {
-      this->size = segmentsSizes.getSize();
-      this->slices.setSize( this->size );
-      this->rowToChunkMapping.setSize( this->size );
-      this->rowToSliceMapping.setSize( this->size );
-      this->rowPointers.setSize( this->size + 1 );
+      this->size = sum( segmentsSizes );
+      const Index segmentsCount = segmentsSizes.getSize();
+      this->slices.setSize( segmentsCount );
+      this->rowToChunkMapping.setSize( segmentsCount );
+      this->rowToSliceMapping.setSize( segmentsCount );
+      this->rowPointers.setSize( segmentsCount + 1 );
 
       this->resolveSliceSizes( segmentsSizes );
       this->rowPointers.setElement( 0, 0 );
@@ -167,7 +168,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSegmentsSizes(
       Index chunksCount = this->numberOfSlices * this->chunksInSlice;
       this->chunksToSegmentsMapping.setSize( chunksCount );
       Index chunkIdx = 0;
-      for( Index segmentIdx = 0; segmentIdx < this->size; segmentIdx++ ) {
+      for( Index segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
          const Index& sliceIdx = rowToSliceMapping[ segmentIdx ];
          Index firstChunkOfSegment = 0;
          if( segmentIdx != slices[ sliceIdx ].firstSegment )

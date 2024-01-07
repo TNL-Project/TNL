@@ -73,7 +73,7 @@ __cuda_callable__
 auto
 ChunkedEllpackBase< Device, Index, Organization >::getSegmentsCount() const -> IndexType
 {
-   return this->size;
+   return this->rowToChunkMapping.getSize();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
