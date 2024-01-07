@@ -31,13 +31,13 @@ struct VectorOperations< Devices::Host >
 
       if( thisMultiplicator == 1.0 )
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() && n > OpenMPVectorOperationsThreshold )
+      #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() && n > OpenMPVectorOperationsThreshold )
 #endif
          for( Index i = 0; i < n; i++ )
             y[ i ] += alpha * x[ i ];
       else
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() && n > OpenMPVectorOperationsThreshold )
+      #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() && n > OpenMPVectorOperationsThreshold )
 #endif
          for( Index i = 0; i < n; i++ )
             y[ i ] = thisMultiplicator * y[ i ] + alpha * x[ i ];
@@ -61,13 +61,13 @@ struct VectorOperations< Devices::Host >
       const Index n = v.getSize();
       if( thisMultiplicator == 1.0 )
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() && n > OpenMPVectorOperationsThreshold )
+      #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() && n > OpenMPVectorOperationsThreshold )
 #endif
          for( Index i = 0; i < n; i++ )
             v[ i ] += multiplicator1 * v1[ i ] + multiplicator2 * v2[ i ];
       else
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() && n > OpenMPVectorOperationsThreshold )
+      #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() && n > OpenMPVectorOperationsThreshold )
 #endif
          for( Index i = 0; i < n; i++ )
             v[ i ] = thisMultiplicator * v[ i ] + multiplicator1 * v1[ i ] + multiplicator2 * v2[ i ];

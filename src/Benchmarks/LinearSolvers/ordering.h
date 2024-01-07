@@ -21,4 +21,3 @@ getTrivialOrdering( const Matrix& matrix, PermutationVector& perm, PermutationVe
       iperm[ i + N ] = 2 * i + 1;
    }
 }
-

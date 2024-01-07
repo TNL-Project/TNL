@@ -10,7 +10,8 @@
 #include "HeatEquationSolverBenchmarkGrid.h"
 #include "HeatEquationSolverBenchmarkNdGrid.h"
 
-void configSetup( TNL::Config::ConfigDescription& config )
+void
+configSetup( TNL::Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
    config.addEntry< TNL::String >( "implementation", "Implementation of the heat equation solver.", "grid" );
@@ -20,43 +21,39 @@ void configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum< TNL::String >( "nd-grid" );
 
    config.addDelimiter( "Device settings:" );
-   config.addEntry<TNL::String>( "device", "Device the computation will run on.", "cuda" );
-   config.addEntryEnum<TNL::String>( "all" );
-   config.addEntryEnum<TNL::String>( "host" );
-   config.addEntryEnum<TNL::String>( "sequential" );
-   config.addEntryEnum<TNL::String>("cuda");
+   config.addEntry< TNL::String >( "device", "Device the computation will run on.", "cuda" );
+   config.addEntryEnum< TNL::String >( "all" );
+   config.addEntryEnum< TNL::String >( "host" );
+   config.addEntryEnum< TNL::String >( "sequential" );
+   config.addEntryEnum< TNL::String >( "cuda" );
    TNL::Devices::Host::configSetup( config );
    TNL::Devices::Cuda::configSetup( config );
 
-   config.addDelimiter("Precision settings:");
-   config.addEntry<TNL::String>("precision", "Precision of the arithmetics.", "double");
-   config.addEntryEnum("float");
-   config.addEntryEnum("double");
-   config.addEntryEnum("all");
+   config.addDelimiter( "Precision settings:" );
+   config.addEntry< TNL::String >( "precision", "Precision of the arithmetics.", "double" );
+   config.addEntryEnum( "float" );
+   config.addEntryEnum( "double" );
+   config.addEntryEnum( "all" );
 }
 
-
 template< typename Real, typename Device >
-bool startBenchmark( TNL::Config::ParameterContainer& parameters )
+bool
+startBenchmark( TNL::Config::ParameterContainer& parameters )
 {
    auto implementation = parameters.getParameter< TNL::String >( "implementation" );
-   if( implementation == "parallel-for" )
-   {
+   if( implementation == "parallel-for" ) {
       HeatEquationSolverBenchmarkParallelFor< Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
-   if( implementation == "simple-grid" )
-   {
+   if( implementation == "simple-grid" ) {
       HeatEquationSolverBenchmarkSimpleGrid< Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
-   if( implementation == "grid" )
-   {
+   if( implementation == "grid" ) {
       HeatEquationSolverBenchmarkGrid< Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
-   if( implementation == "nd-grid" )
-   {
+   if( implementation == "nd-grid" ) {
       HeatEquationSolverBenchmarkNdGrid< Real, Device > benchmark;
       return benchmark.runBenchmark( parameters );
    }
@@ -64,9 +61,10 @@ bool startBenchmark( TNL::Config::ParameterContainer& parameters )
 }
 
 template< typename Real >
-bool resolveDevice( TNL::Config::ParameterContainer& parameters )
+bool
+resolveDevice( TNL::Config::ParameterContainer& parameters )
 {
-   auto device = parameters.getParameter<TNL::String>( "device" );
+   auto device = parameters.getParameter< TNL::String >( "device" );
    if( device == "sequential" )
       return startBenchmark< Real, TNL::Devices::Sequential >( parameters );
    if( device == "host" )
@@ -83,9 +81,10 @@ bool resolveDevice( TNL::Config::ParameterContainer& parameters )
    return false;
 }
 
-bool resolveReal( TNL::Config::ParameterContainer& parameters )
+bool
+resolveReal( TNL::Config::ParameterContainer& parameters )
 {
-   auto precision = parameters.getParameter<TNL::String>( "precision" );
+   auto precision = parameters.getParameter< TNL::String >( "precision" );
    if( precision == "float" )
       return resolveDevice< float >( parameters );
    if( precision == "double" )
@@ -94,7 +93,8 @@ bool resolveReal( TNL::Config::ParameterContainer& parameters )
    return false;
 }
 
-int main(int argc, char* argv[])
+int
+main( int argc, char* argv[] )
 {
    TNL::Config::ConfigDescription config;
    configSetup( config );
@@ -102,13 +102,13 @@ int main(int argc, char* argv[])
 
    TNL::Config::ParameterContainer parameters;
 
-   if( !parseCommandLine( argc, argv, config, parameters ) )
+   if( ! parseCommandLine( argc, argv, config, parameters ) )
       return EXIT_FAILURE;
 
-   if( !TNL::Devices::Host::setup( parameters ) || !TNL::Devices::Cuda::setup( parameters ) )
+   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters ) )
       return EXIT_FAILURE;
 
-   if( !resolveReal( parameters ) )
+   if( ! resolveReal( parameters ) )
       return EXIT_FAILURE;
    return EXIT_SUCCESS;
 }

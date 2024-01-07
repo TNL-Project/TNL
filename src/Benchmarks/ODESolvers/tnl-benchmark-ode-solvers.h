@@ -8,7 +8,7 @@
 #include <string>
 
 #ifndef NDEBUG
-#include <TNL/Debugging/FPE.h>
+   #include <TNL/Debugging/FPE.h>
 #endif
 
 #include <TNL/Config/parseCommandLine.h>
@@ -29,12 +29,9 @@ using namespace TNL;
 using namespace TNL::Benchmarks;
 using namespace TNL::Pointers;
 
-
 template< typename Real, typename Index >
 void
-benchmarkODESolvers( Benchmark<>& benchmark,
-                     const Config::ParameterContainer& parameters,
-                     size_t dofs )
+benchmarkODESolvers( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, size_t dofs )
 {
    using HostVectorType = Containers::Vector< Real, Devices::Host, Index >;
    using CudaVectorType = Containers::Vector< Real, Devices::Cuda, Index >;
@@ -45,8 +42,7 @@ benchmarkODESolvers( Benchmark<>& benchmark,
    using SolverMonitorType = typename Benchmark<>::SolverMonitorType;
 
    const auto& solvers = parameters.getList< String >( "solvers" );
-   for( auto&& solver : solvers )
-   {
+   for( auto&& solver : solvers ) {
       HostVectorPointer host_u( dofs );
       *host_u = 0.0;
 #ifdef __CUDACC__
@@ -55,34 +51,34 @@ benchmarkODESolvers( Benchmark<>& benchmark,
 #endif
       if( solver == "euler" || solver == "all" ) {
          using HostSolver = Solvers::ODE::Euler< HostProblem, SolverMonitorType >;
-         benchmark.setOperation("Euler");
+         benchmark.setOperation( "Euler" );
          benchmarkSolver< HostSolver >( benchmark, parameters, host_u );
          using HostSolverNonET = Benchmarks::Euler< HostProblem, SolverMonitorType >;
-         benchmark.setOperation("Euler non-ET");
+         benchmark.setOperation( "Euler non-ET" );
          benchmarkSolver< HostSolverNonET >( benchmark, parameters, host_u );
 #ifdef __CUDACC__
          using CudaSolver = Solvers::ODE::Euler< CudaProblem, SolverMonitorType >;
          benchmark.setOperation( "Euler" );
          benchmarkSolver< CudaSolver >( benchmark, parameters, cuda_u );
          using CudaSolverNonET = Benchmarks::Euler< CudaProblem, SolverMonitorType >;
-         benchmark.setOperation("Euler non-ET");
+         benchmark.setOperation( "Euler non-ET" );
          benchmarkSolver< CudaSolverNonET >( benchmark, parameters, cuda_u );
 #endif
       }
 
       if( solver == "merson" || solver == "all" ) {
          using HostSolver = Solvers::ODE::Merson< HostProblem, SolverMonitorType >;
-         benchmark.setOperation("Merson");
+         benchmark.setOperation( "Merson" );
          benchmarkSolver< HostSolver >( benchmark, parameters, host_u );
          using HostSolverNonET = Benchmarks::Merson< HostProblem, SolverMonitorType >;
-         benchmark.setOperation("Merson non-ET");
+         benchmark.setOperation( "Merson non-ET" );
          benchmarkSolver< HostSolverNonET >( benchmark, parameters, host_u );
 #ifdef __CUDACC__
          using CudaSolver = Solvers::ODE::Merson< CudaProblem, SolverMonitorType >;
-         benchmark.setOperation("Merson");
+         benchmark.setOperation( "Merson" );
          benchmarkSolver< CudaSolver >( benchmark, parameters, cuda_u );
          using CudaSolverNonET = Benchmarks::Merson< CudaProblem, SolverMonitorType >;
-         benchmark.setOperation("Merson non-ET");
+         benchmark.setOperation( "Merson non-ET" );
          benchmarkSolver< CudaSolverNonET >( benchmark, parameters, cuda_u );
 #endif
       }
@@ -98,17 +94,16 @@ struct ODESolversBenchmark
    using VectorPointer = Pointers::SharedPointer< VectorType >;
 
    static bool
-   run( Benchmark<>& benchmark,
-        const Config::ParameterContainer& parameters )
+   run( Benchmark<>& benchmark, const Config::ParameterContainer& parameters )
    {
-      const String title = (TNL::MPI::GetSize() > 1) ? "Distributed ODE solvers" : "ODE solvers";
+      const String title = ( TNL::MPI::GetSize() > 1 ) ? "Distributed ODE solvers" : "ODE solvers";
       std::cout << "\n== " << title << " ==\n" << std::endl;
 
       for( size_t dofs = 25; dofs <= 10000000; dofs *= 2 ) {
-         benchmark.setMetadataColumns( Benchmark<>::MetadataColumns({
+         benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
             { "precision", getType< Real >() },
             { "DOFs", convertToString( dofs ) },
-         } ));
+         } ) );
 
          benchmarkODESolvers< Real, Index >( benchmark, parameters, dofs );
       }
@@ -117,23 +112,22 @@ struct ODESolversBenchmark
 };
 
 template< typename Real >
-bool resolveIndexType( Benchmark<>& benchmark,
-                       Config::ParameterContainer& parameters )
+bool
+resolveIndexType( Benchmark<>& benchmark, Config::ParameterContainer& parameters )
 {
    const String& index = parameters.getParameter< String >( "index-type" );
-   if( index == "int" ) return ODESolversBenchmark< Real, int >::run( benchmark, parameters );
+   if( index == "int" )
+      return ODESolversBenchmark< Real, int >::run( benchmark, parameters );
    return ODESolversBenchmark< Real, long int >::run( benchmark, parameters );
 }
 
-bool resolveRealTypes( Benchmark<>& benchmark,
-                       Config::ParameterContainer& parameters )
+bool
+resolveRealTypes( Benchmark<>& benchmark, Config::ParameterContainer& parameters )
 {
    const String& realType = parameters.getParameter< String >( "real-type" );
-   if( ( realType == "float" || realType == "all" ) &&
-       ! resolveIndexType< float >( benchmark, parameters ) )
+   if( ( realType == "float" || realType == "all" ) && ! resolveIndexType< float >( benchmark, parameters ) )
       return false;
-   if( ( realType == "double" || realType == "all" ) &&
-       ! resolveIndexType< double >( benchmark, parameters ) )
+   if( ( realType == "double" || realType == "all" ) && ! resolveIndexType< double >( benchmark, parameters ) )
       return false;
    return true;
 }
@@ -142,13 +136,13 @@ void
 configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-ode-solvers.log");
+   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-ode-solvers.log" );
    config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );
    config.addEntry< int >( "loops", "Number of repetitions of the benchmark.", 10 );
    config.addEntry< int >( "verbose", "Verbose mode.", 1 );
-   config.addList< String >( "solvers", "List of solvers to run benchmarks for.", {"all"} );
+   config.addList< String >( "solvers", "List of solvers to run benchmarks for.", { "all" } );
    config.addEntryEnum< String >( "euler" );
    config.addEntryEnum< String >( "merson" );
    config.addEntryEnum< String >( "all" );
@@ -186,25 +180,23 @@ main( int argc, char* argv[] )
 
    configSetup( conf_desc );
 
-   TNL::MPI::ScopedInitializer mpi(argc, argv);
+   TNL::MPI::ScopedInitializer mpi( argc, argv );
    const int rank = TNL::MPI::GetRank();
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
-   if( ! Devices::Host::setup( parameters ) ||
-       ! Devices::Cuda::setup( parameters ) ||
-       ! TNL::MPI::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) || ! TNL::MPI::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String & logFileName = parameters.getParameter< String >( "log-file" );
-   const String & outputMode = parameters.getParameter< String >( "output-mode" );
+   const String& logFileName = parameters.getParameter< String >( "log-file" );
+   const String& outputMode = parameters.getParameter< String >( "output-mode" );
    const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = (rank == 0) ? parameters.getParameter< int >( "verbose" ) : 0;
+   const int verbose = ( rank == 0 ) ? parameters.getParameter< int >( "verbose" ) : 0;
 
    // open log file
    auto mode = std::ios::out;
    if( outputMode == "append" )
-       mode |= std::ios::app;
+      mode |= std::ios::app;
    std::ofstream logFile;
    if( rank == 0 )
       logFile.open( logFileName, mode );

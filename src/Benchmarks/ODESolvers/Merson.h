@@ -16,7 +16,7 @@ template< class Problem,
           typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Problem::RealType, typename Problem::IndexType > >
 class Merson : public Solvers::ODE::ExplicitSolver< Problem, SolverMonitor >
 {
-   public:
+public:
    using ProblemType = Problem;
    using DofVectorType = typename Problem::DofVectorType;
    using RealType = typename Problem::RealType;
@@ -24,39 +24,39 @@ class Merson : public Solvers::ODE::ExplicitSolver< Problem, SolverMonitor >
    using IndexType = typename Problem::IndexType;
    using DofVectorPointer = Pointers::SharedPointer< DofVectorType, DeviceType >;
    using VectorOperations = CommonVectorOperations< DeviceType >;
-   
+
    Merson();
 
-   static void configSetup( Config::ConfigDescription& config,
-                            const String& prefix = "" );
+   static void
+   configSetup( Config::ConfigDescription& config, const String& prefix = "" );
 
-   bool setup( const Config::ParameterContainer& parameters,
-              const String& prefix = "" );
+   bool
+   setup( const Config::ParameterContainer& parameters, const String& prefix = "" );
 
-   void setAdaptivity( const RealType& a );
+   void
+   setAdaptivity( const RealType& a );
 
-   bool solve( DofVectorPointer& u );
+   bool
+   solve( DofVectorPointer& u );
 
-   protected:
- 
+protected:
    //! Compute the Runge-Kutta coefficients
    /****
     * The parameter u is not constant because one often
     * needs to correct u on the boundaries to be able to compute
     * the RHS.
     */
-   void computeKFunctions( DofVectorPointer& u,
-                           const RealType& time,
-                           RealType tau );
+   void
+   computeKFunctions( DofVectorPointer& u, const RealType& time, RealType tau );
 
-   RealType computeError( const RealType tau );
+   RealType
+   computeError( const RealType tau );
 
-   void computeNewTimeLevel( const RealType time,
-                             const RealType tau,
-                             DofVectorPointer& u,
-                             RealType& currentResidue );
+   void
+   computeNewTimeLevel( const RealType time, const RealType tau, DofVectorPointer& u, RealType& currentResidue );
 
-   void writeGrids( const DofVectorPointer& u );
+   void
+   writeGrids( const DofVectorPointer& u );
 
    DofVectorPointer k1, k2, k3, k4, k5, kAux;
 
@@ -64,11 +64,11 @@ class Merson : public Solvers::ODE::ExplicitSolver< Problem, SolverMonitor >
     * This controls the accuracy of the solver
     */
    RealType adaptivity;
-   
+
    Containers::Vector< RealType, DeviceType, IndexType > openMPErrorEstimateBuffer;
 };
 
-} // namespace Benchmarks
-} // namespace TNL
+}  // namespace Benchmarks
+}  // namespace TNL
 
 #include "Merson.hpp"

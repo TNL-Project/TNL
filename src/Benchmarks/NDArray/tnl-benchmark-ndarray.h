@@ -23,7 +23,8 @@ using value_type = float;
 using index_type = unsigned;
 
 template< typename Array >
-void expect_eq_chunked( Array& a, Array& b )
+void
+expect_eq_chunked( Array& a, Array& b )
 {
    // TODO: use something like EXPECT_EQ
    TNL_ASSERT_EQ( a.getSize(), b.getSize(), "array sizes don't match" );
@@ -43,7 +44,8 @@ void expect_eq_chunked( Array& a, Array& b )
 }
 
 template< typename Array >
-void expect_eq( Array& a, Array& b )
+void
+expect_eq( Array& a, Array& b )
 {
    if( std::is_same< typename Array::DeviceType, TNL::Devices::Cuda >::value ) {
       using HostArray = typename Array::template Self< typename Array::ValueType, TNL::Devices::Host >;
@@ -58,7 +60,8 @@ void expect_eq( Array& a, Array& b )
 }
 
 template< typename Device >
-const char* performer()
+const char*
+performer()
 {
    if( std::is_same< Device, Devices::Host >::value )
       return "CPU";
@@ -68,13 +71,16 @@ const char* performer()
       return "unknown";
 }
 
-void reset() {}
+void
+reset()
+{}
 
 // NOTE: having the sizes as function parameters keeps the compiler from treating them
 // as "compile-time constants" and thus e.g. optimizing the 1D iterations with memcpy
 
 template< typename Device >
-void benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
+void
+benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
 {
    Array< value_type, Device > a, b;
    a.setSize( size );
@@ -82,22 +88,20 @@ void benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
    a.setValue( -1 );
    b.setValue( 1 );
 
-   auto kernel = [] __cuda_callable__
-      ( int i,
-        value_type* a,
-        const value_type* b )
+   auto kernel = [] __cuda_callable__( int i, value_type* a, const value_type* b )
    {
       a[ i ] = b[ i ];
    };
 
-   auto f = [&]() {
+   auto f = [ & ]()
+   {
       Algorithms::parallelFor< Device >( 0, (int) size, kernel, a.getData(), b.getData() );
    };
 
    // warm-up for all benchmarks
    f();
 
-   const double datasetSize = 2 * size * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "array", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -105,22 +109,27 @@ void benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
 }
 
 template< typename Device >
-void benchmark_1D( Benchmark<>& benchmark, index_type size = 500000000 )
+void
+benchmark_1D( Benchmark<>& benchmark, index_type size = 500000000 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0 >,
-            std::make_index_sequence< 1 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0 >, std::make_index_sequence< 1 >, Device > a, b;
    a.setSizes( size );
    b.setSizes( size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * size * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "1D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -128,22 +137,27 @@ void benchmark_1D( Benchmark<>& benchmark, index_type size = 500000000 )
 }
 
 template< typename Device >
-void benchmark_2D( Benchmark<>& benchmark, index_type size = 22333 )
+void
+benchmark_2D( Benchmark<>& benchmark, index_type size = 22333 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0, 0 >,
-            std::make_index_sequence< 2 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0, 0 >, std::make_index_sequence< 2 >, Device > a, b;
    a.setSizes( size, size );
    b.setSizes( size, size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 2 ) * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "2D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -151,22 +165,27 @@ void benchmark_2D( Benchmark<>& benchmark, index_type size = 22333 )
 }
 
 template< typename Device >
-void benchmark_3D( Benchmark<>& benchmark, index_type size = 800 )
+void
+benchmark_3D( Benchmark<>& benchmark, index_type size = 800 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0, 0, 0 >,
-            std::make_index_sequence< 3 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0, 0, 0 >, std::make_index_sequence< 3 >, Device > a, b;
    a.setSizes( size, size, size );
    b.setSizes( size, size, size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 3 ) * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "3D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -174,22 +193,27 @@ void benchmark_3D( Benchmark<>& benchmark, index_type size = 800 )
 }
 
 template< typename Device >
-void benchmark_4D( Benchmark<>& benchmark, index_type size = 150 )
+void
+benchmark_4D( Benchmark<>& benchmark, index_type size = 150 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0, 0, 0, 0 >,
-            std::make_index_sequence< 4 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0 >, std::make_index_sequence< 4 >, Device > a, b;
    a.setSizes( size, size, size, size );
    b.setSizes( size, size, size, size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 4 ) * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * std::pow( size, 4 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "4D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -197,22 +221,27 @@ void benchmark_4D( Benchmark<>& benchmark, index_type size = 150 )
 }
 
 template< typename Device >
-void benchmark_5D( Benchmark<>& benchmark, index_type size = 56 )
+void
+benchmark_5D( Benchmark<>& benchmark, index_type size = 56 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0, 0, 0, 0, 0 >,
-            std::make_index_sequence< 5 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0 >, std::make_index_sequence< 5 >, Device > a, b;
    a.setSizes( size, size, size, size, size );
    b.setSizes( size, size, size, size, size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 5 ) * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * std::pow( size, 5 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "5D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -220,46 +249,55 @@ void benchmark_5D( Benchmark<>& benchmark, index_type size = 56 )
 }
 
 template< typename Device >
-void benchmark_6D( Benchmark<>& benchmark, index_type size = 28 )
+void
+benchmark_6D( Benchmark<>& benchmark, index_type size = 28 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >,
-            std::make_index_sequence< 6 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >, std::make_index_sequence< 6 >, Device > a, b;
    a.setSizes( size, size, size, size, size, size );
    b.setSizes( size, size, size, size, size, size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 6 ) * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * std::pow( size, 6 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "6D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
    expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
-
 template< typename Device >
-void benchmark_2D_perm( Benchmark<>& benchmark, index_type size = 22333 )
+void
+benchmark_2D_perm( Benchmark<>& benchmark, index_type size = 22333 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0, 0 >,
-            std::index_sequence< 1, 0 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0, 0 >, std::index_sequence< 1, 0 >, Device > a, b;
    a.setSizes( size, size );
    b.setSizes( size, size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 2 ) * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "2D permuted", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -267,22 +305,27 @@ void benchmark_2D_perm( Benchmark<>& benchmark, index_type size = 22333 )
 }
 
 template< typename Device >
-void benchmark_3D_perm( Benchmark<>& benchmark, index_type size = 800 )
+void
+benchmark_3D_perm( Benchmark<>& benchmark, index_type size = 800 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0, 0, 0 >,
-            std::index_sequence< 2, 1, 0 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0, 0, 0 >, std::index_sequence< 2, 1, 0 >, Device > a, b;
    a.setSizes( size, size, size );
    b.setSizes( size, size, size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 3 ) * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "3D permuted", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -290,22 +333,27 @@ void benchmark_3D_perm( Benchmark<>& benchmark, index_type size = 800 )
 }
 
 template< typename Device >
-void benchmark_4D_perm( Benchmark<>& benchmark, index_type size = 150 )
+void
+benchmark_4D_perm( Benchmark<>& benchmark, index_type size = 150 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0, 0, 0, 0 >,
-            std::index_sequence< 3, 2, 1, 0 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0 >, std::index_sequence< 3, 2, 1, 0 >, Device > a, b;
    a.setSizes( size, size, size, size );
    b.setSizes( size, size, size, size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 4 ) * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * std::pow( size, 4 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "4D permuted", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -313,22 +361,27 @@ void benchmark_4D_perm( Benchmark<>& benchmark, index_type size = 150 )
 }
 
 template< typename Device >
-void benchmark_5D_perm( Benchmark<>& benchmark, index_type size = 56 )
+void
+benchmark_5D_perm( Benchmark<>& benchmark, index_type size = 56 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0, 0, 0, 0, 0 >,
-            std::index_sequence< 4, 3, 2, 1, 0 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0 >, std::index_sequence< 4, 3, 2, 1, 0 >, Device > a, b;
    a.setSizes( size, size, size, size, size );
    b.setSizes( size, size, size, size, size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 5 ) * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * std::pow( size, 5 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "5D permuted", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -336,22 +389,27 @@ void benchmark_5D_perm( Benchmark<>& benchmark, index_type size = 56 )
 }
 
 template< typename Device >
-void benchmark_6D_perm( Benchmark<>& benchmark, index_type size = 28 )
+void
+benchmark_6D_perm( Benchmark<>& benchmark, index_type size = 28 )
 {
-   NDArray< value_type,
-            SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >,
-            std::index_sequence< 5, 4, 3, 2, 1, 0 >,
-            Device > a, b;
+   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >, std::index_sequence< 5, 4, 3, 2, 1, 0 >, Device > a, b;
    a.setSizes( size, size, size, size, size, size );
    b.setSizes( size, size, size, size, size, size );
    a.getStorageArray().setValue( -1 );
    b.getStorageArray().setValue( 1 );
 
-   auto f = [&]() {
-      nd_map( a, [] __cuda_callable__ (value_type v1) { return v1; }, b );
+   auto f = [ & ]()
+   {
+      nd_map(
+         a,
+         [] __cuda_callable__( value_type v1 )
+         {
+            return v1;
+         },
+         b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 6 ) * sizeof(value_type) / oneGB;
+   const double datasetSize = 2 * std::pow( size, 6 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "6D permuted", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
 
@@ -359,7 +417,8 @@ void benchmark_6D_perm( Benchmark<>& benchmark, index_type size = 28 )
 }
 
 template< typename Device >
-void run_benchmarks( Benchmark<>& benchmark )
+void
+run_benchmarks( Benchmark<>& benchmark )
 {
    benchmark_array< Device >( benchmark );
    benchmark_1D< Device >( benchmark );
@@ -375,10 +434,11 @@ void run_benchmarks( Benchmark<>& benchmark )
    benchmark_6D_perm< Device >( benchmark );
 }
 
-void setupConfig( Config::ConfigDescription & config )
+void
+setupConfig( Config::ConfigDescription& config )
 {
    config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-ndarray.log");
+   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-ndarray.log" );
    config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );
@@ -387,16 +447,17 @@ void setupConfig( Config::ConfigDescription & config )
    config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
    config.addEntryEnum( "all" );
    config.addEntryEnum( "host" );
-   #ifdef __CUDACC__
+#ifdef __CUDACC__
    config.addEntryEnum( "cuda" );
-   #endif
+#endif
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
    Devices::Cuda::configSetup( config );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
@@ -406,19 +467,18 @@ int main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! Devices::Host::setup( parameters ) ||
-       ! Devices::Cuda::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String & logFileName = parameters.getParameter< String >( "log-file" );
-   const String & outputMode = parameters.getParameter< String >( "output-mode" );
+   const String& logFileName = parameters.getParameter< String >( "log-file" );
+   const String& outputMode = parameters.getParameter< String >( "output-mode" );
    const int loops = parameters.getParameter< int >( "loops" );
    const int verbose = parameters.getParameter< int >( "verbose" );
 
    // open log file
    auto mode = std::ios::out;
    if( outputMode == "append" )
-       mode |= std::ios::app;
+      mode |= std::ios::app;
    std::ofstream logFile( logFileName, mode );
 
    // init benchmark and set parameters

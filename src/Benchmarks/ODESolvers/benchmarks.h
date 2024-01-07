@@ -14,7 +14,6 @@ using namespace TNL;
 using namespace TNL::Pointers;
 using namespace TNL::Benchmarks;
 
-
 template< typename Device >
 const char*
 getPerformer()
@@ -26,9 +25,7 @@ getPerformer()
 
 template< typename Solver, typename VectorPointer >
 void
-benchmarkSolver( Benchmark<>& benchmark,
-                 const Config::ParameterContainer& parameters,
-                 VectorPointer& u )
+benchmarkSolver( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, VectorPointer& u )
 {
    using VectorType = typename VectorPointer::ObjectType;
    using RealType = typename VectorType::RealType;
@@ -46,12 +43,14 @@ benchmarkSolver( Benchmark<>& benchmark,
    //solver.setTau( parameters.getParameter< double >( "time-step" ) );
 
    // reset function
-   auto reset = [&]() {
+   auto reset = [ & ]()
+   {
       *u = 0.0;
    };
 
    // benchmark function
-   auto compute = [&]() {
+   auto compute = [ & ]()
+   {
       //solver.solve( u );
    };
 
@@ -97,6 +96,5 @@ benchmarkSolver( Benchmark<>& benchmark,
    };
    MyBenchmarkResult benchmarkResult( solver, matrix, x, b );*/
 
-   benchmark.time< Devices::Host >( reset, getPerformer< DeviceType >(), compute ); //, benchmarkResult );
+   benchmark.time< Devices::Host >( reset, getPerformer< DeviceType >(), compute );  //, benchmarkResult );
 }
-
