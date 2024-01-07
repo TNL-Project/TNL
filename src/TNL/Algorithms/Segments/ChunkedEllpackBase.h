@@ -57,10 +57,10 @@ public:
                        IndexType numberOfSlices,
                        IndexType chunksInSlice,
                        IndexType desiredChunkSize,
-                       OffsetsView rowToChunkMapping,
-                       OffsetsView rowToSliceMapping,
+                       OffsetsView segmentToChunkMapping,
+                       OffsetsView segmentToSliceMapping,
                        OffsetsView chunksToSegmentsMapping,
-                       OffsetsView rowPointers,
+                       OffsetsView segmentPointers,
                        SliceInfoContainerView slices );
 
    __cuda_callable__
@@ -107,19 +107,19 @@ public:
 
    [[nodiscard]] __cuda_callable__
    OffsetsView
-   getRowToChunkMappingView();
+   getSegmentToChunkMappingView();
 
    [[nodiscard]] __cuda_callable__
    ConstOffsetsView
-   getRowToChunkMappingView() const;
+   getSegmentToChunkMappingView() const;
 
    [[nodiscard]] __cuda_callable__
    OffsetsView
-   getRowToSliceMappingView();
+   getSegmentToSliceMappingView();
 
    [[nodiscard]] __cuda_callable__
    ConstOffsetsView
-   getRowToSliceMappingView() const;
+   getSegmentToSliceMappingView() const;
 
    [[nodiscard]] __cuda_callable__
    OffsetsView
@@ -131,11 +131,11 @@ public:
 
    [[nodiscard]] __cuda_callable__
    OffsetsView
-   getRowPointersView();
+   getSegmentPointersView();
 
    [[nodiscard]] __cuda_callable__
    ConstOffsetsView
-   getRowPointersView() const;
+   getSegmentPointersView() const;
 
    [[nodiscard]] __cuda_callable__
    SliceInfoContainerView
@@ -185,16 +185,16 @@ protected:
    IndexType chunksInSlice = 256;
    IndexType desiredChunkSize = 16;
 
-   //! \brief For each row, this keeps index of the first chunk within a slice.
-   OffsetsView rowToChunkMapping;
+   //! \brief For each segment, this keeps index of the first chunk within a slice.
+   OffsetsView segmentToChunkMapping;
 
    //! \brief For each segment, this keeps index of the slice which contains the segment.
-   OffsetsView rowToSliceMapping;
+   OffsetsView segmentToSliceMapping;
 
    OffsetsView chunksToSegmentsMapping;
 
    //! \brief Keeps index of the first segment index.
-   OffsetsView rowPointers;
+   OffsetsView segmentPointers;
 
    SliceInfoContainerView slices;
 
@@ -213,10 +213,10 @@ protected:
          IndexType numberOfSlices,
          IndexType chunksInSlice,
          IndexType desiredChunkSize,
-         OffsetsView rowToChunkMapping,
-         OffsetsView rowToSliceMapping,
+         OffsetsView segmentToChunkMapping,
+         OffsetsView segmentToSliceMapping,
          OffsetsView chunksToSegmentsMapping,
-         OffsetsView rowPointers,
+         OffsetsView segmentPointers,
          SliceInfoContainerView slices );
 };
 

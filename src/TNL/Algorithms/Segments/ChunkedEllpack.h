@@ -88,16 +88,16 @@ protected:
    bool
    setSlice( SizesContainer& segmentsSizes, Index sliceIndex, Index& elementsToAllocation );
 
-   //! \brief For each row, this keeps index of the first chunk within a slice.
-   OffsetsContainer rowToChunkMapping;
+   //! \brief For each segment, this keeps index of the first chunk within a slice.
+   OffsetsContainer segmentToChunkMapping;
 
    //! \brief For each segment, this keeps index of the slice which contains the segment.
-   OffsetsContainer rowToSliceMapping;
+   OffsetsContainer segmentToSliceMapping;
 
    OffsetsContainer chunksToSegmentsMapping;
 
    //! \brief Keeps index of the first segment index.
-   OffsetsContainer rowPointers;
+   OffsetsContainer segmentPointers;
 
    SliceInfoContainer slices;
 };

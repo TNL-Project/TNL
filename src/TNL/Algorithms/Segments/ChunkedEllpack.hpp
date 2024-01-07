@@ -11,8 +11,9 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ChunkedEllpack( const ChunkedEllpack& segments )
-: rowToChunkMapping( segments.rowToChunkMapping ), rowToSliceMapping( segments.rowToSliceMapping ),
-  chunksToSegmentsMapping( segments.chunksToSegmentsMapping ), rowPointers( segments.rowPointers ), slices( segments.slices )
+: segmentToChunkMapping( segments.segmentToChunkMapping ), segmentToSliceMapping( segments.segmentToSliceMapping ),
+  chunksToSegmentsMapping( segments.chunksToSegmentsMapping ), segmentPointers( segments.segmentPointers ),
+  slices( segments.slices )
 {
    // update the base
    Base::bind( segments.getSize(),
@@ -20,10 +21,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ChunkedEllpack( c
                segments.getNumberOfSlices(),
                segments.getChunksInSlice(),
                segments.getDesiredChunkSize(),
-               this->rowToChunkMapping.getView(),
-               this->rowToSliceMapping.getView(),
+               this->segmentToChunkMapping.getView(),
+               this->segmentToSliceMapping.getView(),
                this->chunksToSegmentsMapping.getView(),
-               this->rowPointers.getView(),
+               this->segmentPointers.getView(),
                this->slices.getView() );
 }
 
@@ -46,9 +47,9 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >&
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=( const ChunkedEllpack& segments )
 {
-   this->rowToChunkMapping = segments.rowToChunkMapping;
-   this->rowToSliceMapping = segments.rowToSliceMapping;
-   this->rowPointers = segments.rowPointers;
+   this->segmentToChunkMapping = segments.segmentToChunkMapping;
+   this->segmentToSliceMapping = segments.segmentToSliceMapping;
+   this->segmentPointers = segments.segmentPointers;
    this->chunksToSegmentsMapping = segments.chunksToSegmentsMapping;
    this->slices = segments.slices;
    // update the base
@@ -57,10 +58,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=( const 
                segments.getNumberOfSlices(),
                segments.getChunksInSlice(),
                segments.getDesiredChunkSize(),
-               this->rowToChunkMapping.getView(),
-               this->rowToSliceMapping.getView(),
+               this->segmentToChunkMapping.getView(),
+               this->segmentToSliceMapping.getView(),
                this->chunksToSegmentsMapping.getView(),
-               this->rowPointers.getView(),
+               this->segmentPointers.getView(),
                this->slices.getView() );
    return *this;
 }
@@ -69,9 +70,9 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >&
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=( ChunkedEllpack&& segments ) noexcept( false )
 {
-   this->rowToChunkMapping = std::move( segments.rowToChunkMapping );
-   this->rowToSliceMapping = std::move( segments.rowToSliceMapping );
-   this->rowPointers = std::move( segments.rowPointers );
+   this->segmentToChunkMapping = std::move( segments.segmentToChunkMapping );
+   this->segmentToSliceMapping = std::move( segments.segmentToSliceMapping );
+   this->segmentPointers = std::move( segments.segmentPointers );
    this->chunksToSegmentsMapping = std::move( segments.chunksToSegmentsMapping );
    this->slices = std::move( segments.slices );
    // update the base
@@ -80,10 +81,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=( Chunke
                segments.getNumberOfSlices(),
                segments.getChunksInSlice(),
                segments.getDesiredChunkSize(),
-               this->rowToChunkMapping.getView(),
-               this->rowToSliceMapping.getView(),
+               this->segmentToChunkMapping.getView(),
+               this->segmentToSliceMapping.getView(),
                this->chunksToSegmentsMapping.getView(),
-               this->rowPointers.getView(),
+               this->segmentPointers.getView(),
                this->slices.getView() );
    return *this;
 }
@@ -94,9 +95,9 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >&
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=(
    const ChunkedEllpack< Device_, Index_, IndexAllocator_, Organization_ >& segments )
 {
-   this->rowToChunkMapping = segments.getRowToChunkMappingView();
-   this->rowToSliceMapping = segments.getRowToSliceMappingView();
-   this->rowPointers = segments.getRowPointersView();
+   this->segmentToChunkMapping = segments.getSegmentToChunkMappingView();
+   this->segmentToSliceMapping = segments.getSegmentToSliceMappingView();
+   this->segmentPointers = segments.getSegmentPointersView();
    this->chunksToSegmentsMapping = segments.getChunksToSegmentsMappingView();
    this->slices = segments.getSlicesView();
    // update the base
@@ -105,10 +106,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=(
                segments.getNumberOfSlices(),
                segments.getChunksInSlice(),
                segments.getDesiredChunkSize(),
-               this->rowToChunkMapping.getView(),
-               this->rowToSliceMapping.getView(),
+               this->segmentToChunkMapping.getView(),
+               this->segmentToSliceMapping.getView(),
                this->chunksToSegmentsMapping.getView(),
-               this->rowPointers.getView(),
+               this->segmentPointers.getView(),
                this->slices.getView() );
    return *this;
 }
@@ -122,10 +123,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getView()
             this->getNumberOfSlices(),
             this->getChunksInSlice(),
             this->getDesiredChunkSize(),
-            this->getRowToChunkMappingView(),
-            this->getRowToSliceMappingView(),
+            this->getSegmentToChunkMappingView(),
+            this->getSegmentToSliceMappingView(),
             this->getChunksToSegmentsMappingView(),
-            this->getRowPointersView(),
+            this->getSegmentPointersView(),
             this->getSlicesView() };
 }
 
@@ -138,10 +139,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getConstView() co
             this->getNumberOfSlices(),
             this->getChunksInSlice(),
             this->getDesiredChunkSize(),
-            this->getRowToChunkMappingView(),
-            this->getRowToSliceMappingView(),
+            this->getSegmentToChunkMappingView(),
+            this->getSegmentToSliceMappingView(),
             this->getChunksToSegmentsMappingView(),
-            this->getRowPointersView(),
+            this->getSegmentPointersView(),
             this->getSlicesView() };
 }
 
@@ -154,27 +155,27 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSegmentsSizes(
       this->size = sum( segmentsSizes );
       const Index segmentsCount = segmentsSizes.getSize();
       this->slices.setSize( segmentsCount );
-      this->rowToChunkMapping.setSize( segmentsCount );
-      this->rowToSliceMapping.setSize( segmentsCount );
-      this->rowPointers.setSize( segmentsCount + 1 );
+      this->segmentToChunkMapping.setSize( segmentsCount );
+      this->segmentToSliceMapping.setSize( segmentsCount );
+      this->segmentPointers.setSize( segmentsCount + 1 );
 
       this->resolveSliceSizes( segmentsSizes );
-      this->rowPointers.setElement( 0, 0 );
+      this->segmentPointers.setElement( 0, 0 );
       this->storageSize = 0;
       for( Index sliceIndex = 0; sliceIndex < this->numberOfSlices; sliceIndex++ )
          this->setSlice( segmentsSizes, sliceIndex, this->storageSize );
-      inplaceInclusiveScan( this->rowPointers );
+      inplaceInclusiveScan( this->segmentPointers );
 
       Index chunksCount = this->numberOfSlices * this->chunksInSlice;
       this->chunksToSegmentsMapping.setSize( chunksCount );
       Index chunkIdx = 0;
       for( Index segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-         const Index& sliceIdx = rowToSliceMapping[ segmentIdx ];
+         const Index& sliceIdx = segmentToSliceMapping[ segmentIdx ];
          Index firstChunkOfSegment = 0;
          if( segmentIdx != slices[ sliceIdx ].firstSegment )
-            firstChunkOfSegment = rowToChunkMapping[ segmentIdx - 1 ];
+            firstChunkOfSegment = segmentToChunkMapping[ segmentIdx - 1 ];
 
-         const Index lastChunkOfSegment = rowToChunkMapping[ segmentIdx ];
+         const Index lastChunkOfSegment = segmentToChunkMapping[ segmentIdx ];
          const Index segmentChunksCount = lastChunkOfSegment - firstChunkOfSegment;
          for( Index i = 0; i < segmentChunksCount; i++ )
             this->chunksToSegmentsMapping[ chunkIdx++ ] = segmentIdx;
@@ -186,10 +187,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSegmentsSizes(
                   this->numberOfSlices,
                   this->chunksInSlice,
                   this->desiredChunkSize,
-                  this->rowToChunkMapping.getView(),
-                  this->rowToSliceMapping.getView(),
+                  this->segmentToChunkMapping.getView(),
+                  this->segmentToSliceMapping.getView(),
                   this->chunksToSegmentsMapping.getView(),
-                  this->rowPointers.getView(),
+                  this->segmentPointers.getView(),
                   this->slices.getView() );
    }
    else {
@@ -209,10 +210,10 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 void
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::reset()
 {
-   this->rowToChunkMapping.reset();
-   this->rowToSliceMapping.reset();
+   this->segmentToChunkMapping.reset();
+   this->segmentToSliceMapping.reset();
    this->chunksToSegmentsMapping.reset();
-   this->rowPointers.reset();
+   this->segmentPointers.reset();
    this->slices.reset();
 
    // update the base
@@ -221,10 +222,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::reset()
                0,
                this->getChunksInSlice(),
                this->getDesiredChunkSize(),
-               this->rowToChunkMapping.getView(),
-               this->rowToSliceMapping.getView(),
+               this->segmentToChunkMapping.getView(),
+               this->segmentToSliceMapping.getView(),
                this->chunksToSegmentsMapping.getView(),
-               this->rowPointers.getView(),
+               this->segmentPointers.getView(),
                this->slices.getView() );
 }
 
@@ -237,7 +238,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::save( File& file 
    file.save( &this->numberOfSlices );
    file.save( &this->chunksInSlice );
    file.save( &this->desiredChunkSize );
-   file << this->rowToChunkMapping << this->rowToSliceMapping << this->chunksToSegmentsMapping << this->rowPointers
+   file << this->segmentToChunkMapping << this->segmentToSliceMapping << this->chunksToSegmentsMapping << this->segmentPointers
         << this->slices;
 }
 
@@ -250,7 +251,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::load( File& file 
    file.load( &this->numberOfSlices );
    file.load( &this->chunksInSlice );
    file.load( &this->desiredChunkSize );
-   file >> this->rowToChunkMapping >> this->rowToSliceMapping >> this->chunksToSegmentsMapping >> this->rowPointers
+   file >> this->segmentToChunkMapping >> this->segmentToSliceMapping >> this->chunksToSegmentsMapping >> this->segmentPointers
       >> this->slices;
 
    // update the base
@@ -259,10 +260,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::load( File& file 
                this->numberOfSlices,
                this->chunksInSlice,
                this->desiredChunkSize,
-               this->rowToChunkMapping.getView(),
-               this->rowToSliceMapping.getView(),
+               this->segmentToChunkMapping.getView(),
+               this->segmentToSliceMapping.getView(),
                this->chunksToSegmentsMapping.getView(),
-               this->rowPointers.getView(),
+               this->segmentPointers.getView(),
                this->slices.getView() );
 }
 
@@ -271,7 +272,7 @@ template< typename SegmentsSizes >
 void
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::resolveSliceSizes( SegmentsSizes& segmentsSizes )
 {
-   // Iterate over rows and allocate slices so that each slice has
+   // Iterate over segments and allocate slices so that each slice has
    // approximately the same number of allocated elements
    const Index desiredElementsInSlice = this->chunksInSlice * this->desiredChunkSize;
 
@@ -280,7 +281,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::resolveSliceSizes
    Index allocatedElementsInSlice = 0;
    this->numberOfSlices = 0;
    while( segmentIdx < segmentsSizes.getSize() ) {
-      // Add one row to the current slice until we reach the desired
+      // Add one segment to the current slice until we reach the desired
       // number of elements in a slice.
       allocatedElementsInSlice += segmentsSizes[ segmentIdx ];
       sliceSize++;
@@ -305,9 +306,9 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice( SizesCo
                                                                          Index sliceIndex,
                                                                          Index& elementsToAllocation )
 {
-   /* Now, compute the number of chunks per each row. Each row gets one chunk
-    * by default. Then each row will get additional chunks with respect to the
-    * number of the elements in the row. If there are some free chunks left,
+   /* Now, compute the number of chunks per each segment. Each segment gets one chunk
+    * by default. Then each segment will get additional chunks with respect to the
+    * number of the elements in the segment. If there are some free chunks left,
     * repeat it again.
     */
    const Index sliceSize = this->slices[ sliceIndex ].size;
@@ -317,34 +318,34 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice( SizesCo
 
    Index freeChunks = this->chunksInSlice - sliceSize;
    for( Index i = sliceBegin; i < sliceEnd; i++ )
-      this->rowToChunkMapping.setElement( i, 1 );
+      this->segmentToChunkMapping.setElement( i, 1 );
 
    int totalAddedChunks = 0;
-   int maxRowLength( segmentsSizes[ sliceBegin ] );
+   int maxSegmentLength( segmentsSizes[ sliceBegin ] );
    for( Index i = sliceBegin; i < sliceEnd; i++ ) {
-      double rowRatio = 0.0;
+      double segmentRatio = 0.0;
       if( allocatedElementsInSlice != 0 )
-         rowRatio = (double) segmentsSizes[ i ] / (double) allocatedElementsInSlice;
-      const Index addedChunks = freeChunks * rowRatio;
+         segmentRatio = (double) segmentsSizes[ i ] / (double) allocatedElementsInSlice;
+      const Index addedChunks = freeChunks * segmentRatio;
       totalAddedChunks += addedChunks;
-      this->rowToChunkMapping[ i ] += addedChunks;
-      if( maxRowLength < segmentsSizes[ i ] )
-         maxRowLength = segmentsSizes[ i ];
+      this->segmentToChunkMapping[ i ] += addedChunks;
+      if( maxSegmentLength < segmentsSizes[ i ] )
+         maxSegmentLength = segmentsSizes[ i ];
    }
    TNL_ASSERT_GE( freeChunks, totalAddedChunks, "" );
    freeChunks -= totalAddedChunks;
    while( freeChunks )
       for( Index i = sliceBegin; i < sliceEnd && freeChunks; i++ )
-         if( segmentsSizes[ i ] == maxRowLength ) {
-            this->rowToChunkMapping[ i ]++;
+         if( segmentsSizes[ i ] == maxSegmentLength ) {
+            this->segmentToChunkMapping[ i ]++;
             freeChunks--;
          }
 
    // Compute the chunk size
    Index maxChunkInSlice = 0;
    for( Index i = sliceBegin; i < sliceEnd; i++ ) {
-      TNL_ASSERT_NE( this->rowToChunkMapping[ i ], 0, "" );
-      maxChunkInSlice = TNL::max( maxChunkInSlice, roundUpDivision( segmentsSizes[ i ], this->rowToChunkMapping[ i ] ) );
+      TNL_ASSERT_NE( this->segmentToChunkMapping[ i ], 0, "" );
+      maxChunkInSlice = TNL::max( maxChunkInSlice, roundUpDivision( segmentsSizes[ i ], this->segmentToChunkMapping[ i ] ) );
    }
 
    // Set up the slice info.
@@ -353,17 +354,17 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice( SizesCo
    elementsToAllocation += this->chunksInSlice * maxChunkInSlice;
 
    for( Index i = sliceBegin; i < sliceEnd; i++ )
-      this->rowToSliceMapping[ i ] = sliceIndex;
+      this->segmentToSliceMapping[ i ] = sliceIndex;
 
    for( Index i = sliceBegin; i < sliceEnd; i++ ) {
-      this->rowPointers[ i + 1 ] = maxChunkInSlice * rowToChunkMapping[ i ];
-      TNL_ASSERT_GE( this->rowPointers[ i ], 0, "" );
-      TNL_ASSERT_GE( this->rowPointers[ i + 1 ], 0, "" );
+      this->segmentPointers[ i + 1 ] = maxChunkInSlice * segmentToChunkMapping[ i ];
+      TNL_ASSERT_GE( this->segmentPointers[ i ], 0, "" );
+      TNL_ASSERT_GE( this->segmentPointers[ i + 1 ], 0, "" );
    }
 
-   // Finish the row to chunk mapping by computing the prefix sum.
+   // Finish the segment to chunk mapping by computing the prefix sum.
    for( Index j = sliceBegin + 1; j < sliceEnd; j++ )
-      rowToChunkMapping[ j ] += rowToChunkMapping[ j - 1 ];
+      segmentToChunkMapping[ j ] += segmentToChunkMapping[ j - 1 ];
    return true;
 }
 
