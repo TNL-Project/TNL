@@ -88,6 +88,75 @@ template< typename SizesHolder >
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::setSegmentsSizes( const SizesHolder& segmentsSizes )
 {
+   /***
+    * BiEllpack implements abstraction of a sparse matrix format from the paper https://doi.org/10.1016/j.jpdc.2014.03.002
+    *
+    * Here we briefly summarize the main idea of the format. Note, that each segment represents slots for the non-zero matrix
+    * elements.
+    *
+    * 1. We first split all segments into strips of size equal to the warp-size which is 32. If the number of segments is not
+    * divisible by the warp-size, we add virtual segments. The number of all segments including the virtual ones can be obtained
+    * by calling the getVirtualRows() method.
+    *
+    * 2. In the next step we sort segments in each strip in the descending order according to the segments sizes. This changes
+    * the ordering of the segments and so we need to store a permutation mapping the original segment index to the new one.
+    *  This permutation is stored in the rowsPermutation array. It means that
+    *
+    * ```cpp
+    * new_segment_idx = rowsPermutation[ original_segment_idx ]
+    *```
+    *
+    * This array is initiated in the initRowsPermutation() method.
+    * 3. Next we split each strip of segments into several groups. The number of groups is equal to the log2 of the warp size.
+    * For the simplicity, in the following example we assume that the warp-size is 8 and so each strip consists of 8 segments.
+    * Assume that the strip is sorted in the descending order according to the segments sizes and it looks as follows
+    *
+    *  0: * * * * * * * * * * * *
+    *  1: * * * * * * * * *
+    *  2: * * * * * *
+    *  3: * * * *
+    *  4: * * *
+    *  5: * *
+    *  6: * *
+    *  7: * *
+    *
+    * The stars represent the segments. Each group stores several columns of the slots of the segments. Their width is defined
+    * as follows:
+    * - The width of the first group (with index 0) is equal to the size of the segment number 8/2=4.
+    * - The width of the second group (with index 1) is given by the size of the segment number 4/2=2.
+    * - The width of the third group (with index 2) is given by the size of the segment number 2/2=1.
+    * - The width of the last group (with index 3) is given by the size of the segment number 1/2=0.
+    *
+    * The following figure shows how the slots of the segments are distributed among the groups.
+    *  0: 0 0 0 1 1 1 2 2 2 3 3 3
+    *  1: 0 0 0 1 1 1 2 2 2
+    *  2: 0 0 0 1 1 1
+    *  3: 0 0 0 1 . .
+    *  4: 0 0 0
+    *  5: 0 0 .
+    *  6: 0 0 .
+    *  7: 0 0 .
+    *
+    * The dots represent padding slots in the segments. Note that:
+    * - the first group (with index 0) manages slots/elements of all 8 segments
+    * - the second group (with index 1) manages slots/elements of the first 4 segments
+    * - the third group (with index 2) manages slots/elements of the first 2 segments
+    * - the last group (with index 3) manages slots/elements of the first segment
+    *
+    * In the memory, we first store the elements of the first group (including the padding slots) and then
+    * the elements of the second group and so on. The elements are stored either in row-major or column-major
+    * order depending on the ElementsOrganization. The offsets of the groups are stored in the groupPointers
+    * array which is initiated in the initGroupPointers() method. The number of the slots managed by the group so given
+    * by the difference of the offsets of the current group and the subsequent one, i.e.
+    *
+    * ```cpp
+    * groupSize = groupPointers[ groupIdx + 1 ] - groupPointers[ groupIdx ]
+    * ```
+    *
+    * The number of segments managed by the group is given by its local index within the strip
+    * (i.e. 0, 1, 2 and 3 in our example). And the width of the group is given by the groupSize divided by the number of
+    * segments managed by the group.
+    */
    TNL_ASSERT_TRUE( TNL::all( greaterEqual( segmentsSizes, 0 ) ), "Segment size cannot be negative" );
    if constexpr( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Sequential >::value ) {
       // NOTE: the following functions (e.g. getVirtualRows and performRowBubbleSort)
