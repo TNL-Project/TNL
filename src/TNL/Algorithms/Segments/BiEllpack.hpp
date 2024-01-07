@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/scan.h>
+#include <TNL/DiscreteMath.h>
 
 #include "BiEllpack.h"
 
@@ -12,10 +13,10 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::BiEllpack( const BiEllpack& segments )
-: rowPermArray( segments.rowPermArray ), groupPointers( segments.groupPointers )
+: rowsPermutation( segments.rowsPermutation ), groupPointers( segments.groupPointers )
 {
    // update the base
-   Base::bind( segments.getSize(), segments.getStorageSize(), this->rowPermArray.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getSize(), segments.getStorageSize(), this->rowsPermutation.getView(), this->groupPointers.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
@@ -37,10 +38,10 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >&
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=( const BiEllpack& segments )
 {
-   this->rowPermArray = segments.rowPermArray;
+   this->rowsPermutation = segments.rowsPermutation;
    this->groupPointers = segments.groupPointers;
    // update the base
-   Base::bind( segments.getSize(), segments.getStorageSize(), this->rowPermArray.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getSize(), segments.getStorageSize(), this->rowsPermutation.getView(), this->groupPointers.getView() );
    return *this;
 }
 
@@ -48,10 +49,10 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >&
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=( BiEllpack&& segments ) noexcept( false )
 {
-   this->rowPermArray = std::move( segments.rowPermArray );
+   this->rowsPermutation = std::move( segments.rowsPermutation );
    this->groupPointers = std::move( segments.groupPointers );
    // update the base
-   Base::bind( segments.getSize(), segments.getStorageSize(), this->rowPermArray.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getSize(), segments.getStorageSize(), this->rowsPermutation.getView(), this->groupPointers.getView() );
    return *this;
 }
 
@@ -61,10 +62,10 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >&
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=(
    const BiEllpack< Device_, Index_, IndexAllocator_, Organization_, WarpSize >& segments )
 {
-   this->rowPermArray = segments.getRowPermArrayView();
+   this->rowsPermutation = segments.getrowsPermutationView();
    this->groupPointers = segments.getGroupPointersView();
    // update the base
-   Base::bind( segments.getSize(), segments.getStorageSize(), this->rowPermArray.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getSize(), segments.getStorageSize(), this->rowsPermutation.getView(), this->groupPointers.getView() );
    return *this;
 }
 
@@ -72,14 +73,14 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 typename BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::ViewType
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getView()
 {
-   return { this->getSize(), this->getStorageSize(), this->getRowPermArrayView(), this->getGroupPointersView() };
+   return { this->getSize(), this->getStorageSize(), this->getrowsPermutationView(), this->getGroupPointersView() };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 auto
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getConstView() const -> ConstViewType
 {
-   return { this->getSize(), this->getStorageSize(), this->getRowPermArrayView(), this->getGroupPointersView() };
+   return { this->getSize(), this->getStorageSize(), this->getrowsPermutationView(), this->getGroupPointersView() };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
@@ -87,28 +88,30 @@ template< typename SizesHolder >
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::setSegmentsSizes( const SizesHolder& segmentsSizes )
 {
-   if constexpr( std::is_same< Device, Devices::Host >::value ) {
+   TNL_ASSERT_TRUE( TNL::all( greaterEqual( segmentsSizes, 0 ) ), "Segment size cannot be negative" );
+   if constexpr( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Sequential >::value ) {
       // NOTE: the following functions (e.g. getVirtualRows and performRowBubbleSort)
       // depend on this->size being set
-      this->size = segmentsSizes.getSize();
-      const Index strips = this->getVirtualRows() / Base::getWarpSize();
-      this->rowPermArray.setSize( this->size );
+      const Index segmentsCount = segmentsSizes.getSize();
+      this->rowsPermutation.setSize( segmentsCount );
+      this->size = sum( segmentsSizes );
+      const Index strips = this->getVirtualRows( segmentsCount ) / Base::getWarpSize();
       this->groupPointers.setSize( strips * ( Base::getLogWarpSize() + 1 ) + 1 );
       this->groupPointers = 0;
 
-      this->performRowBubbleSort( segmentsSizes );
-      this->computeColumnSizes( segmentsSizes );
-
+      this->initRowsPermutation( segmentsSizes );
+      this->initGroupPointers( segmentsSizes );
       inplaceExclusiveScan( this->groupPointers );
 
-      this->verifyRowPerm( segmentsSizes );
-      // TODO: I am not sure what this test is doing.
-      // this->verifyRowLengths( segmentsSizes );
-
-      const Index storageSize = Base::getWarpSize() * this->groupPointers.getElement( strips * ( Base::getLogWarpSize() + 1 ) );
-
+      const Index storageSize = this->groupPointers.getElement( strips * ( Base::getLogWarpSize() + 1 ) );
       // update the base
-      Base::bind( this->size, storageSize, this->rowPermArray.getView(), this->groupPointers.getView() );
+      Base::bind( this->size, storageSize, this->rowsPermutation.getView(), this->groupPointers.getView() );
+
+#ifndef NDEBUG
+      // The tests can be called only after updating the VectorViews in the base
+      this->verifyRowPerm( segmentsSizes );
+      this->verifyRowLengths( segmentsSizes );
+#endif
    }
    else {
       BiEllpack< Devices::Host, Index, typename Allocators::Default< Devices::Host >::template Allocator< Index >, Organization >
@@ -124,11 +127,11 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::reset()
 {
-   rowPermArray.reset();
+   rowsPermutation.reset();
    groupPointers.reset();
 
    // update the base
-   Base::bind( 0, 0, this->rowPermArray.getView(), this->groupPointers.getView() );
+   Base::bind( 0, 0, this->rowsPermutation.getView(), this->groupPointers.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
@@ -137,7 +140,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::save( File& 
 {
    file.save( &this->size );
    file.save( &this->storageSize );
-   file << this->rowPermArray << this->groupPointers;
+   file << this->rowsPermutation << this->groupPointers;
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
@@ -146,70 +149,70 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::load( File& 
 {
    file.load( &this->size );
    file.load( &this->storageSize );
-   file >> this->rowPermArray >> this->groupPointers;
+   file >> this->rowsPermutation >> this->groupPointers;
 
    // update the base
-   Base::bind( this->size, this->storageSize, this->rowPermArray.getView(), this->groupPointers.getView() );
+   Base::bind( this->size, this->storageSize, this->rowsPermutation.getView(), this->groupPointers.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 template< typename SizesHolder >
 void
-BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::performRowBubbleSort( const SizesHolder& segmentsSizes )
+BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::initRowsPermutation( const SizesHolder& segmentsSizes )
 {
-   if( segmentsSizes.getSize() == 0 )
+   static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Sequential >::value,
+                  "The initiation of the rowPermutationArray can be done only on the CPU." );
+
+   // TODO: The following function could be probably replaced with general sorting algorithms (e.g. bitonnic sort) and run on
+   // the GPU.
+   const Index segmentsCount = segmentsSizes.getSize();
+   if( segmentsCount == 0 )
       return;
 
-   this->rowPermArray.forAllElements(
-      [] __cuda_callable__( const Index idx, Index& value )
-      {
-         value = idx;
-      } );
+   for( Index i = 0; i < segmentsCount; i++ )
+      this->rowsPermutation[ i ] = i;
 
-   // if constexpr( std::is_same< DeviceType, Devices::Host >::value )
-   {
-      const Index strips = this->getVirtualRows() / Base::getWarpSize();
-      for( Index i = 0; i < strips; i++ ) {
-         Index begin = i * Base::getWarpSize();
-         Index end = ( i + 1 ) * Base::getWarpSize() - 1;
-         if( this->getSize() - 1 < end )
-            end = this->getSize() - 1;
-         bool sorted = false;
-         Index permIndex1 = 0;
-         Index permIndex2 = 0;
-         Index offset = 0;
-         while( ! sorted ) {
-            sorted = true;
-            for( Index j = begin + offset; j < end - offset; j++ ) {
-               for( Index k = begin; k < end + 1; k++ ) {
-                  if( this->rowPermArray.getElement( k ) == j )
-                     permIndex1 = k;
-                  if( this->rowPermArray.getElement( k ) == j + 1 )
-                     permIndex2 = k;
-               }
-               if( segmentsSizes.getElement( permIndex1 ) < segmentsSizes.getElement( permIndex2 ) ) {
-                  Index temp = this->rowPermArray.getElement( permIndex1 );
-                  this->rowPermArray.setElement( permIndex1, this->rowPermArray.getElement( permIndex2 ) );
-                  this->rowPermArray.setElement( permIndex2, temp );
-                  sorted = false;
-               }
+   const Index strips = this->getVirtualRows( segmentsCount ) / Base::getWarpSize();
+   for( Index i = 0; i < strips; i++ ) {
+      Index begin = i * Base::getWarpSize();
+      Index end = ( i + 1 ) * Base::getWarpSize() - 1;
+      if( segmentsCount - 1 < end )
+         end = segmentsCount - 1;
+      bool sorted = false;
+      Index permIndex1 = 0;
+      Index permIndex2 = 0;
+      Index offset = 0;
+      while( ! sorted ) {
+         sorted = true;
+         for( Index j = begin + offset; j < end - offset; j++ ) {
+            for( Index k = begin; k < end + 1; k++ ) {
+               if( this->rowsPermutation[ k ] == j )
+                  permIndex1 = k;
+               if( this->rowsPermutation[ k ] == j + 1 )
+                  permIndex2 = k;
             }
-            for( Index j = end - 1 - offset; j > begin + offset; j-- ) {
-               for( Index k = begin; k < end + 1; k++ ) {
-                  if( this->rowPermArray.getElement( k ) == j )
-                     permIndex1 = k;
-                  if( this->rowPermArray.getElement( k ) == j - 1 )
-                     permIndex2 = k;
-               }
-               if( segmentsSizes.getElement( permIndex2 ) < segmentsSizes.getElement( permIndex1 ) ) {
-                  Index temp = this->rowPermArray.getElement( permIndex1 );
-                  this->rowPermArray.setElement( permIndex1, this->rowPermArray.getElement( permIndex2 ) );
-                  this->rowPermArray.setElement( permIndex2, temp );
-                  sorted = false;
-               }
+            if( segmentsSizes[ permIndex1 ] < segmentsSizes[ permIndex2 ] ) {
+               Index temp = this->rowsPermutation[ permIndex1 ];
+               this->rowsPermutation[ permIndex1 ] = this->rowsPermutation[ permIndex2 ];
+               this->rowsPermutation[ permIndex2 ] = temp;
+               sorted = false;
             }
-            offset++;
          }
+         for( Index j = end - 1 - offset; j > begin + offset; j-- ) {
+            for( Index k = begin; k < end + 1; k++ ) {
+               if( this->rowsPermutation[ k ] == j )
+                  permIndex1 = k;
+               if( this->rowsPermutation[ k ] == j - 1 )
+                  permIndex2 = k;
+            }
+            if( segmentsSizes[ permIndex2 ] < segmentsSizes[ permIndex1 ] ) {
+               Index temp = this->rowsPermutation[ permIndex1 ];
+               this->rowsPermutation[ permIndex1 ] = this->rowsPermutation[ permIndex2 ];
+               this->rowsPermutation[ permIndex2 ] = temp;
+               sorted = false;
+            }
+         }
+         offset++;
       }
    }
 }
@@ -217,13 +220,13 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::performRowBu
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 template< typename SizesHolder >
 void
-BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::computeColumnSizes( const SizesHolder& segmentsSizes )
+BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::initGroupPointers( const SizesHolder& segmentsSizes )
 {
-   Index numberOfStrips = this->getVirtualRows() / Base::getWarpSize();
+   const Index totalSegmentsCount = segmentsSizes.getSize();
+   Index numberOfStrips = this->getVirtualRows( totalSegmentsCount ) / Base::getWarpSize();
    auto groupPointersView = this->groupPointers.getView();
-   auto segmentsPermutationView = this->rowPermArray.getView();
+   auto segmentsPermutationView = this->rowsPermutation.getView();
    auto segmentsSizesView = segmentsSizes.getConstView();
-   const Index size = this->getSize();
    auto createGroups = [ = ] __cuda_callable__( const Index strip ) mutable
    {
       Index firstSegment = strip * Base::getWarpSize();
@@ -232,7 +235,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::computeColum
 
       // The last strip can be shorter
       if( strip == numberOfStrips - 1 ) {
-         Index segmentsCount = size - firstSegment;
+         Index segmentsCount = totalSegmentsCount - firstSegment;
          while( segmentsCount <= TNL::pow( 2, Base::getLogWarpSize() - 1 - emptyGroups ) - 1 )
             emptyGroups++;
          for( Index group = groupBegin; group < groupBegin + emptyGroups; group++ )
@@ -252,7 +255,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::computeColum
          groupPointersView[ groupIdx + groupBegin ] = groupSize;
       }
    };
-   Algorithms::parallelFor< Device >( 0, this->getVirtualRows() / Base::getWarpSize(), createGroups );
+   Algorithms::parallelFor< Device >( 0, this->getVirtualRows( totalSegmentsCount ) / Base::getWarpSize(), createGroups );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
@@ -265,19 +268,19 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifyRowPer
    for( Index strip = 0; strip < numberOfStrips; strip++ ) {
       Index begin = strip * Base::getWarpSize();
       Index end = ( strip + 1 ) * Base::getWarpSize();
-      if( this->getSize() < end )
-         end = this->getSize();
+      if( this->getSegmentsCount() < end )
+         end = this->getSegmentsCount();
       for( Index i = begin; i < end - 1; i++ ) {
          Index permIndex1 = 0;
          Index permIndex2 = 0;
          bool first = false;
          bool second = false;
          for( Index j = begin; j < end; j++ ) {
-            if( this->rowPermArray.getElement( j ) == i ) {
+            if( this->rowsPermutation.getElement( j ) == i ) {
                permIndex1 = j;
                first = true;
             }
-            if( this->rowPermArray.getElement( j ) == i + 1 ) {
+            if( this->rowsPermutation.getElement( j ) == i + 1 ) {
                permIndex2 = j;
                second = true;
             }
@@ -299,24 +302,24 @@ template< typename SizesHolder >
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifyRowLengths( const SizesHolder& segmentsSizes )
 {
-   std::cerr << "segmentsSizes = " << segmentsSizes << std::endl;
-   for( Index segmentIdx = 0; segmentIdx < this->getSize(); segmentIdx++ ) {
+   for( Index segmentIdx = 0; segmentIdx < this->getSegmentsCount(); segmentIdx++ ) {
       const Index strip = segmentIdx / Base::getWarpSize();
       const Index stripLength = this->getStripLength( strip );
       const Index groupBegin = ( Base::getLogWarpSize() + 1 ) * strip;
-      const Index rowStripPerm = this->rowPermArray.getElement( segmentIdx ) - strip * Base::getWarpSize();
+      const Index rowStripPerm = this->rowsPermutation.getElement( segmentIdx ) - strip * Base::getWarpSize();
       const Index begin = this->groupPointers.getElement( groupBegin ) * Base::getWarpSize() + rowStripPerm * stripLength;
       Index elementPtr = begin;
       Index rowLength = 0;
       const Index groupsCount = detail::BiEllpack< Index, Device, Organization, WarpSize >::getActiveGroupsCount(
-         this->rowPermArray.getConstView(), segmentIdx );
+         this->rowsPermutation.getConstView(), segmentIdx );
       for( Index group = 0; group < groupsCount; group++ ) {
-         const Index groupSize = detail::BiEllpack< Index, Device, Organization, WarpSize >::getGroupSize( strip, group );
+         const Index groupSize =
+            detail::BiEllpack< Index, Device, Organization, WarpSize >::getGroupSize( this->groupPointers, strip, group );
          for( Index i = 0; i < groupSize; i++ ) {
             Index biElementPtr = elementPtr;
-            for( Index j = 0; j < discretePow( 2, group ); j++ ) {
+            for( Index j = 0; j < discretePow( (Index) 2, group ); j++ ) {
                rowLength++;
-               biElementPtr += discretePow( 2, Base::getLogWarpSize() - group ) * stripLength;
+               biElementPtr += discretePow( (Index) 2, Base::getLogWarpSize() - group ) * stripLength;
             }
             elementPtr++;
          }
@@ -331,6 +334,7 @@ auto
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getStripLength( Index strip ) const -> Index
 {
    TNL_ASSERT_GE( strip, 0, "" );
+   TNL_ASSERT_LE( ( strip + 1 ) * ( Base::getLogWarpSize() + 1 ), this->groupPointers.getSize(), "" );
 
    return this->groupPointers.getElement( ( strip + 1 ) * ( Base::getLogWarpSize() + 1 ) )
         - this->groupPointers.getElement( strip * ( Base::getLogWarpSize() + 1 ) );

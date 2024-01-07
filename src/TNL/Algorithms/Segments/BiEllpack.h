@@ -71,17 +71,18 @@ public:
    void
    load( File& file );
 
+   // This method is public only because of lambda functions in CUDA
    template< typename SizesHolder >
    void
-   performRowBubbleSort( const SizesHolder& segmentsSize );
-
-   template< typename SizesHolder >
-   void
-   computeColumnSizes( const SizesHolder& segmentsSizes );
+   initGroupPointers( const SizesHolder& segmentsSizes );
 
 protected:
-   OffsetsContainer rowPermArray;
+   OffsetsContainer rowsPermutation;
    OffsetsContainer groupPointers;
+
+   template< typename SizesHolder >
+   void
+   initRowsPermutation( const SizesHolder& segmentsSize );
 
    template< typename SizesHolder >
    void

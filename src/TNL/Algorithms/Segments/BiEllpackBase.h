@@ -55,7 +55,7 @@ public:
    BiEllpackBase() = default;
 
    __cuda_callable__
-   BiEllpackBase( IndexType size, IndexType storageSize, OffsetsView rowPermArray, OffsetsView groupPointers );
+   BiEllpackBase( IndexType size, IndexType storageSize, OffsetsView rowsPermutation, OffsetsView groupPointers );
 
    __cuda_callable__
    BiEllpackBase( const BiEllpackBase& ) = default;
@@ -101,11 +101,11 @@ public:
 
    [[nodiscard]] __cuda_callable__
    OffsetsView
-   getRowPermArrayView();
+   getrowsPermutationView();
 
    [[nodiscard]] __cuda_callable__
    ConstOffsetsView
-   getRowPermArrayView() const;
+   getrowsPermutationView() const;
 
    [[nodiscard]] __cuda_callable__
    OffsetsView
@@ -143,7 +143,7 @@ public:
 protected:
    IndexType size = 0;
    IndexType storageSize = 0;
-   OffsetsView rowPermArray;
+   OffsetsView rowsPermutation;
    OffsetsView groupPointers;
 
    /**
@@ -156,7 +156,11 @@ protected:
     */
    __cuda_callable__
    void
-   bind( IndexType size, IndexType storageSize, OffsetsView rowPermArray, OffsetsView groupPointers );
+   bind( IndexType size, IndexType storageSize, OffsetsView rowsPermutation, OffsetsView groupPointers );
+
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getVirtualRows( IndexType segmentsCount ) const;
 };
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >

@@ -12,6 +12,16 @@ test_SetSegmentsSizes_EqualSizes()
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
 
+   // Test setup with empty segments
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > emptySegmentsSizes( 0 );
+   emptySegmentsSizes = 0;
+
+   Segments emptySegments( emptySegmentsSizes );
+
+   EXPECT_EQ( emptySegments.getSegmentsCount(), 0 );
+   EXPECT_EQ( emptySegments.getSize(), 0 );
+   EXPECT_LE( emptySegments.getSize(), emptySegments.getStorageSize() );
+
    const IndexType segmentsCount = 20;
    const IndexType segmentSize = 5;
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
