@@ -96,7 +96,6 @@ Using `find_package(Filesystem)` with no component arguments:
 
 #]=======================================================================]
 
-
 if(TARGET std::filesystem)
     # This module has already been processed. Don't do it again.
     return()
@@ -187,13 +186,17 @@ endif()
 set(CXX_FILESYSTEM_HAVE_FS ${_have_fs} CACHE BOOL "TRUE if we have the C++ filesystem headers")
 set(CXX_FILESYSTEM_HEADER ${_fs_header} CACHE STRING "The header that should be included to obtain the filesystem APIs")
 set(CXX_FILESYSTEM_NAMESPACE ${_fs_namespace} CACHE STRING "The C++ namespace that contains the filesystem APIs")
-set(CXX_FILESYSTEM_IS_EXPERIMENTAL ${_is_experimental} CACHE BOOL "TRUE if the C++ filesystem library is the experimental version")
+set(CXX_FILESYSTEM_IS_EXPERIMENTAL ${_is_experimental} CACHE BOOL
+                                                             "TRUE if the C++ filesystem library is the experimental version"
+)
 
 set(_found FALSE)
 
 if(CXX_FILESYSTEM_HAVE_FS)
     # We have some filesystem library available. Do link checks
-    string(CONFIGURE [[
+    string(
+        CONFIGURE
+            [[
         #include <cstdlib>
         #include <@CXX_FILESYSTEM_HEADER@>
 
@@ -202,7 +205,10 @@ if(CXX_FILESYSTEM_HAVE_FS)
             printf("%s", cwd.c_str());
             return EXIT_SUCCESS;
         }
-    ]] code @ONLY)
+    ]]
+            code
+        @ONLY
+    )
 
     # Check a simple filesystem program without any linker flags
     _cmcm_check_cxx_source("${code}" CXX_FILESYSTEM_NO_LINK_NEEDED)

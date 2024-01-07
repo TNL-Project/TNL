@@ -29,10 +29,15 @@
 # ``METIS_FOUND``
 #   If false, do not try to use the METIS library.
 
-find_path(METIS_INCLUDE_DIR NAMES metis64.h metis.h HINTS ${METIS_DIR} ENV METIS_DIR PATH_SUFFIXES include)
+find_path(
+    METIS_INCLUDE_DIR
+    NAMES metis64.h metis.h
+    HINTS ${METIS_DIR} ENV METIS_DIR
+    PATH_SUFFIXES include
+)
 
-if (METIS_INCLUDE_DIR)
-    if (EXISTS ${METIS_INCLUDE_DIR}/metis64.h)
+if(METIS_INCLUDE_DIR)
+    if(EXISTS ${METIS_INCLUDE_DIR}/metis64.h)
         set(METIS_HEADER metis64.h)
         set(METIS_LIB_NAME metis64)
     else()
@@ -58,10 +63,9 @@ if(METIS_FOUND)
 
     if(NOT TARGET METIS::METIS)
         add_library(METIS::METIS UNKNOWN IMPORTED)
-        set_target_properties(METIS::METIS PROPERTIES
-            INTERFACE_INCLUDE_DIRECTORIES "${METIS_INCLUDE_DIRS}")
-        set_target_properties(METIS::METIS PROPERTIES
-            IMPORTED_LINK_INTERFACE_LANGUAGES "C"
-            IMPORTED_LOCATION "${METIS_LIBRARIES}")
+        set_target_properties(METIS::METIS PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${METIS_INCLUDE_DIRS}")
+        set_target_properties(
+            METIS::METIS PROPERTIES IMPORTED_LINK_INTERFACE_LANGUAGES "C" IMPORTED_LOCATION "${METIS_LIBRARIES}"
+        )
     endif()
 endif()
