@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# exit as soon as there is an error
+set -o errexit
+# abort when an unset variable is used
+set -o nounset
+
+
 log_file_base="tnl-benchmark-memory-access"
 threads="1 2 4 8"
 access_types="sequential random"
