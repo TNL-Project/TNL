@@ -5,7 +5,8 @@
 using namespace TNL;
 using namespace TNL::Containers;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /****
     * Create new arrays on both host and device
@@ -17,8 +18,7 @@ int main( int argc, char* argv[] )
    /****
     * Initiate the arrays with setElement
     */
-   for( int i = 0; i < size; i++ )
-   {
+   for( int i = 0; i < size; i++ ) {
       host_array.setElement( i, i );
       device_array.setElement( i, i );
    }
@@ -37,4 +37,3 @@ int main( int argc, char* argv[] )
    std::cout << "host_array = " << host_array << std::endl;
    std::cout << "device_array = " << device_array << std::endl;
 }
-

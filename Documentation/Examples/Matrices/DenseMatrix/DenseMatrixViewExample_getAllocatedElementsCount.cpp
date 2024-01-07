@@ -4,22 +4,20 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void getElementsCountExample()
+void
+getElementsCountExample()
 {
-   TNL::Matrices::DenseMatrix< double, Device > triangularMatrix {
-      {  1 },
-      {  2,  3 },
-      {  4,  5,  6 },
-      {  7,  8,  9, 10 },
-      { 11, 12, 13, 14, 15 }
+   TNL::Matrices::DenseMatrix< double, Device > triangularMatrix{
+      { 1 }, { 2, 3 }, { 4, 5, 6 }, { 7, 8, 9, 10 }, { 11, 12, 13, 14, 15 }
    };
    auto triangularMatrixView = triangularMatrix.getConstView();
-   
+
    std::cout << "Matrix elements count is " << triangularMatrixView.getAllocatedElementsCount() << "." << std::endl;
    std::cout << "Non-zero matrix elements count is " << triangularMatrixView.getNonzeroElementsCount() << "." << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Computing matrix elements on host: " << std::endl;
    getElementsCountExample< TNL::Devices::Host >();

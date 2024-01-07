@@ -8,19 +8,26 @@ using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
 template< typename Device >
-double updateAndResidue( Vector< double, Device >& u, const Vector< double, Device >& delta_u, const double& tau )
+double
+updateAndResidue( Vector< double, Device >& u, const Vector< double, Device >& delta_u, const double& tau )
 {
    auto u_view = u.getView();
    auto delta_u_view = delta_u.getConstView();
-   auto fetch = [=] __cuda_callable__ ( int i ) mutable ->double {
+   auto fetch = [ = ] __cuda_callable__( int i ) mutable -> double
+   {
       const double& add = delta_u_view[ i ];
       u_view[ i ] += tau * add;
-      return add * add; };
-   auto reduction = [] __cuda_callable__ ( const double& a, const double& b ) { return a + b; };
+      return add * add;
+   };
+   auto reduction = [] __cuda_callable__( const double& a, const double& b )
+   {
+      return a + b;
+   };
    return sqrt( reduce< Device >( 0, u_view.getSize(), fetch, reduction, 0.0 ) );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    const double tau = 0.1;
    Vector< double, Devices::Host > host_u( 10 ), host_delta_u( 10 );
@@ -43,4 +50,3 @@ int main( int argc, char* argv[] )
 #endif
    return EXIT_SUCCESS;
 }
-

@@ -8,7 +8,8 @@ using Array3D = NDArray< int,  // Value
                          Permutation,
                          TNL::Devices::Host >;
 
-int main()
+int
+main()
 {
    // create 3 arrays with different permutations
    Array3D< std::index_sequence< 0, 1, 2 > > a;  // first index changes the slowest, last index changes the fastest

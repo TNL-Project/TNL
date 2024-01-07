@@ -8,7 +8,8 @@ using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
 template< typename Device >
-double sum( const Vector< double, Device >& v )
+double
+sum( const Vector< double, Device >& v )
 {
    /****
     * Get vector view which can be captured by lambda.
@@ -18,7 +19,10 @@ double sum( const Vector< double, Device >& v )
    /****
     * The fetch function just reads elements of vector v.
     */
-   auto fetch = [=] __cuda_callable__ ( int i ) -> double { return view[ i ]; };
+   auto fetch = [ = ] __cuda_callable__( int i ) -> double
+   {
+      return view[ i ];
+   };
 
    /***
     * Finally we call the templated function Reduction and pass number of elements to reduce,
@@ -27,7 +31,8 @@ double sum( const Vector< double, Device >& v )
    return reduce< Device >( 0, view.getSize(), fetch, TNL::Plus{} );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * Firstly, test the sum with vectors allocated on CPU.
@@ -48,4 +53,3 @@ int main( int argc, char* argv[] )
 #endif
    return EXIT_SUCCESS;
 }
-

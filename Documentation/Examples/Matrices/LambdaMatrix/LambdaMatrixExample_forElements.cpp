@@ -5,15 +5,22 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void forElementsExample()
+void
+forElementsExample()
 {
    /***
     * Lambda functions defining the matrix.
     */
-   auto rowLengths = [=] __cuda_callable__ ( const int rows, const int columns, const int rowIdx ) -> int { return columns; };
-   auto matrixElements = [=] __cuda_callable__ ( const int rows, const int columns, const int rowIdx, const int localIdx, int& columnIdx, double& value ) {
-         columnIdx = localIdx;
-         value = TNL::max( rowIdx - columnIdx + 1, 0 );
+   auto rowLengths = [ = ] __cuda_callable__( const int rows, const int columns, const int rowIdx ) -> int
+   {
+      return columns;
+   };
+   auto matrixElements =
+      [ = ] __cuda_callable__(
+         const int rows, const int columns, const int rowIdx, const int localIdx, int& columnIdx, double& value )
+   {
+      columnIdx = localIdx;
+      value = TNL::max( rowIdx - columnIdx + 1, 0 );
    };
 
    using MatrixFactory = TNL::Matrices::LambdaMatrixFactory< double, Device, int >;
@@ -22,7 +29,8 @@ void forElementsExample()
    TNL::Matrices::DenseMatrix< double, Device > denseMatrix( 5, 5 );
    auto denseView = denseMatrix.getView();
 
-   auto f = [=] __cuda_callable__ ( int rowIdx, int localIdx, int columnIdx, double value ) mutable {
+   auto f = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, double value ) mutable
+   {
       denseView.setElement( rowIdx, columnIdx, value );
    };
 
@@ -31,7 +39,8 @@ void forElementsExample()
    std::cout << "Dense matrix:" << std::endl << denseMatrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Copying matrix on host: " << std::endl;
    forElementsExample< TNL::Devices::Host >();

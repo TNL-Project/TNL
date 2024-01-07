@@ -441,8 +441,6 @@ clang-format Documentation:
                 --recursive
                 Documentation
     interruptible: true
-    # TODO: remove to enforce formatting
-    allow_failure: true
 
 clang-tidy:
     stage: lint

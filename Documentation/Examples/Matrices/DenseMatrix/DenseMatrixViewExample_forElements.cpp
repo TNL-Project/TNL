@@ -4,12 +4,14 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void forElementsExample()
+void
+forElementsExample()
 {
    TNL::Matrices::DenseMatrix< double, Device > matrix( 5, 5 );
    auto matrixView = matrix.getView();
 
-   auto f = [] __cuda_callable__ ( int rowIdx, int columnIdx, int globalIdx, double& value ) {
+   auto f = [] __cuda_callable__( int rowIdx, int columnIdx, int globalIdx, double& value )
+   {
       if( columnIdx <= rowIdx )
          value = rowIdx + columnIdx;
    };
@@ -18,7 +20,8 @@ void forElementsExample()
    std::cout << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Creating matrix on host: " << std::endl;
    forElementsExample< TNL::Devices::Host >();

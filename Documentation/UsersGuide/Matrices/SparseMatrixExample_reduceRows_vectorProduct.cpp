@@ -6,20 +6,17 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void reduceRows()
+void
+reduceRows()
 {
-   TNL::Matrices::SparseMatrix< double, Device > matrix { 5, 5, {
-      { 0, 0, 1 },
-      { 1, 0, 1 }, { 1, 1, 2 },
-      { 2, 1, 1 }, { 2, 2, 8 },
-      { 3, 2, 1 }, { 3, 3, 9 },
-      { 4, 4, 1 } } };
+   TNL::Matrices::SparseMatrix< double, Device > matrix{
+      5, 5, { { 0, 0, 1 }, { 1, 0, 1 }, { 1, 1, 2 }, { 2, 1, 1 }, { 2, 2, 8 }, { 3, 2, 1 }, { 3, 3, 9 }, { 4, 4, 1 } }
+   };
 
    /***
     * Allocate input and output vectors for matrix-vector product
     */
-   TNL::Containers::Vector< double, Device > x( matrix.getColumns() ),
-                                             y( matrix.getRows() );
+   TNL::Containers::Vector< double, Device > x( matrix.getColumns() ), y( matrix.getRows() );
 
    /***
     * Fill the input vectors with ones.
@@ -36,14 +33,16 @@ void reduceRows()
     * Fetch lambda just returns product of appropriate matrix elements and the
     * input vector elements.
     */
-   auto fetch = [=] __cuda_callable__ ( int rowIdx, int columnIdx, const double& value ) -> double {
+   auto fetch = [ = ] __cuda_callable__( int rowIdx, int columnIdx, const double& value ) -> double
+   {
       return xView[ columnIdx ] * value;
    };
 
    /***
     * Keep lambda store the result of matrix-vector product to output vector y.
     */
-   auto keep = [=] __cuda_callable__ ( int rowIdx, const double& value ) mutable {
+   auto keep = [ = ] __cuda_callable__( int rowIdx, const double& value ) mutable
+   {
       yView[ rowIdx ] = value;
    };
 
@@ -57,7 +56,8 @@ void reduceRows()
    std::cout << "Result of matrix-vector multiplication is: " << y << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Rows reduction on host:" << std::endl;
    reduceRows< TNL::Devices::Host >();

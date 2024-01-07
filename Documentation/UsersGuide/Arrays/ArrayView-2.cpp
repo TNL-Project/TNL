@@ -5,7 +5,8 @@
 using namespace TNL;
 using namespace TNL::Containers;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /****
     * Allocate your own data
@@ -28,4 +29,3 @@ int main( int argc, char* argv[] )
     */
    delete[] a;
 }
-

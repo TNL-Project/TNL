@@ -3,7 +3,8 @@
 #include <TNL/Devices/Host.h>
 
 template< typename Device >
-void addElements()
+void
+addElements()
 {
    TNL::Matrices::DenseMatrix< double, Device > matrix( 5, 5 );
    auto matrixView = matrix.getView();
@@ -20,7 +21,8 @@ void addElements()
    std::cout << "Matrix after addition is: " << std::endl << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Add elements on host:" << std::endl;
    addElements< TNL::Devices::Host >();

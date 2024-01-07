@@ -7,12 +7,16 @@ using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
 template< typename Device >
-void segmentedScan( Array< double, Device >& v, Array< bool, Device >& flags )
+void
+segmentedScan( Array< double, Device >& v, Array< bool, Device >& flags )
 {
    /***
     * Reduction is sum of two numbers.
     */
-   auto reduce = [] __cuda_callable__ ( const double& a, const double& b ) { return a + b; };
+   auto reduce = [] __cuda_callable__( const double& a, const double& b )
+   {
+      return a + b;
+   };
 
    /***
     * As parameters, we pass array on which the scan is to be performed, interval
@@ -22,13 +26,14 @@ void segmentedScan( Array< double, Device >& v, Array< bool, Device >& flags )
    SegmentedScan< Device >::perform( v, flags, 0, v.getSize(), reduce, 0.0 );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * Firstly, test the segmented prefix sum with arrays allocated on CPU.
     */
-   Array< bool, Devices::Host > host_flags{ 1,0,0,1,0,0,0,1,0,1,0,0, 0, 0 };
-   Array< double, Devices::Host > host_v { 1,3,5,2,4,6,9,3,5,3,6,9,12,15 };
+   Array< bool, Devices::Host > host_flags{ 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0 };
+   Array< double, Devices::Host > host_v{ 1, 3, 5, 2, 4, 6, 9, 3, 5, 3, 6, 9, 12, 15 };
    std::cout << "host_flags = " << host_flags << std::endl;
    std::cout << "host_v     = " << host_v << std::endl;
    segmentedScan( host_v, host_flags );
@@ -47,4 +52,3 @@ int main( int argc, char* argv[] )
 #endif
    return EXIT_SUCCESS;
 }
-

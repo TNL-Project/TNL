@@ -7,7 +7,8 @@ using namespace TNL;
 
 using ArrayHost = Containers::Array< int, Devices::Host >;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * Make unique pointer on array on CPU and manipulate the
@@ -19,5 +20,3 @@ int main( int argc, char* argv[] )
    std::cout << "Array = " << *array_ptr << std::endl;
    return EXIT_SUCCESS;
 }
-
-

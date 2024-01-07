@@ -1,6 +1,6 @@
 #include <iostream>
 #ifdef __CUDACC__
-#include <cuda.h>
+   #include <cuda.h>
 #endif
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/parallelFor.h>
@@ -8,7 +8,8 @@
 #include <TNL/Devices/Host.h>
 
 template< typename Device >
-void encapsulation()
+void
+encapsulation()
 {
    const int size = 5;
 
@@ -20,16 +21,14 @@ void encapsulation()
       for( int column = 0; column < size; column++ )
          host_data[ row * size + column ] = row * size + column + 1;
    double* data = nullptr;
-   if( std::is_same< Device, TNL::Devices::Host >::value )
-   {
+   if( std::is_same< Device, TNL::Devices::Host >::value ) {
       data = new double[ size * size ];
       memcpy( data, host_data, sizeof( double ) * size * size );
    }
 #ifdef __CUDACC__
-   else if( std::is_same< Device, TNL::Devices::Cuda >::value )
-   {
-      cudaMalloc( ( void**) &data, sizeof( double ) * size * size );
-      cudaMemcpy( data, host_data, sizeof( double ) * size * size,  cudaMemcpyHostToDevice );
+   else if( std::is_same< Device, TNL::Devices::Cuda >::value ) {
+      cudaMalloc( (void**) &data, sizeof( double ) * size * size );
+      cudaMemcpy( data, host_data, sizeof( double ) * size * size, cudaMemcpyHostToDevice );
    }
 #endif
 
@@ -42,7 +41,8 @@ void encapsulation()
    std::cout << "Dense matrix view reads as:" << std::endl;
    std::cout << matrix << std::endl;
 
-   auto f = [=] __cuda_callable__ ( int i ) mutable {
+   auto f = [ = ] __cuda_callable__( int i ) mutable
+   {
       matrix.setElement( i, i, -i );
    };
    TNL::Algorithms::parallelFor< Device >( 0, 5, f );
@@ -62,7 +62,8 @@ void encapsulation()
 #endif
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Dense matrix encapsulation on host:" << std::endl;
    encapsulation< TNL::Devices::Host >();
@@ -72,4 +73,3 @@ int main( int argc, char* argv[] )
    encapsulation< TNL::Devices::Cuda >();
 #endif
 }
-

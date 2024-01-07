@@ -1,1 +1,1 @@
-auto reduce = [] __cuda_callable__ ( const Real& a, const Real& b ) -> Real;
+auto reduce = [] __cuda_callable__( const Real& a, const Real& b ) -> Real;

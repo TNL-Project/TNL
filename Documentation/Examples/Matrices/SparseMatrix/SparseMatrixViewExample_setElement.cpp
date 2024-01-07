@@ -5,7 +5,8 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void setElements()
+void
+setElements()
 {
    TNL::Matrices::SparseMatrix< double, Device > matrix( { 1, 1, 1, 1, 1 }, 5 );
 
@@ -19,7 +20,8 @@ void setElements()
    std::cout << "Matrix set from the host:" << std::endl;
    std::cout << matrix << std::endl;
 
-   auto f = [=] __cuda_callable__ ( int i ) mutable {
+   auto f = [ = ] __cuda_callable__( int i ) mutable
+   {
       view.setElement( i, i, -i );
    };
 
@@ -29,7 +31,8 @@ void setElements()
    std::cout << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Set elements on host:" << std::endl;
    setElements< TNL::Devices::Host >();

@@ -5,17 +5,18 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void getRowExample()
+void
+getRowExample()
 {
    const int matrixSize( 5 );
    using MatrixType = TNL::Matrices::MultidiagonalMatrix< double, Device >;
-   MatrixType matrix(
-      matrixSize,  // number of matrix rows
-      matrixSize,  // number of matrix columns
-      { -1, 0, 1 } );
+   MatrixType matrix( matrixSize,  // number of matrix rows
+                      matrixSize,  // number of matrix columns
+                      { -1, 0, 1 } );
    auto view = matrix.getView();
 
-   auto f = [=] __cuda_callable__ ( int rowIdx ) mutable {
+   auto f = [ = ] __cuda_callable__( int rowIdx ) mutable
+   {
       auto row = view.getRow( rowIdx );
       if( rowIdx > 0 )
          row.setElement( 0, -1.0 );  // elements below the diagonal
@@ -31,7 +32,8 @@ void getRowExample()
    std::cout << std::endl << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Getting matrix rows on host: " << std::endl;
    getRowExample< TNL::Devices::Host >();

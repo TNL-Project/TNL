@@ -5,7 +5,8 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void setRowCapacitiesExample()
+void
+setRowCapacitiesExample()
 {
    TNL::Matrices::SparseMatrix< double, Device > matrix( 5, 5 );
    TNL::Containers::Vector< int, Device > rowCapacities{ 1, 2, 3, 4, 5 };
@@ -17,7 +18,8 @@ void setRowCapacitiesExample()
    std::cout << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Creating matrix on CPU ... " << std::endl;
    setRowCapacitiesExample< TNL::Devices::Host >();

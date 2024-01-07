@@ -4,7 +4,8 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void forRowsExample()
+void
+forRowsExample()
 {
    using MatrixType = TNL::Matrices::DenseMatrix< double, Device >;
    using RowView = typename MatrixType::RowView;
@@ -15,7 +16,8 @@ void forRowsExample()
    /***
     * Set the matrix elements.
     */
-   auto f = [] __cuda_callable__ ( RowView& row ) {
+   auto f = [] __cuda_callable__( RowView & row )
+   {
       const int& rowIdx = row.getRowIndex();
       if( rowIdx > 0 )
          row.setValue( rowIdx - 1, -1.0 );
@@ -29,18 +31,21 @@ void forRowsExample()
    /***
     * Now divide each matrix row by its largest element - with the use of iterators.
     */
-   view.forAllRows( [] __cuda_callable__ ( RowView& row ) {
-      double largest = std::numeric_limits< double >::lowest();
-      for( auto element : row )
-         largest = TNL::max( largest, element.value() );
-      for( auto element : row )
-         element.value() /= largest;
-   } );
+   view.forAllRows(
+      [] __cuda_callable__( RowView & row )
+      {
+         double largest = std::numeric_limits< double >::lowest();
+         for( auto element : row )
+            largest = TNL::max( largest, element.value() );
+         for( auto element : row )
+            element.value() /= largest;
+      } );
    std::cout << "Divide each matrix row by its largest element... " << std::endl;
    std::cout << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Getting matrix rows on host: " << std::endl;
    forRowsExample< TNL::Devices::Host >();

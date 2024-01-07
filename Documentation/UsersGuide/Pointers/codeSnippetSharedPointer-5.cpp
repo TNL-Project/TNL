@@ -1,4 +1,5 @@
-__global__ tupleKernel( ArrayTuple tuple )
+__global__
+tupleKernel( ArrayTuple tuple )
 {
    if( threadIdx.x < tuple.a1->size )
       tuple.a1->data[ threadIdx.x ] = 0;

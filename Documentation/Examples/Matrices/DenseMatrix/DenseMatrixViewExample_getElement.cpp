@@ -4,25 +4,23 @@
 #include <TNL/Devices/Host.h>
 
 template< typename Device >
-void getElements()
+void
+getElements()
 {
-   TNL::Matrices::DenseMatrix< double, Device > matrix {
-      {  1,  0,  0,  0,  0 },
-      { -1,  2, -1,  0,  0 },
-      {  0, -1,  2, -1,  0 },
-      {  0,  0, -1,  2, -1 },
-      {  0,  0,  0,  0,  1 } };
+   TNL::Matrices::DenseMatrix< double, Device > matrix{
+      { 1, 0, 0, 0, 0 }, { -1, 2, -1, 0, 0 }, { 0, -1, 2, -1, 0 }, { 0, 0, -1, 2, -1 }, { 0, 0, 0, 0, 1 }
+   };
    auto matrixView = matrix.getConstView();
 
-   for( int i = 0; i < 5; i++ )
-   {
+   for( int i = 0; i < 5; i++ ) {
       for( int j = 0; j < 5; j++ )
          std::cout << std::setw( 5 ) << std::ios::right << matrixView.getElement( i, i );  // or matrix.getElement
       std::cout << std::endl;
    }
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Get elements on host:" << std::endl;
    getElements< TNL::Devices::Host >();

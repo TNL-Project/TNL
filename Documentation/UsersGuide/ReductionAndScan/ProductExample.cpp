@@ -8,11 +8,18 @@ using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
 template< typename Device >
-double product( const Vector< double, Device >& v )
+double
+product( const Vector< double, Device >& v )
 {
    auto view = v.getConstView();
-   auto fetch = [=] __cuda_callable__ ( int i ) { return view[ i ]; };
-   auto reduction = [] __cuda_callable__ ( const double& a, const double& b ) { return a * b; };
+   auto fetch = [ = ] __cuda_callable__( int i )
+   {
+      return view[ i ];
+   };
+   auto reduction = [] __cuda_callable__( const double& a, const double& b )
+   {
+      return a * b;
+   };
 
    /***
     * Since we compute the product of all elements, the reduction must be initialized by 1.0 not by 0.0.
@@ -20,7 +27,8 @@ double product( const Vector< double, Device >& v )
    return reduce< Device >( 0, view.getSize(), fetch, reduction, 1.0 );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * The first test on CPU ...
@@ -41,4 +49,3 @@ int main( int argc, char* argv[] )
 #endif
    return EXIT_SUCCESS;
 }
-

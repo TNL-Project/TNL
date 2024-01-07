@@ -3,9 +3,9 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
-
 template< typename Device >
-void createTridiagonalMatrix()
+void
+createTridiagonalMatrix()
 {
    const int matrixSize = 6;
 
@@ -21,31 +21,31 @@ void createTridiagonalMatrix()
     *
     */
    TNL::Matrices::TridiagonalMatrix< double, Device > matrix(
-      matrixSize, {
-   /***
-    * To set the matrix elements we first extend the diagonals to their full
-    * lengths even outside the matrix (dots represent zeros and zeros are
-    * artificial zeros used for memory alignment):
-    *
-    * 0 /  2 -1 .   .  .  . \    -> {  0,  2, -1 }
-    *   | -1  2 -1  .  .  . |    -> { -1,  2, -1 }
-    *   |  . -1  2 -1  .  . |    -> { -1,  2, -1 }
-    *   |  .  . -1  2 -1  . |    -> { -1,  2, -1 }
-    *   |  .  .  . -1  2 -1 |    -> { -1,  2, -1 }
-    *   \  .  .  .  . -1  2 / 0  -> { -1,  2,  0 }
-    *
-    */
-      {  0,  2, -1 },
-      { -1,  2, -1 },
-      { -1,  2, -1 },
-      { -1,  2, -1 },
-      { -1,  2, -1 },
-      { -1,  2,  0 }
-      } );
+      matrixSize,
+      { /***
+         * To set the matrix elements we first extend the diagonals to their full
+         * lengths even outside the matrix (dots represent zeros and zeros are
+         * artificial zeros used for memory alignment):
+         *
+         * 0 /  2 -1 .   .  .  . \    -> {  0,  2, -1 }
+         *   | -1  2 -1  .  .  . |    -> { -1,  2, -1 }
+         *   |  . -1  2 -1  .  . |    -> { -1,  2, -1 }
+         *   |  .  . -1  2 -1  . |    -> { -1,  2, -1 }
+         *   |  .  .  . -1  2 -1 |    -> { -1,  2, -1 }
+         *   \  .  .  .  . -1  2 / 0  -> { -1,  2,  0 }
+         *
+         */
+        { 0, 2, -1 },
+        { -1, 2, -1 },
+        { -1, 2, -1 },
+        { -1, 2, -1 },
+        { -1, 2, -1 },
+        { -1, 2, 0 } } );
    std::cout << "The matrix reads as: " << std::endl << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Creating tridiagonal matrix on CPU ... " << std::endl;
    createTridiagonalMatrix< TNL::Devices::Host >();

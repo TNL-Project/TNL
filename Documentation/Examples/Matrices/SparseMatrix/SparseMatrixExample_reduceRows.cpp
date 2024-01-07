@@ -5,14 +5,11 @@
 #include <TNL/Devices/Host.h>
 
 template< typename Device >
-void reduceRows()
+void
+reduceRows()
 {
-   TNL::Matrices::SparseMatrix< double, Device > matrix ( 5, 5, {
-      { 0, 0, 1 },
-      { 1, 1, 1 }, { 1, 2, 8 },
-      { 2, 2, 1 }, { 2, 3, 9 },
-      { 3, 3, 1 }, { 3, 4, 9 },
-      { 4, 4, 1 } } );
+   TNL::Matrices::SparseMatrix< double, Device > matrix(
+      5, 5, { { 0, 0, 1 }, { 1, 1, 1 }, { 1, 2, 8 }, { 2, 2, 1 }, { 2, 3, 9 }, { 3, 3, 1 }, { 3, 4, 9 }, { 4, 4, 1 } } );
 
    /***
     * Find largest element in each row.
@@ -27,21 +24,24 @@ void reduceRows()
    /***
     * Fetch lambda just returns absolute value of matrix elements.
     */
-   auto fetch = [] __cuda_callable__ ( int rowIdx, int columnIdx, const double& value ) -> double {
+   auto fetch = [] __cuda_callable__( int rowIdx, int columnIdx, const double& value ) -> double
+   {
       return TNL::abs( value );
    };
 
    /***
     * Reduce lambda return maximum of given values.
     */
-   auto reduce = [] __cuda_callable__ ( double& a, const double& b ) -> double {
+   auto reduce = [] __cuda_callable__( double& a, const double& b ) -> double
+   {
       return TNL::max( a, b );
    };
 
    /***
     * Keep lambda store the largest value in each row to the vector rowMax.
     */
-   auto keep = [=] __cuda_callable__ ( int rowIdx, const double& value ) mutable {
+   auto keep = [ = ] __cuda_callable__( int rowIdx, const double& value ) mutable
+   {
       rowMaxView[ rowIdx ] = value;
    };
 
@@ -54,7 +54,8 @@ void reduceRows()
    std::cout << "Max. elements in rows are: " << rowMax << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Rows reduction on host:" << std::endl;
    reduceRows< TNL::Devices::Host >();

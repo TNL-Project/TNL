@@ -6,15 +6,22 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void reduceAllRows()
+void
+reduceAllRows()
 {
    /***
     * Lambda functions defining the matrix.
     */
-   auto rowLengths = [=] __cuda_callable__ ( const int rows, const int columns, const int rowIdx ) -> int { return columns; };
-   auto matrixElements = [=] __cuda_callable__ ( const int rows, const int columns, const int rowIdx, const int localIdx, int& columnIdx, double& value ) {
-         columnIdx = localIdx;
-         value = TNL::max( rowIdx - columnIdx + 1, 0 );
+   auto rowLengths = [ = ] __cuda_callable__( const int rows, const int columns, const int rowIdx ) -> int
+   {
+      return columns;
+   };
+   auto matrixElements =
+      [ = ] __cuda_callable__(
+         const int rows, const int columns, const int rowIdx, const int localIdx, int& columnIdx, double& value )
+   {
+      columnIdx = localIdx;
+      value = TNL::max( rowIdx - columnIdx + 1, 0 );
    };
 
    using MatrixFactory = TNL::Matrices::LambdaMatrixFactory< double, Device, int >;
@@ -33,21 +40,24 @@ void reduceAllRows()
    /***
     * Fetch lambda just returns absolute value of matrix elements.
     */
-   auto fetch = [=] __cuda_callable__ ( int rowIdx, int columnIdx, const double& value ) -> double {
+   auto fetch = [ = ] __cuda_callable__( int rowIdx, int columnIdx, const double& value ) -> double
+   {
       return TNL::abs( value );
    };
 
    /***
     * Reduce lambda return maximum of given values.
     */
-   auto reduce = [=] __cuda_callable__ ( double& a, const double& b ) -> double {
+   auto reduce = [ = ] __cuda_callable__( double& a, const double& b ) -> double
+   {
       return TNL::max( a, b );
    };
 
    /***
     * Keep lambda store the largest value in each row to the vector rowMax.
     */
-   auto keep = [=] __cuda_callable__ ( int rowIdx, const double& value ) mutable {
+   auto keep = [ = ] __cuda_callable__( int rowIdx, const double& value ) mutable
+   {
       rowMaxView[ rowIdx ] = value;
    };
 
@@ -60,7 +70,8 @@ void reduceAllRows()
    std::cout << "Max. elements in rows are: " << rowMax << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "All rows reduction on host:" << std::endl;
    reduceAllRows< TNL::Devices::Host >();
