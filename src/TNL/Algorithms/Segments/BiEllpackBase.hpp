@@ -15,12 +15,12 @@ __cuda_callable__
 void
 BiEllpackBase< Device, Index, Organization, WarpSize >::bind( IndexType size,
                                                               IndexType storageSize,
-                                                              OffsetsView rowsPermutation,
+                                                              OffsetsView segmentsPermutation,
                                                               OffsetsView groupPointers )
 {
    this->size = size;
    this->storageSize = storageSize;
-   this->rowsPermutation.bind( std::move( rowsPermutation ) );
+   this->segmentsPermutation.bind( std::move( segmentsPermutation ) );
    this->groupPointers.bind( std::move( groupPointers ) );
 }
 
@@ -28,9 +28,9 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 __cuda_callable__
 BiEllpackBase< Device, Index, Organization, WarpSize >::BiEllpackBase( IndexType size,
                                                                        IndexType storageSize,
-                                                                       OffsetsView rowsPermutation,
+                                                                       OffsetsView segmentsPermutation,
                                                                        OffsetsView groupPointers )
-: size( size ), storageSize( storageSize ), rowsPermutation( std::move( rowsPermutation ) ),
+: size( size ), storageSize( storageSize ), segmentsPermutation( std::move( segmentsPermutation ) ),
   groupPointers( std::move( groupPointers ) )
 {}
 
@@ -54,7 +54,7 @@ __cuda_callable__
 auto
 BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentsCount() const -> IndexType
 {
-   return this->rowsPermutation.getSize();
+   return this->segmentsPermutation.getSize();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -65,15 +65,15 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentSize( IndexTyp
    if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getSegmentSizeDirect(
-         rowsPermutation, groupPointers, segmentIdx );
+         segmentsPermutation, groupPointers, segmentIdx );
 #else
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getSegmentSize(
-         rowsPermutation, groupPointers, segmentIdx );
+         segmentsPermutation, groupPointers, segmentIdx );
 #endif
    }
    else
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getSegmentSizeDirect(
-         rowsPermutation, groupPointers, segmentIdx );
+         segmentsPermutation, groupPointers, segmentIdx );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -100,15 +100,15 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::getGlobalIndex( Index se
    if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getGlobalIndexDirect(
-         rowsPermutation, groupPointers, segmentIdx, localIdx );
+         segmentsPermutation, groupPointers, segmentIdx, localIdx );
 #else
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getGlobalIndex(
-         rowsPermutation, groupPointers, segmentIdx, localIdx );
+         segmentsPermutation, groupPointers, segmentIdx, localIdx );
 #endif
    }
    else
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getGlobalIndexDirect(
-         rowsPermutation, groupPointers, segmentIdx, localIdx );
+         segmentsPermutation, groupPointers, segmentIdx, localIdx );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -119,31 +119,31 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentView( IndexTyp
    if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getSegmentViewDirect(
-         rowsPermutation, groupPointers, segmentIdx );
+         segmentsPermutation, groupPointers, segmentIdx );
 #else
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getSegmentView(
-         rowsPermutation, groupPointers, segmentIdx );
+         segmentsPermutation, groupPointers, segmentIdx );
 #endif
    }
    else
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getSegmentViewDirect(
-         rowsPermutation, groupPointers, segmentIdx );
+         segmentsPermutation, groupPointers, segmentIdx );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
 auto
-BiEllpackBase< Device, Index, Organization, WarpSize >::getrowsPermutationView() -> OffsetsView
+BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentsPermutationView() -> OffsetsView
 {
-   return rowsPermutation.getView();
+   return segmentsPermutation.getView();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
 auto
-BiEllpackBase< Device, Index, Organization, WarpSize >::getrowsPermutationView() const -> ConstOffsetsView
+BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentsPermutationView() const -> ConstOffsetsView
 {
-   return rowsPermutation.getConstView();
+   return segmentsPermutation.getConstView();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -165,15 +165,15 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::getGroupPointersView() c
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
 auto
-BiEllpackBase< Device, Index, Organization, WarpSize >::getVirtualRows() const -> IndexType
+BiEllpackBase< Device, Index, Organization, WarpSize >::getVirtualSegments() const -> IndexType
 {
-   return this->getVirtualRows( this->getSegmentsCount() );
+   return this->getVirtualSegments( this->getSegmentsCount() );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
 auto
-BiEllpackBase< Device, Index, Organization, WarpSize >::getVirtualRows( IndexType segmentsCount ) const -> IndexType
+BiEllpackBase< Device, Index, Organization, WarpSize >::getVirtualSegments( IndexType segmentsCount ) const -> IndexType
 {
    if( segmentsCount % getWarpSize() != 0 )
       return segmentsCount + getWarpSize() - ( segmentsCount % getWarpSize() );
@@ -185,13 +185,13 @@ template< typename Function >
 void
 BiEllpackBase< Device, Index, Organization, WarpSize >::forElements( IndexType begin, IndexType end, Function&& function ) const
 {
-   const auto segmentsPermutationView = this->rowsPermutation.getConstView();
+   const auto segmentsPermutationView = this->segmentsPermutation.getConstView();
    const auto groupPointersView = this->groupPointers.getConstView();
    auto work = [ segmentsPermutationView, groupPointersView, function ] __cuda_callable__( IndexType segmentIdx ) mutable
    {
       const IndexType strip = segmentIdx / getWarpSize();
       const IndexType firstGroupInStrip = strip * ( getLogWarpSize() + 1 );
-      const IndexType rowStripPerm = segmentsPermutationView[ segmentIdx ] - strip * getWarpSize();
+      const IndexType segmentStripPerm = segmentsPermutationView[ segmentIdx ] - strip * getWarpSize();
       const IndexType groupsCount =
          detail::BiEllpack< IndexType, DeviceType, Organization, getWarpSize() >::getActiveGroupsCountDirect(
             segmentsPermutationView, segmentIdx );
@@ -204,10 +204,10 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::forElements( IndexType b
             const IndexType groupWidth = groupSize / groupHeight;
             for( IndexType i = 0; i < groupWidth; i++ ) {
                if constexpr( Organization == RowMajorOrder ) {
-                  function( segmentIdx, localIdx, groupOffset + rowStripPerm * groupWidth + i );
+                  function( segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i );
                }
                else {
-                  function( segmentIdx, localIdx, groupOffset + rowStripPerm + i * groupHeight );
+                  function( segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight );
                }
                localIdx++;
             }

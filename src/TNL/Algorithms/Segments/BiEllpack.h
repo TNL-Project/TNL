@@ -77,20 +77,20 @@ public:
    initGroupPointers( const SizesHolder& segmentsSizes );
 
 protected:
-   OffsetsContainer rowsPermutation;
+   OffsetsContainer segmentsPermutation;
    OffsetsContainer groupPointers;
 
    template< typename SizesHolder >
    void
-   initRowsPermutation( const SizesHolder& segmentsSize );
+   initSegmentsPermutation( const SizesHolder& segmentsSize );
 
    template< typename SizesHolder >
    void
-   verifyRowPerm( const SizesHolder& segmentsSizes );
+   verifySegmentPerm( const SizesHolder& segmentsSizes );
 
    template< typename SizesHolder >
    void
-   verifyRowLengths( const SizesHolder& segmentsSizes );
+   verifySegmentLengths( const SizesHolder& segmentsSizes );
 
    [[nodiscard]] Index
    getStripLength( Index strip ) const;
