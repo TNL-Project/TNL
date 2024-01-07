@@ -480,6 +480,19 @@ clang-tidy:
     # TODO: remove to enforce
     allow_failure: true
 
+cmake-format:
+    stage: lint
+    rules:
+        - changes:
+            - ./**/CMakeLists.txt
+            - ./**/*.cmake
+            - .cmake-format.yaml
+    script:
+        - shopt -s globstar
+        - cmake-format --in-place **/CMakeLists.txt cmake/**/*.*
+        - git --no-pager diff --color=always --exit-code
+    interruptible: true
+
 copyright-headers:
     stage: lint
     rules:
