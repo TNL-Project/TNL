@@ -31,7 +31,7 @@ struct BenchmarkResult
    [[nodiscard]] virtual HeaderElements
    getTableHeader() const
    {
-      return HeaderElements( { "time", "tm.stddev", "(tm.stddev)/time", "CPU cycles", "cycles.stddev", "(cycles stddev)/cycles", "loops", "bandwidth", "cycles/op.", "speedup" } );
+      return HeaderElements( { "time", "time_stddev", "time_stddev/time", "cycles", "cycles_stddev", "cycles_stddev/cycles", "loops", "bandwidth", "cycles/op", "speedup" } );
    }
 
    [[nodiscard]] virtual std::vector< int >
