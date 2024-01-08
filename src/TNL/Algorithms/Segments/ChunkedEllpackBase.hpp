@@ -17,10 +17,10 @@ ChunkedEllpackBase< Device, Index, Organization >::bind( IndexType size,
                                                          IndexType numberOfSlices,
                                                          IndexType chunksInSlice,
                                                          IndexType desiredChunkSize,
-                                                         OffsetsView rowToChunkMapping,
-                                                         OffsetsView rowToSliceMapping,
+                                                         OffsetsView segmentToChunkMapping,
+                                                         OffsetsView segmentToSliceMapping,
                                                          OffsetsView chunksToSegmentsMapping,
-                                                         OffsetsView rowPointers,
+                                                         OffsetsView segmentPointers,
                                                          SliceInfoContainerView slices )
 {
    this->size = size;
@@ -28,10 +28,10 @@ ChunkedEllpackBase< Device, Index, Organization >::bind( IndexType size,
    this->numberOfSlices = numberOfSlices;
    this->chunksInSlice = chunksInSlice;
    this->desiredChunkSize = desiredChunkSize;
-   this->rowToChunkMapping.bind( std::move( rowToChunkMapping ) );
-   this->rowToSliceMapping.bind( std::move( rowToSliceMapping ) );
+   this->segmentToChunkMapping.bind( std::move( segmentToChunkMapping ) );
+   this->segmentToSliceMapping.bind( std::move( segmentToSliceMapping ) );
    this->chunksToSegmentsMapping.bind( std::move( chunksToSegmentsMapping ) );
-   this->rowPointers.bind( std::move( rowPointers ) );
+   this->segmentPointers.bind( std::move( segmentPointers ) );
    this->slices.bind( std::move( slices ) );
 }
 
@@ -42,15 +42,15 @@ ChunkedEllpackBase< Device, Index, Organization >::ChunkedEllpackBase( IndexType
                                                                        IndexType numberOfSlices,
                                                                        IndexType chunksInSlice,
                                                                        IndexType desiredChunkSize,
-                                                                       OffsetsView rowToChunkMapping,
-                                                                       OffsetsView rowToSliceMapping,
+                                                                       OffsetsView segmentToChunkMapping,
+                                                                       OffsetsView segmentToSliceMapping,
                                                                        OffsetsView chunksToSegmentsMapping,
-                                                                       OffsetsView rowPointers,
+                                                                       OffsetsView segmentPointers,
                                                                        SliceInfoContainerView slices )
 : size( size ), storageSize( storageSize ), numberOfSlices( numberOfSlices ), chunksInSlice( chunksInSlice ),
-  desiredChunkSize( desiredChunkSize ), rowToChunkMapping( std::move( rowToChunkMapping ) ),
-  rowToSliceMapping( std::move( rowToSliceMapping ) ), chunksToSegmentsMapping( std::move( chunksToSegmentsMapping ) ),
-  rowPointers( std::move( rowPointers ) ), slices( std::move( slices ) )
+  desiredChunkSize( desiredChunkSize ), segmentToChunkMapping( std::move( segmentToChunkMapping ) ),
+  segmentToSliceMapping( std::move( segmentToSliceMapping ) ), chunksToSegmentsMapping( std::move( chunksToSegmentsMapping ) ),
+  segmentPointers( std::move( segmentPointers ) ), slices( std::move( slices ) )
 {}
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -73,7 +73,7 @@ __cuda_callable__
 auto
 ChunkedEllpackBase< Device, Index, Organization >::getSegmentsCount() const -> IndexType
 {
-   return this->size;
+   return this->segmentToChunkMapping.getSize();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -83,14 +83,14 @@ ChunkedEllpackBase< Device, Index, Organization >::getSegmentSize( IndexType seg
 {
    if( std::is_same< DeviceType, Devices::Host >::value )
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getSegmentSizeDirect(
-         rowToSliceMapping, slices, rowToChunkMapping, segmentIdx );
+         segmentToSliceMapping, slices, segmentToChunkMapping, segmentIdx );
    if( std::is_same< DeviceType, Devices::Cuda >::value ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getSegmentSizeDirect(
-         rowToSliceMapping, slices, rowToChunkMapping, segmentIdx );
+         segmentToSliceMapping, slices, segmentToChunkMapping, segmentIdx );
 #else
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getSegmentSize(
-         rowToSliceMapping, slices, rowToChunkMapping, segmentIdx );
+         segmentToSliceMapping, slices, segmentToChunkMapping, segmentIdx );
 #endif
    }
 }
@@ -118,14 +118,14 @@ ChunkedEllpackBase< Device, Index, Organization >::getGlobalIndex( IndexType seg
 {
    if( std::is_same< DeviceType, Devices::Host >::value )
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getGlobalIndexDirect(
-         rowToSliceMapping, slices, rowToChunkMapping, chunksInSlice, segmentIdx, localIdx );
+         segmentToSliceMapping, slices, segmentToChunkMapping, chunksInSlice, segmentIdx, localIdx );
    if( std::is_same< DeviceType, Devices::Cuda >::value ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getGlobalIndexDirect(
-         rowToSliceMapping, slices, rowToChunkMapping, chunksInSlice, segmentIdx, localIdx );
+         segmentToSliceMapping, slices, segmentToChunkMapping, chunksInSlice, segmentIdx, localIdx );
 #else
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getGlobalIndex(
-         rowToSliceMapping, slices, rowToChunkMapping, chunksInSlice, segmentIdx, localIdx );
+         segmentToSliceMapping, slices, segmentToChunkMapping, chunksInSlice, segmentIdx, localIdx );
 #endif
    }
 }
@@ -137,14 +137,14 @@ ChunkedEllpackBase< Device, Index, Organization >::getSegmentView( IndexType seg
 {
    if( std::is_same< DeviceType, Devices::Host >::value )
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getSegmentViewDirect(
-         rowToSliceMapping, slices, rowToChunkMapping, chunksInSlice, segmentIdx );
+         segmentToSliceMapping, slices, segmentToChunkMapping, chunksInSlice, segmentIdx );
    if( std::is_same< DeviceType, Devices::Cuda >::value ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getSegmentViewDirect(
-         rowToSliceMapping, slices, rowToChunkMapping, chunksInSlice, segmentIdx );
+         segmentToSliceMapping, slices, segmentToChunkMapping, chunksInSlice, segmentIdx );
 #else
       return detail::ChunkedEllpack< IndexType, DeviceType, Organization >::getSegmentView(
-         rowToSliceMapping, slices, rowToChunkMapping, chunksInSlice, segmentIdx );
+         segmentToSliceMapping, slices, segmentToChunkMapping, chunksInSlice, segmentIdx );
 #endif
    }
 }
@@ -152,33 +152,33 @@ ChunkedEllpackBase< Device, Index, Organization >::getSegmentView( IndexType seg
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-ChunkedEllpackBase< Device, Index, Organization >::getRowToChunkMappingView() -> OffsetsView
+ChunkedEllpackBase< Device, Index, Organization >::getSegmentToChunkMappingView() -> OffsetsView
 {
-   return rowToChunkMapping.getView();
+   return segmentToChunkMapping.getView();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-ChunkedEllpackBase< Device, Index, Organization >::getRowToChunkMappingView() const -> ConstOffsetsView
+ChunkedEllpackBase< Device, Index, Organization >::getSegmentToChunkMappingView() const -> ConstOffsetsView
 {
-   return rowToChunkMapping.getConstView();
+   return segmentToChunkMapping.getConstView();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-ChunkedEllpackBase< Device, Index, Organization >::getRowToSliceMappingView() -> OffsetsView
+ChunkedEllpackBase< Device, Index, Organization >::getSegmentToSliceMappingView() -> OffsetsView
 {
-   return rowToSliceMapping.getView();
+   return segmentToSliceMapping.getView();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-ChunkedEllpackBase< Device, Index, Organization >::getRowToSliceMappingView() const -> ConstOffsetsView
+ChunkedEllpackBase< Device, Index, Organization >::getSegmentToSliceMappingView() const -> ConstOffsetsView
 {
-   return rowToSliceMapping.getConstView();
+   return segmentToSliceMapping.getConstView();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -200,17 +200,17 @@ ChunkedEllpackBase< Device, Index, Organization >::getChunksToSegmentsMappingVie
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-ChunkedEllpackBase< Device, Index, Organization >::getRowPointersView() -> OffsetsView
+ChunkedEllpackBase< Device, Index, Organization >::getSegmentPointersView() -> OffsetsView
 {
-   return rowPointers.getView();
+   return segmentPointers.getView();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-ChunkedEllpackBase< Device, Index, Organization >::getRowPointersView() const -> ConstOffsetsView
+ChunkedEllpackBase< Device, Index, Organization >::getSegmentPointersView() const -> ConstOffsetsView
 {
-   return rowPointers.getConstView();
+   return segmentPointers.getConstView();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -259,19 +259,19 @@ void
 ChunkedEllpackBase< Device, Index, Organization >::forElements( IndexType begin, IndexType end, Function&& function ) const
 {
    const IndexType chunksInSlice = this->chunksInSlice;
-   auto rowToChunkMapping = this->rowToChunkMapping;
-   auto rowToSliceMapping = this->rowToSliceMapping;
+   auto segmentToChunkMapping = this->segmentToChunkMapping;
+   auto segmentToSliceMapping = this->segmentToSliceMapping;
    auto slices = this->slices;
    auto work = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
    {
-      const IndexType sliceIdx = rowToSliceMapping[ segmentIdx ];
+      const IndexType sliceIdx = segmentToSliceMapping[ segmentIdx ];
 
       IndexType firstChunkOfSegment( 0 );
       if( segmentIdx != slices[ sliceIdx ].firstSegment ) {
-         firstChunkOfSegment = rowToChunkMapping[ segmentIdx - 1 ];
+         firstChunkOfSegment = segmentToChunkMapping[ segmentIdx - 1 ];
       }
 
-      const IndexType lastChunkOfSegment = rowToChunkMapping[ segmentIdx ];
+      const IndexType lastChunkOfSegment = segmentToChunkMapping[ segmentIdx ];
       const IndexType segmentChunksCount = lastChunkOfSegment - firstChunkOfSegment;
       const IndexType sliceOffset = slices[ sliceIdx ].pointer;
       const IndexType chunkSize = slices[ sliceIdx ].chunkSize;
@@ -339,8 +339,8 @@ ChunkedEllpackBase< Device, Index, Organization >::printStructure( std::ostream&
           << " firstSegment = " << this->slices.getElement( i ).firstSegment
           << " pointer = " << this->slices.getElement( i ).pointer << std::endl;
    for( IndexType i = 0; i < this->getSize(); i++ )
-      str << "Segment " << i << " : slice = " << this->rowToSliceMapping.getElement( i )
-          << " chunk = " << this->rowToChunkMapping.getElement( i ) << std::endl;
+      str << "Segment " << i << " : slice = " << this->segmentToSliceMapping.getElement( i )
+          << " chunk = " << this->segmentToChunkMapping.getElement( i ) << std::endl;
 }
 
 }  // namespace TNL::Algorithms::Segments

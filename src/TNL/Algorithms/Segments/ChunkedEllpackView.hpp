@@ -16,20 +16,20 @@ ChunkedEllpackView< Device, Index, Organization >::ChunkedEllpackView( Index siz
                                                                        Index numberOfSlices,
                                                                        Index chunksInSlice,
                                                                        Index desiredChunkSize,
-                                                                       typename Base::OffsetsView rowToChunkMapping,
-                                                                       typename Base::OffsetsView rowToSliceMapping,
+                                                                       typename Base::OffsetsView segmentToChunkMapping,
+                                                                       typename Base::OffsetsView segmentToSliceMapping,
                                                                        typename Base::OffsetsView chunksToSegmentsMapping,
-                                                                       typename Base::OffsetsView rowPointers,
+                                                                       typename Base::OffsetsView segmentPointers,
                                                                        typename Base::SliceInfoContainerView slices )
 : Base( size,
         storageSize,
         numberOfSlices,
         chunksInSlice,
         desiredChunkSize,
-        std::move( rowToChunkMapping ),
-        std::move( rowToSliceMapping ),
+        std::move( segmentToChunkMapping ),
+        std::move( segmentToSliceMapping ),
         std::move( chunksToSegmentsMapping ),
-        std::move( rowPointers ),
+        std::move( segmentPointers ),
         std::move( slices ) )
 {}
 
@@ -43,10 +43,10 @@ ChunkedEllpackView< Device, Index, Organization >::bind( ChunkedEllpackView view
                view.numberOfSlices,
                view.chunksInSlice,
                view.desiredChunkSize,
-               std::move( view.rowToChunkMapping ),
-               std::move( view.rowToSliceMapping ),
+               std::move( view.segmentToChunkMapping ),
+               std::move( view.segmentToSliceMapping ),
                std::move( view.chunksToSegmentsMapping ),
-               std::move( view.rowPointers ),
+               std::move( view.segmentPointers ),
                std::move( view.slices ) );
 }
 
@@ -60,10 +60,10 @@ ChunkedEllpackView< Device, Index, Organization >::getView()
             this->getNumberOfSlices(),
             this->getChunksInSlice(),
             this->getDesiredChunkSize(),
-            this->getRowToChunkMappingView(),
-            this->getRowToSliceMappingView(),
+            this->getSegmentToChunkMappingView(),
+            this->getSegmentToSliceMappingView(),
             this->getChunksToSegmentsMappingView(),
-            this->getRowPointersView(),
+            this->getSegmentPointersView(),
             this->getSlicesView() };
 }
 
@@ -77,10 +77,10 @@ ChunkedEllpackView< Device, Index, Organization >::getConstView() const -> Const
             this->getNumberOfSlices(),
             this->getChunksInSlice(),
             this->getDesiredChunkSize(),
-            this->getRowToChunkMappingView(),
-            this->getRowToSliceMappingView(),
+            this->getSegmentToChunkMappingView(),
+            this->getSegmentToSliceMappingView(),
             this->getChunksToSegmentsMappingView(),
-            this->getRowPointersView(),
+            this->getSegmentPointersView(),
             this->getSlicesView() };
 }
 
@@ -93,7 +93,7 @@ ChunkedEllpackView< Device, Index, Organization >::save( File& file ) const
    file.save( &this->numberOfSlices );
    file.save( &this->chunksInSlice );
    file.save( &this->desiredChunkSize );
-   file << this->rowToChunkMapping << this->rowToSliceMapping << this->chunksToSegmentsMapping << this->rowPointers
+   file << this->segmentToChunkMapping << this->segmentToSliceMapping << this->chunksToSegmentsMapping << this->segmentPointers
         << this->slices;
 }
 
@@ -106,7 +106,7 @@ ChunkedEllpackView< Device, Index, Organization >::load( File& file )
    file.load( &this->numberOfSlices );
    file.load( &this->chunksInSlice );
    file.load( &this->desiredChunkSize );
-   file >> this->rowToChunkMapping >> this->rowToSliceMapping >> this->chunksToSegmentsMapping >> this->rowPointers
+   file >> this->segmentToChunkMapping >> this->segmentToSliceMapping >> this->chunksToSegmentsMapping >> this->segmentPointers
       >> this->slices;
 }
 

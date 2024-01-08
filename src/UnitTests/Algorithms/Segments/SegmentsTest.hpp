@@ -12,6 +12,16 @@ test_SetSegmentsSizes_EqualSizes()
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
 
+   // Test setup with empty segments
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > emptySegmentsSizes( 0 );
+   emptySegmentsSizes = 0;
+
+   Segments emptySegments( emptySegmentsSizes );
+
+   EXPECT_EQ( emptySegments.getSegmentsCount(), 0 );
+   EXPECT_EQ( emptySegments.getSize(), 0 );
+   EXPECT_LE( emptySegments.getSize(), emptySegments.getStorageSize() );
+
    const IndexType segmentsCount = 20;
    const IndexType segmentSize = 5;
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
@@ -24,14 +34,16 @@ test_SetSegmentsSizes_EqualSizes()
    EXPECT_LE( segments.getSize(), segments.getStorageSize() );
 
    for( IndexType i = 0; i < segmentsCount; i++ )
-      EXPECT_EQ( segments.getSegmentSize( i ), segmentSize );
+      // Some formats may use padding zeros and allocate more slots than the segment size
+      EXPECT_GE( segments.getSegmentSize( i ), segmentSize );
 
    Segments segments2( segments );
    EXPECT_EQ( segments2.getSegmentsCount(), segmentsCount );
    EXPECT_EQ( segments2.getSize(), segmentsCount * segmentSize );
    EXPECT_LE( segments2.getSize(), segments2.getStorageSize() );
    for( IndexType i = 0; i < segmentsCount; i++ )
-      EXPECT_EQ( segments2.getSegmentSize( i ), segmentSize );
+      // Some formats may use padding zeros and allocate more slots than the segment size
+      EXPECT_GE( segments2.getSegmentSize( i ), segmentSize );
 
    Segments segments3;
    segments3.setSegmentsSizes( segmentsSizes );
@@ -41,7 +53,8 @@ test_SetSegmentsSizes_EqualSizes()
    EXPECT_LE( segments3.getSize(), segments3.getStorageSize() );
 
    for( IndexType i = 0; i < segmentsCount; i++ )
-      EXPECT_EQ( segments3.getSegmentSize( i ), segmentSize );
+      // Some formats may use padding zeros and allocate more slots than the segment size
+      EXPECT_GE( segments3.getSegmentSize( i ), segmentSize );
 
    using SegmentsView = typename Segments::ViewType;
 
@@ -51,7 +64,8 @@ test_SetSegmentsSizes_EqualSizes()
    EXPECT_LE( segmentsView.getSize(), segments.getStorageSize() );
 
    for( IndexType i = 0; i < segmentsCount; i++ )
-      EXPECT_EQ( segmentsView.getSegmentSize( i ), segmentSize );
+      // Some formats may use padding zeros and allocate more slots than the segment size
+      EXPECT_GE( segmentsView.getSegmentSize( i ), segmentSize );
 }
 
 template< typename Segments >
@@ -134,7 +148,10 @@ test_reduceAllSegments_MaximumInSegments()
    auto fetch =
       [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool& compute ) -> IndexType
    {
-      return v_view[ globalIdx ];
+      // some segments may use padding zeros and their size may be greater than the original segment size
+      if( localIdx < segmentSize )
+         return v_view[ globalIdx ];
+      return 0;
    };
    auto reduce = [] __cuda_callable__( IndexType & a, const IndexType b ) -> IndexType
    {

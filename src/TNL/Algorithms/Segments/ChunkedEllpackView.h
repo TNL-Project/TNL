@@ -31,10 +31,10 @@ public:
                        Index numberOfSlices,
                        Index chunksInSlice,
                        Index desiredChunkSize,
-                       typename Base::OffsetsView rowToChunkMapping,
-                       typename Base::OffsetsView rowToSliceMapping,
+                       typename Base::OffsetsView segmentToChunkMapping,
+                       typename Base::OffsetsView segmentToSliceMapping,
                        typename Base::OffsetsView chunksToSegmentsMapping,
-                       typename Base::OffsetsView rowPointers,
+                       typename Base::OffsetsView segmentPointers,
                        typename Base::SliceInfoContainerView slices );
 
    __cuda_callable__

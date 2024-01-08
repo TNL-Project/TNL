@@ -39,10 +39,10 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
 
    const Index strip = segmentIdx / SegmentsView::getWarpSize();
    const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
-   const Index rowStripPerm = segments.getRowPermArrayView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
+   const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
    const Index groupsCount =
       Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
-         getActiveGroupsCountDirect( segments.getRowPermArrayView(), segmentIdx );
+         getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
    Index groupHeight = SegmentsView::getWarpSize();
    bool compute = true;
    Index localIdx = 0;
@@ -55,10 +55,10 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
          for( Index i = 0; i < groupWidth; i++ ) {
             if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
                result =
-                  reduction( result, fetch( segmentIdx, localIdx, groupOffset + rowStripPerm * groupWidth + i, compute ) );
+                  reduction( result, fetch( segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i, compute ) );
             else
                result =
-                  reduction( result, fetch( segmentIdx, localIdx, groupOffset + rowStripPerm + i * groupHeight, compute ) );
+                  reduction( result, fetch( segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight, compute ) );
             localIdx++;
          }
       }
@@ -100,7 +100,6 @@ reduceSegmentsKernel( SegmentsView segments,
    const int warpIdx = threadIdx.x / SegmentsView::getWarpSize();
    const int warpsCount = BlockDim / SegmentsView::getWarpSize();
    constexpr int groupsInStrip = 6;  // SegmentsView::getLogWarpSize() + 1;
-   // Index firstGroupIdx = strip * groupsInStrip;
    Index firstGroupInBlock = 8 * ( strip / 8 ) * groupsInStrip;
    Index groupHeight = SegmentsView::getWarpSize();
 
@@ -112,19 +111,10 @@ reduceSegmentsKernel( SegmentsView segments,
 
    /////
    // Fetch group pointers to shared memory
-   // bool b1 = ( threadIdx.x <= warpsCount * groupsInStrip );
-   // bool b2 = ( firstGroupIdx + threadIdx.x % groupsInStrip < segments.getGroupPointersView().getSize() );
-   // printf( "tid = %d warpsCount * groupsInStrip = %d firstGroupIdx + threadIdx.x = %d
-   // segments.getGroupPointersView().getSize() = %d read = %d %d\n",
-   //   threadIdx.x, warpsCount * groupsInStrip,
-   //   firstGroupIdx + threadIdx.x,
-   //   segments.getGroupPointersView().getSize(), ( int ) b1, ( int ) b2 );
    if( threadIdx.x <= warpsCount * groupsInStrip
        && firstGroupInBlock + threadIdx.x < segments.getGroupPointersView().getSize() )
    {
       sharedGroupPointers[ threadIdx.x ] = segments.getGroupPointersView()[ firstGroupInBlock + threadIdx.x ];
-      // printf( " sharedGroupPointers[ %d ] = %d \n",
-      //    threadIdx.x, sharedGroupPointers[ threadIdx.x ] );
    }
    const Index sharedGroupOffset = warpIdx * groupsInStrip;
    __syncthreads();
@@ -136,12 +126,8 @@ reduceSegmentsKernel( SegmentsView segments,
       for( Index group = 0; group < SegmentsView::getLogWarpSize() + 1; group++ ) {
          Index groupBegin = sharedGroupPointers[ sharedGroupOffset + group ];
          Index groupEnd = sharedGroupPointers[ sharedGroupOffset + group + 1 ];
-         TNL_ASSERT_LT( groupBegin, segments.getStorageSize(), "" );
-         // if( groupBegin >= segments.getStorageSize() )
-         //    printf( "tid = %d sharedGroupOffset + group + 1 = %d strip = %d group = %d groupBegin = %d groupEnd = %d
-         //    segments.getStorageSize() = %d\n",
-         //       threadIdx.x, sharedGroupOffset + group + 1, strip, group, groupBegin, groupEnd, segments.getStorageSize() );
-         TNL_ASSERT_LT( groupEnd, segments.getStorageSize(), "" );
+         TNL_ASSERT_LE( groupBegin, segments.getStorageSize(), "" );
+         TNL_ASSERT_LE( groupEnd, segments.getStorageSize(), "" );
          if( groupEnd - groupBegin > 0 ) {
             if( inWarpIdx < groupHeight ) {
                const Index groupWidth = ( groupEnd - groupBegin ) / groupHeight;
@@ -149,11 +135,6 @@ reduceSegmentsKernel( SegmentsView segments,
                for( Index i = 0; i < groupWidth && compute; i++ ) {
                   TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
                   results[ threadIdx.x ] = reduction( results[ threadIdx.x ], fetch( globalIdx++, compute ) );
-                  // if( strip == 1 )
-                  //   printf( "tid = %d i = %d groupHeight = %d groupWidth = %d globalIdx = %d fetch = %f results = %f \n",
-                  //       threadIdx.x, i,
-                  //       groupHeight, groupWidth,
-                  //       globalIdx, fetch( globalIdx, compute ), results[ threadIdx.x ] );
                }
             }
          }
@@ -165,26 +146,13 @@ reduceSegmentsKernel( SegmentsView segments,
       for( Index group = 0; group < SegmentsView::getLogWarpSize() + 1; group++ ) {
          Index groupBegin = sharedGroupPointers[ sharedGroupOffset + group ];
          Index groupEnd = sharedGroupPointers[ sharedGroupOffset + group + 1 ];
-         // if( threadIdx.x < 36 && strip == 1 )
-         //    printf( " tid = %d strip = %d group = %d groupBegin = %d groupEnd = %d \n", threadIdx.x, strip, group,
-         //    groupBegin, groupEnd );
          if( groupEnd - groupBegin > 0 ) {
             temp[ threadIdx.x ] = identity;
             Index globalIdx = groupBegin + inWarpIdx;
             while( globalIdx < groupEnd ) {
                temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], fetch( globalIdx, compute ) );
-               // if( strip == 1 )
-               //    printf( "tid %d fetch %f temp %f \n", threadIdx.x, fetch( globalIdx, compute ), temp[ threadIdx.x ] );
                globalIdx += SegmentsView::getWarpSize();
             }
-            // TODO: reduction via templates
-            /*Index bisection2 = SegmentsView::getWarpSize();
-            for( Index i = 0; i < group; i++ )
-            {
-               bisection2 >>= 1;
-               if( inWarpIdx < bisection2 )
-                  temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + bisection2 ] );
-            }*/
 
             __syncwarp();
             if( group > 0 && inWarpIdx < 16 )
@@ -215,10 +183,8 @@ reduceSegmentsKernel( SegmentsView segments,
 
    /////
    // Store the results
-   // if( strip == 1 )
-   //   printf( "Adding %f at %d \n", results[ segments.getRowPermArrayView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ],
-   //   warpStart + inWarpIdx );
-   keeper( warpStart + inWarpIdx, results[ segments.getRowPermArrayView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ] );
+   keeper( warpStart + inWarpIdx,
+           results[ segments.getSegmentsPermutationView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ] );
 #endif
 }
 
@@ -295,43 +261,30 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
    if( segments.getStorageSize() == 0 )
       return;
    if constexpr( std::is_same< DeviceType, Devices::Host >::value ) {
-      for( IndexType segmentIdx = 0; segmentIdx < segments.getSize(); segmentIdx++ ) {
+      for( IndexType segmentIdx = 0; segmentIdx < segments.getSegmentsCount(); segmentIdx++ ) {
          const IndexType stripIdx = segmentIdx / SegmentsView::getWarpSize();
          const IndexType groupIdx = stripIdx * ( SegmentsView::getLogWarpSize() + 1 );
-         const IndexType inStripIdx = segments.getRowPermArrayView()[ segmentIdx ] - stripIdx * SegmentsView::getWarpSize();
+         const IndexType inStripIdx =
+            segments.getSegmentsPermutationView()[ segmentIdx ] - stripIdx * SegmentsView::getWarpSize();
          const IndexType groupsCount =
             Segments::detail::BiEllpack< IndexType, DeviceType, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
-               getActiveGroupsCount( segments.getRowPermArrayView(), segmentIdx );
+               getActiveGroupsCount( segments.getSegmentsPermutationView(), segmentIdx );
          IndexType globalIdx = segments.getGroupPointersView()[ groupIdx ];
          IndexType groupHeight = SegmentsView::getWarpSize();
          IndexType localIdx = 0;
          ReturnType aux = identity;
          bool compute = true;
-         // std::cerr << "segmentIdx = " << segmentIdx
-         //           << " stripIdx = " << stripIdx
-         //           << " inStripIdx = " << inStripIdx
-         //           << " groupIdx = " << groupIdx
-         //          << " groupsCount = " << groupsCount
-         //           << std::endl;
          for( IndexType group = 0; group < groupsCount && compute; group++ ) {
             const IndexType groupSize = Segments::detail::
                BiEllpack< IndexType, DeviceType, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::getGroupSize(
                   segments.getGroupPointersView(), stripIdx, group );
             IndexType groupWidth = groupSize / groupHeight;
             const IndexType globalIdxBack = globalIdx;
-            // std::cerr << "  groupSize = " << groupSize
-            //           << " groupWidth = " << groupWidth
-            //           << std::endl;
             if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
                globalIdx += inStripIdx * groupWidth;
             else
                globalIdx += inStripIdx;
             for( IndexType j = 0; j < groupWidth && compute; j++ ) {
-               // std::cerr << "    segmentIdx = " << segmentIdx << " groupIdx = " << groupIdx
-               //          << " groupWidth = " << groupWidth << " groupHeight = " << groupHeight
-               //           << " localIdx = " << localIdx << " globalIdx = " << globalIdx
-               //           << " fetch = " << detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx,
-               //           localIdx++, globalIdx, compute ) << std::endl;
                aux = reduction(
                   aux,
                   detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx, compute ) );

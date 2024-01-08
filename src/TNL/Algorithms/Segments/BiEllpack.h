@@ -71,25 +71,26 @@ public:
    void
    load( File& file );
 
+   // This method is public only because of lambda functions in CUDA
    template< typename SizesHolder >
    void
-   performRowBubbleSort( const SizesHolder& segmentsSize );
-
-   template< typename SizesHolder >
-   void
-   computeColumnSizes( const SizesHolder& segmentsSizes );
+   initGroupPointers( const SizesHolder& segmentsSizes );
 
 protected:
-   OffsetsContainer rowPermArray;
+   OffsetsContainer segmentsPermutation;
    OffsetsContainer groupPointers;
 
    template< typename SizesHolder >
    void
-   verifyRowPerm( const SizesHolder& segmentsSizes );
+   initSegmentsPermutation( const SizesHolder& segmentsSize );
 
    template< typename SizesHolder >
    void
-   verifyRowLengths( const SizesHolder& segmentsSizes );
+   verifySegmentPerm( const SizesHolder& segmentsSizes );
+
+   template< typename SizesHolder >
+   void
+   verifySegmentLengths( const SizesHolder& segmentsSizes );
 
    [[nodiscard]] Index
    getStripLength( Index strip ) const;

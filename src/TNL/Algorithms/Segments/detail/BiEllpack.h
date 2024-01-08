@@ -40,13 +40,13 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static IndexType
-   getActiveGroupsCountDirect( const ConstOffsetsHolderView& rowPermArray, const IndexType segmentIdx )
+   getActiveGroupsCountDirect( const ConstOffsetsHolderView& rowsPermutation, const IndexType segmentIdx )
    {
       TNL_ASSERT_GE( segmentIdx, 0, "" );
       // TNL_ASSERT_LT( segmentIdx, this->getSize(), "" );
 
       IndexType strip = segmentIdx / getWarpSize();
-      IndexType rowStripPermutation = rowPermArray[ segmentIdx ] - getWarpSize() * strip;
+      IndexType rowStripPermutation = rowsPermutation[ segmentIdx ] - getWarpSize() * strip;
       IndexType numberOfGroups = getLogWarpSize() + 1;
       IndexType bisection = 1;
       for( IndexType i = 0; i < getLogWarpSize() + 1; i++ ) {
@@ -59,13 +59,13 @@ public:
    }
 
    [[nodiscard]] static IndexType
-   getActiveGroupsCount( const ConstOffsetsHolderView& rowPermArray, const IndexType segmentIdx )
+   getActiveGroupsCount( const ConstOffsetsHolderView& rowsPermutation, const IndexType segmentIdx )
    {
       TNL_ASSERT_GE( segmentIdx, 0, "" );
       // TNL_ASSERT_LT( segmentIdx, this->getSize(), "" );
 
       IndexType strip = segmentIdx / getWarpSize();
-      IndexType rowStripPermutation = rowPermArray.getElement( segmentIdx ) - getWarpSize() * strip;
+      IndexType rowStripPermutation = rowsPermutation.getElement( segmentIdx ) - getWarpSize() * strip;
       IndexType numberOfGroups = getLogWarpSize() + 1;
       IndexType bisection = 1;
       for( IndexType i = 0; i < getLogWarpSize() + 1; i++ ) {
@@ -93,12 +93,12 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static IndexType
-   getSegmentSizeDirect( const OffsetsHolderView& rowPermArray,
+   getSegmentSizeDirect( const OffsetsHolderView& rowsPermutation,
                          const OffsetsHolderView& groupPointers,
                          const IndexType segmentIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
-      const IndexType groupsCount = getActiveGroupsCountDirect( rowPermArray, segmentIdx );
+      const IndexType groupsCount = getActiveGroupsCountDirect( rowsPermutation, segmentIdx );
       IndexType groupHeight = getWarpSize();
       IndexType segmentSize = 0;
       for( IndexType group = 0; group < groupsCount; group++ ) {
@@ -111,10 +111,12 @@ public:
    }
 
    [[nodiscard]] static IndexType
-   getSegmentSize( const OffsetsHolderView& rowPermArray, const OffsetsHolderView& groupPointers, const IndexType segmentIdx )
+   getSegmentSize( const OffsetsHolderView& rowsPermutation,
+                   const OffsetsHolderView& groupPointers,
+                   const IndexType segmentIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
-      const IndexType groupsCount = getActiveGroupsCount( rowPermArray, segmentIdx );
+      const IndexType groupsCount = getActiveGroupsCount( rowsPermutation, segmentIdx );
       IndexType groupHeight = getWarpSize();
       IndexType segmentSize = 0;
       for( IndexType group = 0; group < groupsCount; group++ ) {
@@ -128,15 +130,15 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static IndexType
-   getGlobalIndexDirect( const OffsetsHolderView& rowPermArray,
+   getGlobalIndexDirect( const OffsetsHolderView& rowsPermutation,
                          const OffsetsHolderView& groupPointers,
                          const IndexType segmentIdx,
                          IndexType localIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
       const IndexType groupIdx = strip * ( getLogWarpSize() + 1 );
-      const IndexType rowStripPerm = rowPermArray[ segmentIdx ] - strip * getWarpSize();
-      const IndexType groupsCount = getActiveGroupsCountDirect( rowPermArray, segmentIdx );
+      const IndexType rowStripPerm = rowsPermutation[ segmentIdx ] - strip * getWarpSize();
+      const IndexType groupsCount = getActiveGroupsCountDirect( rowsPermutation, segmentIdx );
       IndexType globalIdx = groupPointers[ groupIdx ];
       IndexType groupHeight = getWarpSize();
       for( IndexType group = 0; group < groupsCount; group++ ) {
@@ -161,15 +163,15 @@ public:
    }
 
    [[nodiscard]] static IndexType
-   getGlobalIndex( const ConstOffsetsHolderView& rowPermArray,
+   getGlobalIndex( const ConstOffsetsHolderView& rowsPermutation,
                    const ConstOffsetsHolderView& groupPointers,
                    const IndexType segmentIdx,
                    IndexType localIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
       const IndexType groupIdx = strip * ( getLogWarpSize() + 1 );
-      const IndexType rowStripPerm = rowPermArray.getElement( segmentIdx ) - strip * getWarpSize();
-      const IndexType groupsCount = getActiveGroupsCount( rowPermArray, segmentIdx );
+      const IndexType rowStripPerm = rowsPermutation.getElement( segmentIdx ) - strip * getWarpSize();
+      const IndexType groupsCount = getActiveGroupsCount( rowsPermutation, segmentIdx );
       IndexType globalIdx = groupPointers.getElement( groupIdx );
       IndexType groupHeight = getWarpSize();
       for( IndexType group = 0; group < groupsCount; group++ ) {
@@ -195,7 +197,7 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static SegmentViewType
-   getSegmentViewDirect( const OffsetsHolderView& rowPermArray,
+   getSegmentViewDirect( const OffsetsHolderView& rowsPermutation,
                          const OffsetsHolderView& groupPointers,
                          const IndexType segmentIdx )
    {
@@ -203,8 +205,8 @@ public:
 
       const IndexType strip = segmentIdx / getWarpSize();
       const IndexType groupIdx = strip * ( getLogWarpSize() + 1 );
-      const IndexType inStripIdx = rowPermArray[ segmentIdx ] - strip * getWarpSize();
-      const IndexType groupsCount = getActiveGroupsCountDirect( rowPermArray, segmentIdx );
+      const IndexType inStripIdx = rowsPermutation[ segmentIdx ] - strip * getWarpSize();
+      const IndexType groupsCount = getActiveGroupsCountDirect( rowsPermutation, segmentIdx );
       IndexType groupHeight = getWarpSize();
       GroupsWidthType groupsWidth( 0 );
       TNL_ASSERT_LE( groupsCount, getGroupsCount(), "" );
@@ -220,14 +222,16 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static SegmentViewType
-   getSegmentView( const OffsetsHolderView& rowPermArray, const OffsetsHolderView& groupPointers, const IndexType segmentIdx )
+   getSegmentView( const OffsetsHolderView& rowsPermutation,
+                   const OffsetsHolderView& groupPointers,
+                   const IndexType segmentIdx )
    {
       using GroupsWidthType = typename SegmentViewType::GroupsWidthType;
 
       const IndexType strip = segmentIdx / getWarpSize();
       const IndexType groupIdx = strip * ( getLogWarpSize() + 1 );
-      const IndexType inStripIdx = rowPermArray.getElement( segmentIdx ) - strip * getWarpSize();
-      const IndexType groupsCount = getActiveGroupsCount( rowPermArray, segmentIdx );
+      const IndexType inStripIdx = rowsPermutation.getElement( segmentIdx ) - strip * getWarpSize();
+      const IndexType groupsCount = getActiveGroupsCount( rowsPermutation, segmentIdx );
       IndexType groupHeight = getWarpSize();
       GroupsWidthType groupsWidth( 0 );
       for( IndexType i = 0; i < groupsCount; i++ ) {
