@@ -111,7 +111,9 @@ public:
    }
 
    [[nodiscard]] static IndexType
-   getSegmentSize( const OffsetsHolderView& rowsPermutation, const OffsetsHolderView& groupPointers, const IndexType segmentIdx )
+   getSegmentSize( const OffsetsHolderView& rowsPermutation,
+                   const OffsetsHolderView& groupPointers,
+                   const IndexType segmentIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
       const IndexType groupsCount = getActiveGroupsCount( rowsPermutation, segmentIdx );
@@ -220,7 +222,9 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static SegmentViewType
-   getSegmentView( const OffsetsHolderView& rowsPermutation, const OffsetsHolderView& groupPointers, const IndexType segmentIdx )
+   getSegmentView( const OffsetsHolderView& rowsPermutation,
+                   const OffsetsHolderView& groupPointers,
+                   const IndexType segmentIdx )
    {
       using GroupsWidthType = typename SegmentViewType::GroupsWidthType;
 

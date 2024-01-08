@@ -150,7 +150,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::setSegmentsS
     * In the memory, we first store the elements of the first group (including the padding slots) and then
     * the elements of the second group and so on. The elements are stored either in row-major or column-major
     * order depending on the ElementsOrganization. The offsets of the groups are stored in the groupPointers
-    * array which is initiated in the initGroupPointers() method. The number of the slots managed by the group so given
+    * array which is initiated in the initGroupPointers() method. The number of the slots managed by the group is given
     * by the difference of the offsets of the current group and the subsequent one, i.e.
     *
     * ```cpp
@@ -265,9 +265,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::initSegments
                   permIndex2 = k;
             }
             if( segmentsSizes[ permIndex1 ] < segmentsSizes[ permIndex2 ] ) {
-               Index temp = this->segmentsPermutation[ permIndex1 ];
-               this->segmentsPermutation[ permIndex1 ] = this->segmentsPermutation[ permIndex2 ];
-               this->segmentsPermutation[ permIndex2 ] = temp;
+               TNL::swap( this->segmentsPermutation[ permIndex1 ], this->segmentsPermutation[ permIndex2 ] );
                sorted = false;
             }
          }
@@ -279,9 +277,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::initSegments
                   permIndex2 = k;
             }
             if( segmentsSizes[ permIndex2 ] < segmentsSizes[ permIndex1 ] ) {
-               Index temp = this->segmentsPermutation[ permIndex1 ];
-               this->segmentsPermutation[ permIndex1 ] = this->segmentsPermutation[ permIndex2 ];
-               this->segmentsPermutation[ permIndex2 ] = temp;
+               TNL::swap( this->segmentsPermutation[ permIndex1 ], this->segmentsPermutation[ permIndex2 ] );
                sorted = false;
             }
          }

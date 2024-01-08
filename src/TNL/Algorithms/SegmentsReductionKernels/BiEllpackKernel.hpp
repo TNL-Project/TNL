@@ -146,26 +146,13 @@ reduceSegmentsKernel( SegmentsView segments,
       for( Index group = 0; group < SegmentsView::getLogWarpSize() + 1; group++ ) {
          Index groupBegin = sharedGroupPointers[ sharedGroupOffset + group ];
          Index groupEnd = sharedGroupPointers[ sharedGroupOffset + group + 1 ];
-         // if( threadIdx.x < 36 && strip == 1 )
-         //    printf( " tid = %d strip = %d group = %d groupBegin = %d groupEnd = %d \n", threadIdx.x, strip, group,
-         //    groupBegin, groupEnd );
          if( groupEnd - groupBegin > 0 ) {
             temp[ threadIdx.x ] = identity;
             Index globalIdx = groupBegin + inWarpIdx;
             while( globalIdx < groupEnd ) {
                temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], fetch( globalIdx, compute ) );
-               // if( strip == 1 )
-               //    printf( "tid %d fetch %f temp %f \n", threadIdx.x, fetch( globalIdx, compute ), temp[ threadIdx.x ] );
                globalIdx += SegmentsView::getWarpSize();
             }
-            // TODO: reduction via templates
-            /*Index bisection2 = SegmentsView::getWarpSize();
-            for( Index i = 0; i < group; i++ )
-            {
-               bisection2 >>= 1;
-               if( inWarpIdx < bisection2 )
-                  temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + bisection2 ] );
-            }*/
 
             __syncwarp();
             if( group > 0 && inWarpIdx < 16 )
@@ -196,10 +183,6 @@ reduceSegmentsKernel( SegmentsView segments,
 
    /////
    // Store the results
-   // if( strip == 1 )
-   //   printf( "Adding %f at %d \n", results[ segments.getSegmentsPermutationView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1
-   //   )
-   //   ], warpStart + inWarpIdx );
    keeper( warpStart + inWarpIdx,
            results[ segments.getSegmentsPermutationView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ] );
 #endif
