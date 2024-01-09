@@ -139,6 +139,7 @@ Benchmark< Logger >::time( ResetFunction reset,
 
    result.bandwidth = datasetSize / result.time;
    result.speedup = this->baseTime / result.time;
+   result.operations_per_loop = this->operations_per_loop;
    if( result.cpu_cycles && this->operations_per_loop )
       result.cpu_cycles_per_operation = result.cpu_cycles / this->operations_per_loop;
 

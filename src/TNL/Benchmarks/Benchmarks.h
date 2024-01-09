@@ -27,17 +27,38 @@ struct BenchmarkResult
    double bandwidth = std::numeric_limits< double >::quiet_NaN();
    double speedup = std::numeric_limits< double >::quiet_NaN();
    double cpu_cycles_per_operation = 0;
+   long int operations_per_loop = 0;
 
    [[nodiscard]] virtual HeaderElements
    getTableHeader() const
    {
-      return HeaderElements( { "time", "time_stddev", "time_stddev/time", "cycles", "cycles_stddev", "cycles_stddev/cycles", "loops", "bandwidth", "cycles/op", "speedup" } );
+      return HeaderElements( { "time",
+                               "speedup",
+                               "bandwidth",
+                               "cycles/op",
+                               "cycles",
+                               "time_stddev",
+                               "time_stddev/time",
+                               "cycles_stddev",
+                               "cycles_stddev/cycles",
+                               "loops",
+                               "ops_per_loop" } );
    }
 
    [[nodiscard]] virtual std::vector< int >
    getColumnWidthHints() const
    {
-      return std::vector< int >( { 14, 14, 22, 15, 15, 23, 6, 14, 14, 14 } );
+      return std::vector< int >( { 14,      // time
+                                   8,       // speedup
+                                   14,      // bandwidth
+                                   14,      // cycles/op
+                                   14,      // cycles
+                                   16,      // time_stddev
+                                   18,      // time_stddev/time
+                                   16,      // cycles_stddev
+                                   22,      // cycles_stddev/cycles
+                                   6,       // loops
+                                   16 } );  // operations/loop
    }
 
    [[nodiscard]] virtual RowElements
@@ -45,19 +66,31 @@ struct BenchmarkResult
    {
       RowElements elements;
       // write in scientific format to avoid precision loss
-      elements << std::scientific
-               << time << time_stddev << time_stddev / time;
-      if( cpu_cycles )
-         elements << cpu_cycles << cpu_cycles_stddev << cpu_cycles_stddev / cpu_cycles;
+      elements << std::scientific;
+
+      elements << time;
+      if( speedup != 0 )
+         elements << speedup;
       else
-         elements << "N/A" << "N/A" << "N/A";
-      elements << loops << bandwidth;
+         elements << "N/A";
+      elements << bandwidth;
       if( cpu_cycles_per_operation )
          elements << cpu_cycles_per_operation;
       else
          elements << "N/A";
-      if( speedup != 0 )
-         elements << speedup;
+      if( cpu_cycles )
+         elements << cpu_cycles;
+      else
+         elements << "N/A";
+      elements << time_stddev << time_stddev / time;
+      if( cpu_cycles )
+         elements << cpu_cycles_stddev << cpu_cycles_stddev / cpu_cycles;
+      else
+         elements << "N/A"
+                  << "N/A";
+      elements << loops;
+      if( operations_per_loop )
+         elements << operations_per_loop;
       else
          elements << "N/A";
       return elements;
