@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <TNL/PerformanceCounter.h>
+#include <TNL/PerformanceCounters.h>
 
 #include <TNL/3rdparty/spy.hpp>
 
@@ -16,7 +16,7 @@
 
 namespace TNL {
 
-inline PerformanceCounter::PerformanceCounter()
+inline PerformanceCounters::PerformanceCounters()
 {
 #ifdef SPY_OS_IS_MACOS
    if( kperf_init() != 0 )
@@ -26,7 +26,7 @@ inline PerformanceCounter::PerformanceCounter()
 }
 
 inline void
-PerformanceCounter::reset()
+PerformanceCounters::reset()
 {
    this->initialCPUCycles = readCPUCycles();
    this->totalCPUCycles = 0;
@@ -34,7 +34,7 @@ PerformanceCounter::reset()
 }
 
 inline void
-PerformanceCounter::stop()
+PerformanceCounters::stop()
 {
    if( ! this->stopState ) {
       this->totalCPUCycles += readCPUCycles() - this->initialCPUCycles;
@@ -43,14 +43,14 @@ PerformanceCounter::stop()
 }
 
 inline void
-PerformanceCounter::start()
+PerformanceCounters::start()
 {
    this->initialCPUCycles = readCPUCycles();
    this->stopState = false;
 }
 
 inline unsigned long long int
-PerformanceCounter::getCPUCycles() const
+PerformanceCounters::getCPUCycles() const
 {
    if( ! this->stopState )
       return readCPUCycles() - this->initialCPUCycles;
@@ -58,14 +58,14 @@ PerformanceCounter::getCPUCycles() const
 }
 
 inline bool
-PerformanceCounter::writeLog( Logger& logger, int logLevel ) const
+PerformanceCounters::writeLog( Logger& logger, int logLevel ) const
 {
    logger.writeParameter< unsigned long long int >( "CPU Cycles:", this->getCPUCycles(), logLevel );
    return true;
 }
 
 inline unsigned long long int
-PerformanceCounter::readCPUCycles() const
+PerformanceCounters::readCPUCycles() const
 {
 #if defined( SPY_OS_IS_LINUX )  // TODO: Does it work even on Windows?
    unsigned hi;

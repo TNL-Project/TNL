@@ -12,13 +12,22 @@ namespace TNL {
 
 /**
  * \brief Performance counter for measuring CPU cycles.
+ *
+ * The counter can be paused by calling \ref stop and \ref
+ * start methods and reseted by calling \ref reset.
+ *
+ * \par Example
+ * \include PerformanceCountersExample.cpp
+ * \par Output
+ * \include PerformanceCountersExample.out
  */
-struct PerformanceCounter
+
+struct PerformanceCounters
 {
    /**
     * \brief Constructor with no parameters.
     */
-   PerformanceCounter();
+   PerformanceCounters();
 
    /**
     * \brief Reset counters.
@@ -75,4 +84,4 @@ private:
 
 }  // namespace TNL
 
-#include <TNL/PerformanceCounter.hpp>
+#include <TNL/PerformanceCounters.hpp>

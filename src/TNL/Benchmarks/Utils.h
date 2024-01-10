@@ -9,7 +9,7 @@
 #include <filesystem>
 
 #include <TNL/Timer.h>
-#include <TNL/PerformanceCounter.h>
+#include <TNL/PerformanceCounters.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
@@ -39,7 +39,7 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
    // set timer to the monitor
    monitor.setTimer( timer );
 
-   PerformanceCounter performanceCounter;
+   PerformanceCounters performanceCounters;
 
    // warm up
    reset();
@@ -60,18 +60,18 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
 
       // reset timer and performance counters before each computation
       timer.reset();
-      performanceCounter.reset();
+      performanceCounters.reset();
       timer.start();
-      performanceCounter.start();
+      performanceCounters.start();
       compute();
       if constexpr( std::is_same_v< Device, Devices::Cuda > )
          Backend::deviceSynchronize();
       timer.stop();
-      performanceCounter.stop();
+      performanceCounters.stop();
 
       results_time[ loops ] = timer.getRealTime();
       if constexpr( std::is_same< Device, Devices::Sequential >::value || std::is_same< Device, Devices::Host >::value )
-         results_cpu_cycles[ loops ] = performanceCounter.getCPUCycles();
+         results_cpu_cycles[ loops ] = performanceCounters.getCPUCycles();
    }
 
    const double mean_time = sum( results_time ) / (double) loops;
