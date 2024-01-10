@@ -275,7 +275,9 @@ MemoryAccessBenchmarkTestArray< Size >::testLoop()
 {
    const unsigned long long int elementsPerTestPerThread = this->elementsPerTest / this->num_threads + 1;
    unsigned long long int testedElementsCount = 0;
+#ifdef HAVE_OPENMP
 #pragma omp parallel num_threads( this->num_threads ), reduction( + : testedElementsCount ), if( this->num_threads > 1 )
+#endif
    {
 #ifdef HAVE_OPENMP
       const int tid = omp_get_thread_num();
