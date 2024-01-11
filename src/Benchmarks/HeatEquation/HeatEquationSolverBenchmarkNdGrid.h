@@ -44,13 +44,15 @@ class GridEntity {
                                  direction(direction) {}
 
       __cuda_callable__
-      ~GridEntity() {}
+      ~GridEntity() = default;
 
+      [[nodiscard]]   
       __cuda_callable__
       inline Container<Dimension, Index> getCoordinates() const noexcept {
          return coordinates;
       }
 
+      [[nodiscard]]
       __cuda_callable__
       inline Index getIndex() const noexcept {
          return vertexIndex;
@@ -67,8 +69,8 @@ template<int Dimension,
          typename = std::enable_if_t<(Dimension > 0)>>
 class NdGrid {
    public:
-      NdGrid() {}
-      ~NdGrid() {}
+      NdGrid() = default;
+      ~NdGrid() = default;
 
       /**
        *  @brief - Specifies dimensions of the grid
@@ -93,7 +95,7 @@ class NdGrid {
       /**
        * @param[in] index - index of dimension
        */
-      inline __cuda_callable__ Index getDimension(Index index) const noexcept {
+      [[nodiscard]] inline __cuda_callable__ Index getDimension(Index index) const noexcept {
          TNL_ASSERT_GE(index, 0, "Index must be greater than zero");
          TNL_ASSERT_LT(index, Dimension, "Index must be less than Dimension");
 
@@ -116,7 +118,7 @@ class NdGrid {
       /**
        * @param[in] index - index of dimension
        */
-      inline __cuda_callable__ Index getEntitiesCount(Index index) const noexcept {
+      [[nodiscard]] inline __cuda_callable__ Index getEntitiesCount(Index index) const noexcept {
          TNL_ASSERT_GE(index, 0, "Index must be greater than zero");
          TNL_ASSERT_LE(index, Dimension, "Index must be less than or equal to Dimension");
 
@@ -139,7 +141,7 @@ class NdGrid {
       /**
        * @param[in] index - index of dimension
        */
-      inline __cuda_callable__ Index getEndIndex(Index index) const noexcept {
+      [[nodiscard]] inline __cuda_callable__ Index getEndIndex(Index index) const noexcept {
          TNL_ASSERT_GE(index, 0, "Index must be greater than zero");
          TNL_ASSERT_LT(index, Dimension, "Index must be less than or equal to Dimension");
 
@@ -190,8 +192,11 @@ class NdGrid {
                     Function function,
                     FunctionArgs... args) const noexcept {
          Index verticesCount = 1;
-         Container<Dimension, Index> traverseRectOrigin, traverseRectDimensions,
-                                     dimensionsProducts, traverseRectDimensionsProducts;
+         Container<Dimension, Index> traverseRectOrigin;
+         Container<Dimension, Index> traverseRectDimensions;
+         Container<Dimension, Index> dimensionsProducts;
+         Container<Dimension, Index> traverseRectDimensionsProducts;
+
 
          for (Index i = 0; i < Dimension; i++) {
             traverseRectDimensions[i] = abs(secondVertex[i] - firstVertex[i]) + 1;
@@ -310,9 +315,10 @@ class NdGrid {
          Index dimensionIndex = 0;
 
          while (tmpIndex && dimensionIndex < Dimension) {
-            Index dimension = dimensions[dimensionIndex],
-                  quotient = tmpIndex / dimension,
-                  reminder = tmpIndex - (dimension * quotient);
+            Index dimension = dimensions[dimensionIndex];
+            Index quotient = tmpIndex / dimension;
+            Index reminder = tmpIndex - (dimension * quotient);
+
 
             coordinates[dimensionIndex] = reminder;
             tmpIndex = quotient;
@@ -325,7 +331,7 @@ class NdGrid {
       /**
        * Calculates product matrix based on the dimension
        */
-      __cuda_callable__ inline
+      [[nodiscard]] __cuda_callable__ inline
       Container<Dimension, Index> getDimensionProducts(const Container<Dimension, Index>& dimensions) const noexcept {
          Container<Dimension, Index> products = 0;
 
@@ -339,7 +345,7 @@ class NdGrid {
       /**
        * Calculates index based on the dimension
        */
-      __cuda_callable__ inline
+      [[nodiscard]] __cuda_callable__ inline
       Index getIndex(const Container<Dimension, Index>& coordinates,
                      const Container<Dimension, Index>& dimensionProducts) const {
          Index index = 0;
@@ -357,7 +363,7 @@ template< typename Real = double,
           typename Index = int >
 struct HeatEquationSolverBenchmarkNdGrid : public HeatEquationSolverBenchmark< Real, Device, Index >
 {
-   void exec( const Index xSize, const Index ySize )
+   void exec( const Index xSize, const Index ySize ) override
    {
       NdGrid<2, int, Device> grid;
 

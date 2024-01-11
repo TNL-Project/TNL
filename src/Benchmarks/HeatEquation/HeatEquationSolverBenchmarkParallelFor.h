@@ -13,7 +13,7 @@ template< typename Real = double,
           typename Index = int >
 struct HeatEquationSolverBenchmarkParallelFor : public HeatEquationSolverBenchmark< Real, Device, Index >
 {
-   void exec( const Index xSize, const Index ySize )
+   void exec( const Index xSize, const Index ySize ) override
    {
       const Real hx = this->xDomainSize / (Real) xSize;
       const Real hy = this->yDomainSize / (Real) ySize;

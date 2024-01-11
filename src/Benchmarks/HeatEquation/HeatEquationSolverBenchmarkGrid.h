@@ -11,7 +11,7 @@ template< typename Real = double,
           typename Index = int >
 struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Real, Device, Index >
 {
-   void exec( const Index xSize, const Index ySize )
+   void exec( const Index xSize, const Index ySize ) override
    {
       using Grid2D = TNL::Meshes::Grid<2, Real, Device, int>;
 

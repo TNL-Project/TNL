@@ -103,8 +103,8 @@ struct HeatEquationSolverBenchmark
    bool runBenchmark( const TNL::Config::ParameterContainer& parameters )
    {
       auto implementation = parameters.getParameter< TNL::String >( "implementation" );
-      const TNL::String logFileName = parameters.getParameter< TNL::String >( "log-file" );
-      const TNL::String outputMode = parameters.getParameter< TNL::String >( "output-mode" );
+      const auto logFileName = parameters.getParameter<TNL::String>("log-file");
+      const auto outputMode = parameters.getParameter<TNL::String>("output-mode");
       bool writeData = parameters.getParameter< bool >( "write-data" );
 
       const Index minXDimension = parameters.getParameter< int >("min-x-dimension");
