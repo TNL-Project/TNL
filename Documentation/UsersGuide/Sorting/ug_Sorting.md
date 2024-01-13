@@ -4,17 +4,21 @@
 
 ## Introduction
 
-TNL offers several different parallel algorithms for sorting of arrays (or vectors) and also sorting based on user defined swapping. The later is more general but also less efficient.
+TNL offers several different parallel algorithms for sorting of arrays (or
+vectors) and also sorting based on user defined swapping. The latter is more
+general but also less efficient.
 
 ## Sorting of arrays and vectors
 
 The sorting of arrays and vectors is accessible via the following functions:
 
-* \ref TNL::Algorithms::ascendingSort for sorting elements of array in ascending order,
-* \ref TNL::Algorithms::descendingSort for sorting elements of array in descending order,
+* \ref TNL::Algorithms::ascendingSort for sorting elements of array in
+  ascending order,
+* \ref TNL::Algorithms::descendingSort for sorting elements of array in
+  descending order,
 * \ref TNL::Algorithms::sort for sorting with user defined ordering.
 
-The following example demonstrates the use of ascending and descending sort. See
+The following example demonstrates the use of ascending and descending sort:
 
 \includelineno SortingExample.cpp
 
