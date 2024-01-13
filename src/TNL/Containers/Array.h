@@ -22,7 +22,8 @@ namespace TNL::Containers {
  *
  * \tparam Value  The type of array elements.
  * \tparam Device The device to be used for the execution of array operations.
- *                It can be either \ref Devices::Host or \ref Devices::Cuda.
+ *                It can be any class defined in the \ref TNL::Devices
+ *                namespace.
  * \tparam Index  The indexing type.
  * \tparam Allocator The type of the allocator used for the allocation and
  *                   deallocation of memory used by the array. By default,
