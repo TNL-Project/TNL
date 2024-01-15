@@ -394,9 +394,9 @@ void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::reduceRows(
    IndexType begin,
    IndexType end,
-   Fetch& fetch,
+   Fetch&& fetch,
    const Reduce& reduce,
-   Keep& keep,
+   Keep&& keep,
    const FetchValue& zero ) const
 {
    this->view.reduceRows( begin, end, fetch, reduce, keep, zero );
@@ -406,9 +406,9 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
 SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::reduceAllRows(
-   Fetch& fetch,
+   Fetch&& fetch,
    const Reduce& reduce,
-   Keep& keep,
+   Keep&& keep,
    const FetchReal& zero ) const
 {
    this->reduceRows( 0, this->getRows(), fetch, reduce, keep, zero );

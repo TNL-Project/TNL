@@ -121,28 +121,29 @@ public:
    // TODO
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& identity )
+   reduceRows( IndexType begin, IndexType end, Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity )
    {
       throw Exceptions::NotImplementedError( "reduceRows is not implemented in DistributedMatrix" );
    }
 
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& identity ) const
+   reduceRows( IndexType begin, IndexType end, Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity )
+      const
    {
       throw Exceptions::NotImplementedError( "reduceRows is not implemented in DistributedMatrix" );
    }
 
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceAllRows( Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& identity )
+   reduceAllRows( Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity )
    {
       throw Exceptions::NotImplementedError( "reduceAllRows is not implemented in DistributedMatrix" );
    }
 
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceAllRows( Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& identity ) const
+   reduceAllRows( Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity ) const
    {
       throw Exceptions::NotImplementedError( "reduceAllRows is not implemented in DistributedMatrix" );
    }

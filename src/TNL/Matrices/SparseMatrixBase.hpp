@@ -452,9 +452,9 @@ void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows(
    IndexType begin,
    IndexType end,
-   Fetch& fetch,
+   Fetch&& fetch,
    const Reduce& reduce,
-   Keep& keep,
+   Keep&& keep,
    const FetchValue& identity,
    const SegmentsReductionKernel& kernel ) const
 {
@@ -480,9 +480,9 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceAllRows(
-   Fetch& fetch,
+   Fetch&& fetch,
    const Reduce& reduce,
-   Keep& keep,
+   Keep&& keep,
    const FetchValue& identity,
    const SegmentsReductionKernel& kernel ) const
 {

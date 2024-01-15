@@ -187,9 +187,9 @@ template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begin,
                                                                         IndexType end,
-                                                                        Fetch& fetch,
-                                                                        Reduce& reduce,
-                                                                        Keep& keep,
+                                                                        Fetch&& fetch,
+                                                                        const Reduce& reduce,
+                                                                        Keep&& keep,
                                                                         const FetchReal& identity ) const
 {
    using Real_ = decltype( fetch( IndexType(), IndexType(), RealType() ) );
@@ -226,9 +226,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexTyp
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch& fetch,
-                                                                           Reduce& reduce,
-                                                                           Keep& keep,
+TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch&& fetch,
+                                                                           const Reduce& reduce,
+                                                                           Keep&& keep,
                                                                            const FetchReal& identity ) const
 {
    this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );

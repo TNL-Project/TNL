@@ -340,7 +340,7 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& identity )
+   reduceRows( IndexType begin, IndexType end, Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity )
       const;
 
    /**
@@ -382,7 +382,7 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceAllRows( Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& identity ) const;
+   reduceAllRows( Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity ) const;
 
    /**
     * \brief Method for iteration over all matrix rows for constant instances.

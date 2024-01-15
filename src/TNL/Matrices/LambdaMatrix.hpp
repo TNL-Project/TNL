@@ -193,9 +193,9 @@ void
 LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::reduceRows(
    IndexType begin,
    IndexType end,
-   Fetch& fetch,
+   Fetch&& fetch,
    const Reduce& reduce,
-   Keep& keep,
+   Keep&& keep,
    const FetchReal& identity ) const
 {
    using FetchType = decltype( fetch( IndexType(), IndexType(), RealType() ) );
@@ -226,9 +226,9 @@ template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, ty
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
 LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::reduceAllRows(
-   Fetch& fetch,
+   Fetch&& fetch,
    const Reduce& reduce,
-   Keep& keep,
+   Keep&& keep,
    const FetchReal& identity ) const
 {
    this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );

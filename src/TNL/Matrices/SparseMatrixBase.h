@@ -376,9 +376,9 @@ public:
    void
    reduceRows( IndexType begin,
                IndexType end,
-               Fetch& fetch,
+               Fetch&& fetch,
                const Reduce& reduce,
-               Keep& keep,
+               Keep&& keep,
                const FetchValue& identity,
                const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
@@ -427,9 +427,9 @@ public:
              typename FetchValue,
              typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
    void
-   reduceAllRows( Fetch& fetch,
+   reduceAllRows( Fetch&& fetch,
                   const Reduce& reduce,
-                  Keep& keep,
+                  Keep&& keep,
                   const FetchValue& identity,
                   const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
