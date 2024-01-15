@@ -98,14 +98,9 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 Index
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getNonzeroElementsCount() const
 {
-   const auto columns_view = this->columnIndexes.getConstView();
-   if constexpr( ! Base::isSymmetric() ) {
-      auto fetch = [ = ] __cuda_callable__( IndexType i ) -> IndexType
-      {
-         return ( columns_view[ i ] != paddingIndex< IndexType > );
-      };
-      return Algorithms::reduce< DeviceType >( (IndexType) 0, this->columnIndexes.getSize(), fetch, std::plus<>{}, 0 );
-   }
+   if constexpr( ! Base::isSymmetric() )
+      return sum( notEqualTo( this->getColumnIndexes(), paddingIndex< Index > )
+                  && notEqualTo( this->getValues(), RealType{ 0 } ) );
    else {
       const auto rows = this->getRows();
       const auto columns = this->getColumns();
