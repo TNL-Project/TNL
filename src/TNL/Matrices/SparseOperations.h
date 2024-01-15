@@ -40,6 +40,19 @@ template< typename Matrix1, typename Matrix2, typename PermutationArray >
 void
 reorderSparseMatrix( const Matrix1& matrix1, Matrix2& matrix2, const PermutationArray& perm, const PermutationArray& iperm );
 
+/**
+ * \brief Avoids unnecessary zero elements.
+ *
+ * This method is especially usefull for removing of explicitly coded zero elements but it
+ * also removes unnecessary padding elements.
+ *
+ * \tparam Matrix is the matrix type.
+ * \param A is the matrix to be compressed.
+ */
+template< typename Matrix >
+void
+compressSparseMatrix( Matrix& A );
+
 // TODO: the method does not belong here, but there is no better place...
 template< typename Array1, typename Array2, typename PermutationArray >
 void
