@@ -53,7 +53,7 @@ buildTriangleMesh( Mesh< TestTriangleMeshConfig, Device >& mesh )
                   "Testing vertex entity does not store edges as required." );
 
    using PointType = typename VertexMeshEntityType::PointType;
-   static_assert( std::is_same< PointType, Containers::StaticVector< 2, double > >::value, "" );
+   static_assert( std::is_same< PointType, Containers::StaticVector< 2, double > >::value );
 
    /****
     * We set-up the following situation
@@ -74,7 +74,10 @@ buildTriangleMesh( Mesh< TestTriangleMeshConfig, Device >& mesh )
             point0   edge2        point1
     */
 
-   PointType point0( 0.0, 0.0 ), point1( 1.0, 0.0 ), point2( 0.0, 1.0 ), point3( 1.0, 1.0 );
+   PointType point0( 0.0, 0.0 );
+   PointType point1( 1.0, 0.0 );
+   PointType point2( 0.0, 1.0 );
+   PointType point3( 1.0, 1.0 );
 
    MeshBuilder< TriangleMesh > meshBuilder;
 
@@ -113,7 +116,10 @@ testMesh( const Mesh< TestTriangleMeshConfig, Devices::Host >& mesh,
    EXPECT_EQ( mesh.getEntitiesCount< 2 >(), 2 );
 
    // test points
-   PointType point0( 0.0, 0.0 ), point1( 1.0, 0.0 ), point2( 0.0, 1.0 ), point3( 1.0, 1.0 );
+   PointType point0( 0.0, 0.0 );
+   PointType point1( 1.0, 0.0 );
+   PointType point2( 0.0, 1.0 );
+   PointType point3( 1.0, 1.0 );
 
    EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 0 ] ).getPoint(), point0 );
    EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).getPoint(), point1 );
@@ -294,8 +300,16 @@ TEST( MeshOrderingTest, OrderingOnHost )
    buildTriangleMesh( mesh );
 
    using PermutationArray = typename MeshHost::GlobalIndexArray;
-   PermutationArray vertexIdentity, edgeIdentity, cellIdentity, vertexPermutation, edgePermutation, cellPermutation,
-      vertexInversePermutation, edgeInversePermutation, cellInversePermutation;
+   PermutationArray vertexIdentity;
+   PermutationArray edgeIdentity;
+   PermutationArray cellIdentity;
+   PermutationArray vertexPermutation;
+   PermutationArray edgePermutation;
+   PermutationArray cellPermutation;
+   PermutationArray vertexInversePermutation;
+   PermutationArray edgeInversePermutation;
+   PermutationArray cellInversePermutation;
+
    setPermutation( vertexIdentity, _vertexIdentity );
    setPermutation( edgeIdentity, _edgeIdentity );
    setPermutation( cellIdentity, _cellIdentity );

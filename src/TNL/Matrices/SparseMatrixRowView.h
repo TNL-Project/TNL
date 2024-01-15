@@ -212,7 +212,7 @@ public:
     * \param localIdx is the rank of the matrix element in the row.
     * \return global index of the matrix element.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( IndexType localIdx ) const;
 

@@ -778,7 +778,7 @@ public:
     * \return the position of the element in the arrays with \e values and \e columnIndexes or the padding index if the element
     * is not found.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    IndexType
    findElement( IndexType row, IndexType column ) const;
 

@@ -41,7 +41,7 @@ class Grid
         spaceProducts( 0 )
       {}
 
-      __cuda_callable__ inline
+      [[nodiscard]] __cuda_callable__ inline
       Entity<Size, Index, Real> getEntity(Index i, Index j) const {
          Entity<Size, Index, Real> entity(*this);
 
@@ -83,7 +83,7 @@ template< typename Real = double,
           typename Index = int >
 struct HeatEquationSolverBenchmarkSimpleGrid : public HeatEquationSolverBenchmark< Real, Device, Index >
 {
-   void exec( const Index xSize, const Index ySize )
+   void exec( const Index xSize, const Index ySize ) override
    {
       const Real hx = this->xDomainSize / (Real) xSize;
       const Real hy = this->yDomainSize / (Real) ySize;

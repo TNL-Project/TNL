@@ -723,7 +723,7 @@ public:
    /**
     * \brief Returns a view for the vector of diagonal offsets.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    typename DiagonalOffsetsView::ConstViewType
    getDiagonalOffsets() const;
 
