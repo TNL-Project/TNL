@@ -1,25 +1,29 @@
-# configure the project for testing with CTest/CDash
-include( CTest )
+# include CTest only when the project is top-level (not when it is added to
+# the build tree of another project with add_subdirectory)
+if( PROJECT_IS_TOP_LEVEL )
+   # configure the project for testing with CTest/CDash
+   include( CTest )
 
-if( TNL_USE_SYSTEM_GTEST OR TNL_OFFLINE_BUILD )
-   # find GoogleTest installed in the local system
-   find_package( GTest REQUIRED )
-else()
-   # fetch and build GoogleTest from source
-   include( FetchGoogleTest )
-endif()
-set( CXX_TESTS_FLAGS )
-set( CUDA_TESTS_FLAGS )
-set( HIP_TESTS_FLAGS )
-set( TESTS_LIBRARIES GTest::gtest_main )
-set( TESTS_LINKER_FLAGS "" )
+   if( TNL_USE_SYSTEM_GTEST OR TNL_OFFLINE_BUILD )
+      # find GoogleTest installed in the local system
+      find_package( GTest REQUIRED )
+   else()
+      # fetch and build GoogleTest from source
+      include( FetchGoogleTest )
+   endif()
+   set( CXX_TESTS_FLAGS )
+   set( CUDA_TESTS_FLAGS )
+   set( HIP_TESTS_FLAGS )
+   set( TESTS_LIBRARIES GTest::gtest_main )
+   set( TESTS_LINKER_FLAGS "" )
 
-if( TNL_BUILD_COVERAGE AND CMAKE_BUILD_TYPE STREQUAL "Debug" )
-   # set compiler flags needed for code coverage
-   set( CXX_TESTS_FLAGS ${CXX_TESTS_FLAGS} --coverage )
-   set( CUDA_TESTS_FLAGS ${CUDA_TESTS_FLAGS} -Xcompiler --coverage )
-   set( HIP_TESTS_FLAGS ${HIP_TESTS_FLAGS} --coverage )
-   set( TESTS_LINKER_FLAGS ${TESTS_LINKER_FLAGS} --coverage )
+   if( TNL_BUILD_COVERAGE AND CMAKE_BUILD_TYPE STREQUAL "Debug" )
+      # set compiler flags needed for code coverage
+      set( CXX_TESTS_FLAGS ${CXX_TESTS_FLAGS} --coverage )
+      set( CUDA_TESTS_FLAGS ${CUDA_TESTS_FLAGS} -Xcompiler --coverage )
+      set( HIP_TESTS_FLAGS ${HIP_TESTS_FLAGS} --coverage )
+      set( TESTS_LINKER_FLAGS ${TESTS_LINKER_FLAGS} --coverage )
+   endif()
 endif()
 
 # function to simplify adding MPI tests
