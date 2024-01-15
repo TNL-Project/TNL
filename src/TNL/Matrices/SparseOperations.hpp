@@ -370,6 +370,7 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
          Index localIdx( rowLocalIndexes_view[ rowIdx ] );
          if( value != 0.0 && columnIndex != paddingIndex< RHSIndexType > ) {
             Index thisGlobalIdx = segments_view.getGlobalIndex( rowIdx, localIdx++ );
+            TNL_ASSERT_GE( thisGlobalIdx, 0, "Global index must be non-negative." );
             columns_view[ thisGlobalIdx ] = columnIndex;
             if( ! Matrix1::isBinary() )
                values_view[ thisGlobalIdx ] = value;
