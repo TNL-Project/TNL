@@ -16,7 +16,7 @@ struct CustomScalar
 public:
    constexpr CustomScalar() = default;
 
-   constexpr CustomScalar( T value ) : value( value ) {}
+   constexpr CustomScalar( T value ) : value( std::move( value ) ) {}
 
    template< typename S >
    constexpr CustomScalar( const CustomScalar< S >& v ) : value( v.value )
@@ -24,13 +24,13 @@ public:
 
    constexpr CustomScalar( const CustomScalar& ) = default;
 
-   constexpr CustomScalar( CustomScalar&& ) = default;
+   constexpr CustomScalar( CustomScalar&& ) noexcept = default;
 
    constexpr CustomScalar&
-   operator=( const CustomScalar& v ) = default;
+   operator=( const CustomScalar& ) = default;
 
    constexpr CustomScalar&
-   operator=( CustomScalar&& v ) = default;
+   operator=( CustomScalar&& ) noexcept = default;
 
 #define MAKE_ASSIGNMENT_OP( op )                                     \
    template< typename S >                                            \
