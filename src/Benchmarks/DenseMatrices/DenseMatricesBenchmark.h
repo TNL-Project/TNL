@@ -8,6 +8,7 @@
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Backend/SharedMemory.h>
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/StaticArray.h>
 #include <TNL/Algorithms/detail/ParallelFor2D.h>
 
 #include "CublasBenchmark.h"
@@ -43,10 +44,10 @@ struct DenseMatricesBenchmark {
       config.addEntry<int>("verbose", "Verbose mode.", 1);
     }
 
-    TNL::Config::ParameterContainer parameters;
-    DenseMatricesBenchmark(const TNL::Config::ParameterContainer& parameters_) : parameters(parameters_) {}
+   TNL::Config::ParameterContainer parameters;
+   DenseMatricesBenchmark(const TNL::Config::ParameterContainer& parameters_) : parameters(parameters_) {}
 
-    bool runBenchmark() {
+   bool runBenchmark() {
       const TNL::String logFileName = parameters.getParameter<TNL::String>("log-file");
       const TNL::String outputMode = parameters.getParameter<TNL::String>("output-mode");
       const int loops = parameters.getParameter<int>("loops");
@@ -68,9 +69,9 @@ struct DenseMatricesBenchmark {
       std::cout << "=== Dense Matrices Multiplication ==============================================================================================================================" << std::endl;
       std::cout << std::endl;
 
-      const int numMatrices = 100; //Number of matrices for the cycle
+      const int numMatrices = 100; // Number of matrices for the cycle
       int matrix1Rows = 20; // Number of rows in matrix1
-      int matrix1Columns = 10; // Number of columns in matrix1 && rows in matrix 2
+      int matrix1Columns = 10; // Number of columns in matrix1 && rows in matrix2
       int matrix2Columns = 30; // Number of columns in matrix2
 
       for (int i = 0; i < numMatrices; ++i) {
@@ -100,21 +101,21 @@ struct DenseMatricesBenchmark {
             denseMatrix2.setDimensions(matrix1Columns, matrix2Columns);
 
             // Fill the matrices
-            const double h_x = 1.0 / 100;
-            const double h_y = 1.0 / 100;
+            //const double h_x = 1.0 / 100;
+            //const double h_y = 1.0 / 100;
 
             for (int i = 0; i < matrix1Rows; i++) {
                for (int j = 0; j < matrix1Columns; j++) {
-                  double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
-                  //double value = 3*i;
+                  //double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
+                  double value = 3*i;
                   denseMatrix1.setElement(i, j, value);
                }
             }
 
             for (int i = 0; i < matrix1Columns; i++) {
                for (int j = 0; j < matrix2Columns; j++) {
-                  double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
-                  //double value = 2*i;
+                  //double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
+                  double value = 2*i;
                   denseMatrix2.setElement(i, j, value);
                }
             }
@@ -124,13 +125,13 @@ struct DenseMatricesBenchmark {
             TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> cuBLASResultMatrix;
             TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> CutlassResultMatrix;
             TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> MagmaResultMatrix;
-            TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> resultMatrix_mainTNL;
+            TNL::Matrices::DenseMatrix<RealType, Devices::Host, IndexType> BlasResultMatrix;
 
             resultMatrix.setDimensions(matrix1Rows, matrix2Columns);
             cuBLASResultMatrix.setDimensions(matrix1Rows, matrix2Columns);
             CutlassResultMatrix.setDimensions(matrix1Rows, matrix2Columns);
             MagmaResultMatrix.setDimensions(matrix1Rows, matrix2Columns);
-            resultMatrix_mainTNL.setDimensions(matrix1Rows, matrix2Columns);
+            BlasResultMatrix.setDimensions(matrix1Rows, matrix2Columns);
 
             auto matrixMultiplicationBenchmarkcuBlas = [&]() mutable {
                // Call cuBLAS matrix multiplication function
@@ -184,7 +185,7 @@ struct DenseMatricesBenchmark {
                { "matrix2 size", std::to_string(matrix1Columns) + "x" + std::to_string(matrix2Columns)}
             }));
 
-            constexpr Index tileDim = 16; // Example tile dimension, adjust as needed
+            constexpr Index tileDim = 16; // Example tile dimension
             constexpr Index matrixProductCudaBlockSize = 256;
             constexpr Index cudaBlockRows = matrixProductCudaBlockSize / tileDim;
             Backend::LaunchConfiguration launch_config;
@@ -208,7 +209,7 @@ struct DenseMatricesBenchmark {
                         if (gridIdx_y == rowGrids - 1)
                            launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
-                        auto resultMatrixView = resultMatrix_mainTNL.getView();
+                        auto resultMatrixView = resultMatrix.getView();
                         auto denseMatrix1View = denseMatrix1.getConstView();
                         auto denseMatrix2View = denseMatrix2.getConstView();
 
@@ -226,7 +227,7 @@ struct DenseMatricesBenchmark {
                TNL_CHECK_CUDA_DEVICE;
             };
             std::vector<TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType>> benchmarkMatricesTNL = {cuBLASResultMatrix, MagmaResultMatrix, CutlassResultMatrix};
-            DenseMatricesResult<RealType, Devices::Cuda, IndexType> TNLResult(resultMatrix_mainTNL, benchmarkMatricesTNL );
+            DenseMatricesResult<RealType, Devices::Cuda, IndexType> TNLResult(resultMatrix, benchmarkMatricesTNL );
             benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkOriginal, TNLResult);
 
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
@@ -268,6 +269,7 @@ struct DenseMatricesBenchmark {
             std::vector<TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType>> benchmarkMatricesTNL2 = {cuBLASResultMatrix, MagmaResultMatrix, CutlassResultMatrix};
             DenseMatricesResult<RealType, Devices::Cuda, IndexType> TNL2Result(resultMatrix, benchmarkMatricesTNL2);
             benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkOptimized, TNL2Result);
+
 
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
                { "index type", TNL::getType<Index>() },
@@ -386,18 +388,58 @@ struct DenseMatricesBenchmark {
             DenseMatricesResult<RealType, Devices::Cuda, IndexType> Warptiling2Result(resultMatrix, benchmarkMatricesWarptiling2);
             benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkWarptiling2,Warptiling2Result);
 
-            std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
-#endif
-         }
-
-        if (device == "host" || device == "all") {
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
-                { "index type", TNL::getType<Index>() },
-                { "device", device },
-                { "algorithm", "BLAS" },
-                { "matrix1 size", std::to_string(matrix1Rows) + "x" + std::to_string(matrix1Columns)},
-                { "matrix2 size", std::to_string(matrix1Columns) + "x" + std::to_string(matrix2Columns)}
+            { "index type", TNL::getType<Index>() },
+            { "device", device },
+            { "algorithm", "Fermi" },
+            { "matrix1 size", std::to_string(matrix1Rows) + "x" + std::to_string(matrix1Columns)},
+            { "matrix2 size", std::to_string(matrix1Columns) + "x" + std::to_string(matrix2Columns)}
             }));
+
+            // Fermi kernel specific launch configuration
+            Backend::LaunchConfiguration fermiLaunchConfig;
+            fermiLaunchConfig.blockSize.x = 16; // Adjusted for the Fermi kernel
+            fermiLaunchConfig.blockSize.y = 16; // Adjusted for the Fermi kernel
+            fermiLaunchConfig.dynamicSharedMemorySize = sizeof(Real) * ((64 * 16) + (16 * 64));
+
+            auto matrixMultiplicationBenchmarkFermi = [&]() mutable {
+               for (Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++) {
+                  for (Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++) {
+                        Index blockSize = 64; // Each block computes a 64x64 block of the output matrix
+                        fermiLaunchConfig.gridSize.x = (matrix2Columns + blockSize - 1) / blockSize;
+                        fermiLaunchConfig.gridSize.y = (matrix1Rows + blockSize - 1) / blockSize;
+
+                        // Adjust the last block size if the matrix dimensions are not multiples of the block size
+                        if (gridIdx_x == columnGrids - 1)
+                           fermiLaunchConfig.gridSize.x = (columnTiles % blockSize == 0) ? blockSize : columnTiles % blockSize;
+                        if (gridIdx_y == rowGrids - 1)
+                           fermiLaunchConfig.gridSize.y = (rowTiles % blockSize == 0) ? blockSize : rowTiles % blockSize;
+
+                        auto resultMatrixView = resultMatrix.getView();
+                        auto denseMatrix1View = denseMatrix1.getConstView();
+                        auto denseMatrix2View = denseMatrix2.getConstView();
+
+                        Backend::launchKernelAsync(optimizedFermiGemmKernel<decltype(resultMatrixView), decltype(denseMatrix1View), decltype(denseMatrix2View)>,
+                                                   fermiLaunchConfig,
+                                                   resultMatrixView,
+                                                   denseMatrix1View,
+                                                   denseMatrix2View,
+                                                   1.0);
+                  }
+               }
+               cudaStreamSynchronize(fermiLaunchConfig.stream);
+               TNL_CHECK_CUDA_DEVICE;
+            };
+            std::vector<TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType>> benchmarkMatricesFermi = {cuBLASResultMatrix, MagmaResultMatrix, CutlassResultMatrix};
+            DenseMatricesResult<RealType, Devices::Cuda, IndexType> FermiResult(resultMatrix, benchmarkMatricesFermi);
+            benchmark.time<Devices::Cuda>(device, matrixMultiplicationBenchmarkFermi, FermiResult);
+
+         std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+#endif //__CUDACC__
+      }
+
+         if (device == "host" || device == "all") {
+
             TNL::Matrices::DenseMatrix<RealType, Devices::Host, IndexType> denseMatrix1;
             denseMatrix1.setDimensions(matrix1Rows, matrix1Columns);
 
@@ -408,13 +450,45 @@ struct DenseMatricesBenchmark {
             TNL::Matrices::DenseMatrix<RealType, Devices::Host, IndexType> resultMatrix;
             resultMatrix.setDimensions(matrix1Rows, matrix2Columns);
 
+            TNL::Matrices::DenseMatrix<RealType, Devices::Host, IndexType> BlasResultMatrix;
+            BlasResultMatrix.setDimensions(matrix1Rows, matrix2Columns);
+
+            // Fill the matrices
+            //const double h_x = 1.0 / 100;
+            //const double h_y = 1.0 / 100;
+
+            for (int i = 0; i < matrix1Rows; i++) {
+               for (int j = 0; j < matrix1Columns; j++) {
+                  //double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
+                  double value = 3*i;
+                  denseMatrix1.setElement(i, j, value);
+               }
+            }
+
+            for (int i = 0; i < matrix1Columns; i++) {
+               for (int j = 0; j < matrix2Columns; j++) {
+                  //double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
+                  double value = 2*i;
+                  denseMatrix2.setElement(i, j, value);
+               }
+            }
+
+            benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
+                { "index type", TNL::getType<Index>() },
+                { "device", device },
+                { "algorithm", "BLAS" },
+                { "matrix1 size", std::to_string(matrix1Rows) + "x" + std::to_string(matrix1Columns)},
+                { "matrix2 size", std::to_string(matrix1Columns) + "x" + std::to_string(matrix2Columns)}
+            }));
+
 #ifdef HAVE_BLAS
             auto matrixMultiplicationBenchmarkBLAS = [&]() mutable {
-                matrixMultiplicationBLAS(denseMatrix1, denseMatrix2, resultMatrix);
+                matrixMultiplicationBLAS(denseMatrix1, denseMatrix2, BlasResultMatrix);
             };
             benchmark.time<Devices::Host>(device, matrixMultiplicationBenchmarkBLAS );
-#endif
-             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
+#endif //HAVE_BLAS
+
+            benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
             { "index type", TNL::getType<Index>() },
             { "device", device },
             { "algorithm", "TNL" },
@@ -424,13 +498,14 @@ struct DenseMatricesBenchmark {
 
             auto matrixMultiplicationBenchmarkTNL = [&]() mutable {
                resultMatrix.getMatrixProduct(denseMatrix1, denseMatrix2, 1.0);
-
             };
-            benchmark.time<Devices::Host>(device, matrixMultiplicationBenchmarkTNL);
+            std::vector<TNL::Matrices::DenseMatrix<RealType, Devices::Host, IndexType>> benchmarkMatricesCPU = { BlasResultMatrix };
+            DenseMatricesResult<RealType, Devices::Host, IndexType> CPUResult(resultMatrix, benchmarkMatricesCPU);
+            benchmark.time<Devices::Host>(device, matrixMultiplicationBenchmarkTNL,CPUResult);
 
             std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
             }
-       }
+      }
 
       std::cout << std::endl;
       std::cout << "=== Dense Matrix Trasnposition ===================================================================================================================" << std::endl;
@@ -439,33 +514,50 @@ struct DenseMatricesBenchmark {
       int dmatrix1Rows = 20; // Number of rows in matrix1 (same as columns in matrix2)
       int dmatrix1Columns = 10; // Number of columns in matrix1
 
-       for (int i = 0; i < numMatrices; ++i) {
-            // Modify the matrix sizes for each iteration
-            dmatrix1Rows += 10;
-            dmatrix1Columns += 10;
+      for (int i = 0; i < numMatrices; ++i) {
+         // Modify the matrix sizes for each iteration
+         dmatrix1Rows += 10;
+         dmatrix1Columns += 10;
 
-       if (device == "cuda" || device == "all") {
+         if (device == "cuda" || device == "all") {
+
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
-                { "index type", TNL::getType<Index>() },
-                { "device", device },
-                { "algorithm", "MAGMA" },
-                { "matrix size", std::to_string(dmatrix1Rows) + "x" + std::to_string(dmatrix1Columns)},
+               { "index type", TNL::getType<Index>() },
+               { "device", device },
+               { "algorithm", "MAGMA" },
+               { "matrix size", std::to_string(dmatrix1Rows) + "x" + std::to_string(dmatrix1Columns)},
             }));
 
 #ifdef __CUDACC__
-            TNL::Matrices::DenseMatrix<RealType, Devices::Host, IndexType> denseMatrix;
+            TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> denseMatrix;
             denseMatrix.setDimensions(dmatrix1Rows, dmatrix1Columns);
 
             // Create a output matrix
-            TNL::Matrices::DenseMatrix<RealType, Devices::Host, IndexType> outputMatrix;
+            TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> outputMatrix;
             outputMatrix.setDimensions(dmatrix1Columns, dmatrix1Rows);
+
+            TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType> MagmaOutputMatrix;
+            MagmaOutputMatrix.setDimensions(dmatrix1Columns, dmatrix1Rows);
+
+            // Fill the matrix
+            const double h_x = 1.0 / 100;
+            const double h_y = 1.0 / 100;
+
+            for (int i = 0; i < dmatrix1Rows; i++) {
+               for (int j = 0; j < dmatrix1Columns; j++) {
+                  double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
+                  //double value = 3*i;
+                  denseMatrix.setElement(i, j, value);
+               }
+            }
 
 #ifdef HAVE_MAGMA
             // Lambda function to perform matrix transposition using MAGMA
             auto matrixTranspositionBenchmarkMagma = [&]() mutable {
-               denseMatrixTransposeMAGMA(denseMatrix, outputMatrix);
+               denseMatrixTransposeMAGMA(denseMatrix, MagmaOutputMatrix);
             };
-            benchmark.time<Devices::Host>(device, matrixTranspositionBenchmarkMagma);
+            benchmark.time<Devices::Cuda>(device, matrixTranspositionBenchmarkMagma);
+#endif //HAVE_MAGMA
 
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
                 { "index type", TNL::getType<Index>() },
@@ -474,16 +566,16 @@ struct DenseMatricesBenchmark {
                 { "matrix size", std::to_string(dmatrix1Rows) + "x" + std::to_string(dmatrix1Columns)},
             }));
 
-#endif //HAVE_MAGMA
-
             // Lambda function to perform matrix transposition using TNL
             auto matrixTranspositionBenchmarkTNL = [&]() mutable {
                outputMatrix.getTransposition(denseMatrix);
             };
-            benchmark.time<Devices::Host>(device, matrixTranspositionBenchmarkTNL);
+            std::vector<TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType>> benchmarkMatricesTransposition = {MagmaOutputMatrix};
+            DenseMatricesResult<RealType, Devices::Cuda, IndexType> TranspositionResult(outputMatrix, benchmarkMatricesTransposition);
+            benchmark.time<Devices::Cuda>(device, matrixTranspositionBenchmarkTNL,TranspositionResult);
 
             std::cout << "---------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
-#endif
+#endif //__CUDACC__
             }
             if (device == "host" || device == "all") {
             benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({

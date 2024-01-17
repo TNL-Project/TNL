@@ -2,19 +2,22 @@ import pandas as pd
 import json
 import os
 
-def read_log_file(file_path):
-    with open(file_path, 'r') as file:
-        log_entries = []
-        for line in file:
-            entry = json.loads(line)
-            # Stop reading further if 'matrix size' is encountered
-            if 'matrix size' in entry:
-                break
-            log_entries.append(entry)
-        return log_entries
+def read_log_files(file_paths):
+    all_log_entries = []
+    for file_path in file_paths:
+        if os.path.exists(file_path):  # Check if the file exists
+            with open(file_path, 'r') as file:
+                log_entries = []
+                for line in file:
+                    entry = json.loads(line)
+                    # Stop reading further if 'matrix size' is encountered
+                    if 'matrix size' in entry:
+                        break
+                    log_entries.append(entry)
+                all_log_entries.extend(log_entries)  # Combine entries from all files
+    return all_log_entries
 
 def round_scientific(notation, precision=2):
-    """Round a number expressed in scientific notation to a given precision."""
     if isinstance(notation, str):
         try:
             number = float(notation)
@@ -90,14 +93,14 @@ def create_html_table(data):
     html += "<table>\n"
 
     # Define primary and secondary algorithms
-    primary_algorithms = ['cuBLAS', 'Magma', 'Cutlass']
-    secondary_algorithms = ['TNL', 'TNL2', '2D SMA', 'Warptiling', 'Warptiling2']
+    primary_algorithms = ['cuBLAS', 'Magma', 'Cutlass','BLAS']
+    secondary_algorithms = ['TNL', 'TNL2', '2D SMA', 'Warptiling', 'Warptiling2', 'Fermi']
     all_algorithms = primary_algorithms + secondary_algorithms
 
     # Header row 1: Algorithm names
     html += "<tr><th rowspan='2'>Matrix 1</th><th rowspan='2'>Matrix 2</th>"
     for algo in all_algorithms:
-        colspan = '6' if algo in secondary_algorithms else '1'  # Adjust colspan for secondary algorithms
+        colspan = '7' if algo in secondary_algorithms else '1'  # Adjust colspan for secondary algorithms
         html += f"<th colspan='{colspan}'>{algo}</th>"
     html += "</tr>\n"
 
@@ -148,8 +151,8 @@ def create_html_table(data):
     html += "</table>"  # End of the table
     return html
 
-log_file_path = 'tnl-benchmark-dense-matrices.log'
-log_data = read_log_file(log_file_path)
+log_file_paths = ['tnl-benchmark-dense-matrices.log', 'tnl-benchmark-dense-matrices-cpu.log']
+log_data = read_log_files(log_file_paths)
 processed_data = process_data(log_data)
 html_table = create_html_table(processed_data)
 

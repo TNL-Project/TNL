@@ -17,8 +17,8 @@ struct DenseMatricesResult
    using RealType = Real;
    using DeviceType = Device;
    using IndexType = Index;
-   using HostMatrix = TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType>;
-   using BenchmarkMatrix = TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType>;
+   using HostMatrix = TNL::Matrices::DenseMatrix<RealType, DeviceType, IndexType>;
+   using BenchmarkMatrix = TNL::Matrices::DenseMatrix<RealType, DeviceType, IndexType>;
 
    using typename BenchmarkResult::HeaderElements;
    using typename BenchmarkResult::RowElements;
