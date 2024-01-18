@@ -76,7 +76,7 @@ private:
 
       Wrapper( MPI_Comm comm ) : comm( comm ) {}
 
-      ~Wrapper()
+      ~Wrapper()  // NOLINT(modernize-use-equals-default)
       {
 #ifdef HAVE_MPI
          // cannot free a predefined handle
@@ -227,7 +227,7 @@ public:
 
    //! \brief Compares two communicators – wrapper for `MPI_Comm_compare`.
    [[nodiscard]] int
-   compare( MPI_Comm comm2 ) const
+   compare( MPI_Comm comm2 ) const  // NOLINT(readability-convert-member-functions-to-static)
    {
 #ifdef HAVE_MPI
       int result;
