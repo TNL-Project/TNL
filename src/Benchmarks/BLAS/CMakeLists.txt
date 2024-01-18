@@ -47,7 +47,7 @@ find_path( BLAS_INCLUDE_DIRS cblas.h
 if( BLAS_FOUND )
    if( BLAS_INCLUDE_DIRS )
       foreach( target IN ITEMS ${BENCHMARKS} )
-         target_include_directories( ${target} PUBLIC "${BLAS_INCLUDE_DIRS}" )
+         target_include_directories( ${target} SYSTEM PUBLIC "${BLAS_INCLUDE_DIRS}" )
          if( CBLAS_LIBRARY )
             target_compile_definitions( ${target} PUBLIC "-DHAVE_BLAS" )
             target_link_libraries( ${target} PUBLIC ${CBLAS_LIBRARY} )

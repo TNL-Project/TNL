@@ -60,8 +60,7 @@ if( ZLIB_FOUND AND tinyxml2_FOUND )
       target_link_options( ${target} PUBLIC ${TESTS_LINKER_FLAGS} )
 
       target_compile_definitions(${target} PUBLIC "-DHAVE_ZLIB")
-      target_include_directories(${target} PUBLIC ${ZLIB_INCLUDE_DIRS})
-      target_link_libraries(${target} PUBLIC ${ZLIB_LIBRARIES})
+      target_link_libraries(${target} PUBLIC ZLIB::ZLIB)
 
       target_compile_definitions(${target} PUBLIC "-DHAVE_TINYXML2")
       target_link_libraries(${target} PUBLIC tinyxml2::tinyxml2)
