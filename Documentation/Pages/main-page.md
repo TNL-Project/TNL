@@ -112,6 +112,16 @@ The procedure consists of the three usual steps: configure, build, install.
    - `TNL_OFFLINE_BUILD` – Offline build (i.e. without downloading libraries
      such as GTest) (OFF by default)
 
+   The most common native CMake variables are:
+   - [CMAKE_BUILD_TYPE][CMAKE_BUILD_TYPE] for setting the build type
+     (e.g. `RelWithDebInfo` which is set in the default preset)
+   - [CMAKE_CUDA_ARCHITECTURES][CMAKE_CUDA_ARCHITECTURES] for setting the
+     list of [CUDA GPU architectures][CUDA_ARCHITECTURES] (also known as
+     [CUDA compute capability][CUDA compute capability]), e.g. set to `80` for
+     a GPU with a compute capability of 8.0.
+   - [CMAKE_HIP_ARCHITECTURES][CMAKE_HIP_ARCHITECTURES] for setting the list of
+     [HIP GPU architectures][HIP_ARCHITECTURES].
+
 2. The [build step][cmake-build] invokes the build system and produces the
    specified targets. For example, to build *all* targets in the project's
    build tree:
@@ -168,6 +178,12 @@ Finally, some notes and tips for TNL developers:
 [cmake-install]: https://cmake.org/cmake/help/latest/manual/cmake.1.html#install-a-project
 [CMake preset]: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html
 [CMake Tools]: https://open-vsx.org/extension/ms-vscode/cmake-tools
+[CMAKE_BUILD_TYPE]: https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html
+[CMAKE_CUDA_ARCHITECTURES]: https://cmake.org/cmake/help/latest/variable/CMAKE_CUDA_ARCHITECTURES.html
+[CUDA_ARCHITECTURES]: https://cmake.org/cmake/help/latest/prop_tgt/CUDA_ARCHITECTURES.html
+[CUDA compute capability]: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
+[CMAKE_HIP_ARCHITECTURES]: https://cmake.org/cmake/help/latest/variable/CMAKE_HIP_ARCHITECTURES.html
+[HIP_ARCHITECTURES]: https://cmake.org/cmake/help/latest/prop_tgt/HIP_ARCHITECTURES.html
 
 ## Dependencies   {#dependencies}
 
