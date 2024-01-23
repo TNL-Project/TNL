@@ -32,7 +32,7 @@
 
 namespace TNL {
 
-/// \brief CPU information.
+//! \brief CPU information.
 struct CPUInfo
 {
    int numberOfProcessors = 0;
@@ -41,7 +41,7 @@ struct CPUInfo
    int cores = 0;
 };
 
-/// \brief CPU cache sizes.
+//! \brief CPU cache sizes.
 struct CPUCacheSizes
 {
    int L1instruction = 0;
@@ -51,47 +51,47 @@ struct CPUCacheSizes
    int cacheLineSize = 0;
 };
 
-/// \brief Returns the hostname of the system.
+//! \brief Returns the hostname of the system.
 inline std::string
 getHostname();
 
-/// \brief Returns the name of the operating system.
+//! \brief Returns the name of the operating system.
 inline std::string
 getSystemArchitecture();
 
-/// \brief Returns the name of the operating system.
+//! \brief Returns the name of the operating system.
 inline std::string
 getSystemName();
 
-/// \brief Returns the release of the operating system.
+//! \brief Returns the release of the operating system.
 inline std::string
 getSystemRelease();
 
-/// \brief Returns the name of the compiler.
+//! \brief Returns the name of the compiler.
 inline std::string
 getCompilerName();
 
-/// \brief Returns the current time.
+//! \brief Returns the current time.
 inline std::string
 getCurrentTime( const char* format = "%a %b %d %Y, %H:%M:%S" );
 
-/// \brief Returns the CPU information.
+//! \brief Returns the CPU information.
 inline CPUInfo
 getCPUInfo();
 
-/// \brief Returns number of online CPUs.
+//! \brief Returns number of online CPUs.
 inline std::string
 getOnlineCPUs();
 
-/// \brief Returns the CPU cache sizes.
+//! \brief Returns the CPU cache sizes.
 inline int
 getCPUMaxFrequency( int cpu_id = 0 );
 
-/// \brief Returns the CPU cache sizes.
+//! \brief Returns the CPU cache sizes.
 inline CPUCacheSizes
 getCPUCacheSizes( int cpu_id = 0 );
 
-/// \brief Returns the free memory in bytes.
+//! \brief Returns the free memory in bytes.
 inline std::size_t
 getFreeMemory();
 

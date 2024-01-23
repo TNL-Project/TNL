@@ -18,17 +18,12 @@ namespace TNL {
  * \par Output
  * \include PerformanceCountersExample.out
  */
-
 struct PerformanceCounters
 {
-   /**
-    * \brief Constructor with no parameters.
-    */
+   //! \brief Constructor with no parameters.
    PerformanceCounters();
 
-   /**
-    * \brief Reset counters.
-    */
+   //! \brief Reset counters.
    void
    reset();
 
@@ -41,9 +36,7 @@ struct PerformanceCounters
    void
    start();
 
-   /**
-    * \brief Stops (pauses) the counters but do not set them to zeros.
-    */
+   //! \brief Stops (pauses) the counters but do not set them to zeros.
    void
    stop();
 

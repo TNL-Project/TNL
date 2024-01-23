@@ -31,7 +31,7 @@ public:
    void
    reset();
 
-   //!  \brief Stops (pauses) the CPU and the real-time timers, but does not set them to zero.
+   //! \brief Stops (pauses) the CPU and the real-time timers, but does not set them to zero.
    void
    stop();
 
