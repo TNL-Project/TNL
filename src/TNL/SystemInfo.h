@@ -20,8 +20,19 @@
    #include <sys/stat.h>
 #endif
 
+#ifdef SPY_OS_IS_MACOS
+   #include <sys/types.h>
+   #include <sys/sysctl.h>
+   #include <regex>
+#endif
+
+#ifdef SPY_OS_IS_WINDOWS
+   #include <windows.h>
+#endif
+
 namespace TNL {
 
+//! \brief CPU information.
 struct CPUInfo
 {
    int numberOfProcessors = 0;
@@ -30,13 +41,59 @@ struct CPUInfo
    int cores = 0;
 };
 
+//! \brief CPU cache sizes.
 struct CPUCacheSizes
 {
    int L1instruction = 0;
    int L1data = 0;
    int L2 = 0;
    int L3 = 0;
+   int cacheLineSize = 0;
 };
+
+//! \brief Returns the hostname of the system.
+inline std::string
+getHostname();
+
+//! \brief Returns the name of the operating system.
+inline std::string
+getSystemArchitecture();
+
+//! \brief Returns the name of the operating system.
+inline std::string
+getSystemName();
+
+//! \brief Returns the release of the operating system.
+inline std::string
+getSystemRelease();
+
+//! \brief Returns the name of the compiler.
+inline std::string
+getCompilerName();
+
+//! \brief Returns the current time.
+inline std::string
+getCurrentTime( const char* format = "%a %b %d %Y, %H:%M:%S" );
+
+//! \brief Returns the CPU information.
+inline CPUInfo
+getCPUInfo();
+
+//! \brief Returns number of online CPUs.
+inline std::string
+getOnlineCPUs();
+
+//! \brief Returns the CPU cache sizes.
+inline int
+getCPUMaxFrequency( int cpu_id = 0 );
+
+//! \brief Returns the CPU cache sizes.
+inline CPUCacheSizes
+getCPUCacheSizes( int cpu_id = 0 );
+
+//! \brief Returns the free memory in bytes.
+inline std::size_t
+getFreeMemory();
 
 namespace detail {
 
@@ -90,7 +147,36 @@ parseCPUInfo()
    }
    info.numberOfProcessors = processors.size();
 
+   file.close();
    return info;
+#elif defined( SPY_OS_IS_MACOS )
+   CPUInfo info;
+
+   // It seems that MacOS does not provide number of physical processors just number of cores.
+   // With Apple Silicon, all systems are single CPU based.
+   info.numberOfProcessors = 1;
+
+   // Get model name
+   std::array< char, 1024 > buffer;
+   size_t buffer_size = buffer.size() * sizeof( char );
+   sysctlbyname( "machdep.cpu.brand_string", buffer.data(), &buffer_size, NULL, 0 );
+   info.modelName = buffer.data();
+
+   // Get number of cores
+   size_t cores_size = sizeof( info.cores );
+   sysctlbyname( "hw.physicalcpu", &info.cores, &cores_size, NULL, 0 );
+
+   size_t threads_size = sizeof( info.threads );
+   sysctlbyname( "hw.logicalcpu", &info.threads, &threads_size, NULL, 0 );
+
+   return info;
+
+#elif defined( SPY_OS_IS_WINDOWS )
+   // Get number of cores
+   // https://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
+   SYSTEM_INFO sysinfo;
+   GetSystemInfo( &sysinfo );
+   info.core = sysinfo.dwNumberOfProcessors;
 #else
    return {};
 #endif
@@ -109,6 +195,41 @@ readFile( const std::string& fileName )
    file >> result;
    return result;
 }
+
+#ifdef SPY_OS_IS_MACOS
+inline int
+getCacheSize( const char* cache_type )
+{
+   std::array< char, 128 > buffer;
+   std::string result;
+   std::string command( "sysctl hw." );
+   command += cache_type;
+   std::unique_ptr< FILE, decltype( &pclose ) > pipe( popen( command.data(), "r" ), pclose );
+
+   if( ! pipe ) {
+      std::string msg = "Cannot call command '" + command + "' to detect cache size.";
+      throw std::runtime_error( msg.data() );
+   }
+
+   while( fgets( buffer.data(), buffer.size(), pipe.get() ) != nullptr ) {
+      result += buffer.data();
+   }
+   // L3cachesize can return empty string if it is missing
+   if( result == "" )
+      return 0;
+   std::string regex_str( "hw." );
+   regex_str += cache_type;
+   regex_str += ": (\\d+)";
+   std::regex re( regex_str.data() );
+   std::smatch match;
+   if( ! std::regex_search( result, match, re ) && match.size() > 1 ) {
+      std::string msg = "Cannot parse output of sysctl command: " + result;
+      throw std::runtime_error( msg.data() );
+   }
+   int cacheSize = std::stoi( match[ 1 ].str() );
+   return cacheSize;
+}
+#endif
 
 }  // namespace detail
 
@@ -172,7 +293,7 @@ getCompilerName()
 }
 
 inline std::string
-getCurrentTime( const char* format = "%a %b %d %Y, %H:%M:%S" )
+getCurrentTime( const char* format )
 {
    const std::time_t time_since_epoch = std::time( nullptr );
    std::tm* localtime = std::localtime( &time_since_epoch );
@@ -202,7 +323,7 @@ getOnlineCPUs()
 }
 
 inline int
-getCPUMaxFrequency( int cpu_id = 0 )
+getCPUMaxFrequency( int cpu_id )
 {
    if constexpr( spy::operating_system == spy::linux_ ) {
       std::string fileName( "/sys/devices/system/cpu/cpu" );
@@ -215,7 +336,7 @@ getCPUMaxFrequency( int cpu_id = 0 )
 }
 
 inline CPUCacheSizes
-getCPUCacheSizes( int cpu_id = 0 )
+getCPUCacheSizes( int cpu_id )
 {
 #ifdef SPY_OS_IS_LINUX
    std::string directory( "/sys/devices/system/cpu/cpu" );
@@ -243,7 +364,38 @@ getCPUCacheSizes( int cpu_id = 0 )
       else if( level == 3 )
          sizes.L3 = size;
    }
+   sizes.cacheLineSize = sysconf( _SC_LEVEL1_DCACHE_LINESIZE );
    return sizes;
+#elif defined( SPY_OS_IS_MACOS )
+   CPUCacheSizes sizes;
+   sizes.L1instruction = detail::getCacheSize( "l1icachesize" );
+   sizes.L1data = detail::getCacheSize( "l1dcachesize" );
+   sizes.L2 = detail::getCacheSize( "l2cachesize" );
+   sizes.L3 = detail::getCacheSize( "l3cachesize" );
+
+   // Get cache lines size
+   std::string result;
+   std::unique_ptr< FILE, decltype( &pclose ) > pipe( popen( "sysctl hw.cachelinesize", "r" ), pclose );
+
+   if( ! pipe )
+      throw std::runtime_error( "Cannot call sysctl command to detect the cache line size." );
+
+   std::array< char, 1024 > buffer;
+   while( fgets( buffer.data(), buffer.size(), pipe.get() ) != nullptr ) {
+      result += buffer.data();
+   }
+   std::regex re( "hw.cachelinesize: (\\d+)" );
+   std::smatch match;
+   if( std::regex_search( result, match, re ) && match.size() > 1 )
+      sizes.cacheLineSize = std::stoi( match[ 1 ].str() );
+   else
+      throw std::runtime_error( "Failed to parse output of sysctl to detect the cache line size." );
+
+   return sizes;
+#elif defined( SPY_OS_IS_WINDOWS )
+   CPUCacheSizes sizes;
+   // The following might work even for WSL - https://stackoverflow.com/a/2795984
+   sizes.cacheLineSize = sysconf( _SC_LEVEL1_DCACHE_LINESIZE );
 #else
    return {};
 #endif

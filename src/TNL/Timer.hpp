@@ -25,8 +25,6 @@ Timer::reset()
    this->totalCPUTime = 0.0;
    this->initialRealTime = TimePoint();
    this->totalRealTime = Duration();
-   this->initialCPUCycles = 0;
-   this->totalCPUCycles = 0;
    this->stopState = true;
 }
 
@@ -36,7 +34,6 @@ Timer::stop()
    if( ! this->stopState ) {
       this->totalRealTime += readRealTime() - this->initialRealTime;
       this->totalCPUTime += readCPUTime() - this->initialCPUTime;
-      this->totalCPUCycles += readCPUCycles() - this->initialCPUCycles;
       this->stopState = true;
    }
 }
@@ -46,7 +43,6 @@ Timer::start()
 {
    this->initialRealTime = readRealTime();
    this->initialCPUTime = readCPUTime();
-   this->initialCPUCycles = readCPUCycles();
    this->stopState = false;
 }
 
@@ -66,20 +62,11 @@ Timer::getCPUTime() const
    return this->totalCPUTime;
 }
 
-inline unsigned long long int
-Timer::getCPUCycles() const
-{
-   if( ! this->stopState )
-      return readCPUCycles() - this->initialCPUCycles;
-   return this->totalCPUCycles;
-}
-
 inline bool
 Timer::writeLog( Logger& logger, int logLevel ) const
 {
    logger.writeParameter< double >( "Real time:", this->getRealTime(), logLevel );
    logger.writeParameter< double >( "CPU time:", this->getCPUTime(), logLevel );
-   logger.writeParameter< unsigned long long int >( "CPU Cycles:", this->getCPUCycles(), logLevel );
    return true;
 }
 
@@ -98,21 +85,6 @@ Timer::readCPUTime()
    return initUsage.ru_utime.tv_sec + 1.0e-6 * (double) initUsage.ru_utime.tv_usec;
 #else
    return -1;
-#endif
-}
-
-inline unsigned long long int
-Timer::readCPUCycles()
-{
-#ifdef SPY_OS_IS_LINUX
-   unsigned hi;
-   unsigned lo;
-   __asm__ __volatile__( "rdtsc" : "=a"( lo ), "=d"( hi ) );
-   return ( (unsigned long long) lo ) | ( ( (unsigned long long) hi ) << 32 );
-#else
-   // TODO: implement for Windows and macOS:
-   // https://lemire.me/blog/2021/03/24/counting-cycles-and-instructions-on-the-apple-m1-processor/
-   return 0;
 #endif
 }
 

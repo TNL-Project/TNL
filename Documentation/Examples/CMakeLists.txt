@@ -19,6 +19,7 @@ set( HOST_EXAMPLES
    FileNameExampleDistributedSystemNodeId
    ObjectExample_getType
    ParseObjectTypeExample
+   PerformanceCountersExample
    StringExample
    StringExampleGetAllocatedSize
    StringExampleReplace
@@ -51,10 +52,14 @@ endif()
 foreach( target IN ITEMS ${HOST_EXAMPLES} )
    add_executable( ${target} ${target}.cpp )
    target_link_libraries( ${target} PUBLIC TNL::TNL_CXX )
-   add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-                       OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-                       DEPENDS ${target} )
-   set( DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
+   # PerformanceCountersExample example requires admin privileges to run on macOS so we only build it
+   # on the Apple platform but do not execute.
+   if(NOT ( APPLE AND ${target} STREQUAL "PerformanceCountersExample" ) )
+      add_custom_command( COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                          OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+                          DEPENDS ${target} )
+      set( DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out )
+   endif()
 endforeach()
 
 add_custom_target( RunExamples ALL DEPENDS ${DOC_OUTPUTS} )
