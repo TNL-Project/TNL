@@ -370,7 +370,8 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
          Index localIdx( rowLocalIndexes_view[ rowIdx ] );
          if( value != 0.0 && columnIndex != paddingIndex< RHSIndexType > ) {
             Index thisGlobalIdx = segments_view.getGlobalIndex( rowIdx, localIdx++ );
-            TNL_ASSERT_GE( thisGlobalIdx, 0, "Global index must be non-negative." );
+            TNL_ASSERT_GE(
+               thisGlobalIdx, 0, "Global index must be non-negative. Negative values may appear due to Index type overflow." );
             columns_view[ thisGlobalIdx ] = columnIndex;
             if( ! Matrix1::isBinary() )
                values_view[ thisGlobalIdx ] = value;
@@ -422,7 +423,6 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
          };
          B.forElements( baseRow, lastRow, f1 );
 #endif
-
          // Copy the source matrix buffer to this matrix buffer
          thisValuesBuffer_view = matrixValuesBuffer_view;
          thisColumnsBuffer_view = matrixColumnsBuffer_view;
