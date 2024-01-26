@@ -122,16 +122,21 @@ protected:
    findLineByElement( std::istream& file, const IndexType& row, const IndexType& column, String& line, IndexType& lineNumber );
 
    static void
-   checkMtxHeader( const String& header, bool& symmetric );
+   checkMtxHeader( const String& header, bool& symmetric, bool& matrixPattern );
 
    static void
-   readMtxHeader( std::istream& file, IndexType& rows, IndexType& columns, bool& symmetricMatrix, bool verbose );
+   readMtxHeader( std::istream& file,
+                  IndexType& rows,
+                  IndexType& columns,
+                  bool& symmetricMatrix,
+                  bool& matrixPattern,
+                  bool verbose );
 
    static void
-   readMatrixElementsFromMtxFile( std::istream& file, Matrix& matrix, bool symmetricMatrix, bool verbose );
+   readMatrixElementsFromMtxFile( std::istream& file, Matrix& matrix, bool symmetricMatrix, bool matrixPattern, bool verbose );
 
    static void
-   parseMtxLineWithElement( const String& line, IndexType& row, IndexType& column, RealType& value );
+   parseMtxLineWithElement( const String& line, bool matrixPattern, IndexType& row, IndexType& column, RealType& value );
 };
 /// \endcond
 
