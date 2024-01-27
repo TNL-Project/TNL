@@ -7,61 +7,57 @@ template< typename Device >
 void
 traverseGrid()
 {
-   /***
-    * Define grid dimension and size.
-    */
+   //! [setup]
+   // Define grid dimension and size.
    static constexpr int Dimension = 2;
    const int grid_size = 5;
 
-   /***
-    * Setup necessary type.
-    */
+   // Setup necessary types.
    using GridType = TNL::Meshes::Grid< Dimension, double, Device >;
    using CoordinatesType = typename GridType::CoordinatesType;
    using PointType = typename GridType::PointType;
    using VectorType = TNL::Containers::Vector< double, Device >;
 
-   /***
-    * Setup types of grid entities.
-    */
+   // Setup types of grid entities.
    using GridCell = typename GridType::Cell;
    using GridFace = typename GridType::Face;
    using GridVertex = typename GridType::Vertex;
+   //! [setup]
 
-   /***
-    * Create an instance of a grid.
-    */
+   //! [create grid]
+   // Create an instance of a grid.
    GridType grid( grid_size );
-   PointType origin( 0.0 ), proportions( 1.0 );
+   PointType origin( 0.0 );
+   PointType proportions( 1.0 );
    grid.setDomain( origin, proportions );
+   //! [create grid]
 
-   /***
-    * Allocate vectors for values stored in particular grid entities.
-    */
+   //! [allocate vectors]
+   // Allocate vectors for values stored in particular grid entities.
    VectorType cells( grid.template getEntitiesCount< Dimension >(), 0.0 );
    VectorType faces( grid.template getEntitiesCount< Dimension - 1 >(), 0.0 );
    VectorType vertexes( grid.template getEntitiesCount< 0 >(), 0.0 );
+   //! [allocate vectors]
 
-   /***
-    * Prepare views for the data at the grid entities so that we can
-    * manipulate them in lambda functions runnig eventually on GPU.
-    */
+   //! [prepare vector views]
+   // Prepare views for the data at the grid entities so that we can
+   // manipulate them in lambda functions runnig eventually on GPU.
    auto cells_view = cells.getView();
    auto faces_view = faces.getView();
    auto vertexes_view = vertexes.getView();
+   //! [prepare vector views]
 
-   /***
-    * Setup value of each cell to its index in the grid.
-    */
+   //! [initialize cells]
+   // Setup value of each cell to its index in the grid.
    grid.template forAllEntities< Dimension >(
       [ = ] __cuda_callable__( const GridCell& cell ) mutable
       {
          cells_view[ cell.getIndex() ] = cell.getIndex();
       } );
+   //! [initialize cells]
 
-   /***
-    * Print values of all cells in the grid.
-    */
+   //! [print cells]
+   // Print values of all cells in the grid.
    std::cout << "Values of cells .... " << std::endl;
    for( int i = grid_size - 1; i >= 0; i-- ) {
       for( int j = 0; j < grid_size; j++ ) {
@@ -72,14 +68,14 @@ traverseGrid()
       std::cout << std::endl;
    }
    std::cout << std::endl;
+   //! [print cells]
 
-   /***
-    * Setup values of all faces to an average value of its neighbour cells.
-    */
+   //! [initialize faces]
+   // Setup values of all faces to an average value of its neighbour cells.
    grid.template forAllEntities< Dimension - 1 >(
       [ = ] __cuda_callable__( const GridFace& face ) mutable
       {
-         const CoordinatesType normal = face.getNormals();
+         const CoordinatesType& normal = face.getNormals();
          double sum = 0.0;
          double count = 0.0;
          if( TNL::all( greaterEqual( face.getCoordinates() - normal, 0 ) ) ) {
@@ -94,10 +90,10 @@ traverseGrid()
          }
          faces_view[ face.getIndex() ] = sum / count;
       } );
+   //! [initialize faces]
 
-   /***
-    * Print values of all faces in the grid.
-    */
+   //! [print faces]
+   // Print values of all faces in the grid.
    std::cout << "Values of faces ..." << std::endl;
    for( int i = grid_size; i >= 0; i-- ) {
       std::cout << std::right << std::setw( 6 ) << " ";
@@ -115,10 +111,10 @@ traverseGrid()
          }
       std::cout << std::endl;
    }
+   //! [print faces]
 
-   /***
-    * Setup values of all vertexes to an average value of its neighbouring cells.
-    */
+   //! [initialize vertexes]
+   // Setup values of all vertexes to an average value of its neighboring cells
    grid.template forAllEntities< 0 >(
       [ = ] __cuda_callable__( const GridVertex& vertex ) mutable
       {
@@ -147,10 +143,10 @@ traverseGrid()
          }
          vertexes_view[ vertex.getIndex() ] = sum / count;
       } );
+   //! [initialize vertexes]
 
-   /***
-    * Print values of all vertexes in the grid.
-    */
+   //! [print vertexes]
+   // Print values of all vertexes in the grid.
    std::cout << "Values of vertexes .... " << std::endl;
    for( int i = grid_size; i >= 0; i-- ) {
       for( int j = 0; j <= grid_size; j++ ) {
@@ -160,6 +156,7 @@ traverseGrid()
       }
       std::cout << std::endl;
    }
+   //! [print vertexes]
 }
 
 int
