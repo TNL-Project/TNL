@@ -138,19 +138,25 @@ getMaximumImbalance( const std::vector< Block< 3, idx > >& decomposition, idx gl
 
 /**
  * \brief Calculates the area of a 2D block in 3D space.
+ *
+ * \param block The block whose area will be calculated.
+ * \param axes_weights Optional weights that modify the area based on the block orientation.
+ *                     `axes_weights.x()` multiplies the area of blocks normal to the x-axis,
+ *                     `axes_weights.y()` multiplies the area of blocks normal to the y-axis, and
+ *                     `axes_weights.z()` multiplies the area of blocks normal to the z-axis.
  */
 template< typename idx >
 idx
-getArea( const Block< 3, idx >& block )
+getArea( const Block< 3, idx >& block, const StaticVector< 3, idx >& axes_weights = { 1, 1, 1 } )
 {
    if( block.begin.x() == block.end.x() ) {
-      return std::abs( block.end.y() - block.begin.y() ) * std::abs( block.end.z() - block.begin.z() );
+      return std::abs( block.end.y() - block.begin.y() ) * std::abs( block.end.z() - block.begin.z() ) * axes_weights.x();
    }
    if( block.begin.y() == block.end.y() ) {
-      return std::abs( block.end.x() - block.begin.x() ) * std::abs( block.end.z() - block.begin.z() );
+      return std::abs( block.end.x() - block.begin.x() ) * std::abs( block.end.z() - block.begin.z() ) * axes_weights.y();
    }
    if( block.begin.z() == block.end.z() ) {
-      return std::abs( block.end.x() - block.begin.x() ) * std::abs( block.end.y() - block.begin.y() );
+      return std::abs( block.end.x() - block.begin.x() ) * std::abs( block.end.y() - block.begin.y() ) * axes_weights.z();
    }
    throw std::logic_error( "3D block passed to the area function is not a 2D "
                            "object (it has a non-zero volume)" );
@@ -228,14 +234,21 @@ createInteriorSides( const std::vector< Block< 3, idx > >& decomposition )
 
 /**
  * \brief Calculates the total area of interior sides in a 3D decomposition.
+ *
+ * \param decomposition A vector of blocks that form a 3D decomposition of a large block.
+ * \param axes_weights Optional weights that modify interface areas based on the interior side orientation.
+ *                     `axes_weights.x()` multiplies the area of sides normal to the x-axis,
+ *                     `axes_weights.y()` multiplies the area of sides normal to the y-axis, and
+ *                     `axes_weights.z()` multiplies the area of sides normal to the z-axis.
  */
 template< typename idx >
 idx
-getInterfaceArea( const std::vector< Block< 3, idx > >& decomposition )
+getInterfaceArea( const std::vector< Block< 3, idx > >& decomposition,
+                  const StaticVector< 3, idx >& axes_weights = { 1, 1, 1 } )
 {
    idx result = 0;
    for( const auto& side : createInteriorSides( decomposition ) )
-      result += getArea( side );
+      result += getArea( side, axes_weights );
    return result;
 }
 
