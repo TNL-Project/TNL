@@ -121,7 +121,8 @@ kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roo
    std::sort( edges.begin(), edges.end(), compareEdges< Real, Index > );
 
    Forest< Real, Index > forest( n );
-   IndexVector nodeCapacities( n ), tree_filling( n, 0 );
+   IndexVector nodeCapacities( n );
+   IndexVector tree_filling( n, 0 );
    graph.getAdjacencyMatrix().getRowCapacities( nodeCapacities );
    minimum_spanning_tree.setNodeCount( n );
    minimum_spanning_tree.setNodeCapacities( nodeCapacities );
@@ -170,7 +171,11 @@ parallelMST( const InGraph& graph, OutGraph& tree )
    tree.setNodeCount( n );
    tree.getAdjacencyMatrix().setRowCapacities( starRootsSlots );
 
-   IndexVector p( n ), p_old( n, 0 ), q( n ), new_links_target( n, -1 ), star_link_source( n, -1 );
+   IndexVector p( n );
+   IndexVector p_old( n, 0 );
+   IndexVector q( n );
+   IndexVector new_links_target( n, -1 );
+   IndexVector star_link_source( n, -1 );
    RealVector new_links_weight( n, 0.0 );
    RealVector hook_candidates_weights( hook_candidates.getStorageSize(), std::numeric_limits< Real >::max() ),
       star_hook_candidates_weights( n, std::numeric_limits< Real >::max() ),

@@ -134,13 +134,13 @@ struct Graph
       this->adjacencyMatrix.setElements( map );
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getNodeCount() const
    {
       return adjacencyMatrix.getRows();
    }
 
-   IndexType
+   [[nodiscard]] IndexType
    getEdgeCount() const
    {
       if constexpr( isUndirected() )
@@ -155,7 +155,7 @@ struct Graph
       adjacencyMatrix.setRowCapacities( nodeCapacities );
    }
 
-   const MatrixType&
+   [[nodiscard]] const MatrixType&
    getAdjacencyMatrix() const
    {
       return adjacencyMatrix;
@@ -176,7 +176,7 @@ struct Graph
       adjacencyMatrix = std::move( matrix );
    }
 
-   ValueType
+   [[nodiscard]] ValueType
    getTotalWeight() const
    {
       auto values_view = adjacencyMatrix.getValues().getConstView();

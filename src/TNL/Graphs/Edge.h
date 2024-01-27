@@ -63,7 +63,7 @@ struct Edge
       return ! ( *this == other );
    }
 
-   const Index&
+   [[nodiscard]] const Index&
    getSource() const
    {
       return source;
@@ -75,7 +75,7 @@ struct Edge
       return source;
    }
 
-   const Index&
+   [[nodiscard]] const Index&
    getTarget() const
    {
       return target;
@@ -87,7 +87,7 @@ struct Edge
       return target;
    }
 
-   const Real&
+   [[nodiscard]] const Real&
    getWeight() const
    {
       return weight;
