@@ -1,26 +1,30 @@
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
 
 // Define the tag for the MeshTypeResolver configuration
-struct MyConfigTag {};
+struct MyConfigTag
+{};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
 struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >
-{ enum { enabled = false }; };
+{
+   static constexpr bool enabled = false;
+};
 
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle > { enum { enabled = true }; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+}  // namespace TNL::Meshes::BuildConfigTags
 
 // Define the main task/function of the program
 template< typename Mesh >
-bool task( const Mesh& mesh )
+bool
+task( const Mesh& mesh )
 {
    //! [getEntitiesCount]
    const int num_vertices = mesh.template getEntitiesCount< 0 >();
@@ -43,41 +47,43 @@ bool task( const Mesh& mesh )
    (void) vert;
    (void) elem;
 
-{
-   //! [Iteration over subentities]
-   typename Mesh::Cell elem = mesh.template getEntity< Mesh::getMeshDimension() >( idx2 );
-   const int n_subvert = elem.template getSubentitiesCount< 0 >();
-   for( int v = 0; v < n_subvert; v++ ) {
-      const int v_idx = elem.template getSubentityIndex< 0 >( v );
-      typename Mesh::Vertex vert = mesh.template getEntity< 0 >( v_idx );
-      // [Do some work...]
-      (void) vert;
-   }
-   //! [Iteration over subentities]
-}
-
-{
-   //! [Parallel iteration host]
-   auto kernel = [&mesh] ( typename Mesh::GlobalIndexType i ) mutable
    {
-      typename Mesh::Cell elem = mesh.template getEntity< Mesh::getMeshDimension() >( i );
-      // [Do some work with the current cell `elem`...]
-      (void) elem;
-   };
-   mesh.template forAll< Mesh::getMeshDimension() >( kernel );
-   //! [Parallel iteration host]
-}
+      //! [Iteration over subentities]
+      typename Mesh::Cell elem = mesh.template getEntity< Mesh::getMeshDimension() >( idx2 );
+      const int n_subvert = elem.template getSubentitiesCount< 0 >();
+      for( int v = 0; v < n_subvert; v++ ) {
+         const int v_idx = elem.template getSubentityIndex< 0 >( v );
+         typename Mesh::Vertex vert = mesh.template getEntity< 0 >( v_idx );
+         // [Do some work...]
+         (void) vert;
+      }
+      //! [Iteration over subentities]
+   }
+
+   {
+      //! [Parallel iteration host]
+      auto kernel = [ &mesh ]( typename Mesh::GlobalIndexType i ) mutable
+      {
+         typename Mesh::Cell elem = mesh.template getEntity< Mesh::getMeshDimension() >( i );
+         // [Do some work with the current cell `elem`...]
+         (void) elem;
+      };
+      mesh.template forAll< Mesh::getMeshDimension() >( kernel );
+      //! [Parallel iteration host]
+   }
 
    return true;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    const std::string inputFileName = "example-triangles.vtu";
 
-   auto wrapper = [] ( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = []( auto& reader, auto&& mesh ) -> bool
    {
       return task( mesh );
    };
-   return ! TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
+   const bool result = TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
+   return static_cast< int >( ! result );
 }
