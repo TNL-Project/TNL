@@ -139,13 +139,13 @@ protected:
          }
       }
 
-      Coordinate
+      [[nodiscard]] Coordinate
       getCoordinate() const
       {
          return this->current;
       }
 
-      Index
+      [[nodiscard]] Index
       getIndex( const Grid& grid ) const
       {
          Index result = 0;

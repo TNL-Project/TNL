@@ -33,7 +33,8 @@ struct GraphReader
          }
 
          std::istringstream ss( line );
-         int from_node, to_node;
+         int from_node;
+         int to_node;
          ss >> from_node >> to_node;
          nodes = std::max( nodes, std::max( from_node, to_node ) );
          ValueType weight = 1.0;

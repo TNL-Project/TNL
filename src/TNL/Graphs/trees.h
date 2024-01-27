@@ -48,8 +48,11 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
    if( treeType == TreeType::Tree && graph.getEdgeCount() != n - 1 )
       return false;
 
-   IndexVectorType visited( n, 0 ), visited_old( n, -1 ), parents( n, 0 );
-   IndexType start_node = 0, rootsIdx = 0;
+   IndexVectorType visited( n, 0 );
+   IndexVectorType visited_old( n, -1 );
+   IndexVectorType parents( n, 0 );
+   IndexType start_node = 0;
+   IndexType rootsIdx = 0;
    if( ! roots.empty() )
       start_node = roots.getElement( rootsIdx++ );
    while( true ) {

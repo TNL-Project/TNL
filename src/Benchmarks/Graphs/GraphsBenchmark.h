@@ -493,8 +493,8 @@ struct GraphsBenchmark
    runBenchmark()
    {
       auto inputFile = parameters.getParameter< TNL::String >( "input-file" );
-      const TNL::String logFileName = parameters.getParameter< TNL::String >( "log-file" );
-      const TNL::String outputMode = parameters.getParameter< TNL::String >( "output-mode" );
+      const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
+      const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
       const int loops = parameters.getParameter< int >( "loops" );
       const int verbose = parameters.getParameter< int >( "verbose" );
 
@@ -510,7 +510,7 @@ struct GraphsBenchmark
 
       this->errors = 0;
 
-      TNL::String device = parameters.getParameter< TNL::String >( "device" );
+      auto device = parameters.getParameter< TNL::String >( "device" );
 
       std::cout << "Graphs benchmark  with " << TNL::getType< Real >() << " precision and device: " << device << std::endl;
 
@@ -518,7 +518,7 @@ struct GraphsBenchmark
       std::cout << "Reading graph from file " << inputFile << std::endl;
       TNL::Graphs::GraphReader< HostDigraph >::readEdgeList( inputFile, digraph );
 
-      HostMatrix symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );
+      auto symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );
       HostGraph graph( symmetrizedAdjacencyMatrix );
       TNL::Graphs::GraphWriter< HostGraph >::writeEdgeList( inputFile + "-undirected.txt", graph );
 
@@ -551,7 +551,7 @@ struct GraphsBenchmark
             digraph, graph, benchmark, "cuda", "BiEllpack" );
       }
 #endif
-      if( ! errors )
+      if( errors == 0 )
          return true;
       return false;
    }
