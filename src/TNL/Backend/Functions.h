@@ -130,6 +130,21 @@ funcSetCacheConfig( T* func, enum FuncCache cacheConfig )
 #endif
 }
 
+/**
+ * \brief Loads data from a global memory using the `__ldg()` intrinsic.
+ */
+template< class T >
+__device__
+T
+ldg( const T& value )
+{
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
+   return __ldg( &value );
+#else
+   return value;
+#endif
+}
+
 }  // namespace TNL::Backend
 
 // HIP does not have __syncwarp
