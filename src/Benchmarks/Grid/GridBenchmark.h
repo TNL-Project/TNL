@@ -40,12 +40,12 @@ class GridBenchmark {
       }
 
       template< int GridDimension >
-      int runBenchmark(const TNL::Config::ParameterContainer& parameters) const {
+      [[nodiscard]] int runBenchmark(const TNL::Config::ParameterContainer& parameters) const {
          if (!TNL::Devices::Host::setup( parameters ) || !TNL::Devices::Cuda::setup( parameters ) )
             return EXIT_FAILURE;
 
-         const TNL::String logFileName = parameters.getParameter<TNL::String>( "log-file" );
-         const TNL::String outputMode = parameters.getParameter<TNL::String>( "output-mode" );
+         const auto logFileName = parameters.getParameter<TNL::String>( "log-file" );
+         const auto outputMode = parameters.getParameter<TNL::String>( "output-mode" );
 
          const int verbose = parameters.getParameter< int >("verbose");
          const int loops = parameters.getParameter< int >("loops");
@@ -120,7 +120,7 @@ class GridBenchmark {
          };
 
          Benchmark::MetadataColumns forAllColumns( columns );
-         forAllColumns.push_back( { "traverse_id", "forAll" } );
+         forAllColumns.emplace_back( "traverse_id", "forAll" );
          benchmark.setMetadataColumns(forAllColumns);
          auto measureAll = [=]() {
             grid.template forAllEntities<EntityDimension>(exec);
@@ -128,7 +128,7 @@ class GridBenchmark {
          benchmark.time<typename Grid::DeviceType>(device, measureAll);
 
          Benchmark::MetadataColumns forInteriorColumns( columns );
-         forInteriorColumns.push_back( { "traverse_id", "forInterior" } );
+         forInteriorColumns.emplace_back( "traverse_id", "forInterior" );
          benchmark.setMetadataColumns(forInteriorColumns);
          auto measureInterior = [=]() {
             grid.template forInteriorEntities<EntityDimension>(exec);
@@ -137,7 +137,7 @@ class GridBenchmark {
 
 
          Benchmark::MetadataColumns forBoundaryColumns( columns );
-         forBoundaryColumns.push_back( { "traverse_id", "forBoundary" } );
+         forBoundaryColumns.emplace_back( "traverse_id", "forBoundary" );
          benchmark.setMetadataColumns(forInteriorColumns);
          auto measureBoundary = [=]() {
             grid.template forBoundaryEntities<EntityDimension>(exec);

@@ -62,6 +62,7 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariab
       return T1::getSize();
    }
 
+   // NOLINTNEXTLINE(modernize-pass-by-value)
    constexpr StaticBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b ) {}
 
    constexpr RealType
@@ -112,6 +113,7 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariab
       return T1::getSize();
    }
 
+   // NOLINTNEXTLINE(modernize-pass-by-value)
    constexpr StaticBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b ) {}
 
    constexpr RealType
@@ -162,6 +164,7 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariable, Ve
       return T2::getSize();
    }
 
+   // NOLINTNEXTLINE(modernize-pass-by-value)
    constexpr StaticBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b ) {}
 
    constexpr RealType
@@ -216,6 +219,7 @@ struct StaticUnaryExpressionTemplate
 
    // the constructor is explicit to prevent issues with the ternary operator,
    // see https://gitlab.com/tnl-project/tnl/-/issues/140
+   // NOLINTNEXTLINE(modernize-pass-by-value)
    explicit constexpr StaticUnaryExpressionTemplate( const T1& a ) : operand( a ) {}
 
    constexpr RealType

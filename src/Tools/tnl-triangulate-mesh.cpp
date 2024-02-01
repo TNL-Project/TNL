@@ -234,11 +234,11 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   const std::string inputFileName = parameters.getParameter< std::string >( "input-file" );
-   const std::string inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
-   const std::string outputFileName = parameters.getParameter< std::string >( "output-file" );
-   const std::string outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
-   const std::string decompositionType = parameters.getParameter< std::string >( "decomposition-type" );
+   const auto inputFileName = parameters.getParameter< std::string >( "input-file" );
+   const auto inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
+   const auto outputFileName = parameters.getParameter< std::string >( "output-file" );
+   const auto outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
+   const auto decompositionType = parameters.getParameter< std::string >( "decomposition-type" );
 
    auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {

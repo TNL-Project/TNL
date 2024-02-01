@@ -26,7 +26,8 @@ expect_seq( const Array& a, const Seq& seq )
 
 TEST( SlicedNDArrayTest, 2D_Static_Identity )
 {
-   constexpr int I = 3, J = 5;
+   constexpr int I = 3;
+   constexpr int J = 5;
    SlicedNDArray< int, SizesHolder< int, I, J > > a;
    a.setSizes( 0, 0 );
 
@@ -40,7 +41,8 @@ TEST( SlicedNDArrayTest, 2D_Static_Identity )
 
 TEST( SlicedNDArrayTest, 2D_Static_Permuted )
 {
-   constexpr int I = 3, J = 5;
+   constexpr int I = 3;
+   constexpr int J = 5;
    SlicedNDArray< int, SizesHolder< int, I, J >, index_sequence< 1, 0 > > a;
    a.setSizes( 0, 0 );
 
@@ -54,7 +56,12 @@ TEST( SlicedNDArrayTest, 2D_Static_Permuted )
 
 TEST( SlicedNDArrayTest, 6D_Dynamic )
 {
-   int I = 2, J = 2, K = 2, L = 2, M = 2, N = 2;
+   int I = 2;
+   int J = 2;
+   int K = 2;
+   int L = 2;
+   int M = 2;
+   int N = 2;
    SlicedNDArray< int, SizesHolder< int, 0, 0, 0, 0, 0, 0 >, index_sequence< 5, 3, 4, 2, 0, 1 > > a;
    a.setSizes( I, J, K, L, M, N );
 
@@ -72,7 +79,8 @@ TEST( SlicedNDArrayTest, 6D_Dynamic )
 
 TEST( SlicedNDArrayTest, Sliced2D_Dynamic_Identity )
 {
-   const int I = 3, J = 5;
+   const int I = 3;
+   const int J = 5;
    SlicedNDArray< int, SizesHolder< int, 0, 0 >, index_sequence< 0, 1 >, SliceInfo< 1, 2 > > a;  // J is sliced
    a.setSizes( I, J );
 
@@ -149,7 +157,8 @@ TEST( SlicedNDArrayTest, Sliced2D_HalfStatic_Identity )
 
 TEST( SlicedNDArrayTest, Sliced2D_Dynamic_Permuted )
 {
-   const int I = 3, J = 5;
+   const int I = 3;
+   const int J = 5;
    SlicedNDArray< int, SizesHolder< int, 0, 0 >, index_sequence< 1, 0 >, SliceInfo< 0, 2 > > a;  // I is sliced
    a.setSizes( I, J );
 
@@ -228,7 +237,8 @@ TEST( SlicedNDArrayTest, Sliced2D_HalfStatic_Permuted )
 
 TEST( SlicedNDArrayTest, CopySemantics )
 {
-   const int I = 3, J = 4;
+   const int I = 3;
+   const int J = 4;
    SlicedNDArray< int, SizesHolder< int, 0, 0 >, index_sequence< 0, 1 >, SliceInfo< 1, 2 > > a, b, c;  // J is sliced
    a.setSizes( I, J );
 
