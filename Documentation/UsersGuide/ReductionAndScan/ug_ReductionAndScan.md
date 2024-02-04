@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This chapter introduces flexible parallel reduction in TNL. It shows how to easily implement parallel reduction with user defined operations which may run on both CPU and GPU. Parallel reduction is a programming pattern appering very often in different kind of algorithms for example in scalar product, vector norms or mean value evaluation but also in sequences or strings comparison.
+This chapter introduces flexible parallel reduction in TNL. It shows how to easily implement parallel reduction with user defined operations which may run on both CPU and GPU. Parallel reduction is a programming pattern appearing very often in different kind of algorithms for example in scalar product, vector norms or mean value evaluation but also in sequences or strings comparison.
 
 ## Flexible reduction
 
@@ -54,7 +54,7 @@ Product of vector elements can be computed using fuction [`product(v)`](../html/
 
 ### Scalar product
 
-One of the most important operation in the linear algebra is the scalar product of two vectors. Compared to coputing the sum of vector elements we must change the function `fetch` to read elements from both vectors and multiply them. See the following example.
+One of the most important operation in the linear algebra is the scalar product of two vectors. Compared to computing the sum of vector elements we must change the function `fetch` to read elements from both vectors and multiply them. See the following example.
 
 \includelineno ScalarProductExample.cpp
 
@@ -66,7 +66,7 @@ Scalar product of vectors `u` and `v` in TNL can be computed by `TNL::dot(u, v)`
 
 ### Maximum norm
 
-Maximum norm of a vector equals modulus of the vector largest element.  Therefore, `fetch` must return the absolute value of the vector elements and `reduction` wil return maximum of given values. Look at the following example.
+Maximum norm of a vector equals the modulus of the vector largest element.  Therefore, `fetch` must return the absolute value of the vector elements and `reduction` wil return maximum of given values. Look at the following example.
 
 \includelineno MaximumNormExample.cpp
 
@@ -78,7 +78,7 @@ Maximum norm in TNL is computed by the function `TNL::maxNorm`.
 
 ### Vectors comparison
 
-Comparison of two vectors involve (parallel) reduction as well. The `fetch` part is responsible for comparison of corresponding vector elements result of which is boolean `true` or `false` for each vector elements. The `reduction` part must perform logical and operation on all of them. We must not forget to change the *idempotent element* to `true`. The code may look as follows:
+Comparison of two vectors involve (parallel) reduction as well. The `fetch` part is responsible for comparison of corresponding vector elements results of which is boolean `true` or `false` for each vector elements. The `reduction` part must perform logical and operation on all of them. We must not forget to change the *idempotent element* to `true`. The code may look as follows:
 
 \includelineno ComparisonExample.cpp
 

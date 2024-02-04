@@ -215,9 +215,9 @@ In the test of dense matrices, we set each matrix element to value equal to `row
 
 Here:
 
-* **setElement on host** tests run in one thread. Therefore they are faster for small matrices compared to "`setElement` with `parallelFor`" tests.
+* **setElement on host** tests run in one thread. Therefore they are faster for small matrices compared to `setElement` with `parallelFor` tests.
 * **setElement with parallelFor** tests run in parallel in several OpenMP threads. This approach is faster for larger matrices.
-* **getRow** tests run in parallel in several OpenMP threads mapping of which is more efficient compared to "`setElement` on host" tests.
+* **getRow** tests run in parallel in several OpenMP threads mapping of which is more efficient compared to `setElement` on host tests.
 
 And the same on GPU is in the following table:
 
@@ -239,14 +239,14 @@ Here:
 * **setElement on host** tests are very slow especially for large matrices since each matrix element is copied on GPU separately.
 * **setElement on host and copy** tests are much faster because the matrix is copied from CPU to GPU on the whole which is more efficient.
 * **setElement on GPU** tests are even more faster since there is no transfer of data between CPU and GPU.
-* **getRow** tests have the same performance as "`setElement` on GPU".
-* **forElements** tests have the same performance as both "`setElement` on GPU" and "`getRow`".
+* **getRow** tests have the same performance as `setElement` on GPU.
+* **forElements** tests have the same performance as both `setElement` on GPU and `getRow`.
 
 You can see the source code of the previous benchmark in [Appendix](#benchmark-of-dense-matrix-setup).
 
 ### Sparse matrix
 
-The sparse matrices are tested on computation of matrix the [discrete Laplace operator in 2D](https://en.wikipedia.org/wiki/Discrete_Laplace_operator). This matrix has at most five nonzero elements in each row. The times for sparse matrix (with CSR format) on CPU in seconds looks as follows:
+The sparse matrices are tested on computation of matrix the [discrete Laplace operator in 2D](https://en.wikipedia.org/wiki/Discrete_Laplace_operator). This matrix has at most five nonzero elements in each row. The times for sparse matrix (with CSR format) on CPU in seconds look as follows:
 
 | Matrix rows and columns     |  STL Map     | `setElement` on host | `setElement` with `parallelFor` | `getRow`    | `forElements`    |
 |----------------------------:|-------------:|---------------------:|--------------------------------:|------------:|-----------------:|
@@ -267,7 +267,7 @@ Here:
 * **setElement on host** tests are much faster compared to STL map, it does not need to allocate anything else except the sparse matrix. However, matrix row capacities must be known in advance.
 * **setElement with parallelFor** tests run in parallel in several OpenMP threads and so this can be faster for larger matrices.
 * **getRow** tests perform the same as `setElement` with `parallelFor`.
-* **forElements** tests perform the same as both `setElement` with `parallelFor` and `getRow`.
+* **forElements** tests perform the same as both `setElement` with `parallelFor` and `forElements`.
 
 We see, that the use of STL map makes sense only in situation when it is hard to estimate necessary row capacities. Otherwise very easy setup with `setElement` method is much faster. If the performance is the highest priority, `getRow` method should be preferred. The results for GPU are in the following table:
 
@@ -573,7 +573,7 @@ Another way of setting the sparse matrix is by means of the methods `setElement`
 
 \includelineno SparseMatrixViewExample_setElement.cpp
 
-We first allocate matrix with five rows (it is given by the size of the [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list) and columns and we set capacity each row to one (line 12). The first for-loop (lines 17-19) runs on CPU no matter where the matrix is allocated. After printing the matrix (lines 21-22), we call the lambda function `f` (lines 24-26) with a help of \ref TNL::Algorithms::parallelFor "parallelFor" (line 28) which is device sensitive and so it runs on CPU or GPU depending on where the matrix is allocated. The result looks as follows:
+We first allocate matrix with five rows (it is given by the size of the [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list)) and columns and we set capacity each row to one (line 12). The first for-loop (lines 17-19) runs on CPU no matter where the matrix is allocated. After printing the matrix (lines 21-22), we call the lambda function `f` (lines 24-26) with a help of \ref TNL::Algorithms::parallelFor "parallelFor" (line 28) which is device sensitive and so it runs on CPU or GPU depending on where the matrix is allocated. The result looks as follows:
 
 \include SparseMatrixViewExample_setElement.out
 
