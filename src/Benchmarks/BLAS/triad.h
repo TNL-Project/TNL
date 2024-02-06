@@ -13,11 +13,9 @@
 
 namespace TNL::Benchmarks {
 
-template< typename Real = double,
-          typename Index = int >
+template< typename Real = double, typename Index = int >
 void
-benchmarkTriad( Benchmark<> & benchmark,
-                const long & size )
+benchmarkTriad( Benchmark<>& benchmark, const long& size )
 {
    using HostAllocator = Allocators::Host< Real >;
 #if defined( __HIP__ )
@@ -30,7 +28,7 @@ benchmarkTriad( Benchmark<> & benchmark,
    using CudaManagedAllocator = Allocators::CudaManaged< Real >;
 #endif
 
-   double datasetSize = (double) size * sizeof(Real) / oneGB;
+   double datasetSize = (double) size * sizeof( Real ) / oneGB;
    benchmark.setOperation( "triad", 3 * datasetSize );
 
    const Real scalar = 3.1415926535;
@@ -53,7 +51,7 @@ benchmarkTriad( Benchmark<> & benchmark,
       b_d.setSize( size );
       c_d.setSize( size );
 
-      auto reset = [&]()
+      auto reset = [ & ]()
       {
          a_h.setValue( 1.0 );
          b_h.setValue( 1.0 );
@@ -63,7 +61,7 @@ benchmarkTriad( Benchmark<> & benchmark,
          c_d.setValue( 0.0 );
       };
 
-      auto triad = [&]()
+      auto triad = [ & ]()
       {
          b_d = b_h;
          c_d = c_h;
@@ -71,9 +69,9 @@ benchmarkTriad( Benchmark<> & benchmark,
          auto a_v = a_d.getView();
          const auto b_v = b_d.getConstView();
          const auto c_v = c_d.getConstView();
-         auto kernel = [=] __cuda_callable__ ( Index i ) mutable
+         auto kernel = [ = ] __cuda_callable__( Index i ) mutable
          {
-            a_v[i] = b_v[i] + scalar * c_v[i];
+            a_v[ i ] = b_v[ i ] + scalar * c_v[ i ];
          };
          Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
 
@@ -101,7 +99,7 @@ benchmarkTriad( Benchmark<> & benchmark,
       b_d.setSize( size );
       c_d.setSize( size );
 
-      auto reset = [&]()
+      auto reset = [ & ]()
       {
          a_h.setValue( 1.0 );
          b_h.setValue( 1.0 );
@@ -111,7 +109,7 @@ benchmarkTriad( Benchmark<> & benchmark,
          c_d.setValue( 0.0 );
       };
 
-      auto triad = [&]()
+      auto triad = [ & ]()
       {
          b_d = b_h;
          c_d = c_h;
@@ -119,9 +117,9 @@ benchmarkTriad( Benchmark<> & benchmark,
          auto a_v = a_d.getView();
          const auto b_v = b_d.getConstView();
          const auto c_v = c_d.getConstView();
-         auto kernel = [=] __cuda_callable__ ( Index i ) mutable
+         auto kernel = [ = ] __cuda_callable__( Index i ) mutable
          {
-            a_v[i] = b_v[i] + scalar * c_v[i];
+            a_v[ i ] = b_v[ i ] + scalar * c_v[ i ];
          };
          Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
 
@@ -142,7 +140,7 @@ benchmarkTriad( Benchmark<> & benchmark,
       b_h.setSize( size );
       c_h.setSize( size );
 
-      auto reset = [&]()
+      auto reset = [ & ]()
       {
          a_h.setValue( 1.0 );
          b_h.setValue( 1.0 );
@@ -152,11 +150,11 @@ benchmarkTriad( Benchmark<> & benchmark,
       auto a_v = a_h.getView();
       const auto b_v = b_h.getConstView();
       const auto c_v = c_h.getConstView();
-      auto kernel = [=] __cuda_callable__ ( Index i ) mutable
+      auto kernel = [ = ] __cuda_callable__( Index i ) mutable
       {
-         a_v[i] = b_v[i] + scalar * c_v[i];
+         a_v[ i ] = b_v[ i ] + scalar * c_v[ i ];
       };
-      auto triad = [&]()
+      auto triad = [ & ]()
       {
          Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
       };
@@ -175,7 +173,7 @@ benchmarkTriad( Benchmark<> & benchmark,
       b.setSize( size );
       c.setSize( size );
 
-      auto reset = [&]()
+      auto reset = [ & ]()
       {
          a.setValue( 1.0 );
          b.setValue( 1.0 );
@@ -185,11 +183,11 @@ benchmarkTriad( Benchmark<> & benchmark,
       auto a_v = a.getView();
       const auto b_v = b.getConstView();
       const auto c_v = c.getConstView();
-      auto kernel = [=] __cuda_callable__ ( Index i ) mutable
+      auto kernel = [ = ] __cuda_callable__( Index i ) mutable
       {
-         a_v[i] = b_v[i] + scalar * c_v[i];
+         a_v[ i ] = b_v[ i ] + scalar * c_v[ i ];
       };
-      auto triad = [&]()
+      auto triad = [ & ]()
       {
          Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
       };
@@ -200,4 +198,4 @@ benchmarkTriad( Benchmark<> & benchmark,
    // TODO: unified memory with AccessedBy hint and/or prefetching - see https://github.com/cwpearson/triad-gpu-bandwidth
 }
 
-} // namespace TNL::Benchmarks
+}  // namespace TNL::Benchmarks
