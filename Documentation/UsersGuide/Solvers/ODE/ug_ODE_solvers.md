@@ -175,7 +175,7 @@ It is very similar to the previous one. There are just the following changes:
 2. On the line 23, we allocate vector `results` into which we will store the solution of the Lorenz problem for various parameters.
 3. Next we define the lambda function `f` representing the right-hand side of the Lorenz problem (lines 25-33) and the lambda function `solve` representing the ODE solver for the Lorenz problem with particular setup of the parameters (lines 34-52). This lambda function is processed by \ref TNL::Algorithms::parallelFor called on the line 53. Therefore the lambda function `solve` receives three indexes `i`, `j` and `k` which are used to compute particular values of the parameters \f$ \sigma_i, \rho_j, \beta_k \f$ which are represented by variables `sigma_i`, `rho_j` and `beta_k` (lines 35-37). These parameters must be passed to the lambda function `f` explicitly (line 48). The reason is the same as in the previous example - nvcc (version 10.1) does not accept a lambda function defined within another lambda function.
 4. The initial condition for the Lorenz problem is set to vector \f$ (1,1,1) \f$ (line 42). Finally, we start the time loop (lines 45-51) and we store the state of the solution into the vector `results` using related vector view `results_view` in the time intervals given by the variable `output_time_step`.
-5. When all ODEs ares solved, we copy all the solutions from the vector `results` into an output file.
+5. When all ODEs are solved, we copy all the solutions from the vector `results` into an output file.
 
 The files has the following format:
 
@@ -276,7 +276,7 @@ u_{ini}(x) = \left\{
 \right.
 \f]
 
-Next we write the initial condition to a file (lines 37-39) using the function `write`  which we will describe later. On the lines (44-46) we create instance of the ODE solver `solver`, we set the integration time step `tau` of the solver (\ref TNL::Solvers::ODE::ExplicitSolver::setTau ) and we set the initial time to zero (\ref TNL::Solvers::ODE::ExplicitSolver::setTime).
+Next we write the initial condition to a file (lines 37-39) using the function `write`  which we will describe later. On the lines (44-46) we create an instance of the ODE solver `solver`, we set the integration time step `tau` of the solver (\ref TNL::Solvers::ODE::ExplicitSolver::setTau ) and we set the initial time to zero (\ref TNL::Solvers::ODE::ExplicitSolver::setTime).
 
 Finally, we proceed to the time loop (lines 51-64) but before we prepare counter of the states to be written into files (`output_idx`). The time loop uses the time variable within the ODE solver (\ref TNL::Solvers::ODE::ExplicitSolver::getTime ) and it iterates until we reach the end of the time interval \f$ [0, T] \f$ given by the variable `final_t`. On the line 53, we set the stop time of the ODE solver (\ref TNL::Solvers::ODE::ExplicitSolver::setStopTime ) to the next checkpoint for storing the state of the heat equation or the end of the time interval depending on what comes first. Next we define the lambda function `f` expressing the discretization of the second derivative of \f$ u \f$ by the central finite difference and the boundary conditions. The function receives the following parameters:
 
