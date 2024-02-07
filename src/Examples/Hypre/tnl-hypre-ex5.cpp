@@ -43,12 +43,12 @@ main( int argc, char* argv[] )
    // Default problem parameters
    int n = 33;
    int solver_id = 0;
-   int vis = 0;
+   bool vis = false;
 
    // Parse the command line
    {
       int arg_index = 0;
-      int print_usage = 0;
+      bool print_usage = false;
 
       while( arg_index < argc ) {
          if( std::string( argv[ arg_index ] ) == "-n" ) {
@@ -87,7 +87,7 @@ main( int argc, char* argv[] )
                    << std::endl;
       }
 
-      if( print_usage )
+      if( print_usage !=0 )
          return EXIT_SUCCESS;
    }
 
@@ -134,14 +134,14 @@ main( int argc, char* argv[] )
             nnz++;
 
          // The left -1: position i-1
-         if( i % n )
+         if( i % n != 0 )
             nnz++;
 
          // The diagonal: position i
          nnz++;
 
          // The right -1: position i+1
-         if( ( i + 1 ) % n )
+         if( ( i + 1 ) % n != 0 )
             nnz++;
 
          // The right identity block: position i+n
@@ -168,14 +168,14 @@ main( int argc, char* argv[] )
             row.setElement( nnz++, i - n, -1.0 );
 
          // The left -1: position i-1
-         if( i % n )
+         if( i % n != 0 )
             row.setElement( nnz++, i - 1, -1.0 );
 
          // The diagonal: position i
          row.setElement( nnz++, i, 4.0 );
 
          // The right -1: position i+1
-         if( ( i + 1 ) % n )
+         if( ( i + 1 ) % n != 0 )
             row.setElement( nnz++, i + 1, -1.0 );
 
          // The right identity block: position i+n

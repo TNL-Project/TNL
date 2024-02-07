@@ -16,11 +16,13 @@ void GLVis_PrintGlobalSquareMesh(const char *meshfile, int n)
    int NumOfVertices = (n + 1) * (n + 1);
    int NumOfElements = n * n;
 
-   int i, j;
-   double x, y;
+   int i;
+   int j;
+   double x;
+   double y;
    double h = 1.0 / n;
 
-   if ((file = fopen(meshfile, "w")) == NULL)
+   if( ( file = fopen( meshfile, "w" ) ) == NULL )
    {
       printf("Error: can't open output file %s\n", meshfile);
       exit(1);

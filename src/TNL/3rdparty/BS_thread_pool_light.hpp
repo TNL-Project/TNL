@@ -135,7 +135,10 @@ public:
     template <typename F, typename... A>
     void push_task(F&& task, A&&... args)
     {
-        std::function<void()> task_function = std::bind(std::forward<F>(task), std::forward<A>(args)...);
+        std::function<void()> task_function = [task = std::forward<F>(task), args = std::make_tuple(std::forward<A>(args)...)]() mutable {
+            std::apply(task, args);
+        };
+
         {
             const std::scoped_lock tasks_lock(tasks_mutex);
             tasks.push(task_function);
@@ -157,7 +160,9 @@ public:
     template <typename F, typename... A, typename R = std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>>
     [[nodiscard]] std::future<R> submit(F&& task, A&&... args)
     {
-        std::function<R()> task_function = std::bind(std::forward<F>(task), std::forward<A>(args)...);
+        std::function<R()> task_function = [task = std::forward<F>(task), args = std::make_tuple(std::forward<A>(args)...)]() -> R {
+            return std::apply(task, args);
+        };
         std::shared_ptr<std::promise<R>> task_promise = std::make_shared<std::promise<R>>();
         push_task(
             [task_function, task_promise]
@@ -235,7 +240,7 @@ private:
      * @param thread_count_ The parameter passed to the constructor. If the parameter is a positive number, then the pool will be created with this number of threads. If the parameter is non-positive, or a parameter was not supplied (in which case it will have the default value of 0), then the pool will be created with the total number of hardware threads available, as obtained from std::thread::hardware_concurrency(). If the latter returns a non-positive number for some reason, then the pool will be created with just one thread.
      * @return The number of threads to use for constructing the pool.
      */
-    [[nodiscard]] concurrency_t determine_thread_count(const concurrency_t thread_count_)
+    [[nodiscard]] static concurrency_t determine_thread_count(const concurrency_t thread_count_)
     {
         if (thread_count_ > 0)
             return thread_count_;
