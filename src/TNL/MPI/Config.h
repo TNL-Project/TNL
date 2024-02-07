@@ -94,7 +94,7 @@ setup( const Config::ParameterContainer& parameters, const std::string& prefix =
             std::cout << std::flush;
          }
          if( rank == processToAttach || processToAttach == -1 )
-            while( ! tnlMPIDebugAttached )
+            while( tnlMPIDebugAttached == 0 )
                ;
          MPI_Barrier( MPI_COMM_WORLD );
       }

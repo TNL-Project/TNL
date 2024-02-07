@@ -30,7 +30,7 @@ public:
       }
    }
 
-   bool
+   [[nodiscard]] bool
    isBoundary( const Grid& grid ) const
    {
       switch( EntityDimension ) {
@@ -50,13 +50,13 @@ public:
       return false;
    }
 
-   Coordinate
+   [[nodiscard]] Coordinate
    getCoordinate() const
    {
       return this->current;
    }
 
-   Index
+   [[nodiscard]] Index
    getIndex( const Grid& grid ) const
    {
       Index result = 0;
@@ -81,16 +81,18 @@ public:
       return result;
    }
 
-   Coordinate
+   [[nodiscard]] Coordinate
    getNormals() const
    {
       return EntityNormals::template getNormals< Orientation >();
    }
 
-   Point
+   [[nodiscard]] Point
    getCenter( const Grid& grid ) const
    {
-      Point origin = grid.getOrigin(), center, spaceSteps = grid.getSpaceSteps();
+      Point origin = grid.getOrigin();
+      Point center;
+      Point spaceSteps = grid.getSpaceSteps();
 
       Coordinate normals = getNormals();
 
@@ -100,14 +102,15 @@ public:
       return center;
    }
 
-   Real
+   [[nodiscard]] Real
    getMeasure( const Grid& grid ) const
    {
       if( EntityDimension == 0 ) {
          return 0.0;
       }
 
-      Coordinate normals = getNormals(), powers;
+      Coordinate normals = getNormals();
+      Coordinate powers;
 
       for( Index i = 0; i < this->current.getSize(); i++ )
          powers[ i ] = ! normals[ i ];

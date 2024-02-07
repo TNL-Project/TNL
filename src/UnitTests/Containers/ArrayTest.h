@@ -362,7 +362,8 @@ TYPED_TEST( ArrayTest, swap )
 {
    using ArrayType = typename TestFixture::ArrayType;
 
-   ArrayType u( 10 ), v( 20 );
+   ArrayType u( 10 );
+   ArrayType v( 20 );
    u.setValue( 0 );
    v.setValue( 1 );
    u.swap( v );

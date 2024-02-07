@@ -48,7 +48,7 @@ GenerateDiagAndOffd( hypre_CSRMatrix* A, hypre_ParCSRMatrix* matrix, HYPRE_BigIn
    hypre_CSRMatrix* offd = hypre_ParCSRMatrixOffd( matrix );
 
    const HYPRE_Int num_cols_diag = last_col_diag - first_col_diag + 1;
-   if( num_cols - num_cols_diag ) {
+   if( num_cols - num_cols_diag != 0 ) {
       hypre_CSRMatrixInitialize_v2( diag, 0, getHypreMemoryLocation() );
       IntView diag_i( hypre_CSRMatrixI( diag ), num_rows + 1 );
 
