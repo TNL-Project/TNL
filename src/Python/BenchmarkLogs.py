@@ -35,7 +35,9 @@ def get_benchmark_metadata(filename):
         filename = os.path.splitext(filename)[0] + ".metadata.json"
     if os.path.isfile(filename):
         print(f"Parsing metadata from file {filename}")
-        return json.load(open(filename, "r"))
+        with open(filename, "r") as file:
+            metadata = json.load(file)
+        return metadata
     print(f"Metadata file {filename} does not exist")
     return None
 
@@ -47,11 +49,11 @@ def get_benchmark_dataframe(logFile):
     :returns: pandas.DataFrame instance
     """
     print(f"Parsing input file {logFile}")
-    df = pandas.read_json(open(logFile, "r"), orient="records", lines=True)
-
-    # convert "N/A" in the speedup column to nan
-    if "speedup" in df.columns:
-        df["speedup"] = pandas.to_numeric(df["speedup"], errors="coerce")
+    with open(logFile, "r") as file:
+        df = pandas.read_json(file, orient="records", lines=True)
+        # convert "N/A" in the speedup column to nan
+        if "speedup" in df.columns:
+            df["speedup"] = pandas.to_numeric(df["speedup"], errors="coerce")
 
     return df
 
