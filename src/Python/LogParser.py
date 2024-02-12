@@ -70,33 +70,32 @@ class TableColumn:
 
 class LogParser:
     def readFile(self, logFileName):
-        logFile = open(logFileName, 'r')
+        with open(logFileName, "r" ) as logFile:
+            # read file by lines
+            lines = logFile.readlines()
 
-        # read file by lines
-        lines = logFile.readlines()
+            # drop comments and blank lines
+            lines = [line for line in lines if line.strip() and not line.startswith("#")]
 
-        # drop comments and blank lines
-        lines = [line for line in lines if line.strip() and not line.startswith("#")]
-
-        # drop anything before the first metadata block
-        while len(lines) > 0 and not lines[0].startswith(":"):
-            lines.pop(0)
-
-        while len(lines) > 0:
-            metadata = []
-            while len(lines) > 0 and lines[0].startswith(":"):
-                metadata.append(lines.pop(0))
-            metadata = self.parseMetadata(metadata)
-
-            table = []
+            # drop anything before the first metadata block
             while len(lines) > 0 and not lines[0].startswith(":"):
-                table.append(lines.pop(0))
-            tableColumns, tableRows = self.parseTable(table)
+                lines.pop(0)
 
-            df = self.getDataframe(tableColumns, tableRows)
-            df = df.sort_index()
+            while len(lines) > 0:
+                metadata = []
+                while len(lines) > 0 and lines[0].startswith(":"):
+                    metadata.append(lines.pop(0))
+                metadata = self.parseMetadata(metadata)
 
-            yield metadata, df
+                table = []
+                while len(lines) > 0 and not lines[0].startswith(":"):
+                    table.append(lines.pop(0))
+                tableColumns, tableRows = self.parseTable(table)
+
+                df = self.getDataframe(tableColumns, tableRows)
+                df = df.sort_index()
+
+                yield metadata, df
 
     @staticmethod
     def parseMetadata(lines):
