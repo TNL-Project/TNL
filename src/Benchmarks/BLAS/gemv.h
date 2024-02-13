@@ -19,17 +19,19 @@
 namespace TNL::Benchmarks {
 
 template< typename Matrix >
-void setMatrix( Matrix& matrix )
+void
+setMatrix( Matrix& matrix )
 {
    matrix.setValue( 1.0 );
 }
 
 template< typename Real >
 void
-benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
+benchmarkGemv( Benchmark<>& benchmark, int rows, int columns )
 {
    using HostMatrix = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host >;
-   using RowMajorCudaMatrix = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >;
+   using RowMajorCudaMatrix =
+      TNL::Matrices::DenseMatrix< Real, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >;
    using ColumnMajorCudaMatrix = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Cuda >;
    using HostVector = Containers::Vector< Real, Devices::Host, int >;
    using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
@@ -48,11 +50,12 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    outHostVector.setSize( rows );
 
    setMatrix< HostMatrix >( hostMatrix );
-   const double datasetSize = (double) ( rows * columns + rows + columns ) * sizeof(Real) / oneGB;
+   const double datasetSize = (double) ( rows * columns + rows + columns ) * sizeof( Real ) / oneGB;
    benchmark.setOperation( "gemv", datasetSize );
 
    // reset function
-   auto reset = [&]() {
+   auto reset = [ & ]()
+   {
       inHostVector = 1.0;
       outHostVector = 0.0;
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -63,7 +66,8 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    };
 
    // compute functions
-   auto spmvHost = [&]() {
+   auto spmvHost = [ & ]()
+   {
       hostMatrix.vectorProduct( inHostVector, outHostVector );
    };
    benchmark.time< Devices::Host >( reset, "CPU", spmvHost );
@@ -75,7 +79,8 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    outCudaVector2.setSize( rows );
    setMatrix< ColumnMajorCudaMatrix >( columnMajorCudaMatrix );
 
-   auto columnMajorMvCuda = [&]() {
+   auto columnMajorMvCuda = [ & ]()
+   {
       columnMajorCudaMatrix.vectorProduct( inCudaVector, outCudaVector1 );
    };
    benchmark.time< Devices::Cuda >( reset, "GPU col", columnMajorMvCuda );
@@ -85,7 +90,8 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    rowMajorCudaMatrix.setDimensions( rows, columns );
    setMatrix< RowMajorCudaMatrix >( rowMajorCudaMatrix );
 
-   auto rowMajorMvCuda = [&]() {
+   auto rowMajorMvCuda = [ & ]()
+   {
       rowMajorCudaMatrix.vectorProduct( inCudaVector, outCudaVector2 );
    };
    benchmark.time< Devices::Cuda >( reset, "GPU row", rowMajorMvCuda );
@@ -100,25 +106,43 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
    #if defined( __CUDACC__ )
    cublasHandle_t cublasHandle;
    cublasCreate( &cublasHandle );
-   auto mvCublas = [&] () {
+   auto mvCublas = [ & ]()
+   {
       Real alpha = 1.0;
       Real beta = 0.0;
-      cublasGemv( cublasHandle, CUBLAS_OP_N, rows, columns, &alpha,
-                  columnMajorCudaMatrix.getValues().getData(), rows,
-                  inCudaVector.getData(), 1, &beta,
-                  outCudaVector1.getData(), 1 );
+      cublasGemv( cublasHandle,
+                  CUBLAS_OP_N,
+                  rows,
+                  columns,
+                  &alpha,
+                  columnMajorCudaMatrix.getValues().getData(),
+                  rows,
+                  inCudaVector.getData(),
+                  1,
+                  &beta,
+                  outCudaVector1.getData(),
+                  1 );
    };
    benchmark.time< Devices::Cuda >( reset, "GPU hipblas", mvCublas );
    #else
    hipblasHandle_t hipblasHandle;
    hipblasCreate( &hipblasHandle );
-   auto mvHipblas = [&] () {
+   auto mvHipblas = [ & ]()
+   {
       Real alpha = 1.0;
       Real beta = 0.0;
-      hipblasGemv( hipblasHandle, HIPBLAS_OP_N, rows, columns, &alpha,
-                  columnMajorCudaMatrix.getValues().getData(), rows,
-                  inCudaVector.getData(), 1, &beta,
-                  outCudaVector1.getData(), 1 );
+      hipblasGemv( hipblasHandle,
+                   HIPBLAS_OP_N,
+                   rows,
+                   columns,
+                   &alpha,
+                   columnMajorCudaMatrix.getValues().getData(),
+                   rows,
+                   inCudaVector.getData(),
+                   1,
+                   &beta,
+                   outCudaVector1.getData(),
+                   1 );
    };
    benchmark.time< Devices::Hip >( reset, "GPU hipblas", mvHipblas );
    #endif
@@ -127,4 +151,4 @@ benchmarkGemv( Benchmark<> & benchmark, int rows, int columns )
 #endif
 }
 
-} // namespace TNL::Benchmarks
+}  // namespace TNL::Benchmarks

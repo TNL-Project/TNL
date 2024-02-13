@@ -9,105 +9,131 @@
 namespace TNL::Benchmarks {
 
 template< typename Device >
-   template< typename Vector, typename ResultType >
+template< typename Vector, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorMax( const Vector& v )
+CommonVectorOperations< Device >::getVectorMax( const Vector& v )
 {
    TNL_ASSERT_GT( v.getSize(), 0, "Vector size must be positive." );
 
    using IndexType = typename Vector::IndexType;
 
    const auto* data = v.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return data[ i ]; };
-   auto reduction = [] __cuda_callable__ ( const ResultType& a, const ResultType& b ) { return TNL::max( a, b ); };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return data[ i ];
+   };
+   auto reduction = [] __cuda_callable__( const ResultType& a, const ResultType& b )
+   {
+      return TNL::max( a, b );
+   };
+   return Algorithms::reduce< DeviceType >(
+      (IndexType) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
 }
 
 template< typename Device >
-   template< typename Vector, typename ResultType >
+template< typename Vector, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorMin( const Vector& v )
+CommonVectorOperations< Device >::getVectorMin( const Vector& v )
 {
    TNL_ASSERT_GT( v.getSize(), 0, "Vector size must be positive." );
 
    using IndexType = typename Vector::IndexType;
 
    const auto* data = v.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return data[ i ]; };
-   auto reduction = [] __cuda_callable__ ( const ResultType& a, const ResultType& b ) { return TNL::min( a, b ); };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return data[ i ];
+   };
+   auto reduction = [] __cuda_callable__( const ResultType& a, const ResultType& b )
+   {
+      return TNL::min( a, b );
+   };
+   return Algorithms::reduce< DeviceType >(
+      (IndexType) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
 }
 
 template< typename Device >
-   template< typename Vector, typename ResultType >
+template< typename Vector, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorAbsMax( const Vector& v )
+CommonVectorOperations< Device >::getVectorAbsMax( const Vector& v )
 {
    TNL_ASSERT_GT( v.getSize(), 0, "Vector size must be positive." );
 
    using IndexType = typename Vector::IndexType;
 
    const auto* data = v.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return TNL::abs( data[ i ] ); };
-   auto reduction = [] __cuda_callable__ ( const ResultType& a, const ResultType& b ) { return TNL::max( a, b ); };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return TNL::abs( data[ i ] );
+   };
+   auto reduction = [] __cuda_callable__( const ResultType& a, const ResultType& b )
+   {
+      return TNL::max( a, b );
+   };
+   return Algorithms::reduce< DeviceType >(
+      (IndexType) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
 }
 
 template< typename Device >
-   template< typename Vector, typename ResultType >
+template< typename Vector, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorAbsMin( const Vector& v )
+CommonVectorOperations< Device >::getVectorAbsMin( const Vector& v )
 {
    TNL_ASSERT_GT( v.getSize(), 0, "Vector size must be positive." );
 
    using IndexType = typename Vector::IndexType;
 
    const auto* data = v.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return TNL::abs( data[ i ] ); };
-   auto reduction = [] __cuda_callable__ ( const ResultType& a, const ResultType& b ) { return TNL::min( a, b ); };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return TNL::abs( data[ i ] );
+   };
+   auto reduction = [] __cuda_callable__( const ResultType& a, const ResultType& b )
+   {
+      return TNL::min( a, b );
+   };
+   return Algorithms::reduce< DeviceType >(
+      (IndexType) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
 }
 
 template< typename Device >
-   template< typename Vector, typename ResultType >
+template< typename Vector, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorL1Norm( const Vector& v )
+CommonVectorOperations< Device >::getVectorL1Norm( const Vector& v )
 {
    TNL_ASSERT_GT( v.getSize(), 0, "Vector size must be positive." );
 
    using IndexType = typename Vector::IndexType;
 
    const auto* data = v.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return TNL::abs( data[ i ] ); };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v.getSize(),  fetch, std::plus<>{}, ( ResultType ) 0 );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return TNL::abs( data[ i ] );
+   };
+   return Algorithms::reduce< DeviceType >( (IndexType) 0, v.getSize(), fetch, std::plus<>{}, (ResultType) 0 );
 }
 
 template< typename Device >
-   template< typename Vector, typename ResultType >
+template< typename Vector, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorL2Norm( const Vector& v )
+CommonVectorOperations< Device >::getVectorL2Norm( const Vector& v )
 {
    TNL_ASSERT_GT( v.getSize(), 0, "Vector size must be positive." );
 
    using IndexType = typename Vector::IndexType;
 
    const auto* data = v.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return data[ i ] * data[ i ]; };
-   return std::sqrt( Algorithms::reduce< DeviceType >( ( IndexType ) 0, v.getSize(),  fetch, std::plus<>{}, ( ResultType ) 0 ) );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return data[ i ] * data[ i ];
+   };
+   return std::sqrt( Algorithms::reduce< DeviceType >( (IndexType) 0, v.getSize(), fetch, std::plus<>{}, (ResultType) 0 ) );
 }
 
 template< typename Device >
-   template< typename Vector, typename ResultType, typename Scalar >
+template< typename Vector, typename ResultType, typename Scalar >
 ResultType
-CommonVectorOperations< Device >::
-getVectorLpNorm( const Vector& v,
-                 const Scalar p )
+CommonVectorOperations< Device >::getVectorLpNorm( const Vector& v, const Scalar p )
 {
    TNL_ASSERT_GT( v.getSize(), 0, "Vector size must be positive." );
    TNL_ASSERT_GE( p, 1.0, "Parameter of the L^p norm must be at least 1.0." );
@@ -120,15 +146,18 @@ getVectorLpNorm( const Vector& v,
       return getVectorL2Norm< Vector, ResultType >( v );
 
    const auto* data = v.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return TNL::pow( TNL::abs( data[ i ] ), p ); };
-   return std::pow( Algorithms::reduce< DeviceType >( ( IndexType ) 0, v.getSize(),  fetch, std::plus<>{}, ( ResultType ) 0 ), 1.0 / p );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return TNL::pow( TNL::abs( data[ i ] ), p );
+   };
+   return std::pow( Algorithms::reduce< DeviceType >( (IndexType) 0, v.getSize(), fetch, std::plus<>{}, (ResultType) 0 ),
+                    1.0 / p );
 }
 
 template< typename Device >
-   template< typename Vector, typename ResultType >
+template< typename Vector, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorSum( const Vector& v )
+CommonVectorOperations< Device >::getVectorSum( const Vector& v )
 {
    TNL_ASSERT_GT( v.getSize(), 0, "Vector size must be positive." );
 
@@ -138,16 +167,17 @@ getVectorSum( const Vector& v )
    using IndexType = typename Vector::IndexType;
 
    const auto* data = v.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i )  -> ResultType { return data[ i ]; };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v.getSize(),  fetch, std::plus<>{}, ( ResultType ) 0 );
+   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> ResultType
+   {
+      return data[ i ];
+   };
+   return Algorithms::reduce< DeviceType >( (IndexType) 0, v.getSize(), fetch, std::plus<>{}, (ResultType) 0 );
 }
 
 template< typename Device >
-   template< typename Vector1, typename Vector2, typename ResultType >
+template< typename Vector1, typename Vector2, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorDifferenceMax( const Vector1& v1,
-                        const Vector2& v2 )
+CommonVectorOperations< Device >::getVectorDifferenceMax( const Vector1& v1, const Vector2& v2 )
 {
    TNL_ASSERT_GT( v1.getSize(), 0, "Vector size must be positive." );
    TNL_ASSERT_EQ( v1.getSize(), v2.getSize(), "The vector sizes must be the same." );
@@ -156,17 +186,22 @@ getVectorDifferenceMax( const Vector1& v1,
 
    const auto* data1 = v1.getData();
    const auto* data2 = v2.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return data1[ i ] - data2[ i ]; };
-   auto reduction = [] __cuda_callable__ ( const ResultType& a, const ResultType& b ) { return TNL::max( a, b ); };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return data1[ i ] - data2[ i ];
+   };
+   auto reduction = [] __cuda_callable__( const ResultType& a, const ResultType& b )
+   {
+      return TNL::max( a, b );
+   };
+   return Algorithms::reduce< DeviceType >(
+      (IndexType) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
 }
 
 template< typename Device >
-   template< typename Vector1, typename Vector2, typename ResultType >
+template< typename Vector1, typename Vector2, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorDifferenceMin( const Vector1& v1,
-                        const Vector2& v2 )
+CommonVectorOperations< Device >::getVectorDifferenceMin( const Vector1& v1, const Vector2& v2 )
 {
    TNL_ASSERT_GT( v1.getSize(), 0, "Vector size must be positive." );
    TNL_ASSERT_EQ( v1.getSize(), v2.getSize(), "The vector sizes must be the same." );
@@ -175,17 +210,22 @@ getVectorDifferenceMin( const Vector1& v1,
 
    const auto* data1 = v1.getData();
    const auto* data2 = v2.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return data1[ i ] - data2[ i ]; };
-   auto reduction = [] __cuda_callable__ ( const ResultType& a, const ResultType& b ) { return TNL::min( a, b ); };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return data1[ i ] - data2[ i ];
+   };
+   auto reduction = [] __cuda_callable__( const ResultType& a, const ResultType& b )
+   {
+      return TNL::min( a, b );
+   };
+   return Algorithms::reduce< DeviceType >(
+      (IndexType) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
 }
 
 template< typename Device >
-   template< typename Vector1, typename Vector2, typename ResultType >
+template< typename Vector1, typename Vector2, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorDifferenceAbsMax( const Vector1& v1,
-                           const Vector2& v2 )
+CommonVectorOperations< Device >::getVectorDifferenceAbsMax( const Vector1& v1, const Vector2& v2 )
 {
    TNL_ASSERT_GT( v1.getSize(), 0, "Vector size must be positive." );
    TNL_ASSERT_EQ( v1.getSize(), v2.getSize(), "The vector sizes must be the same." );
@@ -194,17 +234,22 @@ getVectorDifferenceAbsMax( const Vector1& v1,
 
    const auto* data1 = v1.getData();
    const auto* data2 = v2.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return TNL::abs( data1[ i ] - data2[ i ] ); };
-   auto reduction = [] __cuda_callable__ ( const ResultType& a, const ResultType& b ) { return TNL::max( a, b ); };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return TNL::abs( data1[ i ] - data2[ i ] );
+   };
+   auto reduction = [] __cuda_callable__( const ResultType& a, const ResultType& b )
+   {
+      return TNL::max( a, b );
+   };
+   return Algorithms::reduce< DeviceType >(
+      (IndexType) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
 }
 
 template< typename Device >
-   template< typename Vector1, typename Vector2, typename ResultType >
+template< typename Vector1, typename Vector2, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorDifferenceAbsMin( const Vector1& v1,
-                           const Vector2& v2 )
+CommonVectorOperations< Device >::getVectorDifferenceAbsMin( const Vector1& v1, const Vector2& v2 )
 {
    TNL_ASSERT_GT( v1.getSize(), 0, "Vector size must be positive." );
    TNL_ASSERT_EQ( v1.getSize(), v2.getSize(), "The vector sizes must be the same." );
@@ -213,17 +258,22 @@ getVectorDifferenceAbsMin( const Vector1& v1,
 
    const auto* data1 = v1.getData();
    const auto* data2 = v2.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return TNL::abs( data1[ i ] - data2[ i ] ); };
-   auto reduction = [] __cuda_callable__ ( const ResultType& a, const ResultType& b ) { return TNL::min( a, b ); };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return TNL::abs( data1[ i ] - data2[ i ] );
+   };
+   auto reduction = [] __cuda_callable__( const ResultType& a, const ResultType& b )
+   {
+      return TNL::min( a, b );
+   };
+   return Algorithms::reduce< DeviceType >(
+      (IndexType) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
 }
 
 template< typename Device >
-   template< typename Vector1, typename Vector2, typename ResultType >
+template< typename Vector1, typename Vector2, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorDifferenceL1Norm( const Vector1& v1,
-                           const Vector2& v2 )
+CommonVectorOperations< Device >::getVectorDifferenceL1Norm( const Vector1& v1, const Vector2& v2 )
 {
    TNL_ASSERT_GT( v1.getSize(), 0, "Vector size must be positive." );
    TNL_ASSERT_EQ( v1.getSize(), v2.getSize(), "The vector sizes must be the same." );
@@ -232,16 +282,17 @@ getVectorDifferenceL1Norm( const Vector1& v1,
 
    const auto* data1 = v1.getData();
    const auto* data2 = v2.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return TNL::abs( data1[ i ] - data2[ i ] ); };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v1.getSize(),  fetch, std::plus<>{}, ( ResultType ) 0 );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return TNL::abs( data1[ i ] - data2[ i ] );
+   };
+   return Algorithms::reduce< DeviceType >( (IndexType) 0, v1.getSize(), fetch, std::plus<>{}, (ResultType) 0 );
 }
 
 template< typename Device >
-   template< typename Vector1, typename Vector2, typename ResultType >
+template< typename Vector1, typename Vector2, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorDifferenceL2Norm( const Vector1& v1,
-                           const Vector2& v2 )
+CommonVectorOperations< Device >::getVectorDifferenceL2Norm( const Vector1& v1, const Vector2& v2 )
 {
    TNL_ASSERT_GT( v1.getSize(), 0, "Vector size must be positive." );
    TNL_ASSERT_EQ( v1.getSize(), v2.getSize(), "The vector sizes must be the same." );
@@ -250,20 +301,18 @@ getVectorDifferenceL2Norm( const Vector1& v1,
 
    const auto* data1 = v1.getData();
    const auto* data2 = v2.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) {
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
       auto diff = data1[ i ] - data2[ i ];
       return diff * diff;
    };
-   return std::sqrt( Algorithms::reduce< DeviceType >( ( IndexType ) 0, v1.getSize(),  fetch, std::plus<>{}, ( ResultType ) 0 ) );
+   return std::sqrt( Algorithms::reduce< DeviceType >( (IndexType) 0, v1.getSize(), fetch, std::plus<>{}, (ResultType) 0 ) );
 }
 
 template< typename Device >
-   template< typename Vector1, typename Vector2, typename ResultType, typename Scalar >
+template< typename Vector1, typename Vector2, typename ResultType, typename Scalar >
 ResultType
-CommonVectorOperations< Device >::
-getVectorDifferenceLpNorm( const Vector1& v1,
-                           const Vector2& v2,
-                           const Scalar p )
+CommonVectorOperations< Device >::getVectorDifferenceLpNorm( const Vector1& v1, const Vector2& v2, const Scalar p )
 {
    TNL_ASSERT_GT( v1.getSize(), 0, "Vector size must be positive." );
    TNL_ASSERT_EQ( v1.getSize(), v2.getSize(), "The vector sizes must be the same." );
@@ -278,16 +327,18 @@ getVectorDifferenceLpNorm( const Vector1& v1,
 
    const auto* data1 = v1.getData();
    const auto* data2 = v2.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return TNL::pow( TNL::abs( data1[ i ] - data2[ i ] ), p ); };
-   return std::pow( Algorithms::reduce< DeviceType >( ( IndexType ) 0, v1.getSize(),  fetch, std::plus<>{}, ( ResultType ) 0 ), 1.0 / p );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return TNL::pow( TNL::abs( data1[ i ] - data2[ i ] ), p );
+   };
+   return std::pow( Algorithms::reduce< DeviceType >( (IndexType) 0, v1.getSize(), fetch, std::plus<>{}, (ResultType) 0 ),
+                    1.0 / p );
 }
 
 template< typename Device >
-   template< typename Vector1, typename Vector2, typename ResultType >
+template< typename Vector1, typename Vector2, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getVectorDifferenceSum( const Vector1& v1,
-                        const Vector2& v2 )
+CommonVectorOperations< Device >::getVectorDifferenceSum( const Vector1& v1, const Vector2& v2 )
 {
    TNL_ASSERT_GT( v1.getSize(), 0, "Vector size must be positive." );
    TNL_ASSERT_EQ( v1.getSize(), v2.getSize(), "The vector sizes must be the same." );
@@ -296,16 +347,17 @@ getVectorDifferenceSum( const Vector1& v1,
 
    const auto* data1 = v1.getData();
    const auto* data2 = v2.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return data1[ i ] - data2[ i ]; };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v1.getSize(),  fetch, std::plus<>{}, ( ResultType ) 0 );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return data1[ i ] - data2[ i ];
+   };
+   return Algorithms::reduce< DeviceType >( (IndexType) 0, v1.getSize(), fetch, std::plus<>{}, (ResultType) 0 );
 }
 
 template< typename Device >
-   template< typename Vector1, typename Vector2, typename ResultType >
+template< typename Vector1, typename Vector2, typename ResultType >
 ResultType
-CommonVectorOperations< Device >::
-getScalarProduct( const Vector1& v1,
-                  const Vector2& v2 )
+CommonVectorOperations< Device >::getScalarProduct( const Vector1& v1, const Vector2& v2 )
 {
    TNL_ASSERT_GT( v1.getSize(), 0, "Vector size must be positive." );
    TNL_ASSERT_EQ( v1.getSize(), v2.getSize(), "The vector sizes must be the same." );
@@ -314,8 +366,11 @@ getScalarProduct( const Vector1& v1,
 
    const auto* data1 = v1.getData();
    const auto* data2 = v2.getData();
-   auto fetch = [=] __cuda_callable__ ( IndexType i ) { return data1[ i ] * data2[ i ]; };
-   return Algorithms::reduce< DeviceType >( ( IndexType ) 0, v1.getSize(),  fetch, std::plus<>{}, ( ResultType ) 0 );
+   auto fetch = [ = ] __cuda_callable__( IndexType i )
+   {
+      return data1[ i ] * data2[ i ];
+   };
+   return Algorithms::reduce< DeviceType >( (IndexType) 0, v1.getSize(), fetch, std::plus<>{}, (ResultType) 0 );
 }
 
-} // namespace TNL::Benchmarks
+}  // namespace TNL::Benchmarks
