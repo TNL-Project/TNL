@@ -16,6 +16,7 @@
 #include "CutlassBenchmark.h"
 #include "MagmaBenchmark.h"
 #include "DenseMatrixMultiplicationKernels.h"
+#include "DenseMatrixTranspositionKernels.h"
 #include "DenseMatricesResult.h"
 #include <cmath>
 #include <vector>
@@ -69,7 +70,7 @@ struct DenseMatricesBenchmark {
       std::cout << "=== Dense Matrices Multiplication ==============================================================================================================================" << std::endl;
       std::cout << std::endl;
 
-      const int numMatrices = 100; // Number of matrices for the cycle
+      const int numMatrices = 10; // Number of matrices for the cycle
       int matrix1Rows = 20; // Number of rows in matrix1
       int matrix1Columns = 10; // Number of columns in matrix1 && rows in matrix2
       int matrix2Columns = 30; // Number of columns in matrix2
@@ -512,12 +513,12 @@ struct DenseMatricesBenchmark {
       std::cout << std::endl;
 
       int dmatrix1Rows = 20; // Number of rows in matrix1 (same as columns in matrix2)
-      int dmatrix1Columns = 10; // Number of columns in matrix1
-
-      for (int i = 0; i < numMatrices; ++i) {
+      int dmatrix1Columns = 1; // Number of columns in matrix1
+      int numMatrices1 = 100;
+      for (int i = 0; i < numMatrices1; ++i) {
          // Modify the matrix sizes for each iteration
          dmatrix1Rows += 10;
-         dmatrix1Columns += 10;
+         dmatrix1Columns += 100;
 
          if (device == "cuda" || device == "all") {
 
@@ -566,13 +567,140 @@ struct DenseMatricesBenchmark {
                 { "matrix size", std::to_string(dmatrix1Rows) + "x" + std::to_string(dmatrix1Columns)},
             }));
 
+            constexpr Index tileDim = 16; // Example tile dimension
+            constexpr Index matrixProductCudaBlockSize = 256;
+            constexpr Index cudaBlockRows = matrixProductCudaBlockSize / tileDim;
+            Backend::LaunchConfiguration launch_config;
+            launch_config.blockSize.x = tileDim;
+            launch_config.blockSize.y = cudaBlockRows;
+            launch_config.dynamicSharedMemorySize = tileDim * tileDim + tileDim * tileDim / Backend::getNumberOfSharedMemoryBanks();
+
+            const Index rowTiles = roundUpDivision( dmatrix1Rows, tileDim );
+            const Index columnTiles = roundUpDivision( dmatrix1Columns, tileDim );
+            const Index rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
+            const Index columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+
+
             // Lambda function to perform matrix transposition using TNL
             auto matrixTranspositionBenchmarkTNL = [&]() mutable {
-               outputMatrix.getTransposition(denseMatrix);
+               for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
+                  for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
+                     launch_config.gridSize.x = Backend::getMaxGridXSize();
+                     launch_config.gridSize.y = Backend::getMaxGridYSize();
+                     if( gridIdx_x == columnGrids - 1 )
+                        launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
+                     if( gridIdx_y == rowGrids - 1 )
+                        launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
+
+                     if( ( gridIdx_x < columnGrids - 1 || denseMatrix.getColumns() % tileDim == 0 )
+                        && ( gridIdx_y < rowGrids - 1 || denseMatrix.getRows() % tileDim == 0 ) )
+                     {
+                        auto outputMatrixView = outputMatrix.getView();
+                        auto denseMatrixView = denseMatrix.getConstView();
+                        constexpr auto kernel = DenseTranspositionAlignedKernel< tileDim,
+                                                                                 cudaBlockRows,
+                                                                                 decltype(outputMatrixView),
+                                                                                 decltype(denseMatrixView),
+                                                                                 Real,
+                                                                                 Index >;
+                        Backend::launchKernelAsync(
+                           kernel, launch_config, outputMatrixView, denseMatrixView, 1.0, gridIdx_x, gridIdx_y );
+                     }
+                     else {
+                        auto outputMatrixView = outputMatrix.getView();
+                        auto denseMatrixView = denseMatrix.getConstView();
+                        constexpr auto kernel = DenseTranspositionNonAlignedKernel< tileDim,
+                                                                                    cudaBlockRows,
+                                                                                    decltype(outputMatrixView),
+                                                                                    decltype(denseMatrixView),
+                                                                                    Real,
+                                                                                    Index >;
+                        Backend::launchKernelAsync(
+                           kernel, launch_config, outputMatrixView, denseMatrixView, 1.0, gridIdx_x, gridIdx_y );
+                     }
+                  }
+               Backend::streamSynchronize( launch_config.stream );
             };
             std::vector<TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType>> benchmarkMatricesTransposition = {MagmaOutputMatrix};
             DenseMatricesResult<RealType, Devices::Cuda, IndexType> TranspositionResult(outputMatrix, benchmarkMatricesTransposition);
             benchmark.time<Devices::Cuda>(device, matrixTranspositionBenchmarkTNL,TranspositionResult);
+
+            benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
+                { "index type", TNL::getType<Index>() },
+                { "device", device },
+                { "algorithm", "Combined (Test)" },
+                { "matrix size", std::to_string(dmatrix1Rows) + "x" + std::to_string(dmatrix1Columns)},
+            }));
+
+            // Lambda function to perform matrix transposition using TNL
+            auto matrixTranspositionBenchmarkCombined = [&]() mutable {
+               for (Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++)
+                  for (Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++) {
+                        launch_config.gridSize.x = Backend::getMaxGridXSize();
+                        launch_config.gridSize.y = Backend::getMaxGridYSize();
+                        if (gridIdx_x == columnGrids - 1)
+                           launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
+                        if (gridIdx_y == rowGrids - 1)
+                           launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
+
+                        // Determine if this particular segment of the matrix is aligned
+                        bool isAligned = (gridIdx_x < columnGrids - 1 || denseMatrix.getColumns() % tileDim == 0)
+                                       && (gridIdx_y < rowGrids - 1 || denseMatrix.getRows() % tileDim == 0);
+
+                        auto outputMatrixView = outputMatrix.getView();
+                        auto denseMatrixView = denseMatrix.getConstView();
+                        constexpr auto kernel = DenseTranspositionKernel<tileDim,
+                                                                        cudaBlockRows,
+                                                                        decltype(outputMatrixView),
+                                                                        decltype(denseMatrixView),
+                                                                        Real,
+                                                                        Index>;
+
+                        // Launch the unified kernel with the isAligned parameter
+                        Backend::launchKernelAsync(
+                           kernel, launch_config, outputMatrixView, denseMatrixView, 1.0, gridIdx_x, gridIdx_y, isAligned);
+                  }
+               Backend::streamSynchronize(launch_config.stream);
+            };
+            std::vector<TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType>> benchmarkMatricesTranspositionCombined = {MagmaOutputMatrix};
+            DenseMatricesResult<RealType, Devices::Cuda, IndexType> TranspositionResult2(outputMatrix, benchmarkMatricesTranspositionCombined);
+            benchmark.time<Devices::Cuda>(device, matrixTranspositionBenchmarkCombined,TranspositionResult2);
+
+            benchmark.setMetadataColumns(TNL::Benchmarks::Benchmark<>::MetadataColumns({
+                { "index type", TNL::getType<Index>() },
+                { "device", device },
+                { "algorithm", "Optimized" },
+                { "matrix size", std::to_string(dmatrix1Rows) + "x" + std::to_string(dmatrix1Columns)},
+            }));
+
+            // Lambda function to perform matrix transposition using TNL
+            auto matrixTranspositionBenchmarkOptimized = [&]() mutable {
+               for (Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++)
+                  for (Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++) {
+                        launch_config.gridSize.x = Backend::getMaxGridXSize();
+                        launch_config.gridSize.y = Backend::getMaxGridYSize();
+                        if (gridIdx_x == columnGrids - 1)
+                           launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
+                        if (gridIdx_y == rowGrids - 1)
+                           launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
+
+                        auto outputMatrixView = outputMatrix.getView();
+                        auto denseMatrixView = denseMatrix.getConstView();
+                        constexpr auto kernel = OptimizedDenseTranspositionKernel<tileDim,
+                                                                                 cudaBlockRows,
+                                                                                 decltype(outputMatrixView),
+                                                                                 decltype(denseMatrixView),
+                                                                                 Real,
+                                                                                 Index>;
+
+                        Backend::launchKernelAsync(
+                           kernel, launch_config, outputMatrixView, denseMatrixView, 1.0, gridIdx_x, gridIdx_y);
+                  }
+               Backend::streamSynchronize(launch_config.stream);
+            };
+            std::vector<TNL::Matrices::DenseMatrix<RealType, Devices::Cuda, IndexType>> benchmarkMatricesTranspositionOptimized = {MagmaOutputMatrix};
+            DenseMatricesResult<RealType, Devices::Cuda, IndexType> TranspositionResult3(outputMatrix, benchmarkMatricesTranspositionOptimized);
+            benchmark.time<Devices::Cuda>(device, matrixTranspositionBenchmarkOptimized,TranspositionResult3);
 
             std::cout << "---------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
 #endif //__CUDACC__

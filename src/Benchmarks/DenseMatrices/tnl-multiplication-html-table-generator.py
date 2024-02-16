@@ -49,8 +49,6 @@ def process_data(log_data):
         data[matrix_sizes][algorithm]['Diff.Max 2']= round_scientific(entry.get("Diff.Max 2", 'N/A'))
         data[matrix_sizes][algorithm]['Diff.Max 3'] = round_scientific(entry.get("Diff.Max 3", 'N/A'))
 
-
-
     return data
 
 def format_time(time):

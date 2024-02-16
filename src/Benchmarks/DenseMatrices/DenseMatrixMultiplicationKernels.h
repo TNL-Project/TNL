@@ -109,7 +109,7 @@ namespace TNL::Benchmarks::DenseMatrices {
       const IndexType& matrixBColumns = matrixB.getColumns();
       IndexType row, col;
       // Reset the tile C
-      for( IndexType row = 0; row < tileDim; row += tileRowBlockSize )
+      for( row = 0; row < tileDim; row += tileRowBlockSize )
          tileC[ ( row + threadIdx.y ) * tileDim + threadIdx.x ] = 0.0;
 
       // Compute the result tile coordinates
@@ -231,8 +231,8 @@ namespace TNL::Benchmarks::DenseMatrices {
       using RealType = typename ResultMatrix::RealType;
 
       // Define shared memory tiles
-      __shared__ RealType tileA[tileDim][tileDim];
-      __shared__ RealType tileB[tileDim][tileDim];
+      __shared__ RealType tileA[ tileDim ][ tileDim ];
+      __shared__ RealType tileB[ tileDim ][ tileDim ];
 
       // Calculate thread and block indices
       IndexType bx = blockIdx.x, by = blockIdx.y;
@@ -273,7 +273,7 @@ namespace TNL::Benchmarks::DenseMatrices {
 #endif //__CUDACC__
    }
 
-   //kernel 5 (padding in shared memory to reduce conflicts in shared memory)
+   //kernel 5 (padding in shared memory to reduce conflicts)
    template< int tileDim, typename ResultMatrix, typename Matrix1, typename Matrix2 >
    __global__ void OptimizedWarpTilingDenseMatrixProductKernel(ResultMatrix resultMatrix,
                                                                const Matrix1 matrixA,
@@ -284,8 +284,8 @@ namespace TNL::Benchmarks::DenseMatrices {
       using RealType = typename ResultMatrix::RealType;
 
       // Define shared memory tiles with padding to avoid bank conflicts
-      __shared__ RealType tileA[tileDim][tileDim + 1];
-      __shared__ RealType tileB[tileDim][tileDim + 1];
+      __shared__ RealType tileA[ tileDim ][tileDim + 1];
+      __shared__ RealType tileB[ tileDim ][tileDim + 1];
 
       IndexType bx = blockIdx.x, by = blockIdx.y;
       IndexType tx = threadIdx.x, ty = threadIdx.y;
@@ -294,7 +294,7 @@ namespace TNL::Benchmarks::DenseMatrices {
       IndexType col = bx * tileDim + tx;
       typename ResultMatrix::RealType CValue = 0;
 
-      for (int m = 0; m < (tileDim + matrixA.getColumns() - 1) / tileDim; ++m) {
+      for (IndexType m = 0; m < (tileDim + matrixA.getColumns() - 1) / tileDim; ++m) {
          if (m * tileDim + tx < matrixA.getColumns() && row < matrixA.getRows())
                tileA[ty][tx] = matrixA(row, m * tileDim + tx);
          else
@@ -332,8 +332,8 @@ namespace TNL::Benchmarks::DenseMatrices {
       using RealType = typename ResultMatrix::RealType;
 
       // Define shared memory tiles
-      __shared__ RealType tileA[64][16 + 1];
-      __shared__ RealType tileB[16][64 + 1];
+      __shared__ RealType tileA[ 64 ][ 16 + 1 ];
+      __shared__ RealType tileB[ 16 ][ 64 + 1 ];
 
       IndexType bx = blockIdx.x, by = blockIdx.y;
       IndexType tx = threadIdx.x, ty = threadIdx.y;
