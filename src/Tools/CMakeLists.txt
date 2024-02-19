@@ -136,6 +136,5 @@ if( TNL_BUILD_CPP_TARGETS )
 
    install( PROGRAMS tnl-err2eoc
                      tnl-benchmark-to-html.py
-                     tnl-log-to-html.py
             DESTINATION bin COMPONENT tools )
 endif()

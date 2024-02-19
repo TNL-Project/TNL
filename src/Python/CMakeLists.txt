@@ -7,6 +7,5 @@ if( Python_Interpreter_FOUND )
    INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/__init__.py
                   BenchmarkLogs.py
                   BenchmarkPlots.py
-                  LogParser.py
             DESTINATION ${PYTHON_SITE_PACKAGES_DIR}/TNL )
 endif()
