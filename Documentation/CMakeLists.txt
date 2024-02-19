@@ -14,7 +14,7 @@ find_package( Doxygen )
 
 if( DOXYGEN_FOUND )
    # warn if Doxygen version does not match what we expect
-   set( TNL_EXPECTED_DOXYGEN_VERSION 1.9.8 )
+   set( TNL_EXPECTED_DOXYGEN_VERSION 1.10.0 )
    if( NOT ${DOXYGEN_VERSION} VERSION_EQUAL ${TNL_EXPECTED_DOXYGEN_VERSION} )
       message( WARNING "Found Doxygen version ${DOXYGEN_VERSION}, which does "
             "not match the expected version ${TNL_EXPECTED_DOXYGEN_VERSION}. "
@@ -36,6 +36,26 @@ if( DOXYGEN_FOUND )
       set( DOXYGEN_WARN_AS_ERROR "NO" )
    endif()
 
+   if( TNL_DOXYGEN_USE_CLANG )
+      set( DOXYGEN_CLANG_ASSISTED_PARSING "YES" )
+      # Check --print-resource-dir to fix libclang being unable find certain resources like `stddef.h`
+      # https://github.com/googleapis/google-cloud-cpp/commit/765e427e07eb53e726d25066e2b65f4b17911b99
+      execute_process( COMMAND clang --print-resource-dir
+                     RESULT_VARIABLE COMMAND_RETURN_CODE
+                     OUTPUT_VARIABLE CLANG_RESOURCE_DIR
+                     OUTPUT_STRIP_TRAILING_WHITESPACE )
+      if( COMMAND_RETURN_CODE EQUAL 0 )
+         set( DOXYGEN_CLANG_OPTIONS "-resource-dir=${CLANG_RESOURCE_DIR} -Wno-pragma-once-outside-header" )
+      else()
+         set( DOXYGEN_CLANG_OPTIONS "" )
+         message( WARNING "DOXYGEN_CLANG_OPTIONS not set: check that clang is properly installed" )
+      endif()
+      message( STATUS "DOXYGEN_CLANG_OPTIONS = ${DOXYGEN_CLANG_OPTIONS}" )
+   else()
+      set( DOXYGEN_CLANG_ASSISTED_PARSING "NO" )
+      set( DOXYGEN_CLANG_OPTIONS "" )
+   endif()
+
    # collect source file dependencies for the doxygen command
    file( GLOB_RECURSE TNL_DOC_INPUT_FILES
          ${CMAKE_SOURCE_DIR}/src/TNL/*
@@ -49,6 +69,9 @@ if( DOXYGEN_FOUND )
                                       OUTPUT_SNIPPETS_PATH="${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}"
                                       OUTPUT_DIRECTORY="${CMAKE_CURRENT_BINARY_DIR}"
                                       WARN_AS_ERROR="${DOXYGEN_WARN_AS_ERROR}"
+                                      CLANG_ASSISTED_PARSING="${DOXYGEN_CLANG_ASSISTED_PARSING}"
+                                      CLANG_OPTIONS="${DOXYGEN_CLANG_OPTIONS}"
+                                      CLANG_DATABASE_PATH="${CMAKE_CURRENT_BINARY_DIR}"
               ${DOXYGEN_EXECUTABLE}
       COMMAND cmake -E touch "${DOXYGEN_STAMP_FILE}"
       DEPENDS ${TNL_DOC_INPUT_FILES}
