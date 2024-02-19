@@ -46,7 +46,7 @@ def plot_bandwidth_vs_size(df, size_name="size", prop_cycler=custom_cycler, **kw
     ax.set_prop_cycle(prop_cycler)
     for idx in df.index.unique():
         part = df.loc[idx]
-        err = part["bandwidth"] * part["stddev/time"]
+        err = part["bandwidth"] * part["time_stddev/time"]
         ax.errorbar(part[size_name], part["bandwidth"], yerr=err, label=", ".join(idx), **kwargs)
     # see https://stackoverflow.com/a/43439132
     ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left", borderaxespad=0.)

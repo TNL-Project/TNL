@@ -62,7 +62,7 @@ with open(htmlFile, 'w') as f:
 
     # formatters for specific columns of the table
     formatters = {
-        "stddev": lambda value: f"{value:e}",
+        "time_stddev": lambda value: f"{value:e}",
         "bandwidth": lambda value: f"{value:.3f}",
         "speedup": lambda value: f"{value:.3f}",
     }
