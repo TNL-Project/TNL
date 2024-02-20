@@ -17,6 +17,7 @@ option( TNL_USE_CI_FLAGS "Add additional compiler flags like -Werror that are en
 option( TNL_USE_MARCH_NATIVE_FLAG "Add -march=native and -mtune=native to the list of compiler flags for the Release configuration" OFF )
 option( TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF )
 option( TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF )
+option( TNL_DOXYGEN_USE_CLANG "Instruct Doxygen to use Clang-assisted parsing" OFF )
 
 # make cache variables for install destinations
 include(GNUInstallDirs)
