@@ -19,14 +19,14 @@
 
 namespace TNL::Algorithms {
 
-template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
 void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
                                                            DataFetcher dataFetcher,
                                                            Reduction reduction,
                                                            Index size,
                                                            int m,
                                                            int n,
-                                                           Result* result )
+                                                           Output result )
 {
    TNL_ASSERT_GT( size, 0, "The size of datasets must be positive." );
    TNL_ASSERT_GT( m, 0, "The number of datasets must be positive." );
@@ -35,6 +35,32 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
    constexpr int block_size = 128;
    const int blocks = size / block_size;
 
+#if defined( __CUDA_ARCH__ )
+   for( int i = 0; i < m; i++ ) {
+      for( int j = 0; j < n; j++ ) {
+         result( i, j ) = identity;
+      }
+   }
+
+   for( int b = 0; b < blocks; b++ ) {
+      const Index offset = b * block_size;
+      for( int i = 0; i < m; i++ ) {
+         for( int j = 0; j < n; j++ ) {
+            for( int k = 0; k < block_size; k++ ) {
+               result( i, j ) = reduction( result( i, j ), dataFetcher( offset + k, i, j ) );
+            }
+         }
+      }
+   }
+
+   for( int i = 0; i < m; i++ ) {
+      for( int j = 0; j < n; j++ ) {
+         for( int k = blocks * block_size; k < size; k++ ) {
+            result( i, j ) = reduction( result( i, j ), dataFetcher( k, i, j ) );
+         }
+      }
+   }
+#else
    if( blocks > 1 ) {
       // initialize array for unrolled results
       // (it is accessed as a row-major matrix with n X-Axis, m Y-Axis and 4 Z-Axis)
@@ -78,20 +104,23 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
             _r[ 0 ] = reduction( _r[ 0 ], _r[ 3 ] );
 
             // copy the result into the output parameter
-            result[ i * n + j ] = _r[ 0 ];
+            result( i, j ) = _r[ 0 ];
          }
       }
    }
    else {
-      for( int i = 0; i < m * n; i++ )
-         result[ i ] = identity;
+      for( int i = 0; i < m; i++ ) {
+         for( int j = 0; j < n; j++ ) {
+            result( i, j ) = identity;
+         }
+      }
 
       for( int b = 0; b < blocks; b++ ) {
          const Index offset = b * block_size;
          for( int i = 0; i < m; i++ ) {
             for( int j = 0; j < n; j++ ) {
                for( int k = 0; k < block_size; k++ ) {
-                  result[ i * n + j ] = reduction( result[ i * n + j ], dataFetcher( offset + k, i, j ) );
+                  result( i, j ) = reduction( result( i, j ), dataFetcher( offset + k, i, j ) );
                }
             }
          }
@@ -100,14 +129,15 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
       for( int i = 0; i < m; i++ ) {
          for( int j = 0; j < n; j++ ) {
             for( int k = blocks * block_size; k < size; k++ ) {
-               result[ i * n + j ] = reduction( result[ i * n + j ], dataFetcher( k, i, j ) );
+               result( i, j ) = reduction( result( i, j ), dataFetcher( k, i, j ) );
             }
          }
       }
    }
+#endif
 }
 
-template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
 void
 Reduction3D< Devices::Host >::reduce( Result identity,
                                       DataFetcher dataFetcher,
@@ -115,7 +145,7 @@ Reduction3D< Devices::Host >::reduce( Result identity,
                                       Index size,
                                       int m,
                                       int n,
-                                      Result* result )
+                                      Output result )
 {
    if( size < 0 )
       throw std::invalid_argument( "Reduction3D: The size of datasets must be non-negative." );
@@ -130,13 +160,16 @@ Reduction3D< Devices::Host >::reduce( Result identity,
 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
       const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
-      #pragma omp parallel num_threads(threads)
+      #pragma omp parallel num_threads( threads )
       {
          // first thread initializes the result array
          #pragma omp single nowait
          {
-            for( int i = 0; i < m * n; i++ )
-               result[ i ] = identity;
+            for( int i = 0; i < m; i++ ) {
+               for( int j = 0; j < n; j++ ) {
+                  result( i, j ) = identity;
+               }
+            }
          }
 
          // initialize array for thread-local results
@@ -188,7 +221,7 @@ Reduction3D< Devices::Host >::reduce( Result identity,
          {
             for( int i = 0; i < m; i++ ) {
                for( int j = 0; j < n; j++ ) {
-                  result[ i * n + j ] = reduction( result[ i * n + j ], r[ ( i * n + j ) * 4 ] );
+                  result( i, j ) = reduction( result( i, j ), r[ ( i * n + j ) * 4 ] );
                }
             }
          }
@@ -199,7 +232,7 @@ Reduction3D< Devices::Host >::reduce( Result identity,
       Reduction3D< Devices::Sequential >::reduce( identity, dataFetcher, reduction, size, m, n, result );
 }
 
-template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
 void
 Reduction3D< Devices::Cuda >::reduce( Result identity,
                                       DataFetcher dataFetcher,
@@ -207,7 +240,7 @@ Reduction3D< Devices::Cuda >::reduce( Result identity,
                                       Index size,
                                       int m,
                                       int n,
-                                      Result* hostResult )
+                                      Output hostResult )
 {
    if( size < 0 )
       throw std::invalid_argument( "Reduction3D: The size of datasets must be non-negative." );

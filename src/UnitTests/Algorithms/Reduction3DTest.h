@@ -108,7 +108,15 @@ test_Reduction3D( const DeviceVector& V, const DeviceVector& y, HostVector& resu
       TNL_ASSERT_LT( l, n, "fetcher got invalid index l" );
       return _V[ i + k * size * n + l * size ] * _y[ i ];
    };
-   Reduction3D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, m, n, result.getData() );
+
+   auto result_view = result.getView();
+
+   auto output = [ = ] __cuda_callable__( IndexType i, IndexType j ) mutable -> typename DeviceVector::RealType&
+   {
+      return result_view( i * n + j );
+   };
+
+   Reduction3D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, m, n, output );
 
    for( int i = 0; i < m; i++ ) {
       for( int j = 0; j < n; j++ ) {

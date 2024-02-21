@@ -2,11 +2,41 @@ set(CPP_TESTS NDSubarrayTest SlicedNDArrayTest StaticNDArrayTest SyncDirectionsT
 set(CUDA_TESTS StaticNDArrayTestCuda)
 set(HIP_TESTS StaticNDArrayTestHip)
 if(TNL_BUILD_CUDA)
-    set(CUDA_TESTS ${CUDA_TESTS} NDArrayTest)
+    set(CUDA_TESTS
+        ${CUDA_TESTS}
+        NDArrayTest
+        NDArrayReduce_1D_test
+        NDArrayReduce_2D_test
+        NDArrayReduce_3D_test
+        NDArrayReduce_4D_test
+        NDArrayReduce_5D_test
+        NDArrayReduce_6D_test
+        NDArrayReduce_7D_test
+    )
 elseif(TNL_BUILD_HIP)
-    set(HIP_TESTS ${HIP_TESTS} NDArrayTest)
+    set(HIP_TESTS
+        ${HIP_TESTS}
+        NDArrayTest
+        NDArrayReduce_1D_test
+        NDArrayReduce_2D_test
+        NDArrayReduce_3D_test
+        NDArrayReduce_4D_test
+        NDArrayReduce_5D_test
+        NDArrayReduce_6D_test
+        NDArrayReduce_7D_test
+    )
 else()
-    set(CPP_TESTS ${CPP_TESTS} NDArrayTest)
+    set(CPP_TESTS
+        ${CPP_TESTS}
+        NDArrayTest
+        NDArrayReduce_1D_test
+        NDArrayReduce_2D_test
+        NDArrayReduce_3D_test
+        NDArrayReduce_4D_test
+        NDArrayReduce_5D_test
+        NDArrayReduce_6D_test
+        NDArrayReduce_7D_test
+    )
 endif()
 
 foreach(target IN ITEMS ${CPP_TESTS})

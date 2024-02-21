@@ -17,25 +17,25 @@ struct Reduction3D;
 template<>
 struct Reduction3D< Devices::Sequential >
 {
-   template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+   template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
    static constexpr void
-   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int m, int n, Result* result );
+   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int m, int n, Output result );
 };
 
 template<>
 struct Reduction3D< Devices::Host >
 {
-   template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+   template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
    static void
-   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int m, int n, Result* result );
+   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int m, int n, Output result );
 };
 
 template<>
 struct Reduction3D< Devices::Cuda >
 {
-   template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+   template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
    static void
-   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int m, int n, Result* hostResult );
+   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int m, int n, Output hostResult );
 };
 
 }  // namespace TNL::Algorithms

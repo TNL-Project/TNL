@@ -19,13 +19,13 @@
 
 namespace TNL::Algorithms {
 
-template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
 void constexpr Reduction2D< Devices::Sequential >::reduce( Result identity,
                                                            DataFetcher dataFetcher,
                                                            Reduction reduction,
                                                            Index size,
                                                            int n,
-                                                           Result* result )
+                                                           Output result )
 {
    TNL_ASSERT_GT( size, 0, "The size of datasets must be positive." );
    TNL_ASSERT_GT( n, 0, "The number of datasets must be positive." );
@@ -33,6 +33,23 @@ void constexpr Reduction2D< Devices::Sequential >::reduce( Result identity,
    constexpr int block_size = 128;
    const int blocks = size / block_size;
 
+#if defined( __CUDA_ARCH__ )
+   for( int k = 0; k < n; k++ )
+      result( k ) = identity;
+
+   for( int b = 0; b < blocks; b++ ) {
+      const Index offset = b * block_size;
+      for( int k = 0; k < n; k++ ) {
+         for( int i = 0; i < block_size; i++ )
+            result( k ) = reduction( result( k ), dataFetcher( offset + i, k ) );
+      }
+   }
+
+   for( int k = 0; k < n; k++ ) {
+      for( Index i = blocks * block_size; i < size; i++ )
+         result( k ) = reduction( result( k ), dataFetcher( i, k ) );
+   }
+#else
    if( blocks > 1 ) {
       // initialize array for unrolled results
       // (it is accessed as a row-major matrix with n rows and 4 columns)
@@ -69,36 +86,37 @@ void constexpr Reduction2D< Devices::Sequential >::reduce( Result identity,
          _r[ 0 ] = reduction( _r[ 0 ], _r[ 3 ] );
 
          // copy the result into the output parameter
-         result[ k ] = _r[ 0 ];
+         result( k ) = _r[ 0 ];
       }
    }
    else {
       for( int k = 0; k < n; k++ )
-         result[ k ] = identity;
+         result( k ) = identity;
 
       for( int b = 0; b < blocks; b++ ) {
          const Index offset = b * block_size;
          for( int k = 0; k < n; k++ ) {
             for( int i = 0; i < block_size; i++ )
-               result[ k ] = reduction( result[ k ], dataFetcher( offset + i, k ) );
+               result( k ) = reduction( result( k ), dataFetcher( offset + i, k ) );
          }
       }
 
       for( int k = 0; k < n; k++ ) {
          for( Index i = blocks * block_size; i < size; i++ )
-            result[ k ] = reduction( result[ k ], dataFetcher( i, k ) );
+            result( k ) = reduction( result( k ), dataFetcher( i, k ) );
       }
    }
+#endif
 }
 
-template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
 void
 Reduction2D< Devices::Host >::reduce( Result identity,
                                       DataFetcher dataFetcher,
                                       Reduction reduction,
                                       Index size,
                                       int n,
-                                      Result* result )
+                                      Output result )
 {
    if( size < 0 )
       throw std::invalid_argument( "Reduction2D: The size of datasets must be non-negative." );
@@ -117,7 +135,7 @@ Reduction2D< Devices::Host >::reduce( Result identity,
          #pragma omp single nowait
          {
             for( int k = 0; k < n; k++ )
-               result[ k ] = identity;
+               result( k ) = identity;
          }
 
          // initialize array for thread-local results
@@ -162,7 +180,7 @@ Reduction2D< Devices::Host >::reduce( Result identity,
          #pragma omp critical
          {
             for( int k = 0; k < n; k++ )
-               result[ k ] = reduction( result[ k ], r[ 4 * k ] );
+               result( k ) = reduction( result( k ), r[ 4 * k ] );
          }
       }
    }
@@ -171,14 +189,14 @@ Reduction2D< Devices::Host >::reduce( Result identity,
       Reduction2D< Devices::Sequential >::reduce( identity, dataFetcher, reduction, size, n, result );
 }
 
-template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
 void
 Reduction2D< Devices::Cuda >::reduce( Result identity,
                                       DataFetcher dataFetcher,
                                       Reduction reduction,
                                       Index size,
                                       int n,
-                                      Result* hostResult )
+                                      Output hostResult )
 {
    if( size < 0 )
       throw std::invalid_argument( "Reduction2D: The size of datasets must be non-negative." );
