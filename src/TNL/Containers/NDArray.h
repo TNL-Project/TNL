@@ -160,11 +160,13 @@ public:
    // methods from the base class
    using IndexerType::getDimension;
    using IndexerType::getOverlap;
+   using IndexerType::getOverlaps;
    using IndexerType::getSize;
    using IndexerType::getSizes;
    using IndexerType::getStorageIndex;
    using IndexerType::getStorageSize;
    using IndexerType::getStride;
+   using IndexerType::getStrides;
    using IndexerType::isContiguousBlock;
 
    //! Returns a const-qualified reference to the underlying indexer.
@@ -180,7 +182,7 @@ public:
    ViewType
    getView()
    {
-      return ViewType( array.getData(), getSizes() );
+      return ViewType( array.getData(), getIndexer() );
    }
 
    //! \brief Returns a non-modifiable view of the array.
@@ -188,7 +190,7 @@ public:
    ConstViewType
    getConstView() const
    {
-      return ConstViewType( array.getData(), getSizes() );
+      return ConstViewType( array.getData(), getIndexer() );
    }
 
    /**
@@ -282,7 +284,7 @@ public:
    operator[]( IndexType index )
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexType >( index ) );
       return array[ index ];
    }
 
@@ -300,7 +302,7 @@ public:
    operator[]( IndexType index ) const
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexType >( index ) );
       return array[ index ];
    }
 
@@ -326,7 +328,7 @@ public:
            const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       dispatch( Begins{}, getSizes(), launch_configuration, f );
    }
 
@@ -353,12 +355,14 @@ public:
       const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
-      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
+      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
       // subtract static sizes
       using Ends = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       Ends ends;
-      detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType >::subtract( ends, getSizes() );
+      using NoOverlapsType = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType, NoOverlapsType >::subtract(
+         ends, getSizes(), NoOverlapsType{} );
       dispatch( Begins{}, ends, launch_configuration, f );
    }
 
@@ -404,13 +408,15 @@ public:
       Func f,
       const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
-      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
-      using SkipBegins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
+      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using SkipBegins = ConstStaticSizesHolder< IndexType, getDimension(), 1 >;
       // subtract static sizes
       using SkipEnds = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       SkipEnds skipEnds;
-      detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType >::subtract( skipEnds, getSizes() );
+      using NoOverlapsType = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType, NoOverlapsType >::subtract(
+         skipEnds, getSizes(), NoOverlapsType{} );
 
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( Begins{}, SkipBegins{}, skipEnds, getSizes(), launch_configuration, f );
@@ -432,7 +438,7 @@ public:
       const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // TODO: assert "skipBegins <= sizes", "skipEnds <= sizes"
-      using Begins = detail::ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( Begins{}, skipBegins, skipEnds, getSizes(), launch_configuration, f );
    }
@@ -551,7 +557,7 @@ template< typename Value,
           typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
           typename Device = Devices::Host,
           typename Index = typename SizesHolder::IndexType,
-          typename Overlaps = detail::make_constant_index_sequence< SizesHolder::getDimension(), 0 >,
+          typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class NDArray : public NDArrayStorage<
                    Array< Value, Device, Index, Allocator >,
@@ -673,7 +679,7 @@ template< typename Value,
           typename SliceInfo = SliceInfo<>,                                                // no slicing by default
           typename Device = Devices::Host,
           typename Index = typename SizesHolder::IndexType,
-          typename Overlaps = detail::make_constant_index_sequence< SizesHolder::getDimension(), 0 >,
+          typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class SlicedNDArray
 : public NDArrayStorage<

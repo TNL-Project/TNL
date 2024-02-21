@@ -6,120 +6,10 @@
 #include <TNL/Assert.h>
 #include <TNL/Backend/Macros.h>
 #include <TNL/Algorithms/staticFor.h>
-
+#include <TNL/Containers/StaticArray.h>
 #include <TNL/Containers/ndarray/Meta.h>
 
 namespace TNL::Containers {
-
-namespace detail {
-
-template< typename Index, typename LevelTag, std::size_t size >
-class SizeHolder
-{
-public:
-   [[nodiscard]] __cuda_callable__
-   constexpr Index
-   getSize( LevelTag ) const
-   {
-      return size;
-   }
-
-   __cuda_callable__
-   void
-   setSize( LevelTag, Index newSize )
-   {
-      TNL_ASSERT_EQ( newSize, 0, "Dynamic size for a static dimension must be 0." );
-   }
-
-   [[nodiscard]] __cuda_callable__
-   bool
-   operator==( const SizeHolder& ) const
-   {
-      return true;
-   }
-};
-
-template< typename Index, typename LevelTag >
-class SizeHolder< Index, LevelTag, 0 >
-{
-public:
-   [[nodiscard]] __cuda_callable__
-   Index
-   getSize( LevelTag ) const
-   {
-      return size;
-   }
-
-   __cuda_callable__
-   void
-   setSize( LevelTag, Index size )
-   {
-      this->size = size;
-   }
-
-   [[nodiscard]] __cuda_callable__
-   bool
-   operator==( const SizeHolder& other ) const
-   {
-      return size == other.size;
-   }
-
-private:
-   Index size = 0;
-};
-
-template< typename Index, std::size_t currentSize, std::size_t... otherSizes >
-class SizesHolderLayer
-// Doxygen complains about recursive classes
-//! \cond
-: public SizesHolderLayer< Index, otherSizes... >,
-  public SizeHolder< Index,
-                     IndexTag< sizeof...( otherSizes ) >,  // LevelTag
-                     currentSize >
-//! \endcond
-{
-   using BaseType = SizesHolderLayer< Index, otherSizes... >;
-   using Layer = SizeHolder< Index,
-                             IndexTag< sizeof...( otherSizes ) >,  // LevelTag
-                             currentSize >;
-
-protected:
-   using BaseType::getSize;
-   using BaseType::setSize;
-   using Layer::getSize;
-   using Layer::setSize;
-
-   [[nodiscard]] __cuda_callable__
-   bool
-   operator==( const SizesHolderLayer& other ) const
-   {
-      return BaseType::operator==( other ) && Layer::operator==( other );
-   }
-};
-
-// specializations to terminate the recursive inheritance
-template< typename Index, std::size_t currentSize >
-class SizesHolderLayer< Index, currentSize > : public SizeHolder< Index,
-                                                                  IndexTag< 0 >,  // LevelTag
-                                                                  currentSize >
-{
-   using Layer = SizeHolder< Index,
-                             IndexTag< 0 >,  // LevelTag
-                             currentSize >;
-
-protected:
-   using Layer::getSize;
-   using Layer::setSize;
-
-   [[nodiscard]] __cuda_callable__
-   bool
-   operator==( const SizesHolderLayer& other ) const
-   {
-      return Layer::operator==( other );
-   }
-};
-
-}  // namespace detail
 
 /**
  * \brief Holds static and dynamic sizes of an N-dimensional array.
@@ -136,15 +26,16 @@ protected:
  * \ingroup ndarray
  */
 template< typename Index, std::size_t... sizes >
-class SizesHolder : public detail::SizesHolderLayer< Index, sizes... >
+class SizesHolder
 {
-   using BaseType = detail::SizesHolderLayer< Index, sizes... >;
-
 public:
    using IndexType = Index;
 
    //! \brief Default constructor.
-   SizesHolder() = default;
+   constexpr SizesHolder()
+   {
+      dynamicSizes.setValue( 0 );
+   }
 
    //! \brief Constructs the holder from given pack of sizes.
    template< typename... Indices, std::enable_if_t< sizeof...( Indices ) == sizeof...( sizes ), bool > = true >
@@ -174,14 +65,35 @@ public:
       return detail::get_from_pack< level >( sizes... );
    }
 
+   //! \brief Returns the _static_ size of a specific dimension identified by
+   //! a _runtime_ parameter \e level.
+   [[nodiscard]] static constexpr Index
+   getStaticSize( Index level )
+   {
+      Index result = 0;
+      Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) >(
+         [ &result, level ]( auto i )
+         {
+            if( i == level )
+               result = getStaticSize< i >();
+         } );
+      return result;
+   }
+
    //! \brief Returns the _dynamic_ size along a specific axis.
    template< std::size_t level >
    [[nodiscard]] __cuda_callable__
    Index
    getSize() const
    {
-      static_assert( level < sizeof...( sizes ), "Invalid level passed to getSize()." );
-      return BaseType::getSize( detail::IndexTag< getDimension() - level - 1 >() );
+      static_assert( level < sizeof...( sizes ), "Invalid dimension passed to getSize()." );
+      if constexpr( getStaticSize< level >() > 0 ) {
+         return getStaticSize< level >();
+      }
+      else {
+         constexpr std::size_t idx = getDynamicSizeIndex( level );
+         return dynamicSizes[ idx ];
+      }
    }
 
    //! \brief Sets the _dynamic_ size along a specific axis.
@@ -190,8 +102,56 @@ public:
    void
    setSize( Index size )
    {
-      static_assert( level < sizeof...( sizes ), "Invalid level passed to setSize()." );
-      BaseType::setSize( detail::IndexTag< getDimension() - level - 1 >(), size );
+      static_assert( level < sizeof...( sizes ), "Invalid dimension passed to setSize()." );
+      if constexpr( getStaticSize< level >() > 0 ) {
+         TNL_ASSERT_EQ( size, 0, "Dynamic size for a static dimension must be 0." );
+      }
+      else {
+         constexpr std::size_t idx = getDynamicSizeIndex( level );
+         dynamicSizes[ idx ] = size;
+      }
+   }
+
+   /**
+    * \brief Dynamic accessor for the _dynamic_ size along a specific axis.
+    *
+    * **Warning:** The static size of given level must be equal to zero.
+    *
+    * **Note:** The access is less efficient compared to the \ref getSize and
+    * \ref setSize methods, since the mapping from \e level to the dynamic
+    * storage must be computed at runtime rather than compile-time.
+    */
+   [[nodiscard]] __cuda_callable__
+   const Index&
+   operator[]( Index level ) const
+   {
+      TNL_ASSERT_GE( level, 0, "Invalid dimension passed to getSize()." );
+      TNL_ASSERT_LT( level, static_cast< Index >( sizeof...( sizes ) ), "Invalid dimension passed to getSize()." );
+      TNL_ASSERT_EQ( getStaticSize( level ), 0, "The static size of given dimension must be equal to zero." );
+
+      const std::size_t idx = getDynamicSizeIndex( level );
+      return dynamicSizes[ idx ];
+   }
+
+   /**
+    * \brief Dynamic non-const accessor for the _dynamic_ size along a specific axis.
+    *
+    * **Warning:** The static size of given level must be equal to zero.
+    *
+    * **Note:** The access is less efficient compared to the \ref getSize and
+    * \ref setSize methods, since the mapping from \e level to the dynamic
+    * storage must be computed at runtime rather than compile-time.
+    */
+   [[nodiscard]] __cuda_callable__
+   Index&
+   operator[]( Index level )
+   {
+      TNL_ASSERT_GE( level, 0, "Invalid dimension passed to operator[]." );
+      TNL_ASSERT_LT( level, static_cast< Index >( sizeof...( sizes ) ), "Invalid dimension passed to operator[]." );
+      TNL_ASSERT_EQ( getStaticSize( level ), 0, "The static size of given dimension must be equal to zero." );
+
+      const std::size_t idx = getDynamicSizeIndex( level );
+      return dynamicSizes[ idx ];
    }
 
    //! \brief Compares the sizes with another instance of the holder.
@@ -199,7 +159,7 @@ public:
    bool
    operator==( const SizesHolder& other ) const
    {
-      return BaseType::operator==( other );
+      return dynamicSizes == other.dynamicSizes;
    }
 
    //! \brief Compares the sizes with another instance of the holder.
@@ -209,6 +169,53 @@ public:
    {
       return ! operator==( other );
    }
+
+protected:
+   //! \brief Checks if given \e level corresponds to a static size.
+   template< std::size_t level >
+   [[nodiscard]] static constexpr bool
+   isStaticSize()
+   {
+      return getStaticSize< level >() > 0;
+   }
+
+   //! \brief Returns the number of dynamic sizes that need to be stored at runtime.
+   [[nodiscard]] static constexpr std::size_t
+   countDynamicSizes()
+   {
+      std::size_t count = 0;
+      Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) >(
+         [ &count ]( auto i )
+         {
+            if( ! isStaticSize< i >() )
+               count++;
+         } );
+      return count;
+   }
+
+   /**
+    * \brief Returns the index of given \e level in the array of dynamic sizes.
+    *
+    * **WARNING:** \e level must correspond to a dynamic size, otherwise the
+    * \e level should **not** be used for indexing the array of dynamic sizes.
+    * This must be ensured before calling this method - it can't be checked by
+    * a `static_assert` here, because we want to be able to specify the
+    * \e level it at runtime as well.
+    */
+   [[nodiscard]] static constexpr std::size_t
+   getDynamicSizeIndex( std::size_t level )
+   {
+      std::size_t result = 0;
+      Algorithms::staticFor< std::size_t, 0, sizeof...( sizes ) >(
+         [ &result, level ]( auto i )
+         {
+            if( i < level && ! isStaticSize< i >() )
+               result++;
+         } );
+      return result;
+   }
+
+   StaticArray< countDynamicSizes(), Index > dynamicSizes;
 };
 
 /**
@@ -277,52 +284,6 @@ operator<<( std::ostream& str, const SizesHolder< Index, sizes... >& holder )
 
 namespace detail {
 
-// helper for the methods forAll, forInterior, etc.
-template< typename Index, std::size_t dimension, Index constSize >
-class ConstStaticSizesHolder
-{
-public:
-   using IndexType = Index;
-
-   [[nodiscard]] static constexpr std::size_t
-   getDimension()
-   {
-      return dimension;
-   }
-
-   template< std::size_t level >
-   [[nodiscard]] static constexpr std::size_t
-   getStaticSize()
-   {
-      static_assert( level < getDimension(), "Invalid level passed to getStaticSize()." );
-      return constSize;
-   }
-
-   template< std::size_t level >
-   [[nodiscard]] __cuda_callable__
-   Index
-   getSize() const
-   {
-      static_assert( level < getDimension(), "Invalid dimension passed to getSize()." );
-      return constSize;
-   }
-
-   // methods for convenience
-   [[nodiscard]] __cuda_callable__
-   bool
-   operator==( const ConstStaticSizesHolder& other ) const
-   {
-      return true;
-   }
-
-   [[nodiscard]] __cuda_callable__
-   bool
-   operator!=( const ConstStaticSizesHolder& other ) const
-   {
-      return false;
-   }
-};
-
 // helper for the forInterior method
 template< typename SizesHolder, std::size_t ConstValue >
 struct SubtractedSizesHolder
@@ -334,93 +295,6 @@ struct SubtractedSizesHolder< SizesHolder< Index, sizes... >, ConstValue >
    // using type = SizesHolder< Index, std::max( (std::size_t) 0, sizes - ConstValue )... >;
    using type = SizesHolder< Index, ( ( sizes >= ConstValue ) ? sizes - ConstValue : 0 )... >;
 };
-
-// wrapper for localBegins in DistributedNDArray (static sizes cannot be distributed, begins are always 0)
-template< typename SizesHolder,
-          // overridable value is useful in the forInterior method
-          std::size_t ConstValue = 0 >
-struct LocalBeginsHolder : public SizesHolder
-{
-   template< std::size_t dimension >
-   [[nodiscard]] static constexpr std::size_t
-   getStaticSize()
-   {
-      static_assert( dimension < SizesHolder::getDimension(), "Invalid dimension passed to getStaticSize()." );
-      return ConstValue;
-   }
-
-   template< std::size_t level >
-   [[nodiscard]] __cuda_callable__
-   typename SizesHolder::IndexType
-   getSize() const
-   {
-      if( SizesHolder::template getStaticSize< level >() != 0 )
-         return ConstValue;
-      return SizesHolder::template getSize< level >();
-   }
-
-   template< std::size_t level >
-   __cuda_callable__
-   void
-   setSize( typename SizesHolder::IndexType newSize )
-   {
-      if( SizesHolder::template getStaticSize< level >() == 0 )
-         SizesHolder::template setSize< level >( newSize );
-      else
-         TNL_ASSERT_EQ( newSize,
-                        (typename SizesHolder::IndexType) ConstValue,
-                        "Dynamic size for a static dimension must be equal to the specified ConstValue." );
-   }
-};
-
-template< typename SizesHolder, std::size_t ConstValue, typename OtherHolder >
-LocalBeginsHolder< SizesHolder, ConstValue >
-operator+( const LocalBeginsHolder< SizesHolder, ConstValue >& lhs, const OtherHolder& rhs )
-{
-   LocalBeginsHolder< SizesHolder, ConstValue > result;
-   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() >(
-      [ &result, &lhs, &rhs ]( auto level )
-      {
-         if( SizesHolder::template getStaticSize< level >() == 0 )
-            result.template setSize< level >( lhs.template getSize< level >() + rhs.template getSize< level >() );
-      } );
-   return result;
-}
-
-template< typename SizesHolder, std::size_t ConstValue, typename OtherHolder >
-LocalBeginsHolder< SizesHolder, ConstValue >
-operator-( const LocalBeginsHolder< SizesHolder, ConstValue >& lhs, const OtherHolder& rhs )
-{
-   LocalBeginsHolder< SizesHolder, ConstValue > result;
-   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() >(
-      [ &result, &lhs, &rhs ]( auto level )
-      {
-         if( SizesHolder::template getStaticSize< level >() == 0 )
-            result.template setSize< level >( lhs.template getSize< level >() - rhs.template getSize< level >() );
-      } );
-   return result;
-}
-
-template< typename SizesHolder, std::size_t ConstValue >
-std::ostream&
-operator<<( std::ostream& str, const LocalBeginsHolder< SizesHolder, ConstValue >& holder )
-{
-   str << "LocalBeginsHolder< SizesHolder< ";
-   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() - 1 >(
-      [ &str, &holder ]( auto dimension )
-      {
-         str << holder.template getStaticSize< dimension >() << ", ";
-      } );
-   str << holder.template getStaticSize< SizesHolder::getDimension() - 1 >() << " >, ";
-   str << ConstValue << " >( ";
-   Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() - 1 >(
-      [ &str, &holder ]( auto dimension )
-      {
-         str << holder.template getSize< dimension >() << ", ";
-      } );
-   str << holder.template getSize< SizesHolder::getDimension() - 1 >() << " )";
-   return str;
-}
 
 }  // namespace detail
 

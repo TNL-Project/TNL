@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Containers/ndarray/LocalBeginsHolder.h>
 #include <TNL/Containers/NDArrayView.h>
 #include <TNL/Containers/Subrange.h>
 #include <TNL/MPI/Comm.h>
@@ -40,7 +41,7 @@ public:
 
    //! \brief Type which represents the position of the first local element in
    //! the global N-dimensional array. It has all static sizes set to 0.
-   using LocalBeginsType = detail::LocalBeginsHolder< typename NDArrayView::SizesHolderType >;
+   using LocalBeginsType = LocalBeginsHolder< typename NDArrayView::SizesHolderType >;
 
    //! \brief Type which represents an integer range `[a, b)`.
    using LocalRangeType = Subrange< IndexType >;
@@ -177,6 +178,36 @@ public:
       return globalSizes.template getSize< level >();
    }
 
+   //! \brief Returns the N-dimensional overlaps holder instance.
+   [[nodiscard]] __cuda_callable__
+   const OverlapsType&
+   getOverlaps() const
+   {
+      return localView.getOverlaps();
+   }
+
+   //! \brief Returns the N-dimensional overlaps holder instance.
+   [[nodiscard]] __cuda_callable__
+   OverlapsType&
+   getOverlaps()
+   {
+      return localView.getOverlaps();
+   }
+
+   /**
+    * \brief Returns the overlap of a distributed N-dimensional array along the
+    *        specified axis.
+    *
+    * \tparam level Integer specifying the axis of the array.
+    */
+   template< std::size_t level >
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getOverlap() const
+   {
+      return localView.template getOverlap< level >();
+   }
+
    //! \brief Returns the beginning position of the local array in the global
    //! N-dimensional array.
    [[nodiscard]] LocalBeginsType
@@ -242,13 +273,12 @@ public:
    getStorageIndex( IndexTypes&&... indices ) const
    {
       static_assert( sizeof...( indices ) == SizesHolderType::getDimension(), "got wrong number of indices" );
-      detail::assertIndicesInRange( localBegins, localEnds, OverlapsType{}, std::forward< IndexTypes >( indices )... );
+      detail::assertIndicesInRange( localBegins, localEnds, getOverlaps(), std::forward< IndexTypes >( indices )... );
       auto getStorageIndex = [ this ]( auto&&... indices )
       {
          return this->localView.getStorageIndex( std::forward< decltype( indices ) >( indices )... );
       };
-      return detail::host_call_with_unshifted_indices< LocalBeginsType >(
-         localBegins, getStorageIndex, std::forward< IndexTypes >( indices )... );
+      return detail::host_call_with_unshifted_indices( localBegins, getStorageIndex, std::forward< IndexTypes >( indices )... );
    }
 
    //! \brief Returns a raw pointer to the local data.
@@ -281,9 +311,8 @@ public:
    operator()( IndexTypes&&... indices )
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
-      detail::assertIndicesInRange( localBegins, localEnds, OverlapsType{}, std::forward< IndexTypes >( indices )... );
-      return detail::call_with_unshifted_indices< LocalBeginsType >(
-         localBegins, localView, std::forward< IndexTypes >( indices )... );
+      detail::assertIndicesInRange( localBegins, localEnds, getOverlaps(), std::forward< IndexTypes >( indices )... );
+      return detail::call_with_unshifted_indices( localBegins, localView, std::forward< IndexTypes >( indices )... );
    }
 
    /**
@@ -302,9 +331,8 @@ public:
    operator()( IndexTypes&&... indices ) const
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
-      detail::assertIndicesInRange( localBegins, localEnds, OverlapsType{}, std::forward< IndexTypes >( indices )... );
-      return detail::call_with_unshifted_indices< LocalBeginsType >(
-         localBegins, localView, std::forward< IndexTypes >( indices )... );
+      detail::assertIndicesInRange( localBegins, localEnds, getOverlaps(), std::forward< IndexTypes >( indices )... );
+      return detail::call_with_unshifted_indices( localBegins, localView, std::forward< IndexTypes >( indices )... );
    }
 
    /**
@@ -323,7 +351,7 @@ public:
    operator[]( IndexType index )
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      detail::assertIndicesInRange( localBegins, localEnds, OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInRange( localBegins, localEnds, getOverlaps(), std::forward< IndexType >( index ) );
       return localView[ index - localBegins.template getSize< 0 >() ];
    }
 
@@ -343,7 +371,7 @@ public:
    operator[]( IndexType index ) const
    {
       static_assert( getDimension() == 1, "the access via operator[] is provided only for 1D arrays" );
-      detail::assertIndicesInRange( localBegins, localEnds, OverlapsType{}, std::forward< IndexType >( index ) );
+      detail::assertIndicesInRange( localBegins, localEnds, getOverlaps(), std::forward< IndexType >( index ) );
       return localView[ index - localBegins.template getSize< 0 >() ];
    }
 
@@ -417,17 +445,17 @@ public:
       const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // add static sizes
-      using Begins = detail::LocalBeginsHolder< SizesHolderType, 1 >;
+      using Begins = LocalBeginsHolder< SizesHolderType, 1 >;
       // add dynamic sizes
       Begins begins;
-      detail::SetSizesAddHelper< 1, Begins, SizesHolderType, OverlapsType >::add( begins, SizesHolderType{} );
+      detail::SetSizesAddHelper< 1, Begins, SizesHolderType, OverlapsType >::add( begins, SizesHolderType{}, getOverlaps() );
       detail::SetSizesMaxHelper< Begins, LocalBeginsType >::max( begins, localBegins );
 
       // subtract static sizes
       using Ends = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       Ends ends;
-      detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType, OverlapsType >::subtract( ends, globalSizes );
+      detail::SetSizesSubtractHelper< 1, Ends, SizesHolderType, OverlapsType >::subtract( ends, globalSizes, getOverlaps() );
       detail::SetSizesMinHelper< Ends, SizesHolderType >::min( ends, localEnds );
 
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
@@ -471,17 +499,19 @@ public:
       const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
    {
       // add static sizes
-      using SkipBegins = detail::LocalBeginsHolder< SizesHolderType, 1 >;
+      using SkipBegins = LocalBeginsHolder< SizesHolderType, 1 >;
       // add dynamic sizes
       SkipBegins skipBegins;
-      detail::SetSizesAddHelper< 1, SkipBegins, SizesHolderType, OverlapsType >::add( skipBegins, SizesHolderType{} );
+      detail::SetSizesAddHelper< 1, SkipBegins, SizesHolderType, OverlapsType >::add(
+         skipBegins, SizesHolderType{}, getOverlaps() );
       detail::SetSizesMaxHelper< SkipBegins, LocalBeginsType >::max( skipBegins, localBegins );
 
       // subtract static sizes
       using SkipEnds = typename detail::SubtractedSizesHolder< SizesHolderType, 1 >::type;
       // subtract dynamic sizes
       SkipEnds skipEnds;
-      detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType, OverlapsType >::subtract( skipEnds, globalSizes );
+      detail::SetSizesSubtractHelper< 1, SkipEnds, SizesHolderType, OverlapsType >::subtract(
+         skipEnds, globalSizes, getOverlaps() );
       detail::SetSizesMinHelper< SkipEnds, SizesHolderType >::min( skipEnds, localEnds );
 
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
@@ -526,11 +556,13 @@ public:
    {
       // add overlaps to dynamic sizes
       LocalBeginsType begins;
-      detail::SetSizesAddOverlapsHelper< LocalBeginsType, SizesHolderType, OverlapsType >::add( begins, localBegins );
+      detail::SetSizesAddOverlapsHelper< LocalBeginsType, SizesHolderType, OverlapsType >::add(
+         begins, localBegins, getOverlaps() );
 
       // subtract overlaps from dynamic sizes
       SizesHolderType ends;
-      detail::SetSizesSubtractOverlapsHelper< SizesHolderType, SizesHolderType, OverlapsType >::subtract( ends, localEnds );
+      detail::SetSizesSubtractOverlapsHelper< SizesHolderType, SizesHolderType, OverlapsType >::subtract(
+         ends, localEnds, getOverlaps() );
 
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( begins, ends, launch_configuration, f );
@@ -553,11 +585,13 @@ public:
    {
       // add overlaps to dynamic sizes
       LocalBeginsType skipBegins;
-      detail::SetSizesAddOverlapsHelper< LocalBeginsType, SizesHolderType, OverlapsType >::add( skipBegins, localBegins );
+      detail::SetSizesAddOverlapsHelper< LocalBeginsType, SizesHolderType, OverlapsType >::add(
+         skipBegins, localBegins, getOverlaps() );
 
       // subtract overlaps from dynamic sizes
       SizesHolderType skipEnds;
-      detail::SetSizesSubtractOverlapsHelper< SizesHolderType, SizesHolderType, OverlapsType >::subtract( skipEnds, localEnds );
+      detail::SetSizesSubtractOverlapsHelper< SizesHolderType, SizesHolderType, OverlapsType >::subtract(
+         skipEnds, localEnds, getOverlaps() );
 
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( localBegins, skipBegins, skipEnds, localEnds, launch_configuration, f );
@@ -581,11 +615,13 @@ public:
    {
       // subtract overlaps from dynamic sizes
       LocalBeginsType begins;
-      detail::SetSizesSubtractOverlapsHelper< LocalBeginsType, SizesHolderType, OverlapsType >::subtract( begins, localBegins );
+      detail::SetSizesSubtractOverlapsHelper< LocalBeginsType, SizesHolderType, OverlapsType >::subtract(
+         begins, localBegins, getOverlaps() );
 
       // add overlaps to dynamic sizes
       SizesHolderType ends;
-      detail::SetSizesAddOverlapsHelper< SizesHolderType, SizesHolderType, OverlapsType >::add( ends, localEnds );
+      detail::SetSizesAddOverlapsHelper< SizesHolderType, SizesHolderType, OverlapsType >::add(
+         ends, localEnds, getOverlaps() );
 
       detail::BoundaryExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( begins, localBegins, localEnds, ends, launch_configuration, f );

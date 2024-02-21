@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Containers/ndarray/Indexing.h>
+#include <TNL/Containers/ndarray/StaticSizesHolder.h>   // ConstStaticSizesHolder
 #include <TNL/Containers/ndarray/SizesHolderHelpers.h>  // StorageSizeGetter
 #include <TNL/Containers/ndarray/Subarrays.h>           // DummyStrideBase
 
@@ -40,8 +41,8 @@ template< typename SizesHolder,
           typename Permutation,
           typename Base,
           typename StridesHolder = detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
-          typename Overlaps = detail::make_constant_index_sequence< SizesHolder::getDimension(), 0 > >
-class NDArrayIndexer : public StridesHolder
+          typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
+class NDArrayIndexer : public StridesHolder, public Overlaps
 {
 protected:
    using NDBaseType = Base;
@@ -69,14 +70,14 @@ public:
                   "Dimension of strides does not match the dimension of sizes." );
    static_assert( Permutation::size() == Containers::getDimension< SizesHolder >(),
                   "Dimension of permutation does not match the dimension of sizes." );
-   static_assert( Overlaps::size() == Containers::getDimension< SizesHolder >(),
+   static_assert( Containers::getDimension< Overlaps >() == Containers::getDimension< SizesHolder >(),
                   "Dimension of overlaps does not match the dimension of sizes." );
 #else
    static_assert( StridesHolder::getDimension() == SizesHolder::getDimension(),
                   "Dimension of strides does not match the dimension of sizes." );
    static_assert( Permutation::size() == SizesHolder::getDimension(),
                   "Dimension of permutation does not match the dimension of sizes." );
-   static_assert( Overlaps::size() == SizesHolder::getDimension(),
+   static_assert( Overlaps::getDimension() == SizesHolder::getDimension(),
                   "Dimension of overlaps does not match the dimension of sizes." );
 #endif
 
@@ -86,7 +87,9 @@ public:
 
    //! \brief Creates the indexer with given sizes and strides.
    __cuda_callable__
-   NDArrayIndexer( SizesHolderType sizes, StridesHolderType strides ) : StridesHolder( strides ), sizes( sizes ) {}
+   NDArrayIndexer( SizesHolderType sizes, StridesHolderType strides, OverlapsType overlaps )
+   : StridesHolder( std::move( strides ) ), Overlaps( std::move( overlaps ) ), sizes( std::move( sizes ) )
+   {}
 
    //! \brief Returns the dimension of the \e N-dimensional array, i.e. \e N.
    [[nodiscard]] static constexpr std::size_t
@@ -121,8 +124,32 @@ public:
       return sizes.template getSize< level >();
    }
 
+   //! \brief Returns the N-dimensional strides holder instance.
+   [[nodiscard]] __cuda_callable__
+   const StridesHolderType&
+   getStrides() const
+   {
+      return static_cast< const StridesHolderType& >( *this );
+   }
+
    // method template from base class
    using StridesHolder::getStride;
+
+   //! \brief Returns the N-dimensional overlaps holder instance.
+   [[nodiscard]] __cuda_callable__
+   const OverlapsType&
+   getOverlaps() const
+   {
+      return static_cast< const OverlapsType& >( *this );
+   }
+
+   //! \brief Returns the N-dimensional overlaps holder instance.
+   [[nodiscard]] __cuda_callable__
+   OverlapsType&
+   getOverlaps()
+   {
+      return static_cast< OverlapsType& >( *this );
+   }
 
    /**
     * \brief Returns the overlap of a distributed N-dimensional array along the
@@ -131,10 +158,11 @@ public:
     * \tparam level Integer specifying the axis of the array.
     */
    template< std::size_t level >
-   [[nodiscard]] static constexpr std::size_t
-   getOverlap()
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getOverlap() const
    {
-      return detail::get< level >( Overlaps{} );
+      return getOverlaps().template getSize< level >();
    }
 
    /**
@@ -147,7 +175,7 @@ public:
    getStorageSize() const
    {
       using Alignment = typename Base::template Alignment< Permutation >;
-      return detail::StorageSizeGetter< SizesHolder, Alignment, Overlaps >::get( sizes );
+      return detail::StorageSizeGetter< SizesHolder, Alignment, Overlaps >::get( getSizes(), getOverlaps() );
    }
 
    /**
@@ -166,9 +194,9 @@ public:
    getStorageIndex( IndexTypes&&... indices ) const
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
-      detail::assertIndicesInBounds( getSizes(), OverlapsType{}, std::forward< IndexTypes >( indices )... );
-      const IndexType result = Base::template getStorageIndex< Permutation, Overlaps >(
-         sizes, static_cast< const StridesHolder& >( *this ), std::forward< IndexTypes >( indices )... );
+      detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexTypes >( indices )... );
+      const IndexType result = Base::template getStorageIndex< Permutation >(
+         getSizes(), getStrides(), getOverlaps(), std::forward< IndexTypes >( indices )... );
       TNL_ASSERT_GE( result, (IndexType) 0, "storage index out of bounds - either input error or a bug in the indexer" );
       // upper bound can be checked only for contiguous arrays/views
       if( StridesHolder::isContiguous() ) {
@@ -192,7 +220,7 @@ public:
          [ & ]( auto i )
          {
             constexpr int dim = TNL::Containers::detail::get< i >( Permutation{} );
-            const IndexType size = getSize< dim >() + 2 * static_cast< IndexType >( getOverlap< dim >() );
+            const IndexType size = getSize< dim >() + 2 * getOverlap< dim >();
             const IndexType blockSize = ends.template getSize< dim >() - begins.template getSize< dim >();
             // blockSize can be different from size only in the first dimension,
             // then the sizes must match in all following dimensions

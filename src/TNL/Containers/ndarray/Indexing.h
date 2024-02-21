@@ -87,54 +87,47 @@ host_call_with_shifted_indices( const OffsetsHolder& offsets, Func&& f, Indices&
       offsets, std::forward< Func >( f ), std::forward< Indices >( indices )... );
 }
 
-template< typename SizesHolder, typename Overlaps, typename Sequence >
+template< typename SizesHolder, typename Sequence >
 struct IndexUnshiftHelper
 {};
 
-template< typename SizesHolder, typename Overlaps, std::size_t... N >
-struct IndexUnshiftHelper< SizesHolder, Overlaps, std::index_sequence< N... > >
+template< typename SizesHolder, std::size_t... N >
+struct IndexUnshiftHelper< SizesHolder, std::index_sequence< N... > >
 {
    template< typename Func, typename... Indices >
    __cuda_callable__
    static auto
    apply( const SizesHolder& begins, Func&& f, Indices&&... indices ) -> decltype( auto )
    {
-      return f( ( get< N >( Overlaps{} ) + std::forward< Indices >( indices ) - begins.template getSize< N >() )... );
+      return f( ( std::forward< Indices >( indices ) - begins.template getSize< N >() )... );
    }
 
    template< typename Func, typename... Indices >
    static auto
    apply_host( const SizesHolder& begins, Func&& f, Indices&&... indices ) -> decltype( auto )
    {
-      return f( ( get< N >( Overlaps{} ) + std::forward< Indices >( indices ) - begins.template getSize< N >() )... );
+      return f( ( std::forward< Indices >( indices ) - begins.template getSize< N >() )... );
    }
 };
 
-template< typename SizesHolder,
-          typename Overlaps = make_constant_index_sequence< SizesHolder::getDimension(), 0 >,
-          typename Func,
-          typename... Indices >
+template< typename SizesHolder, typename Func, typename... Indices >
 __cuda_callable__
 auto
 call_with_unshifted_indices( const SizesHolder& begins, Func&& f, Indices&&... indices ) -> decltype( auto )
 {
-   return IndexUnshiftHelper< SizesHolder, Overlaps, std::make_index_sequence< sizeof...( Indices ) > >::apply(
+   return IndexUnshiftHelper< SizesHolder, std::make_index_sequence< sizeof...( Indices ) > >::apply(
       begins, std::forward< Func >( f ), std::forward< Indices >( indices )... );
 }
 
-template< typename SizesHolder,
-          typename Overlaps = make_constant_index_sequence< SizesHolder::getDimension(), 0 >,
-          typename Func,
-          typename... Indices >
+template< typename SizesHolder, typename Func, typename... Indices >
 auto
 host_call_with_unshifted_indices( const SizesHolder& begins, Func&& f, Indices&&... indices ) -> decltype( auto )
 {
-   return IndexUnshiftHelper< SizesHolder, Overlaps, std::make_index_sequence< sizeof...( Indices ) > >::apply_host(
+   return IndexUnshiftHelper< SizesHolder, std::make_index_sequence< sizeof...( Indices ) > >::apply_host(
       begins, std::forward< Func >( f ), std::forward< Indices >( indices )... );
 }
 
 template< typename Permutation,
-          typename Overlaps,
           typename Alignment,
           typename SliceInfo,
           std::size_t level = Permutation::size() - 1,
@@ -142,81 +135,79 @@ template< typename Permutation,
 struct SlicedIndexer
 {};
 
-template< typename Permutation, typename Overlaps, typename Alignment, typename SliceInfo, std::size_t level >
-struct SlicedIndexer< Permutation, Overlaps, Alignment, SliceInfo, level, false >
+template< typename Permutation, typename Alignment, typename SliceInfo, std::size_t level >
+struct SlicedIndexer< Permutation, Alignment, SliceInfo, level, false >
 {
-   template< typename SizesHolder, typename StridesHolder, typename... Indices >
+   template< typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
    __cuda_callable__
    static typename SizesHolder::IndexType
-   getIndex( const SizesHolder& sizes, const StridesHolder& strides, Indices&&... indices )
+   getIndex( const SizesHolder& sizes, const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
    {
       using Index = typename SizesHolder::IndexType;
       constexpr std::size_t idx = get< level >( Permutation{} );
-      constexpr Index overlap = detail::get< idx >( Overlaps{} );
+      const auto overlap = overlaps.template getSize< idx >();
       const auto alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
       const Index size = Alignment::template getAlignedSize< idx >( sizes ) + 2 * overlap;
-      const Index previous = SlicedIndexer< Permutation, Overlaps, Alignment, SliceInfo, level - 1 >::getIndex(
-         sizes, strides, std::forward< Indices >( indices )... );
+      const Index previous = SlicedIndexer< Permutation, Alignment, SliceInfo, level - 1 >::getIndex(
+         sizes, strides, overlaps, std::forward< Indices >( indices )... );
 
       return strides.template getStride< idx >( alpha ) * ( alpha + overlap + size * previous );
    }
 };
 
-template< typename Permutation, typename Overlaps, typename Alignment, typename SliceInfo, std::size_t level >
-struct SlicedIndexer< Permutation, Overlaps, Alignment, SliceInfo, level, true >
+template< typename Permutation, typename Alignment, typename SliceInfo, std::size_t level >
+struct SlicedIndexer< Permutation, Alignment, SliceInfo, level, true >
 {
-   template< typename SizesHolder, typename StridesHolder, typename... Indices >
+   template< typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
    __cuda_callable__
    static typename SizesHolder::IndexType
-   getIndex( const SizesHolder& sizes, const StridesHolder& strides, Indices&&... indices )
+   getIndex( const SizesHolder& sizes, const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
    {
       static_assert( SizesHolder::template getStaticSize< get< level >( Permutation{} ) >() == 0,
                      "Invalid SliceInfo: static dimension cannot be sliced." );
       using Index = typename SizesHolder::IndexType;
 
       constexpr std::size_t idx = get< level >( Permutation{} );
-      constexpr Index overlap = detail::get< idx >( Overlaps{} );
+      const auto overlap = overlaps.template getSize< idx >();
       const auto alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
       constexpr Index S = SliceInfo::getSliceSize( idx );
       // TODO: check the calculation with strides and overlaps
       return strides.template getStride< idx >( alpha )
               * ( S * ( ( alpha + overlap ) / S )
                      * StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< level - 1 > >::getPermuted(
-                        sizes, Permutation{} )
+                        sizes, overlaps, Permutation{} )
                   + ( alpha + overlap ) % S )
            + S
-                * SlicedIndexer< Permutation, Overlaps, Alignment, SliceInfo, level - 1 >::getIndex(
-                   sizes, strides, std::forward< Indices >( indices )... );
+                * SlicedIndexer< Permutation, Alignment, SliceInfo, level - 1 >::getIndex(
+                   sizes, strides, overlaps, std::forward< Indices >( indices )... );
    }
 };
 
-template< typename Permutation, typename Overlaps, typename Alignment, typename SliceInfo >
-struct SlicedIndexer< Permutation, Overlaps, Alignment, SliceInfo, 0, false >
+template< typename Permutation, typename Alignment, typename SliceInfo >
+struct SlicedIndexer< Permutation, Alignment, SliceInfo, 0, false >
 {
-   template< typename SizesHolder, typename StridesHolder, typename... Indices >
+   template< typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
    __cuda_callable__
    static typename SizesHolder::IndexType
-   getIndex( const SizesHolder& sizes, const StridesHolder& strides, Indices&&... indices )
+   getIndex( const SizesHolder& sizes, const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
    {
-      using Index = typename SizesHolder::IndexType;
       constexpr std::size_t idx = get< 0 >( Permutation{} );
-      constexpr Index overlap = detail::get< idx >( Overlaps{} );
+      const auto overlap = overlaps.template getSize< idx >();
       const auto alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
       return strides.template getStride< idx >( alpha ) * ( alpha + overlap );
    }
 };
 
-template< typename Permutation, typename Overlaps, typename Alignment, typename SliceInfo >
-struct SlicedIndexer< Permutation, Overlaps, Alignment, SliceInfo, 0, true >
+template< typename Permutation, typename Alignment, typename SliceInfo >
+struct SlicedIndexer< Permutation, Alignment, SliceInfo, 0, true >
 {
-   template< typename SizesHolder, typename StridesHolder, typename... Indices >
+   template< typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
    __cuda_callable__
    static typename SizesHolder::IndexType
-   getIndex( const SizesHolder& sizes, const StridesHolder& strides, Indices&&... indices )
+   getIndex( const SizesHolder& sizes, const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
    {
-      using Index = typename SizesHolder::IndexType;
-      static constexpr std::size_t idx = get< 0 >( Permutation{} );
-      static constexpr Index overlap = detail::get< idx >( Overlaps{} );
+      constexpr std::size_t idx = get< 0 >( Permutation{} );
+      const auto overlap = overlaps.template getSize< idx >();
       const auto alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
       return strides.template getStride< idx >( alpha ) * ( alpha + overlap );
    }
@@ -245,16 +236,17 @@ struct NDArrayBase
       }
    };
 
-   template< typename Permutation, typename Overlaps, typename SizesHolder, typename StridesHolder, typename... Indices >
+   template< typename Permutation, typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
    __cuda_callable__
    typename SizesHolder::IndexType static getStorageIndex( const SizesHolder& sizes,
                                                            const StridesHolder& strides,
+                                                           const Overlaps& overlaps,
                                                            Indices&&... indices )
    {
       static_assert( check_slice_size( SizesHolder::getDimension(), 0 ), "BUG - invalid SliceInfo type passed to NDArrayBase" );
       using Alignment = Alignment< Permutation >;
-      return SlicedIndexer< Permutation, Overlaps, Alignment, SliceInfo >::getIndex(
-         sizes, strides, std::forward< Indices >( indices )... );
+      return SlicedIndexer< Permutation, Alignment, SliceInfo >::getIndex(
+         sizes, strides, overlaps, std::forward< Indices >( indices )... );
    }
 
 private:
@@ -290,14 +282,14 @@ struct SlicedNDArrayBase
       }
    };
 
-   template< typename Permutation, typename Overlaps, typename SizesHolder, typename StridesHolder, typename... Indices >
+   template< typename Permutation, typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
    __cuda_callable__
    static typename SizesHolder::IndexType
-   getStorageIndex( const SizesHolder& sizes, const StridesHolder& strides, Indices&&... indices )
+   getStorageIndex( const SizesHolder& sizes, const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
    {
       using Alignment = Alignment< Permutation >;
-      return SlicedIndexer< Permutation, Overlaps, Alignment, SliceInfo >::getIndex(
-         sizes, strides, std::forward< Indices >( indices )... );
+      return SlicedIndexer< Permutation, Alignment, SliceInfo >::getIndex(
+         sizes, strides, overlaps, std::forward< Indices >( indices )... );
    }
 };
 

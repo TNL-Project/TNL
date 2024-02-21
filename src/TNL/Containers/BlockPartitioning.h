@@ -110,21 +110,29 @@ decomposeBlock( const Block< 3, Index >& global, Index num_x, Index num_y = 1, I
  *
  * \param global The large block to decompose.
  * \param num_blocks Number of blocks.
+ * \param f The objective function that should be minimized.
  * \return A vector of the blocks into which the input was decomposed.
  */
 template< typename Index >
 std::vector< Block< 3, Index > >
-decomposeBlockOptimal( const Block< 3, Index >& global, Index num_blocks )
+decomposeBlockOptimal(
+   const Block< 3, Index >& global,
+   Index num_blocks,
+   const std::function< Index( const std::vector< Block< 3, Index > >& ) >& f =
+      []( const std::vector< Block< 3, Index > >& decomposition ) -> Index
+   {
+      return getInterfaceArea( decomposition );
+   } )
 {
    std::vector< Block< 3, Index > > best;
-   Index best_interface_area = std::numeric_limits< Index >::max();
+   Index best_value = std::numeric_limits< Index >::max();
 
    for( const auto& [ num_x, num_y, num_z ] : integerFactorizationTuples< 3 >( num_blocks ) ) {
       const std::vector< Block< 3, Index > > decomposition = decomposeBlock( global, num_x, num_y, num_z );
-      const Index interface_area = getInterfaceArea( decomposition );
-      if( interface_area < best_interface_area ) {
+      const Index objective = f( decomposition );
+      if( objective < best_value ) {
          best = decomposition;
-         best_interface_area = interface_area;
+         best_value = objective;
       }
    }
 

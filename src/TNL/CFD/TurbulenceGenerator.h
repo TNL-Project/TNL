@@ -50,10 +50,10 @@ namespace CFD {
 template< typename Real, typename Device, typename Index >
 struct TurbulenceGenerator
 {
-   using xyz_permutation = std::index_sequence< 2, 1, 0 >;      // z, y, x
-   using xyz_overlaps = std::index_sequence< 0, 0, 0 >;         // x, y, z
-   using txyz_permutation = std::index_sequence< 0, 3, 2, 1 >;  // t, z, y, x
-   using txyz_overlaps = std::index_sequence< 0, 0, 0, 0 >;     // t, x, y, z
+   using xyz_permutation = std::index_sequence< 2, 1, 0 >;                         // z, y, x
+   using xyz_overlaps = TNL::Containers::StaticSizesHolder< Index, 0, 0, 0 >;      // x, y, z
+   using txyz_permutation = std::index_sequence< 0, 3, 2, 1 >;                     // t, z, y, x
+   using txyz_overlaps = TNL::Containers::StaticSizesHolder< Index, 0, 0, 0, 0 >;  // t, x, y, z
 
    using Vector = TNL::Containers::Vector< Real, Device, unsigned >;
    using Array1D = TNL::Containers::Array< Real, Device, Index >;

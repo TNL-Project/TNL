@@ -27,8 +27,6 @@ protected:
    using DistributedNDArrayType = DistributedNDArray;
 
    const int globalSize = 97;  // prime number to force non-uniform distribution
-   const int overlapsX = get< 0 >( typename DistributedNDArray::OverlapsType{} );
-   const int overlapsY = get< 1 >( typename DistributedNDArray::OverlapsType{} );
 
    const MPI_Comm communicator = MPI_COMM_WORLD;
 
@@ -65,7 +63,7 @@ using DistributedNDArrayTypes =
                                                   std::index_sequence< 0, 1 >,  // permutation - should not matter
                                                   Devices::Host,
                                                   int,
-                                                  std::index_sequence< 2, 3 > > >  // overlaps
+                                                  StaticSizesHolder< int, 2, 3 > > >  // overlaps
 #ifdef __CUDACC__
                      ,
                      DistributedNDArray< NDArray< double,
@@ -73,7 +71,7 @@ using DistributedNDArrayTypes =
                                                   std::index_sequence< 0, 1 >,  // permutation - should not matter
                                                   Devices::Cuda,
                                                   int,
-                                                  std::index_sequence< 2, 3 > > >  // overlaps
+                                                  StaticSizesHolder< int, 2, 3 > > >  // overlaps
 #endif
                      >;
 
@@ -81,6 +79,8 @@ TYPED_TEST_SUITE( DistributedNDArrayOverlaps_2D_test, DistributedNDArrayTypes );
 
 TYPED_TEST( DistributedNDArrayOverlaps_2D_test, checkSumOfLocalSizes )
 {
+   const int overlapX = this->distributedNDArray.template getOverlap< 0 >();
+   const int overlapY = this->distributedNDArray.template getOverlap< 1 >();
    const auto localRangeX = this->distributedNDArray.template getLocalRange< 0 >();
    const auto localRangeY = this->distributedNDArray.template getLocalRange< 1 >();
    const int localSizeX = localRangeX.getEnd() - localRangeX.getBegin();
@@ -91,7 +91,7 @@ TYPED_TEST( DistributedNDArrayOverlaps_2D_test, checkSumOfLocalSizes )
    EXPECT_EQ( sumOfLocalSizes, this->globalSize * this->globalSize );
    EXPECT_EQ( this->distributedNDArray.template getSize< 0 >(), this->globalSize );
    EXPECT_EQ( this->distributedNDArray.template getSize< 1 >(), this->globalSize );
-   const int localSizeWithOverlaps = ( localSizeX + 2 * this->overlapsX ) * ( localSizeY + 2 * this->overlapsY );
+   const int localSizeWithOverlaps = ( localSizeX + 2 * overlapX ) * ( localSizeY + 2 * overlapY );
    EXPECT_EQ( this->distributedNDArray.getLocalStorageSize(), localSizeWithOverlaps );
 }
 
@@ -103,8 +103,8 @@ test_helper_forAll( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
-   const int overlapsX = get< 0 >( typename DistributedArray::OverlapsType{} );
-   const int overlapsY = get< 1 >( typename DistributedArray::OverlapsType{} );
+   const int overlapX = a.template getOverlap< 0 >();
+   const int overlapY = a.template getOverlap< 1 >();
 
    const auto localRangeX = a.template getLocalRange< 0 >();
    const auto localRangeY = a.template getLocalRange< 1 >();
@@ -118,8 +118,8 @@ test_helper_forAll( DistributedArray& a )
    a.setValue( 0 );
    a.forAll( setter );
 
-   for( IndexType gi = localRangeX.getBegin() - overlapsX; gi < localRangeX.getEnd() + overlapsX; gi++ ) {
-      for( IndexType gj = localRangeY.getBegin() - overlapsY; gj < localRangeY.getEnd() + overlapsY; gj++ ) {
+   for( IndexType gi = localRangeX.getBegin() - overlapX; gi < localRangeX.getEnd() + overlapX; gi++ ) {
+      for( IndexType gj = localRangeY.getBegin() - overlapY; gj < localRangeY.getEnd() + overlapY; gj++ ) {
          if( gi < localRangeX.getBegin() || gi >= localRangeX.getEnd() || gj < localRangeY.getBegin()
              || gj >= localRangeY.getEnd() )
          {
@@ -134,8 +134,8 @@ test_helper_forAll( DistributedArray& a )
    a.setValue( 0 );
    a.getView().forAll( setter );
 
-   for( IndexType gi = localRangeX.getBegin() - overlapsX; gi < localRangeX.getEnd() + overlapsX; gi++ ) {
-      for( IndexType gj = localRangeY.getBegin() - overlapsY; gj < localRangeY.getEnd() + overlapsY; gj++ ) {
+   for( IndexType gi = localRangeX.getBegin() - overlapX; gi < localRangeX.getEnd() + overlapX; gi++ ) {
+      for( IndexType gj = localRangeY.getBegin() - overlapY; gj < localRangeY.getEnd() + overlapY; gj++ ) {
          if( gi < localRangeX.getBegin() || gi >= localRangeX.getEnd() || gj < localRangeY.getBegin()
              || gj >= localRangeY.getEnd() )
          {
@@ -161,8 +161,8 @@ test_helper_forLocalInterior( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
-   const int overlapsX = get< 0 >( typename DistributedArray::OverlapsType{} );
-   const int overlapsY = get< 1 >( typename DistributedArray::OverlapsType{} );
+   const int overlapX = a.template getOverlap< 0 >();
+   const int overlapY = a.template getOverlap< 1 >();
 
    const auto localRangeX = a.template getLocalRange< 0 >();
    const auto localRangeY = a.template getLocalRange< 1 >();
@@ -177,8 +177,8 @@ test_helper_forLocalInterior( DistributedArray& a )
 
    for( IndexType gi = localRangeX.getBegin(); gi < localRangeX.getEnd(); gi++ ) {
       for( IndexType gj = localRangeY.getBegin(); gj < localRangeY.getEnd(); gj++ ) {
-         if( gi < localRangeX.getBegin() + overlapsX || gi >= localRangeX.getEnd() - overlapsX
-             || gj < localRangeY.getBegin() + overlapsY || gj >= localRangeY.getEnd() - overlapsY )
+         if( gi < localRangeX.getBegin() + overlapX || gi >= localRangeX.getEnd() - overlapX
+             || gj < localRangeY.getBegin() + overlapY || gj >= localRangeY.getEnd() - overlapY )
          {
             EXPECT_EQ( a.getElement( gi, gj ), 0 );
          }
@@ -193,8 +193,8 @@ test_helper_forLocalInterior( DistributedArray& a )
 
    for( IndexType gi = localRangeX.getBegin(); gi < localRangeX.getEnd(); gi++ ) {
       for( IndexType gj = localRangeY.getBegin(); gj < localRangeY.getEnd(); gj++ ) {
-         if( gi < localRangeX.getBegin() + overlapsX || gi >= localRangeX.getEnd() - overlapsX
-             || gj < localRangeY.getBegin() + overlapsY || gj >= localRangeY.getEnd() - overlapsY )
+         if( gi < localRangeX.getBegin() + overlapX || gi >= localRangeX.getEnd() - overlapX
+             || gj < localRangeY.getBegin() + overlapY || gj >= localRangeY.getEnd() - overlapY )
          {
             EXPECT_EQ( a.getElement( gi, gj ), 0 );
          }
@@ -218,8 +218,8 @@ test_helper_forLocalBoundary( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
-   const int overlapsX = get< 0 >( typename DistributedArray::OverlapsType{} );
-   const int overlapsY = get< 1 >( typename DistributedArray::OverlapsType{} );
+   const int overlapX = a.template getOverlap< 0 >();
+   const int overlapY = a.template getOverlap< 1 >();
 
    const auto localRangeX = a.template getLocalRange< 0 >();
    const auto localRangeY = a.template getLocalRange< 1 >();
@@ -235,8 +235,8 @@ test_helper_forLocalBoundary( DistributedArray& a )
 
    for( IndexType gi = localRangeX.getBegin(); gi < localRangeX.getEnd(); gi++ ) {
       for( IndexType gj = localRangeY.getBegin(); gj < localRangeY.getEnd(); gj++ ) {
-         if( gi < localRangeX.getBegin() + overlapsX || gi >= localRangeX.getEnd() - overlapsX
-             || gj < localRangeY.getBegin() + overlapsY || gj >= localRangeY.getEnd() - overlapsY )
+         if( gi < localRangeX.getBegin() + overlapX || gi >= localRangeX.getEnd() - overlapX
+             || gj < localRangeY.getBegin() + overlapY || gj >= localRangeY.getEnd() - overlapY )
          {
             EXPECT_EQ( a.getElement( gi, gj ), 1 );
          }
@@ -251,8 +251,8 @@ test_helper_forLocalBoundary( DistributedArray& a )
 
    for( IndexType gi = localRangeX.getBegin(); gi < localRangeX.getEnd(); gi++ ) {
       for( IndexType gj = localRangeY.getBegin(); gj < localRangeY.getEnd(); gj++ ) {
-         if( gi < localRangeX.getBegin() + overlapsX || gi >= localRangeX.getEnd() - overlapsX
-             || gj < localRangeY.getBegin() + overlapsY || gj >= localRangeY.getEnd() - overlapsY )
+         if( gi < localRangeX.getBegin() + overlapX || gi >= localRangeX.getEnd() - overlapX
+             || gj < localRangeY.getBegin() + overlapY || gj >= localRangeY.getEnd() - overlapY )
          {
             EXPECT_EQ( a.getElement( gi, gj ), 1 );
          }
@@ -276,8 +276,8 @@ test_helper_forGhosts( DistributedArray& a )
 {
    using IndexType = typename DistributedArray::IndexType;
 
-   const int overlapsX = get< 0 >( typename DistributedArray::OverlapsType{} );
-   const int overlapsY = get< 1 >( typename DistributedArray::OverlapsType{} );
+   const int overlapX = a.template getOverlap< 0 >();
+   const int overlapY = a.template getOverlap< 1 >();
 
    const auto localRangeX = a.template getLocalRange< 0 >();
    const auto localRangeY = a.template getLocalRange< 1 >();
@@ -291,8 +291,8 @@ test_helper_forGhosts( DistributedArray& a )
    a.setValue( 0 );
    a.forGhosts( setter );
 
-   for( IndexType gi = localRangeX.getBegin() - overlapsX; gi < localRangeX.getEnd() + overlapsX; gi++ ) {
-      for( IndexType gj = localRangeY.getBegin() - overlapsY; gj < localRangeY.getEnd() + overlapsY; gj++ ) {
+   for( IndexType gi = localRangeX.getBegin() - overlapX; gi < localRangeX.getEnd() + overlapX; gi++ ) {
+      for( IndexType gj = localRangeY.getBegin() - overlapY; gj < localRangeY.getEnd() + overlapY; gj++ ) {
          if( gi < localRangeX.getBegin() || gi >= localRangeX.getEnd() || gj < localRangeY.getBegin()
              || gj >= localRangeY.getEnd() )
          {
@@ -307,8 +307,8 @@ test_helper_forGhosts( DistributedArray& a )
    a.setValue( 0 );
    a.getView().forGhosts( setter );
 
-   for( IndexType gi = localRangeX.getBegin() - overlapsX; gi < localRangeX.getEnd() + overlapsX; gi++ ) {
-      for( IndexType gj = localRangeY.getBegin() - overlapsY; gj < localRangeY.getEnd() + overlapsY; gj++ ) {
+   for( IndexType gi = localRangeX.getBegin() - overlapX; gi < localRangeX.getEnd() + overlapX; gi++ ) {
+      for( IndexType gj = localRangeY.getBegin() - overlapY; gj < localRangeY.getEnd() + overlapY; gj++ ) {
          if( gi < localRangeX.getBegin() || gi >= localRangeX.getEnd() || gj < localRangeY.getBegin()
              || gj >= localRangeY.getEnd() )
          {
@@ -338,8 +338,8 @@ test_helper_synchronize_D2Q5( DistributedArray& a,
 {
    using IndexType = typename DistributedArray::IndexType;
 
-   const int overlapsX = get< 0 >( typename DistributedArray::OverlapsType{} );
-   const int overlapsY = get< 1 >( typename DistributedArray::OverlapsType{} );
+   const int overlapX = a.template getOverlap< 0 >();
+   const int overlapY = a.template getOverlap< 1 >();
 
    const auto localRangeX = a.template getLocalRange< 0 >();
    const auto localRangeY = a.template getLocalRange< 1 >();
@@ -357,8 +357,8 @@ test_helper_synchronize_D2Q5( DistributedArray& a,
    setNeighbors( s1, NDArraySyncPatterns::D2Q5, rank, decomposition, globalBlock );
    s1.synchronize( a );
 
-   for( IndexType gi = localRangeX.getBegin() - overlapsX; gi < localRangeX.getEnd() + overlapsX; gi++ ) {
-      for( IndexType gj = localRangeY.getBegin() - overlapsY; gj < localRangeY.getEnd() + overlapsY; gj++ ) {
+   for( IndexType gi = localRangeX.getBegin() - overlapX; gi < localRangeX.getEnd() + overlapX; gi++ ) {
+      for( IndexType gj = localRangeY.getBegin() - overlapY; gj < localRangeY.getEnd() + overlapY; gj++ ) {
          const auto value = a.getElement( gi, gj );
          // handle periodic boundaries
          const IndexType new_gi = ( gi + globalSize ) % globalSize;
@@ -384,8 +384,8 @@ test_helper_synchronize_D2Q5( DistributedArray& a,
    auto view = a.getView();
    s2.synchronize( view );
 
-   for( IndexType gi = localRangeX.getBegin() - overlapsX; gi < localRangeX.getEnd() + overlapsX; gi++ ) {
-      for( IndexType gj = localRangeY.getBegin() - overlapsY; gj < localRangeY.getEnd() + overlapsY; gj++ ) {
+   for( IndexType gi = localRangeX.getBegin() - overlapX; gi < localRangeX.getEnd() + overlapX; gi++ ) {
+      for( IndexType gj = localRangeY.getBegin() - overlapY; gj < localRangeY.getEnd() + overlapY; gj++ ) {
          const auto value = a.getElement( gi, gj );
          // handle periodic boundaries
          const IndexType new_gi = ( gi + globalSize ) % globalSize;
@@ -422,8 +422,8 @@ test_helper_synchronize_D2Q9( DistributedArray& a,
 {
    using IndexType = typename DistributedArray::IndexType;
 
-   const int overlapsX = get< 0 >( typename DistributedArray::OverlapsType{} );
-   const int overlapsY = get< 1 >( typename DistributedArray::OverlapsType{} );
+   const int overlapX = a.template getOverlap< 0 >();
+   const int overlapY = a.template getOverlap< 1 >();
 
    const auto localRangeX = a.template getLocalRange< 0 >();
    const auto localRangeY = a.template getLocalRange< 1 >();
@@ -441,8 +441,8 @@ test_helper_synchronize_D2Q9( DistributedArray& a,
    setNeighbors( s1, NDArraySyncPatterns::D2Q9, rank, decomposition, globalBlock );
    s1.synchronize( a );
 
-   for( IndexType gi = localRangeX.getBegin() - overlapsX; gi < localRangeX.getEnd() + overlapsX; gi++ ) {
-      for( IndexType gj = localRangeY.getBegin() - overlapsY; gj < localRangeY.getEnd() + overlapsY; gj++ ) {
+   for( IndexType gi = localRangeX.getBegin() - overlapX; gi < localRangeX.getEnd() + overlapX; gi++ ) {
+      for( IndexType gj = localRangeY.getBegin() - overlapY; gj < localRangeY.getEnd() + overlapY; gj++ ) {
          const auto value = a.getElement( gi, gj );
          // handle periodic boundaries
          const IndexType new_gi = ( gi + globalSize ) % globalSize;
@@ -462,8 +462,8 @@ test_helper_synchronize_D2Q9( DistributedArray& a,
    auto view = a.getView();
    s2.synchronize( view );
 
-   for( IndexType gi = localRangeX.getBegin() - overlapsX; gi < localRangeX.getEnd() + overlapsX; gi++ ) {
-      for( IndexType gj = localRangeY.getBegin() - overlapsY; gj < localRangeY.getEnd() + overlapsY; gj++ ) {
+   for( IndexType gi = localRangeX.getBegin() - overlapX; gi < localRangeX.getEnd() + overlapX; gi++ ) {
+      for( IndexType gj = localRangeY.getBegin() - overlapY; gj < localRangeY.getEnd() + overlapY; gj++ ) {
          const auto value = a.getElement( gi, gj );
          // handle periodic boundaries
          const IndexType new_gi = ( gi + globalSize ) % globalSize;

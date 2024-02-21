@@ -63,31 +63,39 @@ template< int Size, typename Value >
 template< typename _unused >
 constexpr StaticArray< Size, Value >::StaticArray( const Value v[ Size ] )
 {
-   for( int i = 0; i < getSize(); i++ )
-      data[ i ] = v[ i ];
+   if constexpr( getSize() > 0 ) {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = v[ i ];
+   }
 }
 
 template< int Size, typename Value >
 constexpr StaticArray< Size, Value >::StaticArray( const StaticArray& v )
 {
-   for( int i = 0; i < getSize(); i++ )
-      data[ i ] = v[ i ];
+   if constexpr( getSize() > 0 ) {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = v[ i ];
+   }
 }
 
 template< int Size, typename Value >
 template< typename OtherValue >
 constexpr StaticArray< Size, Value >::StaticArray( const StaticArray< Size, OtherValue >& v )
 {
-   for( int i = 0; i < getSize(); i++ )
-      data[ i ] = v[ i ];
+   if constexpr( getSize() > 0 ) {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = v[ i ];
+   }
 }
 
 template< int Size, typename Value >
 __cuda_callable__
 constexpr StaticArray< Size, Value >::StaticArray( const Value& v )
 {
-   for( int i = 0; i < getSize(); i++ )
-      data[ i ] = v;
+   if constexpr( getSize() > 0 ) {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = v;
+   }
 }
 
 template< int Size, typename Value >
@@ -102,9 +110,11 @@ template< typename OtherValue >
 __cuda_callable__
 constexpr StaticArray< Size, Value >::StaticArray( const std::initializer_list< OtherValue >& elems )
 {
-   const auto* it = elems.begin();
-   for( int i = 0; i < getSize() && it != elems.end(); i++ )
-      data[ i ] = *it++;
+   if constexpr( getSize() > 0 ) {
+      const auto* it = elems.begin();
+      for( int i = 0; i < getSize() && it != elems.end(); i++ )
+         data[ i ] = *it++;
+   }
 }
 
 template< int Size, typename Value >
@@ -112,8 +122,10 @@ template< typename OtherValue >
 __cuda_callable__
 constexpr StaticArray< Size, Value >::StaticArray( const std::array< OtherValue, Size >& array )
 {
-   for( int i = 0; i < getSize(); i++ )
-      data[ i ] = array[ i ];
+   if constexpr( getSize() > 0 ) {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = array[ i ];
+   }
 }
 
 template< int Size, typename Value >
@@ -233,8 +245,10 @@ template< int Size, typename Value >
 constexpr StaticArray< Size, Value >&
 StaticArray< Size, Value >::operator=( const StaticArray& v )
 {
-   for( int i = 0; i < getSize(); i++ )
-      data[ i ] = v[ i ];
+   if constexpr( getSize() > 0 ) {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = v[ i ];
+   }
    return *this;
 }
 
@@ -243,13 +257,15 @@ template< typename T >
 constexpr StaticArray< Size, Value >&
 StaticArray< Size, Value >::operator=( const T& v )
 {
-   if constexpr( IsStaticArrayType< T >::value ) {
-      for( int i = 0; i < getSize(); i++ )
-         data[ i ] = v[ i ];
-   }
-   else {
-      for( int i = 0; i < getSize(); i++ )
-         data[ i ] = v;
+   if constexpr( getSize() > 0 ) {
+      if constexpr( IsStaticArrayType< T >::value ) {
+         for( int i = 0; i < getSize(); i++ )
+            data[ i ] = v[ i ];
+      }
+      else {
+         for( int i = 0; i < getSize(); i++ )
+            data[ i ] = v;
+      }
    }
    return *this;
 }
@@ -259,9 +275,11 @@ template< typename Array >
 constexpr bool
 StaticArray< Size, Value >::operator==( const Array& array ) const
 {
-   for( int i = 0; i < getSize(); i++ )
-      if( ! ( data[ i ] == array[ i ] ) )
-         return false;
+   if constexpr( getSize() > 0 ) {
+      for( int i = 0; i < getSize(); i++ )
+         if( ! ( data[ i ] == array[ i ] ) )
+            return false;
+   }
    return true;
 }
 
@@ -277,8 +295,10 @@ template< int Size, typename Value >
 constexpr void
 StaticArray< Size, Value >::setValue( const ValueType& val )
 {
-   for( int i = 0; i < getSize(); i++ )
-      data[ i ] = val;
+   if constexpr( getSize() > 0 ) {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = val;
+   }
 }
 
 template< int Size, typename Value >
