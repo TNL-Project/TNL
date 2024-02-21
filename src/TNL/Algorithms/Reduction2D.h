@@ -32,9 +32,9 @@ struct Reduction2D< Devices::Sequential >
     *    n: number of datasets to be reduced
     *    result: output array of size = n
     */
-   template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+   template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
    static constexpr void
-   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int n, Result* result );
+   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int n, Output result );
 };
 
 template<>
@@ -55,9 +55,9 @@ struct Reduction2D< Devices::Host >
     *    n: number of datasets to be reduced
     *    result: output array of size = n
     */
-   template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+   template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
    static void
-   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int n, Result* result );
+   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int n, Output result );
 };
 
 template<>
@@ -78,9 +78,9 @@ struct Reduction2D< Devices::Cuda >
     *    n: number of datasets to be reduced
     *    hostResult: output array of size = n
     */
-   template< typename Result, typename DataFetcher, typename Reduction, typename Index >
+   template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
    static void
-   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int n, Result* hostResult );
+   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int n, Output hostResult );
 };
 
 }  // namespace TNL::Algorithms

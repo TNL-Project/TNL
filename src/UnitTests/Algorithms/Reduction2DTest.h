@@ -113,7 +113,7 @@ test_Reduction2D( const DeviceVector& V, const DeviceVector& y, HostVector& resu
       TNL_ASSERT_LT( k, n, "fetcher got invalid index k" );
       return _V[ i + k * size ] * _y[ i ];
    };
-   Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, n, result.getData() );
+   Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, n, result.getView() );
 
    for( int i = 0; i < n; i++ ) {
       if( i % 2 == 0 )
