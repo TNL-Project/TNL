@@ -140,7 +140,7 @@ workflow:
       fi
     # all cores including hyperthreading
     #- export NUM_CORES=$(grep "core id" /proc/cpuinfo | wc -l)
-    # all pyhsical cores
+    # all physical cores
     - export NUM_CORES=$(grep "core id" /proc/cpuinfo | sort -u | wc -l)
     - export CTEST_OUTPUT_ON_FAILURE=1
     - export CTEST_PARALLEL_LEVEL=4
@@ -148,8 +148,6 @@ workflow:
     # running as root does not matter inside Docker containers
     - export OMPI_ALLOW_RUN_AS_ROOT=1
     - export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
-    # configure OpenMPI to run without ssh
-    - export OMPI_MCA_plm_rsh_agent=sh
 
 # template for build jobs
 .build_template:
