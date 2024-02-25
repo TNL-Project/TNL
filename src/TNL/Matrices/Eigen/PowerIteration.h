@@ -29,7 +29,7 @@ namespace TNL::Matrices::Eigen {
  *
  * \param matrix is the matrix for which the largest eigenvalue and associated eigenvector are to be calculated. The matrix should
  * be square.
- * \param precision is the precision of the calculation, which determines the convergence threshold for the iterative method.
+ * \param epsilon is the precision of the calculation, which determines the convergence threshold for the iterative method.
  *
  * \return A tuple containing three elements:
  *         1. The largest eigenvalue (of type T).
@@ -43,7 +43,7 @@ namespace TNL::Matrices::Eigen {
  */
 template< typename T, typename Device, typename MatrixType >
 static std::tuple< T, TNL::Containers::Vector< T, Device >, uint >
-powerIterationTuple( const MatrixType& matrix, const T& precision )
+powerIterationTuple( const MatrixType& matrix, const T& epsilon )
 {
    using IndexType = typename MatrixType::IndexType;
    IndexType vecSize = matrix.getColumns();
@@ -63,7 +63,7 @@ powerIterationTuple( const MatrixType& matrix, const T& precision )
       auto [ v, i ] = TNL::argMax( abs( eigenVecOut ) );
       norm = eigenVecOut.getElement( i );
       eigenVec = eigenVecOut / norm;
-      if( fabs( norm - normOld ) < precision )
+      if( fabs( norm - normOld ) < epsilon )
          break;
       normOld = norm;
       iterations++;
@@ -86,7 +86,7 @@ powerIterationTuple( const MatrixType& matrix, const T& precision )
  *
  * \param matrix is the matrix for which the largest eigenvalue and associated eigenvector are to be calculated. The matrix should
  * be square.
- * \param precision is the precision of the calculation, which determines the convergence threshold for the iterative method.
+ * \param epsilon is the precision of the calculation, which determines the convergence threshold for the iterative method.
  *
  * \return A pair consisting of:
  *         1. The largest eigenvalue (of type T).
@@ -99,9 +99,9 @@ powerIterationTuple( const MatrixType& matrix, const T& precision )
  */
 template< typename T, typename Device, typename MatrixType >
 static std::pair< T, TNL::Containers::Vector< T, Device > >
-powerIteration( const MatrixType& matrix, const T& precision )
+powerIteration( const MatrixType& matrix, const T& epsilon )
 {
-   std::tuple< T, TNL::Containers::Vector< T, Device >, uint > tuple = powerIterationTuple< T, Device >( matrix, precision );
+   std::tuple< T, TNL::Containers::Vector< T, Device >, uint > tuple = powerIterationTuple< T, Device >( matrix, epsilon );
    return std::make_pair( std::get< 0 >( tuple ), std::get< 1 >( tuple ) );
 }
 

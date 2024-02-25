@@ -20,7 +20,7 @@ namespace TNL::Matrices::Eigen {
  * \tparam MatrixType is the type of the matrix (e.g., dense matrix, sparse matrix).
  *
  * \param matrix is the original matrix for which the eigenvalue and eigenvector are to be calculated.
- * \param precision is the precision of the calculation, which determines the convergence threshold for the iterative method.
+ * \param epsilon is the precision of the calculation, which determines the convergence threshold for the iterative method.
  * \param shiftValue is the value used to shift the spectrum of the matrix. The choice of shiftValue influences which
  * eigenvalue the method will converge to.
  *
@@ -35,7 +35,7 @@ namespace TNL::Matrices::Eigen {
  */
 template< typename T, typename Device, typename MatrixType >
 static std::tuple< T, TNL::Containers::Vector< T, Device >, uint >
-powerIterationShiftTuple( const MatrixType& matrix, const T& precision, const T& shiftValue )
+powerIterationShiftTuple( const MatrixType& matrix, const T& epsilon, const T& shiftValue )
 {
    using IndexType = typename MatrixType::IndexType;
    int size = matrix.getColumns();
@@ -68,7 +68,7 @@ powerIterationShiftTuple( const MatrixType& matrix, const T& precision, const T&
    using MatrixFactory = TNL::Matrices::LambdaMatrixFactory< T, Device, int >;
    auto shiftedMatrix = MatrixFactory::create( size, size, matrixElements, rowLengths );
    std::tuple< T, TNL::Containers::Vector< T, Device >, uint > tuple =
-      TNL::Matrices::Eigen::powerIterationTuple< T, Device >( shiftedMatrix, precision );
+      TNL::Matrices::Eigen::powerIterationTuple< T, Device >( shiftedMatrix, epsilon );
    return std::make_tuple( std::get< 0 >( tuple ) - shiftValue, std::get< 1 >( tuple ), std::get< 2 >( tuple ) );
 }
 
@@ -84,7 +84,7 @@ powerIterationShiftTuple( const MatrixType& matrix, const T& precision, const T&
  * \tparam MatrixType is the type of the matrix (e.g., dense matrix, sparse matrix).
  *
  * \param matrix is the original matrix for which the eigenvalue and eigenvector are to be calculated.
- * \param precision is the precision of the calculation, which determines the convergence threshold for the iterative method.
+ * \param epsilon is the precision of the calculation, which determines the convergence threshold for the iterative method.
  * \param shiftValue is the value used to shift the spectrum of the matrix. The choice of shiftValue influences which
  * eigenvalue the method will converge to.
  *
@@ -98,10 +98,10 @@ powerIterationShiftTuple( const MatrixType& matrix, const T& precision, const T&
  */
 template< typename T, typename Device, typename MatrixType >
 static std::pair< T, TNL::Containers::Vector< T, Device > >
-powerIterationShift( const MatrixType& matrix, const T& precision, const T& shiftValue )
+powerIterationShift( const MatrixType& matrix, const T& epsilon, const T& shiftValue )
 {
    std::tuple< T, TNL::Containers::Vector< T, Device >, uint > tuple =
-      powerIterationShiftTuple< T, Device >( matrix, precision, shiftValue );
+      powerIterationShiftTuple< T, Device >( matrix, epsilon, shiftValue );
    return std::make_pair( std::get< 0 >( tuple ), std::get< 1 >( tuple ) );
 }
 
