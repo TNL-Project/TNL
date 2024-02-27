@@ -7,18 +7,22 @@ using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
 template< typename ArrayT >
-void sort( ArrayT& array )
+void
+sort( ArrayT& array )
 {
    const int size = 10;
 
-  /****
-   * Fill the array with random integers.
-   */
+   /****
+    * Fill the array with random integers.
+    */
    Array< int > aux_array( size );
    srand( size + 2021 );
-   parallelFor< Devices::Host >( 0, size, [&]( int i ) {
-      aux_array[ i ] = std::rand() % (2*size);
-   });
+   parallelFor< Devices::Host >( 0,
+                                 size,
+                                 [ & ]( int i )
+                                 {
+                                    aux_array[ i ] = std::rand() % ( 2 * size );
+                                 } );
    array = aux_array;
 
    std::cout << "Random array: " << array << std::endl;
@@ -26,17 +30,26 @@ void sort( ArrayT& array )
    /****
     * Sort the array in ascending order.
     */
-   sort( array, [] __cuda_callable__ ( int a, int b ) { return a < b; } );
+   sort( array,
+         [] __cuda_callable__( int a, int b )
+         {
+            return a < b;
+         } );
    std::cout << "Array sorted in ascending order:" << array << std::endl;
 
    /***
     * Sort the array in descending order.
     */
-   sort( array, [] __cuda_callable__ ( int a, int b ) { return a > b; } );
+   sort( array,
+         [] __cuda_callable__( int a, int b )
+         {
+            return a > b;
+         } );
    std::cout << "Array sorted in descending order:" << array << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * Firstly, test the sorting on CPU.

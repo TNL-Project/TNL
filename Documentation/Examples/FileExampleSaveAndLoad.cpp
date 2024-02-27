@@ -3,12 +3,11 @@
 
 using namespace TNL;
 
-int main()
+int
+main()
 {
    const int size = 3;
-   double doubleArray[] = {  3.1415926535897932384626433,
-                             2.7182818284590452353602874,
-                             1.6180339887498948482045868 };
+   double doubleArray[] = { 3.1415926535897932384626433, 2.7182818284590452353602874, 1.6180339887498948482045868 };
    float floatArray[ 3 ];
    int intArray[ 3 ];
 
@@ -39,7 +38,5 @@ int main()
     */
    std::cout.precision( 15 );
    for( int i = 0; i < size; i++ )
-      std::cout << doubleArray[ i ] << " -- "
-                << floatArray[ i ] << " -- "
-                << intArray[ i ] << std::endl;
+      std::cout << doubleArray[ i ] << " -- " << floatArray[ i ] << " -- " << intArray[ i ] << std::endl;
 }

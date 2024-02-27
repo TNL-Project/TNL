@@ -4,12 +4,11 @@
 
 using namespace TNL;
 
-int main()
+int
+main()
 {
    const int size = 3;
-   double doubleArray[] = {  3.1415926535897932384626433,
-                             2.7182818284590452353602874,
-                             1.6180339887498948482045868 };
+   double doubleArray[] = { 3.1415926535897932384626433, 2.7182818284590452353602874, 1.6180339887498948482045868 };
 
    /***
     * Save array to file.
@@ -23,7 +22,7 @@ int main()
     * Allocate arrays on host and device
     */
    double *deviceArray, *hostArray;
-   cudaMalloc( ( void** ) &deviceArray, size * sizeof( double ) );
+   cudaMalloc( (void**) &deviceArray, size * sizeof( double ) );
    hostArray = new double[ 3 ];
 
    /***
@@ -36,7 +35,7 @@ int main()
    /***
     * Copy array from device to host
     */
-   cudaMemcpy( ( void* ) hostArray, ( const void* ) deviceArray, size * sizeof( double), cudaMemcpyDeviceToHost );
+   cudaMemcpy( (void*) hostArray, (const void*) deviceArray, size * sizeof( double ), cudaMemcpyDeviceToHost );
 
    /***
     * Print the array on host

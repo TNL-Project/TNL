@@ -7,10 +7,12 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void SegmentsExample()
+void
+SegmentsExample()
 {
    using SegmentsType = typename TNL::Algorithms::Segments::CSR< Device, int >;
-   using SegmentsReductionKernel = typename TNL::Algorithms::SegmentsReductionKernels::DefaultKernel< typename SegmentsType::ViewType >::type;
+   using SegmentsReductionKernel =
+      typename TNL::Algorithms::SegmentsReductionKernels::DefaultKernel< typename SegmentsType::ViewType >::type;
 
    /***
     * Create segments with given segments sizes.
@@ -27,30 +29,36 @@ void SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   segments.forElements( 0, size, [=] __cuda_callable__ ( int segmentIdx, int localIdx, int globalIdx ) mutable {
-      if( localIdx <= segmentIdx )
-         data_view[ globalIdx ] = segmentIdx;
-   } );
+   segments.forElements( 0,
+                         size,
+                         [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+                         {
+                            if( localIdx <= segmentIdx )
+                               data_view[ globalIdx ] = segmentIdx;
+                         } );
 
    /***
     * Compute sums of elements in each segment.
     */
    TNL::Containers::Vector< double, Device > sums( size );
    auto sums_view = sums.getView();
-   auto fetch_full = [=] __cuda_callable__ ( int segmentIdx, int localIdx, int globalIdx, bool& compute ) -> double {
+   auto fetch_full = [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx, bool& compute ) -> double
+   {
       if( localIdx <= segmentIdx )
          return data_view[ globalIdx ];
-      else
-      {
+      else {
          compute = false;
          return 0.0;
       }
    };
-   auto fetch_brief = [=] __cuda_callable__ ( int globalIdx, bool& compute ) -> double {
+   auto fetch_brief = [ = ] __cuda_callable__( int globalIdx, bool& compute ) -> double
+   {
       return data_view[ globalIdx ];
    };
-   auto keep = [=] __cuda_callable__ ( int globalIdx, const double& value  ) mutable {
-      sums_view[ globalIdx ] = value; };
+   auto keep = [ = ] __cuda_callable__( int globalIdx, const double& value ) mutable
+   {
+      sums_view[ globalIdx ] = value;
+   };
 
    SegmentsReductionKernel kernel;
    kernel.init( segments );
@@ -60,7 +68,8 @@ void SegmentsExample()
    std::cout << "The sums with brief fetch form are: " << sums << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Devices::Host >();

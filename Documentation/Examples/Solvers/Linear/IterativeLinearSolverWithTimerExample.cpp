@@ -9,7 +9,8 @@
 #include <TNL/Solvers/Linear/Jacobi.h>
 
 template< typename Device >
-void iterativeLinearSolverExample()
+void
+iterativeLinearSolverExample()
 {
    /***
     * Set the following matrix (dots represent zero matrix elements):
@@ -27,23 +28,21 @@ void iterativeLinearSolverExample()
    matrix_ptr->setDimensions( size, size );
    matrix_ptr->setRowCapacities( Vector( { 2, 3, 3, 3, 2 } ) );
 
-   auto f = [=] __cuda_callable__ ( typename MatrixType::RowView& row ) mutable {
+   auto f = [ = ] __cuda_callable__( typename MatrixType::RowView & row ) mutable
+   {
       const int rowIdx = row.getRowIndex();
-      if( rowIdx == 0 )
-      {
-         row.setElement( 0, rowIdx,    2.5 );    // diagonal element
-         row.setElement( 1, rowIdx+1, -1 );      // element above the diagonal
+      if( rowIdx == 0 ) {
+         row.setElement( 0, rowIdx, 2.5 );     // diagonal element
+         row.setElement( 1, rowIdx + 1, -1 );  // element above the diagonal
       }
-      else if( rowIdx == size - 1 )
-      {
-         row.setElement( 0, rowIdx-1, -1.0 );    // element below the diagonal
-         row.setElement( 1, rowIdx,    2.5 );    // diagonal element
+      else if( rowIdx == size - 1 ) {
+         row.setElement( 0, rowIdx - 1, -1.0 );  // element below the diagonal
+         row.setElement( 1, rowIdx, 2.5 );       // diagonal element
       }
-      else
-      {
-         row.setElement( 0, rowIdx-1, -1.0 );    // element below the diagonal
-         row.setElement( 1, rowIdx,    2.5 );    // diagonal element
-         row.setElement( 2, rowIdx+1, -1.0 );    // element above the diagonal
+      else {
+         row.setElement( 0, rowIdx - 1, -1.0 );  // element below the diagonal
+         row.setElement( 1, rowIdx, 2.5 );       // diagonal element
+         row.setElement( 2, rowIdx + 1, -1.0 );  // element above the diagonal
       }
    };
 
@@ -75,21 +74,22 @@ void iterativeLinearSolverExample()
     */
    using IterativeSolverMonitorType = TNL::Solvers::IterativeSolverMonitor< double, int >;
    IterativeSolverMonitorType monitor;
-   TNL::Solvers::SolverMonitorThread mmonitorThread(monitor);
-   monitor.setRefreshRate(10);  // refresh rate in milliseconds
-   monitor.setVerbose(1);
+   TNL::Solvers::SolverMonitorThread mmonitorThread( monitor );
+   monitor.setRefreshRate( 10 );  // refresh rate in milliseconds
+   monitor.setVerbose( 1 );
    monitor.setStage( "Jacobi stage:" );
    TNL::Timer timer;
    monitor.setTimer( timer );
    timer.start();
-   solver.setSolverMonitor(monitor);
+   solver.setSolverMonitor( monitor );
    solver.setConvergenceResidue( 1.0e-6 );
    solver.solve( b, x );
    monitor.stopMainLoop();
    std::cout << "Vector x = " << x << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Solving linear system on host: " << std::endl;
    iterativeLinearSolverExample< TNL::Devices::Sequential >();

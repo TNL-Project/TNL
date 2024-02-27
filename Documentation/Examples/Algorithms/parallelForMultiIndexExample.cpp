@@ -8,14 +8,11 @@ using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
 template< typename Device >
-void initMeshFunction( const int xSize,
-                       const int ySize,
-                       const int zSize,
-                       Vector< double, Device >& v,
-                       const double& c )
+void
+initMeshFunction( const int xSize, const int ySize, const int zSize, Vector< double, Device >& v, const double& c )
 {
    auto view = v.getView();
-   auto init = [=] __cuda_callable__ ( const StaticArray< 3, int >& i ) mutable
+   auto init = [ = ] __cuda_callable__( const StaticArray< 3, int >& i ) mutable
    {
       view[ ( i.z() * ySize + i.y() ) * xSize + i.x() ] = c;
    };
@@ -24,7 +21,8 @@ void initMeshFunction( const int xSize,
    parallelFor< Device >( begin, end, init );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * Define dimensions of a 3D mesh function.

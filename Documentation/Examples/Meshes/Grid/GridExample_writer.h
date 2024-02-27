@@ -7,7 +7,8 @@
 #include <TNL/Containers/Vector.h>
 
 template< typename Device >
-void writeGrid()
+void
+writeGrid()
 {
    /***
     * Define grid dimension and size.
@@ -51,72 +52,76 @@ void writeGrid()
    /***
     * Setup value of each cell to its index in the grid.
     */
-   grid.template forAllEntities< Dimension >( [=] __cuda_callable__ ( const GridCell& cell ) mutable {
-      cells_view[ cell.getIndex() ] = cell.getIndex();
-   } );
+   grid.template forAllEntities< Dimension >(
+      [ = ] __cuda_callable__( const GridCell& cell ) mutable
+      {
+         cells_view[ cell.getIndex() ] = cell.getIndex();
+      } );
 
    /***
     * Write values of all cells in the grid into a file in VTI format.
     */
-   TNL::String cells_file_name_vti( "GridExample-cells-values-" + TNL::getType( Device{}) + ".vti" );
+   TNL::String cells_file_name_vti( "GridExample-cells-values-" + TNL::getType( Device{} ) + ".vti" );
    std::cout << "Writing a file " << cells_file_name_vti << " ..." << std::endl;
    std::fstream cells_file_vti;
    cells_file_vti.open( cells_file_name_vti.getString(), std::ios::out );
    TNL::Meshes::Writers::VTIWriter< GridType > cells_vti_writer( cells_file_vti );
    cells_vti_writer.writeImageData( grid );
-   cells_vti_writer.writeCellData( cells, "cell-values");
+   cells_vti_writer.writeCellData( cells, "cell-values" );
 
    /***
     * Write values of all cells in the grid into a file in VTK format.
     */
-   TNL::String cells_file_name_vtk( "GridExample-cells-values-" + TNL::getType( Device{}) + ".vtk" );
+   TNL::String cells_file_name_vtk( "GridExample-cells-values-" + TNL::getType( Device{} ) + ".vtk" );
    std::cout << "Writing a file " << cells_file_name_vtk << " ..." << std::endl;
    std::fstream cells_file_vtk;
    cells_file_vtk.open( cells_file_name_vtk.getString(), std::ios::out );
    TNL::Meshes::Writers::VTKWriter< GridType > cells_vtk_writer( cells_file_vtk );
    cells_vtk_writer.writeEntities( grid );
-   cells_vtk_writer.writeCellData( cells, "cell-values");
+   cells_vtk_writer.writeCellData( cells, "cell-values" );
 
    /***
     * Write values of all cells in the grid into a file in Gnuplot format.
     */
-   TNL::String cells_file_name_gplt( "GridExample-cells-values-" + TNL::getType( Device{}) + ".gplt" );
+   TNL::String cells_file_name_gplt( "GridExample-cells-values-" + TNL::getType( Device{} ) + ".gplt" );
    std::cout << "Writing a file " << cells_file_name_gplt << " ..." << std::endl;
    std::fstream cells_file_gplt;
    cells_file_gplt.open( cells_file_name_gplt.getString(), std::ios::out );
    TNL::Meshes::Writers::GnuplotWriter< GridType > cells_gplt_writer( cells_file_gplt );
    cells_gplt_writer.writeEntities( grid );
-   cells_gplt_writer.writeCellData( grid, cells, "cell-values");
+   cells_gplt_writer.writeCellData( grid, cells, "cell-values" );
 
    /***
     * Setup values of all vertexes to an average value of its neighbouring cells.
     */
-   grid.template forAllEntities< 0 >( [=] __cuda_callable__ ( const GridVertex& vertex ) mutable {
-      double sum = 0.0;
-      double count = 0.0;
-      auto grid_dimensions = vertex.getGrid().getDimensions();
-      if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() > 0 ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1,-1 } );
-         sum += cells_view[ neighbour.getIndex() ];
-         count++;
-      }
-      if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() < grid_dimensions.y() ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1,0 } );
-         sum += cells_view[ neighbour.getIndex() ];
-         count++;
-      }
-      if( vertex.getCoordinates().x() < grid_dimensions.x() && vertex.getCoordinates().y() > 0 ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( { 0,-1 } );
-         sum += cells_view[ neighbour.getIndex() ];
-         count++;
-      }
-      if( TNL::all(less( vertex.getCoordinates(), vertex.getGrid().getDimensions() )) ) {
-         auto neighbour = vertex.template getNeighbourEntity< Dimension >( {0,0} );
-         sum += cells_view[ neighbour.getIndex() ];
-         count++;
-      }
-      vertexes_view[ vertex.getIndex() ] = sum / count;
-   } );
+   grid.template forAllEntities< 0 >(
+      [ = ] __cuda_callable__( const GridVertex& vertex ) mutable
+      {
+         double sum = 0.0;
+         double count = 0.0;
+         auto grid_dimensions = vertex.getGrid().getDimensions();
+         if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() > 0 ) {
+            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1, -1 } );
+            sum += cells_view[ neighbour.getIndex() ];
+            count++;
+         }
+         if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() < grid_dimensions.y() ) {
+            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1, 0 } );
+            sum += cells_view[ neighbour.getIndex() ];
+            count++;
+         }
+         if( vertex.getCoordinates().x() < grid_dimensions.x() && vertex.getCoordinates().y() > 0 ) {
+            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { 0, -1 } );
+            sum += cells_view[ neighbour.getIndex() ];
+            count++;
+         }
+         if( TNL::all( less( vertex.getCoordinates(), vertex.getGrid().getDimensions() ) ) ) {
+            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { 0, 0 } );
+            sum += cells_view[ neighbour.getIndex() ];
+            count++;
+         }
+         vertexes_view[ vertex.getIndex() ] = sum / count;
+      } );
 
    /***
     * Write values of all vertexes in the grid to a file in VTI format
@@ -152,7 +157,8 @@ void writeGrid()
    vertexes_gplt_writer.writePointData( grid, vertexes, "vertexes-values" );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Traversing grid on CPU..." << std::endl;
    writeGrid< TNL::Devices::Host >();

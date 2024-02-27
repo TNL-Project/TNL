@@ -6,7 +6,8 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void SegmentsExample()
+void
+SegmentsExample()
 {
    using SegmentsType = typename TNL::Algorithms::Segments::CSR< Device, int >;
 
@@ -25,19 +26,25 @@ void SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   segments.forAllElements( [=] __cuda_callable__ ( int segmentIdx, int localIdx, int globalIdx ) mutable {
-      if( localIdx <= segmentIdx )
-         data_view[ globalIdx ] = segmentIdx;
-   } );
+   segments.forAllElements(
+      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+      {
+         if( localIdx <= segmentIdx )
+            data_view[ globalIdx ] = segmentIdx;
+      } );
 
    /***
     * Print the data managed by the segments.
     */
-   auto fetch = [=] __cuda_callable__ ( int globalIdx ) -> double { return data_view[ globalIdx ]; };
+   auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
+   {
+      return data_view[ globalIdx ];
+   };
    printSegments( std::cout, segments, fetch );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Devices::Host >();

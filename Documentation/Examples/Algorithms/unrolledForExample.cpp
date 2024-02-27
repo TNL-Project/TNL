@@ -5,7 +5,8 @@
 using namespace TNL;
 using namespace TNL::Containers;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /****
     * Create two static vectors
@@ -20,11 +21,11 @@ int main( int argc, char* argv[] )
     * Compute an addition of a vector and a constant number.
     */
    Algorithms::unrolledFor< int, 0, Size >(
-      [&]( int i ) {
+      [ & ]( int i )
+      {
          a[ i ] = b[ i ] + 3.14;
          sum += a[ i ];
-      }
-   );
+      } );
    std::cout << "a = " << a << std::endl;
    std::cout << "sum = " << sum << std::endl;
 }

@@ -7,7 +7,8 @@ using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
 template< typename ArrayT >
-void sort( ArrayT& array )
+void
+sort( ArrayT& array )
 {
    const int size = 10;
 
@@ -16,16 +17,23 @@ void sort( ArrayT& array )
     */
    Array< int > aux_array( size );
    srand( size + 2021 );
-   parallelFor< Devices::Host >( 0, size, [&]( int i ) {
-      aux_array[ i ] = std::rand() % (2*size);
-   });
+   parallelFor< Devices::Host >( 0,
+                                 size,
+                                 [ & ]( int i )
+                                 {
+                                    aux_array[ i ] = std::rand() % ( 2 * size );
+                                 } );
    array = aux_array;
 
    /***
     * Prepare second array holding elements positions.
     */
    ArrayT index( size );
-   index.forAllElements( [] __cuda_callable__ ( int idx, int& value  ) { value = idx; } );
+   index.forAllElements(
+      [] __cuda_callable__( int idx, int& value )
+      {
+         value = idx;
+      } );
    std::cout << "Random array:     " << array << std::endl;
    std::cout << "Index array:      " << index << std::endl;
 
@@ -34,19 +42,23 @@ void sort( ArrayT& array )
     */
    auto array_view = array.getView();
    auto index_view = index.getView();
-   sort< typename ArrayT::DeviceType,                             // device on which the sorting will be performed
-         typename ArrayT::IndexType >(                            // type used for indexing
-         0, size,                                                 // range of indexes
-         [=] __cuda_callable__ ( int i, int j ) -> bool {         // comparison lambda function
-            return array_view[ i ] < array_view[ j ]; },
-         [=] __cuda_callable__ ( int i, int j ) mutable {         // lambda function for swapping of elements
-            TNL::swap( array_view[ i ], array_view[ j ] );
-            TNL::swap( index_view[ i ], index_view[ j ] ); } );
+   sort< typename ArrayT::DeviceType,   // device on which the sorting will be performed
+         typename ArrayT::IndexType >(  // type used for indexing
+      0,
+      size,                                              // range of indexes
+      [ = ] __cuda_callable__( int i, int j ) -> bool {  // comparison lambda function
+         return array_view[ i ] < array_view[ j ];
+      },
+      [ = ] __cuda_callable__( int i, int j ) mutable {  // lambda function for swapping of elements
+         TNL::swap( array_view[ i ], array_view[ j ] );
+         TNL::swap( index_view[ i ], index_view[ j ] );
+      } );
    std::cout << "Sorted array:      " << array << std::endl;
    std::cout << "Index:             " << index << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * Firstly, test the sorting on CPU.

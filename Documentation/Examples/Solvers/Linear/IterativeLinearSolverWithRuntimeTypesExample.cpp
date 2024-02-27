@@ -6,7 +6,8 @@
 #include <TNL/Solvers/LinearSolverTypeResolver.h>
 
 template< typename Device >
-void iterativeLinearSolverExample()
+void
+iterativeLinearSolverExample()
 {
    /***
     * Set the following matrix (dots represent zero matrix elements):
@@ -24,23 +25,21 @@ void iterativeLinearSolverExample()
    matrix_ptr->setDimensions( size, size );
    matrix_ptr->setRowCapacities( Vector( { 2, 3, 3, 3, 2 } ) );
 
-   auto f = [=] __cuda_callable__ ( typename MatrixType::RowView& row ) mutable {
+   auto f = [ = ] __cuda_callable__( typename MatrixType::RowView & row ) mutable
+   {
       const int rowIdx = row.getRowIndex();
-      if( rowIdx == 0 )
-      {
-         row.setElement( 0, rowIdx,    2.5 );    // diagonal element
-         row.setElement( 1, rowIdx+1, -1 );      // element above the diagonal
+      if( rowIdx == 0 ) {
+         row.setElement( 0, rowIdx, 2.5 );     // diagonal element
+         row.setElement( 1, rowIdx + 1, -1 );  // element above the diagonal
       }
-      else if( rowIdx == size - 1 )
-      {
-         row.setElement( 0, rowIdx-1, -1.0 );    // element below the diagonal
-         row.setElement( 1, rowIdx,    2.5 );    // diagonal element
+      else if( rowIdx == size - 1 ) {
+         row.setElement( 0, rowIdx - 1, -1.0 );  // element below the diagonal
+         row.setElement( 1, rowIdx, 2.5 );       // diagonal element
       }
-      else
-      {
-         row.setElement( 0, rowIdx-1, -1.0 );    // element below the diagonal
-         row.setElement( 1, rowIdx,    2.5 );    // diagonal element
-         row.setElement( 2, rowIdx+1, -1.0 );    // element above the diagonal
+      else {
+         row.setElement( 0, rowIdx - 1, -1.0 );  // element below the diagonal
+         row.setElement( 1, rowIdx, 2.5 );       // diagonal element
+         row.setElement( 2, rowIdx + 1, -1.0 );  // element above the diagonal
       }
    };
 
@@ -63,7 +62,7 @@ void iterativeLinearSolverExample()
     * Solve the linear system using diagonal (Jacobi) preconditioner.
     */
    auto solver_ptr = TNL::Solvers::getLinearSolver< MatrixType >( "tfqmr" );
-   auto preconditioner_ptr = TNL::Solvers::getPreconditioner< MatrixType >( "diagonal");
+   auto preconditioner_ptr = TNL::Solvers::getPreconditioner< MatrixType >( "diagonal" );
    preconditioner_ptr->update( matrix_ptr );
    solver_ptr->setMatrix( matrix_ptr );
    solver_ptr->setPreconditioner( preconditioner_ptr );
@@ -72,7 +71,8 @@ void iterativeLinearSolverExample()
    std::cout << "Vector x = " << x << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Solving linear system on host: " << std::endl;
    iterativeLinearSolverExample< TNL::Devices::Sequential >();

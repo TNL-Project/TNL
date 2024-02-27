@@ -3,8 +3,9 @@
 
 using namespace TNL;
 
-int main()
+int
+main()
 {
-    String str("my world");
-    std::cout << "Allocated_size = " << str.getAllocatedSize() << std::endl;
+   String str( "my world" );
+   std::cout << "Allocated_size = " << str.getAllocatedSize() << std::endl;
 }

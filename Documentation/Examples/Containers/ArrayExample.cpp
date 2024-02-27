@@ -10,7 +10,8 @@ using namespace std;
  * The following works for any device (CPU, GPU ...).
  */
 template< typename Device >
-void arrayExample()
+void
+arrayExample()
 {
    const int size = 10;
    using ArrayType = Containers::Array< int, Device >;
@@ -58,7 +59,8 @@ void arrayExample()
    std::cout << "a2 = " << a2 << std::endl;
 }
 
-int main()
+int
+main()
 {
    std::cout << "The first test runs on CPU ..." << std::endl;
    arrayExample< Devices::Host >();
