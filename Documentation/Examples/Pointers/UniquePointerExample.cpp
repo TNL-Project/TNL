@@ -8,7 +8,9 @@ using namespace TNL;
 using ArrayCuda = Containers::Array< int, Devices::Cuda >;
 
 #ifdef __CUDACC__
-__global__ void printArray( const ArrayCuda* ptr )
+__global__
+void
+printArray( const ArrayCuda* ptr )
 {
    printf( "Array size is: %d\n", ptr->getSize() );
    for( int i = 0; i < ptr->getSize(); i++ )
@@ -16,7 +18,8 @@ __global__ void printArray( const ArrayCuda* ptr )
 }
 #endif
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * Create an array and print its elements in CUDA kernel
@@ -37,4 +40,3 @@ int main( int argc, char* argv[] )
 #endif
    return EXIT_SUCCESS;
 }
-

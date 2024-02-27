@@ -4,7 +4,8 @@
 
 using namespace TNL;
 
-int main()
+int
+main()
 {
    /**
     * Create file name with filename base 'velocity' and extension 'vtk'.
@@ -23,8 +24,7 @@ int main()
     * for indexes 0 to 10.
     */
    fileName.setDigitsCount( 2 );
-   for( int i = 0; i <= 10; i ++ )
-   {
+   for( int i = 0; i <= 10; i++ ) {
       fileName.setIndex( i );
       std::cout << fileName.getFileName() << std::endl;
    }

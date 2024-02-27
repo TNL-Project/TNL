@@ -6,7 +6,8 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Segments >
-void SegmentsExample()
+void
+SegmentsExample()
 {
    using Device = typename Segments::DeviceType;
 
@@ -25,31 +26,35 @@ void SegmentsExample()
     */
    auto data_view = data.getView();
    using SegmentViewType = typename Segments::SegmentViewType;
-   segments.forAllSegments( [=] __cuda_callable__ ( const SegmentViewType& segment ) mutable {
-      double sum( 0.0 );
-      for( auto element : segment )
-         if( element.localIndex() <= element.segmentIndex() )
-         {
-             sum += element.localIndex() + 1;
-             data_view[ element.globalIndex() ] = sum;
-         }
-   } );
+   segments.forAllSegments(
+      [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
+      {
+         double sum( 0.0 );
+         for( auto element : segment )
+            if( element.localIndex() <= element.segmentIndex() ) {
+               sum += element.localIndex() + 1;
+               data_view[ element.globalIndex() ] = sum;
+            }
+      } );
 
    /***
     * Print the data managed by the segments.
     */
-   auto fetch = [=] __cuda_callable__ ( int globalIdx ) -> double { return data_view[ globalIdx ]; };
+   auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
+   {
+      return data_view[ globalIdx ];
+   };
    printSegments( std::cout, segments, fetch );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int > >();
 
    std::cout << "Example of Ellpack segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > >();
-
 
 #ifdef __CUDACC__
    std::cout << "Example of CSR segments on CUDA GPU: " << std::endl;

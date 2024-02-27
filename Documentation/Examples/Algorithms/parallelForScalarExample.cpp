@@ -10,18 +10,19 @@ using namespace TNL::Algorithms;
  * Set all elements of the vector v to the constant c.
  */
 template< typename Device >
-void initVector( Vector< double, Device >& v,
-                 const double& c )
+void
+initVector( Vector< double, Device >& v, const double& c )
 {
    auto view = v.getView();
-   auto init = [=] __cuda_callable__ ( int i ) mutable
+   auto init = [ = ] __cuda_callable__( int i ) mutable
    {
       view[ i ] = c;
    };
    parallelFor< Device >( 0, v.getSize(), init );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * Firstly, test the vector initiation on CPU.

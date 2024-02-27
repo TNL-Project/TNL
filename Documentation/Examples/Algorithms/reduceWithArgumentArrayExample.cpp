@@ -4,7 +4,8 @@
 using namespace TNL;
 
 template< typename Device >
-void reduceArrayExample()
+void
+reduceArrayExample()
 {
    /****
     * Create new arrays
@@ -15,7 +16,11 @@ void reduceArrayExample()
    /****
     * Initiate the elements of array `a`
     */
-   a.forAllElements( [] __cuda_callable__ ( int i, float& value ) { value = 3 - i; } );
+   a.forAllElements(
+      [] __cuda_callable__( int i, float& value )
+      {
+         value = 3 - i;
+      } );
 
    /****
     * Reduce all elements of array `a`
@@ -29,7 +34,8 @@ void reduceArrayExample()
    std::cout << " abs-max of all elements = " << result_total.first << " at position " << result_total.second << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Running example on the host system: " << std::endl;
    reduceArrayExample< Devices::Host >();

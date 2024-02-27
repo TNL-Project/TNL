@@ -8,12 +8,14 @@ using namespace TNL;
 using namespace TNL::Containers;
 
 template< typename Device >
-void printVector()
+void
+printVector()
 {
    const int size( 60 );
    TNL::Containers::Vector< float, Device > v( size, 1.0 );
    auto view = v.getView();
-   auto print = [=] __cuda_callable__  ( int i ) mutable {
+   auto print = [ = ] __cuda_callable__( int i ) mutable
+   {
       if( i % 5 == 0 )
          printf( "v[ %d ] = %f \n", i, view[ i ] );  // we use printf because of compatibility with GPU kernels
    };
@@ -24,7 +26,8 @@ void printVector()
    Algorithms::SequentialFor< Device >::exec( 0, v.getSize(), print );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Example on the host:" << std::endl;
    printVector< TNL::Devices::Host >();
@@ -35,4 +38,3 @@ int main( int argc, char* argv[] )
 #endif
    return EXIT_SUCCESS;
 }
-

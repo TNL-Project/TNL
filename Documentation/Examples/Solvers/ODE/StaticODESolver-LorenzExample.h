@@ -4,7 +4,8 @@
 
 using Real = double;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    using Vector = TNL::Containers::StaticVector< 3, Real >;
    using ODESolver = TNL::Solvers::ODE::StaticEuler< Vector >;
@@ -16,17 +17,17 @@ int main( int argc, char* argv[] )
    const Real beta = 8.0 / 3.0;
 
    ODESolver solver;
-   solver.setTau(  tau );
+   solver.setTau( tau );
    solver.setTime( 0.0 );
    Vector u( 1.0, 2.0, 3.0 );
-   while( solver.getTime() < final_t )
-   {
+   while( solver.getTime() < final_t ) {
       solver.setStopTime( TNL::min( solver.getTime() + output_time_step, final_t ) );
-      auto f = [=] ( const Real& t, const Real& tau, const Vector& u, Vector& fu ) {
+      auto f = [ = ]( const Real& t, const Real& tau, const Vector& u, Vector& fu )
+      {
          const Real& x = u[ 0 ];
          const Real& y = u[ 1 ];
          const Real& z = u[ 2 ];
-         fu[ 0 ] = sigma * (y - x );
+         fu[ 0 ] = sigma * ( y - x );
          fu[ 1 ] = rho * x - y - x * z;
          fu[ 2 ] = -beta * z + x * y;
       };

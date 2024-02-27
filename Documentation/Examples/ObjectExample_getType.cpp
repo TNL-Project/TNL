@@ -6,24 +6,25 @@
 
 using namespace TNL;
 
-template< typename Value,
-          typename Device >
+template< typename Value, typename Device >
 class MyArray : public Object
 {
-   public:
+public:
+   static std::string
+   getSerializationType()
+   {
+      return "MyArray< " + TNL::getType< Value >() + ", " + getType< Devices::Host >() + " >";
+   }
 
-      static std::string getSerializationType()
-      {
-         return "MyArray< " + TNL::getType< Value >() + ", " + getType< Devices::Host >() + " >";
-      }
-
-      virtual std::string getSerializationTypeVirtual() const override
-      {
-         return getSerializationType();
-      }
+   virtual std::string
+   getSerializationTypeVirtual() const override
+   {
+      return getSerializationType();
+   }
 };
 
-int main()
+int
+main()
 {
    using HostArray = MyArray< int, Devices::Host >;
    using CudaArray = MyArray< int, Devices::Cuda >;

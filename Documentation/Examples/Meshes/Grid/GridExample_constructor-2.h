@@ -2,7 +2,8 @@
 #include <TNL/Meshes/Grid.h>
 
 template< int Dimension >
-void createGrid()
+void
+createGrid()
 {
    using GridType = TNL::Meshes::Grid< Dimension >;
    using CoordinatesType = typename GridType::CoordinatesType;
@@ -13,7 +14,8 @@ void createGrid()
    std::cout << grid << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Creating grid with dimension equal one." << std::endl;
    createGrid< 1 >();

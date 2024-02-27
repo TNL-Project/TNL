@@ -7,7 +7,8 @@ using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
 template< typename ArrayT >
-void sort( ArrayT& array )
+void
+sort( ArrayT& array )
 {
    const int size = 10;
 
@@ -16,9 +17,12 @@ void sort( ArrayT& array )
     */
    Array< int > aux_array( size );
    srand( size + 2021 );
-   parallelFor< Devices::Host >( 0, size, [&]( int i ) {
-      aux_array[ i ] = std::rand() % (2*size);
-   });
+   parallelFor< Devices::Host >( 0,
+                                 size,
+                                 [ & ]( int i )
+                                 {
+                                    aux_array[ i ] = std::rand() % ( 2 * size );
+                                 } );
    array = aux_array;
 
    std::cout << "Random array: " << array << std::endl;
@@ -36,7 +40,8 @@ void sort( ArrayT& array )
    std::cout << "Array sorted in descending order:" << array << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * Firstly, test the sorting on CPU.

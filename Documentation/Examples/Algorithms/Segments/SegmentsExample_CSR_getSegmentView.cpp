@@ -7,7 +7,8 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void SegmentsExample()
+void
+SegmentsExample()
 {
    using SegmentsType = typename TNL::Algorithms::Segments::CSR< Device, int >;
 
@@ -23,8 +24,9 @@ void SegmentsExample()
     */
    std::cout << "Mapping of local indexes to global indexes:" << std::endl;
 
-   auto f = [=] __cuda_callable__ ( int segmentIdx ) {
-      printf( "Segment idx. %d: ", segmentIdx );                 // printf works even in GPU kernels
+   auto f = [ = ] __cuda_callable__( int segmentIdx )
+   {
+      printf( "Segment idx. %d: ", segmentIdx );  // printf works even in GPU kernels
       auto segment = view.getSegmentView( segmentIdx );
       for( auto element : segment )
          printf( "%d -> %d \t", element.localIndex(), element.globalIndex() );
@@ -33,7 +35,8 @@ void SegmentsExample()
    TNL::Algorithms::SequentialFor< Device >::exec( 0, size, f );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Devices::Host >();

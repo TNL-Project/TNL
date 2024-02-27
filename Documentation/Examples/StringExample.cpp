@@ -4,7 +4,8 @@
 
 using namespace TNL;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    String emptyString;
    String string1( "string 1" );

@@ -6,7 +6,8 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void SegmentsExample()
+void
+SegmentsExample()
 {
    using SegmentsType = typename TNL::Algorithms::Segments::CSR< Device, int >;
 
@@ -19,7 +20,8 @@ void SegmentsExample()
    std::cout << "Segments sizes are: " << segments << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Devices::Host >();

@@ -3,7 +3,8 @@
 
 using namespace TNL;
 
-int main()
+int
+main()
 {
    String phrase( "Say yes yes yes!" );
    std::cout << "phrase.replace( \"yes\", \"no\", 1 ) = " << phrase.replace( "yes", "no", 1 ) << std::endl;

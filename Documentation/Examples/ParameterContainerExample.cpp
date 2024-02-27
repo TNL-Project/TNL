@@ -5,9 +5,10 @@
 
 using namespace TNL;
 
-int main()
+int
+main()
 {
-    Config::ParameterContainer parameters;
-    auto param = parameters.getParameter< std::string >( "distributed-grid-io-type" );
-//    parameters.checkParameter< std::string >( "distributed-grid-io-type" );
+   Config::ParameterContainer parameters;
+   auto param = parameters.getParameter< std::string >( "distributed-grid-io-type" );
+   //    parameters.checkParameter< std::string >( "distributed-grid-io-type" );
 }

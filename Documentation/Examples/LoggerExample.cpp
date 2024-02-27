@@ -3,16 +3,16 @@
 
 using namespace TNL;
 using namespace std;
-       
-int main()
+
+int
+main()
 {
-    Logger logger(50,cout);
-    
-    logger.writeSystemInformation( false );
+   Logger logger( 50, cout );
 
-    logger.writeHeader("MyTitle");
-    logger.writeSeparator();
-    logger.writeSystemInformation( true );
-    logger.writeSeparator();
+   logger.writeSystemInformation( false );
+
+   logger.writeHeader( "MyTitle" );
+   logger.writeSeparator();
+   logger.writeSystemInformation( true );
+   logger.writeSeparator();
 }
-

@@ -4,12 +4,13 @@
 
 #include <TNL/PerformanceCounters.h>
 
-int main()
+int
+main()
 {
    const int milliseconds = 0.5e3;
    TNL::PerformanceCounters performanceCounters;
    performanceCounters.start();
-   std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+   std::this_thread::sleep_for( std::chrono::milliseconds( milliseconds ) );
    performanceCounters.stop();
 
    std::cout << "Elapsed CPU cycles: " << performanceCounters.getCPUCycles() << std::endl;

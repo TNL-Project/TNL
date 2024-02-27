@@ -3,9 +3,10 @@
 
 using namespace TNL;
 using namespace std;
-       
-int main()
+
+int
+main()
 {
-    isPow2(1024);
-    roundUpDivision(10,4);
+   isPow2( 1024 );
+   roundUpDivision( 10, 4 );
 }
