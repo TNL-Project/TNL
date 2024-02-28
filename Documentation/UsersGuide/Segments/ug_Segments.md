@@ -5,7 +5,7 @@
 
 ## Introduction
 
-*Segments* represent data structure for manipulation with several local arrays (denoted also as segments) having different size in general. All the local arrays are supposed to be allocated in one continuos global array. The data structure segments offers mapping between indexes of particular local arrays and indexes of the global array. Segments do not store any data, segments just represent a layer for efficient access and operations with group of segments of linear containers (i.e. local arrays) with different size in general. One can perform parallel operations like *for* or *flexible reduction* on particular segments (local arrays).
+*Segments* represent data structure for manipulation with several local arrays (denoted also as segments) having different size in general. All the local arrays are supposed to be allocated in one continuous global array. The data structure segments offers mapping between indexes of particular local arrays and indexes of the global array. Segments do not store any data, segments just represent a layer for efficient access and operations with group of segments of linear containers (i.e. local arrays) with different size in general. One can perform parallel operations like *for* or *flexible reduction* on particular segments (local arrays).
 
 A typical example of *segments* are different formats for sparse matrices. Sparse matrix like the following
  \f[
@@ -60,14 +60,14 @@ What we see above is so called [CSR sparse matrix format](https://en.wikipedia.o
 
 TNL offers the following sparse matrix formats in a form of segments (Ellpack formats often use so called *padding elements* like padding zeros in terms of sparse matrices):
 
-1. [CSR format](https://en.wikipedia.org/wiki/Sparse_matrix#Compressed_sparse_row_(CSR,_CRS_or_Yale_format)) (\ref TNL::Algorithms::Segments::CSR) is the most popular format for sparse matrices. It is simple ane very efficient especially on CPUs and today there are efficient kernels even for GPUs. The following GPU kernels are implemented in TNL:
+1. [CSR format](https://en.wikipedia.org/wiki/Sparse_matrix#Compressed_sparse_row_(CSR,_CRS_or_Yale_format)) (\ref TNL::Algorithms::Segments::CSR) is the most popular format for sparse matrices. It is simple and very efficient especially on CPUs and today there are efficient kernels even for GPUs. The following GPU kernels are implemented in TNL:
    1. [Scalar](http://mgarland.org/files/papers/nvr-2008-004.pdf) which maps one GPU thread for each segment (matrix row).
    2. [Vector](http://mgarland.org/files/papers/nvr-2008-004.pdf) which maps one warp of GPU threads for each segment (matrix row).
    3. [Adaptive](https://ieeexplore.ieee.org/document/7397620) ...
 2. [Ellpack format](http://mgarland.org/files/papers/nvr-2008-004.pdf) (\ref TNL::Algorithms::Segments::Ellpack) uses padding elements to have the same number of element in each segment. It can be highly inefficient in cases when one works with few very long segments.
 3. [SlicedEllpack format](https://link.springer.com/chapter/10.1007/978-3-642-11515-8_10) (\ref TNL::Algorithms::Segments::SlicedEllpack) which was also presented as [Row-grouped CSR format](https://arxiv.org/abs/1012.2270) is similar to common Ellpack. However, SlicedEllpack first merges the segments into groups of 32. It also uses padding elements but only segments within the same group are aligned to have the same size. Therefore there is not such a high performance drop because of few long segments.
-4. [ChunkedEllpack format](http://geraldine.fjfi.cvut.cz/~oberhuber/data/vyzkum/publikace/12-heller-oberhuber-improved-rgcsr-format.pdf) (\ref TNL::Algorithms::Segments::ChunkedEllpack) is simillar to SlicedEllpack but it splits segments into chunks which allows to map more GPU threads to one segment.
-5. [BiEllpack format](https://www.sciencedirect.com/science/article/pii/S0743731514000458?casa_token=2phrEj0Ef1gAAAAA:Lgf6rMBUN6T7TJne6mAgI_CSUJ-jR8jz7Eghdv6L0SJeGm4jfso-x6Wh8zgERk3Si7nFtTAJngg) (\ref TNL::Algorithms::Segments::BiEllpack) is simillar to ChunkedEllpack. In addition it sorts segments within the same slice w.r.t. their length to achieve higher performance and better memory accesses.
+4. [ChunkedEllpack format](http://geraldine.fjfi.cvut.cz/~oberhuber/data/vyzkum/publikace/12-heller-oberhuber-improved-rgcsr-format.pdf) (\ref TNL::Algorithms::Segments::ChunkedEllpack) is similar to SlicedEllpack but it splits segments into chunks which allows to map more GPU threads to one segment.
+5. [BiEllpack format](https://www.sciencedirect.com/science/article/pii/S0743731514000458?casa_token=2phrEj0Ef1gAAAAA:Lgf6rMBUN6T7TJne6mAgI_CSUJ-jR8jz7Eghdv6L0SJeGm4jfso-x6Wh8zgERk3Si7nFtTAJngg) (\ref TNL::Algorithms::Segments::BiEllpack) is similar to ChunkedEllpack. In addition it sorts segments within the same slice w.r.t. their length to achieve higher performance and better memory accesses.
 
 Especially in case of GPUs, the performance of each format strongly depends on distribution of the segment sizes. Therefore we cannot say that one of the previous formats would outperform the others in general. To get the best performance, one should try more of the formats and choose the best one. It is the reason why TNL offers more of them and additional formats will acrue.
 
@@ -176,7 +176,7 @@ The result looks as follows:
 
 ## Flexible reduction within segments
 
-In this section we will explain extension of [flexible reduction]() to segments. It allows to reduce all elements within the same segment and store the result into an array. See the following example:
+In this section we will explain extension of [flexible reduction](https://tnl-project.gitlab.io/tnl/ug_ReductionAndScan.html) to segments. It allows to reduce all elements within the same segment and store the result into an array. See the following example:
 
 \includelineno Algorithms/Segments/SegmentsExample_reduceSegments.cpp
 
@@ -184,24 +184,24 @@ We first create the segments `segments` (line 18), related array `data` (line 23
 
 1. `fetch` which reads data belonging to particular elements of the segments. The fetch function can have two different forms - *brief* and *full*:
    * *Brief form* - is this case the lambda function gets only global index and the `compute` flag:
-```
+      ```
       auto fetch = [=] __cuda_callable__ ( int globalIdx, bool& compute ) -> double { ... };
-```
+      ```
    * *Full form* - in this case the lambda function receives even the segment index and element index:
-```
+      ```
       auto fetch = [=] __cuda_callable__ ( int segmentIdx, int localIdx, int globalIdx, bool& compute ) -> double { ... };
-```
+      ```
    where `segmentIdx` is the index of the segment, `localIdx` is the rank of the element within the segment, `globalIdx` is index of the element in the related array and `compute` serves for the reduction interruption which means that the remaining elements in the segment can be omitted. Many formats used for segments are optimized for much higher performance if the brief variant is used. The form of the `fetch` lambda function is detected automatically using [SFINAE](https://en.cppreference.com/w/cpp/language/sfinae) and so the use of both is very ease for the user.
 2. `reduce` is a function representing the reduction operation, in our case it is defined as follows:
-```
-auto reduce = [=] __cuda_callable__ ( const double& a, const double& b ) -> double { return a + b; }
-```
+   ```
+   auto reduce = [=] __cuda_callable__ ( const double& a, const double& b ) -> double { return a + b; }
+   ```
    or, in fact, we can use the function `std::plus`.
 3. `keep` is a lambda function responsible for storage of the results. It is supposed to be defined as:
-```
-auto keep = [=] __cuda_callable__ ( int segmentIdx, const double& value ) mutable { ... };
-```
-where `segmentIdx` is an index of the segment of which the reduction result we aim to store and `value` is the result of the reduction in the segment.
+   ```
+   auto keep = [=] __cuda_callable__ ( int segmentIdx, const double& value ) mutable { ... };
+   ```
+   where `segmentIdx` is an index of the segment of which the reduction result we aim to store and `value` is the result of the reduction in the segment.
 
 We first create vector `sums` where we will store the results (line 44) and prepare a view to this vector for later use in the lambda functions. We demonstrate use of both variants - full by `fetch_full` (lines 46-54) and brief by `fetch_brief` (lines 55-57). The lambda function `keep` for storing the sums from particular segments into the vector `sums` is on the lines 59-60. Finally, we call the method `reduceAllSegments` (\ref TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel::reduceAllSegments for example) to compute the reductions in the segments - first with  `fetch_full` (line 61) and then with `fetch_brief` (line 63). In both cases, we use `std::plus` for the reduction and we pass zero (the last argument) as an idempotent element for sumation. In both cases we print the results which are supposed to be the same. The result looks as follows:
 
