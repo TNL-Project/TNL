@@ -35,7 +35,7 @@ namespace TNL::Matrices::Eigen {
  */
 template< typename T, typename Device, typename MatrixType >
 static std::tuple< T, TNL::Containers::Vector< T, Device >, uint >
-powerIterationShiftTuple( const MatrixType& matrix, const T& epsilon, const T& shiftValue )
+ShiftedPowerIterationTuple( const MatrixType& matrix, const T& epsilon, const T& shiftValue )
 {
    TNL_ASSERT_EQ( matrix.getRows(), matrix.getColumns(), "Shifted power iteration is possible only for square matrices" );
    using IndexType = typename MatrixType::IndexType;
@@ -99,10 +99,10 @@ powerIterationShiftTuple( const MatrixType& matrix, const T& epsilon, const T& s
  */
 template< typename T, typename Device, typename MatrixType >
 static std::pair< T, TNL::Containers::Vector< T, Device > >
-powerIterationShift( const MatrixType& matrix, const T& epsilon, const T& shiftValue )
+ShiftedPowerIteration( const MatrixType& matrix, const T& epsilon, const T& shiftValue )
 {
    std::tuple< T, TNL::Containers::Vector< T, Device >, uint > tuple =
-      powerIterationShiftTuple< T, Device >( matrix, epsilon, shiftValue );
+      ShiftedPowerIterationTuple< T, Device >( matrix, epsilon, shiftValue );
    return std::make_pair( std::get< 0 >( tuple ), std::get< 1 >( tuple ) );
 }
 
