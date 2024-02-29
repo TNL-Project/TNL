@@ -45,6 +45,7 @@ template< typename T, typename Device, typename MatrixType >
 static std::tuple< T, TNL::Containers::Vector< T, Device >, uint >
 powerIterationTuple( const MatrixType& matrix, const T& epsilon )
 {
+   TNL_ASSERT_EQ( matrix.getRows(), matrix.getColumns(), "Power iteration is possible only for square matrices" );
    using IndexType = typename MatrixType::IndexType;
    IndexType vecSize = matrix.getColumns();
    TNL::Containers::Vector< T, Device > eigenVec( vecSize );

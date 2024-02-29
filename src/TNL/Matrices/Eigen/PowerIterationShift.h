@@ -37,6 +37,7 @@ template< typename T, typename Device, typename MatrixType >
 static std::tuple< T, TNL::Containers::Vector< T, Device >, uint >
 powerIterationShiftTuple( const MatrixType& matrix, const T& epsilon, const T& shiftValue )
 {
+   TNL_ASSERT_EQ( matrix.getRows(), matrix.getColumns(), "Shifted power iteration is possible only for square matrices" );
    using IndexType = typename MatrixType::IndexType;
    int size = matrix.getColumns();
    auto rowLengths = [ = ] __cuda_callable__( const IndexType rows, const IndexType  columns, const IndexType  rowIdx ) -> int
