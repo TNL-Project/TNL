@@ -7,47 +7,73 @@
 
 #ifdef __CUDACC__
 
-#include <cublas_v2.h>
+   #include <cublas_v2.h>
 
 // Function to perform matrix multiplication using CuBLAS
-template <typename DenseMatrix>
-void matrixMultiplicationCuBLAS(const DenseMatrix& matrix1,
-                                const DenseMatrix& matrix2,
-                                DenseMatrix& resultMatrix) {
-
+template< typename DenseMatrix >
+void
+matrixMultiplicationCuBLAS( const DenseMatrix& matrix1,
+                            const DenseMatrix& matrix2,
+                            DenseMatrix& resultMatrix,
+                            bool transposeA,
+                            bool transposeB )
+{
    using RealType = typename DenseMatrix::RealType;
    using IndexType = typename DenseMatrix::IndexType;
 
    cublasHandle_t handle;
-   cublasCreate(&handle);
+   cublasCreate( &handle );
 
-   // Matrix dimensions
-   IndexType m = matrix1.getRows();    // number of rows in matrix1 (and result)
-   IndexType n = matrix2.getColumns(); // number of columns in matrix2 (and result)
-   IndexType k = matrix1.getColumns(); // number of columns in matrix1 (and rows in matrix2)
+   // Adjust matrix dimensions based on transposition
+   IndexType m = transposeA ? matrix1.getColumns() : matrix1.getRows();  // Resultant rows
+   IndexType n = transposeB ? matrix2.getRows() : matrix2.getColumns();  // Resultant columns
+   IndexType k = transposeA ? matrix1.getRows() : matrix1.getColumns();  // Shared dimension
+   // cuBLAS operation flags for transposition
+   cublasOperation_t opA = transposeA ? CUBLAS_OP_T : CUBLAS_OP_N;
+   cublasOperation_t opB = transposeB ? CUBLAS_OP_T : CUBLAS_OP_N;
 
-   // Setting up the parameters for cuBLAS
+   // Correctly adjust leading dimensions based on transposition and provided dimensions
+   IndexType lda = transposeA ? k : m;  // For A transposed, use columns of A as lda, otherwise rows
+   IndexType ldb = transposeB ? n : k;  // For B transposed, use columns of B as ldb, otherwise rows
+   IndexType ldc = m;                   // Leading dimension of resultMatrix, always 'm'
+
    RealType alpha = 1.0;
    RealType beta = 0.0;
 
-   // Leading dimensions based on column-major format
-   IndexType lda = m; // Leading dimension of matrix1
-   IndexType ldb = k; // Leading dimension of matrix2
-   IndexType ldc = m; // Leading dimension of resultMatrix
-
    // Perform the matrix multiplication using cuBLAS
-   if constexpr(std::is_same_v<RealType, float>) {
-      cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha,
-                  matrix1.getValues().getData(), lda,
-                  matrix2.getValues().getData(), ldb, &beta,
-                  resultMatrix.getValues().getData(), ldc);
-   } else if constexpr(std::is_same_v<RealType, double>) {
-      cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha,
-                  matrix1.getValues().getData(), lda,
-                  matrix2.getValues().getData(), ldb, &beta,
-                  resultMatrix.getValues().getData(), ldc);
+   if constexpr( std::is_same_v< RealType, float > ) {
+      cublasSgemm( handle,
+                   opA,
+                   opB,
+                   m,
+                   n,
+                   k,
+                   &alpha,
+                   matrix1.getValues().getData(),
+                   lda,
+                   matrix2.getValues().getData(),
+                   ldb,
+                   &beta,
+                   resultMatrix.getValues().getData(),
+                   ldc );
    }
-   cublasDestroy(handle);
-}
+   else if constexpr( std::is_same_v< RealType, double > ) {
+      cublasDgemm( handle,
+                   opA,
+                   opB,
+                   m,
+                   n,
+                   k,
+                   &alpha,
+                   matrix1.getValues().getData(),
+                   lda,
+                   matrix2.getValues().getData(),
+                   ldb,
+                   &beta,
+                   resultMatrix.getValues().getData(),
+                   ldc );
+   }
 
-#endif //__CUDACC__
+   cublasDestroy( handle );
+}
+#endif  //__CUDACC__
