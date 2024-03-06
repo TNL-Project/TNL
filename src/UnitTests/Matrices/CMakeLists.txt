@@ -32,6 +32,8 @@ set(COMMON_TESTS
     # SpMV with SandboxMatrix is not tested because it does not use segments
     #SparseMatrixVectorProductTest_SandboxMatrix
     MatrixWrappingTest
+    DenseMatrixMultiplicationTest
+    DenseMatrixTranspositionTest
 )
 
 set(CPP_TESTS ${COMMON_TESTS} StaticMatrixTest MatrixTypeTraitsTest)
