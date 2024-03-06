@@ -25,17 +25,18 @@ matrixMultiplicationCuBLAS( const DenseMatrix& matrix1,
    cublasCreate( &handle );
 
    // Adjust matrix dimensions based on transposition
-   IndexType m = transposeA ? matrix1.getColumns() : matrix1.getRows();  // Resultant rows
-   IndexType n = transposeB ? matrix2.getRows() : matrix2.getColumns();  // Resultant columns
-   IndexType k = transposeA ? matrix1.getRows() : matrix1.getColumns();  // Shared dimension
+   IndexType m = transposeA ? matrix1.getColumns() : matrix1.getRows();
+   IndexType n = transposeB ? matrix2.getRows() : matrix2.getColumns();
+   IndexType k = transposeA ? matrix1.getRows() : matrix1.getColumns();
+
    // cuBLAS operation flags for transposition
    cublasOperation_t opA = transposeA ? CUBLAS_OP_T : CUBLAS_OP_N;
    cublasOperation_t opB = transposeB ? CUBLAS_OP_T : CUBLAS_OP_N;
 
-   // Correctly adjust leading dimensions based on transposition and provided dimensions
-   IndexType lda = transposeA ? k : m;  // For A transposed, use columns of A as lda, otherwise rows
-   IndexType ldb = transposeB ? n : k;  // For B transposed, use columns of B as ldb, otherwise rows
-   IndexType ldc = m;                   // Leading dimension of resultMatrix, always 'm'
+   // Adjust leading dimensions based on transposition
+   IndexType lda = transposeA ? k : m;
+   IndexType ldb = transposeB ? n : k;
+   IndexType ldc = m;
 
    RealType alpha = 1.0;
    RealType beta = 0.0;

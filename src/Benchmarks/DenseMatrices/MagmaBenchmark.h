@@ -27,8 +27,9 @@ matrixMultiplicationMAGMA( const DenseMatrix& matrix1,
 
    // Adjust dimensions based on transposition
    IndexType m = transposeA ? matrix1.getColumns() : matrix1.getRows();
-   IndexType k = transposeA ? matrix1.getRows() : matrix1.getColumns();
    IndexType n = transposeB ? matrix2.getRows() : matrix2.getColumns();
+   IndexType k = transposeA ? matrix1.getRows() : matrix1.getColumns();
+
    // Adjust leading dimensions based on transposition
    magma_int_t lda = transposeA ? k : m;
    magma_int_t ldb = transposeB ? n : k;
