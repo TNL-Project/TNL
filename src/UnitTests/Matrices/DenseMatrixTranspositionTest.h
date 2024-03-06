@@ -1,42 +1,24 @@
 
 #pragma once
+
 #include <functional>
 #include <iostream>
 #include <sstream>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Matrices/DenseMatrix.h>
-#include <TNL/Matrices/MatrixType.h>
-#include <TNL/Algorithms/contains.h>
-#include <TNL/Config/parseCommandLine.h>
-#include <TNL/Benchmarks/Benchmarks.h>
-#include <TNL/Containers/Expressions/ExpressionTemplates.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Matrices/MatrixOperations.h>
-#include <TNL/Backend/SharedMemory.h>
-#include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Containers/StaticArray.h>
 #include <TNL/Backend/Types.h>
-#include <TNL/Backend/Macros.h>
-#include <TNL/Backend/Functions.h>
-#include <TNL/Backend/Stream.h>
-#include <TNL/Backend/StreamPool.h>
-#include <TNL/Backend/DeviceInfo.h>
-#include <TNL/Backend/SharedMemory.h>
-#include <TNL/Backend/LaunchHelpers.h>
-
-#include <TNL/Backend/KernelLaunch.h>
-#include <cmath>
-#include <vector>
 
 #include <gtest/gtest.h>
 
 template< typename Matrix >
 class DenseMatrixTranspositionTest : public ::testing::Test
 {
-protected:
+public:
    using DenseMatrixType = Matrix;
 };
+
 // Define MatrixTypes for the test suite
 using MatrixTypes = ::testing::Types<
    TNL::Matrices::
@@ -56,7 +38,115 @@ using MatrixTypes = ::testing::Types<
 #endif
    >;
 
+template< typename MatrixType >
+void
+readMatrixFromCSV( MatrixType& matrix, const std::string& fileName )
+{
+   std::ifstream file( fileName );
+   if( ! file.is_open() ) {
+      std::cerr << "Failed to open file: " << fileName << "\n";
+      return;
+   }
+   std::string line;
+   typename MatrixType::IndexType row = 0;
+
+   while( std::getline( file, line ) ) {
+      std::stringstream lineStream( line );
+      std::string cell;
+      typename MatrixType::IndexType col = 0;
+
+      while( std::getline( lineStream, cell, ',' ) ) {
+         matrix.setElement( row, col, std::stod( cell ) );
+         col++;
+      }
+      row++;
+   }
+}
+
 TYPED_TEST_SUITE( DenseMatrixTranspositionTest, MatrixTypes );
+
+TYPED_TEST( DenseMatrixTranspositionTest, EmptyMatrix )
+{
+   using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   DenseMatrixType matrix{};         // Empty matrix
+   DenseMatrixType InPlaceMatrix{};  //Empty matrix for the InPlace Transposition
+
+   DenseMatrixType resultMatrix;
+
+   resultMatrix.getTransposition( matrix );
+   InPlaceMatrix.getInPlaceTransposition();
+
+   // Expect the result to be an empty matrix as well
+   DenseMatrixType checkMatrix{};
+
+   bool check = ( resultMatrix == checkMatrix ) && ( InPlaceMatrix == checkMatrix );
+   ASSERT_EQ( check, true );
+}
+
+TYPED_TEST( DenseMatrixTranspositionTest, SingleElementMatrix )
+{
+   using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   DenseMatrixType matrix{ { 5 } };         // 1x1 matrix
+   DenseMatrixType InPlaceMatrix{ { 5 } };  // 1x1 matrix for the InPlace Transposition
+
+   DenseMatrixType resultMatrix;
+
+   resultMatrix.getTransposition( matrix );
+
+   // Check matrix is the same as the input matrix
+   DenseMatrixType checkMatrix{ { 5 } };
+
+   bool check = resultMatrix == checkMatrix;
+   ASSERT_EQ( check, true );
+}
+
+TYPED_TEST( DenseMatrixTranspositionTest, SingleRowMatrix )
+{
+   using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   DenseMatrixType matrix{ { 1, 2, 3, 4 } };  // Single row matrix
+
+   DenseMatrixType resultMatrix;
+
+   resultMatrix.getTransposition( matrix );
+
+   // Expected matrix is a single column matrix with the elements of the original row
+   DenseMatrixType checkMatrix{ { 1 }, { 2 }, { 3 }, { 4 } };
+
+   bool check = resultMatrix == checkMatrix;
+   ASSERT_EQ( check, true );
+}
+
+TYPED_TEST( DenseMatrixTranspositionTest, SingleColumnMatrix )
+{
+   using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   DenseMatrixType matrix{ { 1 }, { 2 }, { 3 }, { 4 } };  // Single column matrix
+
+   DenseMatrixType resultMatrix;
+
+   resultMatrix.getTransposition( matrix );
+
+   // Expected matrix is a single row with the elements of the original column
+   DenseMatrixType checkMatrix{ { 1, 2, 3, 4 } };
+
+   bool check = resultMatrix == checkMatrix;
+   ASSERT_EQ( check, true );
+}
+
+TYPED_TEST( DenseMatrixTranspositionTest, SquareMatrix )
+{
+   using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   DenseMatrixType matrix{ { 1, 2, 3, 4 }, { 1, 2, 3, 4 }, { 1, 2, 3, 4 }, { 1, 2, 3, 4 } };
+   DenseMatrixType InPlaceMatrix{ { 1, 2, 3, 4 }, { 1, 2, 3, 4 }, { 1, 2, 3, 4 }, { 1, 2, 3, 4 } };
+
+   DenseMatrixType resultMatrix;
+   resultMatrix.getTransposition( matrix );
+   InPlaceMatrix.getInPlaceTransposition();
+
+   DenseMatrixType checkMatrix{ { 1, 1, 1, 1 }, { 2, 2, 2, 2 }, { 3, 3, 3, 3 }, { 4, 4, 4, 4 } };
+
+   bool check = ( resultMatrix == checkMatrix ) && ( InPlaceMatrix == checkMatrix );
+   ASSERT_EQ( check, true );
+}
 
 TYPED_TEST( DenseMatrixTranspositionTest, Transposition1 )
 {
@@ -64,7 +154,6 @@ TYPED_TEST( DenseMatrixTranspositionTest, Transposition1 )
    DenseMatrixType matrix{ { 5, 6, 6 }, { 6, 5, 7 }, { 7, 2, 1 }, { 3, 3, 9 } };
 
    DenseMatrixType resultMatrix;
-   resultMatrix.setDimensions( matrix.getColumns(), matrix.getRows() );
 
    DenseMatrixType checkMatrix{ { 5, 6, 7, 3 }, { 6, 5, 2, 3 }, { 6, 7, 1, 9 } };
 
@@ -74,6 +163,21 @@ TYPED_TEST( DenseMatrixTranspositionTest, Transposition1 )
    ASSERT_EQ( check, true );
 }
 
+TYPED_TEST( DenseMatrixTranspositionTest, TranspositionWrong )
+{
+   using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   DenseMatrixType matrix{ { 5, 6, 6 }, { 6, 5, 7 }, { 7, 2, 1 }, { 3, 3, 9 } };
+
+   DenseMatrixType resultMatrix;
+
+   DenseMatrixType checkMatrix{ { 1, 1, 1, 1 }, { 6, 5, 2, 3 }, { 6, 7, 1, 9 } };
+
+   resultMatrix.getTransposition( matrix );
+
+   bool check = resultMatrix == checkMatrix;
+   ASSERT_EQ( check, false );
+}
+
 TYPED_TEST( DenseMatrixTranspositionTest, Transposition2 )
 {
    using DenseMatrixType = typename TestFixture::DenseMatrixType;
@@ -81,7 +185,6 @@ TYPED_TEST( DenseMatrixTranspositionTest, Transposition2 )
                            { 7, 6, 5, 4 }, { 8, 1, 2, 0 }, { 4, 5, 6, 7 } };
 
    DenseMatrixType resultMatrix;
-   resultMatrix.setDimensions( matrix.getColumns(), matrix.getRows() );
 
    DenseMatrixType checkMatrix{
       { 4, 3, 2, 6, 7, 8, 4 }, { 3, 4, 2, 8, 6, 1, 5 }, { 1, 4, 7, 9, 5, 2, 6 }, { 2, 3, 8, 0, 4, 0, 7 }
@@ -91,6 +194,59 @@ TYPED_TEST( DenseMatrixTranspositionTest, Transposition2 )
 
    bool check = resultMatrix == checkMatrix;
    ASSERT_EQ( check, true );
+}
+
+TYPED_TEST( DenseMatrixTranspositionTest, Transposition3 )
+{
+   using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   DenseMatrixType matrix{ { 134, 567, 454, 323, 234, 342, 865, 543, 146, 642 },
+                           { 543, 589, 577, 432, 242, 643, 533, 477, 642, 123 },
+                           { 872, 876, 124, 456, 245, 634, 789, 754, 907, 345 } };
+
+   DenseMatrixType resultMatrix;
+
+   DenseMatrixType checkMatrix{ { 134, 543, 872 }, { 567, 589, 876 }, { 454, 577, 124 }, { 323, 432, 456 }, { 234, 242, 245 },
+                                { 342, 643, 634 }, { 865, 533, 789 }, { 543, 477, 754 }, { 146, 642, 907 }, { 642, 123, 345 } };
+
+   resultMatrix.getTransposition( matrix );
+
+   bool check = resultMatrix == checkMatrix;
+   ASSERT_EQ( check, true );
+}
+
+TYPED_TEST( DenseMatrixTranspositionTest, LargeSquaredMatrices )
+{
+   using DenseMatrixType = typename TestFixture::DenseMatrixType;
+
+   DenseMatrixType matrix( 110, 110 );
+   readMatrixFromCSV( matrix, std::string( RELATIVE_PATH_TO_MATRICES ) + "matrixInPlace.csv" );
+
+   DenseMatrixType InPlaceMatrix( 110, 110 );
+   readMatrixFromCSV( InPlaceMatrix, std::string( RELATIVE_PATH_TO_MATRICES ) + "matrixInPlace.csv" );
+
+   DenseMatrixType checkMatrix( 110, 110 );
+   readMatrixFromCSV( checkMatrix, std::string( RELATIVE_PATH_TO_MATRICES ) + "matrixInPlace_transposed.csv" );
+
+   DenseMatrixType resultMatrix;
+
+   resultMatrix.getTransposition( matrix );
+   InPlaceMatrix.getInPlaceTransposition();
+
+   auto tolerance = 1e-3;
+
+   auto diff1 = resultMatrix.getValues() - checkMatrix.getValues();
+   auto diff2 = InPlaceMatrix.getValues() - checkMatrix.getValues();
+
+   bool check1 = true;
+   bool check2 = true;
+
+   if( TNL::maxNorm( abs( diff1 ) ) > tolerance ) {
+      check1 = false;
+   }
+   if( TNL::maxNorm( abs( diff2 ) ) > tolerance ) {
+      check2 = false;
+   }
+   ASSERT_TRUE( check1 && check2 );
 }
 
 #include "../main.h"

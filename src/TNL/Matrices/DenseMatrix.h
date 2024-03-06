@@ -232,6 +232,10 @@ public:
    void
    getTransposition( const Matrix& matrix, Real matrixMultiplicator = 1.0 );
 
+   template< int tileDim = 16 >
+   void
+   getInPlaceTransposition( Real matrixMultiplicator = 1.0 );
+
    /**
     * \brief Copy-assignment of exactly the same matrix type.
     *

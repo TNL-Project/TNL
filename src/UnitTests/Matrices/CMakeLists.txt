@@ -34,6 +34,7 @@ set(COMMON_TESTS
     MatrixWrappingTest
     DenseMatrixMultiplicationTest
     DenseMatrixTranspositionTest
+    DenseMatrixTransMultiplication
 )
 
 set(CPP_TESTS ${COMMON_TESTS} StaticMatrixTest MatrixTypeTraitsTest)

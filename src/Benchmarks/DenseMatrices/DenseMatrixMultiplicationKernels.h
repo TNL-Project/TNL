@@ -331,6 +331,7 @@ OptimizedWarpTilingDenseMatrixProductKernel( ResultMatrix resultMatrix,
 #endif  //__CUDACC__
 }
 
+/*
 //kernel 6 (Fermi)
 template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
@@ -387,26 +388,9 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
          else {
             tileB[ ty ][ tx * 4 + i ] = 0.0;
          }
-
-         // tileA[ ty * 4 + i ][ tx ] = ( aRow < matrixA.getRows() && aCol < matrixA.getColumns() ) ? matrixA( aRow, aCol ) :
-         // 0.0; tileB[ ty ][ tx * 4 + i ] = ( bRow < matrixB.getRows() && bCol < matrixB.getColumns() ) ? matrixB( bRow, bCol )
-         // : 0.0;
       }
 
       __syncthreads();
-
-      /* // Perform the multiplication for this tile
-      for (IndexType k = 0; k < 16; ++k) {
-         RealType regA, regB;
-         for (IndexType i = 0; i < 4; ++i) {
-            for (IndexType j = 0; j < 4; ++j) {
-                  regA = tileA[ty * 4 + i][k];
-                  regB = tileB[k][tx * 4 + j];
-                  CValue[i][j] += regA * regB * matrixMultiplicator; // FMAD operation
-            }
-         }
-      }
-      */
 
       // Perform the multiplication for this tile
       for( IndexType k = 0; k < 16; ++k ) {
@@ -438,4 +422,83 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
    }
 #endif  // __CUDACC__
 }
+*/
+
+template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
+__global__
+void
+optimizedFermiGemmKernel( ResultMatrix resultMatrix,
+                          const Matrix1 matrixA,
+                          const Matrix2 matrixB,
+                          const typename ResultMatrix::RealType matrixMultiplicator )
+{
+#ifdef __CUDACC__
+   using IndexType = typename ResultMatrix::IndexType;
+   using RealType = typename ResultMatrix::RealType;
+
+   IndexType bx = blockIdx.x, by = blockIdx.y;
+   IndexType tx = threadIdx.x, ty = threadIdx.y;
+
+   // Adjusting for a larger computation per thread
+   IndexType row = by * 16 + ty * 4;  // Each thread computes 4 rows at a time
+   IndexType col = bx * 16 + tx * 4;  // Each thread computes 4 columns at a time
+
+   RealType CValue[ 4 ][ 4 ] = { 0 };  // Accumulator for the result sub-tile
+
+   const IndexType matrixARows = matrixA.getRows();
+   const IndexType matrixAColumns = matrixA.getColumns();
+   const IndexType matrixBRows = matrixB.getRows();
+   const IndexType matrixBColumns = matrixB.getColumns();
+
+   // Calculate number of phases required to cover all columns of A / rows of B
+   const IndexType numTiles = ( matrixAColumns + 15 ) / 16;
+
+   for( IndexType m = 0; m < numTiles; ++m ) {
+      RealType AReg[ 4 ], BReg[ 4 ];
+
+   // Load elements from A and B into registers for this tile
+   #pragma unroll
+      for( IndexType i = 0; i < 4; ++i ) {
+         IndexType aRow = row + i;
+         IndexType bCol = col + i;
+         AReg[ i ] = ( aRow < matrixARows && m * 16 < matrixAColumns ) ? matrixA( aRow, m * 16 ) : 0;
+         BReg[ i ] = ( m * 16 < matrixBRows && bCol < matrixBColumns ) ? matrixB( m * 16, bCol ) : 0;
+      }
+
+   // Compute sub-tile
+   #pragma unroll
+      for( IndexType k = 0; k < 16; ++k ) {
+   // Load the next element from A and B into registers
+   #pragma unroll
+         for( IndexType i = 0; i < 4; ++i ) {
+            AReg[ i ] = ( ( row + i ) < matrixARows && ( m * 16 + k ) < matrixAColumns ) ? matrixA( row + i, m * 16 + k ) : 0;
+            BReg[ i ] = ( ( m * 16 + k ) < matrixBRows && ( col + i ) < matrixBColumns ) ? matrixB( m * 16 + k, col + i ) : 0;
+         }
+
+   // Multiply and accumulate in CValue
+   #pragma unroll
+         for( IndexType i = 0; i < 4; ++i ) {
+   #pragma unroll
+            for( IndexType j = 0; j < 4; ++j ) {
+               CValue[ i ][ j ] += AReg[ i ] * BReg[ j ] * matrixMultiplicator;
+            }
+         }
+      }
+   }
+
+   // Store the result from CValue to the result matrix
+   #pragma unroll
+   for( IndexType i = 0; i < 4; i++ ) {
+   #pragma unroll
+      for( IndexType j = 0; j < 4; j++ ) {
+         IndexType cRow = row + i;
+         IndexType cCol = col + j;
+         if( cRow < resultMatrix.getRows() && cCol < resultMatrix.getColumns() ) {
+            resultMatrix( cRow, cCol ) = CValue[ i ][ j ];
+         }
+      }
+   }
+#endif
+}
+
 }  //namespace TNL::Benchmarks::DenseMatrices
